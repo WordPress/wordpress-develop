@@ -43,9 +43,10 @@
 	],
 	"variations": [
 		{
-			"name": "alert",
-			"title": "Alert",
-			"description": "Shows alert."
+			"name": "error",
+			"title": "Error",
+			"description": "Shows error.",
+			"keywords": [ "failure" ]
 		}
 	],
 	"example": {

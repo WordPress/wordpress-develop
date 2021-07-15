@@ -373,9 +373,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'name'        => 'alert',
-					'title'       => 'Alert',
-					'description' => 'Shows alert.',
+					'name'        => 'error',
+					'title'       => 'Error',
+					'description' => 'Shows error.',
+					'keywords'    => array( 'failure' ),
 				),
 			),
 			$result->variations
@@ -452,9 +453,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'name'        => 'alert',
-					'title'       => 'Ostrzeżenie',
-					'description' => 'Wyświetla ostrzeżenie.',
+					'name'        => 'error',
+					'title'       => 'Błąd',
+					'description' => 'Wyświetla błąd.',
+					'keywords'    => array( 'niepowodzenie' ),
 				),
 			),
 			$result->variations

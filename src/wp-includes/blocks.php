@@ -311,6 +311,15 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
 							$variation['description'] = translate_with_gettext_context( $variation['description'], 'block variation description', $textdomain );
 						}
+						if ( ! empty( $variation['keywords'] ) && is_array( $variation['keywords'] ) ) {
+							$keywords = array();
+							foreach ( $variation['keywords'] as $keyword ) {
+								// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+								$keywords[] = translate_with_gettext_context( $keyword, 'block variation keyword', $textdomain );
+							}
+							$variation['keywords'] = $keywords;
+						}
+
 						$settings[ $mapped_key ][] = $variation;
 					}
 
