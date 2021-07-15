@@ -978,12 +978,12 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the rollback. Must include a slug, the source and subfolder.
+	 * @param array $args Array of data for the rollback. Must include a slug, the source and directory.
 	 *
 	 * @return bool|WP_Error
 	 */
 	public function move_to_rollbacks_dir( $args ) {
-		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['subfolder'] ) ) {
+		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
 			return false;
 		}
 		global $wp_filesystem;
@@ -996,15 +996,15 @@ class WP_Upgrader {
 				! $wp_filesystem->mkdir( $dest_folder )
 			) ||
 			(
-				! $wp_filesystem->is_dir( $dest_folder . $args['subfolder'] . '/' ) &&
-				! $wp_filesystem->mkdir( $dest_folder . $args['subfolder'] . '/' )
+				! $wp_filesystem->is_dir( $dest_folder . $args['dir'] . '/' ) &&
+				! $wp_filesystem->mkdir( $dest_folder . $args['dir'] . '/' )
 			)
 		) {
 			return new WP_Error( 'fs_rollback_mkdir', $this->strings['rollback_mkdir_failed'] );
 		}
 
 		$src  = trailingslashit( $args['src'] ) . $args['slug'];
-		$dest = $dest_folder . $args['subfolder'] . '/' . $args['slug'];
+		$dest = $dest_folder . $args['dir'] . '/' . $args['slug'];
 
 		// Delete rollback folder if it already exists.
 		if ( $wp_filesystem->is_dir( $dest ) ) {
@@ -1026,17 +1026,17 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the rollback. Must include a slug, the source and subfolder.
+	 * @param array $args Array of data for the rollback. Must include a slug, the source and directory.
 	 *
 	 * @return bool|WP_Error
 	 */
 	public function restore_rollback( $args ) {
-		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['subfolder'] ) ) {
+		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
 			return false;
 		}
 
 		global $wp_filesystem;
-		$src  = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/' . $args['subfolder'] . '/' . $args['slug'];
+		$src  = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/' . $args['dir'] . '/' . $args['slug'];
 		$dest = trailingslashit( $args['src'] ) . $args['slug'];
 
 		if ( $wp_filesystem->is_dir( $src ) ) {
@@ -1063,17 +1063,17 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the rollback. Must include a slug, the source and subfolder.
+	 * @param array $args Array of data for the rollback. Must include a slug, the source and directory.
 	 *
 	 * @return bool
 	 */
 	public function delete_rollback( $args ) {
 		global $wp_filesystem;
-		if ( empty( $args['slug'] ) || empty( $args['subfolder'] ) ) {
+		if ( empty( $args['slug'] ) || empty( $args['dir'] ) ) {
 			return false;
 		}
 		return $wp_filesystem->delete(
-			$wp_filesystem->wp_content_dir() . "upgrade/rollback/{$args['subfolder']}/{$args['slug']}",
+			$wp_filesystem->wp_content_dir() . "upgrade/rollback/{$args['dir']}/{$args['slug']}",
 			true
 		);
 	}

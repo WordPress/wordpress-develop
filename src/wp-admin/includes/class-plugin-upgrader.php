@@ -230,9 +230,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 					'type'     => 'plugin',
 					'action'   => 'update',
 					'rollback' => array(
-						'slug'      => dirname( $plugin ),
-						'src'       => $wp_filesystem->wp_plugins_dir(),
-						'subfolder' => 'plugins',
+						'slug' => dirname( $plugin ),
+						'src'  => $wp_filesystem->wp_plugins_dir(),
+						'dir'  => 'plugins',
 					),
 				),
 			)
@@ -351,9 +351,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 					'hook_extra'        => array(
 						'plugin'   => $plugin,
 						'rollback' => array(
-							'slug'      => dirname( $plugin ),
-							'src'       => $wp_filesystem->wp_plugins_dir(),
-							'subfolder' => 'plugins',
+							'slug' => dirname( $plugin ),
+							'src'  => $wp_filesystem->wp_plugins_dir(),
+							'dir'  => 'plugins',
 						),
 					),
 				)
