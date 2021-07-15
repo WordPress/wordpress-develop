@@ -231,7 +231,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 					'action'   => 'update',
 					'rollback' => array(
 						'slug' => dirname( $plugin ),
-						'src'  => $wp_filesystem->wp_plugins_dir(),
+						'src'  => WP_PLUGIN_DIR,
 						'dir'  => 'plugins',
 					),
 				),
@@ -339,8 +339,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 			$this->skin->plugin_active = is_plugin_active( $plugin );
 
-			global $wp_filesystem;
-
 			$result = $this->run(
 				array(
 					'package'           => $r->package,
@@ -352,7 +350,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 						'plugin'   => $plugin,
 						'rollback' => array(
 							'slug' => dirname( $plugin ),
-							'src'  => $wp_filesystem->wp_plugins_dir(),
+							'src'  => WP_PLUGIN_DIR,
 							'dir'  => 'plugins',
 						),
 					),
