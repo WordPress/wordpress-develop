@@ -1042,10 +1042,8 @@ class WP_Upgrader {
 		if ( $wp_filesystem->is_dir( $src ) ) {
 
 			// Cleanup.
-			if ( $wp_filesystem->is_dir( $dest ) ) {
-				if ( ! $wp_filesystem->delete( $dest, true ) ) {
-					return new WP_Error( 'fs_rollback_delete', $this->strings['rollback_restore_failed'] );
-				}
+			if ( $wp_filesystem->is_dir( $dest ) && ! $wp_filesystem->delete( $dest, true ) ) {
+				return new WP_Error( 'fs_rollback_delete', $this->strings['rollback_restore_failed'] );
 			}
 
 			// Move it.
