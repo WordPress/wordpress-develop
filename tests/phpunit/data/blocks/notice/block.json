@@ -41,6 +41,13 @@
 			"label": "Other"
 		}
 	],
+	"variations": [
+		{
+			"name": "alert",
+			"title": "Alert",
+			"description": "Shows alert."
+		}
+	],
 	"example": {
 		"attributes": {
 			"message": "This is a notice!"

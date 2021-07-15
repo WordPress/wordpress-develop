@@ -372,6 +372,16 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array(
+				array(
+					'name'        => 'alert',
+					'title'       => 'Alert',
+					'description' => 'Shows alert.',
+				),
+			),
+			$result->variations
+		);
+		$this->assertSame(
+			array(
 				'attributes' => array(
 					'message' => 'This is a notice!',
 				),
@@ -438,6 +448,16 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 				),
 			),
 			$result->styles
+		);
+		$this->assertSame(
+			array(
+				array(
+					'name'        => 'alert',
+					'title'       => 'Ostrzeżenie',
+					'description' => 'Wyświetla ostrzeżenie.',
+				),
+			),
+			$result->variations
 		);
 	}
 

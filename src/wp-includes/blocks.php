@@ -191,7 +191,8 @@ function register_block_style_handle( $metadata, $field_name ) {
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
- * @since 5.9.0 Added support for the `viewScript` field.
+ * @since 5.7.0 Added support for `textdomain` field and i18n handling for all translatable fields.
+ * @since 5.9.0 Added support for `variations` and `viewScript` fields.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -238,6 +239,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	$settings          = array();
 	$property_mappings = array(
+		'apiVersion'      => 'api_version',
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
@@ -249,8 +251,8 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'usesContext'     => 'uses_context',
 		'supports'        => 'supports',
 		'styles'          => 'styles',
+		'variations'      => 'variations',
 		'example'         => 'example',
-		'apiVersion'      => 'api_version',
 	);
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
@@ -291,6 +293,25 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 							$style['label'] = translate_with_gettext_context( $style['label'], 'block style label', $textdomain );
 						}
 						$settings[ $mapped_key ][] = $style;
+					}
+
+					break;
+				case 'variations':
+					$settings[ $mapped_key ] = array();
+					if ( ! is_array( $value ) ) {
+						continue 2;
+					}
+
+					foreach ( $value as $variation ) {
+						if ( ! empty( $variation['title'] ) ) {
+							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+							$variation['title'] = translate_with_gettext_context( $variation['title'], 'block variation title', $textdomain );
+						}
+						if ( ! empty( $variation['description'] ) ) {
+							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+							$variation['description'] = translate_with_gettext_context( $variation['description'], 'block variation description', $textdomain );
+						}
+						$settings[ $mapped_key ][] = $variation;
 					}
 
 					break;
