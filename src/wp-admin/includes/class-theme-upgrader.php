@@ -452,7 +452,7 @@ class Theme_Upgrader extends WP_Upgrader {
 						'rollback' => array(
 							'slug' => $theme,
 							'src'  => get_theme_root( $theme ),
-							'src'  => 'themes',
+							'dir'  => 'themes',
 						),
 					),
 				)
