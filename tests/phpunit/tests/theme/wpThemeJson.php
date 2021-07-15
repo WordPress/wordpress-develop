@@ -925,7 +925,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 				'spacing'    => array(
-					'units' => array( 'px', 'em', 'rem', 'vh', 'vw' ),
+					'units' => array( 'px', 'em', 'rem', 'vh', 'vw', '%' ),
 				),
 				'typography' => array(
 					'customFontSize'   => false,
@@ -1039,7 +1039,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$input = get_default_block_editor_settings();
 
 		$expected = array(
-			'units'         => array( 'px', 'em', 'rem', 'vh', 'vw' ),
+			'units'         => array( 'px', 'em', 'rem', 'vh', 'vw', '%' ),
 			'customPadding' => false,
 		);
 
