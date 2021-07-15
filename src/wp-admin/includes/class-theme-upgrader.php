@@ -333,7 +333,7 @@ class Theme_Upgrader extends WP_Upgrader {
 					'action'   => 'update',
 					'rollback' => array(
 						'slug' => $theme,
-						'src'  => get_theme_root(),
+						'src'  => get_theme_root( $theme ),
 						'dir'  => 'themes',
 					),
 				),
@@ -451,7 +451,7 @@ class Theme_Upgrader extends WP_Upgrader {
 						'theme'    => $theme,
 						'rollback' => array(
 							'slug' => $theme,
-							'src'  => get_theme_root(),
+							'src'  => get_theme_root( $theme ),
 							'src'  => 'themes',
 						),
 					),
