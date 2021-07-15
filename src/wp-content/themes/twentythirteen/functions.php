@@ -313,7 +313,7 @@ add_action( 'wp_enqueue_scripts', 'twentythirteen_scripts_styles' );
  * @return array URLs to print for resource hints.
  */
 function twentythirteen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentythirteen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+	if ( wp_style_is( 'twentythirteen-fonts', 'queue' ) && ( 'preconnect' === $relation_type || 'dns-prefetch' === $relation_type ) ) {
 		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
 			$urls[] = array(
 				'href' => 'https://fonts.gstatic.com',
