@@ -1879,6 +1879,98 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Test if plugin and theme updates rollbacks folders are writable or can be created.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_update_rollbacks_writable() {
+		$result = array(
+			'label'       => __( 'Plugin and theme update rollbacks folder is writable' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				/* Translators: %s: "wp-content/upgrade/rollback". */
+				'<p>' . __( 'The %s folder used to improve the stability of plugin and theme updates is writable.' ),
+				'<code>wp-content/upgrade/rollback</code>'
+			),
+			'actions'     => '',
+			'test'        => 'update_rollbacks_writable',
+		);
+
+		global $wp_filesystem;
+		if ( ! $wp_filesystem ) {
+			if ( ! function_exists( 'WP_Filesystem' ) ) {
+				require_once wp_normalize_path( ABSPATH . '/wp-admin/includes/file.php' );
+			}
+			WP_Filesystem();
+		}
+		$wp_content = $wp_filesystem->wp_content_dir();
+
+		if ( $wp_filesystem->is_dir( "$wp_content/upgrade/rollback/plugins" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/rollback/plugins" ) ) {
+			$result['status'] = 'critical';
+			$result['label']  = __( 'Plugins rollback folder exists but is not writable' );
+			$result['description'] = sprintf(
+				/* translators: %s: '<code>wp-content/upgrade/rollback/plugins</code>' */
+				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to improve the stability of plugin updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
+				'<code>wp-content/upgrade/rollback/plugins</code>'
+			);
+			return $result;
+		}
+
+		if ( $wp_filesystem->is_dir( "$wp_content/upgrade/rollback/themes" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/rollback/themes" ) ) {
+			$result['status'] = 'critical';
+			$result['label']  = __( 'Themes rollback folder exists but is not writable' );
+			$result['description'] = sprintf(
+				/* translators: %s: '<code>wp-content/upgrade/rollback/themes</code>' */
+				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to improve the stability of theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
+				'<code>wp-content/upgrade/rollback/themes</code>'
+			);
+			return $result;
+		}
+
+		if ( ( ! $wp_filesystem->is_dir( "$wp_content/upgrade/rollback/plugins" ) || ! $wp_filesystem->is_dir( "$wp_content/upgrade/rollback/themes" ) ) && $wp_filesystem->is_dir( "$wp_content/upgrade/rollback" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/rollback" ) ) {
+			$result['status'] = 'critical';
+			$result['label']  = __( 'The rollbacks folder exists but is not writable' );
+			$result['description'] = sprintf(
+				/* translators: %s: '<code>wp-content/upgrade/rollback</code>' */
+				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to improve the stability of plugin and theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
+				'<code>wp-content/upgrade/rollback</code>'
+			);
+			return $result;
+		}
+
+		if ( ! $wp_filesystem->is_dir( "$wp_content/upgrade/rollback" ) && $wp_filesystem->is_dir( "$wp_content/upgrade" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade" ) ) {
+			$result['status'] = 'critical';
+			$result['label']  = __( 'The upgrade folder exists but is not writable' );
+			$result['description'] = sprintf(
+				/* translators: %s: '<code>wp-content/upgrade</code>' */
+				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to for plugin and theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
+				'<code>wp-content/upgrade</code>'
+			);
+			return $result;
+		}
+
+		if ( ! $wp_filesystem->is_dir( "$wp_content/upgrade" ) && ! $wp_filesystem->is_writable( $wp_content ) ) {
+			$result['status'] = 'critical';
+			$result['label']  = __( 'The upgrade folder can not be created' );
+			$result['description'] = sprintf(
+				/* ranslators: %1$s: <code>wp-content/upgrade</code>. %2$s: <code>wp-content</code>. */
+				'<p>' . __( 'The %1$s folder does not exist, and the server does not have write permissions in %2$s to create it. This folder is used to for plugin and theme updates. Please make sure the server has write permissions in %2$s.' ) . '</p>',
+				'<code>wp-content/upgrade</code>',
+				'<code>wp-content</code>'
+			);
+			return $result;
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Test if loopbacks work as expected.
 	 *
 	 * A loopback is when WordPress queries itself, for example to start a new WP_Cron instance,
@@ -2326,6 +2418,10 @@ class WP_Site_Health {
 				'plugin_theme_auto_updates' => array(
 					'label' => __( 'Plugin and theme auto-updates' ),
 					'test'  => 'plugin_theme_auto_updates',
+				),
+				'update_rollbacks_writable' => array(
+					'label' => __( 'Updates rollback folder access' ),
+					'test'  => 'update_rollbacks_writable',
 				),
 			),
 			'async'  => array(
