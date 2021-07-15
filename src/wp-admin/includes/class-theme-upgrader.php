@@ -332,9 +332,9 @@ class Theme_Upgrader extends WP_Upgrader {
 					'type'     => 'theme',
 					'action'   => 'update',
 					'rollback' => array(
-						'slug'      => $theme,
-						'src'       => get_theme_root(),
-						'subfolder' => 'themes',
+						'slug' => $theme,
+						'src'  => get_theme_root(),
+						'dir'  => 'themes',
 					),
 				),
 			)
@@ -450,9 +450,9 @@ class Theme_Upgrader extends WP_Upgrader {
 					'hook_extra'        => array(
 						'theme'    => $theme,
 						'rollback' => array(
-							'slug'      => $theme,
-							'src'       => get_theme_root(),
-							'subfolder' => 'themes',
+							'slug' => $theme,
+							'src'  => get_theme_root(),
+							'src'  => 'themes',
 						),
 					),
 				)
