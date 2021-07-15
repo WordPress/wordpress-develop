@@ -67,7 +67,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 
 		// Insert a post and make sure the ID is OK.
 		$post_id = wp_insert_post( $post );
-		$this->assertTrue( is_numeric( $post_id ) );
+		$this->assertIsNumeric( $post_id );
 		$this->assertTrue( $post_id > 0 );
 
 		$post = get_post( $post_id );
@@ -83,7 +83,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 
 		// Insert a post and make sure the ID is OK.
 		$nav_id = wp_insert_post( $post );
-		$this->assertTrue( is_numeric( $nav_id ) );
+		$this->assertIsNumeric( $nav_id );
 		$this->assertTrue( $nav_id > 0 );
 
 		$post = get_post( $nav_id );

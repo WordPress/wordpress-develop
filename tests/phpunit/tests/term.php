@@ -153,7 +153,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$initial_count = wp_count_terms( array( 'taxonomy' => 'category' ) );
 
 		$t = wp_insert_category( array( 'cat_name' => $term ) );
-		$this->assertTrue( is_numeric( $t ) );
+		$this->assertIsNumeric( $t );
 		$this->assertNotWPError( $t );
 		$this->assertTrue( $t > 0 );
 		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => 'category' ) ) );

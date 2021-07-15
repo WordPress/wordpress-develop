@@ -420,7 +420,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			'taxonomy' => 'category',
 			'cat_name' => 'test1',
 		);
-		$this->assertTrue( is_numeric( wp_insert_category( $cat, true ) ) );
+		$this->assertIsNumeric( wp_insert_category( $cat, true ) );
 	}
 
 	function test_insert_category_update() {

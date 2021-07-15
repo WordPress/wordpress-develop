@@ -79,7 +79,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 			// Insert a post and make sure the ID is OK.
 			$id = wp_insert_post( $post );
-			$this->assertTrue( is_numeric( $id ) );
+			$this->assertIsNumeric( $id );
 			$this->assertTrue( $id > 0 );
 
 			// Fetch the post and make sure it matches.
@@ -135,7 +135,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 		// dmp( _get_cron_array() );
-		$this->assertTrue( is_numeric( $id ) );
+		$this->assertIsNumeric( $id );
 		$this->assertTrue( $id > 0 );
 
 		// Fetch the post and make sure it matches.
@@ -258,7 +258,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 		// dmp( _get_cron_array() );
-		$this->assertTrue( is_numeric( $id ) );
+		$this->assertIsNumeric( $id );
 		$this->assertTrue( $id > 0 );
 
 		// Fetch the post and make sure it matches.
@@ -379,7 +379,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 		// dmp( _get_cron_array() );
-		$this->assertTrue( is_numeric( $id ) );
+		$this->assertIsNumeric( $id );
 		$this->assertTrue( $id > 0 );
 
 		// Fetch the post and make sure it matches.

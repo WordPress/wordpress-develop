@@ -1198,7 +1198,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		for ( $i = 0; $i < 20; $i += 1 ) {
 			$id = wp_unique_id();
 			$this->assertIsString( $id );
-			$this->assertTrue( is_numeric( $id ) );
+			$this->assertIsNumeric( $id );
 			$ids[] = $id;
 		}
 		$this->assertSame( $ids, array_unique( $ids ) );

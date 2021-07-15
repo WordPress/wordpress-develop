@@ -1214,7 +1214,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( $manager->changeset_uuid(), get_post( $post_id )->post_name, 'Expected that the "__trashed" suffix to not be added.' );
 		wp_set_current_user( self::$admin_user_id );
 		$this->assertSame( 'publish', get_post_meta( $post_id, '_wp_trash_meta_status', true ) );
-		$this->assertTrue( is_numeric( get_post_meta( $post_id, '_wp_trash_meta_time', true ) ) );
+		$this->assertIsNumeric( get_post_meta( $post_id, '_wp_trash_meta_time', true ) );
 
 		foreach ( array_keys( $expected_actions ) as $action_name ) {
 			$this->assertSame( $expected_actions[ $action_name ] + $action_counts[ $action_name ], did_action( $action_name ), "Action: $action_name" );
