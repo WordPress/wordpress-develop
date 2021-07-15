@@ -102,7 +102,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		foreach ( $query->posts as $post ) {
 
 			// Posts are WP_Post objects.
-			$this->assertTrue( is_a( $post, 'WP_Post' ) );
+			$this->assertInstanceOf( 'WP_Post', $post );
 
 			// Filters are raw.
 			$this->assertSame( 'raw', $post->filter );
