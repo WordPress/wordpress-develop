@@ -1044,7 +1044,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_mysql_to_rfc3339( $expected, $actual ) {
 		$date_return = mysql_to_rfc3339( $actual );
 
-		$this->assertTrue( is_string( $date_return ), 'The date return must be a string' );
+		$this->assertIsString( $date_return, 'The date return must be a string' );
 		$this->assertNotEmpty( $date_return, 'The date return could not be an empty string' );
 		$this->assertSame( $expected, $date_return, 'The date does not match' );
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
