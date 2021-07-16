@@ -53,6 +53,7 @@ services:
   # The MySQL container.
   ##
   mysql:
+    platform: linux/x86_64
     image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
 
     networks:
