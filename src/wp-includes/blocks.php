@@ -188,6 +188,74 @@ function register_block_style_handle( $metadata, $field_name ) {
 }
 
 /**
+ * Gets i18n schema for block's metadata read from `block.json` file.
+ *
+ * @since 5.9.0
+ *
+ * @return array The schema for block's metadata.
+ */
+function get_i18n_block_metadata_schema() {
+	return array(
+		'title'       => 'block title',
+		'description' => 'block description',
+		'keywords'    => array( 'block keyword' ),
+		'styles'      => array(
+			(object) array(
+				'label' => 'block style label',
+			),
+		),
+		'variations'  => array(
+			(object) array(
+				'title'       => 'block variation title',
+				'description' => 'block variation description',
+				'keywords'    => array( 'block variation keyword' ),
+			),
+		),
+	);
+}
+
+/**
+ * Translates the provided setting value using its i18n schema.
+ *
+ * @since 5.9.0
+ *
+ * @param string|string[]|array[] $i18n_schema   I18n schema for the setting.
+ * @param string|string[]|array[] $setting_value Value for the setting.
+ * @param string                  $textdomain    Textdomain to use with translations.
+ *
+ * @return string|string[]|array[] Translated setting.
+ */
+function translate_setting_using_i18n_schema( $i18n_schema, $setting_value, $textdomain ) {
+	if ( empty( $i18n_schema ) || empty( $setting_value ) ) {
+		return $setting_value;
+	}
+
+	if ( is_string( $i18n_schema ) && is_string( $setting_value ) ) {
+		// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain
+		return translate_with_gettext_context( $setting_value, $i18n_schema, $textdomain );
+	}
+	if ( is_array( $i18n_schema ) && is_array( $setting_value ) ) {
+		$translated_settings = array();
+		foreach ( $setting_value as $value ) {
+			$translated_settings[] = translate_setting_using_i18n_schema( $i18n_schema[0], $value, $textdomain );
+		}
+		return $translated_settings;
+	}
+	if ( is_object( $i18n_schema ) && is_array( $setting_value ) ) {
+		$translated_settings = array();
+		foreach ( $setting_value as $key => $value ) {
+			if ( ! isset( $i18n_schema->$key ) ) {
+				$translated_settings[ $key ] = $value;
+				continue;
+			}
+			$translated_settings[ $key ] = translate_setting_using_i18n_schema( $i18n_schema->$key, $value, $textdomain );
+		}
+		return $translated_settings;
+	}
+	return $setting_value;
+}
+
+/**
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
@@ -254,78 +322,14 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'variations'      => 'variations',
 		'example'         => 'example',
 	);
+	$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
+	$i18n_schema       = get_i18n_block_metadata_schema();
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
-			$value = $metadata[ $key ];
-			if ( empty( $metadata['textdomain'] ) ) {
-				$settings[ $mapped_key ] = $value;
-				continue;
-			}
-			$textdomain = $metadata['textdomain'];
-			switch ( $key ) {
-				case 'title':
-				case 'description':
-					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain
-					$settings[ $mapped_key ] = translate_with_gettext_context( $value, sprintf( 'block %s', $key ), $textdomain );
-					break;
-				case 'keywords':
-					$settings[ $mapped_key ] = array();
-					if ( ! is_array( $value ) ) {
-						continue 2;
-					}
-
-					foreach ( $value as $keyword ) {
-						// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-						$settings[ $mapped_key ][] = translate_with_gettext_context( $keyword, 'block keyword', $textdomain );
-					}
-
-					break;
-				case 'styles':
-					$settings[ $mapped_key ] = array();
-					if ( ! is_array( $value ) ) {
-						continue 2;
-					}
-
-					foreach ( $value as $style ) {
-						if ( ! empty( $style['label'] ) ) {
-							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-							$style['label'] = translate_with_gettext_context( $style['label'], 'block style label', $textdomain );
-						}
-						$settings[ $mapped_key ][] = $style;
-					}
-
-					break;
-				case 'variations':
-					$settings[ $mapped_key ] = array();
-					if ( ! is_array( $value ) ) {
-						continue 2;
-					}
-
-					foreach ( $value as $variation ) {
-						if ( ! empty( $variation['title'] ) ) {
-							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-							$variation['title'] = translate_with_gettext_context( $variation['title'], 'block variation title', $textdomain );
-						}
-						if ( ! empty( $variation['description'] ) ) {
-							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-							$variation['description'] = translate_with_gettext_context( $variation['description'], 'block variation description', $textdomain );
-						}
-						if ( ! empty( $variation['keywords'] ) && is_array( $variation['keywords'] ) ) {
-							$keywords = array();
-							foreach ( $variation['keywords'] as $keyword ) {
-								// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-								$keywords[] = translate_with_gettext_context( $keyword, 'block variation keyword', $textdomain );
-							}
-							$variation['keywords'] = $keywords;
-						}
-
-						$settings[ $mapped_key ][] = $variation;
-					}
-
-					break;
-				default:
-					$settings[ $mapped_key ] = $value;
+			$settings[ $mapped_key ] = $metadata[ $key ];
+			if ( $textdomain && isset( $i18n_schema[ $key ] ) ) {
+				$settings[ $mapped_key ] = translate_setting_using_i18n_schema( $i18n_schema[ $key ], $settings[ $key ], $textdomain );
 			}
 		}
 	}
