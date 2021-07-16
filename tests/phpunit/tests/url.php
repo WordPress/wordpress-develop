@@ -250,7 +250,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$home_https = str_replace( 'http://', 'https://', $home );
 
 		// is_ssl() should determine the scheme in the admin.
-		$this->assertSame( 0, strpos( $home, 'http://' ) );
+		$this->assertStringStartsWith( 'http://', $home );
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertSame( $home_https, network_home_url() );
 
