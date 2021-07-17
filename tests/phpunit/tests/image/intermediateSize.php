@@ -106,7 +106,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], '330x220' ) > 0 );
+		$this->assertStringContainsString( '330x220', $image['file'] );
 	}
 
 	/**
@@ -128,7 +128,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], '330x220' ) > 0 );
+		$this->assertStringContainsString( '330x220', $image['file'] );
 	}
 
 	/**
@@ -151,7 +151,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], '450x300' ) > 0 );
+		$this->assertStringContainsString( '450x300', $image['file'] );
 	}
 
 	/**
@@ -201,7 +201,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], $image_w . 'x' . $image_h ) > 0 );
+		$this->assertStringContainsString( $image_w . 'x' . $image_h, $image['file'] );
 	}
 
 	/**
@@ -230,7 +230,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], $image_w . 'x' . $image_h ) > 0 );
+		$this->assertStringContainsString( $image_w . 'x' . $image_h, $image['file'] );
 	}
 
 	/**
@@ -255,7 +255,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		// Note: Staying larger than 300px to miss default medium crop.
 		$image = image_get_intermediate_size( $id, array( 0, $height ) );
 
-		$this->assertTrue( strpos( $image['file'], $width . 'x' . $height ) > 0 );
+		$this->assertStringContainsString( $width . 'x' . $height, $image['file'] );
 	}
 
 	/**
@@ -273,7 +273,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$image = image_get_intermediate_size( $id, array( 50, 25 ) );
 
 		// We should get the 'test-size' file and not the thumbnail.
-		$this->assertTrue( strpos( $image['file'], '200x100' ) > 0 );
+		$this->assertStringContainsString( '200x100', $image['file'] );
 	}
 
 	/**

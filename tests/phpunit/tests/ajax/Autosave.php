@@ -79,7 +79,7 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 		// Check that the edit happened.
 		$post = get_post( self::$post_id );
-		$this->assertNotFalse( strpos( $post->post_content, $md5 ) );
+		$this->assertStringContainsString( $md5, $post->post_content );
 	}
 
 	/**
@@ -125,12 +125,12 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 		// Check that the original post was NOT edited.
 		$post = get_post( self::$post_id );
-		$this->assertFalse( strpos( $post->post_content, $md5 ) );
+		$this->assertStringNotContainsString( $md5, $post->post_content );
 
 		// Check if the autosave post was created.
 		$autosave = wp_get_post_autosave( self::$post_id, get_current_user_id() );
 		$this->assertNotEmpty( $autosave );
-		$this->assertNotFalse( strpos( $autosave->post_content, $md5 ) );
+		$this->assertStringContainsString( $md5, $autosave->post_content );
 	}
 
 	/**
