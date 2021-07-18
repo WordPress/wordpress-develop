@@ -3,7 +3,6 @@
 /**
  * @group http
  * @group external-http
- * @requires extension openssl
  */
 class Tests_HTTP_Functions extends WP_UnitTestCase {
 

@@ -157,7 +157,27 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 			$GLOBALS[ $global ] = null;
 		}
 
-		// Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars are added when the next test runs.
+		/*
+		 * Reset globals related to current screen to provide a consistent global starting state
+		 * for tests that interact with admin screens. Replaces the need for individual tests
+		 * to invoke `set_current_screen( 'front' )` (or an alternative implementation) as a reset.
+		 *
+		 * The globals are from `WP_Screen::set_current_screen()`.
+		 *
+		 * Why not invoke `set_current_screen( 'front' )`?
+		 * Performance (faster test runs with less memory usage). How so? For each test,
+		 * it saves creating an instance of WP_Screen, making two method calls,
+		 * and firing of the `current_screen` action.
+		 */
+		$current_screen_globals = array( 'current_screen', 'taxnow', 'typenow' );
+		foreach ( $current_screen_globals as $global ) {
+			$GLOBALS[ $global ] = null;
+		}
+
+		/*
+		 * Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars
+		 * are added when the next test runs.
+		 */
 		$GLOBALS['wp_sitemaps'] = null;
 
 		$this->unregister_all_meta_keys();

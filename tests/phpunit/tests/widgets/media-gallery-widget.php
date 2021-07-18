@@ -52,6 +52,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 	 * Test update() method.
 	 *
 	 * @covers WP_Widget_Media_Gallery::render_media
+	 * @requires function imagejpeg
 	 */
 	public function test_render_media() {
 		$widget = new WP_Widget_Media_Gallery();

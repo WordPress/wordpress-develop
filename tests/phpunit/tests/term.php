@@ -153,14 +153,14 @@ class Tests_Term extends WP_UnitTestCase {
 		$initial_count = wp_count_terms( array( 'taxonomy' => 'category' ) );
 
 		$t = wp_insert_category( array( 'cat_name' => $term ) );
-		$this->assertTrue( is_numeric( $t ) );
+		$this->assertIsNumeric( $t );
 		$this->assertNotWPError( $t );
-		$this->assertTrue( $t > 0 );
+		$this->assertGreaterThan( 0, $t );
 		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 
 		// Make sure the term exists.
-		$this->assertTrue( term_exists( $term ) > 0 );
-		$this->assertTrue( term_exists( $t ) > 0 );
+		$this->assertGreaterThan( 0, term_exists( $term ) );
+		$this->assertGreaterThan( 0, term_exists( $t ) );
 
 		// Now delete it.
 		$this->assertTrue( wp_delete_category( $t ) );

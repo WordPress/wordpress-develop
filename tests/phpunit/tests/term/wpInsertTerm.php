@@ -29,13 +29,13 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$t = wp_insert_term( $term, $taxonomy );
 		$this->assertIsArray( $t );
 		$this->assertNotWPError( $t );
-		$this->assertTrue( $t['term_id'] > 0 );
-		$this->assertTrue( $t['term_taxonomy_id'] > 0 );
+		$this->assertGreaterThan( 0, $t['term_id'] );
+		$this->assertGreaterThan( 0, $t['term_taxonomy_id'] );
 		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => $taxonomy ) ) );
 
 		// Make sure the term exists.
-		$this->assertTrue( term_exists( $term ) > 0 );
-		$this->assertTrue( term_exists( $t['term_id'] ) > 0 );
+		$this->assertGreaterThan( 0, term_exists( $term ) );
+		$this->assertGreaterThan( 0, term_exists( $t['term_id'] ) );
 
 		// Now delete it.
 		add_filter( 'delete_term', array( $this, 'deleted_term_cb' ), 10, 5 );
@@ -187,7 +187,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_duplicate_name() {
 		$term = self::factory()->tag->create_and_get( array( 'name' => 'Bozo' ) );
 		$this->assertNotWPError( $term );
-		$this->assertTrue( empty( $term->errors ) );
+		$this->assertEmpty( $term->errors );
 
 		// Test existing term name with unique slug.
 		$term1 = self::factory()->tag->create(
@@ -822,7 +822,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 		$cached_children = get_option( 'wptests_tax_children' );
 		$this->assertNotEmpty( $cached_children[ $t ] );
-		$this->assertTrue( in_array( $found['term_id'], $cached_children[ $t ], true ) );
+		$this->assertContains( $found['term_id'], $cached_children[ $t ] );
 	}
 
 	/**

@@ -1654,7 +1654,7 @@ EOF;
 
 		// Test to confirm all sources in the array include the same edit hash.
 		foreach ( $sizes as $size ) {
-			$this->assertNotFalse( strpos( $size, $hash ) );
+			$this->assertStringContainsString( $hash, $size );
 		}
 	}
 
@@ -1722,6 +1722,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_calculate_image_srcset_no_width() {
 		$file       = get_attached_file( self::$large_id );
@@ -2229,7 +2230,7 @@ EOF;
 		// Full size GIFs should not return a srcset.
 		$this->assertFalse( wp_calculate_image_srcset( $size_array, $full_src, $image_meta ) );
 		// Intermediate sized GIFs should not include the full size in the srcset.
-		$this->assertFalse( strpos( wp_calculate_image_srcset( $size_array, $large_src, $image_meta ), $full_src ) );
+		$this->assertStringNotContainsString( $full_src, wp_calculate_image_srcset( $size_array, $large_src, $image_meta ) );
 	}
 
 	/**

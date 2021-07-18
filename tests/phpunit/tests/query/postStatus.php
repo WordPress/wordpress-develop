@@ -274,7 +274,6 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 
 		$this->assertContains( "post_status = 'foo", $q->request );
-		set_current_screen( 'front' );
 	}
 
 	public function test_private_statuses_should_be_included_when_current_user_can_read_private_posts() {
