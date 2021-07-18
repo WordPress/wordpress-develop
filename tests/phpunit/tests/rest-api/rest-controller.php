@@ -11,6 +11,11 @@
  */
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Load the WP_REST_Test_Controller class if not already loaded.
+		require_once __DIR__ . '/rest-test-controller.php';
+	}
+
 	public function setUp() {
 		parent::setUp();
 		$this->request = new WP_REST_Request(
