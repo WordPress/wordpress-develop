@@ -111,36 +111,28 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		// Check sanitize testing.
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( 'false', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( '0', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( 0, $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( 'FALSE', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( 'true', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( '1', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( 1, $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( 'TRUE', $this->request, 'someboolean' )
 		);
 
