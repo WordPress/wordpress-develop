@@ -79,6 +79,14 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		// Add support for responsive embeds.
 		add_theme_support( 'responsive-embeds' );
 
+		// Editor color palette.
+		$black       = '#000000';
+		$dark_gray   = '#2b2b2b';
+		$medium_gray = '#767676';
+		$light_gray  = '#f5f5f5';
+		$green       = '#24890d';
+		$white       = '#FFFFFF';
+
 		// Add support for custom color scheme.
 		add_theme_support(
 			'editor-color-palette',
@@ -86,32 +94,59 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 				array(
 					'name'  => __( 'Green', 'twentyfourteen' ),
 					'slug'  => 'green',
-					'color' => '#24890d',
+					'color' => $green,
 				),
 				array(
 					'name'  => __( 'Black', 'twentyfourteen' ),
 					'slug'  => 'black',
-					'color' => '#000',
+					'color' => $black,
 				),
 				array(
 					'name'  => __( 'Dark Gray', 'twentyfourteen' ),
 					'slug'  => 'dark-gray',
-					'color' => '#2b2b2b',
+					'color' => $dark_gray,
 				),
 				array(
 					'name'  => __( 'Medium Gray', 'twentyfourteen' ),
 					'slug'  => 'medium-gray',
-					'color' => '#767676',
+					'color' => $medium_gray,
 				),
 				array(
 					'name'  => __( 'Light Gray', 'twentyfourteen' ),
 					'slug'  => 'light-gray',
-					'color' => '#f5f5f5',
+					'color' => $light_gray,
 				),
 				array(
 					'name'  => __( 'White', 'twentyfourteen' ),
 					'slug'  => 'white',
-					'color' => '#fff',
+					'color' => $white,
+				),
+			)
+		);
+
+		// Add theme support for block gradient colours.
+		add_theme_support(
+			'editor-gradient-presets',
+			array(
+				array(
+					'name'     => esc_html__( 'Green to White', 'twentyfourteen' ),
+					'gradient' => 'linear-gradient(160deg, ' . $green . ' 0%, ' . $white . ' 100%)',
+					'slug'     => 'green-to-white',
+				),
+				array(
+					'name'     => esc_html__( 'White to Green', 'twentyfourteen' ),
+					'gradient' => 'linear-gradient(160deg, ' . $white . ' 0%, ' . $green . ' 100%)',
+					'slug'     => 'white-to-green',
+				),
+				array(
+					'name'     => esc_html__( 'Green to Black', 'twentyfourteen' ),
+					'gradient' => 'linear-gradient(160deg, ' . $green . ' 0%, ' . $black . ' 100%)',
+					'slug'     => 'green-to-black',
+				),
+				array(
+					'name'     => esc_html__( 'Black to Green', 'twentyfourteen' ),
+					'gradient' => 'linear-gradient(160deg, ' . $black . ' 0%, ' . $green . ' 100%)',
+					'slug'     => 'black-to-green',
 				),
 			)
 		);
@@ -383,8 +418,8 @@ add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen
  *
  * @since Twenty Fourteen 1.9
  *
- * @param array   $urls          URLs to print for resource hints.
- * @param string  $relation_type The relation type the URLs are printed.
+ * @param array  $urls          URLs to print for resource hints.
+ * @param string $relation_type The relation type the URLs are printed.
  * @return array URLs to print for resource hints.
  */
 function twentyfourteen_resource_hints( $urls, $relation_type ) {

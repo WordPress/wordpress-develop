@@ -59,7 +59,7 @@ Use it to make something cool, have fun, and share what you've learned with othe
  * -----------------------------------------------------------------------------
  */
 
-html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
+ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
 	border: 0;
 	font-family: inherit;
 	font-size: 100%;
@@ -4521,4 +4521,20 @@ a.post-thumbnail:hover {
 		font-size: 25pt;
 		line-height: 36px;
 	}
+}
+
+.has-green-to-white-gradient-background {
+	background: linear-gradient(160deg, #24890d,#FFFFFF);
+}
+
+.has-white-to-green-gradient-background {
+	background: linear-gradient(160deg, #FFFFFF,#24890d);
+}
+
+.has-green-to-black-gradient-background {
+	background: linear-gradient(160deg, #24890d,#000000);
+}
+
+.has-black-to-green-gradient-background {
+	background: linear-gradient(160deg, #000000,#24890d);
 }
