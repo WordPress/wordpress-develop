@@ -513,7 +513,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$first_call_count = $listener->get_call_count( $method );
 
-		$this->assertTrue( $first_call_count > 0 );
+		$this->assertGreaterThan( 0, $first_call_count );
 
 		$request->set_param( '_fields', 'somestring' );
 
@@ -525,7 +525,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller->prepare_item_for_response( $item, $request );
 
-		$this->assertTrue( $listener->get_call_count( $method ) > $first_call_count );
+		$this->assertGreaterThan( $first_call_count, $listener->get_call_count( $method ) );
 	}
 
 	/**
