@@ -46,6 +46,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	protected static $_core_actions_post = array(
 		'oembed_cache',
 		'image-editor',
+		'clear-community-events',
 		'delete-comment',
 		'delete-tag',
 		'delete-link',

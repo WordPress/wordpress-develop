@@ -321,6 +321,7 @@ jQuery( function( $ ) {
 				.removeClass( 'hide-if-js' );
 
 			$container.on( 'click', '.community-events-toggle-location, .community-events-cancel', app.toggleLocationForm );
+			$container.on( 'click', '.community-events-clear-location', app.clearLocationForm);
 
 			/**
 			 * Filters events based on entered location.
@@ -354,6 +355,36 @@ jQuery( function( $ ) {
 			app.initialized = true;
 		},
 
+		getRequestParams: function () {
+			var requestParams = {},initiatedBy;
+			requestParams._wpnonce = communityEventsData.nonce;
+			requestParams.timezone = window.Intl ? window.Intl.DateTimeFormat().resolvedOptions().timeZone : '';
+			initiatedBy = requestParams.location ? 'user' : 'app';
+			return {requestParams: requestParams,initiatedBy: initiatedBy};
+		},
+
+		/**
+		 * Resets the location
+		 * @return {void}
+		 */
+		clearLocationForm: function() {
+			var params = app.getRequestParams(),
+				requestParams= params.requestParams,
+				initiatedBy = params.initiatedBy;
+
+			wp.ajax.post( 'clear-community-events', requestParams )
+				.done( function() {
+					app.getEvents();
+				})
+				.fail( function() {
+					app.renderEventsTemplate({
+						'location' : false,
+						'events'   : [],
+						'error'    : true
+					}, initiatedBy );
+				});
+		},
+
 		/**
 		 * Toggles the visibility of the Edit Location form.
 		 *
@@ -366,6 +397,7 @@ jQuery( function( $ ) {
 		 */
 		toggleLocationForm: function( action ) {
 			var $toggleButton = $( '.community-events-toggle-location' ),
+			  	$clearButton  = $( '.community-events-clear-location' ),
 				$cancelButton = $( '.community-events-cancel' ),
 				$form         = $( '.community-events-form' ),
 				$target       = $();
@@ -383,6 +415,7 @@ jQuery( function( $ ) {
 
 			if ( 'hide' === action ) {
 				$toggleButton.attr( 'aria-expanded', 'false' );
+				$clearButton.attr( 'aria-expanded', 'false' );
 				$cancelButton.attr( 'aria-expanded', 'false' );
 				$form.attr( 'aria-hidden', 'true' );
 				/*
@@ -395,6 +428,7 @@ jQuery( function( $ ) {
 				}
 			} else {
 				$toggleButton.attr( 'aria-expanded', 'true' );
+				$clearButton.attr( 'aria-expanded', 'true' );
 				$cancelButton.attr( 'aria-expanded', 'true' );
 				$form.attr( 'aria-hidden', 'false' );
 			}
@@ -410,15 +444,14 @@ jQuery( function( $ ) {
 		 * @return {void}
 		 */
 		getEvents: function( requestParams ) {
-			var initiatedBy,
-				app = this,
-				$spinner = $( '.community-events-form' ).children( '.spinner' );
+			var app = this,
+				params = app.getRequestParams(),
+				initiatedBy = params.initiatedBy,
+				$spinner = $('.community-events-form').children('.spinner');
 
-			requestParams          = requestParams || {};
-			requestParams._wpnonce = communityEventsData.nonce;
-			requestParams.timezone = window.Intl ? window.Intl.DateTimeFormat().resolvedOptions().timeZone : '';
-
-			initiatedBy = requestParams.location ? 'user' : 'app';
+			requestParams = requestParams || params.requestParams;
+			requestParams._wpnonce = params.requestParams._wpnonce;
+			requestParams.timezone= params.requestParams.timezone;
 
 			$spinner.addClass( 'is-active' );
 
@@ -468,6 +501,7 @@ jQuery( function( $ ) {
 			var template,
 				elementVisibility,
 				$toggleButton    = $( '.community-events-toggle-location' ),
+				$clearButton 	 = $( '.community-events-clear-location' ),
 				$locationMessage = $( '#community-events-location-message' ),
 				$results         = $( '.community-events-results' );
 
@@ -493,6 +527,7 @@ jQuery( function( $ ) {
 				'.community-events-could-not-locate' : false,
 				'#community-events-location-message' : false,
 				'.community-events-toggle-location'  : false,
+				'.community-events-clear-location'   : false,
 				'.community-events-results'          : false
 			};
 
@@ -517,6 +552,7 @@ jQuery( function( $ ) {
 
 				elementVisibility['#community-events-location-message'] = true;
 				elementVisibility['.community-events-toggle-location']  = true;
+				elementVisibility['.community-events-clear-location']  = true;
 				elementVisibility['.community-events-results']          = true;
 
 			} else if ( templateParams.location.description ) {
@@ -544,6 +580,7 @@ jQuery( function( $ ) {
 
 				elementVisibility['#community-events-location-message'] = true;
 				elementVisibility['.community-events-toggle-location']  = true;
+				elementVisibility['.community-events-clear-location']  = true;
 				elementVisibility['.community-events-results']          = true;
 
 			} else if ( templateParams.unknownCity ) {
@@ -591,6 +628,7 @@ jQuery( function( $ ) {
 
 				elementVisibility['#community-events-location-message'] = true;
 				elementVisibility['.community-events-toggle-location']  = true;
+				elementVisibility['.community-events-clear-location']  = true;
 			}
 
 			// Set the visibility of toggleable elements.
@@ -599,6 +637,7 @@ jQuery( function( $ ) {
 			});
 
 			$toggleButton.attr( 'aria-expanded', elementVisibility['.community-events-toggle-location'] );
+			$clearButton.attr( 'aria-expanded', elementVisibility['.community-events-clear-location'] );
 
 			if ( templateParams.location && ( templateParams.location.ip || templateParams.location.latitude ) ) {
 				// Hide the form when there's a valid location.
