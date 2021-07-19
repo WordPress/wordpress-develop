@@ -99,6 +99,29 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 				),
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<id>[a-zA-Z0-9_-]+)/render',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+					'callback'            => array( $this, 'render' ),
+					'args' => array(
+						'id_base'        => array(
+							'description' => __( 'The widget type id.' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+						'instance'  => array(
+							'description' => __( 'Current instance settings of the widget.' ),
+							'type'        => 'object',
+						),
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -249,6 +272,9 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
+		// Some third-party widgets rely on wp-admin functions so let's load them before rendering the preview.
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+
 		$widget_id   = $request['id'];
 		$widget_type = $this->get_widget( $widget_id );
 		if ( is_wp_error( $widget_type ) ) {
@@ -395,6 +421,15 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 		$this->schema = $schema;
 
 		return $this->add_additional_fields_schema( $this->schema );
+	}
+
+	public function render( $request ) {
+		return [
+			"preview" => render_legacy_widget_preview_iframe(
+				$request['id_base'],
+				$request['instance']
+			),
+		];
 	}
 
 	/**
