@@ -262,7 +262,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						printf(
 							/* translators: %s: The URL the user is being redirected to. */
 							__( 'You will be sent to %s' ),
-							'<strong><kbd>' . esc_html(
+							'<strong><code>' . esc_html(
 								add_query_arg(
 									array(
 										'site_url'   => site_url(),
@@ -271,7 +271,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 									),
 									$success_url
 								)
-							) . '</kbd></strong>'
+							) . '</code></strong>'
 						);
 					} else {
 						_e( 'You will be given a password to manually enter into the application in question.' );
@@ -296,7 +296,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						printf(
 							/* translators: %s: The URL the user is being redirected to. */
 							__( 'You will be sent to %s' ),
-							'<strong><kbd>' . esc_html( $reject_url ) . '</kbd></strong>'
+							'<strong><code>' . esc_html( $reject_url ) . '</code></strong>'
 						);
 					} else {
 						_e( 'You will be returned to the WordPress Dashboard, and no changes will be made.' );
