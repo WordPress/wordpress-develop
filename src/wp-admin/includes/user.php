@@ -639,7 +639,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 	if ( ! empty( $request['app_id'] ) && ! wp_is_uuid( $request['app_id'] ) ) {
 		$error->add(
 			'invalid_app_id',
-			__( 'The app ID must be a UUID.' )
+			__( 'The application ID must be a UUID.' )
 		);
 	}
 
