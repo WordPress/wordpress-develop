@@ -247,7 +247,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 				<?php
 				submit_button(
-					__( 'Yes, I approve of this connection.' ),
+					__( 'Yes, I approve of this connection' ),
 					'primary',
 					'approve',
 					false,
@@ -281,7 +281,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 				<?php
 				submit_button(
-					__( 'No, I do not approve of this connection.' ),
+					__( 'No, I do not approve of this connection' ),
 					'secondary',
 					'reject',
 					false,
