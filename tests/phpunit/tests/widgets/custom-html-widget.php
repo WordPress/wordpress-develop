@@ -111,12 +111,12 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		$output = ob_get_clean();
 		$this->assertNotEmpty( $this->widget_custom_html_content_args );
 		$this->assertNotEmpty( $this->widget_text_args );
-		$this->assertContains( '[filter:widget_text][filter:widget_custom_html_content]', $output );
-		$this->assertContains( '<section id="custom_html-5" class="widget_text widget widget_custom_html">', $output );
-		$this->assertContains( '<div class="textwidget custom-html-widget">', $output );
-		$this->assertNotContains( '<p>', $output );
-		$this->assertNotContains( '<br>', $output );
-		$this->assertNotContains( '</u>', $output );
+		$this->assertStringContainsString( '[filter:widget_text][filter:widget_custom_html_content]', $output );
+		$this->assertStringContainsString( '<section id="custom_html-5" class="widget_text widget widget_custom_html">', $output );
+		$this->assertStringContainsString( '<div class="textwidget custom-html-widget">', $output );
+		$this->assertStringNotContainsString( '<p>', $output );
+		$this->assertStringNotContainsString( '<br>', $output );
+		$this->assertStringNotContainsString( '</u>', $output );
 		$this->assertSame( $text_widget_instance, $this->widget_text_args[1] );
 		$this->assertSame( $instance, $this->widget_custom_html_content_args[1] );
 		$this->assertSame( $widget, $this->widget_text_args[2] );
@@ -128,7 +128,7 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		ob_start();
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertContains( '</u>', $output );
+		$this->assertStringContainsString( '</u>', $output );
 	}
 
 	/**
@@ -287,7 +287,7 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		WP_Widget_Custom_HTML::render_control_template_scripts();
 		$output = ob_get_clean();
 
-		$this->assertContains( '<script type="text/html" id="tmpl-widget-custom-html-control-fields">', $output );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-widget-custom-html-control-fields">', $output );
 	}
 
 	/**
@@ -300,7 +300,7 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		WP_Widget_Custom_HTML::add_help_text();
 		$help_tab = get_current_screen()->get_help_tab( 'custom_html_widget' );
 
-		$this->assertContains( 'Use the Custom HTML widget to add arbitrary HTML code to your widget areas.', $help_tab['content'] );
+		$this->assertStringContainsString( 'Use the Custom HTML widget to add arbitrary HTML code to your widget areas.', $help_tab['content'] );
 	}
 
 	/**
@@ -326,7 +326,7 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		);
 
 		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
-		$this->assertContains( 'rel="noopener"', $output );
+		$this->assertStringContainsString( 'rel="noopener"', $output );
 	}
 
 	/**
@@ -352,7 +352,7 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		);
 
 		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
-		$this->assertNotContains( 'rel="noopener"', $output );
+		$this->assertStringNotContainsString( 'rel="noopener"', $output );
 	}
 
 }

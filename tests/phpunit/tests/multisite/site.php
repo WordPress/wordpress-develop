@@ -514,8 +514,8 @@ if ( is_multisite() ) :
 			$post    = get_post( $post_id );
 			$content = apply_filters( 'the_content', $post->post_content );
 
-			$this->assertNotContains( $post_data['post_title'], $content );
-			$this->assertNotContains( "src=\"{$spam_embed_url}#?", $content );
+			$this->assertStringNotContainsString( $post_data['post_title'], $content );
+			$this->assertStringNotContainsString( "src=\"{$spam_embed_url}#?", $content );
 		}
 
 		function test_update_blog_status_make_spam_blog_action() {

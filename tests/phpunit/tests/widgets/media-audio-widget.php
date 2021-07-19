@@ -255,9 +255,9 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		// Check default outputs.
-		$this->assertContains( 'preload="none"', $output );
-		$this->assertContains( 'class="wp-audio-shortcode"', $output );
-		$this->assertContains( 'small-audio.mp3', $output );
+		$this->assertStringContainsString( 'preload="none"', $output );
+		$this->assertStringContainsString( 'class="wp-audio-shortcode"', $output );
+		$this->assertStringContainsString( 'small-audio.mp3', $output );
 
 		ob_start();
 		$widget->render_media(
@@ -271,8 +271,8 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		// Custom attributes.
-		$this->assertContains( 'preload="auto"', $output );
-		$this->assertContains( 'loop="1"', $output );
+		$this->assertStringContainsString( 'preload="auto"', $output );
+		$this->assertStringContainsString( 'loop="1"', $output );
 	}
 
 	/**
@@ -322,6 +322,6 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		$widget->render_control_template_scripts();
 		$output = ob_get_clean();
 
-		$this->assertContains( '<script type="text/html" id="tmpl-wp-media-widget-audio-preview">', $output );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-wp-media-widget-audio-preview">', $output );
 	}
 }

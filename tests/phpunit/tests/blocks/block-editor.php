@@ -435,7 +435,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		block_editor_rest_api_preload( array(), $editor_context );
 
 		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
-		$this->assertNotContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
+		$this->assertStringNotContainsString( 'wp.apiFetch.createPreloadingMiddleware', $after );
 	}
 
 	/**
@@ -462,7 +462,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		remove_filter( 'block_editor_preload_paths', 'filter_remove_preload_paths' );
 
 		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
-		$this->assertNotContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
+		$this->assertStringNotContainsString( 'wp.apiFetch.createPreloadingMiddleware', $after );
 	}
 
 	/**
@@ -489,9 +489,9 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		remove_filter( 'block_editor_rest_api_preload_paths', 'filter_add_preload_paths' );
 
 		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
-		$this->assertContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
-		$this->assertContains( '"\/wp\/v2\/blocks"', $after );
-		$this->assertContains( '"\/wp\/v2\/types"', $after );
+		$this->assertStringContainsString( 'wp.apiFetch.createPreloadingMiddleware', $after );
+		$this->assertStringContainsString( '"\/wp\/v2\/blocks"', $after );
+		$this->assertStringContainsString( '"\/wp\/v2\/types"', $after );
 	}
 
 	/**

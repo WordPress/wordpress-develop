@@ -290,13 +290,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		// Safe format for 4.4 and 4.5. See https://core.trac.wordpress.org/ticket/35028
 		$first_error = array_shift( $data['data']['params'] );
-		$this->assertContains( 'per_page must be between 1 (inclusive) and 100 (inclusive)', $first_error );
+		$this->assertStringContainsString( 'per_page must be between 1 (inclusive) and 100 (inclusive)', $first_error );
 		$request->set_param( 'per_page', 101 );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		$data        = $response->get_data();
 		$first_error = array_shift( $data['data']['params'] );
-		$this->assertContains( 'per_page must be between 1 (inclusive) and 100 (inclusive)', $first_error );
+		$this->assertStringContainsString( 'per_page must be between 1 (inclusive) and 100 (inclusive)', $first_error );
 	}
 
 	public function test_get_items_private_filter_query_var() {

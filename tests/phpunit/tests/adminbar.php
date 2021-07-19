@@ -264,7 +264,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$admin_bar = new WP_Admin_Bar();
 		$admin_bar->add_node( $node_data );
 		$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
-		$this->assertContains( $expected_html, $admin_bar_html );
+		$this->assertStringContainsString( $expected_html, $admin_bar_html );
 	}
 
 	/**
@@ -678,7 +678,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$query_params = array();
 		wp_parse_str( $parsed_url['query'], $query_params );
 		$this->assertSame( $uuid, $query_params['changeset_uuid'] );
-		$this->assertNotContains( 'changeset_uuid', $query_params['url'] );
+		$this->assertStringNotContainsString( 'changeset_uuid', $query_params['url'] );
 	}
 
 	/**

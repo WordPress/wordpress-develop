@@ -264,8 +264,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
-		$this->assertContains( '<div id="%1$s" class="before-sidebar %2$s">', $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
-		$this->assertContains( '</div> <!-- .before-sidebar -->', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
+		$this->assertStringContainsString( '<div id="%1$s" class="before-sidebar %2$s">', $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
+		$this->assertStringContainsString( '</div> <!-- .before-sidebar -->', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
 
 	}
 
@@ -378,10 +378,10 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$widget->_set( 2 );
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertNotContains( 'no-options-widget', $output );
-		$this->assertContains( '<h2>Buscar</h2>', $output );
-		$this->assertContains( '<section>', $output );
-		$this->assertContains( '</section>', $output );
+		$this->assertStringNotContainsString( 'no-options-widget', $output );
+		$this->assertStringContainsString( '<h2>Buscar</h2>', $output );
+		$this->assertStringContainsString( '<section>', $output );
+		$this->assertStringContainsString( '</section>', $output );
 	}
 
 	/**
@@ -393,7 +393,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$retval = $widget->form( array() );
 		$output = ob_get_clean();
 		$this->assertSame( 'noform', $retval );
-		$this->assertContains( 'no-options-widget', $output );
+		$this->assertStringContainsString( 'no-options-widget', $output );
 	}
 
 	/**
@@ -740,19 +740,19 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$control = ob_get_clean();
 		$this->assertNotEmpty( $control );
 
-		$this->assertContains( '<div class="widget-top">', $control );
-		$this->assertContains( '<div class="widget-title-action">', $control );
-		$this->assertContains( '<div class="widget-title">', $control );
-		$this->assertContains( '<form method="post">', $control );
-		$this->assertContains( '<div class="widget-content">', $control );
-		$this->assertContains( '<input class="widefat"', $control );
-		$this->assertContains( '<input type="hidden" name="id_base" class="id_base" value="search"', $control );
-		$this->assertContains( '<div class="widget-control-actions">', $control );
-		$this->assertContains( '<div class="alignleft">', $control );
-		$this->assertContains( 'widget-control-remove', $control );
-		$this->assertContains( 'widget-control-close', $control );
-		$this->assertContains( '<div class="alignright">', $control );
-		$this->assertContains( '<input type="submit" name="savewidget"', $control );
+		$this->assertStringContainsString( '<div class="widget-top">', $control );
+		$this->assertStringContainsString( '<div class="widget-title-action">', $control );
+		$this->assertStringContainsString( '<div class="widget-title">', $control );
+		$this->assertStringContainsString( '<form method="post">', $control );
+		$this->assertStringContainsString( '<div class="widget-content">', $control );
+		$this->assertStringContainsString( '<input class="widefat"', $control );
+		$this->assertStringContainsString( '<input type="hidden" name="id_base" class="id_base" value="search"', $control );
+		$this->assertStringContainsString( '<div class="widget-control-actions">', $control );
+		$this->assertStringContainsString( '<div class="alignleft">', $control );
+		$this->assertStringContainsString( 'widget-control-remove', $control );
+		$this->assertStringContainsString( 'widget-control-close', $control );
+		$this->assertStringContainsString( '<div class="alignright">', $control );
+		$this->assertStringContainsString( '<input type="submit" name="savewidget"', $control );
 
 		$param_overrides = array(
 			'before_form'           => '<!-- before_form -->',
@@ -771,11 +771,11 @@ class Tests_Widgets extends WP_UnitTestCase {
 		wp_widget_control( ...$sidebar_args );
 		$control = ob_get_clean();
 		$this->assertNotEmpty( $control );
-		$this->assertNotContains( '<form method="post">', $control );
-		$this->assertNotContains( '<div class="widget-content">', $control );
+		$this->assertStringNotContainsString( '<form method="post">', $control );
+		$this->assertStringNotContainsString( '<div class="widget-content">', $control );
 
 		foreach ( $param_overrides as $contained ) {
-			$this->assertContains( $contained, $control );
+			$this->assertStringContainsString( $contained, $control );
 		}
 	}
 

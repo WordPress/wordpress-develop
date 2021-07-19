@@ -1532,7 +1532,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
-		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// 3rd page.
 		$this->factory->post->create();
@@ -1550,14 +1550,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			),
 			rest_url( '/wp/v2/posts' )
 		);
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 4,
 			),
 			rest_url( '/wp/v2/posts' )
 		);
-		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// Last page.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
@@ -1572,7 +1572,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			),
 			rest_url( '/wp/v2/posts' )
 		);
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 
 		// Out of bounds.
@@ -1602,7 +1602,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			),
 			rest_url( '/wp/v2/posts' )
 		);
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'per_page' => 5,
@@ -1610,7 +1610,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			),
 			rest_url( '/wp/v2/posts' )
 		);
-		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
 
 	public function test_get_items_status_draft_permissions() {
@@ -1884,7 +1884,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertNotContains( $post_content, $data['content']['rendered'] );
+		$this->assertStringNotContainsString( $post_content, $data['content']['rendered'] );
 	}
 
 	public function test_get_post_invalid_id() {
