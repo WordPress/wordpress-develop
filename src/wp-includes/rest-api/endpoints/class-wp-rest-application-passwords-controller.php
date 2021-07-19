@@ -789,8 +789,18 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 				),
 				'app_id'    => array(
 					'description' => __( 'A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.' ),
-					'type'        => 'string',
-					'format'      => 'uuid',
+					'oneOf'       => array(
+						array(
+							'type'   => 'string',
+							'format' => 'uuid',
+						),
+						array(
+							'type' => 'string',
+							'enum' => array(
+								'',
+							),
+						),
+					),
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'name'      => array(
