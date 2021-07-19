@@ -191,6 +191,7 @@ function register_block_style_handle( $metadata, $field_name ) {
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
+ * @since 5.9.0 Added support for the `viewScript` field.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
