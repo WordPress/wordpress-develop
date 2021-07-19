@@ -821,7 +821,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			),
 			rest_url( '/wp/v2/comments' )
 		);
-		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// 3rd page.
@@ -867,7 +867,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			rest_url( '/wp/v2/comments' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 
 		// Out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
@@ -883,7 +883,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			rest_url( '/wp/v2/comments' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 	}
 
 	public function test_get_comments_invalid_date() {

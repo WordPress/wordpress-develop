@@ -626,7 +626,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			),
 			rest_url( 'wp/v2/categories' )
 		);
-		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// 3rd page.
@@ -670,7 +670,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			rest_url( 'wp/v2/categories' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 
 		// Out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
@@ -687,7 +687,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			rest_url( 'wp/v2/categories' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 	}
 
 	public function test_get_items_per_page_exceeds_number_of_items() {

@@ -590,7 +590,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			),
 			rest_url( 'wp/v2/tags' )
 		);
-		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// 3rd page.
@@ -632,7 +632,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			rest_url( 'wp/v2/tags' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 
 		// Out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -648,7 +648,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			rest_url( 'wp/v2/tags' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 	}
 
 	public function test_get_items_invalid_context() {

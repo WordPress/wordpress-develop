@@ -482,7 +482,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 			),
 			rest_url( $rest_route )
 		);
-		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
 

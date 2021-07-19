@@ -321,7 +321,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			),
 			rest_url( 'wp/v2/users' )
 		);
-		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// 3rd page.
@@ -363,7 +363,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			rest_url( 'wp/v2/users' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 
 		// Out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
@@ -379,7 +379,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			rest_url( 'wp/v2/users' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 	}
 
 	public function test_get_items_per_page() {
