@@ -594,7 +594,8 @@ class wpdb {
 	 *
 	 * Only set when `SAVEQUERIES` in defined and truthy.
 	 *
-	 * @since ?.?.?
+	 * @since 1.5.0
+	 *
 	 * @var float
 	 */
 	public $time_start = null;
@@ -602,7 +603,8 @@ class wpdb {
 	/**
 	 * Last SQL error encountered.
 	 *
-	 * @since ?.?.?
+	 * @since 2.5.0
+	 *
 	 * @var WP_Error|string
 	 */
 	public $error = null;
