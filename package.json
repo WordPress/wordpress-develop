@@ -171,6 +171,12 @@
 		"env:logs": "node ./tools/local-env/scripts/docker.js logs",
 		"env:pull": "node ./tools/local-env/scripts/docker.js pull",
 		"test:php": "node ./tools/local-env/scripts/docker.js run --rm phpunit phpunit",
+	  	"test:php_clover": "node ./tools/local-env/scripts/docker.js run --rm coverage phpunit --coverage-clover coverage/clover",
+	  	"test:php_crap4j": "node ./tools/local-env/scripts/docker.js run --rm coverage phpunit --coverage-crap4j coverage/crap4j",
+	  	"test:php_htm": "node ./tools/local-env/scripts/docker.js run --rm coverage phpunit --coverage-html coverage/html",
+	  	"test:php_php": "node ./tools/local-env/scripts/docker.js run --rm coverage phpunit --coverage-php coverage/php/index.php",
+	  	"test:php_text": "node ./tools/local-env/scripts/docker.js run --rm coverage phpunit --coverage-text coverage/text",
+	  	"test:bash": "node ./tools/local-env/scripts/docker.js run --rm phpunit bash",
 		"test:php-composer": "node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit",
 		"test:e2e": "node ./tests/e2e/run-tests.js",
 		"wp-packages-update": "wp-scripts packages-update"

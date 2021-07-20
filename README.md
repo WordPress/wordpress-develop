@@ -68,7 +68,24 @@ These commands run the PHP and end-to-end test suites, respectively:
 npm run test:php
 npm run test:e2e
 ```
+This command opens an PHP bash shall to allow running phpunit commands interactively:
 
+```
+npm run test:bash
+```
+
+#### To run the coverage report
+An online version can be found at https://app.codecov.io/gh/WordPress/wordpress-develop
+
+These commands run to create coverage reports:
+
+```
+npm run test:php_clover
+npm run test:php_crap4j
+npm run test:php_htm
+npm run test:php_php
+npm run test:php_text
+```
 #### To restart the development environment
 
 You may want to restart the environment if you've made changes to the configuration in the `docker-compose.yml` or `.env` files. Restart the environment with:
