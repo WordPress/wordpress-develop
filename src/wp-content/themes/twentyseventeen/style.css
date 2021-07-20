@@ -4360,3 +4360,18 @@ p > object:only-child {
 		padding: 0;
 	}
 }
+
+
+
+/* Block: Gradient Backgrounds Classes */
+.has-white-to-cyan-bluish-gray-gradient-background{
+	background: linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(171, 184, 195, 1) 100%);
+}
+
+.has-black-to-cyan-bluish-gray-gradient-background{
+	background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(171, 184, 195, 1) 100%);
+}
+
+.has-cyan-bluish-gray-to-transparent-gradient-background{
+	background: linear-gradient(90deg, rgba(171, 184, 195, 1) 0%, rgba(171, 184, 195, 0) 100%);
+}

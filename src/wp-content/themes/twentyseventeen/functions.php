@@ -119,6 +119,27 @@ function twentyseventeen_setup() {
 	// Add theme support for selective refresh for widgets.
 	add_theme_support( 'customize-selective-refresh-widgets' );
 
+	add_theme_support(
+		'editor-gradient-presets',
+		array(
+			array(
+				'name' 		=> __('White to Cyan bluish grey', 'twentyseventeen'),
+				'gradient'	=> 'linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(171, 184, 195, 1) 100%)',
+				'slug'		=> 'white-to-cyan-bluish-gray'
+			),
+			array(
+				'name' 		=> __('Black to Cyan bluish grey', 'twentyseventeen'),
+				'gradient'	=> 'linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(171, 184, 195, 1) 100%)',
+				'slug'		=> 'black-to-cyan-bluish-gray'
+			),
+			array(
+				'name' 		=> __('Cyan bluish grey to Transparent', 'twentyseventeen'),
+				'gradient'	=> 'linear-gradient(90deg, rgba(171, 184, 195, 1) 0%, rgba(171, 184, 195, 0) 100%)',
+				'slug'		=> 'cyan-bluish-gray-to-transparent'
+			)
+		)
+	);
+	
 	/*
 	 * This theme styles the visual editor to resemble the theme style,
 	 * specifically font, colors, and column width.
