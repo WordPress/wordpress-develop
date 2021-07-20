@@ -39,7 +39,7 @@ foreach ( $wpdb->tables( 'ms_global' ) as $table => $prefixed_table ) {
 
 if ( ! network_domain_check() && ( ! defined( 'WP_ALLOW_MULTISITE' ) || ! WP_ALLOW_MULTISITE ) ) {
 	wp_die(
-		printf(
+		sprintf(
 			/* translators: 1: WP_ALLOW_MULTISITE, 2: wp-config.php */
 			__( 'You must define the %1$s constant as true in your %2$s file to allow creation of a Network.' ),
 			'<code>WP_ALLOW_MULTISITE</code>',
@@ -94,7 +94,7 @@ if ( $_POST ) {
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 	// Create network tables.
 	install_network();
-	$base              = parse_url( trailingslashit( get_option( 'home' ) ), PHP_URL_PATH );
+	$base              = (string) parse_url( trailingslashit( get_option( 'home' ) ), PHP_URL_PATH );
 	$subdomain_install = allow_subdomain_install() ? ! empty( $_POST['subdomain_install'] ) : false;
 	if ( ! network_domain_check() ) {
 		$result = populate_network( 1, get_clean_basedomain(), sanitize_email( $_POST['email'] ), wp_unslash( $_POST['sitename'] ), $base, $subdomain_install );
