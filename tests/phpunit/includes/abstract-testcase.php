@@ -472,7 +472,17 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Sets up the expectations for testing a deprecated call.
 	 */
 	public function expectDeprecated() {
-		$annotations = $this->getAnnotations();
+		if ( method_exists( $this, 'getAnnotations' ) ) {
+			// PHPUnit < 9.5.0.
+			$annotations = $this->getAnnotations();
+		} else {
+			// PHPUnit >= 9.5.0.
+			$annotations = \PHPUnit\Util\Test::parseTestMethodAnnotations(
+				static::class,
+				$this->getName( false )
+			);
+		}
+
 		foreach ( array( 'class', 'method' ) as $depth ) {
 			if ( ! empty( $annotations[ $depth ]['expectedDeprecated'] ) ) {
 				$this->expected_deprecated = array_merge( $this->expected_deprecated, $annotations[ $depth ]['expectedDeprecated'] );
