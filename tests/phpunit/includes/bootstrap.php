@@ -206,6 +206,7 @@ if ( version_compare( tests_get_phpunit_version(), '6.0', '>=' ) ) {
 require_once $phpunitpolyfills_autoloader;
 unset( $phpunitpolyfills_autoloader );
 
+require_once __DIR__ . '/phpunit-adapter-testcase.php';
 require_once __DIR__ . '/abstract-testcase.php';
 require_once __DIR__ . '/testcase.php';
 require __DIR__ . '/testcase-rest-api.php';
