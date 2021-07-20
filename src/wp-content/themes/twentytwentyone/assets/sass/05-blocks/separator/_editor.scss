@@ -4,6 +4,10 @@ hr {
 	clear: both;
 	opacity: 1;
 
+	&:not(.is-style-wide):not(.is-style-dots) {
+		width: 100%;
+	}
+
 	&[style*="text-align:right"],
 	&[style*="text-align: right"] {
 		border-right-color: var(--separator--border-color);

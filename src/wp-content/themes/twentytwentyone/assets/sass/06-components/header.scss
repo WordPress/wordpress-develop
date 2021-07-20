@@ -38,35 +38,8 @@
 
 // Site title
 .site-title {
-
-	color: var(--branding--color-link);
-	font-family: var(--branding--title--font-family);
-	font-size: var(--branding--title--font-size-mobile);
-	letter-spacing: normal;
-	text-transform: var(--branding--title--text-transform);
-	line-height: var(--global--line-height-heading);
+	@include site-title-style();
 	margin-bottom: calc(var(--global--spacing-vertical) / 6);
-
-	a {
-		color: currentColor;
-		font-weight: var(--branding--title--font-weight);
-
-		&:link,
-		&:visited,
-		&:active {
-			color: currentColor;
-		}
-
-		&:hover,
-		&:focus {
-			color: var(--branding--color-link-hover);
-		}
-
-	}
-
-	@include media(mobile) {
-		font-size: var(--branding--title--font-size);
-	}
 }
 
 // Site description
@@ -75,10 +48,6 @@
 	font-family: var(--branding--description--font-family);
 	font-size: var(--branding--description--font-size);
 	line-height: 1.4;
-}
-
-.site-title > a {
-	text-decoration-color: var(--global--color-secondary);
 }
 
 // Site logo

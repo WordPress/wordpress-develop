@@ -98,3 +98,37 @@
 		margin-bottom: 0;
 	}
 }
+
+// Site title style
+@mixin site-title-style() {
+	color: var(--branding--color-link);
+	font-family: var(--branding--title--font-family);
+	font-size: var(--branding--title--font-size-mobile);
+	letter-spacing: normal;
+	text-transform: var(--branding--title--text-transform);
+	line-height: var(--global--line-height-heading);
+
+	a {
+		color: currentColor;
+		font-weight: var(--branding--title--font-weight);
+
+		&:link,
+		&:visited,
+		&:active {
+			color: currentColor;
+		}
+
+		&:hover,
+		&:focus {
+			color: var(--branding--color-link-hover);
+		}
+	}
+
+	> a {
+		text-decoration-color: var(--global--color-secondary);
+	}
+
+	@include media(mobile) {
+		font-size: var(--branding--title--font-size);
+	}
+}
