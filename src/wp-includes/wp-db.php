@@ -590,6 +590,26 @@ class wpdb {
 	private $has_connected = false;
 
 	/**
+	 * Time when the query was send for debugging purposes.
+	 *
+	 * Only set when `SAVEQUERIES` in defined and truthy.
+	 *
+	 * @since 1.5.0
+	 *
+	 * @var float
+	 */
+	public $time_start = null;
+
+	/**
+	 * Last SQL error encountered.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @var WP_Error|string
+	 */
+	public $error = null;
+
+	/**
 	 * Connects to the database server and selects a database.
 	 *
 	 * PHP5 style constructor for compatibility with PHP5. Does the actual setting up

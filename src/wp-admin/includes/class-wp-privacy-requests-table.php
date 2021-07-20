@@ -447,14 +447,18 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 				break;
 		}
 
-		echo '<span class="status-label status-' . esc_attr( $status ) . '">';
-		echo esc_html( $status_object->label );
+		$html = '';
+
+		$html .= '<span class="status-label status-' . esc_attr( $status ) . '">';
+		$html .= esc_html( $status_object->label );
 
 		if ( $timestamp ) {
-			echo ' (' . $this->get_timestamp_as_date( $timestamp ) . ')';
+			$html .= ' (' . $this->get_timestamp_as_date( $timestamp ) . ')';
 		}
 
-		echo '</span>';
+		$html .= '</span>';
+
+		return $html;
 	}
 
 	/**

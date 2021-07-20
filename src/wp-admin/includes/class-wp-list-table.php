@@ -12,6 +12,12 @@
  *
  * @since 3.1.0
  * @access private
+ *
+ * @property array $_args
+ * @property array $_pagination_args
+ * @property WP_Screen $screen
+ * @property array $_actions
+ * @property string $_pagination
  */
 class WP_List_Table {
 
@@ -213,6 +219,8 @@ class WP_List_Table {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
+
+		return false;
 	}
 
 	/**
@@ -313,6 +321,8 @@ class WP_List_Table {
 		if ( isset( $this->_pagination_args[ $key ] ) ) {
 			return $this->_pagination_args[ $key ];
 		}
+
+		return 0;
 	}
 
 	/**

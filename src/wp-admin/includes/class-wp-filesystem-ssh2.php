@@ -60,7 +60,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *
 	 * @param array $opt
 	 */
-	public function __construct( $opt = '' ) {
+	public function __construct( $opt = array() ) {
 		$this->method = 'ssh2';
 		$this->errors = new WP_Error();
 
@@ -647,23 +647,6 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 */
 	public function size( $file ) {
 		return filesize( $this->sftp_path( $file ) );
-	}
-
-	/**
-	 * Sets the access and modification times of a file.
-	 *
-	 * Note: Not implemented.
-	 *
-	 * @since 2.7.0
-	 *
-	 * @param string $file  Path to file.
-	 * @param int    $time  Optional. Modified time to set for file.
-	 *                      Default 0.
-	 * @param int    $atime Optional. Access time to set for file.
-	 *                      Default 0.
-	 */
-	public function touch( $file, $time = 0, $atime = 0 ) {
-		// Not implemented.
 	}
 
 	/**

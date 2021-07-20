@@ -5,6 +5,21 @@
  * @package WordPress
  * @subpackage Theme
  * @since 3.4.0
+ *
+ * @property string $name
+ * @property string $title
+ * @property string $version
+ * @property WP_Theme $parent_theme
+ * @property string $template_dir
+ * @property string $stylesheet_dir
+ * @property string $template
+ * @property string $stylesheet
+ * @property string $screenshot
+ * @property string $description
+ * @property string $author
+ * @property string $tags
+ * @property string $theme_root
+ * @property string $theme_root_uri
  */
 final class WP_Theme implements ArrayAccess {
 

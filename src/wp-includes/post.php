@@ -2496,6 +2496,11 @@ function is_sticky( $post_id = 0 ) {
  *
  * @see sanitize_post_field()
  *
+ * @phpstan-template T
+ * @phpstan-param T $post
+ * @phpstan-param string $context
+ * @phpstan-return T
+ *
  * @param object|WP_Post|array $post    The post object or array
  * @param string               $context Optional. How to sanitize post fields.
  *                                      Accepts 'raw', 'edit', 'db', 'display',
@@ -5500,6 +5505,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	if ( $foundid ) {
 		return get_post( $foundid, $output );
 	}
+
+	return null;
 }
 
 /**
@@ -5557,6 +5564,8 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 	if ( $page ) {
 		return get_post( $page, $output );
 	}
+
+	return null;
 }
 
 /**

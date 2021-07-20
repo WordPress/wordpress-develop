@@ -20,7 +20,7 @@ class WP_Dependencies {
 	 * An array of registered handle objects.
 	 *
 	 * @since 2.6.8
-	 * @var array
+	 * @var _WP_Dependency[]
 	 */
 	public $registered = array();
 
@@ -62,7 +62,7 @@ class WP_Dependencies {
 	 * An array of handle groups to enqueue.
 	 *
 	 * @since 2.8.0
-	 * @var array
+	 * @var (int|false)[]
 	 */
 	public $groups = array();
 

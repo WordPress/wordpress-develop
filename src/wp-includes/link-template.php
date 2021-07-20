@@ -383,7 +383,7 @@ function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
  *                               Default false.
  * @return string The page permalink.
  */
-function get_page_link( $post = false, $leavename = false, $sample = false ) {
+function get_page_link( $post = 0, $leavename = false, $sample = false ) {
 	$post = get_post( $post );
 
 	if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post->ID ) {
@@ -420,7 +420,7 @@ function get_page_link( $post = false, $leavename = false, $sample = false ) {
  *                               Default false.
  * @return string The page permalink.
  */
-function _get_page_link( $post = false, $leavename = false, $sample = false ) {
+function _get_page_link( $post = 0, $leavename = false, $sample = false ) {
 	global $wp_rewrite;
 
 	$post = get_post( $post );
@@ -829,7 +829,7 @@ function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
  * @param string $feed      Optional. Feed type. Possible values include 'rss2', 'atom'.
  *                          Default is the value of get_default_feed().
  */
-function post_comments_feed_link( $link_text = '', $post_id = '', $feed = '' ) {
+function post_comments_feed_link( $link_text = '', $post_id = 0, $feed = '' ) {
 	$url = get_post_comments_feed_link( $post_id, $feed );
 	if ( empty( $link_text ) ) {
 		$link_text = __( 'Comments Feed' );
