@@ -590,7 +590,9 @@ class wpdb {
 	private $has_connected = false;
 
 	/**
-	 * Undocumented variable
+	 * Time when the query was send for debugging purposes.
+	 *
+	 * Only set when `SAVEQUERIES` in defined and truthy.
 	 *
 	 * @since ?.?.?
 	 * @var float
@@ -598,7 +600,7 @@ class wpdb {
 	public $time_start = null;
 
 	/**
-	 * Undocumented variable
+	 * Last SQL error encountered.
 	 *
 	 * @since ?.?.?
 	 * @var WP_Error|string
