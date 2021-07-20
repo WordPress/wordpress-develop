@@ -384,7 +384,6 @@ function wp_update_plugins( $extra_stats = array() ) {
 			'plugins'      => wp_json_encode( $to_send ),
 			'translations' => wp_json_encode( $translations ),
 			'locale'       => wp_json_encode( $locales ),
-			'all'          => wp_json_encode( true ),
 		),
 		'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
 	);
@@ -393,7 +392,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$options['body']['update_stats'] = wp_json_encode( $extra_stats );
 	}
 
-	$url      = 'http://api.wordpress.org/plugins/update-check/1.1/';
+	$url      = 'http://api.wordpress.org/plugins/update-check/1.2/';
 	$http_url = $url;
 	$ssl      = wp_http_supports( array( 'ssl' ) );
 
