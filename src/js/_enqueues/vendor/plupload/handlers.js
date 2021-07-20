@@ -394,7 +394,7 @@ function copyAttachmentUploadURLClipboard() {
 	} );
 }
 
-jQuery( document ).ready( function( $ ) {
+jQuery( function ( $ ) {
 	copyAttachmentUploadURLClipboard();
 	var tryAgainCount = {};
 	var tryAgain;

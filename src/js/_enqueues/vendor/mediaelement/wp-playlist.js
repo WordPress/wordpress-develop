@@ -196,7 +196,9 @@
 		initialize: initialize
 	};
 
-	$( document ).ready( initialize );
+	$( function () {
+		initialize();
+	} );
 
 	window.WPPlaylistView = WPPlaylistView;
 

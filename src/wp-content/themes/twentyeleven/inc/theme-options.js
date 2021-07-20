@@ -7,7 +7,7 @@ var farbtastic;
 		$('#link-color-example').css('background-color', a);
 	};
 
-	$(document).ready( function() {
+	$( function () {
 		$('#default-color').wrapInner('<a href="#" />');
 
 		farbtastic = $.farbtastic('#colorPickerDiv', pickColor);
