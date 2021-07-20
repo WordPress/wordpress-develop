@@ -19,6 +19,11 @@ class Twenty_Twenty_One_Dark_Mode {
 	 */
 	public function __construct() {
 
+		// Disable dark-mode in the widgets editor.
+		if ( is_admin() && $_SERVER['REQUEST_URI'] && strpos( $_SERVER['REQUEST_URI'], '/widgets.php' ) ) {
+			return;
+		}
+
 		// Enqueue assets for the block-editor.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'editor_custom_color_variables' ) );
 
