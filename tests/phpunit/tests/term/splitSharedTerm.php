@@ -19,10 +19,10 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 	 *   'wptests_tax_2' taxonomy. This term is a child of t2, and is used to test parent/child relationships
 	 *   after term splitting.
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
 
-		parent::setUp();
+		parent::set_up();
 
 		register_taxonomy( 'wptests_tax', 'post' );
 		register_taxonomy(

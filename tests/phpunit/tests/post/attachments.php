@@ -7,10 +7,10 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_insert_bogus_image() {

@@ -12,8 +12,8 @@
 class Tests_REST_Request extends WP_UnitTestCase {
 	public $request;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->request = new WP_REST_Request();
 	}

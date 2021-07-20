@@ -294,8 +294,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		self::$post_ids[]   = self::$child_four;
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		unset( $this->q );
 		$this->q = new WP_Query();
