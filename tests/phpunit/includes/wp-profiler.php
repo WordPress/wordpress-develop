@@ -8,9 +8,9 @@
  * start() and stop() must be called in pairs, for example:
  *
  * function something_to_profile() {
- * 	wppf_start(__FUNCTION__);
- * 	do_stuff();
- * 	wppf_stop();
+ *     wppf_start(__FUNCTION__);
+ *     do_stuff();
+ *     wppf_stop();
  * }
  *
  * Multiple profile blocks are permitted, and they may be nested.

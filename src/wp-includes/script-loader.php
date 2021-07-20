@@ -221,9 +221,9 @@ function wp_default_packages_scripts( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	// Expects multidimensional array like:
-	//	'a11y.js' => array('dependencies' => array(...), 'version' => '...'),
-	//	'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
-	//	'api-fetch.js' => array(...
+	//  'a11y.js' => array('dependencies' => array(...), 'version' => '...'),
+	//  'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
+	//  'api-fetch.js' => array(...
 	$assets = include ABSPATH . WPINC . '/assets/script-loader-packages.php';
 
 	foreach ( $assets as $package_name => $package_data ) {
