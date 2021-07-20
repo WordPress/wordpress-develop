@@ -128,7 +128,7 @@ header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option
 wp_user_settings();
 _wp_admin_html_begin();
 
-$body_class = 'wp-core-ui wp-customizer js';
+$body_class = 'wp-core-ui wp-customizer wp-embed-responsive js';
 
 if ( wp_is_mobile() ) :
 	$body_class .= ' mobile';
