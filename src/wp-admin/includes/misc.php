@@ -67,11 +67,16 @@ function got_url_rewrite() {
 function extract_from_markers( $filename, $marker ) {
 	$result = array();
 
-	if ( ! file_exists( $filename ) ) {
+	if ( ! is_readable( $filename ) ) {
 		return $result;
 	}
 
-	$markerdata = explode( "\n", implode( '', file( $filename ) ) );
+	$file_content = file( $filename );
+	if ( false === $file_content ) {
+		return $result;
+	}
+
+	$markerdata = explode( "\n", implode( '', $file_content ) );
 
 	$state = false;
 	foreach ( $markerdata as $markerline ) {
@@ -166,7 +171,7 @@ Any changes to the directives between these markers will be overwritten.'
 	$end_marker   = "# END {$marker}";
 
 	$fp = fopen( $filename, 'r+' );
-	if ( ! $fp ) {
+	if ( false === $fp ) {
 		return false;
 	}
 
@@ -175,7 +180,20 @@ Any changes to the directives between these markers will be overwritten.'
 
 	$lines = array();
 	while ( ! feof( $fp ) ) {
-		$lines[] = rtrim( fgets( $fp ), "\r\n" );
+		$line = fgets( $fp );
+		if ( false === $line ) {
+			// don't consider as failure if we reach the EOF.
+			if ( feof( $fp ) ) {
+				continue;
+			}
+
+			// Bail if we are unable to read a given line.
+			flock( $fp, LOCK_UN );
+			fclose( $fp );
+			return false;
+		}
+
+		$lines[] = rtrim( $line, "\r\n" );
 	}
 
 	// Split out the existing file into the preceding lines, and those that appear after the marker.
@@ -225,7 +243,8 @@ Any changes to the directives between these markers will be overwritten.'
 	fseek( $fp, 0 );
 	$bytes = fwrite( $fp, $new_file_data );
 	if ( $bytes ) {
-		ftruncate( $fp, ftell( $fp ) );
+		$size = ftell( $fp );
+		ftruncate( $fp, false !== $size ? $size : $bytes );
 	}
 	fflush( $fp );
 	flock( $fp, LOCK_UN );
@@ -382,9 +401,9 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 			}
 			?>
 			<li role="treeitem" aria-expanded="true" tabindex="-1"
-				aria-level="<?php echo esc_attr( $level ); ?>"
-				aria-setsize="<?php echo esc_attr( $size ); ?>"
-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				aria-level="<?php echo (int) $level; ?>"
+				aria-setsize="<?php echo (int) $size; ?>"
+				aria-posinset="<?php echo (int) $index; ?>">
 				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_theme_file_tree( $theme_file, $level + 1, $index, $size ); ?></ul>
 			</li>
@@ -403,9 +422,9 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 		<li role="none" class="<?php echo esc_attr( $relative_file === $filename ? 'current-file' : '' ); ?>">
 			<a role="treeitem" tabindex="<?php echo esc_attr( $relative_file === $filename ? '0' : '-1' ); ?>"
 				href="<?php echo esc_url( $url ); ?>"
-				aria-level="<?php echo esc_attr( $level ); ?>"
-				aria-setsize="<?php echo esc_attr( $size ); ?>"
-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				aria-level="<?php echo (int) $level; ?>"
+				aria-setsize="<?php echo (int) $size; ?>"
+				aria-posinset="<?php echo (int) $index; ?>">
 				<?php
 				$file_description = esc_html( get_file_description( $filename ) );
 				if ( $file_description !== $filename && wp_basename( $filename ) !== $file_description ) {
@@ -471,9 +490,9 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 			}
 			?>
 			<li role="treeitem" aria-expanded="true" tabindex="-1"
-				aria-level="<?php echo esc_attr( $level ); ?>"
-				aria-setsize="<?php echo esc_attr( $size ); ?>"
-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				aria-level="<?php echo (int) $level; ?>"
+				aria-setsize="<?php echo (int) $size; ?>"
+				aria-posinset="<?php echo (int) $index; ?>">
 				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_plugin_file_tree( $plugin_file, '', $level + 1, $index, $size ); ?></ul>
 			</li>
@@ -491,9 +510,9 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 		<li role="none" class="<?php echo esc_attr( $file === $tree ? 'current-file' : '' ); ?>">
 			<a role="treeitem" tabindex="<?php echo esc_attr( $file === $tree ? '0' : '-1' ); ?>"
 				href="<?php echo esc_url( $url ); ?>"
-				aria-level="<?php echo esc_attr( $level ); ?>"
-				aria-setsize="<?php echo esc_attr( $size ); ?>"
-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				aria-level="<?php echo (int) $level; ?>"
+				aria-setsize="<?php echo (int) $size; ?>"
+				aria-posinset="<?php echo (int) $index; ?>">
 				<?php
 				if ( $file === $tree ) {
 					echo '<span class="notice notice-info">' . esc_html( $label ) . '</span>';
@@ -831,6 +850,10 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	// If configuration file does not exist then we create one.
 	if ( ! file_exists( $filename ) ) {
 		$fp = fopen( $filename, 'w' );
+		if ( false === $fp ) {
+			return false;
+		}
+
 		fwrite( $fp, '<configuration/>' );
 		fclose( $fp );
 	}
@@ -907,9 +930,20 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
  */
 function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$config = $doc->saveXML();
-	$config = preg_replace( "/([^\r])\n/", "$1\r\n", $config );
+	if ( false === $config ) {
+		return;
+	}
+
 	$fp     = fopen( $filename, 'w' );
-	fwrite( $fp, $config );
+	if ( false === $fp ) {
+		return;
+	}
+
+	$config = preg_replace( "/([^\r])\n/", "$1\r\n", $config );
+	if ( null !== $config ) {
+		fwrite( $fp, $config );
+	}
+
 	fclose( $fp );
 }
 
@@ -958,7 +992,7 @@ function admin_color_scheme_picker( $user_id ) {
 			<div class="color-option <?php echo ( $color == $current_color ) ? 'selected' : ''; ?>">
 				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" class="tog" <?php checked( $color, $current_color ); ?> />
 				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
-				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
+				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( (string) wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
 				<table class="color-palette">
 					<tr>
@@ -1071,7 +1105,7 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 
 			$user_id = wp_check_post_lock( $post_id );
 			if ( $user_id ) {
-				$user = get_userdata( $user_id );
+				$user = get_userdata( (int) $user_id );
 				if ( $user && current_user_can( 'edit_post', $post_id ) ) {
 					$send = array(
 						/* translators: %s: User's display name. */
@@ -1447,7 +1481,7 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
  * @return array|false Array of PHP version data. False on failure.
  */
 function wp_check_php_version() {
-	$version = phpversion();
+	$version = (string) phpversion();
 	$key     = md5( $version );
 
 	$response = get_site_transient( 'php_check_' . $key );
