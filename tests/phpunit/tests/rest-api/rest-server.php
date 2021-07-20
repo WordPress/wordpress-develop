@@ -1392,7 +1392,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function () {
+				'callback'            => static function () {
 					return new WP_REST_Response();
 				},
 				'permission_callback' => '__return_true',
@@ -1414,7 +1414,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function () {
+				'callback'            => static function () {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1505,7 +1505,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function() {
+				'callback'            => static function() {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1516,7 +1516,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function() {
+				'callback'            => static function() {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1928,7 +1928,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test/(?P<id>[\d+])',
 			array(
 				'methods'             => array( 'POST', 'DELETE' ),
-				'callback'            => function ( WP_REST_Request $request ) {
+				'callback'            => static function ( WP_REST_Request $request ) {
 					return new WP_REST_Response( 'test' );
 				},
 				'permission_callback' => '__return_true',
