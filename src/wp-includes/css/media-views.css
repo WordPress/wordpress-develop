@@ -2884,8 +2884,8 @@
 
 	.attachments-browser .attachments,
 	.attachments-browser .uploader-inline,
-	.attachments-browser.attachments-browser .attachments-wrapper,
-	.attachments-browser .media-toolbar {
+	.attachments-browser .media-toolbar,
+	.media-frame-content .attachments-browser .attachments-wrapper {
 		right: 0;
 	}
 
