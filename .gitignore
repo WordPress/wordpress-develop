@@ -19,6 +19,7 @@ wp-tests-config.php
 /tests/phpunit/build
 /wp-cli.local.yml
 /jsdoc
+/composer.lock
 /vendor
 /src/wp-admin/css/*.min.css
 /src/wp-admin/css/*-rtl.css
