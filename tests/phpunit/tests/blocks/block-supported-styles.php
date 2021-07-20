@@ -1,12 +1,33 @@
 <?php
 /**
+ * Block Tests
+ *
+ * @package WordPress
+ * @subpackage Blocks
+ * @since 5.6.0
+ */
+
+/**
  * Test block supported styles.
  *
- * @package    WordPress
- * @subpackage UnitTests
- * @since      5.6.0
+ * @since 5.6.0
+ *
+ * @group blocks
  */
 class Block_Supported_Styles_Test extends WP_UnitTestCase {
+
+	/**
+	 * Block content to test with (i.e. what's wrapped by the block wrapper `<div />`).
+	 *
+	 * @var string
+	 */
+	const BLOCK_CONTENT = '
+		<p data-image-description="&lt;p&gt;Test!&lt;/p&gt;">Test</p>
+		<p>äöü</p>
+		<p>ß</p>
+		<p>系の家庭に</p>
+		<p>Example &lt;p&gt;Test!&lt;/p&gt;</p>
+	';
 
 	/**
 	 * Registered block names.
@@ -73,19 +94,6 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Block content to test with (i.e. what's wrapped by the block wrapper `<div />`).
-	 *
-	 * @var string
-	 */
-	const BLOCK_CONTENT = '
-		<p data-image-description="&lt;p&gt;Test!&lt;/p&gt;">Test</p>
-		<p>äöü</p>
-		<p>ß</p>
-		<p>系の家庭に</p>
-		<p>Example &lt;p&gt;Test!&lt;/p&gt;</p>
-	';
-
-	/**
 	 * Returns the rendered output for the current block.
 	 *
 	 * @param array $block Block to render.
@@ -116,8 +124,8 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$class_list   = $this->get_attribute_from_block( 'class', $styled_block );
 		$style_list   = $this->get_attribute_from_block( 'style', $styled_block );
 
-		$this->assertSame( $expected_classes, $class_list );
-		$this->assertSame( $expected_styles, $style_list );
+		$this->assertSame( $expected_classes, $class_list, 'Class list does not match expected classes' );
+		$this->assertSame( $expected_styles, $style_list, 'Style list does not match expected styles' );
 	}
 
 	/**
@@ -137,21 +145,23 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$class_list = $this->get_attribute_from_block( 'class', $styled_block );
 		$style_list = $this->get_attribute_from_block( 'style', $styled_block );
 
-		$this->assertSame( self::BLOCK_CONTENT, $content );
+		$this->assertSame( self::BLOCK_CONTENT, $content, 'Block content does not match expected content' );
 		$this->assertSameSets(
 			explode( ' ', $expected_classes ),
-			explode( ' ', $class_list )
+			explode( ' ', $class_list ),
+			'Class list does not match expected classes'
 		);
 		$this->assertSame(
 			array_map( 'trim', explode( ';', $expected_styles ) ),
-			array_map( 'trim', explode( ';', $style_list ) )
+			array_map( 'trim', explode( ';', $style_list ) ),
+			'Style list does not match expected styles'
 		);
 	}
 
 	/**
 	 * Tests color support for named color support for named colors.
 	 */
-	function test_named_color_support() {
+	public function test_named_color_support() {
 		$block_type_settings = array(
 			'attributes'      => array(),
 			'supports'        => array(
@@ -183,7 +193,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests color support for custom colors.
 	 */
-	function test_custom_color_support() {
+	public function test_custom_color_support() {
 		$block_type_settings = array(
 			'attributes'      => array(),
 			'supports'        => array(
@@ -220,7 +230,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests link color support for named colors.
 	 */
-	function test_named_link_color_support() {
+	public function test_named_link_color_support() {
 		$block_type_settings = array(
 			'attributes'      => array(),
 			'supports'        => array(
@@ -251,7 +261,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests link color support for custom colors.
 	 */
-	function test_custom_link_color_support() {
+	public function test_custom_link_color_support() {
 		$block_type_settings = array(
 			'attributes'      => array(),
 			'supports'        => array(
@@ -282,7 +292,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests gradient color support for named gradients.
 	 */
-	function test_named_gradient_support() {
+	public function test_named_gradient_support() {
 		$block_type_settings = array(
 			'attributes'      => array(),
 			'supports'        => array(
@@ -313,7 +323,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests gradient color support for custom gradients.
 	 */
-	function test_custom_gradient_support() {
+	public function test_custom_gradient_support() {
 		$block_type_settings = array(
 			'attributes'      => array(),
 			'supports'        => array(
@@ -344,7 +354,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that style attributes for colors are not applied without the support flag.
 	 */
-	function test_color_unsupported() {
+	public function test_color_unsupported() {
 		$block_type_settings = array(
 			'attributes'      => array(),
 			'supports'        => array(),
@@ -380,7 +390,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests support for named font sizes.
 	 */
-	function test_named_font_size() {
+	public function test_named_font_size() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
@@ -408,7 +418,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests support for custom font sizes.
 	 */
-	function test_custom_font_size() {
+	public function test_custom_font_size() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
@@ -436,7 +446,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that font size attributes are not applied without support flag.
 	 */
-	function test_font_size_unsupported() {
+	public function test_font_size_unsupported() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(),
@@ -463,7 +473,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests line height support.
 	 */
-	function test_line_height() {
+	public function test_line_height() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
@@ -491,7 +501,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests line height not applied without support flag.
 	 */
-	function test_line_height_unsupported() {
+	public function test_line_height_unsupported() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(),
@@ -517,7 +527,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests support for block alignment.
 	 */
-	function test_block_alignment() {
+	public function test_block_alignment() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
@@ -545,7 +555,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests block alignment requires support to be added.
 	 */
-	function test_block_alignment_unsupported() {
+	public function test_block_alignment_unsupported() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(),
@@ -571,7 +581,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests all support flags together to ensure they work together as expected.
 	 */
-	function test_all_supported() {
+	public function test_all_supported() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
@@ -617,7 +627,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	 * Tests that only styles for the supported flag are added.
 	 * Verify one support enabled does not imply multiple supports enabled.
 	 */
-	function test_one_supported() {
+	public function test_one_supported() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
@@ -657,7 +667,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests custom classname server-side block support.
 	 */
-	function test_custom_classnames_support() {
+	public function test_custom_classnames_support() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(),
@@ -683,7 +693,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests custom classname server-side block support opt-out.
 	 */
-	function test_custom_classnames_support_opt_out() {
+	public function test_custom_classnames_support_opt_out() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
@@ -711,7 +721,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	/**
 	 * Tests generated classname server-side block support opt-out.
 	 */
-	function test_generatted_classnames_support_opt_out() {
+	public function test_generated_classnames_support_opt_out() {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
