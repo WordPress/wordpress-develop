@@ -4076,6 +4076,10 @@ class WP_Query {
 
 		$page_obj = $this->get_queried_object();
 
+		if ( ! isset( $page_obj->ID ) && ! isset( $page_obj->post_title ) && ! isset( $page_obj->post_name ) ) {
+			return false;
+		}
+
 		$page = array_map( 'strval', (array) $page );
 
 		if ( in_array( (string) $page_obj->ID, $page, true ) ) {
@@ -4229,6 +4233,10 @@ class WP_Query {
 		}
 
 		$post_obj = $this->get_queried_object();
+
+		if ( ! isset( $post_obj->post_type ) ) {
+			return false;
+		}
 
 		return in_array( $post_obj->post_type, (array) $post_types, true );
 	}
