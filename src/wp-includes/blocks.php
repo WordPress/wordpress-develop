@@ -195,23 +195,13 @@ function register_block_style_handle( $metadata, $field_name ) {
  * @return array The schema for block's metadata.
  */
 function get_i18n_block_metadata_schema() {
-	return array(
-		'title'       => 'block title',
-		'description' => 'block description',
-		'keywords'    => array( 'block keyword' ),
-		'styles'      => array(
-			(object) array(
-				'label' => 'block style label',
-			),
-		),
-		'variations'  => array(
-			(object) array(
-				'title'       => 'block variation title',
-				'description' => 'block variation description',
-				'keywords'    => array( 'block variation keyword' ),
-			),
-		),
-	);
+	static $i18n_block_schema;
+
+	if ( ! isset( $i18n_block_schema ) ) {
+		$i18n_block_schema = wp_json_file_decode( __DIR__ . '/block-i18n.json' );
+	}
+
+	return $i18n_block_schema;
 }
 
 /**
@@ -278,7 +268,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		return false;
 	}
 
-	$metadata = json_decode( file_get_contents( $metadata_file ), true );
+	$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
 		return false;
 	}
@@ -328,8 +318,8 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
 			$settings[ $mapped_key ] = $metadata[ $key ];
-			if ( $textdomain && isset( $i18n_schema[ $key ] ) ) {
-				$settings[ $mapped_key ] = translate_setting_using_i18n_schema( $i18n_schema[ $key ], $settings[ $key ], $textdomain );
+			if ( $textdomain && isset( $i18n_schema->$key ) ) {
+				$settings[ $mapped_key ] = translate_setting_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
 			}
 		}
 	}
