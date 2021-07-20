@@ -37,9 +37,9 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) 
 
 $phpunit_version = tests_get_phpunit_version();
 
-if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
+if ( version_compare( $phpunit_version, '5.7', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.7 and is currently only compatible with PHPUnit up to 7.x.\n",
 		$phpunit_version
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
