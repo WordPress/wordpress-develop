@@ -1029,14 +1029,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param WP_Comment      $comment Comment object.
+	 * @param WP_Comment      $item    Comment object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $comment, $request ) {
-
-		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+	public function prepare_item_for_response( $item, $request ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$comment = $item;
+		$fields  = $this->get_fields_for_response( $request );
+		$data    = array();
 
 		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = (int) $comment->comment_ID;

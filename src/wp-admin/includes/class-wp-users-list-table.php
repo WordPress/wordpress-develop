@@ -411,14 +411,19 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @since 4.2.0 The `$style` parameter was deprecated.
 	 * @since 4.4.0 The `$role` parameter was deprecated.
 	 *
-	 * @param WP_User $user_object The current user object.
-	 * @param string  $style       Deprecated. Not used.
-	 * @param string  $role        Deprecated. Not used.
-	 * @param int     $numposts    Optional. Post count to display for this user. Defaults
-	 *                             to zero, as in, a new user has made zero posts.
+	 * @param WP_User $item     The current user object.
+	 * @param string  $style    Deprecated. Not used.
+	 * @param string  $role     Deprecated. Not used.
+	 * @param int     $numposts Optional. Post count to display for this user. Defaults
+	 *                          to zero, as in, a new user has made zero posts.
 	 * @return string Output for a single row.
 	 */
-	public function single_row( $user_object, $style = '', $role = '', $numposts = 0 ) {
+	public function single_row( $item, $style = '', $role = '', $numposts = 0 ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$user_object = $item;
 		if ( ! ( $user_object instanceof WP_User ) ) {
 			$user_object = get_userdata( (int) $user_object );
 		}

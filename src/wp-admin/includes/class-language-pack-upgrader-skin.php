@@ -52,11 +52,11 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @param string|WP_Error $error
+	 * @param string|WP_Error $errors
 	 */
-	public function error( $error ) {
+	public function error( $errors ) {
 		echo '<div class="lp-error">';
-		parent::error( $error );
+		parent::error( $errors );
 		echo '</div>';
 	}
 

@@ -228,9 +228,15 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_User $user The current WP_User object.
+	 * @param WP_User $item The current WP_User object.
 	 */
-	public function column_cb( $user ) {
+	public function column_cb( $item ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$user = $item;
+
 		if ( is_super_admin( $user->ID ) ) {
 			return;
 		}
@@ -443,12 +449,17 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_User $user        The current WP_User object.
+	 * @param WP_User $item        The current WP_User object.
 	 * @param string  $column_name The current column name.
 	 */
-	public function column_default( $user, $column_name ) {
+	public function column_default( $item, $column_name ) {
 		/** This filter is documented in wp-admin/includes/class-wp-users-list-table.php */
-		echo apply_filters( 'manage_users_custom_column', '', $column_name, $user->ID );
+		echo apply_filters(
+			'manage_users_custom_column',
+			'', // Custom column output. Default empty.
+			$column_name,
+			$item->ID // User ID. See Trac #51553.
+		);
 	}
 
 	public function display_rows() {
@@ -490,17 +501,22 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_User $user        User being acted upon.
+	 * @param WP_User $item        User being acted upon.
 	 * @param string  $column_name Current column name.
 	 * @param string  $primary     Primary column name.
 	 * @return string Row actions output for users in Multisite, or an empty string
 	 *                if the current column is not the primary column.
 	 */
-	protected function handle_row_actions( $user, $column_name, $primary ) {
+	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
 		}
 
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$user         = $item;
 		$super_admins = get_super_admins();
 
 		$actions = array();

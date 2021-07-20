@@ -654,18 +654,18 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param array $menu_item_value The value to sanitize.
+	 * @param array $value The menu item value to sanitize.
 	 * @return array|false|null|WP_Error Null or WP_Error if an input isn't valid. False if it is marked for deletion.
 	 *                                   Otherwise the sanitized value.
 	 */
-	public function sanitize( $menu_item_value ) {
+	public function sanitize( $value ) {
 		// Menu is marked for deletion.
-		if ( false === $menu_item_value ) {
-			return $menu_item_value;
+		if ( false === $value ) {
+			return $value;
 		}
 
 		// Invalid.
-		if ( ! is_array( $menu_item_value ) ) {
+		if ( ! is_array( $value ) ) {
 			return null;
 		}
 
@@ -687,7 +687,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 			'nav_menu_term_id' => 0,
 			'_invalid'         => false,
 		);
-		$menu_item_value             = array_merge( $default, $menu_item_value );
+		$menu_item_value             = array_merge( $default, $value );
 		$menu_item_value             = wp_array_slice_assoc( $menu_item_value, array_keys( $default ) );
 		$menu_item_value['position'] = (int) $menu_item_value['position'];
 

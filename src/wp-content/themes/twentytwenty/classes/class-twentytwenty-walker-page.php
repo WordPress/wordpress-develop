@@ -24,12 +24,17 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Page' ) ) {
 		 * @see Walker::start_el()
 		 *
 		 * @param string  $output       Used to append additional content. Passed by reference.
-		 * @param WP_Post $page         Page data object.
+		 * @param WP_Post $data_object  Page data object.
 		 * @param int     $depth        Optional. Depth of page. Used for padding. Default 0.
 		 * @param array   $args         Optional. Array of arguments. Default empty array.
 		 * @param int     $current_page Optional. Page ID. Default 0.
 		 */
-		public function start_el( &$output, $page, $depth = 0, $args = array(), $current_page = 0 ) {
+		public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_page = 0 ) {
+			/*
+			 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+			 * Also see Trac #51553.
+			 */
+			$page = $data_object;
 
 			if ( isset( $args['item_spacing'] ) && 'preserve' === $args['item_spacing'] ) {
 				$t = "\t";

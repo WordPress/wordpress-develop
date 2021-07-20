@@ -67,17 +67,18 @@ class Automatic_Upgrader_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string|array|WP_Error $data    Message data.
-	 * @param mixed                 ...$args Optional text replacements.
+	 * @param string|array|WP_Error $feedback Message data.
+	 * @param mixed                 ...$args  Optional text replacements.
 	 */
-	public function feedback( $data, ...$args ) {
-		if ( is_wp_error( $data ) ) {
-			$string = $data->get_error_message();
-		} elseif ( is_array( $data ) ) {
+	public function feedback( $feedback, ...$args ) {
+		if ( is_wp_error( $feedback ) ) {
+			$string = $feedback->get_error_message();
+		} elseif ( is_array( $feedback ) ) {
 			return;
 		} else {
-			$string = $data;
+			$string = $feedback;
 		}
+
 		if ( ! empty( $this->upgrader->strings[ $string ] ) ) {
 			$string = $this->upgrader->strings[ $string ];
 		}

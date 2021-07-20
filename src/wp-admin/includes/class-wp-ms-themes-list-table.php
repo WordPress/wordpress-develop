@@ -506,9 +506,14 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_Theme $theme The current WP_Theme object.
+	 * @param WP_Theme $item The current WP_Theme object.
 	 */
-	public function column_cb( $theme ) {
+	public function column_cb( $item ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$theme       = $item;
 		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
 		?>
 		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />
@@ -856,12 +861,10 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_Theme $theme       The current WP_Theme object.
+	 * @param WP_Theme $item        The current WP_Theme object.
 	 * @param string   $column_name The current column name.
 	 */
-	public function column_default( $theme, $column_name ) {
-		$stylesheet = $theme->get_stylesheet();
-
+	public function column_default( $item, $column_name ) {
 		/**
 		 * Fires inside each custom column of the Multisite themes list table.
 		 *
@@ -871,7 +874,12 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		 * @param string   $stylesheet  Directory name of the theme.
 		 * @param WP_Theme $theme       Current WP_Theme object.
 		 */
-		do_action( 'manage_themes_custom_column', $column_name, $stylesheet, $theme );
+		do_action(
+			'manage_themes_custom_column',
+			$column_name,
+			$item->get_stylesheet(), // Directory name of the theme.
+			$item // Theme object. See Trac #51553.
+		);
 	}
 
 	/**
@@ -955,10 +963,16 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @global string $status
 	 * @global array  $totals
 	 *
-	 * @param WP_Theme $theme
+	 * @param WP_Theme $item Theme.
 	 */
-	public function single_row( $theme ) {
+	public function single_row( $item ) {
 		global $status, $totals;
+
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$theme = $item;
 
 		if ( $this->is_site_themes ) {
 			$allowed = $theme->is_allowed( 'site', $this->site_id );

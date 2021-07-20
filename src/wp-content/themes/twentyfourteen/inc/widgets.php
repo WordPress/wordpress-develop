@@ -264,10 +264,11 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 * @since Twenty Fourteen 1.0
 	 *
 	 * @param array $new_instance New widget instance.
-	 * @param array $instance     Original widget instance.
+	 * @param array $old_instance Original widget instance.
 	 * @return array Updated widget instance.
 	 */
-	function update( $new_instance, $instance ) {
+	function update( $new_instance, $old_instance ) {
+		$instance           = $old_instance;
 		$instance['title']  = strip_tags( $new_instance['title'] );
 		$instance['number'] = empty( $new_instance['number'] ) ? 2 : absint( $new_instance['number'] );
 
