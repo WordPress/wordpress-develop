@@ -967,7 +967,7 @@ function validate_theme_requirements( $stylesheet ) {
  *
  * @since 3.1.0
  *
- * @return array|void Theme modifications.
+ * @return array Theme modifications.
  */
 function get_theme_mods() {
 	$theme_slug = get_option( 'stylesheet' );
@@ -983,7 +983,7 @@ function get_theme_mods() {
 			delete_option( "mods_$theme_name" );
 		}
 	}
-	return $mods;
+	return is_array( $mods ) ? $mods : array();
 }
 
 /**
