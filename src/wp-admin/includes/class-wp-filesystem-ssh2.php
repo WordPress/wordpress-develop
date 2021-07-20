@@ -650,24 +650,6 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	}
 
 	/**
-	 * Sets the access and modification times of a file.
-	 *
-	 * Note: Not implemented.
-	 *
-	 * @since 2.7.0
-	 *
-	 * @param string $file  Path to file.
-	 * @param int    $time  Optional. Modified time to set for file.
-	 *                      Default 0.
-	 * @param int    $atime Optional. Access time to set for file.
-	 *                      Default 0.
-	 */
-	public function touch( $file, $time = 0, $atime = 0 ) {
-		// Not implemented.
-		return false;
-	}
-
-	/**
 	 * Creates a directory.
 	 *
 	 * @since 2.7.0
