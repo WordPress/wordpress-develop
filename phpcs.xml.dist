@@ -235,6 +235,7 @@
 		<properties>
 			<property name="custom_test_class_whitelist" type="array">
 				<!-- Test case parent classes. -->
+				<element value="PHPUnit_Adapter_TestCase"/>
 				<element value="WP_UnitTestCase"/>
 				<element value="WP_Ajax_UnitTestCase"/>
 				<element value="WP_Canonical_UnitTestCase"/>
@@ -267,6 +268,7 @@
 				<element value="WPProfiler"/>
 				<element value="SpeedTrapListener"/>
 				<element value="PHPUnit_Framework_Exception"/>
+				<element value="Polyfill_TestCase"/>
 			</property>
 		</properties>
 	</rule>
