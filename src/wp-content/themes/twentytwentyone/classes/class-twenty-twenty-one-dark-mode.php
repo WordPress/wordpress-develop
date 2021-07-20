@@ -18,6 +18,38 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * @since Twenty Twenty-One 1.0
 	 */
 	public function __construct() {
+		if ( is_admin() ) {
+			$this->setup_admin();
+		} else {
+			$this->add_hooks();
+		}
+	}
+
+	/**
+	 * Sets up Dark Mode for use within the admin area.
+	 *
+	 * @since Twenty Twenty-One 1.4
+	 */
+	public function setup_admin() {
+		add_action( 'current_screen', array( $this, 'add_hooks' ) );
+
+		// Add the privacy policy content. This is done here because current_screen is too late.
+		add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
+
+		// Add customizer controls.
+		add_action( 'customize_register', array( $this, 'customizer_controls' ) );
+	}
+
+	/**
+	 * Adds the needed hooks to support Dark Mode.
+	 *
+	 * @since Twenty Twenty-One 1.4
+	 */
+	public function add_hooks() {
+		// Disable Dark Mode in the widgets editor.
+		if ( ( is_admin() && 'widgets' === get_current_screen()->base ) || is_customize_preview() ) {
+			return;
+		}
 
 		// Enqueue assets for the block-editor.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'editor_custom_color_variables' ) );
@@ -28,9 +60,6 @@ class Twenty_Twenty_One_Dark_Mode {
 		// Add scripts for customizer controls.
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'customize_controls_enqueue_scripts' ) );
 
-		// Add customizer controls.
-		add_action( 'customize_register', array( $this, 'customizer_controls' ) );
-
 		// Add HTML classes.
 		add_filter( 'twentytwentyone_html_classes', array( $this, 'html_classes' ) );
 
@@ -39,9 +68,6 @@ class Twenty_Twenty_One_Dark_Mode {
 
 		// Add the switch on the frontend & customizer.
 		add_action( 'wp_footer', array( $this, 'the_switch' ) );
-
-		// Add the privacy policy content.
-		add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
 	}
 
 	/**
