@@ -364,6 +364,17 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array(
+				array(
+					'name'        => 'error',
+					'title'       => 'Error',
+					'description' => 'Shows error.',
+					'keywords'    => array( 'failure' ),
+				),
+			),
+			$result->variations
+		);
+		$this->assertSame(
+			array(
 				'attributes' => array(
 					'message' => 'This is a notice!',
 				),
@@ -429,6 +440,17 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 				),
 			),
 			$result->styles
+		);
+		$this->assertSame(
+			array(
+				array(
+					'name'        => 'error',
+					'title'       => 'Błąd',
+					'description' => 'Wyświetla błąd.',
+					'keywords'    => array( 'niepowodzenie' ),
+				),
+			),
+			$result->variations
 		);
 	}
 
