@@ -46,10 +46,6 @@ if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
 	exit( 1 );
 }
 
-// Register a custom autoloader for the PHPUnit 9.x Mockobject classes for compatibility with PHP 8.0.
-require_once __DIR__ . '/class-mockobject-autoload.php';
-spl_autoload_register( 'MockObject_Autoload::load', true, true );
-
 // Check that the PHPUnit Polyfills autoloader exists.
 $phpunit_polyfills_autoloader = __DIR__ . '/../../../vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
 if ( ! file_exists( $phpunit_polyfills_autoloader ) ) {
