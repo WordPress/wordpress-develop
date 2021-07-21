@@ -1,0 +1,482 @@
+Tests failing due to issue in convert_invalid_entities()
+
+Note: with the correctly proposed fix, all these tests would still fail, just at another point in their processing
+=== New error once proposed fix is in place ===
+stripos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:3173
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-admin\includes\post.php:781
+==============================================================
+
+
+=== Errors due to issue in convert_invalid_entities() ===
+
+
+15) Tests_Admin_Includes_Post::test_post_exists_should_support_post_type
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-admin\includes\post.php:781
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\admin\includesPost.php:887
+
+16) Tests_Admin_Includes_Post::test_post_exists_should_not_match_a_page_for_post
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-admin\includes\post.php:781
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\admin\includesPost.php:904
+
+17) Tests_Admin_Includes_Post::test_post_exists_should_support_post_status
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-admin\includes\post.php:781
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\admin\includesPost.php:923
+
+18) Tests_Admin_Includes_Post::test_post_exists_should_support_post_type_status_combined
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-admin\includes\post.php:781
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\admin\includesPost.php:943
+
+19) Tests_Admin_Includes_Post::test_post_exists_should_only_match_correct_post_status
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-admin\includes\post.php:781
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\admin\includesPost.php:962
+
+20) Tests_Admin_Includes_Post::test_post_exists_should_not_match_invalid_post_type_and_status_combined
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-admin\includes\post.php:781
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\admin\includesPost.php:982
+
+622) Tests_Date_XMLRPC::test_date_new_post
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\date\xmlrpc.php:34
+
+1303) Tests_XMLRPC_mw_editPost::test_draft_not_prematurely_published
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\mw\editPost.php:315
+
+1304) Tests_XMLRPC_mw_newPost::test_no_content
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\mw\newPost.php:28
+
+1305) Tests_XMLRPC_mw_newPost::test_basic_content
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\mw\newPost.php:38
+
+1306) Tests_XMLRPC_mw_newPost::test_ignore_id
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\mw\newPost.php:50
+
+1307) Tests_XMLRPC_mw_newPost::test_capable_publish
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\mw\newPost.php:62
+
+1308) Tests_XMLRPC_mw_newPost::test_capable_other_author
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\mw\newPost.php:86
+
+1309) Tests_XMLRPC_mw_newPost::test_empty_author
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\mw\newPost.php:122
+
+1311) Tests_XMLRPC_mw_newPost::test_capable_set_post_type_as_page
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\mw\newPost.php:173
+
+1312) Tests_XMLRPC_mw_newPost::test_draft_post_date
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:5614
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\mw\newPost.php:194
+
+1326) Tests_XMLRPC_wp_editPost::test_draft_not_prematurely_published
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\editPost.php:482
+
+1327) Tests_XMLRPC_wp_editPost::test_draft_not_assigned_published_date
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\editPost.php:514
+
+1336) Tests_XMLRPC_wp_getRevisions::test_revision_count_for_auto_draft_post_creation
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\getRevisions.php:67
+
+1338) Tests_XMLRPC_wp_newPost::test_no_content
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:25
+
+1339) Tests_XMLRPC_wp_newPost::test_basic_content
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:35
+
+1340) Tests_XMLRPC_wp_newPost::test_ignore_id
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:47
+
+1341) Tests_XMLRPC_wp_newPost::test_capable_publish
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:59
+
+1342) Tests_XMLRPC_wp_newPost::test_capable_private
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:82
+
+1343) Tests_XMLRPC_wp_newPost::test_capable_other_author
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:106
+
+1344) Tests_XMLRPC_wp_newPost::test_empty_author
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:139
+
+1346) Tests_XMLRPC_wp_newPost::test_invalid_post_status
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:178
+
+1347) Tests_XMLRPC_wp_newPost::test_capable_sticky
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:202
+
+1348) Tests_XMLRPC_wp_newPost::test_post_format
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:227
+
+1349) Tests_XMLRPC_wp_newPost::test_invalid_post_format
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:239
+
+1350) Tests_XMLRPC_wp_newPost::test_terms
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:298
+
+1351) Tests_XMLRPC_wp_newPost::test_terms_names
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:325
+
+1352) Tests_XMLRPC_wp_newPost::test_invalid_post_date_does_not_fatal
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:358
+
+1353) Tests_XMLRPC_wp_newPost::test_invalid_post_date_gmt_does_not_fatal
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:375
+
+1354) Tests_XMLRPC_wp_newPost::test_valid_string_post_date
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:392
+
+1355) Tests_XMLRPC_wp_newPost::test_valid_string_post_date_gmt
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:409
+
+1356) Tests_XMLRPC_wp_newPost::test_valid_IXR_post_date
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:426
+
+1357) Tests_XMLRPC_wp_newPost::test_valid_IXR_post_date_gmt
+strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated
+
+D:\000_GitHub\WP_test_suite\src\wp-includes\formatting.php:2434
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-hook.php:303
+D:\000_GitHub\WP_test_suite\src\wp-includes\plugin.php:189
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2643
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:2528
+D:\000_GitHub\WP_test_suite\src\wp-includes\post.php:3867
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1683
+D:\000_GitHub\WP_test_suite\src\wp-includes\class-wp-xmlrpc-server.php:1347
+D:\000_GitHub\WP_test_suite\tests\phpunit\tests\xmlrpc\wp\newPost.php:443
