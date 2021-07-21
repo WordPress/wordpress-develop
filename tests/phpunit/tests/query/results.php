@@ -1049,11 +1049,11 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 		$this->assertTrue( $this->q->have_posts() );
-		$this->assertContains(
+		$this->assertStringContainsString(
 			"(({$wpdb->posts}.post_status = 'publish') OR ({$wpdb->posts}.post_author = 0 AND ({$wpdb->posts}.post_status = 'private')))",
 			$this->q->request
 		);
-		$this->assertNotContains( "({$wpdb->posts}.post_status = 'publish') AND", $this->q->request );
+		$this->assertStringNotContainsString( "({$wpdb->posts}.post_status = 'publish') AND", $this->q->request );
 	}
 
 	/**
@@ -1202,7 +1202,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'contributing-to-the-wordpress-codex/getting-started', get_permalink( $post_2 ) );
+		$this->assertStringContainsString( 'contributing-to-the-wordpress-codex/getting-started', get_permalink( $post_2 ) );
 
 		$result = $this->q->query(
 			array(

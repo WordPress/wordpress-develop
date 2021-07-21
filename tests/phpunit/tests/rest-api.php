@@ -793,8 +793,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 		// Reset.
 		update_option( 'siteurl', $_siteurl );
-		set_current_screen( 'front' );
-
 	}
 
 	/**

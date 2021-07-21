@@ -515,7 +515,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_new_comment_notify_postauthor( $c2 );
 		remove_filter( 'comment_notification_text', array( $this, 'save_comment_notification_text' ) );
 
-		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+		$this->assertStringContainsString( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
 	}
 
 	/**
@@ -540,7 +540,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_new_comment_notify_moderator( $c2 );
 		remove_filter( 'comment_moderation_text', array( $this, 'save_comment_notification_text' ) );
 
-		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+		$this->assertStringContainsString( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
 	}
 
 	/**

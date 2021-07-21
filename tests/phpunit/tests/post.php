@@ -79,8 +79,8 @@ class Tests_Post extends WP_UnitTestCase {
 
 			// Insert a post and make sure the ID is OK.
 			$id = wp_insert_post( $post );
-			$this->assertTrue( is_numeric( $id ) );
-			$this->assertTrue( $id > 0 );
+			$this->assertIsNumeric( $id );
+			$this->assertGreaterThan( 0, $id );
 
 			// Fetch the post and make sure it matches.
 			$out = get_post( $id );
@@ -135,8 +135,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 		// dmp( _get_cron_array() );
-		$this->assertTrue( is_numeric( $id ) );
-		$this->assertTrue( $id > 0 );
+		$this->assertIsNumeric( $id );
+		$this->assertGreaterThan( 0, $id );
 
 		// Fetch the post and make sure it matches.
 		$out = get_post( $id );
@@ -258,8 +258,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 		// dmp( _get_cron_array() );
-		$this->assertTrue( is_numeric( $id ) );
-		$this->assertTrue( $id > 0 );
+		$this->assertIsNumeric( $id );
+		$this->assertGreaterThan( 0, $id );
 
 		// Fetch the post and make sure it matches.
 		$out = get_post( $id );
@@ -379,8 +379,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 		// dmp( _get_cron_array() );
-		$this->assertTrue( is_numeric( $id ) );
-		$this->assertTrue( $id > 0 );
+		$this->assertIsNumeric( $id );
+		$this->assertGreaterThan( 0, $id );
 
 		// Fetch the post and make sure it matches.
 		$out = get_post( $id );
@@ -498,7 +498,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $p );
 
-		$this->assertContains( 'wptests_pt=' . $p, $post->guid );
+		$this->assertStringContainsString( 'wptests_pt=' . $p, $post->guid );
 	}
 
 	/**
@@ -793,7 +793,8 @@ class Tests_Post extends WP_UnitTestCase {
 			),
 		);
 		$insert_post_id = wp_insert_post( $post_data, true, true );
-		$this->assertTrue( ( is_int( $insert_post_id ) && $insert_post_id > 0 ) );
+		$this->assertIsInt( $insert_post_id );
+		$this->assertGreaterThan( 0, $insert_post_id );
 
 		$post = get_post( $insert_post_id );
 		$this->assertEquals( $post->post_author, self::$editor_id );
@@ -923,8 +924,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$term  = reset( $terms );
 
 		foreach ( $matches[1] as $url ) {
-			$this->assertContains( 'tag_ID=' . $term->term_id, $url );
-			$this->assertContains( 'post_type=new_post_type', $url );
+			$this->assertStringContainsString( 'tag_ID=' . $term->term_id, $url );
+			$this->assertStringContainsString( 'post_type=new_post_type', $url );
 		}
 	}
 

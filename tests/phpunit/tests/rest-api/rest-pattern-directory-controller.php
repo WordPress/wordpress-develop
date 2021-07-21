@@ -176,7 +176,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		foreach ( $patterns as $pattern ) {
 			$search_field_values = $pattern['title'] . ' ' . $pattern['description'];
 
-			$this->assertNotFalse( stripos( $search_field_values, $search_term ) );
+			$this->assertStringContainsStringIgnoringCase( $search_term, $search_field_values );
 		}
 	}
 

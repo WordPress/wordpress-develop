@@ -202,9 +202,9 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		ob_start();
 		$section->print_template();
 		$content = ob_get_clean();
-		$this->assertContains( '<script type="text/html" id="tmpl-customize-section-default">', $content );
-		$this->assertContains( 'accordion-section-title', $content );
-		$this->assertContains( 'accordion-section-content', $content );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-customize-section-default">', $content );
+		$this->assertStringContainsString( 'accordion-section-title', $content );
+		$this->assertStringContainsString( 'accordion-section-content', $content );
 	}
 
 	/**
@@ -217,9 +217,9 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		ob_start();
 		$section->print_template();
 		$content = ob_get_clean();
-		$this->assertContains( '<script type="text/html" id="tmpl-customize-section-titleless">', $content );
-		$this->assertNotContains( 'accordion-section-title', $content );
-		$this->assertContains( 'accordion-section-content', $content );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-customize-section-titleless">', $content );
+		$this->assertStringNotContainsString( 'accordion-section-title', $content );
+		$this->assertStringContainsString( 'accordion-section-content', $content );
 	}
 }
 

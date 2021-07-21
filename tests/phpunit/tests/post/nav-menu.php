@@ -40,7 +40,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 0, strpos( $menu, '<ul' ) );
+		$this->assertStringStartsWith( '<ul', $menu );
 	}
 
 	function test_wp_get_associated_nav_menu_items() {

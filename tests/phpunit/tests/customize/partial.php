@@ -111,7 +111,7 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 		$this->assertSame( $args['render_callback'], $partial->render_callback );
 		$this->assertFalse( $partial->container_inclusive );
 		$this->assertFalse( $partial->fallback_refresh );
-		$this->assertContains( 'Lorem Ipsum', $partial->render() );
+		$this->assertStringContainsString( 'Lorem Ipsum', $partial->render() );
 
 		$partial = new WP_Customize_Partial(
 			$this->selective_refresh,

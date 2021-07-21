@@ -29,7 +29,7 @@ abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 
 	function test_is_MockFS_sane() {
 		global $wp_filesystem;
-		$this->assertTrue( is_a( $wp_filesystem, 'WP_Filesystem_MockFS' ) );
+		$this->assertInstanceOf( 'WP_Filesystem_MockFS', $wp_filesystem );
 
 		$wp_filesystem->init( '/' );
 

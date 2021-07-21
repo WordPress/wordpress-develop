@@ -372,4 +372,68 @@ class WP_UnitTestCase extends WP_UnitTestCase_Base {
 	public static function assertIsNotIterable( $actual, $message = '' ) {
 		static::assertFalse( is_iterable( $actual ), $message );
 	}
+
+	/**
+	 * Asserts that a string haystack contains a needle.
+	 *
+	 * This method has been backported from a more recent PHPUnit version,
+	 * as tests running on PHP 5.6 use PHPUnit 5.7.x.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $needle   The string to search for.
+	 * @param string $haystack The string to treat as the haystack.
+	 * @param string $message  Optional. Message to display when the assertion fails.
+	 */
+	public static function assertStringContainsString( $needle, $haystack, $message = '' ) {
+		static::assertContains( $needle, $haystack, $message );
+	}
+
+	/**
+	 * Asserts that a string haystack contains a needle (case-insensitive).
+	 *
+	 * This method has been backported from a more recent PHPUnit version,
+	 * as tests running on PHP 5.6 use PHPUnit 5.7.x.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $needle   The string to search for.
+	 * @param string $haystack The string to treat as the haystack.
+	 * @param string $message  Optional. Message to display when the assertion fails.
+	 */
+	public static function assertStringContainsStringIgnoringCase( $needle, $haystack, $message = '' ) {
+		static::assertContains( $needle, $haystack, $message, true );
+	}
+
+	/**
+	 * Asserts that a string haystack does not contain a needle.
+	 *
+	 * This method has been backported from a more recent PHPUnit version,
+	 * as tests running on PHP 5.6 use PHPUnit 5.7.x.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $needle   The string to search for.
+	 * @param string $haystack The string to treat as the haystack.
+	 * @param string $message  Optional. Message to display when the assertion fails.
+	 */
+	public static function assertStringNotContainsString( $needle, $haystack, $message = '' ) {
+		static::assertNotContains( $needle, $haystack, $message );
+	}
+
+	/**
+	 * Asserts that a string haystack does not contain a needle (case-insensitive).
+	 *
+	 * This method has been backported from a more recent PHPUnit version,
+	 * as tests running on PHP 5.6 use PHPUnit 5.7.x.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $needle   The string to search for.
+	 * @param string $haystack The string to treat as the haystack.
+	 * @param string $message  Optional. Message to display when the assertion fails.
+	 */
+	public static function assertStringNotContainsStringIgnoringCase( $needle, $haystack, $message = '' ) {
+		static::assertNotContains( $needle, $haystack, $message, true );
+	}
 }

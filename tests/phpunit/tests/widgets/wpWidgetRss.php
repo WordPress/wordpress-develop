@@ -87,7 +87,7 @@ class Test_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 		$actual = ob_get_clean();
 
-		$this->assertContains( $expected, $actual );
+		$this->assertStringContainsString( $expected, $actual );
 	}
 
 	public function data_url_happy_path() {

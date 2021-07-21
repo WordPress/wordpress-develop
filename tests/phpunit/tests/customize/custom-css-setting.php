@@ -331,9 +331,9 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 
 		$post = get_post( $post_id );
 		$this->assertSame( $original_title, $post->post_title );
-		$this->assertContains( $overridden_css, $post->post_content );
-		$this->assertContains( '/* filtered post_content */', $post->post_content );
-		$this->assertContains( '/* filtered post_content_filtered */', $post->post_content_filtered );
+		$this->assertStringContainsString( $overridden_css, $post->post_content );
+		$this->assertStringContainsString( '/* filtered post_content */', $post->post_content );
+		$this->assertStringContainsString( '/* filtered post_content_filtered */', $post->post_content_filtered );
 	}
 
 	/**
