@@ -2099,7 +2099,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 						'key'                   => 'aaa',
 						'compare'               => 'LIKE',
 						'compare_like_mode'     => 'startswith',
-						'value'                 => 'de'
+						'value'                 => 'de',
 					),
 				),
 				'fields'     => 'ids',
