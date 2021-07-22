@@ -568,8 +568,8 @@ class WP_Meta_Query {
 		}
 		// Query templates for LIKE / NOT LIKE queries
 		$meta_compare_like_value_tpl['startswith'] = '%s%%';
-		$meta_compare_like_value_tpl['endswith'] = '%%%s';
-		$meta_compare_like_value_tpl['contains'] = '%%%s%%';
+		$meta_compare_like_value_tpl['endswith']   = '%%%s';
+		$meta_compare_like_value_tpl['contains']   = '%%%s%%';
 
 		// First build the JOIN clause, if one is required.
 		$join = '';
@@ -683,8 +683,8 @@ class WP_Meta_Query {
 						break;
 					case 'NOT LIKE':
 						$meta_compare_string = $meta_compare_string_start . "AND $subquery_alias.meta_key LIKE %s " . $meta_compare_string_end;
-						$meta_compare_value = sprintf( $meta_compare_like_value_tpl[ $meta_compare_key_like_mode ], $wpdb->esc_like( trim( $clause['key'] ) ) );
-						$where              = $wpdb->prepare( $meta_compare_string, $meta_compare_value ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$meta_compare_value  = sprintf( $meta_compare_like_value_tpl[ $meta_compare_key_like_mode ], $wpdb->esc_like( trim( $clause['key'] ) ) );
+						$where               = $wpdb->prepare( $meta_compare_string, $meta_compare_value ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 						break;
 					case 'NOT IN':
 						$array_subclause     = '(' . substr( str_repeat( ',%s', count( $clause['key'] ) ), 1 ) . ') ';
