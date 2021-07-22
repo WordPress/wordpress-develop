@@ -1986,11 +1986,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array(
-			'foo_key',
-			'foo_key-1',
-			'foo_key-2'
-		), array_keys( $q->meta_query->get_clauses() ) );
+		$this->assertSameSets( array( 'foo_key', 'foo_key-1', 'foo_key-2' ), array_keys( $q->meta_query->get_clauses() ) );
 	}
 
 	/**
