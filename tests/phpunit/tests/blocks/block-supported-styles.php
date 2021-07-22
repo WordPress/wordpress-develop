@@ -245,7 +245,15 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$block = array(
 			'blockName'    => 'core/example',
 			'attrs'        => array(
-				'style' => array( 'color' => array( 'link' => 'var:preset|color|red' ) ),
+				'style' => array(
+					'elements' => array(
+						'link' => array(
+							'color' => array(
+								'text' => 'var:preset|color|red',
+							),
+						),
+					),
+				),
 			),
 			'innerBlock'   => array(),
 			'innerContent' => array(),
@@ -276,7 +284,15 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$block = array(
 			'blockName'    => 'core/example',
 			'attrs'        => array(
-				'style' => array( 'color' => array( 'link' => '#fff' ) ),
+				'style' => array(
+					'elements' => array(
+						'link' => array(
+							'color' => array(
+								'text' => '#fff',
+							),
+						),
+					),
+				),
 			),
 			'innerBlock'   => array(),
 			'innerContent' => array(),
@@ -394,7 +410,9 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
-				'fontSize' => true,
+				'typography' => array(
+					'fontSize' => true,
+				),
 			),
 		);
 		$this->register_block_type( 'core/example', $block_type_settings );
@@ -422,7 +440,9 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
-				'fontSize' => true,
+				'typography' => array(
+					'fontSize' => true,
+				),
 			),
 		);
 		$this->register_block_type( 'core/example', $block_type_settings );
@@ -430,7 +450,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$block = array(
 			'blockName'    => 'core/example',
 			'attrs'        => array(
-				'style' => array( 'typography' => array( 'fontSize' => '10' ) ),
+				'style' => array( 'typography' => array( 'fontSize' => '10px' ) ),
 			),
 			'innerBlock'   => array(),
 			'innerContent' => array(),
@@ -477,7 +497,9 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
-				'lineHeight' => true,
+				'typography' => array(
+					'lineHeight' => true,
+				),
 			),
 		);
 		$this->register_block_type( 'core/example', $block_type_settings );
@@ -589,8 +611,10 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 					'gradients' => true,
 					'link'      => true,
 				),
-				'fontSize'   => true,
-				'lineHeight' => true,
+				'typography' => array(
+					'fontSize'   => true,
+					'lineHeight' => true,
+				),
 				'align'      => true,
 			),
 		);
@@ -608,7 +632,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 					),
 					'typography' => array(
 						'lineHeight' => '20',
-						'fontSize'   => '10',
+						'fontSize'   => '10px',
 					),
 				),
 			),
@@ -631,7 +655,9 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$block_type_settings = array(
 			'attributes' => array(),
 			'supports'   => array(
-				'fontSize' => true,
+				'typography' => array(
+					'fontSize' => true,
+				),
 			),
 		);
 		$this->register_block_type( 'core/example', $block_type_settings );
@@ -649,7 +675,7 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 					),
 					'typography' => array(
 						'lineHeight' => '20',
-						'fontSize'   => '10',
+						'fontSize'   => '10px',
 					),
 				),
 			),
