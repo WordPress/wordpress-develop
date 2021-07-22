@@ -1007,7 +1007,7 @@ class wpdb {
 	 *                        then the custom users and usermeta tables will be mapped. Default true.
 	 * @param int    $blog_id Optional. The blog_id to prefix. Used only when prefix is requested.
 	 *                        Defaults to wpdb::$blogid.
-	 * @return array Table names. When a prefix is requested, the key is the unprefixed table name.
+	 * @return string[] Table names. When a prefix is requested, the key is the unprefixed table name.
 	 */
 	public function tables( $scope = 'all', $prefix = true, $blog_id = 0 ) {
 		switch ( $scope ) {
@@ -2573,11 +2573,11 @@ class wpdb {
 	public function get_var( $query = null, $x = 0, $y = 0 ) {
 		$this->func_call = "\$db->get_var(\"$query\", $x, $y)";
 
-		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
-			$this->check_current_query = false;
-		}
-
 		if ( $query ) {
+			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
+				$this->check_current_query = false;
+			}
+
 			$this->query( $query );
 		}
 
@@ -2607,11 +2607,11 @@ class wpdb {
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
 
-		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
-			$this->check_current_query = false;
-		}
-
 		if ( $query ) {
+			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
+				$this->check_current_query = false;
+			}
+
 			$this->query( $query );
 		} else {
 			return null;
@@ -2649,11 +2649,11 @@ class wpdb {
 	 * @return array Database query result. Array indexed from 0 by SQL result row number.
 	 */
 	public function get_col( $query = null, $x = 0 ) {
-		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
-			$this->check_current_query = false;
-		}
-
 		if ( $query ) {
+			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
+				$this->check_current_query = false;
+			}
+
 			$this->query( $query );
 		}
 
@@ -2687,11 +2687,11 @@ class wpdb {
 	public function get_results( $query = null, $output = OBJECT ) {
 		$this->func_call = "\$db->get_results(\"$query\", $output)";
 
-		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
-			$this->check_current_query = false;
-		}
-
 		if ( $query ) {
+			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
+				$this->check_current_query = false;
+			}
+
 			$this->query( $query );
 		} else {
 			return null;

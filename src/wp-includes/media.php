@@ -3858,6 +3858,11 @@ function wp_plupload_default_settings() {
 		$defaults['multi_selection'] = false;
 	}
 
+	// Check if WebP images can be edited.
+	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+		$defaults['webp_upload_error'] = true;
+	}
+
 	/**
 	 * Filters the Plupload default settings.
 	 *
@@ -4356,7 +4361,7 @@ function wp_enqueue_media( $args = array() ) {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param bool $value The filtered value, defaults to `false`.
+	 * @param bool $infinite Whether the Media Library grid has infinite scrolling.
 	 */
 	$infinite_scrolling = apply_filters( 'media_library_infinite_scrolling', false );
 

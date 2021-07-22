@@ -9,7 +9,8 @@
  * @group themes
  */
 class Tests_Theme_wpTheme extends WP_UnitTestCase {
-	function setUp() {
+
+	public function setUp() {
 		parent::setUp();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
 
@@ -24,7 +25,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	public function tearDown() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -32,10 +33,11 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	// Replace the normal theme root directory with our premade test directory.
-	function _theme_root( $dir ) {
+	public function _theme_root( $dir ) {
 		return $this->theme_root;
 	}
-	function test_new_WP_Theme_top_level() {
+
+	public function test_new_WP_Theme_top_level() {
 		$theme = new WP_Theme( 'theme1', $this->theme_root );
 
 		// Meta.
@@ -54,7 +56,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$this->assertSame( 'theme1', $theme->get_template() );
 	}
 
-	function test_new_WP_Theme_subdir() {
+	public function test_new_WP_Theme_subdir() {
 		$theme = new WP_Theme( 'subdir/theme2', $this->theme_root );
 
 		// Meta.
@@ -76,7 +78,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @ticket 20313
 	 */
-	function test_new_WP_Theme_subdir_bad_root() {
+	public function test_new_WP_Theme_subdir_bad_root() {
 		// This is what get_theme_data() does when you pass it a style.css file for a theme in a subdirectory.
 		$theme = new WP_Theme( 'theme2', $this->theme_root . '/subdir' );
 
@@ -99,7 +101,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @ticket 21749
 	 */
-	function test_wp_theme_uris_with_spaces() {
+	public function test_wp_theme_uris_with_spaces() {
 		$theme = new WP_Theme( 'theme with spaces', $this->theme_root . '/subdir' );
 		// Make sure subdir/ is considered part of the stylesheet, as we must avoid encoding /'s.
 		$this->assertSame( 'subdir/theme with spaces', $theme->get_stylesheet() );
@@ -116,7 +118,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @ticket 21969
 	 */
-	function test_theme_uris_with_spaces() {
+	public function test_theme_uris_with_spaces() {
 		$callback = array( $this, 'filter_theme_with_spaces' );
 		add_filter( 'stylesheet', $callback );
 		add_filter( 'template', $callback );
@@ -128,14 +130,14 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		remove_filter( 'template', $callback );
 	}
 
-	function filter_theme_with_spaces() {
+	public function filter_theme_with_spaces() {
 		return 'subdir/theme with spaces';
 	}
 
 	/**
 	 * @ticket 26873
 	 */
-	function test_display_method_on_get_method_failure() {
+	public function test_display_method_on_get_method_failure() {
 		$theme = new WP_Theme( 'nonexistent', $this->theme_root );
 		$this->assertSame( 'nonexistent', $theme->get( 'Name' ) );
 		$this->assertFalse( $theme->get( 'AuthorURI' ) );
@@ -146,7 +148,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @ticket 40820
 	 */
-	function test_child_theme_with_itself_as_parent_should_appear_as_broken() {
+	public function test_child_theme_with_itself_as_parent_should_appear_as_broken() {
 		$theme  = new WP_Theme( 'child-parent-itself', $this->theme_root );
 		$errors = $theme->errors();
 		$this->assertWPError( $errors );
@@ -160,7 +162,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 30594
 	 * @group ms-required
 	 */
-	function test_wp_theme_network_enable_single_theme() {
+	public function test_wp_theme_network_enable_single_theme() {
 		$theme                  = 'testtheme-1';
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 		WP_Theme::network_enable_theme( $theme );
@@ -177,7 +179,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 30594
 	 * @group ms-required
 	 */
-	function test_wp_theme_network_enable_multiple_themes() {
+	public function test_wp_theme_network_enable_multiple_themes() {
 		$themes                 = array( 'testtheme-2', 'testtheme-3' );
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 		WP_Theme::network_enable_theme( $themes );
@@ -200,7 +202,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 30594
 	 * @group ms-required
 	 */
-	function test_network_disable_single_theme() {
+	public function test_network_disable_single_theme() {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 
 		$allowed_themes = array(
@@ -225,7 +227,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 30594
 	 * @group ms-required
 	 */
-	function test_network_disable_multiple_themes() {
+	public function test_network_disable_multiple_themes() {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 
 		$allowed_themes = array(

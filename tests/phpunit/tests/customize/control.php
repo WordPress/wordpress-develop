@@ -118,14 +118,14 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 		ob_start();
 		$page_on_front_control->maybe_render();
 		$content = ob_get_clean();
-		$this->assertNotContains( 'add-new-toggle', $content );
+		$this->assertStringNotContainsString( 'add-new-toggle', $content );
 
 		// Ensure the add-new-toggle is absent if allow_addition param is set.
 		$page_on_front_control->allow_addition = true;
 		ob_start();
 		$page_on_front_control->maybe_render();
 		$content = ob_get_clean();
-		$this->assertContains( 'add-new-toggle', $content );
+		$this->assertStringContainsString( 'add-new-toggle', $content );
 
 		// Ensure that dropdown-pages delect is rendered even if there are no pages published (yet).
 		foreach ( get_pages() as $page ) {
@@ -135,7 +135,7 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 		ob_start();
 		$page_on_front_control->maybe_render();
 		$content = ob_get_clean();
-		$this->assertContains( '<option value="0">', $content, 'Dropdown-pages renders select even without any pages published.' );
+		$this->assertStringContainsString( '<option value="0">', $content, 'Dropdown-pages renders select even without any pages published.' );
 
 		// Ensure that auto-draft pages are included if they are among the nav_menus_created_posts.
 		$auto_draft_page_id = $this->factory()->post->create(
@@ -164,9 +164,9 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 		ob_start();
 		$page_on_front_control->maybe_render();
 		$content = ob_get_clean();
-		$this->assertContains( sprintf( '<option value="%d">Auto Draft Page</option>', $auto_draft_page_id ), $content );
-		$this->assertNotContains( 'Auto Draft Post', $content );
-		$this->assertNotContains( 'Orphan Auto Draft Page', $content );
+		$this->assertStringContainsString( sprintf( '<option value="%d">Auto Draft Page</option>', $auto_draft_page_id ), $content );
+		$this->assertStringNotContainsString( 'Auto Draft Post', $content );
+		$this->assertStringNotContainsString( 'Orphan Auto Draft Page', $content );
 	}
 
 	/**

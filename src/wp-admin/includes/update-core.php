@@ -804,6 +804,12 @@ $_old_files = array(
 	// 5.7
 	'wp-includes/blocks/classic/block.json',
 	// 5.8
+	'wp-admin/images/freedoms.png',
+	'wp-admin/images/privacy.png',
+	'wp-admin/images/about-badge.svg',
+	'wp-admin/images/about-color-palette.svg',
+	'wp-admin/images/about-color-palette-vert.svg',
+	'wp-admin/images/about-header-brushes.svg',
 	'wp-includes/block-patterns/large-header.php',
 	'wp-includes/block-patterns/heading-paragraph.php',
 	'wp-includes/block-patterns/quote.php',
@@ -1672,6 +1678,20 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  */
 function _upgrade_580_force_deactivate_incompatible_plugins() {
 	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '10.7', '<=' ) ) {
+		$deactivated_gutenberg['gutenberg'] = array(
+			'plugin_name'         => 'Gutenberg',
+			'version_deactivated' => GUTENBERG_VERSION,
+			'version_compatible'  => '10.8',
+		);
+		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
+			$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );
+			$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
+			update_site_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
+		} else {
+			$deactivated_plugins = get_option( 'wp_force_deactivated_plugins', array() );
+			$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
+			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
+		}
 		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 	}
 }

@@ -7,10 +7,10 @@
  *
  * @package WordPress
  * @subpackage Twenty_Eleven
- * @since Twenty Eleven 1.0
+ * @since Twenty Eleven 3.8
  */
 
- /**
+/**
  * Register Block Pattern Category.
  */
 if ( function_exists( 'register_block_pattern_category' ) ) {

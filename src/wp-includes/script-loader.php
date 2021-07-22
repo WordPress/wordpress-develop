@@ -80,8 +80,9 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react'     => array( 'wp-polyfill' ),
-		'react-dom' => array( 'react' ),
+		'react'       => array( 'wp-polyfill' ),
+		'react-dom'   => array( 'react' ),
+		'regenerator-runtime',
 		'moment',
 		'lodash',
 		'wp-polyfill-fetch',
@@ -91,12 +92,13 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-dom-rect',
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
-		'wp-polyfill',
+		'wp-polyfill' => array( 'regenerator-runtime' ),
 	);
 
 	$vendor_scripts_versions = array(
 		'react'                       => '16.13.1',
 		'react-dom'                   => '16.13.1',
+		'regenerator-runtime'         => '0.13.7',
 		'moment'                      => '2.29.1',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.0.0',
@@ -106,7 +108,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-dom-rect'        => '3.104.0',
 		'wp-polyfill-element-closest' => '2.0.2',
 		'wp-polyfill-object-fit'      => '2.3.5',
-		'wp-polyfill'                 => '7.4.4',
+		'wp-polyfill'                 => '3.15.0',
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
@@ -120,8 +122,6 @@ function wp_default_packages_vendor( $scripts ) {
 
 		$scripts->add( $handle, $path, $dependencies, $version, 1 );
 	}
-
-	$scripts->add( 'wp-polyfill', null, array( 'wp-polyfill' ) );
 
 	did_action( 'init' ) && $scripts->add_inline_script( 'lodash', 'window.lodash = _.noConflict();' );
 
@@ -379,6 +379,18 @@ function wp_default_packages_inline_scripts( $scripts ) {
 	$scripts->add_inline_script(
 		'editor',
 		'window.wp.oldEditor = window.wp.editor;',
+		'after'
+	);
+
+	/*
+	 * wp-editor module is exposed as window.wp.editor.
+	 * Problem: there is quite some code expecting window.wp.oldEditor object available under window.wp.editor.
+	 * Solution: fuse the two objects together to maintain backward compatibility.
+	 * For more context, see https://github.com/WordPress/gutenberg/issues/33203.
+	 */
+	$scripts->add_inline_script(
+		'wp-editor',
+		'Object.assign( window.wp.editor, window.wp.oldEditor );',
 		'after'
 	);
 }
@@ -732,8 +744,8 @@ function wp_default_scripts( $scripts ) {
 
 	// jQuery.
 	// The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
-	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.5.1' );
-	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.5.1' );
+	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.0' );
+	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.0' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.3.2' );
 
 	// Full jQuery UI.
@@ -806,7 +818,7 @@ function wp_default_scripts( $scripts ) {
 	);
 
 	// Deprecated, not used in core, most functionality is included in jQuery 1.3.
-	$scripts->add( 'jquery-form', "/wp-includes/js/jquery/jquery.form$suffix.js", array( 'jquery' ), '4.2.1', 1 );
+	$scripts->add( 'jquery-form', "/wp-includes/js/jquery/jquery.form$suffix.js", array( 'jquery' ), '4.3.0', 1 );
 
 	// jQuery plugins.
 	$scripts->add( 'jquery-color', '/wp-includes/js/jquery/jquery.color.min.js', array( 'jquery' ), '2.1.2', 1 );
@@ -875,6 +887,7 @@ function wp_default_scripts( $scripts ) {
 		/* translators: %s: File name. */
 		'error_uploading'           => __( '&#8220;%s&#8221; has failed to upload.' ),
 		'unsupported_image'         => __( 'This image cannot be displayed in a web browser. For best results convert it to JPEG before uploading.' ),
+		'noneditable_image'         => __( 'This image cannot be processed by the web server. Convert it to JPEG or PNG before uploading.' ),
 		'file_url_copied'           => __( 'The file URL has been copied to your clipboard' ),
 	);
 
@@ -902,7 +915,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
 
-	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.8.3', 1 );
+	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.1', 1 );
 	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.4.0', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
@@ -1117,7 +1130,7 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'media-upload', "/wp-admin/js/media-upload$suffix.js", array( 'thickbox', 'shortcode' ), false, 1 );
 
-	$scripts->add( 'hoverIntent', "/wp-includes/js/hoverIntent$suffix.js", array( 'jquery' ), '1.8.1', 1 );
+	$scripts->add( 'hoverIntent', "/wp-includes/js/hoverIntent$suffix.js", array( 'jquery' ), '1.10.1', 1 );
 
 	// JS-only version of hoverintent (no dependencies).
 	$scripts->add( 'hoverintent-js', '/wp-includes/js/hoverintent-js.min.js', array(), '2.2.1', 1 );
@@ -2258,11 +2271,21 @@ function wp_common_block_scripts_and_styles() {
  * Enqueues the global styles defined via theme.json.
  *
  * @since 5.8.0
- *
- * @return void
  */
 function wp_enqueue_global_styles() {
 	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+		return;
+	}
+
+	$separate_assets = wp_should_load_separate_core_block_assets();
+
+	/*
+	 * Global styles should be printed in the head when loading all styles combined.
+	 * The footer should only be used to print global styles for classic themes with separate core assets enabled.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/53494.
+	 */
+	if ( ( ! $separate_assets && doing_action( 'wp_footer' ) ) || ( $separate_assets && doing_action( 'wp_enqueue_scripts' ) ) ) {
 		return;
 	}
 
@@ -2325,7 +2348,21 @@ function wp_should_load_block_editor_scripts_and_styles() {
 }
 
 /**
- * Checks whether separate assets should be loaded for core blocks on-render.
+ * Checks whether separate styles should be loaded for core blocks on-render.
+ *
+ * When this function returns true, other functions ensure that core blocks
+ * only load their assets on-render, and each block loads its own, individual
+ * assets. Third-party blocks only load their assets when rendered.
+ *
+ * When this function returns false, all core block assets are loaded regardless
+ * of whether they are rendered in a page or not, because they are all part of
+ * the `block-library/style.css` file. Assets for third-party blocks are always
+ * enqueued regardless of whether they are rendered or not.
+ *
+ * This only affects front end and not the block editor screens.
+ *
+ * @see wp_enqueue_registered_block_scripts_and_styles()
+ * @see register_block_style_handle()
  *
  * @since 5.8.0
  *
@@ -2337,13 +2374,15 @@ function wp_should_load_separate_core_block_assets() {
 	}
 
 	/**
-	 * Filters the flag that decides whether separate scripts and styles
-	 * will be loaded for core blocks on-render.
+	 * Filters whether block styles should be loaded separately.
+	 *
+	 * Returning false loads all core block assets, regardless of whether they are rendered
+	 * in a page or not. Returning true loads core block assets only when they are rendered.
 	 *
 	 * @since 5.8.0
 	 *
 	 * @param bool $load_separate_assets Whether separate assets will be loaded.
-	 *                                   Default false.
+	 *                                   Default false (all block assets are loaded, even when not used).
 	 */
 	return apply_filters( 'should_load_separate_core_block_assets', false );
 }
@@ -2397,13 +2436,39 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 function enqueue_block_styles_assets() {
 	$block_styles = WP_Block_Styles_Registry::get_instance()->get_all_registered();
 
-	foreach ( $block_styles as $styles ) {
+	foreach ( $block_styles as $block_name => $styles ) {
 		foreach ( $styles as $style_properties ) {
 			if ( isset( $style_properties['style_handle'] ) ) {
-				wp_enqueue_style( $style_properties['style_handle'] );
+
+				// If the site loads separate styles per-block, enqueue the stylesheet on render.
+				if ( wp_should_load_separate_core_block_assets() ) {
+					add_filter(
+						'render_block',
+						function( $html, $block ) use ( $style_properties ) {
+							wp_enqueue_style( $style_properties['style_handle'] );
+							return $html;
+						}
+					);
+				} else {
+					wp_enqueue_style( $style_properties['style_handle'] );
+				}
 			}
 			if ( isset( $style_properties['inline_style'] ) ) {
-				wp_add_inline_style( 'wp-block-library', $style_properties['inline_style'] );
+
+				// Default to "wp-block-library".
+				$handle = 'wp-block-library';
+
+				// If the site loads separate styles per-block, check if the block has a stylesheet registered.
+				if ( wp_should_load_separate_core_block_assets() ) {
+					$block_stylesheet_handle = generate_block_asset_handle( $block_name, 'style' );
+					global $wp_styles;
+					if ( isset( $wp_styles->registered[ $block_stylesheet_handle ] ) ) {
+						$handle = $block_stylesheet_handle;
+					}
+				}
+
+				// Add inline styles to the calculated handle.
+				wp_add_inline_style( $handle, $style_properties['inline_style'] );
 			}
 		}
 	}
@@ -2603,7 +2668,7 @@ function wp_maybe_inline_styles() {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param int $total_inline_limit The file-size threshold, in bytes. Defaults to 20000.
+	 * @param int $total_inline_limit The file-size threshold, in bytes. Default 20000.
 	 */
 	$total_inline_limit = apply_filters( 'styles_inline_size_limit', $total_inline_limit );
 

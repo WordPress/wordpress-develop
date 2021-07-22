@@ -52,6 +52,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 	 * Test update() method.
 	 *
 	 * @covers WP_Widget_Media_Gallery::render_media
+	 * @requires function imagejpeg
 	 */
 	public function test_render_media() {
 		$widget = new WP_Widget_Media_Gallery();
@@ -80,10 +81,10 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 		$widget->render_media( $instance );
 		$output = ob_get_clean();
 
-		$this->assertContains( 'gallery-columns-3', $output );
-		$this->assertContains( 'gallery-size-thumbnail', $output );
-		$this->assertContains( 'canola', $output );
-		$this->assertContains( 'waffles', $output );
+		$this->assertStringContainsString( 'gallery-columns-3', $output );
+		$this->assertStringContainsString( 'gallery-size-thumbnail', $output );
+		$this->assertStringContainsString( 'canola', $output );
+		$this->assertStringContainsString( 'waffles', $output );
 	}
 
 	/**
@@ -102,7 +103,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 		$this->assertTrue( wp_script_is( 'media-gallery-widget' ) );
 
 		$after = implode( '', wp_scripts()->registered['media-gallery-widget']->extra['after'] );
-		$this->assertContains( 'wp.mediaWidgets.modelConstructors[ "media_gallery" ].prototype', $after );
+		$this->assertStringContainsString( 'wp.mediaWidgets.modelConstructors[ "media_gallery" ].prototype', $after );
 	}
 
 	/**
@@ -198,6 +199,6 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 		$widget->render_control_template_scripts();
 		$output = ob_get_clean();
 
-		$this->assertContains( '<script type="text/html" id="tmpl-wp-media-widget-gallery-preview">', $output );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-wp-media-widget-gallery-preview">', $output );
 	}
 }

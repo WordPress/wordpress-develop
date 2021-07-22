@@ -578,9 +578,7 @@ function wp_iframe( $content_func, ...$args ) {
 		 * (pre-3.5.0) media upload popup.
 		 *
 		 * The dynamic portion of the hook, `$content_func`, refers to the form
-		 * callback for the media upload type. Possible values include
-		 * 'media_upload_type_form', 'media_upload_type_url_form', and
-		 * 'media_upload_library_form'.
+		 * callback for the media upload type.
 		 *
 		 * @since 2.5.0
 		 */
@@ -715,7 +713,7 @@ function get_upload_iframe_src( $type = null, $post_id = null, $tab = null ) {
  *
  * @since 2.5.0
  *
- * @return mixed void|object WP_Error on failure
+ * @return null|array|void Array of error messages keyed by attachment ID, null or void on success.
  */
 function media_upload_form_handler() {
 	check_admin_referer( 'media-form' );
@@ -2196,6 +2194,11 @@ function media_upload_form( $errors = null ) {
 		strpos( $_SERVER['HTTP_USER_AGENT'], 'like Mac OS X' ) !== false
 	) {
 		$plupload_init['multi_selection'] = false;
+	}
+
+	// Check if WebP images can be edited.
+	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+		$plupload_init['webp_upload_error'] = true;
 	}
 
 	/**

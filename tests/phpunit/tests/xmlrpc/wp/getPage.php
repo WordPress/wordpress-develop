@@ -46,28 +46,28 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result['userid'] );
-		$this->assertInternalType( 'int', $result['page_id'] );
-		$this->assertInternalType( 'string', $result['page_status'] );
-		$this->assertInternalType( 'string', $result['description'] );
-		$this->assertInternalType( 'string', $result['title'] );
-		$this->assertInternalType( 'string', $result['link'] );
-		$this->assertInternalType( 'string', $result['permaLink'] );
-		$this->assertInternalType( 'array', $result['categories'] );
-		$this->assertInternalType( 'string', $result['excerpt'] );
-		$this->assertInternalType( 'string', $result['text_more'] );
-		$this->assertInternalType( 'int', $result['mt_allow_comments'] );
-		$this->assertInternalType( 'int', $result['mt_allow_pings'] );
-		$this->assertInternalType( 'string', $result['wp_slug'] );
-		$this->assertInternalType( 'string', $result['wp_password'] );
-		$this->assertInternalType( 'string', $result['wp_author'] );
-		$this->assertInternalType( 'int', $result['wp_page_parent_id'] );
-		$this->assertInternalType( 'string', $result['wp_page_parent_title'] );
-		$this->assertInternalType( 'int', $result['wp_page_order'] );
-		$this->assertInternalType( 'string', $result['wp_author_id'] );
-		$this->assertInternalType( 'string', $result['wp_author_display_name'] );
-		$this->assertInternalType( 'array', $result['custom_fields'] );
-		$this->assertInternalType( 'string', $result['wp_page_template'] );
+		$this->assertIsString( $result['userid'] );
+		$this->assertIsInt( $result['page_id'] );
+		$this->assertIsString( $result['page_status'] );
+		$this->assertIsString( $result['description'] );
+		$this->assertIsString( $result['title'] );
+		$this->assertIsString( $result['link'] );
+		$this->assertIsString( $result['permaLink'] );
+		$this->assertIsArray( $result['categories'] );
+		$this->assertIsString( $result['excerpt'] );
+		$this->assertIsString( $result['text_more'] );
+		$this->assertIsInt( $result['mt_allow_comments'] );
+		$this->assertIsInt( $result['mt_allow_pings'] );
+		$this->assertIsString( $result['wp_slug'] );
+		$this->assertIsString( $result['wp_password'] );
+		$this->assertIsString( $result['wp_author'] );
+		$this->assertIsInt( $result['wp_page_parent_id'] );
+		$this->assertIsString( $result['wp_page_parent_title'] );
+		$this->assertIsInt( $result['wp_page_order'] );
+		$this->assertIsString( $result['wp_author_id'] );
+		$this->assertIsString( $result['wp_author_display_name'] );
+		$this->assertIsArray( $result['custom_fields'] );
+		$this->assertIsString( $result['wp_page_template'] );
 
 		$post_data = get_post( self::$post_id );
 

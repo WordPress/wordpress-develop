@@ -70,7 +70,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertSame( 3, count( $found ) );
+			$this->assertCount( 3, $found );
 		}
 
 		public function test_wp_network_query_by_network__in_with_order() {

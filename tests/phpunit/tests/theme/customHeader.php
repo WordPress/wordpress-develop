@@ -93,7 +93,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 
 		$html = get_header_image_tag();
 		$this->assertStringStartsWith( '<img ', $html );
-		$this->assertContains( sprintf( 'src="%s"', $default ), $html );
+		$this->assertStringContainsString( sprintf( 'src="%s"', $default ), $html );
 	}
 
 	/**
@@ -116,7 +116,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		set_theme_mod( 'header_image', $custom );
 		$html = get_header_image_tag();
 		$this->assertStringStartsWith( '<img ', $html );
-		$this->assertContains( sprintf( 'src="%s"', $custom ), $html );
+		$this->assertStringContainsString( sprintf( 'src="%s"', $custom ), $html );
 	}
 
 	function test_get_custom_header_markup_without_registered_default_image() {
@@ -138,7 +138,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		$html = get_custom_header_markup();
 		$this->assertTrue( has_custom_header() );
 		$this->assertStringStartsWith( '<div id="wp-custom-header" class="wp-custom-header">', $html );
-		$this->assertContains( sprintf( 'src="%s"', $default ), $html );
+		$this->assertStringContainsString( sprintf( 'src="%s"', $default ), $html );
 	}
 
 	function test_get_header_video_url() {

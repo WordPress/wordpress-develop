@@ -95,11 +95,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->assertSame( $id_base, $widget->id_base );
 		$this->assertSame( $name, $widget->name );
 
-		// Method assertArraySubset doesn't exist in phpunit versions compatible with PHP 5.2.
-		if ( method_exists( $this, 'assertArraySubset' ) ) {
-			$this->assertArraySubset( $widget_options, $widget->widget_options );
-			$this->assertArraySubset( $control_options, $widget->control_options );
-		}
+		$this->assertArraySubset( $widget_options, $widget->widget_options );
+		$this->assertArraySubset( $control_options, $widget->control_options );
 	}
 
 	/**
@@ -135,6 +132,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	 * Test is_attachment_with_mime_type method.
 	 *
 	 * @covers WP_Widget_Media::is_attachment_with_mime_type
+	 * @requires function imagejpeg
 	 */
 	function test_is_attachment_with_mime_type() {
 
@@ -219,7 +217,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->filter_instance_schema_args = null;
 		add_filter( 'widget_mocked_instance_schema', array( $this, 'filter_instance_schema' ), 10, 2 );
 		$schema = $widget->get_instance_schema();
-		$this->assertInternalType( 'array', $this->filter_instance_schema_args );
+		$this->assertIsArray( $this->filter_instance_schema_args );
 		$this->assertSame( $widget, $this->filter_instance_schema_args['widget'] );
 		$this->assertSameSets( array( 'attachment_id', 'title', 'url' ), array_keys( $this->filter_instance_schema_args['schema'] ) );
 		$this->assertArrayHasKey( 'injected', $schema );
@@ -343,9 +341,9 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->assertSame( $widget, $this->widget_instance_filter_args[2] );
 		$output = ob_get_clean();
 
-		$this->assertContains( '<h2>Foo</h2>', $output );
-		$this->assertContains( '<section>', $output );
-		$this->assertContains( '</section>', $output );
+		$this->assertStringContainsString( '<h2>Foo</h2>', $output );
+		$this->assertStringContainsString( '<section>', $output );
+		$this->assertStringContainsString( '</section>', $output );
 
 		// No title.
 		ob_start();
@@ -354,7 +352,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$widget->expects( $this->atLeastOnce() )->method( 'render_media' )->with( $instance );
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertNotContains( '<h2>Foo</h2>', $output );
+		$this->assertStringNotContainsString( '<h2>Foo</h2>', $output );
 
 		// No attachment_id nor url.
 		$instance['url']           = '';
@@ -398,9 +396,9 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$widget->form( array() );
 		$output = ob_get_clean();
 
-		$this->assertContains( 'name="widget-mocked[][attachment_id]"', $output );
-		$this->assertContains( 'name="widget-mocked[][title]"', $output );
-		$this->assertContains( 'name="widget-mocked[][url]"', $output );
+		$this->assertStringContainsString( 'name="widget-mocked[][attachment_id]"', $output );
+		$this->assertStringContainsString( 'name="widget-mocked[][title]"', $output );
+		$this->assertStringContainsString( 'name="widget-mocked[][url]"', $output );
 	}
 
 	/**
@@ -470,7 +468,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$widget->render_control_template_scripts();
 		$output = ob_get_clean();
 
-		$this->assertContains( '<script type="text/html" id="tmpl-widget-media-mocked-control">', $output );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-widget-media-mocked-control">', $output );
 	}
 
 	/**
