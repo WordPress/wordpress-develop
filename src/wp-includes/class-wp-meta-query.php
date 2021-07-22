@@ -102,7 +102,7 @@ class WP_Meta_Query {
 	 * @since 5.1.0 Introduced $compare_key clause parameter, which enables LIKE key matches.
 	 * @since 5.3.0 Increased the number of operators available to $compare_key. Introduced $type_key,
 	 *              which enables the $key to be cast to a new data type for comparisons.
-	 * @since 5.9.0 Adds LIKE based STARTSWITH and ENDSWITH operators for value compares
+	 * @since 5.9.0 Introduced $compare_key_like_mode and $compare_like_mode to LIKE queries
 	 *
 	 * @param array $meta_query {
 	 *     Array of meta query clauses. When first-order clauses or sub-clauses use strings as
@@ -113,25 +113,28 @@ class WP_Meta_Query {
 	 *     @type array  ...$0 {
 	 *         Optional. An array of first-order clause parameters, or another fully-formed meta query.
 	 *
-	 *         @type string $key         Meta key to filter by.
-	 *         @type string $compare_key MySQL operator used for comparing the $key. Accepts '=', '!='
-	 *                                   'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'REGEXP', 'NOT REGEXP', 'RLIKE',
-	 *                                   'EXISTS' (alias of '=') or 'NOT EXISTS' (alias of '!=').
-	 *                                   Default is 'IN' when `$key` is an array, '=' otherwise.
-	 *         @type string $type_key    MySQL data type that the meta_key column will be CAST to for
-	 *                                   comparisons. Accepts 'BINARY' for case-sensitive regular expression
-	 *                                   comparisons. Default is ''.
-	 *         @type string $value       Meta value to filter by.
-	 *         @type string $compare     MySQL operator used for comparing the $value. Accepts '=',
-	 *                                   '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE',
-	 *                                   'STARTSWITH', 'NOT STARTSWITH', 'ENDSWITH', 'NOT ENDSWITH',
-	 *                                   'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'REGEXP',
-	 *                                   'NOT REGEXP', 'RLIKE', 'EXISTS' or 'NOT EXISTS'.
-	 *                                   Default is 'IN' when `$value` is an array, '=' otherwise.
-	 *         @type string $type        MySQL data type that the meta_value column will be CAST to for
-	 *                                   comparisons. Accepts 'NUMERIC', 'BINARY', 'CHAR', 'DATE',
-	 *                                   'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', or 'UNSIGNED'.
-	 *                                   Default is 'CHAR'.
+	 *         @type string $key                    Meta key to filter by.
+	 *         @type string $compare_key            MySQL operator used for comparing the $key. Accepts '=', '!='
+	 *                                              'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'REGEXP', 'NOT REGEXP', 'RLIKE',
+	 *                                              'EXISTS' (alias of '=') or 'NOT EXISTS' (alias of '!=').
+	 *                                              Default is 'IN' when `$key` is an array, '=' otherwise.
+	 *         @type string $compare_key_like_mode  Search mode for LIKE compares. Accepts 'startswith ', 'endswith' or
+	 *                                              'contains'. Default is 'contains'.
+	 *         @type string $type_key               MySQL data type that the meta_key column will be CAST to for
+	 *                                              comparisons. Accepts 'BINARY' for case-sensitive regular expression
+	 *                                              comparisons. Default is ''.
+	 *         @type string $value                  Meta value to filter by.
+	 *         @type string $compare                MySQL operator used for comparing the $value. Accepts '=',
+	 *                                              '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE',
+	 *                                              'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'REGEXP',
+	 *                                              'NOT REGEXP', 'RLIKE', 'EXISTS' or 'NOT EXISTS'.
+	 *                                              Default is 'IN' when `$value` is an array, '=' otherwise.
+	 *         @type string $compare_like_mode      Search mode for LIKE compares. Accepts 'startswith ', 'endswith' or
+	 *                                              'contains'. Default is 'contains'.
+	 *         @type string $type                   MySQL data type that the meta_value column will be CAST to for
+	 *                                              comparisons. Accepts 'NUMERIC', 'BINARY', 'CHAR', 'DATE',
+	 *                                              'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', or 'UNSIGNED'.
+	 *                                              Default is 'CHAR'.
 	 *     }
 	 * }
 	 */
@@ -248,7 +251,7 @@ class WP_Meta_Query {
 		 * the rest of the meta_query).
 		 */
 		$primary_meta_query = array();
-		foreach ( array( 'key', 'compare', 'type', 'compare_key', 'type_key' ) as $key ) {
+		foreach ( array( 'key', 'compare', 'compare_like_mode', 'type', 'compare_key', 'type_key' ) as $key ) {
 			if ( ! empty( $qv[ "meta_$key" ] ) ) {
 				$primary_meta_query[ $key ] = $qv[ "meta_$key" ];
 			}
@@ -511,11 +514,7 @@ class WP_Meta_Query {
 			'=',
 			'!=',
 			'LIKE',
-			'STARTSWITH',
-			'ENDSWITH',
 			'NOT LIKE',
-			'NOT STARTSWITH',
-			'NOT ENDSWITH',
 			'IN',
 			'NOT IN',
 			'EXISTS',
@@ -550,6 +549,27 @@ class WP_Meta_Query {
 
 		$meta_compare     = $clause['compare'];
 		$meta_compare_key = $clause['compare_key'];
+
+		// LIKE and NOT LIKE supports three search modes. Startswith, Endswith and Contains.
+		// Default to 'contains' for backward compat
+		if ( 'LIKE' === $meta_compare_key || 'NOT LIKE' === $meta_compare_key ) {
+			// Key compares
+			if ( empty( $clause['compare_key_like_mode'] ) ) {
+				$clause['compare_key_like_mode'] = 'contains';
+			}
+			$meta_compare_key_like_mode = $clause['compare_key_like_mode'];
+		}
+		if ( 'LIKE' === $meta_compare || 'NOT LIKE' === $meta_compare ) {
+			// Value compares
+			if ( empty( $clause['compare_like_mode'] ) ) {
+				$clause['compare_like_mode'] = 'contains';
+			}
+			$meta_compare_like_mode = $clause['compare_like_mode'];
+		}
+		// Query templates for LIKE / NOT LIKE queries
+		$meta_compare_like_value_tpl['startswith'] = '%s%%';
+		$meta_compare_like_value_tpl['endswith'] = '%%%s';
+		$meta_compare_like_value_tpl['contains'] = '%%%s%%';
 
 		// First build the JOIN clause, if one is required.
 		$join = '';
@@ -638,7 +658,7 @@ class WP_Meta_Query {
 						$where = $wpdb->prepare( "$alias.meta_key = %s", trim( $clause['key'] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 						break;
 					case 'LIKE':
-						$meta_compare_value = '%' . $wpdb->esc_like( trim( $clause['key'] ) ) . '%';
+						$meta_compare_value = sprintf( $meta_compare_like_value_tpl[ $meta_compare_key_like_mode ], $wpdb->esc_like( trim( $clause['key'] ) ) );
 						$where              = $wpdb->prepare( "$alias.meta_key LIKE %s", $meta_compare_value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 						break;
 					case 'IN':
@@ -663,8 +683,7 @@ class WP_Meta_Query {
 						break;
 					case 'NOT LIKE':
 						$meta_compare_string = $meta_compare_string_start . "AND $subquery_alias.meta_key LIKE %s " . $meta_compare_string_end;
-
-						$meta_compare_value = '%' . $wpdb->esc_like( trim( $clause['key'] ) ) . '%';
+						$meta_compare_value = sprintf( $meta_compare_like_value_tpl[ $meta_compare_key_like_mode ], $wpdb->esc_like( trim( $clause['key'] ) ) );
 						$where              = $wpdb->prepare( $meta_compare_string, $meta_compare_value ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 						break;
 					case 'NOT IN':
@@ -715,7 +734,7 @@ class WP_Meta_Query {
 
 				case 'LIKE':
 				case 'NOT LIKE':
-					$meta_value = '%' . $wpdb->esc_like( $meta_value ) . '%';
+					$meta_value = sprintf( $meta_compare_like_value_tpl[ $meta_compare_like_mode ], $wpdb->esc_like( $meta_value ) );
 					$where      = $wpdb->prepare( '%s', $meta_value );
 					break;
 
