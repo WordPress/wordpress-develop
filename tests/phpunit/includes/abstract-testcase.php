@@ -655,14 +655,16 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Asserts that the given fields are present in the given object.
 	 *
-	 * @param object $object The object to check.
-	 * @param array  $fields The fields to check.
+	 * @since UT (3.7.0)
+	 * @since 5.9.0 Added the `$message` parameter.
+	 *
+	 * @param object $object  The object to check.
+	 * @param array  $fields  The fields to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualFields( $object, $fields ) {
+	public function assertEqualFields( $object, $fields, $message = '' ) {
 		foreach ( $fields as $field_name => $field_value ) {
-			if ( $object->$field_name !== $field_value ) {
-				$this->fail();
-			}
+			$this->assertSame( $object->$field_name, $field_value, $message . ' Field values do not match.' );
 		}
 	}
 
