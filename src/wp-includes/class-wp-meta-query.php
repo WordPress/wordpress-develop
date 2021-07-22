@@ -738,20 +738,6 @@ class WP_Meta_Query {
 					$where      = $wpdb->prepare( '%s', $meta_value );
 					break;
 
-				case 'STARTSWITH':
-				case 'NOT STARTSWITH':
-					$meta_compare = 'STARTSWITH' === $meta_compare ? 'LIKE' : 'NOT LIKE';
-					$meta_value   = $wpdb->esc_like( $meta_value ) . '%';
-					$where        = $wpdb->prepare( '%s', $meta_value );
-					break;
-
-				case 'ENDSWITH':
-				case 'NOT ENDSWITH':
-					$meta_compare = 'ENDSWITH' === $meta_compare ? 'LIKE' : 'NOT LIKE';
-					$meta_value   = '%' . $wpdb->esc_like( $meta_value );
-					$where        = $wpdb->prepare( '%s', $meta_value );
-					break;
-
 				// EXISTS with a value is interpreted as '='.
 				case 'EXISTS':
 					$meta_compare = '=';
