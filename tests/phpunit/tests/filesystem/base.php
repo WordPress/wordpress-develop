@@ -13,8 +13,6 @@ abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 
 	function tearDown() {
 		global $wp_filesystem;
-		remove_filter( 'filesystem_method_file', array( $this, 'filter_abstraction_file' ) );
-		remove_filter( 'filesystem_method', array( $this, 'filter_fs_method' ) );
 		unset( $wp_filesystem );
 
 		parent::tearDown();

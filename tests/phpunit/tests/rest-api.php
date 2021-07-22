@@ -22,11 +22,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 		do_action( 'rest_api_init', $GLOBALS['wp_rest_server'] );
 	}
 
-	public function tearDown() {
-		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
-		parent::tearDown();
-	}
-
 	/**
 	 * Checks that the main classes are loaded.
 	 */
