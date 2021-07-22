@@ -292,9 +292,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 				'meta_query'             => array(
 					array(
-						'key'     => 'foo',
-						'value'   => 'bar',
-						'compare' => 'LIKE',
+						'key'               => 'foo',
+						'value'             => 'bar',
+						'compare'           => 'LIKE',
 						'compare_like_mode' => 'startswith',
 					),
 				),
@@ -326,9 +326,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 				'meta_query'             => array(
 					array(
-						'key'     => 'foo',
-						'value'   => 'bar',
-						'compare' => 'NOT LIKE',
+						'key'               => 'foo',
+						'value'             => 'bar',
+						'compare'           => 'NOT LIKE',
 						'compare_like_mode' => 'startswith',
 					),
 				),
@@ -360,9 +360,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 				'meta_query'             => array(
 					array(
-						'key'     => 'foo',
-						'value'   => 'ar',
-						'compare' => 'LIKE',
+						'key'               => 'foo',
+						'value'             => 'ar',
+						'compare'           => 'LIKE',
 						'compare_like_mode' => 'endswith',
 					),
 				),
@@ -394,9 +394,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 				'meta_query'             => array(
 					array(
-						'key'     => 'foo',
-						'value'   => 'bar',
-						'compare' => 'NOT LIKE',
+						'key'               => 'foo',
+						'value'             => 'bar',
+						'compare'           => 'NOT LIKE',
 						'compare_like_mode' => 'endswith',
 					),
 				),
@@ -1986,7 +1986,11 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( 'foo_key', 'foo_key-1', 'foo_key-2' ), array_keys( $q->meta_query->get_clauses() ) );
+		$this->assertSameSets( array(
+			'foo_key',
+			'foo_key-1',
+			'foo_key-2'
+		), array_keys( $q->meta_query->get_clauses() ) );
 	}
 
 	/**
