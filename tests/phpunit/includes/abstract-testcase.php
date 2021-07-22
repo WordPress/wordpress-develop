@@ -664,7 +664,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 */
 	public function assertEqualFields( $object, $fields, $message = '' ) {
 		foreach ( $fields as $field_name => $field_value ) {
-			$this->assertSame( $object->$field_name, $field_value, $message . ' Field values do not match.' );
+			$this->assertObjectHasAttribute( $field_name, $object, $message . " Property $field_name does not exist on the object." );
+			$this->assertSame( $field_value, $object->$field_name, $message . " Value of property $field_name is not $field_value." );
 		}
 	}
 
