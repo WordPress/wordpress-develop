@@ -669,11 +669,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Asserts that two values are equal, with whitespace differences discarded.
 	 *
+	 * @since UT (3.7.0)
+	 * @since 5.9.0 Added the `$message` parameter.
+	 *
 	 * @param string $expected The expected value.
 	 * @param string $actual   The actual value.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertDiscardWhitespace( $expected, $actual ) {
-		$this->assertEquals( preg_replace( '/\s*/', '', $expected ), preg_replace( '/\s*/', '', $actual ) );
+	public function assertDiscardWhitespace( $expected, $actual, $message = '' ) {
+		$this->assertEquals( preg_replace( '/\s*/', '', $expected ), preg_replace( '/\s*/', '', $actual, $message ) );
 	}
 
 	/**
@@ -681,11 +685,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 *
 	 * @since 5.6.0
 	 * @since 5.8.0 Added support for nested arrays.
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
 	 * @param string|array $expected The expected value.
 	 * @param string|array $actual   The actual value.
+	 * @param string       $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertSameIgnoreEOL( $expected, $actual ) {
+	public function assertSameIgnoreEOL( $expected, $actual, $message = '' ) {
 		$expected = map_deep(
 			$expected,
 			function ( $value ) {
@@ -700,7 +706,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 			}
 		);
 
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, $message );
 	}
 
 	/**
@@ -708,84 +714,96 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 *
 	 * @since 5.4.0
 	 * @since 5.6.0 Turned into an alias for `::assertSameIgnoreEOL()`.
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
 	 * @param string $expected The expected value.
 	 * @param string $actual   The actual value.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualsIgnoreEOL( $expected, $actual ) {
-		$this->assertSameIgnoreEOL( $expected, $actual );
+	public function assertEqualsIgnoreEOL( $expected, $actual, $message = '' ) {
+		$this->assertSameIgnoreEOL( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two un-keyed, single arrays are the same, without accounting for the order of elements.
 	 *
 	 * @since 5.6.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertSameSets( $expected, $actual ) {
+	public function assertSameSets( $expected, $actual, $message = '' ) {
 		sort( $expected );
 		sort( $actual );
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two un-keyed, single arrays are equal, without accounting for the order of elements.
 	 *
 	 * @since 3.5.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualSets( $expected, $actual ) {
+	public function assertEqualSets( $expected, $actual, $message = '' ) {
 		sort( $expected );
 		sort( $actual );
-		$this->assertEquals( $expected, $actual );
+		$this->assertEquals( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two keyed, single arrays are the same, without accounting for the order of elements.
 	 *
 	 * @since 5.6.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertSameSetsWithIndex( $expected, $actual ) {
+	public function assertSameSetsWithIndex( $expected, $actual, $message = '' ) {
 		ksort( $expected );
 		ksort( $actual );
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two keyed, single arrays are equal, without accounting for the order of elements.
 	 *
 	 * @since 4.1.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualSetsWithIndex( $expected, $actual ) {
+	public function assertEqualSetsWithIndex( $expected, $actual, $message = '' ) {
 		ksort( $expected );
 		ksort( $actual );
-		$this->assertEquals( $expected, $actual );
+		$this->assertEquals( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the given variable is a multidimensional array, and that all arrays are non-empty.
 	 *
 	 * @since 4.8.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $array Array to check.
+	 * @param array  $array   Array to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
-	public function assertNonEmptyMultidimensionalArray( $array ) {
-		$this->assertIsArray( $array );
-		$this->assertNotEmpty( $array );
+	public function assertNonEmptyMultidimensionalArray( $array, $message = '' ) {
+		$this->assertIsArray( $array, $message . ' Value under test is not an array.' );
+		$this->assertNotEmpty( $array, $message . ' Array is empty.' );
 
 		foreach ( $array as $sub_array ) {
-			$this->assertIsArray( $sub_array );
-			$this->assertNotEmpty( $sub_array );
+			$this->assertIsArray( $sub_array, $message . ' Subitem of the array is not an array.' );
+			$this->assertNotEmpty( $sub_array, $message . ' Subitem of the array is empty.' );
 		}
 	}
 
