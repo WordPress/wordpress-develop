@@ -92,6 +92,7 @@
 .site-main > .not-found > *, // apply vertical margins to article level
 .entry-content > *,
 [class*="inner-container"] > *,
+.wp-site-blocks *, // apply vertical margins to custom templates.
 .wp-block-template-part > *,
 .wp-block-post-template :where(li > *) { // using :where keeps specificity low.
 

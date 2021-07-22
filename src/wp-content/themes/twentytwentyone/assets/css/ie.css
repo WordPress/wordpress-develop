@@ -1127,6 +1127,11 @@ template {
 	margin-bottom: 20px;
 }
 
+.wp-site-blocks * {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
 .wp-block-template-part > * {
 	margin-top: 20px;
 	margin-bottom: 20px;
@@ -1158,6 +1163,11 @@ template {
 		margin-bottom: 30px;
 	}
 
+	.wp-site-blocks * {
+		margin-top: 30px;
+		margin-bottom: 30px;
+	}
+
 	.wp-block-template-part > * {
 		margin-top: 30px;
 		margin-bottom: 30px;
@@ -1173,6 +1183,7 @@ template {
 .site-main > .not-found > *:first-child,
 .entry-content > *:first-child,
 [class*=inner-container] > *:first-child,
+.wp-site-blocks *:first-child,
 .wp-block-template-part > *:first-child,
 .wp-block-post-template :where(li > *):first-child {
 	margin-top: 0;
@@ -1182,6 +1193,7 @@ template {
 .site-main > .not-found > *:last-child,
 .entry-content > *:last-child,
 [class*=inner-container] > *:last-child,
+.wp-site-blocks *:last-child,
 .wp-block-template-part > *:last-child,
 .wp-block-post-template :where(li > *):last-child {
 	margin-bottom: 0;
@@ -4908,7 +4920,7 @@ header .wp-block-site-tagline {
 }
 
 header .wp-block-site-title {
-	margin-bottom: 2px;
+	margin-bottom: 3px;
 }
 
 .wp-block-social-links a:focus {
