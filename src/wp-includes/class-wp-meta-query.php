@@ -251,7 +251,7 @@ class WP_Meta_Query {
 		 * the rest of the meta_query).
 		 */
 		$primary_meta_query = array();
-		foreach ( array( 'key', 'compare', 'compare_like_mode', 'type', 'compare_key', 'type_key' ) as $key ) {
+		foreach ( array( 'key', 'compare_key_like_mode', 'compare', 'compare_like_mode', 'type', 'compare_key', 'type_key' ) as $key ) {
 			if ( ! empty( $qv[ "meta_$key" ] ) ) {
 				$primary_meta_query[ $key ] = $qv[ "meta_$key" ];
 			}

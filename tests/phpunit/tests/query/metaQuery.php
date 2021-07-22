@@ -1458,10 +1458,12 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	public function test_meta_vars_should_be_converted_to_meta_query() {
 		$q = new WP_Query(
 			array(
-				'meta_key'     => 'foo',
-				'meta_value'   => '5',
-				'meta_compare' => '>',
-				'meta_type'    => 'SIGNED',
+				'meta_key'                   => 'foo',
+				'meta_value'                 => '5',
+				'meta_compare'               => '>',
+				'meta_type'                  => 'SIGNED',
+				'meta_compare_key_like_mode' => 'endswith',
+				'meta_compare_like_mode'     => 'startswith',
 			)
 		);
 
@@ -1469,6 +1471,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSame( '5', $q->meta_query->queries[0]['value'] );
 		$this->assertSame( '>', $q->meta_query->queries[0]['compare'] );
 		$this->assertSame( 'SIGNED', $q->meta_query->queries[0]['type'] );
+		$this->assertSame( 'startswith', $q->meta_query->queries[0]['compare_like_mode'] );
+		$this->assertSame( 'endswith', $q->meta_query->queries[0]['compare_key_like_mode'] );
 	}
 
 	/**
