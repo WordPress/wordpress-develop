@@ -13,11 +13,6 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->cache =& $this->init_cache();
 	}
 
-	function tearDown() {
-		$this->flush_cache();
-		parent::tearDown();
-	}
-
 	function &init_cache() {
 		global $wp_object_cache;
 		$cache_class = get_class( $wp_object_cache );
