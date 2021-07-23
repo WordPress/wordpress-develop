@@ -82,12 +82,6 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 	}
 
-	public function tearDown() {
-		$this->set_permalink_structure( '' );
-		parent::tearDown();
-	}
-
-
 	public function test_404_template_hierarchy() {
 		$url = add_query_arg(
 			array(
