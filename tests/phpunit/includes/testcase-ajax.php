@@ -157,7 +157,6 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 * Resets $_POST, removes the wp_die() override, restores error reporting.
 	 */
 	public function tearDown() {
-		unset( $GLOBALS['post'] );
 		unset( $GLOBALS['comment'] );
 		error_reporting( $this->_error_level );
 		set_current_screen( 'front' );

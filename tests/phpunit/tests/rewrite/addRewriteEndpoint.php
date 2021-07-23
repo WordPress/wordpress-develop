@@ -25,11 +25,6 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 		$this->qvs = $GLOBALS['wp']->public_query_vars;
 	}
 
-	public function tearDown() {
-		$GLOBALS['wp']->public_query_vars = $this->qvs;
-		parent::tearDown();
-	}
-
 	public function test_should_register_query_using_name_param_by_default() {
 		add_rewrite_endpoint( 'foo', EP_ALL );
 		$this->assertContains( 'foo', $GLOBALS['wp']->public_query_vars );
