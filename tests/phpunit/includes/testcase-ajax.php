@@ -154,7 +154,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Tears down the test fixture.
 	 *
-	 * Resets $_POST, removes the wp_die() override, restores error reporting.
+	 * Resets global state, restores error reporting.
 	 */
 	public function tearDown() {
 		unset( $GLOBALS['comment'] );
