@@ -38,6 +38,8 @@ class Block_Template_Test extends WP_UnitTestCase {
 	public function tearDown() {
 		global $_wp_current_template_content;
 		unset( $_wp_current_template_content );
+
+		parent::tearDown();
 	}
 
 	/**
