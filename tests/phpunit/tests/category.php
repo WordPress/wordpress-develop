@@ -9,11 +9,6 @@
  */
 class Tests_Category extends WP_UnitTestCase {
 
-	function tearDown() {
-		_unregister_taxonomy( 'test_tax_cat' );
-		parent::tearDown();
-	}
-
 	/**
 	 * Validate get_all_category_ids
 	 *

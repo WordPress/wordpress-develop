@@ -83,8 +83,6 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		unregister_post_type( 'cpt' );
-		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
 		parent::tearDown();
 	}
