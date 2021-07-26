@@ -1,6 +1,6 @@
 <?php
 /**
- * Block Tests
+ * Block supported style tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -14,7 +14,7 @@
  *
  * @group blocks
  */
-class Block_Supported_Styles_Test extends WP_UnitTestCase {
+class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 	/**
 	 * Block content to test with (i.e. what's wrapped by the block wrapper `<div />`).

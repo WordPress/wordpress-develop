@@ -1,6 +1,6 @@
 <?php
 /**
- * Block rendering tests.
+ * Block rendering tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for block rendering functions
+ * Tests for block rendering functions.
  *
  * @since 5.0.0
  *
  * @group blocks
  */
-class WP_Test_Block_Render extends WP_UnitTestCase {
+class Tests_Blocks_Render extends WP_UnitTestCase {
 	/**
 	 * The location of the fixtures to test with.
 	 *

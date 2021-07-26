@@ -1,6 +1,6 @@
 <?php
 /**
- * WP_Block Tests
+ * Block editor tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -14,7 +14,7 @@
  *
  * @group blocks
  */
-class WP_Test_Block_Editor extends WP_UnitTestCase {
+class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * Sets up each test method.

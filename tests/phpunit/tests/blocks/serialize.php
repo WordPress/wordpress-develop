@@ -1,6 +1,6 @@
 <?php
 /**
- * Block serialization tests.
+ * Block serialization tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for block serialization functions
+ * Tests for block serialization functions.
  *
  * @since 5.3.3
  *
  * @group blocks
  */
-class WP_Test_Block_Serialization extends WP_UnitTestCase {
+class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_serialize_identity_from_parsed

@@ -1,6 +1,6 @@
 <?php
 /**
- * Reusable block rendering tests.
+ * Reusable block rendering tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -14,7 +14,7 @@
  *
  * @group blocks
  */
-class WP_Test_Render_Reusable_Blocks extends WP_UnitTestCase {
+class Tests_Blocks_RenderReusable extends WP_UnitTestCase {
 	/**
 	 * Fake user ID.
 	 *

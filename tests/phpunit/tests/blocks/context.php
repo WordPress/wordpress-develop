@@ -1,6 +1,6 @@
 <?php
 /**
- * WP_Block_Context Tests
+ * Block context tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for WP_Block_Context
+ * Tests for block context functions.
  *
  * @since 5.5.0
  *
  * @group blocks
  */
-class WP_Block_Context_Test extends WP_UnitTestCase {
+class Tests_Blocks_Context extends WP_UnitTestCase {
 
 	/**
 	 * Registered block names.

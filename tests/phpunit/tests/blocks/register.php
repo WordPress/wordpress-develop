@@ -1,6 +1,6 @@
 <?php
 /**
- * Block registry tests.
+ * Block registration tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names()
+ * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names().
  *
  * @since 5.0.0
  *
  * @group blocks
  */
-class WP_Test_Block_Register extends WP_UnitTestCase {
+class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
 	 * ID for a test post.
