@@ -7,11 +7,11 @@
  */
 
 /**
- * Test wp-includes/widgets/class-wp-widget-video.php
+ * Test wp-includes/widgets/class-wp-widget-media-video.php
  *
  * @group widgets
  */
-class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
+class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 
 	/**
 	 * Clean up global scope.
