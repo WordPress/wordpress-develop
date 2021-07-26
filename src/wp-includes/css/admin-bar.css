@@ -1090,3 +1090,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 		display: none;
 	}
 }
+
+/* Ensures anchor link scroll-to position considers admin bar height */
+body.admin-bar .entry-content > *[id] {
+	scroll-margin-top: 32px; /* height of admin bar */
+}
