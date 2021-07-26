@@ -1,6 +1,6 @@
 <?php
 /**
- * Sitemaps: Sitemaps_Tests class
+ * Sitemaps: Tests_Sitemaps_Sitemaps class
  *
  * Main test class.
  *
@@ -15,7 +15,7 @@
  *
  * @group sitemaps
  */
-class Test_Sitemaps extends WP_UnitTestCase {
+class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 	/**
 	 * List of user IDs.
