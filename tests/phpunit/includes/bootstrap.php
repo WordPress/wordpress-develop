@@ -203,7 +203,6 @@ require __DIR__ . '/testcase-rest-controller.php';
 require __DIR__ . '/testcase-rest-post-type-controller.php';
 require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
-require __DIR__ . '/testcase-block-supports.php';
 require __DIR__ . '/testcase-canonical.php';
 require __DIR__ . '/testcase-xml.php';
 require __DIR__ . '/exceptions.php';
