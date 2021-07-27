@@ -194,7 +194,7 @@ function register_block_style_handle( $metadata, $field_name ) {
  *
  * @return array The schema for block's metadata.
  */
-function get_i18n_block_metadata_schema() {
+function get_block_metadata_i18n_schema() {
 	static $i18n_block_schema;
 
 	if ( ! isset( $i18n_block_schema ) ) {
@@ -313,7 +313,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'example'         => 'example',
 	);
 	$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
-	$i18n_schema       = get_i18n_block_metadata_schema();
+	$i18n_schema       = get_block_metadata_i18n_schema();
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
