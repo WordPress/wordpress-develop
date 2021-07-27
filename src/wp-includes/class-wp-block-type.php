@@ -206,6 +206,7 @@ class WP_Block_Type {
 	 *              `uses_context`, and `provides_context` properties.
 	 * @since 5.6.0 Added the `api_version` property.
 	 * @since 5.8.0 Added the `variations` property.
+	 * @since 5.9.0 Added the `view_script` property.
 	 *
 	 * @see register_block_type()
 	 *
