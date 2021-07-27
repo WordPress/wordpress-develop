@@ -137,6 +137,11 @@ add_action( 'admin_init', 'handle_legacy_widget_preview_iframe', 20 );
 
 /**
  * Renders a page containing a preview of the requested Legacy Widget block.
+ *
+ * @param string $id_base The id base of the requested widget.
+ * @param array $instance The widget instance attributes.
+ *
+ * @return string Rendered Legacy Widget block preview.
  */
 function render_legacy_widget_preview_iframe( $id_base, $instance ) {
 	if ( ! current_user_can( 'edit_theme_options' ) ) {
