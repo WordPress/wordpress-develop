@@ -134,10 +134,9 @@ function handle_legacy_widget_preview_iframe() {
 add_action( 'admin_init', 'handle_legacy_widget_preview_iframe', 20 );
 
 
+
 /**
- * Intercepts any request with legacy-widget-preview in the query param and, if
- * set, renders a page containing a preview of the requested Legacy Widget
- * block.
+ * Renders a page containing a preview of the requested Legacy Widget block.
  */
 function render_legacy_widget_preview_iframe( $id_base, $instance ) {
 	if ( ! current_user_can( 'edit_theme_options' ) ) {
