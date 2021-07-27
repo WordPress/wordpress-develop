@@ -133,8 +133,6 @@ function handle_legacy_widget_preview_iframe() {
 // See: https://github.com/WordPress/gutenberg/issues/32624.
 add_action( 'admin_init', 'handle_legacy_widget_preview_iframe', 20 );
 
-
-
 /**
  * Renders a page containing a preview of the requested Legacy Widget block.
  *
