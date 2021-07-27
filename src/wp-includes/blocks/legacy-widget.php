@@ -154,7 +154,7 @@ function render_legacy_widget_preview_iframe( $id_base, $instance ) {
 		<meta charset="<?php bloginfo( 'charset' ); ?>" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="profile" href="https://gmpg.org/xfn/11" />
-		<?php wp_head(); ?>
+		<?php // wp_head(); ?>
 		<style>
 			/* Reset theme styles */
 			html, body, #page, #content {
@@ -169,11 +169,11 @@ function render_legacy_widget_preview_iframe( $id_base, $instance ) {
 			<?php
 			$registry = WP_Block_Type_Registry::get_instance();
 			$block    = $registry->get_registered( 'core/legacy-widget' );
-			echo $block->render( [ 'id_base' => $id_base, 'instance' => $instance ] );
+			echo $block->render( [ 'idBase' => $id_base, 'instance' => $instance ] );
 			?>
 		</div><!-- #content -->
 	</div><!-- #page -->
-	<?php wp_footer(); ?>
+	<?php //wp_footer(); ?>
 	</body>
 	</html>
 	<?php

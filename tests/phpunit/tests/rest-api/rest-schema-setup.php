@@ -146,6 +146,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/widget-types',
 			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)',
 			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/encode',
+			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/render',
 			'/wp/v2/widgets',
 			'/wp/v2/widgets/(?P<id>[\w\-]+)',
 			'/wp-site-health/v1',
