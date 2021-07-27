@@ -424,12 +424,12 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	}
 
 	public function render( $request ) {
-		return [
-			"preview" => render_legacy_widget_preview_iframe(
+		return array(
+			'preview' => render_legacy_widget_preview_iframe(
 				$request['id_base'],
 				$request['instance']
 			),
-		];
+		);
 	}
 
 	/**

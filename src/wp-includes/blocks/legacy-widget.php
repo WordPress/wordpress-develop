@@ -169,7 +169,7 @@ function render_legacy_widget_preview_iframe( $id_base, $instance ) {
 			<?php
 			$registry = WP_Block_Type_Registry::get_instance();
 			$block    = $registry->get_registered( 'core/legacy-widget' );
-			echo $block->render( [ 'idBase' => $id_base, 'instance' => $instance ] );
+			echo $block->render( array( 'idBase' => $id_base, 'instance' => $instance ) );
 			?>
 		</div><!-- #content -->
 	</div><!-- #page -->
