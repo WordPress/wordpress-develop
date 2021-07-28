@@ -1082,7 +1082,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertNotEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
 	}
 
-	function test_retrieve_widgets_with_single_widget() {
+	function test_recover_lost_widgets_with_single_widget() {
 		global $sidebars_widgets;
 
 		wp_widgets_init();
