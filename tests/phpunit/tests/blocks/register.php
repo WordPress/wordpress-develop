@@ -133,6 +133,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			generate_block_asset_handle( $block_name, 'script' )
 		);
 		$this->assertSame(
+			'unit-tests-my-block-view-script',
+			generate_block_asset_handle( $block_name, 'viewScript' )
+		);
+		$this->assertSame(
 			'unit-tests-my-block-editor-style',
 			generate_block_asset_handle( $block_name, 'editorStyle' )
 		);
@@ -155,6 +159,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			'wp-block-paragraph',
 			generate_block_asset_handle( $block_name, 'script' )
+		);
+		$this->assertSame(
+			'wp-block-paragraph-view',
+			generate_block_asset_handle( $block_name, 'viewScript' )
 		);
 		$this->assertSame(
 			'wp-block-paragraph-editor',
@@ -372,6 +380,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 		$this->assertSame( 'tests-notice-editor-script', $result->editor_script );
 		$this->assertSame( 'tests-notice-script', $result->script );
+		$this->assertSame( 'tests-notice-view-script', $result->view_script );
 		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
 		$this->assertSame( 'tests-notice-style', $result->style );
 
