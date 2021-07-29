@@ -153,7 +153,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			'rss',
 			'search',
 			'tag_cloud',
-			'text'
+			'text',
 		);
 		$this->assertEqualSets( $expected, $ids );
 	}
