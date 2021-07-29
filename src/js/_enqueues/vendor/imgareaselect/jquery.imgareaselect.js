@@ -18,7 +18,7 @@
  * shortcuts
  */
 var abs = Math.abs,
-	ceil = Math.ceil,
+    ceil = Math.ceil,
     max = Math.max,
     min = Math.min,
     round = Math.round;
@@ -287,14 +287,14 @@ $.imgAreaSelect = function (img, options) {
         imgOfs = { left: round($img.offset().left), top: round($img.offset().top) };
 
         /* Get image dimensions */
-		imgWidth = ceil($img.innerWidth());
-		imgHeight = ceil($img.innerHeight());
+        imgWidth = ceil($img.innerWidth());
+        imgHeight = ceil($img.innerHeight());
 
-		imgInnerWidth = ceil($img.innerWidth());
-		imgInnerHeight = ceil($img.innerHeight());
+        imgInnerWidth = ceil($img.innerWidth());
+        imgInnerHeight = ceil($img.innerHeight());
 
-		imgOfs.top += (imgInnerHeight - imgHeight) >> 1;
-		imgOfs.left += (imgInnerWidth - imgWidth) >> 1;
+        imgOfs.top += (imgInnerHeight - imgHeight) >> 1;
+        imgOfs.left += (imgInnerWidth - imgWidth) >> 1;
 
         /* Set minimum and maximum selection area dimensions */
         minWidth = round(options.minWidth / scaleX) || 0;
