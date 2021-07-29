@@ -218,6 +218,8 @@ function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
  *
  * @since 5.3.0
  *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
+ *
  * @param string       $format    PHP date format.
  * @param int          $timestamp Optional. Unix timestamp. Defaults to current time.
  * @param DateTimeZone $timezone  Optional. Timezone to output result in. Defaults to timezone
@@ -4533,6 +4535,7 @@ function wp_parse_list( $list ) {
  * Cleans up an array, comma- or space-separated list of IDs.
  *
  * @since 3.0.0
+ * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param array|string $list List of IDs.
  * @return int[] Sanitized array of IDs.
@@ -4547,6 +4550,7 @@ function wp_parse_id_list( $list ) {
  * Cleans up an array, comma- or space-separated list of slugs.
  *
  * @since 4.7.0
+ * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param array|string $list List of slugs.
  * @return string[] Sanitized array of slugs.
@@ -4693,6 +4697,83 @@ function _wp_array_set( &$array, $path, $value = null ) {
 	}
 
 	$array[ $path[ $i ] ] = $value;
+}
+
+/**
+ * This function is trying to replicate what
+ * lodash's kebabCase (JS library) does in the client.
+ *
+ * The reason we need this function is that we do some processing
+ * in both the client and the server (e.g.: we generate
+ * preset classes from preset slugs) that needs to
+ * create the same output.
+ *
+ * We can't remove or update the client's library due to backward compatibility
+ * (some of the output of lodash's kebabCase is saved in the post content).
+ * We have to make the server behave like the client.
+ *
+ * Changes to this function should follow updates in the client
+ * with the same logic.
+ *
+ * @link https://github.com/lodash/lodash/blob/4.17/dist/lodash.js#L14369
+ * @link https://github.com/lodash/lodash/blob/4.17/dist/lodash.js#L278
+ * @link https://github.com/lodash-php/lodash-php/blob/master/src/String/kebabCase.php
+ * @link https://github.com/lodash-php/lodash-php/blob/master/src/internal/unicodeWords.php
+ *
+ * @param string $string The string to kebab-case.
+ *
+ * @return string kebab-cased-string.
+ */
+function _wp_to_kebab_case( $string ) {
+	//phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+	// ignore the camelCase names for variables so the names are the same as lodash
+	// so comparing and porting new changes is easier.
+
+	/*
+	 * Some notable things we've removed compared to the lodash version are:
+	 *
+	 * - non-alphanumeric characters: rsAstralRange, rsEmoji, etc
+	 * - the groups that processed the apostrophe, as it's removed before passing the string to preg_match: rsApos, rsOptContrLower, and rsOptContrUpper
+	 *
+	 */
+
+	/** Used to compose unicode character classes. */
+	$rsLowerRange       = 'a-z\\xdf-\\xf6\\xf8-\\xff';
+	$rsNonCharRange     = '\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf';
+	$rsPunctuationRange = '\\x{2000}-\\x{206f}';
+	$rsSpaceRange       = ' \\t\\x0b\\f\\xa0\\x{feff}\\n\\r\\x{2028}\\x{2029}\\x{1680}\\x{180e}\\x{2000}\\x{2001}\\x{2002}\\x{2003}\\x{2004}\\x{2005}\\x{2006}\\x{2007}\\x{2008}\\x{2009}\\x{200a}\\x{202f}\\x{205f}\\x{3000}';
+	$rsUpperRange       = 'A-Z\\xc0-\\xd6\\xd8-\\xde';
+	$rsBreakRange       = $rsNonCharRange . $rsPunctuationRange . $rsSpaceRange;
+
+	/** Used to compose unicode capture groups. */
+	$rsBreak  = '[' . $rsBreakRange . ']';
+	$rsDigits = '\\d+'; // The last lodash version in GitHub uses a single digit here and expands it when in use.
+	$rsLower  = '[' . $rsLowerRange . ']';
+	$rsMisc   = '[^' . $rsBreakRange . $rsDigits . $rsLowerRange . $rsUpperRange . ']';
+	$rsUpper  = '[' . $rsUpperRange . ']';
+
+	/** Used to compose unicode regexes. */
+	$rsMiscLower = '(?:' . $rsLower . '|' . $rsMisc . ')';
+	$rsMiscUpper = '(?:' . $rsUpper . '|' . $rsMisc . ')';
+	$rsOrdLower  = '\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])';
+	$rsOrdUpper  = '\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])';
+
+	$regexp = '/' . implode(
+		'|',
+		array(
+			$rsUpper . '?' . $rsLower . '+' . '(?=' . implode( '|', array( $rsBreak, $rsUpper, '$' ) ) . ')',
+			$rsMiscUpper . '+' . '(?=' . implode( '|', array( $rsBreak, $rsUpper . $rsMiscLower, '$' ) ) . ')',
+			$rsUpper . '?' . $rsMiscLower . '+',
+			$rsUpper . '+',
+			$rsOrdUpper,
+			$rsOrdLower,
+			$rsDigits,
+		)
+	) . '/u';
+
+	preg_match_all( $regexp, str_replace( "'", '', $string ), $matches );
+	return strtolower( implode( '-', $matches[0] ) );
+	//phpcs:enable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 }
 
 /**
@@ -6285,7 +6366,7 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 	}
 
 	foreach ( $all_headers as $field => $regex ) {
-		if ( preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
+		if ( preg_match( '/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
 			$all_headers[ $field ] = _cleanup_header_comment( $match[1] );
 		} else {
 			$all_headers[ $field ] = '';

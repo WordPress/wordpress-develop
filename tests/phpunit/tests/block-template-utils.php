@@ -40,14 +40,14 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 		);
 
 		$this->assertNotWPError( $template );
-		$this->assertEquals( get_stylesheet() . '//my_template', $template->id );
-		$this->assertEquals( get_stylesheet(), $template->theme );
-		$this->assertEquals( 'my_template', $template->slug );
-		$this->assertEquals( 'publish', $template->status );
-		$this->assertEquals( 'custom', $template->source );
-		$this->assertEquals( 'My Template', $template->title );
-		$this->assertEquals( 'Description of my template', $template->description );
-		$this->assertEquals( 'wp_template', $template->type );
+		$this->assertSame( get_stylesheet() . '//my_template', $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'my_template', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'custom', $template->source );
+		$this->assertSame( 'My Template', $template->title );
+		$this->assertSame( 'Description of my template', $template->description );
+		$this->assertSame( 'wp_template', $template->type );
 	}
 
 	/**
@@ -56,12 +56,12 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 	function test_get_block_template_from_post() {
 		$id       = get_stylesheet() . '//' . 'my_template';
 		$template = get_block_template( $id, 'wp_template' );
-		$this->assertEquals( $id, $template->id );
-		$this->assertEquals( get_stylesheet(), $template->theme );
-		$this->assertEquals( 'my_template', $template->slug );
-		$this->assertEquals( 'publish', $template->status );
-		$this->assertEquals( 'custom', $template->source );
-		$this->assertEquals( 'wp_template', $template->type );
+		$this->assertSame( $id, $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'my_template', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'custom', $template->source );
+		$this->assertSame( 'wp_template', $template->type );
 	}
 
 	/**
@@ -87,11 +87,11 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 		// Filter by slug.
 		$templates    = get_block_templates( array( 'slug__in' => array( 'my_template' ) ), 'wp_template' );
 		$template_ids = get_template_ids( $templates );
-		$this->assertEquals( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
+		$this->assertSame( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
 
 		// Filter by CPT ID.
 		$templates    = get_block_templates( array( 'wp_id' => self::$post->ID ), 'wp_template' );
 		$template_ids = get_template_ids( $templates );
-		$this->assertEquals( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
+		$this->assertSame( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
 	}
 }

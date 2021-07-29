@@ -157,7 +157,27 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 			$GLOBALS[ $global ] = null;
 		}
 
-		// Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars are added when the next test runs.
+		/*
+		 * Reset globals related to current screen to provide a consistent global starting state
+		 * for tests that interact with admin screens. Replaces the need for individual tests
+		 * to invoke `set_current_screen( 'front' )` (or an alternative implementation) as a reset.
+		 *
+		 * The globals are from `WP_Screen::set_current_screen()`.
+		 *
+		 * Why not invoke `set_current_screen( 'front' )`?
+		 * Performance (faster test runs with less memory usage). How so? For each test,
+		 * it saves creating an instance of WP_Screen, making two method calls,
+		 * and firing of the `current_screen` action.
+		 */
+		$current_screen_globals = array( 'current_screen', 'taxnow', 'typenow' );
+		foreach ( $current_screen_globals as $global ) {
+			$GLOBALS[ $global ] = null;
+		}
+
+		/*
+		 * Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars
+		 * are added when the next test runs.
+		 */
 		$GLOBALS['wp_sitemaps'] = null;
 
 		$this->unregister_all_meta_keys();
@@ -635,37 +655,61 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Asserts that the given fields are present in the given object.
 	 *
-	 * @param object $object The object to check.
-	 * @param array  $fields The fields to check.
+	 * @since UT (3.7.0)
+	 * @since 5.9.0 Added the `$message` parameter.
+	 *
+	 * @param object $object  The object to check.
+	 * @param array  $fields  The fields to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualFields( $object, $fields ) {
+	public function assertEqualFields( $object, $fields, $message = '' ) {
 		foreach ( $fields as $field_name => $field_value ) {
-			if ( $object->$field_name !== $field_value ) {
-				$this->fail();
-			}
+			$this->assertObjectHasAttribute( $field_name, $object, $message . " Property $field_name does not exist on the object." );
+			$this->assertSame( $field_value, $object->$field_name, $message . " Value of property $field_name is not $field_value." );
 		}
 	}
 
 	/**
 	 * Asserts that two values are equal, with whitespace differences discarded.
 	 *
+	 * @since UT (3.7.0)
+	 * @since 5.9.0 Added the `$message` parameter.
+	 *
 	 * @param string $expected The expected value.
 	 * @param string $actual   The actual value.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertDiscardWhitespace( $expected, $actual ) {
-		$this->assertEquals( preg_replace( '/\s*/', '', $expected ), preg_replace( '/\s*/', '', $actual ) );
+	public function assertDiscardWhitespace( $expected, $actual, $message = '' ) {
+		$this->assertEquals( preg_replace( '/\s*/', '', $expected ), preg_replace( '/\s*/', '', $actual ), $message );
 	}
 
 	/**
 	 * Asserts that two values have the same type and value, with EOL differences discarded.
 	 *
 	 * @since 5.6.0
+	 * @since 5.8.0 Added support for nested arrays.
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param string $expected The expected value.
-	 * @param string $actual   The actual value.
+	 * @param string|array $expected The expected value.
+	 * @param string|array $actual   The actual value.
+	 * @param string       $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertSameIgnoreEOL( $expected, $actual ) {
-		$this->assertSame( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+	public function assertSameIgnoreEOL( $expected, $actual, $message = '' ) {
+		$expected = map_deep(
+			$expected,
+			function ( $value ) {
+				return str_replace( "\r\n", "\n", $value );
+			}
+		);
+
+		$actual = map_deep(
+			$actual,
+			function ( $value ) {
+				return str_replace( "\r\n", "\n", $value );
+			}
+		);
+
+		$this->assertSame( $expected, $actual, $message );
 	}
 
 	/**
@@ -673,84 +717,96 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 *
 	 * @since 5.4.0
 	 * @since 5.6.0 Turned into an alias for `::assertSameIgnoreEOL()`.
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
 	 * @param string $expected The expected value.
 	 * @param string $actual   The actual value.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualsIgnoreEOL( $expected, $actual ) {
-		$this->assertSameIgnoreEOL( $expected, $actual );
+	public function assertEqualsIgnoreEOL( $expected, $actual, $message = '' ) {
+		$this->assertSameIgnoreEOL( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two un-keyed, single arrays are the same, without accounting for the order of elements.
 	 *
 	 * @since 5.6.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertSameSets( $expected, $actual ) {
+	public function assertSameSets( $expected, $actual, $message = '' ) {
 		sort( $expected );
 		sort( $actual );
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two un-keyed, single arrays are equal, without accounting for the order of elements.
 	 *
 	 * @since 3.5.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualSets( $expected, $actual ) {
+	public function assertEqualSets( $expected, $actual, $message = '' ) {
 		sort( $expected );
 		sort( $actual );
-		$this->assertEquals( $expected, $actual );
+		$this->assertEquals( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two keyed, single arrays are the same, without accounting for the order of elements.
 	 *
 	 * @since 5.6.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertSameSetsWithIndex( $expected, $actual ) {
+	public function assertSameSetsWithIndex( $expected, $actual, $message = '' ) {
 		ksort( $expected );
 		ksort( $actual );
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two keyed, single arrays are equal, without accounting for the order of elements.
 	 *
 	 * @since 4.1.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualSetsWithIndex( $expected, $actual ) {
+	public function assertEqualSetsWithIndex( $expected, $actual, $message = '' ) {
 		ksort( $expected );
 		ksort( $actual );
-		$this->assertEquals( $expected, $actual );
+		$this->assertEquals( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the given variable is a multidimensional array, and that all arrays are non-empty.
 	 *
 	 * @since 4.8.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $array Array to check.
+	 * @param array  $array   Array to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
-	public function assertNonEmptyMultidimensionalArray( $array ) {
-		$this->assertTrue( is_array( $array ) );
-		$this->assertNotEmpty( $array );
+	public function assertNonEmptyMultidimensionalArray( $array, $message = '' ) {
+		$this->assertIsArray( $array, $message . ' Value under test is not an array.' );
+		$this->assertNotEmpty( $array, $message . ' Array is empty.' );
 
 		foreach ( $array as $sub_array ) {
-			$this->assertTrue( is_array( $sub_array ) );
-			$this->assertNotEmpty( $sub_array );
+			$this->assertIsArray( $sub_array, $message . ' Subitem of the array is not an array.' );
+			$this->assertNotEmpty( $sub_array, $message . ' Subitem of the array is empty.' );
 		}
 	}
 

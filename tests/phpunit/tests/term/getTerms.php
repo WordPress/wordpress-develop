@@ -115,7 +115,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// last_changed and num_queries should bump.
 		$terms = get_terms( 'post_tag', array( 'update_term_meta_cache' => false ) );
-		$this->assertSame( 3, count( $terms ) );
+		$this->assertCount( 3, $terms );
 		$time1 = wp_cache_get( 'last_changed', 'terms' );
 		$this->assertNotEmpty( $time1 );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
@@ -124,7 +124,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag', array( 'update_term_meta_cache' => false ) );
-		$this->assertSame( 3, count( $terms ) );
+		$this->assertCount( 3, $terms );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
@@ -144,7 +144,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// num_queries should bump, last_changed should remain the same.
 		$terms = get_terms( 'post_tag', array( 'number' => 2 ) );
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
@@ -152,7 +152,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag', array( 'number' => 2 ) );
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
@@ -179,7 +179,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// last_changed and num_queries should bump after a term is deleted.
 		$terms = get_terms( 'post_tag' );
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
@@ -187,7 +187,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag' );
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -617,7 +617,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'cache_domain' => $tax,
 			)
 		);
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( wp_list_pluck( $terms, 'name' ), array( 'Cheese', 'Crackers' ) );
 	}
 
@@ -660,7 +660,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'cache_domain' => $tax,
 			)
 		);
-		$this->assertSame( 1, count( $terms ) );
+		$this->assertCount( 1, $terms );
 		$this->assertSame( array( 'Cheese' ), wp_list_pluck( $terms, 'name' ) );
 
 		_unregister_taxonomy( $tax );
@@ -696,7 +696,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'cache_domain' => $tax,
 			)
 		);
-		$this->assertSame( 1, count( $terms ) );
+		$this->assertCount( 1, $terms );
 		$this->assertSame( array( 'term1' ), wp_list_pluck( $terms, 'name' ) );
 
 		_unregister_taxonomy( $tax );
@@ -716,7 +716,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'hide_empty' => false,
 			)
 		);
-		$this->assertSame( 1, count( $terms ) );
+		$this->assertCount( 1, $terms );
 	}
 
 	/**
@@ -861,7 +861,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$term = get_term( $term['term_id'], 'category' );
 
 		$this->assertSame( $term->term_id, $term->parent );
-		$this->assertInternalType( 'array', get_term_children( $term->term_id, 'category' ) );
+		$this->assertIsArray( get_term_children( $term->term_id, 'category' ) );
 
 		add_filter( 'wp_update_term_parent', 'wp_check_term_hierarchy_for_loops', 10, 3 );
 	}
@@ -2308,7 +2308,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		// Verify that there are no children.
-		$this->assertSame( 0, count( $terms ) );
+		$this->assertCount( 0, $terms );
 	}
 
 	/**
@@ -2374,7 +2374,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		// Verify that there are no children.
-		$this->assertSame( 0, count( $terms ) );
+		$this->assertCount( 0, $terms );
 	}
 
 	public function test_hierarchical_true_with_child_of_should_return_grandchildren() {
@@ -2487,7 +2487,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		// 'hierarchical=false' means that descendants are not fetched.
-		$this->assertSame( 0, count( $terms ) );
+		$this->assertCount( 0, $terms );
 	}
 
 	/**

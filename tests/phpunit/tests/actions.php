@@ -279,7 +279,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertSame( $args[0][0], $obj );
 		// Just in case we don't trust assertSame().
 		$obj->foo = true;
-		$this->assertFalse( empty( $args[0][0]->foo ) );
+		$this->assertNotEmpty( $args[0][0]->foo );
 	}
 
 	/**
@@ -423,7 +423,7 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		add_action( $tag, '__return_null', 11, 1 );
 
-		$this->assertTrue( isset( $wp_filter[ $tag ][11] ) );
+		$this->assertArrayHasKey( 11, $wp_filter[ $tag ] );
 		$this->assertArrayHasKey( '__return_null', $wp_filter[ $tag ][11] );
 
 		unset( $wp_filter[ $tag ][11] );

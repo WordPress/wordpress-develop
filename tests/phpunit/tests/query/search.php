@@ -309,7 +309,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		remove_filter( 'posts_search', array( $this, 'filter_posts_search' ) );
 		remove_filter( 'posts_search_orderby', array( $this, 'filter_posts_search' ) );
 
-		$this->assertNotContains( 'posts_search', $q->request );
+		$this->assertStringNotContainsString( 'posts_search', $q->request );
 	}
 
 	/**

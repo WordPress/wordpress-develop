@@ -284,8 +284,6 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$wp_locale_switcher = $locale_switcher;
 
-		set_current_screen( 'front' );
-
 		$this->assertFalse( $locale_switched_user_locale );
 		$this->assertTrue( $locale_switched_site_locale );
 		$this->assertSame( $site_locale, $site_locale_after_switch );
@@ -335,8 +333,6 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$wp_locale_switcher = $locale_switcher;
 
-		set_current_screen( 'front' );
-
 		remove_filter( 'locale', array( $this, 'filter_locale' ) );
 
 		$this->assertFalse( $locale_switched_user_locale );
@@ -381,8 +377,6 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		restore_current_locale();
 
 		$wp_locale_switcher = $locale_switcher;
-
-		set_current_screen( 'front' );
 
 		$this->assertSame( 'en_US', get_locale() );
 		$this->assertSame( 'This is a dummy plugin', $expected );

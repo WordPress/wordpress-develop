@@ -762,7 +762,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		self::$_wpdb->query( $create );
@@ -804,7 +803,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		self::$_wpdb->query( $create );
@@ -828,7 +826,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		self::$_wpdb->is_mysql = false;
@@ -856,7 +853,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		unset( self::$_wpdb->is_mysql );
@@ -917,7 +913,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		self::$_wpdb->query( $create );

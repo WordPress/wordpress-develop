@@ -224,7 +224,7 @@ Inter variable font. Usage:
 
 /* Typography -------------------------------- */
 
-.editor-styles-wrapper .editor-block-list__layout a {
+.editor-styles-wrapper a {
 	color: #cd2653;
 	text-decoration: underline;
 }
@@ -1082,6 +1082,12 @@ hr.wp-block-separator.is-style-dots::before {
 .editor-styles-wrapper ul ul,
 .editor-styles-wrapper ol ul {
 	padding-left: 1.3em;
+}
+
+/* Block: Post Template ---------------- */
+
+.editor-styles-wrapper ul.wp-block-post-template {
+	padding-left: 0;
 }
 
 

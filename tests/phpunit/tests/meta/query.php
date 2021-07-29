@@ -146,7 +146,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		$query = new WP_Meta_Query();
 		$query->parse_query_vars( $qv );
 
-		$this->assertTrue( ! isset( $query->queries[0]['value'] ) );
+		$this->assertArrayNotHasKey( 'value', $query->queries[0] );
 	}
 
 	/**
@@ -163,7 +163,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		$query = new WP_Meta_Query();
 		$query->parse_query_vars( $qv );
 
-		$this->assertTrue( ! isset( $query->queries[0]['value'] ) );
+		$this->assertArrayNotHasKey( 'value', $query->queries[0] );
 	}
 
 	/**
@@ -900,8 +900,8 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		);
 
 		$sql = $query->get_sql( 'post', $wpdb->posts, 'ID', $this );
-		$this->assertNotContains( "{$wpdb->postmeta}.meta_key = 'exclude'\nOR", $sql['where'] );
-		$this->assertContains( "{$wpdb->postmeta}.post_id IS NULL", $sql['where'] );
+		$this->assertStringNotContainsString( "{$wpdb->postmeta}.meta_key = 'exclude'\nOR", $sql['where'] );
+		$this->assertStringContainsString( "{$wpdb->postmeta}.post_id IS NULL", $sql['where'] );
 	}
 
 	public function test_empty_compare() {
@@ -926,7 +926,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 
 		// Use regex because we don't care about the whitespace before OR.
 		$this->assertRegExp( "/{$wpdb->postmeta}\.meta_key = \'exclude\'\s+OR/", $sql['where'] );
-		$this->assertNotContains( "{$wpdb->postmeta}.post_id IS NULL", $sql['where'] );
+		$this->assertStringNotContainsString( "{$wpdb->postmeta}.post_id IS NULL", $sql['where'] );
 	}
 
 	/**

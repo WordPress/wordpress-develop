@@ -262,8 +262,8 @@ JS;
 		$footer = get_echo( 'wp_print_footer_scripts' );
 
 		$this->assertEmpty( $header );
-		$this->assertContains( home_url( 'bar.js' ), $footer );
-		$this->assertContains( home_url( 'baz.js' ), $footer );
+		$this->assertStringContainsString( home_url( 'bar.js' ), $footer );
+		$this->assertStringContainsString( home_url( 'baz.js' ), $footer );
 	}
 
 	/**
@@ -723,7 +723,7 @@ JS;
 
 		$ver       = get_bloginfo( 'version' );
 		$suffix    = wp_scripts_get_suffix();
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n{$suffix}.js' id='wp-i18n-js'></script>\n";

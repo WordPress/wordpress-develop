@@ -127,10 +127,10 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 			);
 		}
 
-		$this->assertTrue( ! in_array( 'data', wp_allowed_protocols(), true ) );
+		$this->assertNotContains( 'data', wp_allowed_protocols() );
 		$this->assertSame( '', esc_url( 'data:text/plain;base64,SGVsbG8sIFdvcmxkIQ%3D%3D' ) );
 
-		$this->assertTrue( ! in_array( 'foo', wp_allowed_protocols(), true ) );
+		$this->assertNotContains( 'foo', wp_allowed_protocols() );
 		$this->assertSame(
 			'foo://example.com',
 			esc_url(

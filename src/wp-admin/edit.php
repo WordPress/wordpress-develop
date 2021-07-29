@@ -80,6 +80,8 @@ if ( $doaction ) {
 		$sendback = admin_url( $post_new_file );
 	}
 
+	$post_ids = array();
+
 	if ( 'delete_all' === $doaction ) {
 		// Prepare for deletion of all posts with a specified post status (i.e. Empty Trash).
 		$post_status = preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['post_status'] );
@@ -96,7 +98,7 @@ if ( $doaction ) {
 		$post_ids = array_map( 'intval', $_REQUEST['post'] );
 	}
 
-	if ( ! isset( $post_ids ) ) {
+	if ( empty( $post_ids ) ) {
 		wp_redirect( $sendback );
 		exit;
 	}
@@ -230,6 +232,7 @@ if ( 'wp_block' === $post_type ) {
 	wp_enqueue_style( 'wp-list-reusable-blocks' );
 }
 
+// Used in the HTML title tag.
 $title = $post_type_object->labels->name;
 
 if ( 'post' === $post_type ) {

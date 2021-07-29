@@ -478,7 +478,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->assertTrue( empty( $data['rendered'] ) );
+		$this->assertEmpty( $data['rendered'] );
 
 		// Now test with post ID.
 		$request->set_param( 'post_id', self::$post_id );
@@ -506,7 +506,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertContains( $string_attribute, $response->get_data()['rendered'] );
+		$this->assertStringContainsString( $string_attribute, $response->get_data()['rendered'] );
 	}
 
 	/**
