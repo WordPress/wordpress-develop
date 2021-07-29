@@ -57,3 +57,22 @@ jobs:
             Thank you,
 
             The WordPress Project
+
+  # Post workflow related status updates to Slack.
+  #
+  # When a job in this workflow fails, a message is posted to #core.
+  #
+  # This job should always require all other jobs in this workflow to complete before running.
+  slack-notifications:
+    name: Slack Notifications
+    runs-on: ubuntu-latest
+    needs: [ post-welcome-message ]
+    if: ${{ failure() }}
+
+    steps:
+      - name: Post failure notification to Slack
+        uses: slackapi/slack-github-action@d5d276d7ae0f38f29322b80da9baf985cc80f8b1 # v1.15.0
+        with:
+          payload: "{\"workflow_name\":\"${{ github.workflow }}\",\"run_url\":\"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_GHA_WEBHOOK_URL }}

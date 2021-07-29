@@ -27,7 +27,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( array(), wp_parse_args( $a ) );
 		$b = array(
 			'_baba' => 5,
-			'yZ'    => 'baba',
+			'yZ'    => 'bab',
 			'a'     => array( 5, 111, 'x' ),
 		);
 		$this->assertSame(
