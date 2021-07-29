@@ -55,7 +55,6 @@ jobs:
   # - Logs PHP_CodeSniffer debug information.
   # - Runs PHPCS on the full codebase with warnings suppressed.
   # - Runs PHPCS on the `tests` directory without warnings suppressed.
-  # - todo: Configure Slack notifications for failing scans.
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
@@ -105,7 +104,6 @@ jobs:
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Run the WordPress JSHint checks.
-  # - todo: Configure Slack notifications for failing tests.
   jshint:
     name: JavaScript coding standards
     runs-on: ubuntu-latest
@@ -140,3 +138,22 @@ jobs:
 
       - name: Run JSHint
         run: npm run grunt jshint
+
+  # Post workflow related status updates to Slack.
+  #
+  # When a job in this workflow fails, a message is posted to #core.
+  #
+  # This job should always require all other jobs in this workflow to complete before running.
+  slack-notifications:
+    name: Slack Notifications
+    runs-on: ubuntu-latest
+    needs: [ phpcs, jshint ]
+    if: ${{ failure() && github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' }}
+
+    steps:
+      - name: Post failure notification to Slack
+        uses: slackapi/slack-github-action@d5d276d7ae0f38f29322b80da9baf985cc80f8b1 # v1.15.0
+        with:
+          payload: "{\"workflow_name\":\"${{ github.workflow }}\",\"run_url\":\"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_GHA_WEBHOOK_URL }}
