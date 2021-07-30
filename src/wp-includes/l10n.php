@@ -1740,13 +1740,16 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 		return $translated_settings;
 	}
 	if ( is_object( $i18n_schema ) && is_array( $settings ) ) {
+		$group_key           = '*';
 		$translated_settings = array();
 		foreach ( $settings as $key => $value ) {
-			if ( ! isset( $i18n_schema->$key ) ) {
+			if ( isset( $i18n_schema->$key ) ) {
+				$translated_settings[ $key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $value, $textdomain );
+			} elseif ( isset( $i18n_schema->$group_key ) ) {
+				$translated_settings[ $key ] = translate_settings_using_i18n_schema( $i18n_schema->$group_key, $value, $textdomain );
+			} else {
 				$translated_settings[ $key ] = $value;
-				continue;
 			}
-			$translated_settings[ $key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $value, $textdomain );
 		}
 		return $translated_settings;
 	}

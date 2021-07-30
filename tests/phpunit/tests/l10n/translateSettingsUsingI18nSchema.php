@@ -17,27 +17,42 @@ class Tests_L10n_TranslateSettingsUsingI18nSchema extends WP_UnitTestCase {
 		load_textdomain( $textdomain, WP_LANG_DIR . '/plugins/notice-pl_PL.mo' );
 
 		$i18n_schema = (object) array(
-			'title'      => 'block title',
-			'keywords'   => array( 'block keyword' ),
-			'variations' => array(
-				(object) array(
-					'title'       => 'block variation title',
-					'description' => 'block variation description',
-					'keywords'    => array( 'block variation keyword' ),
+			'title'    => 'block title',
+			'keywords' => array( 'block keyword' ),
+			'styles'   => array(
+				(object) array( 'label' => 'block style label' ),
+			),
+			'context'  => (object) array(
+				'*' => (object) array(
+					'variations' => array(
+						(object) array(
+							'title'       => 'block variation title',
+							'description' => 'block variation description',
+							'keywords'    => array( 'block variation keyword' ),
+						),
+					),
 				),
 			),
 		);
 		$settings    = array(
-			'title'      => 'Notice',
-			'keywords'   => array(
+			'title'    => 'Notice',
+			'keywords' => array(
 				'alert',
 				'message',
 			),
-			'variations' => array(
-				array(
-					'title'       => 'Error',
-					'description' => 'Shows error.',
-					'keywords'    => array( 'failure' ),
+			'styles'   => array(
+				array( 'label' => 'Default' ),
+				array( 'label' => 'Other' ),
+			),
+			'context'  => array(
+				'namespace' => array(
+					'variations' => array(
+						array(
+							'title'       => 'Error',
+							'description' => 'Shows error.',
+							'keywords'    => array( 'failure' ),
+						),
+					),
 				),
 			),
 		);
@@ -55,12 +70,23 @@ class Tests_L10n_TranslateSettingsUsingI18nSchema extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
+					'label' => 'Domyślny',
+				),
+				array(
+					'label' => 'Inny',
+				),
+			),
+			$result['styles']
+		);
+		$this->assertSame(
+			array(
+				array(
 					'title'       => 'Błąd',
 					'description' => 'Wyświetla błąd.',
 					'keywords'    => array( 'niepowodzenie' ),
 				),
 			),
-			$result['variations']
+			$result['context']['namespace']['variations']
 		);
 	}
 }
