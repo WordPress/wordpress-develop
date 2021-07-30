@@ -205,47 +205,6 @@ function get_block_metadata_i18n_schema() {
 }
 
 /**
- * Translates the provided setting value using its i18n schema.
- *
- * @since 5.9.0
- *
- * @param string|string[]|array[] $i18n_schema   I18n schema for the setting.
- * @param string|string[]|array[] $setting_value Value for the setting.
- * @param string                  $textdomain    Textdomain to use with translations.
- *
- * @return string|string[]|array[] Translated setting.
- */
-function translate_setting_using_i18n_schema( $i18n_schema, $setting_value, $textdomain ) {
-	if ( empty( $i18n_schema ) || empty( $setting_value ) ) {
-		return $setting_value;
-	}
-
-	if ( is_string( $i18n_schema ) && is_string( $setting_value ) ) {
-		// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain
-		return translate_with_gettext_context( $setting_value, $i18n_schema, $textdomain );
-	}
-	if ( is_array( $i18n_schema ) && is_array( $setting_value ) ) {
-		$translated_settings = array();
-		foreach ( $setting_value as $value ) {
-			$translated_settings[] = translate_setting_using_i18n_schema( $i18n_schema[0], $value, $textdomain );
-		}
-		return $translated_settings;
-	}
-	if ( is_object( $i18n_schema ) && is_array( $setting_value ) ) {
-		$translated_settings = array();
-		foreach ( $setting_value as $key => $value ) {
-			if ( ! isset( $i18n_schema->$key ) ) {
-				$translated_settings[ $key ] = $value;
-				continue;
-			}
-			$translated_settings[ $key ] = translate_setting_using_i18n_schema( $i18n_schema->$key, $value, $textdomain );
-		}
-		return $translated_settings;
-	}
-	return $setting_value;
-}
-
-/**
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
@@ -319,7 +278,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		if ( isset( $metadata[ $key ] ) ) {
 			$settings[ $mapped_key ] = $metadata[ $key ];
 			if ( $textdomain && isset( $i18n_schema->$key ) ) {
-				$settings[ $mapped_key ] = translate_setting_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
+				$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
 			}
 		}
 	}
