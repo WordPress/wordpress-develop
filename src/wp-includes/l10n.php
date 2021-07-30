@@ -1725,7 +1725,7 @@ function is_locale_switched() {
  * @return string|string[]|array[] Translated settings.
  */
 function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdomain ) {
-	if ( empty( $i18n_schema ) || empty( $settings ) ) {
+	if ( empty( $i18n_schema ) || empty( $settings ) || empty( $textdomain ) ) {
 		return $settings;
 	}
 
