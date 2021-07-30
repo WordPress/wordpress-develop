@@ -6,14 +6,21 @@
  */
 class Tests_L10n_TranslateSettingsUsingI18nSchema extends WP_UnitTestCase {
 	/**
-		 * @ticket 53238
-		 */
+	 * Returns Polish locale string.
+	 *
+	 * @return string
+	 */
+	function filter_set_locale_to_polish() {
+		return 'pl_PL';
+	}
+
+	/**
+	 * @ticket 53238
+	 */
 	function test_translate_settings_using_i18n_schema() {
 		$textdomain = 'notice';
-		function filter_set_locale_to_polish() {
-			return 'pl_PL';
-		}
-		add_filter( 'locale', 'filter_set_locale_to_polish' );
+
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
 		load_textdomain( $textdomain, WP_LANG_DIR . '/plugins/notice-pl_PL.mo' );
 
 		$i18n_schema = (object) array(
@@ -63,7 +70,7 @@ class Tests_L10n_TranslateSettingsUsingI18nSchema extends WP_UnitTestCase {
 		);
 
 		unload_textdomain( $textdomain );
-		remove_filter( 'locale', 'filter_set_locale_to_polish' );
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
 
 		$this->assertSame( 'Powiadomienie', $result['title'] );
 		$this->assertSameSets( array( 'ostrzeżenie', 'wiadomość' ), $result['keywords'] );
