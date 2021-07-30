@@ -29,17 +29,6 @@
 	<php>
 		<const name="WP_RUN_CORE_TESTS" value="1" />
 	</php>
-	<listeners>
-		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
-			<arguments>
-				<array>
-					<element key="slowThreshold">
-						<integer>150</integer>
-					</element>
-				</array>
-			</arguments>
-		</listener>
-	</listeners>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
 			<directory suffix=".php">src</directory>
