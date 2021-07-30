@@ -4,7 +4,6 @@
  * @group rewrite
  */
 class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
-	private $qvs;
 	protected static $test_page_id;
 	protected static $test_post_id;
 
@@ -21,8 +20,6 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 		parent::setUp();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
-		$this->qvs = $GLOBALS['wp']->public_query_vars;
 	}
 
 	public function test_should_register_query_using_name_param_by_default() {
