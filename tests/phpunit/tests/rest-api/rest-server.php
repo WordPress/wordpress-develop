@@ -1571,7 +1571,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 50244
-	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_callbacks_are_not_executed_if_request_validation_fails() {
 		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
