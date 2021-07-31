@@ -926,19 +926,19 @@ class WP_Debug_Data {
 		);
 
 		$info['wp-database']['fields']['database_max_packet'] = array(
-			'label'   => __('Database Max Packet Size' ),
+			'label'   => __( 'Database Max Packet Size' ),
 			'value'   => size_format( self::get_mysql_var( 'max_allowed_packet' ) ),
 			'private' => true,
 		);
 
 		$info['wp-database']['fields']['database_max_connection'] = array(
-			'label'   => __('Database Max No. Connection' ),
+			'label'   => __( 'Database Max No. Connection' ),
 			'value'   => self::get_mysql_var( 'max_connections' ),
 			'private' => true,
 		);
 
 		$info['wp-database']['fields']['database_query_cache_size'] = array(
-			'label'   => __('Database Query Cache Size' ),
+			'label'   => __( 'Database Query Cache Size' ),
 			'value'   => size_format( self::get_mysql_var( 'query_cache_size' ) ),
 			'private' => true,
 		);
