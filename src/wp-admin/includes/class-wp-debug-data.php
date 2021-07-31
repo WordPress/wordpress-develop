@@ -1473,14 +1473,15 @@ class WP_Debug_Data {
 		global $wpdb;
 
 		$result = $wpdb->get_row(
-			$wpdb->prepare( 'SHOW VARIABLES LIKE %s', $var )
+			$wpdb->prepare( 'SHOW VARIABLES LIKE %s', $var ),
+			ARRAY_A
 		);
 
-		if ( empty( $result ) ) {
+		if ( empty( $result ) || ! array_key_exists( 'Value', $result ) ) {
 			return;
 		}
 
-		return $result->Value;
+		return $result['Value'];
 	}
 
 	/**
