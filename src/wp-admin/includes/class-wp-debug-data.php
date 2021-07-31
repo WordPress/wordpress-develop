@@ -930,13 +930,13 @@ class WP_Debug_Data {
 			'value'   => size_format( self::get_mysql_var( 'max_allowed_packet' ) ),
 			'private' => true,
 		);
-		
+
 		$info['wp-database']['fields']['database_max_connection'] = array(
 			'label'   => __('Database Max No. Connection' ),
 			'value'   => self::get_mysql_var( 'max_connections' ),
 			'private' => true,
 		);
-		
+
 		$info['wp-database']['fields']['database_query_cache_size'] = array(
 			'label'   => __('Database Query Cache Size' ),
 			'value'   => size_format( self::get_mysql_var( 'query_cache_size' ) ),
@@ -1461,6 +1461,14 @@ class WP_Debug_Data {
 		return $info;
 	}
 
+	/**
+	 * Returns the value of a MySQL variable.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param  string $var Name of the MySQL variable.
+	 * @return null|string Returns `null` if variable does not exists. Otherwise, the variable value.
+	 */
 	public static function get_mysql_var( $var ) {
 		global $wpdb;
 
