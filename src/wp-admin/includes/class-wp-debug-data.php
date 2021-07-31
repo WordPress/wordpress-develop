@@ -925,6 +925,23 @@ class WP_Debug_Data {
 			'private' => true,
 		);
 
+		$info['wp-database']['fields']['database_max_packet'] = array(
+			'label'   => __('Database Max Packet Size' ),
+			'value'   => size_format( self::get_mysql_var( 'max_allowed_packet' ) ),
+			'private' => true,
+		);
+		
+		$info['wp-database']['fields']['database_max_connection'] = array(
+			'label'   => __('Database Max No. Connection' ),
+			'value'   => self::get_mysql_var( 'max_connections' ),
+			'private' => true,
+		);
+		
+		$info['wp-database']['fields']['database_query_cache_size'] = array(
+			'label'   => __('Database Query Cache Size' ),
+			'value'   => size_format( self::get_mysql_var( 'query_cache_size' ) ),
+			'private' => true,
+		);
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();
 
@@ -1442,6 +1459,20 @@ class WP_Debug_Data {
 		$info = apply_filters( 'debug_information', $info );
 
 		return $info;
+	}
+
+	public static function get_mysql_var( $var ) {
+		global $wpdb;
+
+		$result = $wpdb->get_row(
+			$wpdb->prepare( "SHOW VARIABLES LIKE %s", $var )
+		);
+
+		if ( empty( $result ) ) {
+			return;
+		}
+
+		return $result->Value;
 	}
 
 	/**
