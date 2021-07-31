@@ -1473,7 +1473,7 @@ class WP_Debug_Data {
 		global $wpdb;
 
 		$result = $wpdb->get_row(
-			$wpdb->prepare( "SHOW VARIABLES LIKE %s", $var )
+			$wpdb->prepare( 'SHOW VARIABLES LIKE %s', $var )
 		);
 
 		if ( empty( $result ) ) {
