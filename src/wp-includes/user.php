@@ -2714,7 +2714,7 @@ function retrieve_password( $user_login = null ) {
 		$errors->add( 'empty_username', __( '<strong>Error</strong>: Please enter a username or email address.' ) );
 	} elseif ( strpos( $user_login, '@' ) ) {
 		$attempt_user_fetch_by_email = true;
-		$user_data = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
+		$user_data                   = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
 	}
 
 		// If user data not found by email, attempt to get user data by `login`. 
