@@ -2701,8 +2701,9 @@ function check_password_reset_key( $key, $login ) {
  * @return true|WP_Error True when finished, WP_Error object on error.
  */
 function retrieve_password( $user_login = null ) {
-	$errors    = new WP_Error();
-	$user_data = false;
+	$errors                      = new WP_Error();
+	$user_data                   = false;
+	$attempt_user_fetch_by_email = false;
 
 	// Use the passed $user_login if available, otherwise use $_POST['user_login'].
 	if ( ! $user_login && ! empty( $_POST['user_login'] ) ) {
@@ -2712,12 +2713,18 @@ function retrieve_password( $user_login = null ) {
 	if ( empty( $user_login ) ) {
 		$errors->add( 'empty_username', __( '<strong>Error</strong>: Please enter a username or email address.' ) );
 	} elseif ( strpos( $user_login, '@' ) ) {
+		$attempt_user_fetch_by_email = true;
 		$user_data = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
-		if ( empty( $user_data ) ) {
+	}
+
+		// If user data not found by email, attempt to get user data by `login`. 
+	if ( empty( $user_data ) && ! empty( $user_login ) ) {
+		$user_data = get_user_by( 'login', trim( wp_unslash( $user_login ) ) );
+
+		// If user data is still not found and was attempted to fetch by email.
+		if ( empty( $user_data ) && $attempt_user_fetch_by_email ) {
 			$errors->add( 'invalid_email', __( '<strong>Error</strong>: There is no account with that username or email address.' ) );
 		}
-	} else {
-		$user_data = get_user_by( 'login', trim( wp_unslash( $user_login ) ) );
 	}
 
 	/**
