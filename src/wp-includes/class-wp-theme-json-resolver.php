@@ -71,10 +71,12 @@ class WP_Theme_JSON_Resolver {
 	 * Returns a data structure used in theme.json translation.
 	 *
 	 * @since 5.8.0
+	 * @deprecated 5.9.0
 	 *
 	 * @return array An array of theme.json fields that are translatable and the keys that are translatable.
 	 */
 	public static function get_fields_to_translate() {
+		_deprecated_function( __METHOD__, '5.9.0' );
 		return array();
 	}
 
