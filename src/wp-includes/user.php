@@ -2717,7 +2717,7 @@ function retrieve_password( $user_login = null ) {
 		$user_data                   = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
 	}
 
-		// If user data not found by email, attempt to get user data by `login`. 
+		// If user data not found by email, attempt to get user data by `login`.
 	if ( empty( $user_data ) && ! empty( $user_login ) ) {
 		$user_data = get_user_by( 'login', trim( wp_unslash( $user_login ) ) );
 
