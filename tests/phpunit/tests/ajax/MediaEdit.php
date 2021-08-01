@@ -11,6 +11,8 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @subpackage UnitTests
  * @since      3.5.0
  * @group      ajax
+ *
+ * @requires   function imagejpeg
  */
 class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 

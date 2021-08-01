@@ -18,6 +18,7 @@ if ( ! current_user_can( 'edit_plugins' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to edit plugins for this site.' ) );
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Edit Plugins' );
 $parent_file = 'plugins.php';
 
@@ -195,7 +196,7 @@ $content = esc_textarea( $content );
 <h2>
 	<?php
 	if ( is_plugin_active( $plugin ) ) {
-		if ( is_writeable( $real_file ) ) {
+		if ( is_writable( $real_file ) ) {
 			/* translators: %s: Plugin file name. */
 			printf( __( 'Editing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		} else {
@@ -203,7 +204,7 @@ $content = esc_textarea( $content );
 			printf( __( 'Browsing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		}
 	} else {
-		if ( is_writeable( $real_file ) ) {
+		if ( is_writable( $real_file ) ) {
 			/* translators: %s: Plugin file name. */
 			printf( __( 'Editing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		} else {
@@ -216,7 +217,7 @@ $content = esc_textarea( $content );
 </div>
 <div class="alignright">
 	<form action="plugin-editor.php" method="get">
-		<strong><label for="plugin"><?php _e( 'Select plugin to edit:' ); ?> </label></strong>
+		<label for="plugin" id="theme-plugin-editor-selector"><?php _e( 'Select plugin to edit:' ); ?> </label>
 		<select name="plugin" id="plugin">
 		<?php
 		foreach ( $plugins as $plugin_key => $a_plugin ) {
@@ -275,7 +276,7 @@ $content = esc_textarea( $content );
 		</div>
 	<?php endif; ?>
 
-	<?php if ( is_writeable( $real_file ) ) : ?>
+	<?php if ( is_writable( $real_file ) ) : ?>
 		<div class="editor-notices">
 		<?php if ( in_array( $plugin, (array) get_option( 'active_plugins', array() ), true ) ) { ?>
 			<div class="notice notice-warning inline active-plugin-edit-warning">
@@ -288,7 +289,7 @@ $content = esc_textarea( $content );
 			<span class="spinner"></span>
 		</p>
 	<?php else : ?>
-		<p><em>
+		<p>
 			<?php
 			printf(
 				/* translators: %s: Documentation URL. */
@@ -296,7 +297,7 @@ $content = esc_textarea( $content );
 				__( 'https://wordpress.org/support/article/changing-file-permissions/' )
 			);
 			?>
-		</em></p>
+		</p>
 	<?php endif; ?>
 
 	<?php wp_print_file_editor_templates(); ?>

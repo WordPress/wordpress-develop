@@ -76,8 +76,8 @@ if ( is_multisite() ) :
 
 			wp_delete_site( $blog_id );
 
-			$this->assertEquals( 'Some page content', $first_page->post_content );
-			$this->assertEquals( 'Some comment content', $first_comment[0]->comment_content );
+			$this->assertSame( 'Some page content', $first_page->post_content );
+			$this->assertSame( 'Some comment content', $first_comment[0]->comment_content );
 		}
 	}
 

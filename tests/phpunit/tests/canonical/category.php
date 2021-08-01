@@ -9,7 +9,7 @@ class Tests_Canonical_Category extends WP_Canonical_UnitTestCase {
 	public static $posts = array();
 	public static $cats  = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 
 		self::$posts[0] = $factory->post->create( array( 'post_name' => 'post0' ) );
 		self::$posts[1] = $factory->post->create( array( 'post_name' => 'post1' ) );

@@ -81,10 +81,10 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 * @since 5.2.0
 	 */
 	function tearDown() {
-		parent::tearDown();
 		$registry = WP_Block_Type_Registry::get_instance();
 		$registry->unregister( 'core/fake' );
-		wp_delete_post( self::$post_id, true );
+
+		parent::tearDown();
 	}
 
 	/**
@@ -99,7 +99,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 		$this->assertEmpty( excerpt_remove_blocks( $content ) );
 
 		// Dynamic block with options, embedded in other content.
-		$this->assertEquals( $this->filtered_content, excerpt_remove_blocks( $this->content ) );
+		$this->assertSame( $this->filtered_content, excerpt_remove_blocks( $this->content ) );
 	}
 
 	/**

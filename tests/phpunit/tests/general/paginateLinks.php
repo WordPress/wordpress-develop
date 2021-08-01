@@ -1,6 +1,11 @@
 <?php
 
-class Tests_Paginate_Links extends WP_UnitTestCase {
+/**
+ * @group general
+ * @group template
+ * @covers ::paginate_links
+ */
+class Tests_General_PaginateLinks extends WP_UnitTestCase {
 
 	private $i18n_count = 0;
 
@@ -25,7 +30,7 @@ class Tests_Paginate_Links extends WP_UnitTestCase {
 EXPECTED;
 
 		$links = paginate_links( array( 'total' => 50 ) );
-		$this->assertEqualsIgnoreEOL( $expected, $links );
+		$this->assertSameIgnoreEOL( $expected, $links );
 	}
 
 	function test_format() {
@@ -48,7 +53,7 @@ EXPECTED;
 				'format' => 'page/%#%/',
 			)
 		);
-		$this->assertEqualsIgnoreEOL( $expected, $links );
+		$this->assertSameIgnoreEOL( $expected, $links );
 	}
 
 	function test_prev_next_false() {
@@ -73,7 +78,7 @@ EXPECTED;
 				'current'   => 2,
 			)
 		);
-		$this->assertEqualsIgnoreEOL( $expected, $links );
+		$this->assertSameIgnoreEOL( $expected, $links );
 	}
 
 	function test_prev_next_true() {
@@ -100,7 +105,7 @@ EXPECTED;
 				'current'   => 2,
 			)
 		);
-		$this->assertEqualsIgnoreEOL( $expected, $links );
+		$this->assertSameIgnoreEOL( $expected, $links );
 	}
 
 	function increment_i18n_count() {
@@ -125,7 +130,7 @@ EXPECTED;
 		);
 		// The links should be:
 		// < Previous 1 ... 49 50 51 ... 100 Next >
-		$this->assertEquals( 5, $this->i18n_count );
+		$this->assertSame( 5, $this->i18n_count );
 		remove_filter( 'number_format_i18n', array( $this, 'increment_i18n_count' ) );
 	}
 
@@ -170,8 +175,8 @@ EXPECTED;
 			$href  = $tag->attributes->getNamedItem( 'href' )->value;
 			$class = $tag->attributes->getNamedItem( 'class' )->value;
 
-			$this->assertEquals( $attributes['href'], $href );
-			$this->assertEquals( $attributes['class'], $class );
+			$this->assertSame( $attributes['href'], $href );
+			$this->assertSame( $attributes['class'], $class );
 		}
 
 		// Current page: 1.
@@ -190,14 +195,14 @@ EXPECTED;
 		$this->assertNotNull( $tag );
 
 		$class = $tag->attributes->getNamedItem( 'class' )->value;
-		$this->assertEquals( 'page-numbers current', $class );
+		$this->assertSame( 'page-numbers current', $class );
 
 		$document->loadHTML( $links[1] );
 		$tag = $document->getElementsByTagName( 'a' )->item( 0 );
 		$this->assertNotNull( $tag );
 
 		$href = $tag->attributes->getNamedItem( 'href' )->value;
-		$this->assertEquals( get_pagenum_link( 2 ), $href );
+		$this->assertSame( get_pagenum_link( 2 ), $href );
 	}
 
 	function add_query_arg( $url ) {
@@ -244,7 +249,7 @@ EXPECTED;
 			$this->assertNotNull( $tag );
 
 			$href = $tag->attributes->getNamedItem( 'href' )->value;
-			$this->assertEquals( $expected_href, $href );
+			$this->assertSame( $expected_href, $href );
 		}
 	}
 
@@ -284,7 +289,7 @@ EXPECTED;
 			$this->assertNotNull( $tag );
 
 			$href = $tag->attributes->getNamedItem( 'href' )->value;
-			$this->assertEquals( $expected_href, $href );
+			$this->assertSame( $expected_href, $href );
 		}
 	}
 
@@ -306,10 +311,10 @@ EXPECTED;
 			)
 		);
 
-		$this->assertContains( '?foo=1', $links[1] );
-		$this->assertContains( '?foo=2', $links[2] );
-		$this->assertContains( '?foo=4', $links[4] );
-		$this->assertContains( '?foo=5', $links[5] );
+		$this->assertStringContainsString( '?foo=1', $links[1] );
+		$this->assertStringContainsString( '?foo=2', $links[2] );
+		$this->assertStringContainsString( '?foo=4', $links[4] );
+		$this->assertStringContainsString( '?foo=5', $links[5] );
 
 		$_SERVER['REQUEST_URI'] = $request_uri;
 	}

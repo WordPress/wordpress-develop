@@ -133,6 +133,11 @@ add_action( 'after_setup_theme', 'twentytwelve_setup' );
 require get_template_directory() . '/inc/custom-header.php';
 
 /**
+ * Add block patterns.
+ */
+require get_template_directory() . '/inc/block-patterns.php';
+
+/**
  * Return the Google font stylesheet URL if available.
  *
  * The use of Open Sans by default is localized. For languages that use
@@ -451,7 +456,7 @@ if ( ! function_exists( 'twentytwelve_comment' ) ) :
 				if ( $commenter['comment_author_email'] ) {
 					$moderation_note = __( 'Your comment is awaiting moderation.', 'twentytwelve' );
 				} else {
-					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview, your comment will be visible after it has been approved.', 'twentytwelve' );
+					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'twentytwelve' );
 				}
 				?>
 
@@ -674,7 +679,7 @@ function twentytwelve_customize_partial_blogdescription() {
 }
 
 /**
- * Enqueue Javascript postMessage handlers for the Customizer.
+ * Enqueue JavaScript postMessage handlers for the Customizer.
  *
  * Binds JS handlers to make the Customizer preview reload changes asynchronously.
  *

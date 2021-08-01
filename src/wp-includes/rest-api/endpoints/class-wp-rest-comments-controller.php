@@ -37,7 +37,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for comments.
 	 *
 	 * @since 4.7.0
 	 *
@@ -71,7 +71,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'id' => array(
-						'description' => __( 'Unique identifier for the object.' ),
+						'description' => __( 'Unique identifier for the comment.' ),
 						'type'        => 'integer',
 					),
 				),
@@ -261,14 +261,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters arguments, before passing to WP_Comment_Query, when querying comments via the REST API.
+		 * Filters WP_Comment_Query arguments when querying comments via the REST API.
 		 *
 		 * @since 4.7.0
 		 *
 		 * @link https://developer.wordpress.org/reference/classes/wp_comment_query/
 		 *
 		 * @param array           $prepared_args Array of arguments for WP_Comment_Query.
-		 * @param WP_REST_Request $request       The current request.
+		 * @param WP_REST_Request $request       The REST API request.
 		 */
 		$prepared_args = apply_filters( 'rest_comment_query', $prepared_args, $request );
 
@@ -449,7 +449,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			/**
-			 * Filter whether comments can be created without authentication.
+			 * Filters whether comments can be created via the REST API without authentication.
 			 *
 			 * Enables creating comments for anonymous users.
 			 *
@@ -587,11 +587,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_comment['comment_type'] = 'comment';
 
-		/*
-		 * Do not allow a comment to be created with missing or empty
-		 * comment_content. See wp_handle_comment_submission().
-		 */
-		if ( empty( $prepared_comment['comment_content'] ) ) {
+		if ( ! isset( $prepared_comment['comment_content'] ) ) {
+			$prepared_comment['comment_content'] = '';
+		}
+
+		if ( ! $this->check_is_comment_content_allowed( $prepared_comment ) ) {
 			return new WP_Error(
 				'rest_comment_content_invalid',
 				__( 'Invalid comment content.' ),
@@ -955,14 +955,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
 
 		/**
-		 * Filters whether a comment can be trashed.
+		 * Filters whether a comment can be trashed via the REST API.
 		 *
-		 * Return false to disable Trash support for the post.
+		 * Return false to disable trash support for the comment.
 		 *
 		 * @since 4.7.0
 		 *
-		 * @param bool    $supports_trash Whether the post type support trashing.
-		 * @param WP_Post $comment        The comment object being considered for trashing support.
+		 * @param bool       $supports_trash Whether the comment supports trashing.
+		 * @param WP_Comment $comment        The comment object being considered for trashing support.
 		 */
 		$supports_trash = apply_filters( 'rest_comment_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
 
@@ -1120,7 +1120,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$response->add_links( $this->prepare_links( $comment ) );
 
 		/**
-		 * Filters a comment returned from the API.
+		 * Filters a comment returned from the REST API.
 		 *
 		 * Allows modification of the comment right before it is returned.
 		 *
@@ -1159,14 +1159,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( 0 !== (int) $comment->comment_post_ID ) {
-			$post = get_post( $comment->comment_post_ID );
+			$post       = get_post( $comment->comment_post_ID );
+			$post_route = rest_get_route_for_post( $post );
 
-			if ( ! empty( $post->ID ) ) {
-				$obj  = get_post_type_object( $post->post_type );
-				$base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
-
+			if ( ! empty( $post->ID ) && $post_route ) {
 				$links['up'] = array(
-					'href'       => rest_url( 'wp/v2/' . $base . '/' . $comment->comment_post_ID ),
+					'href'       => rest_url( $post_route ),
 					'embeddable' => true,
 					'post_type'  => $post->post_type,
 				);
@@ -1282,9 +1280,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * the 'content.raw' properties of the Request object.
 		 */
 		if ( isset( $request['content'] ) && is_string( $request['content'] ) ) {
-			$prepared_comment['comment_content'] = $request['content'];
+			$prepared_comment['comment_content'] = trim( $request['content'] );
 		} elseif ( isset( $request['content']['raw'] ) && is_string( $request['content']['raw'] ) ) {
-			$prepared_comment['comment_content'] = $request['content']['raw'];
+			$prepared_comment['comment_content'] = trim( $request['content']['raw'] );
 		}
 
 		if ( isset( $request['post'] ) ) {
@@ -1353,7 +1351,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters a comment after it is prepared for the database.
+		 * Filters a comment added via the REST API after it is prepared for insertion into the database.
 		 *
 		 * Allows modification of the comment right after it is prepared for the database.
 		 *
@@ -1383,7 +1381,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'id'                => array(
-					'description' => __( 'Unique identifier for the object.' ),
+					'description' => __( 'Unique identifier for the comment.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
@@ -1394,7 +1392,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'author_email'      => array(
-					'description' => __( 'Email address for the object author.' ),
+					'description' => __( 'Email address for the comment author.' ),
 					'type'        => 'string',
 					'format'      => 'email',
 					'context'     => array( 'edit' ),
@@ -1404,13 +1402,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'author_ip'         => array(
-					'description' => __( 'IP address for the object author.' ),
+					'description' => __( 'IP address for the comment author.' ),
 					'type'        => 'string',
 					'format'      => 'ip',
 					'context'     => array( 'edit' ),
 				),
 				'author_name'       => array(
-					'description' => __( 'Display name for the object author.' ),
+					'description' => __( 'Display name for the comment author.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'arg_options' => array(
@@ -1418,13 +1416,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'author_url'        => array(
-					'description' => __( 'URL for the object author.' ),
+					'description' => __( 'URL for the comment author.' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'author_user_agent' => array(
-					'description' => __( 'User agent for the object author.' ),
+					'description' => __( 'User agent for the comment author.' ),
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
 					'arg_options' => array(
@@ -1432,7 +1430,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'content'           => array(
-					'description' => __( 'The content for the object.' ),
+					'description' => __( 'The content for the comment.' ),
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'arg_options' => array(
@@ -1441,12 +1439,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 					'properties'  => array(
 						'raw'      => array(
-							'description' => __( 'Content for the object, as it exists in the database.' ),
+							'description' => __( 'Content for the comment, as it exists in the database.' ),
 							'type'        => 'string',
 							'context'     => array( 'edit' ),
 						),
 						'rendered' => array(
-							'description' => __( 'HTML content for the object, transformed for display.' ),
+							'description' => __( 'HTML content for the comment, transformed for display.' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit', 'embed' ),
 							'readonly'    => true,
@@ -1454,26 +1452,26 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'date'              => array(
-					'description' => __( "The date the object was published, in the site's timezone." ),
+					'description' => __( "The date the comment was published, in the site's timezone." ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'          => array(
-					'description' => __( 'The date the object was published, as GMT.' ),
+					'description' => __( 'The date the comment was published, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
 				'link'              => array(
-					'description' => __( 'URL to the object.' ),
+					'description' => __( 'URL to the comment.' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'parent'            => array(
-					'description' => __( 'The ID for the parent of the object.' ),
+					'description' => __( 'The ID for the parent of the comment.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'default'     => 0,
@@ -1485,7 +1483,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'default'     => 0,
 				),
 				'status'            => array(
-					'description' => __( 'State of the object.' ),
+					'description' => __( 'State of the comment.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'arg_options' => array(
@@ -1493,7 +1491,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'type'              => array(
-					'description' => __( 'Type of Comment for the object.' ),
+					'description' => __( 'Type of the comment.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
@@ -1517,7 +1515,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			$schema['properties']['author_avatar_urls'] = array(
-				'description' => __( 'Avatar URLs for the object author.' ),
+				'description' => __( 'Avatar URLs for the comment author.' ),
 				'type'        => 'object',
 				'context'     => array( 'view', 'edit', 'embed' ),
 				'readonly'    => true,
@@ -1613,7 +1611,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 
 		$query_params['orderby'] = array(
-			'description' => __( 'Sort collection by object attribute.' ),
+			'description' => __( 'Sort collection by comment attribute.' ),
 			'type'        => 'string',
 			'default'     => 'date_gmt',
 			'enum'        => array(
@@ -1676,7 +1674,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filter collection parameters for the comments controller.
+		 * Filters REST API collection parameters for the comments controller.
 		 *
 		 * This filter registers the collection parameter, but does not map the
 		 * collection parameter to an internal WP_Comment_Query parameter. Use the
@@ -1867,5 +1865,40 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		return $email;
+	}
+
+	/**
+	 * If empty comments are not allowed, checks if the provided comment content is not empty.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $prepared_comment The prepared comment data.
+	 * @return bool True if the content is allowed, false otherwise.
+	 */
+	protected function check_is_comment_content_allowed( $prepared_comment ) {
+		$check = wp_parse_args(
+			$prepared_comment,
+			array(
+				'comment_post_ID'      => 0,
+				'comment_parent'       => 0,
+				'user_ID'              => 0,
+				'comment_author'       => null,
+				'comment_author_email' => null,
+				'comment_author_url'   => null,
+			)
+		);
+
+		/** This filter is documented in wp-includes/comment.php */
+		$allow_empty = apply_filters( 'allow_empty_comment', false, $check );
+
+		if ( $allow_empty ) {
+			return true;
+		}
+
+		/*
+		 * Do not allow a comment to be created with missing or empty
+		 * comment_content. See wp_handle_comment_submission().
+		 */
+		return '' !== $check['comment_content'];
 	}
 }

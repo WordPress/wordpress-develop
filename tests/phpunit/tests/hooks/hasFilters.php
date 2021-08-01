@@ -4,8 +4,9 @@
  * Test the has_filters method of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::has_filters
  */
-class Tests_WP_Hook_Has_Filters extends WP_UnitTestCase {
+class Tests_Hooks_HasFilters extends WP_UnitTestCase {
 
 	public function test_has_filters_with_callback() {
 		$callback      = '__return_null';

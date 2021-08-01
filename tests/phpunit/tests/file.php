@@ -39,21 +39,23 @@ class Tests_File extends WP_UnitTestCase {
 		);
 
 		foreach ( $actual as $header => $value ) {
-			$this->assertEquals( $expected[ $header ], $value, $header );
+			$this->assertSame( $expected[ $header ], $value, $header );
 		}
 	}
 
 	/**
+	 * @ticket 19854
 	 * @group plugins
 	 * @group themes
 	 */
-	function test_get_file_data_cr_line_endings() {
-		$headers  = array(
+	function test_get_file_data_with_cr_line_endings() {
+		$headers = array(
 			'SomeHeader'  => 'Some Header',
 			'Description' => 'Description',
 			'Author'      => 'Author',
 		);
-		$actual   = get_file_data( DIR_TESTDATA . '/formatting/cr-line-endings-file-header.php', $headers );
+
+		$actual   = get_file_data( DIR_TESTDATA . '/formatting/file-header-cr-line-endings.php', $headers );
 		$expected = array(
 			'SomeHeader'  => 'Some header value!',
 			'Description' => 'This file is using CR line endings for a testcase.',
@@ -61,7 +63,27 @@ class Tests_File extends WP_UnitTestCase {
 		);
 
 		foreach ( $actual as $header => $value ) {
-			$this->assertEquals( $expected[ $header ], $value, $header );
+			$this->assertSame( $expected[ $header ], $value, $header );
+		}
+	}
+
+	/**
+	 * @ticket 47186
+	 * @group plugins
+	 * @group themes
+	 */
+	function test_get_file_data_with_php_open_tag_prefix() {
+		$headers = array(
+			'TemplateName' => 'Template Name',
+		);
+
+		$actual   = get_file_data( DIR_TESTDATA . '/formatting/file-header-php-open-tag-prefix.php', $headers );
+		$expected = array(
+			'TemplateName' => 'Something',
+		);
+
+		foreach ( $actual as $header => $value ) {
+			$this->assertSame( $expected[ $header ], $value, $header );
 		}
 	}
 
@@ -118,7 +140,7 @@ class Tests_File extends WP_UnitTestCase {
 		$filename = wp_unique_filename( $this->dir, $name . $this->badchars . '.txt' );
 
 		// Make sure the bad characters were all stripped out.
-		$this->assertEquals( $name . '.txt', $filename );
+		$this->assertSame( $name . '.txt', $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
@@ -131,7 +153,7 @@ class Tests_File extends WP_UnitTestCase {
 		$filename = wp_unique_filename( $this->dir, $name . '/' . $name . '.txt' );
 
 		// The slash should be removed, i.e. "foofoo.txt".
-		$this->assertEquals( $name . $name . '.txt', $filename );
+		$this->assertSame( $name . $name . '.txt', $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
@@ -143,7 +165,7 @@ class Tests_File extends WP_UnitTestCase {
 		$filename = wp_unique_filename( $this->dir, $name . '.php.txt' );
 
 		// "foo.php.txt" becomes "foo.php_.txt".
-		$this->assertEquals( $name . '.php_.txt', $filename );
+		$this->assertSame( $name . '.php_.txt', $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
@@ -154,7 +176,7 @@ class Tests_File extends WP_UnitTestCase {
 		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name );
 
-		$this->assertEquals( $name, $filename );
+		$this->assertSame( $name, $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
@@ -231,7 +253,7 @@ class Tests_File extends WP_UnitTestCase {
 		}
 
 		$this->assertWPError( $verify );
-		$this->assertEquals( 'signature_verification_failed', $verify->get_error_code() );
+		$this->assertSame( 'signature_verification_failed', $verify->get_error_code() );
 	}
 
 	function filter_trust_plus85Tq_key( $keys ) {

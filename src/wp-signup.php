@@ -3,7 +3,7 @@
 /** Sets up the WordPress Environment. */
 require __DIR__ . '/wp-load.php';
 
-add_action( 'wp_head', 'wp_no_robots' );
+add_filter( 'wp_robots', 'wp_robots_no_robots' );
 
 require __DIR__ . '/wp-blog-header.php';
 
@@ -229,6 +229,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
  * @since MU (3.0.0)
  *
  * @return array Contains the new site data and error messages.
+ *               See wpmu_validate_blog_signup() for details.
  */
 function validate_blog_form() {
 	$user = '';
@@ -240,7 +241,7 @@ function validate_blog_form() {
 }
 
 /**
- * Display user registration form
+ * Displays the fields for the new user account registration form.
  *
  * @since MU (3.0.0)
  *
@@ -277,7 +278,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 		echo '<p class="error">' . $errmsg . '</p>';
 	}
 	/**
-	 * Fires at the end of the user registration form on the site sign-up form.
+	 * Fires at the end of the new user account registration form.
 	 *
 	 * @since 3.0.0
 	 *
@@ -292,6 +293,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
  * @since MU (3.0.0)
  *
  * @return array Contains username, email, and error messages.
+ *               See wpmu_validate_user_signup() for details.
  */
 function validate_user_form() {
 	return wpmu_validate_user_signup( $_POST['user_name'], $_POST['user_email'] );
@@ -547,7 +549,7 @@ function confirm_another_blog_signup( $domain, $path, $blog_title, $user_name, $
 }
 
 /**
- * Setup the new user signup process
+ * Shows a form for a visitor to sign up for a new user account.
  *
  * @since MU (3.0.0)
  *
@@ -683,7 +685,7 @@ function confirm_user_signup( $user_name, $user_email ) {
 }
 
 /**
- * Setup the new site signup
+ * Shows a form for a user or visitor to sign up for a new site.
  *
  * @since MU (3.0.0)
  *
@@ -807,13 +809,13 @@ function validate_blog_signup() {
 }
 
 /**
- * New site signup confirmation
+ * Shows a message confirming that the new site has been registered and is awaiting activation.
  *
  * @since MU (3.0.0)
  *
- * @param string $domain     The domain URL.
- * @param string $path       The site root path.
- * @param string $blog_title The new site title.
+ * @param string $domain     The domain or subdomain of the site.
+ * @param string $path       The path of the site.
+ * @param string $blog_title The title of the new site.
  * @param string $user_name  The user's username.
  * @param string $user_email The user's email address.
  * @param array  $meta       Any additional meta from the {@see 'add_signup_meta'} filter in validate_blog_signup().
@@ -861,7 +863,8 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
  *
  * @see get_available_languages()
  *
- * @return array List of available languages.
+ * @return string[] Array of available language codes. Language codes are formed by
+ *                  stripping the .mo extension from the language file names.
  */
 function signup_get_available_languages() {
 	/**
@@ -874,7 +877,8 @@ function signup_get_available_languages() {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $available_languages Available languages.
+	 * @param string[] $languages Array of available language codes. Language codes are formed by
+	 *                            stripping the .mo extension from the language file names.
 	 */
 	$languages = (array) apply_filters( 'signup_get_available_languages', get_available_languages() );
 
@@ -984,13 +988,13 @@ if ( 'none' === $active_signup ) {
 				if ( 'blog' === $active_signup || 'all' === $active_signup ) {
 					printf(
 						/* translators: %s: Site address. */
-						'<p><em>' . __( 'The site you were looking for, %s, does not exist, but you can create it now!' ) . '</em></p>',
+						'<p>' . __( 'The site you were looking for, %s, does not exist, but you can create it now!' ) . '</p>',
 						'<strong>' . $newblog . '</strong>'
 					);
 				} else {
 					printf(
 						/* translators: %s: Site address. */
-						'<p><em>' . __( 'The site you were looking for, %s, does not exist.' ) . '</em></p>',
+						'<p>' . __( 'The site you were looking for, %s, does not exist.' ) . '</p>',
 						'<strong>' . $newblog . '</strong>'
 					);
 				}

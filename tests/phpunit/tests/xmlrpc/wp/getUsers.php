@@ -9,7 +9,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $results );
-		$this->assertEquals( 403, $results->code );
+		$this->assertSame( 403, $results->code );
 	}
 
 	function test_incapable_user() {
@@ -17,7 +17,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'subscriber', 'subscriber' ) );
 		$this->assertIXRError( $results );
-		$this->assertEquals( 401, $results->code );
+		$this->assertSame( 401, $results->code );
 	}
 
 	function test_capable_user() {
@@ -27,19 +27,19 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result[0]['user_id'] );
+		$this->assertIsString( $result[0]['user_id'] );
 		$this->assertStringMatchesFormat( '%d', $result[0]['user_id'] );
-		$this->assertInternalType( 'string', $result[0]['username'] );
-		$this->assertInternalType( 'string', $result[0]['first_name'] );
-		$this->assertInternalType( 'string', $result[0]['last_name'] );
+		$this->assertIsString( $result[0]['username'] );
+		$this->assertIsString( $result[0]['first_name'] );
+		$this->assertIsString( $result[0]['last_name'] );
 		$this->assertInstanceOf( 'IXR_Date', $result[0]['registered'] );
-		$this->assertInternalType( 'string', $result[0]['bio'] );
-		$this->assertInternalType( 'string', $result[0]['email'] );
-		$this->assertInternalType( 'string', $result[0]['nickname'] );
-		$this->assertInternalType( 'string', $result[0]['nicename'] );
-		$this->assertInternalType( 'string', $result[0]['url'] );
-		$this->assertInternalType( 'string', $result[0]['display_name'] );
-		$this->assertInternalType( 'array', $result[0]['roles'] );
+		$this->assertIsString( $result[0]['bio'] );
+		$this->assertIsString( $result[0]['email'] );
+		$this->assertIsString( $result[0]['nickname'] );
+		$this->assertIsString( $result[0]['nicename'] );
+		$this->assertIsString( $result[0]['url'] );
+		$this->assertIsString( $result[0]['display_name'] );
+		$this->assertIsArray( $result[0]['roles'] );
 	}
 
 	function test_invalid_role() {
@@ -51,7 +51,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		$filter  = array( 'role' => 'invalidrole' );
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator', $filter ) );
 		$this->assertIXRError( $results );
-		$this->assertEquals( 403, $results->code );
+		$this->assertSame( 403, $results->code );
 	}
 
 	function test_role_filter() {
@@ -102,7 +102,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		} while ( count( $presults ) > 0 );
 
 		// Verify that $user_ids matches $users_found.
-		$this->assertEquals( 0, count( array_diff( $user_ids, $users_found ) ) );
+		$this->assertCount( 0, array_diff( $user_ids, $users_found ) );
 	}
 
 	function test_order_filters() {

@@ -52,13 +52,13 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 
 		$comments = get_comments( array( 'post_id' => $post_id ) );
 
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 10, false ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 1, false ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 0, false ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 10, true ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 5 ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments ) );
-		$this->assertequals( 0, get_comment_pages_count( null, 1 ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 10, false ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 1, false ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 0, false ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 10, true ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 5 ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments ) );
+		$this->assertSame( 0, get_comment_pages_count( null, 1 ) );
 	}
 
 	/**

@@ -8,14 +8,14 @@
  */
 
 /**
- * Tests_Admin_WpPrivacyRequestsTable class.
+ * Tests_Admin_wpPrivacyRequestsTable class.
  *
  * @group admin
  * @group privacy
  *
  * @since 5.1.0
  */
-class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
+class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	/**
 	 * Get instance for mocked class.
 	 *
@@ -61,7 +61,7 @@ class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * @param string      $expected Expected in SQL query.
 
 	 * @dataProvider data_test_columns_should_be_sortable
-	 * @covers WP_Privacy_Requests_Table::prepare_items()
+	 * @covers WP_Privacy_Requests_Table::prepare_items
 	 * @ticket 43960
 	 */
 	public function test_columns_should_be_sortable( $order, $orderby, $search, $expected ) {
@@ -82,7 +82,7 @@ class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
 		unset( $_REQUEST['orderby'] );
 		unset( $_REQUEST['s'] );
 
-		$this->assertContains( "ORDER BY {$wpdb->posts}.{$expected}", $this->sql );
+		$this->assertStringContainsString( "ORDER BY {$wpdb->posts}.{$expected}", $this->sql );
 	}
 
 	/**

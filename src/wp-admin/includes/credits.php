@@ -11,23 +11,32 @@
  * Retrieve the contributor credits.
  *
  * @since 3.2.0
+ * @since 5.6.0 Added the `$version` and `$locale` parameters.
  *
+ * @param string $version WordPress version. Defaults to the current version.
+ * @param string $locale  WordPress locale. Defaults to the current user's locale.
  * @return array|false A list of all of the contributors, or false on error.
  */
-function wp_credits() {
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
+function wp_credits( $version = '', $locale = '' ) {
+	if ( ! $version ) {
+		// Include an unmodified $wp_version.
+		require ABSPATH . WPINC . '/version.php';
 
-	$locale = get_user_locale();
+		$version = $wp_version;
+	}
+
+	if ( ! $locale ) {
+		$locale = get_user_locale();
+	}
 
 	$results = get_site_transient( 'wordpress_credits_' . $locale );
 
 	if ( ! is_array( $results )
-		|| false !== strpos( $wp_version, '-' )
-		|| ( isset( $results['data']['version'] ) && strpos( $wp_version, $results['data']['version'] ) !== 0 )
+		|| false !== strpos( $version, '-' )
+		|| ( isset( $results['data']['version'] ) && strpos( $version, $results['data']['version'] ) !== 0 )
 	) {
-		$url     = "http://api.wordpress.org/core/credits/1.1/?version={$wp_version}&locale={$locale}";
-		$options = array( 'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ) );
+		$url     = "http://api.wordpress.org/core/credits/1.1/?version={$version}&locale={$locale}";
+		$options = array( 'user-agent' => 'WordPress/' . $version . '; ' . home_url( '/' ) );
 
 		if ( wp_http_supports( array( 'ssl' ) ) ) {
 			$url = set_url_scheme( $url, 'https' );
@@ -35,7 +44,7 @@ function wp_credits() {
 
 		$response = wp_remote_get( $url, $options );
 
-		if ( is_wp_error( $response ) || 200 != wp_remote_retrieve_response_code( $response ) ) {
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return false;
 		}
 
@@ -140,10 +149,10 @@ function wp_credits_section_list( $credits = array(), $slug = '' ) {
 			foreach ( $group_data['data'] as $person_data ) {
 				echo '<li class="wp-person" id="wp-person-' . esc_attr( $person_data[2] ) . '">' . "\n\t";
 				echo '<a href="' . esc_url( sprintf( $credits_data['profiles'], $person_data[2] ) ) . '" class="web">';
-				$size   = $compact ? 40 : 80;
+				$size   = $compact ? 80 : 160;
 				$data   = get_avatar_data( $person_data[1] . '@md5.gravatar.com', array( 'size' => $size ) );
 				$data2x = get_avatar_data( $person_data[1] . '@md5.gravatar.com', array( 'size' => $size * 2 ) );
-				echo '<img src="' . esc_url( $data['url'] ) . '" srcset="' . esc_url( $data2x['url'] ) . ' 2x" class="gravatar" alt="" />' . "\n";
+				echo '<span class="wp-person-avatar"><img src="' . esc_url( $data['url'] ) . '" srcset="' . esc_url( $data2x['url'] ) . ' 2x" class="gravatar" alt="" /></span>' . "\n";
 				echo esc_html( $person_data[0] ) . "</a>\n\t";
 				if ( ! $compact ) {
 					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText

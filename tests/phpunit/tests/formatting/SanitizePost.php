@@ -19,7 +19,14 @@ class Tests_Formatting_SanitizePost extends WP_UnitTestCase {
 		);
 
 		foreach ( $int_fields as $field => $type ) {
-			$this->assertInternalType( $type, $post->$field, "field $field" );
+			switch ( $type ) {
+				case 'integer':
+					$this->assertIsInt( $post->$field, "field $field" );
+					break;
+				case 'string':
+					$this->assertIsString( $post->$field, "field $field" );
+					break;
+			}
 		}
 	}
 }

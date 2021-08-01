@@ -15,6 +15,7 @@ if ( isset( $_GET['privacy-notice'] ) ) {
 	exit;
 }
 
+// Used in the HTML title tag.
 $title = __( 'Freedoms' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
@@ -24,15 +25,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap about__container">
 
 	<div class="about__header">
-		<div class="about__header-text">
-			<?php _e( 'Speed. Search. Security.' ); ?>
+		<div class="about__header-title">
+			<h1>
+				<?php _e( 'The Four Freedoms' ); ?>
+			</h1>
 		</div>
 
-		<div class="about__header-title">
-			<p>
-				<?php _e( 'WordPress' ); ?>
-				<span><?php echo $display_version; ?></span>
-			</p>
+		<div class="about__header-text">
+			<?php _e( 'WordPress is free and open source software, built by a distributed community of mostly volunteer developers from around the world' ); ?>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -43,48 +43,42 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</nav>
 	</div>
 
-	<div class="about__section has-subtle-background-color is-feature">
-		<h1><?php _e( 'Freedoms' ); ?></h1>
-
+	<div class="about__section is-feature">
 		<p class="about-description">
 		<?php
 		printf(
 			/* translators: %s: https://wordpress.org/about/license/ */
-			__( 'WordPress is Free and open source software, built by a distributed community of mostly volunteer developers from around the world. WordPress comes with some awesome, worldview-changing rights courtesy of its <a href="%s">license</a>, the GPL.' ),
+			__( 'WordPress comes with some awesome, worldview-changing rights courtesy of its <a href="%s">license</a>, the GPL.' ),
 			__( 'https://wordpress.org/about/license/' )
 		);
 		?>
 		</p>
 	</div>
 
-	<hr />
-
-	<div class="about__section has-4-columns">
-		<div class="column">
-			<div class="freedoms-image"></div>
+	<div class="about__section has-2-columns">
+		<div class="column aligncenter">
+			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-1.svg' ) ); ?>" alt="" />
 			<h2 class="is-smaller-heading"><?php _e( 'The 1st Freedom' ); ?></h2>
 			<p><?php _e( 'To run the program for any purpose.' ); ?></p>
 		</div>
-		<div class="column">
-			<div class="freedoms-image"></div>
+		<div class="column aligncenter">
+			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-2.svg' ) ); ?>" alt="" />
 			<h2 class="is-smaller-heading"><?php _e( 'The 2nd Freedom' ); ?></h2>
 			<p><?php _e( 'To study how the program works and change it to make it do what you wish.' ); ?></p>
 		</div>
-		<div class="column">
-			<div class="freedoms-image"></div>
+		<div class="column aligncenter">
+			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-3.svg' ) ); ?>" alt="" />
 			<h2 class="is-smaller-heading"><?php _e( 'The 3rd Freedom' ); ?></h2>
 			<p><?php _e( 'To redistribute.' ); ?></p>
 		</div>
-		<div class="column">
-			<div class="freedoms-image"></div>
+		<div class="column aligncenter">
+			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-4.svg' ) ); ?>" alt="" />
 			<h2 class="is-smaller-heading"><?php _e( 'The 4th Freedom' ); ?></h2>
 			<p><?php _e( 'To distribute copies of your modified versions to others.' ); ?></p>
 		</div>
 	</div>
 
-	<hr />
-
-	<div class="about__section">
+	<div class="about__section has-1-column">
 		<div class="column">
 			<p>
 			<?php

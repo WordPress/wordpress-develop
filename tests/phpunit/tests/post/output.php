@@ -59,7 +59,7 @@ EOF;
 		$this->assertTrue( have_posts() );
 		$this->assertNull( the_post() );
 
-		$this->assertEquals( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
+		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 	}
 
 	function test_the_content_shortcode() {
@@ -87,7 +87,7 @@ EOF;
 		$this->assertTrue( have_posts() );
 		$this->assertNull( the_post() );
 
-		$this->assertEquals( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
+		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 	}
 
 	function test_the_content_shortcode_paragraph() {
@@ -125,7 +125,7 @@ EOF;
 		$this->assertTrue( have_posts() );
 		$this->assertNull( the_post() );
 
-		$this->assertEquals( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
+		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 	}
 
 	function test_the_content_attribute_filtering() {
@@ -147,7 +147,7 @@ EOF;
 		$this->assertTrue( have_posts() );
 		$this->assertNull( the_post() );
 
-		$this->assertEquals( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
+		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 
 		kses_remove_filters();
 	}
@@ -171,7 +171,7 @@ EOF;
 		$this->assertTrue( have_posts() );
 		$this->assertNull( the_post() );
 
-		$this->assertEquals( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
+		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 
 		kses_remove_filters();
 	}
@@ -305,11 +305,11 @@ EOF;
 
 		foreach ( array( true, false ) as $strip_teaser ) {
 			$actual = get_echo( 'the_content', array( null, $strip_teaser ) );
-			$this->assertContains( 'Teaser part', $actual );
-			$this->assertContains( 'Read More</a>', $actual );
-			$this->assertNotContains( '<!--more-->', $actual );
-			$this->assertNotContains( 'wp:more', $actual );
-			$this->assertNotContains( 'wp:paragraph', $actual );
+			$this->assertStringContainsString( 'Teaser part', $actual );
+			$this->assertStringContainsString( 'Read More</a>', $actual );
+			$this->assertStringNotContainsString( '<!--more-->', $actual );
+			$this->assertStringNotContainsString( 'wp:more', $actual );
+			$this->assertStringNotContainsString( 'wp:paragraph', $actual );
 		}
 	}
 
@@ -346,12 +346,12 @@ EOF;
 
 		foreach ( array( true, false ) as $strip_teaser ) {
 			$actual = get_echo( 'the_content', array( null, $strip_teaser ) );
-			$this->assertContains( 'Teaser part', $actual );
-			$this->assertContains( '(more&hellip;)</span></a>', $actual );
-			$this->assertNotContains( '<!--more-->', $actual );
-			$this->assertNotContains( '<!--noteaser-->', $actual ); // We placed the noteaser tag below the more tag.
-			$this->assertNotContains( 'wp:more', $actual );
-			$this->assertNotContains( 'wp:paragraph', $actual );
+			$this->assertStringContainsString( 'Teaser part', $actual );
+			$this->assertStringContainsString( '(more&hellip;)</span></a>', $actual );
+			$this->assertStringNotContainsString( '<!--more-->', $actual );
+			$this->assertStringNotContainsString( '<!--noteaser-->', $actual ); // We placed the noteaser tag below the more tag.
+			$this->assertStringNotContainsString( 'wp:more', $actual );
+			$this->assertStringNotContainsString( 'wp:paragraph', $actual );
 		}
 	}
 }

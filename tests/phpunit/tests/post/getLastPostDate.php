@@ -52,7 +52,7 @@ class Tests_Post_GetLastPostDate extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $post_post_date_last, get_lastpostdate( 'blog', 'post' ) );
-		$this->assertEquals( $book_post_date_last, get_lastpostdate( 'blog', 'book' ) );
+		$this->assertSame( $post_post_date_last, get_lastpostdate( 'blog', 'post' ) );
+		$this->assertSame( $book_post_date_last, get_lastpostdate( 'blog', 'book' ) );
 	}
 }

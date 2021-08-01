@@ -70,12 +70,9 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 * @group xdebug
+	 * @requires function xdebug_get_headers
 	 */
 	public function test_response_charset_in_header() {
-
-		if ( ! function_exists( 'xdebug_get_headers' ) ) {
-			$this->markTestSkipped( 'xdebug is required for this test' );
-		}
 
 		// Generate an Ajax response.
 		ob_start();
@@ -86,7 +83,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 		$headers = xdebug_get_headers();
 		ob_end_clean();
 
-		$this->assertTrue( in_array( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), $headers, true ) );
+		$this->assertContains( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), $headers );
 	}
 
 	/**

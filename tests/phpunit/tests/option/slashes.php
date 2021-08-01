@@ -6,8 +6,10 @@
  * @ticket 21767
  */
 class Tests_Option_Slashes extends WP_UnitTestCase {
+
 	function setUp() {
 		parent::setUp();
+
 		// It is important to test with both even and odd numbered slashes,
 		// as KSES does a strip-then-add slashes in some of its function calls.
 		$this->slash_1 = 'String with 1 slash \\';
@@ -28,10 +30,10 @@ class Tests_Option_Slashes extends WP_UnitTestCase {
 		add_option( 'slash_test_3', $this->slash_3 );
 		add_option( 'slash_test_4', $this->slash_4 );
 
-		$this->assertEquals( $this->slash_1, get_option( 'slash_test_1' ) );
-		$this->assertEquals( $this->slash_2, get_option( 'slash_test_2' ) );
-		$this->assertEquals( $this->slash_3, get_option( 'slash_test_3' ) );
-		$this->assertEquals( $this->slash_4, get_option( 'slash_test_4' ) );
+		$this->assertSame( $this->slash_1, get_option( 'slash_test_1' ) );
+		$this->assertSame( $this->slash_2, get_option( 'slash_test_2' ) );
+		$this->assertSame( $this->slash_3, get_option( 'slash_test_3' ) );
+		$this->assertSame( $this->slash_4, get_option( 'slash_test_4' ) );
 	}
 
 	/**
@@ -41,15 +43,15 @@ class Tests_Option_Slashes extends WP_UnitTestCase {
 		add_option( 'slash_test_5', 'foo' );
 
 		update_option( 'slash_test_5', $this->slash_1 );
-		$this->assertEquals( $this->slash_1, get_option( 'slash_test_5' ) );
+		$this->assertSame( $this->slash_1, get_option( 'slash_test_5' ) );
 
 		update_option( 'slash_test_5', $this->slash_2 );
-		$this->assertEquals( $this->slash_2, get_option( 'slash_test_5' ) );
+		$this->assertSame( $this->slash_2, get_option( 'slash_test_5' ) );
 
 		update_option( 'slash_test_5', $this->slash_3 );
-		$this->assertEquals( $this->slash_3, get_option( 'slash_test_5' ) );
+		$this->assertSame( $this->slash_3, get_option( 'slash_test_5' ) );
 
 		update_option( 'slash_test_5', $this->slash_4 );
-		$this->assertEquals( $this->slash_4, get_option( 'slash_test_5' ) );
+		$this->assertSame( $this->slash_4, get_option( 'slash_test_5' ) );
 	}
 }

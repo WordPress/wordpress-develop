@@ -52,7 +52,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		// Test user counts.
 		$count = count_users( $strategy );
 
-		$this->assertEquals( 8, $count['total_users'] );
+		$this->assertSame( 8, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 2,
@@ -132,7 +132,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		// Test users counts on root site.
 		$count = count_users( $strategy );
 
-		$this->assertEquals( 8, $count['total_users'] );
+		$this->assertSame( 8, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 2,
@@ -150,7 +150,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		$count = count_users( $strategy );
 		restore_current_blog();
 
-		$this->assertEquals( 2, $count['total_users'] );
+		$this->assertSame( 2, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 1,
@@ -165,7 +165,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		$count = count_users( $strategy );
 		restore_current_blog();
 
-		$this->assertEquals( 2, $count['total_users'] );
+		$this->assertSame( 2, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 1,
@@ -197,7 +197,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$count = count_users( $strategy, $site_id );
-		$this->assertEqualSetsWithIndex(
+		$this->assertSameSetsWithIndex(
 			array(
 				'tester' => 1,
 				'none'   => 0,
@@ -227,7 +227,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 
 		get_userdata( $editor )->add_role( 'author' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'editor',
 				'author',
@@ -238,7 +238,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		// Test user counts.
 		$count = count_users( $strategy );
 
-		$this->assertEquals( 3, $count['total_users'] );
+		$this->assertSame( 3, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 2,
@@ -278,7 +278,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 
 		$count2 = count_users( $strategy );
 
-		$this->assertEqualSets( $count, $count2 );
+		$this->assertSameSets( $count, $count2 );
 	}
 
 	function data_count_users_strategies() {

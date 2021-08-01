@@ -7,7 +7,7 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	protected static $c1;
 	protected static $c2;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 
 		self::$c1 = $factory->term->create_and_get( array( 'taxonomy' => 'wptests_tax' ) );
@@ -34,7 +34,7 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	}
 
 	public function test_should_return_empty_for_invalid_id() {
-		$this->assertEquals( '', get_term_parents_list( 99999999, 'wptests_tax' ) );
+		$this->assertSame( '', get_term_parents_list( 99999999, 'wptests_tax' ) );
 	}
 
 	public function test_should_return_wp_error_for_invalid_taxonomy() {

@@ -18,6 +18,7 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+// Used in the HTML title tag.
 $title       = __( 'Settings' );
 $this_file   = 'options.php';
 $parent_file = 'options-general.php';
@@ -211,7 +212,7 @@ $allowed_options = apply_filters_deprecated(
 	'whitelist_options',
 	array( $allowed_options ),
 	'5.5.0',
-	'apply_filters_deprecated',
+	'allowed_options',
 	__( 'Please consider writing more inclusive code.' )
 );
 
@@ -392,7 +393,7 @@ foreach ( (array) $options as $option ) :
 		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
 	<?php else : ?>
 		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?> />
-	<?php endif ?></td>
+	<?php endif; ?></td>
 </tr>
 <?php endforeach; ?>
 </table>

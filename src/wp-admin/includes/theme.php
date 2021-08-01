@@ -72,9 +72,28 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 		return new WP_Error( 'fs_no_themes_dir', __( 'Unable to locate WordPress theme directory.' ) );
 	}
 
+	/**
+	 * Fires immediately before a theme deletion attempt.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $stylesheet Stylesheet of the theme to delete.
+	 */
+	do_action( 'delete_theme', $stylesheet );
+
 	$themes_dir = trailingslashit( $themes_dir );
 	$theme_dir  = trailingslashit( $themes_dir . $stylesheet );
 	$deleted    = $wp_filesystem->delete( $theme_dir, true );
+
+	/**
+	 * Fires immediately after a theme deletion attempt.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $stylesheet Stylesheet of the theme to delete.
+	 * @param bool   $deleted    Whether the theme deletion was successful.
+	 */
+	do_action( 'deleted_theme', $stylesheet, $deleted );
 
 	if ( ! $deleted ) {
 		return new WP_Error(
@@ -279,6 +298,7 @@ function get_theme_update_available( $theme ) {
  * @since 5.5.0 Added 'Block Editor Patterns', 'Block Editor Styles',
  *              and 'Full Site Editing' features.
  * @since 5.5.0 Added 'Wide Blocks' layout option.
+ * @since 5.8.1 Added 'Template Editing' feature.
  *
  * @param bool $api Optional. Whether try to fetch tags from the WordPress.org API. Defaults to true.
  * @return array Array of features keyed by category with translations keyed by slug.
@@ -315,6 +335,7 @@ function get_theme_feature_list( $api = true ) {
 			'full-width-template'   => __( 'Full Width Template' ),
 			'post-formats'          => __( 'Post Formats' ),
 			'sticky-post'           => __( 'Sticky Post' ),
+			'template-editing'      => __( 'Template Editing' ),
 			'theme-options'         => __( 'Theme Options' ),
 		),
 
@@ -649,7 +670,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 
 	$updates    = array();
 	$no_updates = array();
-	if ( current_user_can( 'update_themes' ) ) {
+	if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 		$updates_transient = get_site_transient( 'update_themes' );
 		if ( isset( $updates_transient->response ) ) {
 			$updates = $updates_transient->response;
@@ -716,8 +737,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			);
 		}
 
-		/** This action is documented in wp-admin/includes/class-wp-automatic-updater.php */
-		$auto_update_forced = apply_filters( 'auto_update_theme', null, $auto_update_filter_payload );
+		$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, $auto_update_filter_payload );
 
 		$prepared_themes[ $slug ] = array(
 			'id'             => $slug,
@@ -747,7 +767,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			'actions'        => array(
 				'activate'   => current_user_can( 'switch_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=activate&amp;stylesheet=' . $encoded_slug ), 'switch-theme_' . $slug ) : null,
 				'customize'  => $customize_action,
-				'delete'     => current_user_can( 'delete_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=delete&amp;stylesheet=' . $encoded_slug ), 'delete-theme_' . $slug ) : null,
+				'delete'     => ( ! is_multisite() && current_user_can( 'delete_themes' ) ) ? wp_nonce_url( admin_url( 'themes.php?action=delete&amp;stylesheet=' . $encoded_slug ), 'delete-theme_' . $slug ) : null,
 				'autoupdate' => wp_is_auto_update_enabled_for_type( 'theme' ) && ! is_multisite() && current_user_can( 'update_themes' )
 					? wp_nonce_url( admin_url( 'themes.php?action=' . $auto_update_action . '&amp;stylesheet=' . $encoded_slug ), 'updates' )
 					: null,
@@ -1128,6 +1148,8 @@ function resume_theme( $theme, $redirect = '' ) {
  * Renders an admin notice in case some themes have been paused due to errors.
  *
  * @since 5.2.0
+ *
+ * @global string $pagenow
  */
 function paused_themes_notice() {
 	if ( 'themes.php' === $GLOBALS['pagenow'] ) {
