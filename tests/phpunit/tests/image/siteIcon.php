@@ -120,7 +120,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$object     = $this->wp_site_icon->create_attachment_object( $cropped, $attachment_id );
 		$cropped_id = $this->wp_site_icon->insert_attachment( $object, $cropped );
 
-		$this->assertInternalType( 'int', $cropped_id );
+		$this->assertIsInt( $cropped_id );
 		$this->assertGreaterThan( 0, $cropped_id );
 	}
 

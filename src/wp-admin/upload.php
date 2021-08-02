@@ -76,6 +76,7 @@ if ( 'grid' === $mode ) {
 		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 	);
 
+	// Used in the HTML title tag.
 	$title       = __( 'Media Library' );
 	$parent_file = 'upload.php';
 
@@ -88,7 +89,7 @@ if ( 'grid' === $mode ) {
 		if ( current_user_can( 'upload_files' ) ) {
 			?>
 			<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action aria-button-if-js"><?php echo esc_html_x( 'Add New', 'file' ); ?></a>
-								<?php
+			<?php
 		}
 		?>
 
@@ -215,6 +216,7 @@ if ( $doaction ) {
 
 $wp_list_table->prepare_items();
 
+// Used in the HTML title tag.
 $title       = __( 'Media Library' );
 $parent_file = 'upload.php';
 

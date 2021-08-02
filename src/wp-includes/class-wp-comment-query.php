@@ -214,7 +214,7 @@ class WP_Comment_Query {
 	 *     @type string|array $post_status               Post status or array of post statuses to retrieve
 	 *                                                   affiliated comments for. Pass 'any' to match any value.
 	 *                                                   Default empty.
-	 *     @type string       $post_type                 Post type or array of post types to retrieve affiliated
+	 *     @type string|array $post_type                 Post type or array of post types to retrieve affiliated
 	 *                                                   comments for. Pass 'any' to match any value. Default empty.
 	 *     @type string       $post_name                 Post name to retrieve affiliated comments for.
 	 *                                                   Default empty.
@@ -324,7 +324,7 @@ class WP_Comment_Query {
 		 *
 		 * @since 4.2.0
 		 *
-		 * @param WP_Comment_Query $this The WP_Comment_Query instance (passed by reference).
+		 * @param WP_Comment_Query $query The WP_Comment_Query instance (passed by reference).
 		 */
 		do_action_ref_array( 'parse_comment_query', array( &$this ) );
 	}
@@ -370,7 +370,7 @@ class WP_Comment_Query {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param WP_Comment_Query $this Current instance of WP_Comment_Query (passed by reference).
+		 * @param WP_Comment_Query $query Current instance of WP_Comment_Query (passed by reference).
 		 */
 		do_action_ref_array( 'pre_get_comments', array( &$this ) );
 

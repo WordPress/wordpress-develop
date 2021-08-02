@@ -610,7 +610,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$found = $q->build_time_query( 'post_date', '=', 0, 10 );
 
-		$this->assertContains( '%H', $wpdb->remove_placeholder_escape( $found ) );
+		$this->assertStringContainsString( '%H', $wpdb->remove_placeholder_escape( $found ) );
 	}
 
 	public function test_build_time_query_compare_in() {

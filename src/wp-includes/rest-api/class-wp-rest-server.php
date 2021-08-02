@@ -1080,7 +1080,6 @@ class WP_REST_Server {
 	 * @param array           $handler  The matched route handler.
 	 * @param string          $route    The matched route regex.
 	 * @param WP_Error|null   $response The current error object if any.
-	 *
 	 * @return WP_REST_Response
 	 */
 	protected function respond_to_request( $request, $route, $handler, $response ) {
@@ -1228,6 +1227,7 @@ class WP_REST_Server {
 		$response = new WP_REST_Response( $available );
 		$response->add_link( 'help', 'https://developer.wordpress.org/rest-api/' );
 		$this->add_active_theme_link_to_index( $response );
+		$this->add_site_logo_to_index( $response );
 
 		/**
 		 * Filters the REST API root index data.
@@ -1269,6 +1269,29 @@ class WP_REST_Server {
 		if ( $should_add ) {
 			$theme = wp_get_theme();
 			$response->add_link( 'https://api.w.org/active-theme', rest_url( 'wp/v2/themes/' . $theme->get_stylesheet() ) );
+		}
+	}
+
+	/**
+	 * Exposes the site logo through the WordPress REST API.
+	 * This is used for fetching this information when user has no rights
+	 * to update settings.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param WP_REST_Response $response REST API response.
+	 */
+	protected function add_site_logo_to_index( WP_REST_Response $response ) {
+		$site_logo_id                = get_theme_mod( 'custom_logo' );
+		$response->data['site_logo'] = $site_logo_id;
+		if ( $site_logo_id ) {
+			$response->add_link(
+				'https://api.w.org/featuredmedia',
+				rest_url( 'wp/v2/media/' . $site_logo_id ),
+				array(
+					'embeddable' => true,
+				)
+			);
 		}
 	}
 

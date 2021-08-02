@@ -3,13 +3,6 @@
  * Installs WordPress for running the tests and loads WordPress and the test libraries
  */
 
-/**
- * Compatibility with PHPUnit 6+
- */
-if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-	require_once __DIR__ . '/phpunit6/compat.php';
-}
-
 if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	$config_file_path = WP_TESTS_CONFIG_FILE_PATH;
 } else {
@@ -193,6 +186,12 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
+// Load class aliases for compatibility with PHPUnit 6+.
+if ( version_compare( tests_get_phpunit_version(), '6.0', '>=' ) ) {
+	require __DIR__ . '/phpunit6/compat.php';
+}
+
+// Load separate WP_UnitTestCase classes for PHPUnit 7.5+ and older versions.
 if ( version_compare( tests_get_phpunit_version(), '7.5', '>=' ) ) {
 	require __DIR__ . '/phpunit7/testcase.php';
 } else {
@@ -204,7 +203,6 @@ require __DIR__ . '/testcase-rest-controller.php';
 require __DIR__ . '/testcase-rest-post-type-controller.php';
 require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
-require __DIR__ . '/testcase-block-supports.php';
 require __DIR__ . '/testcase-canonical.php';
 require __DIR__ . '/testcase-xml.php';
 require __DIR__ . '/exceptions.php';

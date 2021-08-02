@@ -169,8 +169,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		if ( ! is_string( $data ) && false !== $data ) {
 			$this->fail( 'Unexpected type for $data.' );
 		}
-		$this->assertInternalType( 'string', $url );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsString( $url );
+		$this->assertIsArray( $args );
 		$this->oembed_result_filter_count++;
 		return $data;
 	}
@@ -299,7 +299,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 	}
 
@@ -323,7 +323,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 
 		$this->assertArrayHasKey( 'version', $data );
@@ -366,7 +366,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 
 		$this->assertArrayHasKey( 'version', $data );
@@ -411,7 +411,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 
 		$this->assertArrayHasKey( 'version', $data );
@@ -454,7 +454,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 
 		restore_current_blog();
@@ -603,7 +603,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		$this->assertNotEmpty( $data );
-		$this->assertInternalType( 'object', $data );
+		$this->assertIsObject( $data );
 		$this->assertSame( 'YouTube', $data->provider_name );
 		$this->assertSame( 'https://i.ytimg.com/vi/' . self::YOUTUBE_VIDEO_ID . '/hqdefault.jpg', $data->thumbnail_url );
 		$this->assertEquals( $data->width, $request['maxwidth'] );
@@ -630,9 +630,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		$this->assertNotEmpty( $data );
-		$this->assertInternalType( 'object', $data );
-		$this->assertInternalType( 'string', $data->html );
-		$this->assertInternalType( 'array', $data->scripts );
+		$this->assertIsObject( $data );
+		$this->assertIsString( $data->html );
+		$this->assertIsArray( $data->scripts );
 	}
 
 	public function test_proxy_with_invalid_oembed_provider_no_discovery() {
@@ -743,7 +743,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'object', $data );
+		$this->assertIsObject( $data );
 
 		$data = (array) $data;
 
@@ -786,7 +786,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 1, $this->oembed_result_filter_count );
-		$this->assertInternalType( 'object', $data );
+		$this->assertIsObject( $data );
 		$this->assertSame( 'Untrusted', $data->provider_name );
 		$this->assertSame( self::UNTRUSTED_PROVIDER_URL, $data->provider_url );
 		$this->assertSame( 'rich', $data->type );
@@ -809,7 +809,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 1, $this->oembed_result_filter_count );
-		$this->assertInternalType( 'object', $data );
+		$this->assertIsObject( $data );
 
 		$this->assertStringStartsWith( '<b>Unfiltered</b>', $data->html );
 	}

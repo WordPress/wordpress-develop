@@ -478,9 +478,8 @@ class WP_Upgrader {
 		/**
 		 * Filters the install response before the installation has started.
 		 *
-		 * Returning a truthy value, or one that could be evaluated as a WP_Error
-		 * will effectively short-circuit the installation, returning that value
-		 * instead.
+		 * Returning a value that could be evaluated as a `WP_Error` will effectively
+		 * short-circuit the installation, returning that value instead.
 		 *
 		 * @since 2.8.0
 		 *
@@ -833,8 +832,8 @@ class WP_Upgrader {
 			 * @since 3.7.0 Added to WP_Upgrader::run().
 			 * @since 4.6.0 `$translations` was added as a possible argument to `$hook_extra`.
 			 *
-			 * @param WP_Upgrader $this WP_Upgrader instance. In other contexts, $this, might be a
-			 *                          Theme_Upgrader, Plugin_Upgrader, Core_Upgrade, or Language_Pack_Upgrader instance.
+			 * @param WP_Upgrader $upgrader   WP_Upgrader instance. In other contexts this might be a
+			 *                                Theme_Upgrader, Plugin_Upgrader, Core_Upgrade, or Language_Pack_Upgrader instance.
 			 * @param array       $hook_extra {
 			 *     Array of bulk item update data.
 			 *

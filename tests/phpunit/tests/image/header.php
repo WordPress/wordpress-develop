@@ -147,7 +147,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 
 		$cropped_id = $this->custom_image_header->insert_attachment( $object, $cropped );
 
-		$this->assertInternalType( 'int', $cropped_id );
+		$this->assertIsInt( $cropped_id );
 		$this->assertGreaterThan( 0, $cropped_id );
 	}
 

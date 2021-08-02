@@ -32,8 +32,10 @@ if ( wp_is_application_passwords_available_for_user( $user_id ) ) {
 }
 
 if ( IS_PROFILE_PAGE ) {
+	// Used in the HTML title tag.
 	$title = __( 'Profile' );
 } else {
+	// Used in the HTML title tag.
 	/* translators: %s: User's display name. */
 	$title = __( 'Edit User %s' );
 }
@@ -552,11 +554,11 @@ endif;
 			 * Filters a user contactmethod label.
 			 *
 			 * The dynamic portion of the filter hook, `$name`, refers to
-			 * each of the keys in the contactmethods array.
+			 * each of the keys in the contact methods array.
 			 *
 			 * @since 2.9.0
 			 *
-			 * @param string $desc The translatable label for the contactmethod.
+			 * @param string $desc The translatable label for the contact method.
 			 */
 			echo apply_filters( "user_{$name}_label", $desc );
 			?>

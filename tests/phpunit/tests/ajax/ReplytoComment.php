@@ -219,7 +219,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 			$this->fail();
 		} catch ( WPAjaxDieStopException $e ) {
 			$wpdb->suppress_errors( false );
-			$this->assertContains( '1', $e->getMessage() );
+			$this->assertStringContainsString( '1', $e->getMessage() );
 		}
 	}
 

@@ -313,7 +313,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 		foreach ( array_keys( $cookies ) as $cookie ) {
 			if ( 'foo' === $cookie ) {
-				$this->assertFalse( isset( $cookie_jar[ $cookie ] ) );
+				$this->assertArrayNotHasKey( $cookie, $cookie_jar );
 			} else {
 				$this->assertInstanceOf( 'Requests_Cookie', $cookie_jar[ $cookie ] );
 			}
