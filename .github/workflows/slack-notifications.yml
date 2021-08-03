@@ -58,7 +58,7 @@ jobs:
 
       - name: Construct payload and store as an output
         id: create-payload
-        run: echo "::set-output name=payload::\"{\"workflow_name\":\"${{ github.event.workflow_run.name }}\",\"ref_name\":\"${{ github.event.workflow_run.head_branch }}\",\"run_url\":\"${{ github.event.workflow_run.html_url }}\"}\""
+        run: echo "::set-output name=payload::{\"workflow_name\":\"${{ github.event.workflow_run.name }}\",\"ref_name\":\"${{ github.event.workflow_run.head_branch }}\",\"run_url\":\"${{ github.event.workflow_run.html_url }}\"}"
 
   # Posts notifications when a workflow fails.
   failure:
