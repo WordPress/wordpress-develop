@@ -21,7 +21,8 @@ on:
 jobs:
   # Gathers the details needed for Slack notifications.
   #
-  # These details are passed as outputs to subsequent, dependant jobs.
+  # These details are passed as outputs to the subsequent, dependant jobs that
+  # submit data to Slack webhook URLs configured to post messages.
   #
   # Performs the following steps:
   # - Retrieves the previous workflow run and stores its conclusion.
