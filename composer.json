@@ -13,10 +13,11 @@
 		"php": ">=5.6"
 	},
 	"require-dev": {
-		"dealerdirect/phpcodesniffer-composer-installer": "^0.6.2 || ^0.7.0",
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+		"squizlabs/php_codesniffer": "3.6.0",
 		"wp-coding-standards/wpcs": "~2.3.0",
-		"phpcompatibility/phpcompatibility-wp": "^2.1.0",
-		"phpunit/phpunit": "^7.5"
+		"phpcompatibility/phpcompatibility-wp": "~2.1.2",
+		"phpunit/phpunit": "^5.7 || ^6.5 || ^7.5"
 	},
 	"autoload-dev": {
 		"files": [
