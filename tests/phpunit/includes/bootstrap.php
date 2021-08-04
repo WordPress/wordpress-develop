@@ -46,6 +46,10 @@ if ( version_compare( $phpunit_version, '5.7', '<' ) || version_compare( $phpuni
 	exit( 1 );
 }
 
+// Register a custom autoloader for the PHPUnit 9.x Mockobject classes for compatibility with PHP 8.0.
+require_once __DIR__ . '/class-mockobject-autoload.php';
+spl_autoload_register( 'MockObject_Autoload::load', true, true );
+
 // If running core tests, check if all the required PHP extensions are loaded before running the test suite.
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 	$required_extensions = array(

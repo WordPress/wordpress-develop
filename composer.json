@@ -19,20 +19,6 @@
 		"phpcompatibility/phpcompatibility-wp": "~2.1.2",
 		"phpunit/phpunit": "^5.7 || ^6.5 || ^7.5"
 	},
-	"autoload-dev": {
-		"files": [
-			"tests/phpunit/includes/phpunit7/MockObject/Builder/NamespaceMatch.php",
-			"tests/phpunit/includes/phpunit7/MockObject/Builder/ParametersMatch.php",
-			"tests/phpunit/includes/phpunit7/MockObject/InvocationMocker.php",
-			"tests/phpunit/includes/phpunit7/MockObject/MockMethod.php"
-		],
-		"exclude-from-classmap": [
-			"vendor/phpunit/phpunit/src/Framework/MockObject/Builder/NamespaceMatch.php",
-			"vendor/phpunit/phpunit/src/Framework/MockObject/Builder/ParametersMatch.php",
-			"vendor/phpunit/phpunit/src/Framework/MockObject/InvocationMocker.php",
-			"vendor/phpunit/phpunit/src/Framework/MockObject/MockMethod.php"
-		]
-	},
 	"scripts": {
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
 		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
