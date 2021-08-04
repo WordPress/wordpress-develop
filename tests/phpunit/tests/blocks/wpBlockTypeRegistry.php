@@ -1,6 +1,6 @@
 <?php
 /**
- * WP_Block_Type_Registry Tests
+ * WP_Block_Type_Registry tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for WP_Block_Type_Registry
+ * Tests for WP_Block_Type_Registry.
  *
  * @since 5.0.0
  *
  * @group blocks
  */
-class WP_Test_Block_Type_Registry extends WP_UnitTestCase {
+class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Fake block type registry.

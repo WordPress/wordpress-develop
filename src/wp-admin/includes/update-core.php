@@ -804,6 +804,12 @@ $_old_files = array(
 	// 5.7
 	'wp-includes/blocks/classic/block.json',
 	// 5.8
+	'wp-admin/images/freedoms.png',
+	'wp-admin/images/privacy.png',
+	'wp-admin/images/about-badge.svg',
+	'wp-admin/images/about-color-palette.svg',
+	'wp-admin/images/about-color-palette-vert.svg',
+	'wp-admin/images/about-header-brushes.svg',
 	'wp-includes/block-patterns/large-header.php',
 	'wp-includes/block-patterns/heading-paragraph.php',
 	'wp-includes/block-patterns/quote.php',
@@ -816,6 +822,10 @@ $_old_files = array(
 	'wp-includes/block-patterns/large-header-button.php',
 	'wp-includes/blocks/subhead/block.json',
 	'wp-includes/blocks/subhead',
+	'wp-includes/css/dist/editor/editor-styles.css',
+	'wp-includes/css/dist/editor/editor-styles.min.css',
+	'wp-includes/css/dist/editor/editor-styles-rtl.css',
+	'wp-includes/css/dist/editor/editor-styles-rtl.min.css',
 );
 
 /**
@@ -1646,6 +1656,13 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	}
 
 	$dirs = glob( $directory . '*', GLOB_ONLYDIR );
+	$dirs = array_filter(
+		$dirs,
+		function( $dir ) {
+			// Skip any node_modules directories.
+			return false === strpos( $dir, 'node_modules' );
+		}
+	);
 
 	if ( $dirs ) {
 		foreach ( $dirs as $dir ) {

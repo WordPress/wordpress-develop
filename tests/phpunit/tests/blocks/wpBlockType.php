@@ -1,6 +1,6 @@
 <?php
 /**
- * WP_Block_Type Tests
+ * WP_Block_Type tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for WP_Block_Type
+ * Tests for WP_Block_Type.
  *
  * @since 5.0.0
  *
  * @group blocks
  */
-class WP_Test_Block_Type extends WP_UnitTestCase {
+class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * Editor user ID.

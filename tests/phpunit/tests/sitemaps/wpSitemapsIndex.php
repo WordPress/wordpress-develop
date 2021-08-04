@@ -3,7 +3,8 @@
 /**
  * @group sitemaps
  */
-class Test_WP_Sitemaps_Index extends WP_UnitTestCase {
+class Tests_Sitemaps_wpSitemapsIndex extends WP_UnitTestCase {
+
 	public function test_get_sitemap_list() {
 		$registry = new WP_Sitemaps_Registry();
 

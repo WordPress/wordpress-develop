@@ -3,7 +3,8 @@
 /**
  * @group sitemaps
  */
-class Test_WP_Sitemaps_Users extends WP_UnitTestCase {
+class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
+
 	/**
 	 * List of user IDs.
 	 *

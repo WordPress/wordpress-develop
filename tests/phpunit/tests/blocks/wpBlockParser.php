@@ -1,6 +1,6 @@
 <?php
 /**
- * WP_Block_Parser tests.
+ * WP_Block_Parser tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for WP_Block_Parser
+ * Tests for WP_Block_Parser.
  *
  * @since 5.0.0
  *
  * @group blocks
  */
-class WP_Test_Block_Parser extends WP_UnitTestCase {
+class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	/**
 	 * The location of the fixtures to test with.
 	 *

@@ -262,8 +262,8 @@ JS;
 		$footer = get_echo( 'wp_print_footer_scripts' );
 
 		$this->assertEmpty( $header );
-		$this->assertContains( home_url( 'bar.js' ), $footer );
-		$this->assertContains( home_url( 'baz.js' ), $footer );
+		$this->assertStringContainsString( home_url( 'bar.js' ), $footer );
+		$this->assertStringContainsString( home_url( 'baz.js' ), $footer );
 	}
 
 	/**

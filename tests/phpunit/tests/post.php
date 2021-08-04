@@ -498,7 +498,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $p );
 
-		$this->assertContains( 'wptests_pt=' . $p, $post->guid );
+		$this->assertStringContainsString( 'wptests_pt=' . $p, $post->guid );
 	}
 
 	/**
@@ -924,8 +924,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$term  = reset( $terms );
 
 		foreach ( $matches[1] as $url ) {
-			$this->assertContains( 'tag_ID=' . $term->term_id, $url );
-			$this->assertContains( 'post_type=new_post_type', $url );
+			$this->assertStringContainsString( 'tag_ID=' . $term->term_id, $url );
+			$this->assertStringContainsString( 'post_type=new_post_type', $url );
 		}
 	}
 

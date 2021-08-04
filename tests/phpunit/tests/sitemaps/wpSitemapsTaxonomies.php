@@ -3,7 +3,8 @@
 /**
  * @group sitemaps
  */
-class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
+class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
+
 	/**
 	 * List of post_tag IDs.
 	 *
