@@ -11,7 +11,7 @@
  *
  * @since 1.0.0
  */
-class WP_Plugins_Dependencies {
+class WP_Plugin_Dependencies {
 
 	/**
 	 * The database option where we store the array of plugins that should be active
@@ -125,7 +125,7 @@ class WP_Plugins_Dependencies {
 	/**
 	 * Check plugin dependencies.
 	 *
- 	 * @since 5.9.0
+	 * @since 5.9.0
 	 * @access public
 	 *
 	 * @param string $file The plugin file.
@@ -520,4 +520,4 @@ class WP_Plugins_Dependencies {
 }
 
 global $plugin_dependencies;
-$plugin_dependencies = new WP_Plugins_Dependencies();
+$plugin_dependencies = new WP_Plugin_Dependencies();
