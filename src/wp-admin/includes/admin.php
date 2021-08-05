@@ -49,6 +49,9 @@ require_once ABSPATH . 'wp-admin/includes/options.php';
 /** WordPress Plugin Administration API */
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
+/** WordPress Plugin Dependencies */
+require_once ABSPATH . 'wp-admin/includes/class-wp-plugin-dependencies.php';
+
 /** WordPress Post Administration API */
 require_once ABSPATH . 'wp-admin/includes/post.php';
 
