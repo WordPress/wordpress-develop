@@ -455,8 +455,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * @throws WPDieException Exception containing the message.
 	 *
 	 * @param string $message The `wp_die()` message.
+	 * @param string $title The `wp_die()` title.
+	 * @param string $args The `wp_die()` args.
 	 */
-	public function wp_die_handler( $message ) {
+	public function wp_die_handler( $message, $title, $args ) {
 		if ( is_wp_error( $message ) ) {
 			$message = $message->get_error_message();
 		}
@@ -465,7 +467,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 			$message = '0';
 		}
 
-		throw new WPDieException( $message );
+		$code = 0;
+		if ( isset( $args['response'] ) ) {
+			$code = $args['response'];
+		}
+
+		throw new WPDieException( $message, $code );
 	}
 
 	/**
