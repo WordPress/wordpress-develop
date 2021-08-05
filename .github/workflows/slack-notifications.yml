@@ -31,13 +31,13 @@ jobs:
   prepare:
     name: Prepare notifications
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.conclusion != 'skipped' && github.event_name != 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.conclusion != 'skipped' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
       previous_conclusion: ${{ steps.previous-conclusion.outputs.previous_conclusion }}
       payload: ${{ steps.create-payload.outputs.payload }}
 
     steps:
-      - name: Get details about the workflow
+      - name: Get details about the previous workflow run
         id: previous-result
         uses: actions/github-script@a3e7071a34d7e1f219a8a4de9a5e0a34d1ee1293 # v4.0.2
         with:
