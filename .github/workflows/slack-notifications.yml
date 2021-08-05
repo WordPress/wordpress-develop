@@ -17,6 +17,10 @@ on:
       - Test old branches
     types:
       - completed
+    branches:
+      - master
+      - trunk
+      - '[3-9].[0-9]'
 
 jobs:
   # Gathers the details needed for Slack notifications.
@@ -31,7 +35,7 @@ jobs:
   prepare:
     name: Prepare notifications
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.conclusion != 'skipped' && github.event.workflow_run.event != 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
       previous_conclusion: ${{ steps.previous-conclusion.outputs.previous_conclusion }}
       payload: ${{ steps.create-payload.outputs.payload }}
