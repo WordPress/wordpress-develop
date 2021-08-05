@@ -258,7 +258,7 @@ register_and_do_post_meta_boxes( $post );
 // Check if the Custom Fields meta box has been removed at some point.
 $core_meta_boxes = $wp_meta_boxes[ $current_screen->id ]['normal']['core'];
 if ( ! isset( $core_meta_boxes['postcustom'] ) || ! $core_meta_boxes['postcustom'] ) {
-	unset( $editor_settings['enableCustomFields'] );
+	$editor_settings['enableCustomFields'] = null;
 }
 
 $editor_settings = get_block_editor_settings( $editor_settings, $block_editor_context );
