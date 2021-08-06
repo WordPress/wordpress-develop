@@ -379,6 +379,7 @@ function export_wp( $args = array() ) {
 			echo '<wp:author_display_name>' . wxr_cdata( $author->display_name ) . '</wp:author_display_name>';
 			echo '<wp:author_first_name>' . wxr_cdata( $author->first_name ) . '</wp:author_first_name>';
 			echo '<wp:author_last_name>' . wxr_cdata( $author->last_name ) . '</wp:author_last_name>';
+			echo '<wp:author_pronouns>' . wxr_cdata( $author->pronouns ) . '</wp:author_pronouns>';
 			echo "</wp:author>\n";
 		}
 	}

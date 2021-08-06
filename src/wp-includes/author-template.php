@@ -131,6 +131,7 @@ function the_modified_author() {
  * - ID
  * - jabber
  * - last_name
+ * - pronouns
  * - nickname
  * - plugins_last_view
  * - plugins_per_page
@@ -456,7 +457,9 @@ function wp_list_authors( $args = '' ) {
 			continue;
 		}
 
-		if ( $args['show_fullname'] && $author->first_name && $author->last_name ) {
+		if ( $args['show_fullname'] && $author->first_name && $author->last_name && $author->pronouns ) {
+			$name = "$author->first_name $author->last_name ($author->pronouns)";
+		} elseif ( $args['show_fullname'] && $author->first_name && $author->last_name ) {
 			$name = "$author->first_name $author->last_name";
 		} else {
 			$name = $author->display_name;
