@@ -100,6 +100,6 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 
 		// Check the XML tag.
 		$contents = ob_get_clean();
-		$this->assertRegExp( '/<\?xml\s+version=\'1.0\'\s+encoding=\'' . preg_quote( get_option( 'blog_charset' ) ) . '\'\s+standalone=\'yes\'\?>/', $contents );
+		$this->assertMatchesRegularExpression( '/<\?xml\s+version=\'1.0\'\s+encoding=\'' . preg_quote( get_option( 'blog_charset' ) ) . '\'\s+standalone=\'yes\'\?>/', $contents );
 	}
 }

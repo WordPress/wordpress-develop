@@ -770,7 +770,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		if ( $post_types ) {
 			foreach ( $post_types as $type ) {
 				$this->assertStringContainsString( 'available-menu-items-post_type-' . esc_attr( $type->name ), $template );
-				$this->assertRegExp( '#<h4 class="accordion-section-title".*>\s*' . esc_html( $type->labels->name ) . '#', $template );
+				$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*' . esc_html( $type->labels->name ) . '#', $template );
 				$this->assertStringContainsString( 'data-type="post_type"', $template );
 				$this->assertStringContainsString( 'data-object="' . esc_attr( $type->name ) . '"', $template );
 				$this->assertStringContainsString( 'data-type_label="' . esc_attr( $type->labels->singular_name ) . '"', $template );
@@ -781,7 +781,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		if ( $taxonomies ) {
 			foreach ( $taxonomies as $tax ) {
 				$this->assertStringContainsString( 'available-menu-items-taxonomy-' . esc_attr( $tax->name ), $template );
-				$this->assertRegExp( '#<h4 class="accordion-section-title".*>\s*' . esc_html( $tax->labels->name ) . '#', $template );
+				$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*' . esc_html( $tax->labels->name ) . '#', $template );
 				$this->assertStringContainsString( 'data-type="taxonomy"', $template );
 				$this->assertStringContainsString( 'data-object="' . esc_attr( $tax->name ) . '"', $template );
 				$this->assertStringContainsString( 'data-type_label="' . esc_attr( $tax->labels->singular_name ) . '"', $template );
@@ -789,7 +789,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		}
 
 		$this->assertStringContainsString( 'available-menu-items-custom_type', $template );
-		$this->assertRegExp( '#<h4 class="accordion-section-title".*>\s*Custom#', $template );
+		$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*Custom#', $template );
 		$this->assertStringContainsString( 'data-type="custom_type"', $template );
 		$this->assertStringContainsString( 'data-object="custom_object"', $template );
 		$this->assertStringContainsString( 'data-type_label="Custom Type"', $template );
@@ -1013,7 +1013,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertSame( $save_action_count + 1, did_action( 'customize_save_nav_menus_created_posts' ) );
 		foreach ( $drafted_post_ids as $post_id ) {
 			$this->assertSame( 'publish', get_post_status( $post_id ) );
-			$this->assertRegExp( '/^auto-draft-\d+$/', get_post( $post_id )->post_name );
+			$this->assertMatchesRegularExpression( '/^auto-draft-\d+$/', get_post( $post_id )->post_name );
 			$this->assertEmpty( get_post_meta( $post_id, '_customize_draft_post_name', true ) );
 		}
 

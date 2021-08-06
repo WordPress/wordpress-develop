@@ -798,7 +798,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		unregister_widget( 'WP_Widget_Text' );
 
-		$this->assertRegExp( '/<span class="special widget_text">/', $actual );
+		$this->assertMatchesRegularExpression( '/<span class="special widget_text">/', $actual );
 
 	}
 

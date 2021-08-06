@@ -460,7 +460,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		);
 
 		// The markup should include whitespace between <li>'s.
-		$this->assertRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertMatchesRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertNotRegExp( '/<\/li><li.*>/U', $menu );
 
 		// Whitespace suppressed.
@@ -474,7 +474,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		// The markup should not include whitespace around <li>'s.
 		$this->assertNotRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
-		$this->assertRegExp( '/><li.*>|<\/li></U', $menu );
+		$this->assertMatchesRegularExpression( '/><li.*>|<\/li></U', $menu );
 	}
 
 	/*

@@ -202,7 +202,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		$dropdown_categories = wp_dropdown_categories( $args );
 
 		// Test to see if it contains the "required" attribute.
-		$this->assertRegExp( '/<select[^>]+required/', $dropdown_categories );
+		$this->assertMatchesRegularExpression( '/<select[^>]+required/', $dropdown_categories );
 	}
 
 	/**
