@@ -1230,7 +1230,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'bio'          => $user->user_description,
 			'email'        => $user->user_email,
 			'nickname'     => $user->nickname,
-			'pronouns'    => $user->user_pronouns,
+			'pronouns'     => $user->user_pronouns,
 			'nicename'     => $user->user_nicename,
 			'url'          => $user->user_url,
 			'display_name' => $user->display_name,
@@ -4916,7 +4916,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'url'       => $user->user_url,
 			'lastname'  => $user->last_name,
 			'firstname' => $user->first_name,
-			'pronouns' => $user->pronouns,
+			'pronouns'  => $user->pronouns,
 		);
 
 		return $struct;

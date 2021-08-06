@@ -3426,7 +3426,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 		'nickname'        => __( 'User Nickname' ),
 		'first_name'      => __( 'User First Name' ),
 		'last_name'       => __( 'User Last Name' ),
-		'pronouns'       => __( 'User Pronouns' ),
+		'pronouns'        => __( 'User Pronouns' ),
 		'description'     => __( 'User Description' ),
 	);
 
