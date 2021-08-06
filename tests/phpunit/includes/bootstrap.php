@@ -50,6 +50,14 @@ if ( version_compare( $phpunit_version, '5.7', '<' ) || version_compare( $phpuni
 require_once __DIR__ . '/class-mockobject-autoload.php';
 spl_autoload_register( 'MockObject_Autoload::load', true, true );
 
+// Check that the PHPUnit Polyfills autoloader exists.
+$phpunit_polyfills_autoloader = __DIR__ . '/../../../vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+if ( ! file_exists( $phpunit_polyfills_autoloader ) ) {
+	echo "Error: You need to run `composer update` before running the tests.\n";
+	echo "You can still use a PHPUnit phar to run them, but the dependencies do need to be installed.\n";
+	exit( 1 );
+}
+
 // If running core tests, check if all the required PHP extensions are loaded before running the test suite.
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 	$required_extensions = array(
@@ -195,13 +203,12 @@ if ( version_compare( tests_get_phpunit_version(), '6.0', '>=' ) ) {
 	require __DIR__ . '/phpunit6/compat.php';
 }
 
-// Load separate WP_UnitTestCase classes for PHPUnit 7.5+ and older versions.
-if ( version_compare( tests_get_phpunit_version(), '7.5', '>=' ) ) {
-	require __DIR__ . '/phpunit7/testcase.php';
-} else {
-	require __DIR__ . '/testcase.php';
-}
+// Load the PHPUnit Polyfills autoloader (check for existence of the file is done earlier in the script).
+require_once $phpunit_polyfills_autoloader;
+unset( $phpunit_polyfills_autoloader );
 
+require __DIR__ . '/abstract-testcase.php';
+require __DIR__ . '/testcase.php';
 require __DIR__ . '/testcase-rest-api.php';
 require __DIR__ . '/testcase-rest-controller.php';
 require __DIR__ . '/testcase-rest-post-type-controller.php';
