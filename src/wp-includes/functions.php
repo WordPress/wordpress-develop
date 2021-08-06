@@ -3268,6 +3268,7 @@ function wp_get_image_mime( $file ) {
  * @since 4.2.0 Support was added for GIMP (.xcf) files.
  * @since 4.9.2 Support was added for Flac (.flac) files.
  * @since 4.9.6 Support was added for AAC (.aac) files.
+ * @since 5.9.0 Support was added for webfont (.woff2, .woff, .ttf, .eot, .otf) files.
  *
  * @return string[] Array of mime types keyed by the file extension regex corresponding to those types.
  */
@@ -3332,6 +3333,12 @@ function wp_get_mime_types() {
 			'wma'                          => 'audio/x-ms-wma',
 			'wax'                          => 'audio/x-ms-wax',
 			'mka'                          => 'audio/x-matroska',
+			// Webfonts formats.
+			'woff2'                        => 'font/woff2',
+			'woff'                         => 'font/woff',
+			'ttf'                          => 'font/ttf',
+			'eot'                          => 'application/vnd.ms-fontobject',
+			'otf'                          => 'application/x-font-opentype',
 			// Misc application formats.
 			'rtf'                          => 'application/rtf',
 			'js'                           => 'application/javascript',

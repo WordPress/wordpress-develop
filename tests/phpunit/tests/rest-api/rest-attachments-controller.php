@@ -220,6 +220,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 		if ( ! is_multisite() ) {
 			$media_types[] = 'text';
+			$media_types[] = 'font';
 		}
 		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['enum'] );
 	}
