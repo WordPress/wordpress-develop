@@ -804,7 +804,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$posts2 = $this->q->query( array( 'post_type' => 'any' ) );
 
 		$this->assertNotEmpty( $posts2 );
-		$this->assertNotRegExp( '#AND 1=0#', $this->q->request );
+		$this->assertDoesNotMatchRegularExpression( '#AND 1=0#', $this->q->request );
 	}
 
 	/**
