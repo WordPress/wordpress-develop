@@ -82,7 +82,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 		$extra_rules_top = $wp_rewrite->extra_rules_top;
 
-		$this->assertContains( $redirect, $extra_rules_top[ $pattern ] );
+		$this->assertStringContainsString( $redirect, $extra_rules_top[ $pattern ] );
 	}
 
 	function test_url_to_postid() {
@@ -482,7 +482,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		$rewrite_rules = get_option( 'rewrite_rules' );
-		$this->assertInternalType( 'array', $rewrite_rules );
+		$this->assertIsArray( $rewrite_rules );
 		$this->assertNotEmpty( $rewrite_rules );
 	}
 }

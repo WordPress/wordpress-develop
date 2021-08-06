@@ -135,7 +135,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertSame( 3, count( $found ) );
+			$this->assertCount( 3, $found );
 		}
 
 		public function test_wp_site_query_by_site__in_with_single_id() {

@@ -211,8 +211,6 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		$expected = i18n_plugin_test();
 
-		set_current_screen( 'front' );
-
 		$this->assertSame( 'Das ist ein Dummy Plugin', $expected );
 	}
 
@@ -228,7 +226,6 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		$expected = i18n_theme_test();
 
-		set_current_screen( 'front' );
 		switch_theme( WP_DEFAULT_THEME );
 
 		$this->assertSame( 'Das ist ein Dummy Theme', $expected );

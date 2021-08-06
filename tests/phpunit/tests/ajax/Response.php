@@ -83,7 +83,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 		$headers = xdebug_get_headers();
 		ob_end_clean();
 
-		$this->assertTrue( in_array( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), $headers, true ) );
+		$this->assertContains( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), $headers );
 	}
 
 	/**
@@ -100,6 +100,6 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 
 		// Check the XML tag.
 		$contents = ob_get_clean();
-		$this->assertRegExp( '/<\?xml\s+version=\'1.0\'\s+encoding=\'' . preg_quote( get_option( 'blog_charset' ) ) . '\'\s+standalone=\'yes\'\?>/', $contents );
+		$this->assertMatchesRegularExpression( '/<\?xml\s+version=\'1.0\'\s+encoding=\'' . preg_quote( get_option( 'blog_charset' ) ) . '\'\s+standalone=\'yes\'\?>/', $contents );
 	}
 }

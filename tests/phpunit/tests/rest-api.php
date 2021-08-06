@@ -237,7 +237,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			true
 		);
 		$endpoints = $GLOBALS['wp_rest_server']->get_routes();
-		$this->assertFalse( isset( $endpoints['/test-empty-namespace'] ) );
+		$this->assertArrayNotHasKey( '/test-empty-namespace', $endpoints );
 	}
 
 	/**
@@ -257,7 +257,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			true
 		);
 		$endpoints = $GLOBALS['wp_rest_server']->get_routes();
-		$this->assertFalse( isset( $endpoints['/test-empty-route'] ) );
+		$this->assertArrayNotHasKey( '/test-empty-route', $endpoints );
 	}
 
 	/**
@@ -265,7 +265,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	function test_rest_route_query_var() {
 		rest_api_init();
-		$this->assertTrue( in_array( 'rest_route', $GLOBALS['wp']->public_query_vars, true ) );
+		$this->assertContains( 'rest_route', $GLOBALS['wp']->public_query_vars );
 	}
 
 	public function test_route_method() {
@@ -793,8 +793,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 		// Reset.
 		update_option( 'siteurl', $_siteurl );
-		set_current_screen( 'front' );
-
 	}
 
 	/**
@@ -951,7 +949,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS' ) );
-		$this->assertTrue( isset( $preload_data['OPTIONS']['/wp/v2/media'] ) );
+		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;
 	}

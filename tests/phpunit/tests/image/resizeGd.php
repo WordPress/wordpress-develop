@@ -5,6 +5,8 @@
  * @group media
  * @group upload
  * @group resize
+ *
+ * @requires function imagejpeg
  */
 require_once __DIR__ . '/resize.php';
 

@@ -80,8 +80,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	function test_wp_parse_args_boolean_strings() {
 		$args = wp_parse_args( 'foo=false&bar=true' );
-		$this->assertInternalType( 'string', $args['foo'] );
-		$this->assertInternalType( 'string', $args['bar'] );
+		$this->assertIsString( $args['foo'] );
+		$this->assertIsString( $args['bar'] );
 	}
 
 	/**
@@ -173,7 +173,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Check number is appended for file already exists.
 		$this->assertFileExists( $testdir . 'test-image.png', 'Test image does not exist' );
 		$this->assertSame( 'test-image-1.png', wp_unique_filename( $testdir, 'test-image.png' ), 'Number not appended correctly' );
-		$this->assertFileNotExists( $testdir . 'test-image-1.png' );
+		$this->assertFileDoesNotExist( $testdir . 'test-image-1.png' );
 
 		// Check special chars.
 		$this->assertSame( 'testtest-image.png', wp_unique_filename( $testdir, 'testtést-imagé.png' ), 'Filename with special chars failed' );
@@ -581,17 +581,17 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_get_allowed_mime_types() {
 		$mimes = get_allowed_mime_types();
 
-		$this->assertInternalType( 'array', $mimes );
+		$this->assertIsArray( $mimes );
 		$this->assertNotEmpty( $mimes );
 
 		add_filter( 'upload_mimes', '__return_empty_array' );
 		$mimes = get_allowed_mime_types();
-		$this->assertInternalType( 'array', $mimes );
+		$this->assertIsArray( $mimes );
 		$this->assertEmpty( $mimes );
 
 		remove_filter( 'upload_mimes', '__return_empty_array' );
 		$mimes = get_allowed_mime_types();
-		$this->assertInternalType( 'array', $mimes );
+		$this->assertIsArray( $mimes );
 		$this->assertNotEmpty( $mimes );
 	}
 
@@ -601,28 +601,28 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_wp_get_mime_types() {
 		$mimes = wp_get_mime_types();
 
-		$this->assertInternalType( 'array', $mimes );
+		$this->assertIsArray( $mimes );
 		$this->assertNotEmpty( $mimes );
 
 		add_filter( 'mime_types', '__return_empty_array' );
 		$mimes = wp_get_mime_types();
-		$this->assertInternalType( 'array', $mimes );
+		$this->assertIsArray( $mimes );
 		$this->assertEmpty( $mimes );
 
 		remove_filter( 'mime_types', '__return_empty_array' );
 		$mimes = wp_get_mime_types();
-		$this->assertInternalType( 'array', $mimes );
+		$this->assertIsArray( $mimes );
 		$this->assertNotEmpty( $mimes );
 
 		// 'upload_mimes' should not affect wp_get_mime_types().
 		add_filter( 'upload_mimes', '__return_empty_array' );
 		$mimes = wp_get_mime_types();
-		$this->assertInternalType( 'array', $mimes );
+		$this->assertIsArray( $mimes );
 		$this->assertNotEmpty( $mimes );
 
 		remove_filter( 'upload_mimes', '__return_empty_array' );
 		$mimes2 = wp_get_mime_types();
-		$this->assertInternalType( 'array', $mimes2 );
+		$this->assertIsArray( $mimes2 );
 		$this->assertNotEmpty( $mimes2 );
 		$this->assertSame( $mimes2, $mimes );
 	}
@@ -910,7 +910,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$urls = wp_extract_urls( $blob );
 		$this->assertNotEmpty( $urls );
-		$this->assertInternalType( 'array', $urls );
+		$this->assertIsArray( $urls );
 		$this->assertCount( count( $original_urls ), $urls );
 		$this->assertSame( $original_urls, $urls );
 
@@ -931,7 +931,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$urls = wp_extract_urls( $blob );
 		$this->assertNotEmpty( $urls );
-		$this->assertInternalType( 'array', $urls );
+		$this->assertIsArray( $urls );
 		$this->assertCount( 8, $urls );
 		$this->assertSame( array_slice( $original_urls, 0, 8 ), $urls );
 
@@ -945,7 +945,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$urls = wp_extract_urls( $blob );
 		$this->assertNotEmpty( $urls );
-		$this->assertInternalType( 'array', $urls );
+		$this->assertIsArray( $urls );
 		$this->assertCount( 8, $urls );
 		$this->assertSame( array_slice( $original_urls, 0, 8 ), $urls );
 	}
@@ -1044,7 +1044,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_mysql_to_rfc3339( $expected, $actual ) {
 		$date_return = mysql_to_rfc3339( $actual );
 
-		$this->assertTrue( is_string( $date_return ), 'The date return must be a string' );
+		$this->assertIsString( $date_return, 'The date return must be a string' );
 		$this->assertNotEmpty( $date_return, 'The date return could not be an empty string' );
 		$this->assertSame( $expected, $date_return, 'The date does not match' );
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
@@ -1066,7 +1066,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_get_ext_types() {
 		$extensions = wp_get_ext_types();
 
-		$this->assertInternalType( 'array', $extensions );
+		$this->assertIsArray( $extensions );
 		$this->assertNotEmpty( $extensions );
 
 		add_filter( 'ext2type', '__return_empty_array' );
@@ -1075,7 +1075,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		remove_filter( 'ext2type', '__return_empty_array' );
 		$extensions = wp_get_ext_types();
-		$this->assertInternalType( 'array', $extensions );
+		$this->assertIsArray( $extensions );
 		$this->assertNotEmpty( $extensions );
 	}
 
@@ -1197,8 +1197,8 @@ class Tests_Functions extends WP_UnitTestCase {
 		$ids = array();
 		for ( $i = 0; $i < 20; $i += 1 ) {
 			$id = wp_unique_id();
-			$this->assertInternalType( 'string', $id );
-			$this->assertTrue( is_numeric( $id ) );
+			$this->assertIsString( $id );
+			$this->assertIsNumeric( $id );
 			$ids[] = $id;
 		}
 		$this->assertSame( $ids, array_unique( $ids ) );
@@ -1207,7 +1207,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$ids = array();
 		for ( $i = 0; $i < 20; $i += 1 ) {
 			$id = wp_unique_id( 'foo-' );
-			$this->assertRegExp( '/^foo-\d+$/', $id );
+			$this->assertMatchesRegularExpression( '/^foo-\d+$/', $id );
 			$ids[] = $id;
 		}
 		$this->assertSame( $ids, array_unique( $ids ) );

@@ -195,7 +195,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		wp_deregister_script( 'jquery-elsewhere' );
 
 		$this->assertSame( $expected, $actual );
-		$this->assertNotContains( $unexpected, $actual );
+		$this->assertStringNotContainsString( $unexpected, $actual );
 	}
 
 	/**

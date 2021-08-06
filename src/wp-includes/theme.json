@@ -1,9 +1,14 @@
 {
 	"version": 1,
 	"settings": {
+		"border": {
+			"customRadius": false
+		},
 		"color": {
 			"custom": true,
-			"customGradient": true,
+			"customDuotone": true,
+ 			"customGradient": true,
+ 			"link": false,
 			"duotone": [
 				{
 					"name":  "Dark grayscale" ,
@@ -108,7 +113,6 @@
 					"slug": "midnight"
 				}
 			],
-			"link": false,
 			"palette": [
 				{
 					"name": "Black",
@@ -175,7 +179,7 @@
 		"spacing": {
 			"customMargin": false,
 			"customPadding": false,
-			"units": [ "px", "em", "rem", "vh", "vw" ]
+			"units": [ "px", "em", "rem", "vh", "vw", "%" ]
 		},
 		"typography": {
 			"customFontSize": true,
@@ -208,6 +212,13 @@
 					"size": "42px"
 				}
 			]
+		},
+		"blocks": {
+			"core/button": {
+				"border": {
+					"customRadius": true
+				}
+			}
 		}
 	}
 }

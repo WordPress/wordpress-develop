@@ -268,7 +268,6 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 *
 	 * @param array           $raw_sidebar Sidebar instance.
 	 * @param WP_REST_Request $request     Full details about the request.
-	 *
 	 * @return WP_REST_Response Prepared response object.
 	 */
 	public function prepare_item_for_response( $raw_sidebar, $request ) {
@@ -282,7 +281,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 
 			$sidebar['status']        = 'active';
 			$sidebar['name']          = isset( $registered_sidebar['name'] ) ? $registered_sidebar['name'] : '';
-			$sidebar['description']   = isset( $registered_sidebar['description'] ) ? $registered_sidebar['description'] : '';
+			$sidebar['description']   = isset( $registered_sidebar['description'] ) ? wp_sidebar_description( $id ) : '';
 			$sidebar['class']         = isset( $registered_sidebar['class'] ) ? $registered_sidebar['class'] : '';
 			$sidebar['before_widget'] = isset( $registered_sidebar['before_widget'] ) ? $registered_sidebar['before_widget'] : '';
 			$sidebar['after_widget']  = isset( $registered_sidebar['after_widget'] ) ? $registered_sidebar['after_widget'] : '';
@@ -305,7 +304,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 				}
 			);
 
-			$sidebar['widgets'] = $widgets;
+			$sidebar['widgets'] = array_values( $widgets );
 		}
 
 		$schema = $this->get_item_schema();
@@ -344,7 +343,6 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param array $sidebar Sidebar.
-	 *
 	 * @return array Links for the given widget.
 	 */
 	protected function prepare_links( $sidebar ) {
@@ -364,6 +362,8 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the block type' schema, conforming to JSON Schema.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @return array Item schema data.
 	 */

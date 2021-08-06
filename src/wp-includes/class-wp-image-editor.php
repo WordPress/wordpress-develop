@@ -322,6 +322,19 @@ abstract class WP_Image_Editor {
 		 * Enables filtering the mime type used to save images. By default,
 		 * the mapping array is empty, so the mime type matches the source image.
 		 *
+		 * This should be considered experimental as there are a few edge cases that
+		 * still need to be solved.
+		 *
+		 * When this filter is used in combination with the {@see 'wp_editor_set_quality'}
+		 * filter, the image quality value used will be that of the original mime type,
+		 * not the mapped one. This could result in unexpected image quality for generated
+		 * images. See https://core.trac.wordpress.org/ticket/53667 for more details.
+		 *
+		 * When a mime type is mapped to another, and two images with the same name are
+		 * uploaded (image.jpg and image.webp, for example), the generated images for one
+		 * will potentially overwrite the other's.
+		 * See https://core.trac.wordpress.org/ticket/53668 for more details.
+		 *
 		 * @see WP_Image_Editor::get_output_format()
 		 *
 		 * @since 5.8.0
@@ -505,9 +518,9 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string|stream $filename
-	 * @param callable      $function
-	 * @param array         $arguments
+	 * @param string   $filename
+	 * @param callable $function
+	 * @param array    $arguments
 	 * @return bool
 	 */
 	protected function make_image( $filename, $function, $arguments ) {

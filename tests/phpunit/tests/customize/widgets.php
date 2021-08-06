@@ -235,7 +235,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->do_customize_boot_actions();
 
 		$selective_refreshable_widgets = $this->manager->widgets->get_selective_refreshable_widgets();
-		$this->assertInternalType( 'array', $selective_refreshable_widgets );
+		$this->assertIsArray( $selective_refreshable_widgets );
 		$this->assertSame( count( $wp_widget_factory->widgets ), count( $selective_refreshable_widgets ) );
 		$this->assertArrayHasKey( 'text', $selective_refreshable_widgets );
 		$this->assertTrue( $selective_refreshable_widgets['text'] );
@@ -579,10 +579,10 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->do_customize_boot_actions();
 		$widget_control = $this->manager->widgets->get_widget_control( $this->get_test_widget_control_args() );
 
-		$this->assertContains( '<div class="form">', $widget_control );
-		$this->assertContains( '<div class="widget-content">', $widget_control );
-		$this->assertContains( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control );
-		$this->assertContains( '<input class="widefat"', $widget_control );
+		$this->assertStringContainsString( '<div class="form">', $widget_control );
+		$this->assertStringContainsString( '<div class="widget-content">', $widget_control );
+		$this->assertStringContainsString( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control );
+		$this->assertStringContainsString( '<input class="widefat"', $widget_control );
 	}
 
 	/**
@@ -594,11 +594,11 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'content', $widget_control_parts );
 		$this->assertArrayHasKey( 'control', $widget_control_parts );
 
-		$this->assertContains( '<div class="form">', $widget_control_parts['control'] );
-		$this->assertContains( '<div class="widget-content">', $widget_control_parts['control'] );
-		$this->assertContains( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control_parts['control'] );
-		$this->assertNotContains( '<input class="widefat"', $widget_control_parts['control'] );
-		$this->assertContains( '<input class="widefat"', $widget_control_parts['content'] );
+		$this->assertStringContainsString( '<div class="form">', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<div class="widget-content">', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control_parts['control'] );
+		$this->assertStringNotContainsString( '<input class="widefat"', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<input class="widefat"', $widget_control_parts['content'] );
 	}
 
 	/**
@@ -610,17 +610,17 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$params  = $control->json();
 
 		$this->assertSame( 'widget_form', $params['type'] );
-		$this->assertRegExp( '#^<li[^>]+>\s*</li>$#', $params['content'] );
-		$this->assertRegExp( '#^<div[^>]*class=\'widget\'[^>]*#s', $params['widget_control'] );
-		$this->assertContains( '<div class="widget-content"></div>', $params['widget_control'] );
-		$this->assertNotContains( '<input class="widefat"', $params['widget_control'] );
-		$this->assertContains( '<input class="widefat"', $params['widget_content'] );
+		$this->assertMatchesRegularExpression( '#^<li[^>]+>\s*</li>$#', $params['content'] );
+		$this->assertMatchesRegularExpression( '#^<div[^>]*class=\'widget\'[^>]*#s', $params['widget_control'] );
+		$this->assertStringContainsString( '<div class="widget-content"></div>', $params['widget_control'] );
+		$this->assertStringNotContainsString( '<input class="widefat"', $params['widget_control'] );
+		$this->assertStringContainsString( '<input class="widefat"', $params['widget_content'] );
 		$this->assertSame( 'search-2', $params['widget_id'] );
 		$this->assertSame( 'search', $params['widget_id_base'] );
 		$this->assertArrayHasKey( 'sidebar_id', $params );
 		$this->assertArrayHasKey( 'width', $params );
 		$this->assertArrayHasKey( 'height', $params );
-		$this->assertInternalType( 'bool', $params['is_wide'] );
+		$this->assertIsBool( $params['is_wide'] );
 	}
 
 	/**
@@ -677,16 +677,16 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( $setting_id, $this->manager->unsanitized_post_values() );
 		$result = $this->manager->widgets->call_widget_update( $widget_id );
 
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'instance', $result );
 		$this->assertArrayHasKey( 'form', $result );
 		$this->assertSame( $instance, $result['instance'] );
-		$this->assertContains( sprintf( 'value="%s"', esc_attr( $instance['title'] ) ), $result['form'] );
+		$this->assertStringContainsString( sprintf( 'value="%s"', esc_attr( $instance['title'] ) ), $result['form'] );
 
 		$post_values = $this->manager->unsanitized_post_values();
 		$this->assertArrayHasKey( $setting_id, $post_values );
 		$post_value = $post_values[ $setting_id ];
-		$this->assertInternalType( 'array', $post_value );
+		$this->assertIsArray( $post_value );
 		$this->assertArrayHasKey( 'title', $post_value );
 		$this->assertArrayHasKey( 'encoded_serialized_instance', $post_value );
 		$this->assertArrayHasKey( 'instance_hash_key', $post_value );
@@ -703,13 +703,13 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		do_action( 'customize_register', $this->manager );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', false, 'widget[search-2]' );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertSame( 'widget', $args['type'] );
 		$this->assertSame( array( $this->manager->widgets, 'render_widget_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', array( 'fallback_refresh' => false ), 'widget[search-2]' );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertSame( 'widget', $args['type'] );
 		$this->assertSame( array( $this->manager->widgets, 'render_widget_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );
@@ -814,8 +814,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( '<!--dynamic_sidebar_after:foo:1-->', trim( $output ) );
 
 		$output = wp_kses_post( $filtered_params[0]['before_widget'] );
-		$this->assertContains( 'data-customize-partial-id="widget[search-2]"', $output );
-		$this->assertContains( 'data-customize-partial-type="widget"', $output );
+		$this->assertStringContainsString( 'data-customize-partial-id="widget[search-2]"', $output );
+		$this->assertStringContainsString( 'data-customize-partial-type="widget"', $output );
 	}
 
 	/**
@@ -841,7 +841,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 		$this->assertSame( 1, substr_count( $output, 'data-customize-partial-id' ) );
 		$this->assertSame( 1, substr_count( $output, 'data-customize-partial-type="widget"' ) );
-		$this->assertContains( ' id="search-2"', $output );
+		$this->assertStringContainsString( ' id="search-2"', $output );
 	}
 
 	/**

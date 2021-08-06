@@ -515,7 +515,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_new_comment_notify_postauthor( $c2 );
 		remove_filter( 'comment_notification_text', array( $this, 'save_comment_notification_text' ) );
 
-		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+		$this->assertStringContainsString( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
 	}
 
 	/**
@@ -540,7 +540,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_new_comment_notify_moderator( $c2 );
 		remove_filter( 'comment_moderation_text', array( $this, 'save_comment_notification_text' ) );
 
-		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+		$this->assertStringContainsString( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
 	}
 
 	/**
@@ -1265,10 +1265,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported comments.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported comment properties.
-		$this->assertSame( 8, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 8, $actual['data'][0]['data'] );
 
 		// Exported group.
 		$this->assertSame( 'comments', $actual['data'][0]['group_id'] );
@@ -1328,10 +1328,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported comments.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported comment properties.
-		$this->assertSame( 7, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 7, $actual['data'][0]['data'] );
 	}
 
 	/**
@@ -1359,6 +1359,6 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported comments.
-		$this->assertSame( 0, count( $actual['data'] ) );
+		$this->assertCount( 0, $actual['data'] );
 	}
 }

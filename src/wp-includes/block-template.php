@@ -14,9 +14,9 @@
  *
  * @global string $_wp_current_template_content
  *
- * @param string $template  Path to the template. See locate_template().
- * @param string $type      Sanitized filename without extension.
- * @param array  $templates A list of template candidates, in descending order of priority.
+ * @param string   $template  Path to the template. See locate_template().
+ * @param string   $type      Sanitized filename without extension.
+ * @param string[] $templates A list of template candidates, in descending order of priority.
  * @return string The path to the Full Site Editing template canvas file, or the fallback PHP template.
  */
 function locate_block_template( $template, $type, array $templates ) {
@@ -170,11 +170,7 @@ function get_the_block_template_html() {
 	$content = $wp_embed->autoembed( $content );
 	$content = do_blocks( $content );
 	$content = wptexturize( $content );
-	if ( function_exists( 'wp_filter_content_tags' ) ) {
-		$content = wp_filter_content_tags( $content );
-	} else {
-		$content = wp_make_content_images_responsive( $content );
-	}
+	$content = wp_filter_content_tags( $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles

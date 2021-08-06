@@ -131,7 +131,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				'Theme Root URI' => 'Theme Root URI',
 			);
 			foreach ( $default_headers as $name => $value ) {
-				$this->assertTrue( isset( $theme[ $name ] ) );
+				$this->assertArrayHasKey( $name, $theme );
 			}
 
 			// Make the tests work both for WordPress 2.8.5 and WordPress 2.9-rare.
@@ -140,21 +140,21 @@ class Tests_Theme extends WP_UnitTestCase {
 			// Important attributes should all not be empty as well.
 			$this->assertNotEmpty( $theme['Description'] );
 			$this->assertNotEmpty( $theme['Author'] );
-			$this->assertTrue( version_compare( $theme['Version'], 0 ) > 0 );
+			$this->assertGreaterThan( 0, version_compare( $theme['Version'], 0 ) );
 			$this->assertNotEmpty( $theme['Template'] );
 			$this->assertNotEmpty( $theme['Stylesheet'] );
 
 			// Template files should all exist.
-			$this->assertTrue( is_array( $theme['Template Files'] ) );
-			$this->assertTrue( count( $theme['Template Files'] ) > 0 );
+			$this->assertIsArray( $theme['Template Files'] );
+			$this->assertNotEmpty( $theme['Template Files'] );
 			foreach ( $theme['Template Files'] as $file ) {
 				$this->assertTrue( is_file( $dir . $file ) );
 				$this->assertTrue( is_readable( $dir . $file ) );
 			}
 
 			// CSS files should all exist.
-			$this->assertTrue( is_array( $theme['Stylesheet Files'] ) );
-			$this->assertTrue( count( $theme['Stylesheet Files'] ) > 0 );
+			$this->assertIsArray( $theme['Stylesheet Files'] );
+			$this->assertNotEmpty( $theme['Stylesheet Files'] );
 			foreach ( $theme['Stylesheet Files'] as $file ) {
 				$this->assertTrue( is_file( $dir . $file ) );
 				$this->assertTrue( is_readable( $dir . $file ) );
@@ -288,7 +288,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertTrue( is_dir( $root_fs ) );
 
 				$root_uri = get_theme_root_uri();
-				$this->assertTrue( ! empty( $root_uri ) );
+				$this->assertNotEmpty( $root_uri );
 
 				$this->assertSame( $root_fs . '/' . get_stylesheet(), get_stylesheet_directory() );
 				$this->assertSame( $root_uri . '/' . get_stylesheet(), get_stylesheet_directory_uri() );

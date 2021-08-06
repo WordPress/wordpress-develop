@@ -3,13 +3,6 @@
  * Installs WordPress for running the tests and loads WordPress and the test libraries
  */
 
-/**
- * Compatibility with PHPUnit 6+
- */
-if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-	require_once __DIR__ . '/phpunit6/compat.php';
-}
-
 if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	$config_file_path = WP_TESTS_CONFIG_FILE_PATH;
 } else {
@@ -44,12 +37,24 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) 
 
 $phpunit_version = tests_get_phpunit_version();
 
-if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
+if ( version_compare( $phpunit_version, '5.7', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.7 and is currently only compatible with PHPUnit up to 7.x.\n",
 		$phpunit_version
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
+	exit( 1 );
+}
+
+// Register a custom autoloader for the PHPUnit 9.x Mockobject classes for compatibility with PHP 8.0.
+require_once __DIR__ . '/class-mockobject-autoload.php';
+spl_autoload_register( 'MockObject_Autoload::load', true, true );
+
+// Check that the PHPUnit Polyfills autoloader exists.
+$phpunit_polyfills_autoloader = __DIR__ . '/../../../vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+if ( ! file_exists( $phpunit_polyfills_autoloader ) ) {
+	echo "Error: You need to run `composer update` before running the tests.\n";
+	echo "You can still use a PHPUnit phar to run them, but the dependencies do need to be installed.\n";
 	exit( 1 );
 }
 
@@ -193,18 +198,23 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
-if ( version_compare( tests_get_phpunit_version(), '7.5', '>=' ) ) {
-	require __DIR__ . '/phpunit7/testcase.php';
-} else {
-	require __DIR__ . '/testcase.php';
+// Load class aliases for compatibility with PHPUnit 6+.
+if ( version_compare( tests_get_phpunit_version(), '6.0', '>=' ) ) {
+	require __DIR__ . '/phpunit6/compat.php';
 }
 
+// Load the PHPUnit Polyfills autoloader (check for existence of the file is done earlier in the script).
+require_once $phpunit_polyfills_autoloader;
+unset( $phpunit_polyfills_autoloader );
+
+require __DIR__ . '/phpunit-adapter-testcase.php';
+require __DIR__ . '/abstract-testcase.php';
+require __DIR__ . '/testcase.php';
 require __DIR__ . '/testcase-rest-api.php';
 require __DIR__ . '/testcase-rest-controller.php';
 require __DIR__ . '/testcase-rest-post-type-controller.php';
 require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
-require __DIR__ . '/testcase-block-supports.php';
 require __DIR__ . '/testcase-canonical.php';
 require __DIR__ . '/testcase-xml.php';
 require __DIR__ . '/exceptions.php';

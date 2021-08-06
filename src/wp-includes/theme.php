@@ -913,7 +913,7 @@ function validate_theme_requirements( $stylesheet ) {
 
 	if ( ! empty( $theme_tags ) && in_array( 'full-site-editing', $theme_tags, true ) && ! function_exists( 'gutenberg_is_fse_theme' ) ) {
 		return new WP_Error(
-			'theme_requires_fse',
+			'theme_requires_gutenberg_plugin',
 			sprintf(
 					/* translators: %s: Theme name. */
 				_x( '<strong>Error:</strong> This theme (%s) uses Full Site Editing, which requires the Gutenberg plugin to be activated.', 'theme' ),
@@ -966,23 +966,31 @@ function validate_theme_requirements( $stylesheet ) {
  * Retrieves all theme modifications.
  *
  * @since 3.1.0
+ * @since 5.9.0 The return value is always an array.
  *
- * @return array|void Theme modifications.
+ * @return array Theme modifications.
  */
 function get_theme_mods() {
 	$theme_slug = get_option( 'stylesheet' );
 	$mods       = get_option( "theme_mods_$theme_slug" );
+
 	if ( false === $mods ) {
 		$theme_name = get_option( 'current_theme' );
 		if ( false === $theme_name ) {
 			$theme_name = wp_get_theme()->get( 'Name' );
 		}
+
 		$mods = get_option( "mods_$theme_name" ); // Deprecated location.
 		if ( is_admin() && false !== $mods ) {
 			update_option( "theme_mods_$theme_slug", $mods );
 			delete_option( "mods_$theme_name" );
 		}
 	}
+
+	if ( ! is_array( $mods ) ) {
+		$mods = array();
+	}
+
 	return $mods;
 }
 
