@@ -995,7 +995,7 @@ EOF;
 	 * Not really a test suite, but the easiest way I could find to test the speed of shortcode parsing.
 	 */
 	public function test_speed() {
-		$total_times = [];
+		$total_times = array();
 
 		// Load a list of example shortcodes.
 		$example_shortcodes = glob( './tests/phpunit/data/shortcodes/*.txt' );
