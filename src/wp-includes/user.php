@@ -1735,11 +1735,11 @@ function validate_username( $username ) {
  *                                        if `$display_name` is not specified.
  *     @type string $last_name            The user's last name. For new users, will be used
  *                                        to build part of the user's display name
- *                                        if `$display_name` is not specified. 
+ *                                        if `$display_name` is not specified.
  *     @type string $pronouns             The user's pronouns. For new users, will be used
  *                                        to build part of the user's display name
  *                                        if `$display_name` is not specified.
- 
+
  *     @type string $description          The user's biographical description.
  *     @type string $rich_editing         Whether to enable the rich-editor for the user.
  *                                        Accepts 'true' or 'false' as a string literal,
@@ -1956,7 +1956,7 @@ function wp_insert_user( $userdata ) {
 	/**
 	 * Filters a user's pronouns before the user is created or updated.
 	 *
-	 * @since 
+	 * @since ?
 	 *
 	 * @param string $pronouns The user's pronouns.
 	 */

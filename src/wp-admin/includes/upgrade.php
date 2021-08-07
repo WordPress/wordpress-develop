@@ -1103,7 +1103,7 @@ function upgrade_160() {
 		}
 		if ( ! empty( $user->user_nickname ) ) {
 			update_user_meta( $user->ID, 'nickname', wp_slash( $user->user_nickname ) );
-		}		
+		}
 		if ( ! empty( $user->user_pronouns ) ) {
 			update_user_meta( $user->ID, 'pronouns', wp_slash( $user->user_pronouns ) );
 		}
@@ -1147,17 +1147,16 @@ function upgrade_160() {
 				$id = $user->user_lastname . ' ' . $user->user_firstname;
 			}
 			if ( 'nameflp' === $idmode ) {
-				$id = $user->user_firstname . ' ' . $user->user_lastname . " (" . $user->user_pronouns . ")";
+				$id = $user->user_firstname . ' ' . $user->user_lastname . ' (' . $user->user_pronouns . ')';
 			}
 			if ( 'namelfp' === $idmode ) {
-				$id = $user->user_lastname . ' ' . $user->user_firstname . " (" . $user->user_pronouns . ")";
+				$id = $user->user_lastname . ' ' . $user->user_firstname . ' (' . $user->user_pronouns . ')';
 			}
 			if ( 'namefp' === $idmode ) {
-				$id = $user->user_firstname . " (" . $user->user_pronouns . ")";
-				
+				$id = $user->user_firstname . ' (' . $user->user_pronouns . ')';
 			}
 			if ( 'namelp' === $idmode ) {
-				$id = $user->user_lastname . " (" . $user->user_pronouns . ")";
+				$id = $user->user_lastname . ' (' . $user->user_pronouns . ')';
 			}
 			if ( ! $idmode ) {
 				$id = $user->user_nickname;

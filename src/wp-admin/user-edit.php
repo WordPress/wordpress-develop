@@ -494,7 +494,7 @@ endif;
 		}
 
 		if ( ! empty( $profileuser->first_name ) && ! empty( $profileuser->pronouns ) ) {
-			$public_display['display_firstpronouns'] = $profileuser->first_name .  ' (' . $profileuser->pronouns . ')';
+			$public_display['display_firstpronouns'] = $profileuser->first_name . ' (' . $profileuser->pronouns . ')';
 		}
 
 		if ( ! empty( $profileuser->last_name ) && ! empty( $profileuser->pronouns ) ) {
