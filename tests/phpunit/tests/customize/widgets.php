@@ -20,8 +20,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	protected $backup_registered_sidebars;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
 		add_theme_support( 'customize-selective-refresh-widgets' );
@@ -90,12 +90,12 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		parent::clean_up_global_scope();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );
 		$GLOBALS['wp_registered_sidebars'] = $this->backup_registered_sidebars;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function set_customized_post_data( $customized ) {

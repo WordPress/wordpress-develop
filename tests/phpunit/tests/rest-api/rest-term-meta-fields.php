@@ -36,8 +36,8 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		unregister_taxonomy( 'customtax' );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		register_meta(
 			'term',

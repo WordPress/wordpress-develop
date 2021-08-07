@@ -22,10 +22,10 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwentyone',
 	);
 
-	function setUp() {
+	function set_up() {
 		global $wp_theme_directories;
 
-		parent::setUp();
+		parent::set_up();
 
 		$backup_wp_theme_directories = $wp_theme_directories;
 		$wp_theme_directories        = array( WP_CONTENT_DIR . '/themes' );
@@ -35,7 +35,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $wp_theme_directories;
 
 		$wp_theme_directories = $this->wp_theme_directories;
@@ -44,7 +44,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_wp_get_themes_default() {

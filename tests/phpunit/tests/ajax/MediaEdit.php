@@ -19,10 +19,10 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tear down the test fixture.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		// Cleanup.
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

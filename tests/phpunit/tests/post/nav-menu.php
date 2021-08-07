@@ -9,8 +9,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public $menu_id;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->menu_id = wp_create_nav_menu( rand_str() );
 	}

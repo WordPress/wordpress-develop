@@ -60,8 +60,8 @@ class Tests_User extends WP_UnitTestCase {
 		self::$_author = get_user_by( 'ID', self::$author_id );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->author = clone self::$_author;
 	}

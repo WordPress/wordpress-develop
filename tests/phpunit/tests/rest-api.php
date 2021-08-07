@@ -14,17 +14,17 @@ require_once __DIR__ . '/../includes/class-jsonserializable-object.php';
  * @group restapi
  */
 class Tests_REST_API extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Override the normal server with our spying server.
 		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
 		do_action( 'rest_api_init', $GLOBALS['wp_rest_server'] );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

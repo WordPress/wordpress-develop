@@ -14,13 +14,13 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Setup test fixture
 	 */
-	public function setUp() {
+	public function set_up() {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
 		// This needs to come after the mock image editor class is loaded.
-		parent::setUp();
+		parent::set_up();
 	}
 
 	/**

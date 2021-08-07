@@ -30,8 +30,8 @@ class Tests_Post extends WP_UnitTestCase {
 		remove_role( 'grammarian' );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		wp_set_current_user( self::$editor_id );
 		_set_cron_array( array() );

@@ -17,16 +17,16 @@ if ( is_multisite() ) :
 		protected static $site_ids;
 		protected static $uninitialized_site_id;
 
-		function setUp() {
+		function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tear_down() {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
