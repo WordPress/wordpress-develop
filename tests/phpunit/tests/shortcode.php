@@ -991,6 +991,106 @@ EOF;
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
+	function test_bracket_in_shortcode_attribute() {
+		do_shortcode( '[test-shortcode-tag subject="[This is my subject]" /]' );
+		$expected_attrs = array(
+			'subject' => '[This is my subject]',
+		);
+		$this->assertEquals( $expected_attrs, $this->atts );
+	}
+
+	function test_self_closing_shortcode_with_quoted_end_tag() {
+		$out = do_shortcode( '[test-shortcode-tag]Test 123[footag foo="[/test-shortcode-tag]"/] [baztag]bazcontent[/baztag]' );
+
+		$this->assertEquals( 'Test 123foo = [/test-shortcode-tag] content = bazcontent', $out );
+	}
+
+	function test_nested_shortcodes() {
+		do_shortcode( '[test-shortcode-tag]Some content [footag foo="foo content"/] some other content[/test-shortcode-tag]' );
+
+		$this->assertEquals( 'Some content foo = foo content some other content', $this->content );
+
+		$out = do_shortcode( '[footag foo="1"][footag foo="2"][footag foo="3"][footag foo="4"][/footag][footag foo="4a"][/footag][/footag][/footag][/footag]' );
+
+		$this->assertEquals( 'foo = 1', $out );
+
+		$out = do_shortcode( '[footag foo="1"] abc [bartag foo="2"] def [/footag] something else [test-shortcode-tag attr="[/footag]" attr2="[/bartag]"][/test-shortcode-tag]' );
+
+		$this->assertEquals( 'foo = 1something else ', $out );
+	}
+
+	/**
+	 * @ticket 49955
+	 */
+	function test_escaping_correctly_handled_when_followed_by_enclosing_shortcode() {
+		add_shortcode(
+			'ucase',
+			function( $atts, $content ) {
+				return strtoupper( $content );
+			}
+		);
+
+		$out = do_shortcode( 'This [[ucase]] shortcode [ucase]demonstrates[/ucase] the usage of enclosing shortcodes.' );
+
+		$this->assertEquals( 'This [ucase] shortcode DEMONSTRATES the usage of enclosing shortcodes.', $out );
+	}
+
+	/**
+	 * @ticket 43725
+	 */
+	public function test_same_tag_multiple_formats_open_closed_one() {
+		$in = <<<EOT
+This post uses URL multiple times.
+
+[url]Now this is wrapped[/url]
+
+[url] This one is standalone
+
+[url]Now this is wrapped too[/url]
+EOT;
+
+		$expected = <<<EOT
+This post uses URL multiple times.
+
+http://www.wordpress.org/
+
+http://www.wordpress.org/ This one is standalone
+
+http://www.wordpress.org/
+EOT;
+
+		$out = do_shortcode( $in );
+		$this->assertEquals( strip_ws( $expected ), strip_ws( $out ) );
+	}
+
+	/**
+	 * @ticket 43725
+	 */
+	public function test_same_tag_multiple_formats_open_closed_two() {
+		$in = <<<EOT
+This post uses URL multiple times.
+
+[url]Now this is wrapped[/url]
+
+[url/] This one is standalone
+
+[url]Now this is wrapped too[/url]
+EOT;
+
+		$expected = <<<EOT
+This post uses URL multiple times.
+
+http://www.wordpress.org/
+
+http://www.wordpress.org/ This one is standalone
+
+http://www.wordpress.org/
+EOT;
+
+		$out = do_shortcode( $in );
+		$this->assertEquals( strip_ws( $expected ), strip_ws( $out ) );
+	}
+
 	/**
 	 * Not really a test suite, but the easiest way I could find to test the speed of shortcode parsing.
 	 */

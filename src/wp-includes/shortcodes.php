@@ -224,8 +224,8 @@ function do_shortcode( $content, $ignore_html = false ) {
 
 	$content = do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames );
 
-	$pattern = get_shortcode_regex( $tagnames );
-	$content = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $content );
+	$parser  = new WP_Shortcode_Parser( $content, $tagnames );
+	$content = $parser->parse();
 
 	// Always restore square braces so we don't break things like <!--[if IE ]>.
 	$content = unescape_invalid_shortcodes( $content );
