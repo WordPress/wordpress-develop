@@ -158,8 +158,8 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertFileIsReadable( $dir . $file );
 			}
 
-			$this->assertTrue( is_dir( $dir . $theme['Template Dir'] ) );
-			$this->assertTrue( is_dir( $dir . $theme['Stylesheet Dir'] ) );
+			$this->assertDirectoryExists( $dir . $theme['Template Dir'] );
+			$this->assertDirectoryExists( $dir . $theme['Stylesheet Dir'] );
 
 			$this->assertSame( 'publish', $theme['Status'] );
 
