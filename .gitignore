@@ -6,6 +6,7 @@ wp-tests-config.php
 .htaccess
 
 # Files and folders related to build/test tools
+.phpunit.result.cache
 /phpunit.xml
 /.phpcs.xml
 /phpcs.xml
