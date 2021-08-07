@@ -13,10 +13,10 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $_wp_nav_menu_max_depth;
 
-		parent::setUp();
+		parent::set_up();
 
 		/** Walker_Nav_Menu class */
 		require_once ABSPATH . 'wp-includes/class-walker-nav-menu.php';
@@ -28,11 +28,11 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Tear down
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		global $_wp_nav_menu_max_depth;
 
 		$_wp_nav_menu_max_depth = $this->_wp_nav_menu_max_depth;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

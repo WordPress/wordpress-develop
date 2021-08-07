@@ -14,21 +14,21 @@ if ( is_multisite() ) :
 	class Tests_Multisite_MS_Files_Rewriting extends WP_UnitTestCase {
 		protected $suppress = false;
 
-		function setUp() {
+		function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 
 			update_site_option( 'ms_files_rewriting', 1 );
 			ms_upload_constants();
 		}
 
-		function tearDown() {
+		function tear_down() {
 			global $wpdb;
 
 			$wpdb->suppress_errors( $this->suppress );
 
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		function test_switch_upload_dir() {
@@ -76,13 +76,13 @@ if ( is_multisite() ) :
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 
 			wpmu_delete_blog( $blog_id, true );
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 		}
 	}
 

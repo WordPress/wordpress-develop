@@ -7,8 +7,8 @@
 class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	protected $user_id;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->user_id = $this->factory()->user->create(
 			array(

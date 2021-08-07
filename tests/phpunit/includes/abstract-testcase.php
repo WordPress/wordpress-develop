@@ -12,7 +12,7 @@ require_once __DIR__ . '/trac.php';
  *
  * All WordPress unit tests should inherit from this class.
  */
-abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
+abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	protected static $forced_tickets   = array();
 	protected $expected_deprecated     = array();
@@ -60,7 +60,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Runs the routine before setting up all tests.
 	 */
-	public static function setUpBeforeClass() {
+	public static function set_up_before_class() {
 		global $wpdb;
 
 		$wpdb->suppress_errors = false;
@@ -68,7 +68,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
 
-		parent::setUpBeforeClass();
+		parent::set_up_before_class();
 
 		$class = get_called_class();
 
@@ -82,8 +82,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Runs the routine after all tests have been run.
 	 */
-	public static function tearDownAfterClass() {
-		parent::tearDownAfterClass();
+	public static function tear_down_after_class() {
+		parent::tear_down_after_class();
 
 		_delete_all_data();
 		self::flush_cache();
@@ -100,7 +100,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Runs the routine before each test is executed.
 	 */
-	public function setUp() {
+	public function set_up() {
 		set_time_limit( 0 );
 
 		if ( ! self::$ignore_files ) {
@@ -140,7 +140,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		global $wpdb, $wp_query, $wp;
 		$wpdb->query( 'ROLLBACK' );
 		if ( is_multisite() ) {
@@ -472,7 +472,17 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * Sets up the expectations for testing a deprecated call.
 	 */
 	public function expectDeprecated() {
-		$annotations = $this->getAnnotations();
+		if ( method_exists( $this, 'getAnnotations' ) ) {
+			// PHPUnit < 9.5.0.
+			$annotations = $this->getAnnotations();
+		} else {
+			// PHPUnit >= 9.5.0.
+			$annotations = \PHPUnit\Util\Test::parseTestMethodAnnotations(
+				static::class,
+				$this->getName( false )
+			);
+		}
+
 		foreach ( array( 'class', 'method' ) as $depth ) {
 			if ( ! empty( $annotations[ $depth ]['expectedDeprecated'] ) ) {
 				$this->expected_deprecated = array_merge( $this->expected_deprecated, $annotations[ $depth ]['expectedDeprecated'] );
@@ -535,7 +545,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 *
 	 * @since 4.2.0
 	 */
-	protected function assertPostConditions() {
+	protected function assert_post_conditions() {
 		$this->expectedDeprecated();
 	}
 
@@ -564,23 +574,25 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * PHPUnit 6+ compatibility shim.
+	 * Redundant PHPUnit 6+ compatibility shim. DO NOT USE!
+	 *
+	 * This method is only left in place for backward compatibility reasons.
+	 *
+	 * @deprecated 5.9.0 Use the PHPUnit native expectException*() methods directly.
 	 *
 	 * @param mixed      $exception
 	 * @param string     $message
 	 * @param int|string $code
 	 */
 	public function setExpectedException( $exception, $message = '', $code = null ) {
-		if ( method_exists( 'PHPUnit_Framework_TestCase', 'setExpectedException' ) ) {
-			parent::setExpectedException( $exception, $message, $code );
-		} else {
-			$this->expectException( $exception );
-			if ( '' !== $message ) {
-				$this->expectExceptionMessage( $message );
-			}
-			if ( null !== $code ) {
-				$this->expectExceptionCode( $code );
-			}
+		$this->expectException( $exception );
+
+		if ( '' !== $message ) {
+			$this->expectExceptionMessage( $message );
+		}
+
+		if ( null !== $code ) {
+			$this->expectExceptionCode( $code );
 		}
 	}
 

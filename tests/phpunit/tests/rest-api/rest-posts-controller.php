@@ -97,8 +97,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		self::delete_user( self::$private_reader_id );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_post_type(
 			'youseeme',
 			array(
@@ -5154,12 +5154,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$GLOBALS['wp_rest_server']->override_by_default = false;
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		if ( isset( $this->attachment_id ) ) {
 			$this->remove_added_uploads();
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

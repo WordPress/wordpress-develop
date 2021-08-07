@@ -7,8 +7,8 @@
 class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 	protected $administrator_id;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		// Create a super admin.
 		$this->administrator_id = $this->make_user_by_role( 'administrator' );
