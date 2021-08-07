@@ -202,9 +202,9 @@ function register_block_style_handle( $metadata, $field_name ) {
  */
 function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	$filename      = 'block.json';
-	$metadata_file = (is_dir($file_or_folder) || substr($file_or_folder, -5) !== '.json') ?
+	$metadata_file = ( is_dir( $file_or_folder ) || substr( $file_or_folder, -5 ) !== '.json' ) ?
 		trailingslashit( $file_or_folder ) . $filename :
-        $file_or_folder;
+		$file_or_folder;
 	if ( ! file_exists( $metadata_file ) ) {
 		return false;
 	}
