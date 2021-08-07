@@ -1,0 +1,5 @@
+[footag foo="This is the foo attribute"]
+	[baztag foo="This is the baztag foo attribute." bar="This is the baztag bar attribute"]
+		This is the baztag content.
+	[/baztag]
+[/footag]

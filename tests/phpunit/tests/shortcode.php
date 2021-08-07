@@ -990,4 +990,73 @@ EOF;
 		);
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
+
+	/**
+	 * Not really a test suite, but the easiest way I could find to test the speed of shortcode parsing.
+	 */
+	public function test_speed() {
+		$total_times = [];
+
+		// Load a list of example shortcodes.
+		$example_shortcodes = glob( './tests/phpunit/data/shortcodes/*.txt' );
+
+		$alphabet = "`1234567890-=qwertyuiop\asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?          \n\n\n\n\n\n\n\n\t\t\t\t\t\t\t\t";
+
+		// Add random strings to all of the example shortcodes.
+		// This lets us test speed on content that is different lengths, and it also
+		// works as a fuzzer, letting us find any situation where parsing fails because of the content.
+
+		$short_content  = '';
+		$medium_content = '';
+		$long_content   = '';
+
+		for ( $i = 0; $i < 100; $i++ ) {
+			$short_content .= $alphabet[ rand( 0, strlen( $alphabet ) - 1 ) ];
+		}
+
+		for ( $i = 0; $i < 50000; $i++ ) {
+			$medium_content .= $alphabet[ rand( 0, strlen( $alphabet ) - 1 ) ];
+		}
+
+		for ( $i = 0; $i < 100000; $i++ ) {
+			$long_content .= $alphabet[ rand( 0, strlen( $alphabet ) - 1 ) ];
+		}
+
+		foreach ( $example_shortcodes as $example_shortcode ) {
+			$shortcode = file_get_contents( $example_shortcode );
+
+			$variations = array(
+				'shortcode only'                   => $shortcode,
+				'short content suffix'             => $short_content . $shortcode,
+				'medium content suffix'            => $medium_content . $shortcode,
+				'long content suffix'              => $long_content . $shortcode,
+				'short content prefix'             => $shortcode . $short_content,
+				'medium content prefix'            => $shortcode . $medium_content,
+				'long content prefix'              => $shortcode . $long_content,
+				'short content prefix and suffix'  => $shortcode . $short_content . $shortcode,
+				'medium content prefix and suffix' => $shortcode . $medium_content . $shortcode,
+				'long content prefix and suffix'   => $shortcode . $long_content . $shortcode,
+				'short content inner'              => mb_substr( $short_content, 0, round( mb_strlen( $short_content ) ) ) . $shortcode . mb_substr( $short_content, round( mb_strlen( $short_content ) / 2 ) ),
+				'medium content inner'             => mb_substr( $medium_content, 0, round( mb_strlen( $medium_content ) ) ) . $shortcode . mb_substr( $medium_content, round( mb_strlen( $medium_content ) / 2 ) ),
+				'long content inner'               => mb_substr( $long_content, 0, round( mb_strlen( $long_content ) ) ) . $shortcode . mb_substr( $long_content, round( mb_strlen( $long_content ) / 2 ) ),
+			);
+
+			foreach ( $variations as $variation => $content ) {
+				$variation_key = basename( $example_shortcode ) . ':' . $variation;
+
+				$start = microtime( true );
+
+				do_shortcode( $content );
+
+				$end = microtime( true );
+
+				$total_times[ $variation_key ] = ( $end - $start );
+			}
+		}
+
+		arsort( $total_times );
+
+		var_dump( $total_times );
+		var_dump( array_sum( $total_times ) );
+	}
 }
