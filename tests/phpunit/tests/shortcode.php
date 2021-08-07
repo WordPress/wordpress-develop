@@ -1093,8 +1093,10 @@ EOT;
 
 	/**
 	 * Not really a test suite, but the easiest way I could find to test the speed of shortcode parsing.
+	 *
+	 * @dataProvider dataSpeedCounts
 	 */
-	public function test_speed() {
+	public function test_speed( $index ) {
 		$total_times = array();
 
 		// Load a list of example shortcodes.
@@ -1159,7 +1161,18 @@ EOT;
 
 		arsort( $total_times );
 
-		var_dump( $total_times );
-		var_dump( array_sum( $total_times ) );
+		var_dump( round( array_sum( $total_times ), 4 ) );
+	}
+
+	public function dataSpeedCounts() {
+		$return = array();
+
+		foreach ( range( 1, 20 ) as $index ) {
+			$return[] = array(
+				$index,
+			);
+		}
+
+		return $return;
 	}
 }
