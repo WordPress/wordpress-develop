@@ -134,8 +134,6 @@
 	<exclude-pattern>/src/wp-includes/sodium_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
 
-	<exclude-pattern>/tests/phpunit/includes/phpunit7/MockObject/*</exclude-pattern>
-
 	<!-- Test data and fixtures. -->
 	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
 	<exclude-pattern>/tests/phpunit/data/*</exclude-pattern>
