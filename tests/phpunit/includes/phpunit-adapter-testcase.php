@@ -1,20 +1,6 @@
 <?php
 
-use Yoast\PHPUnitPolyfills\Helpers\AssertAttributeHelper;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertClosedResource;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertEqualsSpecializations;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertFileDirectory;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertFileEqualsSpecializations;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertionRenames;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertIsType;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertNumericType;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertObjectEquals;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertStringContains;
-use Yoast\PHPUnitPolyfills\Polyfills\EqualToSpecializations;
-use Yoast\PHPUnitPolyfills\Polyfills\ExpectException;
-use Yoast\PHPUnitPolyfills\Polyfills\ExpectExceptionMessageMatches;
-use Yoast\PHPUnitPolyfills\Polyfills\ExpectExceptionObject;
-use Yoast\PHPUnitPolyfills\Polyfills\ExpectPHPException;
+use Yoast\PHPUnitPolyfills\TestCases\TestCase as Polyfill_TestCase;
 
 /**
  * PHPUnit adapter layer.
@@ -22,24 +8,12 @@ use Yoast\PHPUnitPolyfills\Polyfills\ExpectPHPException;
  * This class enhances the PHPUnit native `TestCase` with polyfills
  * for assertions and expectation methods added between PHPUnit 4.8 - 9.5.
  *
+ * Additionally, the Polyfill TestCase offers a workaround for the addition
+ * of the `void` return type to PHPUnit fixture methods by providing
+ * overloadable snake_case versions of the typical fixture method names and
+ * ensuring that PHPUnit handles those correctly.
+ *
  * See {@link https://github.com/Yoast/PHPUnit-Polyfills} for full
- * documentation on the available polyfills.
+ * documentation on the available polyfills and other features.
  */
-abstract class PHPUnit_Adapter_TestCase extends PHPUnit\Framework\TestCase {
-
-	use AssertAttributeHelper;
-	use AssertClosedResource;
-	use AssertEqualsSpecializations;
-	use AssertFileDirectory;
-	use AssertFileEqualsSpecializations;
-	use AssertionRenames;
-	use AssertIsType;
-	use AssertNumericType;
-	use AssertObjectEquals;
-	use AssertStringContains;
-	use EqualToSpecializations;
-	use ExpectException;
-	use ExpectExceptionMessageMatches;
-	use ExpectExceptionObject;
-	use ExpectPHPException;
-}
+abstract class PHPUnit_Adapter_TestCase extends Polyfill_TestCase {}
