@@ -135,7 +135,6 @@
 	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
 
 	<exclude-pattern>/tests/phpunit/includes/phpunit7/MockObject/*</exclude-pattern>
-	<exclude-pattern>/tests/phpunit/includes/speed-trap-listener\.php</exclude-pattern>
 
 	<!-- Test data and fixtures. -->
 	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
@@ -266,7 +265,6 @@
 				<element value="WP_PHPUnit_Util_Getopt"/>
 				<element value="PHPUnit_Util_Test"/>
 				<element value="WPProfiler"/>
-				<element value="SpeedTrapListener"/>
 				<element value="PHPUnit_Framework_Exception"/>
 				<element value="Polyfill_TestCase"/>
 			</property>
