@@ -1039,6 +1039,9 @@ EOF;
 				'short content inner'              => mb_substr( $short_content, 0, round( mb_strlen( $short_content ) ) ) . $shortcode . mb_substr( $short_content, round( mb_strlen( $short_content ) / 2 ) ),
 				'medium content inner'             => mb_substr( $medium_content, 0, round( mb_strlen( $medium_content ) ) ) . $shortcode . mb_substr( $medium_content, round( mb_strlen( $medium_content ) / 2 ) ),
 				'long content inner'               => mb_substr( $long_content, 0, round( mb_strlen( $long_content ) ) ) . $shortcode . mb_substr( $long_content, round( mb_strlen( $long_content ) / 2 ) ),
+				'short content shortcodes x20'     => str_repeat( $short_content . $shortcode, 20 ),
+				'medium content shortcodes x10'    => str_repeat( $medium_content . $shortcode, 10 ),
+				'long content shortcodes x5'       => str_repeat( $medium_content . $shortcode, 5 ),
 			);
 
 			foreach ( $variations as $variation => $content ) {
