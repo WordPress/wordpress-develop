@@ -10,17 +10,24 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	/**
 	 * @ticket 9862
 	 * @ticket 51166
-	 * @dataProvider data_selected_and_checked_with_equal_values
 	 *
-	 * @covers ::selected
-	 * @covers ::checked
+	 * @dataProvider data_equal_values
+	 *
+	 * @covers ::__checked_selected_helper
+	 *
+	 * @param mixed $helper  One of the values to compare.
+	 * @param mixed $current The other value to compare.
 	 */
-	function test_selected_and_checked_with_equal_values( $selected, $current ) {
-		$this->assertSame( " selected='selected'", selected( $selected, $current, false ) );
-		$this->assertSame( " checked='checked'", checked( $selected, $current, false ) );
+	public function test_checked_selected_helper_with_equal_values( $helper, $current ) {
+		$this->assertSame( " test='test'", __checked_selected_helper( $helper, $current, false, 'test' ) );
 	}
 
-	function data_selected_and_checked_with_equal_values() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_equal_values() {
 		return array(
 			'same value, "foo"; 1: string; 2: string'     => array( 'foo', 'foo' ),
 			'same value, 1; 1: string; 2: int'            => array( '1', 1 ),
@@ -38,17 +45,24 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	/**
 	 * @ticket 9862
 	 * @ticket 51166
-	 * @dataProvider data_selected_and_checked_with_non_equal_values
 	 *
-	 * @covers ::selected
-	 * @covers ::checked
+	 * @dataProvider data_non_equal_values
+	 *
+	 * @covers ::__checked_selected_helper
+	 *
+	 * @param mixed $helper  One of the values to compare.
+	 * @param mixed $current The other value to compare.
 	 */
-	function test_selected_and_checked_with_non_equal_values( $selected, $current ) {
-		$this->assertSame( '', selected( $selected, $current, false ) );
-		$this->assertSame( '', checked( $selected, $current, false ) );
+	public function test_checked_selected_helper_with_non_equal_values( $helper, $current ) {
+		$this->assertSame( '', __checked_selected_helper( $helper, $current, false, 'test' ) );
 	}
 
-	function data_selected_and_checked_with_non_equal_values() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_non_equal_values() {
 		return array(
 			'1: string 0; 2: empty string' => array( '0', '' ),
 			'1: int 0; 2: empty string'    => array( 0, '' ),
