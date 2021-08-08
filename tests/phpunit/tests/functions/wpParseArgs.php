@@ -51,6 +51,7 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 		);
 
 		$other_data = array(
+			'null'         => null,
 			'boolean true' => true,
 			'query string' => 'x=5&_baba=dudu&',
 		);
