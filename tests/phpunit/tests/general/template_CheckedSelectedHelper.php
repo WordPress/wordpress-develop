@@ -22,16 +22,16 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 
 	function data_selected_and_checked_with_equal_values() {
 		return array(
-			array( 'foo', 'foo' ),
-			array( '1', 1 ),
-			array( '1', true ),
-			array( 1, 1 ),
-			array( 1, true ),
-			array( true, true ),
-			array( '0', 0 ),
-			array( 0, 0 ),
-			array( '', false ),
-			array( false, false ),
+			'same value, "foo"; 1: string; 2: string'     => array( 'foo', 'foo' ),
+			'same value, 1; 1: string; 2: int'            => array( '1', 1 ),
+			'same value, 1; 1: string; 2: bool true'      => array( '1', true ),
+			'same value, 1; 1: int; 2: int'               => array( 1, 1 ),
+			'same value, 1; 1: int; 2: bool true'         => array( 1, true ),
+			'same value, 1; 1: bool true; 2: bool true'   => array( true, true ),
+			'same value, 0; 1: string; 2: int'            => array( '0', 0 ),
+			'same value, 0; 1: int; 2: int'               => array( 0, 0 ),
+			'same value, 0; 1: empty string; 2: bool false' => array( '', false ),
+			'same value, 0; 1: bool false; 2: bool false' => array( false, false ),
 		);
 	}
 
@@ -50,9 +50,9 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 
 	function data_selected_and_checked_with_non_equal_values() {
 		return array(
-			array( '0', '' ),
-			array( 0, '' ),
-			array( 0, false ),
+			'1: string 0; 2: empty string' => array( '0', '' ),
+			'1: int 0; 2: empty string'    => array( 0, '' ),
+			'1: int 0; 2: bool false'      => array( 0, false ),
 		);
 	}
 }
