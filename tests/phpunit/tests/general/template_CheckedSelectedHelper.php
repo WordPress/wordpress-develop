@@ -8,6 +8,59 @@
 class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 
 	/**
+	 * Tests that the return value for selected() is as expected with equal values.
+	 *
+	 * @covers ::selected
+	 */
+	public function test_selected_with_equal_values() {
+		$this->assertSame( " selected='selected'", selected( 'foo', 'foo', false ) );
+	}
+
+	/**
+	 * Tests that the return value for checked() is as expected with equal values.
+	 *
+	 * @covers ::checked
+	 */
+	public function test_checked_with_equal_values() {
+		$this->assertSame( " checked='checked'", checked( 'foo', 'foo', false ) );
+	}
+
+	/**
+	 * Tests that the return value for disabled() is as expected with equal values.
+	 *
+	 * @covers ::disabled
+	 */
+	public function test_disabled_with_equal_values() {
+		$this->assertSame( " disabled='disabled'", disabled( 'foo', 'foo', false ) );
+	}
+
+	/**
+	 * Tests that the return value for readonly() is as expected with equal values.
+	 *
+	 * @covers ::readonly
+	 */
+	public function test_readonly_with_equal_values() {
+		if ( ! function_exists( 'readonly' ) ) {
+			$this->markTestSkipped( 'readonly() function is not available on PHP 8.1' );
+		}
+
+		$this->setExpectedDeprecated( 'readonly' );
+
+		// Call the function via a variable to prevent a parse error for this file on PHP 8.1.
+		$fn = 'readonly';
+		$this->assertSame( " readonly='readonly'", $fn( 'foo', 'foo', false ) );
+	}
+
+	/**
+	 * Tests that the return value for wp_readonly() is as expected with equal values.
+	 *
+	 * @covers ::wp_readonly
+	 */
+	public function test_wp_readonly_with_equal_values() {
+		$this->assertSame( " readonly='readonly'", wp_readonly( 'foo', 'foo', false ) );
+	}
+
+	/**
 	 * @ticket 9862
 	 * @ticket 51166
 	 *
