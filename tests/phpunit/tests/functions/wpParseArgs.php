@@ -108,6 +108,24 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 					'a'     => array( 5, 111, 'x' ),
 				),
 			),
+			'args and defaults contain numeric keys and unkeyed value' => array(
+				'args'     => array(
+					'key' => 'value',
+					'unkeyed in args',
+					2     => 'numeric key in args',
+				),
+				'defaults' => array(
+					10 => 'numeric key in defaults',
+					'unkeyed in defaults',
+				),
+				'expected' => array(
+					0     => 'numeric key in defaults',
+					1     => 'unkeyed in defaults',
+					'key' => 'value',
+					2     => 'unkeyed in args',
+					3     => 'numeric key in args',
+				),
+			),
 		);
 	}
 
