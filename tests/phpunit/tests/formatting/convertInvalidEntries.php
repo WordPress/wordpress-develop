@@ -7,6 +7,7 @@ class Tests_Formatting_ConvertInvalidEntities extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_convert_invalid_entities_strings
+	 * @dataProvider data_convert_invalid_entities_non_string
 	 *
 	 * @covers ::convert_invalid_entities
 	 *
@@ -48,6 +49,39 @@ class Tests_Formatting_ConvertInvalidEntities extends WP_UnitTestCase {
 			'string with entity in thousand range (not win 1252) is returned unchanged' => array(
 				'input'    => '&#1031;&#1315;',
 				'expected' => '&#1031;&#1315;',
+			),
+		);
+	}
+
+	/**
+	 * Data provider to safeguard consistent handling on unexpected data types.
+	 *
+	 * @return array
+	 */
+	public function data_convert_invalid_entities_non_string() {
+		$std_class           = new stdClass();
+		$std_class->property = 'value';
+
+		return array(
+			'null'  => array(
+				'input'  => null,
+				'output' => null,
+			),
+			'false' => array(
+				'input'  => false,
+				'output' => false,
+			),
+			'true'  => array(
+				'input'  => true,
+				'output' => true,
+			),
+			'int'   => array(
+				'input'  => 7486,
+				'output' => 7486,
+			),
+			'float' => array(
+				'input'  => 25.689,
+				'output' => 25.689,
 			),
 		);
 	}
