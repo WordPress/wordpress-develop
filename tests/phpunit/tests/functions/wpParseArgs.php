@@ -6,37 +6,64 @@
  */
 class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 
-	public function test_wp_parse_args_object() {
-		$x = $this->get_object_for_parsing();
-		$this->assertSame(
-			array(
-				'_baba' => 5,
-				'yZ'    => 'baba',
-				'a'     => array( 5, 111, 'x' ),
-			),
-			wp_parse_args( $x )
-		);
-		$y = new MockClass;
-		$this->assertSame( array(), wp_parse_args( $y ) );
+	/**
+	 * Tests parsing of arguments when no value has been passed for the $defaults parameter.
+	 *
+	 * @dataProvider data_wp_parse_args_no_defaults
+	 *
+	 * @param mixed $args     Value to parse.
+	 * @param array $expected Expected function output.
+	 */
+	public function test_wp_parse_args_no_defaults( $args, $expected ) {
+		$this->assertSame( $expected, wp_parse_args( $args ) );
 	}
 
-	public function test_wp_parse_args_array() {
-		// Arrays.
-		$a = array();
-		$this->assertSame( array(), wp_parse_args( $a ) );
-		$b = array(
+	/**
+	 * Data Provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_parse_args_no_defaults() {
+		// Default expected return value.
+		$expected = array(
 			'_baba' => 5,
 			'yZ'    => 'baba',
 			'a'     => array( 5, 111, 'x' ),
 		);
-		$this->assertSame(
-			array(
-				'_baba' => 5,
-				'yZ'    => 'baba',
-				'a'     => array( 5, 111, 'x' ),
+
+		$data = array(
+			'object without properties'  => array(
+				'args'     => new MockClass(),
+				'expected' => array(),
 			),
-			wp_parse_args( $b )
+			'object with properties'     => array(
+				'args'     => $this->get_object_for_parsing(),
+				'expected' => $expected,
+			),
+			'empty array'                => array(
+				'args'     => array(),
+				'expected' => array(),
+			),
+			'array with keys and values' => array(
+				'args'     => $expected,
+				'expected' => $expected,
+			),
 		);
+
+		$other_data = array(
+			'boolean true' => true,
+			'query string' => 'x=5&_baba=dudu&',
+		);
+
+		foreach ( $other_data as $key => $input ) {
+			wp_parse_str( $input, $output );
+			$data[ $key ] = array(
+				'args'     => $input,
+				'expected' => $output,
+			);
+		}
+
+		return $data;
 	}
 
 	public function test_wp_parse_args_defaults() {
@@ -60,15 +87,6 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 			),
 			wp_parse_args( $x, $e )
 		);
-	}
-
-	public function test_wp_parse_args_other() {
-		$b = true;
-		wp_parse_str( $b, $s );
-		$this->assertSame( $s, wp_parse_args( $b ) );
-		$q = 'x=5&_baba=dudu&';
-		wp_parse_str( $q, $ss );
-		$this->assertSame( $ss, wp_parse_args( $q ) );
 	}
 
 	/**
