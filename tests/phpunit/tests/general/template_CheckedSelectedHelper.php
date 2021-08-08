@@ -8,6 +8,20 @@
 class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 
 	/**
+	 * List of functions using the __checked_selected_helper() function.
+	 *
+	 * Doesn't list the conditionally available `readonly` function on purpose.
+	 *
+	 * @var array
+	 */
+	private $child_functions = array(
+		'selected'    => true,
+		'checked'     => true,
+		'disabled'    => true,
+		'wp_readonly' => true,
+	);
+
+	/**
 	 * Tests that the return value for selected() is as expected with equal values.
 	 *
 	 * @covers ::selected
@@ -154,5 +168,72 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 		$expected = " disabled='disabled'";
 		$this->expectOutputString( $expected );
 		$this->assertSame( $expected, disabled( 'foo', 'foo' ) );
+	}
+
+	/**
+	 * Tests that the function compares against `true` when the second parameter is not passed.
+	 *
+	 * @dataProvider data_checked_selected_helper_default_value_for_second_parameter
+	 *
+	 * @covers ::__checked_selected_helper
+	 * @covers ::selected
+	 * @covers ::checked
+	 * @covers ::disabled
+	 * @covers ::wp_readonly
+	 *
+	 * @param mixed $input         Input value
+	 * @param mixed $expect_output Optional. Whether output is expected. Defaults to false.
+	 */
+	public function test_checked_selected_helper_default_value_for_second_parameter( $input, $expect_output = false ) {
+		$fn       = array_rand( $this->child_functions );
+		$expected = '';
+
+		if ( false !== $expect_output ) {
+			$expected = " {$fn}='{$fn}'";
+			if ( 'wp_readonly' === $fn ) {
+				// Account for the function name not matching the expected output strings.
+				$expected = " readonly='readonly'";
+			}
+
+			// Only set output expectation when output is expected, so the test will fail on unexpected output.
+			$this->expectOutputString( $expected );
+		}
+
+		// Function will always return the value, even when echo-ing it out.
+		$this->assertSame( $expected, $fn( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_checked_selected_helper_default_value_for_second_parameter() {
+		return array(
+			'truthy; boolean true'          => array(
+				'input'         => true,
+				'expect_output' => true,
+			),
+			'truthy; int 1'                 => array(
+				'input'         => 1,
+				'expect_output' => true,
+			),
+			'truthy; string 1'              => array(
+				'input'         => '1',
+				'expect_output' => true,
+			),
+			'truthy, but not equal to true' => array(
+				'input' => 'foo',
+			),
+			'falsy; null'                   => array(
+				'input' => null,
+			),
+			'falsy; bool false'             => array(
+				'input' => false,
+			),
+			'falsy; int 0'                  => array(
+				'input' => 0,
+			),
+		);
 	}
 }
