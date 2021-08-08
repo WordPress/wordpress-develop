@@ -7,10 +7,7 @@
 class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 
 	public function test_wp_parse_args_object() {
-		$x        = new MockClass;
-		$x->_baba = 5;
-		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		$x->a     = array( 5, 111, 'x' );
+		$x = $this->get_object_for_parsing();
 		$this->assertSame(
 			array(
 				'_baba' => 5,
@@ -43,11 +40,8 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 	}
 
 	public function test_wp_parse_args_defaults() {
-		$x        = new MockClass;
-		$x->_baba = 5;
-		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		$x->a     = array( 5, 111, 'x' );
-		$d        = array( 'pu' => 'bu' );
+		$x = $this->get_object_for_parsing();
+		$d = array( 'pu' => 'bu' );
 		$this->assertSame(
 			array(
 				'pu'    => 'bu',
@@ -84,5 +78,19 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 		$args = wp_parse_args( 'foo=false&bar=true' );
 		$this->assertIsString( $args['foo'] );
 		$this->assertIsString( $args['bar'] );
+	}
+
+	/**
+	 * Helper method. Creates an object with properties for use in these tests.
+	 *
+	 * @return MockClass
+	 */
+	private function get_object_for_parsing() {
+		$x        = new MockClass;
+		$x->_baba = 5;
+		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$x->a     = array( 5, 111, 'x' );
+
+		return $x;
 	}
 }
