@@ -67,26 +67,47 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 		return $data;
 	}
 
-	public function test_wp_parse_args_defaults() {
-		$x = $this->get_object_for_parsing();
-		$d = array( 'pu' => 'bu' );
-		$this->assertSame(
-			array(
-				'pu'    => 'bu',
-				'_baba' => 5,
-				'yZ'    => 'baba',
-				'a'     => array( 5, 111, 'x' ),
+	/**
+	 * Tests parsing of arguments when the $defaults parameter has been passed.
+	 *
+	 * @dataProvider data_wp_parse_args_defaults
+	 *
+	 * @param mixed $args     Value to parse.
+	 * @param mixed $defaults Value to pass as $defaults.
+	 * @param array $expected Expected function output.
+	 */
+	public function test_wp_parse_args_defaults( $args, $defaults, $expected ) {
+		$this->assertSame( $expected, wp_parse_args( $args, $defaults ) );
+	}
+
+	/**
+	 * Data Provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_parse_args_defaults() {
+		$test_obj = $this->get_object_for_parsing();
+
+		return array(
+			'defaults contains item not in args' => array(
+				'args'     => $test_obj,
+				'defaults' => array( 'pu' => 'bu' ),
+				'expected' => array(
+					'pu'    => 'bu',
+					'_baba' => 5,
+					'yZ'    => 'baba',
+					'a'     => array( 5, 111, 'x' ),
+				),
 			),
-			wp_parse_args( $x, $d )
-		);
-		$e = array( '_baba' => 6 );
-		$this->assertSame(
-			array(
-				'_baba' => 5,
-				'yZ'    => 'baba',
-				'a'     => array( 5, 111, 'x' ),
+			'defaults contains item in args with different value' => array(
+				'args'     => $test_obj,
+				'defaults' => array( '_baba' => 6 ),
+				'expected' => array(
+					'_baba' => 5,
+					'yZ'    => 'baba',
+					'a'     => array( 5, 111, 'x' ),
+				),
 			),
-			wp_parse_args( $x, $e )
 		);
 	}
 
