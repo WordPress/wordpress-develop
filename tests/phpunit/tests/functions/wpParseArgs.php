@@ -94,8 +94,11 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 	 */
 	public function test_wp_parse_args_boolean_strings() {
 		$args = wp_parse_args( 'foo=false&bar=true' );
-		$this->assertIsString( $args['foo'] );
-		$this->assertIsString( $args['bar'] );
+		$this->assertIsArray( $args, 'Return value is not an array' );
+		$this->assertArrayHasKey( 'foo', $args, 'Returned array does not have key "foo"' );
+		$this->assertIsString( $args['foo'], 'Value for array index "foo" is not a string' );
+		$this->assertArrayHasKey( 'bar', $args, 'Returned array does not have key "bar"' );
+		$this->assertIsString( $args['bar'], 'Value for array index "bar" is not a string' );
 	}
 
 	/**
