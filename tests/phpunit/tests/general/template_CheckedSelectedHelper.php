@@ -122,4 +122,16 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 			'1: int 0; 2: bool false'      => array( 0, false ),
 		);
 	}
+
+	/**
+	 * Tests that the $echo parameter is handled correctly and that even when the output is echoed out,
+	 * the text is also returned.
+	 *
+	 * @covers ::__checked_selected_helper
+	 */
+	public function test_checked_selected_helper_echos_result_by_default() {
+		$expected = " disabled='disabled'";
+		$this->expectOutputString( $expected );
+		$this->assertSame( $expected, disabled( 'foo', 'foo' ) );
+	}
 }
