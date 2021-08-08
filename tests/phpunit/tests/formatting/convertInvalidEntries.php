@@ -4,19 +4,36 @@
  * @group formatting
  */
 class Tests_Formatting_ConvertInvalidEntities extends WP_UnitTestCase {
-	function test_replaces_windows1252_entities_with_unicode_ones() {
-		$input  = '&#130;&#131;&#132;&#133;&#134;&#135;&#136;&#137;&#138;&#139;&#140;&#145;&#146;&#147;&#148;&#149;&#150;&#151;&#152;&#153;&#154;&#155;&#156;&#159;';
-		$output = '&#8218;&#402;&#8222;&#8230;&#8224;&#8225;&#710;&#8240;&#352;&#8249;&#338;&#8216;&#8217;&#8220;&#8221;&#8226;&#8211;&#8212;&#732;&#8482;&#353;&#8250;&#339;&#376;';
-		$this->assertSame( $output, convert_invalid_entities( $input ) );
+
+	/**
+	 * @dataProvider data_convert_invalid_entities_strings
+	 *
+	 * @covers ::convert_invalid_entities
+	 *
+	 * @param mixed  $input    Supposedly a string with entities that need converting.
+	 * @param string $expected Expected function output.
+	 */
+	public function test_convert_invalid_entities( $input, $expected ) {
+		$this->assertSame( $expected, convert_invalid_entities( $input ) );
 	}
 
 	/**
-	 * @ticket 20503
+	 * Data provider with test cases intended to be handled by the function.
+	 *
+	 * @return array
 	 */
-	function test_replaces_latin_letter_z_with_caron() {
-		$input  = '&#142;&#158;';
-		$output = '&#381;&#382;';
-		$this->assertSame( $output, convert_invalid_entities( $input ) );
+	public function data_convert_invalid_entities_strings() {
+		return array(
+			'replaces windows1252 entities with unicode ones' => array(
+				'input'    => '&#130;&#131;&#132;&#133;&#134;&#135;&#136;&#137;&#138;&#139;&#140;&#145;&#146;&#147;&#148;&#149;&#150;&#151;&#152;&#153;&#154;&#155;&#156;&#159;',
+				'expected' => '&#8218;&#402;&#8222;&#8230;&#8224;&#8225;&#710;&#8240;&#352;&#8249;&#338;&#8216;&#8217;&#8220;&#8221;&#8226;&#8211;&#8212;&#732;&#8482;&#353;&#8250;&#339;&#376;',
+			),
+			// @ticket 20503
+			'replaces latin letter z with caron' => array(
+				'input'    => '&#142;&#158;',
+				'expected' => '&#381;&#382;',
+			),
+		);
 	}
 
 	function test_escapes_lone_ampersands() {
