@@ -24,14 +24,30 @@ class Tests_Formatting_ConvertInvalidEntities extends WP_UnitTestCase {
 	 */
 	public function data_convert_invalid_entities_strings() {
 		return array(
+			'empty string'                                => array(
+				'input'    => '',
+				'expected' => '',
+			),
 			'replaces windows1252 entities with unicode ones' => array(
 				'input'    => '&#130;&#131;&#132;&#133;&#134;&#135;&#136;&#137;&#138;&#139;&#140;&#145;&#146;&#147;&#148;&#149;&#150;&#151;&#152;&#153;&#154;&#155;&#156;&#159;',
 				'expected' => '&#8218;&#402;&#8222;&#8230;&#8224;&#8225;&#710;&#8240;&#352;&#8249;&#338;&#8216;&#8217;&#8220;&#8221;&#8226;&#8211;&#8212;&#732;&#8482;&#353;&#8250;&#339;&#376;',
 			),
 			// @ticket 20503
-			'replaces latin letter z with caron' => array(
+			'replaces latin letter z with caron'          => array(
 				'input'    => '&#142;&#158;',
 				'expected' => '&#381;&#382;',
+			),
+			'string without entity is returned unchanged' => array(
+				'input'    => 'Hello! This is just text.',
+				'expected' => 'Hello! This is just text.',
+			),
+			'string with unlisted entity is returned unchanged' => array(
+				'input'    => 'English pound: &#163;.',
+				'expected' => 'English pound: &#163;.',
+			),
+			'string with entity in thousand range (not win 1252) is returned unchanged' => array(
+				'input'    => '&#1031;&#1315;',
+				'expected' => '&#1031;&#1315;',
 			),
 		);
 	}
