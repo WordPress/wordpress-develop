@@ -5,14 +5,14 @@
  * @group upload
  */
 class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
-	function tearDown() {
+	function tear_down() {
 		$this->remove_added_uploads();
 
 		remove_image_size( 'test-size' );
 		remove_image_size( 'false-height' );
 		remove_image_size( 'false-width' );
 		remove_image_size( 'off-by-one' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function _make_attachment( $file, $parent_post_id = 0 ) {

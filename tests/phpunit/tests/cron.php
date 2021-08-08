@@ -16,18 +16,18 @@ class Tests_Cron extends WP_UnitTestCase {
 	 */
 	private $plus_thirty_minutes;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		// Make sure the schedule is clear.
 		_set_cron_array( array() );
 		$this->preflight_cron_array = array();
 		$this->plus_thirty_minutes  = strtotime( '+30 minutes' );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		// Make sure the schedule is clear.
 		_set_cron_array( array() );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_wp_get_schedule_empty() {

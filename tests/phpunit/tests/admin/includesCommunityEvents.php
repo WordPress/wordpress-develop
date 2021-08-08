@@ -31,8 +31,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 *
 	 * @since 4.8.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-community-events.php';
 
