@@ -6,7 +6,7 @@
  */
 class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 
-	function test_wp_parse_args_object() {
+	public function test_wp_parse_args_object() {
 		$x        = new MockClass;
 		$x->_baba = 5;
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -23,7 +23,7 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 		$this->assertSame( array(), wp_parse_args( $y ) );
 	}
 
-	function test_wp_parse_args_array() {
+	public function test_wp_parse_args_array() {
 		// Arrays.
 		$a = array();
 		$this->assertSame( array(), wp_parse_args( $a ) );
@@ -42,7 +42,7 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 		);
 	}
 
-	function test_wp_parse_args_defaults() {
+	public function test_wp_parse_args_defaults() {
 		$x        = new MockClass;
 		$x->_baba = 5;
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -68,7 +68,7 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 		);
 	}
 
-	function test_wp_parse_args_other() {
+	public function test_wp_parse_args_other() {
 		$b = true;
 		wp_parse_str( $b, $s );
 		$this->assertSame( $s, wp_parse_args( $b ) );
@@ -80,7 +80,7 @@ class Tests_Functions_WpParseArgs extends WP_UnitTestCase {
 	/**
 	 * @ticket 30753
 	 */
-	function test_wp_parse_args_boolean_strings() {
+	public function test_wp_parse_args_boolean_strings() {
 		$args = wp_parse_args( 'foo=false&bar=true' );
 		$this->assertIsString( $args['foo'] );
 		$this->assertIsString( $args['bar'] );
