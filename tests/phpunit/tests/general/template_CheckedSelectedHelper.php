@@ -82,16 +82,26 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 */
 	public function data_equal_values() {
 		return array(
-			'same value, "foo"; 1: string; 2: string'     => array( 'foo', 'foo' ),
-			'same value, 1; 1: string; 2: int'            => array( '1', 1 ),
-			'same value, 1; 1: string; 2: bool true'      => array( '1', true ),
-			'same value, 1; 1: int; 2: int'               => array( 1, 1 ),
-			'same value, 1; 1: int; 2: bool true'         => array( 1, true ),
-			'same value, 1; 1: bool true; 2: bool true'   => array( true, true ),
-			'same value, 0; 1: string; 2: int'            => array( '0', 0 ),
-			'same value, 0; 1: int; 2: int'               => array( 0, 0 ),
-			'same value, 0; 1: empty string; 2: bool false' => array( '', false ),
-			'same value, 0; 1: bool false; 2: bool false' => array( false, false ),
+			'same value, "foo"; 1: string; 2: string'   => array( 'foo', 'foo' ),
+			'same value, 1; 1: string; 2: int'          => array( '1', 1 ),
+			'same value, 1; 1: string; 2: float'        => array( '1', 1.0 ),
+			'same value, 1; 1: string; 2: bool true'    => array( '1', true ),
+			'same value, 1; 1: int; 2: int'             => array( 1, 1 ),
+			'same value, 1; 1: int; 2: float'           => array( 1, 1.0 ),
+			'same value, 1; 1: int; 2: bool true'       => array( 1, true ),
+			'same value, 1; 1: float; 2: bool true'     => array( 1.0, true ),
+			'same value, 1; 1: bool true; 2: bool true' => array( true, true ),
+			'same value, 1; 1: float 1.0; 2: float calculation 1.0' => array( 1.0, 3 / 3 ),
+			'same value, 0; 1: string; 2: int'          => array( '0', 0 ),
+			'same value, 0; 1: string; 2: float'        => array( '0', 0.0 ),
+			'same value, 0; 1: int; 2: int'             => array( 0, 0 ),
+			'same value, 0; 1: int; 2: float'           => array( 0, 0.0 ),
+			'same value, empty string; 1: string; 2: string' => array( '', '' ),
+			'same value, empty string; 1: empty string; 2: bool false' => array( '', false ),
+			'same value, empty string; 1: bool false; 2: bool false' => array( false, false ),
+			'same value, empty string; 1: empty string; 2: null' => array( '', null ),
+			'same value, empty string; 1: bool false; 2: null' => array( false, null ),
+			'same value, null; 1: null; 2: null'        => array( null, null ),
 		);
 	}
 
@@ -117,9 +127,20 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 */
 	public function data_non_equal_values() {
 		return array(
+			'1: string foo; 2: string bar' => array( 'foo', 'bar' ),
 			'1: string 0; 2: empty string' => array( '0', '' ),
+			'1: string 0; 2: null'         => array( '0', null ),
 			'1: int 0; 2: empty string'    => array( 0, '' ),
+			'1: int 0; 2: bool true'       => array( 0, true ),
 			'1: int 0; 2: bool false'      => array( 0, false ),
+			'1: int 0; 2: null'            => array( 0, null ),
+			'1: float 0; 2: empty string'  => array( 0.0, '' ),
+			'1: float 0; 2: bool true'     => array( 0.0, true ),
+			'1: float 0; 2: bool false'    => array( 0.0, false ),
+			'1: float 0; 2: null'          => array( 0.0, null ),
+			'1: null; 2: bool true'        => array( null, true ),
+			'1: null 0; 2: string "foo"'   => array( null, 'foo' ),
+			'1: int 1; 2: float 1.5'       => array( 1, 1.5 ),
 		);
 	}
 
