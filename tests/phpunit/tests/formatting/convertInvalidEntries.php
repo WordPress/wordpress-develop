@@ -83,6 +83,16 @@ class Tests_Formatting_ConvertInvalidEntities extends WP_UnitTestCase {
 				'input'  => 25.689,
 				'output' => 25.689,
 			),
+			/*
+			'array'  => array(
+				'input'  => array( 1, 2, 3 ),
+				'output' => '',
+			),
+			'object' => array(
+				'input'  => $std_class,
+				'output' => '',
+			),
+			*/
 		);
 	}
 
