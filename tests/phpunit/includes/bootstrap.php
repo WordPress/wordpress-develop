@@ -39,7 +39,7 @@ $phpunit_version = tests_get_phpunit_version();
 
 if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
 	printf(
-		'Error: Looks like you’re using PHPUnit %s. WordPress requires at least PHPUnit 5.7.21.' . PHP_EOL,
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.7.21." . PHP_EOL,
 		$phpunit_version
 	);
 	echo 'Please use the latest PHPUnit version supported for the PHP version you are running the tests on.' . PHP_EOL;
