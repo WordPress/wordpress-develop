@@ -94,10 +94,10 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 	}
 
-	public function setUp() {
+	public function set_up() {
 		global $wp_widget_factory;
 
-		parent::setUp();
+		parent::set_up();
 
 		wp_set_current_user( self::$admin_id );
 

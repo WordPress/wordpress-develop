@@ -17,16 +17,16 @@ if ( is_multisite() ) :
 		protected static $site_ids;
 		protected static $uninitialized_site_id;
 
-		function setUp() {
+		function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tear_down() {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -391,13 +391,13 @@ if ( is_multisite() ) :
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 
 			wpmu_delete_blog( $blog_id, true );
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 		}
 
 		function test_wpmu_update_blogs_date() {

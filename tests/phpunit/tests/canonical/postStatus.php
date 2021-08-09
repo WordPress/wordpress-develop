@@ -166,8 +166,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		wp_trash_post( self::$posts['trash-page']->ID );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		self::setup_custom_types();
 	}
 

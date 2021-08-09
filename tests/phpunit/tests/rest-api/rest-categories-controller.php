@@ -56,8 +56,8 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		}
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		register_meta(
 			'term',

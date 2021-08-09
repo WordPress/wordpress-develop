@@ -18,9 +18,6 @@ on:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-  COMPOSER_INSTALL: ${{ false }}
-  # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
-  PHPUNIT_SCRIPT: php
   LOCAL_PHP: '7.4-fpm'
   LOCAL_PHP_XDEBUG: true
   LOCAL_PHP_MEMCACHED: ${{ false }}
@@ -88,6 +85,32 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      # This date is used to ensure that the Composer cache is refreshed at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+        shell: bash
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-date-${{ steps.get-date.outputs.date }}-composer-${{ hashFiles('**/composer.json') }}
+
+      - name: Install Composer dependencies
+        run: |
+          docker-compose run --rm php composer --version
+
+          # Install using `composer update` as there is no `composer.lock` file.
+          docker-compose run --rm php composer update
+
       - name: Docker debug information
         run: |
           docker -v
@@ -121,7 +144,7 @@ jobs:
 
       - name: Run tests as a single site
         if: ${{ ! matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
+        run: npm run test:php-composer -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -135,7 +158,7 @@ jobs:
 
       - name: Run tests as a multisite install
         if: ${{ matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+        run: npm run test:php-composer -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code

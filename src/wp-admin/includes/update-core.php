@@ -822,6 +822,10 @@ $_old_files = array(
 	'wp-includes/block-patterns/large-header-button.php',
 	'wp-includes/blocks/subhead/block.json',
 	'wp-includes/blocks/subhead',
+	'wp-includes/css/dist/editor/editor-styles.css',
+	'wp-includes/css/dist/editor/editor-styles.min.css',
+	'wp-includes/css/dist/editor/editor-styles-rtl.css',
+	'wp-includes/css/dist/editor/editor-styles-rtl.min.css',
 );
 
 /**
@@ -1652,6 +1656,13 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	}
 
 	$dirs = glob( $directory . '*', GLOB_ONLYDIR );
+	$dirs = array_filter(
+		$dirs,
+		function( $dir ) {
+			// Skip any node_modules directories.
+			return false === strpos( $dir, 'node_modules' );
+		}
+	);
 
 	if ( $dirs ) {
 		foreach ( $dirs as $dir ) {

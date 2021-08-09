@@ -14,8 +14,8 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		add_theme_support( 'post-thumbnails' );
 
@@ -29,12 +29,12 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		set_post_thumbnail( self::$post_id, $this->attachment_id );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		remove_theme_support( 'post-thumbnails' );
 
 		$this->remove_added_uploads();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_invalid_username_password() {

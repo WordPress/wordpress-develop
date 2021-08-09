@@ -21,16 +21,16 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	protected static $_wpdb;
 
-	public static function setUpBeforeClass() {
-		parent::setUpBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 		self::$_wpdb = new WpdbExposedMethodsForTesting();
 	}
 
 	/**
 	 * Set up the test fixture
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->_queries = array();
 		add_filter( 'query', array( $this, 'query_filter' ) );
 	}
