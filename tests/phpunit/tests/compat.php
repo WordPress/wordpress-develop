@@ -180,7 +180,7 @@ EOT;
 	}
 
 	function test_json_encode_decode() {
-		$this->expectException( 'PHPUnit_Framework_Error_Deprecated' );
+		$this->expectDeprecation();
 
 		require_once ABSPATH . WPINC . '/class-json.php';
 		$json = new Services_JSON();

@@ -63,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '5.6.20', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0' ]
+        php: [ '5.6.20', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1' ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
         split_slow: [ false ]
@@ -95,6 +95,7 @@ jobs:
             memcached: false
             multisite: false
             report: true
+
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
       LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
@@ -142,7 +143,7 @@ jobs:
           docker-compose run --rm php composer --version
 
           # Install using `composer update` as there is no `composer.lock` file.
-          if [ ${{ env.LOCAL_PHP }} == '8.0-fpm' ]; then
+          if [ ${{ env.LOCAL_PHP }} == '8.1-fpm' ]; then
             docker-compose run --rm php composer update --ignore-platform-reqs
           else
             docker-compose run --rm php composer update
@@ -187,7 +188,7 @@ jobs:
         run: npm run env:install
 
       - name: Run slow PHPUnit tests
-        if: ${{ matrix.split_slow }}
+        if: ${{ matrix.php != '8.1' && matrix.split_slow }}
         run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
 
       - name: Run PHPUnit tests for single site excluding slow tests
@@ -199,25 +200,63 @@ jobs:
         run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
 
       - name: Run PHPUnit tests
-        if: ${{ matrix.php >= '7.0' }}
+        if: ${{ matrix.php >= '7.0' && matrix.php != '8.1' }}
         run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
-        if: ${{ ! matrix.split_slow }}
+        if: ${{ matrix.php != '8.1' && ! matrix.split_slow }}
         run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
 
       - name: Run ms-files tests as a multisite install
-        if: ${{ matrix.multisite && ! matrix.split_slow }}
+        if: ${{ matrix.php != '8.1' && matrix.multisite && ! matrix.split_slow }}
         run: npm run test:php-composer -- --verbose -c tests/phpunit/multisite.xml --group ms-files
 
       - name: Run external HTTP tests
-        if: ${{ ! matrix.multisite && ! matrix.split_slow }}
+        if: ${{ matrix.php != '8.1' && ! matrix.multisite && ! matrix.split_slow }}
         run: npm run test:php-composer -- --verbose -c phpunit.xml.dist --group external-http
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (xDebug) tests
-        if: ${{ ! matrix.split_slow }}
+        if: ${{ matrix.php != '8.1' && ! matrix.split_slow }}
         run: LOCAL_PHP_XDEBUG=true npm run test:php-composer -- -v --group xdebug --exclude-group __fakegroup__
+
+      #### Duplicate set of test runs specifically for PHP 8.1 while WP is not yet compatible. ####
+      # Splitting off the test runs for PHP 8.1 allows us to apply "continue-on-error" to the job steps,
+      # which will prevent the builds from showing as "failed" when they only fail on PHP 8.1.
+      # This block should be removed once all PHP 8.1 test failures have been fixed.
+      # When the block is removed, the conditions in the block above should also be adjusted back
+      # to their original values.
+      - name: Run slow PHPUnit tests
+        if: ${{ matrix.php == '8.1' && matrix.split_slow }}
+        continue-on-error: true
+        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
+
+      - name: Run PHPUnit tests
+        if: ${{ matrix.php == '8.1' }}
+        continue-on-error: true
+        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
+
+      - name: Run AJAX tests
+        if: ${{ matrix.php == '8.1' && ! matrix.split_slow }}
+        continue-on-error: true
+        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
+
+      - name: Run ms-files tests as a multisite install
+        if: ${{ matrix.php == '8.1' && matrix.multisite && ! matrix.split_slow }}
+        continue-on-error: true
+        run: npm run test:php-composer -- --verbose -c tests/phpunit/multisite.xml --group ms-files
+
+      - name: Run external HTTP tests
+        if: ${{ matrix.php == '8.1' && ! matrix.multisite && ! matrix.split_slow }}
+        continue-on-error: true
+        run: npm run test:php-composer -- --verbose -c phpunit.xml.dist --group external-http
+
+      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
+      - name: Run (xDebug) tests
+        if: ${{ matrix.php == '8.1' && ! matrix.split_slow }}
+        continue-on-error: true
+        run: LOCAL_PHP_XDEBUG=true npm run test:php-composer -- -v --group xdebug --exclude-group __fakegroup__
+      #### End of duplicate set of test runs. ####
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

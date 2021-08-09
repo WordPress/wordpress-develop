@@ -26,8 +26,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * Set up each test method.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->registry = new WP_Block_Type_Registry();
 	}
@@ -35,10 +35,10 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * Tear down each test method.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		$this->registry = null;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function filter_render_block( $content, $parsed_block ) {

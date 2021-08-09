@@ -19,10 +19,10 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * Sets up each test method.
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $post;
 
-		parent::setUp();
+		parent::set_up();
 
 		$args = array(
 			'post_title' => 'Example',
@@ -35,11 +35,11 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function filter_set_block_categories_post( $block_categories, $post ) {

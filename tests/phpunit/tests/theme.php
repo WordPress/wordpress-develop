@@ -22,10 +22,10 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwentyone',
 	);
 
-	function setUp() {
+	function set_up() {
 		global $wp_theme_directories;
 
-		parent::setUp();
+		parent::set_up();
 
 		$backup_wp_theme_directories = $wp_theme_directories;
 		$wp_theme_directories        = array( WP_CONTENT_DIR . '/themes' );
@@ -35,7 +35,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $wp_theme_directories;
 
 		$wp_theme_directories = $this->wp_theme_directories;
@@ -44,7 +44,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_wp_get_themes_default() {
@@ -148,25 +148,22 @@ class Tests_Theme extends WP_UnitTestCase {
 			$this->assertIsArray( $theme['Template Files'] );
 			$this->assertNotEmpty( $theme['Template Files'] );
 			foreach ( $theme['Template Files'] as $file ) {
-				$this->assertTrue( is_file( $dir . $file ) );
-				$this->assertTrue( is_readable( $dir . $file ) );
+				$this->assertFileIsReadable( $dir . $file );
 			}
 
 			// CSS files should all exist.
 			$this->assertIsArray( $theme['Stylesheet Files'] );
 			$this->assertNotEmpty( $theme['Stylesheet Files'] );
 			foreach ( $theme['Stylesheet Files'] as $file ) {
-				$this->assertTrue( is_file( $dir . $file ) );
-				$this->assertTrue( is_readable( $dir . $file ) );
+				$this->assertFileIsReadable( $dir . $file );
 			}
 
-			$this->assertTrue( is_dir( $dir . $theme['Template Dir'] ) );
-			$this->assertTrue( is_dir( $dir . $theme['Stylesheet Dir'] ) );
+			$this->assertDirectoryExists( $dir . $theme['Template Dir'] );
+			$this->assertDirectoryExists( $dir . $theme['Stylesheet Dir'] );
 
 			$this->assertSame( 'publish', $theme['Status'] );
 
-			$this->assertTrue( is_file( $dir . $theme['Stylesheet Dir'] . '/' . $theme['Screenshot'] ) );
-			$this->assertTrue( is_readable( $dir . $theme['Stylesheet Dir'] . '/' . $theme['Screenshot'] ) );
+			$this->assertFileIsReadable( $dir . $theme['Stylesheet Dir'] . '/' . $theme['Screenshot'] );
 		}
 	}
 

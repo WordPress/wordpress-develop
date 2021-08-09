@@ -1,8 +1,11 @@
 <phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
 		bootstrap="includes/bootstrap.php"
 		backupGlobals="false"
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
 		>
 	<php>
 		<const name="WP_TESTS_MULTISITE" value="1" />
@@ -28,17 +31,6 @@
 			<group>oembed-headers</group>
 		</exclude>
 	</groups>
-	<listeners>
-		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
-			<arguments>
-				<array>
-					<element key="slowThreshold">
-						<integer>150</integer>
-					</element>
-				</array>
-			</arguments>
-		</listener>
-	</listeners>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
 			<directory suffix=".php">../../src</directory>
