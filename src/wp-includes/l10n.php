@@ -1717,6 +1717,7 @@ function is_locale_switched() {
  * Translates the provided settings value using its i18n schema.
  *
  * @since 5.9.0
+ * @access private
  *
  * @param string|string[]|array[]|object $i18n_schema I18n schema for the setting.
  * @param string|string[]|array[]        $settings    Value for the settings.
