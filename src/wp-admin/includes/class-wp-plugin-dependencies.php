@@ -194,7 +194,7 @@ class WP_Plugin_Dependencies {
 				return array();
 			}
 
-			$plugin_dependencies = explode( ',', $plugin_dependencies );
+			$plugin_dependencies = str_getcsv( $plugin_dependencies );
 			foreach ( $plugin_dependencies as $key => $dependency ) {
 				$this->plugin_dependencies[ $file ][] = array( 'slug' => trim( $dependency ) );
 			}
