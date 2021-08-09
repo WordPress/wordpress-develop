@@ -1807,7 +1807,7 @@ p.has-background {
 	}
 }
 
-.entry-header .wp-block-post-title {
+.wp-block-post-title.entry-title {
 	margin-bottom: 60px;
 }
 

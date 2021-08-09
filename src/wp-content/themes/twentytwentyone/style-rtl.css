@@ -2908,7 +2908,7 @@ p.has-text-color a {
 	margin-bottom: calc(2 * var(--global--spacing-vertical));
 }
 
-.entry-header .wp-block-post-title {
+.wp-block-post-title.entry-title {
 	margin-bottom: calc(2 * var(--global--spacing-vertical));
 }
 
