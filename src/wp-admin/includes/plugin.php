@@ -70,18 +70,19 @@
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 
 	$default_headers = array(
-		'Name'        => 'Plugin Name',
-		'PluginURI'   => 'Plugin URI',
-		'Version'     => 'Version',
-		'Description' => 'Description',
-		'Author'      => 'Author',
-		'AuthorURI'   => 'Author URI',
-		'TextDomain'  => 'Text Domain',
-		'DomainPath'  => 'Domain Path',
-		'Network'     => 'Network',
-		'RequiresWP'  => 'Requires at least',
-		'RequiresPHP' => 'Requires PHP',
-		'UpdateURI'   => 'Update URI',
+		'Name'            => 'Plugin Name',
+		'PluginURI'       => 'Plugin URI',
+		'Version'         => 'Version',
+		'Description'     => 'Description',
+		'Author'          => 'Author',
+		'AuthorURI'       => 'Author URI',
+		'TextDomain'      => 'Text Domain',
+		'DomainPath'      => 'Domain Path',
+		'Network'         => 'Network',
+		'RequiresWP'      => 'Requires at least',
+		'RequiresPHP'     => 'Requires PHP',
+		'RequiresPlugins' => 'Requires Plugins',
+		'UpdateURI'       => 'Update URI',
 		// Site Wide Only is deprecated in favor of Network.
 		'_sitewide'   => 'Site Wide Only',
 	);

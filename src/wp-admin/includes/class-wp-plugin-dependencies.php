@@ -187,14 +187,16 @@ class WP_Plugin_Dependencies {
 	 * @return array
 	 */
 	public function get_plugin_dependencies( $file ) {
-
 		if ( ! isset( $this->plugin_dependencies[ $file ] ) ) {
-			// Get the plugin directory.
-			$plugin_dir = dirname( WP_PLUGIN_DIR . '/' . $file );
-
 			$this->plugin_dependencies[ $file ] = array();
-			if ( file_exists( "$plugin_dir/dependencies.json" ) ) {
-				$this->plugin_dependencies[ $file ] = json_decode( file_get_contents( "$plugin_dir/dependencies.json" ) );
+			$plugin_dependencies = get_plugin_data( WP_PLUGIN_DIR . '/' . $file )['RequiresPlugins'];
+			if ( empty( $plugin_dependencies ) ) {
+				return array();
+			}
+
+			$plugin_dependencies = explode( ',', $plugin_dependencies );
+			foreach ( $plugin_dependencies as $key => $dependency ) {
+				$this->plugin_dependencies[ $file ][] = array( 'slug' => trim( $dependency ) );
 			}
 		}
 
@@ -215,20 +217,15 @@ class WP_Plugin_Dependencies {
 	protected function process_plugin_dependency( $plugin, $dependency ) {
 		$dependency_is_installed = false;
 		$dependency_is_active    = false;
-		$dependency_needs_update = false;
 
 		foreach ( $this->installed_plugins as $file => $installed_plugin ) {
-			if ( dirname( $file ) === $dependency->slug ) {
-				$dependency->file        = $file;
+			if ( dirname( $file ) === $dependency['slug'] ) {
+				$dependency['file']      = $file;
+				$dependency['name']      = get_plugin_data( WP_PLUGIN_DIR . '/' . $file )['Name'];
 				$dependency_is_installed = true;
 				if ( is_plugin_active( $file ) ) {
 					$dependency_is_active = true;
 				}
-				$installed_version = get_plugin_data( WP_PLUGIN_DIR . '/' . $file )['Version'];
-				if ( ! empty( $installed_version ) && ! empty( $dependency->version ) && version_compare( $installed_version, $dependency->version, '<' ) ) {
-					$dependency_needs_update = true;
-				}
-
 				break;
 			}
 		}
@@ -239,12 +236,6 @@ class WP_Plugin_Dependencies {
 			return false;
 		}
 
-		// If the installed version is lower than the required version, update it.
-		if ( $dependency_needs_update ) {
-			$this->add_notice_update( get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin ), $dependency );
-			return false;
-		}
-
 		// If the plugin is not activated, activate it.
 		if ( ! $dependency_is_active ) {
 			$this->add_notice_activate( get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin ), $dependency );
@@ -252,10 +243,10 @@ class WP_Plugin_Dependencies {
 		}
 
 		// Add item to the $dependencies_parents array.
-		if ( empty( $this->dependencies_parents[ $dependency->file ] ) ) {
-			$this->dependencies_parents[ $dependency->file ] = array();
+		if ( empty( $this->dependencies_parents[ $dependency['file'] ] ) ) {
+			$this->dependencies_parents[ $dependency['file'] ] = array();
 		}
-		$this->dependencies_parents[ $dependency->file ][] = $plugin;
+		$this->dependencies_parents[ $dependency['file'] ][] = $plugin;
 
 		return true;
 	}
@@ -405,40 +396,12 @@ class WP_Plugin_Dependencies {
 		}
 		$this->notices[] = array(
 			'content' => sprintf(
-				/* translators: %1$s: The plugin we want to activate. %2$s: The name of the plugin to install. %3$s: "Install & Activate" button. */
+				/* translators: %1$s: The plugin we want to activate. %2$s: The slug of the plugin to install. %3$s: "Install & Activate" button. */
 				__( 'Plugin "%1$s" depends on plugin "%2$s" to be installed. %3$s' ),
 				$plugin['Name'],
-				$dependency->name,
+				$dependency['slug'],
 				/* translators: %s: Plugin name. */
-				'<a href="' . esc_url( install_plugin_install_status( array( 'slug' => $dependency->name ) )['url'] ) . '">' . sprintf( __( 'Install and activate %s' ), $dependency->name ) . '</a>'
-			),
-		);
-	}
-
-	/**
-	 * Show a notice to update a dependency.
-	 *
-	 * @since 5.9.0
-	 * @access protected
-	 *
-	 * @param array    $plugin     The plugin calling the dependencies.
-	 * @param stdClass $dependency The plugin slug.
-	 *
-	 * @return void
-	 */
-	protected function add_notice_update( $plugin, $dependency ) {
-		if ( ! current_user_can( 'update_plugins' ) ) {
-			return;
-		}
-		$this->notices[] = array(
-			'content' => sprintf(
-				/* translators: %1$s: The plugin we want to activate. %2$s: The name of the plugin to install. %3$s: Minimum required version. %4$s: Currently installed version. %5$s: Update URL. */
-				__( 'Plugin "%1$s" depends on plugin "%2$s" version %3$s or higher to be installed, and you currently have version %4$s installed. <a href="%5$s">Update %2$s</a>' ),
-				$plugin['Name'],
-				$dependency->name,
-				$dependency->version,
-				get_plugin_data( WP_PLUGIN_DIR . '/' . $dependency->file )['Version'],
-				wp_nonce_url( self_admin_url( 'update.php?action=upgrade-plugin&plugin=' . $dependency->file ), 'upgrade-plugin_' . $dependency->file )
+				'<a href="' . esc_url( install_plugin_install_status( array( 'slug' => $dependency['slug'] ) )['url'] ) . '">' . sprintf( __( 'Install and activate "%s"' ), $dependency['slug'] ) . '</a>'
 			),
 		);
 	}
@@ -455,14 +418,14 @@ class WP_Plugin_Dependencies {
 	 * @return void
 	 */
 	protected function add_notice_activate( $plugin, $dependency ) {
-		$activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . rawurlencode( $dependency->file ) . '&amp;plugin_status=all', 'activate-plugin_' . $dependency->file );
+		$activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . rawurlencode( $dependency['file'] ) . '&amp;plugin_status=all', 'activate-plugin_' . $dependency['file'] );
 
 		$this->notices[] = array(
 			'content' => sprintf(
 				/* translators: %1$s: The plugin we want to activate. %2$s: The name of the plugin to install. %3$s: "Activate" button. */
 				__( 'Plugin "%1$s" depends on plugin "%2$s" to be activated. %3$s' ),
 				$plugin['Name'],
-				$dependency->name,
+				$dependency['name'],
 				'<a href="' . $activate_url . '">' . __( 'Activate plugin' ) . '</a>'
 			),
 		);
