@@ -5,6 +5,7 @@
 		backupGlobals="false"
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
 		>
 	<php>
 		<const name="WP_TESTS_MULTISITE" value="1" />

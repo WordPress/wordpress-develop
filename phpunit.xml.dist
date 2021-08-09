@@ -5,6 +5,7 @@
 		backupGlobals="false"
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
 		>
 	<testsuites>
 		<!-- Default test suite to run all tests. -->
