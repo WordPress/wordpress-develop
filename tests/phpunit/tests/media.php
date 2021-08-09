@@ -21,7 +21,7 @@ class Tests_Media extends WP_UnitTestCase {
 		foreach ( $post_statuses as $post_status ) {
 			$date = '';
 			if ( 'future' === $post_status ) {
-				strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+				date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 			}
 
 			self::$post_ids[ $post_status ] = $factory->post->create(

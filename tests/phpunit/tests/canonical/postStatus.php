@@ -34,7 +34,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		foreach ( $post_statuses as $post_status ) {
 			$post_date = '';
 			if ( 'future' === $post_status ) {
-				$post_date = strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+				$post_date = date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 			}
 
 			self::$posts[ $post_status ] = $factory->post->create_and_get(
