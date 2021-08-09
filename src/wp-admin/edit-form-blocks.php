@@ -119,12 +119,12 @@ wp_add_inline_script(
  * besides the default value.
  */
 $available_templates = wp_get_theme()->get_page_templates( get_post( $post->ID ) );
-$available_templates = ! empty( $available_templates ) ? array_merge(
+$available_templates = ! empty( $available_templates ) ? array_replace(
+	$available_templates,
 	array(
 		/** This filter is documented in wp-admin/includes/meta-boxes.php */
 		'' => apply_filters( 'default_page_template_title', __( 'Default template' ), 'rest-api' ),
-	),
-	$available_templates
+	)
 ) : $available_templates;
 
 // Lock settings.
