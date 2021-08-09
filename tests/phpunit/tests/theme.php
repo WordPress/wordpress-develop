@@ -148,25 +148,22 @@ class Tests_Theme extends WP_UnitTestCase {
 			$this->assertIsArray( $theme['Template Files'] );
 			$this->assertNotEmpty( $theme['Template Files'] );
 			foreach ( $theme['Template Files'] as $file ) {
-				$this->assertTrue( is_file( $dir . $file ) );
-				$this->assertTrue( is_readable( $dir . $file ) );
+				$this->assertFileIsReadable( $dir . $file );
 			}
 
 			// CSS files should all exist.
 			$this->assertIsArray( $theme['Stylesheet Files'] );
 			$this->assertNotEmpty( $theme['Stylesheet Files'] );
 			foreach ( $theme['Stylesheet Files'] as $file ) {
-				$this->assertTrue( is_file( $dir . $file ) );
-				$this->assertTrue( is_readable( $dir . $file ) );
+				$this->assertFileIsReadable( $dir . $file );
 			}
 
-			$this->assertTrue( is_dir( $dir . $theme['Template Dir'] ) );
-			$this->assertTrue( is_dir( $dir . $theme['Stylesheet Dir'] ) );
+			$this->assertDirectoryExists( $dir . $theme['Template Dir'] );
+			$this->assertDirectoryExists( $dir . $theme['Stylesheet Dir'] );
 
 			$this->assertSame( 'publish', $theme['Status'] );
 
-			$this->assertTrue( is_file( $dir . $theme['Stylesheet Dir'] . '/' . $theme['Screenshot'] ) );
-			$this->assertTrue( is_readable( $dir . $theme['Stylesheet Dir'] . '/' . $theme['Screenshot'] ) );
+			$this->assertFileIsReadable( $dir . $theme['Stylesheet Dir'] . '/' . $theme['Screenshot'] );
 		}
 	}
 
