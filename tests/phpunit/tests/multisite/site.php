@@ -838,27 +838,28 @@ if ( is_multisite() ) :
 			$this->assertTrue( is_main_site() );
 
 			$site = get_current_site();
+			$date = date_format( date_create( 'now' ), 'Y/m' );
 
 			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 
 			$blog_id = self::factory()->blog->create();
 
 			switch_to_blog( $blog_id );
 			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 			restore_current_blog();
 
 			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 		}
 
