@@ -247,7 +247,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 				'expected' => 'nonvisible%ef%bb%bf-%e2%80%aerandomly-%e2%80%8ein-the-%e2%80%8e-title%e2%80%8e',
 			),
 		);
-	}	
+	}
 
 	/**
 	 * @ticket 47912
