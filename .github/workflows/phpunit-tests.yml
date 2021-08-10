@@ -203,7 +203,8 @@ jobs:
         run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
 
       - name: Run PHPUnit tests
-        if: ${{ matrix.php >= '7.0' && matrix.php != '8.1' }}
+        if: ${{ matrix.php >= '7.0' }}
+        continue-on-error: ${{ matrix.php == '8.1' }}
         run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
