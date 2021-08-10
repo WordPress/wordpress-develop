@@ -357,5 +357,4 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }
