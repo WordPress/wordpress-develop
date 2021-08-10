@@ -39,17 +39,17 @@ function wp_webfonts() {
  * @param string           $handle Name of the stylesheet. Should be unique.
  * @param string|bool      $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
  *                                 If source is set to false, stylesheet is an alias of other stylesheets it depends on.
- * @param string[]         $deps   Optional. An array of registered stylesheet handles this stylesheet depends on. Default empty array.
+ * @param array            $params Optional. An array of parameters. Default empty array.
  * @param string|bool|null $ver    Optional. String specifying stylesheet version number, if it has one, which is added to the URL
  *                                 as a query string for cache busting purposes. If version is set to false, a version
  *                                 number is automatically added equal to current installed WordPress version.
  *                                 If set to null, no version is added.
  * @param string           $media  Optional. The media for which this stylesheet has been defined.
- *                                 Default 'all'. Accepts media types like 'all', 'print' and 'screen', or media queries like
+ *                                 Default 'screen'. Accepts media types like 'all', 'print' and 'screen', or media queries like
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  * @return bool Whether the style has been registered. True on success, false on failure.
  */
-function wp_register_webfont( $handle, $src, $deps = array(), $ver = false, $media = 'all' ) {
+function wp_register_webfont( $handle, $src, $deps = array(), $ver = false, $media = 'screen' ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	return wp_webfonts()->add( $handle, $src, $deps, $ver, $media );
@@ -84,23 +84,23 @@ function wp_deregister_webfont( $handle ) {
  * @param string           $handle Name of the stylesheet. Should be unique.
  * @param string           $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
  *                                 Default empty.
- * @param string[]         $deps   Optional. An array of registered stylesheet handles this stylesheet depends on. Default empty array.
+ * @param array            $params Optional. An array of parameters. Default empty array.
  * @param string|bool|null $ver    Optional. String specifying stylesheet version number, if it has one, which is added to the URL
  *                                 as a query string for cache busting purposes. If version is set to false, a version
  *                                 number is automatically added equal to current installed WordPress version.
  *                                 If set to null, no version is added.
  * @param string           $media  Optional. The media for which this stylesheet has been defined.
- *                                 Default 'all'. Accepts media types like 'all', 'print' and 'screen', or media queries like
+ *                                 Default 'screen'. Accepts media types like 'all', 'print' and 'screen', or media queries like
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  */
-function wp_enqueue_webfont( $handle, $src = '', $deps = array(), $ver = false, $media = 'all' ) {
+function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = false, $media = 'screen' ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_webfonts = wp_webfonts();
 
 	if ( $src ) {
 		$_handle = explode( '?', $handle );
-		$wp_webfonts->add( $_handle[0], $src, $deps, $ver, $media );
+		$wp_webfonts->add( $_handle[0], $src, $params, $ver, $media );
 	}
 
 	$wp_webfonts->enqueue( $handle );
