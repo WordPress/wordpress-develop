@@ -152,10 +152,11 @@ class WP_User_Query {
 	 *                                             roles. Default empty array.
 	 *     @type string[]     $role__not_in        An array of role names to exclude. Users matching one or more of these
 	 *                                             roles will not be included in results. Default empty array.
-	 *     @type string       $capability          An capability that users must match to be included in results. Default empty.
-	 *     @type string[]     $capability__in      An array or comma-separated list of of capability names that users must match
+	 *     @type string       $capability          An array or a comma-separated list of capability names that users must match
 	 *                                             to be included in results. Note that this is an inclusive list: users
-	 *                                             must match *each* capability. Default empty array.
+	 *                                             must match *each* role. Default empty.
+	 *     @type string[]     $capability__in      An array capability names. Matched users must have at least one of these
+	 *                                             capabilities. Default empty array.
 	 *     @type string[]     $capability__not_in  An array of capability names to exclude. Users matching one or more of these
 	 *                                             capabilities will not be included in results. Default empty array.
 	 *     @type string       $meta_key            User meta key. Default empty.
