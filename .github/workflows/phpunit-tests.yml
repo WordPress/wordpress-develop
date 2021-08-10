@@ -191,7 +191,7 @@ jobs:
         run: npm run env:install
 
       - name: Run slow PHPUnit tests
-        if: ${{ matrix.php != '8.1' && matrix.split_slow }}
+        if: ${{ matrix.split_slow }}
         run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
 
       - name: Run PHPUnit tests for single site excluding slow tests
