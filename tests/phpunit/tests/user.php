@@ -60,8 +60,8 @@ class Tests_User extends WP_UnitTestCase {
 		self::$_author = get_user_by( 'ID', self::$author_id );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->author = clone self::$_author;
 	}
@@ -155,7 +155,7 @@ class Tests_User extends WP_UnitTestCase {
 		);
 
 		// There is already some stuff in the array.
-		$this->assertTrue( is_array( get_user_meta( self::$author_id ) ) );
+		$this->assertIsArray( get_user_meta( self::$author_id ) );
 
 		foreach ( $vals as $k => $v ) {
 			update_user_meta( self::$author_id, $k, $v );
@@ -166,7 +166,8 @@ class Tests_User extends WP_UnitTestCase {
 		// For reasons unclear, the resulting array is indexed numerically; meta keys are not included anywhere.
 		// So we'll just check to make sure our values are included somewhere.
 		foreach ( $vals as $k => $v ) {
-			$this->assertTrue( isset( $out[ $k ] ) && $out[ $k ][0] === $v );
+			$this->assertArrayHasKey( $k, $out );
+			$this->assertSame( $v, $out[ $k ][0] );
 		}
 		// Delete one key and check again.
 		$keys          = array_keys( $vals );
@@ -176,9 +177,10 @@ class Tests_User extends WP_UnitTestCase {
 		// Make sure that key is excluded from the results.
 		foreach ( $vals as $k => $v ) {
 			if ( $k === $key_to_delete ) {
-				$this->assertFalse( isset( $out[ $k ] ) );
+				$this->assertArrayNotHasKey( $k, $out );
 			} else {
-				$this->assertTrue( isset( $out[ $k ] ) && $out[ $k ][0] === $v );
+				$this->assertArrayHasKey( $k, $out );
+				$this->assertSame( $v, $out[ $k ][0] );
 			}
 		}
 	}
@@ -216,7 +218,7 @@ class Tests_User extends WP_UnitTestCase {
 			$user->filter = $context;
 			$user->init( $user->data );
 
-			$this->assertInternalType( 'int', $user->ID );
+			$this->assertIsInt( $user->ID );
 		}
 	}
 
@@ -480,7 +482,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		// Insert a post and make sure the ID is OK.
 		$post_id = wp_insert_post( $post );
-		$this->assertTrue( is_numeric( $post_id ) );
+		$this->assertIsNumeric( $post_id );
 
 		setup_postdata( get_post( $post_id ) );
 
@@ -767,7 +769,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$response = wpmu_validate_user_signup( $user_data['user_login'], $user_data['user_email'] );
 		$this->assertInstanceOf( 'WP_Error', $response['errors'] );
-		$this->assertSame( 0, count( $response['errors']->get_error_codes() ) );
+		$this->assertCount( 0, $response['errors']->get_error_codes() );
 	}
 
 	function _illegal_user_logins_data() {
@@ -870,7 +872,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', $u );
+		$this->assertIsInt( $u );
 		$this->assertGreaterThan( 0, $u );
 
 		$user = new WP_User( $u );
@@ -1111,7 +1113,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_url() {
@@ -1122,7 +1124,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_email() {
@@ -1133,7 +1135,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_nicename() {
@@ -1144,7 +1146,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_display_name() {
@@ -1155,7 +1157,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	/**
@@ -1350,8 +1352,8 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $new_email, $recipient->address, 'Admin email change notification recipient not as expected' );
 
 		// Assert that HTML entites have been decode in body and subject.
-		$this->assertContains( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
-		$this->assertNotContains( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, $email->subject, 'Email subject does contains HTML entities' );
+		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
+		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, $email->subject, 'Email subject does contains HTML entities' );
 	}
 
 	/**
@@ -1493,7 +1495,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = edit_user();
 		$user    = get_user_by( 'ID', $user_id );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( 'nickname1', $user->nickname );
 
@@ -1504,7 +1506,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$user_id = edit_user( $user_id );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertSame( 'nickname_updated', $user->nickname );
 
 		// Check not to change an old password if a new password contains only spaces. Ticket #42766.
@@ -1516,7 +1518,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = edit_user( $user_id );
 		$user    = get_user_by( 'ID', $user_id );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertSame( $old_pass, $user->user_pass );
 
 		// Check updating user with missing second password.
@@ -1535,7 +1537,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = edit_user( $user_id );
 		remove_action( 'check_passwords', array( $this, 'action_check_passwords_blank_password' ) );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertSame( 'nickname_updated2', $user->nickname );
 	}
 
@@ -1653,8 +1655,8 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'new-email@test.dev', $recipient->address, 'User email change confirmation recipient not as expected' );
 
 		// Assert that HTML entites have been decoded in body and subject.
-		$this->assertContains( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
-		$this->assertNotContains( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, 'Email subject does contains HTML entities' );
+		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
+		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, 'Email subject does contains HTML entities' );
 	}
 
 	/**
@@ -1728,10 +1730,10 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported users.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported user properties.
-		$this->assertSame( 11, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 11, $actual['data'][0]['data'] );
 	}
 
 	/**
@@ -1862,11 +1864,11 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported users.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported user properties (the 11 core properties,
 		// plus 1 additional from the filter).
-		$this->assertSame( 12, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the item added by the filter was retained.
 		$this->assertSame(
@@ -1894,11 +1896,11 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported users.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported user properties
 		// (the 11 core properties, plus 1 additional from the filter).
-		$this->assertSame( 12, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the duplicate 'name' => 'User ID' was stripped.
 		$this->assertSame(

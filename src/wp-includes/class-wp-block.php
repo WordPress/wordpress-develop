@@ -61,7 +61,7 @@ class WP_Block {
 	 * List of inner blocks (of this same class)
 	 *
 	 * @since 5.5.0
-	 * @var WP_Block[]
+	 * @var WP_Block_List
 	 */
 	public $inner_blocks = array();
 
@@ -227,6 +227,10 @@ class WP_Block {
 
 		if ( ! empty( $this->block_type->script ) ) {
 			wp_enqueue_script( $this->block_type->script );
+		}
+
+		if ( ! empty( $this->block_type->view_script ) && empty( $this->block_type->render_callback ) ) {
+			wp_enqueue_script( $this->block_type->view_script );
 		}
 
 		if ( ! empty( $this->block_type->style ) ) {

@@ -121,13 +121,13 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 		if ( in_array( 'theme-file-child', $existence, true ) ) {
 			$this->assertFileExists( WP_CONTENT_DIR . "/themes/theme-file-child/{$file}" );
 		} else {
-			$this->assertFileNotExists( WP_CONTENT_DIR . "/themes/theme-file-child/{$file}" );
+			$this->assertFileDoesNotExist( WP_CONTENT_DIR . "/themes/theme-file-child/{$file}" );
 		}
 
 		if ( in_array( 'theme-file-parent', $existence, true ) ) {
 			$this->assertFileExists( WP_CONTENT_DIR . "/themes/theme-file-parent/{$file}" );
 		} else {
-			$this->assertFileNotExists( WP_CONTENT_DIR . "/themes/theme-file-parent/{$file}" );
+			$this->assertFileDoesNotExist( WP_CONTENT_DIR . "/themes/theme-file-parent/{$file}" );
 		}
 
 	}

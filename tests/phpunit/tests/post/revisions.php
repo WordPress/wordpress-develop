@@ -15,8 +15,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->post_type = rand_str( 20 );
 	}
 
@@ -577,7 +577,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
 
-	/*
+	/**
 	 * @ticket 51550
 	 */
 	public function test_wp_revisions_to_keep_filter() {
@@ -602,7 +602,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
 	}
 
-	/*
+	/**
 	 * @ticket 51550
 	 */
 	public function test_wp_post_type_revisions_to_keep_filter() {
@@ -623,6 +623,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 				return $generic;
 			}
 		);
+
 		$this->assertSame( $generic, wp_revisions_to_keep( $post ) );
 
 		$expected = $generic + 1;
@@ -633,6 +634,24 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 				return $expected;
 			}
 		);
+
 		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
+	}
+
+	/**
+	 * Verifies that trying to create a revision with an invalid ID returns a WP_Error.
+	 *
+	 * @ticket 30009
+	 */
+	public function test_wp_save_post_revision_error() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'ID' => PHP_INT_MAX,
+			)
+		);
+
+		$revision = _wp_put_post_revision( $post );
+
+		$this->assertWPError( $revision );
 	}
 }

@@ -34,8 +34,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	/**
 	 * Set up the test fixture.
 	 */
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		// Define wp_doing_ajax so that wp_die() will be used instead of die().
 		add_filter( 'wp_doing_ajax', '__return_true' );
@@ -160,7 +160,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 		}
 		$output = json_decode( ob_get_clean(), true );
 		$this->assertTrue( $output['success'] );
-		$this->assertInternalType( 'array', $output['data'] );
+		$this->assertIsArray( $output['data'] );
 		$this->assertArrayHasKey( 'contents', $output['data'] );
 		$this->assertArrayHasKey( 'errors', $output['data'] );
 		$this->assertArrayHasKey( 'foo', $output['data']['contents'] );
@@ -280,7 +280,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * @return string
 	 */
 	function render_callback_blogname( $partial, $context ) {
-		$this->assertInternalType( 'array', $context );
+		$this->assertIsArray( $context );
 		$this->assertInstanceOf( 'WP_Customize_Partial', $partial );
 		return get_bloginfo( 'name', 'display' );
 	}
@@ -293,7 +293,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * @return string
 	 */
 	function render_callback_blogdescription( $partial, $context ) {
-		$this->assertInternalType( 'array', $context );
+		$this->assertIsArray( $context );
 		$this->assertInstanceOf( 'WP_Customize_Partial', $partial );
 		$x = get_bloginfo( 'description', 'display' );
 		return $x;
@@ -374,7 +374,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * @return array Response.
 	 */
 	function filter_customize_render_partials_response( $response, $component, $partial_placements ) {
-		$this->assertInternalType( 'array', $response );
+		$this->assertIsArray( $response );
 		$this->assertInstanceOf( 'WP_Customize_Selective_Refresh', $component );
 		if ( isset( $this->expected_partial_ids ) ) {
 			$this->assertSameSets( $this->expected_partial_ids, array_keys( $partial_placements ) );
@@ -509,11 +509,11 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	/**
 	 * Tear down.
 	 */
-	function tearDown() {
+	function tear_down() {
 		$this->expected_partial_ids = null;
 		$this->wp_customize         = null;
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 }

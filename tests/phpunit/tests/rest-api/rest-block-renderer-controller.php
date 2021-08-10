@@ -132,8 +132,8 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @since 5.0.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->register_test_block();
 		$this->register_post_context_test_block();
@@ -146,12 +146,12 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @since 5.0.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		WP_Block_Type_Registry::get_instance()->unregister( self::$block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$context_block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$non_dynamic_block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$dynamic_block_with_boolean_attributes_block_name );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -478,7 +478,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->assertTrue( empty( $data['rendered'] ) );
+		$this->assertEmpty( $data['rendered'] );
 
 		// Now test with post ID.
 		$request->set_param( 'post_id', self::$post_id );
@@ -506,7 +506,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertContains( $string_attribute, $response->get_data()['rendered'] );
+		$this->assertStringContainsString( $string_attribute, $response->get_data()['rendered'] );
 	}
 
 	/**

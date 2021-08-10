@@ -56,9 +56,8 @@ function _build_template_result_from_post( $post ) {
  *     @type array  $slug__in List of slugs to include.
  *     @type int    $wp_id Post ID of customized template.
  * }
- * @param string $template_type wp_template.
- *
- * @return array Templates.
+ * @param string $template_type Optional. The template type (post type). Default 'wp_template'.
+ * @return WP_Block_Template[] Block template objects.
  */
 function get_block_templates( $query = array(), $template_type = 'wp_template' ) {
 	$wp_query_args = array(
@@ -88,7 +87,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 
 	$template_query = new WP_Query( $wp_query_args );
 	$query_result   = array();
-	foreach ( $template_query->get_posts() as $post ) {
+	foreach ( $template_query->posts as $post ) {
 		$template = _build_template_result_from_post( $post );
 
 		if ( ! is_wp_error( $template ) ) {
@@ -104,9 +103,8 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
  *
  * @since 5.8.0
  *
- * @param string $id Template unique identifier (example: theme_slug//template_slug).
- * @param string $template_type wp_template.
- *
+ * @param string $id            Template unique identifier (example: theme_slug//template_slug).
+ * @param string $template_type Optional. The template type (post type). Default 'wp_template'.
  * @return WP_Block_Template|null Template.
  */
 function get_block_template( $id, $template_type = 'wp_template' ) {
@@ -130,7 +128,7 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 		),
 	);
 	$template_query       = new WP_Query( $wp_query_args );
-	$posts                = $template_query->get_posts();
+	$posts                = $template_query->posts;
 
 	if ( count( $posts ) > 0 ) {
 		$template = _build_template_result_from_post( $posts[0] );

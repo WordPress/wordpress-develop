@@ -631,6 +631,33 @@ class WP_Debug_Data {
 			'debug' => ( is_array( $gd ) ? $gd['GD Version'] : 'not available' ),
 		);
 
+		$gd_image_formats     = array();
+		$gd_supported_formats = array(
+			'GIF Create' => 'GIF',
+			'JPEG'       => 'JPEG',
+			'PNG'        => 'PNG',
+			'WebP'       => 'WebP',
+			'BMP'        => 'BMP',
+			'AVIF'       => 'AVIF',
+			'HEIF'       => 'HEIF',
+			'TIFF'       => 'TIFF',
+			'XPM'        => 'XPM',
+		);
+
+		foreach ( $gd_supported_formats as $format_key => $format ) {
+			$index = $format_key . ' Support';
+			if ( isset( $gd[ $index ] ) && $gd[ $index ] ) {
+				array_push( $gd_image_formats, $format );
+			}
+		}
+
+		if ( ! empty( $gd_image_formats ) ) {
+			$info['wp-media']['fields']['gd_formats'] = array(
+				'label' => __( 'GD supported file formats' ),
+				'value' => implode( ', ', $gd_image_formats ),
+			);
+		}
+
 		// Get Ghostscript information, if available.
 		if ( function_exists( 'exec' ) ) {
 			$gs = exec( 'gs --version' );
@@ -896,6 +923,21 @@ class WP_Debug_Data {
 			'label'   => __( 'Database collation' ),
 			'value'   => $wpdb->collate,
 			'private' => true,
+		);
+
+		$info['wp-database']['fields']['max_allowed_packet'] = array(
+			'label' => __( 'Max allowed packet size' ),
+			'value' => self::get_mysql_var( 'max_allowed_packet' ),
+		);
+
+		$info['wp-database']['fields']['max_connections'] = array(
+			'label' => __( 'Max connections number' ),
+			'value' => self::get_mysql_var( 'max_connections' ),
+		);
+
+		$info['wp-database']['fields']['query_cache_size'] = array(
+			'label' => __( 'Query cache size' ),
+			'value' => self::get_mysql_var( 'query_cache_size' ),
 		);
 
 		// List must use plugins if there are any.
@@ -1415,6 +1457,31 @@ class WP_Debug_Data {
 		$info = apply_filters( 'debug_information', $info );
 
 		return $info;
+	}
+
+	/**
+	 * Returns the value of a MySQL variable.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $var Name of the MySQL variable.
+	 * @return string|null The variable value on success. Null if the variable does not exist.
+	 */
+	public static function get_mysql_var( $var ) {
+		global $wpdb;
+
+		$result = $wpdb->get_row(
+			$wpdb->prepare( 'SHOW VARIABLES LIKE %s', $var ),
+			ARRAY_A
+		);
+
+		if ( ! empty( $result ) && array_key_exists( 'Value', $result ) ) {
+			return $result['Value'];
+		}
+
+		return null;
 	}
 
 	/**

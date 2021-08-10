@@ -1,8 +1,11 @@
 <phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
 		bootstrap="tests/phpunit/includes/bootstrap.php"
 		backupGlobals="false"
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
 		>
 	<testsuites>
 		<!-- Default test suite to run all tests. -->
@@ -29,17 +32,6 @@
 	<php>
 		<const name="WP_RUN_CORE_TESTS" value="1" />
 	</php>
-	<listeners>
-		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
-			<arguments>
-				<array>
-					<element key="slowThreshold">
-						<integer>150</integer>
-					</element>
-				</array>
-			</arguments>
-		</listener>
-	</listeners>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
 			<directory suffix=".php">src</directory>

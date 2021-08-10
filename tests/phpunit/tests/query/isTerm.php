@@ -22,10 +22,8 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	protected $tag;
 	protected $tax;
 
-	function setUp() {
-		parent::setUp();
-
-		set_current_screen( 'front' );
+	function set_up() {
+		parent::set_up();
 
 		$GLOBALS['wp_the_query'] = new WP_Query();
 		$GLOBALS['wp_query']     = $GLOBALS['wp_the_query'];

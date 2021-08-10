@@ -17,18 +17,18 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 */
 	public $undefined;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->manager           = $GLOBALS['wp_customize'];
 		$this->undefined         = new stdClass();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_constructor_without_args() {
@@ -730,7 +730,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 */
 	public function filter_validate_for_test_validate( $validity, $value ) {
 		$this->assertInstanceOf( 'WP_Error', $validity );
-		$this->assertInternalType( 'string', $value );
+		$this->assertIsString( $value );
 		if ( sanitize_key( $value ) !== $value ) {
 			$validity->add( 'invalid_key', 'Invalid key' );
 		}

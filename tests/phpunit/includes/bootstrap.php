@@ -3,13 +3,6 @@
  * Installs WordPress for running the tests and loads WordPress and the test libraries
  */
 
-/**
- * Compatibility with PHPUnit 6+
- */
-if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-	require_once __DIR__ . '/phpunit6/compat.php';
-}
-
 if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	$config_file_path = WP_TESTS_CONFIG_FILE_PATH;
 } else {
@@ -30,7 +23,7 @@ if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 global $wpdb, $current_site, $current_blog, $wp_rewrite, $shortcode_tags, $wp, $phpmailer, $wp_theme_directories;
 
 if ( ! is_readable( $config_file_path ) ) {
-	echo "Error: wp-tests-config.php is missing! Please use wp-tests-config-sample.php to create a config file.\n";
+	echo 'Error: wp-tests-config.php is missing! Please use wp-tests-config-sample.php to create a config file.' . PHP_EOL;
 	exit( 1 );
 }
 
@@ -38,18 +31,26 @@ require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
-	echo "Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
+	echo 'Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.' . PHP_EOL;
 	exit( 1 );
 }
 
 $phpunit_version = tests_get_phpunit_version();
 
-if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
+if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.7.21." . PHP_EOL,
 		$phpunit_version
 	);
-	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
+	echo 'Please use the latest PHPUnit version supported for the PHP version you are running the tests on.' . PHP_EOL;
+	exit( 1 );
+}
+
+// Check that the PHPUnit Polyfills autoloader exists.
+$phpunit_polyfills_autoloader = __DIR__ . '/../../../vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+if ( ! file_exists( $phpunit_polyfills_autoloader ) ) {
+	echo 'Error: You need to run `composer update` before running the tests.' . PHP_EOL;
+	echo 'You can still use a PHPUnit phar to run them, but the dependencies do need to be installed.' . PHP_EOL;
 	exit( 1 );
 }
 
@@ -68,10 +69,10 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 
 	if ( $missing_extensions ) {
 		printf(
-			"Error: The following required PHP extensions are missing from the testing environment: %s.\n",
+			'Error: The following required PHP extensions are missing from the testing environment: %s.' . PHP_EOL,
 			implode( ', ', $missing_extensions )
 		);
-		echo "Please make sure they are installed and enabled.\n",
+		echo 'Please make sure they are installed and enabled.' . PHP_EOL,
 		exit( 1 );
 	}
 }
@@ -92,10 +93,10 @@ foreach ( $required_constants as $constant ) {
 
 if ( $missing_constants ) {
 	printf(
-		"Error: The following required constants are not defined: %s.\n",
+		'Error: The following required constants are not defined: %s.' . PHP_EOL,
 		implode( ', ', $missing_constants )
 	);
-	echo "Please check out `wp-tests-config-sample.php` for an example.\n",
+	echo 'Please check out `wp-tests-config-sample.php` for an example.' . PHP_EOL,
 	exit( 1 );
 }
 
@@ -193,18 +194,23 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
-if ( version_compare( tests_get_phpunit_version(), '7.5', '>=' ) ) {
-	require __DIR__ . '/phpunit7/testcase.php';
-} else {
-	require __DIR__ . '/testcase.php';
+// Load class aliases for compatibility with PHPUnit 6+.
+if ( version_compare( tests_get_phpunit_version(), '6.0', '>=' ) ) {
+	require __DIR__ . '/phpunit6/compat.php';
 }
 
+// Load the PHPUnit Polyfills autoloader (check for existence of the file is done earlier in the script).
+require_once $phpunit_polyfills_autoloader;
+unset( $phpunit_polyfills_autoloader );
+
+require __DIR__ . '/phpunit-adapter-testcase.php';
+require __DIR__ . '/abstract-testcase.php';
+require __DIR__ . '/testcase.php';
 require __DIR__ . '/testcase-rest-api.php';
 require __DIR__ . '/testcase-rest-controller.php';
 require __DIR__ . '/testcase-rest-post-type-controller.php';
 require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
-require __DIR__ . '/testcase-block-supports.php';
 require __DIR__ . '/testcase-canonical.php';
 require __DIR__ . '/testcase-xml.php';
 require __DIR__ . '/exceptions.php';

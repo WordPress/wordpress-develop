@@ -17,7 +17,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "checked='checked'", $output );
+		$this->assertStringContainsString( "checked='checked'", $output );
 	}
 
 	/**
@@ -33,7 +33,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'class="popular-category"', $output );
+		$this->assertStringContainsString( 'class="popular-category"', $output );
 	}
 
 	public function data_wp_terms_checklist_with_selected_cats() {
@@ -185,8 +185,8 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 		$expected = sprintf( 'notice %s settings-error is-dismissible', $expected );
 
-		$this->assertContains( $expected, $output );
-		$this->assertNotContains( 'notice-notice-', $output );
+		$this->assertStringContainsString( $expected, $output );
+		$this->assertStringNotContainsString( 'notice-notice-', $output );
 	}
 
 	public function settings_errors_css_classes_provider() {
@@ -234,8 +234,6 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 		// This doesn't actually get removed due to the invalid priority.
 		remove_meta_box( 'dashboard2', 'dashboard', 'normal' );
-
-		set_current_screen( 'front' );
 	}
 
 }

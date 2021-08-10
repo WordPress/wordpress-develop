@@ -16,7 +16,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		$excerpt = get_comment_excerpt( $comment_id );
 
-		$this->assertSame( 20, count( explode( ' ', $excerpt ) ) );
+		$this->assertCount( 20, explode( ' ', $excerpt ) );
 	}
 
 	public function test_get_comment_excerpt_filtered() {
@@ -30,7 +30,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		$excerpt = get_comment_excerpt( $comment_id );
 
-		$this->assertSame( 10, count( explode( ' ', $excerpt ) ) );
+		$this->assertCount( 10, explode( ' ', $excerpt ) );
 	}
 
 	public function _filter_comment_excerpt_length() {

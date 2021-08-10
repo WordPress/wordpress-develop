@@ -16,7 +16,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_settings() {
+	public function test_get_settings() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -61,15 +61,146 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSetsWithIndex( $expected, $actual );
+		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
-	function test_get_stylesheet() {
+	/**
+	 * @ticket 53397
+	 */
+	public function test_get_settings_presets_are_keyed_by_origin() {
+		$core_origin = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'       => array(
+						'palette' => array(
+							array(
+								'slug'  => 'white',
+								'color' => 'white',
+							),
+						),
+					),
+					'invalid/key' => 'value',
+					'blocks'      => array(
+						'core/group' => array(
+							'color' => array(
+								'palette' => array(
+									array(
+										'slug'  => 'white',
+										'color' => 'white',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'core'
+		);
+		$no_origin   = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'       => array(
+						'palette' => array(
+							array(
+								'slug'  => 'black',
+								'color' => 'black',
+							),
+						),
+					),
+					'invalid/key' => 'value',
+					'blocks'      => array(
+						'core/group' => array(
+							'color' => array(
+								'palette' => array(
+									array(
+										'slug'  => 'black',
+										'color' => 'black',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual_core      = $core_origin->get_raw_data();
+		$actual_no_origin = $no_origin->get_raw_data();
+
+		$expected_core      = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'color'  => array(
+					'palette' => array(
+						'core' => array(
+							array(
+								'slug'  => 'white',
+								'color' => 'white',
+							),
+						),
+					),
+				),
+				'blocks' => array(
+					'core/group' => array(
+						'color' => array(
+							'palette' => array(
+								'core' => array(
+									array(
+										'slug'  => 'white',
+										'color' => 'white',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+		$expected_no_origin = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'color'  => array(
+					'palette' => array(
+						'theme' => array(
+							array(
+								'slug'  => 'black',
+								'color' => 'black',
+							),
+						),
+					),
+				),
+				'blocks' => array(
+					'core/group' => array(
+						'color' => array(
+							'palette' => array(
+								'theme' => array(
+									array(
+										'slug'  => 'black',
+										'color' => 'black',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected_core, $actual_core );
+		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
+	}
+
+	/**
+	 * @ticket 53175
+	 */
+	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
-					'color'  => array(
+					'color'      => array(
 						'text'    => 'value',
 						'palette' => array(
 							array(
@@ -78,8 +209,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 						),
 					),
-					'misc'   => 'value',
-					'blocks' => array(
+					'typography' => array(
+						'fontFamilies' => array(
+							array(
+								'slug'       => 'small',
+								'fontFamily' => '14px',
+							),
+							array(
+								'slug'       => 'big',
+								'fontFamily' => '41px',
+							),
+						),
+					),
+					'misc'       => 'value',
+					'blocks'     => array(
 						'core/group' => array(
 							'custom' => array(
 								'base-font'   => 16,
@@ -156,21 +299,24 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'body{--wp--preset--color--grey: grey;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'body{--wp--preset--color--grey: grey;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet()
 		);
-		$this->assertEquals(
-			'body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet( 'block_styles' )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			'body{--wp--preset--color--grey: grey;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}',
 			$theme_json->get_stylesheet( 'css_variables' )
 		);
 	}
 
-	function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
+	/**
+	 * @ticket 52991
+	 */
+	public function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -191,13 +337,16 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'h1.has-white-color,h2.has-white-color,h3.has-white-color,h4.has-white-color,h5.has-white-color,h6.has-white-color{color: #fff !important;}h1.has-white-background-color,h2.has-white-background-color,h3.has-white-background-color,h4.has-white-background-color,h5.has-white-background-color,h6.has-white-background-color{background-color: #fff !important;}',
+		$this->assertSame(
+			'h1.has-white-color,h2.has-white-color,h3.has-white-color,h4.has-white-color,h5.has-white-color,h6.has-white-color{color: var(--wp--preset--color--white) !important;}h1.has-white-background-color,h2.has-white-background-color,h3.has-white-background-color,h4.has-white-background-color,h5.has-white-background-color,h6.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}',
 			$theme_json->get_stylesheet( 'block_styles' )
 		);
 	}
 
-	function test_get_stylesheet_preset_rules_come_after_block_rules() {
+	/**
+	 * @ticket 53175
+	 */
+	public function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -227,16 +376,19 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'.wp-block-group{--wp--preset--color--grey: grey;}.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: grey !important;}.wp-block-group.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'.wp-block-group{--wp--preset--color--grey: grey;}.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet()
 		);
-		$this->assertEquals(
-			'.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: grey !important;}.wp-block-group.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet( 'block_styles' )
 		);
 	}
 
+	/**
+	 * @ticket 53175
+	 */
 	public function test_get_stylesheet_preset_values_are_marked_as_important() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -265,11 +417,12 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 					),
 				),
-			)
+			),
+			'core'
 		);
 
-		$this->assertEquals(
-			'body{--wp--preset--color--grey: grey;}p{background-color: blue;color: red;font-size: 12px;line-height: 1.3;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'body{--wp--preset--color--grey: grey;}p{background-color: blue;color: red;font-size: 12px;line-height: 1.3;}.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet()
 		);
 	}
@@ -278,35 +431,37 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 52991
 	 */
 	public function test_merge_incoming_data() {
-		$initial = array(
-			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
-			'settings' => array(
-				'color'  => array(
-					'custom'  => false,
-					'palette' => array(
-						array(
-							'slug'  => 'red',
-							'color' => 'red',
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'  => array(
+						'custom'  => false,
+						'palette' => array(
+							array(
+								'slug'  => 'red',
+								'color' => 'red',
+							),
+							array(
+								'slug'  => 'green',
+								'color' => 'green',
+							),
 						),
-						array(
-							'slug'  => 'green',
-							'color' => 'green',
+					),
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color' => array(
+								'custom' => false,
+							),
 						),
 					),
 				),
-				'blocks' => array(
-					'core/paragraph' => array(
-						'color' => array(
-							'custom' => false,
-						),
+				'styles'   => array(
+					'typography' => array(
+						'fontSize' => '12',
 					),
 				),
-			),
-			'styles'   => array(
-				'typography' => array(
-					'fontSize' => '12',
-				),
-			),
+			)
 		);
 
 		$add_new_block = array(
@@ -436,31 +591,29 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'custom'         => true,
 					'customGradient' => true,
 					'palette'        => array(
-						array(
-							'slug'  => 'red',
-							'color' => 'red',
-						),
-						array(
-							'slug'  => 'green',
-							'color' => 'green',
-						),
-						array(
-							'slug'  => 'blue',
-							'color' => 'blue',
+						'theme' => array(
+							array(
+								'slug'  => 'blue',
+								'color' => 'blue',
+							),
 						),
 					),
 					'gradients'      => array(
-						array(
-							'slug'     => 'gradient',
-							'gradient' => 'gradient',
+						'theme' => array(
+							array(
+								'slug'     => 'gradient',
+								'gradient' => 'gradient',
+							),
 						),
 					),
 				),
 				'typography' => array(
 					'fontSizes' => array(
-						array(
-							'slug' => 'fontSize',
-							'size' => 'fontSize',
+						'theme' => array(
+							array(
+								'slug' => 'fontSize',
+								'size' => 'fontSize',
+							),
 						),
 					),
 				),
@@ -502,7 +655,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$theme_json = new WP_Theme_JSON( $initial );
 		$theme_json->merge( new WP_Theme_JSON( $add_new_block ) );
 		$theme_json->merge( new WP_Theme_JSON( $add_key_in_settings ) );
 		$theme_json->merge( new WP_Theme_JSON( $update_key_in_settings ) );
@@ -516,9 +668,212 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53175
+	 */
+	public function test_merge_incoming_data_empty_presets() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'      => array(
+						'duotone'   => array(
+							array(
+								'slug'   => 'value',
+								'colors' => array( 'red', 'green' ),
+							),
+						),
+						'gradients' => array(
+							array(
+								'slug'     => 'gradient',
+								'gradient' => 'gradient',
+							),
+						),
+						'palette'   => array(
+							array(
+								'slug'  => 'red',
+								'color' => 'red',
+							),
+						),
+					),
+					'spacing'    => array(
+						'units' => array( 'px', 'em' ),
+					),
+					'typography' => array(
+						'fontSizes' => array(
+							array(
+								'slug'  => 'size',
+								'value' => 'size',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$theme_json->merge(
+			new WP_Theme_JSON(
+				array(
+					'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+					'settings' => array(
+						'color'      => array(
+							'duotone'   => array(),
+							'gradients' => array(),
+							'palette'   => array(),
+						),
+						'spacing'    => array(
+							'units' => array(),
+						),
+						'typography' => array(
+							'fontSizes' => array(),
+						),
+					),
+				)
+			)
+		);
+
+		$actual   = $theme_json->get_raw_data();
+		$expected = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'color'      => array(
+					'duotone'   => array(),
+					'gradients' => array(
+						'theme' => array(),
+					),
+					'palette'   => array(
+						'theme' => array(),
+					),
+				),
+				'spacing'    => array(
+					'units' => array(),
+				),
+				'typography' => array(
+					'fontSizes' => array(
+						'theme' => array(),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 53175
+	 */
+	public function test_merge_incoming_data_null_presets() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'      => array(
+						'duotone'   => array(
+							array(
+								'slug'   => 'value',
+								'colors' => array( 'red', 'green' ),
+							),
+						),
+						'gradients' => array(
+							array(
+								'slug'     => 'gradient',
+								'gradient' => 'gradient',
+							),
+						),
+						'palette'   => array(
+							array(
+								'slug'  => 'red',
+								'color' => 'red',
+							),
+						),
+					),
+					'spacing'    => array(
+						'units' => array( 'px', 'em' ),
+					),
+					'typography' => array(
+						'fontSizes' => array(
+							array(
+								'slug'  => 'size',
+								'value' => 'size',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$theme_json->merge(
+			new WP_Theme_JSON(
+				array(
+					'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+					'settings' => array(
+						'color'      => array(
+							'custom' => false,
+						),
+						'spacing'    => array(
+							'customMargin' => false,
+						),
+						'typography' => array(
+							'customLineHeight' => false,
+						),
+					),
+				)
+			)
+		);
+
+		$actual   = $theme_json->get_raw_data();
+		$expected = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'color'      => array(
+					'custom'    => false,
+					'duotone'   => array(
+						array(
+							'slug'   => 'value',
+							'colors' => array( 'red', 'green' ),
+						),
+					),
+					'gradients' => array(
+						'theme' => array(
+							array(
+								'slug'     => 'gradient',
+								'gradient' => 'gradient',
+							),
+						),
+					),
+					'palette'   => array(
+						'theme' => array(
+							array(
+								'slug'  => 'red',
+								'color' => 'red',
+							),
+						),
+					),
+				),
+				'spacing'    => array(
+					'customMargin' => false,
+					'units'        => array( 'px', 'em' ),
+				),
+				'typography' => array(
+					'customLineHeight' => false,
+					'fontSizes'        => array(
+						'theme' => array(
+							array(
+								'slug'  => 'size',
+								'value' => 'size',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
 	 * @ticket 52991
 	 */
-	function test_get_from_editor_settings() {
+	public function test_get_from_editor_settings() {
 		$input = array(
 			'disableCustomColors'    => true,
 			'disableCustomGradients' => true,
@@ -570,7 +925,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 				'spacing'    => array(
-					'units' => array( 'px', 'em', 'rem', 'vh', 'vw' ),
+					'units' => array( 'px', 'em', 'rem', 'vh', 'vw', '%' ),
 				),
 				'typography' => array(
 					'customFontSize'   => false,
@@ -594,7 +949,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_no_theme_support() {
+	public function test_get_editor_settings_no_theme_support() {
 		$input = array(
 			'__unstableEnableFullSiteEditingBlocks' => false,
 			'disableCustomColors'                   => false,
@@ -649,20 +1004,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_blank() {
+	public function test_get_editor_settings_blank() {
 		$expected = array(
 			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 			'settings' => array(),
 		);
 		$actual   = WP_Theme_JSON::get_from_editor_settings( array() );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual );
+		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_custom_units_can_be_disabled() {
+	public function test_get_editor_settings_custom_units_can_be_disabled() {
 		add_theme_support( 'custom-units', array() );
 		$input = get_default_block_editor_settings();
 
@@ -673,30 +1028,30 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
+		$this->assertSameSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_custom_units_can_be_enabled() {
+	public function test_get_editor_settings_custom_units_can_be_enabled() {
 		add_theme_support( 'custom-units' );
 		$input = get_default_block_editor_settings();
 
 		$expected = array(
-			'units'         => array( 'px', 'em', 'rem', 'vh', 'vw' ),
+			'units'         => array( 'px', 'em', 'rem', 'vh', 'vw', '%' ),
 			'customPadding' => false,
 		);
 
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
+		$this->assertSameSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_custom_units_can_be_filtered() {
+	public function test_get_editor_settings_custom_units_can_be_filtered() {
 		add_theme_support( 'custom-units', 'rem', 'em' );
 		$input = get_default_block_editor_settings();
 
@@ -707,7 +1062,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
+		$this->assertSameSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
 }

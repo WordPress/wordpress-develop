@@ -25,8 +25,6 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @ticket 41083
 	 * @ticket 43545
-	 * @requires function inet_ntop
-	 * @requires function inet_pton
 	 *
 	 * @param string $raw_ip          Raw IP address.
 	 * @param string $expected_result Expected result.
@@ -90,26 +88,6 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 				'1000:0000:0000:0000:0000:0000:0000:0001or=\"',
 				'::',
 			),
-			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
-			array(
-				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]:400',
-				'1000::',
-			),
-			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
-			array(
-				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]',
-				'1000::',
-			),
-			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
-			array(
-				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]400',
-				'1000::',
-			),
-			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
-			array(
-				'[1000:0000:0000:0000:0000:0000:0000:0001]:235\"or=',
-				'1000::',
-			),
 			// IPv4, no port.
 			array(
 				'10.20.30.45',
@@ -125,35 +103,15 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 				'10.20.30.45/24',
 				'10.20.30.0',
 			),
-			// IPv6, no port.
-			array(
-				'2a03:2880:2110:df07:face:b00c::1',
-				'2a03:2880:2110:df07::',
-			),
-			// IPv6, port.
-			array(
-				'[2a03:2880:2110:df07:face:b00c::1]:20000',
-				'2a03:2880:2110:df07::',
-			),
 			// IPv6, no port, reducible representation.
 			array(
 				'0000:0000:0000:0000:0000:0000:0000:0001',
 				'::',
 			),
-			// IPv6, no port, partially reducible representation.
-			array(
-				'1000:0000:0000:0000:0000:0000:0000:0001',
-				'1000::',
-			),
 			// IPv6, port, reducible representation.
 			array(
 				'[0000:0000:0000:0000:0000:0000:0000:0001]:1234',
 				'::',
-			),
-			// IPv6, port, partially reducible representation.
-			array(
-				'[1000:0000:0000:0000:0000:0000:0000:0001]:5678',
-				'1000::',
 			),
 			// IPv6, no port, reduced representation.
 			array(
@@ -194,6 +152,80 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 			array(
 				'[::127.0.0.1]:30000',
 				'::ffff:127.0.0.0',
+			),
+		);
+	}
+
+	/**
+	 * Test that wp_privacy_anonymize_ip() properly anonymizes all possible IP address formats.
+	 *
+	 * @dataProvider data_wp_privacy_anonymize_ip_with_inet_dependency
+	 *
+	 * @ticket 41083
+	 * @ticket 43545
+	 * @requires function inet_ntop
+	 * @requires function inet_pton
+	 *
+	 * @param string $raw_ip          Raw IP address.
+	 * @param string $expected_result Expected result.
+	 */
+	public function test_wp_privacy_anonymize_ip_with_inet_dependency( $raw_ip, $expected_result ) {
+		$this->test_wp_privacy_anonymize_ip( $raw_ip, $expected_result );
+	}
+
+	/**
+	 * Provide test cases for `test_wp_privacy_anonymize_ip()`.
+	 *
+	 * @since 4.9.6 Moved from `Test_WP_Community_Events::data_get_unsafe_client_ip_anonymization()`.
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @string string $raw_ip          Raw IP address.
+	 *         @string string $expected_result Expected result.
+	 *     }
+	 * }
+	 */
+	public function data_wp_privacy_anonymize_ip_with_inet_dependency() {
+		return array(
+			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]:400',
+				'1000::',
+			),
+			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]',
+				'1000::',
+			),
+			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]400',
+				'1000::',
+			),
+			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'[1000:0000:0000:0000:0000:0000:0000:0001]:235\"or=',
+				'1000::',
+			),
+			// IPv6, no port.
+			array(
+				'2a03:2880:2110:df07:face:b00c::1',
+				'2a03:2880:2110:df07::',
+			),
+			// IPv6, port.
+			array(
+				'[2a03:2880:2110:df07:face:b00c::1]:20000',
+				'2a03:2880:2110:df07::',
+			),
+			// IPv6, no port, partially reducible representation.
+			array(
+				'1000:0000:0000:0000:0000:0000:0000:0001',
+				'1000::',
+			),
+			// IPv6, port, partially reducible representation.
+			array(
+				'[1000:0000:0000:0000:0000:0000:0000:0001]:5678',
+				'1000::',
 			),
 			// IPv6 with reachability scope.
 			array(

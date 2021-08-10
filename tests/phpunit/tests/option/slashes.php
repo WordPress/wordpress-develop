@@ -7,8 +7,8 @@
  */
 class Tests_Option_Slashes extends WP_UnitTestCase {
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		// It is important to test with both even and odd numbered slashes,
 		// as KSES does a strip-then-add slashes in some of its function calls.
