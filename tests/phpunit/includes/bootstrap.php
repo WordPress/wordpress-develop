@@ -54,7 +54,7 @@ if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
  * Plugin/theme integration tests can handle this in any of the following ways:
  * - When using a full WP install: run `composer update` for the WP install prior to running the tests.
  * - When using a partial WP test suite install:
- *   - Add a `yoast/phpunit-polyfills:"^1.0.1"` requirement to their own `composer.json` file.
+ *   - Add a `yoast/phpunit-polyfills` (dev) requirement to their own `composer.json` file.
  *   - And then:
  *     - Either load the PHPUnit Polyfills autoload file prior to running the WP Core bootstrap file.
  *     - Or declare a `WP_TESTS_PHPUNIT_POLYFILLS_PATH` constant pointing to the root directory
@@ -120,6 +120,9 @@ if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
 		'Error: Version mismatch detected for the PHPUnit Polyfills. Please ensure that PHPUnit Polyfills %s or higher is loaded.' . PHP_EOL,
 		$phpunit_polyfills_minimum_version
 	);
+	if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+		echo 'Please run `composer update` to install the latest version.' . PHP_EOL;
+	}
 	exit( 1 );
 }
 unset( $phpunit_polyfills_minimum_version );
