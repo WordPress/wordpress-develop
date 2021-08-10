@@ -91,9 +91,9 @@ if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
 	if ( $phpunit_polyfills_error || ! file_exists( $phpunit_polyfills_autoloader ) ) {
 		echo 'Error: The PHPUnit Polyfills library is a requirement for running the WP test suite.' . PHP_EOL;
 		if ( isset( $phpunit_polyfills_path ) ) {
-			sprintf(
-				'The PHPUnit Polyfills autoload file was not found in %s' . PHP_EOL,
-				$phpunit_polyfills_autoloader
+			printf(
+				'The PHPUnit Polyfills autoload file was not found in "%s"' . PHP_EOL,
+				WP_TESTS_PHPUNIT_POLYFILLS_PATH
 			);
 			echo 'Please verify that the file path provided in the WP_TESTS_PHPUNIT_POLYFILLS_PATH constant is correct.' . PHP_EOL;
 		} else {
@@ -116,8 +116,10 @@ if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
 	&& ( defined( '\Yoast\PHPUnitPolyfills\Autoload::VERSION' ) === false
 	|| version_compare( \Yoast\PHPUnitPolyfills\Autoload::VERSION, $phpunit_polyfills_minimum_version, '<' ) )
 ) {
-	echo 'Error: Version mismatch detected for the PHPUnit Polyfills. Please ensure that PHPUnit Polyfills ',
-		$phpunit_polyfills_minimum_version, ' or higher is loaded.', PHP_EOL;
+	printf(
+		'Error: Version mismatch detected for the PHPUnit Polyfills. Please ensure that PHPUnit Polyfills %s or higher is loaded.' . PHP_EOL,
+		$phpunit_polyfills_minimum_version
+	);
 	exit( 1 );
 }
 unset( $phpunit_polyfills_minimum_version );
