@@ -1725,4 +1725,170 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		return array( 555 );
 	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_by_string() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'install_plugins' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'install_plugins' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_invalid() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'foo_bar' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertEmpty( $users );
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_by_array() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'install_plugins' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'install_plugins' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_added_to_user() {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( 'custom_cap');
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'custom_cap' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertCount( 1, $users );
+		$this->assertSame( $users[0]->ID, $user->ID );
+		foreach( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_should_only_match_users_who_have_each_capability_test() {
+		wp_roles()->add_role( 'role_1', 'Role 1', array( 'role_1_cap' => true ) );
+		wp_roles()->add_role( 'role_2', 'Role 2', array( 'role_2_cap' => true ) );
+
+		$user = self::factory()->user->create_and_get( array( 'role' => 'role_1' ) );
+		$user->add_role( 'role_2' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'role_1_cap', 'role_2_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+
+		$this->assertCount( 1, $users );
+		$this->assertSame( $users[0]->ID, $user->ID );
+		foreach( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'role_1_cap' ) );
+			$this->assertTrue( $user->has_cap( 'role_2_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_should_only_match_users_who_have_each_capability_added_to_user() {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'administrator' ) );
+		$user->add_cap( 'custom_cap');
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'manage_options', 'custom_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'manage_options' ) );
+			$this->assertTrue( $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_or() {
+		$wp_user_search = new WP_User_Query( array( 'capability__in' => array( 'publish_posts', 'edit_posts' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'publish_posts' ) || $user->has_cap( 'edit_posts' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_or_added_to_user() {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( 'custom_cap');
+
+		$wp_user_search = new WP_User_Query( array( 'capability__in' => array( 'publish_posts', 'custom_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'publish_posts' ) || $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_capability_exclusion() {
+		$wp_user_search = new WP_User_Query( array( 'capability__not_in' => array( 'publish_posts', 'edit_posts' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach( $users as $user ) {
+			$this->assertFalse( $user->has_cap( 'publish_posts' ) );
+			$this->assertFalse( $user->has_cap( 'edit_posts' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_capability_exclusion_added_to_user() {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( 'custom_cap' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability__not_in' => array( 'publish_posts', 'custom_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach( $users as $user ) {
+			$this->assertFalse( $user->has_cap( 'publish_posts' ) );
+			$this->assertFalse( $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_capability__in_capability__not_in_combined() {
+		$wp_user_search = new WP_User_Query( array( 'capability__in' => array( 'read' ), 'capability__not_in' => array( 'manage_options' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'read' ) );
+			$this->assertFalse( $user->has_cap( 'manage_options' ) );
+		}
+	}
 }
