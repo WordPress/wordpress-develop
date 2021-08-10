@@ -147,4 +147,40 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 		$this->assertSame( 'aaaa', sanitize_title_with_dashes( 'ááa´aˊ', '', 'save' ) );
 	}
 
+	/**
+	 * @ticket 47912
+	 */
+	function test_removes_non_visible_characters_without_width() {
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%8b', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%8c', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%8d', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%8e', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%8f', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%aa', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%ab', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%ac', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%ad', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%ae', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%ef%bb%bf', '', 'save' ) );
+		$this->assertSame( 'invisible', sanitize_title_with_dashes( 'in%ef%bb%bfvisible', '', 'save' ) );
+	}
+
+	function test_replaces_non_visible_characters_with_a_width_with_hyphen() {
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%80', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%81', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%82', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%83', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%84', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%85', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%86', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%87', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%88', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%89', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%8a', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%a8', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%a9', '', 'save' ) );
+		$this->assertSame( '', sanitize_title_with_dashes( '%e2%80%af', '', 'save' ) );
+		$this->assertSame( 'non-visible', sanitize_title_with_dashes( 'non%e2%80%afvisible', '', 'save' ) );
+	}
+
 }
