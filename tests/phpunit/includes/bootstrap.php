@@ -98,7 +98,7 @@ if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
 			echo 'Please verify that the file path provided in the WP_TESTS_PHPUNIT_POLYFILLS_PATH constant is correct.' . PHP_EOL;
 		} else {
 			echo 'You need to run `composer update` before running the tests.' . PHP_EOL;
-			echo 'You can still use a PHPUnit phar to run them, but the dependencies do need to be installed.' . PHP_EOL;
+			echo 'Once the dependencies are installed, you can run the tests using the Composer installed version of PHPUnit or using a PHPUnit PHAR file, but the dependencies do need to be installed whichever way the tests are run.' . PHP_EOL;
 		}
 		exit( 1 );
 	}
