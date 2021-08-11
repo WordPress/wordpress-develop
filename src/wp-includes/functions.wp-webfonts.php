@@ -78,10 +78,10 @@ function wp_deregister_webfont( $handle ) {
  *                                 number is automatically added equal to current installed WordPress version.
  *                                 If set to null, no version is added.
  * @param string           $media  Optional. The media for which this stylesheet has been defined.
- *                                 Default 'all'. Accepts media types like 'all', 'print' and 'screen', or media queries like
+ *                                 Default 'screen'. Accepts media types like 'all', 'print' and 'screen', or media queries like
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  */
-function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = false, $media = 'all' ) {
+function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = false, $media = 'screen' ) {
 	$params = wp_parse_args(
 		$params,
 		array(
