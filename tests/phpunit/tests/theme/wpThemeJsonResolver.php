@@ -47,53 +47,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	public function test_fields_are_extracted() {
-		$actual = WP_Theme_JSON_Resolver::get_fields_to_translate();
-
-		$expected = array(
-			array(
-				'path'    => array( 'settings', 'typography', 'fontSizes' ),
-				'key'     => 'name',
-				'context' => 'Font size name',
-			),
-			array(
-				'path'    => array( 'settings', 'color', 'palette' ),
-				'key'     => 'name',
-				'context' => 'Color name',
-			),
-			array(
-				'path'    => array( 'settings', 'color', 'gradients' ),
-				'key'     => 'name',
-				'context' => 'Gradient name',
-			),
-			array(
-				'path'    => array( 'settings', 'color', 'duotone' ),
-				'key'     => 'name',
-				'context' => 'Duotone name',
-			),
-			array(
-				'path'    => array( 'settings', 'blocks', '*', 'typography', 'fontSizes' ),
-				'key'     => 'name',
-				'context' => 'Font size name',
-			),
-			array(
-				'path'    => array( 'settings', 'blocks', '*', 'color', 'palette' ),
-				'key'     => 'name',
-				'context' => 'Color name',
-			),
-			array(
-				'path'    => array( 'settings', 'blocks', '*', 'color', 'gradients' ),
-				'key'     => 'name',
-				'context' => 'Gradient name',
-			),
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * @ticket 52991
-	 */
 	public function test_translations_are_applied() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
 		load_textdomain( 'block-theme', realpath( DIR_TESTDATA . '/languages/themes/block-theme-pl_PL.mo' ) );
