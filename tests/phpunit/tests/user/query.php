@@ -1734,7 +1734,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users          = $wp_user_search->get_results();
 
 		$this->assertNotEmpty( $users );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'install_plugins' ) );
 		}
 	}
@@ -1757,7 +1757,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users          = $wp_user_search->get_results();
 
 		$this->assertNotEmpty( $users );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'install_plugins' ) );
 		}
 	}
@@ -1767,14 +1767,14 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_get_single_capability_added_to_user() {
 		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
-		$user->add_cap( 'custom_cap');
+		$user->add_cap( 'custom_cap' );
 
 		$wp_user_search = new WP_User_Query( array( 'capability' => 'custom_cap' ) );
 		$users          = $wp_user_search->get_results();
 
 		$this->assertCount( 1, $users );
 		$this->assertSame( $users[0]->ID, $user->ID );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'custom_cap' ) );
 		}
 	}
@@ -1792,10 +1792,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'role_1_cap', 'role_2_cap' ) ) );
 		$users          = $wp_user_search->get_results();
 
-
 		$this->assertCount( 1, $users );
 		$this->assertSame( $users[0]->ID, $user->ID );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'role_1_cap' ) );
 			$this->assertTrue( $user->has_cap( 'role_2_cap' ) );
 		}
@@ -1806,13 +1805,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_get_multiple_capabilities_should_only_match_users_who_have_each_capability_added_to_user() {
 		$user = self::factory()->user->create_and_get( array( 'role' => 'administrator' ) );
-		$user->add_cap( 'custom_cap');
+		$user->add_cap( 'custom_cap' );
 
 		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'manage_options', 'custom_cap' ) ) );
 		$users          = $wp_user_search->get_results();
 
 		$this->assertNotEmpty( $users );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'manage_options' ) );
 			$this->assertTrue( $user->has_cap( 'custom_cap' ) );
 		}
@@ -1826,7 +1825,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users          = $wp_user_search->get_results();
 
 		$this->assertNotEmpty( $users );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'publish_posts' ) || $user->has_cap( 'edit_posts' ) );
 		}
 	}
@@ -1836,13 +1835,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_get_multiple_capabilities_or_added_to_user() {
 		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
-		$user->add_cap( 'custom_cap');
+		$user->add_cap( 'custom_cap' );
 
 		$wp_user_search = new WP_User_Query( array( 'capability__in' => array( 'publish_posts', 'custom_cap' ) ) );
 		$users          = $wp_user_search->get_results();
 
 		$this->assertNotEmpty( $users );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'publish_posts' ) || $user->has_cap( 'custom_cap' ) );
 		}
 	}
@@ -1855,7 +1854,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users          = $wp_user_search->get_results();
 
 		$this->assertNotEmpty( $users );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertFalse( $user->has_cap( 'publish_posts' ) );
 			$this->assertFalse( $user->has_cap( 'edit_posts' ) );
 		}
@@ -1872,7 +1871,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users          = $wp_user_search->get_results();
 
 		$this->assertNotEmpty( $users );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertFalse( $user->has_cap( 'publish_posts' ) );
 			$this->assertFalse( $user->has_cap( 'custom_cap' ) );
 		}
@@ -1882,11 +1881,16 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 16841
 	 */
 	public function test_capability__in_capability__not_in_combined() {
-		$wp_user_search = new WP_User_Query( array( 'capability__in' => array( 'read' ), 'capability__not_in' => array( 'manage_options' ) ) );
+		$wp_user_search = new WP_User_Query(
+			array(
+				'capability__in'     => array( 'read' ),
+				'capability__not_in' => array( 'manage_options' ),
+			)
+		);
 		$users          = $wp_user_search->get_results();
 
 		$this->assertNotEmpty( $users );
-		foreach( $users as $user ) {
+		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'read' ) );
 			$this->assertFalse( $user->has_cap( 'manage_options' ) );
 		}

@@ -492,10 +492,10 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 	 */
 	function twentyfourteen_list_authors() {
 		$args = array(
-				'fields'     => 'ID',
-				'orderby'    => 'post_count',
-				'order'      => 'DESC',
-				'capability' => array( 'edit_posts' )
+			'fields'     => 'ID',
+			'orderby'    => 'post_count',
+			'order'      => 'DESC',
+			'capability' => array( 'edit_posts' ),
 		);
 
 		/**

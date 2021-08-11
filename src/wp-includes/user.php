@@ -1343,7 +1343,7 @@ function wp_dropdown_users( $args = '' ) {
 			'role__not_in',
 			'capability',
 			'capability__in',
-			'capability__not_in'
+			'capability__not_in',
 		)
 	);
 
