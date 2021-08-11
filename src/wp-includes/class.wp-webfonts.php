@@ -69,7 +69,7 @@ class WP_Webfonts extends WP_Styles {
 	 * @return string
 	 */
 	public function maybe_get_local_src( $slug, $remote_url ) {
-		$local_stylesheet_path = $this->get_local_stylesheet_path( $slug, $remote_url );
+		$local_stylesheet_path = trailingslashit( WP_CONTENT_DIR ) . "/fonts/$slug/" . md5( content_url() . trailingslashit( WP_CONTENT_DIR ) . $remote_url ) . '.css';
 
 		// Check if the local stylesheet exists.
 		if ( ! file_exists( $local_stylesheet_path ) ) {
@@ -117,7 +117,7 @@ class WP_Webfonts extends WP_Styles {
 	 * @return string|false Returns the remote URL contents.
 	 */
 	public function get_local_stylesheet_contents( $slug, $remote_url ) {
-		$local_path = $this->get_local_stylesheet_path( $slug, $remote_url );
+		$local_path = trailingslashit( WP_CONTENT_DIR ) . "/fonts/$slug/" . md5( content_url() . trailingslashit( WP_CONTENT_DIR ) . $remote_url ) . '.css';
 
 		// If the local stylesheet does not exist, attempt to create the stylesheet.
 		// Return false if the file does not exist and can't be created.
@@ -317,7 +317,7 @@ class WP_Webfonts extends WP_Styles {
 	 */
 	protected function write_stylesheet( $slug, $remote_url ) {
 		$folder_path = trailingslashit( WP_CONTENT_DIR ) . '/fonts';
-		$file_path   = $this->get_local_stylesheet_path( $slug, $remote_url );
+		$file_path   = trailingslashit( WP_CONTENT_DIR ) . "/fonts/$slug/" . md5( content_url() . trailingslashit( WP_CONTENT_DIR ) . $remote_url ) . '.css';
 		$filesystem  = $this->get_filesystem();
 
 		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
@@ -345,17 +345,6 @@ class WP_Webfonts extends WP_Styles {
 		}
 
 		return $file_path;
-	}
-
-	/**
-	 * Get the stylesheet path.
-	 *
-	 * @access public
-	 * @since 1.1.0
-	 * @return string
-	 */
-	public function get_local_stylesheet_path( $slug, $url ) {
-		return trailingslashit( WP_CONTENT_DIR ) . "/fonts/$slug/" . md5( content_url() . trailingslashit( WP_CONTENT_DIR ) . $url ) . '.css';
 	}
 
 	/**
