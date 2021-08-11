@@ -106,13 +106,48 @@ class WP_Webfonts extends WP_Styles {
 	}
 
 	/**
-	 * Download files mentioned in our CSS locally.
+	 * Write the CSS to the filesystem.
 	 *
-	 * @access public
-	 * @since 1.0.0
-	 * @return array Returns an array of remote URLs and their local counterparts.
+	 * @access protected
+	 * @since 1.1.0
+	 * @return string|false Returns the absolute path of the file on success, or false on fail.
 	 */
-	public function get_local_files_from_css( $css ) {
+	protected function write_stylesheet( $slug, $remote_url ) {
+		$folder_path = trailingslashit( WP_CONTENT_DIR ) . '/fonts';
+		$file_path   = trailingslashit( WP_CONTENT_DIR ) . "/fonts/$slug/" . md5( content_url() . trailingslashit( WP_CONTENT_DIR ) . $remote_url ) . '.css';
+		$filesystem  = $this->get_filesystem();
+
+		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
+			define( 'FS_CHMOD_DIR', ( 0755 & ~ umask() ) );
+		}
+
+		// If the folder doesn't exist, create it. Return false on fail.
+		if ( ! file_exists( $folder_path ) && ! $filesystem->mkdir( $folder_path, FS_CHMOD_DIR ) ) {
+			return false;
+		}
+
+		// If the subfolder doesn't exist, create it. Return false on fail.
+		if ( ! file_exists( "$folder_path/$slug" ) && ! $filesystem->mkdir( "$folder_path/$slug", FS_CHMOD_DIR ) ) {
+			return false;
+		}
+
+		// If the file doesn't exist and can not be created, return early with false.
+		if ( ! $filesystem->exists( $file_path ) && ! $filesystem->touch( $file_path ) ) {
+			return false;
+		}
+
+		// Get the remote URL contents.
+		$response = wp_remote_get( $remote_url, array( 'user-agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0' ) );
+
+		// Early exit if there was an error.
+		if ( is_wp_error( $response ) ) {
+			return;
+		}
+
+		// Get the CSS from our response.
+		$remote_styles = wp_remote_retrieve_body( $response );
+
+		// Get an array of locally-hosted files.
 		$font_faces = explode( '@font-face', $css );
 
 		$font_files = array();
@@ -163,7 +198,7 @@ class WP_Webfonts extends WP_Styles {
 			// We're using array_flip here instead of array_unique for improved performance.
 			$font_files[ $font_family ] = array_flip( array_flip( $font_files[ $font_family ] ) );
 		}
-		$stored     = get_site_option( 'downloaded_font_files', array() );
+		$files      = get_site_option( 'downloaded_font_files', array() );
 		$change     = false; // If in the end this is true, we need to update the cache option.
 		$filesystem = $this->get_filesystem();
 
@@ -195,12 +230,12 @@ class WP_Webfonts extends WP_Styles {
 				if ( file_exists( "$folder_path/$filename" ) ) {
 
 					// Skip if already cached.
-					if ( isset( $stored[ $url ] ) ) {
+					if ( isset( $files[ $url ] ) ) {
 						continue;
 					}
 
 					// Add file to the cache and change the $changed var to indicate we need to update the option.
-					$stored[ $url ] = "$folder_path/$filename";
+					$files[ $url ] = "$folder_path/$filename";
 					$change         = true;
 
 					// Since the file exists we don't need to proceed with downloading it.
@@ -227,7 +262,7 @@ class WP_Webfonts extends WP_Styles {
 				// Move temp file to final destination.
 				$success = $filesystem->move( $tmp_path, "$folder_path/$filename", true );
 				if ( $success ) {
-					$stored[ $url ] = "$folder_path/$filename";
+					$files[ $url ] = "$folder_path/$filename";
 					$change         = true;
 				}
 			}
@@ -237,61 +272,13 @@ class WP_Webfonts extends WP_Styles {
 		if ( $change ) {
 
 			// Cleanup the option and then save it.
-			foreach ( $stored as $url => $path ) {
+			foreach ( $files as $url => $path ) {
 				if ( ! file_exists( $path ) ) {
-					unset( $stored[ $url ] );
+					unset( $files[ $url ] );
 				}
 			}
-			update_site_option( 'downloaded_font_files', $stored );
+			update_site_option( 'downloaded_font_files', $files );
 		}
-
-		return $stored;
-	}
-
-	/**
-	 * Write the CSS to the filesystem.
-	 *
-	 * @access protected
-	 * @since 1.1.0
-	 * @return string|false Returns the absolute path of the file on success, or false on fail.
-	 */
-	protected function write_stylesheet( $slug, $remote_url ) {
-		$folder_path = trailingslashit( WP_CONTENT_DIR ) . '/fonts';
-		$file_path   = trailingslashit( WP_CONTENT_DIR ) . "/fonts/$slug/" . md5( content_url() . trailingslashit( WP_CONTENT_DIR ) . $remote_url ) . '.css';
-		$filesystem  = $this->get_filesystem();
-
-		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
-			define( 'FS_CHMOD_DIR', ( 0755 & ~ umask() ) );
-		}
-
-		// If the folder doesn't exist, create it. Return false on fail.
-		if ( ! file_exists( $folder_path ) && ! $filesystem->mkdir( $folder_path, FS_CHMOD_DIR ) ) {
-			return false;
-		}
-
-		// If the subfolder doesn't exist, create it. Return false on fail.
-		if ( ! file_exists( "$folder_path/$slug" ) && ! $filesystem->mkdir( "$folder_path/$slug", FS_CHMOD_DIR ) ) {
-			return false;
-		}
-
-		// If the file doesn't exist and can not be created, return early with false.
-		if ( ! $filesystem->exists( $file_path ) && ! $filesystem->touch( $file_path ) ) {
-			return false;
-		}
-
-		// Get the remote URL contents.
-		$response = wp_remote_get( $remote_url, array( 'user-agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0' ) );
-
-		// Early exit if there was an error.
-		if ( is_wp_error( $response ) ) {
-			return '';
-		}
-
-		// Get the CSS from our response.
-		$remote_styles = wp_remote_retrieve_body( $response );
-
-		// Get an array of locally-hosted files.
-		$files = $this->get_local_files_from_css( $remote_styles );
 
 		// Convert paths to URLs.
 		foreach ( $files as $remote => $local ) {
