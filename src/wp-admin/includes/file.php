@@ -1217,7 +1217,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 			$signature_url = false;
 
-			if ( '.zip' === substr( $url_path, -4 ) || '.tar.gz' === substr( $url_path, -7 ) ) {
+			if ( is_string( $url_path ) && ( '.zip' === substr( $url_path, -4 ) || '.tar.gz' === substr( $url_path, -7 ) ) ) {
 				$signature_url = str_replace( $url_path, $url_path . '.sig', $url );
 			}
 
