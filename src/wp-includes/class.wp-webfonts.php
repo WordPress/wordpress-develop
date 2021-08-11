@@ -106,30 +106,6 @@ class WP_Webfonts extends WP_Styles {
 	}
 
 	/**
-	 * Get remote file contents.
-	 *
-	 * @access public
-	 * @since 1.0.0
-	 * @return string Returns the remote URL contents.
-	 */
-	public function get_remote_url_contents( $url ) {
-
-		// Switch to a user-agent supporting woff2 if we don't need to support IE.
-		$user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0';
-
-		// Get the response.
-		$response = wp_remote_get( $url, array( 'user-agent' => $user_agent ) );
-
-		// Early exit if there was an error.
-		if ( is_wp_error( $response ) ) {
-			return '';
-		}
-
-		// Get the CSS from our response.
-		return wp_remote_retrieve_body( $response );
-	}
-
-	/**
 	 * Download files mentioned in our CSS locally.
 	 *
 	 * @access public
@@ -304,7 +280,15 @@ class WP_Webfonts extends WP_Styles {
 		}
 
 		// Get the remote URL contents.
-		$remote_styles = $this->get_remote_url_contents( $remote_url );
+		$response = wp_remote_get( $remote_url, array( 'user-agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0' ) );
+
+		// Early exit if there was an error.
+		if ( is_wp_error( $response ) ) {
+			return '';
+		}
+
+		// Get the CSS from our response.
+		$remote_styles = wp_remote_retrieve_body( $response );
 
 		// Get an array of locally-hosted files.
 		$files = $this->get_local_files_from_css( $remote_styles );
