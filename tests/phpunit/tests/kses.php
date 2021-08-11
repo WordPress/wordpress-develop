@@ -1098,15 +1098,62 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => '',
 			),
-			// RGB color values are not allowed.
+			// RGB color values ARE allowed.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100 )',
-				'expected' => '',
+				'expected' => 'color: rgb( 100, 100, 100 )',
 			),
-			// RGBA color values are not allowed.
+			// RGBA color values ARE allowed.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100, .4 )',
-				'expected' => '',
+				'expected' => 'color: rgb( 100, 100, 100, .4 )',
+			),
+			// Keyword values.
+			array(
+				'css'      => 'transform: none;',
+				'expected' => 'transform: none',
+			),
+			// Function values.
+			array(
+				'css'      => 'transform: rotate(90deg);',
+				'expected' => 'transform: rotate(90deg)',
+			),
+			// Multiple function values.
+			array(
+				'css'      => 'transform: perspective(500px) translate(10px, 0, 20px) rotateY(3deg);',
+				'expected' => 'transform: perspective(500px) translate(10px, 0, 20px) rotateY(3deg)',
+			),
+			// Global values.
+			array(
+				'css'      => 'transform: inherit;',
+				'expected' => 'transform: inherit',
+			),
+			// Multiple fonts.
+			array(
+				'css'      => 'font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif',
+				'expected' => 'font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif',
+			),
+			// RGBA Background color.
+			array(
+				'css'      => 'background-color:rgba(255,255,255,0.6);',
+				'expected' => 'background-color:rgba(255,255,255,0.6)',
+			),
+			// CSS clip paths.
+			array(
+				'css'      => 'clip-path:url(#mask-circle-foo-bar)',
+				'expected' => 'clip-path:url(#mask-circle-foo-bar)',
+			),
+			array(
+				'css'      => '-webkit-clip-path:url(#mask-circle-foo-bar)',
+				'expected' => '-webkit-clip-path:url(#mask-circle-foo-bar)',
+			),
+			array(
+				'css'      => 'pointer-events: initial',
+				'expected' => 'pointer-events: initial',
+			),
+			array(
+				'css'      => 'will-change: transform',
+				'expected' => 'will-change: transform',
 			),
 		);
 	}

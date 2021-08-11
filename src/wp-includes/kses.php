@@ -2179,6 +2179,10 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 * @since 5.3.1 Added support for gradient backgrounds.
 	 * @since 5.7.1 Added support for `object-position`.
 	 * @since 5.8.0 Added support for `calc()` and `var()` values.
+	 * @since 5.9.0 Added support for `rgb()` and `rgba()` values.
+	 *              Added support for `display`, `position`, `top`, `left`, `transform`,
+	 *              `opacity`, `white-space`, `clip-path`, `-webkit-clip-path`,
+	 *              `pointer-events` and `will-change` properties.
 	 *
 	 * @param string[] $attr Array of allowed CSS attributes.
 	 */
@@ -2295,6 +2299,19 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'object-position',
 			'overflow',
 			'vertical-align',
+			'display',
+			'position',
+			'top',
+			'left',
+			'transform',
+			'opacity',
+			'white-space',
+
+			'clip-path',
+			'-webkit-clip-path',
+
+			'pointer-events',
+			'will-change',
 		)
 	);
 
@@ -2314,6 +2331,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 		'list-style',
 		'list-style-image',
+
+		'clip-path',
+		'-webkit-clip-path',
 	);
 
 	/*
@@ -2323,6 +2343,25 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	$css_gradient_data_types = array(
 		'background',
 		'background-image',
+	);
+
+	/*
+	 * CSS attributes that accept color data types.
+	 *
+	 * This is in accordance to the CSS spec and unrelated to
+	 * the sub-set of supported attributes above.
+	 *
+	 * See: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+	 */
+	$css_color_data_types = array(
+		'color',
+		'background',
+		'background-color',
+		'border-color',
+		'box-shadow',
+		'outline',
+		'outline-color',
+		'text-shadow',
 	);
 
 	if ( empty( $allowed_attr ) ) {
@@ -2340,17 +2379,22 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$found           = false;
 		$url_attr        = false;
 		$gradient_attr   = false;
+		$color_attr      = false;
+		$transform_attr  = false;
+
+		$parts = explode( ':', $css_item, 2 );
 
 		if ( strpos( $css_item, ':' ) === false ) {
 			$found = true;
 		} else {
-			$parts        = explode( ':', $css_item, 2 );
 			$css_selector = trim( $parts[0] );
 
 			if ( in_array( $css_selector, $allowed_attr, true ) ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
+				$color_attr     = in_array( $css_selector, $css_color_data_types, true );
+				$transform_attr = 'transform' === $css_selector;
 			}
 		}
 
@@ -2382,6 +2426,31 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		if ( $found && $gradient_attr ) {
 			$css_value = trim( $parts[1] );
 			if ( preg_match( '/^(repeating-)?(linear|radial|conic)-gradient\(([^()]|rgb[a]?\([^()]*\))*\)$/', $css_value ) ) {
+				// Remove the whole `gradient` bit that was matched above from the CSS.
+				$css_test_string = str_replace( $css_value, '', $css_test_string );
+			}
+		}
+
+		if ( $found && $color_attr ) {
+			$color_matches = array();
+
+			// Simplified: matches the sequence `rgb(*)` and `rgba(*)`.
+			preg_match_all( '/rgba?\([^)]+\)/', $parts[1], $color_matches );
+
+			foreach ( $color_matches[0] as $color_match ) {
+				$color_pieces = array();
+
+				// Clean up the color from each of the matches above.
+				preg_match( '/^rgba?\([^)]*\)$/', $color_match, $color_pieces );
+
+				// Remove the whole `rgb(*)` / `rgba(*) bit that was matched above from the CSS.
+				$css_test_string = str_replace( $color_match, '', $css_test_string );
+			}
+		}
+
+		if ( $found && $transform_attr ) {
+			$css_value = trim( $parts[1] );
+			if ( preg_match( '/^((matrix|matrix3d|perspective|rotate|rotate3d|rotateX|rotateY|rotateZ|translate|translateX|translatY|translatZ|scale|scale3d|scalX|scaleY|scaleZ|skew|skewX|skeY)\(([^()])*\) ?)+$/', $css_value ) ) {
 				// Remove the whole `gradient` bit that was matched above from the CSS.
 				$css_test_string = str_replace( $css_value, '', $css_test_string );
 			}
