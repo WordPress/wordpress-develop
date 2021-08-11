@@ -888,54 +888,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * This is a custom extension of the PHPUnit requirements handling.
 	 *
-	 * Contains legacy code for skipping tests that are associated with an open Trac ticket.
-	 * Core tests no longer support this behaviour.
-	 *
 	 * @since 3.5.0
+	 * @deprecated 5.9.0 This method has not been functional since PHPUnit 7.0.
 	 */
 	protected function checkRequirements() {
-		parent::checkRequirements();
-
-		$annotations = $this->getAnnotations();
-
-		$groups = array();
-		if ( ! empty( $annotations['class']['group'] ) ) {
-			$groups = array_merge( $groups, $annotations['class']['group'] );
-		}
-		if ( ! empty( $annotations['method']['group'] ) ) {
-			$groups = array_merge( $groups, $annotations['method']['group'] );
-		}
-
-		if ( ! empty( $groups ) ) {
-			if ( in_array( 'ms-required', $groups, true ) ) {
-				$this->skipWithoutMultisite();
-			}
-
-			if ( in_array( 'ms-excluded', $groups, true ) ) {
-				$this->skipWithMultisite();
-			}
-		}
-
-		// Core tests no longer check against open Trac tickets,
-		// but others using WP_UnitTestCase may do so.
-		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
-			return;
-		}
-
-		if ( WP_TESTS_FORCE_KNOWN_BUGS ) {
-			return;
-		}
-		$tickets = PHPUnit_Util_Test::getTickets( get_class( $this ), $this->getName( false ) );
-		foreach ( $tickets as $ticket ) {
-			if ( is_numeric( $ticket ) ) {
-				$this->knownWPBug( $ticket );
-			} elseif ( 0 === strpos( $ticket, 'Plugin' ) ) {
-				$ticket = substr( $ticket, 6 );
-				if ( $ticket && is_numeric( $ticket ) ) {
-					$this->knownPluginBug( $ticket );
-				}
-			}
-		}
+		return;
 	}
 
 	/**
@@ -958,7 +915,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Skips the current test if there is an open Unit Test Trac ticket associated with it.
 	 *
 	 * @since 3.5.0
-	 *
 	 * @deprecated No longer used since the Unit Test Trac was merged into the Core Trac.
 	 *
 	 * @param int $ticket_id Ticket number.
