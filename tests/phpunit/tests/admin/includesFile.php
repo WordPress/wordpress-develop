@@ -77,4 +77,50 @@ class Tests_Admin_includesFile extends WP_UnitTestCase {
 	public function __return_5() {
 		return 5;
 	}
+
+	/**
+	 * Verify that a WP_Error object is returned when invalid input is passed as the $url parameter.
+	 *
+	 * @covers ::download_url
+	 *
+	 * @dataProvider data_download_url_empty_url
+	 *
+	 * @param mixed $url Input URL.
+	 */
+	public function test_download_url_empty_url( $url ) {
+		$error = download_url( $url );
+		$this->assertWPError( $error );
+		$this->assertSame( 'http_no_url', $error->get_error_code() );
+		$this->assertSame( 'Invalid URL Provided.', $error->get_error_message() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_download_url_empty_url() {
+		return array(
+			'null'         => array( null ),
+			'false'        => array( false ),
+			'integer 0'    => array( 0 ),
+			'empty string' => array( '' ),
+			'string 0'     => array( '0' ),
+		);
+	}
+
+	/**
+	 * Verify that no "passing null to non-nullable" error is thrown on PHP 8.1,
+	 * when the $url does not have a path component.
+	 *
+	 * @covers ::download_url
+	 *
+	 * @ticket 53635
+	 */
+	public function test_download_url_no_warning_with_url_without_path() {
+		$result = download_url( 'https://example.com' );
+
+		$this->assertIsString( $result );
+		$this->assertNotEmpty( $result ); // File path will be generated, but will never be empty.
+	}
 }
