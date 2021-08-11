@@ -335,7 +335,7 @@ class WP_User_Query {
 				'WP_User_Query',
 				'5.9.0',
 				sprintf(
-				/* translators: 1: caller_get_posts, 2: ignore_sticky_posts */
+					/* translators: 1: who, 2: capability */
 					__( '%1$s is deprecated. Use %2$s instead.' ),
 					'<code>who</code>',
 					'<code>capability</code>'
