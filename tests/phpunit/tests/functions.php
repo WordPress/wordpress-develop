@@ -1045,7 +1045,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			DIR_TESTDATA . '/blocks/notice/block.json'
 		);
 
-		$this->assertInternalType( 'object', $result );
+		$this->assertIsObject( $result );
 		$this->assertSame( 'tests/notice', $result->name );
 	}
 
@@ -1058,7 +1058,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'associative' => true )
 		);
 
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertSame( 'tests/notice', $result['name'] );
 	}
 
