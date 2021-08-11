@@ -198,7 +198,7 @@ function wp_maybe_get_local_webfont_url( $remote_url ) {
 		$remote_url,
 		array(
 			// Use a modern user-agent, to get woff2 files.
-			'user-agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0'
+			'user-agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0',
 		)
 	);
 
