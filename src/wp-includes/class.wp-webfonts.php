@@ -160,7 +160,56 @@ class WP_Webfonts extends WP_Styles {
 	 * @return array Returns an array of remote URLs and their local counterparts.
 	 */
 	public function get_local_files_from_css( $css ) {
-		$font_files = $this->get_remote_files_from_css( $css );
+		$font_faces = explode( '@font-face', $css );
+
+		$font_files = array();
+
+		// Loop all our font-face declarations.
+		foreach ( $font_faces as $font_face ) {
+
+			// Make sure we only process styles inside this declaration.
+			$style = explode( '}', $font_face )[0];
+
+			// Sanity check.
+			if ( false === strpos( $style, 'font-family' ) ) {
+				continue;
+			}
+
+			// Get an array of our font-families.
+			preg_match_all( '/font-family.*?\;/', $style, $matched_font_families );
+
+			// Get an array of our font-files.
+			preg_match_all( '/url\(.*?\)/i', $style, $matched_font_files );
+
+			// Get the font-family name.
+			$font_family = 'unknown';
+			if ( isset( $matched_font_families[0] ) && isset( $matched_font_families[0][0] ) ) {
+				$font_family = rtrim( ltrim( $matched_font_families[0][0], 'font-family:' ), ';' );
+				$font_family = trim( str_replace( array( "'", ';' ), '', $font_family ) );
+				$font_family = sanitize_key( strtolower( str_replace( ' ', '-', $font_family ) ) );
+			}
+
+			// Make sure the font-family is set in our array.
+			if ( ! isset( $font_files[ $font_family ] ) ) {
+				$font_files[ $font_family ] = array();
+			}
+
+			// Get files for this font-family and add them to the array.
+			foreach ( $matched_font_files as $match ) {
+
+				// Sanity check.
+				if ( ! isset( $match[0] ) ) {
+					continue;
+				}
+
+				// Add the file URL.
+				$font_files[ $font_family ][] = rtrim( ltrim( $match[0], 'url(' ), ')' );
+			}
+
+			// Make sure we have unique items.
+			// We're using array_flip here instead of array_unique for improved performance.
+			$font_files[ $font_family ] = array_flip( array_flip( $font_files[ $font_family ] ) );
+		}
 		$stored     = get_site_option( 'downloaded_font_files', array() );
 		$change     = false; // If in the end this is true, we need to update the cache option.
 		$filesystem = $this->get_filesystem();
@@ -244,68 +293,6 @@ class WP_Webfonts extends WP_Styles {
 		}
 
 		return $stored;
-	}
-
-	/**
-	 * Get font files from the CSS.
-	 *
-	 * @access public
-	 * @since 1.0.0
-	 * @return array Returns an array of font-families and the font-files used.
-	 */
-	public function get_remote_files_from_css( $css ) {
-
-		$font_faces = explode( '@font-face', $css );
-
-		$result = array();
-
-		// Loop all our font-face declarations.
-		foreach ( $font_faces as $font_face ) {
-
-			// Make sure we only process styles inside this declaration.
-			$style = explode( '}', $font_face )[0];
-
-			// Sanity check.
-			if ( false === strpos( $style, 'font-family' ) ) {
-				continue;
-			}
-
-			// Get an array of our font-families.
-			preg_match_all( '/font-family.*?\;/', $style, $matched_font_families );
-
-			// Get an array of our font-files.
-			preg_match_all( '/url\(.*?\)/i', $style, $matched_font_files );
-
-			// Get the font-family name.
-			$font_family = 'unknown';
-			if ( isset( $matched_font_families[0] ) && isset( $matched_font_families[0][0] ) ) {
-				$font_family = rtrim( ltrim( $matched_font_families[0][0], 'font-family:' ), ';' );
-				$font_family = trim( str_replace( array( "'", ';' ), '', $font_family ) );
-				$font_family = sanitize_key( strtolower( str_replace( ' ', '-', $font_family ) ) );
-			}
-
-			// Make sure the font-family is set in our array.
-			if ( ! isset( $result[ $font_family ] ) ) {
-				$result[ $font_family ] = array();
-			}
-
-			// Get files for this font-family and add them to the array.
-			foreach ( $matched_font_files as $match ) {
-
-				// Sanity check.
-				if ( ! isset( $match[0] ) ) {
-					continue;
-				}
-
-				// Add the file URL.
-				$result[ $font_family ][] = rtrim( ltrim( $match[0], 'url(' ), ')' );
-			}
-
-			// Make sure we have unique items.
-			// We're using array_flip here instead of array_unique for improved performance.
-			$result[ $font_family ] = array_flip( array_flip( $result[ $font_family ] ) );
-		}
-		return $result;
 	}
 
 	/**
