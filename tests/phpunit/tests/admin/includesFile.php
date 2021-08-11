@@ -123,4 +123,35 @@ class Tests_Admin_includesFile extends WP_UnitTestCase {
 		$this->assertIsString( $result );
 		$this->assertNotEmpty( $result ); // File path will be generated, but will never be empty.
 	}
+
+	/**
+	 * Verify that no "passing null to non-nullable" error is thrown on PHP 8.1,
+	 * when the $url does not have a path component and signature verification
+	 * via a local file is requested.
+	 *
+	 * @covers ::download_url
+	 *
+	 * @ticket 53635
+	 */
+	public function test_download_url_no_warning_with_url_without_path_with_signature_verification() {
+		add_filter(
+			'wp_signature_hosts',
+			static function( $urls ) {
+				$urls[] = 'example.com';
+				return $urls;
+			}
+		);
+		$error = download_url( 'https://example.com', 300, true );
+
+		/*
+		 * Note: This test is not testing the signature verification itself.
+		 * There is no signature available for the domain used in the test,
+		 * which is why an error is expected and that's fine.
+		 * The point of the test is to verify that the call to `verify_file_signature()`
+		 * is actually reached and that no PHP deprecation notice is thrown
+		 * before this point.
+		 */
+		$this->assertWPError( $error );
+		$this->assertSame( 'signature_verification_no_signature', $error->get_error_code() );
+	}
 }
