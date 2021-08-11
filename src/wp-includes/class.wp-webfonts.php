@@ -87,25 +87,6 @@ class WP_Webfonts extends WP_Styles {
 	}
 
 	/**
-	 * Get local stylesheet contents.
-	 *
-	 * @access public
-	 * @since 1.1.0
-	 * @return string|false Returns the remote URL contents.
-	 */
-	public function get_local_stylesheet_contents( $slug, $remote_url ) {
-		$local_path = trailingslashit( WP_CONTENT_DIR ) . "/fonts/$slug/" . md5( content_url() . trailingslashit( WP_CONTENT_DIR ) . $remote_url ) . '.css';
-
-		// If the local stylesheet does not exist, attempt to create the stylesheet.
-		// Return false if the file does not exist and can't be created.
-		if ( ! file_exists( $local_path ) && ! $this->write_stylesheet( $slug, $remote_url ) ) {
-			return false;
-		}
-
-		return file_get_contents( $local_path );
-	}
-
-	/**
 	 * Write the CSS to the filesystem.
 	 *
 	 * @access protected
@@ -113,26 +94,34 @@ class WP_Webfonts extends WP_Styles {
 	 * @return string|false Returns the absolute path of the file on success, or false on fail.
 	 */
 	protected function write_stylesheet( $slug, $remote_url ) {
+		global $wp_filesystem;
+		// If the filesystem has not been instantiated yet, do it here.
+		if ( ! $wp_filesystem ) {
+			if ( ! function_exists( 'WP_Filesystem' ) ) {
+				require_once wp_normalize_path( ABSPATH . '/wp-admin/includes/file.php' );
+			}
+			WP_Filesystem();
+		}
+
 		$folder_path = trailingslashit( WP_CONTENT_DIR ) . '/fonts';
 		$file_path   = trailingslashit( WP_CONTENT_DIR ) . "/fonts/$slug/" . md5( content_url() . trailingslashit( WP_CONTENT_DIR ) . $remote_url ) . '.css';
-		$filesystem  = $this->get_filesystem();
 
 		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
 			define( 'FS_CHMOD_DIR', ( 0755 & ~ umask() ) );
 		}
 
 		// If the folder doesn't exist, create it. Return false on fail.
-		if ( ! file_exists( $folder_path ) && ! $filesystem->mkdir( $folder_path, FS_CHMOD_DIR ) ) {
+		if ( ! file_exists( $folder_path ) && ! $wp_filesystem->mkdir( $folder_path, FS_CHMOD_DIR ) ) {
 			return false;
 		}
 
 		// If the subfolder doesn't exist, create it. Return false on fail.
-		if ( ! file_exists( "$folder_path/$slug" ) && ! $filesystem->mkdir( "$folder_path/$slug", FS_CHMOD_DIR ) ) {
+		if ( ! file_exists( "$folder_path/$slug" ) && ! $wp_filesystem->mkdir( "$folder_path/$slug", FS_CHMOD_DIR ) ) {
 			return false;
 		}
 
 		// If the file doesn't exist and can not be created, return early with false.
-		if ( ! $filesystem->exists( $file_path ) && ! $filesystem->touch( $file_path ) ) {
+		if ( ! $wp_filesystem->exists( $file_path ) && ! $wp_filesystem->touch( $file_path ) ) {
 			return false;
 		}
 
@@ -198,9 +187,8 @@ class WP_Webfonts extends WP_Styles {
 			// We're using array_flip here instead of array_unique for improved performance.
 			$font_files[ $font_family ] = array_flip( array_flip( $font_files[ $font_family ] ) );
 		}
-		$files      = get_site_option( 'downloaded_font_files', array() );
-		$change     = false; // If in the end this is true, we need to update the cache option.
-		$filesystem = $this->get_filesystem();
+		$files  = get_site_option( 'downloaded_font_files', array() );
+		$change = false; // If in the end this is true, we need to update the cache option.
 
 		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
 			define( 'FS_CHMOD_DIR', ( 0755 & ~ umask() ) );
@@ -208,7 +196,7 @@ class WP_Webfonts extends WP_Styles {
 
 		// If the fonts folder don't exist, create it.
 		if ( ! file_exists( trailingslashit( WP_CONTENT_DIR ) . '/fonts' ) ) {
-			$filesystem->mkdir( trailingslashit( WP_CONTENT_DIR ) . '/fonts', FS_CHMOD_DIR );
+			$wp_filesystem->mkdir( trailingslashit( WP_CONTENT_DIR ) . '/fonts', FS_CHMOD_DIR );
 		}
 
 		foreach ( $font_files as $font_family => $files ) {
@@ -218,7 +206,7 @@ class WP_Webfonts extends WP_Styles {
 
 			// If the folder doesn't exist, create it.
 			if ( ! file_exists( $folder_path ) ) {
-				$filesystem->mkdir( $folder_path, FS_CHMOD_DIR );
+				$wp_filesystem->mkdir( $folder_path, FS_CHMOD_DIR );
 			}
 
 			foreach ( $files as $url ) {
@@ -260,7 +248,7 @@ class WP_Webfonts extends WP_Styles {
 				}
 
 				// Move temp file to final destination.
-				$success = $filesystem->move( $tmp_path, "$folder_path/$filename", true );
+				$success = $wp_filesystem->move( $tmp_path, "$folder_path/$filename", true );
 				if ( $success ) {
 					$files[ $url ] = "$folder_path/$filename";
 					$change         = true;
@@ -288,30 +276,10 @@ class WP_Webfonts extends WP_Styles {
 		$styles = str_replace( array_keys( $files ), array_values( $files ), $remote_styles );
 
 		// Put the contents in the file. Return false if that fails.
-		if ( ! $filesystem->put_contents( $file_path, $styles ) ) {
+		if ( ! $wp_filesystem->put_contents( $file_path, $styles ) ) {
 			return false;
 		}
 
 		return $file_path;
-	}
-
-	/**
-	 * Get the filesystem.
-	 *
-	 * @access protected
-	 * @since 1.0.0
-	 * @return \WP_Filesystem_Base
-	 */
-	protected function get_filesystem() {
-		global $wp_filesystem;
-
-		// If the filesystem has not been instantiated yet, do it here.
-		if ( ! $wp_filesystem ) {
-			if ( ! function_exists( 'WP_Filesystem' ) ) {
-				require_once wp_normalize_path( ABSPATH . '/wp-admin/includes/file.php' );
-			}
-			WP_Filesystem();
-		}
-		return $wp_filesystem;
 	}
 }
