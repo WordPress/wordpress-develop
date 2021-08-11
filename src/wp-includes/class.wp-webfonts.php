@@ -87,29 +87,6 @@ class WP_Webfonts extends WP_Styles {
 	}
 
 	/**
-	 * Get styles with fonts downloaded locally.
-	 *
-	 * @access public
-	 * @since 1.0.0
-	 * @return string
-	 */
-	public function get_styles( $slug, $remote_url ) {
-
-		// Get the remote URL contents.
-		$remote_styles = $this->get_remote_url_contents( $remote_url );
-
-		// Get an array of locally-hosted files.
-		$files = $this->get_local_files_from_css( $remote_styles );
-
-		// Convert paths to URLs.
-		foreach ( $files as $remote => $local ) {
-			$files[ $remote ] = str_replace( trailingslashit( WP_CONTENT_DIR ), content_url(), $local );
-		}
-
-		return str_replace( array_keys( $files ), array_values( $files ), $remote_styles );
-	}
-
-	/**
 	 * Get local stylesheet contents.
 	 *
 	 * @access public
@@ -326,8 +303,21 @@ class WP_Webfonts extends WP_Styles {
 			return false;
 		}
 
+		// Get the remote URL contents.
+		$remote_styles = $this->get_remote_url_contents( $remote_url );
+
+		// Get an array of locally-hosted files.
+		$files = $this->get_local_files_from_css( $remote_styles );
+
+		// Convert paths to URLs.
+		foreach ( $files as $remote => $local ) {
+			$files[ $remote ] = str_replace( trailingslashit( WP_CONTENT_DIR ), content_url(), $local );
+		}
+
+		$styles = str_replace( array_keys( $files ), array_values( $files ), $remote_styles );
+
 		// Put the contents in the file. Return false if that fails.
-		if ( ! $filesystem->put_contents( $file_path, $this->get_styles( $slug, $remote_url ) ) ) {
+		if ( ! $filesystem->put_contents( $file_path, $styles ) ) {
 			return false;
 		}
 
