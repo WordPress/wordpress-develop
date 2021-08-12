@@ -78,6 +78,11 @@ class WP_Plugin_Dependencies {
 			return;
 		}
 
+		// Early exit it DISALLOW_PLUGIN_DEPENDENCIES is enabled.
+		if ( defined( 'DISALLOW_PLUGIN_DEPENDENCIES' ) && DISALLOW_PLUGIN_DEPENDENCIES ) {
+			return;
+		}
+
 		// Get an array of installed plugins and set it in the object's $installed_plugins prop.
 		$this->get_plugins();
 
