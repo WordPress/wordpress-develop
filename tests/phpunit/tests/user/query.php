@@ -1738,7 +1738,11 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $users );
 		foreach ( $users as $user ) {
-			$this->assertTrue( $user->has_cap( 'install_plugins' ) );
+			// User has the capability, but on Multisite they would also need to be a super admin.
+			// Hence using get_role_caps() instead of has_cap().
+			$role_caps = $user->get_role_caps();
+			$this->assertArrayHasKey( 'install_plugins', $role_caps );
+			$this->assertTrue( $role_caps['install_plugins'] );
 		}
 	}
 
@@ -1761,7 +1765,11 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $users );
 		foreach ( $users as $user ) {
-			$this->assertTrue( $user->has_cap( 'install_plugins' ) );
+			// User has the capability, but on Multisite they would also need to be a super admin.
+			// Hence using get_role_caps() instead of has_cap().
+			$role_caps = $user->get_role_caps();
+			$this->assertArrayHasKey( 'install_plugins', $role_caps );
+			$this->assertTrue( $role_caps['install_plugins'] );
 		}
 	}
 
