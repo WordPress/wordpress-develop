@@ -160,7 +160,7 @@ function wp_webfont_add_data( $handle, $key, $value ) {
  * @return string Returns the local URL if it exists, otherwise the remote URL.
  */
 function wp_maybe_get_local_webfont_url( $remote_url ) {
-	$folder_path           = trailingslashit( WP_CONTENT_DIR ) . '/fonts';
+	$folder_path           = trailingslashit( WP_CONTENT_DIR ) . 'fonts';
 	$local_stylesheet_path = "$folder_path/" . md5( content_url() . WP_CONTENT_DIR . $remote_url ) . '.css';
 	$local_stylesheet_url  = str_replace( trailingslashit( WP_CONTENT_DIR ), content_url(), $local_stylesheet_path );
 
@@ -236,7 +236,7 @@ function wp_maybe_get_local_webfont_url( $remote_url ) {
 		$font_family = 'unknown';
 		if ( isset( $matched_font_families[0] ) && isset( $matched_font_families[0][0] ) ) {
 			$font_family = rtrim( ltrim( $matched_font_families[0][0], 'font-family:' ), ';' );
-			$font_family = trim( str_replace( array( "'", ';' ), '', $font_family ) );
+			$font_family = trim( str_replace( array( '"', "'", ';' ), '', $font_family ) );
 			$font_family = sanitize_key( strtolower( str_replace( ' ', '-', $font_family ) ) );
 		}
 
@@ -272,7 +272,7 @@ function wp_maybe_get_local_webfont_url( $remote_url ) {
 	foreach ( $font_files as $font_family => $files ) {
 
 		// The folder path for this font-family.
-		$folder_path = trailingslashit( WP_CONTENT_DIR ) . "/fonts/$font_family";
+		$folder_path = trailingslashit( WP_CONTENT_DIR ) . "fonts/$font_family";
 
 		// If the folder doesn't exist, create it.
 		if ( ! file_exists( $folder_path ) ) {
