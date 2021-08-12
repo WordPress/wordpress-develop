@@ -65,6 +65,16 @@ class WP_Plugin_Dependencies {
 	protected $plugin_dependencies = array();
 
 	/**
+	 * An array of plugins participating in a circular dependencies loop.
+	 *
+	 * @since 5.9.0
+	 * @access protected
+	 *
+	 * @var array
+	 */
+	protected $circular_dependencies = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * Add hooks.
@@ -106,15 +116,19 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access protected
 	 *
-	 * @return void
+	 * @return array
 	 */
 	protected function get_plugins() {
 		if ( ! function_exists( 'get_plugins' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		// Get an array of all plugins.
-		$this->installed_plugins = get_plugins();
+		if ( ! $this->installed_plugins ) {
+			// Get an array of all plugins.
+			$this->installed_plugins = get_plugins();
+		}
+
+		return $this->installed_plugins;
 	}
 
 	/**
@@ -169,10 +183,12 @@ class WP_Plugin_Dependencies {
 			}
 		}
 
+		$in_circular_dependency = $this->in_circular_dependency( $file );
+
 		if ( ! $dependencies_met ) {
 
 			// Make sure plugin is deactivated when its dependencies are not met.
-			if ( $plugin_is_active ) {
+			if ( $plugin_is_active && ! $in_circular_dependency ) {
 				deactivate_plugins( $file );
 			}
 
@@ -200,6 +216,7 @@ class WP_Plugin_Dependencies {
 			$this->plugin_dependencies[ $file ] = array();
 			$plugin_dependencies = get_plugin_data( WP_PLUGIN_DIR . '/' . $file )['RequiresPlugins'];
 			if ( empty( $plugin_dependencies ) ) {
+				$this->plugin_dependencies[ $file ] = array();
 				return array();
 			}
 
@@ -311,14 +328,18 @@ class WP_Plugin_Dependencies {
 	 */
 	public function plugin_action_links( $actions, $plugin_file, $plugin_data ) {
 
+		$pending_activation     = in_array( $plugin_file, $this->get_plugins_to_activate(), true );
+		$has_dependencies       = ! empty( $this->get_plugin_dependencies( $plugin_file ) );
+		$in_circular_dependency = $this->in_circular_dependency( $plugin_file );
+
 		// Remove deactivation link from dependencies.
-		if ( ! empty( $this->dependencies_parents[ $plugin_file ] ) ) {
+		if ( ! empty( $this->dependencies_parents[ $plugin_file ] ) && ! $in_circular_dependency ) {
 			unset( $actions['deactivate'] );
 		}
 
 		// On plugins with unmet dependencies that the user has already requested for the plugin's activation,
 		// removes the activation link from its actions and add a "Cancel pending activation" link in its place.
-		if ( in_array( $plugin_file, $this->get_plugins_to_activate(), true ) && ! empty( $this->get_plugin_dependencies( $plugin_file ) ) ) {
+		if ( $pending_activation && $has_dependencies && ! $in_circular_dependency ) {
 			unset( $actions['activate'] );
 			if ( current_user_can( 'activate_plugin', $plugin_file ) ) {
 				$cancel_activation = sprintf(
@@ -348,6 +369,10 @@ class WP_Plugin_Dependencies {
 	 */
 	public function after_plugin_row( $plugin_file, $plugin_data ) {
 
+		$pending_activation     = in_array( $plugin_file, $this->get_plugins_to_activate(), true );
+		$has_dependencies       = ! empty( $this->get_plugin_dependencies( $plugin_file ) );
+		$in_circular_dependency = $this->in_circular_dependency( $plugin_file );
+
 		// Add extra info to dependencies.
 		if ( ! empty( $this->dependencies_parents[ $plugin_file ] ) ) {
 			$parents_names = array();
@@ -376,14 +401,23 @@ class WP_Plugin_Dependencies {
 		}
 
 		// Add extra info to parents with unmet dependencies.
-		if ( in_array( $plugin_file, $this->get_plugins_to_activate(), true ) && ! empty( $this->get_plugin_dependencies( $plugin_file ) ) ) {
+		if ( $pending_activation && $has_dependencies ) {
 			$style = is_rtl() ? 'border-top:none;border-left:none' : 'border-top:none;border-right:none';
-			echo '<tr><td colspan="5" class="notice notice-warning notice-alt" style="' . esc_attr( $style ) . '">';
-			printf(
-				/* translators: %s: plugin name. */
-				esc_html__( 'Plugin "%s" has unmet dependencies. Once all required plugins are installed the plugin will be automatically activated. Alternatively you can cancel the activation of this plugin by clicking on the "cancel activation request" link above.' ),
-				esc_html( $plugin_data['Name'] )
-			);
+			if ( $in_circular_dependency ) {
+				echo '<tr><td colspan="5" class="notice notice-error notice-alt" style="' . esc_attr( $style ) . '">';
+				printf(
+					/* translators: %s: plugin name. */
+					esc_html__( 'Circular dependencies detected. Plugin "%s" has unmet dependencies.' ),
+					esc_html( $plugin_data['Name'] )
+				);
+			} else {
+				echo '<tr><td colspan="5" class="notice notice-warning notice-alt" style="' . esc_attr( $style ) . '">';
+				printf(
+					/* translators: %s: plugin name. */
+					esc_html__( 'Plugin "%s" has unmet dependencies. Once all required plugins are installed the plugin will be automatically activated. Alternatively you can cancel the activation of this plugin by clicking on the "cancel activation request" link above.' ),
+					esc_html( $plugin_data['Name'] )
+				);
+			}
 			echo '</td></tr>';
 		}
 	}
@@ -488,6 +522,64 @@ class WP_Plugin_Dependencies {
 			return true;
 		}
 		return update_option( $this->pending_plugin_activations_option, array_diff( $queue, array( $plugin ) ) );
+	}
+
+	/**
+	 * Check if a plugin is part of a circular dependencies loop.
+	 *
+	 * @since 5.9.0
+	 * @access protected
+	 *
+	 * @param string $plugin_file The plugin file.
+	 * @param array  $previous    If this is a dependency of a dependency,
+	 *                            this array contains all previous levels of dependencies.
+	 *
+	 * @return bool
+	 */
+	protected function in_circular_dependency( $plugin_file, $previous = array() ) {
+		if ( isset( $this->circular_dependencies[ $plugin_file ] ) ) {
+			return $this->circular_dependencies[ $plugin_file ];
+		}
+
+		if ( in_array( $plugin_file, $previous, true ) ) {
+			$this->circular_dependencies[ $plugin_file ] = true;
+		}
+
+		$plugin_dependencies = $this->get_plugin_dependencies( $plugin_file );
+
+		foreach ( $plugin_dependencies as $dependency ) {
+			$dependency_file = $this->get_plugin_file_from_slug( $dependency['slug'] );
+			if ( $this->in_circular_dependency( $dependency_file, array_merge( $previous, array( $plugin_file ) ) ) ) {
+				$this->circular_dependencies[ $plugin_file ] = true;
+				$this->circular_dependencies[ $dependency_file ] = true;
+			}
+		}
+
+		if ( ! isset( $this->circular_dependencies[ $plugin_file ] ) ) {
+			$this->circular_dependencies[ $plugin_file ] = false;
+		}
+
+		return $this->circular_dependencies[ $plugin_file ];
+	}
+
+	/**
+	 * Get plugin file from its slug.
+	 *
+	 * @since 5.9.0
+	 * @access protected
+	 *
+	 * @param string $slug The plugin slug.
+	 *
+	 * @return string|false Returns the plugin file on success, false on failure.
+	 */
+	protected function get_plugin_file_from_slug( $slug ) {
+		$plugins = $this->get_plugins();
+		foreach ( array_keys( $plugins ) as $plugin ) {
+			if ( 0 === strpos( $plugin, "$slug/" ) || 0 === strpos( $plugin, "$slug\\" ) ) {
+				return $plugin;
+			}
+		}
+		return false;
 	}
 }
 
