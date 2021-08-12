@@ -72,6 +72,12 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 */
 	public function __construct() {
+
+		// Early exit if DISALLOW_FILE_MODS is enabled.
+		if ( defined( 'DISALLOW_FILE_MODS' ) && DISALLOW_FILE_MODS ) {
+			return;
+		}
+
 		// Get an array of installed plugins and set it in the object's $installed_plugins prop.
 		$this->get_plugins();
 
