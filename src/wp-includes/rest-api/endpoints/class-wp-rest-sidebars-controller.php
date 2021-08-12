@@ -113,7 +113,9 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		retrieve_widgets();
 
-		$data = array();
+		$data              = array();
+		$permissions_check = $this->do_permissions_check();
+
 		foreach ( wp_get_sidebars_widgets() as $id => $widgets ) {
 			$sidebar = $this->get_sidebar( $id );
 
@@ -121,7 +123,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 				continue;
 			}
 
-			if ( ! $this->do_permissions_check() && ! $this->check_read_permission( $sidebar ) ) {
+			if ( is_wp_error( $permissions_check ) && ! $this->check_read_permission( $sidebar ) ) {
 				continue;
 			}
 
@@ -145,15 +147,9 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 		retrieve_widgets();
 
 		$sidebar = $this->get_sidebar( $request['id'] );
-
-		if ( ! $sidebar ) {
-			return new WP_Error( 'rest_sidebar_not_found', __( 'No sidebar exists with that id.' ), array( 'status' => 404 ) );
-		}
-
-		if ( $this->check_read_permission( $sidebar ) ) {
+		if ( $sidebar && $this->check_read_permission( $sidebar ) ) {
 			return true;
 		}
-
 
 		return $this->do_permissions_check();
 	}
@@ -167,11 +163,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return bool Whether the side can be read.
 	 */
 	public function check_read_permission( $sidebar ) {
-		if ( ! isset( $sidebar['show_in_rest'] ) || ! $sidebar['show_in_rest'] ){
-			return false;
-		}
-
-		return true;
+		return ! empty( $sidebar['show_in_rest'] );
 	}
 
 	/**
@@ -186,6 +178,9 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 		retrieve_widgets();
 
 		$sidebar = $this->get_sidebar( $request['id'] );
+		if ( ! $sidebar ) {
+			return new WP_Error( 'rest_sidebar_not_found', __( 'No sidebar exists with that id.' ), array( 'status' => 404 ) );
+		}
 
 		return $this->prepare_item_for_response( $sidebar, $request );
 	}
@@ -276,28 +271,11 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @global array $wp_registered_sidebars The registered sidebars.
-	 *
 	 * @param string|int $id ID of the sidebar.
 	 * @return array|null The discovered sidebar, or null if it is not registered.
 	 */
 	protected function get_sidebar( $id ) {
-		global $wp_registered_sidebars;
-
-		foreach ( (array) $wp_registered_sidebars as $sidebar ) {
-			if ( $sidebar['id'] === $id ) {
-				return $sidebar;
-			}
-		}
-
-		if ( 'wp_inactive_widgets' === $id ) {
-			return array(
-				'id'   => 'wp_inactive_widgets',
-				'name' => __( 'Inactive widgets' ),
-			);
-		}
-
-		return null;
+		return wp_get_sidebar( $id );
 	}
 
 	/**

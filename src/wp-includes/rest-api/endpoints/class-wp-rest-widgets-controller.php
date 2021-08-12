@@ -97,6 +97,19 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
+		retrieve_widgets();
+		if ( isset( $request['sidebar'] ) ) {
+			if ( $this->check_read_sidebar_permission( $request['sidebar'] ) ) {
+				return true;
+			}
+		}
+
+		foreach ( wp_get_sidebars_widgets() as $sidebar_id => $widget_ids ) {
+			if ( $this->check_read_sidebar_permission( $sidebar_id ) ) {
+				return true;
+			}
+		}
+
 		return $this->permissions_check( $request );
 	}
 
@@ -111,10 +124,15 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		retrieve_widgets();
 
-		$prepared = array();
+		$prepared          = array();
+		$permissions_check = $this->permissions_check( $request );
 
 		foreach ( wp_get_sidebars_widgets() as $sidebar_id => $widget_ids ) {
 			if ( isset( $request['sidebar'] ) && $sidebar_id !== $request['sidebar'] ) {
+				continue;
+			}
+
+			if ( is_wp_error( $permissions_check ) && ! $this->check_read_sidebar_permission( $sidebar_id ) ) {
 				continue;
 			}
 
@@ -139,7 +157,35 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
+		retrieve_widgets();
+
+		$widget_id  = $request['id'];
+		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
+
+		if ( $sidebar_id ) {
+			if ( $this->check_read_sidebar_permission( $sidebar_id ) ) {
+				return true;
+			}
+		}
+
 		return $this->permissions_check( $request );
+	}
+
+	/**
+	 * Checks if a sidebar can be read.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param int $sidebar Sidebar id.
+	 * @return bool Whether the side can be read.
+	 */
+	public function check_read_sidebar_permission( $sidebar_id ) {
+		$sidebar = wp_get_sidebar( $sidebar_id );
+		if ( is_null( $sidebar ) ) {
+			return false;
+		}
+
+		return ! empty( $sidebar['show_in_rest'] );
 	}
 
 	/**

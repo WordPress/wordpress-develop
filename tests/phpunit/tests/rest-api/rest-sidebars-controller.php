@@ -172,7 +172,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 			'sidebar-1',
 			array(
 				'name'         => 'Test sidebar',
-				'show_in_rest' => true
+				'show_in_rest' => true,
 			)
 		);
 		wp_set_current_user( 0 );

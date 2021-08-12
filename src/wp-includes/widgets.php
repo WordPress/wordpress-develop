@@ -1036,6 +1036,36 @@ function wp_get_sidebars_widgets( $deprecated = true ) {
 	return apply_filters( 'sidebars_widgets', $sidebars_widgets );
 }
 
+
+/**
+ * Retrieves the registered sidebar with the given id.
+ *
+ * @since 5.9.0
+ *
+ * @global array $wp_registered_sidebars The registered sidebars.
+ *
+ * @param string|int $id ID of the sidebar.
+ * @return array|null The discovered sidebar, or null if it is not registered.
+ */
+function wp_get_sidebar( $id ) {
+	global $wp_registered_sidebars;
+
+	foreach ( (array) $wp_registered_sidebars as $sidebar ) {
+		if ( $sidebar['id'] === $id ) {
+			return $sidebar;
+		}
+	}
+
+	if ( 'wp_inactive_widgets' === $id ) {
+		return array(
+			'id'   => 'wp_inactive_widgets',
+			'name' => __( 'Inactive widgets' ),
+		);
+	}
+
+	return null;
+}
+
 /**
  * Set the sidebar widget option to update sidebars.
  *
