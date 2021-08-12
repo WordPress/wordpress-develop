@@ -730,6 +730,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 32019
 	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
 	 */
 	public function test_who_authors() {
 		$b = self::factory()->blog->create();
@@ -755,6 +756,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 32019
 	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
 	 */
 	public function test_who_authors_should_work_alongside_meta_query() {
 		$b = self::factory()->blog->create();
@@ -789,6 +791,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 36724
 	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
 	 */
 	public function test_who_authors_should_work_alongside_meta_params() {
 		$b = self::factory()->blog->create();
