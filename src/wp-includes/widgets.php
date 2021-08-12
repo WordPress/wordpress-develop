@@ -272,6 +272,7 @@ function register_sidebar( $args = array() ) {
 		'after_title'    => "</h2>\n",
 		'before_sidebar' => '',
 		'after_sidebar'  => '',
+		'show_in_rest'   => false,
 	);
 
 	/**

@@ -167,6 +167,41 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * @ticket 41683
 	 */
+	public function test_get_items_no_permission_public() {
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name'         => 'Test sidebar',
+				'show_in_rest' => true
+			)
+		);
+		wp_set_current_user( 0 );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+		$this->assertSame(
+			array(
+				array(
+					'id'            => 'sidebar-1',
+					'name'          => 'Test sidebar',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'active',
+					'widgets'       => array(),
+				),
+			),
+			$data
+		);
+	}
+
+	/**
+	 * @ticket 41683
+	 */
 	public function test_get_items_wrong_permission_author() {
 		wp_set_current_user( self::$author_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars' );
@@ -192,6 +227,18 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame(
 			array(
 				array(
+					'id'            => 'wp_inactive_widgets',
+					'name'          => 'Inactive widgets',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'inactive',
+					'widgets'       => array(),
+				),
+				array(
 					'id'            => 'sidebar-1',
 					'name'          => 'Test sidebar',
 					'description'   => '',
@@ -206,6 +253,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 			),
 			$data
 		);
+
 	}
 
 	/**
@@ -410,6 +458,40 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars/sidebar-1' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_widgets', $response, 401 );
+	}
+
+	/**
+	 * @ticket 41683
+	 */
+	public function test_get_item_no_permission_public() {
+		wp_set_current_user( 0 );
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name'         => 'Test sidebar',
+				'show_in_rest' => true,
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars/sidebar-1' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+		$this->assertSame(
+			array(
+				'id'            => 'sidebar-1',
+				'name'          => 'Test sidebar',
+				'description'   => '',
+				'class'         => '',
+				'before_widget' => '',
+				'after_widget'  => '',
+				'before_title'  => '',
+				'after_title'   => '',
+				'status'        => 'active',
+				'widgets'       => array(),
+			),
+			$data
+		);
 	}
 
 	/**
@@ -682,6 +764,25 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame(
 			array(
 				array(
+					'id'            => 'wp_inactive_widgets',
+					'name'          => 'Inactive widgets',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'inactive',
+					'widgets'       => array(
+						'block-2',
+						'block-3',
+						'block-4',
+						'block-5',
+						'block-6',
+						'rss-1',
+					),
+				),
+				array(
 					'id'            => 'sidebar-1',
 					'name'          => 'Test sidebar',
 					'description'   => '',
@@ -693,20 +794,6 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 					'status'        => 'active',
 					'widgets'       => array(
 						'text-1',
-					),
-				),
-				array(
-					'id'            => 'wp_inactive_widgets',
-					'name'          => 'Inactive widgets',
-					'description'   => '',
-					'class'         => '',
-					'before_widget' => '',
-					'after_widget'  => '',
-					'before_title'  => '',
-					'after_title'   => '',
-					'status'        => 'inactive',
-					'widgets'       => array(
-						'rss-1',
 					),
 				),
 			),

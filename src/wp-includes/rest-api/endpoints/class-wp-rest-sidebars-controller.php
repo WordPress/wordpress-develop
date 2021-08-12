@@ -86,6 +86,19 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
+		retrieve_widgets();
+		foreach ( wp_get_sidebars_widgets() as $id => $widgets ) {
+			$sidebar = $this->get_sidebar( $id );
+
+			if ( ! $sidebar ) {
+				continue;
+			}
+
+			if ( $this->check_read_permission( $sidebar ) ) {
+				return true;
+			}
+		}
+
 		return $this->do_permissions_check();
 	}
 
@@ -95,7 +108,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
 		retrieve_widgets();
@@ -105,6 +118,10 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 			$sidebar = $this->get_sidebar( $id );
 
 			if ( ! $sidebar ) {
+				continue;
+			}
+
+			if ( ! $this->do_permissions_check() && ! $this->check_read_permission( $sidebar ) ) {
 				continue;
 			}
 
@@ -125,7 +142,36 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
+		retrieve_widgets();
+
+		$sidebar = $this->get_sidebar( $request['id'] );
+
+		if ( ! $sidebar ) {
+			return new WP_Error( 'rest_sidebar_not_found', __( 'No sidebar exists with that id.' ), array( 'status' => 404 ) );
+		}
+
+		if ( $this->check_read_permission( $sidebar ) ) {
+			return true;
+		}
+
+
 		return $this->do_permissions_check();
+	}
+
+	/**
+	 * Checks if a sidebar can be read.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $sidebar Sidebar.
+	 * @return bool Whether the side can be read.
+	 */
+	public function check_read_permission( $sidebar ) {
+		if ( ! isset( $sidebar['show_in_rest'] ) || ! $sidebar['show_in_rest'] ){
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -140,10 +186,6 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 		retrieve_widgets();
 
 		$sidebar = $this->get_sidebar( $request['id'] );
-
-		if ( ! $sidebar ) {
-			return new WP_Error( 'rest_sidebar_not_found', __( 'No sidebar exists with that id.' ), array( 'status' => 404 ) );
-		}
 
 		return $this->prepare_item_for_response( $sidebar, $request );
 	}
