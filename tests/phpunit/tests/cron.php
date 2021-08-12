@@ -1112,4 +1112,27 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
 	}
 
+	/**
+	 * Tests that a call to wp_schedule_event() on a site without any scheduled events,
+	 * does not result in a PHP deprecation warning on PHP 8.1 or higher.
+	 *
+	 * Warning which we should not see:
+	 * `Deprecated: Automatic conversion of false to array is deprecated`
+	 *
+	 * @ticket 53635
+	 *
+	 * @covers ::wp_schedule_event
+	 */
+	function test_wp_schedule_event_without_cron_option_does_not_throw_warning() {
+		delete_option( 'cron' );
+
+		// Verify that the cause of the error is in place.
+		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+
+		$hook = __FUNCTION__;
+		$ts1  = strtotime( '+10 minutes' );
+
+		// Add an event.
+		$this->assertTrue( wp_schedule_event( $ts1, 'daily', $hook ) );
+	}
 }
