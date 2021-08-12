@@ -73,13 +73,11 @@ class WP_Plugin_Dependencies {
 	 */
 	public function __construct() {
 
-		// Early exit if DISALLOW_FILE_MODS is enabled.
-		if ( defined( 'DISALLOW_FILE_MODS' ) && DISALLOW_FILE_MODS ) {
-			return;
-		}
-
-		// Early exit it DISALLOW_PLUGIN_DEPENDENCIES is enabled.
-		if ( defined( 'DISALLOW_PLUGIN_DEPENDENCIES' ) && DISALLOW_PLUGIN_DEPENDENCIES ) {
+		// Early exit if DISALLOW_FILE_MODS or DISALLOW_PLUGIN_DEPENDENCIES is enabled.
+		if (
+			( defined( 'DISALLOW_FILE_MODS' ) && DISALLOW_FILE_MODS ) ||
+			( defined( 'DISALLOW_PLUGIN_DEPENDENCIES' ) && DISALLOW_PLUGIN_DEPENDENCIES )
+		) {
 			return;
 		}
 
