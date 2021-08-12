@@ -98,10 +98,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 		retrieve_widgets();
-		if ( isset( $request['sidebar'] ) ) {
-			if ( $this->check_read_sidebar_permission( $request['sidebar'] ) ) {
-				return true;
-			}
+		if ( isset( $request['sidebar'] ) && $this->check_read_sidebar_permission( $request['sidebar'] ) ) {
+			return true;
 		}
 
 		foreach ( wp_get_sidebars_widgets() as $sidebar_id => $widget_ids ) {
@@ -162,10 +160,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
 
-		if ( $sidebar_id ) {
-			if ( $this->check_read_sidebar_permission( $sidebar_id ) ) {
-				return true;
-			}
+		if ( $sidebar_id && $this->check_read_sidebar_permission( $sidebar_id ) ) {
+			return true;
 		}
 
 		return $this->permissions_check( $request );
