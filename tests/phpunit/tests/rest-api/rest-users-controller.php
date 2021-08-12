@@ -183,8 +183,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		sort( $keys );
-		$this->assertSame(
+		$this->assertEqualSets(
 			array(
 				'context',
 				'exclude',
@@ -195,6 +194,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				'page',
 				'per_page',
 				'roles',
+				'capabilities',
 				'search',
 				'slug',
 				'who',
@@ -856,10 +856,83 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'roles', 'steakisgood' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 0, $data );
-		$this->assertSame( array(), $data );
+		$this->assertIsArray( $data );
+		$this->assertEmpty( $data );
 	}
 
+	public function test_get_items_capabilities() {
+		wp_set_current_user( self::$user );
+
+		$tango = $this->factory->user->create(
+			array(
+				'display_name' => 'tango',
+				'role'         => 'subscriber',
+			)
+		);
+		$yolo  = $this->factory->user->create(
+			array(
+				'display_name' => 'yolo',
+				'role'         => 'author',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'capabilities', 'edit_posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertNotEmpty( $data );
+		foreach ( $data as $user ) {
+			$this->assertTrue( user_can( $user['id'], 'edit_posts' ) );
+		}
+	}
+
+	public function test_get_items_capabilities_no_permission_no_user() {
+		wp_set_current_user( 0 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'capabilities', 'edit_posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
+	}
+
+	public function test_get_items_capabilities_no_permission_editor() {
+		wp_set_current_user( self::$editor );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'capabilities', 'edit_posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+	}
+
+	public function test_get_items_invalid_capabilities() {
+		wp_set_current_user( self::$user );
+
+		$lolz = $this->factory->user->create(
+			array(
+				'display_name' => 'lolz',
+				'role'         => 'author',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'roles', 'ilovesteak,author' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertSame( $lolz, $data[0]['id'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'capabilities', 'steakisgood' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertEmpty( $data );
+	}
+
+	/**
+	 * @expectedDeprecated WP_User_Query
+	 */
 	public function test_get_items_who_author_query() {
 		wp_set_current_user( self::$superadmin );
 
