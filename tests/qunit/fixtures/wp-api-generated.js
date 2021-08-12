@@ -5357,6 +5357,14 @@ mockedApiResponse.Schema = {
                             },
                             "required": false
                         },
+                        "capabilities": {
+                            "description": "Limit result set to users matching at least one specific capability provided. Accepts csv list or single capability.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "who": {
                             "description": "Limit result set to users who are considered authors.",
                             "type": "string",
