@@ -280,7 +280,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 
 		$path = parse_url( $url, PHP_URL_PATH );
 
-		if ( false !== $path ) {
+		if ( null !== $path ) {
 			$extension = pathinfo( $path, PATHINFO_EXTENSION );
 			if ( isset( $fake_headers[ $extension ] ) ) {
 				return $fake_headers[ $extension ];
