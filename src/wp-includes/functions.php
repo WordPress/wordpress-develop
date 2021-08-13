@@ -2528,7 +2528,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		if ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) ) {
 			$output_formats = apply_filters( 'image_editor_output_format', array(), trailingslashit( $dir ) . $filename, $mime_type );
 
-			if ( ! empty( $output_formats[ $mime_type ] ) {
+			if ( ! empty( $output_formats[ $mime_type ] ) ) {
 				$alt_ext = wp_get_default_extension_for_mime_type( $output_formats[ $mime_type ] );
 
 				if ( $alt_ext ) {

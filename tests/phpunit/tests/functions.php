@@ -224,7 +224,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 53668
 	 */
-	function test__wp_check_alternate_output_format_uniqueness() {
+	function test_wp_unique_filename_with_additional_image_extension() {
 		$testdir = DIR_TESTDATA . '/images/';
 
 		add_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
