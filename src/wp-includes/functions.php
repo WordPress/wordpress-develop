@@ -2519,31 +2519,52 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 			$filename = str_replace( "{$fname}{$ext}", "{$fname}-{$number}{$ext}", $filename );
 		}
 
-		// Change '.ext' to lower case.
-		if ( $ext && strtolower( $ext ) != $ext ) {
-			$ext2      = strtolower( $ext );
-			$filename2 = preg_replace( '|' . preg_quote( $ext ) . '$|', $ext2, $filename );
+		// Get the mime type. Uploaded files were already checked with wp_check_filetype_and_ext()
+		// in _wp_handle_upload(). Using wp_check_filetype() would be sufficient here.
+		$file_type  = wp_check_filetype( $filename );
+		$mime_type  = $file_type['type'];
+		$extensions = array( $ext );
 
-			// Check for both lower and upper case extension or image sub-sizes may be overwritten.
-			while ( file_exists( $dir . "/{$filename}" ) || file_exists( $dir . "/{$filename2}" ) ) {
-				$new_number = (int) $number + 1;
-				$filename   = str_replace( array( "-{$number}{$ext}", "{$number}{$ext}" ), "-{$new_number}{$ext}", $filename );
-				$filename2  = str_replace( array( "-{$number}{$ext2}", "{$number}{$ext2}" ), "-{$new_number}{$ext2}", $filename2 );
-				$number     = $new_number;
+		if ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) ) {
+			$output_formats = apply_filters( 'image_editor_output_format', array(), trailingslashit( $dir ) . $filename, $mime_type );
+
+			if ( ! empty( $output_formats[ $mime_type ] ) {
+				$alt_ext = wp_get_default_extension_for_mime_type( $output_formats[ $mime_type ] );
+
+				if ( $alt_ext ) {
+					$extensions[] = ".{$alt_ext}";
+				}
 			}
+		}
 
-			$filename = $filename2;
-		} else {
-			while ( file_exists( $dir . "/{$filename}" ) ) {
-				$new_number = (int) $number + 1;
+		foreach ( $extensions as $extension ) {
+			// If '.ext' is not lower case, test with both the original and the lower case extensions.
+			if ( $extension && strtolower( $extension ) !== $extension ) {
+				$extension2 = strtolower( $extension );
+				$filename2  = preg_replace( '|' . preg_quote( $extension ) . '$|', $extension2, $filename );
 
-				if ( '' === "{$number}{$ext}" ) {
-					$filename = "{$filename}-{$new_number}";
-				} else {
-					$filename = str_replace( array( "-{$number}{$ext}", "{$number}{$ext}" ), "-{$new_number}{$ext}", $filename );
+				// Check for both lower and upper case extension or image sub-sizes may be overwritten.
+				while ( file_exists( $dir . "/{$filename}" ) || file_exists( $dir . "/{$filename2}" ) ) {
+					$new_number = (int) $number + 1;
+					$filename   = str_replace( array( "-{$number}{$extension}", "{$number}{$extension}" ), "-{$new_number}{$extension}", $filename );
+					$filename2  = str_replace( array( "-{$number}{$extension2}", "{$number}{$extension2}" ), "-{$new_number}{$extension2}", $filename2 );
+					$number     = $new_number;
 				}
 
-				$number = $new_number;
+				// Change the extension to lower case.
+				$filename = $filename2;
+			} else {
+				while ( file_exists( $dir . "/{$filename}" ) ) {
+					$new_number = (int) $number + 1;
+
+					if ( '' === "{$number}{$extension}" ) {
+						$filename = "{$filename}-{$new_number}";
+					} else {
+						$filename = str_replace( array( "-{$number}{$extension}", "{$number}{$extension}" ), "-{$new_number}{$extension}", $filename );
+					}
+
+					$number = $new_number;
+				}
 			}
 		}
 
@@ -2579,19 +2600,22 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 			}
 
 			if ( ! empty( $files ) ) {
-				// The extension case may have changed above.
-				$new_ext = ! empty( $ext2 ) ? $ext2 : $ext;
-
-				// Ensure this never goes into infinite loop
-				// as it uses pathinfo() and regex in the check, but string replacement for the changes.
 				$count = count( $files );
-				$i     = 0;
 
-				while ( $i <= $count && _wp_check_existing_file_names( $filename, $files ) ) {
-					$new_number = (int) $number + 1;
-					$filename   = str_replace( array( "-{$number}{$new_ext}", "{$number}{$new_ext}" ), "-{$new_number}{$new_ext}", $filename );
-					$number     = $new_number;
-					$i++;
+				foreach ( $extensions as $extension ) {
+					// The extension was changed to lower case.
+					$new_ext = strtolower( $extension );
+
+					// Ensure this never goes into infinite loop
+					// as it uses pathinfo() and regex in the check, but string replacement for the changes.
+					$i = 0;
+
+					while ( $i <= $count && _wp_check_existing_file_names( $filename, $files ) ) {
+						$new_number = (int) $number + 1;
+						$filename   = str_replace( array( "-{$number}{$new_ext}", "{$number}{$new_ext}" ), "-{$new_number}{$new_ext}", $filename );
+						$number     = $new_number;
+						$i++;
+					}
 				}
 			}
 		}
@@ -2791,6 +2815,26 @@ function wp_ext2type( $ext ) {
 			return $type;
 		}
 	}
+}
+
+/**
+ * Returns first matched extension for the mime-type,
+ * as mapped from wp_get_mime_types().
+ *
+ * @since 5.8.1
+ *
+ * @param string $mime_type
+ *
+ * @return string|false
+ */
+function wp_get_default_extension_for_mime_type( $mime_type ) {
+	$extensions = explode( '|', array_search( $mime_type, wp_get_mime_types(), true ) );
+
+	if ( empty( $extensions[0] ) ) {
+		return false;
+	}
+
+	return $extensions[0];
 }
 
 /**
