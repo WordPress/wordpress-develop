@@ -173,7 +173,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Check number is appended for file already exists.
 		$this->assertFileExists( $testdir . 'test-image.png', 'Test image does not exist' );
 		$this->assertSame( 'test-image-1.png', wp_unique_filename( $testdir, 'test-image.png' ), 'Number not appended correctly' );
-		$this->assertFileNotExists( $testdir . 'test-image-1.png' );
+		$this->assertFileDoesNotExist( $testdir . 'test-image-1.png' );
 
 		// Check special chars.
 		$this->assertSame( 'testtest-image.png', wp_unique_filename( $testdir, 'testtést-imagé.png' ), 'Filename with special chars failed' );
@@ -1038,13 +1038,38 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53238
+	 */
+	function test_wp_json_file_decode() {
+		$result = wp_json_file_decode(
+			DIR_TESTDATA . '/blocks/notice/block.json'
+		);
+
+		$this->assertIsObject( $result );
+		$this->assertSame( 'tests/notice', $result->name );
+	}
+
+	/**
+	 * @ticket 53238
+	 */
+	function test_wp_json_file_decode_associative_array() {
+		$result = wp_json_file_decode(
+			DIR_TESTDATA . '/blocks/notice/block.json',
+			array( 'associative' => true )
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'tests/notice', $result['name'] );
+	}
+
+	/**
 	 * @ticket 36054
 	 * @dataProvider datetime_provider
 	 */
 	function test_mysql_to_rfc3339( $expected, $actual ) {
 		$date_return = mysql_to_rfc3339( $actual );
 
-		$this->assertTrue( is_string( $date_return ), 'The date return must be a string' );
+		$this->assertIsString( $date_return, 'The date return must be a string' );
 		$this->assertNotEmpty( $date_return, 'The date return could not be an empty string' );
 		$this->assertSame( $expected, $date_return, 'The date does not match' );
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
@@ -1198,7 +1223,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		for ( $i = 0; $i < 20; $i += 1 ) {
 			$id = wp_unique_id();
 			$this->assertIsString( $id );
-			$this->assertTrue( is_numeric( $id ) );
+			$this->assertIsNumeric( $id );
 			$ids[] = $id;
 		}
 		$this->assertSame( $ids, array_unique( $ids ) );
@@ -1207,7 +1232,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$ids = array();
 		for ( $i = 0; $i < 20; $i += 1 ) {
 			$id = wp_unique_id( 'foo-' );
-			$this->assertRegExp( '/^foo-\d+$/', $id );
+			$this->assertMatchesRegularExpression( '/^foo-\d+$/', $id );
 			$ids[] = $id;
 		}
 		$this->assertSame( $ids, array_unique( $ids ) );

@@ -7,8 +7,8 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	private $last_request_url;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		remove_all_filters( 'option_home' );
 		remove_all_filters( 'option_siteurl' );

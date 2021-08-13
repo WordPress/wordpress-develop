@@ -645,7 +645,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $output );
 		$this->assertSame( 2, substr_count( $output, 'class="page_item ' ) );
-		$this->assertContains( 'current_page_item', $output );
+		$this->assertStringContainsString( 'current_page_item', $output );
 		$this->assertSame( 1, substr_count( $output, 'current_page_item' ) );
 
 		_unregister_post_type( $type );

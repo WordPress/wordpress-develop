@@ -7,10 +7,10 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_insert_bogus_image() {
@@ -508,7 +508,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	public function test_wp_mime_type_icon() {
 		$icon = wp_mime_type_icon();
 
-		$this->assertContains( 'images/media/default.png', $icon );
+		$this->assertStringContainsString( 'images/media/default.png', $icon );
 	}
 
 	/**
@@ -517,6 +517,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	public function test_wp_mime_type_icon_video() {
 		$icon = wp_mime_type_icon( 'video/mp4' );
 
-		$this->assertContains( 'images/media/video.png', $icon );
+		$this->assertStringContainsString( 'images/media/video.png', $icon );
 	}
 }

@@ -50,7 +50,6 @@ jobs:
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Run the WordPress QUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
-  # - todo: Configure Slack notifications for failing tests.
   test-js:
     name: QUnit Tests
     runs-on: ubuntu-latest

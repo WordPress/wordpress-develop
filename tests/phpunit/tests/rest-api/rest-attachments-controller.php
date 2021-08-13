@@ -69,8 +69,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		self::delete_user( self::$uploader_id );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Add an uploader role to test upload capabilities.
 		add_role( 'uploader', 'File upload role' );
@@ -87,7 +87,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		copy( $orig_file2, $this->test_file2 );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		if ( file_exists( $this->test_file ) ) {
 			unlink( $this->test_file );
 		}
@@ -103,7 +103,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			WP_Image_Editor_Mock::$size_return = null;
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function test_register_routes() {
@@ -976,7 +976,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_body( file_get_contents( $this->test_file ) );
 		$response   = rest_get_server()->dispatch( $request );
 		$attachment = $response->get_data();
-		$this->assertNotContains( ABSPATH, get_post_meta( $attachment['id'], '_wp_attached_file', true ) );
+		$this->assertStringNotContainsString( ABSPATH, get_post_meta( $attachment['id'], '_wp_attached_file', true ) );
 	}
 
 	public function test_update_item() {
@@ -2102,7 +2102,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
 		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
-		$this->assertContains( 'canola', $item['media_details']['parent_image']['file'] );
+		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 
 	/**
@@ -2145,7 +2145,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
 		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
-		$this->assertContains( 'canola', $item['media_details']['parent_image']['file'] );
+		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 
 	/**

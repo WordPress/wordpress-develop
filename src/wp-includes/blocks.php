@@ -42,12 +42,16 @@ function generate_block_asset_handle( $block_name, $field_name ) {
 		if ( 0 === strpos( $field_name, 'editor' ) ) {
 			$asset_handle .= '-editor';
 		}
+		if ( 0 === strpos( $field_name, 'view' ) ) {
+			$asset_handle .= '-view';
+		}
 		return $asset_handle;
 	}
 
 	$field_mappings = array(
 		'editorScript' => 'editor-script',
 		'script'       => 'script',
+		'viewScript'   => 'view-script',
 		'editorStyle'  => 'editor-style',
 		'style'        => 'style',
 	);
@@ -96,18 +100,23 @@ function register_block_script_handle( $metadata, $field_name ) {
 		);
 		return false;
 	}
-	$script_asset = require $script_asset_path;
-	$result       = wp_register_script(
+	$is_core_block       = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
+	$script_uri          = $is_core_block ?
+		includes_url( str_replace( ABSPATH . WPINC, '', realpath( dirname( $metadata['file'] ) . '/' . $script_path ) ) ) :
+		plugins_url( $script_path, $metadata['file'] );
+	$script_asset        = require $script_asset_path;
+	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
+	$result              = wp_register_script(
 		$script_handle,
-		plugins_url( $script_path, $metadata['file'] ),
-		$script_asset['dependencies'],
-		$script_asset['version']
+		$script_uri,
+		$script_dependencies,
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false
 	);
 	if ( ! $result ) {
 		return false;
 	}
 
-	if ( ! empty( $metadata['textdomain'] ) ) {
+	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $script_dependencies ) ) {
 		wp_set_script_translations( $script_handle, $metadata['textdomain'] );
 	}
 
@@ -179,9 +188,28 @@ function register_block_style_handle( $metadata, $field_name ) {
 }
 
 /**
+ * Gets i18n schema for block's metadata read from `block.json` file.
+ *
+ * @since 5.9.0
+ *
+ * @return array The schema for block's metadata.
+ */
+function get_block_metadata_i18n_schema() {
+	static $i18n_block_schema;
+
+	if ( ! isset( $i18n_block_schema ) ) {
+		$i18n_block_schema = wp_json_file_decode( __DIR__ . '/block-i18n.json' );
+	}
+
+	return $i18n_block_schema;
+}
+
+/**
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
+ * @since 5.7.0 Added support for `textdomain` field and i18n handling for all translatable fields.
+ * @since 5.9.0 Added support for `variations` and `viewScript` fields.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -199,7 +227,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		return false;
 	}
 
-	$metadata = json_decode( file_get_contents( $metadata_file ), true );
+	$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
 		return false;
 	}
@@ -228,6 +256,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	$settings          = array();
 	$property_mappings = array(
+		'apiVersion'      => 'api_version',
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
@@ -239,53 +268,17 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'usesContext'     => 'uses_context',
 		'supports'        => 'supports',
 		'styles'          => 'styles',
+		'variations'      => 'variations',
 		'example'         => 'example',
-		'apiVersion'      => 'api_version',
 	);
+	$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
+	$i18n_schema       = get_block_metadata_i18n_schema();
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
-			$value = $metadata[ $key ];
-			if ( empty( $metadata['textdomain'] ) ) {
-				$settings[ $mapped_key ] = $value;
-				continue;
-			}
-			$textdomain = $metadata['textdomain'];
-			switch ( $key ) {
-				case 'title':
-				case 'description':
-					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain
-					$settings[ $mapped_key ] = translate_with_gettext_context( $value, sprintf( 'block %s', $key ), $textdomain );
-					break;
-				case 'keywords':
-					$settings[ $mapped_key ] = array();
-					if ( ! is_array( $value ) ) {
-						continue 2;
-					}
-
-					foreach ( $value as $keyword ) {
-						// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-						$settings[ $mapped_key ][] = translate_with_gettext_context( $keyword, 'block keyword', $textdomain );
-					}
-
-					break;
-				case 'styles':
-					$settings[ $mapped_key ] = array();
-					if ( ! is_array( $value ) ) {
-						continue 2;
-					}
-
-					foreach ( $value as $style ) {
-						if ( ! empty( $style['label'] ) ) {
-							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-							$style['label'] = translate_with_gettext_context( $style['label'], 'block style label', $textdomain );
-						}
-						$settings[ $mapped_key ][] = $style;
-					}
-
-					break;
-				default:
-					$settings[ $mapped_key ] = $value;
+			$settings[ $mapped_key ] = $metadata[ $key ];
+			if ( $textdomain && isset( $i18n_schema->$key ) ) {
+				$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
 			}
 		}
 	}
@@ -301,6 +294,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$settings['script'] = register_block_script_handle(
 			$metadata,
 			'script'
+		);
+	}
+
+	if ( ! empty( $metadata['viewScript'] ) ) {
+		$settings['view_script'] = register_block_script_handle(
+			$metadata,
+			'viewScript'
 		);
 	}
 
@@ -346,7 +346,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
  * the metadata stored in the `block.json` file.
  *
  * @since 5.0.0
- * @since 5.8.0 First param accepts a path to the `block.json` file.
+ * @since 5.8.0 First parameter now accepts a path to the `block.json` file.
  *
  * @param string|WP_Block_Type $block_type Block type name including namespace, or alternatively
  *                                         a path to the JSON file with metadata definition for the block,
@@ -722,7 +722,7 @@ function excerpt_remove_blocks( $content ) {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param array $allowed_wrapper_blocks The list of allowed wrapper blocks.
+	 * @param string[] $allowed_wrapper_blocks The list of names of allowed wrapper blocks.
 	 */
 	$allowed_wrapper_blocks = apply_filters( 'excerpt_allowed_wrapper_blocks', $allowed_wrapper_blocks );
 
@@ -736,7 +736,7 @@ function excerpt_remove_blocks( $content ) {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param array $allowed_blocks The list of allowed blocks.
+	 * @param string[] $allowed_blocks The list of names of allowed blocks.
 	 */
 	$allowed_blocks = apply_filters( 'excerpt_allowed_blocks', $allowed_blocks );
 	$blocks         = parse_blocks( $content );
@@ -772,7 +772,7 @@ function excerpt_remove_blocks( $content ) {
  * Render inner blocks from the allowed wrapper blocks
  * for generating an excerpt.
  *
- * @since 5.8
+ * @since 5.8.0
  * @access private
  *
  * @param array $parsed_block   The parsed block.

@@ -12,7 +12,7 @@ require_once __DIR__ . '/trac.php';
  *
  * All WordPress unit tests should inherit from this class.
  */
-abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
+abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	protected static $forced_tickets   = array();
 	protected $expected_deprecated     = array();
@@ -60,7 +60,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Runs the routine before setting up all tests.
 	 */
-	public static function setUpBeforeClass() {
+	public static function set_up_before_class() {
 		global $wpdb;
 
 		$wpdb->suppress_errors = false;
@@ -68,7 +68,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
 
-		parent::setUpBeforeClass();
+		parent::set_up_before_class();
 
 		$class = get_called_class();
 
@@ -82,8 +82,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Runs the routine after all tests have been run.
 	 */
-	public static function tearDownAfterClass() {
-		parent::tearDownAfterClass();
+	public static function tear_down_after_class() {
+		parent::tear_down_after_class();
 
 		_delete_all_data();
 		self::flush_cache();
@@ -100,7 +100,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Runs the routine before each test is executed.
 	 */
-	public function setUp() {
+	public function set_up() {
 		set_time_limit( 0 );
 
 		if ( ! self::$ignore_files ) {
@@ -140,7 +140,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		global $wpdb, $wp_query, $wp;
 		$wpdb->query( 'ROLLBACK' );
 		if ( is_multisite() ) {
@@ -472,7 +472,17 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * Sets up the expectations for testing a deprecated call.
 	 */
 	public function expectDeprecated() {
-		$annotations = $this->getAnnotations();
+		if ( method_exists( $this, 'getAnnotations' ) ) {
+			// PHPUnit < 9.5.0.
+			$annotations = $this->getAnnotations();
+		} else {
+			// PHPUnit >= 9.5.0.
+			$annotations = \PHPUnit\Util\Test::parseTestMethodAnnotations(
+				static::class,
+				$this->getName( false )
+			);
+		}
+
 		foreach ( array( 'class', 'method' ) as $depth ) {
 			if ( ! empty( $annotations[ $depth ]['expectedDeprecated'] ) ) {
 				$this->expected_deprecated = array_merge( $this->expected_deprecated, $annotations[ $depth ]['expectedDeprecated'] );
@@ -535,7 +545,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 *
 	 * @since 4.2.0
 	 */
-	protected function assertPostConditions() {
+	protected function assert_post_conditions() {
 		$this->expectedDeprecated();
 	}
 
@@ -564,23 +574,25 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * PHPUnit 6+ compatibility shim.
+	 * Redundant PHPUnit 6+ compatibility shim. DO NOT USE!
+	 *
+	 * This method is only left in place for backward compatibility reasons.
+	 *
+	 * @deprecated 5.9.0 Use the PHPUnit native expectException*() methods directly.
 	 *
 	 * @param mixed      $exception
 	 * @param string     $message
 	 * @param int|string $code
 	 */
 	public function setExpectedException( $exception, $message = '', $code = null ) {
-		if ( method_exists( 'PHPUnit_Framework_TestCase', 'setExpectedException' ) ) {
-			parent::setExpectedException( $exception, $message, $code );
-		} else {
-			$this->expectException( $exception );
-			if ( '' !== $message ) {
-				$this->expectExceptionMessage( $message );
-			}
-			if ( null !== $code ) {
-				$this->expectExceptionCode( $code );
-			}
+		$this->expectException( $exception );
+
+		if ( '' !== $message ) {
+			$this->expectExceptionMessage( $message );
+		}
+
+		if ( null !== $code ) {
+			$this->expectExceptionCode( $code );
 		}
 	}
 
@@ -655,25 +667,32 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Asserts that the given fields are present in the given object.
 	 *
-	 * @param object $object The object to check.
-	 * @param array  $fields The fields to check.
+	 * @since UT (3.7.0)
+	 * @since 5.9.0 Added the `$message` parameter.
+	 *
+	 * @param object $object  The object to check.
+	 * @param array  $fields  The fields to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualFields( $object, $fields ) {
+	public function assertEqualFields( $object, $fields, $message = '' ) {
 		foreach ( $fields as $field_name => $field_value ) {
-			if ( $object->$field_name !== $field_value ) {
-				$this->fail();
-			}
+			$this->assertObjectHasAttribute( $field_name, $object, $message . " Property $field_name does not exist on the object." );
+			$this->assertSame( $field_value, $object->$field_name, $message . " Value of property $field_name is not $field_value." );
 		}
 	}
 
 	/**
 	 * Asserts that two values are equal, with whitespace differences discarded.
 	 *
+	 * @since UT (3.7.0)
+	 * @since 5.9.0 Added the `$message` parameter.
+	 *
 	 * @param string $expected The expected value.
 	 * @param string $actual   The actual value.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertDiscardWhitespace( $expected, $actual ) {
-		$this->assertEquals( preg_replace( '/\s*/', '', $expected ), preg_replace( '/\s*/', '', $actual ) );
+	public function assertDiscardWhitespace( $expected, $actual, $message = '' ) {
+		$this->assertEquals( preg_replace( '/\s*/', '', $expected ), preg_replace( '/\s*/', '', $actual ), $message );
 	}
 
 	/**
@@ -681,11 +700,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 *
 	 * @since 5.6.0
 	 * @since 5.8.0 Added support for nested arrays.
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
 	 * @param string|array $expected The expected value.
 	 * @param string|array $actual   The actual value.
+	 * @param string       $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertSameIgnoreEOL( $expected, $actual ) {
+	public function assertSameIgnoreEOL( $expected, $actual, $message = '' ) {
 		$expected = map_deep(
 			$expected,
 			function ( $value ) {
@@ -700,7 +721,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 			}
 		);
 
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, $message );
 	}
 
 	/**
@@ -708,84 +729,96 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 *
 	 * @since 5.4.0
 	 * @since 5.6.0 Turned into an alias for `::assertSameIgnoreEOL()`.
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
 	 * @param string $expected The expected value.
 	 * @param string $actual   The actual value.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualsIgnoreEOL( $expected, $actual ) {
-		$this->assertSameIgnoreEOL( $expected, $actual );
+	public function assertEqualsIgnoreEOL( $expected, $actual, $message = '' ) {
+		$this->assertSameIgnoreEOL( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two un-keyed, single arrays are the same, without accounting for the order of elements.
 	 *
 	 * @since 5.6.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertSameSets( $expected, $actual ) {
+	public function assertSameSets( $expected, $actual, $message = '' ) {
 		sort( $expected );
 		sort( $actual );
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two un-keyed, single arrays are equal, without accounting for the order of elements.
 	 *
 	 * @since 3.5.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualSets( $expected, $actual ) {
+	public function assertEqualSets( $expected, $actual, $message = '' ) {
 		sort( $expected );
 		sort( $actual );
-		$this->assertEquals( $expected, $actual );
+		$this->assertEquals( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two keyed, single arrays are the same, without accounting for the order of elements.
 	 *
 	 * @since 5.6.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertSameSetsWithIndex( $expected, $actual ) {
+	public function assertSameSetsWithIndex( $expected, $actual, $message = '' ) {
 		ksort( $expected );
 		ksort( $actual );
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the contents of two keyed, single arrays are equal, without accounting for the order of elements.
 	 *
 	 * @since 4.1.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $expected Expected array.
-	 * @param array $actual   Array to check.
+	 * @param array  $expected Expected array.
+	 * @param array  $actual   Array to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualSetsWithIndex( $expected, $actual ) {
+	public function assertEqualSetsWithIndex( $expected, $actual, $message = '' ) {
 		ksort( $expected );
 		ksort( $actual );
-		$this->assertEquals( $expected, $actual );
+		$this->assertEquals( $expected, $actual, $message );
 	}
 
 	/**
 	 * Asserts that the given variable is a multidimensional array, and that all arrays are non-empty.
 	 *
 	 * @since 4.8.0
+	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array $array Array to check.
+	 * @param array  $array   Array to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
-	public function assertNonEmptyMultidimensionalArray( $array ) {
-		$this->assertIsArray( $array );
-		$this->assertNotEmpty( $array );
+	public function assertNonEmptyMultidimensionalArray( $array, $message = '' ) {
+		$this->assertIsArray( $array, $message . ' Value under test is not an array.' );
+		$this->assertNotEmpty( $array, $message . ' Array is empty.' );
 
 		foreach ( $array as $sub_array ) {
-			$this->assertIsArray( $sub_array );
-			$this->assertNotEmpty( $sub_array );
+			$this->assertIsArray( $sub_array, $message . ' Subitem of the array is not an array.' );
+			$this->assertNotEmpty( $sub_array, $message . ' Subitem of the array is empty.' );
 		}
 	}
 
@@ -855,53 +888,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 *
 	 * This is a custom extension of the PHPUnit requirements handling.
 	 *
-	 * Contains legacy code for skipping tests that are associated with an open Trac ticket.
-	 * Core tests no longer support this behaviour.
-	 *
 	 * @since 3.5.0
+	 * @deprecated 5.9.0 This method has not been functional since PHPUnit 7.0.
 	 */
 	protected function checkRequirements() {
-		parent::checkRequirements();
-
-		$annotations = $this->getAnnotations();
-
-		$groups = array();
-		if ( ! empty( $annotations['class']['group'] ) ) {
-			$groups = array_merge( $groups, $annotations['class']['group'] );
-		}
-		if ( ! empty( $annotations['method']['group'] ) ) {
-			$groups = array_merge( $groups, $annotations['method']['group'] );
-		}
-
-		if ( ! empty( $groups ) ) {
-			if ( in_array( 'ms-required', $groups, true ) ) {
-				$this->skipWithoutMultisite();
-			}
-
-			if ( in_array( 'ms-excluded', $groups, true ) ) {
-				$this->skipWithMultisite();
-			}
-		}
-
-		// Core tests no longer check against open Trac tickets,
-		// but others using WP_UnitTestCase may do so.
-		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
-			return;
-		}
-
-		if ( WP_TESTS_FORCE_KNOWN_BUGS ) {
-			return;
-		}
-		$tickets = PHPUnit_Util_Test::getTickets( get_class( $this ), $this->getName( false ) );
-		foreach ( $tickets as $ticket ) {
-			if ( is_numeric( $ticket ) ) {
-				$this->knownWPBug( $ticket );
-			} elseif ( 0 === strpos( $ticket, 'Plugin' ) ) {
-				$ticket = substr( $ticket, 6 );
-				if ( $ticket && is_numeric( $ticket ) ) {
-					$this->knownPluginBug( $ticket );
-				}
-			}
+		// For PHPUnit 5/6, as we're overloading a public PHPUnit native method in those versions.
+		if ( is_callable( 'PHPUnit\Framework\TestCase', 'checkRequirements' ) ) {
+			parent::checkRequirements();
 		}
 	}
 
@@ -925,7 +918,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * Skips the current test if there is an open Unit Test Trac ticket associated with it.
 	 *
 	 * @since 3.5.0
-	 *
 	 * @deprecated No longer used since the Unit Test Trac was merged into the Core Trac.
 	 *
 	 * @param int $ticket_id Ticket number.

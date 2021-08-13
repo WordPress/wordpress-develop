@@ -36,8 +36,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		unregister_post_type( 'cpt' );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		register_meta(
 			'post',
@@ -891,8 +891,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_post_meta( self::$post_id, 'test_custom_schema_multi', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 2, $meta );
-		$this->assertContains( 2, $meta );
-		$this->assertContains( 8, $meta );
+		$this->assertContains( '2', $meta );
+		$this->assertContains( '8', $meta );
 	}
 
 	/**

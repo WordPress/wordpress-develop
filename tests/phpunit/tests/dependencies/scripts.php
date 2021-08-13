@@ -14,8 +14,8 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 	protected $wp_scripts_print_translations_output;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
@@ -34,10 +34,10 @@ JS;
 		$this->wp_scripts_print_translations_output .= "\n";
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -262,8 +262,8 @@ JS;
 		$footer = get_echo( 'wp_print_footer_scripts' );
 
 		$this->assertEmpty( $header );
-		$this->assertContains( home_url( 'bar.js' ), $footer );
-		$this->assertContains( home_url( 'baz.js' ), $footer );
+		$this->assertStringContainsString( home_url( 'bar.js' ), $footer );
+		$this->assertStringContainsString( home_url( 'baz.js' ), $footer );
 	}
 
 	/**
@@ -1424,10 +1424,9 @@ JS;
 	public function test_wp_localize_script_data_formats( $l10n_data, $expected, $warning = false ) {
 		if ( $warning ) {
 			if ( PHP_VERSION_ID < 80000 ) {
-				$this->expectException( 'PHPUnit_Framework_Error_Warning' );
+				$this->expectWarning();
 			} else {
-				// As this exception will only be set on PHP 8 in combination with PHPUnit 7, this will work (for now).
-				$this->expectException( 'Error' );
+				$this->expectError();
 			}
 		}
 

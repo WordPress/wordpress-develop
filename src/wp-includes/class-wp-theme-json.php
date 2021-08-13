@@ -179,6 +179,9 @@ class WP_Theme_JSON {
 	 * @var array
 	 */
 	const ALLOWED_SETTINGS = array(
+		'border'     => array(
+			'customRadius' => null,
+		),
 		'color'      => array(
 			'custom'         => null,
 			'customDuotone'  => null,
@@ -211,6 +214,9 @@ class WP_Theme_JSON {
 	 * @var array
 	 */
 	const ALLOWED_STYLES = array(
+		'border'     => array(
+			'radius' => null,
+		),
 		'color'      => array(
 			'background' => null,
 			'gradient'   => null,
@@ -1178,7 +1184,7 @@ class WP_Theme_JSON {
 				$theme_settings['settings']['spacing'] = array();
 			}
 			$theme_settings['settings']['spacing']['units'] = ( true === $settings['enableCustomUnits'] ) ?
-				array( 'px', 'em', 'rem', 'vh', 'vw' ) :
+				array( 'px', 'em', 'rem', 'vh', 'vw', '%' ) :
 				$settings['enableCustomUnits'];
 		}
 

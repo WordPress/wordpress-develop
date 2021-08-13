@@ -16,8 +16,8 @@
  * @since 5.6.1
  */
 class Tests_WP_SimplePie_File extends WP_UnitTestCase {
-	public static function setUpBeforeClass() {
-		parent::setUpBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 
 		require_once ABSPATH . '/wp-includes/class-simplepie.php';
 		require_once ABSPATH . '/wp-includes/class-wp-simplepie-file.php';

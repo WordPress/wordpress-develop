@@ -598,7 +598,6 @@ class wpdb {
 	 * @since 2.0.8
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/3354
-	 * @global string $wp_version The WordPress version string.
 	 *
 	 * @param string $dbuser     MySQL database user.
 	 * @param string $dbpassword MySQL database password.
@@ -1628,6 +1627,13 @@ class wpdb {
 		$client_flags = defined( 'MYSQL_CLIENT_FLAGS' ) ? MYSQL_CLIENT_FLAGS : 0;
 
 		if ( $this->use_mysqli ) {
+			/*
+			 * Set the MySQLi error reporting off because WordPress handles its own.
+			 * This is due to the default value change from `MYSQLI_REPORT_OFF`
+			 * to `MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT` in PHP 8.1.
+			 */
+			mysqli_report( MYSQLI_REPORT_OFF );
+
 			$this->dbh = mysqli_init();
 
 			$host    = $this->dbhost;

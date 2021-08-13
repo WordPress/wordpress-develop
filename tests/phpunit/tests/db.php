@@ -21,16 +21,16 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	protected static $_wpdb;
 
-	public static function setUpBeforeClass() {
-		parent::setUpBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 		self::$_wpdb = new WpdbExposedMethodsForTesting();
 	}
 
 	/**
 	 * Set up the test fixture
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->_queries = array();
 		add_filter( 'query', array( $this, 'query_filter' ) );
 	}
@@ -99,11 +99,11 @@ class Tests_DB extends WP_UnitTestCase {
 		$wpdb->suppress_errors( false );
 
 		// Ensure the float isn't 0,700.
-		$this->assertContains( '0.700', array_pop( $this->_queries ) );
+		$this->assertStringContainsString( '0.700', array_pop( $this->_queries ) );
 
 		// Try a prepare.
 		$sql = $wpdb->prepare( 'UPDATE test_table SET float_column = %f AND meta_id = %d', 0.7, 5 );
-		$this->assertContains( '0.700', $sql );
+		$this->assertStringContainsString( '0.700', $sql );
 
 		// Restore locale settings.
 		foreach ( $current_locales as $locale_setting ) {
@@ -270,7 +270,7 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_double_escaped_placeholders() {
 		global $wpdb;
 		$sql = $wpdb->prepare( "UPDATE test_table SET string_column = '%%f is a float, %%d is an int %d, %%s is a string', field = %s", 3, '4' );
-		$this->assertContains( $wpdb->placeholder_escape(), $sql );
+		$this->assertStringContainsString( $wpdb->placeholder_escape(), $sql );
 
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 		$this->assertSame( "UPDATE test_table SET string_column = '%f is a float, %d is an int 3, %s is a string', field = '4'", $sql );
@@ -1608,7 +1608,7 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		$part = $wpdb->prepare( ' AND meta_value = %s', ' %s ' );
-		$this->assertNotContains( '%s', $part );
+		$this->assertStringNotContainsString( '%s', $part );
 		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$query = $wpdb->prepare( 'SELECT * FROM {$wpdb->postmeta} WHERE meta_key = %s $part', array( 'foo', 'bar' ) );
 		$this->assertNull( $query );
@@ -1625,8 +1625,8 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 
 		/* Floats can be right padded, need to assert differently */
-		$this->assertContains( ' first=1.1', $actual );
-		$this->assertContains( ' second=2.2', $actual );
+		$this->assertStringContainsString( ' first=1.1', $actual );
+		$this->assertStringContainsString( ' second=2.2', $actual );
 	}
 
 	function test_prepare_numeric_placeholders_float_array() {
@@ -1639,8 +1639,8 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 
 		/* Floats can be right padded, need to assert differently */
-		$this->assertContains( ' first=1.1', $actual );
-		$this->assertContains( ' second=2.2', $actual );
+		$this->assertStringContainsString( ' first=1.1', $actual );
+		$this->assertStringContainsString( ' second=2.2', $actual );
 	}
 
 	function test_query_unescapes_placeholders() {
@@ -1658,7 +1658,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$wpdb->query( "DROP TABLE {$wpdb->prefix}test_placeholder" );
 
-		$this->assertNotContains( '%s', $sql );
+		$this->assertStringNotContainsString( '%s', $sql );
 		$this->assertSame( $value, $actual );
 	}
 

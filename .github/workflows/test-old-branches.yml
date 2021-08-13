@@ -69,6 +69,3 @@ jobs:
               workflow_id: '${{ matrix.workflow }}',
               ref: '${{ matrix.branch }}'
             });
-
-      - name: Ensure version-controlled files are not modified during the tests
-        run: git diff --exit-code

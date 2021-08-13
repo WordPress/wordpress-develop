@@ -20,8 +20,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	protected $backup_registered_sidebars;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
 		add_theme_support( 'customize-selective-refresh-widgets' );
@@ -90,12 +90,12 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		parent::clean_up_global_scope();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );
 		$GLOBALS['wp_registered_sidebars'] = $this->backup_registered_sidebars;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function set_customized_post_data( $customized ) {
@@ -579,10 +579,10 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->do_customize_boot_actions();
 		$widget_control = $this->manager->widgets->get_widget_control( $this->get_test_widget_control_args() );
 
-		$this->assertContains( '<div class="form">', $widget_control );
-		$this->assertContains( '<div class="widget-content">', $widget_control );
-		$this->assertContains( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control );
-		$this->assertContains( '<input class="widefat"', $widget_control );
+		$this->assertStringContainsString( '<div class="form">', $widget_control );
+		$this->assertStringContainsString( '<div class="widget-content">', $widget_control );
+		$this->assertStringContainsString( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control );
+		$this->assertStringContainsString( '<input class="widefat"', $widget_control );
 	}
 
 	/**
@@ -594,11 +594,11 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'content', $widget_control_parts );
 		$this->assertArrayHasKey( 'control', $widget_control_parts );
 
-		$this->assertContains( '<div class="form">', $widget_control_parts['control'] );
-		$this->assertContains( '<div class="widget-content">', $widget_control_parts['control'] );
-		$this->assertContains( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control_parts['control'] );
-		$this->assertNotContains( '<input class="widefat"', $widget_control_parts['control'] );
-		$this->assertContains( '<input class="widefat"', $widget_control_parts['content'] );
+		$this->assertStringContainsString( '<div class="form">', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<div class="widget-content">', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control_parts['control'] );
+		$this->assertStringNotContainsString( '<input class="widefat"', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<input class="widefat"', $widget_control_parts['content'] );
 	}
 
 	/**
@@ -610,11 +610,11 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$params  = $control->json();
 
 		$this->assertSame( 'widget_form', $params['type'] );
-		$this->assertRegExp( '#^<li[^>]+>\s*</li>$#', $params['content'] );
-		$this->assertRegExp( '#^<div[^>]*class=\'widget\'[^>]*#s', $params['widget_control'] );
-		$this->assertContains( '<div class="widget-content"></div>', $params['widget_control'] );
-		$this->assertNotContains( '<input class="widefat"', $params['widget_control'] );
-		$this->assertContains( '<input class="widefat"', $params['widget_content'] );
+		$this->assertMatchesRegularExpression( '#^<li[^>]+>\s*</li>$#', $params['content'] );
+		$this->assertMatchesRegularExpression( '#^<div[^>]*class=\'widget\'[^>]*#s', $params['widget_control'] );
+		$this->assertStringContainsString( '<div class="widget-content"></div>', $params['widget_control'] );
+		$this->assertStringNotContainsString( '<input class="widefat"', $params['widget_control'] );
+		$this->assertStringContainsString( '<input class="widefat"', $params['widget_content'] );
 		$this->assertSame( 'search-2', $params['widget_id'] );
 		$this->assertSame( 'search', $params['widget_id_base'] );
 		$this->assertArrayHasKey( 'sidebar_id', $params );
@@ -681,7 +681,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'instance', $result );
 		$this->assertArrayHasKey( 'form', $result );
 		$this->assertSame( $instance, $result['instance'] );
-		$this->assertContains( sprintf( 'value="%s"', esc_attr( $instance['title'] ) ), $result['form'] );
+		$this->assertStringContainsString( sprintf( 'value="%s"', esc_attr( $instance['title'] ) ), $result['form'] );
 
 		$post_values = $this->manager->unsanitized_post_values();
 		$this->assertArrayHasKey( $setting_id, $post_values );
@@ -814,8 +814,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( '<!--dynamic_sidebar_after:foo:1-->', trim( $output ) );
 
 		$output = wp_kses_post( $filtered_params[0]['before_widget'] );
-		$this->assertContains( 'data-customize-partial-id="widget[search-2]"', $output );
-		$this->assertContains( 'data-customize-partial-type="widget"', $output );
+		$this->assertStringContainsString( 'data-customize-partial-id="widget[search-2]"', $output );
+		$this->assertStringContainsString( 'data-customize-partial-type="widget"', $output );
 	}
 
 	/**
@@ -841,7 +841,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 		$this->assertSame( 1, substr_count( $output, 'data-customize-partial-id' ) );
 		$this->assertSame( 1, substr_count( $output, 'data-customize-partial-type="widget"' ) );
-		$this->assertContains( ' id="search-2"', $output );
+		$this->assertStringContainsString( ' id="search-2"', $output );
 	}
 
 	/**

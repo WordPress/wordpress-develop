@@ -25,8 +25,8 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$post_id         = self::factory()->post->create();
 		$this->_comments = self::factory()->comment->create_post_comments( $post_id, 15 );
 		$this->_comments = array_map( 'get_comment', $this->_comments );
@@ -197,7 +197,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 			// Ensure everything is correct.
 			$this->assertSame( '0', (string) $xml->response[0]->comment['id'] );
 			$this->assertSame( 'dim-comment_0', (string) $xml->response['action'] );
-			$this->assertContains( 'Comment ' . $_POST['id'] . ' does not exist', $this->_last_response );
+			$this->assertStringContainsString( 'Comment ' . $_POST['id'] . ' does not exist', $this->_last_response );
 
 		} catch ( Exception $e ) {
 			$this->fail( 'Unexpected exception type: ' . get_class( $e ) );

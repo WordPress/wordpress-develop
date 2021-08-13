@@ -420,7 +420,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			'taxonomy' => 'category',
 			'cat_name' => 'test1',
 		);
-		$this->assertTrue( is_numeric( wp_insert_category( $cat, true ) ) );
+		$this->assertIsNumeric( wp_insert_category( $cat, true ) );
 	}
 
 	function test_insert_category_update() {
@@ -438,7 +438,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			'taxonomy' => 'force_error',
 			'cat_name' => 'Error',
 		);
-		$this->assertTrue( is_a( wp_insert_category( $cat, true ), 'WP_Error' ) );
+		$this->assertInstanceOf( 'WP_Error', wp_insert_category( $cat, true ) );
 	}
 
 	function test_insert_category_force_error_no_handle() {

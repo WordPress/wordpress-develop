@@ -22,8 +22,8 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 	 *
 	 * @since 4.9.8
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
@@ -32,9 +32,9 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 	 *
 	 * @since 4.9.8
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		reset_phpmailer_instance();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -85,9 +85,9 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 		$this->assertTrue( (bool) get_post_meta( $request_id, '_wp_user_request_confirmed_timestamp', true ) );
 		$this->assertTrue( (bool) get_post_meta( $request_id, '_wp_admin_notified', true ) );
 		$this->assertSame( get_site_option( 'admin_email' ), $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'Action Confirmed', $mailer->get_sent()->subject );
-		$this->assertContains( 'Request: Export Personal Data', $mailer->get_sent()->body );
-		$this->assertContains( 'A user data privacy request has been confirmed', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Action Confirmed', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Request: Export Personal Data', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'A user data privacy request has been confirmed', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -183,7 +183,7 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 		remove_filter( 'user_request_confirmed_email_content', array( $this, 'modify_email_content' ), 10 );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertContains( 'Custom content containing email address:' . $email, $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Custom content containing email address:' . $email, $mailer->get_sent()->body );
 	}
 
 	/**
@@ -228,7 +228,7 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
+		$this->assertStringContainsString( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
 	}
 
 	/**
