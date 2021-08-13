@@ -222,6 +222,52 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53668
+	 */
+	function test__wp_check_alternate_output_format_uniqueness() {
+		$testdir = DIR_TESTDATA . '/images/';
+
+		add_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
+
+		// Standard test that wp_unique_filename allows usage if file does not exist yet.
+		$this->assertSame( 'abcdef.png', wp_unique_filename( $testdir, 'abcdef.png' ), 'non-existent file should not have name changed' );
+		// Difference in extension does not affect wp_unique_filename by default (canola.jpg exists).
+		$this->assertSame( 'canola.png', wp_unique_filename( $testdir, 'canola.png' ), 'clashing base filename but not extension should not have name changed' );
+		// Run again to prove no memory.
+		$this->assertSame( 'canola.png', wp_unique_filename( $testdir, 'canola.png' ), 'clashing base filename but not extension should not have name changed' );
+		// Actual clash recognized.
+		$this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'existing file should have name changed' );
+
+		// Now output jpg thumbnails for png files.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_format_handler' ) );
+
+		// Standard test that wp_unique_filename allows usage if file does not exist yet.
+		$this->assertSame( 'abcdef.png', wp_unique_filename( $testdir, 'abcdef.png' ), 'non-existent file should not have name changed' );
+		// Difference in extension does affect wp_unique_filename when thumbnails use existing file's type.
+		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'clashing base filename but not extension should have name changed when thumbnails use existing file\'s type' );
+		// Run again to prove no memory.
+		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'clashing base filename but not extension should have name changed when thumbnails use existing file\'s type' );
+		// Actual clash recognized.
+		$this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'existing file should have name changed' );
+
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_format_handler' ) );
+		remove_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
+	}
+
+	/**
+	 * Changes the output format for a png file's generated thumbnails to be jpg.
+	 *
+	 * @param array $formats
+	 *
+	 * @return array
+	 */
+	public function image_editor_output_format_handler( $formats ) {
+		$formats['image/png'] = 'image/jpeg';
+
+		return $formats;
+	}
+
+	/**
 	 * @dataProvider data_is_not_serialized
 	 */
 	function test_maybe_serialize( $value ) {
@@ -1945,5 +1991,20 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8', false ),
 			array( 'application/activity+json, application/nojson', true ),
 		);
+	}
+
+	/**
+	 * @ticket 53668
+	 */
+	public function test_wp_default_extension_for_mime_type() {
+		$this->assertEquals( 'jpg', wp_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
+		$this->assertNotEquals( 'jpeg', wp_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
+		$this->assertEquals( 'png', wp_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
+		$this->assertFalse( wp_default_extension_for_mime_type( 'wibble/wobble' ), 'false not returned for unrecognized mime type' );
+		$this->assertFalse( wp_default_extension_for_mime_type(), 'false not returned when no mime type supplied' );
+		$this->assertFalse( wp_default_extension_for_mime_type( '' ), 'false not returned when empty string as mime type supplied' );
+		$this->assertFalse( wp_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );
+		$this->assertFalse( wp_default_extension_for_mime_type( 123 ), 'false not returned when int as mime type supplied' );
+		$this->assertFalse( wp_default_extension_for_mime_type( null ), 'false not returned when null as mime type supplied' );
 	}
 }
