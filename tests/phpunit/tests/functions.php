@@ -252,7 +252,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Actual clash recognized.
 		$this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'Existing file should have name changed.' );
 		// Future clash by regenerated thumbnails recognized.
-        $this->assertSame( 'codeispoetry-1.jpg', wp_unique_filename( $testdir, 'codeispoetry.jpg' ), 'The codeispoetry.png image exists. When regenerating thumbnails for it they will be converted to JPG. The name of the newly uploaded codeispoetry.jpg should be made unique.' );
+		$this->assertSame( 'codeispoetry-1.jpg', wp_unique_filename( $testdir, 'codeispoetry.jpg' ), 'The codeispoetry.png image exists. When regenerating thumbnails for it they will be converted to JPG. The name of the newly uploaded codeispoetry.jpg should be made unique.' );
 
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_format_handler' ) );
 		remove_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
