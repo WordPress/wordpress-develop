@@ -2527,33 +2527,41 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		$is_image   = ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) );
 		$upload_dir = wp_get_upload_dir();
 
+		$alt_ext      = null;
 		$alt_filename = null;
 		$lc_filename  = null;
 
 		$lc_ext = strtolower( $ext );
 		$_dir   = trailingslashit( $dir );
 
-		// Check if an image could be converted after uploading. If yes, ensure the name will be unique with both extensions.
+		// Check if an image will be converted after uploading or an existing image's sub-sizes file names may conflict when regenerated.
+		// If yes, ensure the new file name will be unique with both extensions.
 		if ( $is_image ) {
 			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type );
 
 			if ( ! empty( $output_formats[ $mime_type ] ) ) {
+				// The image will be converted to this format/mime-type.
 				$alt_ext = wp_get_default_extension_for_mime_type( $output_formats[ $mime_type ] );
+			} elseif ( in_array( $mime_type, $output_formats, true ) ) {
+				// There may be an existing file whose name may conflict if its sub-sizes are regenerated.
+				$alt_type = array_search( $mime_type, $output_formats, true );
+				$alt_ext  = wp_get_default_extension_for_mime_type( $alt_type );
+			}
 
-				if ( $alt_ext ) {
-					$alt_ext = ".{$alt_ext}";
-					$alt_filename = preg_replace( '|' . preg_quote( $ext ) . '$|', $alt_ext, $filename );
-				}
+			if ( $alt_ext ) {
+				$alt_ext = ".{$alt_ext}";
+				$alt_filename = preg_replace( '|' . preg_quote( $ext ) . '$|', $alt_ext, $filename );
 			}
 		}
 
 		// If the extension is upper case add a file name with lower case extension.
-		// Both need to be tested for uniqueness as many operating systems ignore the case of file names.
+		// Both need to be tested for uniqueness as many operating systems ignore the case of file names and extensions.
 		if ( $ext && $lc_ext !== $ext ) {
 			$lc_filename = preg_replace( '|' . preg_quote( $ext ) . '$|', $lc_ext, $filename );
 		}
 
-		// Increment the number added to the file name if any files with names matching the name variations exist in $dir.
+		// Increment the number added to the file name if there are any files in $dir whose names match one of the
+		// possible name variations.
 		while (
 			file_exists( $_dir . $filename ) ||
 			( $lc_filename && file_exists( $_dir . $lc_filename ) ) ||

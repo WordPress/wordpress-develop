@@ -230,32 +230,37 @@ class Tests_Functions extends WP_UnitTestCase {
 		add_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
 
 		// Standard test that wp_unique_filename allows usage if file does not exist yet.
-		$this->assertSame( 'abcdef.png', wp_unique_filename( $testdir, 'abcdef.png' ), 'non-existent file should not have name changed' );
-		// Difference in extension does not affect wp_unique_filename by default (canola.jpg exists).
-		$this->assertSame( 'canola.png', wp_unique_filename( $testdir, 'canola.png' ), 'clashing base filename but not extension should not have name changed' );
-		// Run again to prove no memory.
-		$this->assertSame( 'canola.png', wp_unique_filename( $testdir, 'canola.png' ), 'clashing base filename but not extension should not have name changed' );
-		// Actual clash recognized.
-		$this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'existing file should have name changed' );
+        $this->assertSame( 'abcdef.png', wp_unique_filename( $testdir, 'abcdef.png' ), 'The abcdef.png image does not exist. The name does not need to be made unique.' );
+        // Difference in extension does not affect wp_unique_filename by default (canola.jpg exists).
+        $this->assertSame( 'canola.png', wp_unique_filename( $testdir, 'canola.png' ), 'The canola.jpg image exists. Clashing base filename but not extension should not have name changed.' );
+        // Run again with upper case extension.
+        $this->assertSame( 'canola.png', wp_unique_filename( $testdir, 'canola.PNG' ), 'The canola.jpg image exists. Clashing base filename but not extension should not have name changed.' );
+        // Actual clash recognized.
+        $this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'The canola.jpg image exists. Uploading canola.jpg again should have unique name.' );
+        // Future clash by regenerated thumbnails not applicable.
+        $this->assertSame( 'codeispoetry.jpg', wp_unique_filename( $testdir, 'codeispoetry.jpg' ), 'The codeispoetry.png image exists. Uploading codeispoetry.jpg does not need unique name.' );
 
-		// Now output jpg thumbnails for png files.
+		// When creating sub-sizes convert uploaded PNG images to JPG.
 		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_format_handler' ) );
 
 		// Standard test that wp_unique_filename allows usage if file does not exist yet.
-		$this->assertSame( 'abcdef.png', wp_unique_filename( $testdir, 'abcdef.png' ), 'non-existent file should not have name changed' );
+		$this->assertSame( 'abcdef.png', wp_unique_filename( $testdir, 'abcdef.png' ), 'The abcdef.png image does not exist. The name does not need to be made unique.' );
 		// Difference in extension does affect wp_unique_filename when thumbnails use existing file's type.
-		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'The canola.jpg image exists. Uploading canola.png that will be converted to canola.jpg should produce unique file name: canola-1.png.' );
-		// Run again to prove no memory.
-		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'The canola.jpg image exists. Uploading canola.png that will be converted to canola.jpg should produce unique file name: canola-1.png.' );
+		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'The canola.jpg image exists. Uploading canola.png that will be converted to canola.jpg should produce unique file name.' );
+		// Run again with upper case extension.
+		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.PNG' ), 'The canola.jpg image exists. Uploading canola.PNG that will be converted to canola.jpg should produce unique file name.' );
 		// Actual clash recognized.
-		$this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'existing file should have name changed' );
+		$this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'Existing file should have name changed.' );
+		// Future clash by regenerated thumbnails recognized.
+        $this->assertSame( 'codeispoetry-1.jpg', wp_unique_filename( $testdir, 'codeispoetry.jpg' ), 'The codeispoetry.png image exists. When regenerating thumbnails for it they will be converted to JPG. The name of the newly uploaded codeispoetry.jpg should be made unique.' );
 
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_format_handler' ) );
 		remove_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
 	}
 
 	/**
-	 * Changes the output format for a png file's generated thumbnails to be jpg.
+	 * Changes the output format when editing images. When uploading a PNG file
+	 * it will be converted to JPG (if the image editor in PHP supports it).
 	 *
 	 * @param array $formats
 	 *
