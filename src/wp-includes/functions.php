@@ -2633,7 +2633,8 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 						$alt_filename = str_replace( array( "-{$number}{$alt_ext}", "{$number}{$alt_ext}" ), "-{$new_number}{$alt_ext}", $alt_filename );
 					}
 
-					$filename = str_replace( array( "-{$number}{$ext}", "{$number}{$ext}" ), "-{$new_number}{$ext}", $filename );
+					// If $ext is upper case it was replaced with the lower case version in $filename.
+					$filename = str_replace( array( "-{$number}{$lc_ext}", "{$number}{$lc_ext}" ), "-{$new_number}{$lc_ext}", $filename );
 
 					$number = $new_number;
 					$i++;
