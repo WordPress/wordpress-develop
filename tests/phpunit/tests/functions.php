@@ -244,9 +244,9 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Standard test that wp_unique_filename allows usage if file does not exist yet.
 		$this->assertSame( 'abcdef.png', wp_unique_filename( $testdir, 'abcdef.png' ), 'non-existent file should not have name changed' );
 		// Difference in extension does affect wp_unique_filename when thumbnails use existing file's type.
-		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'clashing base filename but not extension should have name changed when thumbnails use existing file\'s type' );
+		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'The canola.jpg image exists. Uploading canola.png that will be converted to canola.jpg should produce unique file name: canola-1.png.' );
 		// Run again to prove no memory.
-		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'clashing base filename but not extension should have name changed when thumbnails use existing file\'s type' );
+		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'The canola.jpg image exists. Uploading canola.png that will be converted to canola.jpg should produce unique file name: canola-1.png.' );
 		// Actual clash recognized.
 		$this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'existing file should have name changed' );
 

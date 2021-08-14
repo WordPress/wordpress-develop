@@ -2521,59 +2521,73 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 
 		// Get the mime type. Uploaded files were already checked with wp_check_filetype_and_ext()
 		// in _wp_handle_upload(). Using wp_check_filetype() would be sufficient here.
-		$file_type  = wp_check_filetype( $filename );
-		$mime_type  = $file_type['type'];
-		$extensions = array( $ext );
+		$file_type = wp_check_filetype( $filename );
+		$mime_type = $file_type['type'];
 
-		if ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) ) {
-			$output_formats = apply_filters( 'image_editor_output_format', array(), trailingslashit( $dir ) . $filename, $mime_type );
+		$is_image   = ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) );
+		$upload_dir = wp_get_upload_dir();
+
+		$alt_filename = null;
+		$lc_filename  = null;
+
+		$lc_ext = strtolower( $ext );
+		$_dir   = trailingslashit( $dir );
+
+		// Check if an image could be converted after uploading. If yes, ensure the name will be unique with both extensions.
+		if ( $is_image ) {
+			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type );
 
 			if ( ! empty( $output_formats[ $mime_type ] ) ) {
 				$alt_ext = wp_get_default_extension_for_mime_type( $output_formats[ $mime_type ] );
 
 				if ( $alt_ext ) {
-					$extensions[] = ".{$alt_ext}";
+					$alt_ext = ".{$alt_ext}";
+					$alt_filename = preg_replace( '|' . preg_quote( $ext ) . '$|', $alt_ext, $filename );
 				}
 			}
 		}
 
-		foreach ( $extensions as $extension ) {
-			// If '.ext' is not lower case, test with both the original and the lower case extensions.
-			if ( $extension && strtolower( $extension ) !== $extension ) {
-				$extension2 = strtolower( $extension );
-				$filename2  = preg_replace( '|' . preg_quote( $extension ) . '$|', $extension2, $filename );
+		// If the extension is upper case add a file name with lower case extension.
+		// Both need to be tested for uniqueness as many operating systems ignore the case of file names.
+		if ( $ext && $lc_ext !== $ext ) {
+			$lc_filename = preg_replace( '|' . preg_quote( $ext ) . '$|', $lc_ext, $filename );
+		}
 
-				// Check for both lower and upper case extension or image sub-sizes may be overwritten.
-				while ( file_exists( $dir . "/{$filename}" ) || file_exists( $dir . "/{$filename2}" ) ) {
-					$new_number = (int) $number + 1;
-					$filename   = str_replace( array( "-{$number}{$extension}", "{$number}{$extension}" ), "-{$new_number}{$extension}", $filename );
-					$filename2  = str_replace( array( "-{$number}{$extension2}", "{$number}{$extension2}" ), "-{$new_number}{$extension2}", $filename2 );
-					$number     = $new_number;
-				}
+		// Increment the number added to the file name if any files with names matching the name variations exist in $dir.
+		while (
+			file_exists( $_dir . $filename ) ||
+			( $lc_filename && file_exists( $_dir . $lc_filename ) ) ||
+			( $alt_filename && file_exists( $_dir . $alt_filename ) )
+		) {
+			$new_number = (int) $number + 1;
 
-				// Change the extension to lower case.
-				$filename = $filename2;
-			} else {
-				while ( file_exists( $dir . "/{$filename}" ) ) {
-					$new_number = (int) $number + 1;
-
-					if ( '' === "{$number}{$extension}" ) {
-						$filename = "{$filename}-{$new_number}";
-					} else {
-						$filename = str_replace( array( "-{$number}{$extension}", "{$number}{$extension}" ), "-{$new_number}{$extension}", $filename );
-					}
-
-					$number = $new_number;
-				}
+			if ( $lc_filename ) {
+				$lc_filename = str_replace( array( "-{$number}{$lc_ext}", "{$number}{$lc_ext}" ), "-{$new_number}{$lc_ext}", $lc_filename );
 			}
+
+			if ( $alt_filename ) {
+				$alt_filename = str_replace( array( "-{$number}{$alt_ext}", "{$number}{$alt_ext}" ), "-{$new_number}{$alt_ext}", $alt_filename );
+			}
+
+			if ( '' === "{$number}{$ext}" ) {
+				$filename = "{$filename}-{$new_number}";
+			} else {
+				$filename = str_replace( array( "-{$number}{$ext}", "{$number}{$ext}" ), "-{$new_number}{$ext}", $filename );
+			}
+
+			$number = $new_number;
+		}
+
+		// Change the extension to lower case if needed.
+		if ( $lc_filename ) {
+			$filename = $lc_filename;
 		}
 
 		// Prevent collisions with existing file names that contain dimension-like strings
 		// (whether they are subsizes or originals uploaded prior to #42437).
-		$upload_dir = wp_get_upload_dir();
 
 		// The (resized) image files would have name and extension, and will be in the uploads dir.
-		if ( $name && $ext && @is_dir( $dir ) && false !== strpos( $dir, $upload_dir['basedir'] ) ) {
+		if ( $name && $ext && $is_image && @is_dir( $dir ) && false !== strpos( $dir, $upload_dir['basedir'] ) ) {
 			/**
 			 * Filters the file list used for calculating a unique filename for a newly added file.
 			 *
@@ -2602,20 +2616,27 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 			if ( ! empty( $files ) ) {
 				$count = count( $files );
 
-				foreach ( $extensions as $extension ) {
-					// The extension was changed to lower case.
-					$new_ext = strtolower( $extension );
+				// Ensure this never goes into infinite loop
+				// as it uses pathinfo() and regex in the check, but string replacement for the changes.
+				$i = 0;
 
-					// Ensure this never goes into infinite loop
-					// as it uses pathinfo() and regex in the check, but string replacement for the changes.
-					$i = 0;
+				while (
+					$i <= $count &&
+					(
+						_wp_check_existing_file_names( $filename, $files ) ||
+						( $alt_filename && _wp_check_existing_file_names( $alt_filename, $files ) )
+					)
+				) {
+					$new_number = (int) $number + 1;
 
-					while ( $i <= $count && _wp_check_existing_file_names( $filename, $files ) ) {
-						$new_number = (int) $number + 1;
-						$filename   = str_replace( array( "-{$number}{$new_ext}", "{$number}{$new_ext}" ), "-{$new_number}{$new_ext}", $filename );
-						$number     = $new_number;
-						$i++;
+					if ( $alt_filename ) {
+						$alt_filename = str_replace( array( "-{$number}{$alt_ext}", "{$number}{$alt_ext}" ), "-{$new_number}{$alt_ext}", $alt_filename );
 					}
+
+					$filename = str_replace( array( "-{$number}{$ext}", "{$number}{$ext}" ), "-{$new_number}{$ext}", $filename );
+
+					$number = $new_number;
+					$i++;
 				}
 			}
 		}
