@@ -44,4 +44,32 @@ class WP_UnitTestCase extends WP_UnitTestCase_Base {
 	use ExpectExceptionMessageMatches;
 	use ExpectExceptionObject;
 	use ExpectPHPException;
+
+	/**
+	 * Wrapper method for the `setUpBeforeClass()` method for forward-compatibility with WP 5.9.
+	 */
+	public static function set_up_before_class() {
+		static::setUpBeforeClass();
+	}
+
+	/**
+	 * Wrapper method for the `tearDownAfterClass()` method for forward-compatibility with WP 5.9.
+	 */
+	public static function tear_down_after_class() {
+		static::tearDownAfterClass();
+	}
+
+	/**
+	 * Wrapper method for the `setUp()` method for forward-compatibility with WP 5.9.
+	 */
+	public function set_up() {
+		static::setUp();
+	}
+
+	/**
+	 * Wrapper method for the `tearDown()` method for forward-compatibility with WP 5.9.
+	 */
+	public function tear_down() {
+		static::tearDown();
+	}
 }
