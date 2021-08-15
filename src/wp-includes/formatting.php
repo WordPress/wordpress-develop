@@ -540,7 +540,16 @@ function wpautop( $pee, $br = true ) {
 
 	// Rebuild the content as a string, wrapping every bit with a <p>.
 	foreach ( $pees as $tinkle ) {
-		$pee .= '<p>' . trim( $tinkle, "\n" ) . "</p>\n";
+
+		// Don't wrap HTML comment lines in <p> tags.
+		if (
+			0 === strpos( trim( $tinkle, "\n" ), '<!--' ) &&
+			( strlen(  trim( $tinkle, "\n" ) ) - strlen( "-->" ) ) === strpos(  trim( $tinkle, "\n" ), "-->" )
+		) {
+			$pee .= trim( $tinkle, "\n" );
+		} else {
+			$pee .= '<p>' . trim( $tinkle, "\n" ) . "</p>\n";
+		}
 	}
 
 	// Under certain strange conditions it could create a P of entirely whitespace.
@@ -567,6 +576,13 @@ function wpautop( $pee, $br = true ) {
 
 	// Optionally insert line breaks.
 	if ( $br ) {
+
+		// Multi-line HTML comments. (Opening)
+		$pee = preg_replace_callback( '/<!--.*?\n/s', '_autop_newline_preservation_helper', $pee );
+
+		// Multi-line HTML comments. (Closing)
+		$pee = preg_replace_callback( '/-->.*?\n/s', '_autop_newline_preservation_helper', $pee );
+
 		// Replace newlines that shouldn't be touched with a placeholder.
 		$pee = preg_replace_callback( '/<(script|style|svg).*?<\/\\1>/s', '_autop_newline_preservation_helper', $pee );
 
@@ -578,6 +594,16 @@ function wpautop( $pee, $br = true ) {
 
 		// Replace newline placeholders with newlines.
 		$pee = str_replace( '<WPPreserveNewline />', "\n", $pee );
+	}
+
+	// No <p> around HTML comment
+	if ( strpos( $pee, '<!--' ) !== false ) {
+		$pee = preg_replace( '|<p>\s*<!--|', '<!--', $pee );
+
+		// Remove the tailing paragraph if this paragraph starts as a comment.
+		if ( 0 === strpos( $pee, '<!--' ) ) {
+			$pee = preg_replace( '|-->\s*</p>|', '-->', $pee );
+		}
 	}
 
 	// If a <br /> tag is after an opening or closing block tag, remove it.
