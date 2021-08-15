@@ -29,4 +29,32 @@ class WP_UnitTestCase extends WP_UnitTestCase_Base {
 	public static function assertNotFalse( $condition, string $message = '' ): void {
 		self::assertThat( $condition, self::logicalNot( self::isFalse() ), $message );
 	}
+
+	/**
+	 * Wrapper method for the `setUpBeforeClass()` method for forward-compatibility with WP 5.9.
+	 */
+	public static function set_up_before_class() {
+		static::setUpBeforeClass();
+	}
+
+	/**
+	 * Wrapper method for the `tearDownAfterClass()` method for forward-compatibility with WP 5.9.
+	 */
+	public static function tear_down_after_class() {
+		static::tearDownAfterClass();
+	}
+
+	/**
+	 * Wrapper method for the `setUp()` method for forward-compatibility with WP 5.9.
+	 */
+	public function set_up() {
+		static::setUp();
+	}
+
+	/**
+	 * Wrapper method for the `tearDown()` method for forward-compatibility with WP 5.9.
+	 */
+	public function tear_down() {
+		static::tearDown();
+	}
 }
