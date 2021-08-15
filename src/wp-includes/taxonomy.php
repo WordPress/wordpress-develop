@@ -2685,7 +2685,12 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 			continue;
 		}
 
-		$term_info = term_exists( $term, $taxonomy );
+		// Make sure we're not sanitizing the term slug.
+		if ( sanitize_title( $term ) !== $term ) {
+			$term_info = term_exists( sanitize_term_field( 'name', $term, null, $taxonomy, 'db' ), $taxonomy );
+		} else {
+			$term_info = term_exists( $term, $taxonomy );
+		}
 
 		if ( ! $term_info ) {
 			// Skip if a non-existent term ID is passed.
