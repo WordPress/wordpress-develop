@@ -86,8 +86,13 @@ if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
 		if ( is_string( WP_TESTS_PHPUNIT_POLYFILLS_PATH )
 			&& '' !== WP_TESTS_PHPUNIT_POLYFILLS_PATH
 		) {
-			$phpunit_polyfills_path = rtrim( $phpunit_polyfills_path, '/\\' );
-			$phpunit_polyfills_path = realpath( $phpunit_polyfills_path . '/phpunitpolyfills-autoload.php' );
+			// Be tolerant to the path being provided including the filename.
+			if ( substr( $phpunit_polyfills_path, -29 ) !== 'phpunitpolyfills-autoload.php' ) {
+				$phpunit_polyfills_path = rtrim( $phpunit_polyfills_path, '/\\' );
+				$phpunit_polyfills_path = $phpunit_polyfills_path . '/phpunitpolyfills-autoload.php';
+			}
+
+			$phpunit_polyfills_path = realpath( $phpunit_polyfills_path );
 			if ( false !== $phpunit_polyfills_path ) {
 				$phpunit_polyfills_autoloader = $phpunit_polyfills_path;
 			} else {
