@@ -258,8 +258,6 @@ class Tests_Term extends WP_UnitTestCase {
 
 	public function test_wp_set_term_objects_finds_term_name_with_special_characters( $name ) {
 		$post_id  = self::factory()->post->create();
-		$taxonomy = 'category';
-
 		$expected = wp_set_object_terms( $post_id, $name, 'category', false );
 		$actual   = wp_set_object_terms( $post_id, $name, 'category', false );
 		$this->assertEquals( $expected, $actual );
