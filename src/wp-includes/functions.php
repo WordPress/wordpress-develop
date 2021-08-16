@@ -2564,6 +2564,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		// (whether they are subsizes or originals uploaded prior to #42437).
 
 		$files = array();
+		$count = 10000;
 
 		// The (resized) image files would have name and extension, and will be in the uploads dir.
 		if ( $name && $ext && $is_image && @is_dir( $dir ) && false !== strpos( $dir, $upload_dir['basedir'] ) ) {
@@ -2652,17 +2653,22 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 				// when $number is increased.
 				$alt_filenames[ $lc_ext ] = $filename;
 
-				while ( _wp_check_alternate_file_names( $alt_filenames, $_dir, $files ) ) {
+				// Ensure no infinite loop.
+				$i = 0;
+
+				while ( $i <= $count && _wp_check_alternate_file_names( $alt_filenames, $_dir, $files ) ) {
 					$new_number = (int) $number + 1;
 
 					foreach( $alt_filenames as $alt_ext => $alt_filename ) {
 						$alt_filenames[ $alt_ext ] = str_replace( array( "-{$number}{$alt_ext}", "{$number}{$alt_ext}" ), "-{$new_number}{$alt_ext}", $alt_filename );
 					}
 
-					// Also update the $number in $filename. If the extension was uppercase it was already replaced with the lowercase version.
+					// Also update the $number in (the output) $filename.
+					// If the extension was uppercase it was already replaced with the lowercase version.
 					$filename = str_replace( array( "-{$number}{$lc_ext}", "{$number}{$lc_ext}" ), "-{$new_number}{$lc_ext}", $filename );
 
 					$number = $new_number;
+					$i++;
 				}
 			}
 		}
