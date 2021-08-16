@@ -1169,4 +1169,29 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertFalse( _get_cron_array() );
 	}
 
+	/**
+	 * If the option "cron" is empty _get_cron_array should return false!!
+	 *
+	 * @covers ::_get_cron_array
+	 */
+	public function test__set_cron_array(){
+		delete_option( 'cron' );
+
+		$this->assertTrue( _set_cron_array([]) );
+
+		$this->assertEquals( [ 'version' => 2 ], get_option( 'cron' ) );
+	}
+
+	/**
+	 * If the option "cron" is empty _get_cron_array should return false!!
+	 *
+	 * @covers ::_get_cron_array
+	 */
+	public function test__upgrade_cron_array(){
+		delete_option( 'cron' );
+
+		$this->assertTrue( _upgrade_cron_array([]) );
+
+		$this->assertEquals( [ 'version' => 2 ], get_option( 'cron' ) );
+	}
 }
