@@ -1165,6 +1165,8 @@ function _get_cron_array() {
 		return false;
 	}
 
+	unset( $cron['version'] );
+
 	return $cron;
 }
 
