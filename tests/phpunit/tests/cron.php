@@ -1113,25 +1113,9 @@ class Tests_Cron extends WP_UnitTestCase {
 	}
 
 	/**
-	 * function _get_cron_array() {
-	$cron = get_option( 'cron' );
-	if ( ! is_array( $cron ) ) {
-	return false;
-	}
-
-	if ( ! isset( $cron['version'] ) ) {
-	$cron = _upgrade_cron_array( $cron );
-	}
-
-	unset( $cron['version'] );
-
-	return $cron;
-	}
-	 */
-
-	/**
 	 * If the option "cron" is empty _get_cron_array should return false!!
 	 *
+	 * @ticket 53651
 	 * @covers ::_get_cron_array
 	 */
 	public function test__get_cron_array(){
@@ -1140,14 +1124,13 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertEquals( _get_cron_array(), $cron );
 	}
 
-
 	/**
 	 * If the option "cron" is empty _get_cron_array should return false!!
 	 *
+	 * @ticket 53651
 	 * @covers ::_get_cron_array
 	 */
 	public function test__get_cron_array_with_scheduled(){
-
 
 		$hook = __FUNCTION__;
 		$ts1  = strtotime( '+10 minutes' );
@@ -1162,6 +1145,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * If the option "cron" is empty _get_cron_array should return false!!
 	 *
+	 * @ticket 53651
 	 * @covers ::_get_cron_array
 	 */
 	public function test__get_cron_array_return_false_if_no_options(){
@@ -1170,28 +1154,16 @@ class Tests_Cron extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If the option "cron" is empty _get_cron_array should return false!!
+	 * check that _set_cron_array set the option "cron"
 	 *
-	 * @covers ::_get_cron_array
+	 * @ticket 53651
+	 * @covers ::_set_cron_array
 	 */
 	public function test__set_cron_array(){
 		delete_option( 'cron' );
 
-		$this->assertTrue( _set_cron_array([]) );
+		$this->assertTrue( _set_cron_array(['cron_set']) );
 
-		$this->assertEquals( [ 'version' => 2 ], get_option( 'cron' ) );
-	}
-
-	/**
-	 * If the option "cron" is empty _get_cron_array should return false!!
-	 *
-	 * @covers ::_get_cron_array
-	 */
-	public function test__upgrade_cron_array(){
-		delete_option( 'cron' );
-
-		$this->assertTrue( _upgrade_cron_array([]) );
-
-		$this->assertEquals( [ 'version' => 2 ], get_option( 'cron' ) );
+		$this->assertContains( 'cron_set', get_option( 'cron' ) );
 	}
 }
