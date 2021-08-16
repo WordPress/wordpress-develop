@@ -3,7 +3,7 @@
 /**
  * @group formatting
  */
-class Tests_Formatting_WP_Basename extends WP_UnitTestCase {
+class Tests_Formatting_wpBasename extends WP_UnitTestCase {
 
 	function test_wp_basename_unix() {
 		$this->assertSame(

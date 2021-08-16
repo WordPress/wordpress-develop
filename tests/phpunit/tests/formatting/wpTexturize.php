@@ -3,7 +3,7 @@
 /**
  * @group formatting
  */
-class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
+class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	function test_dashes() {
 		$this->assertSame( 'Hey &#8212; boo?', wptexturize( 'Hey -- boo?' ) );
 		$this->assertSame( '<a href="http://xx--xx">Hey &#8212; boo?</a>', wptexturize( '<a href="http://xx--xx">Hey -- boo?</a>' ) );
