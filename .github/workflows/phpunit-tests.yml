@@ -178,13 +178,13 @@ jobs:
       - name: Run PHPUnit tests
         if: ${{ matrix.php >= '7.0' }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} | tee ${{ github.run_id }}.txt
+        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} | tee ${{ matrix.php }}${{ matrix.multisite && '-multisite' || '' }}.txt
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.run_id }}
-          path: ${{ github.run_id }}.txt
+          name: ${{ matrix.php }}${{ matrix.multisite && '-multisite' || '' }}
+          path: ${{ matrix.php }}${{ matrix.multisite && '-multisite' || '' }}.txt
 
 
   detect-skipped-tests:
