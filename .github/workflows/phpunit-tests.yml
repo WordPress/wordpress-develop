@@ -205,13 +205,13 @@ jobs:
       - name: Run PHPUnit tests
         if: ${{ matrix.php >= '7.0' }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} | tee ${{ github.job }}.txt
+        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} | tee ${{ github.run_id }}.txt
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.job }}
-          path: ${{ github.job }}.txt
+          name: ${{ github.run_id }}
+          path: ${{ github.run_id }}.txt
 
       - name: Run AJAX tests
         if: ${{ ! matrix.split_slow }}
@@ -252,7 +252,7 @@ jobs:
   detect-skipped-tests:
     name: Detect skipped tests
     needs: test-php
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Download results
         uses: actions/download-artifact@v2
