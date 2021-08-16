@@ -1112,4 +1112,61 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
 	}
 
+	/**
+	 * function _get_cron_array() {
+	$cron = get_option( 'cron' );
+	if ( ! is_array( $cron ) ) {
+	return false;
+	}
+
+	if ( ! isset( $cron['version'] ) ) {
+	$cron = _upgrade_cron_array( $cron );
+	}
+
+	unset( $cron['version'] );
+
+	return $cron;
+	}
+	 */
+
+	/**
+	 * If the option "cron" is empty _get_cron_array should return false!!
+	 *
+	 * @covers ::_get_cron_array
+	 */
+	public function test__get_cron_array(){
+		$cron = get_option( 'cron' );
+		unset( $cron['version'] );
+		$this->assertEquals( _get_cron_array(), $cron );
+	}
+
+
+	/**
+	 * If the option "cron" is empty _get_cron_array should return false!!
+	 *
+	 * @covers ::_get_cron_array
+	 */
+	public function test__get_cron_array_with_scheduled(){
+
+
+		$hook = __FUNCTION__;
+		$ts1  = strtotime( '+10 minutes' );
+		$this->assertTrue( wp_schedule_event( $ts1, 'daily', $hook ) );
+
+		$cron = get_option( 'cron' );
+		unset( $cron['version'] );
+
+		$this->assertEquals( _get_cron_array(), $cron );
+	}
+
+	/**
+	 * If the option "cron" is empty _get_cron_array should return false!!
+	 *
+	 * @covers ::_get_cron_array
+	 */
+	public function test__get_cron_array_return_false_if_no_options(){
+		delete_option( 'cron' );
+		$this->assertFalse( _get_cron_array() );
+	}
+
 }
