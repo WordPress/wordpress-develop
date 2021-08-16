@@ -186,7 +186,6 @@ jobs:
           name: ${{ matrix.php }}${{ matrix.multisite && '-multisite' || '' }}
           path: ${{ matrix.php }}${{ matrix.multisite && '-multisite' || '' }}.txt
 
-
   detect-skipped-tests:
     name: Detect skipped tests
     needs: test-php
@@ -200,3 +199,15 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: test-results
+        run: |
+          touch results.txt
+          for file in */*
+            grep -E "[0-9]+)" $file | cut -d " " -f 2 >> results.txt
+          done
+          sort results.txt | uniq -c | sort -r > results-sorted.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: results-sorted.txt
+          path: test-results/results-sorted.txt
