@@ -4969,7 +4969,7 @@ function wp_parse_str( $string, &$array ) {
 	/**
 	 * Filters the array of variables derived from a parsed string.
 	 *
-	 * @since 2.2.1
+	 * @since 2.3.0
 	 *
 	 * @param array $array The array populated with variables.
 	 */

@@ -452,16 +452,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Throws an exception when called.
 	 *
-	 * @since UT (3.7.0)
-	 * @since 5.9.0 Added the `$title` and `$args` parameters.
+	 * @throws WPDieException Exception containing the message.
 	 *
-	 * @throws WPDieException Exception containing the message and the response code.
-	 *
-	 * @param string|WP_Error $message The `wp_die()` message or WP_Error object.
-	 * @param string          $title   The `wp_die()` title.
-	 * @param string|array    $args    The `wp_die()` arguments.
+	 * @param string $message The `wp_die()` message.
 	 */
-	public function wp_die_handler( $message, $title, $args ) {
+	public function wp_die_handler( $message ) {
 		if ( is_wp_error( $message ) ) {
 			$message = $message->get_error_message();
 		}
@@ -470,12 +465,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$message = '0';
 		}
 
-		$code = 0;
-		if ( isset( $args['response'] ) ) {
-			$code = $args['response'];
-		}
-
-		throw new WPDieException( $message, $code );
+		throw new WPDieException( $message );
 	}
 
 	/**
