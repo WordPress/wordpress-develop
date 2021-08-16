@@ -1165,12 +1165,6 @@ function _get_cron_array() {
 		return false;
 	}
 
-	if ( ! isset( $cron['version'] ) ) {
-		$cron = _upgrade_cron_array( $cron );
-	}
-
-	unset( $cron['version'] );
-
 	return $cron;
 }
 
@@ -1188,7 +1182,6 @@ function _get_cron_array() {
  * @return bool|WP_Error True if cron array updated. False or WP_Error on failure.
  */
 function _set_cron_array( $cron, $wp_error = false ) {
-	$cron['version'] = 2;
 	$result          = update_option( 'cron', $cron );
 
 	if ( $wp_error && ! $result ) {
@@ -1199,34 +1192,4 @@ function _set_cron_array( $cron, $wp_error = false ) {
 	}
 
 	return $result;
-}
-
-/**
- * Upgrade a Cron info array.
- *
- * This function upgrades the Cron info array to version 2.
- *
- * @since 2.1.0
- * @access private
- *
- * @param array $cron Cron info array from _get_cron_array().
- * @return array An upgraded Cron info array.
- */
-function _upgrade_cron_array( $cron ) {
-	if ( isset( $cron['version'] ) && 2 == $cron['version'] ) {
-		return $cron;
-	}
-
-	$new_cron = array();
-
-	foreach ( (array) $cron as $timestamp => $hooks ) {
-		foreach ( (array) $hooks as $hook => $args ) {
-			$key                                     = md5( serialize( $args['args'] ) );
-			$new_cron[ $timestamp ][ $hook ][ $key ] = $args;
-		}
-	}
-
-	$new_cron['version'] = 2;
-	update_option( 'cron', $new_cron );
-	return $new_cron;
 }
