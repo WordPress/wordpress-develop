@@ -196,7 +196,7 @@ jobs:
         with:
           path: test-results
 
-      - name: Display structure of downloaded files
+      - name: Process skipped tests
         run: ls -R
         working-directory: test-results
         run: |
