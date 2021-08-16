@@ -205,7 +205,13 @@ jobs:
       - name: Run PHPUnit tests
         if: ${{ matrix.php >= '7.0' }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
+        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} | tee ${{ github.job }}.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.job }}
+          path: ${{ github.job }}.txt
 
       - name: Run AJAX tests
         if: ${{ ! matrix.split_slow }}
@@ -243,3 +249,15 @@ jobs:
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
         run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+  detect-skipped-tests:
+    name: Detect skipped tests
+    needs: test-php
+    steps:
+      - name: Download results
+        uses: actions/download-artifact@v2
+        with:
+          path: test-results
+
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: test-results
