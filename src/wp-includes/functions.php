@@ -2659,7 +2659,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 				while ( $i <= $count && _wp_check_alternate_file_names( $alt_filenames, $_dir, $files ) ) {
 					$new_number = (int) $number + 1;
 
-					foreach( $alt_filenames as $alt_ext => $alt_filename ) {
+					foreach ( $alt_filenames as $alt_ext => $alt_filename ) {
 						$alt_filenames[ $alt_ext ] = str_replace( array( "-{$number}{$alt_ext}", "{$number}{$alt_ext}" ), "-{$new_number}{$alt_ext}", $alt_filename );
 					}
 
