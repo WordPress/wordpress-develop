@@ -197,9 +197,9 @@ jobs:
           path: test-results
 
       - name: Process skipped tests
-        run: ls -R
         working-directory: test-results
         run: |
+          ls -R
           touch results.txt
           for file in */*
             grep -E "[0-9]+)" $file | cut -d " " -f 2 >> results.txt
