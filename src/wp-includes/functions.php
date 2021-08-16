@@ -2524,57 +2524,26 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		$file_type = wp_check_filetype( $filename );
 		$mime_type = $file_type['type'];
 
-		$is_image   = ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) );
-		$upload_dir = wp_get_upload_dir();
-
-		$alt_ext      = null;
-		$alt_filename = null;
-		$lc_filename  = null;
+		$is_image    = ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) );
+		$upload_dir  = wp_get_upload_dir();
+		$lc_filename = null;
 
 		$lc_ext = strtolower( $ext );
 		$_dir   = trailingslashit( $dir );
 
-		// Check if an image will be converted after uploading or an existing image's sub-sizes file names may conflict when regenerated.
-		// If yes, ensure the new file name will be unique with both extensions.
-		if ( $is_image ) {
-			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type );
-
-			if ( ! empty( $output_formats[ $mime_type ] ) ) {
-				// The image will be converted to this format/mime-type.
-				$alt_ext = wp_get_default_extension_for_mime_type( $output_formats[ $mime_type ] );
-			} elseif ( in_array( $mime_type, $output_formats, true ) ) {
-				// There may be an existing file whose name may conflict if its sub-sizes are regenerated.
-				$alt_type = array_search( $mime_type, $output_formats, true );
-				$alt_ext  = wp_get_default_extension_for_mime_type( $alt_type );
-			}
-
-			if ( $alt_ext ) {
-				$alt_ext = ".{$alt_ext}";
-				$alt_filename = preg_replace( '|' . preg_quote( $ext ) . '$|', $alt_ext, $filename );
-			}
-		}
-
-		// If the extension is upper case add a file name with lower case extension.
-		// Both need to be tested for uniqueness as many operating systems ignore the case of file names and extensions.
+		// If the extension is uppercase add an alternate file name with lowercase extension. Both need to be tested
+		// for uniqueness as the extension will be changed to lowercase for better compatibility with different filesystems.
 		if ( $ext && $lc_ext !== $ext ) {
 			$lc_filename = preg_replace( '|' . preg_quote( $ext ) . '$|', $lc_ext, $filename );
 		}
 
 		// Increment the number added to the file name if there are any files in $dir whose names match one of the
 		// possible name variations.
-		while (
-			file_exists( $_dir . $filename ) ||
-			( $lc_filename && file_exists( $_dir . $lc_filename ) ) ||
-			( $alt_filename && file_exists( $_dir . $alt_filename ) )
-		) {
+		while ( file_exists( $_dir . $filename ) || ( $lc_filename && file_exists( $_dir . $lc_filename ) ) ) {
 			$new_number = (int) $number + 1;
 
 			if ( $lc_filename ) {
 				$lc_filename = str_replace( array( "-{$number}{$lc_ext}", "{$number}{$lc_ext}" ), "-{$new_number}{$lc_ext}", $lc_filename );
-			}
-
-			if ( $alt_filename ) {
-				$alt_filename = str_replace( array( "-{$number}{$alt_ext}", "{$number}{$alt_ext}" ), "-{$new_number}{$alt_ext}", $alt_filename );
 			}
 
 			if ( '' === "{$number}{$ext}" ) {
@@ -2586,13 +2555,15 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 			$number = $new_number;
 		}
 
-		// Change the extension to lower case if needed.
+		// Change the extension to lowercase if needed.
 		if ( $lc_filename ) {
 			$filename = $lc_filename;
 		}
 
 		// Prevent collisions with existing file names that contain dimension-like strings
 		// (whether they are subsizes or originals uploaded prior to #42437).
+
+		$files = array();
 
 		// The (resized) image files would have name and extension, and will be in the uploads dir.
 		if ( $name && $ext && $is_image && @is_dir( $dir ) && false !== strpos( $dir, $upload_dir['basedir'] ) ) {
@@ -2628,24 +2599,70 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 				// as it uses pathinfo() and regex in the check, but string replacement for the changes.
 				$i = 0;
 
-				while (
-					$i <= $count &&
-					(
-						_wp_check_existing_file_names( $filename, $files ) ||
-						( $alt_filename && _wp_check_existing_file_names( $alt_filename, $files ) )
-					)
-				) {
+				while ( $i <= $count && _wp_check_existing_file_names( $filename, $files ) ) {
 					$new_number = (int) $number + 1;
 
-					if ( $alt_filename ) {
-						$alt_filename = str_replace( array( "-{$number}{$alt_ext}", "{$number}{$alt_ext}" ), "-{$new_number}{$alt_ext}", $alt_filename );
-					}
-
-					// If $ext is upper case it was replaced with the lower case version in $filename.
+					// If $ext is uppercase it was replaced with the lowercase version after the previous loop.
 					$filename = str_replace( array( "-{$number}{$lc_ext}", "{$number}{$lc_ext}" ), "-{$new_number}{$lc_ext}", $filename );
 
 					$number = $new_number;
 					$i++;
+				}
+			}
+		}
+
+		// Check if an image will be converted after uploading or some existing images sub-sizes file names may conflict
+		// when regenerated. If yes, ensure the new file name will be unique and will produce unique sub-sizes.
+		if ( $is_image ) {
+			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type );
+			$alt_types      = array();
+
+			if ( ! empty( $output_formats[ $mime_type ] ) ) {
+				// The image will be converted to this format/mime type.
+				$alt_mime_type = $output_formats[ $mime_type ];
+
+				// Other types of images whose names may conflict if their sub-sizes are regenerated.
+				$alt_types = array_keys( array_intersect( $output_formats, array( $mime_type, $alt_mime_type ) ) );
+				$alt_types[] = $alt_mime_type;
+			} elseif ( ! empty( $output_formats ) ) {
+				$alt_types = array_keys( array_intersect( $output_formats, array( $mime_type ) ) );
+			}
+
+			// Remove duplicates and the original mime type. It will be added later if needed.
+			$alt_types = array_unique( array_diff( $alt_types, array( $mime_type ) ) );
+
+			$alt_filenames = array();
+
+			foreach ( $alt_types as $alt_type ) {
+				$alt_ext = wp_get_default_extension_for_mime_type( $alt_type );
+
+				if ( ! $alt_ext ) {
+					continue;
+				}
+
+				$alt_ext      = ".{$alt_ext}";
+				$alt_filename = preg_replace( '|' . preg_quote( $lc_ext ) . '$|', $alt_ext, $filename );
+
+				$alt_filenames[ $alt_ext ] = $alt_filename;
+
+			}
+
+			if ( ! empty( $alt_filenames ) ) {
+				// Add the original filename. It needs to be checked again together with the alternate filenames
+				// when $number is increased.
+				$alt_filenames[ $lc_ext ] = $filename;
+
+				while ( _wp_check_alternate_file_names( $alt_filenames, $_dir, $files ) ) {
+					$new_number = (int) $number + 1;
+
+					foreach( $alt_filenames as $alt_ext => $alt_filename ) {
+						$alt_filenames[ $alt_ext ] = str_replace( array( "-{$number}{$alt_ext}", "{$number}{$alt_ext}" ), "-{$new_number}{$alt_ext}", $alt_filename );
+					}
+
+					// Also update the $number in $filename. If the extension was uppercase it was already replaced with the lowercase version.
+					$filename = str_replace( array( "-{$number}{$lc_ext}", "{$number}{$lc_ext}" ), "-{$new_number}{$lc_ext}", $filename );
+
+					$number = $new_number;
 				}
 			}
 		}
@@ -2662,6 +2679,31 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 	 * @param callable|null $unique_filename_callback Callback function that generates the unique file name.
 	 */
 	return apply_filters( 'wp_unique_filename', $filename, $ext, $dir, $unique_filename_callback );
+}
+
+/**
+ * Helper function to test if each of an array of file names could conflict with existing files.
+ *
+ * @since 5.8.1
+ * @access private
+ *
+ * @param string[] $filenames Array of file names to check.
+ * @param string   $dir       The directory containing the files.
+ * @param array    $files     An array of existing files in the directory. May be empty.
+ * @return bool True if the tested file name could match an existing file, false otherwise.
+ */
+function _wp_check_alternate_file_names( $filenames, $dir, $files ) {
+	foreach ( $filenames as $filename ) {
+		if ( file_exists( $dir . $filename ) ) {
+			return true;
+		}
+
+		if ( ! empty( $files ) && _wp_check_existing_file_names( $filename, $files ) ) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
