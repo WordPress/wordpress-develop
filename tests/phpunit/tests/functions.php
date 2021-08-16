@@ -222,6 +222,63 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53668
+	 */
+	function test_wp_unique_filename_with_additional_image_extension() {
+		$testdir = DIR_TESTDATA . '/images/';
+
+		add_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
+
+		// Standard test that wp_unique_filename allows usage if file does not exist yet.
+		$this->assertSame( 'abcdef.png', wp_unique_filename( $testdir, 'abcdef.png' ), 'The abcdef.png image does not exist. The name does not need to be made unique.' );
+		// Difference in extension does not affect wp_unique_filename by default (canola.jpg exists).
+		$this->assertSame( 'canola.png', wp_unique_filename( $testdir, 'canola.png' ), 'The canola.jpg image exists. Clashing base filename but not extension should not have name changed.' );
+		// Run again with upper case extension.
+		$this->assertSame( 'canola.png', wp_unique_filename( $testdir, 'canola.PNG' ), 'The canola.jpg image exists. Clashing base filename but not extension should not have name changed.' );
+		// Actual clash recognized.
+		$this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'The canola.jpg image exists. Uploading canola.jpg again should have unique name.' );
+		// Future clash by regenerated thumbnails not applicable.
+		$this->assertSame( 'codeispoetry.jpg', wp_unique_filename( $testdir, 'codeispoetry.jpg' ), 'The codeispoetry.png image exists. Uploading codeispoetry.jpg does not need unique name.' );
+
+		// When creating sub-sizes convert uploaded PNG images to JPG.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_format_handler' ) );
+
+		// Standard test that wp_unique_filename allows usage if file does not exist yet.
+		$this->assertSame( 'abcdef.png', wp_unique_filename( $testdir, 'abcdef.png' ), 'The abcdef.png image does not exist. Its name should not be changed.' );
+		// Standard test that wp_unique_filename allows usage if file does not exist yet.
+		$this->assertSame( 'abcdef.bmp', wp_unique_filename( $testdir, 'abcdef.bmp' ), 'The abcdef.bmp and abcdef.pct images do not exist. When uploading abcdef.bmp its name should not be changed.' );
+		// Difference in extension does affect wp_unique_filename when thumbnails use existing file's type.
+		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.png' ), 'The canola.jpg image exists. Uploading canola.png that will be converted to canola.jpg should produce unique file name.' );
+		// Run again with upper case extension.
+		$this->assertSame( 'canola-1.png', wp_unique_filename( $testdir, 'canola.PNG' ), 'The canola.jpg image exists. Uploading canola.PNG that will be converted to canola.jpg should produce unique file name.' );
+		// Actual clash recognized.
+		$this->assertSame( 'canola-1.jpg', wp_unique_filename( $testdir, 'canola.jpg' ), 'Existing file should have name changed.' );
+		// Actual clash with images with different extensions.
+		$this->assertSame( 'test-image-3.png', wp_unique_filename( $testdir, 'test-image.png' ), 'The test-image.png, test-image-1-100x100.jpg, and test-image-2.gif images exist. All of them may be intersected when creating sub-sizes for the new image: test-image.png, so its filename should be unique.' );
+		// Future clash by regenerated thumbnails recognized.
+		$this->assertSame( 'codeispoetry-1.jpg', wp_unique_filename( $testdir, 'codeispoetry.jpg' ), 'The codeispoetry.png image exists. When regenerating thumbnails for it they will be converted to JPG. The name of the newly uploaded codeispoetry.jpg should be made unique.' );
+
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_format_handler' ) );
+		remove_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
+	}
+
+	/**
+	 * Changes the output format when editing images. When uploading a PNG file
+	 * it will be converted to JPG (if the image editor in PHP supports it).
+	 *
+	 * @param array $formats
+	 *
+	 * @return array
+	 */
+	public function image_editor_output_format_handler( $formats ) {
+		$formats['image/png'] = 'image/jpeg';
+		$formats['image/gif'] = 'image/jpeg';
+		$formats['image/pct'] = 'image/bmp';
+
+		return $formats;
+	}
+
+	/**
 	 * @dataProvider data_is_not_serialized
 	 */
 	function test_maybe_serialize( $value ) {
@@ -1945,5 +2002,19 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8', false ),
 			array( 'application/activity+json, application/nojson', true ),
 		);
+	}
+
+	/**
+	 * @ticket 53668
+	 */
+	public function test_wp_get_default_extension_for_mime_type() {
+		$this->assertEquals( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
+		$this->assertNotEquals( 'jpeg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
+		$this->assertEquals( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
+		$this->assertFalse( wp_get_default_extension_for_mime_type( 'wibble/wobble' ), 'false not returned for unrecognized mime type' );
+		$this->assertFalse( wp_get_default_extension_for_mime_type( '' ), 'false not returned when empty string as mime type supplied' );
+		$this->assertFalse( wp_get_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );
+		$this->assertFalse( wp_get_default_extension_for_mime_type( 123 ), 'false not returned when int as mime type supplied' );
+		$this->assertFalse( wp_get_default_extension_for_mime_type( null ), 'false not returned when null as mime type supplied' );
 	}
 }
