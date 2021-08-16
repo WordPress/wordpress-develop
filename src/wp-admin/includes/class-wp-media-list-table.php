@@ -77,13 +77,15 @@ class WP_Media_List_Table extends WP_List_Table {
 		 * See File_Upload_Upgrader class.
 		 */
 		$not_in = array();
+		$crons  = _get_cron_array();
+		if ( is_array( $crons ) ) {
+			foreach ( $crons as $cron ) {
+				if ( isset( $cron['upgrader_scheduled_cleanup'] ) ) {
+					$details = reset( $cron['upgrader_scheduled_cleanup'] );
 
-		foreach ( _get_cron_array() as $cron ) {
-			if ( isset( $cron['upgrader_scheduled_cleanup'] ) ) {
-				$details = reset( $cron['upgrader_scheduled_cleanup'] );
-
-				if ( ! empty( $details['args'][0] ) ) {
-					$not_in[] = (int) $details['args'][0];
+					if ( ! empty( $details['args'][0] ) ) {
+						$not_in[] = (int) $details['args'][0];
+					}
 				}
 			}
 		}
