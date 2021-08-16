@@ -201,7 +201,7 @@ jobs:
         run: |
           ls -R;
           touch results.txt;
-          for file in */*;
+          for file in */*; do
             grep -E "[0-9]+)" $file | cut -d " " -f 2 >> results.txt;
           done;
           sort results.txt | uniq -c | sort -r > results-sorted.txt;
