@@ -252,6 +252,7 @@ jobs:
   detect-skipped-tests:
     name: Detect skipped tests
     needs: test-php
+    runs-on: ubuntu-18.04
     steps:
       - name: Download results
         uses: actions/download-artifact@v2
