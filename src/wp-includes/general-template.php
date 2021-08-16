@@ -4825,6 +4825,22 @@ function readonly( $readonly, $current = true, $echo = true ) {
 }
 
 /**
+ * Outputs the HTML readonly attribute.
+ *
+ * Compares the first two arguments and if identical marks as readonly
+ *
+ * @since 5.9.0 with backports in 5.8.x, 5.7.x, 5.6.x, 5.5.x
+ *
+ * @param mixed $readonly One of the values to compare
+ * @param mixed $current  (true) The other value to compare if not just true
+ * @param bool  $echo     Whether to echo or just return the string
+ * @return string HTML attribute or empty string
+ */
+function wp_readonly( $readonly, $current = true, $echo = true ) {
+	return __checked_selected_helper( $readonly, $current, $echo, 'readonly' );
+}
+
+/**
  * Private helper function for checked, selected, disabled and readonly.
  *
  * Compares the first two arguments and if identical marks as $type
