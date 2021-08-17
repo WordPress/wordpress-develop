@@ -7067,6 +7067,31 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/render": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id_base": {
+                            "description": "The widget type id.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "instance": {
+                            "description": "Current instance settings of the widget.",
+                            "type": "object",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+				},
         "/wp/v2/widgets": {
             "namespace": "wp/v2",
             "methods": [
