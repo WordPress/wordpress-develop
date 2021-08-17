@@ -7091,7 +7091,7 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
-				},
+        },
         "/wp/v2/widgets": {
             "namespace": "wp/v2",
             "methods": [
