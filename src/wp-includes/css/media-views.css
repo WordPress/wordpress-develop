@@ -2617,7 +2617,9 @@
 
 	.attachments-browser .attachments,
 	.attachments-browser .uploader-inline,
-	.attachments-browser .media-toolbar {
+	.attachments-browser .media-toolbar,
+	.attachments-browser .attachments-wrapper,
+	.attachments-browser.has-load-more .attachments-wrapper {
 		right: 262px;
 	}
 
