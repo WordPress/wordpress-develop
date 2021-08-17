@@ -3597,6 +3597,12 @@ function wp_read_video_metadata( $file ) {
 		$metadata['height'] = (int) $data['video']['resolution_y'];
 	}
 
+	if ( isset( $metadata['width'], $metadata['height'] ) ) {
+		if ( ! empty( $data['video']['rotate'] ) && in_array( $data['video']['rotate'], array( 90, 270 ), true ) ) {
+			list( $metadata['width'], $metadata['height'] ) = array( $metadata['height'], $metadata['width'] );
+		}
+	}
+
 	if ( ! empty( $data['fileformat'] ) ) {
 		$metadata['fileformat'] = $data['fileformat'];
 	}
