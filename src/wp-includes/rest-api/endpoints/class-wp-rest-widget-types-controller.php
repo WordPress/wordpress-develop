@@ -272,9 +272,6 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		// Some third-party widgets rely on wp-admin functions so let's load them before rendering the preview.
-		require_once ABSPATH . 'wp-admin/includes/admin.php';
-
 		$widget_id   = $request['id'];
 		$widget_type = $this->get_widget( $widget_id );
 		if ( is_wp_error( $widget_type ) ) {
