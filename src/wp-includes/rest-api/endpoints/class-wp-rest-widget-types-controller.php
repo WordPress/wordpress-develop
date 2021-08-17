@@ -425,11 +425,62 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 
 	public function render( $request ) {
 		return array(
-			'preview' => render_legacy_widget_preview_iframe(
+			'preview' => $this->render_legacy_widget_preview_iframe(
 				$request['id_base'],
 				$request['instance']
 			),
 		);
+	}
+
+	/**
+	 * Renders a page containing a preview of the requested Legacy Widget block.
+	 *
+	 * @param string $id_base The id base of the requested widget.
+	 * @param array $instance The widget instance attributes.
+	 *
+	 * @return string Rendered Legacy Widget block preview.
+	 */
+	private function render_legacy_widget_preview_iframe( $id_base, $instance ) {
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			return "";
+		}
+
+		define( 'IFRAME_REQUEST', true );
+
+		ob_start();
+		?>
+		<!doctype html>
+		<html <?php language_attributes(); ?>>
+		<head>
+			<meta charset="<?php bloginfo( 'charset' ); ?>" />
+			<meta name="viewport" content="width=device-width, initial-scale=1" />
+			<link rel="profile" href="https://gmpg.org/xfn/11" />
+			<?php wp_head(); ?>
+			<style>
+				/* Reset theme styles */
+				html, body, #page, #content {
+					padding: 0 !important;
+					margin: 0 !important;
+				}
+			</style>
+		</head>
+		<body <?php body_class(); ?>>
+		<div id="page" class="site">
+			<div id="content" class="site-content">
+				<?php
+				$registry = WP_Block_Type_Registry::get_instance();
+				$block    = $registry->get_registered( 'core/legacy-widget' );
+				echo $block->render( array( 'idBase' => $id_base, 'instance' => $instance ) );
+				?>
+			</div><!-- #content -->
+		</div><!-- #page -->
+		<?php wp_footer(); ?>
+		</body>
+		</html>
+		<?php
+		$content = ob_get_contents();
+		ob_end_clean();
+		return $content;
 	}
 
 	/**
