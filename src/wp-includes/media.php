@@ -1820,7 +1820,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 		_prime_post_caches( $attachment_ids, false, true );
 	}
 
-	// Iterate through the matches in their correct order as it is relevant for whether or not to lazy-load.
+	// Iterate through the matches in order of occurrence as it is relevant for whether or not to lazy-load.
 	foreach ( $matches as $match ) {
 		// Filter an image match.
 		if ( isset( $images[ $match[0] ] ) ) {
