@@ -56,8 +56,8 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->post_count   = (int) get_option( 'posts_per_rss' );
 		$this->excerpt_only = get_option( 'rss_use_excerpt' );
@@ -186,7 +186,7 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 			}
 			$categories = xml_find( $entries[ $key ]['child'], 'category' );
 			foreach ( $categories as $category ) {
-				$this->assertTrue( in_array( $category['attributes']['term'], $terms, true ) );
+				$this->assertContains( $category['attributes']['term'], $terms );
 			}
 			unset( $terms );
 

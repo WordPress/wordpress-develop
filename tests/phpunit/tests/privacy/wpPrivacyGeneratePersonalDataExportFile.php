@@ -15,7 +15,7 @@
  *
  * @since 5.2.0
  */
-class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestCase {
 	/**
 	 * An Export Request ID
 	 *
@@ -63,8 +63,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 *
 	 * @since 5.2.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->export_file_name = '';
 
@@ -93,10 +93,10 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 *
 	 * @since 5.2.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		$this->remove_exports_dir();
 		error_reporting( $this->_error_level );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

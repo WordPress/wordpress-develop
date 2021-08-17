@@ -180,7 +180,7 @@ EOT;
 	}
 
 	function test_json_encode_decode() {
-		$this->expectException( 'PHPUnit_Framework_Error_Deprecated' );
+		$this->expectDeprecation();
 
 		require_once ABSPATH . WPINC . '/class-json.php';
 		$json = new Services_JSON();
@@ -242,12 +242,10 @@ EOT;
 	 * Test is_countable() polyfill for ResourceBundle.
 	 *
 	 * @ticket 43583
+	 *
+	 * @requires extension intl
 	 */
 	function test_is_countable_ResourceBundle() {
-		if ( ! class_exists( 'ResourceBundle' ) ) {
-			$this->markTestSkipped( 'The intl extension is not loaded. ResourceBundle not tested for is_countable().' );
-		}
-
 		$this->assertTrue( is_countable( new ResourceBundle( 'en', null ) ) );
 	}
 
@@ -255,12 +253,10 @@ EOT;
 	 * Test is_countable() polyfill for SimpleXMLElement.
 	 *
 	 * @ticket 43583
+	 *
+	 * @requires extension simplexml
 	 */
 	function test_is_countable_SimpleXMLElement() {
-		if ( ! class_exists( 'SimpleXMLElement' ) ) {
-			$this->markTestSkipped( 'The xml extension is not loaded. SimpleXMLElement not tested for is_countable().' );
-		}
-
 		$this->assertTrue( is_countable( new SimpleXMLElement( '<xml><tag>1</tag><tag>2</tag></xml>' ) ) );
 	}
 
@@ -322,6 +318,7 @@ class ArrayIteratorFake extends ArrayIterator {
 }
 
 class CountableFake implements Countable {
+	#[ReturnTypeWillChange]
 	public function count() {
 		return 16;
 	}

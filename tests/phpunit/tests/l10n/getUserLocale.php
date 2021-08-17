@@ -7,8 +7,8 @@
 class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	protected $user_id;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->user_id = $this->factory()->user->create(
 			array(
@@ -18,12 +18,6 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 		);
 
 		wp_set_current_user( $this->user_id );
-	}
-
-	public function tearDown() {
-		set_current_screen( 'front' );
-
-		parent::tearDown();
 	}
 
 	public function test_user_locale_property() {
@@ -72,7 +66,7 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	 */
 	public function test_user_locale_is_same_across_network() {
 		if ( ! is_multisite() ) {
-			$this->markTestSkipped( __METHOD__ . ' requires Multisite.' );
+			$this->markTestSkipped( 'This test requires Multisite.' );
 		}
 
 		$user_locale = get_user_locale();

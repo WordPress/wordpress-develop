@@ -118,8 +118,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  * @global array $wp_rest_additional_fields Holds registered fields, organized
  *                                          by object type.
  *
- * @param string|array $object_type Object(s) the field is being registered
- *                                  to, "post"|"term"|"comment" etc.
+ * @param string|array $object_type Object(s) the field is being registered to,
+ *                                  "post"|"term"|"comment" etc.
  * @param string       $attribute   The attribute name.
  * @param array        $args {
  *     Optional. An array of arguments used to handle the registered field.
@@ -135,6 +135,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  * }
  */
 function register_rest_field( $object_type, $attribute, $args = array() ) {
+	global $wp_rest_additional_fields;
+
 	$defaults = array(
 		'get_callback'    => null,
 		'update_callback' => null,
@@ -142,8 +144,6 @@ function register_rest_field( $object_type, $attribute, $args = array() ) {
 	);
 
 	$args = wp_parse_args( $args, $defaults );
-
-	global $wp_rest_additional_fields;
 
 	$object_types = (array) $object_type;
 
@@ -313,8 +313,24 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Plugins_Controller();
 	$controller->register_routes();
 
+	// Sidebars.
+	$controller = new WP_REST_Sidebars_Controller();
+	$controller->register_routes();
+
+	// Widget Types.
+	$controller = new WP_REST_Widget_Types_Controller();
+	$controller->register_routes();
+
+	// Widgets.
+	$controller = new WP_REST_Widgets_Controller();
+	$controller->register_routes();
+
 	// Block Directory.
 	$controller = new WP_REST_Block_Directory_Controller();
+	$controller->register_routes();
+
+	// Pattern Directory.
+	$controller = new WP_REST_Pattern_Directory_Controller();
 	$controller->register_routes();
 
 	// Site Health.
@@ -1012,7 +1028,7 @@ function rest_cookie_check_errors( $result ) {
 	$result = wp_verify_nonce( $nonce, 'wp_rest' );
 
 	if ( ! $result ) {
-		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
+		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie check failed' ), array( 'status' => 403 ) );
 	}
 
 	// Send a refreshed nonce in header.

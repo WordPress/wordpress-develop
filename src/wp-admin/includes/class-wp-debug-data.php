@@ -515,20 +515,27 @@ class WP_Debug_Data {
 		// Get ImageMagic information, if available.
 		if ( class_exists( 'Imagick' ) ) {
 			// Save the Imagick instance for later use.
-			$imagick         = new Imagick();
-			$imagick_version = $imagick->getVersion();
+			$imagick             = new Imagick();
+			$imagemagick_version = $imagick->getVersion();
 		} else {
-			$imagick_version = __( 'Not available' );
+			$imagemagick_version = __( 'Not available' );
 		}
 
 		$info['wp-media']['fields']['imagick_module_version'] = array(
 			'label' => __( 'ImageMagick version number' ),
-			'value' => ( is_array( $imagick_version ) ? $imagick_version['versionNumber'] : $imagick_version ),
+			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionNumber'] : $imagemagick_version ),
 		);
 
 		$info['wp-media']['fields']['imagemagick_version'] = array(
 			'label' => __( 'ImageMagick version string' ),
-			'value' => ( is_array( $imagick_version ) ? $imagick_version['versionString'] : $imagick_version ),
+			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionString'] : $imagemagick_version ),
+		);
+
+		$imagick_version = phpversion( 'imagick' );
+
+		$info['wp-media']['fields']['imagick_version'] = array(
+			'label' => __( 'Imagick version' ),
+			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
 		);
 
 		if ( ! function_exists( 'ini_get' ) ) {
@@ -597,6 +604,18 @@ class WP_Debug_Data {
 				'value' => $limits,
 				'debug' => $limits_debug,
 			);
+
+			try {
+				$formats = Imagick::queryFormats( '*' );
+			} catch ( Exception $e ) {
+				$formats = array();
+			}
+
+			$info['wp-media']['fields']['imagemagick_file_formats'] = array(
+				'label' => __( 'ImageMagick supported file formats' ),
+				'value' => ( empty( $formats ) ) ? __( 'Unable to determine' ) : implode( ', ', $formats ),
+				'debug' => ( empty( $formats ) ) ? 'Unable to determine' : implode( ', ', $formats ),
+			);
 		}
 
 		// Get GD information, if available.
@@ -611,6 +630,33 @@ class WP_Debug_Data {
 			'value' => ( is_array( $gd ) ? $gd['GD Version'] : $not_available ),
 			'debug' => ( is_array( $gd ) ? $gd['GD Version'] : 'not available' ),
 		);
+
+		$gd_image_formats     = array();
+		$gd_supported_formats = array(
+			'GIF Create' => 'GIF',
+			'JPEG'       => 'JPEG',
+			'PNG'        => 'PNG',
+			'WebP'       => 'WebP',
+			'BMP'        => 'BMP',
+			'AVIF'       => 'AVIF',
+			'HEIF'       => 'HEIF',
+			'TIFF'       => 'TIFF',
+			'XPM'        => 'XPM',
+		);
+
+		foreach ( $gd_supported_formats as $format_key => $format ) {
+			$index = $format_key . ' Support';
+			if ( isset( $gd[ $index ] ) && $gd[ $index ] ) {
+				array_push( $gd_image_formats, $format );
+			}
+		}
+
+		if ( ! empty( $gd_image_formats ) ) {
+			$info['wp-media']['fields']['gd_formats'] = array(
+				'label' => __( 'GD supported file formats' ),
+				'value' => implode( ', ', $gd_image_formats ),
+			);
+		}
 
 		// Get Ghostscript information, if available.
 		if ( function_exists( 'exec' ) ) {
@@ -877,6 +923,21 @@ class WP_Debug_Data {
 			'label'   => __( 'Database collation' ),
 			'value'   => $wpdb->collate,
 			'private' => true,
+		);
+
+		$info['wp-database']['fields']['max_allowed_packet'] = array(
+			'label' => __( 'Max allowed packet size' ),
+			'value' => self::get_mysql_var( 'max_allowed_packet' ),
+		);
+
+		$info['wp-database']['fields']['max_connections'] = array(
+			'label' => __( 'Max connections number' ),
+			'value' => self::get_mysql_var( 'max_connections' ),
+		);
+
+		$info['wp-database']['fields']['query_cache_size'] = array(
+			'label' => __( 'Query cache size' ),
+			'value' => self::get_mysql_var( 'query_cache_size' ),
 		);
 
 		// List must use plugins if there are any.
@@ -1396,6 +1457,31 @@ class WP_Debug_Data {
 		$info = apply_filters( 'debug_information', $info );
 
 		return $info;
+	}
+
+	/**
+	 * Returns the value of a MySQL variable.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $var Name of the MySQL variable.
+	 * @return string|null The variable value on success. Null if the variable does not exist.
+	 */
+	public static function get_mysql_var( $var ) {
+		global $wpdb;
+
+		$result = $wpdb->get_row(
+			$wpdb->prepare( 'SHOW VARIABLES LIKE %s', $var ),
+			ARRAY_A
+		);
+
+		if ( ! empty( $result ) && array_key_exists( 'Value', $result ) ) {
+			return $result['Value'];
+		}
+
+		return null;
 	}
 
 	/**

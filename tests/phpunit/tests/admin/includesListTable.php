@@ -14,8 +14,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 */
 	protected $table;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-page' ) );
 	}
 
@@ -221,7 +221,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->assertCount( count( $expected_ids ), array_keys( $matches[0] ) );
 
 		foreach ( $expected_ids as $id ) {
-			$this->assertContains( sprintf( 'id="post-%d"', $id ), $output );
+			$this->assertStringContainsString( sprintf( 'id="post-%d"', $id ), $output );
 		}
 	}
 
@@ -236,7 +236,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="post-query-submit"', $output );
+		$this->assertStringNotContainsString( 'id="post-query-submit"', $output );
 	}
 
 	/**
@@ -250,7 +250,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="filter-by-date"', $output );
+		$this->assertStringNotContainsString( 'id="filter-by-date"', $output );
 	}
 
 	/**
@@ -264,7 +264,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="cat"', $output );
+		$this->assertStringNotContainsString( 'id="cat"', $output );
 	}
 
 	/**
@@ -278,7 +278,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="delete_all"', $output );
+		$this->assertStringNotContainsString( 'id="delete_all"', $output );
 	}
 
 	/**
@@ -291,7 +291,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="post-query-submit"', $output );
+		$this->assertStringNotContainsString( 'id="post-query-submit"', $output );
 	}
 
 	/**
@@ -313,7 +313,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertContains( 'id="post-query-submit"', $output );
+		$this->assertStringContainsString( 'id="post-query-submit"', $output );
 	}
 
 	/**
@@ -335,8 +335,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertContains( 'id="filter-by-comment-type"', $output );
-		$this->assertContains( "<option value='comment'>", $output );
+		$this->assertStringContainsString( 'id="filter-by-comment-type"', $output );
+		$this->assertStringContainsString( "<option value='comment'>", $output );
 	}
 
 	/**
@@ -349,7 +349,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="delete_all"', $output );
+		$this->assertStringNotContainsString( 'id="delete_all"', $output );
 	}
 
 	/**
@@ -384,7 +384,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 OPTIONS;
 		$expected = str_replace( "\r\n", "\n", $expected );
 
-		$this->assertContains( $expected, $output );
+		$this->assertStringContainsString( $expected, $output );
 	}
 
 	/**
@@ -411,14 +411,14 @@ OPTIONS;
 
 		$output = get_echo( array( $object, 'print_column_headers' ) );
 
-		$this->assertContains( '?orderby=comment_author&#038;order=desc', $output, 'Mismatch of the default link ordering for comment author column. Should be desc.' );
-		$this->assertContains( 'column-author sortable asc', $output, 'Mismatch of CSS classes for the comment author column.' );
+		$this->assertStringContainsString( '?orderby=comment_author&#038;order=desc', $output, 'Mismatch of the default link ordering for comment author column. Should be desc.' );
+		$this->assertStringContainsString( 'column-author sortable asc', $output, 'Mismatch of CSS classes for the comment author column.' );
 
-		$this->assertContains( '?orderby=comment_post_ID&#038;order=asc', $output, 'Mismatch of the default link ordering for comment response column. Should be asc.' );
-		$this->assertContains( 'column-response sortable desc', $output, 'Mismatch of CSS classes for the comment post ID column.' );
+		$this->assertStringContainsString( '?orderby=comment_post_ID&#038;order=asc', $output, 'Mismatch of the default link ordering for comment response column. Should be asc.' );
+		$this->assertStringContainsString( 'column-response sortable desc', $output, 'Mismatch of CSS classes for the comment post ID column.' );
 
-		$this->assertContains( '?orderby=comment_date&#038;order=desc', $output, 'Mismatch of the default link ordering for comment date column. Should be asc.' );
-		$this->assertContains( 'column-date sortable asc', $output, 'Mismatch of CSS classes for the comment date column.' );
+		$this->assertStringContainsString( '?orderby=comment_date&#038;order=desc', $output, 'Mismatch of the default link ordering for comment date column. Should be asc.' );
+		$this->assertStringContainsString( 'column-date sortable asc', $output, 'Mismatch of CSS classes for the comment date column.' );
 	}
 
 	/**
@@ -449,14 +449,14 @@ OPTIONS;
 
 		$output = get_echo( array( $object, 'print_column_headers' ) );
 
-		$this->assertContains( '?orderby=comment_author&#038;order=asc', $output, 'Mismatch of the default link ordering for comment author column. Should be asc.' );
-		$this->assertContains( 'column-author sortable desc', $output, 'Mismatch of CSS classes for the comment author column.' );
+		$this->assertStringContainsString( '?orderby=comment_author&#038;order=asc', $output, 'Mismatch of the default link ordering for comment author column. Should be asc.' );
+		$this->assertStringContainsString( 'column-author sortable desc', $output, 'Mismatch of CSS classes for the comment author column.' );
 
-		$this->assertContains( '?orderby=comment_post_ID&#038;order=asc', $output, 'Mismatch of the default link ordering for comment response column. Should be asc.' );
-		$this->assertContains( 'column-response sortable desc', $output, 'Mismatch of CSS classes for the comment post ID column.' );
+		$this->assertStringContainsString( '?orderby=comment_post_ID&#038;order=asc', $output, 'Mismatch of the default link ordering for comment response column. Should be asc.' );
+		$this->assertStringContainsString( 'column-response sortable desc', $output, 'Mismatch of CSS classes for the comment post ID column.' );
 
-		$this->assertContains( '?orderby=comment_date&#038;order=asc', $output, 'Mismatch of the current link ordering for comment date column. Should be asc.' );
-		$this->assertContains( 'column-date sorted desc', $output, 'Mismatch of CSS classes for the comment date column.' );
+		$this->assertStringContainsString( '?orderby=comment_date&#038;order=asc', $output, 'Mismatch of the current link ordering for comment date column. Should be asc.' );
+		$this->assertStringContainsString( 'column-date sorted desc', $output, 'Mismatch of CSS classes for the comment date column.' );
 	}
 
 }

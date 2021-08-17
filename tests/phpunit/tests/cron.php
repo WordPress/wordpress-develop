@@ -16,18 +16,18 @@ class Tests_Cron extends WP_UnitTestCase {
 	 */
 	private $plus_thirty_minutes;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		// Make sure the schedule is clear.
 		_set_cron_array( array() );
 		$this->preflight_cron_array = array();
 		$this->plus_thirty_minutes  = strtotime( '+30 minutes' );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		// Make sure the schedule is clear.
 		_set_cron_array( array() );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_wp_get_schedule_empty() {
@@ -98,7 +98,31 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertFalse( wp_next_scheduled( $hook, array( 'bar' ) ) );
 
 		$this->assertSame( $recur, wp_get_schedule( $hook, $args ) );
+	}
 
+
+	/**
+	 * Tests that a call to wp_schedule_event() on a site without any scheduled events
+	 * does not result in a PHP deprecation warning on PHP 8.1 or higher.
+	 *
+	 * The warning that we should not see:
+	 * `Deprecated: Automatic conversion of false to array is deprecated`.
+	 *
+	 * @ticket 53635
+	 *
+	 * @covers ::wp_schedule_event
+	 */
+	function test_wp_schedule_event_without_cron_option_does_not_throw_warning() {
+		delete_option( 'cron' );
+
+		// Verify that the cause of the error is in place.
+		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+
+		$hook      = __FUNCTION__;
+		$timestamp = strtotime( '+10 minutes' );
+
+		// Add an event.
+		$this->assertTrue( wp_schedule_event( $timestamp, 'daily', $hook ) );
 	}
 
 	function test_unschedule_event() {
@@ -126,15 +150,15 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( strtotime( '+4 hour' ), $hook, $args );
 
 		// Make sure they're returned by wp_next_scheduled().
-		$this->assertTrue( wp_next_scheduled( $hook ) > 0 );
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook ) );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the no args events and make sure it's gone.
 		$hook_unscheduled = wp_clear_scheduled_hook( $hook );
 		$this->assertSame( 2, $hook_unscheduled );
 		$this->assertFalse( wp_next_scheduled( $hook ) );
 		// The args events should still be there.
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the args events and make sure they're gone too.
 		// Note: wp_clear_scheduled_hook() expects args passed directly, rather than as an array.
@@ -165,14 +189,14 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( strtotime( '+4 hour' ), $hook, $args );
 
 		// Make sure they're returned by wp_next_scheduled().
-		$this->assertTrue( wp_next_scheduled( $hook ) > 0 );
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook ) );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the no args events and make sure it's gone.
 		wp_clear_scheduled_hook( $hook );
 		$this->assertFalse( wp_next_scheduled( $hook ) );
 		// The args events should still be there.
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the args events and make sure they're gone too.
 		// Note: wp_clear_scheduled_hook() used to expect args passed directly, rather than as an array pre WP 3.0.
@@ -198,14 +222,14 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( strtotime( '+6 hour' ), $multi_hook, $multi_args );
 
 		// Make sure they're returned by wp_next_scheduled().
-		$this->assertTrue( wp_next_scheduled( $hook ) > 0 );
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook ) );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the no args events and make sure it's gone.
 		wp_clear_scheduled_hook( $hook );
 		$this->assertFalse( wp_next_scheduled( $hook ) );
 		// The args events should still be there.
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the args events and make sure they're gone too.
 		// wp_clear_scheduled_hook() should take args as an array like the other functions.
@@ -232,8 +256,8 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( strtotime( '+4 hour' ), $hook, $args );
 
 		// Make sure they're returned by wp_next_scheduled().
-		$this->assertTrue( wp_next_scheduled( $hook ) > 0 );
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook ) );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule and make sure it's gone.
 		$unschedule_hook = wp_unschedule_hook( $hook );

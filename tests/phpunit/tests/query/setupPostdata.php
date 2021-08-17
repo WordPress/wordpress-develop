@@ -317,7 +317,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post1 ) );
 		setup_postdata( $post2 );
 
-		$this->assertTrue( empty( $GLOBALS['more'] ) );
+		$this->assertEmpty( $GLOBALS['more'] );
 	}
 
 	/**
@@ -335,7 +335,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $page ) );
 		setup_postdata( $post );
 
-		$this->assertTrue( empty( $GLOBALS['more'] ) );
+		$this->assertEmpty( $GLOBALS['more'] );
 	}
 
 	/**
@@ -372,7 +372,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				$q->the_post();
 
 				// $more should refer to the current loop.
-				$this->assertTrue( empty( $GLOBALS['more'] ) );
+				$this->assertEmpty( $GLOBALS['more'] );
 			}
 		}
 		wp_reset_postdata();
