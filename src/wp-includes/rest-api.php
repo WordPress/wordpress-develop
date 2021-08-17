@@ -2818,7 +2818,7 @@ function rest_preload_api_request( $memo, $path ) {
 		}
 	}
 
-	$path = untrailingslashit($path);
+	$path = untrailingslashit( $path );
 	if ( empty( $path ) ) {
 		$path = '/';
 	}
