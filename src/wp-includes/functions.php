@@ -2645,12 +2645,11 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 				$alt_filename = preg_replace( '|' . preg_quote( $lc_ext ) . '$|', $alt_ext, $filename );
 
 				$alt_filenames[ $alt_ext ] = $alt_filename;
-
 			}
 
 			if ( ! empty( $alt_filenames ) ) {
 				// Add the original filename. It needs to be checked again together with the alternate filenames
-				// when $number is increased.
+				// when $number is incremented.
 				$alt_filenames[ $lc_ext ] = $filename;
 
 				// Ensure no infinite loop.
@@ -2678,13 +2677,17 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 	 * Filters the result when generating a unique file name.
 	 *
 	 * @since 4.5.0
+	 * @since 5.8.1 The `$alt_filenames` and `$number` parameters were added.
 	 *
 	 * @param string        $filename                 Unique file name.
 	 * @param string        $ext                      File extension, eg. ".png".
 	 * @param string        $dir                      Directory path.
 	 * @param callable|null $unique_filename_callback Callback function that generates the unique file name.
+	 * @param string[]      $alt_filenames            Array of alternate file names that were checked for collisions.
+	 * @param int|string    $number                   The highest number that was used to make the file name unique
+	 *                                                or an empty string if unused.
 	 */
-	return apply_filters( 'wp_unique_filename', $filename, $ext, $dir, $unique_filename_callback );
+	return apply_filters( 'wp_unique_filename', $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number );
 }
 
 /**
