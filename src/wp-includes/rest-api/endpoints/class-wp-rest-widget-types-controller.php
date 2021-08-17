@@ -108,13 +108,13 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::CREATABLE,
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'callback'            => array( $this, 'render' ),
-					'args' => array(
-						'id_base'        => array(
+					'args'                => array(
+						'id_base'  => array(
 							'description' => __( 'The widget type id.' ),
 							'type'        => 'string',
 							'required'    => true,
 						),
-						'instance'  => array(
+						'instance' => array(
 							'description' => __( 'Current instance settings of the widget.' ),
 							'type'        => 'object',
 						),
@@ -442,7 +442,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 */
 	private function render_legacy_widget_preview_iframe( $id_base, $instance ) {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return "";
+			return '';
 		}
 
 		define( 'IFRAME_REQUEST', true );
@@ -470,7 +470,12 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 				<?php
 				$registry = WP_Block_Type_Registry::get_instance();
 				$block    = $registry->get_registered( 'core/legacy-widget' );
-				echo $block->render( array( 'idBase' => $id_base, 'instance' => $instance ) );
+				echo $block->render(
+					array(
+						'idBase'   => $id_base,
+						'instance' => $instance,
+					)
+				);
 				?>
 			</div><!-- #content -->
 		</div><!-- #page -->
