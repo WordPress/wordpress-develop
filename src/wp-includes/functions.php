@@ -2612,6 +2612,8 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 			}
 		}
 
+		$alt_filenames = array();
+
 		// Check if an image will be converted after uploading or some existing images sub-sizes file names may conflict
 		// when regenerated. If yes, ensure the new file name will be unique and will produce unique sub-sizes.
 		if ( $is_image ) {
@@ -2631,8 +2633,6 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 
 			// Remove duplicates and the original mime type. It will be added later if needed.
 			$alt_types = array_unique( array_diff( $alt_types, array( $mime_type ) ) );
-
-			$alt_filenames = array();
 
 			foreach ( $alt_types as $alt_type ) {
 				$alt_ext = wp_get_default_extension_for_mime_type( $alt_type );
