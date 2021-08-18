@@ -424,7 +424,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 		return array(
 			'preview' => $this->render_legacy_widget_preview_iframe(
 				$request['id_base'],
-				isset($request['instance']) ? $request['instance'] : null
+				isset( $request['instance'] ) ? $request['instance'] : null
 			),
 		);
 	}
