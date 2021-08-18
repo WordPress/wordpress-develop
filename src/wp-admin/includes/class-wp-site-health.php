@@ -1887,7 +1887,7 @@ class WP_Site_Health {
 	 */
 	public function get_test_available_updates_disk_space() {
 		$available_space       = (int) disk_free_space( WP_CONTENT_DIR . '/upgrade/' );
-		$available_space_in_mb = round( $available_space / MB_IN_BYTES, 2 );
+		$available_space_in_mb = $available_space / MB_IN_BYTES;
 
 		$result = array(
 			'label'       => __( 'Disk-space available to safely perform updates' ),
