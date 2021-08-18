@@ -1886,13 +1886,8 @@ class WP_Site_Health {
 	 * @return array The test results.
 	 */
 	public function get_test_available_updates_disk_space() {
-		$available_space          = (int) disk_free_space( WP_CONTENT_DIR . '/upgrade/' );
-		$available_space_in_mb    = round( $available_space / MB_IN_BYTES, 2 );
-		$available_space_in_gb    = round( $available_space / GB_IN_BYTES, 2 );
-		$available_space_readable = $available_space_in_mb . ' MB';
-		if ( 1024 < $available_space_in_mb ) {
-			$available_space_readable = $available_space_in_gb . ' GB';
-		}
+		$available_space       = (int) disk_free_space( WP_CONTENT_DIR . '/upgrade/' );
+		$available_space_in_mb = round( $available_space / MB_IN_BYTES, 2 );
 
 		$result = array(
 			'label'       => __( 'Disk-space available to safely perform updates' ),
@@ -1904,7 +1899,7 @@ class WP_Site_Health {
 			'description' => sprintf(
 				/* Translators: %s: Available disk-space in MB or GB. */
 				'<p>' . __( '%s available disk space was detected, update routines can be performed safely.' ),
-				$available_space_readable
+				size_format( $available_space )
 			),
 			'actions'     => '',
 			'test'        => 'available_updates_disk_space',
