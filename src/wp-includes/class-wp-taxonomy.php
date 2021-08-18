@@ -183,7 +183,7 @@ final class WP_Taxonomy {
 	/**
 	 * Function that will be called when the count is modified by an amount.
 	 *
-	 * @since 5.6.0
+	 * @since 5.9.0
 	 * @var callable
 	 */
 	public $update_count_by_callback;

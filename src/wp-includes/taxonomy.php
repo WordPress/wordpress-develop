@@ -355,7 +355,7 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  * @since 5.1.0 Introduced `meta_box_sanitize_cb` argument.
  * @since 5.4.0 Added the registered taxonomy object as a return value.
  * @since 5.5.0 Introduced `default_term` argument.
- * @since 5.6.0 Introduced `update_count_by_callback` argument.
+ * @since 5.9.0 Introduced `update_count_by_callback` argument.
  *
  * @global array $wp_taxonomies Registered taxonomies.
  *
@@ -3396,7 +3396,7 @@ function wp_defer_term_counting( $defer = null ) {
  * term count will be handled during the post's transition.
  *
  * @private
- * @since 5.6.0
+ * @since 5.9.0
  *
  * @param bool $new_setting The new setting for preventing term counts.
  * @return bool Whether term count prevention is enabled or disabled.
@@ -3419,7 +3419,7 @@ function _wp_prevent_term_counting( $new_setting = null ) {
  *
  * The default action is to increment the count by one and update the database.
  *
- * @since 5.6.0
+ * @since 5.9.0
  *
  * @param int|array $tt_ids       The term_taxonomy_id of the terms.
  * @param string    $taxonomy     The context of the term.
@@ -3439,7 +3439,7 @@ function wp_increment_term_count( $tt_ids, $taxonomy, $increment_by = 1, $do_def
  *
  * The default action is to decrement the count by one and update the database.
  *
- * @since 5.6.0
+ * @since 5.9.0
  *
  * @param int|array $tt_ids       The term_taxonomy_id of the terms.
  * @param string    $taxonomy     The context of the term.
@@ -3459,7 +3459,7 @@ function wp_decrement_term_count( $tt_ids, $taxonomy, $decrement_by = 1, $do_def
  *
  * The default action is to decrement the count by one and update the database.
  *
- * @since 5.6.0
+ * @since 5.9.0
  *
  * @param int|array $tt_ids      The term_taxonomy_id of the terms.
  * @param string    $taxonomy    The context of the term.
@@ -3520,7 +3520,7 @@ function wp_modify_term_count_by( $tt_ids, $taxonomy, $modify_by, $do_deferred =
  *
  * The default action is to decrement the count by one and update the database.
  *
- * @since 5.6.0
+ * @since 5.9.0
  *
  * @param int|array $tt_ids      The term_taxonomy_id of the terms.
  * @param string    $taxonomy    The context of the term.
