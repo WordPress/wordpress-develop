@@ -1879,27 +1879,27 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if plugin and theme updates rollbacks folders are writable or can be created.
+	 * Test if plugin and theme updates temp_backup folders are writable or can be created.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @return array The test results.
 	 */
-	public function get_test_update_rollbacks_writable() {
+	public function get_test_update_temp_backup_writable() {
 		$result = array(
-			'label'       => __( 'Plugin and theme update rollbacks folder is writable' ),
+			'label'       => __( 'Plugin and theme update temp_backup folder is writable' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
 				'color' => 'blue',
 			),
 			'description' => sprintf(
-				/* Translators: %s: "wp-content/upgrade/rollback". */
+				/* Translators: %s: "wp-content/upgrade/temp_backup". */
 				'<p>' . __( 'The %s folder used to improve the stability of plugin and theme updates is writable.' ),
-				'<code>wp-content/upgrade/rollback</code>'
+				'<code>wp-content/upgrade/temp_backup</code>'
 			),
 			'actions'     => '',
-			'test'        => 'update_rollbacks_writable',
+			'test'        => 'update_temp_backup_writable',
 		);
 
 		global $wp_filesystem;
@@ -1911,42 +1911,42 @@ class WP_Site_Health {
 		}
 		$wp_content = $wp_filesystem->wp_content_dir();
 
-		if ( $wp_filesystem->is_dir( "$wp_content/upgrade/rollback/plugins" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/rollback/plugins" ) ) {
-			$result['status'] = 'critical';
-			$result['label']  = __( 'Plugins rollback folder exists but is not writable' );
+		if ( $wp_filesystem->is_dir( "$wp_content/upgrade/temp_backup/plugins" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/temp_backup/plugins" ) ) {
+			$result['status']      = 'critical';
+			$result['label']       = __( 'Plugins temp_backup folder exists but is not writable' );
 			$result['description'] = sprintf(
-				/* translators: %s: '<code>wp-content/upgrade/rollback/plugins</code>' */
+				/* translators: %s: '<code>wp-content/upgrade/temp_backup/plugins</code>' */
 				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to improve the stability of plugin updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
-				'<code>wp-content/upgrade/rollback/plugins</code>'
+				'<code>wp-content/upgrade/temp_backup/plugins</code>'
 			);
 			return $result;
 		}
 
-		if ( $wp_filesystem->is_dir( "$wp_content/upgrade/rollback/themes" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/rollback/themes" ) ) {
-			$result['status'] = 'critical';
-			$result['label']  = __( 'Themes rollback folder exists but is not writable' );
+		if ( $wp_filesystem->is_dir( "$wp_content/upgrade/temp_backup/themes" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/temp_backup/themes" ) ) {
+			$result['status']      = 'critical';
+			$result['label']       = __( 'Themes temp_backup folder exists but is not writable' );
 			$result['description'] = sprintf(
-				/* translators: %s: '<code>wp-content/upgrade/rollback/themes</code>' */
+				/* translators: %s: '<code>wp-content/upgrade/temp_backup/themes</code>' */
 				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to improve the stability of theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
-				'<code>wp-content/upgrade/rollback/themes</code>'
+				'<code>wp-content/upgrade/temp_backup/themes</code>'
 			);
 			return $result;
 		}
 
-		if ( ( ! $wp_filesystem->is_dir( "$wp_content/upgrade/rollback/plugins" ) || ! $wp_filesystem->is_dir( "$wp_content/upgrade/rollback/themes" ) ) && $wp_filesystem->is_dir( "$wp_content/upgrade/rollback" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/rollback" ) ) {
-			$result['status'] = 'critical';
-			$result['label']  = __( 'The rollbacks folder exists but is not writable' );
+		if ( ( ! $wp_filesystem->is_dir( "$wp_content/upgrade/temp_backup/plugins" ) || ! $wp_filesystem->is_dir( "$wp_content/upgrade/temp_backup/themes" ) ) && $wp_filesystem->is_dir( "$wp_content/upgrade/temp_backup" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/temp_backup" ) ) {
+			$result['status']      = 'critical';
+			$result['label']       = __( 'The temp_backup folder exists but is not writable' );
 			$result['description'] = sprintf(
-				/* translators: %s: '<code>wp-content/upgrade/rollback</code>' */
+				/* translators: %s: '<code>wp-content/upgrade/temp_backup</code>' */
 				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to improve the stability of plugin and theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
-				'<code>wp-content/upgrade/rollback</code>'
+				'<code>wp-content/upgrade/temp_backup</code>'
 			);
 			return $result;
 		}
 
-		if ( ! $wp_filesystem->is_dir( "$wp_content/upgrade/rollback" ) && $wp_filesystem->is_dir( "$wp_content/upgrade" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade" ) ) {
-			$result['status'] = 'critical';
-			$result['label']  = __( 'The upgrade folder exists but is not writable' );
+		if ( ! $wp_filesystem->is_dir( "$wp_content/upgrade/temp_backup" ) && $wp_filesystem->is_dir( "$wp_content/upgrade" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade" ) ) {
+			$result['status']      = 'critical';
+			$result['label']       = __( 'The upgrade folder exists but is not writable' );
 			$result['description'] = sprintf(
 				/* translators: %s: '<code>wp-content/upgrade</code>' */
 				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to for plugin and theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
@@ -1956,8 +1956,8 @@ class WP_Site_Health {
 		}
 
 		if ( ! $wp_filesystem->is_dir( "$wp_content/upgrade" ) && ! $wp_filesystem->is_writable( $wp_content ) ) {
-			$result['status'] = 'critical';
-			$result['label']  = __( 'The upgrade folder can not be created' );
+			$result['status']      = 'critical';
+			$result['label']       = __( 'The upgrade folder can not be created' );
 			$result['description'] = sprintf(
 				/* ranslators: %1$s: <code>wp-content/upgrade</code>. %2$s: <code>wp-content</code>. */
 				'<p>' . __( 'The %1$s folder does not exist, and the server does not have write permissions in %2$s to create it. This folder is used to for plugin and theme updates. Please make sure the server has write permissions in %2$s.' ) . '</p>',
@@ -2354,74 +2354,74 @@ class WP_Site_Health {
 	public static function get_tests() {
 		$tests = array(
 			'direct' => array(
-				'wordpress_version'         => array(
+				'wordpress_version'           => array(
 					'label' => __( 'WordPress Version' ),
 					'test'  => 'wordpress_version',
 				),
-				'plugin_version'            => array(
+				'plugin_version'              => array(
 					'label' => __( 'Plugin Versions' ),
 					'test'  => 'plugin_version',
 				),
-				'theme_version'             => array(
+				'theme_version'               => array(
 					'label' => __( 'Theme Versions' ),
 					'test'  => 'theme_version',
 				),
-				'php_version'               => array(
+				'php_version'                 => array(
 					'label' => __( 'PHP Version' ),
 					'test'  => 'php_version',
 				),
-				'php_extensions'            => array(
+				'php_extensions'              => array(
 					'label' => __( 'PHP Extensions' ),
 					'test'  => 'php_extensions',
 				),
-				'php_default_timezone'      => array(
+				'php_default_timezone'        => array(
 					'label' => __( 'PHP Default Timezone' ),
 					'test'  => 'php_default_timezone',
 				),
-				'php_sessions'              => array(
+				'php_sessions'                => array(
 					'label' => __( 'PHP Sessions' ),
 					'test'  => 'php_sessions',
 				),
-				'sql_server'                => array(
+				'sql_server'                  => array(
 					'label' => __( 'Database Server version' ),
 					'test'  => 'sql_server',
 				),
-				'utf8mb4_support'           => array(
+				'utf8mb4_support'             => array(
 					'label' => __( 'MySQL utf8mb4 support' ),
 					'test'  => 'utf8mb4_support',
 				),
-				'ssl_support'               => array(
+				'ssl_support'                 => array(
 					'label' => __( 'Secure communication' ),
 					'test'  => 'ssl_support',
 				),
-				'scheduled_events'          => array(
+				'scheduled_events'            => array(
 					'label' => __( 'Scheduled events' ),
 					'test'  => 'scheduled_events',
 				),
-				'http_requests'             => array(
+				'http_requests'               => array(
 					'label' => __( 'HTTP Requests' ),
 					'test'  => 'http_requests',
 				),
-				'rest_availability'         => array(
+				'rest_availability'           => array(
 					'label'     => __( 'REST API availability' ),
 					'test'      => 'rest_availability',
 					'skip_cron' => true,
 				),
-				'debug_enabled'             => array(
+				'debug_enabled'               => array(
 					'label' => __( 'Debugging enabled' ),
 					'test'  => 'is_in_debug_mode',
 				),
-				'file_uploads'              => array(
+				'file_uploads'                => array(
 					'label' => __( 'File uploads' ),
 					'test'  => 'file_uploads',
 				),
-				'plugin_theme_auto_updates' => array(
+				'plugin_theme_auto_updates'   => array(
 					'label' => __( 'Plugin and theme auto-updates' ),
 					'test'  => 'plugin_theme_auto_updates',
 				),
-				'update_rollbacks_writable' => array(
-					'label' => __( 'Updates rollback folder access' ),
-					'test'  => 'update_rollbacks_writable',
+				'update_temp_backup_writable' => array(
+					'label' => __( 'Updates temp_backup folder access' ),
+					'test'  => 'update_temp_backup_writable',
 				),
 			),
 			'async'  => array(
