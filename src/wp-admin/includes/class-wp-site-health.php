@@ -1879,6 +1879,56 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Test available disk-space for updates/upgrades.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_available_updates_disk_space() {
+		$available_space       = (int) disk_free_space( WP_CONTENT_DIR . '/upgrade/' );
+		$available_space_in_mb = round( $available_space / MB_IN_BYTES, 2 );
+		$available_space_in_gb = round( $available_space / GB_IN_BYTES, 2 );
+		$available_space_readable = $available_space_in_mb . ' MB';
+		if ( 1024 < $available_space_in_mb ) {
+			$available_space_readable = $available_space_in_gb . ' GB';
+		}
+
+		$result = array(
+			'label'       => __( 'Disk-space available to safely perform updates' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				/* Translators: %s: Available disk-space in MB or GB. */
+				'<p>' . __( '%s available disk space was detected, update routines can be performed safely.' ),
+				$available_space_readable
+			),
+			'actions'     => '',
+			'test'        => 'available_updates_disk_space',
+		);
+
+		if ( 100 > $available_space_in_mb ) {
+			$result['description'] = __( 'Available disk space is low, less than 100MB available.' );
+			$result['status']      = 'recommended';
+		}
+
+		if ( 20 > $available_space_in_mb ) {
+			$result['description'] = __( 'Available disk space is critically low, less than 20MB available. Proceed with caution, updates may fail.' );
+			$result['status']      = 'critical';
+		}
+
+		if ( ! $available_space ) {
+			$result['description'] = __( 'Could not determine available disk space for updates.' );
+			$result['status']      = 'recommended';
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Test if plugin and theme updates temp-backup folders are writable or can be created.
 	 *
 	 * @since 5.9.0
@@ -2422,6 +2472,10 @@ class WP_Site_Health {
 				'update_temp_backup_writable' => array(
 					'label' => __( 'Updates temp-backup folder access' ),
 					'test'  => 'update_temp_backup_writable',
+				),
+				'get_test_available_updates_disk_space'		 => array(
+					'label' => __( 'Available disk space' ),
+					'test'  => 'available_updates_disk_space',
 				),
 			),
 			'async'  => array(
