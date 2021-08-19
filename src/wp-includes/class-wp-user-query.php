@@ -396,21 +396,21 @@ class WP_User_Query {
 		}
 
 		$capabilities = array();
-		if ( isset( $qv['capability'] ) ) {
+		if ( ! empty( $qv['capability'] ) ) {
 			if ( is_array( $qv['capability'] ) ) {
 				$capabilities = $qv['capability'];
-			} elseif ( is_string( $qv['capability'] ) && ! empty( $qv['capability'] ) ) {
+			} elseif ( is_string( $qv['capability'] ) ) {
 				$capabilities = array_map( 'trim', explode( ',', $qv['capability'] ) );
 			}
 		}
 
 		$capability__in = array();
-		if ( isset( $qv['capability__in'] ) ) {
+		if ( ! empty( $qv['capability__in'] ) ) {
 			$capability__in = (array) $qv['capability__in'];
 		}
 
 		$capability__not_in = array();
-		if ( isset( $qv['capability__not_in'] ) ) {
+		if ( ! empty( $qv['capability__not_in'] ) ) {
 			$capability__not_in = (array) $qv['capability__not_in'];
 		}
 
