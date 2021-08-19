@@ -8,14 +8,14 @@
  */
 
 /**
- * Class Test_WP_Community_Events.
+ * Class Tests_Admin_wpCommunityEvents.
  *
  * @group admin
  * @group community-events
  *
  * @since 4.8.0
  */
-class Test_WP_Community_Events extends WP_UnitTestCase {
+class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	/**
 	 * An instance of the class to test.
 	 *

@@ -4,7 +4,7 @@
  * @group file
  * @group admin
  */
-class Tests_Admin_includesFile extends WP_UnitTestCase {
+class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20449

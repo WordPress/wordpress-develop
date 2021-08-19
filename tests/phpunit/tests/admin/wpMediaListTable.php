@@ -3,7 +3,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_includesMediaListTable extends WP_UnitTestCase {
+class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
