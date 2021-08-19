@@ -115,7 +115,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		// Set up users for pagination tests.
-		for ( $i = 0; $i < self::$total_users - 10; $i++ ) {
+		for ( $i = 0; $i < self::$total_users - 11; $i++ ) {
 			self::$user_ids[] = $factory->user->create(
 				array(
 					'role'         => 'contributor',
@@ -804,32 +804,19 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_roles() {
 		wp_set_current_user( self::$user );
 
-		$tango = $this->factory->user->create(
-			array(
-				'display_name' => 'tango',
-				'role'         => 'subscriber',
-			)
-		);
-		$yolo  = $this->factory->user->create(
-			array(
-				'display_name' => 'yolo',
-				'role'         => 'author',
-			)
-		);
-
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'roles', 'author,subscriber' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 3, $data );
-		$this->assertSame( $tango, $data[1]['id'] );
-		$this->assertSame( $yolo, $data[2]['id'] );
+		$this->assertCount( 2, $data );
+		$this->assertSame( self::$author, $data[0]['id'] );
+		$this->assertSame( self::$subscriber, $data[1]['id'] );
 
 		$request->set_param( 'roles', 'author' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertSame( $yolo, $data[0]['id'] );
+		$this->assertSame( self::$author, $data[0]['id'] );
 
 		wp_set_current_user( 0 );
 
