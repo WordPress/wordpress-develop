@@ -860,6 +860,9 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEmpty( $data );
 	}
 
+	/**
+	 * @ticket 16841
+	 */
 	public function test_get_items_capabilities() {
 		wp_set_current_user( self::$user );
 
@@ -887,6 +890,9 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
+	/**
+	 * @ticket 16841
+	 */
 	public function test_get_items_capabilities_no_permission_no_user() {
 		wp_set_current_user( 0 );
 
@@ -896,6 +902,9 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
 	}
 
+	/**
+	 * @ticket 16841
+	 */
 	public function test_get_items_capabilities_no_permission_editor() {
 		wp_set_current_user( self::$editor );
 
@@ -905,6 +914,9 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
 	}
 
+	/**
+	 * @ticket 16841
+	 */
 	public function test_get_items_invalid_capabilities() {
 		wp_set_current_user( self::$user );
 
