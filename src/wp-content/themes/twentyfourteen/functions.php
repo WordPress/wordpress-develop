@@ -501,7 +501,7 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 		/**
 		 * Filters query arguments for listing authors.
 		 *
-		 * @since 5.9.0
+		 * @since 3.3
 		 *
 		 * @param array $args Query arguments.
 		 */
