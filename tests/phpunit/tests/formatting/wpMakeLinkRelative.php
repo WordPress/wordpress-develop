@@ -3,7 +3,7 @@
 /**
  * @group formatting
  */
-class Tests_Formatting_WPMakeLinkRelative extends WP_UnitTestCase {
+class Tests_Formatting_wpMakeLinkRelative extends WP_UnitTestCase {
 
 	public function test_wp_make_link_relative_with_http_scheme() {
 		$link          = 'http://example.com/this-is-a-test-http-url/';

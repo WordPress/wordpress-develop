@@ -3,7 +3,7 @@
 /**
  * @group formatting
  */
-class Test_WP_ISO_Descrambler extends WP_UnitTestCase {
+class Tests_Formatting_wpIsoDescrambler extends WP_UnitTestCase {
 	/*
 	 * Decodes text in RFC2047 "Q"-encoding, e.g.
 	 * =?iso-8859-1?q?this=20is=20some=20text?=

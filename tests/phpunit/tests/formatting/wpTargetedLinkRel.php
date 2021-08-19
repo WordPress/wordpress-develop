@@ -4,7 +4,7 @@
  * @group formatting
  * @ticket 43187
  */
-class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
+class Tests_Formatting_wpTargetedLinkRel extends WP_UnitTestCase {
 
 	public function test_add_to_links_with_target_blank() {
 		$content  = '<p>Links: <a href="/" target="_blank">No rel</a></p>';

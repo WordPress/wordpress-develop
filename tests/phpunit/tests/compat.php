@@ -318,6 +318,7 @@ class ArrayIteratorFake extends ArrayIterator {
 }
 
 class CountableFake implements Countable {
+	#[ReturnTypeWillChange]
 	public function count() {
 		return 16;
 	}

@@ -4,7 +4,7 @@
  * @group formatting
  * @covers ::wp_trim_excerpt
  */
-class Tests_Formatting_WpTrimExcerpt extends WP_UnitTestCase {
+class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	/**
 	 * @ticket 25349
 	 */

@@ -452,11 +452,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Throws an exception when called.
 	 *
-	 * @throws WPDieException Exception containing the message.
+	 * @since UT (3.7.0)
+	 * @since 5.9.0 Added the `$title` and `$args` parameters.
 	 *
-	 * @param string $message The `wp_die()` message.
-	 * @param string $title The `wp_die()` title.
-	 * @param string $args The `wp_die()` args.
+	 * @throws WPDieException Exception containing the message and the response code.
+	 *
+	 * @param string|WP_Error $message The `wp_die()` message or WP_Error object.
+	 * @param string          $title   The `wp_die()` title.
+	 * @param string|array    $args    The `wp_die()` arguments.
 	 */
 	public function wp_die_handler( $message, $title, $args ) {
 		if ( is_wp_error( $message ) ) {

@@ -3,7 +3,7 @@
 /**
  * @group formatting
  */
-class Tests_Rel_Ugc extends WP_UnitTestCase {
+class Tests_Formatting_wpRelUgc extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48022
