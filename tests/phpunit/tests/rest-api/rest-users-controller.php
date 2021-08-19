@@ -15,6 +15,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $editor;
 	protected static $draft_editor;
 	protected static $subscriber;
+	protected static $author;
 
 	protected static $authors     = array();
 	protected static $posts       = array();
@@ -53,6 +54,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				'role'         => 'subscriber',
 				'display_name' => 'subscriber',
 				'user_email'   => 'subscriber@example.com',
+			)
+		);
+		self::$author        = $factory->user->create(
+			array(
+				'display_name' => 'author',
+				'role'         => 'author',
+				'user_email'   => 'author@example.com',
 			)
 		);
 
@@ -121,6 +129,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$user );
 		self::delete_user( self::$editor );
 		self::delete_user( self::$draft_editor );
+		self::delete_user( self::$author );
 
 		foreach ( self::$posts as $post ) {
 			wp_delete_post( $post, true );
@@ -838,19 +847,12 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_invalid_roles() {
 		wp_set_current_user( self::$user );
 
-		$lolz = $this->factory->user->create(
-			array(
-				'display_name' => 'lolz',
-				'role'         => 'author',
-			)
-		);
-
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'roles', 'ilovesteak,author' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertSame( $lolz, $data[0]['id'] );
+		$this->assertSame( self::$author, $data[0]['id'] );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'roles', 'steakisgood' );
@@ -865,19 +867,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_items_capabilities() {
 		wp_set_current_user( self::$user );
-
-		$tango = $this->factory->user->create(
-			array(
-				'display_name' => 'tango',
-				'role'         => 'subscriber',
-			)
-		);
-		$yolo  = $this->factory->user->create(
-			array(
-				'display_name' => 'yolo',
-				'role'         => 'author',
-			)
-		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'capabilities', 'edit_posts' );
@@ -920,19 +909,12 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_invalid_capabilities() {
 		wp_set_current_user( self::$user );
 
-		$lolz = $this->factory->user->create(
-			array(
-				'display_name' => 'lolz',
-				'role'         => 'author',
-			)
-		);
-
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'roles', 'ilovesteak,author' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertSame( $lolz, $data[0]['id'] );
+		$this->assertSame( self::$author, $data[0]['id'] );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'capabilities', 'steakisgood' );

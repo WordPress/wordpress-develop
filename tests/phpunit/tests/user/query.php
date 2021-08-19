@@ -1777,14 +1777,17 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 16841
 	 */
 	public function test_get_single_capability_added_to_user() {
-		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
-		$user->add_cap( 'custom_cap' );
+		foreach ( self::$sub_ids as $subscriber ) {
+			$subscriber = get_user_by( 'ID', $subscriber );
+			$subscriber->add_cap( 'custom_cap' );
+		}
 
 		$wp_user_search = new WP_User_Query( array( 'capability' => 'custom_cap' ) );
 		$users          = $wp_user_search->get_results();
 
-		$this->assertCount( 1, $users );
-		$this->assertSame( $users[0]->ID, $user->ID );
+		$this->assertCount( 2, $users );
+		$this->assertEqualSets( self::$sub_ids, wp_list_pluck( $users, 'ID' ) );
+
 		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'custom_cap' ) );
 		}
@@ -1797,14 +1800,18 @@ class Tests_User_Query extends WP_UnitTestCase {
 		wp_roles()->add_role( 'role_1', 'Role 1', array( 'role_1_cap' => true ) );
 		wp_roles()->add_role( 'role_2', 'Role 2', array( 'role_2_cap' => true ) );
 
-		$user = self::factory()->user->create_and_get( array( 'role' => 'role_1' ) );
-		$user->add_role( 'role_2' );
+		$subscriber1 = get_user_by( 'ID', self::$sub_ids[0] );
+		$subscriber1->add_role( 'role_1' );
+
+		$subscriber2 = get_user_by( 'ID', self::$sub_ids[1] );
+		$subscriber2->add_role( 'role_1' );
+		$subscriber2->add_role( 'role_2' );
 
 		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'role_1_cap', 'role_2_cap' ) ) );
 		$users          = $wp_user_search->get_results();
 
 		$this->assertCount( 1, $users );
-		$this->assertSame( $users[0]->ID, $user->ID );
+		$this->assertSame( $users[0]->ID, $subscriber2->ID );
 		foreach ( $users as $user ) {
 			$this->assertTrue( $user->has_cap( 'role_1_cap' ) );
 			$this->assertTrue( $user->has_cap( 'role_2_cap' ) );
@@ -1815,17 +1822,16 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 16841
 	 */
 	public function test_get_multiple_capabilities_should_only_match_users_who_have_each_capability_added_to_user() {
-		$user = self::factory()->user->create_and_get( array( 'role' => 'administrator' ) );
-		$user->add_cap( 'custom_cap' );
+		$admin1 = get_user_by( 'ID', self::$admin_ids[0] );
+		$admin1->add_cap( 'custom_cap' );
 
 		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'manage_options', 'custom_cap' ) ) );
 		$users          = $wp_user_search->get_results();
 
-		$this->assertNotEmpty( $users );
-		foreach ( $users as $user ) {
-			$this->assertTrue( $user->has_cap( 'manage_options' ) );
-			$this->assertTrue( $user->has_cap( 'custom_cap' ) );
-		}
+		$this->assertCount( 1, $users );
+		$this->assertSame( $users[0]->ID, $admin1->ID );
+		$this->assertTrue( $users[0]->has_cap( 'custom_cap' ) );
+		$this->assertTrue( $users[0]->has_cap( 'manage_options' ) );
 	}
 
 	/**
