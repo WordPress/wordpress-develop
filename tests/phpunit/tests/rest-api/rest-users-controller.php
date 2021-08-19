@@ -56,7 +56,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				'user_email'   => 'subscriber@example.com',
 			)
 		);
-		self::$author        = $factory->user->create(
+		self::$author       = $factory->user->create(
 			array(
 				'display_name' => 'author',
 				'role'         => 'author',
