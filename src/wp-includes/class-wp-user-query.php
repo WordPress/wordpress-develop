@@ -388,7 +388,7 @@ class WP_User_Query {
 		// Capabilities.
 		$available_roles = array();
 
-		if ( isset( $qv['capability'] ) || isset( $qv['capability__in'] ) || isset( $qv['capability__not_in'] ) ) {
+		if ( ! empty( $qv['capability'] ) || ! empty( $qv['capability__in'] ) || ! empty( $qv['capability__not_in'] ) ) {
 			global $wp_roles;
 
 			$wp_roles->for_site( $blog_id );
