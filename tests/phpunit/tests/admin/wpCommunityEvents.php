@@ -27,14 +27,23 @@ class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	private $instance;
 
 	/**
+	 * Performs setup tasks before the first test is run.
+	 *
+	 * @since 5.9.0
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		require_once ABSPATH . 'wp-admin/includes/class-wp-community-events.php';
+	}
+
+	/**
 	 * Performs setup tasks for every test.
 	 *
 	 * @since 4.8.0
 	 */
 	public function set_up() {
 		parent::set_up();
-
-		require_once ABSPATH . 'wp-admin/includes/class-wp-community-events.php';
 
 		$this->instance = new WP_Community_Events( 1, $this->get_user_location() );
 	}
