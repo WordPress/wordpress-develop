@@ -1980,7 +1980,14 @@ function get_comment_id_fields( $post_id = 0 ) {
 
 	$reply_to_id = isset( $_GET['replytocom'] ) ? (int) $_GET['replytocom'] : 0;
 	$result      = "<input type='hidden' name='comment_post_ID' value='$post_id' id='comment_post_ID' />\n";
-	$result     .= "<input type='hidden' name='comment_parent' id='comment_parent' value='$reply_to_id' />\n";
+
+	if ( 0 !== $reply_to_id ) {
+		$comment = get_comment( $reply_to_id );
+
+		if ( 0 !== (int) $comment->comment_approved ) {
+			$result .= "<input type='hidden' name='comment_parent' id='comment_parent' value='$reply_to_id' />\n";
+		}
+	}
 
 	/**
 	 * Filters the returned comment ID fields.
@@ -2049,8 +2056,14 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 	if ( 0 == $reply_to_id ) {
 		echo $no_reply_text;
 	} else {
+
 		// Sets the global so that template tags can be used in the comment form.
 		$comment = get_comment( $reply_to_id );
+
+		if ( 0 === (int) $comment->comment_approved ) {
+			echo $no_reply_text;
+			return;
+		}
 
 		if ( $link_to_parent ) {
 			$author = '<a href="#comment-' . get_comment_ID() . '">' . get_comment_author( $comment ) . '</a>';
