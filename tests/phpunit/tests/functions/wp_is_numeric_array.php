@@ -29,25 +29,25 @@ class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
 	 */
 	public function data_wp_is_numeric_array() {
 		return array(
-			'no index' 		       => array(
+			'no index'             => array(
 				'test_array'       => array( 'www', 'eee' ),
 				'expected'         => true,
 			),
 			'text index'           => array(
 				'test_array'       => array( 'www' => 'eee' ),
-				'expected'   	   => false,
+				'expected'         => false,
 			),
-			'numeric index'  	   => array(
-				'test_array' 	   => array( 99 => 'eee' ),
-				'expected'   	   => true,
+			'numeric index'        => array(
+				'test_array'       => array( 99 => 'eee' ),
+				'expected'         => true,
 			),
 			'- numeric index'      => array(
-				'test_array'  	   => array( -11 => 'eee' ),
+				'test_array'       => array( -11 => 'eee' ),
 				'expected'         => true,
 			),
 			'numeric string index' => array(
-				'test_array' 	   => array( '11' => 'eee' ),
-				'expected'  	   => true,
+				'test_array'       => array( '11' => 'eee' ),
+				'expected'         => true,
 			),
 			'nested number index'  => array(
 				'test_array'       => array(
@@ -55,7 +55,7 @@ class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
 						11         => 'vvv',
 					),
 				),
-				'expected'         => false,
+				'expected'        => false,
 			),
 			'nested string index'  => array(
 				'test_array'       => array(
@@ -63,7 +63,7 @@ class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
 						'eee'      => 'vvv',
 					),
 				),
-				'expected'        => true,
+				'expected'         => true,
 			),
 		);
 	}
