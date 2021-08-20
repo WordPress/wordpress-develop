@@ -8102,7 +8102,7 @@ function clean_dirsize_cache( $path ) {
 	$path = untrailingslashit( $path );
 	unset( $directory_cache[ $path ] );
 
-	while ( DIRECTORY_SEPARATOR !== $path && '.' !== $path && '..' !== $path ) {
+	while ( DIRECTORY_SEPARATOR !== $path && '.' !== $path && '..' !== $path && dirname( $path ) !== $path ) {
 		$path = dirname( $path );
 		unset( $directory_cache[ $path ] );
 	}
