@@ -382,7 +382,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 */
 	public function test_do_not_output_author_of_unapproved_comment() {
 		$_GET['replytocom'] = $this->create_unapproved_comment();
-		$expected = 'Leave a Reply';
+		$expected           = 'Leave a Reply';
 		comment_form_title( false, false, false );
 
 		$this->expectOutputString( $expected );
@@ -390,14 +390,14 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	public function test_cannot_reply_to_unapproved_comment() {
 		$_GET['replytocom'] = $this->create_unapproved_comment();
-		$expected = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
-		$actual = get_comment_id_fields( self::$post_id );
+		$expected           = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
+		$actual             = get_comment_id_fields( self::$post_id );
 
 		$this->assertSame( $expected, $actual );
 	}
 
 	/**
-	 * Helper function to create an unapproved comment
+	 * Helper function to create an unapproved comment.
 	 *
 	 * @since 5.9.0
 	 * @access public
