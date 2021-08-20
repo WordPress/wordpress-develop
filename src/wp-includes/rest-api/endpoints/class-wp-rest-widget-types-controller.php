@@ -442,7 +442,9 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			return '';
 		}
 
-		define( 'IFRAME_REQUEST', true );
+		if ( ! defined( 'IFRAME_REQUEST' ) ) {
+			define( 'IFRAME_REQUEST', true );
+		}
 
 		ob_start();
 		?>
