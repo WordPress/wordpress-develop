@@ -434,6 +434,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @param string $id_base The id base of the requested widget.
 	 * @param array $instance The widget instance attributes.
+	 * @since 5.8.1
 	 *
 	 * @return string Rendered Legacy Widget block preview.
 	 */
