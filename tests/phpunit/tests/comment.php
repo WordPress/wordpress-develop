@@ -408,7 +408,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => 0,
-			),
+			)
 		);
 	}
 
