@@ -31,37 +31,40 @@ class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
 		return array(
 			'no index' => array(
 				'test_array' => array( 'www', 'eee' ),
-				'expected' => true,
+				'expected'  => true,
 			),
 			'text index' => array(
 				'test_array' => array( 'www' => 'eee' ),
-				'expected' => false,
+				'expected'  => false,
 			),
 			'numeric index' => array(
 				'test_array' => array( 99 => 'eee' ),
-				'expected' => true,
+				'expected'  => true,
 			),
 			'- numeric index' => array(
 				'test_array' => array( -11 => 'eee' ),
-				'expected' => true,
+				'expected'  => true,
 			),
 			'numeric string index' => array(
 				'test_array' => array( '11' => 'eee' ),
-				'expected' => true,
+				'expected'  => true,
 			),
 			'nested number index' => array(
-				'test_array' => array( 'next' => array(
-					11 => 'vvv',
-				) ),
+				'test_array' => array(
+					'next' => array(
+						11 => 'vvv',
+					)
+				),
 				'expected' => false,
 			),
 			'nested string index' => array(
-				'test_array' => array( '11' => array(
-					'eee' => 'vvv',
-				) ),
+				'test_array' => array(
+					'11'  => array(
+						'eee' => 'vvv',
+					)
+				),
 				'expected' => true,
 			),
 		);
 	}
-
 }

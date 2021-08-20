@@ -10,7 +10,8 @@
 		"issues": "https://core.trac.wordpress.org/"
 	},
 	"require": {
-		"php": ">=5.6"
+		"php": ">=5.6",
+		"staabm/annotate-pull-request-from-checkstyle": "^1.6"
 	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
