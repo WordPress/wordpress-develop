@@ -420,6 +420,14 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 		return $this->add_additional_fields_schema( $this->schema );
 	}
 
+	/**
+	 * Renders a single Legacy Widget and wraps it in a JSON-encodable array.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @since 5.8.1
+	 *
+	 * @return array An array with rendered Legacy Widget HTML.
+	 */
 	public function render( $request ) {
 		return array(
 			'preview' => $this->render_legacy_widget_preview_iframe(
