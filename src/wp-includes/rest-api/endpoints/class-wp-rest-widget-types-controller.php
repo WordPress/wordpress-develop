@@ -480,9 +480,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 		</body>
 		</html>
 		<?php
-		$content = ob_get_contents();
-		ob_end_clean();
-		return $content;
+		return ob_get_clean();
 	}
 
 	/**
