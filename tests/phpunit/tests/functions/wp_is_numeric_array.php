@@ -53,7 +53,7 @@ class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
 				'test_array' => array(
 					'next' => array(
 						11 => 'vvv',
-					)
+					),
 				),
 				'expected' => false,
 			),
@@ -61,7 +61,7 @@ class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
 				'test_array' => array(
 					'11'  => array(
 						'eee' => 'vvv',
-					)
+					),
 				),
 				'expected' => true,
 			),
