@@ -447,10 +447,6 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @return string Rendered Legacy Widget block preview.
 	 */
 	private function render_legacy_widget_preview_iframe( $id_base, $instance ) {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return '';
-		}
-
 		if ( ! defined( 'IFRAME_REQUEST' ) ) {
 			define( 'IFRAME_REQUEST', true );
 		}
