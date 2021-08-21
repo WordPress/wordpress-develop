@@ -2533,6 +2533,8 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 
 		// If the extension is uppercase add an alternate file name with lowercase extension. Both need to be tested
 		// for uniqueness as the extension will be changed to lowercase for better compatibility with different filesystems.
+		// Fixes an inconsistency in WP < 2.9 where uppercase extensions were allowed but image sub-sizes were created with
+		// lowercase extensions.
 		if ( $ext && $lc_ext !== $ext ) {
 			$lc_filename = preg_replace( '|' . preg_quote( $ext ) . '$|', $lc_ext, $filename );
 		}
