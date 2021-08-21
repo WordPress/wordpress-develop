@@ -3,7 +3,7 @@
 /**
  * @group error-protection
  */
-class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
+class Tests_Error_Protection_wpRecoveryModeKeyService extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46130
