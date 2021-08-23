@@ -56,6 +56,25 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'bar', $list );
 	}
 
+	/**
+	 * @ticket 53987
+	 *
+	 * @covers ::wp_list_filter
+	 */
+	function test_wp_list_filter_and() {
+		$list = wp_list_filter(
+			$this->object_list,
+			array(
+				'field1' => true,
+				'field2' => true,
+			),
+			'AND'
+		);
+		$this->assertCount( 2, $list );
+		$this->assertArrayHasKey( 'foo', $list );
+		$this->assertArrayHasKey( 'bar', $list );
+	}
+
 	function test_filter_object_list_or() {
 		$list = wp_filter_object_list(
 			$this->object_list,
@@ -71,8 +90,46 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
+	/**
+	 * @ticket 53987
+	 *
+	 * @covers ::wp_list_filter
+	 */
+	function test_wp_list_filter_or() {
+		$list = wp_list_filter(
+			$this->object_list,
+			array(
+				'field1' => true,
+				'field2' => true,
+			),
+			'OR'
+		);
+		$this->assertCount( 3, $list );
+		$this->assertArrayHasKey( 'foo', $list );
+		$this->assertArrayHasKey( 'bar', $list );
+		$this->assertArrayHasKey( 'baz', $list );
+	}
+
 	function test_filter_object_list_not() {
 		$list = wp_filter_object_list(
+			$this->object_list,
+			array(
+				'field2' => true,
+				'field3' => true,
+			),
+			'NOT'
+		);
+		$this->assertCount( 1, $list );
+		$this->assertArrayHasKey( 'baz', $list );
+	}
+
+	/**
+	 * @ticket 53987
+	 *
+	 * @covers ::wp_list_filter
+	 */
+	function test_wp_list_filter_not() {
+		$list = wp_list_filter(
 			$this->object_list,
 			array(
 				'field2' => true,
@@ -292,6 +349,17 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
+	/**
+	 * @ticket 53987
+	 *
+	 * @covers ::wp_list_filter
+	 */
+	function test_wp_list_filter_nested_array_and() {
+		$list = wp_list_filter( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND' );
+		$this->assertCount( 1, $list );
+		$this->assertArrayHasKey( 'baz', $list );
+	}
+
 	function test_filter_object_list_nested_array_not() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'red' ) ), 'NOT' );
 		$this->assertCount( 2, $list );
@@ -299,6 +367,17 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
+	/**
+	 * @ticket 53987
+	 *
+	 * @covers ::wp_list_filter
+	 */
+	function test_wp_list_filter_nested_array_not() {
+		$list = wp_list_filter( $this->object_list, array( 'field4' => array( 'red' ) ), 'NOT' );
+		$this->assertCount( 2, $list );
+		$this->assertArrayHasKey( 'bar', $list );
+		$this->assertArrayHasKey( 'baz', $list );
+	}
 	function test_filter_object_list_nested_array_or() {
 		$list = wp_filter_object_list(
 			$this->object_list,
@@ -313,8 +392,38 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
+	/**
+	 * @ticket 53987
+	 *
+	 * @covers ::wp_list_filter
+	 */
+	function test_wp_list_filter_nested_array_or() {
+		$list = wp_list_filter(
+			$this->object_list,
+			array(
+				'field3' => true,
+				'field4' => array( 'blue' ),
+			),
+			'OR'
+		);
+		$this->assertCount( 2, $list );
+		$this->assertArrayHasKey( 'foo', $list );
+		$this->assertArrayHasKey( 'baz', $list );
+	}
+
 	function test_filter_object_list_nested_array_or_singular() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'OR' );
+		$this->assertCount( 1, $list );
+		$this->assertArrayHasKey( 'baz', $list );
+	}
+
+	/**
+	 * @ticket 53987
+	 *
+	 * @covers ::wp_list_filter
+	 */
+	function test_wp_list_filter_nested_array_or_singular() {
+		$list = wp_list_filter( $this->object_list, array( 'field4' => array( 'blue' ) ), 'OR' );
 		$this->assertCount( 1, $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
