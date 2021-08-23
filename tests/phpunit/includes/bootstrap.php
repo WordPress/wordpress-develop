@@ -46,13 +46,86 @@ if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
 	exit( 1 );
 }
 
-// Check that the PHPUnit Polyfills autoloader exists.
-$phpunit_polyfills_autoloader = __DIR__ . '/../../../vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
-if ( ! file_exists( $phpunit_polyfills_autoloader ) ) {
-	echo 'Error: You need to run `composer update` before running the tests.' . PHP_EOL;
-	echo 'You can still use a PHPUnit phar to run them, but the dependencies do need to be installed.' . PHP_EOL;
+/*
+ * Load the PHPUnit Polyfills autoloader.
+ *
+ * The PHPUnit Polyfills are a requirement for the WP test suite.
+ *
+ * Plugin/theme integration tests can handle this in any of the following ways:
+ * - When using a full WP install: run `composer update` for the WP install prior to running the tests.
+ * - When using a partial WP test suite install:
+ *   - Add a `yoast/phpunit-polyfills` (dev) requirement to their own `composer.json` file.
+ *   - And then:
+ *     - Either load the PHPUnit Polyfills autoload file prior to running the WP core bootstrap file.
+ *     - Or declare a `WP_TESTS_PHPUNIT_POLYFILLS_PATH` constant pointing to the root directory
+ *       of the PHPUnit Polyfills installation.
+ *       This constant can be declared in the `phpunit.xml[.dist]` file like this:
+ *       `<php><const name="WP_TESTS_PHPUNIT_POLYFILLS_PATH" value="path/to/yoast/phpunit-polyfills"/></php>
+ *       or can be declared as a PHP constant in the `wp-tests-config.php` file or the plugin/theme
+ *       test bootstrap file.
+ */
+if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
+	// Default location of the autoloader for WP core test runs.
+	$phpunit_polyfills_autoloader = __DIR__ . '/../../../vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+	$phpunit_polyfills_error      = false;
+
+	// Allow for a custom installation location to be provided for plugin/theme integration tests.
+	if ( defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+		$phpunit_polyfills_path = WP_TESTS_PHPUNIT_POLYFILLS_PATH;
+
+		if ( is_string( WP_TESTS_PHPUNIT_POLYFILLS_PATH )
+			&& '' !== WP_TESTS_PHPUNIT_POLYFILLS_PATH
+		) {
+			$phpunit_polyfills_path = rtrim( $phpunit_polyfills_path, '/\\' );
+			$phpunit_polyfills_path = realpath( $phpunit_polyfills_path . '/phpunitpolyfills-autoload.php' );
+			if ( false !== $phpunit_polyfills_path ) {
+				$phpunit_polyfills_autoloader = $phpunit_polyfills_path;
+			} else {
+				$phpunit_polyfills_error = true;
+			}
+		} else {
+			$phpunit_polyfills_error = true;
+		}
+	}
+
+	if ( $phpunit_polyfills_error || ! file_exists( $phpunit_polyfills_autoloader ) ) {
+		echo 'Error: The PHPUnit Polyfills library is a requirement for running the WP test suite.' . PHP_EOL;
+		if ( isset( $phpunit_polyfills_path ) ) {
+			printf(
+				'The PHPUnit Polyfills autoload file was not found in "%s"' . PHP_EOL,
+				WP_TESTS_PHPUNIT_POLYFILLS_PATH
+			);
+			echo 'Please verify that the file path provided in the WP_TESTS_PHPUNIT_POLYFILLS_PATH constant is correct.' . PHP_EOL;
+		} else {
+			echo 'You need to run `composer update` before running the tests.' . PHP_EOL;
+			echo 'Once the dependencies are installed, you can run the tests using the Composer-installed version of PHPUnit or using a PHPUnit phar file, but the dependencies do need to be installed whichever way the tests are run.' . PHP_EOL;
+		}
+		exit( 1 );
+	}
+
+	require_once $phpunit_polyfills_autoloader;
+}
+unset( $phpunit_polyfills_autoloader, $phpunit_polyfills_error, $phpunit_polyfills_path );
+
+/*
+ * Minimum version of the PHPUnit Polyfills package as declared in `composer.json`.
+ * Only needs updating when new polyfill features start being used in the test suite.
+ */
+$phpunit_polyfills_minimum_version = '1.0.1';
+if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
+	&& ( defined( '\Yoast\PHPUnitPolyfills\Autoload::VERSION' ) === false
+	|| version_compare( \Yoast\PHPUnitPolyfills\Autoload::VERSION, $phpunit_polyfills_minimum_version, '<' ) )
+) {
+	printf(
+		'Error: Version mismatch detected for the PHPUnit Polyfills. Please ensure that PHPUnit Polyfills %s or higher is loaded.' . PHP_EOL,
+		$phpunit_polyfills_minimum_version
+	);
+	if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+		echo 'Please run `composer update` to install the latest version.' . PHP_EOL;
+	}
 	exit( 1 );
 }
+unset( $phpunit_polyfills_minimum_version );
 
 // If running core tests, check if all the required PHP extensions are loaded before running the test suite.
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
@@ -198,10 +271,6 @@ _delete_all_posts();
 if ( version_compare( tests_get_phpunit_version(), '6.0', '>=' ) ) {
 	require __DIR__ . '/phpunit6/compat.php';
 }
-
-// Load the PHPUnit Polyfills autoloader (check for existence of the file is done earlier in the script).
-require_once $phpunit_polyfills_autoloader;
-unset( $phpunit_polyfills_autoloader );
 
 require __DIR__ . '/phpunit-adapter-testcase.php';
 require __DIR__ . '/abstract-testcase.php';

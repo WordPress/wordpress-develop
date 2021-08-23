@@ -4,7 +4,7 @@
  * @group formatting
  * @group emoji
  */
-class Tests_Formatting_Smilies extends WP_UnitTestCase {
+class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 
 	/**
 	 * Basic Test Content DataProvider
