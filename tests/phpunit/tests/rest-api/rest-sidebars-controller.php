@@ -764,25 +764,6 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame(
 			array(
 				array(
-					'id'            => 'wp_inactive_widgets',
-					'name'          => 'Inactive widgets',
-					'description'   => '',
-					'class'         => '',
-					'before_widget' => '',
-					'after_widget'  => '',
-					'before_title'  => '',
-					'after_title'   => '',
-					'status'        => 'inactive',
-					'widgets'       => array(
-						'block-2',
-						'block-3',
-						'block-4',
-						'block-5',
-						'block-6',
-						'rss-1',
-					),
-				),
-				array(
 					'id'            => 'sidebar-1',
 					'name'          => 'Test sidebar',
 					'description'   => '',
@@ -794,6 +775,20 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 					'status'        => 'active',
 					'widgets'       => array(
 						'text-1',
+					),
+				),
+				array(
+					'id'            => 'wp_inactive_widgets',
+					'name'          => 'Inactive widgets',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'inactive',
+					'widgets'       => array(
+						'rss-1',
 					),
 				),
 			),

@@ -19,6 +19,11 @@
 class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 
 	/**
+	 * @var bool
+	 */
+	protected $widgets_retrieved = false;
+
+	/**
 	 * Sidebars controller constructor.
 	 *
 	 * @since 5.8.0
@@ -86,7 +91,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		retrieve_widgets();
+		$this->retrieve_widgets();
 		foreach ( wp_get_sidebars_widgets() as $id => $widgets ) {
 			$sidebar = $this->get_sidebar( $id );
 
@@ -111,7 +116,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
-		retrieve_widgets();
+		$this->retrieve_widgets();
 
 		$data              = array();
 		$permissions_check = $this->do_permissions_check();
@@ -144,7 +149,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		retrieve_widgets();
+		$this->retrieve_widgets();
 
 		$sidebar = $this->get_sidebar( $request['id'] );
 		if ( $sidebar && $this->check_read_permission( $sidebar ) ) {
@@ -175,7 +180,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		retrieve_widgets();
+		$this->retrieve_widgets();
 
 		$sidebar = $this->get_sidebar( $request['id'] );
 		if ( ! $sidebar ) {
@@ -276,6 +281,21 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 */
 	protected function get_sidebar( $id ) {
 		return wp_get_sidebar( $id );
+	}
+
+	/**
+	 * Look for "lost" widgets.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return void
+	 */
+	protected function retrieve_widgets() {
+		if ( $this->widgets_retrieved ) {
+			return;
+		}
+		retrieve_widgets();
+		$this->widgets_retrieved = true;
 	}
 
 	/**

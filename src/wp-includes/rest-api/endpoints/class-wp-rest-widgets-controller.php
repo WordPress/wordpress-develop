@@ -17,6 +17,11 @@
 class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 	/**
+	 * @var bool
+	 */
+	protected $widgets_retrieved = false;
+
+	/**
 	 * Widgets controller constructor.
 	 *
 	 * @since 5.8.0
@@ -97,7 +102,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		retrieve_widgets();
+		$this->retrieve_widgets();
 		if ( isset( $request['sidebar'] ) && $this->check_read_sidebar_permission( $request['sidebar'] ) ) {
 			return true;
 		}
@@ -120,7 +125,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		retrieve_widgets();
+		$this->retrieve_widgets();
 
 		$prepared          = array();
 		$permissions_check = $this->permissions_check( $request );
@@ -155,7 +160,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		retrieve_widgets();
+		$this->retrieve_widgets();
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
@@ -193,7 +198,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		retrieve_widgets();
+		$this->retrieve_widgets();
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
@@ -290,7 +295,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 */
 		wp_get_sidebars_widgets();
 
-		retrieve_widgets();
+		$this->retrieve_widgets();
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
@@ -366,7 +371,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 */
 		wp_get_sidebars_widgets();
 
-		retrieve_widgets();
+		$this->retrieve_widgets();
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
@@ -479,6 +484,21 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Look for "lost" widgets.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return void
+	 */
+	protected function retrieve_widgets() {
+		if ( $this->widgets_retrieved ) {
+			return;
+		}
+		retrieve_widgets();
+		$this->widgets_retrieved = true;
 	}
 
 	/**
