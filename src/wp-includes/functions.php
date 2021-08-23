@@ -4914,13 +4914,8 @@ function wp_filter_object_list( $list, $args = array(), $operator = 'and', $fiel
  * @return array Array of found values.
  */
 function wp_list_filter( $list, $args = array(), $operator = 'AND' ) {
-	if ( ! is_array( $list ) ) {
-		return array();
-	}
 
-	$util = new WP_List_Util( $list );
-
-	return $util->filter( $args, $operator );
+	return wp_filter_object_list( $list, $args, $operator );
 }
 
 /**
