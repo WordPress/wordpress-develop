@@ -6,7 +6,11 @@
 (function( exports, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
-	var isReducedMotion = window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
+	var reducedMotionMediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+	var isReducedMotion = reducedMotionMediaQuery.matches;
+	reducedMotionMediaQuery.addEventListener( 'change' , function handleReducedMotionChange( event ) {
+		isReducedMotion = event.matches;
+	});
 
 	api.OverlayNotification = api.Notification.extend(/** @lends wp.customize.OverlayNotification.prototype */{
 
