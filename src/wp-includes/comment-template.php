@@ -1984,7 +1984,7 @@ function get_comment_id_fields( $post_id = 0 ) {
 	if ( 0 !== $reply_to_id ) {
 		$comment = get_comment( $reply_to_id );
 
-		if ( 0 !== (int) $comment->comment_approved ) {
+		if ( 0 !== (int) $comment->comment_approved && $post_id === (int) $comment->comment_post_ID ) {
 			$result .= "<input type='hidden' name='comment_parent' id='comment_parent' value='$reply_to_id' />\n";
 		}
 	}
