@@ -384,9 +384,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Must be set for `get_comment_id_fields()`.
 		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
 
-		$expected           = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
-		$expected          .= "<input type='hidden' name='comment_parent' id='comment_parent' value='" . $_GET['replytocom'] . "' />\n";
-		$actual             = get_comment_id_fields( self::$post_id );
+		$expected  = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
+		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='" . $_GET['replytocom'] . "' />\n";
+		$actual    = get_comment_id_fields( self::$post_id );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -398,8 +398,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Must be set for `get_comment_id_fields()`.
 		$_GET['replytocom'] = $this->create_comment_with_approval_status( false );
 
-		$expected           = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
-		$actual             = get_comment_id_fields( self::$post_id );
+		$expected = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
+		$actual   = get_comment_id_fields( self::$post_id );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -411,9 +411,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Must be set for `get_comment_id_fields()`.
 		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
 
-		$another_post       = $this->factory->post->create();
-		$expected           = "<input type='hidden' name='comment_post_ID' value='" . $another_post . "' id='comment_post_ID' />\n";
-		$actual             = get_comment_id_fields( $another_post );
+		$another_post = $this->factory->post->create();
+		$expected     = "<input type='hidden' name='comment_post_ID' value='" . $another_post . "' id='comment_post_ID' />\n";
+		$actual       = get_comment_id_fields( $another_post );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -425,8 +425,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Must be set for `comment_form_title()`.
 		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
 
-		$comment            = get_comment( $_GET['replytocom'] );
-		$expected           = 'Leave a Reply to ' . $comment->comment_author;
+		$comment  = get_comment( $_GET['replytocom'] );
+		$expected = 'Leave a Reply to ' . $comment->comment_author;
 		comment_form_title( false, false, false );
 
 		$this->expectOutputString( $expected );
@@ -439,7 +439,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Must be set for `comment_form_title()`.
 		$_GET['replytocom'] = $this->create_comment_with_approval_status( false );
 
-		$expected           = 'Leave a Reply';
+		$expected = 'Leave a Reply';
 		comment_form_title( false, false, false );
 
 		$this->expectOutputString( $expected );
