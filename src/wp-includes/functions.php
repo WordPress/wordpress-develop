@@ -2488,6 +2488,10 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 	$filename = sanitize_file_name( $filename );
 	$ext2     = null;
 
+	// Initialize vars used in the wp_unique_filename filter.
+	$number        = '';
+	$alt_filenames = array();
+
 	// Separate the filename into a name and extension.
 	$ext  = pathinfo( $filename, PATHINFO_EXTENSION );
 	$name = pathinfo( $filename, PATHINFO_BASENAME );
@@ -2508,7 +2512,6 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 	if ( $unique_filename_callback && is_callable( $unique_filename_callback ) ) {
 		$filename = call_user_func( $unique_filename_callback, $dir, $name, $ext );
 	} else {
-		$number = '';
 		$fname  = pathinfo( $filename, PATHINFO_FILENAME );
 
 		// Always append a number to file names that can potentially match image sub-size file names.
@@ -2613,8 +2616,6 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 				}
 			}
 		}
-
-		$alt_filenames = array();
 
 		// Check if an image will be converted after uploading or some existing images sub-sizes file names may conflict
 		// when regenerated. If yes, ensure the new file name will be unique and will produce unique sub-sizes.
