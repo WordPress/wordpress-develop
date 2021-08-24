@@ -17,7 +17,7 @@
 		"squizlabs/php_codesniffer": "3.6.0",
 		"wp-coding-standards/wpcs": "~2.3.0",
 		"phpcompatibility/phpcompatibility-wp": "~2.1.2",
-		"yoast/phpunit-polyfills": "^1.0"
+		"yoast/phpunit-polyfills": "^1.0.1"
 	},
 	"scripts": {
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",

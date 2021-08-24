@@ -3,7 +3,7 @@
 /**
  * @group formatting
  */
-class Tests_Formatting_HtmlExcerpt extends WP_UnitTestCase {
+class Tests_Formatting_wpHtmlExcerpt extends WP_UnitTestCase {
 	function test_simple() {
 		$this->assertSame( 'Baba', wp_html_excerpt( 'Baba told me not to come', 4 ) );
 	}

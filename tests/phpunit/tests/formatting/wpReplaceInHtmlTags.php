@@ -3,7 +3,7 @@
 /**
  * @group formatting
  */
-class Tests_Formatting_WpReplaceInTags extends WP_UnitTestCase {
+class Tests_Formatting_wpReplaceInHtmlTags extends WP_UnitTestCase {
 	/**
 	 * Check for expected behavior of new function wp_replace_in_html_tags().
 	 *

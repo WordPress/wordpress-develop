@@ -3,7 +3,7 @@
 /**
  * @group formatting
  */
-class Tests_Formatting_WPTrimWords extends WP_UnitTestCase {
+class Tests_Formatting_wpTrimWords extends WP_UnitTestCase {
 
 	/**
 	 * Long Dummy Text.

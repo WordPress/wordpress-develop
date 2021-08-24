@@ -4,7 +4,7 @@
  * @group formatting
  * @group slashes
  */
-class Tests_Formatting_StripSlashesDeep extends WP_UnitTestCase {
+class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 	/**
 	 * @ticket 18026
 	 */

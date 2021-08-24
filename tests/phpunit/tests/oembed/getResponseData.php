@@ -119,7 +119,7 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_status' => 'future',
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 

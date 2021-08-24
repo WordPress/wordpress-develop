@@ -4,7 +4,7 @@
  *
  * @group formatting
  */
-class Tests_Formatting_WPStripAllTags extends WP_UnitTestCase {
+class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 
 	function test_wp_strip_all_tags() {
 
