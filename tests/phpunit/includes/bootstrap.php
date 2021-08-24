@@ -113,11 +113,20 @@ if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
 			echo 'Please verify that the file path provided in the WP_TESTS_PHPUNIT_POLYFILLS_PATH constant is correct.' . PHP_EOL;
 		} elseif ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 			echo 'You need to run `composer update` before running the tests.' . PHP_EOL;
-			echo 'Once the dependencies are installed, you can run the tests using the Composer-installed version of PHPUnit or using a PHPUnit phar file, but the dependencies do need to be installed whichever way the tests are run.' . PHP_EOL;
+			echo 'Once the dependencies are installed, you can run the tests using the Composer-installed version'
+				. ' of PHPUnit or using a PHPUnit phar file, but the dependencies do need to be installed'
+				. ' whichever way the tests are run.' . PHP_EOL;
 		} else {
-			echo 'If you are trying to run plugin/theme integration tests, make sure the PHPUnit Polyfills library is available and either load the autoload file of this library in your own test bootstrap before calling the WP Core test bootstrap file; or set the path to the PHPUnit Polyfills library in a "WP_TESTS_PHPUNIT_POLYFILLS_PATH" constant to allow the WP Core bootstrap to load the Polyfills.' . PHP_EOL . PHP_EOL;
-			echo 'If you are trying to run the WP Core tests, make sure to set the "WP_RUN_CORE_TESTS" constant to 1 and run `composer update` before running the tests.' . PHP_EOL;
-			echo 'Once the dependencies are installed, you can run the tests using the Composer-installed version of PHPUnit or using a PHPUnit phar file, but the dependencies do need to be installed whichever way the tests are run.' . PHP_EOL;
+			echo 'If you are trying to run plugin/theme integration tests, make sure the PHPUnit Polyfills library'
+				. ' (https://github.com/Yoast/PHPUnit-Polyfills) is available and either load the autoload file'
+				. ' of this library in your own test bootstrap before calling the WP Core test bootstrap file;'
+				. ' or set the path to the PHPUnit Polyfills library in a "WP_TESTS_PHPUNIT_POLYFILLS_PATH"'
+				. ' constant to allow the WP Core bootstrap to load the Polyfills.' . PHP_EOL . PHP_EOL;
+			echo 'If you are trying to run the WP Core tests, make sure to set the "WP_RUN_CORE_TESTS" constant'
+				. ' to 1 and run `composer update` before running the tests.' . PHP_EOL;
+			echo 'Once the dependencies are installed, you can run the tests using the Composer-installed'
+				. ' version of PHPUnit or using a PHPUnit phar file, but the dependencies do need to be'
+				. ' installed whichever way the tests are run.' . PHP_EOL;
 		}
 		exit( 1 );
 	}
@@ -136,13 +145,14 @@ if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
 	|| version_compare( Yoast\PHPUnitPolyfills\Autoload::VERSION, $phpunit_polyfills_minimum_version, '<' ) )
 ) {
 	printf(
-		'Error: Version mismatch detected for the PHPUnit Polyfills. Please ensure that PHPUnit Polyfills %s or higher is loaded. Found version: %s' . PHP_EOL,
+		'Error: Version mismatch detected for the PHPUnit Polyfills.'
+		. ' Please ensure that PHPUnit Polyfills %s or higher is loaded. Found version: %s' . PHP_EOL,
 		$phpunit_polyfills_minimum_version,
 		defined( '\Yoast\PHPUnitPolyfills\Autoload::VERSION' ) ? Yoast\PHPUnitPolyfills\Autoload::VERSION : '1.0.0 or lower'
 	);
 	if ( defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
 		printf(
-			'Please ensure that the PHPUnit Polyfill install in "%s" is updated to version %s or higher.' . PHP_EOL,
+			'Please ensure that the PHPUnit Polyfill installation in "%s" is updated to version %s or higher.' . PHP_EOL,
 			WP_TESTS_PHPUNIT_POLYFILLS_PATH,
 			$phpunit_polyfills_minimum_version
 		);
