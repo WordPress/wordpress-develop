@@ -417,8 +417,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @ticket 51612
 	 */
 	public function test_calls_block_filters_for_inner_blocks() {
-		$pre_render_callback = new MockAction();
-		$render_block_data_callback = new MockAction();
+		$pre_render_callback           = new MockAction();
+		$render_block_data_callback    = new MockAction();
 		$render_block_context_callback = new MockAction();
 
 		$this->registry->register(
@@ -445,7 +445,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		add_filter( 'render_block_data', array( $render_block_data_callback, 'filter' ) );
 		add_filter( 'render_block_context', array( $render_block_context_callback, 'filter' ) );
 
-		render_block($parsed_block);
+		render_block( $parsed_block );
 
 		$this->assertSame( 2, $pre_render_callback->get_call_count() );
 		$this->assertSame( 2, $render_block_data_callback->get_call_count() );
