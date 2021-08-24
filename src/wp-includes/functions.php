@@ -2512,7 +2512,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 	if ( $unique_filename_callback && is_callable( $unique_filename_callback ) ) {
 		$filename = call_user_func( $unique_filename_callback, $dir, $name, $ext );
 	} else {
-		$fname  = pathinfo( $filename, PATHINFO_FILENAME );
+		$fname = pathinfo( $filename, PATHINFO_FILENAME );
 
 		// Always append a number to file names that can potentially match image sub-size file names.
 		if ( $fname && preg_match( '/-(?:\d+x\d+|scaled|rotated)$/', $fname ) ) {
