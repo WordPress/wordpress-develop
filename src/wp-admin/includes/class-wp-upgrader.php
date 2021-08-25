@@ -132,12 +132,26 @@ class WP_Upgrader {
 	 *
 	 * This will set the relationship between the skin being used and this upgrader,
 	 * and also add the generic strings to `WP_Upgrader::$strings`.
+	 * Additionally, it will schedule a weekly task to cleanup the temp-backup folder.
 	 *
 	 * @since 2.8.0
+	 * @since 5.9.0 Added the schedule_temp_backup_cleanup() task.
 	 */
 	public function init() {
 		$this->skin->set_upgrader( $this );
 		$this->generic_strings();
+		$this->schedule_temp_backup_cleanup();
+	}
+
+	/**
+	 * Schedule cleanup of the temp-backup folder.
+	 *
+	 * @since 5.9.0
+	 *
+	 */
+	protected function schedule_temp_backup_cleanup() {
+		wp_schedule_event( time(), 'weekly', 'delete_temp_updater_backups' );
+		add_action( 'delete_temp_updater_backups', array( $this, 'delete_all_temp_backups' ) );
 	}
 
 	/**
@@ -1073,6 +1087,43 @@ class WP_Upgrader {
 		return $wp_filesystem->delete(
 			$wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}",
 			true
+		);
+	}
+
+	/**
+	 * Deletes all contents of the temp-backup directory.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
+	 * @return void
+	 */
+	public function delete_all_temp_backups() {
+		// Check if there's a lock, or if currently performing an ajax request,
+		// in which case there's a chance we're doing an update.
+		// Reschedule for an hour from now and early exit.
+		if ( get_option( 'core_updater.lock' ) || get_option( 'auto_updater.lock' ) || wp_doing_ajax() ) {
+			wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'delete_temp_updater_backups' );
+			return;
+		}
+
+		add_action(
+			'shutdown',
+			/**
+			 * This action runs on shutdown to make sure there's no plugin updates currently running.
+			 * Using a closure in this case is OK since the action can be removed by removing the parent hook.
+			 */
+			function() {
+				global $wp_filesystem;
+				$dirlist = $wp_filesystem->dirlist( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' );
+				foreach ( array_keys( $dirlist ) as $dir ) {
+					if ( '.' === $dir || '..' === $dir ) {
+						continue;
+					}
+					$wp_filesystem->delete( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $dir, true );
+				}
+			}
 		);
 	}
 }
