@@ -812,8 +812,9 @@ function wp_get_mu_plugins() {
  * @return string[] Array of paths to plugin files relative to the plugins directory.
  */
 function wp_get_active_and_valid_plugins() {
-	$plugins        = array();
-	$active_plugins = (array) get_option( 'active_plugins', array() );
+	$plugins            = array();
+	$active_plugins     = (array) get_option( 'active_plugins', array() );
+	$option_change_flag = false;
 
 	// Check for hacks file if the option is enabled.
 	if ( get_option( 'hack_file' ) && file_exists( ABSPATH . 'my-hacks.php' ) ) {
@@ -827,7 +828,7 @@ function wp_get_active_and_valid_plugins() {
 
 	$network_plugins = is_multisite() ? wp_get_active_network_plugins() : false;
 
-	foreach ( $active_plugins as $plugin ) {
+	foreach ( $active_plugins as $index => $plugin ) {
 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
 			&& '.php' === substr( $plugin, -4 )             // $plugin must end with '.php'.
 			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
@@ -835,7 +836,16 @@ function wp_get_active_and_valid_plugins() {
 			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins, true ) )
 			) {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
+		} else {
+			// This isn't a valid plugin, so it should be removed from the active_plgins option
+			unset( $active_plugins[ $index ] );
+			$option_change_flag = true;
 		}
+	}
+
+	// If our flag has changed, we need up update the active_plugins option
+	if ( $option_change_flag ) {
+		update_option( 'active_plugins', $active_plugins );
 	}
 
 	/*
