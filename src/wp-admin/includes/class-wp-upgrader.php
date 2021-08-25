@@ -147,7 +147,6 @@ class WP_Upgrader {
 	 * Schedule cleanup of the temp-backup folder.
 	 *
 	 * @since 5.9.0
-	 *
 	 */
 	protected function schedule_temp_backup_cleanup() {
 		wp_schedule_event( time(), 'weekly', 'delete_temp_updater_backups' );
