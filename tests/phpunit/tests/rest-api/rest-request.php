@@ -475,7 +475,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'sanitize_callback' => function () {
+						'sanitize_callback' => static function () {
 							$error = new WP_Error( 'invalid', 'Invalid.' );
 							$error->add( 'invalid', 'Super Invalid.' );
 							$error->add( 'broken', 'Broken.' );
@@ -510,7 +510,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'sanitize_callback' => function () {
+						'sanitize_callback' => static function () {
 							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
 						},
 					),
@@ -738,7 +738,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'validate_callback' => function () {
+						'validate_callback' => static function () {
 							$error = new WP_Error( 'invalid', 'Invalid.' );
 							$error->add( 'invalid', 'Super Invalid.' );
 							$error->add( 'broken', 'Broken.' );
@@ -773,7 +773,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'validate_callback' => function () {
+						'validate_callback' => static function () {
 							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
 						},
 					),

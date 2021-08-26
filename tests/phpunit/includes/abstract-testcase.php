@@ -719,14 +719,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public function assertSameIgnoreEOL( $expected, $actual, $message = '' ) {
 		$expected = map_deep(
 			$expected,
-			function ( $value ) {
+			static function ( $value ) {
 				return str_replace( "\r\n", "\n", $value );
 			}
 		);
 
 		$actual = map_deep(
 			$actual,
-			function ( $value ) {
+			static function ( $value ) {
 				return str_replace( "\r\n", "\n", $value );
 			}
 		);

@@ -1055,7 +1055,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			function() {
+			static function() {
 				return get_option( 'cron' );
 			}
 		);
@@ -1075,7 +1075,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			function() {
+			static function() {
 				return get_option( 'cron' );
 			}
 		);
@@ -1098,7 +1098,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			function() {
+			static function() {
 				return get_option( 'cron' );
 			}
 		);
@@ -1122,7 +1122,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			function() {
+			static function() {
 				return get_option( 'cron' );
 			}
 		);
