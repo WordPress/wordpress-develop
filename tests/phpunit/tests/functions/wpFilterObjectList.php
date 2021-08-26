@@ -10,7 +10,7 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 	public $object_list = array();
 	public $array_list  = array();
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->array_list['foo'] = array(
 			'name'   => 'foo',
@@ -41,7 +41,7 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 		}
 	}
 
-	function test_filter_object_list_and() {
+	public function test_filter_object_list_and() {
 		$list = wp_filter_object_list(
 			$this->object_list,
 			array(
@@ -55,7 +55,7 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'bar', $list );
 	}
 
-	function test_filter_object_list_or() {
+	public function test_filter_object_list_or() {
 		$list = wp_filter_object_list(
 			$this->object_list,
 			array(
@@ -70,7 +70,7 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
-	function test_filter_object_list_not() {
+	public function test_filter_object_list_not() {
 		$list = wp_filter_object_list(
 			$this->object_list,
 			array(
@@ -83,7 +83,7 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
-	function test_filter_object_list_and_field() {
+	public function test_filter_object_list_and_field() {
 		$list = wp_filter_object_list(
 			$this->object_list,
 			array(
@@ -102,7 +102,7 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 		);
 	}
 
-	function test_filter_object_list_or_field() {
+	public function test_filter_object_list_or_field() {
 		$list = wp_filter_object_list(
 			$this->object_list,
 			array(
@@ -121,7 +121,7 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 		);
 	}
 
-	function test_filter_object_list_not_field() {
+	public function test_filter_object_list_not_field() {
 		$list = wp_filter_object_list(
 			$this->object_list,
 			array(
@@ -134,20 +134,20 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 		$this->assertSame( array( 'baz' => 'baz' ), $list );
 	}
 
-	function test_filter_object_list_nested_array_and() {
+	public function test_filter_object_list_nested_array_and() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND' );
 		$this->assertCount( 1, $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
-	function test_filter_object_list_nested_array_not() {
+	public function test_filter_object_list_nested_array_not() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'red' ) ), 'NOT' );
 		$this->assertCount( 2, $list );
 		$this->assertArrayHasKey( 'bar', $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
-	function test_filter_object_list_nested_array_or() {
+	public function test_filter_object_list_nested_array_or() {
 		$list = wp_filter_object_list(
 			$this->object_list,
 			array(
@@ -161,18 +161,18 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
-	function test_filter_object_list_nested_array_or_singular() {
+	public function test_filter_object_list_nested_array_or_singular() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'OR' );
 		$this->assertCount( 1, $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
-	function test_filter_object_list_nested_array_and_field() {
+	public function test_filter_object_list_nested_array_and_field() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND', 'name' );
 		$this->assertSame( array( 'baz' => 'baz' ), $list );
 	}
 
-	function test_filter_object_list_nested_array_not_field() {
+	public function test_filter_object_list_nested_array_not_field() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'green' ) ), 'NOT', 'name' );
 		$this->assertSame(
 			array(
@@ -183,7 +183,7 @@ class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 		);
 	}
 
-	function test_filter_object_list_nested_array_or_field() {
+	public function test_filter_object_list_nested_array_or_field() {
 		$list = wp_filter_object_list(
 			$this->object_list,
 			array(

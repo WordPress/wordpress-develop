@@ -10,7 +10,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	public $object_list = array();
 	public $array_list  = array();
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->array_list['foo'] = array(
 			'name'   => 'foo',
@@ -41,7 +41,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 		}
 	}
 
-	function test_wp_list_pluck_array_and_object() {
+	public function test_wp_list_pluck_array_and_object() {
 		$list = wp_list_pluck( $this->object_list, 'name' );
 		$this->assertSame(
 			array(
@@ -66,7 +66,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	/**
 	 * @ticket 28666
 	 */
-	function test_wp_list_pluck_index_key() {
+	public function test_wp_list_pluck_index_key() {
 		$list = wp_list_pluck( $this->array_list, 'name', 'id' );
 		$this->assertSame(
 			array(
@@ -81,7 +81,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	/**
 	 * @ticket 28666
 	 */
-	function test_wp_list_pluck_object_index_key() {
+	public function test_wp_list_pluck_object_index_key() {
 		$list = wp_list_pluck( $this->object_list, 'name', 'id' );
 		$this->assertSame(
 			array(
@@ -96,7 +96,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	/**
 	 * @ticket 28666
 	 */
-	function test_wp_list_pluck_missing_index_key() {
+	public function test_wp_list_pluck_missing_index_key() {
 		$list = wp_list_pluck( $this->array_list, 'name', 'nonexistent' );
 		$this->assertSame(
 			array(
@@ -111,7 +111,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	/**
 	 * @ticket 28666
 	 */
-	function test_wp_list_pluck_partial_missing_index_key() {
+	public function test_wp_list_pluck_partial_missing_index_key() {
 		$array_list = $this->array_list;
 		unset( $array_list['bar']['id'] );
 		$list = wp_list_pluck( $array_list, 'name', 'id' );
@@ -128,7 +128,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	/**
 	 * @ticket 28666
 	 */
-	function test_wp_list_pluck_mixed_index_key() {
+	public function test_wp_list_pluck_mixed_index_key() {
 		$mixed_list        = $this->array_list;
 		$mixed_list['bar'] = (object) $mixed_list['bar'];
 		$list              = wp_list_pluck( $mixed_list, 'name', 'id' );
@@ -145,7 +145,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	/**
 	 * @ticket 16895
 	 */
-	function test_wp_list_pluck_containing_references() {
+	public function test_wp_list_pluck_containing_references() {
 		$ref_list = array(
 			& $this->object_list['foo'],
 			& $this->object_list['bar'],
@@ -170,7 +170,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	/**
 	 * @ticket 16895
 	 */
-	function test_wp_list_pluck_containing_references_keys() {
+	public function test_wp_list_pluck_containing_references_keys() {
 		$ref_list = array(
 			& $this->object_list['foo'],
 			& $this->object_list['bar'],
