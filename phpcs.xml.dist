@@ -286,6 +286,7 @@
 				<element value="gzinflate"/>
 				<element value="gzuncompress"/>
 				<element value="gzdecode"/>
+				<element value="imagecreatefromwebp"/>
 			</property>
 		</properties>
 	</rule>
