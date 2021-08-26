@@ -1956,7 +1956,28 @@ class WP_Site_Health {
 		}
 		$wp_content = $wp_filesystem->wp_content_dir();
 
-		if ( $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/plugins" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/plugins" ) ) {
+		$upgrade_folder_exists      = $wp_filesystem->is_dir( "$wp_content/upgrade" );
+		$upgrade_folder_is_writable = $wp_filesystem->is_writable( "$wp_content/upgrade" );
+		$backup_folder_exists       = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup" );
+		$backup_folder_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup" );
+		$plugins_folder_exists      = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/plugins" );
+		$plugins_folder_is_writable = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/plugins" );
+		$themes_folder_exists       =  $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/themes" );
+		$themes_folder_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/themes" );
+
+		if ( $plugins_folder_exists && ! $plugins_folder_is_writable && $themes_folder_exists && ! $themes_folder_is_writable ) {
+			$result['status']      = 'critical';
+			$result['label']       = __( 'Plugins and themes temp-backup folders exist but are not writable' );
+			$result['description'] = sprintf(
+				/* translators: %s: '<code>wp-content/upgrade/temp-backup/plugins</code>' */
+				'<p>' . __( 'The %1$s and %2$s folders exist but are not writable. These folders are used to improve the stability of plugin updates. Please make sure the server has write permissions to these folders.' ) . '</p>',
+				'<code>wp-content/upgrade/temp-backup/plugins</code>',
+				'<code>wp-content/upgrade/temp-backup/themes</code>'
+			);
+			return $result;
+		}
+
+		if ( $plugins_folder_exists && ! $plugins_folder_is_writable ) {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'Plugins temp-backup folder exists but is not writable' );
 			$result['description'] = sprintf(
@@ -1967,7 +1988,7 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		if ( $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/themes" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/themes" ) ) {
+		if ( $themes_folder_exists && ! $themes_folder_is_writable ) {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'Themes temp-backup folder exists but is not writable' );
 			$result['description'] = sprintf(
@@ -1978,7 +1999,7 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		if ( ( ! $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/plugins" ) || ! $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/themes" ) ) && $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup" ) ) {
+		if ( ( ! $plugins_folder_exists || ! $themes_folder_exists ) && $backup_folder_exists && ! $backup_folder_is_writable ) {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'The temp-backup folder exists but is not writable' );
 			$result['description'] = sprintf(
@@ -1989,7 +2010,7 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		if ( ! $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup" ) && $wp_filesystem->is_dir( "$wp_content/upgrade" ) && ! $wp_filesystem->is_writable( "$wp_content/upgrade" ) ) {
+		if ( ! $backup_folder_exists && $upgrade_folder_exists && ! $upgrade_folder_is_writable ) {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'The upgrade folder exists but is not writable' );
 			$result['description'] = sprintf(
@@ -2000,7 +2021,7 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		if ( ! $wp_filesystem->is_dir( "$wp_content/upgrade" ) && ! $wp_filesystem->is_writable( $wp_content ) ) {
+		if ( ! $upgrade_folder_exists && ! $wp_filesystem->is_writable( $wp_content ) ) {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'The upgrade folder can not be created' );
 			$result['description'] = sprintf(
