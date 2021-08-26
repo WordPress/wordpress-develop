@@ -1962,7 +1962,7 @@ class WP_Site_Health {
 		$backup_folder_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup" );
 		$plugins_folder_exists      = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/plugins" );
 		$plugins_folder_is_writable = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/plugins" );
-		$themes_folder_exists       =  $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/themes" );
+		$themes_folder_exists       = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/themes" );
 		$themes_folder_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/themes" );
 
 		if ( $plugins_folder_exists && ! $plugins_folder_is_writable && $themes_folder_exists && ! $themes_folder_is_writable ) {
@@ -2025,7 +2025,7 @@ class WP_Site_Health {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'The upgrade folder can not be created' );
 			$result['description'] = sprintf(
-				/* ranslators: %1$s: <code>wp-content/upgrade</code>. %2$s: <code>wp-content</code>. */
+				/* translators: %1$s: <code>wp-content/upgrade</code>. %2$s: <code>wp-content</code>. */
 				'<p>' . __( 'The %1$s folder does not exist, and the server does not have write permissions in %2$s to create it. This folder is used to for plugin and theme updates. Please make sure the server has write permissions in %2$s.' ) . '</p>',
 				'<code>wp-content/upgrade</code>',
 				'<code>wp-content</code>'
