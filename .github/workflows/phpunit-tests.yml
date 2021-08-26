@@ -40,20 +40,12 @@ jobs:
   # This prevents workflow runs from being marked as "failed" when only PHP 8.1 fails.
   #
   # Performs the following steps:
-  # - Set environment variables.
-  # - Sets up the environment variables needed for testing with memcached (if desired).
+  # - Checks out the repository.
   # - Installs NodeJS 14.
-  # - Installs NPM dependencies
-  # - Configures caching for Composer.
-  # - Installs Composer dependencies (if desired).
-  # - Logs Docker debug information (about both the Docker installation within the runner).
-  # - Starts the WordPress Docker container.
-  # - Starts the memcached server after the Docker network has been created (if desired).
-  # - Logs WordPress Docker container debug information.
   # - Logs debug general information.
-  # - Logs the running Docker containers.
+  # - Logs Docker debug information (about both the Docker installation within the runner).
+  # - Prepares WordPress to run within the local Docker environment.
   # - Logs debug information about what's installed within the WordPress Docker containers.
-  # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
@@ -105,11 +97,6 @@ jobs:
       PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
 
     steps:
-      - name: Configure environment variables
-        run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-
       - name: Checkout repository
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
 
@@ -119,55 +106,6 @@ jobs:
           node-version: 14
           cache: npm
 
-      - name: Install Dependencies
-        run: npm ci
-
-      # This date is used to ensure that the Composer cache is refreshed at least once every week.
-      # http://man7.org/linux/man-pages/man1/date.1.html
-      - name: "Get last Monday's date"
-        id: get-date
-        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
-        shell: bash
-
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-date-${{ steps.get-date.outputs.date }}-composer-${{ hashFiles('**/composer.json') }}
-
-      - name: Install Composer dependencies
-        run: |
-          docker-compose run --rm php composer --version
-
-          # Install using `composer update` as there is no `composer.lock` file.
-          if [ ${{ env.LOCAL_PHP }} == '8.1-fpm' ]; then
-            docker-compose run --rm php composer update --ignore-platform-reqs
-          else
-            docker-compose run --rm php composer update
-          fi
-
-      - name: Docker debug information
-        run: |
-          docker -v
-          docker-compose -v
-
-      - name: Start Docker environment
-        run: |
-          npm run env:start
-
-      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
-      - name: Start the Memcached server.
-        if: ${{ matrix.memcached }}
-        run: |
-          cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
-          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
-
       - name: General debug information
         run: |
           npm --version
@@ -176,8 +114,13 @@ jobs:
           git --version
           svn --version
 
-      - name: Log running Docker containers
-        run: docker ps -a
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+
+      - name: Prepare WordPress for testing in the local Docker environment
+        uses: desrosj/prepare-wordpress-docker-environment@5ba8d2074e1f29c454943c17211b8ee5d4801f13
 
       - name: WordPress Docker container debug information
         run: |
@@ -186,9 +129,6 @@ jobs:
           docker-compose run --rm php php -m
           docker-compose run --rm php php -i
           docker-compose run --rm php locale -a
-
-      - name: Install WordPress
-        run: npm run env:install
 
       - name: Run slow PHPUnit tests
         if: ${{ matrix.split_slow }}
