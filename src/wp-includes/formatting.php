@@ -4908,6 +4908,11 @@ function sanitize_option( $option, $value ) {
 	}
 
 	if ( null !== $error ) {
+		if ( '' === $error && is_wp_error( $value ) ) {
+			/* translators: 1: Option name, 2: Error code. */
+			$error = sprintf( __( 'Could not sanitize the %1$s option. Error code: %2$s' ), $option, $value->get_error_code() );
+		}
+
 		$value = get_option( $option );
 		if ( function_exists( 'add_settings_error' ) ) {
 			add_settings_error( $option, "invalid_{$option}", $error );
