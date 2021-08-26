@@ -6,7 +6,7 @@
  * @group functions.php
  * @covers ::wp_filter_object_list
  */
-class Tests_Functions_wpListFilter extends WP_UnitTestCase {
+class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
 	public $object_list = array();
 	public $array_list  = array();
 
