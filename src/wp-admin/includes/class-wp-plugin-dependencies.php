@@ -339,7 +339,7 @@ class WP_Plugin_Dependencies {
 
 		// On plugins with unmet dependencies that the user has already requested for the plugin's activation,
 		// removes the activation link from its actions and add a "Cancel pending activation" link in its place.
-		if ( $pending_activation && $has_dependencies && ! $in_circular_dependency ) {
+		if ( $pending_activation && $has_dependencies ) {
 			unset( $actions['activate'] );
 			if ( current_user_can( 'activate_plugin', $plugin_file ) ) {
 				$cancel_activation = sprintf(
@@ -370,8 +370,10 @@ class WP_Plugin_Dependencies {
 	public function after_plugin_row( $plugin_file, $plugin_data ) {
 
 		$pending_activation     = in_array( $plugin_file, $this->get_plugins_to_activate(), true );
-		$has_dependencies       = ! empty( $this->get_plugin_dependencies( $plugin_file ) );
+		$dependencies           = $this->get_plugin_dependencies( $plugin_file );
+		$has_dependencies       = ! empty( $dependencies );
 		$in_circular_dependency = $this->in_circular_dependency( $plugin_file );
+		$is_plugin_active       = is_plugin_active( $plugin_file );
 
 		// Add extra info to dependencies.
 		if ( ! empty( $this->dependencies_parents[ $plugin_file ] ) ) {
@@ -380,46 +382,91 @@ class WP_Plugin_Dependencies {
 				$parents_names[] = get_plugin_data( WP_PLUGIN_DIR . '/' . $parent )['Name'];
 			}
 
-			$style = is_rtl() ? 'border-top:none;border-left:none' : 'border-top:none;border-right:none';
-			echo '<tr><td colspan="5" class="notice notice-info notice-alt" style="' . esc_attr( $style ) . '">';
-			if ( 1 < count( $parents_names ) ) {
-				printf(
+			$notice_contents = ( 1 < count( $parents_names ) )
+				? sprintf(
 					/* translators: %1$s: plugin name. %2$s: Parent plugin names, comma-separated. */
 					esc_html__( 'Plugin %1$s is a dependency for the following plugins: %2$s.' ),
 					esc_html( $plugin_data['Name'] ),
 					esc_html( implode( ', ', $parents_names ) )
-				);
-			} else {
-				printf(
+				) : sprintf(
 					/* translators: %1$s: plugin name. %2$s: Parent plugin name. */
 					esc_html__( 'Plugin %1$s is a dependency for the "%2$s" plugin.' ),
 					esc_html( $plugin_data['Name'] ),
 					esc_html( $parents_names[0] )
 				);
-			}
-			echo '</td></tr>';
+
+			$this->inline_plugin_row_notice( $notice_contents, 'info', $plugin_file );
 		}
 
-		// Add extra info to parents with unmet dependencies.
-		if ( $pending_activation && $has_dependencies ) {
+		// Add extra info to parents.
+		if ( $has_dependencies ) {
 			$style = is_rtl() ? 'border-top:none;border-left:none' : 'border-top:none;border-right:none';
-			if ( $in_circular_dependency ) {
-				echo '<tr><td colspan="5" class="notice notice-error notice-alt" style="' . esc_attr( $style ) . '">';
-				printf(
-					/* translators: %s: plugin name. */
-					esc_html__( 'Circular dependencies detected. Plugin "%s" has unmet dependencies.' ),
-					esc_html( $plugin_data['Name'] )
-				);
-			} else {
-				echo '<tr><td colspan="5" class="notice notice-warning notice-alt" style="' . esc_attr( $style ) . '">';
-				printf(
-					/* translators: %s: plugin name. */
-					esc_html__( 'Plugin "%s" has unmet dependencies. Once all required plugins are installed the plugin will be automatically activated. Alternatively you can cancel the activation of this plugin by clicking on the "cancel activation request" link above.' ),
-					esc_html( $plugin_data['Name'] )
+			if ( $pending_activation ) {
+				if ( $in_circular_dependency ) {
+					$this->inline_plugin_row_notice(
+						sprintf(
+							/* translators: %s: plugin name. */
+							esc_html__( 'Warning: Circular dependencies detected. Plugin "%s" has unmet dependencies.' ),
+							esc_html( $plugin_data['Name'] )
+						),
+						'warning',
+						$plugin_file
+					);
+				} else {
+					$this->inline_plugin_row_notice(
+						sprintf(
+							/* translators: %s: plugin name. */
+							esc_html__( 'Plugin "%s" has unmet dependencies. Once all required plugins are installed the plugin will be automatically activated. Alternatively you can cancel the activation of this plugin by clicking on the "cancel activation request" link above.' ),
+							esc_html( $plugin_data['Name'] )
+						),
+						'warning',
+						$plugin_file
+					);
+				}
+			} elseif ( ! $is_plugin_active ) {
+				$dependencies_human_readable = array();
+				foreach ( $dependencies as $dependency ) {
+					$plugin_file = $this->get_plugin_file_from_slug( $dependency['slug'] );
+					if ( $plugin_file ) {
+						$dependencies_human_readable[] = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin_file )['Name'];
+					} else {
+						$dependencies_human_readable[] = $dependency['slug'];
+					}
+				}
+				$this->inline_plugin_row_notice(
+					sprintf(
+						/* translators: %1$s: plugin name. %2$s: plugin requirements, comma-separated. */
+						esc_html__( 'Plugin "%1$s" depends on the following plugin(s): %2$s' ),
+						esc_html( $plugin_data['Name'] ),
+						esc_html( implode( ', ', $dependencies_human_readable ) )
+					),
+					'info',
+					$plugin_file
 				);
 			}
-			echo '</td></tr>';
 		}
+	}
+
+	/**
+	 * Generate the contents of an inline plugin row notice.
+	 *
+	 * @since 5.9.0
+	 * @access protected
+	 */
+	protected function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $plugin_file = '' ) {
+		$is_plugin_active = is_plugin_active( $plugin_file );
+		$tr_class         = $is_plugin_active ? 'plugin-dependencies-tr active' : 'plugin-dependencies-tr';
+		$td_class         = 'plugin-dependencies colspanchange';
+		$colspan          = (int) _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => get_current_screen() ) )->get_column_count();
+		?>
+		<tr class="<?php echo esc_attr( $tr_class ); ?>">
+			<td class="<?php echo esc_attr( $td_class ); ?>" colspan="<?php echo esc_attr( $colspan ); ?>" style="padding:0">
+				<div class="dependencies-message notice inline notice-<?php echo esc_attr( $notice_type ); ?> notice-alt" style="margin:0;border-top:none;border-<?php echo is_rtl() ? 'left' : 'right'; ?>:none;">
+					<p><?php echo $contents; ?></p>
+				</div>
+			</td>
+		</tr>
+		<?php
 	}
 
 	/**

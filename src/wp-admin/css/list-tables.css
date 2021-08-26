@@ -2054,7 +2054,8 @@ div.action-links,
 
 	.plugins tr.active + tr.inactive th.check-column,
 	.plugins tr.active + tr.inactive td.column-description,
-	.plugins .plugin-update-tr:before {
+	.plugins .plugin-update-tr:before,
+	.plugins .plugin-dependencies-tr:before {
 		box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 	}
 
@@ -2064,7 +2065,8 @@ div.action-links,
 	}
 
 	/* mimic the checkbox th */
-	.plugins .plugin-update-tr:before {
+	.plugins .plugin-update-tr:before,
+	.plugins .plugin-dependencies-tr:before {
 		content: "";
 		display: table-cell;
 	}
@@ -2078,7 +2080,8 @@ div.action-links,
 	}
 
 	.plugins .active.update + .plugin-update-tr:before,
-	.plugins .active.updated + .plugin-update-tr:before {
+	.plugins .active.updated + .plugin-update-tr:before,
+	.plugins .active + .plugin-dependencies-tr:before {
 		background-color: #f0f6fc;
 		border-left: 4px solid #72aee6;
 	}
