@@ -1267,7 +1267,6 @@ function _wp_sidebars_changed() {
  * @return array
  */
 function retrieve_widgets( $theme_changed = false ) {
-	_deprecated_function( 'retrieve_widgets', '5.8.1', 'sync_registered_widgets' );
 	return sync_registered_widgets( $theme_changed );
 }
 
