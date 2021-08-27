@@ -19,6 +19,9 @@ class Twenty_Twenty_One_Dark_Mode {
 	 */
 	public function __construct() {
 
+		// Enqueue color variables for the template-editor.
+		add_action( 'block_editor_settings_all', array( $this, 'template_editor_custom_color_variables' ) );
+
 		// Enqueue assets for the block-editor.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'editor_custom_color_variables' ) );
 
@@ -79,6 +82,23 @@ class Twenty_Twenty_One_Dark_Mode {
 			'1.0.0',
 			true
 		);
+	}
+
+	/**
+	 * Template editor custom color variables.
+	 *
+	 * @since Twenty Twenty-One 1.5
+	 *
+	 * @return array $settings Block editor settings.
+	 */
+	public function template_editor_custom_color_variables( $settings ) {
+		$background_color            = get_theme_mod( 'background_color', 'D1E4DD' );
+		$should_respect_color_scheme = get_theme_mod( 'respect_user_color_preference', false );
+		if ( $should_respect_color_scheme && Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( $background_color ) > 127 ) {
+			// If dark mode is toggled on, use the dark CSS properties.
+			$settings['styles'][] = array( 'css' => 'body.is-dark-theme{ --global--color-background: var(--global--color-dark-gray); --global--color-primary: var(--global--color-light-gray); --global--color-secondary: var(--global--color-light-gray); --button--color-text: var(--global--color-background); --button--color-text-hover: var(--global--color-secondary); --button--color-text-active: var(--global--color-secondary); --button--color-background: var(--global--color-secondary); --button--color-background-active: var(--global--color-background); --global--color-border: #9ea1a7; --table--stripes-border-color: rgba(240, 240, 240, 0.15); --table--stripes-background-color: rgba(240, 240, 240, 0.15); } body:not(is-dark-theme){ --global--color-background: #' . $background_color . '; }' );
+		}
+		return $settings;
 	}
 
 	/**

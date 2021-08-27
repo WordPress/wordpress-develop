@@ -17,13 +17,14 @@ if ( document.body.classList.contains( 'twentytwentyone-supports-dark-theme' ) )
  */
 function twentytwentyoneDarkModeEditorInit( attempt ) {
 	var container = document.querySelector( '.block-editor__typewriter' ),
+		template_editor_container = document.querySelector( '[name=editor-canvas]' ),
 		maxAttempts = 8;
 
 	// Set the initial attempt if it's undefined.
 	attempt = attempt || 0;
 
 	if ( twentytwentyoneIsDarkMode() ) {
-		if ( null === container ) {
+		if ( null === container && null === template_editor_container ) {
 			// Try again.
 			if ( attempt < maxAttempts ) {
 				setTimeout(
@@ -39,6 +40,12 @@ function twentytwentyoneDarkModeEditorInit( attempt ) {
 
 		document.body.classList.add( 'is-dark-theme' );
 		document.documentElement.classList.add( 'is-dark-theme' );
-		container.classList.add( 'is-dark-theme' );
+		if ( container) {
+			container.classList.add( 'is-dark-theme' );
+		}
+		if ( template_editor_container ) {
+			var template_editor_body = template_editor_container.contentWindow.document.querySelector( '.editor-styles-wrapper' );
+			template_editor_body ? template_editor_body.classList.add( 'is-dark-theme' ) : '';
+		}
 	}
 }
