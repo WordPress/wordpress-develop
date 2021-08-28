@@ -2,6 +2,8 @@
 
 /**
  * @group compat
+ *
+ * @covers ::is_iterable
  */
 class Tests_Compat_isIterable extends WP_UnitTestCase {
 
@@ -10,7 +12,7 @@ class Tests_Compat_isIterable extends WP_UnitTestCase {
 	 *
 	 * @ticket 43619
 	 */
-	function test_is_iterable_availability() {
+	public function test_is_iterable_availability() {
 		$this->assertTrue( function_exists( 'is_iterable' ) );
 	}
 
@@ -19,13 +21,13 @@ class Tests_Compat_isIterable extends WP_UnitTestCase {
 	 *
 	 * @ticket 43619
 	 *
-	 * @dataProvider iterable_variable_test_data
+	 * @dataProvider data_is_iterable_functionality
 	 *
 	 * @param mixed $variable    Variable to check.
 	 * @param bool  $is_iterable The expected return value of PHP 7.1 is_iterable() function.
 	 */
-	function test_is_iterable_functionality( $variable, $is_iterable ) {
-		$this->assertSame( is_iterable( $variable ), $is_iterable );
+	public function test_is_iterable_functionality( $variable, $is_iterable ) {
+		$this->assertSame( $is_iterable, is_iterable( $variable ) );
 	}
 
 	/**
@@ -40,14 +42,36 @@ class Tests_Compat_isIterable extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function iterable_variable_test_data() {
+	public function data_is_iterable_functionality() {
 		return array(
-			array( array(), true ),
-			array( array( 1, 2, 3 ), true ),
-			array( new ArrayIterator( array( 1, 2, 3 ) ), true ),
-			array( 1, false ),
-			array( 3.14, false ),
-			array( new stdClass(), false ),
+			'empty array'           => array(
+				'variable'    => array(),
+				'is_iterable' => true,
+			),
+			'non-empty array'       => array(
+				'variable'    => array( 1, 2, 3 ),
+				'is_iterable' => true,
+			),
+			'Iterator object'       => array(
+				'variable'    => new ArrayIterator( array( 1, 2, 3 ) ),
+				'is_iterable' => true,
+			),
+			'null'                  => array(
+				'variable'    => null,
+				'is_iterable' => false,
+			),
+			'integer 1'             => array(
+				'variable'    => 1,
+				'is_iterable' => false,
+			),
+			'float 3.14'            => array(
+				'variable'    => 3.14,
+				'is_iterable' => false,
+			),
+			'plain stdClass object' => array(
+				'variable'    => new stdClass(),
+				'is_iterable' => false,
+			),
 		);
 	}
 }
