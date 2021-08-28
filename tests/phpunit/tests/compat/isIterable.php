@@ -3,7 +3,7 @@
 /**
  * @group compat
  */
-class Tests_Compat extends WP_UnitTestCase {
+class Tests_Compat_isIterable extends WP_UnitTestCase {
 
 	/**
 	 * Test that is_iterable() is always available (either from PHP or WP).
