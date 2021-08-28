@@ -5,16 +5,6 @@
  */
 class Tests_Compat extends WP_UnitTestCase {
 
-	function test_json_encode_decode() {
-		$this->expectDeprecation();
-
-		require_once ABSPATH . WPINC . '/class-json.php';
-		$json = new Services_JSON();
-		// Super basic test to verify Services_JSON is intact and working.
-		$this->assertSame( '["foo"]', $json->encodeUnsafe( array( 'foo' ) ) );
-		$this->assertSame( array( 'foo' ), $json->decode( '["foo"]' ) );
-	}
-
 	/**
 	 * Test that is_countable() is always available (either from PHP or WP).
 	 *
