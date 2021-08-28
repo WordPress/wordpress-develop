@@ -2097,10 +2097,10 @@ add_shortcode( 'caption', 'img_caption_shortcode' );
  *     @type string $caption    The caption text.
  *     @type string $class      Additional class name(s) added to the caption container.
  * }
- * @param string $content Shortcode content.
+ * @param string $content Shortcode content. Defaults to an empty string.
  * @return string HTML content to display the caption.
  */
-function img_caption_shortcode( $attr, $content = null ) {
+function img_caption_shortcode( $attr, $content = '' ) {
 	// New-style shortcode with the caption inside the shortcode with the link and image tags.
 	if ( ! isset( $attr['caption'] ) ) {
 		if ( preg_match( '#((?:<a [^>]+>\s*)?<img [^>]+>(?:\s*</a>)?)(.*)#is', $content, $matches ) ) {
