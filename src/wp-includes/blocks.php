@@ -110,7 +110,8 @@ function register_block_script_handle( $metadata, $field_name ) {
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false,
+		isset( $metadata['enqueueFooter'] ) ? boolval( $metadata['enqueueFooter'] ) : false
 	);
 	if ( ! $result ) {
 		return false;
