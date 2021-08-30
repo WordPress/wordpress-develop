@@ -685,6 +685,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertEqualFields( $object, $fields, $message = '' ) {
+		$this->assertIsObject( $object, $message . ' Passed $object is not an object.' );
+		$this->assertIsArray( $fields, $message . ' Passed $fields is not an array.' );
+		$this->assertNotEmpty( $fields, $message . ' Fields array is empty.' );
+
 		foreach ( $fields as $field_name => $field_value ) {
 			$this->assertObjectHasAttribute( $field_name, $object, $message . " Property $field_name does not exist on the object." );
 			$this->assertSame( $field_value, $object->$field_name, $message . " Value of property $field_name is not $field_value." );
@@ -760,6 +764,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertSameSets( $expected, $actual, $message = '' ) {
+		$this->assertIsArray( $expected, $message . ' Expected value must be an array.' );
+		$this->assertIsArray( $actual, $message . ' Value under test is not an array.' );
+
 		sort( $expected );
 		sort( $actual );
 		$this->assertSame( $expected, $actual, $message );
@@ -776,6 +783,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertEqualSets( $expected, $actual, $message = '' ) {
+		$this->assertIsArray( $expected, $message . ' Expected value must be an array.' );
+		$this->assertIsArray( $actual, $message . ' Value under test is not an array.' );
+
 		sort( $expected );
 		sort( $actual );
 		$this->assertEquals( $expected, $actual, $message );
@@ -792,6 +802,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertSameSetsWithIndex( $expected, $actual, $message = '' ) {
+		$this->assertIsArray( $expected, $message . ' Expected value must be an array.' );
+		$this->assertIsArray( $actual, $message . ' Value under test is not an array.' );
+
 		ksort( $expected );
 		ksort( $actual );
 		$this->assertSame( $expected, $actual, $message );
@@ -808,6 +821,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertEqualSetsWithIndex( $expected, $actual, $message = '' ) {
+		$this->assertIsArray( $expected, $message . ' Expected value must be an array.' );
+		$this->assertIsArray( $actual, $message . ' Value under test is not an array.' );
+
 		ksort( $expected );
 		ksort( $actual );
 		$this->assertEquals( $expected, $actual, $message );
