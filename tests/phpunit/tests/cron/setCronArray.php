@@ -14,12 +14,6 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 		_set_cron_array( array() );
 	}
 
-	public function tear_down() {
-		// Make sure the schedule is clear.
-		_set_cron_array( array() );
-		parent::tear_down();
-	}
-
 	/**
 	 * Tests the input validation for the `_set_cron_array()` function.
 	 *
