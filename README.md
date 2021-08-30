@@ -68,7 +68,7 @@ These commands run the PHP and end-to-end test suites, respectively:
 npm run test:php
 npm run test:e2e
 ```
-This command opens an PHP bash shall to allow running phpunit commands interactively:
+This command opens an PHP bash shell to allow running PHPUnit commands interactively:
 
 ```
 npm run test:bash
