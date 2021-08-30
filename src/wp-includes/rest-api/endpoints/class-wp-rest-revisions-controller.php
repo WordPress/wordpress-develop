@@ -75,7 +75,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'parent' => array(
-						'description' => __( 'The ID for the parent of the object.' ),
+						'description' => __( 'The ID for the parent of the revision.' ),
 						'type'        => 'integer',
 					),
 				),
@@ -95,11 +95,11 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'parent' => array(
-						'description' => __( 'The ID for the parent of the object.' ),
+						'description' => __( 'The ID for the parent of the revision.' ),
 						'type'        => 'integer',
 					),
 					'id'     => array(
-						'description' => __( 'Unique identifier for the object.' ),
+						'description' => __( 'Unique identifier for the revision.' ),
 						'type'        => 'integer',
 					),
 				),
@@ -362,7 +362,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		return $this->get_items_permissions_check( $request );
@@ -397,7 +397,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
 	public function delete_item_permissions_check( $request ) {
 		$parent = $this->get_parent( $request['parent'] );
@@ -621,7 +621,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters a revision returned from the API.
+		 * Filters a revision returned from the REST API.
 		 *
 		 * Allows modification of the revision right before it is returned.
 		 *
@@ -675,51 +675,51 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			// Base properties for every Revision.
 			'properties' => array(
 				'author'       => array(
-					'description' => __( 'The ID for the author of the object.' ),
+					'description' => __( 'The ID for the author of the revision.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date'         => array(
-					'description' => __( "The date the object was published, in the site's timezone." ),
+					'description' => __( "The date the revision was published, in the site's timezone." ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'     => array(
-					'description' => __( 'The date the object was published, as GMT.' ),
+					'description' => __( 'The date the revision was published, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
 				'guid'         => array(
-					'description' => __( 'GUID for the object, as it exists in the database.' ),
+					'description' => __( 'GUID for the revision, as it exists in the database.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
 				'id'           => array(
-					'description' => __( 'Unique identifier for the object.' ),
+					'description' => __( 'Unique identifier for the revision.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'modified'     => array(
-					'description' => __( "The date the object was last modified, in the site's timezone." ),
+					'description' => __( "The date the revision was last modified, in the site's timezone." ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
 				'modified_gmt' => array(
-					'description' => __( 'The date the object was last modified, as GMT.' ),
+					'description' => __( 'The date the revision was last modified, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
 				'parent'       => array(
-					'description' => __( 'The ID for the parent of the object.' ),
+					'description' => __( 'The ID for the parent of the revision.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'slug'         => array(
-					'description' => __( 'An alphanumeric identifier for the object unique to its type.' ),
+					'description' => __( 'An alphanumeric identifier for the revision unique to its type.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),

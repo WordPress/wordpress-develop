@@ -37,7 +37,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * Revision controller.
 	 *
 	 * @since 5.0.0
-	 * @var WP_REST_Controller
+	 * @var WP_REST_Revisions_Controller
 	 */
 	private $revisions_controller;
 
@@ -67,7 +67,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 
 		$this->parent_controller    = $parent_controller;
 		$this->revisions_controller = new WP_REST_Revisions_Controller( $parent_post_type );
-		$this->rest_namespace       = 'wp/v2';
+		$this->namespace            = 'wp/v2';
 		$this->rest_base            = 'autosaves';
 		$this->parent_base          = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 	}
@@ -81,12 +81,12 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 */
 	public function register_routes() {
 		register_rest_route(
-			$this->rest_namespace,
+			$this->namespace,
 			'/' . $this->parent_base . '/(?P<id>[\d]+)/' . $this->rest_base,
 			array(
 				'args'   => array(
 					'parent' => array(
-						'description' => __( 'The ID for the parent of the object.' ),
+						'description' => __( 'The ID for the parent of the autosave.' ),
 						'type'        => 'integer',
 					),
 				),
@@ -107,16 +107,16 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		);
 
 		register_rest_route(
-			$this->rest_namespace,
+			$this->namespace,
 			'/' . $this->parent_base . '/(?P<parent>[\d]+)/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
 				'args'   => array(
 					'parent' => array(
-						'description' => __( 'The ID for the parent of the object.' ),
+						'description' => __( 'The ID for the parent of the autosave.' ),
 						'type'        => 'integer',
 					),
 					'id'     => array(
-						'description' => __( 'The ID for the object.' ),
+						'description' => __( 'The ID for the autosave.' ),
 						'type'        => 'integer',
 					),
 				),
@@ -425,7 +425,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$response->data = $this->filter_response_by_context( $response->data, $context );
 
 		/**
-		 * Filters a revision returned from the API.
+		 * Filters a revision returned from the REST API.
 		 *
 		 * Allows modification of the revision right before it is returned.
 		 *

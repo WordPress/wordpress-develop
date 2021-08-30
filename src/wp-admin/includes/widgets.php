@@ -162,7 +162,7 @@ function next_widget_id_number( $id_base ) {
 	$number = 1;
 
 	foreach ( $wp_registered_widgets as $widget_id => $widget ) {
-		if ( preg_match( '/' . $id_base . '-([0-9]+)$/', $widget_id, $matches ) ) {
+		if ( preg_match( '/' . preg_quote( $id_base, '/' ) . '-([0-9]+)$/', $widget_id, $matches ) ) {
 			$number = max( $number, $matches[1] );
 		}
 	}
@@ -294,8 +294,7 @@ function wp_widget_control( $sidebar_args ) {
 		<div class="alignleft">
 			<button type="button" class="button-link button-link-delete widget-control-remove"><?php _e( 'Delete' ); ?></button>
 			<span class="widget-control-close-wrapper">
-				|
-				<button type="button" class="button-link widget-control-close"><?php _e( 'Done' ); ?></button>
+				| <button type="button" class="button-link widget-control-close"><?php _e( 'Done' ); ?></button>
 			</span>
 		</div>
 		<div class="alignright<?php echo $noform_class; ?>">

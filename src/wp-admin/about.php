@@ -9,6 +9,7 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+// Used in the HTML title tag.
 /* translators: Page title of the About WordPress page in the admin. */
 $title = _x( 'About', 'page title' );
 
@@ -19,15 +20,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="wrap about__container">
 
 		<div class="about__header">
-			<div class="about__header-text">
-				<?php _e( 'Speed. Search. Security.' ); ?>
+			<div class="about__header-title">
+				<h1>
+					<?php _e( 'WordPress' ); ?>
+					<?php echo $display_version; ?>
+				</h1>
 			</div>
 
-			<div class="about__header-title">
-				<p>
-					<?php _e( 'WordPress' ); ?>
-					<span><?php echo $display_version; ?></span>
-				</p>
+			<div class="about__header-text">
+				<?php _e( 'The next stop on the road to full site editing' ); ?>
 			</div>
 
 			<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -38,213 +39,191 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</nav>
 		</div>
 
-		<div class="about__section is-feature has-subtle-background-color">
-			<h1>
-				<?php
-				printf(
-					/* translators: %s: The current WordPress version number. */
-					__( 'Welcome to WordPress %s.' ),
-					$display_version
-				);
-				?>
-			</h1>
-			<p>
-				<?php
-				printf(
-					/* translators: %s: The current WordPress version number. */
-					__( 'In WordPress %s, your site gets new power in three major areas: speed, search, and security.' ),
-					$display_version
-				);
-				?>
-			</p>
-		</div>
-
 		<hr />
 
-		<div class="about__section has-1-column">
-			<div class="column">
-				<h2><?php _e( 'Speed' ); ?></h2>
-				<p><strong><?php _e( 'Posts and pages feel faster, thanks to lazy-loaded images.' ); ?></strong></p>
-				<p><?php _e( 'Images give your story a lot of impact, but they can sometimes make your site seem slow.' ); ?></p>
-				<p><?php _e( 'In WordPress 5.5, images wait to load until they’re just about to scroll into view. The technical term is ‘lazy loading’.' ); ?></p>
-				<p><?php _e( 'On mobile, lazy loading can also keep browsers from loading files meant for other devices. That can save your readers money on data — and help preserve battery life.' ); ?></p>
-			</div>
+		<div class="about__section">
+			<h2 class="aligncenter">
+				<?php _e( 'Three Essential Powerhouses' ); ?>
+			</h2>
 		</div>
 
-		<div class="about__section has-1-column">
-			<div class="column">
-				<h2><?php _ex( 'Search', 'sitemap' ); ?></h2>
-				<p><strong><?php _e( 'Say hello to your new sitemap.' ); ?></strong></p>
-				<p><?php _e( 'WordPress sites work well with search engines.' ); ?></p>
-				<p><?php _e( 'Now, by default, WordPress 5.5 includes an XML sitemap that helps search engines discover your most important pages from the very minute you go live.' ); ?></p>
-				<p><?php _e( 'So more people will find your site sooner, giving you more time to engage, retain and convert them to subscribers, customers or whatever fits your definition of success.' ); ?></p>
-			</div>
-		</div>
-
-		<hr />
-
-		<div class="about__section has-2-columns has-accent-background-color is-wider-right">
-			<div class="column">
-				<h2><?php _e( 'Security' ); ?></h2>
-				<p><strong><?php _e( 'Auto-updates for Plugins and Themes' ); ?></strong></p>
-				<p><?php _e( 'Now you can set plugins and themes to update automatically — or not! — in the WordPress admin. So you always know your site is running the latest code available.' ); ?></p>
-				<p><?php _e( 'You can also turn auto-updates on or off for each plugin or theme you have installed — all on the same screens you’ve always used.' ); ?></p>
-				<p><strong><?php _e( 'Update by uploading ZIP files' ); ?></strong></p>
-				<p><?php _e( 'If updating plugins and themes manually is your thing, now that’s easier too — just upload a ZIP file.' ); ?></p>
-			</div>
+		<div class="about__section has-2-columns is-wider-left">
 			<div class="column about__image is-vertically-aligned-center">
-				<figure aria-labelledby="about-security" class="about__image">
-					<video controls poster="https://s.w.org/images/core/5.5/auto-updates-poster.png">
-						<source src="https://s.w.org/images/core/5.5/auto-updates.mp4" type="video/mp4" />
-						<source src="https://s.w.org/images/core/5.5/auto-updates.webm" type="video/webm" />
-					</video>
-					<figcaption id="about-security" class="screen-reader-text"><?php _e( 'Video: Installed plugin screen, which shows a new column, Automatic Updates. In this column are buttons that say "Enable auto-updates". When clicked, the auto-updates feature is turned on for that plugin, and the button switches to say "Disable auto-updates".' ); ?></figcaption>
-				</figure>
-			</div>
-		</div>
-
-		<hr />
-
-		<div class="about__section has-subtle-background-color">
-			<div class="column">
-				<h2><?php _e( 'Highlights from the block editor' ); ?></h2>
-				<p><?php _e( 'Once again, the latest WordPress release packs a long list of exciting new features for the block editor. For example:' ); ?></p>
-			</div>
-		</div>
-		<div class="about__section has-2-columns has-subtle-background-color">
-			<div class="column about__image is-vertically-aligned-center">
-				<figure aria-labelledby="about-block-pattern" class="about__image">
-					<video controls poster="https://s.w.org/images/core/5.5/block-patterns-poster.png">
-						<source src="https://s.w.org/images/core/5.5/block-patterns.mp4" type="video/mp4" />
-						<source src="https://s.w.org/images/core/5.5/block-patterns.webm" type="video/webm" />
-					</video>
-					<figcaption id="about-block-pattern" class="screen-reader-text"><?php _e( 'Video: In the editor, the block inserter shows two tabs, Blocks and Patterns. The Patterns tab is selected. There are different block layouts in this tab. After scrolling through options including buttons and columns, a pattern called "Large header with a heading" is chosen. This adds a cover block, which is customized with a photo and the name of the WordPress 5.5 jazz musician.' ); ?></figcaption>
-				</figure>
-				<hr />
-				<figure aria-labelledby="about-image-editor" class="about__image">
-					<video controls poster="https://s.w.org/images/core/5.5/inline-image-editing-poster.png">
-						<source src="https://s.w.org/images/core/5.5/inline-image-editing.mp4" type="video/mp4" />
-						<source src="https://s.w.org/images/core/5.5/inline-image-editing-1.webm" type="video/webm" />
-					</video>
-					<figcaption id="about-image-editor" class="screen-reader-text"><?php _e( 'Video: An image is added with an image block. In the block toolbar, an icon called "Crop" is selected, which changes the toolbar to show image resizing tools. First, zoom is used to zoom into the center of the image. Next, aspect ratio is clicked. This shows a dropdown of common aspect ratios. Square is chosen, and the image is moved within the new square outline. The crop is completed by clicking "Apply."' ); ?></figcaption>
-				</figure>
+				<img src="https://s.w.org/images/core/5.8/about-widgets-blocks.png" alt="" />
 			</div>
 			<div class="column">
-				<h3><?php _e( 'Block patterns' ); ?></h3>
-				<p><?php _e( 'New block patterns make it simple and fun to create complex, beautiful layouts, using combinations of text and media that you can mix and match to fit your story.' ); ?></p>
-				<p><?php _e( 'You will also find block patterns in a wide variety of plugins and themes, with more added all the time. Pick any of them from a single place — just click and go!' ); ?></p>
-				<h3><?php _e( 'Inline image editing' ); ?></h3>
-				<p><?php _e( 'Crop, rotate, and zoom your photos right from the image block. If you spend a lot of time on images, this could save you hours!' ); ?></p>
-
-				<h3><?php _e( 'The New Block Directory' ); ?></h3>
-				<p><?php _e( 'Now it’s easier than ever to find the block you need. The new block directory is built right into the block editor, so you can install new block types to your site without ever leaving the editor.' ); ?></p>
-
-				<h3><?php _e( 'And so much more.' ); ?></h3>
-				<p><?php _e( 'The highlights above are a tiny fraction of the new block editor features you’ve just installed. Open the block editor and enjoy!' ); ?></p>
-			</div>
-		</div>
-
-		<hr />
-
-		<div class="about__section has-1-column">
-			<div class="column">
-				<h2><?php _e( 'Accessibility' ); ?></h2>
-				<p><?php _e( 'Every release adds improvements to the accessible publishing experience, and that remains true for WordPress 5.5.' ); ?></p>
-				<p><?php _e( 'Now you can copy links in media screens and modal dialogs with a button, instead of trying to highlight a line of text.' ); ?></p>
-				<p><?php _e( 'You can also move meta boxes with the keyboard, and edit images in WordPress with your assistive device, as it can read you the instructions in the image editor.' ); ?></p>
-			</div>
-		</div>
-
-		<hr />
-
-		<div class="about__section has-subtle-background-color has-2-columns">
-			<header class="is-section-header">
-				<h2><?php _e( 'For developers' ); ?></h2>
-				<p><?php _e( '5.5 also brings a big box of changes just for developers.' ); ?></p>
-			</header>
-			<div class="column">
-				<h3><?php _e( 'Server-side registered blocks in the REST API' ); ?></h3>
-				<p><?php _e( 'The addition of block types endpoints means that JavaScript apps (like the block editor) can retrieve definitions for any blocks registered on the server.' ); ?></p>
-			</div>
-			<div class="column">
-				<h3><?php _e( 'Dashicons' ); ?></h3>
-				<p><?php _e( 'The Dashicons library has received its final update in 5.5. It adds 39 block editor icons along with 26 others.' ); ?></p>
-			</div>
-		</div>
-
-		<div class="about__section has-subtle-background-color has-2-columns">
-			<div class="column">
-				<h3><?php _e( 'Defining environments' ); ?></h3>
+				<h3>
+					<?php _e( 'Manage Widgets with Blocks' ); ?>
+				</h3>
 				<p>
 					<?php
 					printf(
-						/* translators: %s: 'wp_get_environment_type' function name. */
-						__( 'WordPress now has a standardized way to define a site’s environment type (staging, production, etc). Retrieve that type with %s and execute only the appropriate code.' ),
-						'<code>wp_get_environment_type()</code>'
-					);
-					?>
-				</p>
-			</div>
-			<div class="column">
-				<h3><?php _e( 'Passing data to template files' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %1$s: 'get_header' function name, %2$s: 'get_template_part' function name, %3$s: '$args' variable name. */
-						__( 'The template loading functions (%1$s, %2$s, etc.) have a new %3$s argument. So now you can pass an entire array’s worth of data to those templates.' ),
-						'<code>get_header()</code>',
-						'<code>get_template_part()</code>',
-						'<code>$args</code>'
+						/* translators: %s: Widgets dev note link. */
+						__( 'After months of hard work, the power of blocks has come to both the Block Widgets Editor and the Customizer. Now you can add blocks both in widget areas across your site and with live preview through the Customizer. This opens up new possibilities to create content: from no-code mini layouts to the vast library of core and third-party blocks. For our developers, you can find more details in the <a href="%s">Widgets dev note</a>.' ),
+						'https://make.wordpress.org/core/2021/06/29/block-based-widgets-editor-in-wordpress-5-8/'
 					);
 					?>
 				</p>
 			</div>
 		</div>
 
-		<div class="about__section has-subtle-background-color">
+		<div class="about__section has-2-columns is-wider-right">
 			<div class="column">
-				<h3><?php _e( 'More changes for developers' ); ?></h3>
-				<ul>
-					<li><?php _e( 'The PHPMailer library just got a major update, going from version 5.2.27 to 6.1.6.' ); ?></li>
-					<li>
-						<?php
-						printf(
-							/* translators: %s: 'redirect_guess_404_permalink' function name. */
-							__( 'Now get more fine-grained control of %s.' ),
-							'<code>redirect_guess_404_permalink()</code>'
-						);
-						?>
-					</li>
-					<li>
-						<?php
-						printf(
-							/* translators: %s: 'wp_opcache_invalidate' function name. */
-							__( 'Sites that use PHP’s OPcache will see more reliable cache invalidation, thanks to the new %s function during updates (including to plugins and themes).' ),
-							'<code>wp_opcache_invalidate()</code>'
-						);
-						?>
-					</li>
-					<li><?php _e( 'Custom post types associated with the category taxonomy can now opt-in to supporting the default term.' ); ?></li>
-					<li>
-						<?php
-						printf(
-							/* translators: %s: 'register_taxonomy' function name. */
-							__( 'Default terms can now be specified for custom taxonomies in %s.' ),
-							'<code>register_taxonomy()</code>'
-						);
-						?>
-					</li>
-					<li>
-						<?php
-						printf(
-							/* translators: %s: 'register_meta' function name. */
-							__( 'The REST API now officially supports specifying default metadata values through %s.' ),
-							'<code>register_meta()</code>'
-						);
-						?>
-					</li>
-					<li><?php _e( 'You will find updated versions of these bundled libraries: SimplePie, Twemoji, Masonry, imagesLoaded, getID3, Moment.js, and clipboard.js.' ); ?></li>
-				</ul>
+				<h3>
+					<?php _e( 'Display Posts with New Blocks and Patterns' ); ?>
+				</h3>
+				<p>
+					<?php _e( 'The Query Loop Block makes it possible to display posts based on specified parameters; like a PHP loop without the code. Easily display posts from a specific category, to do things like create a portfolio or a page full of your favorite recipes. Think of it as a more complex and powerful Latest Posts Block! Plus, pattern suggestions make it easier than ever to create a list of posts with the design you want.' ); ?>
+				</p>
+			</div>
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-query-loop.png" alt="" />
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns is-wider-left">
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-template.png" alt="" />
+			</div>
+			<div class="column">
+				<h3>
+					<?php _e( 'Edit the Templates Around Posts' ); ?>
+				</h3>
+				<p>
+					<?php
+					_e( 'You can use the familiar block editor to edit templates that hold your content—simply activate a block theme or a theme that has opted in for this feature. Switch from editing your posts to editing your pages and back again, all while using a familiar block editor. There are more than 20 new blocks available within compatible themes. Read more about this feature and how to experiment with it in the release notes.' );
+					?>
+				</p>
+			</div>
+		</div>
+
+		<hr class="is-large" />
+
+		<div class="about__section">
+			<h2 class="aligncenter">
+				<?php _e( 'Three Workflow Helpers' ); ?>
+			</h2>
+		</div>
+
+		<div class="about__section has-2-columns is-wider-left">
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-list-view.png" alt="" />
+			</div>
+			<div class="column">
+				<h3>
+					<?php _e( 'Overview of the Page Structure' ); ?>
+				</h3>
+				<p>
+					<?php
+					_e( 'Sometimes you need a simple landing page, but sometimes you need something a little more robust. As blocks increase, patterns emerge, and content creation gets easier, new solutions are needed to make complex content easy to navigate. List View is the best way to jump between layers of content and nested blocks. Since the List View gives you an overview of all the blocks in your content, you can now navigate quickly to the precise block you need. Ready to focus completely on your content? Toggle it on or off to suit your workflow.' );
+					?>
+				</p>
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns is-wider-right">
+			<div class="column">
+				<h3>
+					<?php _e( 'Suggested Patterns for Blocks' ); ?>
+				</h3>
+				<p>
+					<?php
+					_e( 'Starting in this release the Pattern Transformations tool will suggest block patterns based on the block you are using. Right now, you can give it a try in the Query Block and Social Icon Block. As more patterns are added, you will be able to get inspiration for how to style your site without ever leaving the editor!' );
+					?>
+				</p>
+			</div>
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-pattern-suggestions.png" alt="" />
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns is-wider-left">
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-duotone.png" alt="" />
+			</div>
+			<div class="column">
+				<h3>
+					<?php _e( 'Style and Colorize Images' ); ?>
+				</h3>
+				<p>
+					<?php
+					_e( 'Colorize your image and cover blocks with duotone filters! Duotone can add a pop of color to your designs and style your images (or videos in the cover block) to integrate well with your themes. You can think of the duotone effect as a black and white filter, but instead of the shadows being black and the highlights being white, you pick your own colors for the shadows and highlights. There’s more to learn about how it works in the documentation.' );
+					?>
+				</p>
+			</div>
+		</div>
+
+		<hr class="is-large" />
+
+		<div class="about__section">
+			<h2 class="aligncenter" style="margin-bottom:0;">
+				<?php _e( 'For Developers to Explore' ); ?>
+			</h2>
+			<div class="column about__image is-vertically-aligned-center">
+				<picture>
+					<source srcset="https://s.w.org/images/core/5.8/about-theme-json.png, https://s.w.org/images/core/5.8/about-theme-json-2x.png 2x" />
+					<img src="https://s.w.org/images/core/5.8/about-theme-json.png" alt="" />
+				</picture>
+			</div>
+		</div>
+
+		<div class="about__section has-1-column">
+			<div class="column">
+				<h3>
+					<?php _e( 'Theme.json' ); ?>
+				</h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Theme.json dev note link. */
+						__( 'Introducing the Global Styles and Global Settings APIs: control the editor settings, available customization tools, and style blocks using a theme.json file in the active theme. This configuration file enables or disables features and sets default styles for both a website and blocks. If you build themes, you can experiment with this early iteration of a useful new feature. For more about what is currently available and how it works, <a href="%s">check out this dev note</a>.' ),
+						'https://make.wordpress.org/core/2021/06/25/introducing-theme-json-in-wordpress-5-8/'
+					);
+					?>
+				</p>
+			</div>
+		</div>
+
+		<div class="about__section has-3-columns">
+			<div class="column">
+				<h3>
+					<?php _e( 'Dropping support for Internet Explorer 11' ); ?>
+				</h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link to Browse Happy. */
+						__( 'Support for Internet Explorer 11 has been dropped as of this release. This means you may have issues managing your site that will not be fixed in the future. If you are currently using IE11, it is strongly recommended that you <a href="%s">switch to a more modern browser</a>.' ),
+						'https://browsehappy.com/'
+					);
+					?>
+				</p>
+			</div>
+			<div class="column">
+				<h3>
+					<?php _e( 'Adding support for WebP' ); ?>
+				</h3>
+				<p>
+					<?php
+					_e( 'WebP is a modern image format that provides improved lossless and lossy compression for images on the web. WebP images are around 30% smaller on average than their JPEG or PNG equivalents, resulting in sites that are faster and use less bandwidth.' );
+					?>
+				</p>
+			</div>
+			<div class="column">
+				<h3>
+					<?php _e( 'Adding Additional Block Supports' ); ?>
+				</h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %1$s: Link to 5.6's block dev notes. %2$s: Link to 5.7's block dev notes. %3$s: Link to 5.8's block dev notes. */
+						__( 'Expanding on previously implemented block supports in WordPress <a href="%1$s">5.6</a> and <a href="%2$s">5.7</a>, WordPress 5.8 introduces several new block support flags and new options to customize your registered blocks. More information is available in the <a href="%3$s">block supports dev note</a>.' ),
+						'https://make.wordpress.org/core/2020/11/18/block-supports-in-wordpress-5-6/',
+						'https://make.wordpress.org/core/2021/02/24/changes-to-block-editor-components-and-blocks/',
+						'https://make.wordpress.org/core/2021/06/25/block-supports-api-updates-for-wordpress-5-8/'
+					);
+					?>
+				</p>
 			</div>
 		</div>
 
@@ -256,9 +235,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %s: WordPress 5.5 Field Guide link. */
-						__( 'There’s a lot more for developers to love in WordPress 5.5. To discover more and learn how to make these changes shine on your sites, themes, plugins and more, check the <a href="%s">WordPress 5.5 Field Guide.</a>' ),
-						'https://make.wordpress.org/core/wordpress-5-5-field-guide/'
+						/* translators: %s: WordPress 5.8 Field Guide link. */
+						__( 'Check out the latest version of the WordPress Field Guide. It highlights developer notes for each change you may want to be aware of. <a href="%s">WordPress 5.8 Field Guide.</a>' ),
+						'https://make.wordpress.org/core/2021/07/03/wordpress-5-8-field-guide/'
 					);
 					?>
 				</p>
@@ -270,15 +249,16 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="return-to-dashboard">
 			<?php if ( current_user_can( 'update_core' ) && isset( $_GET['updated'] ) ) : ?>
 				<a href="<?php echo esc_url( self_admin_url( 'update-core.php' ) ); ?>">
-					<?php is_multisite() ? _e( 'Return to Updates' ) : _e( 'Return to Dashboard &rarr; Updates' ); ?>
+					<?php is_multisite() ? _e( 'Go to Updates' ) : _e( 'Go to Dashboard &rarr; Updates' ); ?>
 				</a> |
 			<?php endif; ?>
 			<a href="<?php echo esc_url( self_admin_url() ); ?>"><?php is_blog_admin() ? _e( 'Go to Dashboard &rarr; Home' ) : _e( 'Go to Dashboard' ); ?></a>
 		</div>
 	</div>
-<?php
 
-require_once ABSPATH . 'wp-admin/admin-footer.php';
+<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>
+
+<?php
 
 // These are strings we may use to describe maintenance/security releases, where we aim for no new strings.
 return;

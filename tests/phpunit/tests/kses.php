@@ -8,11 +8,27 @@
 class Tests_Kses extends WP_UnitTestCase {
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_address
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
 	 */
-	function test_wp_filter_post_kses_address() {
+	function test_wp_filter_post_kses_address( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for test_wp_filter_post_kses_address.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_address() {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
@@ -25,21 +41,43 @@ class Tests_Kses extends WP_UnitTestCase {
 			'title' => 'title',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $values ) {
 			foreach ( (array) $values as $value ) {
 				$string        = "<address $name='$value'>1 WordPress Avenue, The Internet.</address>";
 				$expect_string = "<address $name='" . str_replace( '; ', ';', trim( $value, ';' ) ) . "'>1 WordPress Avenue, The Internet.</address>";
-				$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+
+				$data[] = array( $string, $expect_string );
 			}
 		}
+
+		return $data;
 	}
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_a
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
+	 * @return void
 	 */
-	function test_wp_filter_post_kses_a() {
+	function test_wp_filter_post_kses_a( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for test_wp_filter_post_kses_a.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_a() {
 		$attributes = array(
 			'class'    => 'classname',
 			'id'       => 'id',
@@ -53,6 +91,8 @@ class Tests_Kses extends WP_UnitTestCase {
 			'download' => '',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $value ) {
 			if ( $value ) {
 				$attr          = "$name='$value'";
@@ -63,8 +103,10 @@ class Tests_Kses extends WP_UnitTestCase {
 			}
 			$string        = "<a $attr>I link this</a>";
 			$expect_string = "<a $expected_attr>I link this</a>";
-			$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+			$data[]        = array( $string, $expect_string );
 		}
+
+		return $data;
 	}
 
 	/**
@@ -122,11 +164,28 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_abbr
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
+	 * @return void
 	 */
-	function test_wp_filter_post_kses_abbr() {
+	function test_wp_filter_post_kses_abbr( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for data_wp_filter_post_kses_abbr.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_abbr() {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
@@ -134,11 +193,15 @@ class Tests_Kses extends WP_UnitTestCase {
 			'title' => 'title',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $value ) {
 			$string        = "<abbr $name='$value'>WP</abbr>";
 			$expect_string = "<abbr $name='" . trim( $value, ';' ) . "'>WP</abbr>";
-			$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+			$data[]        = array( $string, $expect_string );
 		}
+
+		return $data;
 	}
 
 	function test_feed_links() {
@@ -444,7 +507,7 @@ EOF;
 		$this->assertTrue( $tags['a']['rel'] );
 
 		$tags = wp_kses_allowed_html();
-		$this->assertFalse( isset( $tags['a']['rel'] ) );
+		$this->assertArrayNotHasKey( 'rel', $tags['a'] );
 
 		$this->assertSame( array(), wp_kses_allowed_html( 'strip' ) );
 
@@ -1149,6 +1212,8 @@ EOF;
 	 * @dataProvider data_kses_style_attr_with_url
 	 *
 	 * @ticket 45067
+	 * @ticket 46197
+	 * @ticket 46498
 	 *
 	 * @param $input string The style attribute saved in the editor.
 	 * @param $expected string The sanitized style attribute.
@@ -1224,6 +1289,24 @@ EOF;
 				'background: red',
 			),
 
+			// CSS calc().
+			array(
+				'width: calc(2em + 3px)',
+				'width: calc(2em + 3px)',
+			),
+
+			// CSS variable.
+			array(
+				'padding: var(--wp-var1) var(--wp-var2)',
+				'padding: var(--wp-var1) var(--wp-var2)',
+			),
+
+			// CSS calc() with var().
+			array(
+				'margin-top: calc(var(--wp-var1) * 3 + 2em)',
+				'margin-top: calc(var(--wp-var1) * 3 + 2em)',
+			),
+
 			/*
 			 * Invalid use cases.
 			 */
@@ -1285,6 +1368,18 @@ EOF;
 			// Malformed, no closing `"`.
 			array(
 				'background-image: url( "http://example.com );',
+				'',
+			),
+
+			// Malformed calc, no closing `)`.
+			array(
+				'width: calc(3em + 10px',
+				'',
+			),
+
+			// Malformed var, no closing `)`.
+			array(
+				'width: var(--wp-var1',
 				'',
 			),
 		);
@@ -1380,6 +1475,24 @@ EOF;
 		);
 
 		$html = implode( ' ', $html );
+
+		$this->assertSame( $html, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test filtering a standard main tag.
+	 *
+	 * @ticket 53156
+	 */
+	function test_wp_kses_main_tag_standard_attributes() {
+		$test = array(
+			'<main',
+			'class="wp-group-block"',
+			'style="padding:10px"',
+			'/>',
+		);
+
+		$html = implode( ' ', $test );
 
 		$this->assertSame( $html, wp_kses_post( $html ) );
 	}

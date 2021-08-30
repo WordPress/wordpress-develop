@@ -13,7 +13,15 @@ if ( ! defined( 'PO_MAX_LINE_LEN' ) ) {
 	define( 'PO_MAX_LINE_LEN', 79 );
 }
 
-ini_set( 'auto_detect_line_endings', 1 );
+/*
+ * The `auto_detect_line_endings` setting has been deprecated in PHP 8.1,
+ * but will continue to work until PHP 9.0.
+ * For now, we're silencing the deprecation notice as there may still be
+ * translation files around which haven't been updated in a long time and
+ * which still use the old MacOS standalone `\r` as a line ending.
+ * This fix should be revisited when PHP 9.0 is in alpha/beta.
+ */
+@ini_set( 'auto_detect_line_endings', 1 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 /**
  * Routines for working with PO files
@@ -21,7 +29,7 @@ ini_set( 'auto_detect_line_endings', 1 );
 if ( ! class_exists( 'PO', false ) ) :
 	class PO extends Gettext_Translations {
 
-		var $comments_before_headers = '';
+		public $comments_before_headers = '';
 
 		/**
 		 * Exports headers to a PO entry
@@ -212,11 +220,11 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Builds a string from the entry for inclusion in PO file
 		 *
-		 * @param Translation_Entry $entry the entry to convert to po string (passed by reference).
+		 * @param Translation_Entry $entry the entry to convert to po string.
 		 * @return string|false PO-style formatted string for the entry or
 		 *  false if the entry is empty
 		 */
-		public static function export_entry( &$entry ) {
+		public static function export_entry( $entry ) {
 			if ( null === $entry->singular || '' === $entry->singular ) {
 				return false;
 			}
@@ -283,7 +291,7 @@ if ( ! class_exists( 'PO', false ) ) :
 
 		/**
 		 * @param string $filename
-		 * @return boolean
+		 * @return bool
 		 */
 		function import_from_file( $filename ) {
 			$f = fopen( $filename, 'r' );
@@ -454,7 +462,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * @param resource $f
 		 * @param string   $action
-		 * @return boolean
+		 * @return bool
 		 */
 		function read_line( $f, $action = 'read' ) {
 			static $last_line     = '';

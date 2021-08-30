@@ -6,10 +6,10 @@ require_once ABSPATH . 'wp-admin/includes/class-custom-image-header.php';
  * @group header
  */
 class Tests_Image_Header extends WP_UnitTestCase {
-	var $custom_image_header;
+	public $custom_image_header;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->custom_image_header = new Custom_Image_Header( '__return_null' );
 	}
 
@@ -147,7 +147,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 
 		$cropped_id = $this->custom_image_header->insert_attachment( $object, $cropped );
 
-		$this->assertInternalType( 'int', $cropped_id );
+		$this->assertIsInt( $cropped_id );
 		$this->assertGreaterThan( 0, $cropped_id );
 	}
 

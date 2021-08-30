@@ -122,7 +122,7 @@ function wp_print_scripts( $handles = false ) {
  * @see WP_Scripts::add_inline_script()
  *
  * @param string $handle   Name of the script to add the inline script to.
- * @param string $data     String containing the javascript to be added.
+ * @param string $data     String containing the JavaScript to be added.
  * @param string $position Optional. Whether to add the inline script before the handle
  *                         or after. Default 'after'.
  * @return bool True on success, false on failure.
@@ -258,9 +258,13 @@ function wp_set_script_translations( $handle, $domain = 'default', $path = null 
  *
  * @since 2.1.0
  *
+ * @global string $pagenow
+ *
  * @param string $handle Name of the script to be removed.
  */
 function wp_deregister_script( $handle ) {
+	global $pagenow;
+
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	/**
@@ -269,7 +273,7 @@ function wp_deregister_script( $handle ) {
 	 */
 	$current_filter = current_filter();
 	if ( ( is_admin() && 'admin_enqueue_scripts' !== $current_filter ) ||
-		( 'wp-login.php' === $GLOBALS['pagenow'] && 'login_enqueue_scripts' !== $current_filter )
+		( 'wp-login.php' === $pagenow && 'login_enqueue_scripts' !== $current_filter )
 	) {
 		$not_allowed = array(
 			'jquery',
@@ -300,13 +304,16 @@ function wp_deregister_script( $handle ) {
 		);
 
 		if ( in_array( $handle, $not_allowed, true ) ) {
-			$message = sprintf(
-				/* translators: 1: Script name, 2: wp_enqueue_scripts */
-				__( 'Do not deregister the %1$s script in the administration area. To target the front-end theme, use the %2$s hook.' ),
-				"<code>$handle</code>",
-				'<code>wp_enqueue_scripts</code>'
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: Script name, 2: wp_enqueue_scripts */
+					__( 'Do not deregister the %1$s script in the administration area. To target the front-end theme, use the %2$s hook.' ),
+					"<code>$handle</code>",
+					'<code>wp_enqueue_scripts</code>'
+				),
+				'3.6.0'
 			);
-			_doing_it_wrong( __FUNCTION__, $message, '3.6.0' );
 			return;
 		}
 	}

@@ -12,10 +12,12 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 		__ = editor.editorManager.i18n.translate,
 		$ = window.jQuery,
 		wp = window.wp,
-		hasWpautop = ( wp && wp.editor && wp.editor.autop && editor.getParam( 'wpautop', true ) ),
+		hasWpautop = ( wp && wp.oldEditor && wp.oldEditor.autop && editor.getParam( 'wpautop', true ) ),
 		wpTooltips = false;
 
 	if ( $ ) {
+		// Runs as soon as TinyMCE has started initializing, while plugins are loading.
+		// Handlers attached after the `tinymce.init()` call may not get triggered for this instance.
 		$( document ).triggerHandler( 'tinymce-editor-setup', [ editor ] );
 	}
 
@@ -128,7 +130,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 
 			if ( event.load && event.format !== 'raw' ) {
 				if ( hasWpautop ) {
-					event.content = wp.editor.autop( event.content );
+					event.content = wp.oldEditor.autop( event.content );
 				} else {
 					// Prevent creation of paragraphs out of multiple HTML comments.
 					event.content = event.content.replace( /-->\s+<!--/g, '--><!--' );
@@ -540,7 +542,11 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 		});
 
 		if ( $ ) {
-			$( document ).triggerHandler( 'tinymce-editor-init', [editor] );
+			// Run on DOM ready. Otherwise TinyMCE may initialize earlier and handlers attached
+			// on DOM ready of after the `tinymce.init()` call may not get triggered.
+			$( function() {
+				$( document ).triggerHandler( 'tinymce-editor-init', [editor] );
+			});
 		}
 
 		if ( window.tinyMCEPreInit && window.tinyMCEPreInit.dragDropUpload ) {
@@ -595,7 +601,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 		event.content = event.content.replace( /<p>(?:<br ?\/?>|\u00a0|\uFEFF| )*<\/p>/g, '<p>&nbsp;</p>' );
 
 		if ( hasWpautop ) {
-			event.content = wp.editor.removep( event.content );
+			event.content = wp.oldEditor.removep( event.content );
 		} else {
 			// Restore formatting of block boundaries.
 			event.content = event.content.replace( /-->\s*<!-- wp:/g, '-->\n\n<!-- wp:' );

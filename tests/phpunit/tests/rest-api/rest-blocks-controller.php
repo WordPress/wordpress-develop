@@ -44,7 +44,7 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = wp_insert_post(
 			array(
 				'post_type'    => 'wp_block',

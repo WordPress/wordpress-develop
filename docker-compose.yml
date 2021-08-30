@@ -37,10 +37,10 @@ services:
       - wpdevnet
 
     environment:
-      LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
-      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
-      PHP_FPM_UID: ${PHP_FPM_UID-1000}
-      PHP_FPM_GID: ${PHP_FPM_GID-1000}
+      - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
+      - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
+      - PHP_FPM_UID=${PHP_FPM_UID-1000}
+      - PHP_FPM_GID=${PHP_FPM_GID-1000}
 
     volumes:
       - ./tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
@@ -53,7 +53,7 @@ services:
   # The MySQL container.
   ##
   mysql:
-    image: mysql:${LOCAL_MYSQL-latest}
+    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
 
     networks:
       - wpdevnet
@@ -81,10 +81,10 @@ services:
       - wpdevnet
 
     environment:
-      LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
-      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
-      PHP_FPM_UID: ${PHP_FPM_UID-1000}
-      PHP_FPM_GID: ${PHP_FPM_GID-1000}
+      - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
+      - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
+      - PHP_FPM_UID=${PHP_FPM_UID-1000}
+      - PHP_FPM_GID=${PHP_FPM_GID-1000}
 
     volumes:
       - ./:/var/www
@@ -96,20 +96,20 @@ services:
   # The PHPUnit container.
   ##
   phpunit:
-    image: wordpressdevelop/phpunit:${LOCAL_PHP-latest}
+    image: wordpressdevelop/phpunit:${LOCAL_PHPUNIT-latest}
 
     networks:
       - wpdevnet
 
     environment:
-      LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
-      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
-      LOCAL_DIR: ${LOCAL_DIR-src}
-      WP_MULTISITE: ${WP_MULTISITE-false}
-      PHP_FPM_UID: ${PHP_FPM_UID-1000}
-      PHP_FPM_GID: ${PHP_FPM_GID-1000}
-      TRAVIS_BRANCH: ${TRAVIS_BRANCH-false}
-      TRAVIS_PULL_REQUEST: ${TRAVIS_PULL_REQUEST-false}
+      - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
+      - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
+      - PHP_FPM_UID=${PHP_FPM_UID-1000}
+      - PHP_FPM_GID=${PHP_FPM_GID-1000}
+      - LOCAL_DIR=${LOCAL_DIR-src}
+      - WP_MULTISITE=${WP_MULTISITE-false}
+      - GITHUB_REF=${GITHUB_REF-false}
+      - GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME-false}
 
     volumes:
       - ./tools/local-env/phpunit-config.ini:/usr/local/etc/php/conf.d/phpunit-config.ini

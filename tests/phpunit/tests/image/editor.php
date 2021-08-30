@@ -14,12 +14,13 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Setup test fixture
 	 */
-	public function setUp() {
+	public function set_up() {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
-		parent::setUp();
+		// This needs to come after the mock image editor class is loaded.
+		parent::set_up();
 	}
 
 	/**
@@ -143,6 +144,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		// Combo!
 		$this->assertSame( trailingslashit( realpath( get_temp_dir() ) ) . 'canola-new.png', $editor->generate_filename( 'new', realpath( get_temp_dir() ), 'png' ) );
+
+		// Test with a stream destination.
+		$this->assertSame( 'file://testing/path/canola-100x50.jpg', $editor->generate_filename( null, 'file://testing/path' ) );
 	}
 
 	/**
@@ -191,4 +195,85 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		$this->assertSame( '100x50', $editor->get_suffix() );
 	}
+
+	/**
+	 * Test wp_get_webp_info.
+	 *
+	 * @ticket 35725
+	 * @dataProvider _test_wp_get_webp_info
+	 *
+	 */
+	public function test_wp_get_webp_info( $file, $expected ) {
+		$editor = wp_get_image_editor( $file );
+
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->markTestSkipped( sprintf( 'No WebP support in the editor engine %s on this system.', $this->editor_engine ) );
+		}
+
+		$file_data = wp_get_webp_info( $file );
+		$this->assertSame( $file_data, $expected );
+	}
+
+	/**
+	 * Data provider for test_wp_get_webp_info().
+	 */
+	public function _test_wp_get_webp_info() {
+		return array(
+			// Standard JPEG.
+			array(
+				DIR_TESTDATA . '/images/test-image.jpg',
+				array(
+					'width'  => false,
+					'height' => false,
+					'type'   => false,
+				),
+			),
+			// Standard GIF.
+			array(
+				DIR_TESTDATA . '/images/test-image.gif',
+				array(
+					'width'  => false,
+					'height' => false,
+					'type'   => false,
+				),
+			),
+			// Animated WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-animated.webp',
+				array(
+					'width'  => 100,
+					'height' => 100,
+					'type'   => 'animated-alpha',
+				),
+			),
+			// Lossless WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-lossless.webp',
+				array(
+					'width'  => 1200,
+					'height' => 675,
+					'type'   => 'lossless',
+				),
+			),
+			// Lossy WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-lossy.webp',
+				array(
+					'width'  => 1200,
+					'height' => 675,
+					'type'   => 'lossy',
+				),
+			),
+			// Transparent WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-transparent.webp',
+				array(
+					'width'  => 1200,
+					'height' => 675,
+					'type'   => 'animated-alpha',
+				),
+			),
+		);
+	}
+
 }

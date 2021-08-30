@@ -10,8 +10,8 @@ class Tests_Locale extends WP_UnitTestCase {
 	 */
 	protected $locale;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->locale = new WP_Locale();
 	}
 
@@ -25,10 +25,13 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertSame( __( 'Saturday' ), $this->locale->get_weekday( 6 ) );
 	}
 
-	/**
-	 * @expectedException PHPUnit_Framework_Error_Notice
-	 */
 	public function test_get_weekday_undefined_index() {
+		if ( PHP_VERSION_ID >= 80000 ) {
+			$this->expectWarning();
+		} else {
+			$this->expectNotice();
+		}
+
 		$this->locale->get_weekday( 7 );
 	}
 

@@ -12,16 +12,16 @@ if ( is_multisite() ) :
 	class Tests_Multisite_Option extends WP_UnitTestCase {
 		protected $suppress = false;
 
-		function setUp() {
+		function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tear_down() {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		function test_from_same_site() {
@@ -99,7 +99,7 @@ if ( is_multisite() ) :
 
 		function test_with_another_site() {
 			$user_id = self::factory()->user->create();
-			$this->assertInternalType( 'integer', $user_id );
+			$this->assertIsInt( $user_id );
 
 			$blog_id = self::factory()->blog->create(
 				array(
@@ -107,7 +107,7 @@ if ( is_multisite() ) :
 					'public'  => 1,
 				)
 			);
-			$this->assertInternalType( 'integer', $blog_id );
+			$this->assertIsInt( $blog_id );
 
 			$key    = __FUNCTION__ . '_key1';
 			$key2   = __FUNCTION__ . '_key2';
@@ -120,7 +120,7 @@ if ( is_multisite() ) :
 			$this->assertTrue( add_blog_option( $blog_id, $key, $value ) );
 			// Assert all values of $blog_id that means the current or main blog (the same here).
 			$this->assertSame( $value, get_blog_option( $blog_id, $key ) );
-			$this->assertSame( $value, get_blog_option( "$blog_id", $key ) );
+			$this->assertSame( $value, get_blog_option( (string) $blog_id, $key ) );
 			// $this->assertSame( $value, get_option( $key ) );                // Check get_option().
 
 			$this->assertFalse( add_blog_option( $blog_id, $key, $value ) );     // Already exists.

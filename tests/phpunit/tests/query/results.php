@@ -9,19 +9,19 @@
 class Tests_Query_Results extends WP_UnitTestCase {
 	protected $q;
 
-	static $cat_ids  = array();
-	static $tag_ids  = array();
-	static $post_ids = array();
+	public static $cat_ids  = array();
+	public static $tag_ids  = array();
+	public static $post_ids = array();
 
-	static $parent_one;
-	static $parent_two;
-	static $parent_three;
-	static $child_one;
-	static $child_two;
-	static $child_three;
-	static $child_four;
+	public static $parent_one;
+	public static $parent_two;
+	public static $parent_three;
+	public static $child_one;
+	public static $child_two;
+	public static $child_three;
+	public static $child_four;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$cat_a           = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
@@ -294,8 +294,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		self::$post_ids[]   = self::$child_four;
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		unset( $this->q );
 		$this->q = new WP_Query();
@@ -765,8 +765,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertSame( $children, $posts2 );
 
 		foreach ( $this->q->posts as $post ) {
-			$this->assertInternalType( 'int', $post->ID );
-			$this->assertInternalType( 'int', $post->post_parent );
+			$this->assertIsInt( $post->ID );
+			$this->assertIsInt( $post->post_parent );
 		}
 
 	}
@@ -795,7 +795,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$posts = $this->q->query( array( 'post_type' => 'any' ) );
 
 		$this->assertEmpty( $posts );
-		$this->assertRegExp( '#AND 1=0#', $this->q->request );
+		$this->assertMatchesRegularExpression( '#AND 1=0#', $this->q->request );
 
 		foreach ( array_keys( $wp_post_types ) as $slug ) {
 			$wp_post_types[ $slug ]->exclude_from_search = false;
@@ -804,7 +804,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$posts2 = $this->q->query( array( 'post_type' => 'any' ) );
 
 		$this->assertNotEmpty( $posts2 );
-		$this->assertNotRegExp( '#AND 1=0#', $this->q->request );
+		$this->assertDoesNotMatchRegularExpression( '#AND 1=0#', $this->q->request );
 	}
 
 	/**
@@ -1049,11 +1049,11 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 		$this->assertTrue( $this->q->have_posts() );
-		$this->assertContains(
+		$this->assertStringContainsString(
 			"(({$wpdb->posts}.post_status = 'publish') OR ({$wpdb->posts}.post_author = 0 AND ({$wpdb->posts}.post_status = 'private')))",
 			$this->q->request
 		);
-		$this->assertNotContains( "({$wpdb->posts}.post_status = 'publish') AND", $this->q->request );
+		$this->assertStringNotContainsString( "({$wpdb->posts}.post_status = 'publish') AND", $this->q->request );
 	}
 
 	/**
@@ -1202,7 +1202,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'contributing-to-the-wordpress-codex/getting-started', get_permalink( $post_2 ) );
+		$this->assertStringContainsString( 'contributing-to-the-wordpress-codex/getting-started', get_permalink( $post_2 ) );
 
 		$result = $this->q->query(
 			array(

@@ -4,11 +4,11 @@
  * @group xmlrpc
  */
 class Tests_XMLRPC_wp_restoreRevision extends WP_XMLRPC_UnitTestCase {
-	var $post_id;
-	var $revision_id;
+	public $post_id;
+	public $revision_id;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->post_id = self::factory()->post->create( array( 'post_content' => 'edit1' ) ); // Not saved as a revision.
 		// First saved revision on update, see https://core.trac.wordpress.org/changeset/24650

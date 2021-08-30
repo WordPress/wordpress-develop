@@ -1,4 +1,4 @@
-// 4.9.10 (2020-04-23)
+// 4.9.11 (2020-07-13)
 (function () {
 (function (domGlobals) {
     'use strict';
@@ -5657,7 +5657,7 @@
       textBlockElementsMap = createLookupTable('text_block_elements', 'h1 h2 h3 h4 h5 h6 p div address pre form ' + 'blockquote center dir fieldset header footer article section hgroup aside main nav figure');
       blockElementsMap = createLookupTable('block_elements', 'hr table tbody thead tfoot ' + 'th tr td li ol ul caption dl dt dd noscript menu isindex option ' + 'datalist select optgroup figcaption details summary', textBlockElementsMap);
       textInlineElementsMap = createLookupTable('text_inline_elements', 'span strong b em i font strike u var cite ' + 'dfn code mark q sup sub samp');
-      each$4((settings.special || 'script noscript noframes noembed title style textarea xmp').split(' '), function (name) {
+      each$4((settings.special || 'script noscript iframe noframes noembed title style textarea xmp').split(' '), function (name) {
         specialElements[name] = new RegExp('</' + name + '[^>]*>', 'gi');
       });
       var patternToRegExp = function (str) {
@@ -8103,7 +8103,8 @@
       return overflowY >= 0 && overflowY <= Math.min(rect1.height, rect2.height) / 2;
     };
     var isAbove = function (rect1, rect2) {
-      if (rect1.bottom - rect1.height / 2 < rect2.top) {
+      var halfHeight = Math.min(rect2.height / 2, rect1.height / 2);
+      if (rect1.bottom - halfHeight < rect2.top) {
         return true;
       }
       if (rect1.top > rect2.bottom) {
@@ -13290,6 +13291,99 @@
     };
     var InlineFormatDelete = { backspaceDelete: backspaceDelete$5 };
 
+    var getPos$1 = function (elm) {
+      var x = 0, y = 0;
+      var offsetParent = elm;
+      while (offsetParent && offsetParent.nodeType) {
+        x += offsetParent.offsetLeft || 0;
+        y += offsetParent.offsetTop || 0;
+        offsetParent = offsetParent.offsetParent;
+      }
+      return {
+        x: x,
+        y: y
+      };
+    };
+    var fireScrollIntoViewEvent = function (editor, elm, alignToTop) {
+      var scrollEvent = {
+        elm: elm,
+        alignToTop: alignToTop
+      };
+      editor.fire('scrollIntoView', scrollEvent);
+      return scrollEvent.isDefaultPrevented();
+    };
+    var scrollElementIntoView = function (editor, elm, alignToTop) {
+      var y, viewPort;
+      var dom = editor.dom;
+      var root = dom.getRoot();
+      var viewPortY, viewPortH, offsetY = 0;
+      if (fireScrollIntoViewEvent(editor, elm, alignToTop)) {
+        return;
+      }
+      if (!NodeType.isElement(elm)) {
+        return;
+      }
+      if (alignToTop === false) {
+        offsetY = elm.offsetHeight;
+      }
+      if (root.nodeName !== 'BODY') {
+        var scrollContainer = editor.selection.getScrollContainer();
+        if (scrollContainer) {
+          y = getPos$1(elm).y - getPos$1(scrollContainer).y + offsetY;
+          viewPortH = scrollContainer.clientHeight;
+          viewPortY = scrollContainer.scrollTop;
+          if (y < viewPortY || y + 25 > viewPortY + viewPortH) {
+            scrollContainer.scrollTop = y < viewPortY ? y : y - viewPortH + 25;
+          }
+          return;
+        }
+      }
+      viewPort = dom.getViewPort(editor.getWin());
+      y = dom.getPos(elm).y + offsetY;
+      viewPortY = viewPort.y;
+      viewPortH = viewPort.h;
+      if (y < viewPort.y || y + 25 > viewPortY + viewPortH) {
+        editor.getWin().scrollTo(0, y < viewPortY ? y : y - viewPortH + 25);
+      }
+    };
+    var getViewPortRect = function (editor) {
+      if (editor.inline) {
+        return editor.getBody().getBoundingClientRect();
+      } else {
+        var win = editor.getWin();
+        return {
+          left: 0,
+          right: win.innerWidth,
+          top: 0,
+          bottom: win.innerHeight,
+          width: win.innerWidth,
+          height: win.innerHeight
+        };
+      }
+    };
+    var scrollBy = function (editor, dx, dy) {
+      if (editor.inline) {
+        editor.getBody().scrollLeft += dx;
+        editor.getBody().scrollTop += dy;
+      } else {
+        editor.getWin().scrollBy(dx, dy);
+      }
+    };
+    var scrollRangeIntoView = function (editor, rng) {
+      head(CaretPosition.fromRangeStart(rng).getClientRects()).each(function (rngRect) {
+        var bodyRect = getViewPortRect(editor);
+        var overflow = getOverflow(bodyRect, rngRect);
+        var margin = 4;
+        var dx = overflow.x > 0 ? overflow.x + margin : overflow.x - margin;
+        var dy = overflow.y > 0 ? overflow.y + margin : overflow.y - margin;
+        scrollBy(editor, overflow.x !== 0 ? dx : 0, overflow.y !== 0 ? dy : 0);
+      });
+    };
+    var ScrollIntoView = {
+      scrollElementIntoView: scrollElementIntoView,
+      scrollRangeIntoView: scrollRangeIntoView
+    };
+
     var isContentEditableTrue$2 = NodeType.isContentEditableTrue;
     var isContentEditableFalse$6 = NodeType.isContentEditableFalse;
     var showCaret = function (direction, editor, node, before, scrollIntoView) {
@@ -13335,6 +13429,10 @@
         return caretRange;
       }
       return range;
+    };
+    var moveToRange = function (editor, rng) {
+      editor.selection.setRng(rng);
+      ScrollIntoView.scrollRangeIntoView(editor, editor.selection.getRng());
     };
 
     var trimEmptyTextNode$1 = function (dom, node) {
@@ -20415,7 +20513,7 @@
           var blockElements = Tools.extend({}, schema.getBlockElements());
           var nonEmptyElements = schema.getNonEmptyElements();
           var parent, lastParent, prev, prevName;
-          var whiteSpaceElements = schema.getNonEmptyElements();
+          var whiteSpaceElements = schema.getWhiteSpaceElements();
           var elementRule, textNode;
           blockElements.body = 1;
           for (i = 0; i < l; i++) {
@@ -21490,99 +21588,6 @@
       };
     };
 
-    var getPos$1 = function (elm) {
-      var x = 0, y = 0;
-      var offsetParent = elm;
-      while (offsetParent && offsetParent.nodeType) {
-        x += offsetParent.offsetLeft || 0;
-        y += offsetParent.offsetTop || 0;
-        offsetParent = offsetParent.offsetParent;
-      }
-      return {
-        x: x,
-        y: y
-      };
-    };
-    var fireScrollIntoViewEvent = function (editor, elm, alignToTop) {
-      var scrollEvent = {
-        elm: elm,
-        alignToTop: alignToTop
-      };
-      editor.fire('scrollIntoView', scrollEvent);
-      return scrollEvent.isDefaultPrevented();
-    };
-    var scrollElementIntoView = function (editor, elm, alignToTop) {
-      var y, viewPort;
-      var dom = editor.dom;
-      var root = dom.getRoot();
-      var viewPortY, viewPortH, offsetY = 0;
-      if (fireScrollIntoViewEvent(editor, elm, alignToTop)) {
-        return;
-      }
-      if (!NodeType.isElement(elm)) {
-        return;
-      }
-      if (alignToTop === false) {
-        offsetY = elm.offsetHeight;
-      }
-      if (root.nodeName !== 'BODY') {
-        var scrollContainer = editor.selection.getScrollContainer();
-        if (scrollContainer) {
-          y = getPos$1(elm).y - getPos$1(scrollContainer).y + offsetY;
-          viewPortH = scrollContainer.clientHeight;
-          viewPortY = scrollContainer.scrollTop;
-          if (y < viewPortY || y + 25 > viewPortY + viewPortH) {
-            scrollContainer.scrollTop = y < viewPortY ? y : y - viewPortH + 25;
-          }
-          return;
-        }
-      }
-      viewPort = dom.getViewPort(editor.getWin());
-      y = dom.getPos(elm).y + offsetY;
-      viewPortY = viewPort.y;
-      viewPortH = viewPort.h;
-      if (y < viewPort.y || y + 25 > viewPortY + viewPortH) {
-        editor.getWin().scrollTo(0, y < viewPortY ? y : y - viewPortH + 25);
-      }
-    };
-    var getViewPortRect = function (editor) {
-      if (editor.inline) {
-        return editor.getBody().getBoundingClientRect();
-      } else {
-        var win = editor.getWin();
-        return {
-          left: 0,
-          right: win.innerWidth,
-          top: 0,
-          bottom: win.innerHeight,
-          width: win.innerWidth,
-          height: win.innerHeight
-        };
-      }
-    };
-    var scrollBy = function (editor, dx, dy) {
-      if (editor.inline) {
-        editor.getBody().scrollLeft += dx;
-        editor.getBody().scrollTop += dy;
-      } else {
-        editor.getWin().scrollBy(dx, dy);
-      }
-    };
-    var scrollRangeIntoView = function (editor, rng) {
-      head(CaretPosition.fromRangeStart(rng).getClientRects()).each(function (rngRect) {
-        var bodyRect = getViewPortRect(editor);
-        var overflow = getOverflow(bodyRect, rngRect);
-        var margin = 4;
-        var dx = overflow.x > 0 ? overflow.x + margin : overflow.x - margin;
-        var dy = overflow.y > 0 ? overflow.y + margin : overflow.y - margin;
-        scrollBy(editor, overflow.x !== 0 ? dx : 0, overflow.y !== 0 ? dy : 0);
-      });
-    };
-    var ScrollIntoView = {
-      scrollElementIntoView: scrollElementIntoView,
-      scrollRangeIntoView: scrollRangeIntoView
-    };
-
     var hasCeProperty = function (node) {
       return NodeType.isContentEditableTrue(node) || NodeType.isContentEditableFalse(node);
     };
@@ -21901,22 +21906,37 @@
     };
     var GetSelectionContent = { getContent: getContent };
 
+    var setupArgs = function (args, content) {
+      return __assign(__assign({ format: 'html' }, args), {
+        set: true,
+        selection: true,
+        content: content
+      });
+    };
+    var cleanContent = function (editor, args) {
+      if (args.format !== 'raw') {
+        var node = editor.parser.parse(args.content, __assign({
+          isRootContent: true,
+          forced_root_block: false
+        }, args));
+        return HtmlSerializer({ validate: editor.validate }, editor.schema).serialize(node);
+      } else {
+        return args.content;
+      }
+    };
     var setContent = function (editor, content, args) {
+      var contentArgs = setupArgs(args, content);
       var rng = editor.selection.getRng(), caretNode;
       var doc = editor.getDoc();
       var frag, temp;
-      args = args || { format: 'html' };
-      args.set = true;
-      args.selection = true;
-      args.content = content;
-      if (!args.no_events) {
-        args = editor.fire('BeforeSetContent', args);
-        if (args.isDefaultPrevented()) {
-          editor.fire('SetContent', args);
+      if (!contentArgs.no_events) {
+        contentArgs = editor.fire('BeforeSetContent', contentArgs);
+        if (contentArgs.isDefaultPrevented()) {
+          editor.fire('SetContent', contentArgs);
           return;
         }
       }
-      content = args.content;
+      content = cleanContent(editor, contentArgs);
       if (rng.insertNode) {
         content += '<span id="__caret">_</span>';
         if (rng.startContainer === doc && rng.endContainer === doc) {
@@ -21948,19 +21968,20 @@
         } catch (ex) {
         }
       } else {
-        if (rng.item) {
+        var anyRng = rng;
+        if (anyRng.item) {
           doc.execCommand('Delete', false, null);
-          rng = editor.getRng();
+          anyRng = editor.selection.getRng();
         }
         if (/^\s+/.test(content)) {
-          rng.pasteHTML('<span id="__mce_tmp">_</span>' + content);
+          anyRng.pasteHTML('<span id="__mce_tmp">_</span>' + content);
           editor.dom.remove('__mce_tmp');
         } else {
-          rng.pasteHTML(content);
+          anyRng.pasteHTML(content);
         }
       }
-      if (!args.no_events) {
-        editor.fire('SetContent', args);
+      if (!contentArgs.no_events) {
+        editor.fire('SetContent', contentArgs);
       }
     };
     var SetSelectionContent = { setContent: setContent };
@@ -22649,7 +22670,7 @@
       return function () {
         var newRng = getHorizontalRange(editor, forward);
         if (newRng) {
-          editor.selection.setRng(newRng);
+          moveToRange(editor, newRng);
           return true;
         } else {
           return false;
@@ -22660,7 +22681,7 @@
       return function () {
         var newRng = getVerticalRange(editor, down);
         if (newRng) {
-          editor.selection.setRng(newRng);
+          moveToRange(editor, newRng);
           return true;
         } else {
           return false;
@@ -22762,10 +22783,6 @@
       });
     };
 
-    var moveToRange = function (editor, rng) {
-      editor.selection.setRng(rng);
-      ScrollIntoView.scrollRangeIntoView(editor, rng);
-    };
     var hasNextBreak = function (getPositionsUntil, scope, lineInfo) {
       return lineInfo.breakAt.map(function (breakPos) {
         return getPositionsUntil(scope, breakPos).breakAt.isSome();
@@ -26364,8 +26381,8 @@
       defaultSettings: {},
       $: DomQuery,
       majorVersion: '4',
-      minorVersion: '9.10',
-      releaseDate: '2020-04-23',
+      minorVersion: '9.11',
+      releaseDate: '2020-07-13',
       editors: legacyEditors,
       i18n: I18n,
       activeEditor: null,
