@@ -80,9 +80,7 @@ An online version can be found at https://app.codecov.io/gh/WordPress/wordpress-
 These commands run to create coverage reports:
 
 ```
-npm run test:php_clover
-npm run test:php_crap4j
-npm run test:php_htm
+npm run test:php_html
 npm run test:php_php
 npm run test:php_text
 ```
