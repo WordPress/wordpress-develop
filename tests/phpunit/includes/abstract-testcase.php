@@ -701,12 +701,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since UT (3.7.0)
 	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param string $expected The expected value.
-	 * @param string $actual   The actual value.
+	 * @param mixed  $expected The expected value.
+	 * @param mixed  $actual   The actual value.
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertDiscardWhitespace( $expected, $actual, $message = '' ) {
-		$this->assertEquals( preg_replace( '/\s*/', '', $expected ), preg_replace( '/\s*/', '', $actual ), $message );
+		if ( is_string( $expected ) ) {
+			$expected = preg_replace( '/\s*/', '', $expected );
+		}
+
+		if ( is_string( $actual ) ) {
+			$actual = preg_replace( '/\s*/', '', $actual );
+		}
+
+		$this->assertEquals( $expected, $actual, $message );
 	}
 
 	/**
