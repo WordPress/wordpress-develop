@@ -593,6 +593,10 @@ fieldset label,
 	opacity: 1;
 }
 
+.password-input-wrapper input {
+	font-family: Consolas, Monaco, monospace;
+}
+
 #pass1.short, #pass1-text.short {
 	border-color: #e65054;
 }
@@ -1232,9 +1236,12 @@ table.form-table td .updated p {
 	margin-bottom: 1.3em;
 }
 
-.tools-privacy-policy-page input.button,
-.tools-privacy-policy-page select {
+.tools-privacy-policy-page input.button {
 	margin: 0 1px 0 6px;
+}
+
+.tools-privacy-policy-page select {
+	margin: 0 1px 0.5em 6px;
 }
 
 .tools-privacy-edit {

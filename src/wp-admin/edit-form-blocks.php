@@ -18,16 +18,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @global WP_Post_Type $post_type_object
  * @global WP_Post      $post             Global post object.
  * @global string       $title
- * @global array        $editor_styles
  * @global array        $wp_meta_boxes
  */
-global $post_type, $post_type_object, $post, $title, $editor_styles, $wp_meta_boxes;
+global $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
 
-$editor_name = 'post-editor';
+$block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
 
 // Flag that we're loading the block editor.
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( true );
+
+// Default to is-fullscreen-mode to avoid jumps in the UI.
+add_filter(
+	'admin_body_class',
+	static function( $classes ) {
+		return "$classes is-fullscreen-mode";
+	}
+);
 
 /*
  * Emoji replacement is disabled for now, until it plays nicely with React.
@@ -58,40 +65,7 @@ $preload_paths = array(
 	sprintf( '/wp/v2/%s/%d/autosaves?context=edit', $rest_base, $post->ID ),
 );
 
-
-/**
- * Preload common data by specifying an array of REST API paths that will be preloaded.
- *
- * Filters the array of paths that will be preloaded.
- *
- * @since 5.0.0
- *
- * @param string[] $preload_paths Array of paths to preload.
- * @param WP_Post  $post          Post being edited.
- */
-$preload_paths = apply_filters( 'block_editor_preload_paths', $preload_paths, $post );
-
-/*
- * Ensure the global $post remains the same after API data is preloaded.
- * Because API preloading can call the_content and other filters, plugins
- * can unexpectedly modify $post.
- */
-$backup_global_post = clone $post;
-
-$preload_data = array_reduce(
-	$preload_paths,
-	'rest_preload_api_request',
-	array()
-);
-
-// Restore the global $post as it was before API preloading.
-$post = $backup_global_post;
-
-wp_add_inline_script(
-	'wp-api-fetch',
-	sprintf( 'wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( %s ) );', wp_json_encode( $preload_data ) ),
-	'after'
-);
+block_editor_rest_api_preload( $preload_paths, $block_editor_context );
 
 wp_add_inline_script(
 	'wp-blocks',
@@ -145,40 +119,13 @@ wp_add_inline_script(
  * besides the default value.
  */
 $available_templates = wp_get_theme()->get_page_templates( get_post( $post->ID ) );
-$available_templates = ! empty( $available_templates ) ? array_merge(
+$available_templates = ! empty( $available_templates ) ? array_replace(
 	array(
 		/** This filter is documented in wp-admin/includes/meta-boxes.php */
 		'' => apply_filters( 'default_page_template_title', __( 'Default template' ), 'rest-api' ),
 	),
 	$available_templates
 ) : $available_templates;
-
-// Editor Styles.
-$styles = array(
-	array(
-		'css' => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
-	),
-);
-if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
-	foreach ( $editor_styles as $style ) {
-		if ( preg_match( '~^(https?:)?//~', $style ) ) {
-			$response = wp_remote_get( $style );
-			if ( ! is_wp_error( $response ) ) {
-				$styles[] = array(
-					'css' => wp_remote_retrieve_body( $response ),
-				);
-			}
-		} else {
-			$file = get_theme_file_path( $style );
-			if ( is_file( $file ) ) {
-				$styles[] = array(
-					'css'     => file_get_contents( $file ),
-					'baseURL' => get_theme_file_uri( $style ),
-				);
-			}
-		}
-	}
-}
 
 // Lock settings.
 $user_id = wp_check_post_lock( $post->ID );
@@ -234,7 +181,7 @@ $editor_settings = array(
 	'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
 	'bodyPlaceholder'                      => $body_placeholder,
 	'autosaveInterval'                     => AUTOSAVE_INTERVAL,
-	'styles'                               => $styles,
+	'styles'                               => get_block_editor_theme_styles(),
 	'richEditingEnabled'                   => user_can_richedit(),
 	'postLock'                             => $lock_details,
 	'postLockUtils'                        => array(
@@ -242,8 +189,10 @@ $editor_settings = array(
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
+	'supportsLayout'                       => WP_Theme_JSON_Resolver::theme_has_support(),
 	'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
 	'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
+	'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta
 	// field so that we're not always loading its assets.
@@ -312,7 +261,7 @@ if ( ! isset( $core_meta_boxes['postcustom'] ) || ! $core_meta_boxes['postcustom
 	unset( $editor_settings['enableCustomFields'] );
 }
 
-$editor_settings = get_block_editor_settings( $editor_name, $editor_settings );
+$editor_settings = get_block_editor_settings( $editor_settings, $block_editor_context );
 
 $init_script = <<<JS
 ( function() {
@@ -332,6 +281,10 @@ $script = sprintf(
 	wp_json_encode( $initial_edits )
 );
 wp_add_inline_script( 'wp-edit-post', $script );
+
+if ( (int) get_option( 'page_for_posts' ) === $post->ID ) {
+	add_action( 'admin_enqueue_scripts', '_wp_block_editor_posts_page_notice' );
+}
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>

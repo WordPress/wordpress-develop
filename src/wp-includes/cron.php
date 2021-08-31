@@ -302,6 +302,10 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 	$key = md5( serialize( $event->args ) );
 
 	$crons = _get_cron_array();
+	if ( ! is_array( $crons ) ) {
+		$crons = array();
+	}
+
 	$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
 		'schedule' => $event->schedule,
 		'args'     => $event->args,
@@ -1125,8 +1129,7 @@ function wp_get_ready_cron_jobs() {
 	}
 
 	$crons = _get_cron_array();
-
-	if ( false === $crons ) {
+	if ( ! is_array( $crons ) ) {
 		return array();
 	}
 
@@ -1188,6 +1191,10 @@ function _get_cron_array() {
  * @return bool|WP_Error True if cron array updated. False or WP_Error on failure.
  */
 function _set_cron_array( $cron, $wp_error = false ) {
+	if ( ! is_array( $cron ) ) {
+		$cron = array();
+	}
+
 	$cron['version'] = 2;
 	$result          = update_option( 'cron', $cron );
 

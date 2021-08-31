@@ -9,8 +9,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public $menu_id;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->menu_id = wp_create_nav_menu( rand_str() );
 	}
@@ -40,7 +40,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 0, strpos( $menu, '<ul' ) );
+		$this->assertStringStartsWith( '<ul', $menu );
 	}
 
 	function test_wp_get_associated_nav_menu_items() {
@@ -460,8 +460,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		);
 
 		// The markup should include whitespace between <li>'s.
-		$this->assertRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
-		$this->assertNotRegExp( '/<\/li><li.*>/U', $menu );
+		$this->assertMatchesRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/<\/li><li.*>/U', $menu );
 
 		// Whitespace suppressed.
 		$menu = wp_nav_menu(
@@ -473,8 +473,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		);
 
 		// The markup should not include whitespace around <li>'s.
-		$this->assertNotRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
-		$this->assertRegExp( '/><li.*>|<\/li></U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertMatchesRegularExpression( '/><li.*>|<\/li></U', $menu );
 	}
 
 	/*
@@ -551,22 +551,22 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * Run tests required to confrim Walker_Nav_Menu receives an $args object.
 	 */
 	function _confirm_nav_menu_item_args_object( $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $args;
 	}
 
 	function _confirm_second_param_args_object( $ignored_1, $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
 	function _confirm_third_param_args_object( $ignored_1, $ignored_2, $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
 	function _confirm_forth_param_args_object( $ignored_1, $ignored_2, $ignored_3, $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 

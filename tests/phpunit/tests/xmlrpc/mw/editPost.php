@@ -132,6 +132,9 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( $editor_id, $out->post_author );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 
@@ -329,7 +332,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$after = get_post( $post_id );
 		$this->assertSame( 'future', $after->post_status );
 
-		$future_date_string = strftime( '%Y-%m-%d %H:%M:%S', $future_time );
+		$future_date_string = date_format( date_create( "@{$future_time}" ), 'Y-m-d H:i:s' );
 		$this->assertSame( $future_date_string, $after->post_date );
 	}
 }
