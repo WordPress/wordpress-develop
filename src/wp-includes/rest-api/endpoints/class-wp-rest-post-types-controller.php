@@ -194,6 +194,15 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			$data['hierarchical'] = $post_type->hierarchical;
 		}
 
+		if ( in_array( 'visibility', $fields, true ) ) {
+			$data['visibility'] = array(
+				'public'             => (bool) $post_type->public,
+				'publicly_queryable' => (bool) $post_type->publicly_queryable,
+				'show_in_nav_menus'  => (bool) $post_type->show_in_nav_menus,
+				'show_ui'            => (bool) $post_type->show_ui,
+			);
+		}
+
 		if ( in_array( 'viewable', $fields, true ) ) {
 			$data['viewable'] = is_post_type_viewable( $post_type );
 		}
@@ -333,6 +342,30 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
+				),
+				'visibility'   => array(
+					'description' => __( 'The visibility settings for the post type.' ),
+					'type'        => 'object',
+					'context'     => array( 'edit' ),
+					'readonly'    => true,
+					'properties'  => array(
+						'public'             => array(
+							'description' => __( 'Whether a post type is intended for use publicly either via the admin interface or by front-end users.' ),
+							'type'        => 'boolean',
+						),
+						'publicly_queryable' => array(
+							'description' => __( 'Whether the post type is publicly queryable.' ),
+							'type'        => 'boolean',
+						),
+						'show_ui'            => array(
+							'description' => __( 'Whether to generate a default UI for managing this post type.' ),
+							'type'        => 'boolean',
+						),
+						'show_in_nav_menus'  => array(
+							'description' => __( 'Whether to make the post type is available for selection in navigation menus.' ),
+							'type'        => 'boolean',
+						),
+					),
 				),
 			),
 		);
