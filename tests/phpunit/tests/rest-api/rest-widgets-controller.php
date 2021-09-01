@@ -108,7 +108,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_register_widget_control(
 			'testwidget',
 			'WP test widget',
-			function () {
+			static function () {
 				$settings = get_option( 'widget_testwidget' );
 
 				// check if anything's been sent.
@@ -127,7 +127,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_register_sidebar_widget(
 			'testwidget',
 			'WP test widget',
-			function () {
+			static function () {
 				$settings = wp_parse_args(
 					get_option( 'widget_testwidget' ),
 					array(

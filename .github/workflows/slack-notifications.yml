@@ -60,9 +60,18 @@ jobs:
         id: previous-conclusion
         run: echo "::set-output name=previous_conclusion::${{ steps.previous-result.outputs.result }}"
 
+      - name: Prepare commit message.
+        id: commit-message
+        run: |
+          COMMIT_MESSAGE=$(cat <<'EOF' | awk 'NR==1' | sed 's/`/\\`/g' | sed 's/\"/\\\\"/g'
+          ${{ github.event.workflow_run.head_commit.message }}
+          EOF
+          )
+          echo "::set-output name=commit_message_escaped::${COMMIT_MESSAGE}"
+
       - name: Construct payload and store as an output
         id: create-payload
-        run: echo "::set-output name=payload::{\"workflow_name\":\"${{ github.event.workflow_run.name }}\",\"ref_name\":\"${{ github.event.workflow_run.head_branch }}\",\"run_url\":\"${{ github.event.workflow_run.html_url }}\"}"
+        run: echo "::set-output name=payload::{\"workflow_name\":\"${{ github.event.workflow_run.name }}\",\"ref_name\":\"${{ github.event.workflow_run.head_branch }}\",\"run_url\":\"${{ github.event.workflow_run.html_url }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}"
 
   # Posts notifications when a workflow fails.
   failure:

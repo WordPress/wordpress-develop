@@ -2,7 +2,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_includesTemplate extends WP_UnitTestCase {
+class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51147

@@ -843,9 +843,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * Tests for when 'sidebars_widgets' theme mod is populated.
 	 *
-	 * @covers ::retrieve_widgets
+	 * @covers ::sync_registered_widgets
 	 */
-	function test_retrieve_widgets_with_theme_mod() {
+	function test_sync_registered_widgets_with_theme_mod() {
 		global $sidebars_widgets, $_wp_sidebars_widgets;
 
 		wp_widgets_init();
@@ -873,7 +873,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'wp_inactive_widgets' => array(),
 		);
 
-		$result = retrieve_widgets( true );
+		$result = sync_registered_widgets( true );
 
 		$this->assertIsArray( $result );
 		$this->assertSame( $result, $sidebars_widgets );
@@ -906,9 +906,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * Tests for when sidebars widgets matches registered sidebars.
 	 *
-	 * @covers ::retrieve_widgets
+	 * @covers ::sync_registered_widgets
 	 */
-	function test_retrieve_widgets_with_sidebars_widgets_matching_registered_sidebars() {
+	function test_sync_registered_widgets_with_sidebars_widgets_matching_registered_sidebars() {
 		global $sidebars_widgets;
 
 		wp_widgets_init();
@@ -921,7 +921,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'wp_inactive_widgets' => array(),
 		);
 
-		$result = retrieve_widgets( true );
+		$result = sync_registered_widgets( true );
 
 		// $sidebars_widgets matches registered sidebars.
 		$this->assertIsArray( $result );
@@ -944,9 +944,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * Tests for when sidebars widgets doesn't match registered sidebars.
 	 *
-	 * @covers ::retrieve_widgets
+	 * @covers ::sync_registered_widgets
 	 */
-	function test_retrieve_widgets_with_sidebars_widgets_not_matching_registered_sidebars() {
+	function test_sync_registered_widgets_with_sidebars_widgets_not_matching_registered_sidebars() {
 		global $sidebars_widgets, $_wp_sidebars_widgets;
 
 		wp_widgets_init();
@@ -960,7 +960,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		// Theme changed.
-		$result = retrieve_widgets( true );
+		$result = sync_registered_widgets( true );
 
 		$_wp_sidebars_widgets = array();
 		$this->assertIsArray( $result );
@@ -1002,7 +1002,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		// Theme did not change.
-		$result = retrieve_widgets();
+		$result = sync_registered_widgets();
 
 		$_wp_sidebars_widgets = array();
 		$this->assertIsArray( $result );
@@ -1036,9 +1036,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * Tests for Customizer mode.
 	 *
-	 * @covers ::retrieve_widgets
+	 * @covers ::sync_registered_widgets
 	 */
-	function test_retrieve_widgets_for_customizer() {
+	function test_sync_registered_widgets_for_customizer() {
 		global $sidebars_widgets, $_wp_sidebars_widgets;
 
 		wp_widgets_init();
@@ -1053,7 +1053,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 		set_theme_mod( 'sidebars_widgets', $old_sidebars_widgets );
 
-		$result = retrieve_widgets( 'customize' );
+		$result = sync_registered_widgets( 'customize' );
 
 		$_wp_sidebars_widgets = array();
 		$this->assertIsArray( $result );
@@ -1082,7 +1082,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertNotEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
 	}
 
-	function test_retrieve_widgets_with_single_widget() {
+	function test_sync_registered_widgets_with_single_widget() {
 		global $sidebars_widgets;
 
 		wp_widgets_init();
@@ -1099,7 +1099,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		// Theme changed.
-		$result = retrieve_widgets( true );
+		$result = sync_registered_widgets( true );
 
 		$this->assertContains( 'single', $result['wp_inactive_widgets'] );
 	}
@@ -1107,9 +1107,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * Tests for orphaned widgets being moved into inactive widgets.
 	 *
-	 * @covers ::retrieve_widgets
+	 * @covers ::sync_registered_widgets
 	 */
-	function test_retrieve_widgets_move_orphaned_widgets_to_inactive() {
+	function test_sync_registered_widgets_move_orphaned_widgets_to_inactive() {
 		global $sidebars_widgets;
 
 		wp_widgets_init();
@@ -1122,7 +1122,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'orphaned_widgets_1'  => array( 'calendar-1' ),
 		);
 
-		retrieve_widgets();
+		sync_registered_widgets();
 
 		$this->assertIsArray( $sidebars_widgets );
 
