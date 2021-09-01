@@ -115,7 +115,6 @@ module.exports = function(grunt) {
 				WORKING_DIR + 'wp-admin/css/*-rtl*.css',
 				WORKING_DIR + 'wp-includes/css/*.min.css',
 				WORKING_DIR + 'wp-includes/css/*-rtl*.css',
-				WORKING_DIR + 'wp-includes/css/dist/',
 				WORKING_DIR + 'wp-admin/css/colors/**/*.css'
 			],
 			js: [
@@ -124,6 +123,7 @@ module.exports = function(grunt) {
 			],
 			'webpack-assets': [
 				WORKING_DIR + 'wp-includes/assets/*',
+				WORKING_DIR + 'wp-includes/css/dist/',
 				'!' + WORKING_DIR + 'wp-includes/assets/script-loader-packages.php'
 			],
 			dynamic: {
