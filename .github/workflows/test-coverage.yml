@@ -90,7 +90,6 @@ jobs:
       - name: "Get last Monday's date"
         id: get-date
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
-        shell: bash
 
       - name: Get Composer cache directory
         id: composer-cache

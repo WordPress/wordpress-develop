@@ -15,7 +15,7 @@
  *
  * @since 5.6.1
  */
-class Tests_WP_SimplePie_File extends WP_UnitTestCase {
+class Tests_Feed_wpSimplePieFile extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 

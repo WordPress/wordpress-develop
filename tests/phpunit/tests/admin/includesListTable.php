@@ -3,7 +3,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_includesListTable extends WP_UnitTestCase {
+class Tests_Admin_IncludesListTable extends WP_UnitTestCase {
 	protected static $top           = array();
 	protected static $children      = array();
 	protected static $grandchildren = array();
@@ -360,7 +360,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 		add_filter(
 			'bulk_actions-edit-comments',
-			function() {
+			static function() {
 				return array(
 					'delete'       => 'Delete',
 					'Change State' => array(
