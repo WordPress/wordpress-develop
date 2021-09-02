@@ -69,6 +69,14 @@ npm run test:php
 npm run test:e2e
 ```
 
+#### To check the code against standards
+
+These commands run the PHPCS so you can see problems with the code:
+
+```
+npm run phpcs:src
+npm run phpcs:tests
+```
 #### To restart the development environment
 
 You may want to restart the environment if you've made changes to the configuration in the `docker-compose.yml` or `.env` files. Restart the environment with:
