@@ -91,7 +91,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 		foreach ( wp_get_sidebars_widgets() as $id => $widgets ) {
 			$sidebar = $this->get_sidebar( $id );
 
@@ -116,7 +116,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 
 		$data              = array();
 		$permissions_check = $this->do_permissions_check();
@@ -149,7 +149,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 
 		$sidebar = $this->get_sidebar( $request['id'] );
 		if ( $sidebar && $this->check_read_permission( $sidebar ) ) {
@@ -180,7 +180,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 
 		$sidebar = $this->get_sidebar( $request['id'] );
 		if ( ! $sidebar ) {
@@ -290,11 +290,11 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 *
 	 * @return void
 	 */
-	protected function retrieve_widgets() {
+	protected function sync_registered_widgets() {
 		if ( $this->widgets_retrieved ) {
 			return;
 		}
-		retrieve_widgets();
+		sync_registered_widgets();
 		$this->widgets_retrieved = true;
 	}
 

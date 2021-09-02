@@ -102,7 +102,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 		if ( isset( $request['sidebar'] ) && $this->check_read_sidebar_permission( $request['sidebar'] ) ) {
 			return true;
 		}
@@ -125,7 +125,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 
 		$prepared          = array();
 		$permissions_check = $this->permissions_check( $request );
@@ -160,7 +160,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
@@ -198,7 +198,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
@@ -284,7 +284,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		global $wp_widget_factory;
 
 		/*
-		 * retrieve_widgets() contains logic to move "hidden" or "lost" widgets to the
+		 * sync_registered_widgets() contains logic to move "hidden" or "lost" widgets to the
 		 * wp_inactive_widgets sidebar based on the contents of the $sidebars_widgets global.
 		 *
 		 * When batch requests are processed, this global is not properly updated by previous
@@ -295,7 +295,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 */
 		wp_get_sidebars_widgets();
 
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
@@ -360,7 +360,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		global $wp_widget_factory, $wp_registered_widget_updates;
 
 		/*
-		 * retrieve_widgets() contains logic to move "hidden" or "lost" widgets to the
+		 * sync_registered_widgets() contains logic to move "hidden" or "lost" widgets to the
 		 * wp_inactive_widgets sidebar based on the contents of the $sidebars_widgets global.
 		 *
 		 * When batch requests are processed, this global is not properly updated by previous
@@ -371,7 +371,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 */
 		wp_get_sidebars_widgets();
 
-		$this->retrieve_widgets();
+		$this->sync_registered_widgets();
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
@@ -493,11 +493,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @return void
 	 */
-	protected function retrieve_widgets() {
+	protected function sync_registered_widgets() {
 		if ( $this->widgets_retrieved ) {
 			return;
 		}
-		retrieve_widgets();
+		sync_registered_widgets();
 		$this->widgets_retrieved = true;
 	}
 
@@ -854,7 +854,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array(),
 					'arg_options' => array(
-						'sanitize_callback' => function( $string ) {
+						'sanitize_callback' => static function( $string ) {
 							$array = array();
 							wp_parse_str( $string, $array );
 							return $array;

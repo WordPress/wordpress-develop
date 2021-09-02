@@ -3113,7 +3113,7 @@ function wp_rel_nofollow( $text ) {
 	$text = stripslashes( $text );
 	$text = preg_replace_callback(
 		'|<a (.+?)>|i',
-		function( $matches ) {
+		static function( $matches ) {
 			return wp_rel_callback( $matches, 'nofollow' );
 		},
 		$text
@@ -3147,7 +3147,7 @@ function wp_rel_ugc( $text ) {
 	$text = stripslashes( $text );
 	$text = preg_replace_callback(
 		'|<a (.+?)>|i',
-		function( $matches ) {
+		static function( $matches ) {
 			return wp_rel_callback( $matches, 'nofollow ugc' );
 		},
 		$text
@@ -4964,12 +4964,12 @@ function map_deep( $value, $callback ) {
  * @param array  $array  Variables will be stored in this array.
  */
 function wp_parse_str( $string, &$array ) {
-	parse_str( $string, $array );
+	parse_str( (string) $string, $array );
 
 	/**
 	 * Filters the array of variables derived from a parsed string.
 	 *
-	 * @since 2.3.0
+	 * @since 2.2.1
 	 *
 	 * @param array $array The array populated with variables.
 	 */

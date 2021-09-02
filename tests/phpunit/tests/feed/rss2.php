@@ -8,7 +8,7 @@
  *
  * @group feed
  */
-class Tests_Feeds_RSS2 extends WP_UnitTestCase {
+class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $user_id;
 	public static $posts;
 	public static $category;

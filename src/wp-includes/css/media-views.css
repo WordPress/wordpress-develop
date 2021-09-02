@@ -370,7 +370,7 @@
 }
 
 .media-sidebar h2,
-.image-details h2 {
+.image-details h2:not(.media-attachments-filter-heading) {
 	position: relative;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -2617,7 +2617,9 @@
 
 	.attachments-browser .attachments,
 	.attachments-browser .uploader-inline,
-	.attachments-browser .media-toolbar {
+	.attachments-browser .media-toolbar,
+	.attachments-browser .attachments-wrapper,
+	.attachments-browser.has-load-more .attachments-wrapper {
 		right: 262px;
 	}
 
@@ -2884,8 +2886,13 @@
 
 	.attachments-browser .attachments,
 	.attachments-browser .uploader-inline,
-	.attachments-browser .media-toolbar {
+	.attachments-browser .media-toolbar,
+	.media-frame-content .attachments-browser .attachments-wrapper {
 		right: 0;
+	}
+
+	.attachments-browser .attachments-wrapper {
+		padding-top: 12px;
 	}
 
 	.image-details .media-frame-title {
