@@ -47,7 +47,7 @@ if ( ! defined( 'CUSTOM_TAGS' ) ) {
 
 // Ensure that these variables are added to the global namespace
 // (e.g. if using namespaces / autoload in the current PHP environment).
-global $allowedposttags, $allowedtags, $allowedentitynames, $allowedxmlentitynames;
+global $allowedposttags, $allowedtags, $allowedentitynames, $allowedxmlnamedentities;
 
 if ( ! CUSTOM_TAGS ) {
 	/**
@@ -712,7 +712,7 @@ if ( ! CUSTOM_TAGS ) {
 	);
 
 	/**
-	 * @var string[] $allowedxmlentitynames Array of KSES allowed XML entitity names.
+	 * @var string[] $allowedxmlnamedentities Array of KSES allowed XML entitity names.
 	 * @since 5.5.0
 	 */
 	$allowedxmlnamedentities = array(
