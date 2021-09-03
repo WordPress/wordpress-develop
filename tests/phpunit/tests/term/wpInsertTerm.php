@@ -182,6 +182,25 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 39678
+	 */
+	public function test_wp_insert_term_slug_0_string() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$found = wp_insert_term(
+			'Quality',
+			'wptests_tax',
+			array(
+				'slug' => '0',
+			)
+		);
+
+		$term = get_term( $found['term_id'], 'wptests_tax' );
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertSame( '0', $term->slug );
+	}
+
+	/**
 	 * @ticket 17689
 	 */
 	public function test_wp_insert_term_duplicate_name() {
