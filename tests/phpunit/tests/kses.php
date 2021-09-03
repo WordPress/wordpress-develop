@@ -6,7 +6,7 @@
  * @group kses
  */
 class Tests_Kses extends WP_UnitTestCase {
-	
+
 	/**
 	 * Test callback for `wp_kses_normalize_entities()` regular expression.
 	 *
@@ -19,9 +19,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_wp_kses_xml_named_entities( $input, $expected ) {
-
 		$this->assertSame( $expected, wp_kses_xml_named_entities( $input ) );
-
 	}
 
 	/**
@@ -53,7 +51,7 @@ class Tests_Kses extends WP_UnitTestCase {
 
 		);
 	}
-	
+
 	/**
 	 * @dataProvider data_wp_filter_post_kses_address
 	 * @ticket 20210
