@@ -58,6 +58,7 @@ function strip_ws( $txt ) {
  *     add_action( 'foo', array( &$ma, 'action' ) );
  */
 class MockAction {
+	// stores all called actions/filters in an array, where `action`/`filter` is the callback and `tag` is the called hook
 	public $events;
 	public $debug;
 
@@ -168,12 +169,12 @@ class MockAction {
 		return $this->events;
 	}
 
-	// Return a count of the number of times the action was called since the last reset.
+	// Return a count of the number of times the action or filter ( = tag ) was called since the last reset.
 	function get_call_count( $tag = '' ) {
 		if ( $tag ) {
 			$count = 0;
 			foreach ( $this->events as $e ) {
-				if ( $e['action'] === $tag ) {
+				if ( $e['tag'] === $tag ) {
 					++$count;
 				}
 			}
@@ -182,7 +183,7 @@ class MockAction {
 		return count( $this->events );
 	}
 
-	// Return an array of the tags that triggered calls to this action.
+	// Return an array of the tags (actions or filters) that triggered calls to this action.
 	function get_tags() {
 		$out = array();
 		foreach ( $this->events as $e ) {
