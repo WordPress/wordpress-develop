@@ -6,7 +6,54 @@
  * @group kses
  */
 class Tests_Kses extends WP_UnitTestCase {
+	
+	/**
+	 * Test callback for `wp_kses_normalize_entities()` regular expression.
+	 *
+	 * @dataProvider  data_wp_kses_xml_named_entities
+	 *
+	 * @ticket 54060
+	 *
+	 * @param array  $input     Expected input.
+	 * @param string $expected  Expected output.
+	 * @return void
+	 */
+	public function test_wp_kses_xml_named_entities( $input, $expected ) {
 
+		$this->assertSame( $expected, wp_kses_xml_named_entities( $input ) );
+
+	}
+
+	/**
+	 * Data provider testing kses named entities.
+	 *
+	 * @return array Nested array of input, expected pairs.
+	 */
+	public function data_wp_kses_xml_named_entities() {
+		return array(
+
+			// null value testing.
+			'null'       => array( '', '' ),
+
+			// null array value testing.
+			'null array' => array( array( '', '' ), '' ),
+
+			// $allowedxmlnamedentities values testing.
+			'amp'        => array( array( '', 'amp' ), '&amp;' ),
+			'lt'         => array( array( '', 'lt' ), '&lt;' ),
+			'gt'         => array( array( '', 'gt' ), '&gt;' ),
+
+			// $allowedentitynames values testing.
+			'nbsp'       => array( array( '', 'nbsp' ), html_entity_decode( '&nbsp;', ENT_HTML5 ) ),
+			'iexcl'      => array( array( '', 'iexcl' ), html_entity_decode( '&iexcl;', ENT_HTML5 ) ),
+			'cent'       => array( array( '', 'cent' ), html_entity_decode( '&cent;', ENT_HTML5 ) ),
+
+			// some other value testing.
+			'test'       => array( array( '', 'test' ), '&amp;test;' ),
+
+		);
+	}
+	
 	/**
 	 * @dataProvider data_wp_filter_post_kses_address
 	 * @ticket 20210
