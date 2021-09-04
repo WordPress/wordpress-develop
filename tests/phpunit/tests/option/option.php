@@ -142,6 +142,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			'string 0'            => array( '0' ),
 			'string single space' => array( ' ' ),
 			'integer 0'           => array( 0 ),
+			'float 0.0'           => array( 0.0 ),
 			'boolean false'       => array( false ),
 			'null'                => array( null ),
 		);
