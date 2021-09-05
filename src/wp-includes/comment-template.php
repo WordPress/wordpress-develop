@@ -1927,16 +1927,32 @@ function post_reply_link( $args = array(), $post = null ) {
  *
  * @since 2.7.0
  *
- * @param string $text Optional. Text to display for cancel reply link. If empty,
- *                     defaults to 'Click here to cancel reply'. Default empty.
+ * @param string $text    Optional. Text to display for cancel reply link. If empty,
+ *                        defaults to 'Click here to cancel reply'. Default empty.
+ * @param int    $post_id Optional. The post ID the comment thread is being
+ *                        displayed for. Default: current global post ID.
  * @return string
  */
-function get_cancel_comment_reply_link( $text = '' ) {
+function get_cancel_comment_reply_link( $text = '', $post_id = 0 ) {
 	if ( empty( $text ) ) {
 		$text = __( 'Click here to cancel reply.' );
 	}
 
-	$style = isset( $_GET['replytocom'] ) ? '' : ' style="display:none;"';
+	if ( empty( $post_id ) ) {
+		$post_id = get_the_ID();
+	}
+
+	$reply_to_id = isset( $_GET['replytocom'] ) ? (int) $_GET['replytocom'] : 0;
+
+	if ( 0 !== $reply_to_id ) {
+		$parent_comment = get_comment( $reply_to_id );
+
+		if ( ! $parent_comment || 0 === (int) $parent_comment->comment_approved || $post_id !== (int) $parent_comment->comment_post_ID ) {
+			$reply_to_id = 0;
+		}
+	}
+
+	$style = ! empty( $reply_to_id ) ? '' : ' style="display:none;"';
 	$link  = esc_html( remove_query_arg( array( 'replytocom', 'unapproved', 'moderation-hash' ) ) ) . '#respond';
 
 	$formatted_link = '<a rel="nofollow" id="cancel-comment-reply-link" href="' . $link . '"' . $style . '>' . $text . '</a>';
