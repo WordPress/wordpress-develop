@@ -393,7 +393,21 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53962
-	 * @dataProvider data_should_not_allow_reply
+	 */
+	public function test_should_output_the_author_of_an_approved_comment() {
+		// Must be set for `comment_form_title()`.
+		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
+
+		$comment  = get_comment( $_GET['replytocom'] );
+		$expected = 'Leave a Reply to ' . $comment->comment_author;
+		comment_form_title( false, false, false, self::$post_id );
+
+		$this->expectOutputString( $expected );
+	}
+
+	/**
+	 * @ticket 53962
+	 * @dataProvider data_parent_comments
 	 *
 	 * @param mixed $replytocom       The ID of the parent comment.
 	 * @param int   $comment_post_id  The post ID of the comment.
@@ -410,48 +424,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_should_not_allow_reply() {
-		return array(
-			'an unapproved parent comment'                 => array(
-				'replytocom'      => $this->create_comment_with_approval_status( false ),
-				'comment_post_id' => self::$post_id,
-			),
-			'an approved parent comment on another post'   => array(
-				'replytocom'      => $this->create_comment_with_approval_status( true ),
-				'comment_post_id' => self::factory()->post->create(),
-			),
-			'an unapproved parent comment on another post' => array(
-				'replytocom'      => $this->create_comment_with_approval_status( false ),
-				'comment_post_id' => self::factory()->post->create(),
-			),
-			'a parent comment id that cannot be cast to an integer' => array(
-				'replytocom'      => array( 'I cannot be cast to an integer.' ),
-				'comment_post_id' => self::$post_id,
-			),
-		);
-	}
-
-	/**
 	 * @ticket 53962
-	 */
-	public function test_should_output_the_author_of_an_approved_comment() {
-		// Must be set for `comment_form_title()`.
-		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
-
-		$comment  = get_comment( $_GET['replytocom'] );
-		$expected = 'Leave a Reply to ' . $comment->comment_author;
-		comment_form_title( false, false, false, self::$post_id );
-
-		$this->expectOutputString( $expected );
-	}
-
-	/**
-	 * @ticket 53962
-	 * @dataProvider data_should_not_output_the_author
+	 * @dataProvider data_parent_comments
 	 *
 	 * @param mixed $replytocom       The ID of the parent comment.
 	 * @param int   $comment_post_id  The post ID of the comment.
@@ -472,7 +446,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_not_output_the_author() {
+	public function data_parent_comments() {
 		return array(
 			'an unapproved parent comment'                 => array(
 				'replytocom'      => $this->create_comment_with_approval_status( false ),
