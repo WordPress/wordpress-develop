@@ -177,7 +177,7 @@ CREATE TABLE $wpdb->posts (
 	post_parent bigint(20) unsigned NOT NULL default '0',
 	guid varchar(255) NOT NULL default '',
 	menu_order int(11) NOT NULL default '0',
-	post_type varchar(20) NOT NULL default 'post',
+	post_type varchar(64) NOT NULL default 'post',
 	post_mime_type varchar(100) NOT NULL default '',
 	comment_count bigint(20) NOT NULL default '0',
 	PRIMARY KEY  (ID),

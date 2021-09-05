@@ -1512,9 +1512,9 @@ function register_post_type( $post_type, $args = array() ) {
 	// Sanitize post type name.
 	$post_type = sanitize_key( $post_type );
 
-	if ( empty( $post_type ) || strlen( $post_type ) > 20 ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Post type names must be between 1 and 20 characters in length.' ), '4.2.0' );
-		return new WP_Error( 'post_type_length_invalid', __( 'Post type names must be between 1 and 20 characters in length.' ) );
+	if ( empty( $post_type ) || strlen( $post_type ) > 64 ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Post type names must be between 1 and 64 characters in length.' ), '4.2.0' );
+		return new WP_Error( 'post_type_length_invalid', __( 'Post type names must be between 1 and 64 characters in length.' ) );
 	}
 
 	$post_type_object = new WP_Post_Type( $post_type, $args );
