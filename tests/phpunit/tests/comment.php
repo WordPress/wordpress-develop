@@ -380,7 +380,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * @ticket 53962
 	 */
-	public function test_can_reply_to_approved_comment() {
+	public function test_should_allow_reply_to_an_approved_comment() {
 		// Must be set for `get_comment_id_fields()`.
 		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
 
@@ -393,61 +393,46 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53962
+	 * @dataProvider data_should_not_allow_reply
+	 *
+	 * @param mixed $replytocom       The ID of the parent comment.
+	 * @param int   $comment_post_id  The post ID of the comment.
 	 */
-	public function test_cannot_reply_to_unapproved_comment() {
+	public function test_should_not_allow_reply( $replytocom, $comment_post_id ) {
 		// Must be set for `get_comment_id_fields()`.
-		$_GET['replytocom'] = $this->create_comment_with_approval_status( false );
+		$_GET['replytocom'] = $replytocom;
 
-		$expected = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
+		$expected  = "<input type='hidden' name='comment_post_ID' value='" . $comment_post_id . "' id='comment_post_ID' />\n";
 		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
-		$actual   = get_comment_id_fields( self::$post_id );
+		$actual    = get_comment_id_fields( $comment_post_id );
 
 		$this->assertSame( $expected, $actual );
 	}
 
 	/**
-	 * @ticket 53962
+	 * Data provider.
+	 *
+	 * @return array
 	 */
-	public function test_cannot_reply_to_comment_on_one_post_from_another_post() {
-		// Must be set for `get_comment_id_fields()`.
-		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
-
-		$another_post = $this->factory->post->create();
-		$expected     = "<input type='hidden' name='comment_post_ID' value='" . $another_post . "' id='comment_post_ID' />\n";
-		$expected    .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
-		$actual       = get_comment_id_fields( $another_post );
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * @ticket 53962
-	 */
-	public function test_should_not_allow_replying_to_an_unapproved_comment_on_another_post() {
-		// Must be set for `get_comment_id_fields()`.
-		$_GET['replytocom'] = $this->create_comment_with_approval_status( false );
-
-		$another_post = $this->factory->post->create();
-		$expected     = "<input type='hidden' name='comment_post_ID' value='" . $another_post . "' id='comment_post_ID' />\n";
-		$expected    .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
-		$actual       = get_comment_id_fields( $another_post );
-
-		$this->assertSame( $expected, $actual );
-	}
-
-
-	/**
-	 * @ticket 53962
-	 */
-	public function test_should_not_allow_a_parent_comment_id_that_is_not_castable_to_an_integer() {
-		// Must be set for `get_comment_id_fields()`.
-		$_GET['replytocom'] = array( "I'm not castable to an integer." );
-
-		$expected  = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
-		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
-		$actual    = get_comment_id_fields( self::$post_id );
-
-		$this->assertSame( $expected, $actual );
+	public function data_should_not_allow_reply() {
+		return array(
+			'an unapproved parent comment' => array(
+				'replytocom'      => $this->create_comment_with_approval_status( false ),
+				'comment_post_id' => self::$post_id,
+			),
+			'an approved parent comment on another post' => array(
+				'replytocom'      => $this->create_comment_with_approval_status( true ),
+				'comment_post_id' => self::factory()->post->create(),
+			),
+			'an unapproved parent comment on another post' => array(
+				'replytocom'      => $this->create_comment_with_approval_status( false ),
+				'comment_post_id' => self::factory()->post->create(),
+			),
+			'a parent comment id that cannot be cast to an integer' => array(
+				'replytocom'      => array( 'I cannot be cast to an integer.' ),
+				'comment_post_id' => self::$post_id,
+			),
+		);
 	}
 
 	/**
@@ -459,22 +444,53 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment  = get_comment( $_GET['replytocom'] );
 		$expected = 'Leave a Reply to ' . $comment->comment_author;
-		comment_form_title( false, false, false );
+		comment_form_title( false, false, false, self::$post_id );
 
 		$this->expectOutputString( $expected );
 	}
 
 	/**
 	 * @ticket 53962
+	 * @dataProvider data_should_not_output_the_author
+	 *
+	 * @param mixed $replytocom       The ID of the parent comment.
+	 * @param int   $comment_post_id  The post ID of the comment.
 	 */
-	public function test_do_not_output_author_of_unapproved_comment() {
+	public function test_should_not_output_the_author( $replytocom, $comment_post_id ) {
 		// Must be set for `comment_form_title()`.
-		$_GET['replytocom'] = $this->create_comment_with_approval_status( false );
+		$_GET['replytocom'] = $replytocom;
 
+		$comment = get_comment( $_GET['replytocom'] );
 		$expected = 'Leave a Reply';
-		comment_form_title( false, false, false );
+		comment_form_title( false, false, false, $comment_post_id );
 
 		$this->expectOutputString( $expected );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_should_not_output_the_author() {
+		return array(
+			'an unapproved parent comment' => array(
+				'replytocom'      => $this->create_comment_with_approval_status( false ),
+				'comment_post_id' => self::$post_id,
+			),
+			'an approved parent comment on another post' => array(
+				'replytocom'      => $this->create_comment_with_approval_status( true ),
+				'comment_post_id' => self::factory()->post->create(),
+			),
+			'an unapproved parent comment on another post' => array(
+				'replytocom'      => $this->create_comment_with_approval_status( false ),
+				'comment_post_id' => self::factory()->post->create(),
+			),
+			'a parent comment id that cannot be cast to an integer' => array(
+				'replytocom'      => array( 'I cannot be cast to an integer.' ),
+				'comment_post_id' => self::$post_id,
+			),
+		);
 	}
 
 	/**
