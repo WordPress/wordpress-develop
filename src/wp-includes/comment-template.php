@@ -2000,6 +2000,7 @@ function get_comment_id_fields( $post_id = 0 ) {
 	if ( 0 !== $reply_to_id ) {
 		$comment = get_comment( $reply_to_id );
 
+		if ( ! $comment || 0 === (int) $comment->comment_approved || $post_id !== (int) $comment->comment_post_ID ) {
 			$reply_to_id = 0;
 		}
 	}
@@ -2077,7 +2078,7 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 		// Sets the global so that template tags can be used in the comment form.
 		$comment = get_comment( $reply_to_id );
 
-		if ( 0 === (int) $comment->comment_approved ) {
+		if ( $comment && 0 === (int) $comment->comment_approved ) {
 			echo $no_reply_text;
 			return;
 		}
