@@ -423,7 +423,37 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * @ticket 53962
 	 */
-	public function test_output_author_of_approved_comment() {
+	public function test_should_not_allow_replying_to_an_unapproved_comment_on_another_post() {
+		// Must be set for `get_comment_id_fields()`.
+		$_GET['replytocom'] = $this->create_comment_with_approval_status( false );
+
+		$another_post = $this->factory->post->create();
+		$expected     = "<input type='hidden' name='comment_post_ID' value='" . $another_post . "' id='comment_post_ID' />\n";
+		$expected    .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
+		$actual       = get_comment_id_fields( $another_post );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+
+	/**
+	 * @ticket 53962
+	 */
+	public function test_should_not_allow_a_parent_comment_id_that_is_not_castable_to_an_integer() {
+		// Must be set for `get_comment_id_fields()`.
+		$_GET['replytocom'] = array( "I'm not castable to an integer." );
+
+		$expected  = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
+		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
+		$actual    = get_comment_id_fields( self::$post_id );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 53962
+	 */
+	public function test_should_output_the_author_of_an_approved_comment() {
 		// Must be set for `comment_form_title()`.
 		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
 
