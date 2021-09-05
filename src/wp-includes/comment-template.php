@@ -2056,8 +2056,9 @@ function comment_id_fields( $post_id = 0 ) {
  *                                     being replied to.
  * @param bool         $link_to_parent Optional. Boolean to control making the author's name a link
  *                                     to their comment. Default true.
+ * @param int|WP_Post  $post_id        Post ID or WP_Post object. Default current post.
  */
-function comment_form_title( $no_reply_text = false, $reply_text = false, $link_to_parent = true ) {
+function comment_form_title( $no_reply_text = false, $reply_text = false, $link_to_parent = true, $post_id = null ) {
 	global $comment;
 
 	if ( false === $no_reply_text ) {
@@ -2071,26 +2072,31 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 
 	$reply_to_id = isset( $_GET['replytocom'] ) ? (int) $_GET['replytocom'] : 0;
 
-	if ( 0 == $reply_to_id ) {
+	if ( ! $post_id || 0 == $reply_to_id ) {
 		echo $no_reply_text;
-	} else {
-
-		// Sets the global so that template tags can be used in the comment form.
-		$comment = get_comment( $reply_to_id );
-
-		if ( $comment && 0 === (int) $comment->comment_approved ) {
-			echo $no_reply_text;
-			return;
-		}
-
-		if ( $link_to_parent ) {
-			$author = '<a href="#comment-' . get_comment_ID() . '">' . get_comment_author( $comment ) . '</a>';
-		} else {
-			$author = get_comment_author( $comment );
-		}
-
-		printf( $reply_text, $author );
+		return;
 	}
+
+	// Sets the global so that template tags can be used in the comment form.
+	$comment = get_comment( $reply_to_id );
+
+	if ( ! $comment ) {
+		echo $no_reply_text;
+		return;
+	}
+
+	if ( $post_id !== (int) $comment->comment_post_ID || 0 === (int) $comment->comment_approved ) {
+		echo $no_reply_text;
+		return;
+	}
+
+	if ( $link_to_parent ) {
+		$author = '<a href="#comment-' . get_comment_ID() . '">' . get_comment_author( $comment ) . '</a>';
+	} else {
+		$author = get_comment_author( $comment );
+	}
+
+	printf( $reply_text, $author );
 }
 
 /**
@@ -2601,7 +2607,7 @@ function comment_form( $args = array(), $post = null ) {
 		<?php
 		echo $args['title_reply_before'];
 
-		comment_form_title( $args['title_reply'], $args['title_reply_to'] );
+		comment_form_title( $args['title_reply'], $args['title_reply_to'], true, $post_id );
 
 		if ( get_option( 'thread_comments' ) ) {
 			echo $args['cancel_reply_before'];
