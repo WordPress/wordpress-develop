@@ -2072,7 +2072,7 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 
 	$reply_to_id = isset( $_GET['replytocom'] ) ? (int) $_GET['replytocom'] : 0;
 
-	if ( ! $post_id || 0 == $reply_to_id ) {
+	if ( ! $post_id || 0 === $reply_to_id ) {
 		echo $no_reply_text;
 		return;
 	}
