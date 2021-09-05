@@ -399,6 +399,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		$_GET['replytocom'] = $this->create_comment_with_approval_status( false );
 
 		$expected = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
+		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
 		$actual   = get_comment_id_fields( self::$post_id );
 
 		$this->assertSame( $expected, $actual );
@@ -413,6 +414,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$another_post = $this->factory->post->create();
 		$expected     = "<input type='hidden' name='comment_post_ID' value='" . $another_post . "' id='comment_post_ID' />\n";
+		$expected    .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
 		$actual       = get_comment_id_fields( $another_post );
 
 		$this->assertSame( $expected, $actual );
