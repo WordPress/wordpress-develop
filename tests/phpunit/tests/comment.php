@@ -416,11 +416,11 @@ class Tests_Comment extends WP_UnitTestCase {
 	 */
 	public function data_should_not_allow_reply() {
 		return array(
-			'an unapproved parent comment' => array(
+			'an unapproved parent comment'                 => array(
 				'replytocom'      => $this->create_comment_with_approval_status( false ),
 				'comment_post_id' => self::$post_id,
 			),
-			'an approved parent comment on another post' => array(
+			'an approved parent comment on another post'   => array(
 				'replytocom'      => $this->create_comment_with_approval_status( true ),
 				'comment_post_id' => self::factory()->post->create(),
 			),
@@ -460,7 +460,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Must be set for `comment_form_title()`.
 		$_GET['replytocom'] = $replytocom;
 
-		$comment = get_comment( $_GET['replytocom'] );
+		$comment  = get_comment( $_GET['replytocom'] );
 		$expected = 'Leave a Reply';
 		comment_form_title( false, false, false, $comment_post_id );
 
@@ -474,11 +474,11 @@ class Tests_Comment extends WP_UnitTestCase {
 	 */
 	public function data_should_not_output_the_author() {
 		return array(
-			'an unapproved parent comment' => array(
+			'an unapproved parent comment'                 => array(
 				'replytocom'      => $this->create_comment_with_approval_status( false ),
 				'comment_post_id' => self::$post_id,
 			),
-			'an approved parent comment on another post' => array(
+			'an approved parent comment on another post'   => array(
 				'replytocom'      => $this->create_comment_with_approval_status( true ),
 				'comment_post_id' => self::factory()->post->create(),
 			),
