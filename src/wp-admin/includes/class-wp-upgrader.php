@@ -1115,6 +1115,10 @@ class WP_Upgrader {
 			 */
 			function() {
 				global $wp_filesystem;
+				if ( ! $wp_filesystem ) {
+					include_once ABSPATH . '/wp-admin/includes/file.php';
+					WP_Filesystem();
+				}
 				$dirlist = $wp_filesystem->dirlist( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' );
 				foreach ( array_keys( $dirlist ) as $dir ) {
 					if ( '.' === $dir || '..' === $dir ) {
