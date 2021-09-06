@@ -232,7 +232,11 @@ function wp_maybe_get_local_webfont_url( $remote_url = '' ) {
 	// Get the CSS from the response.
 	$remote_styles = wp_remote_retrieve_body( $response );
 
-	// Get an array of locally-hosted files.
+	if ( 'text/css' !== wp_remote_retrieve_header( $response, 'content-type' ) ) {
+		return $remote_url;
+	}
+
+	// Get an array of all files from the CSS.
 	$font_faces = explode( '@font-face', $remote_styles );
 
 	$font_files = array();
