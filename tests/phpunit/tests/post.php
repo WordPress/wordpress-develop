@@ -1798,10 +1798,10 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
 
-	function test_wp_update_post_not_keep_mod_dates(){
+	function test_wp_update_post_not_keep_mod_dates() {
 
 		$past_date = gmdate( 'Y-m-d H:i:s', time() - 100 );
-		$post = self::factory()->post->create_and_get(
+		$post      = self::factory()->post->create_and_get(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => $past_date,
@@ -1827,10 +1827,10 @@ class Tests_Post extends WP_UnitTestCase {
 	 * @ticket 54020
 	 * @covers ::wp_update_post
 	 */
-	function test_wp_update_post_keep_mod_dates(){
+	function test_wp_update_post_keep_mod_dates() {
 
 		$past_date = gmdate( 'Y-m-d H:i:s', time() - 100 );
-		$post = self::factory()->post->create_and_get(
+		$post      = self::factory()->post->create_and_get(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => $past_date,
@@ -1852,19 +1852,19 @@ class Tests_Post extends WP_UnitTestCase {
 	 * @ticket 54020
 	 * @covers ::wp_update_post
 	 */
-	function test_wp_update_post_pass_new_dates(){
+	function test_wp_update_post_pass_new_dates() {
 
 		$past_date = gmdate( 'Y-m-d H:i:s', time() - 100 );
-		$post = self::factory()->post->create_and_get(
+		$post      = self::factory()->post->create_and_get(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => $past_date,
 			)
 		);
 
-		$older_date = gmdate( 'Y-m-d H:i:s', time() - 10 );
-		$post->post_modified = $older_date;
-		$older_date_gmt = get_gmt_from_date( gmdate( 'Y-m-d H:i:s', time() - 10000 ) );
+		$older_date              = gmdate( 'Y-m-d H:i:s', time() - 10 );
+		$post->post_modified     = $older_date;
+		$older_date_gmt          = get_gmt_from_date( gmdate( 'Y-m-d H:i:s', time() - 10000 ) );
 		$post->post_modified_gmt = $older_date_gmt;
 
 		add_filter( 'wp_update_post_preserve_dates', '__return_true' );
@@ -1883,10 +1883,10 @@ class Tests_Post extends WP_UnitTestCase {
 	 * @ticket 54020
 	 * @covers ::wp_update_post
 	 */
-	function test_wp_update_post_set_both_mod_dates(){
+	function test_wp_update_post_set_both_mod_dates() {
 
-		$past_date = gmdate( 'Y-m-d H:i:s', time() - 100 );
-		$post = self::factory()->post->create_and_get(
+		$past_date  = gmdate( 'Y-m-d H:i:s', time() - 100 );
+		$post       = self::factory()->post->create_and_get(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => $past_date,
@@ -1894,10 +1894,13 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		$older_date = gmdate( 'Y-m-d H:i:s', time() - 10000 );
 
-		add_filter( 'wp_update_post_preserve_dates', static function () use ($older_date) {
+		add_filter(
+			'wp_update_post_preserve_dates',
+			static function () use ( $older_date ) {
 
-			return $older_date;
-		} );
+				return $older_date;
+			}
+		);
 
 		$updated_post_id = wp_update_post( $post );
 
@@ -1914,21 +1917,27 @@ class Tests_Post extends WP_UnitTestCase {
 	 * @ticket 54020
 	 * @covers ::wp_update_post
 	 */
-	function test_wp_update_post_set_dif_mod_dates(){
+	function test_wp_update_post_set_dif_mod_dates() {
 
-		$past_date = gmdate( 'Y-m-d H:i:s', time() - 100 );
-		$post = self::factory()->post->create_and_get(
+		$past_date      = gmdate( 'Y-m-d H:i:s', time() - 100 );
+		$post           = self::factory()->post->create_and_get(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => $past_date,
 			)
 		);
-		$older_date = gmdate( 'Y-m-d H:i:s', time() - 10 );
+		$older_date     = gmdate( 'Y-m-d H:i:s', time() - 10 );
 		$older_date_gmt = get_gmt_from_date( gmdate( 'Y-m-d H:i:s', time() - 10000 ) );
-		add_filter( 'wp_update_post_preserve_dates', static function () use ( $older_date, $older_date_gmt ) {
+		add_filter(
+			'wp_update_post_preserve_dates',
+			static function () use ( $older_date, $older_date_gmt ) {
 
-			return array( 'post_modified_gmt' => $older_date_gmt, 'post_modified' => $older_date );
-		} );
+				return array(
+					'post_modified_gmt' => $older_date_gmt,
+					'post_modified'     => $older_date,
+				);
+			}
+		);
 
 		$updated_post_id = wp_update_post( $post );
 
