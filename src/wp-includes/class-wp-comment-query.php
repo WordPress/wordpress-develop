@@ -802,9 +802,18 @@ class WP_Comment_Query {
 
 		// Falsey search strings are ignored.
 		if ( strlen( $this->query_vars['search'] ) ) {
+			/**
+			 * Specifying allowed fields directly, excluding comment_author_email field for unlogged users, to avoid unwanted data exposure for public endpoint.
+			 * Leaving possibility to search by email if function called internally for better backward compatibility.
+			 * @link https://core.trac.wordpress.org/ticket/53784
+			 */
+			$allowed_columns = array( 'comment_author', 'comment_author_url', 'comment_author_IP', 'comment_content' );
+			if ( is_user_logged_in() && current_user_can( 'list_users' ) ) {
+				$allowed_columns[] = 'comment_author_email';
+			}
 			$search_sql = $this->get_search_sql(
 				$this->query_vars['search'],
-				array( 'comment_author', 'comment_author_url', 'comment_author_IP', 'comment_content' )
+				$allowed_columns
 			);
 
 			// Strip leading 'AND'.

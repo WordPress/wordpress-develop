@@ -160,7 +160,7 @@ class WP_User_Query {
 	 *                                             When `$search_columns` is left empty, it tries to determine which
 	 *                                             column to search in based on search string. Default empty.
 	 *     @type string[]     $search_columns      Array of column names to be searched. Accepts 'ID', 'user_login',
-	 *                                             'user_url', 'user_nicename', 'display_name'.
+	 *                                             'user_email', 'user_url', 'user_nicename', 'display_name'.
 	 *                                             Default empty array.
 	 *     @type string|array $orderby             Field(s) to sort the retrieved users by. May be a single value,
 	 *                                             an array of values, or a multi-dimensional array with fields as
@@ -520,15 +520,17 @@ class WP_User_Query {
 
 			$search_columns = array();
 			if ( $qv['search_columns'] ) {
-				$search_columns = array_intersect( $qv['search_columns'], array( 'ID', 'user_login', 'user_url', 'user_nicename', 'display_name' ) );
+				$search_columns = array_intersect( $qv['search_columns'], array( 'ID', 'user_login', 'user_email', 'user_url', 'user_nicename', 'display_name' ) );
 			}
 			if ( ! $search_columns ) {
-				if ( is_numeric( $search ) ) {
+				if ( false !== strpos( $search, '@' ) ) {
+					$search_columns = array( 'user_email' );
+				} elseif ( is_numeric( $search ) ) {
 					$search_columns = array( 'user_login', 'ID' );
 				} elseif ( preg_match( '|^https?://|', $search ) && ! ( is_multisite() && wp_is_large_network( 'users' ) ) ) {
 					$search_columns = array( 'user_url' );
 				} else {
-					$search_columns = array( 'user_login', 'user_url', 'user_nicename', 'display_name' );
+					$search_columns = array( 'user_login', 'user_url', 'user_email', 'user_nicename', 'display_name' );
 				}
 			}
 
@@ -536,7 +538,7 @@ class WP_User_Query {
 			 * Filters the columns to search in a WP_User_Query search.
 			 *
 			 * The default columns depend on the search term, and include 'ID', 'user_login',
-			 * 'user_url', 'user_nicename', and 'display_name'.
+			 * 'user_email', 'user_url', 'user_nicename', and 'display_name'.
 			 *
 			 * @since 3.6.0
 			 *
