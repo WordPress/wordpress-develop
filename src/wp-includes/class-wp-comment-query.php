@@ -804,7 +804,7 @@ class WP_Comment_Query {
 		if ( strlen( $this->query_vars['search'] ) ) {
 			$search_sql = $this->get_search_sql(
 				$this->query_vars['search'],
-				array( 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_author_IP', 'comment_content' )
+				array( 'comment_author', 'comment_author_url', 'comment_author_IP', 'comment_content' )
 			);
 
 			// Strip leading 'AND'.
