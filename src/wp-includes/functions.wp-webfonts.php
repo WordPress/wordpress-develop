@@ -159,7 +159,17 @@ function wp_webfont_add_data( $handle, $key, $value ) {
  *
  * @return string Returns the local URL if it exists, otherwise the remote URL.
  */
-function wp_maybe_get_local_webfont_url( $remote_url ) {
+function wp_maybe_get_local_webfont_url( $remote_url = '' ) {
+
+	// If $remote_url is empty, get ehe value from a transient and loop the array.
+	if ( empty( $remote_url ) ) {
+		$font_faces_to_download = (array) get_site_transient( 'webfonts_to_download' );
+		foreach ( $font_faces_to_download as $font_face ) {
+			wp_maybe_get_local_webfont_url( $font_face );
+		}
+		return;
+	}
+
 	$folder_path           = trailingslashit( WP_CONTENT_DIR ) . 'fonts';
 	$local_stylesheet_path = "$folder_path/" . md5( content_url() . WP_CONTENT_DIR . $remote_url ) . '.css';
 	$local_stylesheet_url  = str_replace( trailingslashit( WP_CONTENT_DIR ), content_url(), $local_stylesheet_path );
@@ -167,6 +177,18 @@ function wp_maybe_get_local_webfont_url( $remote_url ) {
 	// Return the local URL if the file exists.
 	if ( file_exists( $local_stylesheet_path ) ) {
 		return $local_stylesheet_url;
+	}
+
+	// In order to avoid affecting performance during page-load, we'll only
+	// run the downloader on `shutdown`, after the page has finished loading.
+	// To do that, we're adding a `webfonts_to_download` transient to store the URLs we need to download.
+	if ( ! doing_action( 'shutdown' ) ) {
+		$font_faces_to_download   = get_site_transient( 'webfonts_to_download' );
+		$font_faces_to_download   = $font_faces_to_download ? $font_faces_to_download : array();
+		$font_faces_to_download[] = $remote_url;
+		set_site_transient( 'webfonts_to_download', $font_faces_to_download, DAY_IN_SECONDS );
+		add_action( 'shutdown', 'wp_maybe_get_local_webfont_url' );
+		return $remote_url;
 	}
 
 	// Get the filesystem.
