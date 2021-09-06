@@ -1127,7 +1127,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
-	public function test_search_users_email() {
+	public function test_search_users_no_email() {
 		$users = get_users(
 			array(
 				'search' => '*battle*',
@@ -1135,7 +1135,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( (string) self::$contrib_id, $users );
+		$this->assertNotContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_nicename() {

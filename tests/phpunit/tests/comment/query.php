@@ -2471,7 +2471,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c5 ), $found );
+		$this->assertSameSets( array( $c1, $c3, $c4, $c5 ), $found );
 	}
 
 	/**
