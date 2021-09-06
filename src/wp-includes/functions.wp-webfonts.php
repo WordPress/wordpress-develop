@@ -285,7 +285,8 @@ function wp_maybe_get_local_webfont_url( $remote_url = '' ) {
 	}
 
 	// Downloaded font-files are stored in an option to improve performance and reduce lookups.
-	$cached_files = get_site_option( 'downloaded_font_files', array() );
+	$cached_files = get_site_transient( 'downloaded_font_files_' . md5( $remote_url ) );
+	$cached_files = $cached_files ? $cached_files : array();
 
 	// If in the end $change is true, the cache option will need to be updated.
 	$change = false;
@@ -352,7 +353,7 @@ function wp_maybe_get_local_webfont_url( $remote_url = '' ) {
 				unset( $cached_files[ $url ] );
 			}
 		}
-		update_site_option( 'downloaded_font_files', $cached_files );
+		set_site_transient( 'downloaded_font_files_' . md5( $remote_url ), $cached_files, MONTH_IN_SECONDS );
 	}
 
 	// Convert paths to URLs.
