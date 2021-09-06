@@ -4033,7 +4033,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		} elseif ( ! is_array( $update_date ) && strtotime( $update_date ) ){
 			$post_modified     = $update_date;
 			$post_modified_gmt = get_gmt_from_date( $update_date );
-		} elseif ( is_array( $update_date ) && isset( $update_date['post_modified'] ) && isset( $update_date['post_modified_gmt'] ) ){
+		} elseif ( is_array( $update_date ) && isset( $update_date['post_modified'], $update_date['post_modified_gmt'] ) ){
 			$post_modified      = $update_date['post_modified'];
 			$post_modified_gmt  = $update_date['post_modified_gmt'];
 		} else {
