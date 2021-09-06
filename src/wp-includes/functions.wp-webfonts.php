@@ -170,7 +170,7 @@ function wp_maybe_get_local_webfont_url( $remote_url = '' ) {
 		return;
 	}
 
-	$folder_path           = trailingslashit( WP_CONTENT_DIR ) . 'fonts';
+	$folder_path           = WP_CONTENT_DIR . '/fonts';
 	$local_stylesheet_path = "$folder_path/" . md5( content_url() . WP_CONTENT_DIR . $remote_url ) . '.css';
 	$local_stylesheet_url  = str_replace( trailingslashit( WP_CONTENT_DIR ), content_url(), $local_stylesheet_path );
 
@@ -299,7 +299,7 @@ function wp_maybe_get_local_webfont_url( $remote_url = '' ) {
 	foreach ( $font_files as $font_family => $files ) {
 
 		// The folder path for this font-family.
-		$folder_path = trailingslashit( WP_CONTENT_DIR ) . "fonts/$font_family";
+		$folder_path = WP_CONTENT_DIR . "/fonts/$font_family";
 
 		// If the folder doesn't exist, create it.
 		if ( ! file_exists( $folder_path ) ) {
