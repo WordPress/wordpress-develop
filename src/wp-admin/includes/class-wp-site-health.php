@@ -1886,8 +1886,7 @@ class WP_Site_Health {
 	 * @return array The test results.
 	 */
 	public function get_test_available_updates_disk_space() {
-		$disabled              = explode( ',', ini_get( 'disable_functions' ) );
-		$available_space       = ! in_array( 'disk_free_space', $disabled, true ) ? (int) disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : false;
+		$available_space       = function_exists( 'disk_free_space' ) ? (int) @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : false;
 		$available_space_in_mb = $available_space / MB_IN_BYTES;
 
 		$result = array(
