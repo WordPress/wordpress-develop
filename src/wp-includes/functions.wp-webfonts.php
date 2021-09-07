@@ -161,18 +161,24 @@ function wp_webfont_generate_styles( $params ) {
 	foreach ( $params as $key => $value ) {
 		if ( 'src' === $key ) {
 			$src = "local({$params['font-family']})";
-			$valid_formats = array( 'woff2', 'woff', 'truetype', 'embedded-opentype' );
-			foreach ( $value as $format => $url ) {
-				if ( ! in_array( $format, $valid_formats, true ) ) {
-					continue;
+			foreach ( $value as $url ) {
+				if ( str_ends_with( $url, '.woff2' ) ) {
+					$src .= ", url('{$url}') format('woff2')";
+				} elseif ( str_ends_with( $url, '.woff' ) ) {
+					$src .= ", url('{$url}') format('woff')";
+				} elseif ( str_ends_with( $url, '.ttf' ) ) {
+					$src .= ", url('{$url}') format('truetype')";
+				} elseif ( str_ends_with( $url, '.svg' ) ) {
+					$src .= ", url('{$url}#{$params['font-family']}') format('svg')";
+				} elseif ( str_ends_with( $url, '.eot' ) ) {
+					$src .= ", url('{$url}') format('embedded-opentype')";
 				}
-				$src .= ", url({$url}) format('{$format}')";
 			}
 			$value = $src;
 		}
 
 		if ( ! empty( $value ) ) {
-			$css .= "$key: $value;";
+			$css .= "$key:$value;";
 		}
 	}
 	$css .= '}';
@@ -180,3 +186,18 @@ function wp_webfont_generate_styles( $params ) {
 	return $css;
 }
 
+if ( ! function_exists( 'str_ends_with' ) ) {
+	/**
+	 * Polyfill for PHP 8's str_ends_with() function.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The string to search for.
+	 * @return bool Whether the $haystack ends with the $needle.
+	 */
+	function str_ends_with( $haystack, $needle ) {
+		$length = strlen( $needle );
+		return $length > 0 ? substr( $haystack, -$length ) === $needle : true;
+	}
+}
