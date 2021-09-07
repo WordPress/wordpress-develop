@@ -1711,10 +1711,10 @@ function validate_username( $username ) {
  * @since 2.0.0
  * @since 3.6.0 The `aim`, `jabber`, and `yim` fields were removed as default user contact
  *              methods for new installations. See wp_get_user_contact_methods().
- * @since 4.7.0 The user's locale can be passed to `$userdata`.
+ * @since 4.7.0 The `locale` field can be passed to `$userdata`.
  * @since 5.3.0 The `user_activation_key` field can be passed to `$userdata`.
  * @since 5.3.0 The `spam` field can be passed to `$userdata` (Multisite only).
- * @since 5.8.0 Added `meta_input` to allow addition of user meta data.
+ * @since x.x.x The `meta_input` field can be passed to `$userdata` to allow addition of user meta data.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1759,7 +1759,7 @@ function validate_username( $username ) {
  *                                        as a string literal, not boolean. Default 'true'.
  *     @type string $role                 User's role.
  *     @type string $locale               User's locale. Default empty.
- *     @type array  $meta_input           Array of user meta values keyed by their user meta key. Default empty.
+ *     @type array  $meta_input           Array of user meta values keyed by meta key. Default empty.
  * }
  * @return int|WP_Error The newly created user's ID or a WP_Error object if the user could not
  *                      be created.
@@ -2095,9 +2095,9 @@ function wp_insert_user( $userdata ) {
 	 * Filters a user's custom meta values and keys immediately after the user is created or updated
 	 * and before any user meta is inserted or updated.
 	 *
-	 * @since 5.8.0
+	 * @since x.x.x
 	 *
-	 * @param array   $custom_meta Array of user meta values keyed by their user meta key. Default empty.
+	 * @param array   $custom_meta Array of user meta values keyed by their user meta key.
 	 * @param WP_User $user        User object.
 	 * @param bool    $update      Whether the user is being updated rather than created.
 	 */
