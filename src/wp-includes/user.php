@@ -2100,8 +2100,9 @@ function wp_insert_user( $userdata ) {
 	 * @param array   $custom_meta Array of user meta values keyed by their user meta key.
 	 * @param WP_User $user        User object.
 	 * @param bool    $update      Whether the user is being updated rather than created.
+	 * @param array   $userdata    The raw array of data passed to wp_insert_user().
 	 */
-	$custom_meta = apply_filters( 'insert_user_custom_meta', $custom_meta, $user, $update );
+	$custom_meta = apply_filters( 'insert_user_custom_meta', $custom_meta, $user, $update, $userdata );
 
 	$meta = array_merge( $meta, $custom_meta );
 
