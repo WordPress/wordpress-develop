@@ -144,12 +144,10 @@ function wp_webfont_add_data( $handle, $key, $value ) {
  */
 function wp_webfont_generate_styles( $params ) {
 	$defaults = array(
-		'font-family'   => '',
 		'font-weight'   => '400',
 		'font-style'    => 'normal',
 		'font-display'  => 'fallback',
 		'src'           => array(),
-		'unicode-range' => '',
 	);
 	$params = wp_parse_args( $params, $defaults );
 
@@ -164,25 +162,22 @@ function wp_webfont_generate_styles( $params ) {
 	 * @return string The font-file format.
 	 */
 	$get_format = function( $url ) {
-		if ( '.woff2' === substr( $url, -6 ) ) {
-			return 'woff2';
+		switch ( pathinfo( $url, PATHINFO_EXTENSION ) ) {
+			case 'woff2':
+				return 'woff2';
+			case 'woff':
+				return 'woff';
+			case 'ttf':
+				return 'truetype';
+			case 'svg':
+				return 'svg';
+			case 'eot':
+				return 'embedded-opentype';
+			case 'otf':
+				return 'opentype';
+			default:
+				return '';
 		}
-		if ( '.woff' === substr( $url, -5 ) ) {
-			return 'woff';
-		}
-		if ( '.ttf' === substr( $url, -4 ) ) {
-			return 'truetype';
-		}
-		if ( '.svg' === substr( $url, -4 ) ) {
-			return 'svg';
-		}
-		if ( '.eot' === substr( $url, -4 ) ) {
-			return 'embedded-opentype';
-		}
-		if ( '.otf' === substr( $url, -4 ) ) {
-			return 'opentype';
-		}
-		return '';
 	};
 
 	$css = '@font-face{';
