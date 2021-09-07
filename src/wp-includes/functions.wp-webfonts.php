@@ -205,6 +205,14 @@ function wp_webfont_generate_styles( $params ) {
 			$value = $src;
 		}
 
+		if ( 'variation' === $key && is_array( $value ) ) {
+			$variations = array();
+			foreach ( $value as $key => $val ) {
+				$variations[] = "$key $val";
+			}
+			$value = implode( ', ', $variations );
+		}
+
 		if ( ! empty( $value ) ) {
 			$css .= "$key:$value;";
 		}
