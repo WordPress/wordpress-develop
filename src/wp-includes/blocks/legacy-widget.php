@@ -120,6 +120,7 @@ function handle_legacy_widget_preview_iframe() {
 				?>
 			</div><!-- #content -->
 		</div><!-- #page -->
+		<?php wp_footer(); ?>
 	</body>
 	</html>
 	<?php
