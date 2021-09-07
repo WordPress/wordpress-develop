@@ -1006,7 +1006,8 @@ function has_custom_logo( $blog_id = 0 ) {
  * Returns a custom logo, linked to home unless the theme supports removing the link on the home page.
  *
  * @since 4.5.0
- * @since 5.5.0 Added option to remove the link on the home page with `unlink-homepage-logo` theme support.
+ * @since 5.5.0 Added option to remove the link on the home page with `unlink-homepage-logo` theme support
+ *              for the `custom-logo` theme feature.
  * @since 5.5.1 Disabled lazy-loading by default.
  *
  * @param int $blog_id Optional. ID of the blog in question. Default is the ID of the current blog.
@@ -1237,10 +1238,15 @@ function wp_get_document_title() {
 	$title = apply_filters( 'document_title_parts', $title );
 
 	$title = implode( " $sep ", array_filter( $title ) );
-	$title = wptexturize( $title );
-	$title = convert_chars( $title );
-	$title = esc_html( $title );
-	$title = capital_P_dangit( $title );
+
+	/**
+	 * Filters the document title.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $title Document title.
+	 */
+	$title = apply_filters( 'document_title', $title );
 
 	return $title;
 }
@@ -1284,7 +1290,7 @@ function _wp_render_title_tag() {
  *                            Default '&raquo;'.
  * @param bool   $display     Optional. Whether to display or retrieve title. Default true.
  * @param string $seplocation Optional. Location of the separator ('left' or 'right').
- * @return string|null String on retrieve, null when displaying.
+ * @return string|void String when `$display` is true, nothing otherwise.
  */
 function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	global $wp_locale;
@@ -3288,9 +3294,25 @@ function wp_resource_hints() {
 		 * Filters domains and URLs for resource hints of relation type.
 		 *
 		 * @since 4.6.0
+		 * @since 4.7.0 The `$urls` parameter accepts arrays of specific HTML attributes
+		 *              as its child elements.
 		 *
-		 * @param array  $urls          URLs to print for resource hints.
-		 * @param string $relation_type The relation type the URLs are printed for, e.g. 'preconnect' or 'prerender'.
+		 * @param array  $urls {
+		 *     Array of resources and their attributes, or URLs to print for resource hints.
+		 *
+		 *     @type array|string ...$0 {
+		 *         Array of resource attributes, or a URL string.
+		 *
+		 *         @type string $href        URL to include in resource hints. Required.
+		 *         @type string $as          How the browser should treat the resource
+		 *                                   (`script`, `style`, `image`, `document`, etc).
+		 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
+		 *         @type float  $pr          Expected probability that the resource hint will be used.
+		 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
+		 *     }
+		 * }
+		 * @param string $relation_type The relation type the URLs are printed for,
+		 *                              e.g. 'preconnect' or 'prerender'.
 		 */
 		$urls = apply_filters( 'wp_resource_hints', $urls, $relation_type );
 
@@ -3502,7 +3524,7 @@ function wp_editor( $content, $editor_id, $settings = array() ) {
  * Outputs the editor scripts, stylesheets, and default settings.
  *
  * The editor can be initialized when needed after page load.
- * See wp.editor.initialize() in wp-admin/js/editor.js for initialization options.
+ * See wp.oldEditor.initialize() in wp-admin/js/editor.js for initialization options.
  *
  * @uses _WP_Editors
  * @since 4.8.0
@@ -4741,14 +4763,16 @@ function get_the_generator( $type = '' ) {
 /**
  * Outputs the HTML checked attribute.
  *
- * Compares the first two arguments and if identical marks as checked
+ * Compares the first two arguments and if identical marks as checked.
  *
  * @since 1.0.0
  *
- * @param mixed $checked One of the values to compare
- * @param mixed $current (true) The other value to compare if not just true
- * @param bool  $echo    Whether to echo or just return the string
- * @return string HTML attribute or empty string
+ * @param mixed $checked One of the values to compare.
+ * @param mixed $current Optional. The other value to compare if not just true.
+ *                       Default true.
+ * @param bool  $echo    Optional. Whether to echo or just return the string.
+ *                       Default true.
+ * @return string HTML attribute or empty string.
  */
 function checked( $checked, $current = true, $echo = true ) {
 	return __checked_selected_helper( $checked, $current, $echo, 'checked' );
@@ -4757,14 +4781,16 @@ function checked( $checked, $current = true, $echo = true ) {
 /**
  * Outputs the HTML selected attribute.
  *
- * Compares the first two arguments and if identical marks as selected
+ * Compares the first two arguments and if identical marks as selected.
  *
  * @since 1.0.0
  *
- * @param mixed $selected One of the values to compare
- * @param mixed $current  (true) The other value to compare if not just true
- * @param bool  $echo     Whether to echo or just return the string
- * @return string HTML attribute or empty string
+ * @param mixed $selected One of the values to compare.
+ * @param mixed $current  Optional. The other value to compare if not just true.
+ *                        Default true.
+ * @param bool  $echo     Optional. Whether to echo or just return the string.
+ *                        Default true.
+ * @return string HTML attribute or empty string.
  */
 function selected( $selected, $current = true, $echo = true ) {
 	return __checked_selected_helper( $selected, $current, $echo, 'selected' );
@@ -4773,14 +4799,16 @@ function selected( $selected, $current = true, $echo = true ) {
 /**
  * Outputs the HTML disabled attribute.
  *
- * Compares the first two arguments and if identical marks as disabled
+ * Compares the first two arguments and if identical marks as disabled.
  *
  * @since 3.0.0
  *
- * @param mixed $disabled One of the values to compare
- * @param mixed $current  (true) The other value to compare if not just true
- * @param bool  $echo     Whether to echo or just return the string
- * @return string HTML attribute or empty string
+ * @param mixed $disabled One of the values to compare.
+ * @param mixed $current  Optional. The other value to compare if not just true.
+ *                        Default true.
+ * @param bool  $echo     Optional. Whether to echo or just return the string.
+ *                        Default true.
+ * @return string HTML attribute or empty string.
  */
 function disabled( $disabled, $current = true, $echo = true ) {
 	return __checked_selected_helper( $disabled, $current, $echo, 'disabled' );
@@ -4789,32 +4817,44 @@ function disabled( $disabled, $current = true, $echo = true ) {
 /**
  * Outputs the HTML readonly attribute.
  *
- * Compares the first two arguments and if identical marks as readonly
+ * Compares the first two arguments and if identical marks as readonly.
  *
- * @since 4.9.0
+ * @since 5.9.0
  *
- * @param mixed $readonly One of the values to compare
- * @param mixed $current  (true) The other value to compare if not just true
- * @param bool  $echo     Whether to echo or just return the string
- * @return string HTML attribute or empty string
+ * @param mixed $readonly One of the values to compare.
+ * @param mixed $current  Optional. The other value to compare if not just true.
+ *                        Default true.
+ * @param bool  $echo     Optional. Whether to echo or just return the string.
+ *                        Default true.
+ * @return string HTML attribute or empty string.
  */
-function readonly( $readonly, $current = true, $echo = true ) {
+function wp_readonly( $readonly, $current = true, $echo = true ) {
 	return __checked_selected_helper( $readonly, $current, $echo, 'readonly' );
+}
+
+/*
+ * Include a compat `readonly()` function on PHP < 8.1. Since PHP 8.1,
+ * `readonly` is a reserved keyword and cannot be used as a function name.
+ * In order to avoid PHP parser errors, this function was extracted
+ * to a separate file and is only included conditionally on PHP < 8.1.
+ */
+if ( PHP_VERSION_ID < 80100 ) {
+	require_once __DIR__ . '/php-compat/readonly.php';
 }
 
 /**
  * Private helper function for checked, selected, disabled and readonly.
  *
- * Compares the first two arguments and if identical marks as $type
+ * Compares the first two arguments and if identical marks as `$type`.
  *
  * @since 2.8.0
  * @access private
  *
- * @param mixed  $helper  One of the values to compare
- * @param mixed  $current (true) The other value to compare if not just true
- * @param bool   $echo    Whether to echo or just return the string
- * @param string $type    The type of checked|selected|disabled|readonly we are doing
- * @return string HTML attribute or empty string
+ * @param mixed  $helper  One of the values to compare.
+ * @param mixed  $current The other value to compare if not just true.
+ * @param bool   $echo    Whether to echo or just return the string.
+ * @param string $type    The type of checked|selected|disabled|readonly we are doing.
+ * @return string HTML attribute or empty string.
  */
 function __checked_selected_helper( $helper, $current, $echo, $type ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	if ( (string) $helper === (string) $current ) {

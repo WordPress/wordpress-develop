@@ -264,7 +264,21 @@ class WP_REST_Server {
 			$current_user = null;
 		}
 
-		$content_type = isset( $_GET['_jsonp'] ) ? 'application/javascript' : 'application/json';
+		/**
+		 * Filters whether JSONP is enabled for the REST API.
+		 *
+		 * @since 4.4.0
+		 *
+		 * @param bool $jsonp_enabled Whether JSONP is enabled. Default true.
+		 */
+		$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
+
+		$jsonp_callback = false;
+		if ( isset( $_GET['_jsonp'] ) ) {
+			$jsonp_callback = $_GET['_jsonp'];
+		}
+
+		$content_type = ( $jsonp_callback && $jsonp_enabled ) ? 'application/javascript' : 'application/json';
 		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ) );
 		$this->send_header( 'X-Robots-Tag', 'noindex' );
 
@@ -355,24 +369,12 @@ class WP_REST_Server {
 			)
 		);
 
-		/**
-		 * Filters whether JSONP is enabled for the REST API.
-		 *
-		 * @since 4.4.0
-		 *
-		 * @param bool $jsonp_enabled Whether JSONP is enabled. Default true.
-		 */
-		$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
-
-		$jsonp_callback = null;
-
-		if ( isset( $_GET['_jsonp'] ) ) {
+		if ( $jsonp_callback ) {
 			if ( ! $jsonp_enabled ) {
 				echo $this->json_error( 'rest_callback_disabled', __( 'JSONP support is disabled on this site.' ), 400 );
 				return false;
 			}
 
-			$jsonp_callback = $_GET['_jsonp'];
 			if ( ! wp_check_jsonp_callback( $jsonp_callback ) ) {
 				echo $this->json_error( 'rest_callback_invalid', __( 'Invalid JSONP callback function.' ), 400 );
 				return false;
@@ -1078,7 +1080,6 @@ class WP_REST_Server {
 	 * @param array           $handler  The matched route handler.
 	 * @param string          $route    The matched route regex.
 	 * @param WP_Error|null   $response The current error object if any.
-	 *
 	 * @return WP_REST_Response
 	 */
 	protected function respond_to_request( $request, $route, $handler, $response ) {
@@ -1224,8 +1225,9 @@ class WP_REST_Server {
 		);
 
 		$response = new WP_REST_Response( $available );
-		$response->add_link( 'help', 'http://v2.wp-api.org/' );
+		$response->add_link( 'help', 'https://developer.wordpress.org/rest-api/' );
 		$this->add_active_theme_link_to_index( $response );
+		$this->add_site_logo_to_index( $response );
 
 		/**
 		 * Filters the REST API root index data.
@@ -1267,6 +1269,29 @@ class WP_REST_Server {
 		if ( $should_add ) {
 			$theme = wp_get_theme();
 			$response->add_link( 'https://api.w.org/active-theme', rest_url( 'wp/v2/themes/' . $theme->get_stylesheet() ) );
+		}
+	}
+
+	/**
+	 * Exposes the site logo through the WordPress REST API.
+	 * This is used for fetching this information when user has no rights
+	 * to update settings.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param WP_REST_Response $response REST API response.
+	 */
+	protected function add_site_logo_to_index( WP_REST_Response $response ) {
+		$site_logo_id                = get_theme_mod( 'custom_logo' );
+		$response->data['site_logo'] = $site_logo_id;
+		if ( $site_logo_id ) {
+			$response->add_link(
+				'https://api.w.org/featuredmedia',
+				rest_url( 'wp/v2/media/' . $site_logo_id ),
+				array(
+					'embeddable' => true,
+				)
+			);
 		}
 	}
 

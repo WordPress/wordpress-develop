@@ -8,8 +8,8 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Set up.
 	 */
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		// Unregister all nav menu locations.
 		foreach ( array_keys( get_registered_nav_menus() ) as $location ) {

@@ -6,8 +6,27 @@
  * @group upload
  * @requires extension gd
  * @requires extension exif
+ *
+ * @covers ::wp_read_image_metadata
  */
 class Tests_Image_Meta extends WP_UnitTestCase {
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+		stream_wrapper_register( 'testimagemeta', 'WP_Test_Stream' );
+
+		WP_Test_Stream::$data = array(
+			'wp_read_image_metadata' => array(
+				'/image1.jpg' => file_get_contents( DIR_TESTDATA . '/images/test-image-upside-down.jpg' ),
+				'/image2.jpg' => file_get_contents( DIR_TESTDATA . '/images/2004-07-22-DSC_0007.jpg' ),
+				'/image3.jpg' => file_get_contents( DIR_TESTDATA . '/images/33772.jpg' ),
+			),
+		);
+	}
+
+	public static function wpTearDownAfterClass() {
+		stream_wrapper_unregister( 'testimagemeta' );
+	}
 
 	function test_exif_d70() {
 		// Exif from a Nikon D70.
@@ -150,4 +169,74 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( array( 'beach', 'baywatch', 'LA', 'sunset' ), $out['keywords'] );
 	}
 
+	/**
+	 * @dataProvider data_stream
+	 *
+	 * @ticket 52826
+	 * @ticket 52922
+	 *
+	 * @param string Stream's URI.
+	 * @param array  Expected metadata.
+	 */
+	public function test_stream( $file, $expected ) {
+		$actual = wp_read_image_metadata( $file );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	public function data_stream() {
+		return array(
+			'Orientation only metadata'                => array(
+				'file'     => 'testimagemeta://wp_read_image_metadata/image1.jpg',
+				'metadata' => array(
+					'aperture'          => '0',
+					'credit'            => '',
+					'camera'            => '',
+					'caption'           => '',
+					'created_timestamp' => '0',
+					'copyright'         => '',
+					'focal_length'      => '0',
+					'iso'               => '0',
+					'shutter_speed'     => '0',
+					'title'             => '',
+					'orientation'       => '3',
+					'keywords'          => array(),
+				),
+			),
+			'Exif from a Nikon D70 with IPTC data added later' => array(
+				'file'     => 'testimagemeta://wp_read_image_metadata/image2.jpg',
+				'metadata' => array(
+					'aperture'          => '6.3',
+					'credit'            => 'IPTC Creator',
+					'camera'            => 'NIKON D70',
+					'caption'           => 'IPTC Caption',
+					'created_timestamp' => '1090516475',
+					'copyright'         => 'IPTC Copyright',
+					'focal_length'      => '18',
+					'iso'               => '200',
+					'shutter_speed'     => '0.04',
+					'title'             => 'IPTC Headline',
+					'orientation'       => '0',
+					'keywords'          => array(),
+				),
+			),
+			'Exif from a DMC-LX2 camera with keywords' => array(
+				'file'     => 'testimagemeta://wp_read_image_metadata/image3.jpg',
+				'metadata' => array(
+					'aperture'          => '8',
+					'credit'            => 'Photoshop Author',
+					'camera'            => 'DMC-LX2',
+					'caption'           => 'Photoshop Description',
+					'created_timestamp' => '1306315327',
+					'copyright'         => 'Photoshop Copyrright Notice',
+					'focal_length'      => '6.3',
+					'iso'               => '100',
+					'shutter_speed'     => '0.0025',
+					'title'             => 'Photoshop Document Ttitle',
+					'orientation'       => '1',
+					'keywords'          => array( 'beach', 'baywatch', 'LA', 'sunset' ),
+				),
+			),
+		);
+	}
 }

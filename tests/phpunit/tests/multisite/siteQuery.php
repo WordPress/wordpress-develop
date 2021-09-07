@@ -14,16 +14,16 @@ if ( is_multisite() ) :
 
 		protected $suppress = false;
 
-		function setUp() {
+		function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tear_down() {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -135,7 +135,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertSame( 3, count( $found ) );
+			$this->assertCount( 3, $found );
 		}
 
 		public function test_wp_site_query_by_site__in_with_single_id() {
