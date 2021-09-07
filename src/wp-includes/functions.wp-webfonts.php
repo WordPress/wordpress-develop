@@ -30,7 +30,11 @@
  * @return bool Whether the style has been registered. True on success, false on failure.
  */
 function wp_register_webfont( $handle, $src, $params = array(), $ver = false, $media = 'screen' ) {
-	return wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
+	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
+	if ( $result ) {
+		wp_add_inline_style( "webfont-$handle", wp_webfont_generate_styles( $params ) );
+	}
+	return $result;
 }
 
 /**
@@ -70,7 +74,11 @@ function wp_deregister_webfont( $handle ) {
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  */
 function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = false, $media = 'screen' ) {
-	wp_enqueue_style( "webfont-$handle", $src, array(), $ver, $media );
+	$result = wp_enqueue_style( "webfont-$handle", $src, array(), $ver, $media );
+	if ( $result ) {
+		wp_add_inline_style( "webfont-$handle", wp_webfont_generate_styles( $params ) );
+	}
+	return $result;
 }
 
 /**
@@ -124,4 +132,72 @@ function wp_webfont_is( $handle, $list = 'enqueued' ) {
  */
 function wp_webfont_add_data( $handle, $key, $value ) {
 	return wp_style_add_data( "webfont-$handle", $key, $value );
+}
+
+/**
+ * Generates styles for a webfont.
+ *
+ * @since 5.9.0
+ *
+ * @param array $params The webfont parameters.
+ * @return string The styles.
+ */
+function wp_webfont_generate_styles( $params ) {
+	$defaults = array(
+		'font-family'   => '',
+		'font-weight'   => '400',
+		'font-style'    => 'normal',
+		'font-display'  => 'fallback',
+		'src'           => array(),
+		'unicode-range' => '',
+	);
+	$params = wp_parse_args( $params, $defaults );
+
+	if ( empty( $params['font-family'] ) ) {
+		return '';
+	}
+
+	$css = '@font-face{';
+	foreach ( $params as $key => $value ) {
+		if ( 'src' === $key ) {
+			$src = "local({$params['font-family']})";
+			foreach ( $value as $url ) {
+				if ( str_ends_with( $url, '.woff2' ) ) {
+					$src .= ", url('{$url}') format('woff2')";
+				} elseif ( str_ends_with( $url, '.woff' ) ) {
+					$src .= ", url('{$url}') format('woff')";
+				} elseif ( str_ends_with( $url, '.ttf' ) ) {
+					$src .= ", url('{$url}') format('truetype')";
+				} elseif ( str_ends_with( $url, '.svg' ) ) {
+					$src .= ", url('{$url}#{$params['font-family']}') format('svg')";
+				} elseif ( str_ends_with( $url, '.eot' ) ) {
+					$src .= ", url('{$url}') format('embedded-opentype')";
+				}
+			}
+			$value = $src;
+		}
+
+		if ( ! empty( $value ) ) {
+			$css .= "$key:$value;";
+		}
+	}
+	$css .= '}';
+
+	return $css;
+}
+
+if ( ! function_exists( 'str_ends_with' ) ) {
+	/**
+	 * Polyfill for PHP 8's str_ends_with() function.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The string to search for.
+	 * @return bool Whether the $haystack ends with the $needle.
+	 */
+	function str_ends_with( $haystack, $needle ) {
+		$length = strlen( $needle );
+		return $length > 0 ? substr( $haystack, -$length ) === $needle : true;
+	}
 }
