@@ -49,9 +49,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: 1: WordPress version number, 2: plural number of bugs. */
 						_n(
-							'<strong>Version %1$s</strong> fixed %2$s bug.',
-							'<strong>Version %1$s</strong> fixed %2$s bugs.',
-							11
+							'<strong>Version %1$s</strong> addressed %2$s bug.',
+							'<strong>Version %1$s</strong> addressed %2$s bugs.',
+							41
 						),
 						'5.8.1',
 						number_format_i18n( 41 )
