@@ -1861,8 +1861,9 @@ class Tests_User extends WP_UnitTestCase {
 			),
 		);
 		$create_user = wp_insert_user( $user_data );
-		$this->assertEquals( 'test_meta_value', get_user_meta( $create_user, 'test_meta_key', true ) );
-		$this->assertEquals( 'custom_value', get_user_meta( $create_user, 'custom_meta', true ) );
+
+		$this->assertSame( 'test_meta_value', get_user_meta( $create_user, 'test_meta_key', true ) );
+		$this->assertSame( 'custom_value', get_user_meta( $create_user, 'custom_meta', true ) );
 
 		// Update the user meta thru wp_insert_user.
 		$update_data = array(
@@ -1875,12 +1876,13 @@ class Tests_User extends WP_UnitTestCase {
 			),
 		);
 		$update_user = wp_insert_user( $update_data );
-		$this->assertEquals( 'test_meta_updated', get_user_meta( $update_user, 'test_meta_key', true ) );
-		$this->assertEquals( 'updated_value', get_user_meta( $update_user, 'custom_meta', true ) );
-		$this->assertEquals( 'new_meta_val', get_user_meta( $update_user, 'new_meta_k', true ) );
+
+		$this->assertSame( 'test_meta_updated', get_user_meta( $update_user, 'test_meta_key', true ) );
+		$this->assertSame( 'updated_value', get_user_meta( $update_user, 'custom_meta', true ) );
+		$this->assertSame( 'new_meta_val', get_user_meta( $update_user, 'new_meta_k', true ) );
 
 		// Create new user.
-		$new_user_data   = array(
+		$new_user_data = array(
 			'user_login' => 'new_test',
 			'user_pass'  => 'new_password',
 			'user_email' => 'new_user@newexample.com',
@@ -1894,11 +1896,12 @@ class Tests_User extends WP_UnitTestCase {
 		add_filter( 'insert_user_custom_meta', array( $this, 'filter_custom_meta' ) );
 
 		$new_user = wp_insert_user( $new_user_data );
+
 		// This meta is updated by the filter.
-		$this->assertEquals( 'update_from_filter', get_user_meta( $new_user, 'test_meta_key', true ) );
-		$this->assertEquals( 'new_user_custom_value', get_user_meta( $new_user, 'custom_meta', true ) );
+		$this->assertSame( 'update_from_filter', get_user_meta( $new_user, 'test_meta_key', true ) );
+		$this->assertSame( 'new_user_custom_value', get_user_meta( $new_user, 'custom_meta', true ) );
 		// This meta is inserted by the filter.
-		$this->assertEquals( 'new_from_filter', get_user_meta( $new_user, 'new_meta_from_filter', true ) );
+		$this->assertSame( 'new_from_filter', get_user_meta( $new_user, 'new_meta_from_filter', true ) );
 	}
 
 	/**
