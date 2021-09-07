@@ -157,21 +157,49 @@ function wp_webfont_generate_styles( $params ) {
 		return '';
 	}
 
+	/**
+	 * Get the font-file format from a URL.
+	 *
+	 * @param string $url The URL.
+	 * @return string The font-file format.
+	 */
+	$get_format = function( $url ) {
+		if ( '.woff2' === substr( $url, -6 ) ) {
+			return 'woff2';
+		}
+		if ( '.woff' === substr( $url, -5 ) ) {
+			return 'woff';
+		}
+		if ( '.ttf' === substr( $url, -4 ) ) {
+			return 'truetype';
+		}
+		if ( '.svg' === substr( $url, -4 ) ) {
+			return 'svg';
+		}
+		if ( '.eot' === substr( $url, -4 ) ) {
+			return 'embedded-opentype';
+		}
+		if ( '.otf' === substr( $url, -4 ) ) {
+			return 'opentype';
+		}
+		return '';
+	};
+
 	$css = '@font-face{';
 	foreach ( $params as $key => $value ) {
 		if ( 'src' === $key ) {
 			$src = "local({$params['font-family']})";
-			foreach ( $value as $url ) {
-				if ( str_ends_with( $url, '.woff2' ) ) {
+			if ( is_string( $value ) ) {
+				$format = $get_format( $value );
+				if ( $format ) {
 					$src .= ", url('{$url}') format('woff2')";
-				} elseif ( str_ends_with( $url, '.woff' ) ) {
-					$src .= ", url('{$url}') format('woff')";
-				} elseif ( str_ends_with( $url, '.ttf' ) ) {
-					$src .= ", url('{$url}') format('truetype')";
-				} elseif ( str_ends_with( $url, '.svg' ) ) {
-					$src .= ", url('{$url}#{$params['font-family']}') format('svg')";
-				} elseif ( str_ends_with( $url, '.eot' ) ) {
-					$src .= ", url('{$url}') format('embedded-opentype')";
+				}
+			} elseif ( is_array( $value ) ) {
+				foreach ( $value as $url ) {
+					$format = $get_format( $url );
+					if ( $format ) {
+						$src .= ", url('{$url}') format('{$format}')";
+					}
 				}
 			}
 			$value = $src;
@@ -184,20 +212,4 @@ function wp_webfont_generate_styles( $params ) {
 	$css .= '}';
 
 	return $css;
-}
-
-if ( ! function_exists( 'str_ends_with' ) ) {
-	/**
-	 * Polyfill for PHP 8's str_ends_with() function.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $haystack The string to search in.
-	 * @param string $needle   The string to search for.
-	 * @return bool Whether the $haystack ends with the $needle.
-	 */
-	function str_ends_with( $haystack, $needle ) {
-		$length = strlen( $needle );
-		return $length > 0 ? substr( $haystack, -$length ) === $needle : true;
-	}
 }
