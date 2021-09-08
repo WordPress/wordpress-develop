@@ -32,7 +32,7 @@
 function wp_register_webfont( $handle, $src, $params = array(), $ver = false, $media = 'screen' ) {
 	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
 	if ( $result ) {
-		wp_add_inline_style( "webfont-$handle", wp_webfont_generate_styles( $params ) );
+		wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
 	}
 	return $result;
 }
@@ -76,7 +76,7 @@ function wp_deregister_webfont( $handle ) {
 function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = false, $media = 'screen' ) {
 	$result = wp_enqueue_style( "webfont-$handle", $src, array(), $ver, $media );
 	if ( $result ) {
-		wp_add_inline_style( "webfont-$handle", wp_webfont_generate_styles( $params ) );
+		wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
 	}
 	return $result;
 }
@@ -142,7 +142,7 @@ function wp_webfont_add_data( $handle, $key, $value ) {
  * @param array $params The webfont parameters.
  * @return string The styles.
  */
-function wp_webfont_generate_styles( $params ) {
+function _wp_webfont_generate_styles( $params ) {
 	$defaults = array(
 		'font-weight'   => '400',
 		'font-style'    => 'normal',
