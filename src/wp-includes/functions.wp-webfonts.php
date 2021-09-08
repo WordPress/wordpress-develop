@@ -31,9 +31,8 @@
  */
 function wp_register_webfont( $handle, $src, $params = array(), $ver = false, $media = 'screen' ) {
 	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
-	if ( $result ) {
-		wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
-	}
+	_wp_maybe_preload_webfont( $params );
+	wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
 	return $result;
 }
 
@@ -75,9 +74,8 @@ function wp_deregister_webfont( $handle ) {
  */
 function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = false, $media = 'screen' ) {
 	$result = wp_enqueue_style( "webfont-$handle", $src, array(), $ver, $media );
-	if ( $result ) {
-		wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
-	}
+	_wp_maybe_preload_webfont( $params );
+	wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
 	return $result;
 }
 
@@ -182,6 +180,9 @@ function _wp_webfont_generate_styles( $params ) {
 
 	$css = '@font-face{';
 	foreach ( $params as $key => $value ) {
+		if ( 'preload' === $key ) {
+			continue;
+		}
 		if ( 'src' === $key ) {
 			$src = "local({$params['font-family']})";
 			if ( is_string( $value ) ) {
@@ -215,4 +216,51 @@ function _wp_webfont_generate_styles( $params ) {
 	$css .= '}';
 
 	return $css;
+}
+
+/**
+ * Pre-loads the webfont if needed.
+ *
+ * @since 5.9.0
+ *
+ * @param string $src    The webfont URL.
+ * @param array  $params The webfont parameters.
+ * @return void
+ */
+function _wp_maybe_preload_webfont( $params ) {
+	if ( empty( $params['preload'] ) || true !== $params['preload'] || empty( $params['src'] ) ) {
+		return;
+	}
+
+	$font_url = '';
+
+	foreach ( (array) $params['src'] as $url ) {
+		if ( 'woff2' === pathinfo( $url, PATHINFO_EXTENSION ) ) {
+			$font_url = $url;
+			break;
+		}
+	}
+
+	if ( empty( $font_url ) ) {
+		return;
+	}
+
+	add_action(
+		'wp_head',
+		function() use ( $font_url, $params ) {
+			$link = '<link rel="preload" href="' . esc_url( $font_url ) . '" as="font" type="font/woff2" crossorigin>';
+			/**
+			 * Filters the preload link for a webfont.
+			 * This filter is only applied if the webfont is preloaded.
+			 *
+			 * @since 5.9.0
+			 *
+			 * @param string $link   The preload link.
+			 * @param array  $params The webfont parameters.
+			 *
+			 * @return string The preload link.
+			 */
+			echo apply_filters( 'wp_preload_webfont', $link, $params );
+		}
+	);
 }
