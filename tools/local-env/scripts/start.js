@@ -8,9 +8,9 @@ dotenvExpand( dotenv.config() );
 execSync( 'docker-compose up -d wordpress-develop', { stdio: 'inherit' } );
 
 console.log(
-    `------------------------------------------------------
-WordPress Develop now running on http://127.0.0.1:${ process.env.LOCAL_PORT }
-------------------------------------------------------`
+    `-------------------------------------------
+wp-env now running on http://127.0.0.1:${ process.env.LOCAL_PORT }
+-------------------------------------------`
 );
 
 
