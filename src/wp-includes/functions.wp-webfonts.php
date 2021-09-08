@@ -9,16 +9,15 @@
  */
 
 /**
- * Register a webfont's stylesheet.
+ * Register a webfont's stylesheet and generate CSS rules for it.
  *
  * @see WP_Dependencies::add()
  * @link https://www.w3.org/TR/CSS2/media.html#media-types List of CSS media types.
  *
  * @since 5.9.0
  *
- * @param string           $handle Name of the stylesheet. Should be unique.
+ * @param string           $handle Name of the webfont. Should be unique.
  * @param string|bool      $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
- *                                 If source is set to false, stylesheet is an alias of other stylesheets it depends on.
  * @param array            $params Optional. An array of parameters. Default empty array.
  * @param string|bool|null $ver    Optional. String specifying stylesheet version number, if it has one, which is added to the URL
  *                                 as a query string for cache busting purposes. If version is set to false, a version
@@ -29,7 +28,7 @@
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  * @return bool Whether the style has been registered. True on success, false on failure.
  */
-function wp_register_webfont( $handle, $src, $params = array(), $ver = false, $media = 'screen' ) {
+function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $media = 'screen' ) {
 	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
 	_wp_maybe_preload_webfont( $params );
 	wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
@@ -37,20 +36,20 @@ function wp_register_webfont( $handle, $src, $params = array(), $ver = false, $m
 }
 
 /**
- * Remove a registered stylesheet.
+ * Remove a registered webfont.
  *
  * @see WP_Dependencies::remove()
  *
  * @since 5.9.0
  *
- * @param string $handle Name of the stylesheet to be removed.
+ * @param string $handle Name of the webfont to be removed.
  */
 function wp_deregister_webfont( $handle ) {
 	wp_deregister_style( "webfont-$handle" );
 }
 
 /**
- * Enqueue a webfont's CSS stylesheet.
+ * Enqueue a webfont's CSS stylesheet and generate CSS rules for it.
  *
  * Registers the style if source provided (does NOT overwrite) and enqueues.
  *
@@ -60,7 +59,7 @@ function wp_deregister_webfont( $handle ) {
  *
  * @since 5.9.0
  *
- * @param string           $handle Name of the stylesheet. Should be unique.
+ * @param string           $handle Name of the webfont. Should be unique.
  * @param string           $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
  *                                 Default empty.
  * @param array            $params Optional. An array of parameters. Default empty array.
@@ -72,7 +71,7 @@ function wp_deregister_webfont( $handle ) {
  *                                 Default 'screen'. Accepts media types like 'all', 'print' and 'screen', or media queries like
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  */
-function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = false, $media = 'screen' ) {
+function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = null, $media = 'screen' ) {
 	$result = wp_enqueue_style( "webfont-$handle", $src, array(), $ver, $media );
 	_wp_maybe_preload_webfont( $params );
 	wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
@@ -80,13 +79,13 @@ function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = false
 }
 
 /**
- * Remove a previously enqueued CSS stylesheet.
+ * Remove a previously enqueued webfont.
  *
  * @see WP_Dependencies::dequeue()
  *
  * @since 5.9.0
  *
- * @param string $handle Name of the stylesheet to be removed.
+ * @param string $handle Name of the webfont to be removed.
  */
 function wp_dequeue_webfont( $handle ) {
 	wp_dequeue_style( "webfont-$handle" );
@@ -97,8 +96,8 @@ function wp_dequeue_webfont( $handle ) {
  *
  * @since 5.9.0
  *
- * @param string $handle Name of the stylesheet.
- * @param string $list   Optional. Status of the stylesheet to check. Default 'enqueued'.
+ * @param string $handle Name of the webfont.
+ * @param string $list   Optional. Status of the webfont to check. Default 'enqueued'.
  *                       Accepts 'enqueued', 'registered', 'queue', 'to_do', and 'done'.
  * @return bool Whether style is queued.
  */
