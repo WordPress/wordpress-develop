@@ -3,7 +3,7 @@ import {
 } from '@wordpress/e2e-test-utils';
 
 
-describe('Show/hide and reorder dashboard widgets', () => {
+describe('Manage dashboard widgets', () => {
     it('Allows to hide a dashboard widget using screen options', async() => {
         await visitAdminPage('/');
 
@@ -38,5 +38,24 @@ describe('Show/hide and reorder dashboard widgets', () => {
         const screenOptionsButton = await page.waitForSelector('#show-settings-link');
         await screenOptionsButton.click();
         await page.click('#wp_welcome_panel-hide');
+    });
+
+    it('Allows to collapse and expand a dashboard widget', async() => {
+        await visitAdminPage('/');
+
+        const toggleButton = await page.waitForSelector('#dashboard_right_now button.handlediv');
+        await toggleButton.click();
+
+        const hiddenInsideWidget = await page.$eval('#dashboard_right_now div.inside', (elem) => {
+            return window.getComputedStyle(elem).getPropertyValue('display') === 'none';
+        });
+        expect(hiddenInsideWidget).toBe(true);
+
+        /* This needs more investigation.
+        As the widget is not expanded back when the tests are run in headed mode. */
+
+        // Expand back the widget
+        // await toggleButton.focus();
+        // await page.keyboard.press('Enter');
     });
 });
