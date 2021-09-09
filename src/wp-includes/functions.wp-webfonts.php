@@ -73,11 +73,10 @@ function wp_deregister_webfont( $handle ) {
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  */
 function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = null, $media = 'screen' ) {
-	$params = _wp_webfont_parse_params( $params );
-	$result = wp_enqueue_style( "webfont-$handle", $src, array(), $ver, $media );
-	_wp_maybe_preload_webfont( $params );
-	wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
-	return $result;
+	if ( $src || ! empty( $params ) ) {
+		wp_register_webfont( $handle, $src, $params, $ver, $media );
+	}
+	return wp_enqueue_style( "webfont-$handle" );
 }
 
 /**
