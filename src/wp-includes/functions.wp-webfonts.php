@@ -193,6 +193,9 @@ function _wp_maybe_preload_webfont( $params ) {
 	add_action(
 		'wp_head',
 		function() use ( $params ) {
+			if ( 'data' === strpos( $params['src'][0]['format'] ) ) {
+				return;
+			}
 			$link = sprintf(
 				'<link rel="preload" href="%1$s" as="font" type="%2$s" crossorigin>',
 				esc_url( $params['src'][0]['url'] ),
@@ -263,11 +266,19 @@ function _wp_webfont_parse_params( $params ) {
 	if ( ! empty( $params['src'] ) ) {
 		$params['src'] = (array) $params['src'];
 		$src           = array();
+		$src_ordered   = array();
+
 		foreach ( $params['src'] as $url ) {
+			if ( 0 === strpos( trim( $url ), 'data:' ) ) {
+				$src_ordered[] = array(
+					'url'    => $url,
+					'format' => 'data',
+				);
+				continue;
+			}
 			$format         = pathinfo( $url, PATHINFO_EXTENSION );
 			$src[ $format ] = $url;
 		}
-		$src_ordered = array();
 		if ( ! empty( $src['woff2'] ) ) {
 			$src_ordered[] = array(
 				'url'    => $src['woff2'],
