@@ -190,14 +190,14 @@ function _wp_maybe_preload_webfont( $params ) {
 		return;
 	}
 
-	if ( 'woff2' !== $params['src'][0]['format'] ) {
-		return;
-	}
-
 	add_action(
 		'wp_head',
 		function() use ( $params ) {
-			$link = '<link rel="preload" href="' . esc_url( $params['src'][0]['url'] ) . '" as="font" type="font/woff2" crossorigin>';
+			$link = sprintf(
+				'<link rel="preload" href="%1$s" as="font" type="%2$s" crossorigin>',
+				esc_url( $params['src'][0]['url'] ),
+				wp_get_mime_types()[ pathinfo( $params['src'][0]['url'], PATHINFO_EXTENSION ) ]
+			);
 			/**
 			 * Filters the preload link for a webfont.
 			 * This filter is only applied if the webfont is preloaded.
