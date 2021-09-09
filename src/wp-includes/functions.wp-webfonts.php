@@ -315,13 +315,30 @@ function _wp_webfont_parse_params( $params ) {
 	}
 
 	// Only allow valid font-display values.
-	if ( ! empty( $params['font-display'] ) && ! in_array( $params['font-display'], array( 'auto', 'block', 'swap', 'fallback' ), true ) ) {
+	if (
+		! empty( $params['font-display'] ) &&
+		! in_array( $params['font-display'], array( 'auto', 'block', 'swap', 'fallback' ), true )
+	) {
 		$params['font-display'] = 'fallback';
 	}
 
 	// Only allow valid font-style values.
-	if ( ! empty( $params['font-style'] ) && ! in_array( $params['font-style'], array( 'normal', 'italic', 'oblique' ), true ) && 0 !== strpos( $params['font-style'], 'oblique ' ) ) {
+	if (
+		! empty( $params['font-style'] ) &&
+		! in_array( $params['font-style'], array( 'normal', 'italic', 'oblique' ), true ) &&
+		! preg_match( '/^oblique\s+(\d+)%/', $params['font-style'], $matches )
+	) {
 		$params['font-style'] = 'normal';
+	}
+
+	// Only allow valid font-weight values.
+	if (
+		! empty( $params['font-weight'] ) &&
+		! in_array( $params['font-weight'], array( 'normal', 'bold', 'bolder', 'lighter', 'inherit' ), true ) &&
+		! preg_match( '/^(\d+)$/', $params['font-weight'], $matches ) &&
+		! preg_match( '/^(\d+)\s+(\d+)$/', $params['font-weight'], $matches )
+	) {
+		$params['font-weight'] = 'normal';
 	}
 
 	return $params;
