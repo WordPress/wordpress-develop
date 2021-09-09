@@ -175,7 +175,9 @@ function _wp_webfont_generate_styles( $params ) {
 		if ( 'src' === $key ) {
 			$src = "local({$params['font-family']})";
 			foreach ( $value as $item ) {
-				$src .= ", url('{$item['url']}') format('{$item['format']}')";
+				$src .= ( 'data' === $item['format'] )
+					? ", url({$item['url']})"
+					: ", url('{$item['url']}') format('{$item['format']}')";
 			}
 			$value = $src;
 		}
