@@ -256,6 +256,7 @@ function _wp_webfont_parse_params( $params ) {
 		'preload',
 	);
 
+	// Only allow whitelisted properties.
 	foreach ( $params as $key => $value ) {
 		if ( ! in_array( $key, $whitelist, true ) ) {
 			unset( $params[ $key ] );
@@ -269,6 +270,7 @@ function _wp_webfont_parse_params( $params ) {
 		$src_ordered   = array();
 
 		foreach ( $params['src'] as $url ) {
+			// Add data URIs first.
 			if ( 0 === strpos( trim( $url ), 'data:' ) ) {
 				$src_ordered[] = array(
 					'url'    => $url,
@@ -310,6 +312,16 @@ function _wp_webfont_parse_params( $params ) {
 			);
 		}
 		$params['src'] = $src_ordered;
+	}
+
+	// Only allow valid font-display values.
+	if ( ! empty( $params['font-display'] ) && ! in_array( $params['font-display'], array( 'auto', 'block', 'swap', 'fallback' ), true ) ) {
+		$params['font-display'] = 'fallback';
+	}
+
+	// Only allow valid font-style values.
+	if ( ! empty( $params['font-style'] ) && ! in_array( $params['font-style'], array( 'normal', 'italic', 'oblique' ), true ) && 0 !== strpos( $params['font-style'], 'oblique ' ) ) {
+		$params['font-style'] = 'normal';
 	}
 
 	return $params;
