@@ -146,31 +146,6 @@ function _wp_webfont_generate_styles( $params ) {
 		return '';
 	}
 
-	/**
-	 * Get the font-file format from a URL.
-	 *
-	 * @param string $url The URL.
-	 * @return string The font-file format.
-	 */
-	$get_format = function( $url ) {
-		switch ( pathinfo( $url, PATHINFO_EXTENSION ) ) {
-			case 'woff2':
-				return 'woff2';
-			case 'woff':
-				return 'woff';
-			case 'ttf':
-				return 'truetype';
-			case 'svg':
-				return 'svg';
-			case 'eot':
-				return 'embedded-opentype';
-			case 'otf':
-				return 'opentype';
-			default:
-				return '';
-		}
-	};
-
 	$css = '@font-face{';
 	foreach ( $params as $key => $value ) {
 		if ( 'preload' === $key ) {
@@ -178,18 +153,8 @@ function _wp_webfont_generate_styles( $params ) {
 		}
 		if ( 'src' === $key ) {
 			$src = "local({$params['font-family']})";
-			if ( is_string( $value ) ) {
-				$format = $get_format( $value );
-				if ( $format ) {
-					$src .= ", url('{$url}') format('woff2')";
-				}
-			} elseif ( is_array( $value ) ) {
-				foreach ( $value as $url ) {
-					$format = $get_format( $url );
-					if ( $format ) {
-						$src .= ", url('{$url}') format('{$format}')";
-					}
-				}
+			foreach ( $value as $item ) {
+				$src .= ", url('{$item['url']}') format('{$item['format']}')";
 			}
 			$value = $src;
 		}
@@ -225,23 +190,14 @@ function _wp_maybe_preload_webfont( $params ) {
 		return;
 	}
 
-	$font_url = '';
-
-	foreach ( (array) $params['src'] as $url ) {
-		if ( 'woff2' === pathinfo( $url, PATHINFO_EXTENSION ) ) {
-			$font_url = $url;
-			break;
-		}
-	}
-
-	if ( empty( $font_url ) ) {
+	if ( 'woff2' !== $params['src'][0]['format'] ) {
 		return;
 	}
 
 	add_action(
 		'wp_head',
-		function() use ( $font_url, $params ) {
-			$link = '<link rel="preload" href="' . esc_url( $font_url ) . '" as="font" type="font/woff2" crossorigin>';
+		function() use ( $params ) {
+			$link = '<link rel="preload" href="' . esc_url( $params['src'][0]['url'] ) . '" as="font" type="font/woff2" crossorigin>';
 			/**
 			 * Filters the preload link for a webfont.
 			 * This filter is only applied if the webfont is preloaded.
@@ -268,11 +224,11 @@ function _wp_maybe_preload_webfont( $params ) {
  */
 function _wp_webfont_parse_params( $params ) {
 	$defaults = array(
-		'font-weight'   => '400',
-		'font-style'    => 'normal',
-		'font-display'  => 'fallback',
-		'src'           => array(),
-		'preload'       => true,
+		'font-weight'  => '400',
+		'font-style'   => 'normal',
+		'font-display' => 'fallback',
+		'src'          => array(),
+		'preload'      => true,
 	);
 	$params   = wp_parse_args( $params, $defaults );
 
@@ -305,29 +261,48 @@ function _wp_webfont_parse_params( $params ) {
 
 	// Order $src items to optimize for browser support.
 	if ( ! empty( $params['src'] ) ) {
-		$src = array();
+		$params['src'] = (array) $params['src'];
+		$src           = array();
 		foreach ( $params['src'] as $url ) {
-			$format = pathinfo( $url, PATHINFO_EXTENSION );
+			$format         = pathinfo( $url, PATHINFO_EXTENSION );
 			$src[ $format ] = $url;
 		}
 		$src_ordered = array();
 		if ( ! empty( $src['woff2'] ) ) {
-			$src_ordered[] = $src['woff2'];
+			$src_ordered[] = array(
+				'url'    => $src['woff2'],
+				'format' => 'woff2',
+			);
 		}
 		if ( ! empty( $src['woff'] ) ) {
-			$src_ordered[] = $src['woff'];
+			$src_ordered[] = array(
+				'url'    => $src['woff'],
+				'format' => 'woff',
+			);
 		}
 		if ( ! empty( $src['ttf'] ) ) {
-			$src_ordered[] = $src['ttf'];
+			$src_ordered[] = array(
+				'url'    => $src['ttf'],
+				'format' => 'truetype',
+			);
 		}
 		if ( ! empty( $src['svg'] ) ) {
-			$src_ordered[] = $src['svg'];
+			$src_ordered[] = array(
+				'url'    => $src['svg'],
+				'format' => 'svg',
+			);
 		}
 		if ( ! empty( $src['eot'] ) ) {
-			$src_ordered[] = $src['eot'];
+			$src_ordered[] = array(
+				'url'    => $src['eot'],
+				'format' => 'embedded-opentype',
+			);
 		}
 		if ( ! empty( $src['otf'] ) ) {
-			$src_ordered[] = $src['otf'];
+			$src_ordered[] = array(
+				'url'    => $src['otf'],
+				'format' => 'opentype',
+			);
 		}
 		$params['src'] = $src_ordered;
 	}
