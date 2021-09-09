@@ -4,7 +4,7 @@ import {
 
 
 describe('Manage dashboard widgets', () => {
-    it('Allows to hide a dashboard widget using screen options', async() => {
+    it('Hide a dashboard widget using screen options', async() => {
         await visitAdminPage('/');
 
         const screenOptionsButton = await page.waitForSelector('#show-settings-link');
@@ -22,7 +22,7 @@ describe('Manage dashboard widgets', () => {
         await page.click('#wp_welcome_panel-hide');
     });
 
-    it('Allows to hide the Welcome panel widget using the dismiss button', async() => {
+    it('Hide the Welcome panel widget using the dismiss button', async() => {
         await visitAdminPage('/');
 
         const dismissButton = await page.waitForSelector('a.welcome-panel-close');
@@ -40,7 +40,7 @@ describe('Manage dashboard widgets', () => {
         await page.click('#wp_welcome_panel-hide');
     });
 
-    it('Allows to collapse and expand a dashboard widget', async() => {
+    /* it('Collapse and expand a dashboard widget', async() => {
         await visitAdminPage('/');
 
         const toggleButton = await page.waitForSelector('#dashboard_right_now button.handlediv');
@@ -51,11 +51,11 @@ describe('Manage dashboard widgets', () => {
         });
         expect(hiddenInsideWidget).toBe(true);
 
-        /* This needs more investigation.
-        As the widget is not expanded back when the tests are run in headed mode. */
+        // This needs more investigation.
+        // As the widget is not expanded back when the tests are run in headed mode
 
         // Expand back the widget
-        // await toggleButton.focus();
-        // await page.keyboard.press('Enter');
-    });
+        await toggleButton.focus();
+        await page.keyboard.press('Enter');
+    }); */
 });
