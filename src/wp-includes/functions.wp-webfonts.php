@@ -193,7 +193,7 @@ function _wp_maybe_preload_webfont( $params ) {
 	add_action(
 		'wp_head',
 		function() use ( $params ) {
-			if ( 'data' === strpos( $params['src'][0]['format'] ) ) {
+			if ( 0 === strpos( $params['src'][0]['format'], 'data' ) ) {
 				return;
 			}
 			$link = sprintf(
