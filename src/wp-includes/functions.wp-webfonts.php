@@ -303,5 +303,34 @@ function _wp_webfont_parse_params( $params ) {
 		}
 	}
 
+	// Order $src items to optimize for browser support.
+	if ( ! empty( $params['src'] ) ) {
+		$src = array();
+		foreach ( $params['src'] as $url ) {
+			$format = pathinfo( $url, PATHINFO_EXTENSION );
+			$src[ $format ] = $url;
+		}
+		$src_ordered = array();
+		if ( ! empty( $src['woff2'] ) ) {
+			$src_ordered[] = $src['woff2'];
+		}
+		if ( ! empty( $src['woff'] ) ) {
+			$src_ordered[] = $src['woff'];
+		}
+		if ( ! empty( $src['ttf'] ) ) {
+			$src_ordered[] = $src['ttf'];
+		}
+		if ( ! empty( $src['svg'] ) ) {
+			$src_ordered[] = $src['svg'];
+		}
+		if ( ! empty( $src['eot'] ) ) {
+			$src_ordered[] = $src['eot'];
+		}
+		if ( ! empty( $src['otf'] ) ) {
+			$src_ordered[] = $src['otf'];
+		}
+		$params['src'] = $src_ordered;
+	}
+
 	return $params;
 }
