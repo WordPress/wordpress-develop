@@ -29,17 +29,7 @@
  * @return bool Whether the style has been registered. True on success, false on failure.
  */
 function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $media = 'screen' ) {
-	$params = wp_parse_args(
-		$params,
-		array(
-			'font-weight'   => '400',
-			'font-style'    => 'normal',
-			'font-display'  => 'fallback',
-			'src'           => array(),
-			'preload'       => true,
-		)
-	);
-
+	$params = _wp_webfont_parse_params( $params );
 	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
 	_wp_maybe_preload_webfont( $params );
 	wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
@@ -83,17 +73,7 @@ function wp_deregister_webfont( $handle ) {
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  */
 function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = null, $media = 'screen' ) {
-	$params = wp_parse_args(
-		$params,
-		array(
-			'font-weight'   => '400',
-			'font-style'    => 'normal',
-			'font-display'  => 'fallback',
-			'src'           => array(),
-			'preload'       => true,
-		)
-	);
-
+	$params = _wp_webfont_parse_params( $params );
 	$result = wp_enqueue_style( "webfont-$handle", $src, array(), $ver, $media );
 	_wp_maybe_preload_webfont( $params );
 	wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
@@ -276,4 +256,52 @@ function _wp_maybe_preload_webfont( $params ) {
 			echo apply_filters( 'wp_preload_webfont', $link, $params );
 		}
 	);
+}
+
+/**
+ * Parse a webfont's parameters.
+ *
+ * @since 5.9.0
+ *
+ * @param array $params The webfont parameters.
+ * @return array The parsed parameters.
+ */
+function _wp_webfont_parse_params( $params ) {
+	$defaults = array(
+		'font-weight'   => '400',
+		'font-style'    => 'normal',
+		'font-display'  => 'fallback',
+		'src'           => array(),
+		'preload'       => true,
+	);
+	$params   = wp_parse_args( $params, $defaults );
+
+	$whitelist = array(
+		// Valid CSS properties.
+		'ascend-override',
+		'descend-override',
+		'font-display',
+		'font-family',
+		'font-stretch',
+		'font-style',
+		'font-weight',
+		'font-variant',
+		'font-feature-settings',
+		'font-variation-settings',
+		'line-gap-override',
+		'size-adjust',
+		'src',
+		'unicode-range',
+
+		// Extras.
+		'preload',
+	);
+
+	foreach ( $params as $key => $value ) {
+		if ( ! in_array( $key, $whitelist, true ) ) {
+			unset( $params[ $key ] );
+		}
+	}
+
+	return $params;
 }
