@@ -31,6 +31,8 @@
 function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $media = 'screen' ) {
 
 	if ( is_array( $src ) ) {
+		$media  = $ver;
+		$ver    = $params;
 		$params = $src;
 		$src    = '';
 	}
