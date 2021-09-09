@@ -29,6 +29,11 @@
  * @return bool Whether the style has been registered. True on success, false on failure.
  */
 function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $media = 'screen' ) {
+
+	if ( is_array( $src ) ) {
+		$params = $src;
+		$src    = '';
+	}
 	$params = _wp_webfont_parse_params( $params );
 	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
 	_wp_maybe_preload_webfont( $params );
