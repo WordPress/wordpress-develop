@@ -286,12 +286,6 @@ function _wp_webfont_parse_params( $params ) {
 				'format' => 'truetype',
 			);
 		}
-		if ( ! empty( $src['svg'] ) ) {
-			$src_ordered[] = array(
-				'url'    => $src['svg'],
-				'format' => 'svg',
-			);
-		}
 		if ( ! empty( $src['eot'] ) ) {
 			$src_ordered[] = array(
 				'url'    => $src['eot'],
