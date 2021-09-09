@@ -30,16 +30,27 @@
  */
 function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $media = 'screen' ) {
 
+	// If $src is an array, then we're using $params in its place
+	// so move all args into their new positions.
 	if ( is_array( $src ) ) {
 		$media  = $ver;
 		$ver    = $params;
 		$params = $src;
 		$src    = '';
 	}
+
+	// Parse the parameters.
 	$params = _wp_webfont_parse_params( $params );
+
+	// Register the stylesheet.
 	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
+
+	// Preload the webfont if needed.
 	_wp_maybe_preload_webfont( $params );
+
+	// Add inline styles for generated @font-face styles.
 	wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
+
 	return $result;
 }
 
@@ -154,9 +165,13 @@ function _wp_webfont_generate_styles( $params ) {
 
 	$css = '@font-face{';
 	foreach ( $params as $key => $value ) {
+
+		// Skip the "preload" parameter.
 		if ( 'preload' === $key ) {
 			continue;
 		}
+
+		// Compile the "src" parameter.
 		if ( 'src' === $key ) {
 			$src = "local({$params['font-family']})";
 			foreach ( $value as $item ) {
@@ -165,6 +180,7 @@ function _wp_webfont_generate_styles( $params ) {
 			$value = $src;
 		}
 
+		// If variation is an array, convert it to a string.
 		if ( 'variation' === $key && is_array( $value ) ) {
 			$variations = array();
 			foreach ( $value as $key => $val ) {
@@ -192,16 +208,24 @@ function _wp_webfont_generate_styles( $params ) {
  * @return void
  */
 function _wp_maybe_preload_webfont( $params ) {
+
+	// Early exit if not using explicit font-files, or if "preload" is not true.
 	if ( empty( $params['preload'] ) || true !== $params['preload'] || empty( $params['src'] ) ) {
 		return;
 	}
 
+	// Hook in "wp_head" to print the preload link.
+	// Using a closure here is acceptable because the function includes a filter.
 	add_action(
 		'wp_head',
 		function() use ( $params ) {
+
+			// Early return if the webfont is a data link.
 			if ( 0 === strpos( $params['src'][0]['format'], 'data' ) ) {
 				return;
 			}
+
+			// Build the link markup.
 			$link = sprintf(
 				'<link rel="preload" href="%1$s" as="font" type="%2$s" crossorigin>',
 				esc_url( $params['src'][0]['url'] ),
@@ -287,30 +311,40 @@ function _wp_webfont_parse_params( $params ) {
 			$format         = pathinfo( $url, PATHINFO_EXTENSION );
 			$src[ $format ] = $url;
 		}
+
+		// Add woff2.
 		if ( ! empty( $src['woff2'] ) ) {
 			$src_ordered[] = array(
 				'url'    => $src['woff2'],
 				'format' => 'woff2',
 			);
 		}
+
+		// Add woff.
 		if ( ! empty( $src['woff'] ) ) {
 			$src_ordered[] = array(
 				'url'    => $src['woff'],
 				'format' => 'woff',
 			);
 		}
+
+		// Add ttf.
 		if ( ! empty( $src['ttf'] ) ) {
 			$src_ordered[] = array(
 				'url'    => $src['ttf'],
 				'format' => 'truetype',
 			);
 		}
+
+		// Add eot.
 		if ( ! empty( $src['eot'] ) ) {
 			$src_ordered[] = array(
 				'url'    => $src['eot'],
 				'format' => 'embedded-opentype',
 			);
 		}
+
+		// Add otf.
 		if ( ! empty( $src['otf'] ) ) {
 			$src_ordered[] = array(
 				'url'    => $src['otf'],
