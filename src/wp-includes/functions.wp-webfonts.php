@@ -182,8 +182,8 @@ function _wp_webfont_generate_styles( $params ) {
 			$value = $src;
 		}
 
-		// If variation is an array, convert it to a string.
-		if ( 'variation' === $key && is_array( $value ) ) {
+		// If font-variation-settings is an array, convert it to a string.
+		if ( 'font-variation-settings' === $key && is_array( $value ) ) {
 			$variations = array();
 			foreach ( $value as $key => $val ) {
 				$variations[] = "$key $val";
