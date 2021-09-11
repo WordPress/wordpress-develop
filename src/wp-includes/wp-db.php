@@ -1359,14 +1359,11 @@ class wpdb {
 		 */
 		$query = str_replace( "'%s'", '%s', $query ); // Strip any existing single quotes.
 		$query = str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
-		$query = preg_replace( '/(?<!%)%s/', "'%s'", $query ); // Quote the strings, avoiding escaped strings like %%s.
 
-		$query = preg_replace( "/(?<!%)(%($allowed_format)?f)/", '%\\2F', $query ); // Force floats to be locale-unaware.
+		$query = preg_replace( "/%(?:%|$|(?!($allowed_format|\.\.\.)?[sdfFi]))/", '%%\\1', $query ); // Escape any unescaped percents (i.e. anything unrecognised)
 
-		$query = preg_replace( "/%(?:%|$|(?!($allowed_format)?[sdF]))/", '%%\\1', $query ); // Escape any unescaped percents.
-
-		// Count the number of valid placeholders in the query.
-		$placeholders = preg_match_all( "/(^|[^%]|(%%)+)%($allowed_format)?[sdF]/", $query, $matches );
+		// Placeholders in the query.
+		$placeholders = preg_match_all( "/(^|[^%]|(%%)+)%($allowed_format|\.\.\.)?([sdfFi])/", $query, $matches, PREG_OFFSET_CAPTURE );
 
 		$args_count = count( $args );
 
@@ -1403,7 +1400,7 @@ class wpdb {
 				 * return an empty string to avoid a fatal error on PHP 8.
 				 */
 				if ( $args_count < $placeholders ) {
-					$max_numbered_placeholder = ! empty( $matches[3] ) ? max( array_map( 'intval', $matches[3] ) ) : 0;
+					$max_numbered_placeholder = ! empty( $matches[3] ) ? max( array_map( 'intval', array_column($matches[3], 0) ) ) : 0;
 
 					if ( ! $max_numbered_placeholder || $args_count < $max_numbered_placeholder ) {
 						return '';
@@ -1412,7 +1409,40 @@ class wpdb {
 			}
 		}
 
-		array_walk( $args, array( $this, 'escape_by_ref' ) );
+		$args_escaped = [];
+		$args_splat = [];
+
+		foreach ($args as $i => $values) {
+			list($type, $type_pos) = $matches[4][$i];
+			if ($type == 'i') {
+				$query[$type_pos] = 's';
+			} else if ($type == 'f') {
+				$query[$type_pos] = 'F'; // Force floats to be locale-unaware.
+			}
+			if ($matches[3][$i][0] === '...') {
+				$args_splat[] = [$type, count($values), ($matches[3][$i][1] - 1)];
+			} else {
+				$values = [$values];
+			}
+			foreach ($values as $j => $value) {
+				if ($type === 'd') {
+					$args_escaped[] = intval($value);
+				} else if ($type === 'f' || $type === 'F') {
+					$args_escaped[] = floatval($value);
+				} else if ($type === 'i') {
+					$args_escaped[] = "`" . preg_replace('/[^a-zA-Z0-9_\-]/', '', $value) . "`";
+				} else {
+					$args_escaped[] = "'" . $this->_real_escape($value) . "'";
+				}
+			}
+
+		}
+
+		foreach (array_reverse($args_splat) as $info) {
+			$value = substr(str_repeat('%' . $info[0] . ',', $info[1]), 0, -1);
+			$query = substr_replace($query, $value, $info[2], 5);
+		}
+
 		$query = vsprintf( $query, $args );
 
 		return $this->add_placeholder_escape( $query );
