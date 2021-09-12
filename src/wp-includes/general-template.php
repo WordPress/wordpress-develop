@@ -4293,12 +4293,12 @@ function paginate_links( $args = '' ) {
 		 */
 		$link = apply_filters( 'paginate_links', $link );
 
-		$page_links[] = [
+		$page_links[] = array(
 			'type' => 'prev_text',
 			'url'  => $link,
 			'text' => $args['prev_text'],
 			'html' => sprintf( '<a class="prev page-numbers" href="%s">%s</a>', esc_url( $link ), $args['prev_text'] ),
-		];
+		);
 	}
 
 	for ( $n = 1; $n <= $total; $n ++ ) {
@@ -4307,12 +4307,12 @@ function paginate_links( $args = '' ) {
 
 			$text = $args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number'];
 
-			$page_links[] = [
+			$page_links[] = array(
 				'type' => 'current',
 				'url'  => '',
 				'text' => $text,
 				'html' => sprintf( '<span aria-current="%s" class="page-numbers current">%s</span>', esc_attr( $args['aria_current'] ), $text ),
-			];
+			);
 
 			$dots = true;
 		}
@@ -4338,23 +4338,23 @@ function paginate_links( $args = '' ) {
 				$link = apply_filters( 'paginate_links', $link );
 				$text = $args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number'];
 
-				$page_links[] = [
+				$page_links[] = array(
 					'type' => 'link',
 					'url'  => $link,
 					'text' => $text,
 					'html' => sprintf( '<a class="page-numbers" href="%s">%s</a>', esc_url( $link ), $text ),
-				];
+				);
 
 				$dots = true;
 			}
 			elseif ( $dots && ! $args['show_all'] ) {
 
-				$page_links[] = [
+				$page_links[] = array(
 					'type' => 'dots',
 					'url'  => '',
 					'text' => __( '&hellip;' ),
 					'html' => '<span class="page-numbers dots">' . __( '&hellip;' ) . '</span>',
-				];
+				);
 
 				$dots = false;
 			}
@@ -4375,12 +4375,12 @@ function paginate_links( $args = '' ) {
 		/** This filter is documented in wp-includes/general-template.php */
 		$link = apply_filters( 'paginate_links', $link );
 
-		$page_links[] = [
+		$page_links[] = array(
 			'type' => 'next_text',
 			'url'  => $link,
 			'text' => $args['next_text'],
 			'html' => sprintf( '<a class="next page-numbers" href="%s">%s</a>', esc_url( $link ), $args['next_text'] ),
-		];
+		);
 
 	}
 
