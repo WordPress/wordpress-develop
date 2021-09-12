@@ -7,7 +7,6 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once __DIR__ . '/includes/class-wp-plugin-dependency-installer.php';
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'activate_plugins' ) ) {
