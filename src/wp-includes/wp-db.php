@@ -1317,28 +1317,6 @@ class wpdb {
 			);
 		}
 
-		// If args were passed as an array (as in vsprintf), move them up.
-		$passed_as_array = false;
-		if ( is_array( $args[0] ) && count( $args ) === 1 ) {
-			$passed_as_array = true;
-			$args            = $args[0];
-		}
-
-		foreach ( $args as $arg ) {
-			if ( ! is_scalar( $arg ) && ! is_null( $arg ) ) {
-				wp_load_translations_early();
-				_doing_it_wrong(
-					'wpdb::prepare',
-					sprintf(
-						/* translators: %s: Value type. */
-						__( 'Unsupported value type (%s).' ),
-						gettype( $arg )
-					),
-					'4.8.2'
-				);
-			}
-		}
-
 		/*
 		 * Specify the formatting allowed in a placeholder. The following are allowed:
 		 *
@@ -1360,10 +1338,18 @@ class wpdb {
 		$query = str_replace( "'%s'", '%s', $query ); // Strip any existing single quotes.
 		$query = str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
 
-		$query = preg_replace( "/%(?:%|$|(?!($allowed_format|\.\.\.)?[sdfFi]))/", '%%\\1', $query ); // Escape any unescaped percents (i.e. anything unrecognised)
+		$query = preg_replace( "/%(?:%|$|(?!($allowed_format|\.\.\.)?[sdfFi]))/", '%%\\1', $query ); // Escape any unescaped percents (i.e. anything unrecognised).
 
 		// Placeholders in the query.
 		$placeholders = preg_match_all( "/(^|[^%]|(%%)+)%($allowed_format|\.\.\.)?([sdfFi])/", $query, $matches, PREG_OFFSET_CAPTURE );
+
+		// If args were passed as an array (as in vsprintf), and not using '%...x', move them up.
+		$passed_as_array = false;
+
+		if ( ( $matches[3][0][0] ?? '' ) !== '...' && is_array( $args[0] ) && count( $args ) === 1 ) {
+			$passed_as_array = true;
+			$args            = $args[0];
+		}
 
 		$args_count = count( $args );
 
@@ -1400,7 +1386,7 @@ class wpdb {
 				 * return an empty string to avoid a fatal error on PHP 8.
 				 */
 				if ( $args_count < $placeholders ) {
-					$max_numbered_placeholder = ! empty( $matches[3] ) ? max( array_map( 'intval', array_column($matches[3], 0) ) ) : 0;
+					$max_numbered_placeholder = ! empty( $matches[3] ) ? max( array_map( 'intval', array_column( $matches[3], 0 ) ) ) : 0;
 
 					if ( ! $max_numbered_placeholder || $args_count < $max_numbered_placeholder ) {
 						return '';
@@ -1409,41 +1395,69 @@ class wpdb {
 			}
 		}
 
-		$args_escaped = [];
-		$args_splat = [];
+		$args_escaped = array();
+		$args_splat   = array();
 
-		foreach ($args as $i => $values) {
-			list($type, $type_pos) = $matches[4][$i];
-			if ($type == 'i') {
-				$query[$type_pos] = 's';
-			} else if ($type == 'f') {
-				$query[$type_pos] = 'F'; // Force floats to be locale-unaware.
+		foreach ( $args as $i => $value ) {
+
+			list( $type, $type_pos ) = $matches[4][ $i ];
+
+			if ( 'i' === $type ) {
+				$query[ $type_pos ] = 's';
+			} elseif ( 'f' === $type ) {
+				$query[ $type_pos ] = 'F'; // Force floats to be locale-unaware.
 			}
-			if ($matches[3][$i][0] === '...') {
-				$args_splat[] = [$type, count($values), ($matches[3][$i][1] - 1)];
+
+			if ( '...' === $matches[3][ $i ][0] ) {
+				if ( ! is_array( $value ) ) {
+					wp_load_translations_early();
+					_doing_it_wrong(
+						'wpdb::prepare',
+						sprintf(
+							/* translators: %s: Value type. */
+							__( 'Unsupported value type (%s).' ),
+							gettype( $value )
+						),
+						'5.8.2'
+					);
+					$value = array( $value );
+				}
+				$args_splat[] = array( $type, count( $value ), ( $matches[3][ $i ][1] - 1 ) );
 			} else {
-				$values = [$values];
+				if ( ! is_scalar( $value ) && ! is_null( $value ) ) {
+					wp_load_translations_early();
+					_doing_it_wrong(
+						'wpdb::prepare',
+						sprintf(
+							/* translators: %s: Value type. */
+							__( 'Unsupported value type (%s).' ),
+							gettype( $value )
+						),
+						'4.8.2'
+					);
+				}
+				$value = array( $value );
 			}
-			foreach ($values as $j => $value) {
-				if ($type === 'd') {
-					$args_escaped[] = intval($value);
-				} else if ($type === 'f' || $type === 'F') {
-					$args_escaped[] = floatval($value);
-				} else if ($type === 'i') {
-					$args_escaped[] = "`" . preg_replace('/[^a-zA-Z0-9_\-]/', '', $value) . "`";
+
+			foreach ( $value as $j => $v ) {
+				if ( 'd' === $type ) {
+					$args_escaped[] = intval( $v );
+				} elseif ( 'f' === $type || 'F' === $type ) {
+					$args_escaped[] = floatval( $v );
+				} elseif ( 'i' === $type ) {
+					$args_escaped[] = '`' . preg_replace( '/[^a-zA-Z0-9_\-]/', '', $v ) . '`';
 				} else {
-					$args_escaped[] = "'" . $this->_real_escape($value) . "'";
+					$args_escaped[] = '\'' . $this->_real_escape( $v ) . '\'';
 				}
 			}
-
 		}
 
-		foreach (array_reverse($args_splat) as $info) {
-			$value = substr(str_repeat('%' . $info[0] . ',', $info[1]), 0, -1);
-			$query = substr_replace($query, $value, $info[2], 5);
+		foreach ( array_reverse( $args_splat ) as $info ) {
+			$value = substr( str_repeat( '%' . $info[0] . ',', $info[1] ), 0, -1 );
+			$query = substr_replace( $query, $value, $info[2], 5 );
 		}
 
-		$query = vsprintf( $query, $args );
+		$query = vsprintf( $query, $args_escaped );
 
 		return $this->add_placeholder_escape( $query );
 	}
