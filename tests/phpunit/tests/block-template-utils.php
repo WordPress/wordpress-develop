@@ -70,7 +70,7 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 	function test_get_block_templates() {
 		function get_template_ids( $templates ) {
 			return array_map(
-				function( $template ) {
+				static function( $template ) {
 					return $template->id;
 				},
 				$templates

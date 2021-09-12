@@ -46,7 +46,6 @@ jobs:
   # - Install WordPress within the Docker container.
   # - Run the E2E tests.
   # - Ensures version-controlled files are not modified or deleted.
-  # - todo: Configure Slack notifications for failing tests.
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest

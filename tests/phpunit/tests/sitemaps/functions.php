@@ -3,7 +3,8 @@
 /**
  * @group sitemaps
  */
-class Test_Sitemaps_Functions extends WP_UnitTestCase {
+class Tests_Sitemaps_Functions extends WP_UnitTestCase {
+
 	/**
 	 * Test getting the correct number of URLs for a sitemap.
 	 */
@@ -60,11 +61,11 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test get_sitemap_url() with ugly permalinks.
+	 * Test get_sitemap_url() with plain permalinks.
 	 *
-	 * @dataProvider ugly_permalinks_provider
+	 * @dataProvider plain_permalinks_provider
 	 */
-	public function test_get_sitemap_url_ugly_permalinks( $name, $subtype_name, $page, $expected ) {
+	public function test_get_sitemap_url_plain_permalinks( $name, $subtype_name, $page, $expected ) {
 		$actual = get_sitemap_url( $name, $subtype_name, $page );
 
 		$this->assertSame( $expected, $actual );
@@ -84,7 +85,7 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_get_sitemap_url_ugly_permalinks.
+	 * Data provider for test_get_sitemap_url_plain_permalinks.
 	 *
 	 * @return array[] {
 	 *     Data to test with.
@@ -95,7 +96,7 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	 *     @type string|false $4 Sitemap URL.
 	 * }
 	 */
-	function ugly_permalinks_provider() {
+	function plain_permalinks_provider() {
 		return array(
 			array( 'posts', 'post', 1, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),
 			array( 'posts', 'post', 0, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),

@@ -891,6 +891,10 @@ class WP_Site_Health {
 				'function' => 'hash',
 				'required' => false,
 			),
+			'imagick'   => array(
+				'extension' => 'imagick',
+				'required'  => false,
+			),
 			'json'      => array(
 				'function' => 'json_last_error',
 				'required' => true,
@@ -916,10 +920,6 @@ class WP_Site_Health {
 				'function' => 'preg_match',
 				'required' => false,
 			),
-			'imagick'   => array(
-				'extension' => 'imagick',
-				'required'  => false,
-			),
 			'mod_xml'   => array(
 				'extension' => 'libxml',
 				'required'  => false,
@@ -940,6 +940,10 @@ class WP_Site_Health {
 			'iconv'     => array(
 				'function' => 'iconv',
 				'required' => false,
+			),
+			'intl'      => array(
+				'extension' => 'intl',
+				'required'  => false,
 			),
 			'mcrypt'    => array(
 				'extension'    => 'mcrypt',
@@ -1462,7 +1466,7 @@ class WP_Site_Health {
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-				$result['label'] = __( 'Your site is set to log errors to a potentially public file.' );
+				$result['label'] = __( 'Your site is set to log errors to a potentially public file' );
 
 				$result['status'] = ( 0 === strpos( ini_get( 'error_log' ), ABSPATH ) ) ? 'critical' : 'recommended';
 
@@ -2108,7 +2112,7 @@ class WP_Site_Health {
 	 */
 	public function get_test_file_uploads() {
 		$result = array(
-			'label'       => __( 'Files can be uploaded.' ),
+			'label'       => __( 'Files can be uploaded' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Performance' ),
@@ -2157,7 +2161,7 @@ class WP_Site_Health {
 		if ( wp_convert_hr_to_bytes( $post_max_size ) < wp_convert_hr_to_bytes( $upload_max_filesize ) ) {
 			$result['label'] = sprintf(
 				/* translators: 1: post_max_size, 2: upload_max_filesize */
-				__( 'The "%1$s" value is smaller than "%2$s".' ),
+				__( 'The "%1$s" value is smaller than "%2$s"' ),
 				'post_max_size',
 				'upload_max_filesize'
 			);
@@ -2200,7 +2204,7 @@ class WP_Site_Health {
 	 */
 	public function get_test_authorization_header() {
 		$result = array(
-			'label'       => __( 'The Authorization header is working as expected.' ),
+			'label'       => __( 'The Authorization header is working as expected' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
@@ -2215,9 +2219,9 @@ class WP_Site_Health {
 		);
 
 		if ( ! isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
-			$result['label'] = __( 'The authorization header is missing.' );
+			$result['label'] = __( 'The authorization header is missing' );
 		} elseif ( 'user' !== $_SERVER['PHP_AUTH_USER'] || 'pwd' !== $_SERVER['PHP_AUTH_PW'] ) {
-			$result['label'] = __( 'The authorization header is invalid.' );
+			$result['label'] = __( 'The authorization header is invalid' );
 		} else {
 			return $result;
 		}

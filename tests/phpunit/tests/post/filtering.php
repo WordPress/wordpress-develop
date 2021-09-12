@@ -10,8 +10,8 @@
  * @group formatting
  */
 class Tests_Post_Filtering extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		update_option( 'use_balanceTags', 1 );
 		kses_init_filters();
 

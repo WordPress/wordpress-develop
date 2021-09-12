@@ -37,8 +37,8 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->_deprecated_functions = array();
 		$this->_deprecated_arguments = array();
 		$this->_deprecated_files     = array();

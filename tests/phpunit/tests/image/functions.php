@@ -10,8 +10,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Setup test fixture
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';

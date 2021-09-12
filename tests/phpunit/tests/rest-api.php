@@ -14,8 +14,8 @@ require_once __DIR__ . '/../includes/class-jsonserializable-object.php';
  * @group restapi
  */
 class Tests_REST_API extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Override the normal server with our spying server.
 		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
@@ -944,6 +944,31 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS' ) );
+		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
+
+		$GLOBALS['wp_rest_server'] = $rest_server;
+	}
+
+	/**
+	 * @ticket 51636
+	 */
+	function test_rest_preload_api_request_removes_trailing_slashes() {
+		$rest_server               = $GLOBALS['wp_rest_server'];
+		$GLOBALS['wp_rest_server'] = null;
+
+		$preload_paths = array(
+			'/wp/v2/types//',
+			array( '/wp/v2/media///', 'OPTIONS' ),
+			'////',
+		);
+
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS', '/' ) );
 		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;

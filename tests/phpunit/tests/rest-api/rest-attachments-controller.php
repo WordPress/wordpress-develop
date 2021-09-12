@@ -69,8 +69,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		self::delete_user( self::$uploader_id );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Add an uploader role to test upload capabilities.
 		add_role( 'uploader', 'File upload role' );
@@ -87,7 +87,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		copy( $orig_file2, $this->test_file2 );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		if ( file_exists( $this->test_file ) ) {
 			unlink( $this->test_file );
 		}
@@ -103,7 +103,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			WP_Image_Editor_Mock::$size_return = null;
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function test_register_routes() {

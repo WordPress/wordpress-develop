@@ -16,8 +16,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		require_once __DIR__ . '/rest-test-controller.php';
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->request = new WP_REST_Request(
 			'GET',
 			'/wp/v2/testroute',
@@ -57,11 +57,11 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function test_validate_schema_type_integer() {

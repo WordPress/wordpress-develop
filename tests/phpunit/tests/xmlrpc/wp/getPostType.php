@@ -7,8 +7,8 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 	public $cpt_name;
 	public $cpt_args;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->cpt_name = 'post_type_test';
 		$this->cpt_args = array(

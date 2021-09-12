@@ -3,7 +3,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_includesListTable extends WP_UnitTestCase {
+class Tests_Admin_IncludesListTable extends WP_UnitTestCase {
 	protected static $top           = array();
 	protected static $children      = array();
 	protected static $grandchildren = array();
@@ -14,8 +14,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 */
 	protected $table;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-page' ) );
 	}
 
@@ -360,7 +360,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 		add_filter(
 			'bulk_actions-edit-comments',
-			function() {
+			static function() {
 				return array(
 					'delete'       => 'Delete',
 					'Change State' => array(

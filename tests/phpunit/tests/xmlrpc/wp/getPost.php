@@ -9,8 +9,8 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 	public $post_date_ts;
 	public $post_custom_field;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->post_date_ts            = strtotime( '+1 day' );
 		$this->post_data               = array(
@@ -18,7 +18,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 			'post_content' => rand_str( 2000 ),
 			'post_excerpt' => rand_str( 100 ),
 			'post_author'  => $this->make_user_by_role( 'author' ),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $this->post_date_ts ),
+			'post_date'    => date_format( date_create( "@{$this->post_date_ts}" ), 'Y-m-d H:i:s' ),
 		);
 		$this->post_id                 = wp_insert_post( $this->post_data );
 		$this->post_custom_field       = array(

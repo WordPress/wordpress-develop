@@ -115,8 +115,8 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		'wp-privacy-erase-personal-data',
 	);
 
-	public static function setUpBeforeClass() {
-		parent::setUpBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 
 		remove_action( 'admin_init', '_maybe_update_core' );
 		remove_action( 'admin_init', '_maybe_update_plugins' );
@@ -135,8 +135,8 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * Overrides wp_die(), pretends to be Ajax, and suppresses E_WARNINGs.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );
@@ -156,10 +156,10 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * Resets global state, restores error reporting.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		unset( $GLOBALS['comment'] );
 		error_reporting( $this->_error_level );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
