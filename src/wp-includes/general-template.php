@@ -4142,6 +4142,7 @@ function language_attributes( $doctype = 'html' ) {
  *
  * @since 2.1.0
  * @since 4.9.0 Added the `aria_current` argument.
+ * @since 5.8.2 Added the `merge_query_vars` argument.
  *
  * @global WP_Query   $wp_query   WordPress Query object.
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
@@ -4169,6 +4170,7 @@ function language_attributes( $doctype = 'html' ) {
  *     @type string $add_fragment       A string to append to each link. Default empty.
  *     @type string $before_page_number A string to appear before the page number. Default empty.
  *     @type string $after_page_number  A string to append after the page number. Default empty.
+ *     @type bool   $merge_query_vars   Whether to merge additional query vars found in the original URL into 'add_args' array. Default true.
  * }
  * @return string|array|void String of page links or array of page links, depending on 'type' argument.
  *                           Void if total number of pages is less than 2.
@@ -4208,6 +4210,7 @@ function paginate_links( $args = '' ) {
 		'add_fragment'       => '',
 		'before_page_number' => '',
 		'after_page_number'  => '',
+		'merge_query_vars'   => true,
 	);
 
 	$args = wp_parse_args( $args, $defaults );
@@ -4217,7 +4220,7 @@ function paginate_links( $args = '' ) {
 	}
 
 	// Merge additional query vars found in the original URL into 'add_args' array.
-	if ( isset( $url_parts[1] ) ) {
+	if ( $args['merge_query_vars'] && isset( $url_parts[1] ) ) {
 		// Find the format argument.
 		$format       = explode( '?', str_replace( '%_%', $args['format'], $args['base'] ) );
 		$format_query = isset( $format[1] ) ? $format[1] : '';
