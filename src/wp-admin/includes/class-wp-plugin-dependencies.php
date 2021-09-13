@@ -114,11 +114,11 @@ class WP_Plugin_Dependencies {
 	 * Get an array of installed plugins and set it in the object's $installed_plugins prop.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @return array
 	 */
-	protected function get_plugins() {
+	private function get_plugins() {
 		if ( ! function_exists( 'get_plugins' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
@@ -135,11 +135,11 @@ class WP_Plugin_Dependencies {
 	 * Loop installed plugins and process dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access public
+	 * @access private
 	 *
 	 * @return void
 	 */
-	public function loop_installed_plugins() {
+	private function loop_installed_plugins() {
 		foreach ( $this->installed_plugins as $file => $plugin ) {
 			$this->maybe_process_plugin_dependencies( $file );
 		}
@@ -149,13 +149,13 @@ class WP_Plugin_Dependencies {
 	 * Check plugin dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access public
+	 * @access private
 	 *
 	 * @param string $file The plugin file.
 	 *
 	 * @return void
 	 */
-	public function maybe_process_plugin_dependencies( $file ) {
+	private function maybe_process_plugin_dependencies( $file ) {
 
 		$plugin_is_active           = is_plugin_active( $file );
 		$plugin_awaiting_activation = in_array( $file, $this->get_plugins_to_activate(), true );
@@ -233,14 +233,14 @@ class WP_Plugin_Dependencies {
 	 * Processes a plugin dependency.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @param string   $plugin     The plugin defining the dependency.
 	 * @param stdClass $dependency A dependency.
 	 *
 	 * @return bool
 	 */
-	protected function process_plugin_dependency( $plugin, $dependency ) {
+	private function process_plugin_dependency( $plugin, $dependency ) {
 		$dependency_is_installed = false;
 		$dependency_is_active    = false;
 
@@ -300,11 +300,11 @@ class WP_Plugin_Dependencies {
 	 * Cancel plugin's activation request.
 	 *
 	 * @since 5.9.0
-	 * @access public
+	 * @access private
 	 *
 	 * @return void
 	 */
-	public function cancel_activation_request() {
+	private function cancel_activation_request() {
 		if ( empty( $_GET['action'] ) || 'cancel-activate' !== $_GET['action'] || empty( $_GET['plugin'] ) ) {
 			return;
 		}
@@ -454,9 +454,9 @@ class WP_Plugin_Dependencies {
 	 * Generate the contents of an inline plugin row notice.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 */
-	protected function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $plugin_file = '' ) {
+	private function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $plugin_file = '' ) {
 		$tr_class = is_plugin_active( $plugin_file ) ? 'plugin-dependencies-tr active' : 'plugin-dependencies-tr';
 		$colspan  = (int) _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => get_current_screen() ) )->get_column_count();
 		?>
@@ -474,14 +474,14 @@ class WP_Plugin_Dependencies {
 	 * Show a notice to install a dependency.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @param array    $plugin     The plugin calling the dependencies.
 	 * @param stdClass $dependency The plugin slug.
 	 *
 	 * @return void
 	 */
-	protected function add_notice_install( $plugin, $dependency ) {
+	private function add_notice_install( $plugin, $dependency ) {
 		if ( ! function_exists( 'install_plugin_install_status' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 		}
@@ -501,14 +501,14 @@ class WP_Plugin_Dependencies {
 	 * Show a notice to activate a dependency.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @param array    $plugin     The plugin calling the dependencies.
 	 * @param stdClass $dependency The plugin slug.
 	 *
 	 * @return void
 	 */
-	protected function add_notice_activate( $plugin, $dependency ) {
+	private function add_notice_activate( $plugin, $dependency ) {
 		$activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . rawurlencode( $dependency['file'] ) . '&amp;plugin_status=all', 'activate-plugin_' . $dependency['file'] );
 
 		$this->notices[] = array(
@@ -539,13 +539,13 @@ class WP_Plugin_Dependencies {
 	 * Set plugin to the to-be-activated queue.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @param string $plugin The plugin file.
 	 *
 	 * @return bool
 	 */
-	protected function add_plugin_to_queue( $plugin ) {
+	private function add_plugin_to_queue( $plugin ) {
 		$queue = $this->get_plugins_to_activate();
 		if ( in_array( $plugin, $queue, true ) ) {
 			return true;
@@ -558,13 +558,13 @@ class WP_Plugin_Dependencies {
 	 * Remove plugin from the to-be-activated queue.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @param string $plugin The plugin file.
 	 *
 	 * @return bool
 	 */
-	protected function remove_plugin_from_queue( $plugin ) {
+	private function remove_plugin_from_queue( $plugin ) {
 		$queue = $this->get_plugins_to_activate();
 		if ( ! in_array( $plugin, $queue, true ) ) {
 			return true;
@@ -576,7 +576,7 @@ class WP_Plugin_Dependencies {
 	 * Check if a plugin is part of a circular dependencies loop.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @param string $plugin_file The plugin file.
 	 * @param array  $previous    If this is a dependency of a dependency,
@@ -584,7 +584,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @return bool
 	 */
-	protected function in_circular_dependency( $plugin_file, $previous = array() ) {
+	private function in_circular_dependency( $plugin_file, $previous = array() ) {
 		if ( isset( $this->circular_dependencies[ $plugin_file ] ) ) {
 			return $this->circular_dependencies[ $plugin_file ];
 		}
@@ -614,13 +614,13 @@ class WP_Plugin_Dependencies {
 	 * Get plugin file from its slug.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @param string $slug The plugin slug.
 	 *
 	 * @return string|false Returns the plugin file on success, false on failure.
 	 */
-	protected function get_plugin_file_from_slug( $slug ) {
+	private function get_plugin_file_from_slug( $slug ) {
 		$plugins = $this->get_plugins();
 		foreach ( array_keys( $plugins ) as $plugin ) {
 			if ( 0 === strpos( $plugin, "$slug/" ) || 0 === strpos( $plugin, "$slug\\" ) ) {
