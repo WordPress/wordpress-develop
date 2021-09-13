@@ -46,14 +46,27 @@ class WP_Plugin_Dependency_Installer {
 
 	/**
 	 * Constructor.
-	 *
-	 * @param string $dir File path of plugin/theme directory.
 	 */
-	public function __construct( $dir ) {
+	public function __construct() {
 		$this->config  = array();
 		$this->notices = array();
-		self::$caller  = $dir;
 		require_once 'class-wp-dismiss-notice.php';
+	}
+
+	/**
+	 * Factory.
+	 *
+	 * @param string $caller File path to calling plugin/theme.
+	 */
+	public static function instance( $caller = false ) {
+		static $instance = null;
+		if ( null === $instance ) {
+			$instance = new self();
+		}
+		self::$caller = $caller;
+		self::$source = ! $caller ? false : basename( $caller );
+
+		return $instance;
 	}
 
 	/**
@@ -145,37 +158,20 @@ class WP_Plugin_Dependency_Installer {
 	 */
 	private function apply_config() {
 		foreach ( $this->config as $dependency ) {
-			$download_link = null;
-			$uri           = $dependency['uri'];
-			$slug          = $dependency['slug'];
-			$uri_args      = parse_url( $uri );
-			$port          = isset( $uri_args['port'] ) ? $uri_args['port'] : null;
-			$api           = isset( $uri_args['host'] ) ? $uri_args['host'] : null;
-			$api           = ! $port ? $api : "{$api}:{$port}";
-			$scheme        = isset( $uri_args['scheme'] ) ? $uri_args['scheme'] : null;
-			$scheme        = null !== $scheme ? $scheme . '://' : 'https://';
-			$path          = isset( $uri_args['path'] ) ? $uri_args['path'] : null;
-			$owner_repo    = str_replace( '.git', '', trim( $path, '/' ) );
-			$download_link = $this->get_dot_org_latest_download( basename( $owner_repo ) );
-
-			/**
-			 * Allow filtering of download link for dependency configuration.
-			 *
-			 * @since 1.4.11
-			 *
-			 * @param string $download_link Download link.
-			 * @param array  $dependency    Dependency configuration.
-			 */
-			$dependency['download_link'] = apply_filters( 'wp_dependency_download_link', $download_link, $dependency );
-
-			/**
-			 * Allow filtering of individual dependency config.
-			 *
-			 * @since 3.0.0
-			 *
-			 * @param array  $dependency    Dependency configuration.
-			 */
-			$this->config[ $slug ] = apply_filters( 'wp_dependency_config', $dependency );
+			$download_link               = null;
+			$uri                         = $dependency['uri'];
+			$slug                        = $dependency['slug'];
+			$uri_args                    = parse_url( $uri );
+			$port                        = isset( $uri_args['port'] ) ? $uri_args['port'] : null;
+			$api                         = isset( $uri_args['host'] ) ? $uri_args['host'] : null;
+			$api                         = ! $port ? $api : "{$api}:{$port}";
+			$scheme                      = isset( $uri_args['scheme'] ) ? $uri_args['scheme'] : null;
+			$scheme                      = null !== $scheme ? $scheme . '://' : 'https://';
+			$path                        = isset( $uri_args['path'] ) ? $uri_args['path'] : null;
+			$owner_repo                  = str_replace( '.git', '', trim( $path, '/' ) );
+			$download_link               = $this->get_dot_org_latest_download( basename( $owner_repo ) );
+			$dependency['download_link'] = $download_link;
+			$this->config[ $slug ]       = $dependency;
 		}
 	}
 
@@ -544,34 +540,15 @@ class WP_Plugin_Dependency_Installer {
 	 * @return mixed
 	 */
 	public function unset_action_links( $actions, $plugin_file ) {
-		/**
-		 * Allow to remove required plugin action links.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param bool $unset remove default action links.
-		 */
-		if ( apply_filters( 'wp_dependency_unset_action_links', true ) ) {
-			if ( isset( $actions['delete'] ) ) {
-				unset( $actions['delete'] );
-			}
-
-			if ( isset( $actions['deactivate'] ) ) {
-				unset( $actions['deactivate'] );
-			}
+		if ( isset( $actions['delete'] ) ) {
+			unset( $actions['delete'] );
+		}
+		if ( isset( $actions['deactivate'] ) ) {
+			unset( $actions['deactivate'] );
 		}
 
-		/**
-		 * Allow to display of requied plugin label.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param bool $display show required plugin label.
-		 */
-		if ( apply_filters( 'wp_dependency_required_label', true ) ) {
-			/* translators: %s: opening and closing span tags */
-			$actions = array_merge( array( 'required-plugin' => sprintf( esc_html__( '%1$sRequired Plugin%2$s' ), '<span class="network_active" style="font-variant-caps: small-caps;">', '</span>' ) ), $actions );
-		}
+		/* translators: %s: opening and closing span tags */
+		$actions = array_merge( array( 'required-plugin' => sprintf( esc_html__( '%1$sRequired Plugin%2$s' ), '<span class="network_active" style="font-variant-caps: small-caps;">', '<span>' ) ), $actions );
 
 		return $actions;
 	}
@@ -585,16 +562,7 @@ class WP_Plugin_Dependency_Installer {
 	 */
 	public function modify_plugin_row_elements( $plugin_file ) {
 		print '<script>';
-		/**
-		 * Allow to display additional row meta info of required plugin.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param bool $display show plugin row meta.
-		 */
-		if ( apply_filters( 'wp_dependency_required_row_meta', true ) ) {
-			print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $this->get_dependency_sources( $plugin_file ) ) . '");';
-		}
+		print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $this->get_dependency_sources( $plugin_file ) ) . '");';
 		print 'jQuery(".inactive[data-plugin=\'' . esc_attr( $plugin_file ) . '\']").attr("class", "active");';
 		print 'jQuery(".active[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .check-column input").remove();';
 		print '</script>';
@@ -610,6 +578,7 @@ class WP_Plugin_Dependency_Installer {
 	private function get_dependency_sources( $plugin_file ) {
 		// Remove empty values from $sources.
 		$sources = array_filter( $this->config[ $plugin_file ]['sources'] );
+		$sources = array_unique( $sources );
 		$sources = array_map( array( $this, 'get_dismiss_label' ), $sources );
 		$sources = implode( ', ', $sources );
 
@@ -628,16 +597,7 @@ class WP_Plugin_Dependency_Installer {
 		$label = ucwords( $label );
 		$label = str_ireplace( 'wp ', 'WP ', $label );
 
-		/**
-		 * Filters the dismissal notice label
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param  string $label  Default dismissal notice string.
-		 * @param  string $source Plugin slug of calling plugin.
-		 * @return string Dismissal notice string.
-		 */
-		return apply_filters( 'wp_dependency_dismiss_label', $label, $source );
+		return $label;
 	}
 
 	/**
