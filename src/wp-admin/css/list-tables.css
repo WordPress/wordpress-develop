@@ -1174,7 +1174,9 @@ ul.cat-checklist {
 }
 
 .plugins .update th,
-.plugins .update td {
+.plugins .update td,
+.plugins .dependency th,
+.plugins .dependency td {
 	border-bottom: 0;
 }
 
@@ -1190,6 +1192,8 @@ ul.cat-checklist {
 
 .plugins tr.active.plugin-update-tr + tr.inactive th,
 .plugins tr.active.plugin-update-tr + tr.inactive td,
+.plugins tr.active.plugin-dependencies-tr + tr.inactive th,
+.plugins tr.active.plugin-dependencies-tr + tr.inactive td,
 .plugins tr.active + tr.inactive th,
 .plugins tr.active + tr.inactive td {
 	border-top: 1px solid rgba(0, 0, 0, 0.03);
@@ -1198,6 +1202,8 @@ ul.cat-checklist {
 
 .plugins .update td,
 .plugins .update th,
+.plugins .dependency td,
+.plugins .dependency th,
 .upgrade .plugins tr:last-of-type td,
 .upgrade .plugins tr:last-of-type th,
 .plugins tr.active + tr.inactive.update th,
@@ -1210,7 +1216,8 @@ ul.cat-checklist {
 }
 
 .plugins .active th.check-column,
-.plugin-update-tr.active td {
+.plugin-update-tr.active td,
+.plugin-dependencies-tr.active td {
 	border-left: 4px solid #72aee6;
 }
 
@@ -1267,13 +1274,15 @@ ul.cat-checklist {
 	border-top-width: 1px;
 }
 
-.plugins .plugin-update-tr .plugin-update {
+.plugins .plugin-update-tr .plugin-update,
+.plugins .plugin-dependencies-tr .plugin-dependencies {
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 	overflow: hidden; /* clearfix */
 	padding: 0;
 }
 
 .plugins .plugin-update-tr .notice,
+.plugins .plugin-dependencies-tr .notice,
 .plugins .plugin-update-tr div[class="update-message"] { /* back-compat for pre-4.6 */
 	margin: 5px 20px 15px 40px;
 }
@@ -2039,6 +2048,8 @@ div.action-links,
 	.plugins #the-list tr > td:not(:last-child),
 	.plugins #the-list .update th,
 	.plugins #the-list .update td,
+	.plugins #the-list .dependency th,
+	.plugins #the-list .dependency td,
 	.wp-list-table.plugins #the-list .theme-title {
 		box-shadow: none;
 		border-top: none;
@@ -2071,7 +2082,8 @@ div.action-links,
 		display: table-cell;
 	}
 
-	.plugins #the-list .plugin-update-tr .plugin-update {
+	.plugins #the-list .plugin-update-tr .plugin-update,
+	.plugins #the-list .plugin-dependencies-tr .plugin-dependencies {
 		border-left: none;
 	}
 
@@ -2086,7 +2098,8 @@ div.action-links,
 		border-left: 4px solid #72aee6;
 	}
 
-	.plugins .plugin-update-tr .update-message {
+	.plugins .plugin-update-tr .update-message,
+	.plugins .plugin-dependencies-tr .dependencies-message {
 		margin-left: 0;
 	}
 

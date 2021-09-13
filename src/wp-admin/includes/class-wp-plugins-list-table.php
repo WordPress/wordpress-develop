@@ -703,11 +703,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 * @global int $page
 	 * @global string $s
 	 * @global array $totals
+	 * @global WP_Plugin_Dependencies $plugin_dependencies
 	 *
 	 * @param array $item
 	 */
 	public function single_row( $item ) {
-		global $status, $page, $s, $totals;
+		global $status, $page, $s, $totals, $plugin_dependencies;
+
 		static $plugin_id_attrs = array();
 
 		list( $plugin_file, $plugin_data ) = $item;
@@ -990,6 +992,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			|| ! $compatible_php || ! $compatible_wp
 		) {
 			$class .= ' update';
+		}
+
+		if ( ! empty( $plugin_dependencies->get_plugin_dependencies( $plugin_file ) ) ) {
+			$class .= ' dependency';
 		}
 
 		$paused = ! $screen->in_admin( 'network' ) && is_plugin_paused( $plugin_file );

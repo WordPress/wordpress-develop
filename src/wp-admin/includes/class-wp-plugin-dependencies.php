@@ -454,14 +454,12 @@ class WP_Plugin_Dependencies {
 	 * @access protected
 	 */
 	protected function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $plugin_file = '' ) {
-		$is_plugin_active = is_plugin_active( $plugin_file );
-		$tr_class         = $is_plugin_active ? 'plugin-dependencies-tr active' : 'plugin-dependencies-tr';
-		$td_class         = 'plugin-dependencies colspanchange';
-		$colspan          = (int) _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => get_current_screen() ) )->get_column_count();
+		$tr_class = is_plugin_active( $plugin_file ) ? 'plugin-dependencies-tr active' : 'plugin-dependencies-tr';
+		$colspan  = (int) _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => get_current_screen() ) )->get_column_count();
 		?>
 		<tr class="<?php echo esc_attr( $tr_class ); ?>">
-			<td class="<?php echo esc_attr( $td_class ); ?>" colspan="<?php echo esc_attr( $colspan ); ?>" style="padding:0">
-				<div class="dependencies-message notice inline notice-<?php echo esc_attr( $notice_type ); ?> notice-alt" style="margin:0;border-top:none;border-<?php echo is_rtl() ? 'left' : 'right'; ?>:none;">
+			<td class="plugin-dependencies colspanchange" colspan="<?php echo esc_attr( $colspan ); ?>">
+				<div class="dependencies-message notice inline notice-<?php echo esc_attr( $notice_type ); ?> notice-alt">
 					<p><?php echo $contents; ?></p>
 				</div>
 			</td>
