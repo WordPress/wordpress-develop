@@ -402,14 +402,14 @@ class WP_Plugin_Dependencies {
 
 			$notice_contents = sprintf(
 				/* translators: %1$s: plugin name. %2$s: Parent plugin name. */
-				esc_html__( 'Plugin %1$s is a dependency for the "%2$s" plugin.' ),
+				esc_html__( 'Plugin %1$s cannot be deactivated because it is a dependency for the "%2$s" plugin.' ),
 				esc_html( $plugin_data['Name'] ),
 				esc_html( $parents_names[0] )
 			);
 			if ( 1 < count( $parents_names ) ) {
 				$notice_contents = sprintf(
 					/* translators: %1$s: plugin name. %2$s: Parent plugin names, comma-separated. */
-					esc_html__( 'Plugin %1$s is a dependency for the following plugins: %2$s.' ),
+					esc_html__( 'Plugin %1$s cannot be deactivated because it is a dependency for the following plugins: %2$s.' ),
 					esc_html( $plugin_data['Name'] ),
 					esc_html( implode( ', ', $parents_names ) )
 				);
