@@ -350,6 +350,7 @@ class WP_Plugin_Dependencies {
 					__( 'Cancel activation request' )
 				);
 
+				// Use `array_merge` to make sure the action is added as the 1st item in the array.
 				$actions = array_merge( array( 'cancel-activation' => $cancel_activation ), $actions );
 			}
 		}
