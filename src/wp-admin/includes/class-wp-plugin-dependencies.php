@@ -415,7 +415,7 @@ class WP_Plugin_Dependencies {
 				);
 			}
 
-			$this->inline_plugin_row_notice( $notice_contents, 'info', $plugin_file );
+			$this->inline_plugin_row_notice( $notice_contents, 'info', $plugin_file, $is_plugin_active );
 		}
 
 		// Add extra info to parents.
@@ -427,7 +427,8 @@ class WP_Plugin_Dependencies {
 						sprintf(
 							/* translators: %s: plugin name. */
 							esc_html__( 'Warning: Circular dependencies detected. Plugin "%s" has unmet dependencies. Please contact the plugin author to report this circular dependencies issue.' ),
-							esc_html( $plugin_data['Name'] )
+							esc_html( $plugin_data['Name'] ),
+							false
 						),
 						'warning',
 						$plugin_file
@@ -440,7 +441,8 @@ class WP_Plugin_Dependencies {
 							esc_html( $plugin_data['Name'] )
 						),
 						'warning',
-						$plugin_file
+						$plugin_file,
+						false
 					);
 				}
 			} elseif ( ! $is_plugin_active ) {
@@ -461,7 +463,8 @@ class WP_Plugin_Dependencies {
 						esc_html( implode( ', ', $dependencies_human_readable ) )
 					),
 					'info',
-					$plugin_file
+					$plugin_file,
+					false
 				);
 			}
 		}
@@ -473,8 +476,8 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 */
-	private function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $plugin_file = '' ) {
-		$tr_class = is_plugin_active( $plugin_file ) ? 'plugin-dependencies-tr active' : 'plugin-dependencies-tr';
+	private function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $plugin_file = '', $is_plugin_active = false ) {
+		$tr_class = $is_plugin_active ? 'plugin-dependencies-tr active' : 'plugin-dependencies-tr';
 		$colspan  = (int) _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => get_current_screen() ) )->get_column_count();
 		?>
 		<tr class="<?php echo esc_attr( $tr_class ); ?>">
