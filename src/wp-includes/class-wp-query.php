@@ -672,6 +672,7 @@ class WP_Query {
 	 *     @type int          $meta_value_num          Custom field value number.
 	 *     @type string       $meta_type_key           Cast for 'meta_key'. See WP_Meta_Query::construct().
 	 *     @type int          $menu_order              The menu order of the posts.
+	 *     @type int          $minute                  Minute of the hour. Default empty. Accepts numbers 0-59.
 	 *     @type int          $monthnum                The two-digit month. Default empty. Accepts numbers 1-12.
 	 *     @type string       $name                    Post slug.
 	 *     @type bool         $nopaging                Show all posts (true) or paginate (false). Default false.
@@ -719,7 +720,7 @@ class WP_Query {
 	 *                                                 return posts containing 'pillow' but not 'sofa'. The
 	 *                                                 character used for exclusion can be modified using the
 	 *                                                 the 'wp_query_search_exclusion_prefix' filter.
-	 *     @type int          $second                  Second of the minute. Default empty. Accepts numbers 0-60.
+	 *     @type int          $second                  Second of the minute. Default empty. Accepts numbers 0-59.
 	 *     @type bool         $sentence                Whether to search by phrase. Default false.
 	 *     @type bool         $suppress_filters        Whether to suppress filters. Default false.
 	 *     @type string       $tag                     Tag slug. Comma-separated (either), Plus-separated (all).

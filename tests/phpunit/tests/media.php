@@ -21,7 +21,7 @@ class Tests_Media extends WP_UnitTestCase {
 		foreach ( $post_statuses as $post_status ) {
 			$date = '';
 			if ( 'future' === $post_status ) {
-				strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+				date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 			}
 
 			self::$post_ids[ $post_status ] = $factory->post->create(
@@ -51,13 +51,13 @@ class Tests_Media extends WP_UnitTestCase {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
 	}
 
-	public static function tearDownAfterClass() {
+	public static function tear_down_after_class() {
 		wp_delete_post( self::$large_id, true );
-		parent::tearDownAfterClass();
+		parent::tear_down_after_class();
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->caption           = 'A simple caption.';
 		$this->alternate_caption = 'Alternate caption.';
 		$this->html_content      = <<<CAP

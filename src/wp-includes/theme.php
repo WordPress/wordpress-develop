@@ -966,38 +966,46 @@ function validate_theme_requirements( $stylesheet ) {
  * Retrieves all theme modifications.
  *
  * @since 3.1.0
+ * @since 5.9.0 The return value is always an array.
  *
- * @return array|void Theme modifications.
+ * @return array Theme modifications.
  */
 function get_theme_mods() {
 	$theme_slug = get_option( 'stylesheet' );
 	$mods       = get_option( "theme_mods_$theme_slug" );
+
 	if ( false === $mods ) {
 		$theme_name = get_option( 'current_theme' );
 		if ( false === $theme_name ) {
 			$theme_name = wp_get_theme()->get( 'Name' );
 		}
+
 		$mods = get_option( "mods_$theme_name" ); // Deprecated location.
 		if ( is_admin() && false !== $mods ) {
 			update_option( "theme_mods_$theme_slug", $mods );
 			delete_option( "mods_$theme_name" );
 		}
 	}
+
+	if ( ! is_array( $mods ) ) {
+		$mods = array();
+	}
+
 	return $mods;
 }
 
 /**
  * Retrieves theme modification value for the current theme.
  *
- * If the modification name does not exist, then the $default will be passed
- * through {@link https://www.php.net/sprintf sprintf()} PHP function with
- * the template directory URI as the first string and the stylesheet directory URI
- * as the second string.
+ * If the modification name does not exist and `$default` is a string, then the
+ * default will be passed through the {@link https://www.php.net/sprintf sprintf()}
+ * PHP function with the template directory URI as the first value and the
+ * stylesheet directory URI as the second value.
  *
  * @since 2.1.0
  *
- * @param string       $name    Theme modification name.
- * @param string|false $default Optional. Theme modification default value. Default false.
+ * @param string $name    Theme modification name.
+ * @param mixed  $default Optional. Theme modification default value. Default false.
  * @return mixed Theme modification value.
  */
 function get_theme_mod( $name, $default = false ) {
@@ -1013,7 +1021,7 @@ function get_theme_mod( $name, $default = false ) {
 		 *
 		 * @since 2.2.0
 		 *
-		 * @param string $current_mod The value of the current theme modification.
+		 * @param mixed $current_mod The value of the current theme modification.
 		 */
 		return apply_filters( "theme_mod_{$name}", $mods[ $name ] );
 	}
@@ -1054,8 +1062,8 @@ function set_theme_mod( $name, $value ) {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param string $value     The new value of the theme modification.
-	 * @param string $old_value The current value of the theme modification.
+	 * @param mixed $value     The new value of the theme modification.
+	 * @param mixed $old_value The current value of the theme modification.
 	 */
 	$mods[ $name ] = apply_filters( "pre_set_theme_mod_{$name}", $value, $old_value );
 

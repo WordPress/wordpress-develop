@@ -11,7 +11,7 @@
  *
  * @group widgets
  */
-class Test_Widgets_wpWidgetRss extends WP_UnitTestCase {
+class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53278
