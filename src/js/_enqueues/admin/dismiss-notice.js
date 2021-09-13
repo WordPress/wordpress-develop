@@ -12,7 +12,7 @@
 					event.preventDefault();
 					var $this = $( this );
 
-					var attr_value, option_name, dismissible_length, data;
+					var attr_value, option_name, dismissible_length, dismissible_notice;
 
 					attr_value = $this.closest('div[data-dismissible]').attr( 'data-dismissible' ).split( '-' );
 
@@ -25,7 +25,7 @@
 						'action': 'dismiss_admin_notice',
 						'option_name': option_name,
 						'dismissible_length': dismissible_length,
-						'nonce': dismissible_notices.nonce
+						'nonce': dismissible_notice.nonce
 					};
 
 					$this.closest('div[data-dismissible]').hide('slow');
