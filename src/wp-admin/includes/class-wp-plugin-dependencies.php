@@ -460,7 +460,7 @@ class WP_Plugin_Dependencies {
 		<tr class="<?php echo esc_attr( $tr_class ); ?>">
 			<td class="plugin-dependencies colspanchange" colspan="<?php echo esc_attr( $colspan ); ?>">
 				<div class="dependencies-message notice inline notice-<?php echo esc_attr( $notice_type ); ?> notice-alt">
-					<p><?php echo $contents; ?></p>
+					<p><?php echo $contents; // phpcs:ignore WordPress.Security.EscapeOutput This output is escaped beforehand. ?></p>
 				</div>
 			</td>
 		</tr>
