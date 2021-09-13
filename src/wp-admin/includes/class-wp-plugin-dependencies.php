@@ -146,32 +146,6 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Determine if a plugin has unmet dependencies or not.
-	 *
-	 * @since 5.9.0
-	 * @access public
-	 *
-	 * @param string $plugin_file The plugin file.
-	 *
-	 * @return bool Return true if the plugin has unmet depoendencies, otherwise return false.
-	 */
-	public function has_unmet_dependencies( $plugin_file ) {
-		$dependencies = $this->get_plugin_dependencies( $plugin_file );
-
-		foreach ( $dependencies as $dependency ) {
-			$dependency_is_installed = false;
-			$dependency_is_active    = false;
-
-			foreach ( $this->installed_plugins as $file => $installed_plugin ) {
-				if ( dirname( $file ) === $dependency['slug'] && ! is_plugin_active( $file ) ) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Check plugin dependencies.
 	 *
 	 * @since 5.9.0
@@ -199,31 +173,32 @@ class WP_Plugin_Dependencies {
 			return;
 		}
 
-		// Early return if there are no unmet dependencies.
-		if ( ! $this->has_unmet_dependencies( $file ) ) {
-
-			// Activate plugin if it's awaiting activation.
-			if ( $plugin_awaiting_activation ) {
-				activate_plugin( $file );
-				$this->remove_plugin_from_queue( $file );
-			}
-			return;
-		}
-
-		// Loop dependencies to add notices where needed.
+		// Loop dependencies.
+		$dependencies_met = true;
 		foreach ( $dependencies as $dependency ) {
-			$this->process_plugin_dependency( $file, $dependency );
+
+			// Set $dependencies_met to false if one of the dependencies is not met.
+			if ( ! $this->process_plugin_dependency( $file, $dependency ) ) {
+				$dependencies_met = false;
+			}
 		}
 
 		$in_circular_dependency = $this->in_circular_dependency( $file );
 
-		// Make sure plugin is deactivated when its dependencies are not met.
-		if ( $plugin_is_active && ! $in_circular_dependency ) {
-			deactivate_plugins( $file );
-		}
+		if ( ! $dependencies_met ) {
 
-		// Add plugin to queue of plugins to be activated.
-		$this->add_plugin_to_queue( $file );
+			// Make sure plugin is deactivated when its dependencies are not met.
+			if ( $plugin_is_active && ! $in_circular_dependency ) {
+				deactivate_plugins( $file );
+			}
+
+			// Add plugin to queue of plugins to be activated.
+			$this->add_plugin_to_queue( $file );
+
+		} elseif ( $plugin_awaiting_activation ) {
+			activate_plugin( $file );
+			$this->remove_plugin_from_queue( $file );
+		}
 	}
 
 	/**
