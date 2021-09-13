@@ -406,7 +406,7 @@ class WP_Plugin_Dependencies {
 					$this->inline_plugin_row_notice(
 						sprintf(
 							/* translators: %s: plugin name. */
-							esc_html__( 'Warning: Circular dependencies detected. Plugin "%s" has unmet dependencies.' ),
+							esc_html__( 'Warning: Circular dependencies detected. Plugin "%s" has unmet dependencies. Please contact the plugin author to report this circular dependencies issue.' ),
 							esc_html( $plugin_data['Name'] )
 						),
 						'warning',
