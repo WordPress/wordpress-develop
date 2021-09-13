@@ -275,7 +275,7 @@ class WP_Plugin_Dependency_Installer {
 
 		if ( in_array( $method, $whitelist, true ) ) {
 			$response = $this->$method( $slug );
-			esc_html_e( $response['message'] );
+			echo esc_attr( $response['message'] );
 		}
 		wp_die();
 	}
