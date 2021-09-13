@@ -214,7 +214,7 @@ class WP_Plugin_Dependencies {
 	public function get_plugin_dependencies( $file ) {
 		if ( ! isset( $this->plugin_dependencies[ $file ] ) ) {
 			$this->plugin_dependencies[ $file ] = array();
-			$plugin_dependencies = get_plugin_data( WP_PLUGIN_DIR . '/' . $file )['RequiresPlugins'];
+			$plugin_dependencies                = get_plugin_data( WP_PLUGIN_DIR . '/' . $file )['RequiresPlugins'];
 			if ( empty( $plugin_dependencies ) ) {
 				$this->plugin_dependencies[ $file ] = array();
 				return array();
@@ -598,7 +598,7 @@ class WP_Plugin_Dependencies {
 		foreach ( $plugin_dependencies as $dependency ) {
 			$dependency_file = $this->get_plugin_file_from_slug( $dependency['slug'] );
 			if ( $this->in_circular_dependency( $dependency_file, array_merge( $previous, array( $plugin_file ) ) ) ) {
-				$this->circular_dependencies[ $plugin_file ] = true;
+				$this->circular_dependencies[ $plugin_file ]     = true;
 				$this->circular_dependencies[ $dependency_file ] = true;
 			}
 		}
