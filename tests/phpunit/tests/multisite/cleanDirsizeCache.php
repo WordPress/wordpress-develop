@@ -11,16 +11,16 @@ if ( is_multisite() ) :
 	class Tests_Multisite_Dirsize_Cache extends WP_UnitTestCase {
 		protected $suppress = false;
 
-		function setUp() {
+		function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tear_down() {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		/**

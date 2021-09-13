@@ -31,7 +31,7 @@ $current_screen->is_block_editor( true );
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
-	function( $classes ) {
+	static function( $classes ) {
 		return "$classes is-fullscreen-mode";
 	}
 );
@@ -119,7 +119,7 @@ wp_add_inline_script(
  * besides the default value.
  */
 $available_templates = wp_get_theme()->get_page_templates( get_post( $post->ID ) );
-$available_templates = ! empty( $available_templates ) ? array_merge(
+$available_templates = ! empty( $available_templates ) ? array_replace(
 	array(
 		/** This filter is documented in wp-admin/includes/meta-boxes.php */
 		'' => apply_filters( 'default_page_template_title', __( 'Default template' ), 'rest-api' ),

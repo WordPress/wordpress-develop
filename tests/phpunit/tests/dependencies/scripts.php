@@ -14,8 +14,8 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 	protected $wp_scripts_print_translations_output;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
@@ -34,10 +34,10 @@ JS;
 		$this->wp_scripts_print_translations_output .= "\n";
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -1426,12 +1426,7 @@ JS;
 			if ( PHP_VERSION_ID < 80000 ) {
 				$this->expectWarning();
 			} else {
-				/*
-				 * As this exception will only be set on PHP 8 in combination with PHPUnit 7, this will work (for now).
-				 * Once the PHPUnit version constraints have been widened and a _supported_ PHPUnit version is
-				 * used to run the tests on PHP 8.x, this should be changed to `$this->expectError()`.
-				 */
-				$this->expectException( 'Error' );
+				$this->expectError();
 			}
 		}
 

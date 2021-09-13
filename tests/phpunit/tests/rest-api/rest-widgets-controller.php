@@ -94,10 +94,10 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 	}
 
-	public function setUp() {
+	public function set_up() {
 		global $wp_widget_factory;
 
-		parent::setUp();
+		parent::set_up();
 
 		wp_set_current_user( self::$admin_id );
 
@@ -108,7 +108,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_register_widget_control(
 			'testwidget',
 			'WP test widget',
-			function () {
+			static function () {
 				$settings = get_option( 'widget_testwidget' );
 
 				// check if anything's been sent.
@@ -127,7 +127,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_register_sidebar_widget(
 			'testwidget',
 			'WP test widget',
-			function () {
+			static function () {
 				$settings = wp_parse_args(
 					get_option( 'widget_testwidget' ),
 					array(

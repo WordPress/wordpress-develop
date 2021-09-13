@@ -78,17 +78,17 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		add_action( 'wp_after_insert_post', array( $this, 'action_wp_after_insert_post' ), 10, 4 );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		self::$passed_post_title         = '';
 		self::$passed_post_status        = '';
 		self::$passed_post_before_title  = '';
 		self::$passed_post_before_status = '';
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

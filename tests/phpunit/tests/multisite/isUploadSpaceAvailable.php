@@ -13,19 +13,19 @@ if ( is_multisite() ) :
 	class Tests_Multisite_Is_Upload_Space_Available extends WP_UnitTestCase {
 		protected $suppress = false;
 
-		public function setUp() {
+		public function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 
 			update_site_option( 'upload_space_check_disabled', false );
 		}
 
-		public function tearDown() {
+		public function tear_down() {
 			global $wpdb;
 
 			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		/**
