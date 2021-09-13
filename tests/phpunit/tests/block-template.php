@@ -39,7 +39,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 		global $_wp_current_template_content;
 		unset( $_wp_current_template_content );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
