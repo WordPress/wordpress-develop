@@ -40,7 +40,7 @@ describe('Manage dashboard widgets', () => {
         await page.click('#wp_welcome_panel-hide');
     });
 
-    /* it('Collapse and expand a dashboard widget', async() => {
+    it('Collapse and expand a dashboard widget', async() => {
         await visitAdminPage('/');
 
         const toggleButton = await page.waitForSelector('#dashboard_right_now button.handlediv');
@@ -51,11 +51,8 @@ describe('Manage dashboard widgets', () => {
         });
         expect(hiddenInsideWidget).toBe(true);
 
-        // This needs more investigation.
-        // As the widget is not expanded back when the tests are run in headed mode
-
         // Expand back the widget
         await toggleButton.focus();
         await page.keyboard.press('Enter');
-    }); */
+    });
 });
