@@ -118,8 +118,8 @@ class WP_Meta_Query {
 	 *                                              'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'REGEXP', 'NOT REGEXP', 'RLIKE',
 	 *                                              'EXISTS' (alias of '=') or 'NOT EXISTS' (alias of '!=').
 	 *                                              Default is 'IN' when `$key` is an array, '=' otherwise.
-	 *         @type string $compare_key_like_mode  Search mode for LIKE compares. Accepts 'startswith ', 'endswith' or
-	 *                                              'contains'. Default is 'contains'.
+	 *         @type string $compare_key_like_mode  Search mode for LIKE compares. Accepts 'contains', 'startswith' or
+	 *                                              'endswith'. Default is 'contains'.
 	 *         @type string $type_key               MySQL data type that the meta_key column will be CAST to for
 	 *                                              comparisons. Accepts 'BINARY' for case-sensitive regular expression
 	 *                                              comparisons. Default is ''.
@@ -129,8 +129,8 @@ class WP_Meta_Query {
 	 *                                              'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'REGEXP',
 	 *                                              'NOT REGEXP', 'RLIKE', 'EXISTS' or 'NOT EXISTS'.
 	 *                                              Default is 'IN' when `$value` is an array, '=' otherwise.
-	 *         @type string $compare_like_mode      Search mode for LIKE compares. Accepts 'startswith ', 'endswith' or
-	 *                                              'contains'. Default is 'contains'.
+	 *         @type string $compare_like_mode      Search mode for LIKE compares. Accepts 'contains', 'startswith' or
+	 *                                              'endswith'. Default is 'contains'.
 	 *         @type string $type                   MySQL data type that the meta_value column will be CAST to for
 	 *                                              comparisons. Accepts 'NUMERIC', 'BINARY', 'CHAR', 'DATE',
 	 *                                              'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', or 'UNSIGNED'.
