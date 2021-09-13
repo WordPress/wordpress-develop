@@ -25,11 +25,9 @@
 						'action': 'dismiss_admin_notice',
 						'option_name': option_name,
 						'dismissible_length': dismissible_length,
-						'nonce': dismissible_notice.nonce
+						'nonce': dismissible_notices.nonce
 					};
 
-					// We can also pass the url value separately from ajaxurl for front end AJAX implementations
-					$.post( ajaxurl, data );
 					$this.closest('div[data-dismissible]').hide('slow');
 				}
 			);
