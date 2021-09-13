@@ -81,8 +81,8 @@ describe('Manage posts', () => {
         await trashedPost.hover();
         const restoredLink = await page.$('span.untrash a');
         await restoredLink.click();
-		
-		const restoredPostMessage = await page.waitForSelector('div#message');
+
+        const restoredPostMessage = await page.waitForSelector('div#message');
         expect(
             await restoredPostMessage.evaluate((element) => element.innerText)
         ).toContain('1 post restored from the Trash. Edit Post');
