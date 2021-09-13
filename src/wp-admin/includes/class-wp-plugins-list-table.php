@@ -994,7 +994,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$class .= ' update';
 		}
 
-		if ( ! empty( $plugin_dependencies->get_plugin_dependencies( $plugin_file ) ) ) {
+		if ( ! empty( $plugin_dependencies->get_plugin_dependencies( $plugin_file ) ) || ! empty( $plugin_dependencies->get_parents( $plugin_file ) ) ) {
 			$class .= ' dependency';
 		}
 

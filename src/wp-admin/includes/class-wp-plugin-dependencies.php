@@ -358,6 +358,23 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
+	 * Get a plugin's parents.
+	 *
+	 * @since 5.9.0
+	 * @access public
+	 *
+	 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
+	 *
+	 * @return array Returns an array of parent plugins.
+	 */
+	public function get_parents( $plugin_file ) {
+		if ( ! isset( $this->dependencies_parents[ $plugin_file ] ) ) {
+			return array();
+		}
+		return $this->dependencies_parents[ $plugin_file ];
+	}
+
+	/**
 	 * Add dependencies info in plugins.
 	 *
 	 * @since 5.9.0
