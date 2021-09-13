@@ -170,6 +170,7 @@ function apply_filters( $hook_name, $value, ...$args ) {
 		$wp_current_filter[] = $hook_name;
 
 		$all_args = $args;
+		// Pass the hook name and value to the `all` hook handler.
 		array_unshift( $all_args, $hook_name, $value );
 		_wp_call_all_hook( $all_args );
 	}
@@ -186,6 +187,7 @@ function apply_filters( $hook_name, $value, ...$args ) {
 		$wp_current_filter[] = $hook_name;
 	}
 
+	// Pass the value to WP_Hook.
 	array_unshift( $args, $value );
 
 	$filtered = $wp_filter[ $hook_name ]->apply_filters( $value, $args );
