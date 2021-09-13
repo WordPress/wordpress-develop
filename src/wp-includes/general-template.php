@@ -4315,8 +4315,7 @@ function paginate_links( $args = '' ) {
 			);
 
 			$dots = true;
-		}
-		else {
+		} else {
 
 			if (
 				$args['show_all'] ||
@@ -4346,8 +4345,7 @@ function paginate_links( $args = '' ) {
 				);
 
 				$dots = true;
-			}
-			elseif ( $dots && ! $args['show_all'] ) {
+			} elseif ( $dots && ! $args['show_all'] ) {
 
 				$page_links[] = array(
 					'type' => 'dots',
