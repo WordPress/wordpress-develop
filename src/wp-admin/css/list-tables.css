@@ -1190,12 +1190,12 @@ ul.cat-checklist {
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
-.plugins tr.active.plugin-update-tr + tr.inactive th,
-.plugins tr.active.plugin-update-tr + tr.inactive td,
-.plugins tr.active.plugin-dependencies-tr + tr.inactive th,
-.plugins tr.active.plugin-dependencies-tr + tr.inactive td,
-.plugins tr.active + tr.inactive th,
-.plugins tr.active + tr.inactive td {
+.plugins tr.active.plugin-update-tr + tr.inactive:not(.dependency) th,
+.plugins tr.active.plugin-update-tr + tr.inactive:not(.dependency) td,
+.plugins tr.active.plugin-dependencies-tr + tr.inactive:not(.dependency) th,
+.plugins tr.active.plugin-dependencies-tr + tr.inactive:not(.dependency) td,
+.plugins tr.active + tr.inactive:not(.dependency) th,
+.plugins tr.active + tr.inactive:not(.dependency) td {
 	border-top: 1px solid rgba(0, 0, 0, 0.03);
 	box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.02), inset 0 -1px 0 #dcdcde;
 }
