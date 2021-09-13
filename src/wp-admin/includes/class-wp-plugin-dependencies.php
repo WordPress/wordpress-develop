@@ -597,7 +597,7 @@ class WP_Plugin_Dependencies {
 
 		foreach ( $plugin_dependencies as $dependency ) {
 			$dependency_file = $this->get_plugin_file_from_slug( $dependency['slug'] );
-			if ( $this->in_circular_dependency( $dependency_file, array_merge( $previous, array( $plugin_file ) ) ) ) {
+			if ( $dependency_file && $this->in_circular_dependency( $dependency_file, array_merge( $previous, array( $plugin_file ) ) ) ) {
 				$this->circular_dependencies[ $plugin_file ]     = true;
 				$this->circular_dependencies[ $dependency_file ] = true;
 			}
