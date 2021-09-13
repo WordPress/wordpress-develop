@@ -1,10 +1,10 @@
 === Twenty Thirteen ===
 Contributors: wordpressdotorg
-Tested up to: 5.7
-Stable tag: 3.3
+Tested up to: 5.8
+Stable tag: 3.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
-Tags: blog, one-column, two-columns, right-sidebar, custom-header, custom-menu, editor-style, featured-images, footer-widgets, microformats, post-formats, rtl-language-support, sticky-post, translation-ready, accessibility-ready
+Tags: blog, one-column, two-columns, right-sidebar, custom-header, custom-menu, editor-style, featured-images, footer-widgets, microformats, post-formats, rtl-language-support, sticky-post, translation-ready, accessibility-ready, block-patterns
 
 == Description ==
 The 2013 theme for WordPress takes us back to the blog, featuring a full range of post formats, each displayed beautifully in their own unique way. Design details abound, starting with a vibrant color scheme and matching header images, beautiful typography and icons, and a flexible layout that looks great on any device, big or small.
@@ -44,7 +44,18 @@ Genericons icon font, Copyright 2013-2017 Automattic.com
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
+Images
+Cylinder Interior: https://www.flickr.com/photos/nasacommons/14052998066/in/album-72157644439092941/. Rick Guidice, NASA Ames Research Center.
+Bernal Cutaway: https://www.flickr.com/photos/nasacommons/14052996976/in/album-72157644439092941/ Don Davis, NASA Ames Research Center.
+Torus Interior: https://www.flickr.com/photos/nasacommons/14076102195/in/album-72157644439092941/ Rick Guidice, NASA Ames Research Center.
+Toroidal Colony: https://www.flickr.com/photos/nasacommons/13889485757/in/album-72157644439092941/ Rick Guidice, NASA Ames Research Center.
+
 == Changelog ==
+
+= 3.4 =
+* Released: July 20, 2021
+
+https://codex.wordpress.org/Twenty_Thirteen_Theme_Changelog#Version_3.4
 
 = 3.3 =
 * Released: March 9, 2021

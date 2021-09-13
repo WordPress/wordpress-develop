@@ -7,9 +7,9 @@ Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Twenty-One is a blank canvas for your ideas and it makes the block editor your best brush. With new block patterns, which allow you to create a beautiful layout in a matter of seconds, this theme’s soft colors and eye-catching — yet timeless — design will let your work shine. Take it for a spin! See how Twenty Twenty-One elevates your portfolio, business website, or personal blog.
 Requires at least: 5.3
-Tested up to: 5.7
+Tested up to: 5.8
 Requires PHP: 5.6
-Version: 1.3
+Version: 1.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentytwentyone
@@ -922,7 +922,8 @@ template {
 .site-main > .not-found > *,
 .entry-content > *,
 [class*=inner-container] > *,
-.wp-block-template-part > * {
+.wp-block-template-part > *,
+.wp-block-post-template :where(li > *) {
 	margin-top: calc(0.666 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.666 * var(--global--spacing-vertical));
 }
@@ -932,7 +933,8 @@ template {
 	.site-main > .not-found > *,
 	.entry-content > *,
 	[class*=inner-container] > *,
-	.wp-block-template-part > * {
+	.wp-block-template-part > *,
+	.wp-block-post-template :where(li > *) {
 		margin-top: var(--global--spacing-vertical);
 		margin-bottom: var(--global--spacing-vertical);
 	}
@@ -942,7 +944,8 @@ template {
 .site-main > .not-found > *:first-child,
 .entry-content > *:first-child,
 [class*=inner-container] > *:first-child,
-.wp-block-template-part > *:first-child {
+.wp-block-template-part > *:first-child,
+.wp-block-post-template :where(li > *):first-child {
 	margin-top: 0;
 }
 
@@ -950,7 +953,8 @@ template {
 .site-main > .not-found > *:last-child,
 .entry-content > *:last-child,
 [class*=inner-container] > *:last-child,
-.wp-block-template-part > *:last-child {
+.wp-block-template-part > *:last-child,
+.wp-block-post-template :where(li > *):last-child {
 	margin-bottom: 0;
 }
 
@@ -2468,6 +2472,11 @@ h6,
 	margin-bottom: 0;
 }
 
+.widget-area .wp-block-latest-posts:not(.is-grid) > li {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
 .wp-block-latest-posts.is-grid {
 	word-wrap: break-word;
 	word-break: break-word;
@@ -2514,6 +2523,11 @@ h6,
 	font-weight: var(--heading--font-weight);
 	line-height: var(--global--line-height-heading);
 	margin-bottom: calc(0.333 * var(--global--spacing-vertical));
+}
+
+.widget-area .wp-block-latest-posts > li > a {
+	font-size: var(--global--font-size-sm);
+	margin-bottom: 0;
 }
 
 .wp-block-latest-posts .wp-block-latest-posts__post-author {
@@ -3005,6 +3019,16 @@ pre.wp-block-preformatted {
 .wp-block-pullquote.is-style-solid-color.alignleft blockquote,
 .wp-block-pullquote.is-style-solid-color.alignright blockquote {
 	max-width: initial;
+}
+
+.wp-block-query.has-background {
+	padding: calc(0.666 * var(--global--spacing-vertical));
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-query.has-background {
+		padding: var(--global--spacing-vertical);
+	}
 }
 
 .wp-block-quote {
@@ -5480,10 +5504,38 @@ h1.page-title {
 	clear: both;
 }
 
-.widget-title {
-	font-size: var(--global--font-size-sm);
+.widget h1,
+.widget h2,
+.widget h3,
+.widget h4,
+.widget h5,
+.widget h6 {
 	font-weight: var(--widget--font-weight-title);
 	line-height: var(--widget--line-height-title);
+}
+
+.widget h1 {
+	font-size: var(--global--font-size-md);
+}
+
+.widget h2 {
+	font-size: var(--global--font-size-sm);
+}
+
+.widget h3 {
+	font-size: var(--global--font-size-xs);
+}
+
+.widget h4 {
+	font-size: var(--global--font-size-xs);
+}
+
+.widget h5 {
+	font-size: var(--global--font-size-xs);
+}
+
+.widget h6 {
+	font-size: var(--global--font-size-xs);
 }
 
 .search-form {

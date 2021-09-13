@@ -34,7 +34,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 		foreach ( $object->deps as $dep ) {
 			$o = $scripts->query( $dep, 'registered' );
 			$this->assertInstanceOf( '_WP_Dependency', $object );
-			$this->assertTrue( isset( $jquery_scripts[ $dep ] ) );
+			$this->assertArrayHasKey( $dep, $jquery_scripts );
 			$this->assertSame( $jquery_scripts[ $dep ], $o->src );
 		}
 	}
@@ -82,8 +82,6 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 			wp_deregister_script( $library );
 			$this->assertTrue( wp_script_is( $library, 'registered' ) );
 		}
-
-		set_current_screen( 'front' );
 	}
 
 	/**

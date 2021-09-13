@@ -19,7 +19,7 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 			$found = get_the_content( 'Ping' );
 		}
 
-		$this->assertContains( '>Ping<', $found );
+		$this->assertStringContainsString( '>Ping<', $found );
 	}
 
 	/**
@@ -38,7 +38,7 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 			$found = get_the_content( null, true );
 		}
 
-		$this->assertNotContains( 'Foo', $found );
+		$this->assertStringNotContainsString( 'Foo', $found );
 	}
 
 	/**

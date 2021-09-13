@@ -11,8 +11,13 @@
  */
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Load the WP_REST_Test_Controller class if not already loaded.
+		require_once __DIR__ . '/rest-test-controller.php';
+	}
+
+	public function set_up() {
+		parent::set_up();
 		$this->request = new WP_REST_Request(
 			'GET',
 			'/wp/v2/testroute',
@@ -52,11 +57,11 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function test_validate_schema_type_integer() {
@@ -106,36 +111,28 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		// Check sanitize testing.
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( 'false', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( '0', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( 0, $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( 'FALSE', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( 'true', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( '1', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( 1, $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( 'TRUE', $this->request, 'someboolean' )
 		);
 
@@ -249,7 +246,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
 		$this->assertSame( 'A pretty string.', $args['somestring']['description'] );
-		$this->assertFalse( isset( $args['someinteger']['description'] ) );
+		$this->assertArrayNotHasKey( 'description', $args['someinteger'] );
 	}
 
 	public function test_get_endpoint_args_for_item_schema_arg_options() {
@@ -516,7 +513,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$first_call_count = $listener->get_call_count( $method );
 
-		$this->assertTrue( $first_call_count > 0 );
+		$this->assertGreaterThan( 0, $first_call_count );
 
 		$request->set_param( '_fields', 'somestring' );
 
@@ -528,7 +525,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller->prepare_item_for_response( $item, $request );
 
-		$this->assertTrue( $listener->get_call_count( $method ) > $first_call_count );
+		$this->assertGreaterThan( $first_call_count, $listener->get_call_count( $method ) );
 	}
 
 	/**

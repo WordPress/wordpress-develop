@@ -186,7 +186,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $in_f
 /**
  * Localize a script.
  *
- * Works only if the script has already been added.
+ * Works only if the script has already been registered.
  *
  * Accepts an associative array $l10n and creates a JavaScript object:
  *
@@ -224,7 +224,7 @@ function wp_localize_script( $handle, $object_name, $l10n ) {
 /**
  * Sets translated strings for a script.
  *
- * Works only if the script has already been added.
+ * Works only if the script has already been registered.
  *
  * @see WP_Scripts::set_translations()
  * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
@@ -304,13 +304,16 @@ function wp_deregister_script( $handle ) {
 		);
 
 		if ( in_array( $handle, $not_allowed, true ) ) {
-			$message = sprintf(
-				/* translators: 1: Script name, 2: wp_enqueue_scripts */
-				__( 'Do not deregister the %1$s script in the administration area. To target the front-end theme, use the %2$s hook.' ),
-				"<code>$handle</code>",
-				'<code>wp_enqueue_scripts</code>'
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: Script name, 2: wp_enqueue_scripts */
+					__( 'Do not deregister the %1$s script in the administration area. To target the front-end theme, use the %2$s hook.' ),
+					"<code>$handle</code>",
+					'<code>wp_enqueue_scripts</code>'
+				),
+				'3.6.0'
 			);
-			_doing_it_wrong( __FUNCTION__, $message, '3.6.0' );
 			return;
 		}
 	}
@@ -399,7 +402,7 @@ function wp_script_is( $handle, $list = 'enqueued' ) {
 /**
  * Add metadata to a script.
  *
- * Works only if the script has already been added.
+ * Works only if the script has already been registered.
  *
  * Possible values for $key and $value:
  * 'conditional' string Comments for IE 6, lte IE 7, etc.

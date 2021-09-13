@@ -205,12 +205,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				case 'image/webp':
 					$webp_info = wp_get_webp_info( $this->file );
 
-					if ( 'lossy' === $webp_info['type'] ) {
-						$this->image->setImageCompressionQuality( $quality );
-					} else {
+					if ( 'lossless' === $webp_info['type'] ) {
 						// Use WebP lossless settings.
 						$this->image->setImageCompressionQuality( 100 );
 						$this->image->setOption( 'webp:lossless', 'true' );
+					} else {
+						$this->image->setImageCompressionQuality( $quality );
 					}
 					break;
 				default:
@@ -662,8 +662,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string $destfilename
-	 * @param string $mime_type
+	 * @param string $destfilename Optional. Destination filename. Default null.
+	 * @param string $mime_type    Optional. The mime-type. Default null.
 	 * @return array|WP_Error {'path'=>string, 'file'=>string, 'width'=>int, 'height'=>int, 'mime-type'=>string}
 	 */
 	public function save( $destfilename = null, $mime_type = null ) {
@@ -901,7 +901,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return true|WP_error
+	 * @return true|WP_Error
 	 */
 	protected function pdf_load_source() {
 		$filename = $this->pdf_setup();

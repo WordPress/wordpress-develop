@@ -41,7 +41,7 @@ class WP_Site_Health_Auto_Updates {
 
 		$tests = array_filter( $tests );
 		$tests = array_map(
-			function( $test ) {
+			static function( $test ) {
 				$test = (object) $test;
 
 				if ( empty( $test->severity ) ) {
@@ -226,7 +226,7 @@ class WP_Site_Health_Auto_Updates {
 		// Search all directories we've found for evidence of version control.
 		foreach ( $vcs_dirs as $vcs_dir ) {
 			foreach ( $check_dirs as $check_dir ) {
-				// phpcs:ignore
+				// phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition,Squiz.PHP.DisallowMultipleAssignments
 				if ( $checkout = @is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" ) ) {
 					break 2;
 				}
@@ -273,7 +273,7 @@ class WP_Site_Health_Auto_Updates {
 	 * @return array The test results.
 	 */
 	function test_check_wp_filesystem_method() {
-		// Make sure the `request_filesystem_credentials` function is available during our REST call.
+		// Make sure the `request_filesystem_credentials()` function is available during our REST API call.
 		if ( ! function_exists( 'request_filesystem_credentials' ) ) {
 			require_once ABSPATH . '/wp-admin/includes/file.php';
 		}
@@ -324,7 +324,7 @@ class WP_Site_Health_Auto_Updates {
 			return false;
 		}
 
-		// Make sure the `get_core_checksums` function is available during our REST call.
+		// Make sure the `get_core_checksums()` function is available during our REST API call.
 		if ( ! function_exists( 'get_core_checksums' ) ) {
 			require_once ABSPATH . '/wp-admin/includes/update.php';
 		}

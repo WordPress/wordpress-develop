@@ -26,7 +26,7 @@ class Tests_XMLRPC_mt_getRecentPostTitles extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->mt_getRecentPostTitles( array( 1, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );
-		$this->assertSame( 0, count( $result ) );
+		$this->assertCount( 0, $result );
 	}
 
 	function test_date() {
