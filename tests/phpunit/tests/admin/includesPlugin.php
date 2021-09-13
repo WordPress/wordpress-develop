@@ -366,7 +366,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	public function test_get_plugin_files_folder() {
 		$plugin_dir = WP_PLUGIN_DIR . '/list_files_test_plugin';
 		@mkdir( $plugin_dir );
-		$plugin = $this->_create_plugin( null, 'list_files_test_plugin.php', $plugin_dir );
+		$plugin = $this->_create_plugin( '', 'list_files_test_plugin.php', $plugin_dir );
 
 		$sub_dir = trailingslashit( dirname( $plugin[1] ) ) . 'subdir';
 		mkdir( $sub_dir );
