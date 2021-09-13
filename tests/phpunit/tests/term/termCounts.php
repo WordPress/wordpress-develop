@@ -71,7 +71,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 * Register taxonomies used by tests.
 	 *
 	 * This is called both before class and before each test as the global is
-	 * reset in each test's tearDown.
+	 * reset in each test's tear_down.
 	 */
 	public static function register_taxonomies() {
 		register_taxonomy( 'wp_test_tax_counts', array( 'post', 'attachment' ) );

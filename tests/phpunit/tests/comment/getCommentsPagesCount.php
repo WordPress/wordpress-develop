@@ -24,7 +24,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	}
 
 	/**
-	 * tearDown options
+	 * tear_down options
 	 */
 	function tear_down() {
 		update_option( 'page_comments', $this->option_page_comments );

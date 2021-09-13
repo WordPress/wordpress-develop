@@ -13,7 +13,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	protected $manager;
 
 	/**
-	 * Stored global variable in setUp for restoration in tearDown.
+	 * Stored global variable in set_up for restoration in tear_down.
 	 *
 	 * @see $wp_registered_sidebars
 	 * @var array
