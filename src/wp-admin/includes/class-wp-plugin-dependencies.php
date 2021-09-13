@@ -338,7 +338,7 @@ class WP_Plugin_Dependencies {
 		}
 
 		// On plugins with unmet dependencies that the user has already requested for the plugin's activation,
-		// removes the activation link from its actions and add a "Cancel pending activation" link in its place.
+		// removes the activation link from its actions and adds a "Cancel pending activation" link in its place.
 		if ( $pending_activation && $has_dependencies ) {
 			unset( $actions['activate'] );
 			if ( current_user_can( 'activate_plugin', $plugin_file ) ) {
