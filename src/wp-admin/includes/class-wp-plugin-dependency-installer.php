@@ -392,16 +392,16 @@ class WP_Plugin_Dependency_Installer {
 		$dependency = $this->config[ $slug ];
 		if ( $this->is_required( $dependency ) ) {
 			/* translators: %s: Plugin name */
-			$message = sprintf( 'The %1$s plugin is required.', $dependency['name'] );
+			$message = sprintf( __( 'The %1$s plugin is required.' ), $dependency['name'] );
 		} else {
 			/* translators: %s: Plugin name */
-			$message = sprintf( 'The %1$s plugin is recommended.', $dependency['name'] );
+			$message = sprintf( __( 'The %1$s plugin is recommended.' ), $dependency['name'] );
 		}
 
 		return array(
 			'action'  => 'install',
 			'slug'    => $slug,
-			'message' => esc_html__( $message ),
+			'message' => esc_attr( $message ),
 			'source'  => $dependency['source'],
 		);
 	}
