@@ -166,10 +166,14 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * Handles the checkbox column output.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$link` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param object $link The current link object.
+	 * @param object $item The current link object.
 	 */
-	public function column_cb( $link ) {
+	public function column_cb( $item ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$link = $item;
+
 		?>
 		<label class="screen-reader-text" for="cb-select-<?php echo $link->link_id; ?>">
 			<?php
@@ -279,7 +283,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * Handles the default column output.
 	 *
 	 * @since 4.3.0
-	 * @since 5.9.0 Renamed `$link` to `$item` to match parent class for PHP 8 named param.
+	 * @since 5.9.0 Renamed `$link` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
 	 * @param object $item        Link object.
 	 * @param string $column_name Current column name.
@@ -313,18 +317,21 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * Generates and displays row action links.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$link` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param object $link        Link being acted upon.
+	 * @param object $item        Link being acted upon.
 	 * @param string $column_name Current column name.
 	 * @param string $primary     Primary column name.
 	 * @return string Row actions output for links, or an empty string
 	 *                if the current column is not the primary column.
 	 */
-	protected function handle_row_actions( $link, $column_name, $primary ) {
+	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
 		}
 
+		// Restores the more descriptive, specific name for use within this method.
+		$link      = $item;
 		$edit_link = get_edit_bookmark_link( $link );
 
 		$actions           = array();
