@@ -238,7 +238,7 @@ class WP_Plugin_Dependencies {
 	 * @param string   $plugin     The plugin defining the dependency.
 	 * @param stdClass $dependency A dependency.
 	 *
-	 * @return bool
+	 * @return bool Returns false if the plugin has unmet dependencies, otherwise returns true.
 	 */
 	private function process_plugin_dependency( $plugin, $dependency ) {
 		$dependency_is_installed = false;
