@@ -22,7 +22,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @var string
 	 */
-	private $pending_plugin_activations_option = 'pending_plugin_activations';
+	const PENDING_PLUGIN_ACTIVATIONS_OPTION = 'pending_plugin_activations';
 
 	/**
 	 * Installed plugins.
@@ -532,7 +532,7 @@ class WP_Plugin_Dependencies {
 	 * @return array
 	 */
 	public function get_plugins_to_activate() {
-		return get_option( $this->pending_plugin_activations_option, array() );
+		return get_option( self::PENDING_PLUGIN_ACTIVATIONS_OPTION, array() );
 	}
 
 	/**
@@ -551,7 +551,7 @@ class WP_Plugin_Dependencies {
 			return true;
 		}
 		$queue[] = $plugin;
-		return update_option( $this->pending_plugin_activations_option, $queue );
+		return update_option( self::PENDING_PLUGIN_ACTIVATIONS_OPTION, $queue );
 	}
 
 	/**
@@ -569,7 +569,7 @@ class WP_Plugin_Dependencies {
 		if ( ! in_array( $plugin, $queue, true ) ) {
 			return true;
 		}
-		return update_option( $this->pending_plugin_activations_option, array_diff( $queue, array( $plugin ) ) );
+		return update_option( self::PENDING_PLUGIN_ACTIVATIONS_OPTION, array_diff( $queue, array( $plugin ) ) );
 	}
 
 	/**
