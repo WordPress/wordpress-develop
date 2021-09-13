@@ -338,7 +338,7 @@
 						display_nickname  : $('#nickname').val() || '',
 						display_username  : $('#user_login').val() || '',
 						display_firstname : $('#first_name').val() || '',
-						display_lastname  : $('#last_name').val() || '',
+						display_lastname  : $('#last_name').val() || ''
 					},
 					pronouns = $('#pronouns').val() || '';
 
