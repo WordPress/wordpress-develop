@@ -1131,13 +1131,24 @@ function validate_plugin( $plugin ) {
 function validate_plugin_requirements( $plugin ) {
 	$plugin_headers = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
 
+	global $plugin_dependencies;
+	if ( ! $plugin_dependencies ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-plugin-dependencies.php';
+	}
+
 	$requirements = array(
-		'requires'     => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
-		'requires_php' => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		'requires'         => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
+		'requires_php'     => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		'requires_plugins' => ! empty( $plugin_headers['RequiresPlugins'] ) ? $plugin_headers['RequiresPlugins'] : '',
 	);
 
 	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
 	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
+
+	// Check if there are unmet plugin dependencies.
+	$has_unmet_plugin_dependencies = empty( $requirements['RequiresPlugins'] )
+		? false
+		: $plugin_dependencies->has_unmet_dependencies( $plugin );
 
 	$php_update_message = '</p><p>' . sprintf(
 		/* translators: %s: URL to Update PHP page. */
@@ -1185,6 +1196,11 @@ function validate_plugin_requirements( $plugin ) {
 				$plugin_headers['Name'],
 				$requirements['requires']
 			) . '</p>'
+		);
+	} elseif ( $has_unmet_plugin_dependencies ) {
+		return new WP_Error(
+			'plugin_unmet_dependencies',
+			'<p>' . __( '<strong>Error:</strong> The plugin has unmet plugin dependencies. Please activate all required plugins.', 'plugin' ) . '</p>'
 		);
 	}
 
