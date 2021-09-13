@@ -263,7 +263,7 @@ class WP_Plugin_Dependencies {
 	 * @param string   $plugin     The plugin defining the dependency.
 	 * @param stdClass $dependency A dependency.
 	 *
-	 * @return bool Returns false if the plugin has unmet dependencies, otherwise returns true.
+	 * @return void
 	 */
 	private function process_plugin_dependency( $plugin, $dependency ) {
 		$dependency_is_installed = false;
@@ -284,13 +284,11 @@ class WP_Plugin_Dependencies {
 		// If the dependency is not installed, install it, otherwise activate it.
 		if ( ! $dependency_is_installed ) {
 			$this->add_notice_install( get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin ), $dependency );
-			return false;
 		}
 
 		// If the plugin is not activated, activate it.
 		if ( ! $dependency_is_active ) {
 			$this->add_notice_activate( get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin ), $dependency );
-			return false;
 		}
 
 		// Add item to the $dependencies_parents array.
@@ -298,8 +296,6 @@ class WP_Plugin_Dependencies {
 			$this->dependencies_parents[ $dependency['file'] ] = array();
 		}
 		$this->dependencies_parents[ $dependency['file'] ][] = $plugin;
-
-		return true;
 	}
 
 	/**
