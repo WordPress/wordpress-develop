@@ -18,61 +18,61 @@ class WP_Plugin_Dependencies {
 	 * but are not due to unmet dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @var string
 	 */
-	protected $pending_plugin_activations_option = 'pending_plugin_activations';
+	private $pending_plugin_activations_option = 'pending_plugin_activations';
 
 	/**
 	 * Installed plugins.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @var array
 	 */
-	protected $installed_plugins;
+	private $installed_plugins;
 
 	/**
 	 * An array of admin notices to show.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @var array
 	 */
-	protected $notices = array();
+	private $notices = array();
 
 	/**
 	 * Array of parents for dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @var array
 	 */
-	protected $dependencies_parents = array();
+	private $dependencies_parents = array();
 
 	/**
 	 * An array of plugin dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @var array
 	 */
-	protected $plugin_dependencies = array();
+	private $plugin_dependencies = array();
 
 	/**
 	 * An array of plugins participating in a circular dependencies loop.
 	 *
 	 * @since 5.9.0
-	 * @access protected
+	 * @access private
 	 *
 	 * @var array
 	 */
-	protected $circular_dependencies = array();
+	private $circular_dependencies = array();
 
 	/**
 	 * Constructor.
