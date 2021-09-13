@@ -382,18 +382,20 @@ class WP_Plugin_Dependencies {
 				$parents_names[] = get_plugin_data( WP_PLUGIN_DIR . '/' . $parent )['Name'];
 			}
 
-			$notice_contents = ( 1 < count( $parents_names ) )
-				? sprintf(
+			$notice_contents = sprintf(
+				/* translators: %1$s: plugin name. %2$s: Parent plugin name. */
+				esc_html__( 'Plugin %1$s is a dependency for the "%2$s" plugin.' ),
+				esc_html( $plugin_data['Name'] ),
+				esc_html( $parents_names[0] )
+			);
+			if ( 1 < count( $parents_names ) ) {
+				$notice_contents = sprintf(
 					/* translators: %1$s: plugin name. %2$s: Parent plugin names, comma-separated. */
 					esc_html__( 'Plugin %1$s is a dependency for the following plugins: %2$s.' ),
 					esc_html( $plugin_data['Name'] ),
 					esc_html( implode( ', ', $parents_names ) )
-				) : sprintf(
-					/* translators: %1$s: plugin name. %2$s: Parent plugin name. */
-					esc_html__( 'Plugin %1$s is a dependency for the "%2$s" plugin.' ),
-					esc_html( $plugin_data['Name'] ),
-					esc_html( $parents_names[0] )
 				);
+			}
 
 			$this->inline_plugin_row_notice( $notice_contents, 'info', $plugin_file );
 		}
