@@ -177,8 +177,18 @@ class WP_Plugin_Dependencies {
 		$dependencies_met = true;
 		foreach ( $dependencies as $dependency ) {
 
-			// Set $dependencies_met to false if one of the dependencies is not met.
-			if ( ! $this->process_plugin_dependency( $file, $dependency ) ) {
+			// Parse dependency.
+			$dependency = $this->parse_dependency( $file, $dependency );
+
+			// Check if dependency is installed. If not, add notice.
+			if ( ! $dependency['installed'] ) {
+				$this->add_notice_install( get_plugin_data( WP_PLUGIN_DIR . '/' . $file ), $dependency );
+				$dependencies_met = false;
+			}
+
+			// Check if dependency is active. If not, add notice.
+			if ( ! $dependency['active'] ) {
+				$this->add_notice_activate( get_plugin_data( WP_PLUGIN_DIR . '/' . $file ), $dependency );
 				$dependencies_met = false;
 			}
 		}
@@ -230,42 +240,30 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Processes a plugin dependency.
+	 * Parses a dependency and adds name, file, installed and active args.
 	 *
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @param string   $plugin     The plugin defining the dependency.
-	 * @param stdClass $dependency A dependency.
+	 * @param string $plugin     The plugin defining the dependency.
+	 * @param array  $dependency A dependency.
 	 *
-	 * @return bool Returns false if the plugin has unmet dependencies, otherwise returns true.
+	 * @return array Returns the dependency with extra args.
 	 */
-	private function process_plugin_dependency( $plugin, $dependency ) {
-		$dependency_is_installed = false;
-		$dependency_is_active    = false;
+	private function parse_dependency( $plugin, $dependency ) {
+		$dependency['installed'] = false;
+		$dependency['active']    = false;
 
 		foreach ( $this->installed_plugins as $file => $installed_plugin ) {
 			if ( dirname( $file ) === $dependency['slug'] ) {
 				$dependency['file']      = $file;
 				$dependency['name']      = get_plugin_data( WP_PLUGIN_DIR . '/' . $file )['Name'];
-				$dependency_is_installed = true;
+				$dependency['installed'] = true;
 				if ( is_plugin_active( $file ) ) {
-					$dependency_is_active = true;
+					$dependency['active'] = true;
 				}
 				break;
 			}
-		}
-
-		// If the dependency is not installed, install it, otherwise activate it.
-		if ( ! $dependency_is_installed ) {
-			$this->add_notice_install( get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin ), $dependency );
-			return false;
-		}
-
-		// If the plugin is not activated, activate it.
-		if ( ! $dependency_is_active ) {
-			$this->add_notice_activate( get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin ), $dependency );
-			return false;
 		}
 
 		// Add item to the $dependencies_parents array.
@@ -274,7 +272,7 @@ class WP_Plugin_Dependencies {
 		}
 		$this->dependencies_parents[ $dependency['file'] ][] = $plugin;
 
-		return true;
+		return $dependency;
 	}
 
 	/**
