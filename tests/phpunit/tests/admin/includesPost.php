@@ -3,7 +3,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_Includes_Post extends WP_UnitTestCase {
+class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	protected static $contributor_id;
 	protected static $author_ids;
 	protected static $editor_id;

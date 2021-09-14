@@ -231,23 +231,18 @@
 	<rule ref="WordPress.Files.FileName">
 		<properties>
 			<property name="custom_test_class_whitelist" type="array">
-				<!-- Test case parent classes. -->
+				<!-- Test case parent classes in the "includes" folder, not yet accounted for in WPCS. -->
 				<element value="PHPUnit_Adapter_TestCase"/>
-				<element value="WP_UnitTestCase"/>
-				<element value="WP_Ajax_UnitTestCase"/>
-				<element value="WP_Canonical_UnitTestCase"/>
-				<element value="WP_Test_REST_TestCase"/>
-				<element value="WP_Test_REST_Controller_Testcase"/>
-				<element value="WP_Test_REST_Post_Type_Controller_Testcase"/>
-				<element value="WP_XMLRPC_UnitTestCase"/>
-				<element value="WP_Filesystem_UnitTestCase"/>
-				<element value="WP_Image_UnitTestCase"/>
-				<element value="WP_HTTP_UnitTestCase"/>
-				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
-				<element value="WP_Import_UnitTestCase"/>
-				<element value="Tests_Query_Conditionals"/>
 				<element value="WP_Test_XML_TestCase"/>
+
+				<!-- Test case parent classes outside of the "includes" folder. -->
+				<element value="Tests_Query_Conditionals"/>
+				<element value="WP_Filesystem_UnitTestCase"/>
+				<element value="WP_HTTP_UnitTestCase"/>
+				<element value="WP_Image_UnitTestCase"/>
+				<element value="WP_Import_UnitTestCase"/>
 				<element value="WP_Test_Adjacent_Image_Link_TestCase"/>
+				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
 
 				<!-- Mock classes. -->
 				<element value="Spy_REST_Server"/>
@@ -286,6 +281,7 @@
 				<element value="gzinflate"/>
 				<element value="gzuncompress"/>
 				<element value="gzdecode"/>
+				<element value="imagecreatefromwebp"/>
 			</property>
 		</properties>
 	</rule>

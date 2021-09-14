@@ -117,7 +117,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		// Override to enforce no errors being detected.
 		add_filter(
 			'pre_wp_update_https_detection_errors',
-			function() {
+			static function() {
 				return new WP_Error();
 			}
 		);
@@ -127,7 +127,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		// Override to enforce an error being detected.
 		add_filter(
 			'pre_wp_update_https_detection_errors',
-			function() {
+			static function() {
 				return new WP_Error(
 					'ssl_verification_failed',
 					'Bad SSL certificate.'
@@ -345,7 +345,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	 * @return callable Filter callback.
 	 */
 	private function filter_set_url_scheme( $scheme ) {
-		return function( $url ) use ( $scheme ) {
+		return static function( $url ) use ( $scheme ) {
 			return set_url_scheme( $url, $scheme );
 		};
 	}

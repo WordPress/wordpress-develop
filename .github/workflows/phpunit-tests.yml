@@ -127,7 +127,6 @@ jobs:
       - name: "Get last Monday's date"
         id: get-date
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
-        shell: bash
 
       - name: Get Composer cache directory
         id: composer-cache
@@ -192,41 +191,41 @@ jobs:
 
       - name: Run slow PHPUnit tests
         if: ${{ matrix.split_slow }}
-        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
+        run: node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
 
       - name: Run PHPUnit tests for single site excluding slow tests
         if: ${{ matrix.php < '7.0' && ! matrix.split_slow && ! matrix.multisite }}
-        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
+        run: node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
 
       - name: Run PHPUnit tests for Multisite excluding slow tests
         if: ${{ matrix.php < '7.0' && ! matrix.split_slow && matrix.multisite }}
-        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
+        run: node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
 
       - name: Run PHPUnit tests
         if: ${{ matrix.php >= '7.0' }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
+        run: node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
         if: ${{ ! matrix.split_slow }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: npm run test:php-composer -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
+        run: node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
 
       - name: Run ms-files tests as a multisite install
         if: ${{ matrix.multisite && ! matrix.split_slow }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: npm run test:php-composer -- --verbose -c tests/phpunit/multisite.xml --group ms-files
+        run: node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit --verbose -c tests/phpunit/multisite.xml --group ms-files
 
       - name: Run external HTTP tests
         if: ${{ ! matrix.multisite && ! matrix.split_slow }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: npm run test:php-composer -- --verbose -c phpunit.xml.dist --group external-http
+        run: node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (xDebug) tests
         if: ${{ ! matrix.split_slow }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: LOCAL_PHP_XDEBUG=true npm run test:php-composer -- -v --group xdebug --exclude-group __fakegroup__
+        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

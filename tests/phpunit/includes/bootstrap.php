@@ -31,8 +31,18 @@ require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
-	echo 'Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.' . PHP_EOL;
-	exit( 1 );
+	if ( substr( ABSPATH, -7 ) !== '/build/' ) {
+		printf(
+			'Error: The ABSPATH constant in the `wp-tests-config.php` file is set to a non-existent path "%s". Please verify.' . PHP_EOL,
+			ABSPATH
+		);
+		exit( 1 );
+	} else {
+		echo 'Error: The PHPUnit tests should be run on the /src/ directory, not the /build/ directory.'
+			. ' Please update the ABSPATH constant in your `wp-tests-config.php` file to `dirname( __FILE__ ) . \'/src/\'`'
+			. ' or run `npm run build` prior to running PHPUnit.' . PHP_EOL;
+		exit( 1 );
+	}
 }
 
 $phpunit_version = tests_get_phpunit_version();
