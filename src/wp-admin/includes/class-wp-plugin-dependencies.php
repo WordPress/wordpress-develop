@@ -392,11 +392,13 @@ class WP_Plugin_Dependencies {
 		$has_dependencies       = ! empty( $dependencies );
 		$in_circular_dependency = $this->in_circular_dependency( $plugin_file );
 		$is_plugin_active       = is_plugin_active( $plugin_file );
+		$parent_dependencies    = $this->get_parents( $plugin_file );
 
 		// Add extra info to dependencies.
-		if ( ! empty( $this->dependencies_parents[ $plugin_file ] ) ) {
+		// If the plugin is active and a dependency for another plugin, it cannot be deactivated.
+		if ( ! empty( $parent_dependencies ) && $is_plugin_active ) {
 			$parents_names = array();
-			foreach ( $this->dependencies_parents[ $plugin_file ] as $parent ) {
+			foreach ( $parent_dependencies as $parent ) {
 				$parents_names[] = get_plugin_data( WP_PLUGIN_DIR . '/' . $parent )['Name'];
 			}
 
@@ -418,54 +420,61 @@ class WP_Plugin_Dependencies {
 			$this->inline_plugin_row_notice( $notice_contents, 'info', $plugin_file, $is_plugin_active );
 		}
 
-		// Add extra info to parents.
-		if ( $has_dependencies ) {
-			if ( $pending_activation ) {
-				if ( $in_circular_dependency ) {
-					$this->inline_plugin_row_notice(
-						sprintf(
-							/* translators: %s: plugin name. */
-							esc_html__( 'Warning: Circular dependencies detected. Plugin "%s" has unmet dependencies. Please contact the plugin author to report this circular dependencies issue.' ),
-							esc_html( $plugin_data['Name'] ),
-							false
-						),
-						'warning',
-						$plugin_file
-					);
-				} else {
-					$this->inline_plugin_row_notice(
-						sprintf(
-							/* translators: %s: plugin name. */
-							esc_html__( 'Plugin "%s" has unmet dependencies. Once all required plugins are installed the plugin will be automatically activated. Alternatively you can cancel the activation of this plugin by clicking on the "cancel activation request" link above.' ),
-							esc_html( $plugin_data['Name'] )
-						),
-						'warning',
-						$plugin_file,
-						false
-					);
-				}
-			} elseif ( ! $is_plugin_active ) {
-				$dependencies_human_readable = array();
-				foreach ( $dependencies as $dependency ) {
-					$plugin_file = $this->get_plugin_file_from_slug( $dependency['slug'] );
-					if ( $plugin_file ) {
-						$dependencies_human_readable[] = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin_file )['Name'];
-					} else {
-						$dependencies_human_readable[] = $dependency['slug'];
-					}
-				}
+		// Early return if the plugin doesn't have dependencies.
+		if ( ! $has_dependencies ) {
+			return;
+		}
+
+		// Add a notice if the plugin is pending activation.
+		if ( $pending_activation ) {
+			if ( $in_circular_dependency ) {
 				$this->inline_plugin_row_notice(
 					sprintf(
-						/* translators: %1$s: plugin name. %2$s: plugin requirements, comma-separated. */
-						esc_html__( 'Plugin "%1$s" depends on the following plugin(s): %2$s' ),
+						/* translators: %s: plugin name. */
+						esc_html__( 'Warning: Circular dependencies detected. Plugin "%s" has unmet dependencies. Please contact the plugin author to report this circular dependencies issue.' ),
 						esc_html( $plugin_data['Name'] ),
-						esc_html( implode( ', ', $dependencies_human_readable ) )
+						false
 					),
-					'info',
-					$plugin_file,
-					false
+					'warning',
+					$plugin_file
 				);
+				return;
 			}
+			$this->inline_plugin_row_notice(
+				sprintf(
+					/* translators: %s: plugin name. */
+					esc_html__( 'Plugin "%s" has unmet dependencies. Once all required plugins are installed the plugin will be automatically activated. Alternatively you can cancel the activation of this plugin by clicking on the "cancel activation request" link above.' ),
+					esc_html( $plugin_data['Name'] )
+				),
+				'warning',
+				$plugin_file,
+				false
+			);
+			return;
+		}
+
+		// Add a notice if the plugin is inactive and has dependencies.
+		if ( ! $is_plugin_active ) {
+			$dependencies_human_readable = array();
+			foreach ( $dependencies as $dependency ) {
+				$plugin_file = $this->get_plugin_file_from_slug( $dependency['slug'] );
+				if ( $plugin_file ) {
+					$dependencies_human_readable[] = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin_file )['Name'];
+				} else {
+					$dependencies_human_readable[] = $dependency['slug'];
+				}
+			}
+			$this->inline_plugin_row_notice(
+				sprintf(
+					/* translators: %1$s: plugin name. %2$s: plugin requirements, comma-separated. */
+					esc_html__( 'Plugin "%1$s" depends on the following plugin(s): %2$s' ),
+					esc_html( $plugin_data['Name'] ),
+					esc_html( implode( ', ', $dependencies_human_readable ) )
+				),
+				'info',
+				$plugin_file,
+				false
+			);
 		}
 	}
 
