@@ -294,7 +294,6 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 * See https://core.trac.wordpress.org/ticket/53657.
 		 */
 		wp_get_sidebars_widgets();
-
 		$this->retrieve_widgets();
 
 		$widget_id  = $request['id'];
@@ -370,7 +369,6 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 * See https://core.trac.wordpress.org/ticket/53657.
 		 */
 		wp_get_sidebars_widgets();
-
 		$this->retrieve_widgets();
 
 		$widget_id  = $request['id'];
