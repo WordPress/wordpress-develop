@@ -827,23 +827,23 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 				'instance'      => array(
 					'description' => __( 'Instance settings of the widget, if supported.' ),
 					'type'        => 'object',
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'context'     => array( 'edit' ),
 					'default'     => null,
 					'properties'  => array(
 						'encoded' => array(
 							'description' => __( 'Base64 encoded representation of the instance settings.' ),
 							'type'        => 'string',
-							'context'     => array( 'view', 'edit', 'embed' ),
+							'context'     => array( 'edit' ),
 						),
 						'hash'    => array(
 							'description' => __( 'Cryptographic hash of the instance settings.' ),
 							'type'        => 'string',
-							'context'     => array( 'view', 'edit', 'embed' ),
+							'context'     => array( 'edit' ),
 						),
 						'raw'     => array(
 							'description' => __( 'Unencoded instance settings, if supported.' ),
 							'type'        => 'object',
-							'context'     => array( 'view', 'edit', 'embed' ),
+							'context'     => array( 'edit' ),
 						),
 					),
 				),
