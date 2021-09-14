@@ -218,7 +218,6 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 			}
 			$this->assertSame( $viewable, $data['viewable'] );
 			$visibility = array(
-				'public'             => (bool) $post_type_obj->public,
 				'publicly_queryable' => (bool) $post_type_obj->publicly_queryable,
 				'show_in_nav_menus'  => (bool) $post_type_obj->show_in_nav_menus,
 				'show_ui'            => (bool) $post_type_obj->show_ui,

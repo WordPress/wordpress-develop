@@ -196,7 +196,6 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 
 		if ( in_array( 'visibility', $fields, true ) ) {
 			$data['visibility'] = array(
-				'public'             => (bool) $post_type->public,
 				'publicly_queryable' => (bool) $post_type->publicly_queryable,
 				'show_in_nav_menus'  => (bool) $post_type->show_in_nav_menus,
 				'show_ui'            => (bool) $post_type->show_ui,
@@ -349,10 +348,6 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 					'properties'  => array(
-						'public'             => array(
-							'description' => __( 'Whether a post type is intended for use publicly either via the admin interface or by front-end users.' ),
-							'type'        => 'boolean',
-						),
 						'publicly_queryable' => array(
 							'description' => __( 'Whether the post type is publicly queryable.' ),
 							'type'        => 'boolean',
