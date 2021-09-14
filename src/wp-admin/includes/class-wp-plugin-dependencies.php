@@ -420,7 +420,6 @@ class WP_Plugin_Dependencies {
 
 		// Add extra info to parents.
 		if ( $has_dependencies ) {
-			$style = is_rtl() ? 'border-top:none;border-left:none' : 'border-top:none;border-right:none';
 			if ( $pending_activation ) {
 				if ( $in_circular_dependency ) {
 					$this->inline_plugin_row_notice(
