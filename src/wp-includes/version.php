@@ -9,7 +9,7 @@
  */
 
 /**
- * The WordPress version string.
+ * The WordPress version string. Holds the current version number for WordPress Core, used to bust caches and to enable development mode for scripts when running from /src.
  *
  * @global string $wp_version
  */
