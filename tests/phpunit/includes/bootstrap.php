@@ -133,13 +133,20 @@ unset( $phpunit_polyfills_autoloader, $phpunit_polyfills_error, $phpunit_polyfil
 $phpunit_polyfills_minimum_version = '1.0.1';
 if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
 	&& ( defined( '\Yoast\PHPUnitPolyfills\Autoload::VERSION' ) === false
-	|| version_compare( \Yoast\PHPUnitPolyfills\Autoload::VERSION, $phpunit_polyfills_minimum_version, '<' ) )
+	|| version_compare( Yoast\PHPUnitPolyfills\Autoload::VERSION, $phpunit_polyfills_minimum_version, '<' ) )
 ) {
 	printf(
-		'Error: Version mismatch detected for the PHPUnit Polyfills. Please ensure that PHPUnit Polyfills %s or higher is loaded.' . PHP_EOL,
-		$phpunit_polyfills_minimum_version
+		'Error: Version mismatch detected for the PHPUnit Polyfills. Please ensure that PHPUnit Polyfills %s or higher is loaded. Found version: %s' . PHP_EOL,
+		$phpunit_polyfills_minimum_version,
+		defined( '\Yoast\PHPUnitPolyfills\Autoload::VERSION' ) ? Yoast\PHPUnitPolyfills\Autoload::VERSION : '1.0.0 or lower'
 	);
-	if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+	if ( defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+		printf(
+			'Please ensure that the PHPUnit Polyfill install in "%s" is updated to version %s or higher.' . PHP_EOL,
+			WP_TESTS_PHPUNIT_POLYFILLS_PATH,
+			$phpunit_polyfills_minimum_version
+		);
+	} elseif ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 		echo 'Please run `composer update` to install the latest version.' . PHP_EOL;
 	}
 	exit( 1 );
