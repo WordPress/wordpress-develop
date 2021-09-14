@@ -94,7 +94,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 
 		add_filter(
 			'nav_menu_link_attributes',
-			function( $atts ) use ( $value ) {
+			static function( $atts ) use ( $value ) {
 				$atts['data-test'] = $value;
 				return $atts;
 			}

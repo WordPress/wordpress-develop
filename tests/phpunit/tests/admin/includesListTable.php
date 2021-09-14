@@ -360,7 +360,7 @@ class Tests_Admin_IncludesListTable extends WP_UnitTestCase {
 
 		add_filter(
 			'bulk_actions-edit-comments',
-			function() {
+			static function() {
 				return array(
 					'delete'       => 'Delete',
 					'Change State' => array(

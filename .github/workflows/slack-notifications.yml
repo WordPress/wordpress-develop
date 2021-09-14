@@ -63,7 +63,7 @@ jobs:
       - name: Prepare commit message.
         id: commit-message
         run: |
-          COMMIT_MESSAGE=$(cat <<'EOF' | awk 'NR==1' | sed 's/\"/\\"/g'
+          COMMIT_MESSAGE=$(cat <<'EOF' | awk 'NR==1' | sed 's/`/\\`/g' | sed 's/\"/\\\\"/g'
           ${{ github.event.workflow_run.head_commit.message }}
           EOF
           )
