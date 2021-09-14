@@ -292,7 +292,7 @@ class WP_Plugin_Dependencies {
 		}
 
 		foreach ( $this->notices as $notice ) {
-			echo '<div class="notice notice-warning plugin-dependencies"><p>' . wp_kses_post( $notice['content'] ) . '</p></div>';
+			echo '<div class="notice notice-' . esc_attr( $notice['type'] ) . ' plugin-dependencies"><p>' . wp_kses_post( $notice['content'] ) . '</p></div>';
 		}
 	}
 
@@ -514,6 +514,7 @@ class WP_Plugin_Dependencies {
 			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 		}
 		$this->notices[] = array(
+			'type'    => 'warning',
 			'content' => sprintf(
 				/* translators: %1$s: The plugin we want to activate. %2$s: The slug of the plugin to install. %3$s: "Install & Activate" button. */
 				__( 'Plugin "%1$s" depends on plugin "%2$s" to be installed. %3$s' ),
@@ -540,6 +541,7 @@ class WP_Plugin_Dependencies {
 		$activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . rawurlencode( $dependency['file'] ) . '&amp;plugin_status=all', 'activate-plugin_' . $dependency['file'] );
 
 		$this->notices[] = array(
+			'type'    => 'warning',
 			'content' => sprintf(
 				/* translators: %1$s: The plugin we want to activate. %2$s: The name of the plugin to install. %3$s: "Activate" button. */
 				__( 'Plugin "%1$s" depends on plugin "%2$s" to be activated. %3$s' ),
