@@ -149,6 +149,66 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53635
+	 *
+	 * @dataProvider data_valid_but_undesired_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_get_option_valid_but_undesired_option_names( $option_name ) {
+		$this->assertFalse( get_option( $option_name ) );
+	}
+
+	/**
+	 * @ticket 53635
+	 *
+	 * @dataProvider data_valid_but_undesired_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_add_option_valid_but_undesired_option_names( $option_name ) {
+		$this->assertTrue( add_option( $option_name, '' ) );
+	}
+
+	/**
+	 * @ticket 53635
+	 *
+	 * @dataProvider data_valid_but_undesired_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_update_option_valid_but_undesired_option_names( $option_name ) {
+		$this->assertTrue( update_option( $option_name, '' ) );
+	}
+
+	/**
+	 * @ticket 53635
+	 *
+	 * @dataProvider data_valid_but_undesired_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_delete_option_valid_but_undesired_option_names( $option_name ) {
+		$this->assertFalse( delete_option( $option_name ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_valid_but_undesired_option_names() {
+		return array(
+			'string 123'   => array( '123' ),
+			'integer 123'  => array( 123 ),
+			'integer -123' => array( -123 ),
+			'float 12.3'   => array( 12.3 ),
+			'float -1.23'  => array( -1.23 ),
+			'boolean true' => array( true ),
+		);
+	}
+
+	/**
 	 * @ticket 23289
 	 */
 	function test_special_option_name_alloption() {
