@@ -364,10 +364,15 @@ class WP_Terms_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @param WP_Term $tag Term object.
+	 * @since 5.9.0 Renamed `$tag` to `$item` to match parent class for PHP 8 named parameter support.
+	 *
+	 * @param WP_Term $item Term object.
 	 * @return string
 	 */
-	public function column_cb( $tag ) {
+	public function column_cb( $item ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$tag = $item;
+
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
 			return sprintf(
 				'<label class="screen-reader-text" for="cb-select-%1$s">%2$s</label>' .
@@ -456,18 +461,21 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * Generates and displays row action links.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$tag` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Term $tag         Tag being acted upon.
+	 * @param WP_Term $item        Tag being acted upon.
 	 * @param string  $column_name Current column name.
 	 * @param string  $primary     Primary column name.
 	 * @return string Row actions output for terms, or an empty string
 	 *                if the current column is not the primary column.
 	 */
-	protected function handle_row_actions( $tag, $column_name, $primary ) {
+	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
 		}
 
+		// Restores the more descriptive, specific name for use within this method.
+		$tag      = $item;
 		$taxonomy = $this->screen->taxonomy;
 		$tax      = get_taxonomy( $taxonomy );
 		$uri      = wp_doing_ajax() ? wp_get_referer() : $_SERVER['REQUEST_URI'];
@@ -620,7 +628,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @since 5.9.0 Renamed `$tag` to `$item` to match parent class for PHP 8 named param.
+	 * @since 5.9.0 Renamed `$tag` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
 	 * @param WP_Term $item        Term object.
 	 * @param string  $column_name Name of the column.
