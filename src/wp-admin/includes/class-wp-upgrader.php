@@ -133,7 +133,7 @@ class WP_Upgrader {
 	 * This will set the relationship between the skin being used and this upgrader,
 	 * and also add the generic strings to `WP_Upgrader::$strings`.
 	 *
-	 * Additionally, it will schedule a weekly task to clean up the temp-backup folder.
+	 * Additionally, it will schedule a weekly task to clean up the temp-backup directory.
 	 *
 	 * @since 2.8.0
 	 * @since 5.9.0 Added the `schedule_temp_backup_cleanup()` task.
@@ -145,7 +145,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Schedule cleanup of the temp-backup folder.
+	 * Schedule cleanup of the temp-backup directory.
 	 *
 	 * @since 5.9.0
 	 */
@@ -857,7 +857,7 @@ class WP_Upgrader {
 
 		$this->skin->after();
 
-		// Clean up the backup kept in the temp-backup folder.
+		// Clean up the backup kept in the temp-backup directory.
 		if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
 			$this->delete_temp_backup( $options['hook_extra']['temp_backup'] );
 		}
@@ -1004,30 +1004,28 @@ class WP_Upgrader {
 			return false;
 		}
 
-		$dest_folder = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
-		// Create the temp-backup dir if it doesn't exist.
-		if (
-			(
-				! $wp_filesystem->is_dir( $dest_folder ) &&
-				! $wp_filesystem->mkdir( $dest_folder )
-			) ||
-			(
-				! $wp_filesystem->is_dir( $dest_folder . $args['dir'] . '/' ) &&
-				! $wp_filesystem->mkdir( $dest_folder . $args['dir'] . '/' )
+		$dest_dir = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
+		// Create the temp-backup directory if it doesn't exist.
+		if ( (
+				! $wp_filesystem->is_dir( $dest_dir )
+				&& ! $wp_filesystem->mkdir( $dest_dir )
+			) || (
+				! $wp_filesystem->is_dir( $dest_dir . $args['dir'] . '/' )
+				&& ! $wp_filesystem->mkdir( $dest_dir . $args['dir'] . '/' )
 			)
 		) {
 			return new WP_Error( 'fs_temp_backup_mkdir', $this->strings['temp_backup_mkdir_failed'] );
 		}
 
 		$src  = trailingslashit( $args['src'] ) . $args['slug'];
-		$dest = $dest_folder . $args['dir'] . '/' . $args['slug'];
+		$dest = $dest_dir . $args['dir'] . '/' . $args['slug'];
 
-		// Delete the temp-backup folder if it already exists.
+		// Delete the temp-backup directory if it already exists.
 		if ( $wp_filesystem->is_dir( $dest ) ) {
 			$wp_filesystem->delete( $dest, true );
 		}
 
-		// Move to the temp-backup folder.
+		// Move to the temp-backup directory.
 		if ( ! $wp_filesystem->move( $src, $dest, true ) ) {
 			return new WP_Error( 'fs_temp_backup_move', $this->strings['temp_backup_move_failed'] );
 		}
