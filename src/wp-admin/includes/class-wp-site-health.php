@@ -1932,9 +1932,13 @@ class WP_Site_Health {
 	 *
 	 * @since 5.9.0
 	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
 	 * @return array The test results.
 	 */
 	public function get_test_update_temp_backup_writable() {
+		global $wp_filesystem;
+
 		$result = array(
 			'label'       => __( 'Plugin and theme update temp-backup folder is writable' ),
 			'status'      => 'good',
@@ -1951,7 +1955,6 @@ class WP_Site_Health {
 			'test'        => 'update_temp_backup_writable',
 		);
 
-		global $wp_filesystem;
 		if ( ! $wp_filesystem ) {
 			if ( ! function_exists( 'WP_Filesystem' ) ) {
 				require_once wp_normalize_path( ABSPATH . '/wp-admin/includes/file.php' );

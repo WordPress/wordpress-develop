@@ -996,10 +996,11 @@ class WP_Upgrader {
 	 * @return bool|WP_Error
 	 */
 	public function move_to_temp_backup_dir( $args ) {
+		global $wp_filesystem;
+
 		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
 			return false;
 		}
-		global $wp_filesystem;
 
 		$dest_folder = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
 		// Create the temp-backup dir if it doesn't exist.
@@ -1044,11 +1045,12 @@ class WP_Upgrader {
 	 * @return bool|WP_Error
 	 */
 	public function restore_temp_backup( $args ) {
+		global $wp_filesystem;
+
 		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
 			return false;
 		}
 
-		global $wp_filesystem;
 		$src  = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $args['dir'] . '/' . $args['slug'];
 		$dest = trailingslashit( $args['src'] ) . $args['slug'];
 
