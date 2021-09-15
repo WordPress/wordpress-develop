@@ -4,10 +4,20 @@
  *
  * @package dependencies-manager.
  * @since 1.0
+ *
+ * @see https://github.com/w3guy/persist-admin-notices-dismissal
  */
 
 /**
  * Class WP_Dismiss_Notice
+ *
+ * To initialize dismissible admin notices the following commands are needed.
+ *
+ * Load the class.
+ * require_once ABSPATH . 'wp-admin/includes/class-wp-dismiss-notice.php';
+ *
+ * Initialize the class.
+ * add_action( 'admin_init', array( 'WP_Dismiss_Notice', 'init' ) );
  */
 class WP_Dismiss_Notice {
 

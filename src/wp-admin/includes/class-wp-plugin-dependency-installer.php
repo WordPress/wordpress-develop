@@ -4,16 +4,79 @@
  *
  * @package dependencies-manager.
  * @since 1.0
- */
-
-/**
- * Plugins dependencies manager.
  *
- * @since 1.0.0
+ * @see https://github.com/afragen/wp-dependency-installer
  */
 
 /**
  * Class WP_Plugin_Dependency_Installer
+ *
+ * Configuration
+ * Use either a JSON file named `wp-dependencies.json` that is located in your plugin
+ * or theme root, or an associative array.
+ *
+ * Example: JSON file
+ * [
+ *  {
+ *    "name": "Query Monitor",
+ *    "slug": "query-monitor/query-monitor.php",
+ *    "uri": "https://wordpress.org/plugins/query-monitor/",
+ *    "required": false
+ *  },
+ *  {
+ *    "name": "WooCommerce",
+ *    "slug": "woocommerce/woocommerce.php",
+ *    "uri": "https://wordpress.org/plugins/woocommerce/",
+ *    "required": true
+ *  }
+ * ]
+ *
+ * Example associative array
+ * $config = array(
+ *  array(
+ *      'name'     => 'Hello Dolly',
+ *      'slug'     => 'hello-dolly/hello.php',
+ *      'uri'      => 'https://wordpress.org/plugins/hello-dolly',
+ *      'required' => true,
+ *  ),
+ * );
+ *
+ * Initialize: The command to initialize is as follows.
+ *
+ * Load the class.
+ * require_once ABSPATH . 'wp-admin/includes/class-wp-plugin-dependency-installer.php';
+ *
+ * Load the configuration and run.
+ * If only using JSON config.
+ * \WP_Plugin_Dependency_Installer::instance(__DIR__)->run();
+ *
+ * If using JSON config and/or configuration array.
+ * \WP_Plugin_Dependency_Installer::instance( __DIR__ )->register( $config )->run();
+ *
+ * Admin notice format.
+ * You must add `dependency-installer` as well as `data-dismissible='dependency-installer-<plugin basename>-<timeout>'`
+ * to the admin notice div class. <timeout> values are from one day '1' to 'forever'. Default timeout is 14 days.
+ *
+ * Example using Query Monitor with a 14 day dismissible notice.
+ * <div class="notice-warning notice is-dismissible dependency-installer" data-dismissible="dependency-installer-query-monitor-14">...</div>
+ *
+ * Example filter to adjust timeout.
+ * Use this filter to adjust the timeout for the dismissal. Default is 14 days.
+ * This example filter can be used to modify the default timeout.
+ * The example filter will change the default timout for all plugin dependencies.
+ * You can specify the exact plugin timeout by modifying the following line in the filter.
+ *
+ * $timeout = 'query-monitor' !== $source ? $timeout : 30;
+ *
+ * add_filter(
+ *  'wp_plugin_dependency_timeout',
+ *  function( $timeout, $source ) {
+ *      $timeout = basename( __DIR__ ) !== $source ? $timeout : 30;
+ *      return $timeout;
+ *  },
+ *  10,
+ *  2
+ * );
  */
 class WP_Plugin_Dependency_Installer {
 	/**
@@ -355,14 +418,14 @@ class WP_Plugin_Dependency_Installer {
 
 		if ( is_wp_error( $result ) ) {
 			return array(
-				'status'  => 'error',
+				'status'  => 'notice-error',
 				'message' => $result->get_error_message(),
 			);
 		}
 
 		if ( null === $result ) {
 			return array(
-				'status'  => 'error',
+				'status'  => 'notice-error',
 				'message' => esc_html__( 'Plugin download failed' ),
 			);
 		}
@@ -374,7 +437,7 @@ class WP_Plugin_Dependency_Installer {
 		}
 
 		return array(
-			'status'  => 'updated',
+			'status'  => 'notice-success',
 			/* translators: %s: Plugin name */
 			'message' => sprintf( esc_html__( '%s has been installed.' ), $this->config[ $slug ]['name'] ),
 			'source'  => $this->config[ $slug ]['source'],
@@ -389,8 +452,9 @@ class WP_Plugin_Dependency_Installer {
 	 * @return array Admin notice.
 	 */
 	public function install_notice( $slug ) {
-		$dependency = $this->config[ $slug ];
-		if ( $this->is_required( $dependency ) ) {
+		$dependency  = $this->config[ $slug ];
+		$is_required = $this->is_required( $dependency );
+		if ( $is_required ) {
 			/* translators: %s: Plugin name */
 			$message = sprintf( __( 'The %1$s plugin is required.' ), $dependency['name'] );
 		} else {
@@ -400,6 +464,7 @@ class WP_Plugin_Dependency_Installer {
 
 		return array(
 			'action'  => 'install',
+			'status'  => $is_required ? 'notice-warning' : 'notice-info',
 			'slug'    => $slug,
 			'message' => esc_attr( $message ),
 			'source'  => $dependency['source'],
@@ -419,13 +484,13 @@ class WP_Plugin_Dependency_Installer {
 
 		if ( is_wp_error( $result ) ) {
 			return array(
-				'status'  => 'error',
+				'status'  => 'notice-error',
 				'message' => $result->get_error_message(),
 			);
 		}
 
 		return array(
-			'status'  => 'updated',
+			'status'  => 'notice-success',
 			/* translators: %s: Plugin name */
 			'message' => sprintf( esc_html__( '%s has been activated.' ), $this->config[ $slug ]['name'] ),
 			'source'  => $this->config[ $slug ]['source'],
@@ -458,7 +523,7 @@ class WP_Plugin_Dependency_Installer {
 	 */
 	public function dismiss() {
 		return array(
-			'status'  => 'updated',
+			'status'  => 'notice-info',
 			'message' => '',
 		);
 	}
@@ -473,7 +538,7 @@ class WP_Plugin_Dependency_Installer {
 			return false;
 		}
 		foreach ( $this->notices as $notice ) {
-			$status      = isset( $notice['status'] ) ? $notice['status'] : 'updated';
+			$status      = isset( $notice['status'] ) ? $notice['status'] : 'notice-info';
 			$source      = isset( $notice['source'] ) ? $notice['source'] : __( 'Dependency' );
 			$class       = esc_attr( $status ) . ' notice is-dismissible dependency-installer';
 			$label       = esc_html( $this->get_dismiss_label( $source ) );
@@ -499,11 +564,11 @@ class WP_Plugin_Dependency_Installer {
 				 *
 				 * @since 1.4.1
 				 *
-				 * @param string|int '7'           Default dismissal in days.
+				 * @param string|int '14'               Default dismissal in days.
 				 * @param  string     $notice['source'] Plugin slug of calling plugin.
 				 * @return string|int Dismissal timeout in days.
 				 */
-				$timeout     = apply_filters( 'wp_dependency_timeout', '7', $source );
+				$timeout     = apply_filters( 'wp_plugin_dependency_timeout', '14', $source );
 				$dependency  = dirname( $notice['slug'] );
 				$dismissible = empty( $timeout ) ? '' : sprintf( 'dependency-installer-%1$s-%2$s', esc_attr( $dependency ), esc_attr( $timeout ) );
 			}
