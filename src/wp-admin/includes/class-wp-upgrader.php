@@ -181,8 +181,10 @@ class WP_Upgrader {
 		$this->strings['maintenance_start'] = __( 'Enabling Maintenance mode&#8230;' );
 		$this->strings['maintenance_end']   = __( 'Disabling Maintenance mode&#8230;' );
 
-		$this->strings['temp_backup_mkdir_failed']   = __( 'Could not create temp-backup directory.' );
-		$this->strings['temp_backup_move_failed']    = __( 'Could not move old version to the temp-backup directory.' );
+		/* translators: %s: temp-backup */
+		$this->strings['temp_backup_mkdir_failed'] = sprintf( __( 'Could not create the %s directory.' ), 'temp-backup' );
+		/* translators: %s: temp-backup */
+		$this->strings['temp_backup_move_failed']    = sprintf( __( 'Could not move old version to the %s directory.' ), 'temp-backup' );
 		$this->strings['temp_backup_restore_failed'] = __( 'Could not restore original version.' );
 
 	}
