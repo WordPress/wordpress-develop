@@ -509,6 +509,7 @@ class WP_Plugin_Dependency_Installer {
 
 		return array(
 			'action'  => 'activate',
+			'status'  => $this->is_required( $dependency ) ? 'notice-warning' : 'notice-info',
 			'slug'    => $slug,
 			/* translators: %s: Plugin name */
 			'message' => sprintf( esc_html__( 'Please activate the %s plugin.' ), $dependency['name'] ),
