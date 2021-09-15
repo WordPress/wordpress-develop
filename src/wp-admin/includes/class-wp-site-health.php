@@ -1883,7 +1883,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test available disk-space for updates/upgrades.
+	 * Test available disk space for updates.
 	 *
 	 * @since 5.9.0
 	 *
@@ -1894,14 +1894,14 @@ class WP_Site_Health {
 		$available_space_in_mb = $available_space / MB_IN_BYTES;
 
 		$result = array(
-			'label'       => __( 'Disk-space available to safely perform updates' ),
+			'label'       => __( 'Disk space available to safely perform updates' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
 				'color' => 'blue',
 			),
 			'description' => sprintf(
-				/* Translators: %s: Available disk-space in MB or GB. */
+				/* translators: %s: Available disk space in MB or GB. */
 				'<p>' . __( '%s available disk space was detected, update routines can be performed safely.' ),
 				size_format( $available_space )
 			),
@@ -1909,13 +1909,13 @@ class WP_Site_Health {
 			'test'        => 'available_updates_disk_space',
 		);
 
-		if ( 100 > $available_space_in_mb ) {
-			$result['description'] = __( 'Available disk space is low, less than 100MB available.' );
+		if ( $available_space_in_mb < 100 ) {
+			$result['description'] = __( 'Available disk space is low, less than 100 MB available.' );
 			$result['status']      = 'recommended';
 		}
 
-		if ( 20 > $available_space_in_mb ) {
-			$result['description'] = __( 'Available disk space is critically low, less than 20MB available. Proceed with caution, updates may fail.' );
+		if ( $available_space_in_mb < 20 ) {
+			$result['description'] = __( 'Available disk space is critically low, less than 20 MB available. Proceed with caution, updates may fail.' );
 			$result['status']      = 'critical';
 		}
 
@@ -1947,7 +1947,7 @@ class WP_Site_Health {
 				'color' => 'blue',
 			),
 			'description' => sprintf(
-				/* Translators: %s: "wp-content/upgrade/temp-backup". */
+				/* translators: %s: wp-content/upgrade/temp-backup */
 				'<p>' . __( 'The %s folder used to improve the stability of plugin and theme updates is writable.' ),
 				'<code>wp-content/upgrade/temp-backup</code>'
 			),
@@ -1976,7 +1976,7 @@ class WP_Site_Health {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'Plugins and themes temp-backup folders exist but are not writable' );
 			$result['description'] = sprintf(
-				/* translators: %s: '<code>wp-content/upgrade/temp-backup/plugins</code>' */
+				/* translators: 1: wp-content/upgrade/temp-backup/plugins, 2: wp-content/upgrade/temp-backup/themes. */
 				'<p>' . __( 'The %1$s and %2$s folders exist but are not writable. These folders are used to improve the stability of plugin updates. Please make sure the server has write permissions to these folders.' ) . '</p>',
 				'<code>wp-content/upgrade/temp-backup/plugins</code>',
 				'<code>wp-content/upgrade/temp-backup/themes</code>'
@@ -1988,7 +1988,7 @@ class WP_Site_Health {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'Plugins temp-backup folder exists but is not writable' );
 			$result['description'] = sprintf(
-				/* translators: %s: '<code>wp-content/upgrade/temp-backup/plugins</code>' */
+				/* translators: %s: wp-content/upgrade/temp-backup/plugins */
 				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to improve the stability of plugin updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
 				'<code>wp-content/upgrade/temp-backup/plugins</code>'
 			);
@@ -1999,7 +1999,7 @@ class WP_Site_Health {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'Themes temp-backup folder exists but is not writable' );
 			$result['description'] = sprintf(
-				/* translators: %s: '<code>wp-content/upgrade/temp-backup/themes</code>' */
+				/* translators: %s: wp-content/upgrade/temp-backup/themes */
 				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to improve the stability of theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
 				'<code>wp-content/upgrade/temp-backup/themes</code>'
 			);
@@ -2010,7 +2010,7 @@ class WP_Site_Health {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'The temp-backup folder exists but is not writable' );
 			$result['description'] = sprintf(
-				/* translators: %s: '<code>wp-content/upgrade/temp-backup</code>' */
+				/* translators: %s: wp-content/upgrade/temp-backup */
 				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to improve the stability of plugin and theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
 				'<code>wp-content/upgrade/temp-backup</code>'
 			);
@@ -2021,8 +2021,8 @@ class WP_Site_Health {
 			$result['status']      = 'critical';
 			$result['label']       = __( 'The upgrade folder exists but is not writable' );
 			$result['description'] = sprintf(
-				/* translators: %s: '<code>wp-content/upgrade</code>' */
-				'<p>' . __( 'The %s folder exists but is not writable. This folder is used to for plugin and theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
+				/* translators: %s: wp-content/upgrade */
+				'<p>' . __( 'The %s folder exists but is not writable. This folder is used for plugin and theme updates. Please make sure the server has write permissions to this folder.' ) . '</p>',
 				'<code>wp-content/upgrade</code>'
 			);
 			return $result;
@@ -2030,10 +2030,10 @@ class WP_Site_Health {
 
 		if ( ! $upgrade_folder_exists && ! $wp_filesystem->is_writable( $wp_content ) ) {
 			$result['status']      = 'critical';
-			$result['label']       = __( 'The upgrade folder can not be created' );
+			$result['label']       = __( 'The upgrade folder cannot be created' );
 			$result['description'] = sprintf(
-				/* translators: %1$s: <code>wp-content/upgrade</code>. %2$s: <code>wp-content</code>. */
-				'<p>' . __( 'The %1$s folder does not exist, and the server does not have write permissions in %2$s to create it. This folder is used to for plugin and theme updates. Please make sure the server has write permissions in %2$s.' ) . '</p>',
+				/* translators: 1: wp-content/upgrade, 2: wp-content. */
+				'<p>' . __( 'The %1$s folder does not exist, and the server does not have write permissions in %2$s to create it. This folder is used for plugin and theme updates. Please make sure the server has write permissions in %2$s.' ) . '</p>',
 				'<code>wp-content/upgrade</code>',
 				'<code>wp-content</code>'
 			);

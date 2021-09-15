@@ -132,10 +132,11 @@ class WP_Upgrader {
 	 *
 	 * This will set the relationship between the skin being used and this upgrader,
 	 * and also add the generic strings to `WP_Upgrader::$strings`.
-	 * Additionally, it will schedule a weekly task to cleanup the temp-backup folder.
+	 *
+	 * Additionally, it will schedule a weekly task to clean up the temp-backup folder.
 	 *
 	 * @since 2.8.0
-	 * @since 5.9.0 Added the schedule_temp_backup_cleanup() task.
+	 * @since 5.9.0 Added the `schedule_temp_backup_cleanup()` task.
 	 */
 	public function init() {
 		$this->skin->set_upgrader( $this );
@@ -854,7 +855,7 @@ class WP_Upgrader {
 
 		$this->skin->after();
 
-		// Cleanup backup kept in the temp-backup folder.
+		// Clean up the backup kept in the temp-backup folder.
 		if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
 			$this->delete_temp_backup( $options['hook_extra']['temp_backup'] );
 		}
@@ -985,14 +986,13 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Move the plugin/theme being upgraded into a temp-backup directory.
+	 * Moves the plugin/theme being updated into a temp-backup directory.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the temp_backup. Must include a slug, the source and directory.
-	 *
+	 * @param array $args Array of data for the temp-backup. Must include a slug, the source, and directory.
 	 * @return bool|WP_Error
 	 */
 	public function move_to_temp_backup_dir( $args ) {
@@ -1020,7 +1020,7 @@ class WP_Upgrader {
 		$src  = trailingslashit( $args['src'] ) . $args['slug'];
 		$dest = $dest_folder . $args['dir'] . '/' . $args['slug'];
 
-		// Delete temp-backup folder if it already exists.
+		// Delete the temp-backup folder if it already exists.
 		if ( $wp_filesystem->is_dir( $dest ) ) {
 			$wp_filesystem->delete( $dest, true );
 		}
@@ -1034,14 +1034,13 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Restore the plugin/theme from the temp-backup directory.
+	 * Restores the plugin/theme from the temp-backup directory.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the temp_backup. Must include a slug, the source and directory.
-	 *
+	 * @param array $args Array of data for the temp-backup. Must include a slug, the source, and directory.
 	 * @return bool|WP_Error
 	 */
 	public function restore_temp_backup( $args ) {
@@ -1055,7 +1054,6 @@ class WP_Upgrader {
 		$dest = trailingslashit( $args['src'] ) . $args['slug'];
 
 		if ( $wp_filesystem->is_dir( $src ) ) {
-
 			// Cleanup.
 			if ( $wp_filesystem->is_dir( $dest ) && ! $wp_filesystem->delete( $dest, true ) ) {
 				return new WP_Error( 'fs_temp_backup_delete', $this->strings['temp_backup_restore_failed'] );
@@ -1066,6 +1064,7 @@ class WP_Upgrader {
 				return new WP_Error( 'fs_temp_backup_delete', $this->strings['temp_backup_restore_failed'] );
 			}
 		}
+
 		return true;
 	}
 
@@ -1076,15 +1075,16 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the temp_backup. Must include a slug, the source and directory.
-	 *
+	 * @param array $args Array of data for the temp-backup. Must include a slug, the source, and directory.
 	 * @return bool
 	 */
 	public function delete_temp_backup( $args ) {
 		global $wp_filesystem;
+
 		if ( empty( $args['slug'] ) || empty( $args['dir'] ) ) {
 			return false;
 		}
+
 		return $wp_filesystem->delete(
 			$wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}",
 			true
@@ -1097,13 +1097,13 @@ class WP_Upgrader {
 	 * @since 5.9.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
-	 *
-	 * @return void
 	 */
 	public function delete_all_temp_backups() {
-		// Check if there's a lock, or if currently performing an ajax request,
-		// in which case there's a chance we're doing an update.
-		// Reschedule for an hour from now and early exit.
+		/*
+		 * Check if there's a lock, or if currently performing an Ajax request,
+		 * in which case there's a chance we're doing an update.
+		 * Reschedule for an hour from now and exit early.
+		 */
 		if ( get_option( 'core_updater.lock' ) || get_option( 'auto_updater.lock' ) || wp_doing_ajax() ) {
 			wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'delete_temp_updater_backups' );
 			return;
@@ -1111,21 +1111,25 @@ class WP_Upgrader {
 
 		add_action(
 			'shutdown',
-			/**
+			/*
 			 * This action runs on shutdown to make sure there's no plugin updates currently running.
 			 * Using a closure in this case is OK since the action can be removed by removing the parent hook.
 			 */
 			function() {
 				global $wp_filesystem;
+
 				if ( ! $wp_filesystem ) {
 					include_once ABSPATH . '/wp-admin/includes/file.php';
 					WP_Filesystem();
 				}
+
 				$dirlist = $wp_filesystem->dirlist( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' );
+
 				foreach ( array_keys( $dirlist ) as $dir ) {
 					if ( '.' === $dir || '..' === $dir ) {
 						continue;
 					}
+
 					$wp_filesystem->delete( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $dir, true );
 				}
 			}
