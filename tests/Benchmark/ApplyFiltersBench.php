@@ -60,19 +60,19 @@ class ApplyFiltersBench {
 	}
 
 	public function provider_function_names() {
-		yield 'apply_filters_old_with_callback' => [
+		yield 'old_with_callback' => [
 			'func'     => 'apply_filters_old',
 			'callback' => true,
 		];
-		yield 'apply_filters_old_without_callback' => [
+		yield 'old_without_callback' => [
 			'func'     => 'apply_filters_old',
 			'callback' => false,
 		];
-		yield 'apply_filters_new_with_callback' => [
+		yield 'new_with_callback' => [
 			'func'     => 'apply_filters',
 			'callback' => true,
 		];
-		yield 'apply_filters_new_without_callback' => [
+		yield 'new_without_callback' => [
 			'func'     => 'apply_filters',
 			'callback' => false,
 		];
