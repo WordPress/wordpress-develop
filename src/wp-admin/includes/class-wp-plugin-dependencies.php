@@ -30,7 +30,7 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @var array
+	 * @var array[]
 	 */
 	private $installed_plugins;
 
@@ -40,7 +40,7 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @var array
+	 * @var array<int, array>
 	 */
 	private $notices = array();
 
@@ -50,7 +50,7 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @var array
+	 * @var array<string, array>
 	 */
 	private $dependencies_parents = array();
 
@@ -60,7 +60,7 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @var array
+	 * @var array<string, array>
 	 */
 	private $plugin_dependencies = array();
 
@@ -70,7 +70,7 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @var array
+	 * @var array<string, bool>
 	 */
 	private $circular_dependencies = array();
 
@@ -116,7 +116,7 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	private function get_plugins() {
 		if ( ! function_exists( 'get_plugins' ) ) {
@@ -160,7 +160,7 @@ class WP_Plugin_Dependencies {
 		$plugin_is_active           = is_plugin_active( $file );
 		$plugin_awaiting_activation = in_array( $file, $this->get_plugins_to_activate(), true );
 
-		// Early return if the plugin is not active or we don't want to activate it.
+		// Early return if the plugin is not active, or we don't want to activate it.
 		if ( ! $plugin_is_active && ! $plugin_awaiting_activation ) {
 			return;
 		}
@@ -219,7 +219,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @param string $file The plugin file.
 	 *
-	 * @return array
+	 * @return array<string, array>
 	 */
 	public function get_plugin_dependencies( $file ) {
 		if ( ! isset( $this->plugin_dependencies[ $file ] ) ) {
@@ -231,7 +231,7 @@ class WP_Plugin_Dependencies {
 			}
 
 			$plugin_dependencies = str_getcsv( $plugin_dependencies );
-			foreach ( $plugin_dependencies as $key => $dependency ) {
+			foreach ( $plugin_dependencies as $dependency ) {
 				$this->plugin_dependencies[ $file ][] = array( 'slug' => trim( $dependency ) );
 			}
 		}
@@ -245,10 +245,10 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @param string $plugin     The plugin defining the dependency.
-	 * @param array  $dependency A dependency.
+	 * @param string               $plugin The plugin defining the dependency.
+	 * @param array<string, mixed> $dependency A dependency.
 	 *
-	 * @return array Returns the dependency with extra args.
+	 * @return array<string, mixed> Returns the dependency with extra args.
 	 */
 	private function parse_dependency( $plugin, $dependency ) {
 		$dependency['installed'] = false;
@@ -315,16 +315,15 @@ class WP_Plugin_Dependencies {
 	/**
 	 * Filters the action links displayed for each plugin in the Plugins list table.
 	 *
+	 * @param string[] $actions     An array of plugin action links.
+	 * @param string   $plugin_file Path to the plugin file relative to the plugins' directory.
+	 *
+	 * @return string[]
 	 * @since 5.9.0
 	 * @access public
 	 *
-	 * @param string[] $actions     An array of plugin action links.
-	 * @param string   $plugin_file Path to the plugin file relative to the plugins directory.
-	 * @param array    $plugin_data An array of plugin data. See `get_plugin_data()`.
-	 *
-	 * @return string[]
 	 */
-	public function plugin_action_links( $actions, $plugin_file, $plugin_data ) {
+	public function plugin_action_links( $actions, $plugin_file ) {
 
 		$pending_activation     = in_array( $plugin_file, $this->get_plugins_to_activate(), true );
 		$has_dependencies       = ! empty( $this->get_plugin_dependencies( $plugin_file ) );
@@ -361,9 +360,9 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access public
 	 *
-	 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
+	 * @param string $plugin_file Path to the plugin file relative to the plugins' directory.
 	 *
-	 * @return array Returns an array of parent plugins.
+	 * @return array[] Returns an array of parent plugins.
 	 */
 	public function get_parents( $plugin_file ) {
 		if ( ! isset( $this->dependencies_parents[ $plugin_file ] ) ) {
@@ -378,8 +377,8 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access public
 	 *
-	 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
-	 * @param array  $plugin_data An array of plugin data.
+	 * @param string               $plugin_file Path to the plugin file relative to the plugins' directory.
+	 * @param array<string, mixed> $plugin_data An array of plugin data.
 	 *
 	 * @return void
 	 */
@@ -415,7 +414,7 @@ class WP_Plugin_Dependencies {
 				);
 			}
 
-			$this->inline_plugin_row_notice( $notice_contents, 'info', $plugin_file, $is_plugin_active );
+			$this->inline_plugin_row_notice( $notice_contents, 'info', true );
 		}
 
 		// Early return if the plugin doesn't have dependencies.
@@ -428,25 +427,22 @@ class WP_Plugin_Dependencies {
 			if ( $in_circular_dependency ) {
 				$this->inline_plugin_row_notice(
 					sprintf(
-						/* translators: %s: plugin name. */
+					/* translators: %s: plugin name. */
 						esc_html__( 'Warning: Circular dependencies detected. Plugin "%s" has unmet dependencies. Please contact the plugin author to report this circular dependencies issue.' ),
 						esc_html( $plugin_data['Name'] ),
 						false
 					),
-					'warning',
-					$plugin_file
+					'warning'
 				);
 				return;
 			}
 			$this->inline_plugin_row_notice(
 				sprintf(
-					/* translators: %s: plugin name. */
+				/* translators: %s: plugin name. */
 					esc_html__( 'Plugin "%s" has unmet dependencies. Once all required plugins are installed the plugin will be automatically activated. Alternatively you can cancel the activation of this plugin by clicking on the "cancel activation request" link above.' ),
 					esc_html( $plugin_data['Name'] )
 				),
-				'warning',
-				$plugin_file,
-				false
+				'warning'
 			);
 			return;
 		}
@@ -464,14 +460,11 @@ class WP_Plugin_Dependencies {
 			}
 			$this->inline_plugin_row_notice(
 				sprintf(
-					/* translators: %1$s: plugin name. %2$s: plugin requirements, comma-separated. */
+				/* translators: %1$s: plugin name. %2$s: plugin requirements, comma-separated. */
 					esc_html__( 'Plugin "%1$s" depends on the following plugin(s): %2$s' ),
 					esc_html( $plugin_data['Name'] ),
 					esc_html( implode( ', ', $dependencies_human_readable ) )
-				),
-				'info',
-				$plugin_file,
-				false
+				)
 			);
 		}
 	}
@@ -481,10 +474,16 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @since 5.9.0
 	 * @access private
+	 *
+	 * @param string $contents         Content of the plugin row notice.
+	 * @param string $notice_type      Type of the plugin notice. Default: 'info'.
+	 * @param bool   $is_plugin_active If true will set 'active' modifier CSS class on the notice.
+	 *
+	 * @return void
 	 */
-	private function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $plugin_file = '', $is_plugin_active = false ) {
+	private function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $is_plugin_active = false ) {
 		$tr_class = $is_plugin_active ? 'plugin-dependencies-tr active' : 'plugin-dependencies-tr';
-		$colspan  = (int) _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => get_current_screen() ) )->get_column_count();
+		$colspan  = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => get_current_screen() ) )->get_column_count();
 		?>
 		<tr class="<?php echo esc_attr( $tr_class ); ?>">
 			<td class="plugin-dependencies colspanchange" colspan="<?php echo esc_attr( $colspan ); ?>">
@@ -502,8 +501,8 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @param array    $plugin     The plugin calling the dependencies.
-	 * @param stdClass $dependency The plugin slug.
+	 * @param array<string, mixed> $plugin     The plugin calling the dependencies.
+	 * @param array<string, mixed> $dependency The plugin slug.
 	 *
 	 * @return void
 	 */
@@ -530,8 +529,8 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @param array    $plugin     The plugin calling the dependencies.
-	 * @param stdClass $dependency The plugin slug.
+	 * @param array<string, mixed> $plugin     The plugin calling the dependencies.
+	 * @param array<string, mixed> $dependency The plugin slug.
 	 *
 	 * @return void
 	 */
@@ -557,7 +556,7 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access public
 	 *
-	 * @return array
+	 * @return mixed
 	 */
 	public function get_plugins_to_activate() {
 		return get_option( self::PENDING_PLUGIN_ACTIVATIONS_OPTION, array() );
@@ -571,15 +570,16 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @param string $plugin The plugin file.
 	 *
-	 * @return bool
+	 * @return void
 	 */
 	private function add_plugin_to_queue( $plugin ) {
 		$queue = $this->get_plugins_to_activate();
 		if ( in_array( $plugin, $queue, true ) ) {
-			return true;
+			return;
 		}
 		$queue[] = $plugin;
-		return update_option( self::PENDING_PLUGIN_ACTIVATIONS_OPTION, $queue );
+
+		update_option( self::PENDING_PLUGIN_ACTIVATIONS_OPTION, $queue );
 	}
 
 	/**
@@ -590,14 +590,15 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @param string $plugin The plugin file.
 	 *
-	 * @return bool
+	 * @return void
 	 */
 	private function remove_plugin_from_queue( $plugin ) {
 		$queue = $this->get_plugins_to_activate();
 		if ( ! in_array( $plugin, $queue, true ) ) {
-			return true;
+			return;
 		}
-		return update_option( self::PENDING_PLUGIN_ACTIVATIONS_OPTION, array_diff( $queue, array( $plugin ) ) );
+
+		update_option( self::PENDING_PLUGIN_ACTIVATIONS_OPTION, array_diff( $queue, array( $plugin ) ) );
 	}
 
 	/**
@@ -606,9 +607,9 @@ class WP_Plugin_Dependencies {
 	 * @since 5.9.0
 	 * @access private
 	 *
-	 * @param string $plugin_file The plugin file.
-	 * @param array  $previous    If this is a dependency of a dependency,
-	 *                            this array contains all previous levels of dependencies.
+	 * @param string                   $plugin_file The plugin file.
+	 * @param array<int|string, mixed> $previous    If this is a dependency of a dependency,
+	 *                                              this array contains all previous levels of dependencies.
 	 *
 	 * @return bool
 	 */
