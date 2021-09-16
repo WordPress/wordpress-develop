@@ -95,8 +95,15 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 		$this->assertSame( $id_base, $widget->id_base );
 		$this->assertSame( $name, $widget->name );
 
-		$this->assertArraySubset( $widget_options, $widget->widget_options );
-		$this->assertArraySubset( $control_options, $widget->control_options );
+		foreach ( $widget_options as $key => $value ) {
+			$this->assertArrayHasKey( $key, $widget->widget_options );
+			$this->assertSame( $value, $widget->widget_options[ $key ] );
+		}
+
+		foreach ( $control_options as $key => $value ) {
+			$this->assertArrayHasKey( $key, $widget->control_options );
+			$this->assertSame( $value, $widget->control_options[ $key ] );
+		}
 	}
 
 	/**

@@ -26,10 +26,10 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 	/**
 	 * Sets up each test method.
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $post;
 
-		parent::setUp();
+		parent::set_up();
 
 		$args = array(
 			'post_content' => 'example',
@@ -43,13 +43,13 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 	/**
 	 * Tear down each test method.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		while ( ! empty( $this->registered_block_names ) ) {
 			$block_name = array_pop( $this->registered_block_names );
 			unregister_block_type( $block_name );
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -115,7 +115,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 					'gutenberg/contextWithAssigned',
 					'gutenberg/contextWithoutDefault',
 				),
-				'render_callback' => function( $attributes, $content, $block ) use ( &$provided_context ) {
+				'render_callback' => static function( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context[] = $block->context;
 
 					return '';
@@ -155,7 +155,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 			'gutenberg/test-context-consumer',
 			array(
 				'uses_context'    => array( 'postId', 'postType' ),
-				'render_callback' => function( $attributes, $content, $block ) use ( &$provided_context ) {
+				'render_callback' => static function( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context[] = $block->context;
 
 					return '';
@@ -188,7 +188,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 			'gutenberg/test-context-consumer',
 			array(
 				'uses_context'    => array( 'example' ),
-				'render_callback' => function( $attributes, $content, $block ) use ( &$provided_context ) {
+				'render_callback' => static function( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context[] = $block->context;
 
 					return '';
@@ -196,7 +196,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 			)
 		);
 
-		$filter_block_context = function( $context ) {
+		$filter_block_context = static function( $context ) {
 			$context['example'] = 'ok';
 			return $context;
 		};

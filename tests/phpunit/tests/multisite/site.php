@@ -17,16 +17,16 @@ if ( is_multisite() ) :
 		protected static $site_ids;
 		protected static $uninitialized_site_id;
 
-		function setUp() {
+		function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tear_down() {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -391,13 +391,13 @@ if ( is_multisite() ) :
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 
 			wpmu_delete_blog( $blog_id, true );
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 		}
 
 		function test_wpmu_update_blogs_date() {
@@ -838,27 +838,28 @@ if ( is_multisite() ) :
 			$this->assertTrue( is_main_site() );
 
 			$site = get_current_site();
+			$date = date_format( date_create( 'now' ), 'Y/m' );
 
 			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 
 			$blog_id = self::factory()->blog->create();
 
 			switch_to_blog( $blog_id );
 			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 			restore_current_blog();
 
 			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 		}
 

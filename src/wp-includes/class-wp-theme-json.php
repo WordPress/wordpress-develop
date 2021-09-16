@@ -179,6 +179,9 @@ class WP_Theme_JSON {
 	 * @var array
 	 */
 	const ALLOWED_SETTINGS = array(
+		'border'     => array(
+			'customRadius' => null,
+		),
 		'color'      => array(
 			'custom'         => null,
 			'customDuotone'  => null,
@@ -211,6 +214,9 @@ class WP_Theme_JSON {
 	 * @var array
 	 */
 	const ALLOWED_STYLES = array(
+		'border'     => array(
+			'radius' => null,
+		),
 		'color'      => array(
 			'background' => null,
 			'gradient'   => null,
@@ -630,7 +636,7 @@ class WP_Theme_JSON {
 
 		$declaration_block = array_reduce(
 			$declarations,
-			function ( $carry, $element ) {
+			static function ( $carry, $element ) {
 				return $carry .= $element['name'] . ': ' . $element['value'] . ';'; },
 			''
 		);

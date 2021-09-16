@@ -37,10 +37,10 @@ services:
       - wpdevnet
 
     environment:
-      LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
-      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
-      PHP_FPM_UID: ${PHP_FPM_UID-1000}
-      PHP_FPM_GID: ${PHP_FPM_GID-1000}
+      - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
+      - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
+      - PHP_FPM_UID=${PHP_FPM_UID-1000}
+      - PHP_FPM_GID=${PHP_FPM_GID-1000}
 
     volumes:
       - ./tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
@@ -81,10 +81,10 @@ services:
       - wpdevnet
 
     environment:
-      LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
-      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
-      PHP_FPM_UID: ${PHP_FPM_UID-1000}
-      PHP_FPM_GID: ${PHP_FPM_GID-1000}
+      - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
+      - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
+      - PHP_FPM_UID=${PHP_FPM_UID-1000}
+      - PHP_FPM_GID=${PHP_FPM_GID-1000}
 
     volumes:
       - ./:/var/www
@@ -102,14 +102,14 @@ services:
       - wpdevnet
 
     environment:
-      LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
-      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
-      LOCAL_DIR: ${LOCAL_DIR-src}
-      WP_MULTISITE: ${WP_MULTISITE-false}
-      PHP_FPM_UID: ${PHP_FPM_UID-1000}
-      PHP_FPM_GID: ${PHP_FPM_GID-1000}
-      GITHUB_REF: ${GITHUB_REF-false}
-      GITHUB_EVENT_NAME: ${GITHUB_EVENT_NAME-false}
+      - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
+      - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
+      - PHP_FPM_UID=${PHP_FPM_UID-1000}
+      - PHP_FPM_GID=${PHP_FPM_GID-1000}
+      - LOCAL_DIR=${LOCAL_DIR-src}
+      - WP_MULTISITE=${WP_MULTISITE-false}
+      - GITHUB_REF=${GITHUB_REF-false}
+      - GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME-false}
 
     volumes:
       - ./tools/local-env/phpunit-config.ini:/usr/local/etc/php/conf.d/phpunit-config.ini

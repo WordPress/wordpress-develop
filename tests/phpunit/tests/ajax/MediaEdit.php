@@ -19,10 +19,10 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tear down the test fixture.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		// Cleanup.
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -96,7 +96,7 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 		}
 
 		foreach ( $files_that_shouldnt_exist as $file ) {
-			$this->assertFileNotExists( $file, 'IMAGE_EDIT_OVERWRITE is leaving garbage image files behind.' );
+			$this->assertFileDoesNotExist( $file, 'IMAGE_EDIT_OVERWRITE is leaving garbage image files behind.' );
 		}
 	}
 }

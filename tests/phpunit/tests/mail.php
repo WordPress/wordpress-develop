@@ -4,14 +4,14 @@
  * @group mail
  */
 class Tests_Mail extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		reset_phpmailer_instance();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
