@@ -41,20 +41,40 @@ class ApplyFiltersBench {
 	 * @Revs(100000)
 	 * @Iterations(10)
 	 * @Warmup(2)
+	 * @ParamProviders("provider_function_names")
 	 */
-	public function bench_apply_filters() {
-		// Run with no filter:
-		apply_filters( 'my_filter', 'my_value', 1, 2, 3 );
+	public function bench_apply_filters( array $params ) {
+		if ( $params['callback'] ) {
+			add_filter( 'my_filter', array( $this, 'filter_callback' ) );
+		}
 
-		add_filter( 'my_filter', array( $this, 'filter_callback' ) );
+		call_user_func( $params['func'], 'my_filter', 'my_value', 1, 2, 3 );
 
-		// Run with a filter:
-		apply_filters( 'my_filter', 'my_value', 1, 2, 3 );
-
-		remove_filter( 'my_filter', array( $this, 'filter_callback' ) );
+		if ( $params['callback'] ) {
+			remove_filter( 'my_filter', array( $this, 'filter_callback' ) );
+		}
 	}
 
 	public function filter_callback( $value ) {
 		return $value;
+	}
+
+	public function provider_function_names() {
+		yield 'apply_filters_old_with_callback' => [
+			'func'     => 'apply_filters_old',
+			'callback' => true,
+		];
+		yield 'apply_filters_old_without_callback' => [
+			'func'     => 'apply_filters_old',
+			'callback' => false,
+		];
+		yield 'apply_filters_new_with_callback' => [
+			'func'     => 'apply_filters',
+			'callback' => true,
+		];
+		yield 'apply_filters_new_without_callback' => [
+			'func'     => 'apply_filters',
+			'callback' => false,
+		];
 	}
 }
