@@ -1374,7 +1374,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *
  * @global array $wp_post_types List of post types.
  *
- * @param string       $post_type Post type key. Must not exceed 20 characters and may
+ * @param string       $post_type Post type key. Must not exceed 64 characters and may
  *                                only contain lowercase alphanumeric characters, dashes,
  *                                and underscores. See sanitize_key().
  * @param array|string $args {
