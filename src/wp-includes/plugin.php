@@ -158,13 +158,12 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
  *
  * @param string $hook_name The name of the filter hook.
+ * @param mixed  $value     The value to filter.
  * @param mixed  ...$args   Additional parameters to pass to the callback functions.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
-function apply_filters( $hook_name, ...$args ) {
+function apply_filters( $hook_name, $value, ...$args ) {
 	global $wp_filter, $wp_current_filter;
-
-	$value = $args[0];
 
 	// Do 'all' actions first.
 	if ( isset( $wp_filter['all'] ) ) {
@@ -185,6 +184,9 @@ function apply_filters( $hook_name, ...$args ) {
 	if ( ! isset( $wp_filter['all'] ) ) {
 		$wp_current_filter[] = $hook_name;
 	}
+
+	// Pass the value to WP_Hook.
+	array_unshift( $args, $value );
 
 	$filtered = $wp_filter[ $hook_name ]->apply_filters( $value, $args );
 
