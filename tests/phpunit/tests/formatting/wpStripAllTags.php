@@ -22,6 +22,10 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 		$text = 'lorem<script>alert(document.cookie)</script>ipsum';
 		$this->assertSame( 'loremipsum', wp_strip_all_tags( $text ) );
 
+		// Test recusively script / style tag's contents is removed.
+		$text = 'lorem<scri<scri<script></script>pt></script>pt>alert(document.cookie)</script>ipsum';
+		$this->assertSame( 'loremipsum', wp_strip_all_tags( $text ) );
+
 		$text = "lorem<style>* { display: 'none' }</style>ipsum";
 		$this->assertSame( 'loremipsum', wp_strip_all_tags( $text ) );
 
