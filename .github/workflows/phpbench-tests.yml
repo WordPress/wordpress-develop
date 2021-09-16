@@ -95,7 +95,7 @@ jobs:
           fi
 
       - name: Install PHPBench
-        run: composer require --dev phpbench/phpbench
+        run: docker-compose run --rm php composer require --dev phpbench/phpbench
 
       - name: Start Docker environment
         run: |
