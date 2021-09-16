@@ -6,7 +6,7 @@ require_once dirname( __DIR__, 2 ) . '/src/wp-load.php';
 
 class ApplyFiltersBench {
 	/**
-	 * @Revs(10000)
+	 * @Revs(100000)
 	 * @Iterations(10)
 	 * @Warmup(2)
 	 */
