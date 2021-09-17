@@ -3,13 +3,13 @@
  * Dependencies manager for plugins.
  *
  * @package dependencies-manager.
- * @since 1.0
+ * @since 5.9.0
  */
 
 /**
  * Plugins dependencies manager.
  *
- * @since 1.0.0
+ * @since 5.9.0
  */
 class WP_Plugin_Dependencies {
 
