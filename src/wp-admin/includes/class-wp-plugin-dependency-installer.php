@@ -197,9 +197,7 @@ class WP_Plugin_Dependency_Installer {
 				$dependency['sources'] = array_merge( $this->config[ $slug ]['sources'], $dependency['sources'] );
 			}
 			// Update config.
-			if ( ! isset( $this->config[ $slug ] ) || $this->is_required( $dependency ) ) {
-				$this->config[ $slug ] = $dependency;
-			}
+			$this->config[ $slug ] = $dependency;
 		}
 
 		return $this;
