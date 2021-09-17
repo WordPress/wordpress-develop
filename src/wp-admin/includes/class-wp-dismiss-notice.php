@@ -137,3 +137,6 @@ class WP_Dismiss_Notice {
 		return true;
 	}
 }
+
+// Initialize WP_Dismiss_Notice dependency.
+add_action( 'admin_init', array( 'WP_Dismiss_Notice', 'init' ) );

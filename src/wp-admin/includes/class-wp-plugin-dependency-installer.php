@@ -143,9 +143,6 @@ class WP_Plugin_Dependency_Installer {
 		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 		add_action( 'network_admin_notices', array( $this, 'admin_notices' ) );
 		add_action( 'wp_ajax_dependency_installer', array( $this, 'ajax_router' ) );
-
-		// Initialize WP_Dismiss_Notice dependency.
-		add_action( 'admin_init', array( 'WP_Dismiss_Notice', 'init' ) );
 	}
 
 	/**
