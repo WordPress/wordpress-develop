@@ -107,7 +107,7 @@ class WP_Plugin_Dependencies {
 		add_action( 'after_plugin_row', array( $this, 'after_plugin_row' ), 10, 2 );
 
 		// Filter available plugin actions.
-		add_filter( 'plugin_action_links', array( $this, 'plugin_action_links' ), 10, 4 );
+		add_filter( 'plugin_action_links', array( $this, 'plugin_action_links' ), 10, 2 );
 	}
 
 	/**
