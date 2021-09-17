@@ -18,16 +18,9 @@
  * Example: JSON file
  * [
  *  {
- *    "name": "Query Monitor",
- *    "slug": "query-monitor/query-monitor.php",
- *    "uri": "https://wordpress.org/plugins/query-monitor/",
- *    "required": false
- *  },
- *  {
  *    "name": "WooCommerce",
  *    "slug": "woocommerce/woocommerce.php",
- *    "uri": "https://wordpress.org/plugins/woocommerce/",
- *    "required": true
+ *    "uri": "https://wordpress.org/plugins/woocommerce/"
  *  }
  * ]
  *
@@ -36,8 +29,7 @@
  *  array(
  *      'name'     => 'Hello Dolly',
  *      'slug'     => 'hello-dolly/hello.php',
- *      'uri'      => 'https://wordpress.org/plugins/hello-dolly',
- *      'required' => true,
+ *      'uri'      => 'https://wordpress.org/plugins/hello-dolly
  *  ),
  * );
  *
@@ -274,11 +266,7 @@ class WP_Plugin_Dependency_Installer {
 
 		// Generate admin notices.
 		foreach ( $this->config as $slug => $dependency ) {
-			$is_required = $this->is_required( $dependency );
-
-			if ( $is_required ) {
-				$this->modify_plugin_row( $slug );
-			}
+			$this->modify_plugin_row( $slug );
 
 			// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
 			if ( $this->is_active( $slug ) ) {
@@ -338,32 +326,6 @@ class WP_Plugin_Dependency_Installer {
 			echo esc_attr( $response['message'] );
 		}
 		wp_die();
-	}
-
-	/**
-	 * Check if a dependency is currently required.
-	 *
-	 * @param string|array $plugin Plugin dependency slug or config.
-	 *
-	 * @return boolean True if required. Default: False
-	 */
-	public function is_required( &$plugin ) {
-		if ( empty( $this->config ) ) {
-			return false;
-		}
-		if ( is_string( $plugin ) && isset( $this->config[ $plugin ] ) ) {
-			$dependency = &$this->config[ $plugin ];
-		} else {
-			$dependency = &$plugin;
-		}
-		if ( isset( $dependency['required'] ) ) {
-			return true === $dependency['required'] || 'true' === $dependency['required'];
-		}
-		if ( isset( $dependency['optional'] ) ) {
-			return false === $dependency['optional'] || 'false' === $dependency['optional'];
-		}
-
-		return false;
 	}
 
 	/**
@@ -449,19 +411,13 @@ class WP_Plugin_Dependency_Installer {
 	 * @return array Admin notice.
 	 */
 	public function install_notice( $slug ) {
-		$dependency  = $this->config[ $slug ];
-		$is_required = $this->is_required( $dependency );
-		if ( $is_required ) {
-			/* translators: %s: Plugin name */
-			$message = sprintf( __( 'The %1$s plugin is required.' ), $dependency['name'] );
-		} else {
-			/* translators: %s: Plugin name */
-			$message = sprintf( __( 'The %1$s plugin is recommended.' ), $dependency['name'] );
-		}
+		$dependency = $this->config[ $slug ];
+		/* translators: %s: Plugin name */
+		$message = sprintf( __( 'The %1$s plugin is required.' ), $dependency['name'] );
 
 		return array(
 			'action'  => 'install',
-			'status'  => $is_required ? 'notice-warning' : 'notice-info',
+			'status'  => 'notice-warning',
 			'slug'    => $slug,
 			'message' => esc_attr( $message ),
 			'source'  => $dependency['source'],
@@ -506,7 +462,7 @@ class WP_Plugin_Dependency_Installer {
 
 		return array(
 			'action'  => 'activate',
-			'status'  => $this->is_required( $dependency ) ? 'notice-warning' : 'notice-info',
+			'status'  => 'notice-warning',
 			'slug'    => $slug,
 			/* translators: %s: Plugin name */
 			'message' => sprintf( esc_html__( 'Please activate the %s plugin.' ), $dependency['name'] ),
