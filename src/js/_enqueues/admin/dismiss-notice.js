@@ -27,7 +27,7 @@
 						'action': 'dismiss_admin_notice',
 						'option_name': option_name,
 						'dismissible_length': dismissible_length,
-						'nonce': dismissible_notice.nonce,
+						'nonce': dismissible_notice.nonce
 					};
 
 					$this.closest('div[data-dismissible]').hide('slow');
