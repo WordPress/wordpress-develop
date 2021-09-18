@@ -14,7 +14,7 @@
 					event.preventDefault();
 					var $this = $(this);
 
-					var attr_value, option_name, dismissible_length, dismissible_notice, ajaxurl, data;
+					var attr_value, option_name, dismissible_length, data;
 
 					attr_value = $this.closest('div[data-dismissible]').attr('data-dismissible').split('-');
 
