@@ -12,24 +12,13 @@
  * Class WP_Plugin_Dependency_Installer
  *
  * Configuration
- * Use either a JSON file named `wp-dependencies.json` that is located in your plugin
- * or theme root, or an associative array.
- *
- * Example: JSON file
- * [
- *  {
- *    "name": "WooCommerce",
- *    "slug": "woocommerce/woocommerce.php",
- *    "uri": "https://wordpress.org/plugins/woocommerce/"
- *  }
- * ]
+ * Use an associative array.
  *
  * Example associative array
  * $config = array(
  *  array(
  *      'name'     => 'Hello Dolly',
  *      'slug'     => 'hello-dolly/hello.php',
- *      'uri'      => 'https://wordpress.org/plugins/hello-dolly
  *  ),
  * );
  *
@@ -39,10 +28,6 @@
  * require_once ABSPATH . 'wp-admin/includes/class-wp-plugin-dependency-installer.php';
  *
  * Load the configuration and run.
- * If only using JSON config.
- * \WP_Plugin_Dependency_Installer::instance(__DIR__)->run();
- *
- * If using JSON config and/or configuration array.
  * \WP_Plugin_Dependency_Installer::instance( __DIR__ )->register( $config )->run();
  *
  * Admin notice format.
@@ -148,32 +133,11 @@ class WP_Plugin_Dependency_Installer {
 	 */
 	public function run( $caller = false ) {
 		$caller = ! $caller ? self::$caller : $caller;
-		$config = $this->json_file_decode( $caller . '/wp-dependencies.json' );
-		if ( ! empty( $config ) ) {
-			$this->register( $config, $caller );
-		}
 		if ( ! empty( $this->config ) ) {
 			$this->load_hooks();
 		}
 
 		return $this;
-	}
-
-	/**
-	 * Decode JSON config data from a file.
-	 *
-	 * @param string $json_path File path to JSON config file.
-	 *
-	 * @return bool|array $config
-	 */
-	public function json_file_decode( $json_path ) {
-		$config = array();
-		if ( file_exists( $json_path ) ) {
-			$config = file_get_contents( $json_path );
-			$config = json_decode( $config, true );
-		}
-
-		return $config;
 	}
 
 	/**
@@ -204,22 +168,13 @@ class WP_Plugin_Dependency_Installer {
 	}
 
 	/**
-	 * Process the registered dependencies.
+	 * Add dot org download link to the registered dependencies.
 	 */
-	private function apply_config() {
+	private function add_download_link() {
 		foreach ( $this->config as $dependency ) {
 			$download_link               = null;
-			$uri                         = $dependency['uri'];
 			$slug                        = $dependency['slug'];
-			$uri_args                    = parse_url( $uri );
-			$port                        = isset( $uri_args['port'] ) ? $uri_args['port'] : null;
-			$api                         = isset( $uri_args['host'] ) ? $uri_args['host'] : null;
-			$api                         = ! $port ? $api : "{$api}:{$port}";
-			$scheme                      = isset( $uri_args['scheme'] ) ? $uri_args['scheme'] : null;
-			$scheme                      = null !== $scheme ? $scheme . '://' : 'https://';
-			$path                        = isset( $uri_args['path'] ) ? $uri_args['path'] : null;
-			$owner_repo                  = str_replace( '.git', '', trim( $path, '/' ) );
-			$download_link               = $this->get_dot_org_latest_download( basename( $owner_repo ) );
+			$download_link               = $this->get_dot_org_latest_download( dirname( $slug ) );
 			$dependency['download_link'] = $download_link;
 			$this->config[ $slug ]       = $dependency;
 		}
@@ -260,7 +215,7 @@ class WP_Plugin_Dependency_Installer {
 	 */
 	public function admin_init() {
 		// Get the gears turning.
-		$this->apply_config();
+		$this->add_download_link();
 
 		// Generate admin notices.
 		foreach ( $this->config as $slug => $dependency ) {
@@ -491,8 +446,8 @@ class WP_Plugin_Dependency_Installer {
 		}
 		foreach ( $this->notices as $notice ) {
 			$status      = isset( $notice['status'] ) ? $notice['status'] : 'notice-info';
-			$source      = isset( $notice['source'] ) ? $notice['source'] : __( 'Dependency' );
 			$class       = esc_attr( $status ) . ' notice is-dismissible dependency-installer';
+			$source      = isset( $notice['source'] ) ? $notice['source'] : __( 'Dependency' );
 			$label       = esc_html( $this->get_dismiss_label( $source ) );
 			$message     = '';
 			$action      = '';

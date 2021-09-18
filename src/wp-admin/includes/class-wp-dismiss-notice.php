@@ -15,9 +15,6 @@
  *
  * Load the class.
  * require_once ABSPATH . 'wp-admin/includes/class-wp-dismiss-notice.php';
- *
- * Initialize the class.
- * add_action( 'admin_init', array( 'WP_Dismiss_Notice', 'init' ) );
  */
 class WP_Dismiss_Notice {
 
@@ -37,10 +34,9 @@ class WP_Dismiss_Notice {
 		if ( is_customize_preview() ) {
 			return;
 		}
-
 		wp_enqueue_script(
 			'dismissible-notices',
-			__DIR__ . '/js/dismiss-notice.js',
+			'/wp-admin/js/dismiss-notice.js',
 			array( 'jquery', 'common' ),
 			false,
 			true
@@ -50,7 +46,7 @@ class WP_Dismiss_Notice {
 			'dismissible-notices',
 			'dismissible_notice',
 			array(
-				'nonce' => wp_create_nonce( 'dismissible-notice' ),
+			'nonce' => wp_create_nonce( 'dismissible-notice' ),
 			)
 		);
 	}
@@ -138,5 +134,5 @@ class WP_Dismiss_Notice {
 	}
 }
 
-// Initialize WP_Dismiss_Notice dependency.
+// Initialize.
 add_action( 'admin_init', array( 'WP_Dismiss_Notice', 'init' ) );
