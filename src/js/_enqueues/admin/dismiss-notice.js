@@ -31,7 +31,7 @@
 					};
 
 					// Run Ajax request.
-					$.post( ajaxurl, data );
+					$.post(window.dismissible_notice.ajaxurl, data);
 					$this.closest('div[data-dismissible]').hide('slow');
 				}
 			);
