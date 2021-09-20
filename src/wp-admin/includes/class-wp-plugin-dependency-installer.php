@@ -16,10 +16,14 @@
  *
  * Example associative array
  * $config = array(
- *  array(
- *      'name'     => 'Hello Dolly',
- *      'slug'     => 'hello-dolly/hello.php',
- *  ),
+ *      array(
+ *          'name' => 'Hello Dolly',
+ *          'slug' => 'hello-dolly/hello.php',
+ *      ),
+ *      array(
+ *          'name' => 'WooCommerce',
+ *          'slug' => 'woocommerce/woocommerce.php',
+ *      ),
  * );
  *
  * Initialize: The command to initialize is as follows.
@@ -34,8 +38,8 @@
  * You must add `dependency-installer` as well as `data-dismissible='dependency-installer-<plugin basename>-<timeout>'`
  * to the admin notice div class. <timeout> values are from one day '1' to 'forever'. Default timeout is 14 days.
  *
- * Example using Query Monitor with a 14 day dismissible notice.
- * <div class="notice-warning notice is-dismissible dependency-installer" data-dismissible="dependency-installer-query-monitor-14">...</div>
+ * Example using WooCommerce with a 14 day dismissible notice.
+ * <div class="notice-warning notice is-dismissible dependency-installer" data-dismissible="dependency-installer-woocommerce-14">...</div>
  *
  * Example filter to adjust timeout.
  * Use this filter to adjust the timeout for the dismissal. Default is 14 days.
@@ -43,7 +47,7 @@
  * The example filter will change the default timout for all plugin dependencies.
  * You can specify the exact plugin timeout by modifying the following line in the filter.
  *
- * $timeout = 'query-monitor' !== $source ? $timeout : 30;
+ * $timeout = 'woocommerce' !== $source ? $timeout : 30;
  *
  * add_filter(
  *  'wp_plugin_dependency_timeout',
