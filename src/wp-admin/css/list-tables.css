@@ -1281,6 +1281,11 @@ ul.cat-checklist {
 	padding: 0;
 }
 
+.plugins .plugin-dependencies-tr.active .dependencies-message.notice-info {
+	border: none;
+	padding-left: 0;
+}
+
 .plugins .plugin-update-tr .notice,
 .plugins .plugin-dependencies-tr .notice,
 .plugins .plugin-update-tr div[class="update-message"] { /* back-compat for pre-4.6 */
