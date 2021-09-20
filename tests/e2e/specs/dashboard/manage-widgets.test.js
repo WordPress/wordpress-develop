@@ -51,7 +51,7 @@ describe('Manage dashboard widgets', () => {
         });
         expect(hiddenInsideWidget).toBe(true);
 
-        // Expand back the widget
+        // Expand back the right now widget
         await page.waitForTimeout(100);
         await page.click('#dashboard_right_now button.handlediv');
     });
