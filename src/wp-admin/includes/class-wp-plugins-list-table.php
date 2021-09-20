@@ -1028,7 +1028,21 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			switch ( $column_name ) {
 				case 'cb':
-					echo "<th scope='row' class='check-column'>$checkbox</th>";
+					echo '<th scope="row" class="check-column">';
+					/**
+					 * Determines whether the checkbox should be displayed in the plugin row.
+					 *
+					 * @since 5.9.0
+					 *
+					 * @param bool   $display True to show the checkblox, false to hide it. Defaults to true.
+					 * @param string   $plugin_file Path to the plugin file relative to the plugins directory.
+					 *
+					 * @return bool True if the checkbox should be displayed, false otherwise.
+					 */
+					if ( apply_filters( 'plugin_display_checkbox', true, $plugin_file ) ) {
+						echo $checkbox;
+					}
+					echo '</th>';
 					break;
 				case 'name':
 					echo "<td class='plugin-title column-primary'><strong>$plugin_name</strong>";

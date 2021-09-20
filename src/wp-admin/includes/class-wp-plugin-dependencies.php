@@ -108,6 +108,8 @@ class WP_Plugin_Dependencies {
 
 		// Filter available plugin actions.
 		add_filter( 'plugin_action_links', array( $this, 'plugin_action_links' ), 10, 2 );
+
+		add_filter( 'plugin_display_checkbox', array( $this, 'hide_checkbox_for_dependency' ), 10, 2 );
 	}
 
 	/**
@@ -373,6 +375,23 @@ class WP_Plugin_Dependencies {
 			return array();
 		}
 		return $this->dependencies_parents[ $plugin_file ];
+	}
+
+	/**
+	 * Hide the checkbox in plugin rows when the plugin is a dependency for another active plugin.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param bool   $display    Whether the checkbox should be displayed.
+	 * @param string $plugin_file Path to the plugin file relative to the plugins' directory.
+	 *
+	 * @return bool
+	 */
+	public function hide_checkbox_for_dependency( $display, $plugin_file ) {
+		if ( ! empty( $this->get_parents( $plugin_file ) ) && is_plugin_active( $plugin_file ) ) {
+			return false;
+		}
+		return $display;
 	}
 
 	/**
