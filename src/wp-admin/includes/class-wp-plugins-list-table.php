@@ -973,9 +973,24 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		if ( $restrict_network_active || $restrict_network_only || in_array( $status, array( 'mustuse', 'dropins' ), true ) || ! $compatible_php ) {
 			$checkbox = '';
 		} else {
+			/**
+			 * Determines whether the checkbox should be disabled or not.
+			 *
+			 * @since 5.9.0
+			 *
+			 * @param bool   $disabled   Set to true to disable the checkbox. Defaults to false.
+			 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
+			 *
+			 * @return bool
+			 */
+			$checkbox_disabled = apply_filters( 'plugin_checkbox_disabled', false, $plugin_file );
+
+			$checkbox_input = '<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" />';
+			if ( $checkbox_disabled ) {
+				$checkbox_input = '<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" disabled="disabled" />';
+			}
 			$checkbox = sprintf(
-				'<label class="screen-reader-text" for="%1$s">%2$s</label>' .
-				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" />',
+				'<label class="screen-reader-text" for="%1$s">%2$s</label>' . $checkbox_input,
 				$checkbox_id,
 				/* translators: %s: Plugin name. */
 				sprintf( __( 'Select %s' ), $plugin_data['Name'] ),
@@ -1028,21 +1043,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			switch ( $column_name ) {
 				case 'cb':
-					echo '<th scope="row" class="check-column">';
-					/**
-					 * Determines whether the checkbox should be displayed in the plugin row.
-					 *
-					 * @since 5.9.0
-					 *
-					 * @param bool   $display True to show the checkblox, false to hide it. Defaults to true.
-					 * @param string   $plugin_file Path to the plugin file relative to the plugins directory.
-					 *
-					 * @return bool True if the checkbox should be displayed, false otherwise.
-					 */
-					if ( apply_filters( 'plugin_display_checkbox', true, $plugin_file ) ) {
-						echo $checkbox;
-					}
-					echo '</th>';
+					echo "<th scope='row' class='check-column'>$checkbox</th>";
 					break;
 				case 'name':
 					echo "<td class='plugin-title column-primary'><strong>$plugin_name</strong>";
