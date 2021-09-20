@@ -524,7 +524,7 @@ class WP_Plugin_Dependency_Installer {
 		}
 
 		/* translators: %s: opening and closing span tags */
-		$actions = array_merge( array( 'required-plugin' => sprintf( esc_html__( '%1$sRequired Plugin%2$s' ), '<span class="network_active" style="font-variant-caps: small-caps;">', '<span>' ) ), $actions );
+		$actions = array_merge( array( 'required-plugin' => sprintf( esc_html__( '%1$sRequired Plugin%2$s' ), '<span class="network_active" style="font-variant-caps: small-caps;">', '</span>' ) ), $actions );
 
 		return $actions;
 	}
