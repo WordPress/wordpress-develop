@@ -1161,8 +1161,9 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These plugins are now up to date:' );
 
 				foreach ( $successful_updates['plugin'] as $item ) {
+					$body_message = '';
 					if ( $item->item->current_version ) {
-						$body[] = sprintf(
+						$body_message = sprintf(
 							/* translators: 1: Plugin name, 2: Current version number, 3: New version number. */
 							__( '- %1$s (from version %2$s to %3$s)' ),
 							$item->name,
@@ -1170,13 +1171,17 @@ class WP_Automatic_Updater {
 							$item->item->new_version
 						);
 					} else {
-						$body[] = sprintf(
+						$body_message = sprintf(
 							/* translators: 1: Plugin name, 2: Version number. */
 							__( '- %1$s version %2$s' ),
 							$item->name,
 							$item->item->new_version
 						);
 					}
+					if ( $item->item->url ) {
+						$body_message .= sprintf( ': %s', esc_url( $item->item->url ) );
+					}
+					$body[] = $body_message;
 
 					unset( $past_failure_emails[ $item->item->plugin ] );
 				}
