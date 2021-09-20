@@ -14,7 +14,6 @@
  * Configuration
  * Use an associative array.
  *
- * Example associative array
  * $config = array(
  *      array(
  *          'name' => 'Hello Dolly',
