@@ -253,6 +253,8 @@ class WP_Plugin_Dependencies {
 	private function parse_dependency( $plugin, $dependency ) {
 		$dependency['installed'] = false;
 		$dependency['active']    = false;
+		$dependency['file']       = '';
+		$dependency['name']      = '';
 
 		foreach ( $this->installed_plugins as $file => $installed_plugin ) {
 			if ( dirname( $file ) === $dependency['slug'] ) {
@@ -267,10 +269,12 @@ class WP_Plugin_Dependencies {
 		}
 
 		// Add item to the $dependencies_parents array.
-		if ( empty( $this->dependencies_parents[ $dependency['file'] ] ) ) {
-			$this->dependencies_parents[ $dependency['file'] ] = array();
+		if ( $dependency['file'] ) {
+			if ( empty( $this->dependencies_parents[ $dependency['file'] ] ) ) {
+				$this->dependencies_parents[ $dependency['file'] ] = array();
+			}
+			$this->dependencies_parents[ $dependency['file'] ][] = $plugin;
 		}
-		$this->dependencies_parents[ $dependency['file'] ][] = $plugin;
 
 		return $dependency;
 	}
