@@ -58,6 +58,15 @@ class WP_Block {
 	protected $available_context;
 
 	/**
+	 * Block type registry.
+	 *
+	 * @since 5.9.0
+	 * @var WP_Block_Type_Registry
+	 * @access protected
+	 */
+	protected $registry;
+
+	/**
 	 * List of inner blocks (of this same class)
 	 *
 	 * @since 5.5.0
@@ -114,6 +123,8 @@ class WP_Block {
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();
 		}
+
+		$this->registry = $registry;
 
 		$this->block_type = $registry->get_registered( $this->name );
 
@@ -206,9 +217,53 @@ class WP_Block {
 		if ( ! $options['dynamic'] || empty( $this->block_type->skip_inner_blocks ) ) {
 			$index = 0;
 			foreach ( $this->inner_content as $chunk ) {
-				$block_content .= is_string( $chunk ) ?
-					$chunk :
-					$this->inner_blocks[ $index++ ]->render();
+				if ( is_string( $chunk ) ) {
+					$block_content .= $chunk;
+				} else {
+					$inner_block = $this->inner_blocks[ $index ];
+
+					/**
+					 * Allows the rendering of inner block to be short-circuited, by returning a non-null value.
+					 *
+					 * @since 5.9.0
+					 *
+					 * @param string|null            $pre_render        The pre-rendered content. Default null.
+					 * @param array                  $parsed_block      The inner block being rendered.
+					 * @param array                  $available_context Array of ancestry context values.
+					 * @param WP_Block_Type_Registry $registry          Block type registry.
+
+					 */
+					$pre_render = apply_filters( 'pre_render_inner_block', null, $inner_block->parsed_block, $inner_block->available_context, $inner_block->registry );
+					if ( ! is_null( $pre_render ) ) {
+						$block_content .= $pre_render;
+					} else {
+						$source_block = $inner_block->parsed_block;
+
+						/**
+						 * Filters the block being rendered in render_block(), before it's processed.
+						 *
+						 * @since 5.9.0
+						 *
+						 * @param array $parsed_block The block being rendered.
+						 * @param array $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+						 */
+						$inner_block->parsed_block = apply_filters( 'render_inner_block_data', $inner_block->parsed_block, $source_block );
+
+						/**
+						 * Filters the default context provided to a rendered inner block.
+						 *
+						 * @since 5.9.0
+						 *
+						 * @param array $context      Default context.
+						 * @param array $parsed_block Block being rendered, filtered by `render_block_data`.
+						 */
+						$inner_block->context = apply_filters( 'render_inner_block_context', $inner_block->context, $inner_block->parsed_block );
+
+						$block_content .= $inner_block->render();
+					}
+
+					$index++;
+				}
 			}
 		}
 
