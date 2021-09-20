@@ -52,7 +52,7 @@ describe('Manage dashboard widgets', () => {
         expect(hiddenInsideWidget).toBe(true);
 
         // Expand back the widget
-        await toggleButton.focus();
-        await page.keyboard.press('Enter');
+        await page.waitForTimeout(100);
+        await page.click('#dashboard_right_now button.handlediv');
     });
 });
