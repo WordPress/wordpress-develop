@@ -1202,8 +1202,8 @@ ul.cat-checklist {
 
 .plugins .update td,
 .plugins .update th,
-.plugins .dependency td,
-.plugins .dependency th,
+.plugins tr.dependency td,
+.plugins tr.dependency th,
 .upgrade .plugins tr:last-of-type td,
 .upgrade .plugins tr:last-of-type th,
 .plugins tr.active + tr.inactive.update th,
