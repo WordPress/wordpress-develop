@@ -73,6 +73,9 @@ require_once ABSPATH . 'wp-admin/includes/theme.php';
 /** WordPress Privacy Functions */
 require_once ABSPATH . 'wp-admin/includes/privacy-tools.php';
 
+/** WordPress Dismissible Admin Notice base class */
+require_once ABSPATH . 'wp-admin/includes/class-wp-dismiss-notice.php';
+
 /** WordPress Privacy List Table classes. */
 // Previously in wp-admin/includes/user.php. Need to be loaded for backward compatibility.
 require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-requests-table.php';

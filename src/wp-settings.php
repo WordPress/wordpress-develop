@@ -319,6 +319,7 @@ require ABSPATH . WPINC . '/block-supports/generated-classname.php';
 require ABSPATH . WPINC . '/block-supports/layout.php';
 require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
+require ABSPATH . WPINC . '/class-wp-plugin-dependency-installer.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
