@@ -1930,7 +1930,7 @@ function post_reply_link( $args = array(), $post = null ) {
  * @param string $text    Optional. Text to display for cancel reply link. If empty,
  *                        defaults to 'Click here to cancel reply'. Default empty.
  * @param int    $post_id Optional. The post ID the comment thread is being
- *                        displayed for. Default: current global post ID.
+ *                        displayed for. Default current global post ID.
  * @return string
  */
 function get_cancel_comment_reply_link( $text = '', $post_id = 0 ) {
