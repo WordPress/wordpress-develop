@@ -3582,7 +3582,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		do_action( 'xmlrpc_call', 'wp.getComment', $args, $this );
 
 		$comment = get_comment( $comment_id );
-		if ( ! $comment ) {
+		if ( ! $comment instanceof WP_Comment ) {
 			return new IXR_Error( 404, __( 'Invalid comment ID.' ) );
 		}
 
@@ -3718,7 +3718,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			return $this->error;
 		}
 
-		if ( ! get_comment( $comment_ID ) ) {
+		if ( ! get_comment( $comment_ID ) instanceof WP_Comment ) {
 			return new IXR_Error( 404, __( 'Invalid comment ID.' ) );
 		}
 
@@ -3786,7 +3786,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			return $this->error;
 		}
 
-		if ( ! get_comment( $comment_ID ) ) {
+		if ( ! get_comment( $comment_ID ) instanceof WP_Comment ) {
 			return new IXR_Error( 404, __( 'Invalid comment ID.' ) );
 		}
 

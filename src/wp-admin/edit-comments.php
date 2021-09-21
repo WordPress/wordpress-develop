@@ -320,7 +320,7 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 
 		if ( $same > 0 ) {
 			$comment = get_comment( $same );
-			if ( $comment ) {
+			if ( $comment instanceof WP_Comment ) {
 				switch ( $comment->comment_approved ) {
 					case '1':
 						$messages[] = __( 'This comment is already approved.' ) . ' <a href="' . esc_url( admin_url( "comment.php?action=editcomment&c=$same" ) ) . '">' . __( 'Edit comment' ) . '</a>';

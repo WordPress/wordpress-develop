@@ -898,7 +898,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		if ( $comment->comment_parent ) {
 			$parent = get_comment( $comment->comment_parent );
 
-			if ( $parent ) {
+			if ( $parent instanceof WP_Comment ) {
 				$parent_link = esc_url( get_comment_link( $parent ) );
 				$name        = get_comment_author( $parent );
 				printf(

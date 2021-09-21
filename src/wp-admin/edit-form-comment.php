@@ -166,7 +166,7 @@ if ( current_user_can( 'edit_post', $post_id ) ) {
 <?php
 if ( $comment->comment_parent ) :
 	$parent = get_comment( $comment->comment_parent );
-	if ( $parent ) :
+	if ( $parent instanceof WP_Comment ) :
 		$parent_link = esc_url( get_comment_link( $parent ) );
 		$name        = get_comment_author( $parent );
 		?>
