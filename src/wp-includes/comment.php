@@ -2449,7 +2449,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 
 	// First, get all of the original fields.
 	$comment = get_comment( $commentarr['comment_ID'], ARRAY_A );
-	if ( empty( $comment ) ) {
+	if ( ! is_array( $comment ) || empty( array_filter( $comment ) ) ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'invalid_comment_id', __( 'Invalid comment ID.' ) );
 		} else {
