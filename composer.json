@@ -15,7 +15,9 @@
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.6.2 || ^0.7.0",
 		"wp-coding-standards/wpcs": "~2.1.0",
-		"phpcompatibility/phpcompatibility-wp": "^2.1.0"
+		"phpcompatibility/phpcompatibility-wp": "^2.1.0",
+		"phpunit/phpunit": "^5.7.21 || ^6.5 || ^7.5",
+		"yoast/phpunit-polyfills": "^1.0.1"
 	},
 	"scripts": {
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
