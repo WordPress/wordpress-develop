@@ -18,7 +18,7 @@ class WP_Plugin_Dependencies {
 	 * but are not due to unmet dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @var string
 	 */
@@ -28,51 +28,51 @@ class WP_Plugin_Dependencies {
 	 * Installed plugins.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @var array[]
 	 */
-	private $installed_plugins;
+	protected $installed_plugins;
 
 	/**
 	 * An array of admin notices to show.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @var array<int, array>
 	 */
-	private $notices = array();
+	protected $notices = array();
 
 	/**
 	 * Array of parents for dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @var array<string, array>
 	 */
-	private $dependencies_parents = array();
+	protected $dependencies_parents = array();
 
 	/**
 	 * An array of plugin dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @var array<string, array>
 	 */
-	private $plugin_dependencies = array();
+	protected $plugin_dependencies = array();
 
 	/**
 	 * An array of plugins participating in a circular dependencies loop.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @var array<string, bool>
 	 */
-	private $circular_dependencies = array();
+	protected $circular_dependencies = array();
 
 	/**
 	 * Constructor.
@@ -116,11 +116,11 @@ class WP_Plugin_Dependencies {
 	 * Get an array of installed plugins and set it in the object's $installed_plugins prop.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @return array[]
 	 */
-	private function get_plugins() {
+	protected function get_plugins() {
 		if ( ! function_exists( 'get_plugins' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
@@ -137,11 +137,11 @@ class WP_Plugin_Dependencies {
 	 * Loop installed plugins and process dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @return void
 	 */
-	private function loop_installed_plugins() {
+	protected function loop_installed_plugins() {
 		foreach ( $this->installed_plugins as $file => $plugin ) {
 			$this->maybe_process_plugin_dependencies( $file );
 		}
@@ -151,13 +151,13 @@ class WP_Plugin_Dependencies {
 	 * Check plugin dependencies.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @param string $file The plugin file.
 	 *
 	 * @return void
 	 */
-	private function maybe_process_plugin_dependencies( $file ) {
+	protected function maybe_process_plugin_dependencies( $file ) {
 
 		$plugin_is_active           = is_plugin_active( $file );
 		$plugin_awaiting_activation = in_array( $file, $this->get_plugins_to_activate(), true );
@@ -245,14 +245,14 @@ class WP_Plugin_Dependencies {
 	 * Parses a dependency and adds name, file, installed and active args.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @param string               $plugin The plugin defining the dependency.
 	 * @param array<string, mixed> $dependency A dependency.
 	 *
 	 * @return array<string, mixed> Returns the dependency with extra args.
 	 */
-	private function parse_dependency( $plugin, $dependency ) {
+	protected function parse_dependency( $plugin, $dependency ) {
 		$dependency['installed'] = false;
 		$dependency['active']    = false;
 		$dependency['file']       = '';
@@ -304,11 +304,11 @@ class WP_Plugin_Dependencies {
 	 * Cancel plugin's activation request.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @return void
 	 */
-	private function cancel_activation_request() {
+	protected function cancel_activation_request() {
 		if ( empty( $_GET['action'] ) || 'cancel-activate' !== $_GET['action'] || empty( $_GET['plugin'] ) ) {
 			return;
 		}
@@ -496,7 +496,7 @@ class WP_Plugin_Dependencies {
 	 * Generate the contents of an inline plugin row notice.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @param string $contents         Content of the plugin row notice.
 	 * @param string $notice_type      Type of the plugin notice. Default: 'info'.
@@ -504,7 +504,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @return void
 	 */
-	private function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $is_plugin_active = false ) {
+	protected function inline_plugin_row_notice( $contents = '', $notice_type = 'info', $is_plugin_active = false ) {
 		$tr_class = $is_plugin_active ? 'plugin-dependencies-tr active' : 'plugin-dependencies-tr';
 		$colspan  = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => get_current_screen() ) )->get_column_count();
 		?>
@@ -522,14 +522,14 @@ class WP_Plugin_Dependencies {
 	 * Show a notice to install a dependency.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @param array<string, mixed> $plugin     The plugin calling the dependencies.
 	 * @param array<string, mixed> $dependency The plugin slug.
 	 *
 	 * @return void
 	 */
-	private function add_notice_install( $plugin, $dependency ) {
+	protected function add_notice_install( $plugin, $dependency ) {
 		if ( ! function_exists( 'install_plugin_install_status' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 		}
@@ -550,14 +550,14 @@ class WP_Plugin_Dependencies {
 	 * Show a notice to activate a dependency.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @param array<string, mixed> $plugin     The plugin calling the dependencies.
 	 * @param array<string, mixed> $dependency The plugin slug.
 	 *
 	 * @return void
 	 */
-	private function add_notice_activate( $plugin, $dependency ) {
+	protected function add_notice_activate( $plugin, $dependency ) {
 		$activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . rawurlencode( $dependency['file'] ) . '&amp;plugin_status=all', 'activate-plugin_' . $dependency['file'] );
 
 		$this->notices[] = array(
@@ -589,13 +589,13 @@ class WP_Plugin_Dependencies {
 	 * Set plugin to the to-be-activated queue.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @param string $plugin The plugin file.
 	 *
 	 * @return void
 	 */
-	private function add_plugin_to_queue( $plugin ) {
+	protected function add_plugin_to_queue( $plugin ) {
 		$queue = $this->get_plugins_to_activate();
 		if ( in_array( $plugin, $queue, true ) ) {
 			return;
@@ -609,13 +609,13 @@ class WP_Plugin_Dependencies {
 	 * Remove plugin from the to-be-activated queue.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @param string $plugin The plugin file.
 	 *
 	 * @return void
 	 */
-	private function remove_plugin_from_queue( $plugin ) {
+	protected function remove_plugin_from_queue( $plugin ) {
 		$queue = $this->get_plugins_to_activate();
 		if ( ! in_array( $plugin, $queue, true ) ) {
 			return;
@@ -628,7 +628,7 @@ class WP_Plugin_Dependencies {
 	 * Check if a plugin is part of a circular dependencies loop.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @param string                   $plugin_file The plugin file.
 	 * @param array<int|string, mixed> $previous    If this is a dependency of a dependency,
@@ -636,7 +636,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @return bool
 	 */
-	private function in_circular_dependency( $plugin_file, $previous = array() ) {
+	protected function in_circular_dependency( $plugin_file, $previous = array() ) {
 		if ( isset( $this->circular_dependencies[ $plugin_file ] ) ) {
 			return $this->circular_dependencies[ $plugin_file ];
 		}
@@ -666,13 +666,13 @@ class WP_Plugin_Dependencies {
 	 * Get plugin file from its slug.
 	 *
 	 * @since 5.9.0
-	 * @access private
+	 * @access protected
 	 *
 	 * @param string $slug The plugin slug.
 	 *
 	 * @return string|false Returns the plugin file on success, false on failure.
 	 */
-	private function get_plugin_file_from_slug( $slug ) {
+	protected function get_plugin_file_from_slug( $slug ) {
 		$plugins = $this->get_plugins();
 		foreach ( array_keys( $plugins ) as $plugin ) {
 			if ( 0 === strpos( $plugin, "$slug/" ) || 0 === strpos( $plugin, "$slug\\" ) ) {
