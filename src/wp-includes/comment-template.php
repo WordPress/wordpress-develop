@@ -1938,7 +1938,7 @@ function get_cancel_comment_reply_link( $text = '', $post_id = 0 ) {
 		$text = __( 'Click here to cancel reply.' );
 	}
 
-	if ( empty( $post_id ) ) {
+	if ( 0 === $post_id ) {
 		$post_id = get_the_ID();
 	}
 
@@ -2070,9 +2070,7 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 		$reply_text = __( 'Leave a Reply to %s' );
 	}
 
-	$reply_to_id = isset( $_GET['replytocom'] ) ? (int) $_GET['replytocom'] : 0;
-
-	if ( ! $post_id || 0 === $reply_to_id ) {
+	if ( 0 === $post_id ) {
 		echo $no_reply_text;
 		return;
 	}
