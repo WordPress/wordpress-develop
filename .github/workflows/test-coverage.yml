@@ -18,7 +18,6 @@ on:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-  COMPOSER_INSTALL: ${{ false }}
   # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
   PHPUNIT_SCRIPT: php
   LOCAL_PHP: '7.4-fpm'
@@ -96,6 +95,23 @@ jobs:
 
       - name: Install Dependencies
         run: npm ci
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install Composer dependencies
+        run: |
+          docker-compose run --rm php composer --version
+          docker-compose run --rm php composer install
 
       - name: Docker debug information
         run: |
