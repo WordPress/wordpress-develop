@@ -1982,7 +1982,7 @@ function cancel_comment_reply_link( $text = '' ) {
  * @return string Hidden input HTML for replying to comments.
  */
 function get_comment_id_fields( $post_id = 0 ) {
-	if ( empty( $post_id ) ) {
+	if ( 0 === $post_id ) {
 		$post_id = get_the_ID();
 	}
 
