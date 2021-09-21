@@ -244,7 +244,7 @@ class WP_Plugin_Dependencies {
 				}
 				$dependencies[] = array(
 					'namespace' => '',
-					'slug'      => trim( $dependency )
+					'slug'      => trim( $dependency ),
 				);
 			}
 
