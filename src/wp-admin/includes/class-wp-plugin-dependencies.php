@@ -683,5 +683,5 @@ class WP_Plugin_Dependencies {
 	}
 }
 
-global $plugin_dependencies;
-$plugin_dependencies = new WP_Plugin_Dependencies();
+global $wp_plugin_dependencies;
+$wp_plugin_dependencies = new WP_Plugin_Dependencies();
