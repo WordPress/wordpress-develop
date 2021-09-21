@@ -225,17 +225,40 @@ class WP_Plugin_Dependencies {
 	 */
 	public function get_plugin_dependencies( $file ) {
 		if ( ! isset( $this->plugin_dependencies[ $file ] ) ) {
-			$this->plugin_dependencies[ $file ] = array();
-			$plugin_dependencies                = get_plugin_data( WP_PLUGIN_DIR . '/' . $file )['RequiresPlugins'];
+			$dependencies = array();
+			$plugin_dependencies = get_plugin_data( WP_PLUGIN_DIR . '/' . $file )['RequiresPlugins'];
 			if ( empty( $plugin_dependencies ) ) {
-				$this->plugin_dependencies[ $file ] = array();
+				$dependencies = array();
 				return array();
 			}
 
 			$plugin_dependencies = str_getcsv( $plugin_dependencies );
 			foreach ( $plugin_dependencies as $dependency ) {
-				$this->plugin_dependencies[ $file ][] = array( 'slug' => trim( $dependency ) );
+				if ( false !== strpos( $dependency, ':' ) ) {
+					$dependency_parts = explode( ':', $dependency );
+					$dependencies[] = array(
+						'namespace' => $dependency_parts[0],
+						'slug'      => $dependency_parts[1],
+					);
+					continue;
+				}
+				$dependencies[] = array(
+					'namespace' => '',
+					'slug'      => trim( $dependency )
+				);
 			}
+
+			/**
+			 * Filter the array of dependencies.
+			 *
+			 * @since 5.9.0
+			 *
+			 * @param array  $dependencies Array of dependencies.
+			 * @param string $file          The plugin file.
+			 *
+			 * @return array
+			 */
+			$this->plugin_dependencies[ $file ] = apply_filters( 'wp_plugin_dependencies', $dependencies, $file );
 		}
 
 		return $this->plugin_dependencies[ $file ];
