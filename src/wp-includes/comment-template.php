@@ -308,7 +308,7 @@ function get_comment_author_url( $comment_ID = 0 ) {
 	$url     = '';
 	$id      = 0;
 
-	if ( ! $comment instanceof WP_Comment ) {
+	if ( $comment instanceof WP_Comment ) {
 		$author_url = ( 'http://' === $comment->comment_author_url ) ? '' : $comment->comment_author_url;
 		$url        = esc_url( $author_url, array( 'http', 'https' ) );
 		$id         = $comment->comment_ID;
