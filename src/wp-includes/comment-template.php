@@ -1942,15 +1942,7 @@ function get_cancel_comment_reply_link( $text = '', $post_id = 0 ) {
 		$post_id = get_the_ID();
 	}
 
-	$reply_to_id = isset( $_GET['replytocom'] ) ? (int) $_GET['replytocom'] : 0;
-
-	if ( 0 !== $reply_to_id ) {
-		$parent_comment = get_comment( $reply_to_id );
-
-		if ( ! $parent_comment || 0 === (int) $parent_comment->comment_approved || $post_id !== (int) $parent_comment->comment_post_ID ) {
-			$reply_to_id = 0;
-		}
-	}
+	$reply_to_id = _get_comment_reply_id( $post_id );
 
 	$style = ! empty( $reply_to_id ) ? '' : ' style="display:none;"';
 	$link  = esc_html( remove_query_arg( array( 'replytocom', 'unapproved', 'moderation-hash' ) ) ) . '#respond';
@@ -1994,18 +1986,9 @@ function get_comment_id_fields( $post_id = 0 ) {
 		$post_id = get_the_ID();
 	}
 
-	$reply_to_id = isset( $_GET['replytocom'] ) ? (int) $_GET['replytocom'] : 0;
+	$reply_to_id = _get_comment_reply_id( $post_id );
 	$result      = "<input type='hidden' name='comment_post_ID' value='$post_id' id='comment_post_ID' />\n";
-
-	if ( 0 !== $reply_to_id ) {
-		$comment = get_comment( $reply_to_id );
-
-		if ( ! $comment || 0 === (int) $comment->comment_approved || $post_id !== (int) $comment->comment_post_ID ) {
-			$reply_to_id = 0;
-		}
-	}
-
-	$result .= "<input type='hidden' name='comment_parent' id='comment_parent' value='$reply_to_id' />\n";
+	$result     .= "<input type='hidden' name='comment_parent' id='comment_parent' value='$reply_to_id' />\n";
 
 	/**
 	 * Filters the returned comment ID fields.
@@ -2076,15 +2059,9 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 		return;
 	}
 
-	// Sets the global so that template tags can be used in the comment form.
-	$comment = get_comment( $reply_to_id );
+	$reply_to_id = _get_comment_reply_id( $post_id );
 
-	if ( ! $comment ) {
-		echo $no_reply_text;
-		return;
-	}
-
-	if ( $post_id !== (int) $comment->comment_post_ID || 0 === (int) $comment->comment_approved ) {
+	if ( 0 === $reply_to_id ) {
 		echo $no_reply_text;
 		return;
 	}
@@ -2096,6 +2073,37 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 	}
 
 	printf( $reply_text, $author );
+}
+
+/**
+ * Gets the comment's reply to ID from the $_GET['replytocom'].
+ *
+ * @since 5.9.0
+ * @access private
+ *
+ * @param int $post_id Post ID.
+ * @return int Comment's reply to ID.
+ */
+function _get_comment_reply_id( $post_id ) {
+	if ( ! isset( $_GET['replytocom'] ) || ! is_numeric( $_GET['replytocom'] ) ) {
+		return 0;
+	}
+
+	$reply_to_id = (int) $_GET['replytocom'];
+
+	/*
+	 * Validate the comment.
+	 * Bail out if it does not exist, is not approved, or its
+	 * `comment_post_ID` does not match the given post ID.
+	 */
+	$comment = get_comment( $reply_to_id );
+	if ( ! $comment instanceof WP_Comment ||
+		 0 === (int) $comment->comment_approved ||
+		 $post_id !== (int) $comment->comment_post_ID ) {
+		return 0;
+	}
+
+	return $reply_to_id;
 }
 
 /**
