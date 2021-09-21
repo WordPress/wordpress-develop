@@ -441,10 +441,10 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 
 		if ( $comment instanceof WP_Comment ) {
 			$comment_status = $comment->comment_approved;
-		}
 
-		if ( 1 === (int) $comment_status ) {
-			$comment_link = get_comment_link( $comment );
+			if ( 1 === (int) $comment_status ) {
+				$comment_link = get_comment_link( $comment );
+			}
 		}
 
 		$counts = wp_count_comments();
@@ -456,7 +456,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 				'id'           => $comment_id,
 				'supplemental' => array(
 					'status'               => $comment_status,
-					'postId'               => $comment ? $comment->comment_post_ID : '',
+					'postId'               => $comment instanceof WP_Comment ? $comment->comment_post_ID : '',
 					'time'                 => $time,
 					'in_moderation'        => $counts->moderated,
 					'i18n_comments_text'   => sprintf(
