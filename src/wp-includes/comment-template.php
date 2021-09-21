@@ -2056,7 +2056,8 @@ function comment_id_fields( $post_id = 0 ) {
  *                                     being replied to.
  * @param bool         $link_to_parent Optional. Boolean to control making the author's name a link
  *                                     to their comment. Default true.
- * @param int|WP_Post  $post_id        Optional. Post ID or WP_Post object. Default null.
+ * @param int          $post_id        Optional. The post ID the comment form is being displayed for.
+ *                                     Default 0.
  */
 function comment_form_title( $no_reply_text = false, $reply_text = false, $link_to_parent = true, $post_id = 0 ) {
 	global $comment;
