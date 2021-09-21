@@ -1547,7 +1547,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		}
 
 		$comment = get_comment( $comment_id );
-		if ( ! $comment instanceof WP_Comment ) {
+		if ( ! $comment instanceof WP_Comment || empty( $comment->comment_post_ID ) ) {
 			return false;
 		}
 
