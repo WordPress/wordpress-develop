@@ -703,12 +703,12 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 * @global int $page
 	 * @global string $s
 	 * @global array $totals
-	 * @global WP_Plugin_Dependencies $plugin_dependencies
+	 * @global WP_Plugin_Dependencies $wp_plugin_dependencies
 	 *
 	 * @param array $item
 	 */
 	public function single_row( $item ) {
-		global $status, $page, $s, $totals, $plugin_dependencies;
+		global $status, $page, $s, $totals, $wp_plugin_dependencies;
 
 		static $plugin_id_attrs = array();
 
@@ -1009,7 +1009,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$class .= ' update';
 		}
 
-		if ( ! empty( $plugin_dependencies->get_plugin_dependencies( $plugin_file ) ) || ! empty( $plugin_dependencies->get_parents( $plugin_file ) ) ) {
+		if ( ! empty( $wp_plugin_dependencies->get_plugin_dependencies( $plugin_file ) ) || ! empty( $wp_plugin_dependencies->get_parents( $plugin_file ) ) ) {
 			$class .= ' dependency';
 		}
 
