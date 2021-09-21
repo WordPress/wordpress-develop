@@ -2067,9 +2067,9 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 	}
 
 	if ( $link_to_parent ) {
-		$author = '<a href="#comment-' . get_comment_ID() . '">' . get_comment_author( $comment ) . '</a>';
+		$author = '<a href="#comment-' . get_comment_ID() . '">' . get_comment_author( $reply_to_id ) . '</a>';
 	} else {
-		$author = get_comment_author( $comment );
+		$author = get_comment_author( $reply_to_id );
 	}
 
 	printf( $reply_text, $author );
