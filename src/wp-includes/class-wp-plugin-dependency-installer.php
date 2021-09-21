@@ -29,7 +29,7 @@
  * \WP_Plugin_Dependency_Installer::instance( __DIR__ )->register( $config )->run();
  *
  * Admin notice format.
- * You must add `dependency-installer` as well as `data-dismissible='dependency-installer-<plugin basename>-<timeout>'`
+ * You must add `dependency-installer` to the admin notice class as well as `data-dismissible='dependency-installer-<plugin basename>-<timeout>'`
  * to the admin notice div class. <timeout> values are from one day '1' to 'forever'. Default timeout is 14 days.
  *
  * Example using WooCommerce with a 14 day dismissible notice.
