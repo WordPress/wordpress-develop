@@ -389,7 +389,6 @@ class WP_Plugin_Dependencies {
 	 */
 	public function disable_checkbox_for_dependency( $disabled, $plugin_file ) {
 		if ( ! empty( $this->get_parents( $plugin_file ) ) && is_plugin_active( $plugin_file ) ) {
-			var_dump( $plugin_file );
 			return true;
 		}
 		return $disabled;
