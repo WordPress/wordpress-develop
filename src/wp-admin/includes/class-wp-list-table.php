@@ -213,7 +213,7 @@ class WP_List_Table {
 	 * @since 4.0.0
 	 *
 	 * @param string $name Property to check if set.
-	 * @return bool Whether the property is set.
+	 * @return bool Whether the property is a back-compat property and it is set.
 	 */
 	public function __isset( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {

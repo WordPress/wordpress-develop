@@ -24,6 +24,7 @@ class WP_Http_Cookie {
 	 * Cookie name.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $name;
@@ -32,6 +33,7 @@ class WP_Http_Cookie {
 	 * Cookie value.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $value;
@@ -40,6 +42,7 @@ class WP_Http_Cookie {
 	 * When the cookie expires. Unix timestamp or formatted date.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string|int|null
 	 */
 	public $expires;
@@ -48,6 +51,7 @@ class WP_Http_Cookie {
 	 * Cookie URL path.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $path;
@@ -56,6 +60,7 @@ class WP_Http_Cookie {
 	 * Cookie Domain.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $domain;
@@ -63,7 +68,8 @@ class WP_Http_Cookie {
 	/**
 	 * Cookie port or comma-separated list of ports.
 	 *
-	 * @since ?.?.?
+	 * @since 2.8.0
+	 *
 	 * @var int|string
 	 */
 	public $port;
@@ -72,6 +78,7 @@ class WP_Http_Cookie {
 	 * host-only flag.
 	 *
 	 * @since 5.2.0
+	 *
 	 * @var bool
 	 */
 	public $host_only;

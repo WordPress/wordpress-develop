@@ -1743,7 +1743,8 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 	$link         = '';
 
 	if ( $check_feed ) {
-		$rss   = fetch_feed( $url );
+		$rss = fetch_feed( $url );
+
 		if ( is_wp_error( $rss ) ) {
 			$error = $rss->get_error_message();
 		} else {
