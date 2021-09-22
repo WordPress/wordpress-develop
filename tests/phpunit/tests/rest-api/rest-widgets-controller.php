@@ -268,32 +268,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 					'id_base'  => 'text',
 					'sidebar'  => 'sidebar-1',
 					'rendered' => '<div class="textwidget">Custom text test</div>',
-					'instance' => array(
-						'encoded' => base64_encode(
-							serialize(
-								array(
-									'text' => 'Custom text test',
-								)
-							)
-						),
-						'hash'    => wp_hash(
-							serialize(
-								array(
-									'text' => 'Custom text test',
-								)
-							)
-						),
-						'raw'     => array(
-							'text' => 'Custom text test',
-						),
-					),
 				),
 				array(
 					'id'       => 'testwidget',
 					'id_base'  => 'testwidget',
 					'sidebar'  => 'sidebar-1',
 					'rendered' => '<h1>Default id</h1><span>Default text</span>',
-					'instance' => null,
 				),
 			),
 			$data
@@ -344,7 +324,8 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 			array( 'block-1', 'rss-1', 'testwidget' )
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
+		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
@@ -520,7 +501,8 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 			array( 'text-1' )
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets/text-1' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/widgets/text-1' );
+		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSameSets(
@@ -631,25 +613,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'rendered' => '<div class="textwidget">Custom text test</div>',
-				'instance' => array(
-					'encoded' => base64_encode(
-						serialize(
-							array(
-								'text' => 'Custom text test',
-							)
-						)
-					),
-					'hash'    => wp_hash(
-						serialize(
-							array(
-								'text' => 'Custom text test',
-							)
-						)
-					),
-					'raw'     => array(
-						'text' => 'Custom text test',
-					),
-				),
 			),
 			$data
 		);
