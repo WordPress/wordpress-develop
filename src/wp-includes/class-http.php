@@ -269,9 +269,9 @@ class WP_Http {
 			}
 		}
 
-		$arrURL = parse_url( $url );
+		$parsed_url = parse_url( $url );
 
-		if ( empty( $url ) || empty( $arrURL['scheme'] ) ) {
+		if ( empty( $url ) || empty( $parsed_url['scheme'] ) ) {
 			$response = new WP_Error( 'http_request_failed', __( 'A valid URL was not provided.' ) );
 			/** This action is documented in wp-includes/class-http.php */
 			do_action( 'http_api_debug', $response, 'response', 'Requests', $parsed_args, $url );
@@ -309,8 +309,8 @@ class WP_Http {
 
 		// WP allows passing in headers as a string, weirdly.
 		if ( ! is_array( $parsed_args['headers'] ) ) {
-			$processedHeaders       = WP_Http::processHeaders( $parsed_args['headers'] );
-			$parsed_args['headers'] = $processedHeaders['headers'];
+			$processed_headers      = WP_Http::processHeaders( $parsed_args['headers'] );
+			$parsed_args['headers'] = $processed_headers['headers'];
 		}
 
 		// Setup arguments.
@@ -459,7 +459,13 @@ class WP_Http {
 
 		foreach ( $cookies as $name => $value ) {
 			if ( $value instanceof WP_Http_Cookie ) {
-				$cookie_jar[ $value->name ] = new Requests_Cookie( $value->name, $value->value, $value->get_attributes(), array( 'host-only' => $value->host_only ) );
+				$attributes                 = array_filter(
+					$value->get_attributes(),
+					static function( $attr ) {
+						return null !== $attr;
+					}
+				);
+				$cookie_jar[ $value->name ] = new Requests_Cookie( $value->name, $value->value, $attributes, array( 'host-only' => $value->host_only ) );
 			} elseif ( is_scalar( $value ) ) {
 				$cookie_jar[ $name ] = new Requests_Cookie( $name, $value );
 			}

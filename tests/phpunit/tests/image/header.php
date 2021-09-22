@@ -8,8 +8,8 @@ require_once ABSPATH . 'wp-admin/includes/class-custom-image-header.php';
 class Tests_Image_Header extends WP_UnitTestCase {
 	public $custom_image_header;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->custom_image_header = new Custom_Image_Header( '__return_null' );
 	}
 

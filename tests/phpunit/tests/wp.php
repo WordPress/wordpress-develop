@@ -9,8 +9,8 @@ class Tests_WP extends WP_UnitTestCase {
 	 */
 	protected $wp;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->wp = new WP();
 	}
 
@@ -22,15 +22,15 @@ class Tests_WP extends WP_UnitTestCase {
 		$this->wp->add_query_var( 'test' );
 
 		$this->assertCount( $public_qv_count + 2, $this->wp->public_query_vars );
-		$this->assertTrue( in_array( 'test', $this->wp->public_query_vars, true ) );
-		$this->assertTrue( in_array( 'test2', $this->wp->public_query_vars, true ) );
+		$this->assertContains( 'test', $this->wp->public_query_vars );
+		$this->assertContains( 'test2', $this->wp->public_query_vars );
 	}
 
 	public function test_remove_query_var() {
 		$public_qv_count = count( $this->wp->public_query_vars );
 
 		$this->wp->add_query_var( 'test' );
-		$this->assertTrue( in_array( 'test', $this->wp->public_query_vars, true ) );
+		$this->assertContains( 'test', $this->wp->public_query_vars );
 		$this->wp->remove_query_var( 'test' );
 
 		$this->assertCount( $public_qv_count, $this->wp->public_query_vars );

@@ -102,7 +102,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		foreach ( $query->posts as $post ) {
 
 			// Posts are WP_Post objects.
-			$this->assertTrue( is_a( $post, 'WP_Post' ) );
+			$this->assertInstanceOf( 'WP_Post', $post );
 
 			// Filters are raw.
 			$this->assertSame( 'raw', $post->filter );
@@ -319,13 +319,13 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertNotContains( 'auto-draft', $statuses3 );
 
 		$q1 = new WP_Query( array( 'post_status' => 'any' ) );
-		$this->assertContains( "post_status <> 'auto-draft'", $q1->request );
+		$this->assertStringContainsString( "post_status <> 'auto-draft'", $q1->request );
 
 		$q2 = new WP_Query( array( 'post_status' => 'any, auto-draft' ) );
-		$this->assertNotContains( "post_status <> 'auto-draft'", $q2->request );
+		$this->assertStringNotContainsString( "post_status <> 'auto-draft'", $q2->request );
 
 		$q3 = new WP_Query( array( 'post_status' => array( 'any', 'auto-draft' ) ) );
-		$this->assertNotContains( "post_status <> 'auto-draft'", $q3->request );
+		$this->assertStringNotContainsString( "post_status <> 'auto-draft'", $q3->request );
 	}
 
 	/**
@@ -342,23 +342,23 @@ class Tests_Post_Query extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_type DESC, $wpdb->posts.post_name ASC",
 			$q1->request
 		);
 
 		$q2 = new WP_Query( array( 'orderby' => array() ) );
-		$this->assertNotContains( 'ORDER BY', $q2->request );
-		$this->assertNotContains( 'ORDER', $q2->request );
+		$this->assertStringNotContainsString( 'ORDER BY', $q2->request );
+		$this->assertStringNotContainsString( 'ORDER', $q2->request );
 
 		$q3 = new WP_Query( array( 'post_type' => 'post' ) );
-		$this->assertContains(
+		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_date DESC",
 			$q3->request
 		);
 
 		$q4 = new WP_Query( array( 'post_type' => 'post' ) );
-		$this->assertContains(
+		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_date DESC",
 			$q4->request
 		);
@@ -377,7 +377,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_type DESC",
 			$q1->request
 		);
@@ -388,7 +388,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 				'order'   => 'foo',
 			)
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_title DESC",
 			$q2->request
 		);
@@ -398,7 +398,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 				'order' => 'asc',
 			)
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_date ASC",
 			$q3->request
 		);
@@ -410,33 +410,33 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	function test_orderby() {
 		// 'rand' is a valid value.
 		$q = new WP_Query( array( 'orderby' => 'rand' ) );
-		$this->assertContains( 'ORDER BY RAND()', $q->request );
-		$this->assertNotContains( 'ASC', $q->request );
-		$this->assertNotContains( 'DESC', $q->request );
+		$this->assertStringContainsString( 'ORDER BY RAND()', $q->request );
+		$this->assertStringNotContainsString( 'ASC', $q->request );
+		$this->assertStringNotContainsString( 'DESC', $q->request );
 
 		// This isn't allowed.
 		$q2 = new WP_Query( array( 'order' => 'rand' ) );
-		$this->assertContains( 'ORDER BY', $q2->request );
-		$this->assertNotContains( 'RAND()', $q2->request );
-		$this->assertContains( 'DESC', $q2->request );
+		$this->assertStringContainsString( 'ORDER BY', $q2->request );
+		$this->assertStringNotContainsString( 'RAND()', $q2->request );
+		$this->assertStringContainsString( 'DESC', $q2->request );
 
 		// 'none' is a valid value.
 		$q3 = new WP_Query( array( 'orderby' => 'none' ) );
-		$this->assertNotContains( 'ORDER BY', $q3->request );
-		$this->assertNotContains( 'DESC', $q3->request );
-		$this->assertNotContains( 'ASC', $q3->request );
+		$this->assertStringNotContainsString( 'ORDER BY', $q3->request );
+		$this->assertStringNotContainsString( 'DESC', $q3->request );
+		$this->assertStringNotContainsString( 'ASC', $q3->request );
 
 		// False is a valid value.
 		$q4 = new WP_Query( array( 'orderby' => false ) );
-		$this->assertNotContains( 'ORDER BY', $q4->request );
-		$this->assertNotContains( 'DESC', $q4->request );
-		$this->assertNotContains( 'ASC', $q4->request );
+		$this->assertStringNotContainsString( 'ORDER BY', $q4->request );
+		$this->assertStringNotContainsString( 'DESC', $q4->request );
+		$this->assertStringNotContainsString( 'ASC', $q4->request );
 
 		// Empty array() is a valid value.
 		$q5 = new WP_Query( array( 'orderby' => array() ) );
-		$this->assertNotContains( 'ORDER BY', $q5->request );
-		$this->assertNotContains( 'DESC', $q5->request );
-		$this->assertNotContains( 'ASC', $q5->request );
+		$this->assertStringNotContainsString( 'ORDER BY', $q5->request );
+		$this->assertStringNotContainsString( 'DESC', $q5->request );
+		$this->assertStringNotContainsString( 'ASC', $q5->request );
 	}
 
 	/**
@@ -449,7 +449,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'ORDER BY RAND(5)', $q->request );
+		$this->assertStringContainsString( 'ORDER BY RAND(5)', $q->request );
 	}
 
 	/**
@@ -462,7 +462,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( 'ORDER BY RAND', $q->request );
+		$this->assertStringNotContainsString( 'ORDER BY RAND', $q->request );
 	}
 
 	/**
@@ -475,7 +475,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'ORDER BY RAND(5)', $q->request );
+		$this->assertStringContainsString( 'ORDER BY RAND(5)', $q->request );
 	}
 
 	/**

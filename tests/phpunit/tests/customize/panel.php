@@ -12,18 +12,18 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 */
 	protected $manager;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->manager           = $GLOBALS['wp_customize'];
 		$this->undefined         = new stdClass();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -189,12 +189,12 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		ob_start();
 		$panel->print_template();
 		$content = ob_get_clean();
-		$this->assertContains( '<script type="text/html" id="tmpl-customize-panel-default-content">', $content );
-		$this->assertContains( 'accordion-section-title', $content );
-		$this->assertContains( 'control-panel-content', $content );
-		$this->assertContains( '<script type="text/html" id="tmpl-customize-panel-default">', $content );
-		$this->assertContains( 'customize-panel-description', $content );
-		$this->assertContains( 'preview-notice', $content );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-customize-panel-default-content">', $content );
+		$this->assertStringContainsString( 'accordion-section-title', $content );
+		$this->assertStringContainsString( 'control-panel-content', $content );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-customize-panel-default">', $content );
+		$this->assertStringContainsString( 'customize-panel-description', $content );
+		$this->assertStringContainsString( 'preview-notice', $content );
 	}
 
 	/**
@@ -207,11 +207,11 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		ob_start();
 		$panel->print_template();
 		$content = ob_get_clean();
-		$this->assertContains( '<script type="text/html" id="tmpl-customize-panel-titleless-content">', $content );
-		$this->assertNotContains( 'accordion-section-title', $content );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-customize-panel-titleless-content">', $content );
+		$this->assertStringNotContainsString( 'accordion-section-title', $content );
 
-		$this->assertContains( '<script type="text/html" id="tmpl-customize-panel-titleless">', $content );
-		$this->assertNotContains( 'preview-notice', $content );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-customize-panel-titleless">', $content );
+		$this->assertStringNotContainsString( 'preview-notice', $content );
 	}
 }
 

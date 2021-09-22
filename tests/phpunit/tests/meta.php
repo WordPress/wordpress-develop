@@ -6,8 +6,8 @@
 class Tests_Meta extends WP_UnitTestCase {
 	protected $updated_mids = array();
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->author         = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
 		$this->meta_id        = add_metadata( 'user', $this->author->ID, 'meta_key', 'meta_value' );
 		$this->delete_meta_id = add_metadata( 'user', $this->author->ID, 'delete_meta_key', 'delete_meta_value' );
@@ -344,7 +344,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	function test_negative_meta_id() {
 		$negative_mid = $this->meta_id * -1;
 
-		$this->assertTrue( $negative_mid < 0 );
+		$this->assertLessThan( 0, $negative_mid );
 		$this->assertFalse( get_metadata_by_mid( 'user', $negative_mid ) );
 		$this->assertFalse( update_metadata_by_mid( 'user', $negative_mid, 'meta_new_value' ) );
 		$this->assertFalse( delete_metadata_by_mid( 'user', $negative_mid ) );

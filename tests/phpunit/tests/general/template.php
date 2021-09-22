@@ -17,24 +17,25 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public $custom_logo_id;
 	public $custom_logo_url;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->wp_site_icon = new WP_Site_Icon();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $wp_customize;
 		$this->_remove_custom_logo();
 		$this->_remove_site_icon();
 		$wp_customize = null;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
 	 * @group site_icon
 	 * @covers ::get_site_icon_url
+	 * @requires function imagejpeg
 	 */
 	function test_get_site_icon_url() {
 		$this->assertEmpty( get_site_icon_url() );
@@ -49,6 +50,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @group site_icon
 	 * @covers ::site_icon_url
+	 * @requires function imagejpeg
 	 */
 	function test_site_icon_url() {
 		$this->expectOutputString( '' );
@@ -62,6 +64,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @group site_icon
 	 * @covers ::has_site_icon
+	 * @requires function imagejpeg
 	 */
 	function test_has_site_icon() {
 		$this->assertFalse( has_site_icon() );
@@ -103,6 +106,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @group site_icon
 	 * @covers ::wp_site_icon
+	 * @requires function imagejpeg
 	 */
 	function test_wp_site_icon() {
 		$this->expectOutputString( '' );
@@ -125,6 +129,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @group site_icon
 	 * @covers ::wp_site_icon
+	 * @requires function imagejpeg
 	 */
 	function test_wp_site_icon_with_filter() {
 		$this->expectOutputString( '' );
@@ -564,55 +569,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->expectOutputRegex( '/{"foo":"baz"}/' );
 
 		get_template_part( 'template', 'part', array( 'foo' => 'baz' ) );
-	}
-
-	/**
-	 * @ticket 9862
-	 * @ticket 51166
-	 * @dataProvider data_selected_and_checked_with_equal_values
-	 *
-	 * @covers ::selected
-	 * @covers ::checked
-	 */
-	function test_selected_and_checked_with_equal_values( $selected, $current ) {
-		$this->assertSame( " selected='selected'", selected( $selected, $current, false ) );
-		$this->assertSame( " checked='checked'", checked( $selected, $current, false ) );
-	}
-
-	function data_selected_and_checked_with_equal_values() {
-		return array(
-			array( 'foo', 'foo' ),
-			array( '1', 1 ),
-			array( '1', true ),
-			array( 1, 1 ),
-			array( 1, true ),
-			array( true, true ),
-			array( '0', 0 ),
-			array( 0, 0 ),
-			array( '', false ),
-			array( false, false ),
-		);
-	}
-
-	/**
-	 * @ticket 9862
-	 * @ticket 51166
-	 * @dataProvider data_selected_and_checked_with_non_equal_values
-	 *
-	 * @covers ::selected
-	 * @covers ::checked
-	 */
-	function test_selected_and_checked_with_non_equal_values( $selected, $current ) {
-		$this->assertSame( '', selected( $selected, $current, false ) );
-		$this->assertSame( '', checked( $selected, $current, false ) );
-	}
-
-	function data_selected_and_checked_with_non_equal_values() {
-		return array(
-			array( '0', '' ),
-			array( 0, '' ),
-			array( 0, false ),
-		);
 	}
 
 	/**

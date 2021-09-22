@@ -149,7 +149,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$data         = $response->get_data();
 		$text_widgets = array_filter(
 			$data,
-			function( $widget ) {
+			static function( $widget ) {
 				return 'text' === $widget['id'];
 			}
 		);
@@ -177,7 +177,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_register_sidebar_widget(
 			$widget_id,
 			'WP legacy widget',
-			function() {}
+			static function() {}
 		);
 		wp_set_current_user( self::$admin_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/widget-types/' . $widget_id );
@@ -208,7 +208,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_register_sidebar_widget(
 			$widget_id,
 			'&#8216;Legacy &#8209; Archive &#8209; Widget&#8217;',
-			function() {},
+			static function() {},
 			array(
 				'description' => '&#8220;A great &amp; interesting archive of your site&#8217;s posts!&#8221;',
 			)

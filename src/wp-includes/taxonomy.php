@@ -945,7 +945,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	/**
 	 * Filters a taxonomy term object.
 	 *
-	 * The dynamic portion of the filter name, `$taxonomy`, refers
+	 * The dynamic portion of the hook name, `$taxonomy`, refers
 	 * to the slug of the term's taxonomy.
 	 *
 	 * Possible hook names include:
@@ -1006,7 +1006,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
  *
  * @see sanitize_term_field() The $context param lists the available values for get_term_by() $filter param.
  *
- * @param string     $field    Either 'slug', 'name', 'id' or 'ID' (term_id), or 'term_taxonomy_id'.
+ * @param string     $field    Either 'slug', 'name', 'term_id' (or 'id', 'ID'), or 'term_taxonomy_id'.
  * @param string|int $value    Search for this term value.
  * @param string     $taxonomy Taxonomy name. Optional, if `$field` is 'term_taxonomy_id'.
  * @param string     $output   Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
@@ -1480,6 +1480,10 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
 function term_exists( $term, $taxonomy = '', $parent = null ) {
 	global $wpdb;
 
+	if ( null === $term ) {
+		return null;
+	}
+
 	$select     = "SELECT term_id FROM $wpdb->terms as t WHERE ";
 	$tax_select = "SELECT tt.term_id, tt.term_taxonomy_id FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy as tt ON tt.term_id = t.term_id WHERE ";
 
@@ -1655,7 +1659,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 		/**
 		 * Filters a term field to edit before it is sanitized.
 		 *
-		 * The dynamic portion of the filter name, `$field`, refers to the term field.
+		 * The dynamic portion of the hook name, `$field`, refers to the term field.
 		 *
 		 * @since 2.3.0
 		 *
@@ -1688,7 +1692,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 		/**
 		 * Filters a term field value before it is sanitized.
 		 *
-		 * The dynamic portion of the filter name, `$field`, refers to the term field.
+		 * The dynamic portion of the hook name, `$field`, refers to the term field.
 		 *
 		 * @since 2.3.0
 		 *
@@ -1727,7 +1731,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 		/**
 		 * Filters the term field for use in RSS.
 		 *
-		 * The dynamic portion of the filter name, `$field`, refers to the term field.
+		 * The dynamic portion of the hook name, `$field`, refers to the term field.
 		 *
 		 * @since 2.3.0
 		 *
@@ -1753,7 +1757,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 		/**
 		 * Filters the term field sanitized for display.
 		 *
-		 * The dynamic portion of the filter name, `$field`, refers to the term field name.
+		 * The dynamic portion of the hook name, `$field`, refers to the term field name.
 		 *
 		 * @since 2.3.0
 		 *

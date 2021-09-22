@@ -10,17 +10,17 @@ if ( is_multisite() ) :
 	class Tests_Multisite_Get_Space_Allowed extends WP_UnitTestCase {
 		protected $suppress = false;
 
-		public function setUp() {
+		public function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		public function tearDown() {
+		public function tear_down() {
 			global $wpdb;
 
 			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		/**

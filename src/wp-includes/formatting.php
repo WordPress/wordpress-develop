@@ -3121,7 +3121,7 @@ function wp_rel_nofollow( $text ) {
 	$text = stripslashes( $text );
 	$text = preg_replace_callback(
 		'|<a (.+?)>|i',
-		function( $matches ) {
+		static function( $matches ) {
 			return wp_rel_callback( $matches, 'nofollow' );
 		},
 		$text
@@ -3155,7 +3155,7 @@ function wp_rel_ugc( $text ) {
 	$text = stripslashes( $text );
 	$text = preg_replace_callback(
 		'|<a (.+?)>|i',
-		function( $matches ) {
+		static function( $matches ) {
 			return wp_rel_callback( $matches, 'nofollow ugc' );
 		},
 		$text
@@ -3273,7 +3273,7 @@ function wp_init_targeted_link_rel_filters() {
 
 	foreach ( $filters as $filter ) {
 		add_filter( $filter, 'wp_targeted_link_rel' );
-	};
+	}
 }
 
 /**
@@ -3296,7 +3296,7 @@ function wp_remove_targeted_link_rel_filters() {
 
 	foreach ( $filters as $filter ) {
 		remove_filter( $filter, 'wp_targeted_link_rel' );
-	};
+	}
 }
 
 /**
@@ -4412,7 +4412,7 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 }
 
 /**
- * Performs esc_url() for database usage.
+ * Performs esc_url() for database or redirect usage.
  *
  * @since 2.8.0
  *
@@ -4425,6 +4425,26 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
  */
 function esc_url_raw( $url, $protocols = null ) {
 	return esc_url( $url, $protocols, 'db' );
+}
+
+/**
+ * Performs esc_url() for database or redirect usage.
+ *
+ * This function is an alias for esc_url_raw().
+ *
+ * @since 2.3.1
+ * @since 2.8.0 Deprecated in favor of esc_url_raw().
+ * @since 5.9.0 Restored (un-deprecated).
+ *
+ * @see esc_url_raw()
+ *
+ * @param string   $url       The URL to be cleaned.
+ * @param string[] $protocols Optional. An array of acceptable protocols.
+ *                            Defaults to return value of wp_allowed_protocols().
+ * @return string The cleaned URL after esc_url() is run with the 'db' context.
+ */
+function sanitize_url( $url, $protocols = null ) {
+	return esc_url_raw( $url, $protocols );
 }
 
 /**
@@ -4956,12 +4976,12 @@ function map_deep( $value, $callback ) {
  * @param array  $array  Variables will be stored in this array.
  */
 function wp_parse_str( $string, &$array ) {
-	parse_str( $string, $array );
+	parse_str( (string) $string, $array );
 
 	/**
 	 * Filters the array of variables derived from a parsed string.
 	 *
-	 * @since 2.3.0
+	 * @since 2.2.1
 	 *
 	 * @param array $array The array populated with variables.
 	 */
@@ -5896,11 +5916,11 @@ function wp_staticize_emoji_for_email( $mail ) {
 	}
 
 	/*
-	 * We can only transform the emoji into images if it's a text/html email.
+	 * We can only transform the emoji into images if it's a `text/html` email.
 	 * To do that, here's a cut down version of the same process that happens
-	 * in wp_mail() - get the Content-Type from the headers, if there is one,
-	 * then pass it through the wp_mail_content_type filter, in case a plugin
-	 * is handling changing the Content-Type.
+	 * in wp_mail() - get the `Content-Type` from the headers, if there is one,
+	 * then pass it through the {@see 'wp_mail_content_type'} filter, in case
+	 * a plugin is handling changing the `Content-Type`.
 	 */
 	$headers = array();
 	if ( isset( $mail['headers'] ) ) {

@@ -9,8 +9,8 @@ class Tests_General_PaginateLinks extends WP_UnitTestCase {
 
 	private $i18n_count = 0;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->go_to( home_url( '/' ) );
 	}
@@ -311,10 +311,10 @@ EXPECTED;
 			)
 		);
 
-		$this->assertContains( '?foo=1', $links[1] );
-		$this->assertContains( '?foo=2', $links[2] );
-		$this->assertContains( '?foo=4', $links[4] );
-		$this->assertContains( '?foo=5', $links[5] );
+		$this->assertStringContainsString( '?foo=1', $links[1] );
+		$this->assertStringContainsString( '?foo=2', $links[2] );
+		$this->assertStringContainsString( '?foo=4', $links[4] );
+		$this->assertStringContainsString( '?foo=5', $links[5] );
 
 		$_SERVER['REQUEST_URI'] = $request_uri;
 	}

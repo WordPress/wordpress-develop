@@ -148,8 +148,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * This function is run before each method
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->endpoint = new WP_REST_Users_Controller();
 	}
 
@@ -260,7 +260,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$rest_post_types = array_values( get_post_types( array( 'show_in_rest' => true ), 'names' ) );
 
 		foreach ( $users as $user ) {
-			$this->assertTrue( count_user_posts( $user['id'], $rest_post_types ) > 0 );
+			$this->assertNotEmpty( count_user_posts( $user['id'], $rest_post_types ) );
 
 			// Ensure we don't expose non-public data.
 			$this->assertArrayNotHasKey( 'capabilities', $user );
@@ -277,9 +277,9 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$user_ids = wp_list_pluck( $users, 'id' );
 
-		$this->assertTrue( in_array( self::$editor, $user_ids, true ) );
-		$this->assertTrue( in_array( self::$authors['r_true_p_true'], $user_ids, true ) );
-		$this->assertTrue( in_array( self::$authors['r_true_p_false'], $user_ids, true ) );
+		$this->assertContains( self::$editor, $user_ids );
+		$this->assertContains( self::$authors['r_true_p_true'], $user_ids );
+		$this->assertContains( self::$authors['r_true_p_false'], $user_ids );
 		$this->assertCount( 3, $user_ids );
 	}
 
@@ -289,8 +289,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$users    = $response->get_data();
 		$user_ids = wp_list_pluck( $users, 'id' );
 
-		$this->assertFalse( in_array( self::$authors['r_false_p_true'], $user_ids, true ) );
-		$this->assertFalse( in_array( self::$authors['r_false_p_false'], $user_ids, true ) );
+		$this->assertNotContains( self::$authors['r_false_p_true'], $user_ids );
+		$this->assertNotContains( self::$authors['r_false_p_false'], $user_ids );
 	}
 
 	public function test_get_items_unauthenticated_does_not_include_users_without_published_posts() {
@@ -299,8 +299,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$users    = $response->get_data();
 		$user_ids = wp_list_pluck( $users, 'id' );
 
-		$this->assertFalse( in_array( self::$draft_editor, $user_ids, true ) );
-		$this->assertFalse( in_array( self::$user, $user_ids, true ) );
+		$this->assertNotContains( self::$draft_editor, $user_ids );
+		$this->assertNotContains( self::$user, $user_ids );
 	}
 
 	public function test_get_items_pagination_headers() {
@@ -321,8 +321,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			),
 			rest_url( 'wp/v2/users' )
 		);
-		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
-		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// 3rd page.
 		$this->factory->user->create();
@@ -340,14 +340,14 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			),
 			rest_url( 'wp/v2/users' )
 		);
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 4,
 			),
 			rest_url( 'wp/v2/users' )
 		);
-		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// Last page.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
@@ -362,8 +362,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			),
 			rest_url( 'wp/v2/users' )
 		);
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 
 		// Out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
@@ -378,8 +378,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			),
 			rest_url( 'wp/v2/users' )
 		);
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 	}
 
 	public function test_get_items_per_page() {
@@ -411,7 +411,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			rest_url( 'wp/v2/users' )
 		);
 		$headers   = $response->get_headers();
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 	}
 
 	public function test_get_items_orderby_name() {
@@ -633,15 +633,15 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertTrue( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertContains( $id2, $ids );
 
 		$request->set_param( 'exclude', array( $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertFalse( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertNotContains( $id2, $ids );
 
 		// Invalid 'exclude' should error.
 		$request->set_param( 'exclude', 'none-of-those-please' );

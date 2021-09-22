@@ -50,8 +50,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_delete_user( self::$author_id );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		wp_set_current_user( self::$admin_id );
 
@@ -299,6 +299,57 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 					'id'            => 'new-sidebar',
 					'name'          => 'New Sidebar',
 					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'active',
+					'widgets'       => array(),
+				),
+			),
+			$data
+		);
+	}
+
+	/**
+	 * @ticket 53646
+	 */
+	public function test_get_items_when_descriptions_have_markup() {
+		register_sidebar(
+			array(
+				'name'          => 'New Sidebar',
+				'id'            => 'new-sidebar',
+				'description'   => '<iframe></iframe>This is a <b>description</b> with some <a href="#">markup</a>.<script></script>',
+				'before_widget' => '',
+				'after_widget'  => '',
+				'before_title'  => '',
+				'after_title'   => '',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+		$this->assertSame(
+			array(
+				array(
+					'id'            => 'wp_inactive_widgets',
+					'name'          => 'Inactive widgets',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'inactive',
+					'widgets'       => array(),
+				),
+				array(
+					'id'            => 'new-sidebar',
+					'name'          => 'New Sidebar',
+					'description'   => 'This is a <b>description</b> with some <a href="#">markup</a>.',
 					'class'         => '',
 					'before_widget' => '',
 					'after_widget'  => '',

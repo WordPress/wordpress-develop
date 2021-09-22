@@ -101,12 +101,12 @@ class Tests_L10n extends WP_UnitTestCase {
 		);
 		$actual = wp_dropdown_languages( $args );
 
-		$this->assertContains( 'id="foo"', $actual );
-		$this->assertContains( 'name="bar"', $actual );
-		$this->assertContains( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
-		$this->assertContains( '<option value="de_DE" lang="de" selected=\'selected\' data-installed="1">Deutsch</option>', $actual );
-		$this->assertContains( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertContains( '<option value="ja_JP" lang="ja">日本語</option>', $actual );
+		$this->assertStringContainsString( 'id="foo"', $actual );
+		$this->assertStringContainsString( 'name="bar"', $actual );
+		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
+		$this->assertStringContainsString( '<option value="de_DE" lang="de" selected=\'selected\' data-installed="1">Deutsch</option>', $actual );
+		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
+		$this->assertStringContainsString( '<option value="ja_JP" lang="ja">日本語</option>', $actual );
 	}
 
 	/**
@@ -124,13 +124,13 @@ class Tests_L10n extends WP_UnitTestCase {
 		);
 		$actual = wp_dropdown_languages( $args );
 
-		$this->assertContains( 'id="foo"', $actual );
-		$this->assertContains( 'name="bar"', $actual );
-		$this->assertContains( '<option value="site-default" data-installed="1">Site Default</option>', $actual );
-		$this->assertContains( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
-		$this->assertContains( '<option value="de_DE" lang="de" selected=\'selected\' data-installed="1">Deutsch</option>', $actual );
-		$this->assertContains( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertContains( '<option value="ja_JP" lang="ja">日本語</option>', $actual );
+		$this->assertStringContainsString( 'id="foo"', $actual );
+		$this->assertStringContainsString( 'name="bar"', $actual );
+		$this->assertStringContainsString( '<option value="site-default" data-installed="1">Site Default</option>', $actual );
+		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
+		$this->assertStringContainsString( '<option value="de_DE" lang="de" selected=\'selected\' data-installed="1">Deutsch</option>', $actual );
+		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
+		$this->assertStringContainsString( '<option value="ja_JP" lang="ja">日本語</option>', $actual );
 	}
 
 	/**
@@ -148,7 +148,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		);
 		$actual = wp_dropdown_languages( $args );
 
-		$this->assertNotContains( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
+		$this->assertStringNotContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
 	}
 
 	/**
@@ -165,12 +165,12 @@ class Tests_L10n extends WP_UnitTestCase {
 		);
 		$actual = wp_dropdown_languages( $args );
 
-		$this->assertContains( 'id="foo"', $actual );
-		$this->assertContains( 'name="bar"', $actual );
-		$this->assertContains( '<option value="" lang="en" data-installed="1" selected=\'selected\'>English (United States)</option>', $actual );
-		$this->assertContains( '<option value="de_DE" lang="de" data-installed="1">Deutsch</option>', $actual );
-		$this->assertContains( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertContains( '<option value="ja_JP" lang="ja">日本語</option>', $actual );
+		$this->assertStringContainsString( 'id="foo"', $actual );
+		$this->assertStringContainsString( 'name="bar"', $actual );
+		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1" selected=\'selected\'>English (United States)</option>', $actual );
+		$this->assertStringContainsString( '<option value="de_DE" lang="de" data-installed="1">Deutsch</option>', $actual );
+		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
+		$this->assertStringContainsString( '<option value="ja_JP" lang="ja">日本語</option>', $actual );
 	}
 
 	/**
@@ -188,13 +188,13 @@ class Tests_L10n extends WP_UnitTestCase {
 		);
 		$actual = wp_dropdown_languages( $args );
 
-		$this->assertContains( 'id="foo"', $actual );
-		$this->assertContains( 'name="bar"', $actual );
-		$this->assertContains( '<option value="site-default" data-installed="1">Site Default</option>', $actual );
-		$this->assertContains( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
-		$this->assertContains( '<option value="de_DE" lang="de">Deutsch</option>', $actual );
-		$this->assertContains( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertContains( '<option value="ja_JP" lang="ja" selected=\'selected\' data-installed="1">日本語</option>', $actual );
+		$this->assertStringContainsString( 'id="foo"', $actual );
+		$this->assertStringContainsString( 'name="bar"', $actual );
+		$this->assertStringContainsString( '<option value="site-default" data-installed="1">Site Default</option>', $actual );
+		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
+		$this->assertStringContainsString( '<option value="de_DE" lang="de">Deutsch</option>', $actual );
+		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
+		$this->assertStringContainsString( '<option value="ja_JP" lang="ja" selected=\'selected\' data-installed="1">日本語</option>', $actual );
 	}
 
 	/**
@@ -211,12 +211,12 @@ class Tests_L10n extends WP_UnitTestCase {
 		);
 		$actual = wp_dropdown_languages( $args );
 
-		$this->assertContains( 'id="foo"', $actual );
-		$this->assertContains( 'name="bar"', $actual );
-		$this->assertContains( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
-		$this->assertContains( '<option value="de_DE" lang="de" data-installed="1">Deutsch</option>', $actual );
-		$this->assertContains( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertContains( '<option value="ja_JP" lang="ja" selected=\'selected\'>日本語</option>', $actual );
+		$this->assertStringContainsString( 'id="foo"', $actual );
+		$this->assertStringContainsString( 'name="bar"', $actual );
+		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
+		$this->assertStringContainsString( '<option value="de_DE" lang="de" data-installed="1">Deutsch</option>', $actual );
+		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
+		$this->assertStringContainsString( '<option value="ja_JP" lang="ja" selected=\'selected\'>日本語</option>', $actual );
 	}
 
 	/**

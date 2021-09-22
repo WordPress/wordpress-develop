@@ -12,8 +12,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	private $old_wp_styles;
 	private $old_wp_scripts;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		if ( empty( $GLOBALS['wp_styles'] ) ) {
 			$GLOBALS['wp_styles'] = null;
@@ -37,7 +37,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$GLOBALS['wp_styles']  = $this->old_wp_styles;
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 
@@ -48,7 +48,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 			remove_theme_support( 'wp-block-styles' );
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -318,7 +318,7 @@ CSS;
 	 */
 	function test_wp_enqueue_style_with_media( $expected, $media ) {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1, $media );
-		$this->assertContains( $expected, get_echo( 'wp_print_styles' ) );
+		$this->assertStringContainsString( $expected, get_echo( 'wp_print_styles' ) );
 	}
 
 	function data_styles_with_media() {

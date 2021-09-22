@@ -159,7 +159,7 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 
 		foreach ( $hydrated_starter_content['posts'] as $key => $post ) {
 			$this->assertIsString( $key );
-			$this->assertFalse( is_numeric( $key ) );
+			$this->assertIsNotNumeric( $key );
 			$this->assertIsArray( $post );
 			$this->assertArrayHasKey( 'post_type', $post );
 			$this->assertArrayHasKey( 'post_title', $post );

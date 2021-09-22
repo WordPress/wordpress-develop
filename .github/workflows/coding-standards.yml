@@ -56,7 +56,6 @@ jobs:
   # - Runs PHPCS on the full codebase with warnings suppressed.
   # - Runs PHPCS on the `tests` directory without warnings suppressed.
   # - Ensures version-controlled files are not modified or deleted.
-  # - todo: Configure Slack notifications for failing scans.
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
@@ -110,7 +109,6 @@ jobs:
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Run the WordPress JSHint checks.
   # - Ensures version-controlled files are not modified or deleted.
-  # - todo: Configure Slack notifications for failing tests.
   jshint:
     name: JavaScript coding standards
     runs-on: ubuntu-latest

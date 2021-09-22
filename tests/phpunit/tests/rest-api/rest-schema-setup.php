@@ -15,8 +15,8 @@
 class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	const YOUTUBE_VIDEO_ID = 'i_cVJgIz_Cs';
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
@@ -26,12 +26,12 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function mock_embed_request( $preempt, $r, $url ) {
@@ -73,7 +73,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		$routes = rest_get_server()->get_routes();
 
 		$this->assertIsArray( $routes, '`get_routes` should return an array.' );
-		$this->assertTrue( ! empty( $routes ), 'Routes should not be empty.' );
+		$this->assertNotEmpty( $routes, 'Routes should not be empty.' );
 
 		$routes = array_filter( array_keys( $routes ), array( $this, 'is_builtin_route' ) );
 
@@ -472,7 +472,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				$response->get_status(),
 				"HTTP $status from $route[route]: " . json_encode( $data )
 			);
-			$this->assertTrue( ! empty( $data ), $route['name'] . ' route should return data.' );
+			$this->assertNotEmpty( $data, $route['name'] . ' route should return data.' );
 
 			$fixture           = $this->normalize_fixture( $data, $route['name'] );
 			$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '

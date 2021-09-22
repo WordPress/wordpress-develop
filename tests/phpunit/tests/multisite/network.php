@@ -15,17 +15,17 @@ if ( is_multisite() ) :
 		protected static $different_network_id;
 		protected static $different_site_ids = array();
 
-		function setUp() {
+		function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tear_down() {
 			global $wpdb, $current_site;
 			$wpdb->suppress_errors( $this->suppress );
 			$current_site->id = 1;
-			parent::tearDown();
+			parent::tear_down();
 		}
 
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -451,7 +451,8 @@ if ( is_multisite() ) :
 			$site_count = (int) get_blog_count();
 			$user_count = (int) get_user_count();
 
-			$this->assertTrue( $site_count > 0 && $user_count > 0 );
+			$this->assertGreaterThan( 0, $site_count );
+			$this->assertGreaterThan( 0, $user_count );
 		}
 
 		/**
@@ -466,7 +467,8 @@ if ( is_multisite() ) :
 			$site_count = (int) get_blog_count( self::$different_network_id );
 			$user_count = (int) get_user_count( self::$different_network_id );
 
-			$this->assertTrue( $site_count > 0 && $user_count > 0 );
+			$this->assertGreaterThan( 0, $site_count );
+			$this->assertGreaterThan( 0, $user_count );
 		}
 
 		/**

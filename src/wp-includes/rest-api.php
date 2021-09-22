@@ -2818,6 +2818,11 @@ function rest_preload_api_request( $memo, $path ) {
 		}
 	}
 
+	$path = untrailingslashit( $path );
+	if ( empty( $path ) ) {
+		$path = '/';
+	}
+
 	$path_parts = parse_url( $path );
 	if ( false === $path_parts ) {
 		return $memo;
@@ -3222,7 +3227,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 function rest_convert_error_to_response( $error ) {
 	$status = array_reduce(
 		$error->get_all_error_data(),
-		function ( $status, $error_data ) {
+		static function ( $status, $error_data ) {
 			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
 		},
 		500

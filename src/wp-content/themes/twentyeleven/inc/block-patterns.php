@@ -10,7 +10,7 @@
  * @since Twenty Eleven 3.8
  */
 
- /**
+/**
  * Register Block Pattern Category.
  */
 if ( function_exists( 'register_block_pattern_category' ) ) {
@@ -39,7 +39,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 				<!-- wp:columns -->
 				<div class="wp-block-columns"><!-- wp:column -->
 				<div class="wp-block-column"><!-- wp:image {"id":null,"sizeSlug":"large","linkDestination":"none"} -->
-				<figure class="wp-block-image size-large"><img src="' . get_stylesheet_directory_uri() . '/images/patterns/pattern-flower.jpg" alt="' . esc_attr( 'A yellow flower against a dark background.', 'twentyeleven' ) . '" /></figure>
+				<figure class="wp-block-image size-large"><img src="' . get_template_directory_uri() . '/images/patterns/pattern-flower.jpg" alt="' . esc_attr( 'A yellow flower against a dark background.', 'twentyeleven' ) . '" /></figure>
 				<!-- /wp:image -->
 				<!-- wp:paragraph {"dropCap":true} -->
 				<p class="has-drop-cap">' . esc_html__( 'This is just an example post to showcase the featured post section on the showcase page. Who doesn&#8217;t like flowers? I like flowers. Nullam hendrerit enim nunc. Vestibulum eget nulla magna! Fusce lobortis neque eu neque egestas tincidunt. Duis elementum consequat lorem, in eleifend justo mollis at. Nam quis adipiscing magna. Duis adipiscing est ac nibh feugiat rhoncus. Donec non lorem felis, eget commodo purus.', 'twentyeleven' ) . '</p>
@@ -97,7 +97,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 				<p class="has-text-align-center" style="font-size:25px">' . esc_html__( 'Join 1,729 other followers', 'twentyeleven' ) . '</p>
 				<!-- /wp:paragraph -->
 				<!-- wp:buttons {"contentJustification":"center"} -->
-				<div class="wp-block-buttons is-content-justification-center"><!-- wp:button {"style":{"border":{"radius":0}},"backgroundColor":"white","textColor":"black"} -->
+				<div class="wp-block-buttons is-content-justification-center"><!-- wp:button {"borderRadius":0,"backgroundColor":"white","textColor":"black"} -->
 				<div class="wp-block-button"><a class="wp-block-button__link has-black-color has-white-background-color has-text-color has-background no-border-radius">' . esc_html__( 'Follow', 'twentyeleven' ) . '</a></div>
 				<!-- /wp:button --></div>
 				<!-- /wp:buttons --></div></div>
@@ -117,7 +117,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 				<!-- /wp:heading --><!-- wp:columns -->
 				<div class="wp-block-columns"><!-- wp:column -->
 				<div class="wp-block-column"><!-- wp:image {"id":null,"sizeSlug":"large","linkDestination":"none"} -->
-				<figure class="wp-block-image size-large"><img src="' . get_stylesheet_directory_uri() . '/images/patterns/pattern-woman.jpg" alt="' . esc_attr( 'Photo of a woman.', 'twentyeleven' ) . '" /></figure>
+				<figure class="wp-block-image size-large"><img src="' . get_template_directory_uri() . '/images/patterns/pattern-woman.jpg" alt="' . esc_attr( 'Photo of a woman.', 'twentyeleven' ) . '" /></figure>
 				<!-- /wp:image --></div>
 				<!-- /wp:column -->
 				<!-- wp:column -->

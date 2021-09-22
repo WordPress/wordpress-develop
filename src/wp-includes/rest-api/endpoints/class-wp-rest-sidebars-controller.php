@@ -262,26 +262,29 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * Prepares a single sidebar output for response.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Renamed `$raw_sidebar` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
 	 * @global array $wp_registered_sidebars The registered sidebars.
 	 * @global array $wp_registered_widgets  The registered widgets.
 	 *
-	 * @param array           $raw_sidebar Sidebar instance.
-	 * @param WP_REST_Request $request     Full details about the request.
+	 * @param array           $item    Sidebar instance.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Prepared response object.
 	 */
-	public function prepare_item_for_response( $raw_sidebar, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
 		global $wp_registered_sidebars, $wp_registered_widgets;
 
-		$id      = $raw_sidebar['id'];
-		$sidebar = array( 'id' => $id );
+		// Restores the more descriptive, specific name for use within this method.
+		$raw_sidebar = $item;
+		$id          = $raw_sidebar['id'];
+		$sidebar     = array( 'id' => $id );
 
 		if ( isset( $wp_registered_sidebars[ $id ] ) ) {
 			$registered_sidebar = $wp_registered_sidebars[ $id ];
 
 			$sidebar['status']        = 'active';
 			$sidebar['name']          = isset( $registered_sidebar['name'] ) ? $registered_sidebar['name'] : '';
-			$sidebar['description']   = isset( $registered_sidebar['description'] ) ? $registered_sidebar['description'] : '';
+			$sidebar['description']   = isset( $registered_sidebar['description'] ) ? wp_sidebar_description( $id ) : '';
 			$sidebar['class']         = isset( $registered_sidebar['class'] ) ? $registered_sidebar['class'] : '';
 			$sidebar['before_widget'] = isset( $registered_sidebar['before_widget'] ) ? $registered_sidebar['before_widget'] : '';
 			$sidebar['after_widget']  = isset( $registered_sidebar['after_widget'] ) ? $registered_sidebar['after_widget'] : '';

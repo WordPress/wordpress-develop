@@ -60,8 +60,8 @@ class Tests_User extends WP_UnitTestCase {
 		self::$_author = get_user_by( 'ID', self::$author_id );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->author = clone self::$_author;
 	}
@@ -482,7 +482,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		// Insert a post and make sure the ID is OK.
 		$post_id = wp_insert_post( $post );
-		$this->assertTrue( is_numeric( $post_id ) );
+		$this->assertIsNumeric( $post_id );
 
 		setup_postdata( get_post( $post_id ) );
 
@@ -1113,7 +1113,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_url() {
@@ -1124,7 +1124,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_email() {
@@ -1135,7 +1135,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_nicename() {
@@ -1146,7 +1146,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_display_name() {
@@ -1157,7 +1157,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	/**
@@ -1352,8 +1352,8 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $new_email, $recipient->address, 'Admin email change notification recipient not as expected' );
 
 		// Assert that HTML entites have been decode in body and subject.
-		$this->assertContains( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
-		$this->assertNotContains( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, $email->subject, 'Email subject does contains HTML entities' );
+		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
+		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, $email->subject, 'Email subject does contains HTML entities' );
 	}
 
 	/**
@@ -1655,8 +1655,8 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'new-email@test.dev', $recipient->address, 'User email change confirmation recipient not as expected' );
 
 		// Assert that HTML entites have been decoded in body and subject.
-		$this->assertContains( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
-		$this->assertNotContains( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, 'Email subject does contains HTML entities' );
+		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
+		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, 'Email subject does contains HTML entities' );
 	}
 
 	/**
@@ -1843,6 +1843,78 @@ class Tests_User extends WP_UnitTestCase {
 		// Contains IP.
 		$this->assertSame( 'Last Login', $actual['data'][1]['data'][3]['name'] );
 		$this->assertSame( 'January 29, 2020 09:13 AM', $actual['data'][1]['data'][3]['value'] );
+	}
+
+	/**
+	 * Test `$user_data['meta_input']` args in `wp_insert_user( $user_data )`.
+	 *
+	 * @ticket 41950
+	 */
+	public function test_wp_insert_user_with_meta() {
+		$user_data   = array(
+			'user_login' => 'test_user',
+			'user_pass'  => 'test_password',
+			'user_email' => 'user@example.com',
+			'meta_input' => array(
+				'test_meta_key' => 'test_meta_value',
+				'custom_meta'   => 'custom_value',
+			),
+		);
+		$create_user = wp_insert_user( $user_data );
+
+		$this->assertSame( 'test_meta_value', get_user_meta( $create_user, 'test_meta_key', true ) );
+		$this->assertSame( 'custom_value', get_user_meta( $create_user, 'custom_meta', true ) );
+
+		// Update the user meta thru wp_insert_user.
+		$update_data = array(
+			'ID'         => $create_user,
+			'user_login' => 'test_user',
+			'meta_input' => array(
+				'test_meta_key' => 'test_meta_updated',
+				'custom_meta'   => 'updated_value',
+				'new_meta_k'    => 'new_meta_val',
+			),
+		);
+		$update_user = wp_insert_user( $update_data );
+
+		$this->assertSame( 'test_meta_updated', get_user_meta( $update_user, 'test_meta_key', true ) );
+		$this->assertSame( 'updated_value', get_user_meta( $update_user, 'custom_meta', true ) );
+		$this->assertSame( 'new_meta_val', get_user_meta( $update_user, 'new_meta_k', true ) );
+
+		// Create new user.
+		$new_user_data = array(
+			'user_login' => 'new_test',
+			'user_pass'  => 'new_password',
+			'user_email' => 'new_user@newexample.com',
+			'meta_input' => array(
+				'test_meta_key' => 'test_meta_value',
+				'custom_meta'   => 'new_user_custom_value',
+			),
+		);
+
+		// Hook filter
+		add_filter( 'insert_custom_user_meta', array( $this, 'filter_custom_meta' ) );
+
+		$new_user = wp_insert_user( $new_user_data );
+
+		// This meta is updated by the filter.
+		$this->assertSame( 'update_from_filter', get_user_meta( $new_user, 'test_meta_key', true ) );
+		$this->assertSame( 'new_user_custom_value', get_user_meta( $new_user, 'custom_meta', true ) );
+		// This meta is inserted by the filter.
+		$this->assertSame( 'new_from_filter', get_user_meta( $new_user, 'new_meta_from_filter', true ) );
+	}
+
+	/**
+	 * Hook a filter to alter custom meta when inserting new user.
+	 * This hook is used in `test_wp_insert_user_with_meta()`.
+	 */
+	public function filter_custom_meta( $meta_input ) {
+		// Update some meta inputs
+		$meta_input['test_meta_key'] = 'update_from_filter';
+		// Add a new meta
+		$meta_input['new_meta_from_filter'] = 'new_from_filter';
+
+		return $meta_input;
 	}
 
 	/**
