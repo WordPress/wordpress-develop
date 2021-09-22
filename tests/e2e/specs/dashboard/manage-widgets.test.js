@@ -55,4 +55,32 @@ describe('Manage dashboard widgets', () => {
         await page.waitForTimeout(100);
         await page.click('#dashboard_right_now button.handlediv');
     });
+
+    it('Allows moving the dasboard widgets with the moving arrows', async() => {
+        await visitAdminPage('/');
+        const widgetContainer1 = await page.waitForSelector('#postbox-container-1 #normal-sortables');
+        const dashboardRightNowBottomArrow = await page.waitForSelector('#dashboard_right_now button.handle-order-lower');
+        const dashboardRightNowTopArrow = await page.waitForSelector('#dashboard_right_now button.handle-order-higher');
+
+        let children = await widgetContainer1.$$eval('div.postbox', (elements) => {
+            return elements.map((elem) => {
+                return elem.id;
+            });
+        });
+        const dashboardRightNowIndex = children.indexOf('dashboard_right_now');
+        await dashboardRightNowBottomArrow.click();
+
+        children = await widgetContainer1.$$eval('div.postbox', (elements) => {
+            return elements.map((elem) => {
+                return elem.id;
+            });
+        });
+        const dashboardRightNowIndexAfterClick = children.indexOf('dashboard_right_now');
+
+        expect(dashboardRightNowIndexAfterClick).toBeGreaterThan(dashboardRightNowIndex);
+
+        // Move back up the dashboard right now widget
+        await page.waitForTimeout(100);
+        await dashboardRightNowTopArrow.click();
+    });
 });
