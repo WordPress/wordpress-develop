@@ -324,8 +324,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 			array( 'block-1', 'rss-1', 'testwidget' )
 		);
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
-		$request->set_param( 'context', 'edit' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
@@ -336,56 +335,18 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 					'id_base'  => 'block',
 					'sidebar'  => 'sidebar-1',
 					'rendered' => '<p>Block test</p>',
-					'instance' => array(
-						'encoded' => base64_encode(
-							serialize(
-								array(
-									'content' => $block_content,
-								)
-							)
-						),
-						'hash'    => wp_hash(
-							serialize(
-								array(
-									'content' => $block_content,
-								)
-							)
-						),
-						'raw'     => array(
-							'content' => $block_content,
-						),
-					),
 				),
 				array(
 					'id'       => 'rss-1',
 					'id_base'  => 'rss',
 					'sidebar'  => 'sidebar-1',
 					'rendered' => '<a class="rsswidget" href="https://wordpress.org/news/feed"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="http://example.org/wp-includes/images/rss.png" alt="RSS" /></a> <a class="rsswidget" href="https://wordpress.org/news">RSS test</a><ul><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/introducing-learn-wordpress/\'>Introducing Learn WordPress</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/simone/\'>WordPress 5.6 “Simone”</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/state-of-the-word-2020/\'>State of the Word 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/the-month-in-wordpress-november-2020/\'>The Month in WordPress: November 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/wordpress-5-6-release-candidate-2/\'>WordPress 5.6 Release Candidate 2</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-release-candidate/\'>WordPress 5.6 Release Candidate</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-4/\'>WordPress 5.6 Beta 4</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-3/\'>WordPress 5.6 Beta 3</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/the-month-in-wordpress-october-2020/\'>The Month in WordPress: October 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/10/wordpress-5-5-3-maintenance-release/\'>WordPress 5.5.3 Maintenance Release</a></li></ul>',
-					'instance' => array(
-						'encoded' => base64_encode(
-							serialize(
-								array(
-									'title' => 'RSS test',
-									'url'   => 'https://wordpress.org/news/feed',
-								)
-							)
-						),
-						'hash'    => wp_hash(
-							serialize(
-								array(
-									'title' => 'RSS test',
-									'url'   => 'https://wordpress.org/news/feed',
-								)
-							)
-						),
-					),
 				),
 				array(
 					'id'       => 'testwidget',
 					'id_base'  => 'testwidget',
 					'sidebar'  => 'sidebar-1',
 					'rendered' => '<h1>Default id</h1><span>Default text</span>',
-					'instance' => null,
 				),
 			),
 			$data
@@ -501,8 +462,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 			array( 'text-1' )
 		);
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/widgets/text-1' );
-		$request->set_param( 'context', 'edit' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets/text-1' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSameSets(
@@ -511,25 +471,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'rendered' => '<div class="textwidget">Custom text test</div>',
-				'instance' => array(
-					'encoded' => base64_encode(
-						serialize(
-							array(
-								'text' => 'Custom text test',
-							)
-						)
-					),
-					'hash'    => wp_hash(
-						serialize(
-							array(
-								'text' => 'Custom text test',
-							)
-						)
-					),
-					'raw'     => array(
-						'text' => 'Custom text test',
-					),
-				),
 			),
 			$data
 		);
