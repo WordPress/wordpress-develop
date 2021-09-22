@@ -25,8 +25,8 @@ describe('Manage dashboard widgets', () => {
     it('Hide the Welcome panel widget using the dismiss button', async() => {
         await visitAdminPage('/');
 
-        const dismissButton = await page.waitForSelector('a.welcome-panel-close');
-        await dismissButton.click();
+        await page.waitForSelector('a.welcome-panel-close');
+        await page.click('a.welcome-panel-close');
 
         const hiddenWelcomPanel = await page.$eval('#welcome-panel', (elem) => {
             return window.getComputedStyle(elem).getPropertyValue('display') === 'none';
