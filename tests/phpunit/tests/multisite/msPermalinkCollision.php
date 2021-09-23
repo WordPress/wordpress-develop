@@ -66,7 +66,7 @@ if ( is_multisite() ) :
 		}
 
 		public function test_avoid_blog_page_permalink_collision_renames_post_name() {
-			$this->assertNotEquals( self::$post_and_blog_path, self::$root_page->post_name );
+			$this->assertNotSame( self::$post_and_blog_path, self::$root_page->post_name );
 		}
 
 		/**
@@ -75,7 +75,7 @@ if ( is_multisite() ) :
 		 * @ticket 51147
 		 */
 		public function test_avoid_blog_page_permalink_collision_doesnt_rename_child_pages() {
-			$this->assertEquals( self::$post_and_blog_path, self::$child_page->post_name );
+			$this->assertSame( self::$post_and_blog_path, self::$child_page->post_name );
 		}
 	}
 
