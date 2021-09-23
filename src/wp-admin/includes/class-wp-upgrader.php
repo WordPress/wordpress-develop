@@ -843,7 +843,9 @@ class WP_Upgrader {
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
 			if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
-				$this->restore_temp_backup( $options['hook_extra']['temp_backup'] );
+				add_action( 'shutdown', function() use ( $options ) {
+					$this->restore_temp_backup( $options['hook_extra']['temp_backup'] );
+				} );
 			}
 			$this->skin->error( $result );
 
