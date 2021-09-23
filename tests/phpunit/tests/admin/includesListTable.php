@@ -185,6 +185,16 @@ class Tests_Admin_IncludesListTable extends WP_UnitTestCase {
 	 * @param array $expected_ids Expected IDs of pages returned.
 	 */
 	protected function _test_list_hierarchical_page( array $args, array $expected_ids ) {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$matches = array();
 
 		$_REQUEST['paged']   = $args['paged'];
@@ -205,12 +215,14 @@ class Tests_Admin_IncludesListTable extends WP_UnitTestCase {
 			$args['posts_per_archive_page'] = -1;
 		}
 
+		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
+		$this->expectOutputRegex( '`.`' );
+
 		$pages = new WP_Query( $args );
 
-		ob_start();
 		$this->table->set_hierarchical_display( true );
 		$this->table->display_rows( $pages->posts );
-		$output = ob_get_clean();
+		$output = $this->getActualOutput();
 
 		// Clean up.
 		unset( $_REQUEST['paged'] );
