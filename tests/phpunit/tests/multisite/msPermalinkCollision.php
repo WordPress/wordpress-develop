@@ -27,9 +27,9 @@ if ( is_multisite() ) :
 
 			self::$root_page = self::factory()->post->create_and_get(
 				array(
-					'post_type'   => 'page',
-					'post_title'  => 'Bar',
-					'post_name'   => self::$post_and_blog_path,
+					'post_type'  => 'page',
+					'post_title' => 'Bar',
+					'post_name'  => self::$post_and_blog_path,
 				)
 			);
 
