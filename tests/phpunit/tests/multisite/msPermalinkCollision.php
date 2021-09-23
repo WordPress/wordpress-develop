@@ -43,18 +43,6 @@ if ( is_multisite() ) :
 			);
 		}
 
-		public function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		public function tearDown() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
-		}
-
 		/**
 		 * Delete blog and pages we created.
 		 */
@@ -65,8 +53,20 @@ if ( is_multisite() ) :
 			wp_delete_post( self::$child_page->ID );
 		}
 
+		public function set_up() {
+			global $wpdb;
+			parent::set_up();
+			$this->suppress = $wpdb->suppress_errors();
+		}
+
+		public function tear_down() {
+			global $wpdb;
+			$wpdb->suppress_errors( $this->suppress );
+			parent::tear_down();
+		}
+
 		public function test_avoid_blog_page_permalink_collision_renames_post_name() {
-			$this->assertNotEquals( self::$post_and_blog_path, self::$root_page->post_name );
+			$this->assertNotSame( self::$post_and_blog_path, self::$root_page->post_name );
 		}
 
 		/**
@@ -75,7 +75,7 @@ if ( is_multisite() ) :
 		 * @ticket 51147
 		 */
 		public function test_avoid_blog_page_permalink_collision_doesnt_rename_child_pages() {
-			$this->assertEquals( self::$post_and_blog_path, self::$child_page->post_name );
+			$this->assertSame( self::$post_and_blog_path, self::$child_page->post_name );
 		}
 	}
 
