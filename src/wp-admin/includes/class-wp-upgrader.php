@@ -859,7 +859,9 @@ class WP_Upgrader {
 
 		// Clean up the backup kept in the temp-backup directory.
 		if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
-			$this->delete_temp_backup( $options['hook_extra']['temp_backup'] );
+			add_action( 'shutdown', function() use ( $options ) {
+				$this->delete_temp_backup( $options['hook_extra']['temp_backup'] );
+			} );
 		}
 
 		if ( ! $options['is_multi'] ) {
