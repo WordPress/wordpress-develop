@@ -43,18 +43,6 @@ if ( is_multisite() ) :
 			);
 		}
 
-		public function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		public function tearDown() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
-		}
-
 		/**
 		 * Delete blog and pages we created.
 		 */
@@ -63,6 +51,18 @@ if ( is_multisite() ) :
 
 			wp_delete_post( self::$root_page->ID );
 			wp_delete_post( self::$child_page->ID );
+		}
+
+		public function set_up() {
+			global $wpdb;
+			parent::set_up();
+			$this->suppress = $wpdb->suppress_errors();
+		}
+
+		public function tear_down() {
+			global $wpdb;
+			$wpdb->suppress_errors( $this->suppress );
+			parent::tear_down();
 		}
 
 		public function test_avoid_blog_page_permalink_collision_renames_post_name() {
