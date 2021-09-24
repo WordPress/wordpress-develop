@@ -6,10 +6,9 @@ if ( is_multisite() ) :
 	 * Tests specific to `avoid_blog_page_permalink_collision()` in multisite.
 	 *
 	 * @group multisite
-	 * @group only
+	 * @group post
 	 */
-	class Tests_Multisite_MS_Permalink_Collision extends WP_UnitTestCase {
-		protected $suppress = false;
+	class Tests_Multisite_AvoidBlogPagePermalinkCollision extends WP_UnitTestCase {
 		protected static $site_id;
 		protected static $root_page;
 		protected static $child_page;
@@ -53,24 +52,12 @@ if ( is_multisite() ) :
 			wp_delete_post( self::$child_page->ID );
 		}
 
-		public function set_up() {
-			global $wpdb;
-			parent::set_up();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		public function tear_down() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tear_down();
-		}
-
 		public function test_avoid_blog_page_permalink_collision_renames_post_name() {
 			$this->assertNotSame( self::$post_and_blog_path, self::$root_page->post_name );
 		}
 
 		/**
-		 * Ensure `avoid_blog_page_permalink_collision()` doesn't rename child pages post_name.
+		 * Ensure `avoid_blog_page_permalink_collision()` doesn't rename child pages' post_name.
 		 *
 		 * @ticket 51147
 		 */
