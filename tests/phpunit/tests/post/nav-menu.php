@@ -560,12 +560,12 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		return $ignored_1;
 	}
 
-	private function _confirm_third_param_args_object( $ignored_1, $ignored_2, $args ) {
+	public function _confirm_third_param_args_object( $ignored_1, $ignored_2, $args ) {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
-	private function _confirm_forth_param_args_object( $ignored_1, $ignored_2, $ignored_3, $args ) {
+	public function _confirm_forth_param_args_object( $ignored_1, $ignored_2, $ignored_3, $args ) {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
