@@ -7126,27 +7126,21 @@ mockedApiResponse.Schema = {
                                     "description": "Base64 encoded representation of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "hash": {
                                     "description": "Cryptographic hash of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "raw": {
                                     "description": "Unencoded instance settings, if supported.",
                                     "type": "object",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 }
                             },
@@ -7226,27 +7220,21 @@ mockedApiResponse.Schema = {
                                     "description": "Base64 encoded representation of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "hash": {
                                     "description": "Cryptographic hash of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "raw": {
                                     "description": "Unencoded instance settings, if supported.",
                                     "type": "object",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 }
                             },
