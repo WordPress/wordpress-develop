@@ -78,7 +78,7 @@ class Tests_Query extends WP_UnitTestCase {
 		remove_action( 'pre_get_posts', array( $this, '_tag_queried_object' ), 11 );
 	}
 
-	private function _tag_queried_object( &$query ) {
+	public function _tag_queried_object( &$query ) {
 		$tag = get_term_by( 'slug', 'tag-slug-26627', 'post_tag' );
 		$this->assertTrue( $query->is_tag() );
 		$this->assertTrue( $query->is_archive() );

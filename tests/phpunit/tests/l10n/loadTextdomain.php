@@ -158,7 +158,7 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 	 * @param string $file     Path to the MO file.
 	 * @return bool
 	 */
-	private function _override_load_textdomain_filter( $override, $domain, $file ) {
+	public function _override_load_textdomain_filter( $override, $domain, $file ) {
 		global $l10n;
 
 		if ( ! is_readable( $file ) ) {

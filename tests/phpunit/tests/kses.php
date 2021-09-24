@@ -474,7 +474,7 @@ EOF;
 		}
 	}
 
-	private function _wp_kses_allowed_html_filter( $html, $context ) {
+	public function _wp_kses_allowed_html_filter( $html, $context ) {
 		if ( 'post' === $context ) {
 			return array( 'a' => array( 'href' => true ) );
 		} else {

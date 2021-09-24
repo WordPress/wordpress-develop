@@ -128,7 +128,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		remove_action( 'pre_get_posts', array( $this, '_cat_uncat_action_tax' ), 11 );
 	}
 
-	private function _cat_uncat_action_tax( &$query ) {
+	public function _cat_uncat_action_tax( &$query ) {
 		$this->assertTrue( $query->is_category() );
 		$this->assertTrue( $query->is_archive() );
 		$this->assertNotEmpty( $query->get( 'category_name' ) );

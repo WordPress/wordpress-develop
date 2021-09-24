@@ -53,7 +53,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	private function _add_dns_prefetch_domains( $hints, $method ) {
+	public function _add_dns_prefetch_domains( $hints, $method ) {
 		if ( 'dns-prefetch' === $method ) {
 			$hints[] = 'http://wordpress.org';
 			$hints[] = 'https://wordpress.org';
@@ -85,7 +85,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	private function _add_preconnect_domains( $hints, $method ) {
+	public function _add_preconnect_domains( $hints, $method ) {
 		if ( 'preconnect' === $method ) {
 			$hints[] = '//wordpress.org';
 			$hints[] = 'https://make.wordpress.org';
@@ -112,7 +112,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	private function _add_prerender_urls( $hints, $method ) {
+	public function _add_prerender_urls( $hints, $method ) {
 		if ( 'prerender' === $method ) {
 			$hints[] = 'https://make.wordpress.org/great-again';
 			$hints[] = 'http://jobs.wordpress.net';
@@ -136,7 +136,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	private function _add_dns_prefetch_long_urls( $hints, $method ) {
+	public function _add_dns_prefetch_long_urls( $hints, $method ) {
 		if ( 'dns-prefetch' === $method ) {
 			$hints[] = 'http://make.wordpress.org/wp-includes/css/editor.css';
 		}
@@ -230,7 +230,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	private function _add_malformed_url_errant_colon( $hints, $method ) {
+	public function _add_malformed_url_errant_colon( $hints, $method ) {
 		if ( 'preconnect' === $method ) {
 			$hints[] = '://core.trac.wordpress.org/ticket/37652';
 		}
@@ -265,7 +265,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	private function _add_url_with_attributes( $hints, $method ) {
+	public function _add_url_with_attributes( $hints, $method ) {
 		// Ignore hints with missing href attributes.
 		$hints[] = array(
 			'rel' => 'foo',

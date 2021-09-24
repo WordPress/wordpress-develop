@@ -555,7 +555,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		return $args;
 	}
 
-	private function _confirm_second_param_args_object( $ignored_1, $args ) {
+	public function _confirm_second_param_args_object( $ignored_1, $args ) {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}

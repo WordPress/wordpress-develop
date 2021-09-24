@@ -6,7 +6,7 @@
  */
 class Tests_Formatting_wpHtmleditPre extends WP_UnitTestCase {
 
-	private function _charset_iso_8859_1() {
+	public function _charset_iso_8859_1() {
 		return 'iso-8859-1';
 	}
 
@@ -21,7 +21,7 @@ class Tests_Formatting_wpHtmleditPre extends WP_UnitTestCase {
 		remove_filter( 'pre_option_blog_charset', array( $this, '_charset_iso_8859_1' ) );
 	}
 
-	private function _charset_utf_8() {
+	public function _charset_utf_8() {
 		return 'UTF-8';
 	}
 

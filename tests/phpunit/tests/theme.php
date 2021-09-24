@@ -251,7 +251,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertSame( $theme_data['License'], $wp_theme->get( 'License' ) );
 	}
 
-	private function _theme_data_extra_headers() {
+	public function _theme_data_extra_headers() {
 		return array( 'License' );
 	}
 

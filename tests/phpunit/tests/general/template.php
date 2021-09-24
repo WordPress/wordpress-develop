@@ -207,7 +207,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @param $meta_tags
 	 * @return array
 	 */
-	private function _custom_site_icon_meta_tag( $meta_tags ) {
+	public function _custom_site_icon_meta_tag( $meta_tags ) {
 		$meta_tags[] = sprintf( '<link rel="apple-touch-icon" sizes="150x150" href="%s" />', esc_url( get_site_icon_url( 150 ) ) );
 
 		return $meta_tags;

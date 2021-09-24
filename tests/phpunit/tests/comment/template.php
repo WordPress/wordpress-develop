@@ -104,7 +104,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 		remove_filter( 'gettext_with_context', array( $this, '_enable_comment_number_declension' ), 10, 4 );
 	}
 
-	private function _enable_comment_number_declension( $translation, $text, $context, $domain ) {
+	public function _enable_comment_number_declension( $translation, $text, $context, $domain ) {
 		if ( 'Comment number declension: on or off' === $context ) {
 			$translation = 'on';
 		}

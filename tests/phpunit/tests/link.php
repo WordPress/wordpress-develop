@@ -4,7 +4,7 @@
  */
 class Tests_Link extends WP_UnitTestCase {
 
-	private function _get_pagenum_link_cb( $url ) {
+	public function _get_pagenum_link_cb( $url ) {
 		return $url . '/WooHoo';
 	}
 

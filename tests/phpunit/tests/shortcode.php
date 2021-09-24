@@ -430,7 +430,7 @@ EOF;
 		remove_filter( 'strip_shortcodes_tagnames', array( $this, '_filter_strip_shortcodes_tagnames' ) );
 	}
 
-	private function _filter_strip_shortcodes_tagnames() {
+	public function _filter_strip_shortcodes_tagnames() {
 		return array( 'gallery' );
 	}
 

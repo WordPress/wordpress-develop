@@ -312,7 +312,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 *
 	 * @return \WP_Error
 	 */
-	private function _return_wp_error() {
+	public function _return_wp_error() {
 		return new WP_Error( 'some-error', 'This is not valid!' );
 	}
 

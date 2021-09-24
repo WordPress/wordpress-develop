@@ -81,7 +81,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		$this->assertSame( 'A Wild Title', wp_get_document_title() );
 	}
 
-	private function _short_circuit_title( $title ) {
+	public function _short_circuit_title( $title ) {
 		return 'A Wild Title';
 	}
 
@@ -107,7 +107,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		$this->assertSame( sprintf( '%s &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
 	}
 
-	private function _front_page_title_parts( $parts ) {
+	public function _front_page_title_parts( $parts ) {
 		$this->assertArrayHasKey( 'title', $parts );
 		$this->assertArrayHasKey( 'tagline', $parts );
 		$this->assertArrayNotHasKey( 'site', $parts );
@@ -138,7 +138,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		$this->assertSame( sprintf( '%s &#8211; Page 4 &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
 	}
 
-	private function _paged_title_parts( $parts ) {
+	public function _paged_title_parts( $parts ) {
 		$this->assertArrayHasKey( 'page', $parts );
 		$this->assertArrayHasKey( 'title', $parts );
 		$this->assertArrayHasKey( 'tagline', $parts );
@@ -155,7 +155,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		$this->assertSame( sprintf( 'test_title &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
-	private function _singular_title_parts( $parts ) {
+	public function _singular_title_parts( $parts ) {
 		$this->assertArrayHasKey( 'site', $parts );
 		$this->assertArrayHasKey( 'title', $parts );
 		$this->assertArrayNotHasKey( 'tagline', $parts );
@@ -253,7 +253,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		$this->assertSame( sprintf( '%s &#8211; test_title', $this->blog_name ), wp_get_document_title() );
 	}
 
-	private function _rearrange_title_parts( $parts ) {
+	public function _rearrange_title_parts( $parts ) {
 		$parts = array(
 			$parts['site'],
 			$parts['title'],
@@ -270,7 +270,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		$this->assertSame( sprintf( 'test_title %%%% %s', $this->blog_name ), wp_get_document_title() );
 	}
 
-	private function _change_title_separator( $sep ) {
+	public function _change_title_separator( $sep ) {
 		return '%%';
 	}
 }

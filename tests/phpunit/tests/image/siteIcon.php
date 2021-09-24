@@ -149,7 +149,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		wp_delete_attachment( $attachment_id, true );
 	}
 
-	private function _custom_test_sizes( $sizes ) {
+	public function _custom_test_sizes( $sizes ) {
 		$sizes[] = 321;
 
 		return $sizes;

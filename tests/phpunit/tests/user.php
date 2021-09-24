@@ -772,7 +772,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 0, $response['errors']->get_error_codes() );
 	}
 
-	private function _illegal_user_logins_data() {
+	public function _illegal_user_logins_data() {
 		$data = array(
 			array( 'testuser' ),
 		);
