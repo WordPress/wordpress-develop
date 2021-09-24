@@ -238,7 +238,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		return $hints;
 	}
 
-	private function _add_malformed_url_unsupported_scheme( $hints, $method ) {
+	public function _add_malformed_url_unsupported_scheme( $hints, $method ) {
 		if ( 'preconnect' === $method ) {
 			$hints[] = 'git://develop.git.wordpress.org/';
 		}

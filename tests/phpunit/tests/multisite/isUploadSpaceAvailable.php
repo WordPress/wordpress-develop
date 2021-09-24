@@ -98,11 +98,11 @@ if ( is_multisite() ) :
 			$this->assertFalse( $available );
 		}
 
-		private function _filter_space_used_large() {
+		public function _filter_space_used_large() {
 			return 10000000;
 		}
 
-		private function _filter_space_used_small() {
+		public function _filter_space_used_small() {
 			return 10;
 		}
 	}

@@ -784,7 +784,7 @@ class Tests_User extends WP_UnitTestCase {
 		return $data;
 	}
 
-	private function _illegal_user_logins() {
+	public function _illegal_user_logins() {
 		return array( 'testuser' );
 	}
 

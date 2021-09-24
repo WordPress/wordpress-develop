@@ -108,7 +108,7 @@ CAP;
 	/**
 	 * Filter used in test_img_caption_shortcode_short_circuit_filter()
 	 */
-	private function _return_alt_caption() {
+	public function _return_alt_caption() {
 		return $this->alternate_caption;
 	}
 
@@ -1154,7 +1154,7 @@ VIDEO;
 		remove_filter( 'upload_dir', array( $this, '_upload_dir' ) );
 	}
 
-	private function _upload_dir( $dir ) {
+	public function _upload_dir( $dir ) {
 		$dir['baseurl'] = 'http://192.168.1.20.com/wp-content/uploads';
 		return $dir;
 	}
@@ -2432,7 +2432,7 @@ EOF;
 		$this->assertSame( $expected, $actual );
 	}
 
-	private function _filter_36246( $data, $attachment_id ) {
+	public function _filter_36246( $data, $attachment_id ) {
 		$data['sizes']['testsize'] = array(
 			'file'      => 'test-image-testsize-999x999.jpg',
 			'width'     => 999,

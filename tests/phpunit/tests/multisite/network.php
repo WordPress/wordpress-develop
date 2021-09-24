@@ -129,7 +129,7 @@ if ( is_multisite() ) :
 			remove_filter( 'get_main_network_id', array( $this, '_get_main_network_id' ) );
 		}
 
-		private function _get_main_network_id() {
+		public function _get_main_network_id() {
 			return 3;
 		}
 
@@ -323,7 +323,7 @@ if ( is_multisite() ) :
 			$this->assertFalse( is_plugin_active_for_network( 'hello.php' ) );
 		}
 
-		private function _helper_deactivate_hook() {
+		public function _helper_deactivate_hook() {
 			$this->plugin_hook_count++;
 		}
 

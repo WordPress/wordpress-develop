@@ -101,7 +101,7 @@ if ( is_multisite() ) :
 		/**
 		 * Provide a counter to determine that hooks are firing when intended.
 		 */
-		private function _action_counter_cb() {
+		public function _action_counter_cb() {
 			global $test_action_counter;
 			$test_action_counter++;
 		}

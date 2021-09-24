@@ -4,7 +4,7 @@
  * @group option
  */
 class Tests_Option_SiteOption extends WP_UnitTestCase {
-	private function __return_foo() {
+	public function __return_foo() {
 		return 'foo';
 	}
 

@@ -1678,7 +1678,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$GLOBALS['current_user'] = null;
 	}
 
-	private function _nullify_current_user_and_keep_nullifying_user() {
+	public function _nullify_current_user_and_keep_nullifying_user() {
 		add_action( 'set_current_user', array( $this, '_nullify_current_user' ) );
 	}
 

@@ -415,7 +415,7 @@ if ( is_multisite() ) :
 		/**
 		 * Provide a counter to determine that hooks are firing when intended.
 		 */
-		private function _action_counter_cb() {
+		public function _action_counter_cb() {
 			global $test_action_counter;
 			$test_action_counter++;
 		}
@@ -899,7 +899,7 @@ if ( is_multisite() ) :
 		 * Added as a callback to the domain_exists filter to provide manual results for
 		 * the testing of the filter and for a test which does not need the database.
 		 */
-		private function _domain_exists_cb( $exists, $domain, $path, $site_id ) {
+		public function _domain_exists_cb( $exists, $domain, $path, $site_id ) {
 			if ( 'foo' === $domain && 'bar/' === $path ) {
 				return 1234;
 			} else {

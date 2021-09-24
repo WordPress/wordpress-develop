@@ -228,7 +228,7 @@ if ( is_multisite() ) :
 			remove_filter( 'pre_recurse_dirsize', array( $this, '_filter_pre_recurse_dirsize' ) );
 		}
 
-		private function _filter_pre_recurse_dirsize() {
+		public function _filter_pre_recurse_dirsize() {
 			return 1042;
 		}
 

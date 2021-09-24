@@ -160,7 +160,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 * @param int|null    $blog_id     Site ID, or null for the current site.
 	 * @return string                  The complete home URL including scheme and path.
 	 */
-	private function _filter_http_home_url( $url, $path, $orig_scheme, $_blog_id ) {
+	public function _filter_http_home_url( $url, $path, $orig_scheme, $_blog_id ) {
 		global $blog_id;
 
 		if ( $this->blog_id_35531 === $blog_id ) {

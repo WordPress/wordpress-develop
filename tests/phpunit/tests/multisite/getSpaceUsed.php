@@ -97,7 +97,7 @@ if ( is_multisite() ) :
 			remove_filter( 'pre_get_space_used', array( $this, '_filter_space_used' ) );
 		}
 
-		private function _filter_space_used() {
+		public function _filter_space_used() {
 			return 300;
 		}
 	}
