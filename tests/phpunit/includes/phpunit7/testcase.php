@@ -46,30 +46,80 @@ class WP_UnitTestCase extends WP_UnitTestCase_Base {
 	use ExpectPHPException;
 
 	/**
-	 * Wrapper method for the `setUpBeforeClass()` method for forward-compatibility with WP 5.9.
+	 * Wrapper method for the `set_up_before_class()` method for forward-compatibility with WP 5.9.
 	 */
-	public static function set_up_before_class() {
-		static::setUpBeforeClass();
+	public static function setUpBeforeClass() {
+		parent::setUpBeforeClass();
+		static::set_up_before_class();
 	}
 
 	/**
-	 * Wrapper method for the `tearDownAfterClass()` method for forward-compatibility with WP 5.9.
+	 * Wrapper method for the `tear_down_after_class()` method for forward-compatibility with WP 5.9.
 	 */
-	public static function tear_down_after_class() {
-		static::tearDownAfterClass();
+	public static function tearDownAfterClass() {
+		static::tear_down_after_class();
+		parent::tearDownAfterClass();
 	}
 
 	/**
-	 * Wrapper method for the `setUp()` method for forward-compatibility with WP 5.9.
+	 * Wrapper method for the `set_up()` method for forward-compatibility with WP 5.9.
 	 */
-	public function set_up() {
-		static::setUp();
+	public function setUp() {
+		parent::setUp();
+		$this->set_up();
 	}
 
 	/**
-	 * Wrapper method for the `tearDown()` method for forward-compatibility with WP 5.9.
+	 * Wrapper method for the `tear_down()` method for forward-compatibility with WP 5.9.
 	 */
-	public function tear_down() {
-		static::tearDown();
+	public function tearDown() {
+		$this->tear_down();
+		parent::tearDown();
 	}
+
+	/**
+	 * Wrapper method for the `assert_pre_conditions()` method for forward-compatibility with WP 5.9.
+	 */
+	protected function assertPreConditions() {
+		parent::assertPreConditions();
+		$this->assert_pre_conditions();
+	}
+
+	/**
+	 * Wrapper method for the `assert_post_conditions()` method for forward-compatibility with WP 5.9.
+	 */
+	protected function assertPostConditions() {
+		parent::assertPostConditions();
+		$this->assert_post_conditions();
+	}
+
+	/**
+	 * Placeholder method for forward-compatibility with WP 5.9.
+	 */
+	public static function set_up_before_class() {}
+
+	/**
+	 * Placeholder method for forward-compatibility with WP 5.9.
+	 */
+	public static function tear_down_after_class() {}
+
+	/**
+	 * Placeholder method for forward-compatibility with WP 5.9.
+	 */
+	protected function set_up() {}
+
+	/**
+	 * Placeholder method for forward-compatibility with WP 5.9.
+	 */
+	protected function tear_down() {}
+
+	/**
+	 * Placeholder method for forward-compatibility with WP 5.9.
+	 */
+	protected function assert_pre_conditions() {}
+
+	/**
+	 * Placeholder method for forward-compatibility with WP 5.9.
+	 */
+	protected function assert_post_conditions() {}
 }
