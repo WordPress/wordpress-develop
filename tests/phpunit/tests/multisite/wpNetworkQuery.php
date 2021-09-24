@@ -9,7 +9,7 @@ if ( is_multisite() ) :
 	 * @group ms-network-query
 	 * @group multisite
 	 */
-	class Tests_Multisite_Network_Query extends WP_UnitTestCase {
+	class Tests_Multisite_wpNetworkQuery extends WP_UnitTestCase {
 		protected static $network_ids;
 
 		protected $suppress = false;
