@@ -10,7 +10,7 @@ if ( is_multisite() ) :
 	 *
 	 * @group multisite
 	 */
-	class Tests_Multisite_Is_Upload_Space_Available extends WP_UnitTestCase {
+	class Tests_Multisite_IsUploadSpaceAvailable extends WP_UnitTestCase {
 		protected $suppress = false;
 
 		public function set_up() {
