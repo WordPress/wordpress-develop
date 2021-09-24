@@ -20,7 +20,7 @@ class Tests_Post_Output extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	private function _shortcode_dumptag( $atts ) {
+	public function _shortcode_dumptag( $atts ) {
 		$out = '';
 		foreach ( $atts as $k => $v ) {
 			$out .= "$k = $v\n";
@@ -28,7 +28,7 @@ class Tests_Post_Output extends WP_UnitTestCase {
 		return $out;
 	}
 
-	private function _shortcode_paragraph( $atts, $content ) {
+	public function _shortcode_paragraph( $atts, $content ) {
 		$processed_atts = shortcode_atts(
 			array(
 				'class' => 'graf',

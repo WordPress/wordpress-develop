@@ -65,7 +65,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 
-	private function _flush_roles() {
+	public function _flush_roles() {
 		// We want to make sure we're testing against the DB, not just in-memory data.
 		// This will flush everything and reload it from the DB.
 		unset( $GLOBALS['wp_user_roles'] );
@@ -73,15 +73,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$wp_roles = new WP_Roles();
 	}
 
-	private function _meta_yes_you_can( $can, $key, $post_id, $user_id, $cap, $caps ) {
+	public function _meta_yes_you_can( $can, $key, $post_id, $user_id, $cap, $caps ) {
 		return true;
 	}
 
-	private function _meta_no_you_cant( $can, $key, $post_id, $user_id, $cap, $caps ) {
+	public function _meta_no_you_cant( $can, $key, $post_id, $user_id, $cap, $caps ) {
 		return false;
 	}
 
-	private function _meta_filter( $meta_value, $meta_key, $meta_type ) {
+	public function _meta_filter( $meta_value, $meta_key, $meta_type ) {
 		return $meta_value;
 	}
 

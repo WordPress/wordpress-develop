@@ -13,7 +13,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->delete_meta_id = add_metadata( 'user', $this->author->ID, 'delete_meta_key', 'delete_meta_value' );
 	}
 
-	private function _meta_sanitize_cb( $meta_value, $meta_key, $meta_type ) {
+	public function _meta_sanitize_cb( $meta_value, $meta_key, $meta_type ) {
 		return 'sanitized';
 	}
 

@@ -27,7 +27,7 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	private function _shortcode_test_shortcode_tag( $atts, $content = null, $tagname = null ) {
+	public function _shortcode_test_shortcode_tag( $atts, $content = null, $tagname = null ) {
 		$this->atts              = $atts;
 		$this->content           = $content;
 		$this->tagname           = $tagname;
@@ -37,13 +37,13 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	}
 
 	// [footag foo="bar"]
-	private function _shortcode_footag( $atts ) {
+	public function _shortcode_footag( $atts ) {
 		$foo = isset( $atts['foo'] ) ? $atts['foo'] : '';
 		return "foo = $foo";
 	}
 
 	// [bartag foo="bar"]
-	private function _shortcode_bartag( $atts ) {
+	public function _shortcode_bartag( $atts ) {
 		$processed_atts = shortcode_atts(
 			array(
 				'foo' => 'no foo',
@@ -57,11 +57,11 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	}
 
 	// [baztag]content[/baztag]
-	private function _shortcode_baztag( $atts, $content = '' ) {
+	public function _shortcode_baztag( $atts, $content = '' ) {
 		return 'content = ' . do_shortcode( $content );
 	}
 
-	private function _shortcode_dumptag( $atts ) {
+	public function _shortcode_dumptag( $atts ) {
 		$out = '';
 		foreach ( $atts as $k => $v ) {
 			$out .= "$k = $v\n";
@@ -69,23 +69,23 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		return $out;
 	}
 
-	private function _shortcode_hyphen() {
+	public function _shortcode_hyphen() {
 		return __FUNCTION__;
 	}
 
-	private function _shortcode_hyphen_foo() {
+	public function _shortcode_hyphen_foo() {
 		return __FUNCTION__;
 	}
 
-	private function _shortcode_hyphen_foo_bar() {
+	public function _shortcode_hyphen_foo_bar() {
 		return __FUNCTION__;
 	}
 
-	private function _shortcode_url() {
+	public function _shortcode_url() {
 		return 'http://www.wordpress.org/';
 	}
 
-	private function _shortcode_img( $atts ) {
+	public function _shortcode_img( $atts ) {
 		$out = '<img';
 		foreach ( $atts as $k => $v ) {
 			$out .= " $k=\"$v\"";
@@ -435,7 +435,7 @@ EOF;
 	}
 
 	// Store passed in shortcode_atts_{$shortcode} args.
-	private function _filter_atts( $out, $pairs, $atts ) {
+	public function _filter_atts( $out, $pairs, $atts ) {
 		$this->filter_atts_out   = $out;
 		$this->filter_atts_pairs = $pairs;
 		$this->filter_atts_atts  = $atts;
@@ -443,7 +443,7 @@ EOF;
 	}
 
 	// Filter shortcode atts in various ways.
-	private function _filter_atts2( $out, $pairs, $atts ) {
+	public function _filter_atts2( $out, $pairs, $atts ) {
 		// If foo attribute equals "foo1", change it to be default value.
 		if ( isset( $out['foo'] ) && 'foo1' === $out['foo'] ) {
 			$out['foo'] = $pairs['foo'];
