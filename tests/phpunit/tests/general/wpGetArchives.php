@@ -6,7 +6,7 @@
  * @covers ::wp_get_archives
  */
 class Tests_General_wpGetArchives extends WP_UnitTestCase {
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		wp_cache_delete( 'last_changed', 'posts' );
@@ -15,7 +15,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 	/**
 	 * @ticket 23206
 	 */
-	function test_get_archives_cache() {
+	public function test_get_archives_cache() {
 		global $wpdb;
 
 		self::factory()->post->create_many( 3, array( 'post_type' => 'post' ) );

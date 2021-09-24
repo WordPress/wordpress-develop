@@ -28,7 +28,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		stream_wrapper_unregister( 'testimagemeta' );
 	}
 
-	function test_exif_d70() {
+	public function test_exif_d70() {
 		// Exif from a Nikon D70.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0008.jpg' );
 
@@ -44,7 +44,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '', $out['title'] );
 	}
 
-	function test_exif_d70_mf() {
+	public function test_exif_d70_mf() {
 		// Exif from a Nikon D70 - manual focus lens, so some data is unavailable.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG' );
 
@@ -61,7 +61,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		// $this->assertSame( array( 'Flowers' ), $out['keywords'] );
 	}
 
-	function test_exif_d70_iptc() {
+	public function test_exif_d70_iptc() {
 		// Exif from a Nikon D70 with IPTC data added later.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0007.jpg' );
 
@@ -77,7 +77,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'IPTC Headline', $out['title'] );
 	}
 
-	function test_exif_fuji() {
+	public function test_exif_fuji() {
 		// Exif from a Fuji FinePix S5600 (thanks Mark).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/a2-small.jpg' );
 
@@ -97,7 +97,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	/**
 	 * @ticket 6571
 	 */
-	function test_exif_error() {
+	public function test_exif_error() {
 		// https://core.trac.wordpress.org/ticket/6571
 		// This triggers a warning mesage when reading the Exif block.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/waffles.jpg' );
@@ -114,7 +114,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '', $out['title'] );
 	}
 
-	function test_exif_no_data() {
+	public function test_exif_no_data() {
 		// No Exif data in this image (from burningwell.org).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/canola.jpg' );
 
@@ -133,7 +133,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	/**
 	 * @ticket 9417
 	 */
-	function test_utf8_iptc_tags() {
+	public function test_utf8_iptc_tags() {
 		// Trilingual UTF-8 text in the ITPC caption-abstract field.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/test-image-iptc.jpg' );
 

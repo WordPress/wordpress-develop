@@ -14,13 +14,13 @@ if ( is_multisite() ) :
 
 		protected $suppress = false;
 
-		function set_up() {
+		public function set_up() {
 			global $wpdb;
 			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tear_down() {
+		public function tear_down() {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
 			parent::tear_down();

@@ -89,7 +89,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	/**
 	 * @ticket 22112
 	 */
-	function test_get_adjacent_post_exclude_self_term() {
+	public function test_get_adjacent_post_exclude_self_term() {
 		// Bump term_taxonomy to mimic shared term offsets.
 		global $wpdb;
 		$wpdb->insert(

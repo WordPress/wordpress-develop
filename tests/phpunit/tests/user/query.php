@@ -49,7 +49,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 	}
 
-	function test_get_and_set() {
+	public function test_get_and_set() {
 		$users = new WP_User_Query();
 
 		$this->assertEquals( '', $users->get( 'fields' ) );
@@ -498,7 +498,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 28631
 	 */
-	function test_number() {
+	public function test_number() {
 		// +1 for the default user created by the test suite.
 		$users = new WP_User_Query( array( 'blog_id' => get_current_blog_id() ) );
 		$users = $users->get_results();
@@ -535,7 +535,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 21119
 	 */
-	function test_prepare_query() {
+	public function test_prepare_query() {
 		$query = new WP_User_Query();
 		$this->assertEmpty( $query->query_fields );
 		$this->assertEmpty( $query->query_from );
@@ -600,7 +600,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 23849
 	 */
-	function test_meta_query_with_role() {
+	public function test_meta_query_with_role() {
 		add_user_meta( self::$author_ids[0], 'foo', 'bar' );
 		add_user_meta( self::$author_ids[1], 'foo', 'baz' );
 

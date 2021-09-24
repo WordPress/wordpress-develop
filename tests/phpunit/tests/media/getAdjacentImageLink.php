@@ -18,7 +18,7 @@ class Tests_Media_GetAdjacentImageLink extends WP_Test_Adjacent_Image_Link_TestC
 	 *
 	 * @dataProvider data_get_adjacent_image_link
 	 */
-	function test_get_adjacent_image_link( $current_attachment_index, $expected_attachment_index, $expected, array $args = array() ) {
+	public function test_get_adjacent_image_link( $current_attachment_index, $expected_attachment_index, $expected, array $args = array() ) {
 		list( $expected, $args ) = $this->setup_test_scenario( $current_attachment_index, $expected_attachment_index, $expected, $args );
 
 		$actual = get_adjacent_image_link( ...$args );

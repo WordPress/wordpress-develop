@@ -5,7 +5,7 @@
  */
 class Tests_POMO_MO extends WP_UnitTestCase {
 
-	function test_mo_simple() {
+	public function test_mo_simple() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/simple.mo' );
 		$this->assertSame(
@@ -20,7 +20,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( array( 'yes' ), $mo->entries["kuku\nruku"]->translations );
 	}
 
-	function test_mo_plural() {
+	public function test_mo_plural() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/plural.mo' );
 		$this->assertCount( 1, $mo->entries );
@@ -46,7 +46,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( 'twoey dragoney', $mo->translate_plural( 'one dragon', '%d dragons', -8 ) );
 	}
 
-	function test_mo_context() {
+	public function test_mo_context() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/context.mo' );
 		$this->assertCount( 2, $mo->entries );
@@ -73,7 +73,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 
 	}
 
-	function test_translations_merge() {
+	public function test_translations_merge() {
 		$host = new Translations();
 		$host->add_entry( new Translation_Entry( array( 'singular' => 'pink' ) ) );
 		$host->add_entry( new Translation_Entry( array( 'singular' => 'green' ) ) );
@@ -85,7 +85,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( array(), array_diff( array( 'pink', 'green', 'red' ), array_keys( $host->entries ) ) );
 	}
 
-	function test_export_mo_file() {
+	public function test_export_mo_file() {
 		$entries              = array();
 		$entries[]            = new Translation_Entry(
 			array(
@@ -143,7 +143,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		}
 	}
 
-	function test_export_should_not_include_empty_translations() {
+	public function test_export_should_not_include_empty_translations() {
 		$entries = array();
 		$mo      = new MO;
 		$mo->add_entry(
@@ -162,7 +162,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertCount( 0, $again->entries );
 	}
 
-	function test_nplurals_with_backslashn() {
+	public function test_nplurals_with_backslashn() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/bad_nplurals.mo' );
 		$this->assertSame( '%d foro', $mo->translate_plural( '%d forum', '%d forums', 1 ) );
@@ -170,14 +170,14 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( '%d foros', $mo->translate_plural( '%d forum', '%d forums', -1 ) );
 	}
 
-	function disabled_test_performance() {
+	public function disabled_test_performance() {
 		$start = microtime( true );
 		$mo    = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/de_DE-2.8.mo' );
 		// echo "\nPerformance: ".(microtime(true) - $start)."\n";
 	}
 
-	function test_overloaded_mb_functions() {
+	public function test_overloaded_mb_functions() {
 		if ( ( ini_get( 'mbstring.func_overload' ) & 2 ) === 0 ) {
 			$this->markTestSkipped( 'This test requires mbstring.func_overload to be enabled.' );
 		}
@@ -187,7 +187,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( array( 'Табло' ), $mo->entries['Dashboard']->translations );
 	}
 
-	function test_load_pot_file() {
+	public function test_load_pot_file() {
 		$mo = new MO();
 		$this->assertFalse( $mo->import_from_file( DIR_TESTDATA . '/pomo/mo.pot' ) );
 	}

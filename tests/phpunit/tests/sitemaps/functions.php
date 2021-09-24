@@ -96,7 +96,7 @@ class Tests_Sitemaps_Functions extends WP_UnitTestCase {
 	 *     @type string|false $4 Sitemap URL.
 	 * }
 	 */
-	function plain_permalinks_provider() {
+	public function plain_permalinks_provider() {
 		return array(
 			array( 'posts', 'post', 1, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),
 			array( 'posts', 'post', 0, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),
@@ -128,7 +128,7 @@ class Tests_Sitemaps_Functions extends WP_UnitTestCase {
 	 *     @type string|false $4 Sitemap URL.
 	 * }
 	 */
-	function pretty_permalinks_provider() {
+	public function pretty_permalinks_provider() {
 		return array(
 			array( 'posts', 'post', 1, home_url( '/wp-sitemap-posts-post-1.xml' ) ),
 			array( 'posts', 'post', 0, home_url( '/wp-sitemap-posts-post-1.xml' ) ),

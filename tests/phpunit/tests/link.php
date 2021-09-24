@@ -4,14 +4,14 @@
  */
 class Tests_Link extends WP_UnitTestCase {
 
-	function _get_pagenum_link_cb( $url ) {
+	private function _get_pagenum_link_cb( $url ) {
 		return $url . '/WooHoo';
 	}
 
 	/**
 	 * @ticket 8847
 	 */
-	function test_get_pagenum_link_case_insensitivity() {
+	public function test_get_pagenum_link_case_insensitivity() {
 		$old_req_uri = $_SERVER['REQUEST_URI'];
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
@@ -26,7 +26,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$_SERVER['REQUEST_URI'] = $old_req_uri;
 	}
 
-	function test_wp_get_shortlink() {
+	public function test_wp_get_shortlink() {
 		$post_id  = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
 
@@ -70,7 +70,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink() );
 	}
 
-	function test_wp_get_shortlink_with_page() {
+	public function test_wp_get_shortlink_with_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		// Basic case.
@@ -85,7 +85,7 @@ class Tests_Link extends WP_UnitTestCase {
 	/**
 	 * @ticket 26871
 	 */
-	function test_wp_get_shortlink_with_home_page() {
+	public function test_wp_get_shortlink_with_home_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $post_id );

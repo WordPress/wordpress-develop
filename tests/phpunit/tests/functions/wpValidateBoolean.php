@@ -12,7 +12,7 @@ class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_provider() {
+	public function data_provider() {
 			$std = new \stdClass();
 
 			return array(

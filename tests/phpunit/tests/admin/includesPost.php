@@ -26,7 +26,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	function test__wp_translate_postdata_cap_checks_contributor() {
+	public function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 
 		// Create new draft post.
@@ -76,7 +76,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'Sorry, you are not allowed to edit posts as this user.', $_results->get_error_message() );
 	}
 
-	function test__wp_translate_postdata_cap_checks_editor() {
+	public function test__wp_translate_postdata_cap_checks_editor() {
 		wp_set_current_user( self::$editor_id );
 
 		// Create new draft post.
@@ -131,7 +131,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 25272
 	 */
-	function test_edit_post_auto_draft() {
+	public function test_edit_post_auto_draft() {
 		wp_set_current_user( self::$editor_id );
 		$post = self::factory()->post->create_and_get( array( 'post_status' => 'auto-draft' ) );
 		$this->assertSame( 'auto-draft', $post->post_status );
@@ -789,7 +789,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( $p, post_exists( $title, $content, $date ) );
 	}
 
-	function test_use_block_editor_for_post() {
+	public function test_use_block_editor_for_post() {
 		$this->assertFalse( use_block_editor_for_post( -1 ) );
 		$bogus_post_id = $this->factory()->post->create(
 			array(
@@ -822,7 +822,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		remove_filter( 'use_block_editor_for_post', '__return_true' );
 	}
 
-	function test_get_block_editor_server_block_settings() {
+	public function test_get_block_editor_server_block_settings() {
 		$name     = 'core/test';
 		$settings = array(
 			'icon'            => 'text',

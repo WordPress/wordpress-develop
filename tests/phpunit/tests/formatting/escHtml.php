@@ -4,7 +4,7 @@
  * @group formatting
  */
 class Tests_Formatting_EscHtml extends WP_UnitTestCase {
-	function test_esc_html_basics() {
+	public function test_esc_html_basics() {
 		// Simple string.
 		$html = 'The quick brown fox.';
 		$this->assertSame( $html, esc_html( $html ) );
@@ -20,19 +20,19 @@ class Tests_Formatting_EscHtml extends WP_UnitTestCase {
 		$this->assertSame( $escaped, esc_html( $html ) );
 	}
 
-	function test_escapes_ampersands() {
+	public function test_escapes_ampersands() {
 		$source = 'penn & teller & at&t';
 		$res    = 'penn &amp; teller &amp; at&amp;t';
 		$this->assertSame( $res, esc_html( $source ) );
 	}
 
-	function test_escapes_greater_and_less_than() {
+	public function test_escapes_greater_and_less_than() {
 		$source = 'this > that < that <randomhtml />';
 		$res    = 'this &gt; that &lt; that &lt;randomhtml /&gt;';
 		$this->assertSame( $res, esc_html( $source ) );
 	}
 
-	function test_ignores_existing_entities() {
+	public function test_ignores_existing_entities() {
 		$source = '&#038; &#x00A3; &#x22; &amp;';
 		$res    = '&#038; &#xA3; &#x22; &amp;';
 		$this->assertSame( $res, esc_html( $source ) );
