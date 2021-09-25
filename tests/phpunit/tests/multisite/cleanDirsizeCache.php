@@ -9,19 +9,6 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_CleanDirsizeCache extends WP_UnitTestCase {
-		protected $suppress = false;
-
-		function set_up() {
-			global $wpdb;
-			parent::set_up();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tear_down() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tear_down();
-		}
 
 		/**
 		 * Test whether dirsize_cache values are used correctly with a more complex dirsize cache mock.

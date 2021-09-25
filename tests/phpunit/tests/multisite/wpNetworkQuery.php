@@ -12,20 +12,6 @@ if ( is_multisite() ) :
 	class Tests_Multisite_wpNetworkQuery extends WP_UnitTestCase {
 		protected static $network_ids;
 
-		protected $suppress = false;
-
-		function set_up() {
-			global $wpdb;
-			parent::set_up();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tear_down() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tear_down();
-		}
-
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'wordpress.org/'      => array(
