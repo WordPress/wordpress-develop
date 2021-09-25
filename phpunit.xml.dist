@@ -1,6 +1,7 @@
+<?xml version="1.0"?>
 <phpunit
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
+		xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
 		bootstrap="tests/phpunit/includes/bootstrap.php"
 		backupGlobals="false"
 		colors="true"
@@ -27,14 +28,15 @@
 		</exclude>
 	</groups>
 	<logging>
-		<log type="junit" target="tests/phpunit/build/logs/junit.xml" />
+		<junit outputFile="tests/phpunit/build/logs/junit.xml"/>
 	</logging>
 	<php>
-		<const name="WP_RUN_CORE_TESTS" value="1" />
+		<const name="WP_RUN_CORE_TESTS" value="1"/>
 	</php>
-	<filter>
-		<whitelist addUncoveredFilesFromWhitelist="true">
+	<coverage includeUncoveredFiles="true">
+		<include>
 			<directory suffix=".php">src</directory>
+		</include>
 			<exclude>
 				<!-- Third party library exclusions. -->
 				<directory suffix=".php">src/wp-includes/ID3</directory>
@@ -67,6 +69,5 @@
 				<file>src/wp-includes/pluggable-deprecated.php</file>
 				<file>src/wp-includes/rss.php</file>
 			</exclude>
-		</whitelist>
-	</filter>
+	</coverage>
 </phpunit>
