@@ -1,6 +1,7 @@
+<?xml version="1.0"?>
 <phpunit
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
+		xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
 		bootstrap="includes/bootstrap.php"
 		backupGlobals="false"
 		colors="true"
@@ -8,8 +9,8 @@
 		beStrictAboutOutputDuringTests="true"
 		>
 	<php>
-		<const name="WP_TESTS_MULTISITE" value="1" />
-		<const name="WP_RUN_CORE_TESTS" value="1" />
+		<const name="WP_TESTS_MULTISITE" value="1"/>
+		<const name="WP_RUN_CORE_TESTS" value="1"/>
 	</php>
 	<testsuites>
 		<!-- Default test suite to run all tests. -->
@@ -31,9 +32,10 @@
 			<group>oembed-headers</group>
 		</exclude>
 	</groups>
-	<filter>
-		<whitelist addUncoveredFilesFromWhitelist="true">
+	<coverage includeUncoveredFiles="true">
+		<include>
 			<directory suffix=".php">../../src</directory>
+		</include>
 			<exclude>
 				<!-- Third party library exclusions. -->
 				<directory suffix=".php">../../src/wp-includes/ID3</directory>
@@ -66,6 +68,5 @@
 				<file>../../src/wp-includes/pluggable-deprecated.php</file>
 				<file>../../src/wp-includes/rss.php</file>
 			</exclude>
-		</whitelist>
-	</filter>
+	</coverage>
 </phpunit>
