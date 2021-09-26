@@ -4669,7 +4669,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$user->get_role_caps();
 		$user->update_user_level_from_caps();
 
-		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/" . self::$post_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
 		$request->set_query_params( array( 'context' => 'edit' ) );
 
 		$response = rest_get_server()->dispatch( $request );
