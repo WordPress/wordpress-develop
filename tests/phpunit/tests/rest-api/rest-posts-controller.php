@@ -4684,9 +4684,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$user->get_role_caps();
 		$user->update_user_level_from_caps();
 
-		// $post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
-		// $this->assertGreaterThan( 0, $post );
-
 		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/" . self::$post_id );
 		$request->set_query_params( array( 'context' => 'edit' ) );
 
