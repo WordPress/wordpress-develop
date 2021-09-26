@@ -12,20 +12,6 @@ if ( is_multisite() ) :
 		protected static $network_ids;
 		protected static $site_ids;
 
-		protected $suppress = false;
-
-		public function set_up() {
-			global $wpdb;
-			parent::set_up();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		public function tear_down() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tear_down();
-		}
-
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'wordpress.org/'      => array(

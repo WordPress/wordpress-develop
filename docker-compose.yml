@@ -92,41 +92,9 @@ services:
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
 
-  ##
-  # The PHPUnit container.
-  ##
-  phpunit:
-    image: wordpressdevelop/phpunit:${LOCAL_PHPUNIT-latest}
-
-    networks:
-      - wpdevnet
-
-    environment:
-      - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
-      - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
-      - PHP_FPM_UID=${PHP_FPM_UID-1000}
-      - PHP_FPM_GID=${PHP_FPM_GID-1000}
-      - LOCAL_DIR=${LOCAL_DIR-src}
-      - WP_MULTISITE=${WP_MULTISITE-false}
-      - GITHUB_REF=${GITHUB_REF-false}
-      - GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME-false}
-
-    volumes:
-      - ./tools/local-env/phpunit-config.ini:/usr/local/etc/php/conf.d/phpunit-config.ini
-      - ./:/var/www
-      - phpunit-uploads:/var/www/${LOCAL_DIR-src}/wp-content/uploads
-
-    # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
-    init: true
-
-    depends_on:
-      - mysql
-
 volumes:
   # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.
   mysql: {}
-  # Using a volume for the uploads directory improves PHPUnit performance.
-  phpunit-uploads: {}
 
 networks:
   # Creating our own network allows us to connect between containers using their service name.
