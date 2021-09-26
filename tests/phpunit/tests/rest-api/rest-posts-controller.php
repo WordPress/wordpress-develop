@@ -3793,21 +3793,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 'Hello, world.', $post->post_content );
 		$this->assertEquals( 'Hello', $post->post_excerpt );
 		$this->assertEquals( 'publish', $post->post_status );
-
-		$request2 = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
-		$request2->add_header( 'content-type', 'application/x-www-form-urlencoded' );
-		$params2 = $this->set_post_data(
-			array(
-				'content' => 'Hello again.',
-				'status'  => 'future',
-			)
-		);
-		$request2->set_body_params( $params2 );
-		$response2 = rest_get_server()->dispatch( $request2 );
-		$this->check_update_post_response( $response2 );
-		$data2 = $response2->get_data();
-		$post2 = get_post( self::$post_id );
-		$this->assertEquals( 'Hello again.', $post2->post_content );
 	}
 
 	/**
