@@ -20,10 +20,11 @@ class Tests_Functions__wp_mysql_week extends WP_UnitTestCase {
 	public function data__wp_mysql_week() {
 		$data = array();
 		for ( $day_of_week = 0; $day_of_week <= 6; $day_of_week++ ) {
+			$key = 'post_date_' . $day_of_week;
 			if ( $day_of_week < 2 ) {
-				$data['post_date_' . $day_of_week] = array( '`post_date`', $day_of_week, "WEEK( `post_date`, $day_of_week )" );
+				$data[ $key ] = array( '`post_date`', $day_of_week, "WEEK( `post_date`, $day_of_week )" );
 			} else {
-				$data['post_date_' . $day_of_week] = array( '`post_date`', $day_of_week, "WEEK( DATE_SUB( `post_date`, INTERVAL $day_of_week DAY ), 0 )" );
+				$data[ $key ] = array( '`post_date`', $day_of_week, "WEEK( DATE_SUB( `post_date`, INTERVAL $day_of_week DAY ), 0 )" );
 			}
 		}
 
