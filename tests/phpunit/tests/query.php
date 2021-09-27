@@ -2,7 +2,7 @@
 
 class Tests_Query extends WP_UnitTestCase {
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
@@ -12,7 +12,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 24785
 	 */
-	function test_nested_loop_reset_postdata() {
+	public function test_nested_loop_reset_postdata() {
 		$post_id        = self::factory()->post->create();
 		$nested_post_id = self::factory()->post->create();
 
@@ -32,7 +32,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 16471
 	 */
-	function test_default_query_var() {
+	public function test_default_query_var() {
 		$query = new WP_Query;
 		$this->assertSame( '', $query->get( 'nonexistent' ) );
 		$this->assertFalse( $query->get( 'nonexistent', false ) );
@@ -42,7 +42,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 25380
 	 */
-	function test_pre_posts_per_page() {
+	public function test_pre_posts_per_page() {
 		self::factory()->post->create_many( 10 );
 
 		add_action( 'pre_get_posts', array( $this, 'filter_posts_per_page' ) );
@@ -52,14 +52,14 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertSame( 30, get_query_var( 'posts_per_page' ) );
 	}
 
-	function filter_posts_per_page( &$query ) {
+	public function filter_posts_per_page( &$query ) {
 		$query->set( 'posts_per_rss', 30 );
 	}
 
 	/**
 	 * @ticket 26627
 	 */
-	function test_tag_queried_object() {
+	public function test_tag_queried_object() {
 		$slug = 'tag-slug-26627';
 		self::factory()->tag->create( array( 'slug' => $slug ) );
 		$tag = get_term_by( 'slug', $slug, 'post_tag' );
@@ -78,7 +78,7 @@ class Tests_Query extends WP_UnitTestCase {
 		remove_action( 'pre_get_posts', array( $this, '_tag_queried_object' ), 11 );
 	}
 
-	function _tag_queried_object( &$query ) {
+	public function _tag_queried_object( &$query ) {
 		$tag = get_term_by( 'slug', 'tag-slug-26627', 'post_tag' );
 		$this->assertTrue( $query->is_tag() );
 		$this->assertTrue( $query->is_archive() );

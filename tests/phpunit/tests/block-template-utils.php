@@ -33,7 +33,7 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 		wp_delete_post( self::$post->ID );
 	}
 
-	function test_build_template_result_from_post() {
+	public function test_build_template_result_from_post() {
 		$template = _build_template_result_from_post(
 			self::$post,
 			'wp_template'
@@ -53,7 +53,7 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 	/**
 	 * Should retrieve the template from the CPT.
 	 */
-	function test_get_block_template_from_post() {
+	public function test_get_block_template_from_post() {
 		$id       = get_stylesheet() . '//' . 'my_template';
 		$template = get_block_template( $id, 'wp_template' );
 		$this->assertSame( $id, $template->id );
@@ -67,7 +67,7 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 	/**
 	 * Should retrieve block templates.
 	 */
-	function test_get_block_templates() {
+	public function test_get_block_templates() {
 		function get_template_ids( $templates ) {
 			return array_map(
 				static function( $template ) {

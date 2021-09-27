@@ -18,7 +18,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 35961
 	 */
-	function test_n_noop() {
+	public function test_n_noop() {
 		$text_domain   = 'text-domain';
 		$nooped_plural = _n_noop( '%s post', '%s posts', $text_domain );
 
@@ -31,7 +31,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 35961
 	 */
-	function test_nx_noop() {
+	public function test_nx_noop() {
 		$text_domain   = 'text-domain';
 		$nooped_plural = _nx_noop( '%s post', '%s posts', 'my-context', $text_domain );
 
@@ -45,7 +45,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 35073
 	 */
-	function test_before_last_bar() {
+	public function test_before_last_bar() {
 		$this->assertSame( 'no-bar-at-all', before_last_bar( 'no-bar-at-all' ) );
 		$this->assertSame( 'before-last-bar', before_last_bar( 'before-last-bar|after-bar' ) );
 		$this->assertSame( 'first-before-bar|second-before-bar', before_last_bar( 'first-before-bar|second-before-bar|after-last-bar' ) );
@@ -54,7 +54,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 35950
 	 */
-	function test_get_available_languages() {
+	public function test_get_available_languages() {
 		$array = get_available_languages();
 		$this->assertIsArray( $array );
 
@@ -68,7 +68,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 35284
 	 */
-	function test_wp_get_installed_translations_for_core() {
+	public function test_wp_get_installed_translations_for_core() {
 		$installed_translations = wp_get_installed_translations( 'core' );
 		$this->assertIsArray( $installed_translations );
 		$textdomains_expected = array( 'admin', 'admin-network', 'continents-cities', 'default' );
@@ -90,7 +90,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 35294
 	 */
-	function test_wp_dropdown_languages() {
+	public function test_wp_dropdown_languages() {
 		$args   = array(
 			'id'           => 'foo',
 			'name'         => 'bar',
@@ -112,7 +112,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 38632
 	 */
-	function test_wp_dropdown_languages_site_default() {
+	public function test_wp_dropdown_languages_site_default() {
 		$args   = array(
 			'id'                       => 'foo',
 			'name'                     => 'bar',
@@ -136,7 +136,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44494
 	 */
-	function test_wp_dropdown_languages_exclude_en_us() {
+	public function test_wp_dropdown_languages_exclude_en_us() {
 		$args   = array(
 			'id'                => 'foo',
 			'name'              => 'bar',
@@ -154,7 +154,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 38632
 	 */
-	function test_wp_dropdown_languages_en_US_selected() {
+	public function test_wp_dropdown_languages_en_US_selected() {
 		$args   = array(
 			'id'           => 'foo',
 			'name'         => 'bar',
@@ -176,7 +176,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * Add site default language to ja_JP in dropdown
 	 */
-	function test_wp_dropdown_languages_site_default_ja_JP() {
+	public function test_wp_dropdown_languages_site_default_ja_JP() {
 		$args   = array(
 			'id'                       => 'foo',
 			'name'                     => 'bar',
@@ -200,7 +200,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * Select dropdown language from de_DE to ja_JP
 	 */
-	function test_wp_dropdown_languages_ja_JP_selected() {
+	public function test_wp_dropdown_languages_ja_JP_selected() {
 		$args   = array(
 			'id'           => 'foo',
 			'name'         => 'bar',
@@ -224,7 +224,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function wp_dropdown_languages_filter() {
+	private function wp_dropdown_languages_filter() {
 		return array(
 			'de_DE' => array(
 				'language'    => 'de_DE',
@@ -247,7 +247,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 35284
 	 */
-	function test_wp_get_pomo_file_data() {
+	public function test_wp_get_pomo_file_data() {
 		$file  = DIR_TESTDATA . '/pomo/empty.po';
 		$array = wp_get_pomo_file_data( $file );
 		$this->assertArrayHasKey( 'POT-Creation-Date', $array );
@@ -273,7 +273,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_excerpt_should_be_counted_by_words() {
+	public function test_length_of_excerpt_should_be_counted_by_words() {
 		global $post;
 
 		switch_to_locale( 'en_US' );
@@ -297,7 +297,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_excerpt_should_be_counted_by_chars() {
+	public function test_length_of_excerpt_should_be_counted_by_chars() {
 		global $post;
 
 		switch_to_locale( 'ja_JP' );
@@ -321,7 +321,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_excerpt_should_be_counted_by_chars_in_japanese() {
+	public function test_length_of_excerpt_should_be_counted_by_chars_in_japanese() {
 		global $post;
 
 		switch_to_locale( 'ja_JP' );
@@ -345,7 +345,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_excerpt_rss_should_be_counted_by_words() {
+	public function test_length_of_excerpt_rss_should_be_counted_by_words() {
 		global $post;
 
 		switch_to_locale( 'en_US' );
@@ -369,7 +369,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_excerpt_rss_should_be_counted_by_chars() {
+	public function test_length_of_excerpt_rss_should_be_counted_by_chars() {
 		global $post;
 
 		switch_to_locale( 'ja_JP' );
@@ -394,7 +394,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_draft_should_be_counted_by_words() {
+	public function test_length_of_draft_should_be_counted_by_words() {
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
 		switch_to_locale( 'en_US' );
@@ -418,7 +418,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_draft_should_be_counted_by_chars() {
+	public function test_length_of_draft_should_be_counted_by_chars() {
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
 		switch_to_locale( 'ja_JP' );
@@ -442,7 +442,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_draft_should_be_counted_by_chars_in_japanese() {
+	public function test_length_of_draft_should_be_counted_by_chars_in_japanese() {
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
 		switch_to_locale( 'ja_JP' );
@@ -466,7 +466,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_comment_excerpt_should_be_counted_by_words() {
+	public function test_length_of_comment_excerpt_should_be_counted_by_words() {
 		switch_to_locale( 'en_US' );
 
 		$args            = array(
@@ -484,7 +484,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_comment_excerpt_should_be_counted_by_chars() {
+	public function test_length_of_comment_excerpt_should_be_counted_by_chars() {
 		switch_to_locale( 'ja_JP' );
 
 		$args            = array(
@@ -502,7 +502,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	/**
 	 * @ticket 44541
 	 */
-	function test_length_of_comment_excerpt_should_be_counted_by_chars_in_Japanese() {
+	public function test_length_of_comment_excerpt_should_be_counted_by_chars_in_Japanese() {
 		switch_to_locale( 'ja_JP' );
 
 		$args            = array(

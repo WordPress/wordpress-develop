@@ -34,7 +34,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		self::delete_user( self::$editor_id );
 	}
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-phpass.php';
 	}
