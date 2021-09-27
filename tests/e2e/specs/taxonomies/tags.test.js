@@ -130,6 +130,7 @@ describe('Manage tags', () => {
         await page.keyboard.press('Enter');
 
         await page.waitForSelector('span.subtitle');
+        await page.waitForSelector('#the-list');
 
         const noItemRow = await page.$$('#the-list tr.no-items');
         expect(noItemRow.length).toBe(1);
