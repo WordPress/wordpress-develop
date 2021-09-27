@@ -340,7 +340,7 @@ require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
  */
 class WP_PHPUnit_Util_Getopt {
 
-	function __construct( $argv ) {
+	public function __construct( $argv ) {
 		$skipped_groups = array(
 			'ajax'          => true,
 			'ms-files'      => true,
