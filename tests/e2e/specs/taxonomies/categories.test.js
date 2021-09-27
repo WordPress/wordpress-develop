@@ -150,8 +150,10 @@ describe('Manage categories', () => {
 
         const noItemRow = await page.$$('#the-list tr');
         expect(noItemRow.length).toBe(1);
+
+        const noItemContent = await page.waitForSelector('#the-list tr td');
         expect(
-            await noItemRow[0].evaluate((element) => element.textContent)
+            await noItemContent.evaluate((element) => element.textContent)
         ).toContain('No categories found.');
     });
 });
