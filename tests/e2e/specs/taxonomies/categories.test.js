@@ -131,6 +131,7 @@ describe('Manage categories', () => {
         await page.keyboard.press('Enter');
 
         await page.waitForSelector('span.subtitle');
+        await page.waitForSelector('#the-list');
 
         const remainingCategoryRow = await page.$$('#the-list tr');
         expect(remainingCategoryRow.length).toBe(1);
@@ -147,8 +148,9 @@ describe('Manage categories', () => {
         await page.keyboard.press('Enter');
 
         await page.waitForSelector('span.subtitle');
+        await page.waitForSelector('#the-list');
 
-        const noItemRow = await page.$$('#the-list tr');
+        const noItemRow = await page.$$('#the-list tr.no-items');
         expect(noItemRow.length).toBe(1);
 
         const noItemContent = await page.waitForSelector('#the-list tr td');
