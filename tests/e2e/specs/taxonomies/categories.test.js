@@ -92,6 +92,7 @@ describe('Manage categories', () => {
         await page.keyboard.press('Enter');
 
         await page.waitForResponse(response => response.status() === 200);
+        await page.waitForTimeout(500);
 
         const editedCategoryTitle = await page.waitForSelector('#the-list tr:first-child .row-title');
         expect(
@@ -147,7 +148,6 @@ describe('Manage categories', () => {
         await page.type('#tag-search-input', 'Test Category');
         await page.keyboard.press('Enter');
 
-        await page.waitForSelector('span.subtitle');
         await page.waitForSelector('#the-list');
 
         const noItemRow = await page.$$('#the-list tr.no-items');
