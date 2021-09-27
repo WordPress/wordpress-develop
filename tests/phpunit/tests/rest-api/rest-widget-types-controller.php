@@ -134,28 +134,11 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertGreaterThan( 1, count( $data ) );
-		$ids      = wp_list_pluck( $data, 'id' );
-		$expected = array(
-			'archives',
-			'block',
-			'calendar',
-			'categories',
-			'custom_html',
-			'media_audio',
-			'media_gallery',
-			'media_image',
-			'media_video',
-			'meta',
-			'nav_menu',
-			'pages',
-			'recent-comments',
-			'recent-posts',
-			'rss',
-			'search',
-			'tag_cloud',
-			'text',
-		);
-		$this->assertEqualSets( $expected, $ids );
+		$ids    = wp_list_pluck( $data, 'id' );
+		$sorted = $ids;
+		sort( $sorted );
+
+		$this->assertSame( $sorted, $ids );
 	}
 
 	/**
