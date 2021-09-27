@@ -508,6 +508,8 @@ add_action( 'parse_request', 'rest_api_loaded' );
 // Sitemaps actions.
 add_action( 'init', 'wp_sitemaps_get_server' );
 
+// IndexNow actions.
+add_action( 'init', 'wp_indexnow_get_instance' );
 /**
  * Filters formerly mixed into wp-includes.
  */
