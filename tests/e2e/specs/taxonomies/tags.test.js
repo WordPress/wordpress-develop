@@ -27,22 +27,23 @@ async function deleteAllTags() {
 }
 
 describe('Manage tags', () => {
+    const testTagName = 'Test Tag';
     beforeEach(async() => {
         await deleteAllTags();
     });
 
     it('correctly creates a new tag', async() => {
-        await createNewTag('Test tag');
+        await createNewTag(testTagName);
 
         const newTagTitle = await page.waitForSelector('#the-list tr .row-title');
         expect(
             await newTagTitle.evaluate((element) => element.textContent)
-        ).toBe('Test tag');
+        ).toBe(testTagName);
     });
 
     it('should not allow to add the same tag name twice', async() => {
-        await createNewTag('Test tag');
-        await createNewTag('Test tag');
+        await createNewTag(testTagName);
+        await createNewTag(testTagName);
 
         const errorMessage = await page.waitForSelector('#ajax-response p');
         expect(
@@ -51,7 +52,7 @@ describe('Manage tags', () => {
     });
 
     it('correctly deletes all tags', async() => {
-        await createNewTag('Test tag');
+        await createNewTag(testTagName);
         await deleteAllTags();
 
         const successMessage = await page.waitForSelector('#message p');
@@ -64,7 +65,7 @@ describe('Manage tags', () => {
     });
 
     it('correctly quick edits a tag', async() => {
-        await createNewTag('Test tag');
+        await createNewTag(testTagName);
 
         await page.focus('#the-list tr .row-title');
         await page.click('#the-list tr .editinline');
@@ -78,11 +79,11 @@ describe('Manage tags', () => {
         const editedTagTitle = await page.waitForSelector('#the-list tr .row-title');
         expect(
             await editedTagTitle.evaluate((element) => element.textContent)
-        ).toBe('Test tag Edited');
+        ).toBe(`${testTagName} Edited`);
     });
 
     it('correctly edits a tag', async() => {
-        await createNewTag('Test tag');
+        await createNewTag(testTagName);
 
         await page.focus('#the-list tr .row-title');
         await page.click('span.edit a');
@@ -102,14 +103,14 @@ describe('Manage tags', () => {
         const editedTagTitle = await page.waitForSelector('#the-list tr .row-title');
         expect(
             await editedTagTitle.evaluate((element) => element.textContent)
-        ).toBe('Edited Test tag');
+        ).toBe(`Edited ${testTagName}`);
     });
 
     it('should correctly searches an existing tag', async() => {
-        await createNewTag('Test tag');
+        await createNewTag(testTagName);
 
         await page.focus('#tag-search-input');
-        await page.type('#tag-search-input', 'Test tag');
+        await page.type('#tag-search-input', testTagName);
         await page.keyboard.press('Enter');
 
         await page.waitForSelector('span.subtitle');
@@ -121,12 +122,12 @@ describe('Manage tags', () => {
         const remainingTagTitle = await page.waitForSelector('#the-list tr .row-title');
         expect(
             await remainingTagTitle.evaluate((element) => element.textContent)
-        ).toContain('Test tag');
+        ).toContain(testTagName);
     });
 
     it('should not find a non existing tag', async() => {
         await page.focus('#tag-search-input');
-        await page.type('#tag-search-input', 'Test tag');
+        await page.type('#tag-search-input', testTagName);
         await page.keyboard.press('Enter');
 
         await page.waitForSelector('span.subtitle');
