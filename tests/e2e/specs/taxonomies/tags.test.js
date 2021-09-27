@@ -141,4 +141,36 @@ describe('Manage tags', () => {
             await noItemContent.evaluate((element) => element.textContent)
         ).toContain('No tags found.');
     });
+
+    it('correctly sorts tags per name', async() => {
+        const tagNames = ['Tag 1', 'Tag 2', 'Tag 3'];
+
+        for (let i = 0, n = tagNames.length; i < n; i++) {
+            await createNewTag(tagNames[i]);
+        }
+
+        await page.waitForSelector('#the-list');
+
+        // ASC order
+        await page.click('#name');
+        await page.waitForSelector('#the-list');
+
+        const tagTitles = await page.$$('#the-list tr .row-title');
+        tagTitles.map(async(tagTitle, index) => {
+            expect(
+                await tagTitle.evaluate((element) => element.textContent)
+            ).toBe(tagNames[index]);
+        });
+
+        // DESC order
+        await page.click('#name');
+        await page.waitForSelector('#the-list');
+
+        const tagTitles2 = await page.$$('#the-list tr .row-title');
+        tagTitles2.map(async(tagTitle, index) => {
+            expect(
+                await tagTitle.evaluate((element) => element.textContent)
+            ).toBe(tagNames[tagNames.length - index - 1]);
+        });
+    });
 });
