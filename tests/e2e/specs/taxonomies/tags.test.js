@@ -33,7 +33,8 @@ describe('Manage tags', () => {
 
     it('correctly creates a new tag', async() => {
         await createNewTag('Test tag');
-        const newTagTitle = await page.$('#the-list tr .row-title');
+
+        const newTagTitle = await page.waitForSelector('#the-list tr .row-title');
         expect(
             await newTagTitle.evaluate((element) => element.textContent)
         ).toBe('Test tag');
@@ -72,6 +73,7 @@ describe('Manage tags', () => {
         await page.keyboard.press('Enter');
 
         await page.waitForResponse(response => response.status() === 200);
+        await page.waitForTimeout(500);
 
         const editedTagTitle = await page.waitForSelector('#the-list tr .row-title');
         expect(
