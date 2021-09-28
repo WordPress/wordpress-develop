@@ -86,6 +86,7 @@ class WP_Plugin_Dependency_Installer {
 	 */
 	public function parse_headers() {
 		$this->get_plugins();
+		$required_headers = array();
 		foreach ( array_keys( $this->plugins ) as $plugin ) {
 			$required_plugins = get_file_data( WP_PLUGIN_DIR . '/' . $plugin, array( 'RequiredPlugins' => 'Required Plugins' ) );
 			if ( ! empty( $required_plugins['RequiredPlugins'] ) ) {
