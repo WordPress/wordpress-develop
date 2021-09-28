@@ -45,6 +45,7 @@
  * @since 1.5.0
  * @since 5.3.0 Added support for `Requires at least` and `Requires PHP` headers.
  * @since 5.8.0 Added support for `Update URI` header.
+ * @since 5.9.0 Added support for `Required Plugins` header.
  *
  * @param string $plugin_file Absolute path to the main plugin file.
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
@@ -53,37 +54,39 @@
  * @return array {
  *     Plugin data. Values will be empty if not supplied by the plugin.
  *
- *     @type string $Name        Name of the plugin. Should be unique.
- *     @type string $Title       Title of the plugin and link to the plugin's site (if set).
- *     @type string $Description Plugin description.
- *     @type string $Author      Author's name.
- *     @type string $AuthorURI   Author's website address (if set).
- *     @type string $Version     Plugin version.
- *     @type string $TextDomain  Plugin textdomain.
- *     @type string $DomainPath  Plugins relative directory path to .mo files.
- *     @type bool   $Network     Whether the plugin can only be activated network-wide.
- *     @type string $RequiresWP  Minimum required version of WordPress.
- *     @type string $RequiresPHP Minimum required version of PHP.
- *     @type string $UpdateURI   ID of the plugin for update purposes, should be a URI.
+ *     @type string $Name            Name of the plugin. Should be unique.
+ *     @type string $Title           Title of the plugin and link to the plugin's site (if set).
+ *     @type string $Description     Plugin description.
+ *     @type string $Author          Author's name.
+ *     @type string $AuthorURI       Author's website address (if set).
+ *     @type string $Version         Plugin version.
+ *     @type string $TextDomain      Plugin textdomain.
+ *     @type string $DomainPath      Plugins relative directory path to .mo files.
+ *     @type bool   $Network         Whether the plugin can only be activated network-wide.
+ *     @type string $RequiresWP      Minimum required version of WordPress.
+ *     @type string $RequiresPHP     Minimum required version of PHP.
+ *     @type string $UpdateURI       ID of the plugin for update purposes, should be a URI.
+ *     @type string $RequiredPlugins Comma separated list of dot org plugin slugs.
  * }
  */
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 
 	$default_headers = array(
-		'Name'        => 'Plugin Name',
-		'PluginURI'   => 'Plugin URI',
-		'Version'     => 'Version',
-		'Description' => 'Description',
-		'Author'      => 'Author',
-		'AuthorURI'   => 'Author URI',
-		'TextDomain'  => 'Text Domain',
-		'DomainPath'  => 'Domain Path',
-		'Network'     => 'Network',
-		'RequiresWP'  => 'Requires at least',
-		'RequiresPHP' => 'Requires PHP',
-		'UpdateURI'   => 'Update URI',
+		'Name'            => 'Plugin Name',
+		'PluginURI'       => 'Plugin URI',
+		'Version'         => 'Version',
+		'Description'     => 'Description',
+		'Author'          => 'Author',
+		'AuthorURI'       => 'Author URI',
+		'TextDomain'      => 'Text Domain',
+		'DomainPath'      => 'Domain Path',
+		'Network'         => 'Network',
+		'RequiresWP'      => 'Requires at least',
+		'RequiresPHP'     => 'Requires PHP',
+		'UpdateURI'       => 'Update URI',
+		'RequiredPlugins' => 'Required Plugins',
 		// Site Wide Only is deprecated in favor of Network.
-		'_sitewide'   => 'Site Wide Only',
+		'_sitewide'       => 'Site Wide Only',
 	);
 
 	$plugin_data = get_file_data( $plugin_file, $default_headers, 'plugin' );
