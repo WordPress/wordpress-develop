@@ -255,8 +255,7 @@ class WP_Plugin_Dependency_Installer {
 			foreach ( $dependents as $dependent ) {
 				$required .= '<br>' . $dependent;
 			}
-			$required = '<strong>' . __( 'Required by:' ) . '</strong>' . $required;
-
+			$required    = '<strong>' . __( 'Required by:' ) . '</strong>' . $required;
 			$description = '<p>' . $required . '</p>' . $description;
 		}
 
