@@ -263,7 +263,7 @@ function _wp_webfont_parse_params( $params ) {
 		'font-style'   => 'normal',
 		'font-display' => 'fallback',
 		'src'          => array(),
-		'preload'      => true,
+		'preload'      => false,
 	);
 	$params   = wp_parse_args( $params, $defaults );
 
