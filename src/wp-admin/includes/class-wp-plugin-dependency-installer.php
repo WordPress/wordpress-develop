@@ -33,7 +33,6 @@ class WP_Plugin_Dependency_Installer {
 	public function init() {
 		add_filter( 'plugins_api_result', array( $this, 'plugins_api_result' ), 10, 3 );
 		add_filter( 'plugin_install_description', array( $this, 'plugin_install_description' ), 10, 2 );
-		add_action( 'install_plugins_dependencies', array( $this, 'display_plugins_table' ), 10, 1 );
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 		add_action( 'network_admin_notices', array( $this, 'admin_notices' ) );
@@ -64,17 +63,6 @@ class WP_Plugin_Dependency_Installer {
 		}
 
 		return $res;
-	}
-
-	/**
-	 * Run display_plugins_table() for the 'Dependency' tab.
-	 *
-	 * @param int $paged The current page number of the plugins list table.
-	 *
-	 * @return void
-	 */
-	public function display_plugins_table( $paged ) {
-		display_plugins_table();
 	}
 
 	/**
