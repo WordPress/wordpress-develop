@@ -45,9 +45,6 @@ function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $me
 	// Register the stylesheet.
 	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
 
-	// Preload the webfont if needed.
-	_wp_maybe_preload_webfont( $params );
-
 	// Add inline styles for generated @font-face styles.
 	wp_add_inline_style( "webfont-$handle", $provider->get_css() );
 
@@ -148,53 +145,4 @@ function wp_webfont_is( $handle, $list = 'enqueued' ) {
  */
 function wp_webfont_add_data( $handle, $key, $value ) {
 	return wp_style_add_data( "webfont-$handle", $key, $value );
-}
-
-/**
- * Pre-loads the webfont if needed.
- *
- * @since 5.9.0
- *
- * @param string $src    The webfont URL.
- * @param array  $params The webfont parameters.
- * @return void
- */
-function _wp_maybe_preload_webfont( $params ) {
-
-	// Early exit if not using explicit font-files, or if "preload" is not true.
-	if ( empty( $params['preload'] ) || true !== $params['preload'] || empty( $params['src'] ) ) {
-		return;
-	}
-
-	// Hook in "wp_head" to print the preload link.
-	// Using a closure here is acceptable because the function includes a filter.
-	add_action(
-		'wp_head',
-		function() use ( $params ) {
-
-			// Early return if the webfont is a data link.
-			if ( 0 === strpos( $params['src'][0]['format'], 'data' ) ) {
-				return;
-			}
-
-			// Build the link markup.
-			$link = sprintf(
-				'<link rel="preload" href="%1$s" as="font" type="%2$s" crossorigin>',
-				esc_url( $params['src'][0]['url'] ),
-				wp_get_mime_types()[ pathinfo( $params['src'][0]['url'], PATHINFO_EXTENSION ) ]
-			);
-			/**
-			 * Filters the preload link for a webfont.
-			 * This filter is only applied if the webfont is preloaded.
-			 *
-			 * @since 5.9.0
-			 *
-			 * @param string $link   The preload link.
-			 * @param array  $params The webfont parameters.
-			 *
-			 * @return string The preload link.
-			 */
-			echo apply_filters( 'wp_preload_webfont', $link, $params );
-		}
-	);
 }

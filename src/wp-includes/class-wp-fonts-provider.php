@@ -57,6 +57,15 @@ abstract class WP_Fonts_Provider {
 	);
 
 	/**
+	 * An array of API parameters which will not be added to the @font-face.
+	 *
+	 * @var array
+	 * @since 5.9.0
+	 * @access protected
+	 */
+	protected $api_params = array();
+
+	/**
 	 * Get the root URL for the provider.
 	 *
 	 * @access public
@@ -81,14 +90,13 @@ abstract class WP_Fonts_Provider {
 			'font-style'   => 'normal',
 			'font-display' => 'fallback',
 			'src'          => array(),
-			'preload'      => false,
 		);
 
 		// Merge defaults with passed params.
 		$params = wp_parse_args( $params, $defaults );
 
 		// Whitelisted params.
-		$whitelist = array_merge( $this->valid_font_face_properties, array( 'preload' ) );
+		$whitelist = array_merge( $this->valid_font_face_properties, $this->api_params );
 
 		// Only allow whitelisted properties.
 		foreach ( $params as $key => $value ) {

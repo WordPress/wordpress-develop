@@ -24,6 +24,19 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 	protected $root_url = 'https://fonts.googleapis.com/css2';
 
 	/**
+	 * An array of API parameters which will not be added to the @font-face.
+	 *
+	 * @var array
+	 * @since 5.9.0
+	 * @access protected
+	 */
+	protected $api_params = array(
+		'subset',
+		'text',
+		'effect',
+	);
+
+	/**
 	 * Build the API URL from the query args.
 	 *
 	 * @access protected
@@ -40,6 +53,18 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 			$query_args['family'] .= ':ital,wght@1,' . $this->params['font-weight'];
 		} else {
 			$query_args['family'] .= ':wght@' . $this->params['font-weight'];
+		}
+
+		if ( ! empty( $this->params['subset'] ) ) {
+			$query_args['subset'] = implode( ',', (array) $this->params['subset'] );
+		}
+
+		if ( ! empty( $this->params['text'] ) ) {
+			$query_args['text'] = $this->params['text'];
+		}
+
+		if ( ! empty( $this->params['effect'] ) ) {
+			$query_args['effect'] = implode( '|', (array) $this->params['effect'] );
 		}
 
 		return add_query_arg( $query_args, $this->root_url );
