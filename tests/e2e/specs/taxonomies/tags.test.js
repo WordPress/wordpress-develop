@@ -207,7 +207,6 @@ describe('Manage tags', () => {
             expect(
                 await tagTitle.evaluate((element) => element.textContent)
             ).toBe(tags[index]);
-            console.log(tags[index]);
         });
 
         // DESC order
@@ -220,7 +219,6 @@ describe('Manage tags', () => {
             expect(
                 await tagTitle.evaluate((element) => element.textContent)
             ).toBe(tags[tags.length - index - 1]);
-            console.log(tags[tags.length - index - 1]);
         });
     });
 });
