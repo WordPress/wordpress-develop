@@ -109,7 +109,7 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 		$transient_name = 'google_fonts_' . md5( $remote_url );
 		$css            = get_site_transient( $transient_name );
 
-		if ( false !== $css ) {
+		if ( $css ) {
 			return $css;
 		}
 
@@ -124,11 +124,6 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 
 		// Early return if the request failed.
 		if ( is_wp_error( $response ) ) {
-			return '';
-		}
-
-		// Early return if the request did not return CSS.
-		if ( 'text/css' !== wp_remote_retrieve_header( $response, 'content-type' ) ) {
 			return '';
 		}
 
