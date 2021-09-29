@@ -518,7 +518,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			$description = strip_tags( $plugin['short_description'] );
 
 			/**
-			 * Filter the plugin description.
+			 * Filter the plugin card description.
 			 *
 			 * @since 5.9.0
 			 * @param string $decription Plugin card description.
