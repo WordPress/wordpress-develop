@@ -15,6 +15,15 @@
 final class WP_Fonts_Provider_Local extends WP_Fonts_Provider {
 
 	/**
+	 * The provider's unique ID.
+	 *
+	 * @var string
+	 * @since 5.9.0
+	 * @access protected
+	 */
+	protected $id = 'local';
+
+	/**
 	 * Get the CSS for the font.
 	 *
 	 * @access public

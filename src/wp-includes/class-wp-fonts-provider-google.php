@@ -15,6 +15,33 @@
 final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 
 	/**
+	 * The provider's unique ID.
+	 *
+	 * @var string
+	 * @since 5.9.0
+	 * @access protected
+	 */
+	protected $id = 'google';
+
+	/**
+	 * An array of URLs to preconnect to.
+	 *
+	 * @var array
+	 * @since 5.9.0
+	 * @access protected
+	 */
+	protected $preconnect_urls = array(
+		array(
+			'href'        => 'https://fonts.gstatic.com',
+			'crossorigin' => true,
+		),
+		array(
+			'href'        => 'https://fonts.googleapis.com',
+			'crossorigin' => false
+		),
+	);
+
+	/**
 	 * The provider's root URL.
 	 *
 	 * @var string

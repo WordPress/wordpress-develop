@@ -48,6 +48,38 @@ function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $me
 	// Add inline styles for generated @font-face styles.
 	wp_add_inline_style( "webfont-$handle", $provider->get_css() );
 
+	// Add preconnect links.
+	if ( ! empty( $preconnect_urls ) ) {
+		add_action(
+			'wp_head',
+			function() use ( $provider ) {
+				// Store a static var to avoid adding the same preconnect links multiple times.
+				static $preconnect_url_added_from_api = array();
+
+				// Early exit if the provider has already added preconnect links.
+				if ( in_array( $provider->get_id() ) ) {
+					return;
+				}
+
+				// Add the preconnect links.
+				$preconnect_urls = $provider->get_preconnect_urls();
+				foreach ( $preconnect_urls as $preconnection ) {
+					echo '<link rel="preconnect"';
+					foreach ( $preconnection as $key => $value ) {
+						if ( 'href' === $key ) {
+							echo ' href="' . esc_url( $value ) . '"';
+						} elseif ( true === $value || false === $value ) {
+							echo $value ? ' ' . esc_attr( $key ) : '';
+						} else {
+							echo ' ' . esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
+						}
+					}
+					echo '>';
+				}
+				$preconnect_url_added_from_api[] = $provider->get_id();
+			},
+	);
+
 	return $result;
 }
 
