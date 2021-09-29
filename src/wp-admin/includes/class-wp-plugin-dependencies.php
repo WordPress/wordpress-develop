@@ -54,29 +54,6 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Modify plugins_api() response.
-	 *
-	 * @param \stdClas  $res Object of results.
-	 * @param string    $action Variable for plugins_api().
-	 * @param \stdClass $args Object of plugins_api() args.
-	 *
-	 * @return \stdClass
-	 */
-	public function plugins_api_result( $res, $action, $args ) {
-		if ( property_exists( $args, 'browse' ) && 'dependencies' === $args->browse ) {
-			$res->info = array(
-				'page'    => 1,
-				'pages'   => 1,
-				'results' => count( $this->plugin_data ),
-			);
-
-			$res->plugins = $this->plugin_data;
-		}
-
-		return $res;
-	}
-
-	/**
 	 * Run get_plugins() and store result.
 	 *
 	 * @return array
@@ -86,6 +63,7 @@ class WP_Plugin_Dependencies {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 		$this->plugins = get_plugins();
+
 		return $this->plugins;
 	}
 
@@ -164,6 +142,29 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
+	 * Modify plugins_api() response.
+	 *
+	 * @param \stdClas  $res Object of results.
+	 * @param string    $action Variable for plugins_api().
+	 * @param \stdClass $args Object of plugins_api() args.
+	 *
+	 * @return \stdClass
+	 */
+	public function plugins_api_result( $res, $action, $args ) {
+		if ( property_exists( $args, 'browse' ) && 'dependencies' === $args->browse ) {
+			$res->info = array(
+				'page'    => 1,
+				'pages'   => 1,
+				'results' => count( $this->plugin_data ),
+			);
+
+			$res->plugins = $this->plugin_data;
+		}
+
+		return $res;
+	}
+
+	/**
 	 * Modify the plugin row.
 	 *
 	 * @return void
@@ -171,6 +172,50 @@ class WP_Plugin_Dependencies {
 	public function admin_init() {
 		foreach ( array_keys( $this->plugins ) as $plugin_file ) {
 			$this->modify_plugin_row( $plugin_file );
+		}
+	}
+
+	/**
+	 * Add 'Required by: ...' to plugin install dependencies view.
+	 *
+	 * @param string $description Short description of plugin.
+	 * @param array  $plugin Array of plugin data.
+	 *
+	 * @return string
+	 */
+	public function plugin_install_description( $description, $plugin ) {
+		$required   = null;
+		$dependents = $this->get_dependency_sources( $plugin );
+		if ( ! empty( $dependents ) ) {
+			$dependents = explode( ',', $dependents );
+			foreach ( $dependents as $dependent ) {
+				$required .= '<br>' . $dependent;
+			}
+			$required    = '<strong>' . __( 'Required by:' ) . '</strong>' . $required;
+			$description = '<p>' . $required . '</p>' . $description;
+		}
+
+		return $description;
+	}
+
+	/**
+	 * Display admin notice if dependencies not installed.
+	 *
+	 * @return void
+	 */
+	public function admin_notices() {
+		$installed_slugs = array_map( 'dirname', array_keys( $this->plugins ) );
+		$intersect       = array_intersect( $this->slugs, $installed_slugs );
+		asort( $intersect );
+		if ( $intersect !== $this->slugs ) {
+			printf(
+				'<div class="notice-warning notice is-dismissible"><p>'
+					/* translators: 1: opening tag and link to Dependencies install page, 2: closing tag */
+					. esc_html__( 'There are additional plugins that must be installed. Go to the %1$sDependencies%2$s install page.' )
+					. '</p></div>',
+				'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
+				'</a>'
+			);
 		}
 	}
 
@@ -249,50 +294,6 @@ class WP_Plugin_Dependencies {
 		$sources = implode( ', ', $sources );
 
 		return $sources;
-	}
-
-	/**
-	 * Add 'Required by: ...' to plugin install dependencies view.
-	 *
-	 * @param string $description Short description of plugin.
-	 * @param array  $plugin Array of plugin data.
-	 *
-	 * @return string
-	 */
-	public function plugin_install_description( $description, $plugin ) {
-		$required   = null;
-		$dependents = $this->get_dependency_sources( $plugin );
-		if ( ! empty( $dependents ) ) {
-			$dependents = explode( ',', $dependents );
-			foreach ( $dependents as $dependent ) {
-				$required .= '<br>' . $dependent;
-			}
-			$required    = '<strong>' . __( 'Required by:' ) . '</strong>' . $required;
-			$description = '<p>' . $required . '</p>' . $description;
-		}
-
-		return $description;
-	}
-
-	/**
-	 * Display admin notice if dependencies not installed.
-	 *
-	 * @return void
-	 */
-	public function admin_notices() {
-		$installed_slugs = array_map( 'dirname', array_keys( $this->plugins ) );
-		$intersect       = array_intersect( $this->slugs, $installed_slugs );
-		asort( $intersect );
-		if ( $intersect !== $this->slugs ) {
-			printf(
-				'<div class="notice-warning notice is-dismissible"><p>'
-					/* translators: 1: opening tag and link to Dependencies install page, 2: closing tag */
-					. esc_html__( 'There are additional plugins that must be installed. Go to the %1$sDependencies%2$s install page.' )
-					. '</p></div>',
-				'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
-				'</a>'
-			);
-		}
 	}
 }
 
