@@ -1,8 +1,19 @@
 <?php
 /**
- * Class WP_Plugin_Dependency_Installer
+ * WordPress Plugin Administration API: WP_Plugin_Dependencies class
+ *
+ * @package WordPress
+ * @subpackage Administration
+ * @since 5.9.0
  */
-class WP_Plugin_Dependency_Installer {
+
+/**
+ * Core class for installing plugin dependencies.
+ *
+ * It is designed to add plugin dependencies as designated in the
+ * `Required Plugins` header to a new view in the plugins install page.
+ */
+class WP_Plugin_Dependencies {
 
 	/**
 	 * Holds `get_plugins()`.
@@ -285,4 +296,4 @@ class WP_Plugin_Dependency_Installer {
 	}
 }
 
-( new WP_Plugin_Dependency_Installer() )->init();
+( new WP_Plugin_Dependencies() )->init();
