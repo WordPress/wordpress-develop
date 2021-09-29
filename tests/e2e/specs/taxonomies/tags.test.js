@@ -2,6 +2,7 @@ import {
     visitAdminPage,
     trashAllPosts,
     createNewPost,
+    publishPost,
 } from '@wordpress/e2e-test-utils';
 
 async function createNewTag(name) {
@@ -193,25 +194,24 @@ describe('Manage tags', () => {
         await page.waitForSelector('input.components-form-token-field__input');
         await page.type('input.components-form-token-field__input', tags[1]);
         await page.keyboard.press('Enter');
-        await page.click('.editor-post-publish-button__button');
-        await page.click('.editor-post-publish-button');
-        await page.waitForSelector('.components-snackbar');
+        await publishPost();
 
         await visitAdminPage('edit-tags.php');
         await page.waitForSelector('#the-list');
 
         // ASC order
-        await page.click('#posts');
-        await page.waitForSelector('#the-list');
-
+        // Per default the posts count are sorteed ASC
+        // So there is no need to click on the posts count column
         const tagTitles = await page.$$('#the-list tr .row-title');
         tagTitles.map(async(tagTitle, index) => {
             expect(
                 await tagTitle.evaluate((element) => element.textContent)
             ).toBe(tags[index]);
+            console.log(tags[index]);
         });
 
         // DESC order
+        await page.click('#posts');
         await page.click('#posts');
         await page.waitForSelector('#the-list');
 
@@ -220,6 +220,7 @@ describe('Manage tags', () => {
             expect(
                 await tagTitle.evaluate((element) => element.textContent)
             ).toBe(tags[tags.length - index - 1]);
+            console.log(tags[tags.length - index - 1]);
         });
     });
 });
