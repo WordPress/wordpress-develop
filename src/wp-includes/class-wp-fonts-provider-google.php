@@ -1,8 +1,6 @@
 <?php
 /**
- * Webfonts API provider abstract class.
- *
- * Individual webfonts providers should extend this class and implement.
+ * Webfonts API provider for Google fonts.
  *
  * @package    WordPress
  * @subpackage WebFonts
@@ -10,7 +8,7 @@
  */
 
 /**
- * Abstract class for webfonts API providers.
+ * Webfonts API provider for Google Fonts.
  */
 final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 
