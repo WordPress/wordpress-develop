@@ -165,17 +165,6 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Modify the plugin row.
-	 *
-	 * @return void
-	 */
-	public function admin_init() {
-		foreach ( array_keys( $this->plugins ) as $plugin_file ) {
-			$this->modify_plugin_row( $plugin_file );
-		}
-	}
-
-	/**
 	 * Add 'Required by: ...' to plugin install dependencies view.
 	 *
 	 * @param string $description Short description of plugin.
@@ -196,6 +185,17 @@ class WP_Plugin_Dependencies {
 		}
 
 		return $description;
+	}
+
+	/**
+	 * Modify the plugin row.
+	 *
+	 * @return void
+	 */
+	public function admin_init() {
+		foreach ( array_keys( $this->plugins ) as $plugin_file ) {
+			$this->modify_plugin_row( $plugin_file );
+		}
 	}
 
 	/**
