@@ -39,8 +39,8 @@ function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $me
 		$src    = '';
 	}
 
-	// Parse the parameters.
-	$params = _wp_webfont_parse_params( $params );
+	$provider = isset( $params['provider'] ) ? $params['provider'] : new WP_Webfonts_Provider_Local();
+	$provider->set_params( $params );
 
 	// Register the stylesheet.
 	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
@@ -49,7 +49,7 @@ function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $me
 	_wp_maybe_preload_webfont( $params );
 
 	// Add inline styles for generated @font-face styles.
-	wp_add_inline_style( "webfont-$handle", _wp_webfont_generate_styles( $params ) );
+	wp_add_inline_style( "webfont-$handle", $provider->get_css() );
 
 	return $result;
 }
@@ -151,56 +151,6 @@ function wp_webfont_add_data( $handle, $key, $value ) {
 }
 
 /**
- * Generates styles for a webfont.
- *
- * @since 5.9.0
- *
- * @param array $params The webfont parameters.
- * @return string The styles.
- */
-function _wp_webfont_generate_styles( $params ) {
-	if ( empty( $params['font-family'] ) ) {
-		return '';
-	}
-
-	$css = '@font-face{';
-	foreach ( $params as $key => $value ) {
-
-		// Skip the "preload" parameter.
-		if ( 'preload' === $key ) {
-			continue;
-		}
-
-		// Compile the "src" parameter.
-		if ( 'src' === $key ) {
-			$src = "local({$params['font-family']})";
-			foreach ( $value as $item ) {
-				$src .= ( 'data' === $item['format'] )
-					? ", url({$item['url']})"
-					: ", url('{$item['url']}') format('{$item['format']}')";
-			}
-			$value = $src;
-		}
-
-		// If font-variation-settings is an array, convert it to a string.
-		if ( 'font-variation-settings' === $key && is_array( $value ) ) {
-			$variations = array();
-			foreach ( $value as $key => $val ) {
-				$variations[] = "$key $val";
-			}
-			$value = implode( ', ', $variations );
-		}
-
-		if ( ! empty( $value ) ) {
-			$css .= "$key:$value;";
-		}
-	}
-	$css .= '}';
-
-	return $css;
-}
-
-/**
  * Pre-loads the webfont if needed.
  *
  * @since 5.9.0
@@ -247,141 +197,4 @@ function _wp_maybe_preload_webfont( $params ) {
 			echo apply_filters( 'wp_preload_webfont', $link, $params );
 		}
 	);
-}
-
-/**
- * Parse a webfont's parameters.
- *
- * @since 5.9.0
- *
- * @param array $params The webfont parameters.
- * @return array The parsed parameters.
- */
-function _wp_webfont_parse_params( $params ) {
-	$defaults = array(
-		'font-weight'  => '400',
-		'font-style'   => 'normal',
-		'font-display' => 'fallback',
-		'src'          => array(),
-		'preload'      => false,
-	);
-	$params   = wp_parse_args( $params, $defaults );
-
-	$whitelist = array(
-		// Valid CSS properties.
-		'ascend-override',
-		'descend-override',
-		'font-display',
-		'font-family',
-		'font-stretch',
-		'font-style',
-		'font-weight',
-		'font-variant',
-		'font-feature-settings',
-		'font-variation-settings',
-		'line-gap-override',
-		'size-adjust',
-		'src',
-		'unicode-range',
-
-		// Extras.
-		'preload',
-	);
-
-	// Only allow whitelisted properties.
-	foreach ( $params as $key => $value ) {
-		if ( ! in_array( $key, $whitelist, true ) ) {
-			unset( $params[ $key ] );
-		}
-	}
-
-	// Order $src items to optimize for browser support.
-	if ( ! empty( $params['src'] ) ) {
-		$params['src'] = (array) $params['src'];
-		$src           = array();
-		$src_ordered   = array();
-
-		foreach ( $params['src'] as $url ) {
-			// Add data URIs first.
-			if ( 0 === strpos( trim( $url ), 'data:' ) ) {
-				$src_ordered[] = array(
-					'url'    => $url,
-					'format' => 'data',
-				);
-				continue;
-			}
-			$format         = pathinfo( $url, PATHINFO_EXTENSION );
-			$src[ $format ] = $url;
-		}
-
-		// Add woff2.
-		if ( ! empty( $src['woff2'] ) ) {
-			$src_ordered[] = array(
-				'url'    => $src['woff2'],
-				'format' => 'woff2',
-			);
-		}
-
-		// Add woff.
-		if ( ! empty( $src['woff'] ) ) {
-			$src_ordered[] = array(
-				'url'    => $src['woff'],
-				'format' => 'woff',
-			);
-		}
-
-		// Add ttf.
-		if ( ! empty( $src['ttf'] ) ) {
-			$src_ordered[] = array(
-				'url'    => $src['ttf'],
-				'format' => 'truetype',
-			);
-		}
-
-		// Add eot.
-		if ( ! empty( $src['eot'] ) ) {
-			$src_ordered[] = array(
-				'url'    => $src['eot'],
-				'format' => 'embedded-opentype',
-			);
-		}
-
-		// Add otf.
-		if ( ! empty( $src['otf'] ) ) {
-			$src_ordered[] = array(
-				'url'    => $src['otf'],
-				'format' => 'opentype',
-			);
-		}
-		$params['src'] = $src_ordered;
-	}
-
-	// Only allow valid font-display values.
-	if (
-		! empty( $params['font-display'] ) &&
-		! in_array( $params['font-display'], array( 'auto', 'block', 'swap', 'fallback' ), true )
-	) {
-		$params['font-display'] = 'fallback';
-	}
-
-	// Only allow valid font-style values.
-	if (
-		! empty( $params['font-style'] ) &&
-		! in_array( $params['font-style'], array( 'normal', 'italic', 'oblique' ), true ) &&
-		! preg_match( '/^oblique\s+(\d+)%/', $params['font-style'], $matches )
-	) {
-		$params['font-style'] = 'normal';
-	}
-
-	// Only allow valid font-weight values.
-	if (
-		! empty( $params['font-weight'] ) &&
-		! in_array( $params['font-weight'], array( 'normal', 'bold', 'bolder', 'lighter', 'inherit' ), true ) &&
-		! preg_match( '/^(\d+)$/', $params['font-weight'], $matches ) &&
-		! preg_match( '/^(\d+)\s+(\d+)$/', $params['font-weight'], $matches )
-	) {
-		$params['font-weight'] = 'normal';
-	}
-
-	return $params;
 }
