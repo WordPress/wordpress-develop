@@ -108,8 +108,8 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 		// Get the response body.
 		$css = wp_remote_retrieve_body( $response );
 
-		// Cache the CSS for a day.
-		set_site_transient( $transient_name, $css, DAY_IN_SECONDS );
+		// Cache the CSS for a month.
+		set_site_transient( $transient_name, $css, MONTH_IN_SECONDS );
 
 		// If there are additional props not included in the CSS provided by the API, add them to the final CSS.
 		$additional_props = array_diff(
