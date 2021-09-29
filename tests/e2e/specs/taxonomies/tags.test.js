@@ -177,48 +177,55 @@ describe('Manage tags', () => {
         });
     });
 
-    // it('correctly sorts tags per posts count', async() => {
-    //     const tags = ['Tag 0', 'Tag 1'];
-    //     const postTitle = 'Post 1';
+    it('correctly sorts tags per posts count', async() => {
+        const tags = ['Tag 0', 'Tag 1'];
+        const postTitle = 'Post 1';
 
-    //     for (let i = 0, n = tags.length; i < n; i++) {
-    //         await createNewTag(tags[i]);
-    //     }
+        for (let i = 0, n = tags.length; i < n; i++) {
+            await createNewTag(tags[i]);
+        }
 
-    //     await trashAllPosts();
+        await trashAllPosts();
 
-    //     // Create one post with no tags and a second post with one tag
-    //     await createNewPost({ title: `${postTitle}` });
-    //     const tagTitlePanel = await page.$('.components-panel__body:nth-child(4)');
-    //     await tagTitlePanel.click();
-    //     await page.waitForSelector('input.components-form-token-field__input');
-    //     await page.type('input.components-form-token-field__input', tags[1]);
-    //     await page.keyboard.press('Enter');
-    //     await publishPost();
+        // Create one post with no tags and a second post with one tag
+        await createNewPost({ title: `${postTitle}` });
+        const tagTitlePanel = await page.$('.components-panel__body:nth-child(4)');
+        await tagTitlePanel.click();
+        await page.waitForSelector('input.components-form-token-field__input');
+        await page.type('input.components-form-token-field__input', tags[1]);
+        await page.keyboard.press('Enter');
+        await page.screenshot({ path: 'screenshot.png' });
+        await publishPost();
 
-    //     await visitAdminPage('edit-tags.php');
-    //     await page.waitForSelector('#the-list');
+        // ASC order
+        await visitAdminPage('edit-tags.php');
+        await page.waitForSelector('#the-list');
 
-    //     // ASC order
-    //     // Per default the posts count are sorteed ASC
-    //     // So there is no need to click on the posts count column
-    //     const tagTitles = await page.$$('#the-list tr .row-title');
-    //     tagTitles.map(async(tagTitle, index) => {
-    //         expect(
-    //             await tagTitle.evaluate((element) => element.textContent)
-    //         ).toBe(tags[index]);
-    //     });
+        await page.click('#posts');
+        await page.waitForSelector('#the-list');
+        const tagTitles = await page.$$('#the-list tr .row-title');
 
-    //     // DESC order
-    //     await page.click('#posts');
-    //     await page.click('#posts');
-    //     await page.waitForSelector('#the-list');
+        tagTitles.map(async(tagTitle, index) => {
+            expect(
+                await tagTitle.evaluate((element) => element.textContent)
+            ).toBe(tags[index]);
+        });
 
-    //     const tagTitles2 = await page.$$('#the-list tr .row-title');
-    //     tagTitles2.map(async(tagTitle, index) => {
-    //         expect(
-    //             await tagTitle.evaluate((element) => element.textContent)
-    //         ).toBe(tags[tags.length - index - 1]);
-    //     });
-    // });
+        // DESC order
+        await visitAdminPage('edit-tags.php');
+        await page.waitForSelector('#the-list');
+
+        await page.click('#posts');
+        await page.waitForSelector('#the-list');
+
+        await page.click('#posts');
+        await page.waitForSelector('#the-list');
+
+        const tagTitles2 = await page.$$('#the-list tr .row-title');
+        tagTitles2.map(async(tagTitle, index) => {
+            expect(
+                await tagTitle.evaluate((element) => element.textContent)
+            ).toBe(tags[tags.length - index - 1]);
+        });
+    });
 });
