@@ -28,7 +28,7 @@
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  * @return bool Whether the style has been registered. True on success, false on failure.
  */
-function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $media = 'screen' ) {
+function wp_register_webfont( $handle, $src = '', $params = array(), $ver = null, $media = 'screen' ) {
 
 	// If $src is an array, then we're using $params in its place
 	// so move all args into their new positions.
@@ -37,6 +37,13 @@ function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $me
 		$ver    = $params;
 		$params = $src;
 		$src    = '';
+	}
+
+	// If $handle is an array, then we're only using $params.
+	if ( is_array( $handle ) ) {
+		$params = $handle;
+		$src    = '';
+		$handle = md5( json_encode( $params ) );
 	}
 
 	$provider = isset( $params['provider'] ) ? $params['provider'] : new WP_Webfonts_Provider_Local();
@@ -119,7 +126,7 @@ function wp_deregister_webfont( $handle ) {
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  */
 function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = null, $media = 'screen' ) {
-	if ( $src || ! empty( $params ) ) {
+	if ( $src || ! empty( $params ) || is_array( $handle) ) {
 		wp_register_webfont( $handle, $src, $params, $ver, $media );
 	}
 	return wp_enqueue_style( "webfont-$handle" );
