@@ -78,7 +78,8 @@ function wp_register_webfont( $handle, $src, $params = array(), $ver = null, $me
 				}
 				$preconnect_url_added_from_api[] = $provider->get_id();
 			},
-	);
+		);
+	}
 
 	return $result;
 }
