@@ -34,7 +34,10 @@ require ABSPATH . WPINC . '/class.wp-styles.php';
 /** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
-/** WordPress Styles Functions */
+/** WordPress Webfonts Functions */
+require ABSPATH . WPINC . '/class-wp-fonts-provider.php';
+require ABSPATH . WPINC . '/class-wp-fonts-provider-local.php';
+require ABSPATH . WPINC . '/class-wp-fonts-provider-google.php';
 require ABSPATH . WPINC . '/functions.wp-webfonts.php';
 
 /**
