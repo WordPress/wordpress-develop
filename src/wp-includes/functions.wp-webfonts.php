@@ -129,6 +129,9 @@ function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = null,
 	if ( $src || ! empty( $params ) || is_array( $handle) ) {
 		wp_register_webfont( $handle, $src, $params, $ver, $media );
 	}
+	if ( is_array( $handle ) ) {
+		$handle = md5( json_encode( $handle ) );
+	}
 	return wp_enqueue_style( "webfont-$handle" );
 }
 
