@@ -1870,6 +1870,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 		return true;
 	}
 
+	$wp_filesystem->mkdir( $to );
 	$dirlist = $wp_filesystem->dirlist( $from );
 
 	if ( false === $dirlist ) {
