@@ -107,29 +107,28 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 		$transient_name = 'google_fonts_' . md5( $remote_url );
 		$css            = get_site_transient( $transient_name );
 
-		if ( $css ) {
-			return $css;
+		// Get remote response and cache the CSS if it hasn't been cached already.
+		if ( ! $css ) {
+			// Get the remote URL contents.
+			$response = wp_remote_get(
+				$remote_url,
+				array(
+					// Use a modern user-agent, to get woff2 files.
+					'user-agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0',
+				)
+			);
+
+			// Early return if the request failed.
+			if ( is_wp_error( $response ) ) {
+				return '';
+			}
+
+			// Get the response body.
+			$css = wp_remote_retrieve_body( $response );
+
+			// Cache the CSS for a month.
+			set_site_transient( $transient_name, $css, MONTH_IN_SECONDS );
 		}
-
-		// Get the remote URL contents.
-		$response = wp_remote_get(
-			$remote_url,
-			array(
-				// Use a modern user-agent, to get woff2 files.
-				'user-agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0',
-			)
-		);
-
-		// Early return if the request failed.
-		if ( is_wp_error( $response ) ) {
-			return '';
-		}
-
-		// Get the response body.
-		$css = wp_remote_retrieve_body( $response );
-
-		// Cache the CSS for a month.
-		set_site_transient( $transient_name, $css, MONTH_IN_SECONDS );
 
 		// If there are additional props not included in the CSS provided by the API, add them to the final CSS.
 		$additional_props = array_diff(
@@ -140,6 +139,7 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 			$css = str_replace(
 				'@font-face {',
 				'@font-face {' . $prop . ':' . $this->params[ $prop ] . ';',
+				$css
 			);
 		}
 
