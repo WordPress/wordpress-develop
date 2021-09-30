@@ -35,7 +35,7 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 		),
 		array(
 			'href'        => 'https://fonts.googleapis.com',
-			'crossorigin' => false
+			'crossorigin' => false,
 		),
 	);
 
