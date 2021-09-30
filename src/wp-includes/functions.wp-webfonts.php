@@ -28,63 +28,29 @@
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  * @return bool Whether the style has been registered. True on success, false on failure.
  */
-function wp_register_webfont( $handle, $src = '', $params = array(), $ver = null, $media = 'screen' ) {
+function wp_register_webfont( $handle = '', $src = '', $params = array(), $ver = null, $media = 'screen' ) {
 
-	// If $src is an array, then we're using $params in its place
-	// so move all args into their new positions.
-	if ( is_array( $src ) ) {
-		$media  = $ver;
-		$ver    = $params;
-		$params = $src;
-		$src    = '';
-	}
-
-	// If $handle is an array, then we're only using $params.
-	if ( is_array( $handle ) ) {
-		$params = $handle;
-		$src    = '';
+	// Generate handle if not provided.
+	if ( empty( $handle && ! empty( $params ) ) ) {
 		$handle = md5( json_encode( $params ) );
 	}
 
-	$provider = isset( $params['provider'] ) ? $params['provider'] : new WP_Fonts_Provider_Local();
-	$provider->set_params( $params );
+	// Early return if there is no handle.
+	if ( empty( $handle ) ) {
+		return;
+	}
 
 	// Register the stylesheet.
 	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
 
 	// Add inline styles for generated @font-face styles.
-	wp_add_inline_style( "webfont-$handle", $provider->get_css() );
+	$inline_styles = wp_webfont_generate_styles( $params );
+	if ( $inline_styles ) {
+		wp_add_inline_style( "webfont-$handle", $inline_styles );
+	}
 
-	// Store a static var to avoid adding the same preconnect links multiple times.
-	static $preconnect_url_added_from_api = array();
-	// Add preconnect links.
-	add_action(
-		'wp_head',
-		function() use ( $provider, &$preconnect_url_added_from_api ) {
-
-			// Early exit if the provider has already added preconnect links.
-			if ( in_array( $provider->get_id(), $preconnect_url_added_from_api ) ) {
-				return;
-			}
-
-			// Add the preconnect links.
-			$preconnect_urls = $provider->get_preconnect_urls();
-			foreach ( $preconnect_urls as $preconnection ) {
-				echo '<link rel="preconnect"';
-				foreach ( $preconnection as $key => $value ) {
-					if ( 'href' === $key ) {
-						echo ' href="' . esc_url( $value ) . '"';
-					} elseif ( true === $value || false === $value ) {
-						echo $value ? ' ' . esc_attr( $key ) : '';
-					} else {
-						echo ' ' . esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
-					}
-				}
-				echo '>' . "\n";
-			}
-			$preconnect_url_added_from_api[] = $provider->get_id();
-		},
-	);
+	// Add preconnect links for external webfonts.
+	_wp_webfont_add_preconnect_links( $params );
 
 	return $result;
 }
@@ -125,13 +91,21 @@ function wp_deregister_webfont( $handle ) {
  *                                 Default 'screen'. Accepts media types like 'all', 'print' and 'screen', or media queries like
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
  */
-function wp_enqueue_webfont( $handle, $src = '', $params = array(), $ver = null, $media = 'screen' ) {
-	if ( $src || ! empty( $params ) || is_array( $handle) ) {
+function wp_enqueue_webfont( $handle = '', $src = '', $params = array(), $ver = null, $media = 'screen' ) {
+	if ( $src || ! empty( $params ) ) {
 		wp_register_webfont( $handle, $src, $params, $ver, $media );
 	}
-	if ( is_array( $handle ) ) {
-		$handle = md5( json_encode( $handle ) );
+
+	// Generate handle if not provided.
+	if ( empty( $handle && ! empty( $params ) ) ) {
+		$handle = md5( json_encode( $params ) );
 	}
+
+	// Early return if there is no handle.
+	if ( empty( $handle ) ) {
+		return;
+	}
+
 	return wp_enqueue_style( "webfont-$handle" );
 }
 
@@ -186,4 +160,68 @@ function wp_webfont_is( $handle, $list = 'enqueued' ) {
  */
 function wp_webfont_add_data( $handle, $key, $value ) {
 	return wp_style_add_data( "webfont-$handle", $key, $value );
+}
+
+/**
+ * Generate styles for a webfont.
+ *
+ * @since 5.9.0
+ *
+ * @param array $params The webfont parameters.
+ *
+ * @return string The generated styles.
+ */
+function wp_webfont_generate_styles( $params ) {
+	// Fallback to local provider if none is specified.
+	$provider = isset( $params['provider'] ) ? $params['provider'] : new WP_Fonts_Provider_Local();
+	// Set the $params to the object.
+	$provider->set_params( $params );
+	// Get the CSS.
+	return $provider->get_css();
+}
+
+/**
+ * Add preconnect links to <head> for enqueued webfonts.
+ *
+ * @since 5.9.0
+ *
+ * @param array $params The webfont parameters.
+ *
+ * @return void
+ */
+function _wp_webfont_add_preconnect_links( $params ) {
+
+	$provider = isset( $params['provider'] ) ? $params['provider'] : new WP_Fonts_Provider_Local();
+	$provider->set_params( $params );
+
+	// Store a static var to avoid adding the same preconnect links multiple times.
+	static $preconnect_urls_added_from_api = array();
+	// Add preconnect links.
+	add_action(
+		'wp_head',
+		function() use ( $provider, &$preconnect_urls_added_from_api ) {
+
+			// Early exit if the provider has already added preconnect links.
+			if ( in_array( $provider->get_id(), $preconnect_urls_added_from_api ) ) {
+				return;
+			}
+
+			// Add the preconnect links.
+			$preconnect_urls = $provider->get_preconnect_urls();
+			foreach ( $preconnect_urls as $preconnection ) {
+				echo '<link rel="preconnect"';
+				foreach ( $preconnection as $key => $value ) {
+					if ( 'href' === $key ) {
+						echo ' href="' . esc_url( $value ) . '"';
+					} elseif ( true === $value || false === $value ) {
+						echo $value ? ' ' . esc_attr( $key ) : '';
+					} else {
+						echo ' ' . esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
+					}
+				}
+				echo '>' . "\n";
+			}
+			$preconnect_urls_added_from_api[] = $provider->get_id();
+		},
+	);
 }
