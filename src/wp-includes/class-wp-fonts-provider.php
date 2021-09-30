@@ -17,45 +17,45 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * The provider's unique ID.
 	 *
-	 * @var string
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var string
 	 */
 	protected $id;
 
 	/**
 	 * An array of URLs to preconnect to.
 	 *
-	 * @var array
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var array
 	 */
 	protected $preconnect_urls = array();
 
 	/**
 	 * The provider's root URL.
 	 *
-	 * @var string
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var string
 	 */
 	protected $root_url = '';
 
 	/**
 	 * Webfont parameters.
 	 *
-	 * @var array
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var array
 	 */
 	protected $params = array();
 
 	/**
 	 * An array of valid CSS properties for @font-face.
 	 *
-	 * @var array
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var array
 	 */
 	protected $valid_font_face_properties = array(
 		'ascend-override',
@@ -77,18 +77,18 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * An array of API parameters which will not be added to the @font-face.
 	 *
-	 * @var array
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var array
 	 */
 	protected $api_params = array();
 
 	/**
 	 * Get the provider's unique ID.
 	 *
-	 * @return string
-	 * @since 5.9.0
 	 * @access public
+	 * @since 5.9.0
+	 * @return string
 	 */
 	public function get_id() {
 		return $this->id;

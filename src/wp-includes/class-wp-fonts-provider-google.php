@@ -15,18 +15,18 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 	/**
 	 * The provider's unique ID.
 	 *
-	 * @var string
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var string
 	 */
 	protected $id = 'google';
 
 	/**
 	 * An array of URLs to preconnect to.
 	 *
-	 * @var array
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var array
 	 */
 	protected $preconnect_urls = array(
 		array(
@@ -42,18 +42,18 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 	/**
 	 * The provider's root URL.
 	 *
-	 * @var string
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var string
 	 */
 	protected $root_url = 'https://fonts.googleapis.com/css2';
 
 	/**
 	 * An array of API parameters which will not be added to the @font-face.
 	 *
-	 * @var array
-	 * @since 5.9.0
 	 * @access protected
+	 * @since 5.9.0
+	 * @var array
 	 */
 	protected $api_params = array(
 		'subset',
