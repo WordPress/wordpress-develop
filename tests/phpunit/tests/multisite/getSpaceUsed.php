@@ -6,20 +6,7 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 * @covers ::get_space_used
 	 */
-	class Tests_Multisite_Get_Space_Used extends WP_UnitTestCase {
-		protected $suppress = false;
-
-		function set_up() {
-			global $wpdb;
-			parent::set_up();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tear_down() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tear_down();
-		}
+	class Tests_Multisite_GetSpaceUsed extends WP_UnitTestCase {
 
 		function test_get_space_used_switched_site() {
 			$blog_id = self::factory()->blog->create();

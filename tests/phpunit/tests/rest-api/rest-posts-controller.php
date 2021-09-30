@@ -2137,7 +2137,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_filters_content_when_needed() {
 		$filter_count   = 0;
-		$filter_content = function() use ( &$filter_count ) {
+		$filter_content = static function() use ( &$filter_count ) {
 			$filter_count++;
 			return '<p>Filtered content.</p>';
 		};
@@ -2173,7 +2173,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_skips_content_filter_if_not_needed() {
 		$filter_count   = 0;
-		$filter_content = function() use ( &$filter_count ) {
+		$filter_content = static function() use ( &$filter_count ) {
 			$filter_count++;
 			return '<p>Filtered content.</p>';
 		};

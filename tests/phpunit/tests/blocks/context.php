@@ -115,7 +115,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 					'gutenberg/contextWithAssigned',
 					'gutenberg/contextWithoutDefault',
 				),
-				'render_callback' => function( $attributes, $content, $block ) use ( &$provided_context ) {
+				'render_callback' => static function( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context[] = $block->context;
 
 					return '';
@@ -155,7 +155,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 			'gutenberg/test-context-consumer',
 			array(
 				'uses_context'    => array( 'postId', 'postType' ),
-				'render_callback' => function( $attributes, $content, $block ) use ( &$provided_context ) {
+				'render_callback' => static function( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context[] = $block->context;
 
 					return '';
@@ -188,7 +188,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 			'gutenberg/test-context-consumer',
 			array(
 				'uses_context'    => array( 'example' ),
-				'render_callback' => function( $attributes, $content, $block ) use ( &$provided_context ) {
+				'render_callback' => static function( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context[] = $block->context;
 
 					return '';
@@ -196,7 +196,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 			)
 		);
 
-		$filter_block_context = function( $context ) {
+		$filter_block_context = static function( $context ) {
 			$context['example'] = 'ok';
 			return $context;
 		};

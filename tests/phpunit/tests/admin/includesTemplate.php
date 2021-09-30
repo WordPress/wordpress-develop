@@ -2,10 +2,10 @@
 /**
  * @group admin
  */
-class Tests_Admin_includesTemplate extends WP_UnitTestCase {
+class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 51147
+	 * @ticket 51137
 	 * @dataProvider data_wp_terms_checklist_with_selected_cats
 	 */
 	public function test_wp_terms_checklist_with_selected_cats( $term_id ) {
@@ -21,7 +21,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 51147
+	 * @ticket 51137
 	 * @dataProvider data_wp_terms_checklist_with_selected_cats
 	 */
 	public function test_wp_terms_checklist_with_popular_cats( $term_id ) {

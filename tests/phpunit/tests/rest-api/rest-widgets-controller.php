@@ -108,11 +108,11 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_register_widget_control(
 			'testwidget',
 			'WP test widget',
-			function () {
-				$settings = get_option( 'widget_testwidget' );
-
+			static function () {
 				// check if anything's been sent.
 				if ( isset( $_POST['update_testwidget'] ) ) {
+					$settings = get_option( 'widget_testwidget', array() );
+
 					$settings['id']    = $_POST['test_id'];
 					$settings['title'] = $_POST['test_title'];
 
@@ -127,9 +127,9 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_register_sidebar_widget(
 			'testwidget',
 			'WP test widget',
-			function () {
+			static function () {
 				$settings = wp_parse_args(
-					get_option( 'widget_testwidget' ),
+					get_option( 'widget_testwidget', array() ),
 					array(
 						'id'    => 'Default id',
 						'title' => 'Default text',

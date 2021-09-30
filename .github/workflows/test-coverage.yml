@@ -90,7 +90,6 @@ jobs:
       - name: "Get last Monday's date"
         id: get-date
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
-        shell: bash
 
       - name: Get Composer cache directory
         id: composer-cache
@@ -144,7 +143,7 @@ jobs:
 
       - name: Run tests as a single site
         if: ${{ ! matrix.multisite }}
-        run: npm run test:php-composer -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
+        run: npm run test:php -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -158,7 +157,7 @@ jobs:
 
       - name: Run tests as a multisite install
         if: ${{ matrix.multisite }}
-        run: npm run test:php-composer -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+        run: npm run test:php -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
