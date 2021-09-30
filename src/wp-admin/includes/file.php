@@ -1865,6 +1865,11 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 function copy_dir( $from, $to, $skip_list = array() ) {
 	global $wp_filesystem;
 
+	$wp_filesystem->rmdir( $to );
+	if ( rename( $from, $to ) ) {
+		return true;
+	}
+
 	$dirlist = $wp_filesystem->dirlist( $from );
 
 	if ( false === $dirlist ) {
