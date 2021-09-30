@@ -8,7 +8,7 @@
  */
 
 /**
- * Webfonts API provider for Locally-hosted fonts.
+ * Webfonts API provider for locally-hosted fonts.
  */
 final class WP_Fonts_Provider_Local extends WP_Fonts_Provider {
 
