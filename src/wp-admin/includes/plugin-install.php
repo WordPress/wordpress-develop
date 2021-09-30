@@ -409,7 +409,7 @@ function display_plugins_table() {
 			);
 			break;
 		case 'install_plugins_dependencies':
-			echo '<p>' . __( 'These suggestions are based on the `Required Plugins` header of installed plugins.' ) . '</p>';
+			echo '<p>' . __( 'These suggestions are based on dependencies required by installed plugins.' ) . '</p>';
 	}
 
 	?>
