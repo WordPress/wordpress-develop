@@ -3247,6 +3247,25 @@ EOF;
 	/**
 	 * @ticket 53675
 	 */
+	function test_wp_get_loading_attr_default_featured_image_outside_of_loop() {
+		global $wp_query, $wp_the_query, $wp_content_media_count;
+
+		// For a singular post main query the loading attribute should also be omitted on the featured image even if it
+		// is rendered outside the loop, which commonly occurs in the header.
+		$wp_query               = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
+		$wp_content_media_count = 0;
+		$wp_the_query           = $wp_query;
+
+		// This special treatment should only apply to 'the_post_thumbnail'.
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'the_content' ) );
+		$this->assertSame( 0, $wp_content_media_count );
+		$this->assertFalse( wp_get_loading_attr_default( 'the_post_thumbnail' ) );
+		$this->assertSame( 1, $wp_content_media_count );
+	}
+
+	/**
+	 * @ticket 53675
+	 */
 	function test_wp_omit_loading_attr_threshold_filter() {
 		global $wp_query, $wp_the_query, $wp_content_media_count;
 
