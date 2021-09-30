@@ -46,7 +46,7 @@ function wp_register_webfont( $handle, $src = '', $params = array(), $ver = null
 		$handle = md5( json_encode( $params ) );
 	}
 
-	$provider = isset( $params['provider'] ) ? $params['provider'] : new WP_Webfonts_Provider_Local();
+	$provider = isset( $params['provider'] ) ? $params['provider'] : new WP_Fonts_Provider_Local();
 	$provider->set_params( $params );
 
 	// Register the stylesheet.
