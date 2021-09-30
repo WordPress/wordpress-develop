@@ -195,6 +195,7 @@ describe('Manage tags', () => {
         await page.type('input.components-form-token-field__input', tags[1]);
         await page.keyboard.press('Enter');
         await page.screenshot({ path: 'screenshot.png' });
+
         await publishPost();
 
         // ASC order
