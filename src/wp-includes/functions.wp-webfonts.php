@@ -222,6 +222,6 @@ function _wp_webfont_add_preconnect_links( $params ) {
 				echo '>' . "\n";
 			}
 			$preconnect_urls_added_from_api[] = $provider->get_id();
-		},
+		}
 	);
 }
