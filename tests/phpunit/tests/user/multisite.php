@@ -10,19 +10,6 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_User extends WP_UnitTestCase {
-		protected $suppress = false;
-
-		function set_up() {
-			global $wpdb;
-			parent::set_up();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tear_down() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tear_down();
-		}
 
 		function test_remove_user_from_blog() {
 			$user1 = self::factory()->user->create_and_get();
@@ -395,9 +382,13 @@ if ( is_multisite() ) :
 		 * @ticket 38356
 		 */
 		public function test_add_user_to_blog_invalid_user() {
+			global $wpdb;
+
 			$site_id = self::factory()->blog->create();
 
-			$result = add_user_to_blog( 73622, $site_id, 'subscriber' );
+			$suppress = $wpdb->suppress_errors();
+			$result   = add_user_to_blog( 73622, $site_id, 'subscriber' );
+			$wpdb->suppress_errors( $suppress );
 
 			wp_delete_site( $site_id );
 

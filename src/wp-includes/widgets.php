@@ -1251,30 +1251,23 @@ function _wp_sidebars_changed() {
 		$sidebars_widgets = wp_get_sidebars_widgets();
 	}
 
-	sync_registered_widgets( true );
+	retrieve_widgets( true );
 }
 
 /**
- * Do not use, deprecated.
+ * Validates and remaps any "orphaned" widgets to wp_inactive_widgets sidebar,
+ * and saves the widget settings. This has to run at least on each theme change.
  *
- * Use sync_registered_widgets() instead.
+ * For example, let's say theme A has a "footer" sidebar, and theme B doesn't have one.
+ * After switching from theme A to theme B, all the widgets previously assigned
+ * to the footer would be inaccessible. This function detects this scenario, and
+ * moves all the widgets previously assigned to the footer under wp_inactive_widgets.
+ *
+ * Despite the word "retrieve" in the name, this function actually updates the database
+ * and the global `$sidebars_widgets`. For that reason it should not be run on front end,
+ * unless the `$theme_changed` value is 'customize' (to bypass the database write).
  *
  * @since 2.8.0
- * @deprecated 5.8.1 Use sync_registered_widgets()
- * @see sync_registered_widgets()
- *
- * @param string|bool $theme_changed
- * @return array
- */
-function retrieve_widgets( $theme_changed = false ) {
-	return sync_registered_widgets( $theme_changed );
-}
-
-/**
- * Looks for "lost" widgets and Updates widgets-to-sidebars allocation.
- * This has to run at least on each theme change.
- *
- * @since 5.8.1
  *
  * @global array $wp_registered_sidebars Registered sidebars.
  * @global array $sidebars_widgets
@@ -1284,7 +1277,7 @@ function retrieve_widgets( $theme_changed = false ) {
  *                                   of 'customize' defers updates for the Customizer.
  * @return array Updated sidebars widgets.
  */
-function sync_registered_widgets( $theme_changed = false ) {
+function retrieve_widgets( $theme_changed = false ) {
 	global $wp_registered_sidebars, $sidebars_widgets, $wp_registered_widgets;
 
 	$registered_sidebars_keys = array_keys( $wp_registered_sidebars );
@@ -1327,6 +1320,7 @@ function sync_registered_widgets( $theme_changed = false ) {
 	$sidebars_widgets['wp_inactive_widgets'] = array_merge( $lost_widgets, (array) $sidebars_widgets['wp_inactive_widgets'] );
 
 	if ( 'customize' !== $theme_changed ) {
+		// Update the widgets settings in the database.
 		wp_set_sidebars_widgets( $sidebars_widgets );
 	}
 
@@ -1745,11 +1739,12 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 	$show_summary = isset( $widget_rss['show_summary'] ) ? (int) $widget_rss['show_summary'] : 0;
 	$show_author  = isset( $widget_rss['show_author'] ) ? (int) $widget_rss['show_author'] : 0;
 	$show_date    = isset( $widget_rss['show_date'] ) ? (int) $widget_rss['show_date'] : 0;
+	$error        = false;
+	$link         = '';
 
 	if ( $check_feed ) {
-		$rss   = fetch_feed( $url );
-		$error = false;
-		$link  = '';
+		$rss = fetch_feed( $url );
+
 		if ( is_wp_error( $rss ) ) {
 			$error = $rss->get_error_message();
 		} else {
