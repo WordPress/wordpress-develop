@@ -224,7 +224,7 @@ class WP_Block {
 					$inner_block  = $this->inner_blocks[ $index ];
 					$parent_block = $this;
 
-					 /** This filter is documented in wp-includes/blocks.php */
+					/** This filter is documented in wp-includes/blocks.php */
 					$pre_render = apply_filters( 'pre_render_block', null, $inner_block->parsed_block, $parent_block );
 
 					if ( ! is_null( $pre_render ) ) {
