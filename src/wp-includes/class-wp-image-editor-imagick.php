@@ -192,9 +192,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		$quality_result = parent::set_quality( $quality );
 		if ( is_wp_error( $quality_result ) ) {
 			return $quality_result;
-		} else {
-			$quality = $this->get_quality();
 		}
+		$quality = $this->get_quality();
 
 		try {
 			switch ( $this->mime_type ) {
@@ -505,9 +504,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 		$resized = $this->resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
 
-		if ( is_wp_error( $resized ) ) {
-			$saved = $resized;
-		} else {
+		$saved = $resized;
+		if ( ! is_wp_error( $resized ) ) {
 			$saved = $this->_save( $this->image );
 
 			$this->image->clear();
@@ -652,9 +650,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	public function maybe_exif_rotate() {
 		if ( is_callable( array( $this->image, 'setImageOrientation' ) ) && defined( 'Imagick::ORIENTATION_TOPLEFT' ) ) {
 			return parent::maybe_exif_rotate();
-		} else {
-			return new WP_Error( 'write_exif_error', __( 'The image cannot be rotated because the embedded meta data cannot be updated.' ) );
 		}
+		return new WP_Error( 'write_exif_error', __( 'The image cannot be rotated because the embedded meta data cannot be updated.' ) );
 	}
 
 	/**
@@ -757,28 +754,27 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 					),
 					$filename
 				);
-			} else {
-				return true;
 			}
-		} else {
-			$dirname = dirname( $filename );
+			return true;
+		}
 
-			if ( ! wp_mkdir_p( $dirname ) ) {
-				return new WP_Error(
-					'image_save_error',
-					sprintf(
-						/* translators: %s: Directory path. */
-						__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
-						esc_html( $dirname )
-					)
-				);
-			}
+		$dirname = dirname( $filename );
 
-			try {
-				return $image->writeImage( $filename );
-			} catch ( Exception $e ) {
-				return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
-			}
+		if ( ! wp_mkdir_p( $dirname ) ) {
+			return new WP_Error(
+				'image_save_error',
+				sprintf(
+					/* translators: %s: Directory path. */
+					__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+					esc_html( $dirname )
+				)
+			);
+		}
+
+		try {
+			return $image->writeImage( $filename );
+		} catch ( Exception $e ) {
+			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
 		}
 	}
 

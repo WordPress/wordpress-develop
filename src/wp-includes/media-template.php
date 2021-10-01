@@ -65,16 +65,14 @@ function wp_underscore_video_template() {
 		isVimeo = -1 !== data.model.src.indexOf('vimeo');
 	}
 
+	w = data.model.width;
 	if ( settings.contentWidth && data.model.width >= settings.contentWidth ) {
 		w = settings.contentWidth;
-	} else {
-		w = data.model.width;
 	}
 
+	h = data.model.height;
 	if ( w !== data.model.width ) {
 		h = Math.ceil( ( data.model.height * w ) / data.model.width );
-	} else {
-		h = data.model.height;
 	}
 
 	if ( w ) {

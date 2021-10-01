@@ -57,11 +57,10 @@ class WP_Http_Streams {
 
 		$secure_transport = ( 'ssl' === $parsed_url['scheme'] || 'https' === $parsed_url['scheme'] );
 		if ( ! isset( $parsed_url['port'] ) ) {
+			$parsed_url['port'] = 80;
 			if ( 'ssl' === $parsed_url['scheme'] || 'https' === $parsed_url['scheme'] ) {
 				$parsed_url['port'] = 443;
 				$secure_transport   = true;
-			} else {
-				$parsed_url['port'] = 80;
 			}
 		}
 
@@ -176,9 +175,8 @@ class WP_Http_Streams {
 
 		stream_set_timeout( $handle, $timeout, $utimeout );
 
-		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) { // Some proxies require full URL in this field.
-			$requestPath = $url;
-		} else {
+		$requestPath = $url;
+		if ( ! $proxy->is_enabled() || ! $proxy->send_through_proxy( $url ) ) { // Some proxies require full URL in this field.
 			$requestPath = $parsed_url['path'] . ( isset( $parsed_url['query'] ) ? '?' . $parsed_url['query'] : '' );
 		}
 

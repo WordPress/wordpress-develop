@@ -276,13 +276,13 @@ final class WP_Comment {
 		$_args['parent'] = $this->comment_ID;
 
 		if ( is_null( $this->children ) ) {
-			if ( $this->populated_children ) {
-				$this->children = array();
-			} else {
+			$this->children = array();
+			if ( ! $this->populated_children ) {
 				$this->children = get_comments( $_args );
 			}
 		}
 
+		$children = $this->children;
 		if ( 'flat' === $_args['format'] ) {
 			$children = array();
 			foreach ( $this->children as $child ) {
@@ -293,8 +293,6 @@ final class WP_Comment {
 
 				$children = array_merge( $children, array( $child ), $child->get_children( $child_args ) );
 			}
-		} else {
-			$children = $this->children;
 		}
 
 		return $children;

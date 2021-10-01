@@ -33,12 +33,11 @@ function trackback_response( $error = 0, $error_message = '' ) {
 		echo "<message>$error_message</message>\n";
 		echo '</response>';
 		die();
-	} else {
-		echo '<?xml version="1.0" encoding="utf-8"?' . ">\n";
-		echo "<response>\n";
-		echo "<error>0</error>\n";
-		echo '</response>';
 	}
+	echo '<?xml version="1.0" encoding="utf-8"?' . ">\n";
+	echo "<response>\n";
+	echo "<error>0</error>\n";
+	echo '</response>';
 }
 
 // Trackback is done by a POST.

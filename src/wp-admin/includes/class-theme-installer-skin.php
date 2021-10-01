@@ -324,16 +324,15 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		$blocked_message .= '</ul>';
 
 		if ( $can_update ) {
+			$warning = sprintf(
+				/* translators: %s: Documentation URL. */
+				__( 'You are updating a theme. Be sure to <a href="%s">back up your database and files</a> first.' ),
+				__( 'https://wordpress.org/support/article/wordpress-backups/' )
+			);
 			if ( $this->is_downgrading ) {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are uploading an older version of a current theme. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/support/article/wordpress-backups/' )
-				);
-			} else {
-				$warning = sprintf(
-					/* translators: %s: Documentation URL. */
-					__( 'You are updating a theme. Be sure to <a href="%s">back up your database and files</a> first.' ),
 					__( 'https://wordpress.org/support/article/wordpress-backups/' )
 				);
 			}

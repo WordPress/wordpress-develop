@@ -99,15 +99,14 @@ function wp_credits_section_title( $group_data = array() ) {
 	}
 
 	if ( $group_data['name'] ) {
+		// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText
+		$title = translate( $group_data['name'] );
 		if ( 'Translators' === $group_data['name'] ) {
 			// Considered a special slug in the API response. (Also, will never be returned for en_US.)
 			$title = _x( 'Translators', 'Translate this to be the equivalent of English Translators in your language for the credits page Translators section' );
 		} elseif ( isset( $group_data['placeholders'] ) ) {
 			// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText
 			$title = vsprintf( translate( $group_data['name'] ), $group_data['placeholders'] );
-		} else {
-			// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText
-			$title = translate( $group_data['name'] );
 		}
 
 		echo '<h2 class="wp-people-group-title">' . esc_html( $title ) . "</h2>\n";

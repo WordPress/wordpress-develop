@@ -121,10 +121,9 @@ class WP_Upgrader {
 	 */
 	public function __construct( $skin = null ) {
 		if ( null === $skin ) {
-			$this->skin = new WP_Upgrader_Skin();
-		} else {
-			$this->skin = $skin;
+			$skin = new WP_Upgrader_Skin();
 		}
+		$this->skin = $skin;
 	}
 
 	/**
@@ -531,17 +530,19 @@ class WP_Upgrader {
 		$source_files       = array_keys( $wp_filesystem->dirlist( $remote_source ) );
 		$remote_destination = $wp_filesystem->find_folder( $local_destination );
 
+		if ( 0 === count( $source_files ) ) {
+			// There are no files?
+			return new WP_Error( 'incompatible_archive_empty', $this->strings['incompatible_archive'], $this->strings['no_files'] );
+		}
+
+		// The upgrader will use the folder name of this file as the destination folder.
+		// Folder name is based on zip filename.
+		$source = trailingslashit( $args['source'] );
+
 		// Locate which directory to copy to the new folder. This is based on the actual folder holding the files.
 		if ( 1 === count( $source_files ) && $wp_filesystem->is_dir( trailingslashit( $args['source'] ) . $source_files[0] . '/' ) ) {
 			// Only one folder? Then we want its contents.
 			$source = trailingslashit( $args['source'] ) . trailingslashit( $source_files[0] );
-		} elseif ( 0 === count( $source_files ) ) {
-			// There are no files?
-			return new WP_Error( 'incompatible_archive_empty', $this->strings['incompatible_archive'], $this->strings['no_files'] );
-		} else {
-			// It's only a single file, the upgrader will use the folder name of this file as the destination folder.
-			// Folder name is based on zip filename.
-			$source = trailingslashit( $args['source'] );
 		}
 
 		/**

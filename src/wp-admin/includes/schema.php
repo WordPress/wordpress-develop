@@ -581,10 +581,9 @@ function populate_options( array $options = array() ) {
 			continue;
 		}
 
+		$autoload = 'yes';
 		if ( in_array( $option, $fat_options, true ) ) {
 			$autoload = 'no';
-		} else {
-			$autoload = 'yes';
 		}
 
 		if ( is_array( $value ) ) {

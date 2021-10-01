@@ -22,10 +22,9 @@ function wp_ajax_nopriv_heartbeat() {
 	$response = array();
 
 	// 'screen_id' is the same as $current_screen->id and the JS global 'pagenow'.
+	$screen_id = 'front';
 	if ( ! empty( $_POST['screen_id'] ) ) {
 		$screen_id = sanitize_key( $_POST['screen_id'] );
-	} else {
-		$screen_id = 'front';
 	}
 
 	if ( ! empty( $_POST['data'] ) ) {
@@ -273,25 +272,22 @@ function wp_ajax_autocomplete_user() {
 
 	// Check the type of request.
 	// Current allowed values are `add` and `search`.
+	$type = 'add';
 	if ( isset( $_REQUEST['autocomplete_type'] ) && 'search' === $_REQUEST['autocomplete_type'] ) {
 		$type = $_REQUEST['autocomplete_type'];
-	} else {
-		$type = 'add';
 	}
 
 	// Check the desired field for value.
 	// Current allowed values are `user_email` and `user_login`.
+	$field = 'user_login';
 	if ( isset( $_REQUEST['autocomplete_field'] ) && 'user_email' === $_REQUEST['autocomplete_field'] ) {
 		$field = $_REQUEST['autocomplete_field'];
-	} else {
-		$field = 'user_login';
 	}
 
+	$id = get_current_blog_id();
 	// Exclude current users of this blog.
 	if ( isset( $_REQUEST['site_id'] ) ) {
 		$id = absint( $_REQUEST['site_id'] );
-	} else {
-		$id = get_current_blog_id();
 	}
 
 	$include_blog_users = ( 'search' === $type ? get_users(
@@ -353,32 +349,33 @@ function wp_ajax_get_community_events() {
 				'error' => $events->get_error_message(),
 			)
 		);
-	} else {
-		if ( empty( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) ) {
-			$ip_changed = true;
-		} elseif ( isset( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) && $saved_location['ip'] !== $events['location']['ip'] ) {
-			$ip_changed = true;
-		}
-
-		/*
-		 * The location should only be updated when it changes. The API doesn't always return
-		 * a full location; sometimes it's missing the description or country. The location
-		 * that was saved during the initial request is known to be good and complete, though.
-		 * It should be left intact until the user explicitly changes it (either by manually
-		 * searching for a new location, or by changing their IP address).
-		 *
-		 * If the location was updated with an incomplete response from the API, then it could
-		 * break assumptions that the UI makes (e.g., that there will always be a description
-		 * that corresponds to a latitude/longitude location).
-		 *
-		 * The location is stored network-wide, so that the user doesn't have to set it on each site.
-		 */
-		if ( $ip_changed || $search ) {
-			update_user_meta( $user_id, 'community-events-location', $events['location'] );
-		}
-
-		wp_send_json_success( $events );
+		return;
 	}
+
+	if ( empty( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) ) {
+		$ip_changed = true;
+	} elseif ( isset( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) && $saved_location['ip'] !== $events['location']['ip'] ) {
+		$ip_changed = true;
+	}
+
+	/*
+		* The location should only be updated when it changes. The API doesn't always return
+		* a full location; sometimes it's missing the description or country. The location
+		* that was saved during the initial request is known to be good and complete, though.
+		* It should be left intact until the user explicitly changes it (either by manually
+		* searching for a new location, or by changing their IP address).
+		*
+		* If the location was updated with an incomplete response from the API, then it could
+		* break assumptions that the UI makes (e.g., that there will always be a description
+		* that corresponds to a latitude/longitude location).
+		*
+		* The location is stored network-wide, so that the user doesn't have to set it on each site.
+		*/
+	if ( $ip_changed || $search ) {
+		update_user_meta( $user_id, 'community-events-location', $events['location'] );
+	}
+
+	wp_send_json_success( $events );
 }
 
 /**
@@ -975,11 +972,8 @@ function wp_ajax_dim_comment() {
 
 	check_ajax_referer( "approve-comment_$id" );
 
-	if ( in_array( $current, array( 'unapproved', 'spam' ), true ) ) {
-		$result = wp_set_comment_status( $comment, 'approve', true );
-	} else {
-		$result = wp_set_comment_status( $comment, 'hold', true );
-	}
+	$new_status = ( in_array( $current, array( 'unapproved', 'spam' ), true ) ) ? 'approve' : 'hold';
+	$result     = wp_set_comment_status( $comment, $new_status, true );
 
 	if ( is_wp_error( $result ) ) {
 		$x = new WP_Ajax_Response(
@@ -1030,10 +1024,9 @@ function wp_ajax_add_link_category( $action ) {
 
 		if ( ! $cat_id || is_wp_error( $cat_id ) ) {
 			continue;
-		} else {
-			$cat_id = $cat_id['term_id'];
 		}
 
+		$cat_id   = $cat_id['term_id'];
 		$cat_name = esc_html( $cat_name );
 
 		$x->add(
@@ -2033,11 +2026,10 @@ function wp_ajax_inline_save() {
 	}
 
 	// Status.
+	$data['post_status'] = $data['_status'];
 	if ( isset( $data['keep_private'] ) && 'private' === $data['keep_private'] ) {
 		$data['visibility']  = 'private';
 		$data['post_status'] = 'private';
-	} else {
-		$data['post_status'] = $data['_status'];
 	}
 
 	if ( empty( $data['comment_status'] ) ) {
@@ -2201,9 +2193,8 @@ function wp_ajax_find_posts() {
 				break;
 		}
 
-		if ( '0000-00-00 00:00:00' === $post->post_date ) {
-			$time = '';
-		} else {
+		$time = '';
+		if ( '0000-00-00 00:00:00' !== $post->post_date ) {
 			/* translators: Date format in table columns, see https://www.php.net/manual/datetime.format.php */
 			$time = mysql2date( __( 'Y/m/d' ), $post->post_date );
 		}
@@ -2501,6 +2492,7 @@ function wp_ajax_upload_attachment() {
 		wp_die();
 	}
 
+	$post_id = null;
 	if ( isset( $_REQUEST['post_id'] ) ) {
 		$post_id = $_REQUEST['post_id'];
 
@@ -2517,8 +2509,6 @@ function wp_ajax_upload_attachment() {
 
 			wp_die();
 		}
-	} else {
-		$post_id = null;
 	}
 
 	$post_data = ! empty( $_REQUEST['post_data'] ) ? _wp_get_allowed_postdata( _wp_translate_postdata( false, (array) $_REQUEST['post_data'] ) ) : array();
@@ -2747,9 +2737,7 @@ function wp_ajax_set_attachment_thumbnail() {
 		}
 	}
 
-	if ( 0 === $success ) {
-		wp_send_json_error();
-	} else {
+	if ( 0 !== $success ) {
 		wp_send_json_success();
 	}
 
@@ -2955,17 +2943,15 @@ function wp_ajax_query_attachments() {
 		}
 	}
 
-	$query              = array_intersect_key( $query, array_flip( $keys ) );
-	$query['post_type'] = 'attachment';
-
+	$query                = array_intersect_key( $query, array_flip( $keys ) );
+	$query['post_type']   = 'attachment';
+	$query['post_status'] = 'inherit';
 	if (
 		MEDIA_TRASH &&
 		! empty( $_REQUEST['query']['post_status'] ) &&
 		'trash' === $_REQUEST['query']['post_status']
 	) {
 		$query['post_status'] = 'trash';
-	} else {
-		$query['post_status'] = 'inherit';
 	}
 
 	if ( current_user_can( get_post_type_object( 'attachment' )->cap->read_private_posts ) ) {
@@ -3331,13 +3317,12 @@ function wp_ajax_send_link_to_editor() {
 	// Fallback that WordPress creates when no oEmbed was found.
 	$fallback = $wp_embed->maybe_make_link( $src );
 
+	$html = '';
 	if ( $check_embed !== $fallback ) {
 		// TinyMCE view for [embed] will parse this.
 		$html = '[embed]' . $src . '[/embed]';
 	} elseif ( $link_text ) {
 		$html = '<a href="' . esc_url( $src ) . '">' . $link_text . '</a>';
-	} else {
-		$html = '';
 	}
 
 	// Figure out what filter to run:
@@ -3371,12 +3356,11 @@ function wp_ajax_heartbeat() {
 	$response    = array();
 	$data        = array();
 	$nonce_state = wp_verify_nonce( $_POST['_nonce'], 'heartbeat-nonce' );
+	$screen_id   = 'front';
 
 	// 'screen_id' is the same as $current_screen->id and the JS global 'pagenow'.
 	if ( ! empty( $_POST['screen_id'] ) ) {
 		$screen_id = sanitize_key( $_POST['screen_id'] );
-	} else {
-		$screen_id = 'front';
 	}
 
 	if ( ! empty( $_POST['data'] ) ) {
@@ -3656,12 +3640,11 @@ function wp_ajax_parse_embed() {
 	preg_match( '/' . get_shortcode_regex() . '/s', $shortcode, $matches );
 	$atts = shortcode_parse_atts( $matches[3] );
 
+	$url = '';
 	if ( ! empty( $matches[5] ) ) {
 		$url = $matches[5];
 	} elseif ( ! empty( $atts['src'] ) ) {
 		$url = $atts['src'];
-	} else {
-		$url = '';
 	}
 
 	$parsed                         = false;
@@ -3750,10 +3733,9 @@ function wp_ajax_parse_embed() {
 	);
 
 	if ( strpos( $parsed, 'class="wp-embedded-content' ) ) {
+		$script_src = includes_url( 'js/wp-embed.min.js' );
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 			$script_src = includes_url( 'js/wp-embed.js' );
-		} else {
-			$script_src = includes_url( 'js/wp-embed.min.js' );
 		}
 
 		$return['head']    = '<script src="' . $script_src . '"></script>';
@@ -4818,6 +4800,12 @@ function wp_ajax_wp_privacy_export_personal_data() {
 		wp_send_json_error( __( 'An exporter has improperly used the registration filter.' ) );
 	}
 
+	$exporter_key = '';
+	$response     = array(
+		'data' => array(),
+		'done' => true,
+	);
+
 	// Do we have any registered exporters?
 	if ( 0 < count( $exporters ) ) {
 		if ( $exporter_index < 1 ) {
@@ -4900,14 +4888,6 @@ function wp_ajax_wp_privacy_export_personal_data() {
 				sprintf( __( 'Expected done (boolean) in response array from exporter: %s.' ), esc_html( $exporter_friendly_name ) )
 			);
 		}
-	} else {
-		// No exporters, so we're done.
-		$exporter_key = '';
-
-		$response = array(
-			'data' => array(),
-			'done' => true,
-		);
 	}
 
 	/**
@@ -5004,6 +4984,14 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	 * }
 	 */
 	$erasers = apply_filters( 'wp_privacy_personal_data_erasers', array() );
+
+	$eraser_key = '';
+	$response   = array(
+		'items_removed'  => false,
+		'items_retained' => false,
+		'messages'       => array(),
+		'done'           => true,
+	);
 
 	// Do we have any registered erasers?
 	if ( 0 < count( $erasers ) ) {
@@ -5128,16 +5116,6 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 				)
 			);
 		}
-	} else {
-		// No erasers, so we're done.
-		$eraser_key = '';
-
-		$response = array(
-			'items_removed'  => false,
-			'items_retained' => false,
-			'messages'       => array(),
-			'done'           => true,
-		);
 	}
 
 	/**
@@ -5316,18 +5294,16 @@ function wp_ajax_health_check_get_sizes() {
 		$data = array();
 
 		if ( isset( $value['size'] ) ) {
+			$data['size'] = (int) $value['size'];
 			if ( is_string( $value['size'] ) ) {
 				$data['size'] = sanitize_text_field( $value['size'] );
-			} else {
-				$data['size'] = (int) $value['size'];
 			}
 		}
 
 		if ( isset( $value['debug'] ) ) {
+			$data['debug'] = (int) $value['debug'];
 			if ( is_string( $value['debug'] ) ) {
 				$data['debug'] = sanitize_text_field( $value['debug'] );
-			} else {
-				$data['debug'] = (int) $value['debug'];
 			}
 		}
 
@@ -5449,7 +5425,7 @@ function wp_ajax_send_password_reset() {
 			/* translators: %s: User's display name. */
 			sprintf( __( 'A password reset link was emailed to %s.' ), $user->display_name )
 		);
-	} else {
-		wp_send_json_error( $results->get_error_message() );
+		return;
 	}
+	wp_send_json_error( $results->get_error_message() );
 }

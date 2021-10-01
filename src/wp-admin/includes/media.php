@@ -1060,9 +1060,8 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'htm
 		$html = "<img src='$src' alt='$alt' />";
 
 		return $html;
-	} else {
-		return new WP_Error( 'image_sideload_failed' );
 	}
+	return new WP_Error( 'image_sideload_failed' );
 }
 
 /**
@@ -1630,14 +1629,13 @@ function get_media_item( $attachment_id, $args = null ) {
 
 	$form_fields = get_attachment_fields_to_edit( $post, $parsed_args['errors'] );
 
+	$class        = '';
+	$toggle_links = '';
 	if ( $parsed_args['toggle'] ) {
 		$class        = empty( $parsed_args['errors'] ) ? 'startclosed' : 'startopen';
 		$toggle_links = "
 		<a class='toggle describe-toggle-on' href='#'>$toggle_on</a>
 		<a class='toggle describe-toggle-off' href='#'>$toggle_off</a>";
-	} else {
-		$class        = '';
-		$toggle_links = '';
 	}
 
 	$display_title = ( ! empty( $title ) ) ? $title : $filename; // $title shouldn't ever be empty, but just in case.
@@ -2763,10 +2761,9 @@ function media_upload_library_form( $errors ) {
 			$_GET['post_mime_type']                        = $type;
 			list($post_mime_types, $avail_post_mime_types) = wp_edit_attachments_query();
 		}
+		$class = '';
 		if ( empty( $_GET['post_mime_type'] ) || 'all' === $_GET['post_mime_type'] ) {
 			$class = ' class="current"';
-		} else {
-			$class = '';
 		}
 		$type_links[] = '<li><a href="' . esc_url(
 			add_query_arg(
@@ -2853,10 +2850,9 @@ function media_upload_library_form( $errors ) {
 
 				$arc_row->mmonth = zeroise( $arc_row->mmonth, 2 );
 
+				$default = '';
 				if ( $arc_row->yyear . $arc_row->mmonth == $selected_month ) {
 					$default = ' selected="selected"';
-				} else {
-					$default = '';
 				}
 
 				echo "<option$default value='" . esc_attr( $arc_row->yyear . $arc_row->mmonth ) . "'>";
@@ -2910,6 +2906,7 @@ function media_upload_library_form( $errors ) {
  * @return string the form html
  */
 function wp_media_insert_url_form( $default_view = 'image' ) {
+	$caption = '';
 	/** This filter is documented in wp-admin/includes/media.php */
 	if ( ! apply_filters( 'disable_captions', '' ) ) {
 		$caption = '
@@ -2919,8 +2916,6 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 			</th>
 			<td class="field"><textarea id="caption" name="caption"></textarea></td>
 		</tr>';
-	} else {
-		$caption = '';
 	}
 
 	$default_align = get_option( 'image_default_align' );
@@ -2929,12 +2924,11 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 		$default_align = 'none';
 	}
 
+	$view        = 'not-image';
+	$table_class = $view;
 	if ( 'image' === $default_view ) {
 		$view        = 'image-only';
 		$table_class = '';
-	} else {
-		$view        = 'not-image';
-		$table_class = $view;
 	}
 
 	return '
