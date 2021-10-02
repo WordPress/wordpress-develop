@@ -126,6 +126,22 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 53303
+	 */
+	public function test_get_items_ordering() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertGreaterThan( 1, count( $data ) );
+		$ids    = wp_list_pluck( $data, 'id' );
+		$sorted = $ids;
+		sort( $sorted );
+
+		$this->assertSame( $sorted, $ids );
+	}
+
+	/**
 	 * @ticket 53305
 	 */
 	public function test_get_items_removes_duplicates() {
