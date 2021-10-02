@@ -240,7 +240,10 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_cannot_manage_widgets', $response, 401 );
 	}
 
-	public function test_get_items_no_permission_public() {
+	/**
+	 * @ticket 53915
+	 */
+	public function test_get_items_no_permission_show_in_rest() {
 		$this->setup_widget(
 			'text',
 			1,
@@ -526,7 +529,10 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_cannot_manage_widgets', $response, 403 );
 	}
 
-	public function test_get_item_no_permission_public() {
+	/**
+	 * @ticket 53915
+	 */
+	public function test_get_item_no_permission_show_in_rest() {
 		wp_set_current_user( 0 );
 
 		$this->setup_widget(

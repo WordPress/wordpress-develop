@@ -165,9 +165,9 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @ticket 41683
+	 * @ticket 53915
 	 */
-	public function test_get_items_no_permission_public() {
+	public function test_get_items_no_permission_show_in_rest() {
 		$this->setup_sidebar(
 			'sidebar-1',
 			array(

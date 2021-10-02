@@ -489,7 +489,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return void
+	 * @see retrieve_widgets
 	 */
 	protected function retrieve_widgets() {
 		if ( $this->widgets_retrieved ) {
