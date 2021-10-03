@@ -700,11 +700,13 @@
 		params = params || {};
 		focus = function () {
 			// If a child section is currently expanded, collapse it.
-			api.section.each( function ( section ) {
-				if ( section.expanded() && section.params.panel === construct.id ) {
-					section.collapse();
-				}
-			} );
+			if ( construct.extended( api.Panel ) ) {
+				construct.sections().forEach( function ( section ) {
+					if ( section.expanded() ) {
+						section.collapse();
+					}
+				} );
+			}
 
 			var focusContainer;
 			if ( ( construct.extended( api.Panel ) || construct.extended( api.Section ) ) && construct.expanded && construct.expanded() ) {
