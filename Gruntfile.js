@@ -122,7 +122,9 @@ module.exports = function(grunt) {
 				WORKING_DIR + 'wp-includes/js/'
 			],
 			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/assets/'
+				WORKING_DIR + 'wp-includes/assets/*',
+				WORKING_DIR + 'wp-includes/css/dist/',
+				'!' + WORKING_DIR + 'wp-includes/assets/script-loader-packages.php'
 			],
 			dynamic: {
 				dot: true,
@@ -996,6 +998,7 @@ module.exports = function(grunt) {
 						WORKING_DIR + 'wp-{admin,includes}/**/*.js',
 						WORKING_DIR + 'wp-content/themes/twenty*/**/*.js',
 						'!' + WORKING_DIR + 'wp-content/themes/twenty*/node_modules/**/*.js',
+						'!' + WORKING_DIR + 'wp-includes/blocks/**/*.js',
 						'!' + WORKING_DIR + 'wp-includes/js/dist/**/*.js',
 					]
 				}
@@ -1546,8 +1549,14 @@ module.exports = function(grunt) {
 	 * @ticket 46218
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
-		const path = `${ BUILD_DIR }**/*.js`;
-		const files = glob.sync( path );
+		const files = buildFiles.reduce( ( acc, path ) => {
+			// Skip excluded paths and any path that isn't a file.
+			if ( '!' === path[0] || '**' !== path.substr( -2 ) ) {
+				return acc;
+			}
+			acc.push( ...glob.sync( `${ BUILD_DIR }/${ path }/*.js` ) );
+			return acc;
+		}, [] );
 
 		assert(
 			files.length > 0,

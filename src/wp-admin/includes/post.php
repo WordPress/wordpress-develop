@@ -978,7 +978,7 @@ function delete_meta( $mid ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @return mixed
+ * @return string[] Array of meta key names.
  */
 function get_meta_keys() {
 	global $wpdb;
@@ -1013,8 +1013,19 @@ function get_post_meta_by_id( $mid ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $postid
- * @return mixed
+ * @param int $postid A post ID.
+ * @return array {
+ *     Array of meta data arrays for the given post ID.
+ *
+ *     @type array ...$0 {
+ *         Associative array of meta data.
+ *
+ *         @type string $meta_key   Meta key.
+ *         @type mixed  $meta_value Meta value.
+ *         @type string $meta_id    Meta ID as a numeric string.
+ *         @type string $post_id    Post ID as a numeric string.
+ *     }
+ * }
  */
 function has_meta( $postid ) {
 	global $wpdb;
@@ -2131,11 +2142,6 @@ function use_block_editor_for_post( $post ) {
 	// We're in the meta box loader, so don't use the block editor.
 	if ( isset( $_GET['meta-box-loader'] ) ) {
 		check_admin_referer( 'meta-box-loader', 'meta-box-loader-nonce' );
-		return false;
-	}
-
-	// The posts page can't be edited in the block editor.
-	if ( absint( get_option( 'page_for_posts' ) ) === $post->ID && empty( $post->post_content ) ) {
 		return false;
 	}
 

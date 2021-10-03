@@ -1,6 +1,6 @@
 <?php
 
-class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
+abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	public static $old_current_user;
 	public static $author_id;
 	public static $post_ids    = array();
@@ -23,8 +23,8 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		self::delete_shared_fixtures();
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		update_option( 'page_comments', true );
 		update_option( 'comments_per_page', 5 );

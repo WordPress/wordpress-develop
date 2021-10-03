@@ -4,8 +4,8 @@
  * @group taxonomy
  */
 class Tests_Taxonomy_GetObjectTaxonomies extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_post_type( 'wptests_pt' );
 		register_taxonomy( 'wptests_tax', 'wptests_pt' );
 	}
@@ -36,7 +36,7 @@ class Tests_Taxonomy_GetObjectTaxonomies extends WP_UnitTestCase {
 		$found = get_object_taxonomies( 'wptests_pt', 'objects' );
 
 		$this->assertSame( array( 'wptests_tax' ), array_keys( $found ) );
-		$this->assertInternalType( 'object', $found['wptests_tax'] );
+		$this->assertIsObject( $found['wptests_tax'] );
 		$this->assertSame( 'wptests_tax', $found['wptests_tax']->name );
 	}
 
@@ -87,7 +87,7 @@ class Tests_Taxonomy_GetObjectTaxonomies extends WP_UnitTestCase {
 		$found = get_object_taxonomies( $attachment, 'objects' );
 
 		$this->assertSame( array( 'wptests_tax2' ), array_keys( $found ) );
-		$this->assertInternalType( 'object', $found['wptests_tax2'] );
+		$this->assertIsObject( $found['wptests_tax2'] );
 		$this->assertSame( 'wptests_tax2', $found['wptests_tax2']->name );
 	}
 }

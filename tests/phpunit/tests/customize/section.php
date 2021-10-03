@@ -19,18 +19,18 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	 */
 	protected $manager;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->manager           = $GLOBALS['wp_customize'];
 		$this->undefined         = new stdClass();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -38,7 +38,7 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	 */
 	function test_construct_default_args() {
 		$section = new WP_Customize_Section( $this->manager, 'foo' );
-		$this->assertInternalType( 'int', $section->instance_number );
+		$this->assertIsInt( $section->instance_number );
 		$this->assertSame( $this->manager, $section->manager );
 		$this->assertSame( 'foo', $section->id );
 		$this->assertSame( 160, $section->priority );
@@ -139,7 +139,7 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		}
 		$this->assertEmpty( $data['content'] );
 		$this->assertTrue( $data['active'] );
-		$this->assertInternalType( 'int', $data['instanceNumber'] );
+		$this->assertIsInt( $data['instanceNumber'] );
 	}
 
 	/**
@@ -202,9 +202,9 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		ob_start();
 		$section->print_template();
 		$content = ob_get_clean();
-		$this->assertContains( '<script type="text/html" id="tmpl-customize-section-default">', $content );
-		$this->assertContains( 'accordion-section-title', $content );
-		$this->assertContains( 'accordion-section-content', $content );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-customize-section-default">', $content );
+		$this->assertStringContainsString( 'accordion-section-title', $content );
+		$this->assertStringContainsString( 'accordion-section-content', $content );
 	}
 
 	/**
@@ -217,9 +217,9 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		ob_start();
 		$section->print_template();
 		$content = ob_get_clean();
-		$this->assertContains( '<script type="text/html" id="tmpl-customize-section-titleless">', $content );
-		$this->assertNotContains( 'accordion-section-title', $content );
-		$this->assertContains( 'accordion-section-content', $content );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-customize-section-titleless">', $content );
+		$this->assertStringNotContainsString( 'accordion-section-title', $content );
+		$this->assertStringContainsString( 'accordion-section-content', $content );
 	}
 }
 

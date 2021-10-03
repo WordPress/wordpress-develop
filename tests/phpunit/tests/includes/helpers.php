@@ -227,7 +227,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 
 		$stati = get_post_stati();
 
-		$this->assertFalse( isset( $stati['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $stati );
 	}
 
 	/**

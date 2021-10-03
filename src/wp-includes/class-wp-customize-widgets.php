@@ -480,8 +480,10 @@ final class WP_Customize_Widgets {
 							$this->manager,
 							$setting_id,
 							array(
-								'section'    => $section_id,
-								'sidebar_id' => $sidebar_id,
+								'section'     => $section_id,
+								'sidebar_id'  => $sidebar_id,
+								'label'       => $section_args['title'],
+								'description' => $section_args['description'],
 							)
 						);
 					} else {
@@ -828,14 +830,19 @@ final class WP_Customize_Widgets {
 			sprintf( 'var _wpCustomizeWidgetsSettings = %s;', wp_json_encode( $settings ) )
 		);
 
-		// TODO: Update 'wp-customize-widgets' to not rely so much on things in
-		// 'customize-widgets'. This will let us skip most of the above and not
-		// enqueue 'customize-widgets' which saves bytes.
+		/*
+		 * TODO: Update 'wp-customize-widgets' to not rely so much on things in
+		 * 'customize-widgets'. This will let us skip most of the above and not
+		 * enqueue 'customize-widgets' which saves bytes.
+		 */
 
 		if ( wp_use_widgets_block_editor() ) {
 			$block_editor_context = new WP_Block_Editor_Context();
 
-			$editor_settings = get_block_editor_settings( array(), $block_editor_context );
+			$editor_settings = get_block_editor_settings(
+				get_legacy_widget_block_editor_settings(),
+				$block_editor_context
+			);
 
 			wp_add_inline_script(
 				'wp-customize-widgets',
@@ -855,7 +862,7 @@ final class WP_Customize_Widgets {
 
 			wp_add_inline_script(
 				'wp-blocks',
-				sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( 'widgets-customizer' ) ) ),
+				sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( $block_editor_context ) ) ),
 				'after'
 			);
 
@@ -1394,21 +1401,33 @@ final class WP_Customize_Widgets {
 	 * only get applied to an instance *once*.
 	 *
 	 * @since 3.9.0
+	 * @since 5.8.0 Added the `$id_base` parameter.
 	 *
-	 * @param array $value Widget instance to sanitize.
-	 * @param string $id_base Base of the ID of the widget being sanitized.
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 *
+	 * @param array  $value   Widget instance to sanitize.
+	 * @param string $id_base Optional. Base of the ID of the widget being sanitized. Default null.
 	 * @return array|void Sanitized widget instance.
 	 */
 	public function sanitize_widget_instance( $value, $id_base = null ) {
 		global $wp_widget_factory;
 
 		if ( array() === $value ) {
-			return;
+			return $value;
 		}
 
 		if ( isset( $value['raw_instance'] ) && $id_base && wp_use_widgets_block_editor() ) {
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 			if ( ! empty( $widget_object->widget_options['show_instance_in_rest'] ) ) {
+				if ( 'block' === $id_base && ! current_user_can( 'unfiltered_html' ) ) {
+					/*
+					 * The content of the 'block' widget is not filtered on the
+					 * fly while editing. Filter the content here to prevent
+					 * vulnerabilities.
+					 */
+					$value['raw_instance']['content'] = wp_kses_post( $value['raw_instance']['content'] );
+				}
+
 				return $value['raw_instance'];
 			}
 		}
@@ -1442,9 +1461,12 @@ final class WP_Customize_Widgets {
 	 * Converts a widget instance into JSON-representable format.
 	 *
 	 * @since 3.9.0
+	 * @since 5.8.0 Added the `$id_base` parameter.
 	 *
-	 * @param array $value Widget instance to convert to JSON.
-	 * @param string $id_base Base of the ID of the widget being sanitized.
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 *
+	 * @param array  $value   Widget instance to convert to JSON.
+	 * @param string $id_base Optional. Base of the ID of the widget being sanitized. Default null.
 	 * @return array JSON-converted widget instance.
 	 */
 	public function sanitize_widget_js_instance( $value, $id_base = null ) {

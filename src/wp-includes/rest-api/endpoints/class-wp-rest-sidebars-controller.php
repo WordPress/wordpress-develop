@@ -2,29 +2,11 @@
 /**
  * REST API: WP_REST_Sidebars_Controller class
  *
+ * Original code from {@link https://github.com/martin-pettersson/wp-rest-api-sidebars Martin Pettersson (martin_pettersson@outlook.com)}.
+ *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.8.0
- *
- * Copyright (C) 2015  Martin Pettersson
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Martin Pettersson <martin_pettersson@outlook.com>
- * @copyright 2015 Martin Pettersson
- * @license   GPLv2
- * @link      https://github.com/martin-pettersson/wp-rest-api-sidebars
  */
 
 /**
@@ -116,8 +98,10 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
+		retrieve_widgets();
+
 		$data = array();
-		foreach ( (array) wp_get_sidebars_widgets() as $id => $widgets ) {
+		foreach ( wp_get_sidebars_widgets() as $id => $widgets ) {
 			$sidebar = $this->get_sidebar( $id );
 
 			if ( ! $sidebar ) {
@@ -153,6 +137,8 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
+		retrieve_widgets();
+
 		$sidebar = $this->get_sidebar( $request['id'] );
 
 		if ( ! $sidebar ) {
@@ -208,6 +194,16 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 		$request['context'] = 'edit';
 
 		$sidebar = $this->get_sidebar( $request['id'] );
+
+		/**
+		 * Fires after a sidebar is updated via the REST API.
+		 *
+		 * @since 5.8.0
+		 *
+		 * @param array           $sidebar The updated sidebar.
+		 * @param WP_REST_Request $request Request object.
+		 */
+		do_action( 'rest_save_sidebar', $sidebar, $request );
 
 		return $this->prepare_item_for_response( $sidebar, $request );
 	}
@@ -266,27 +262,29 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * Prepares a single sidebar output for response.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Renamed `$raw_sidebar` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
 	 * @global array $wp_registered_sidebars The registered sidebars.
 	 * @global array $wp_registered_widgets  The registered widgets.
 	 *
-	 * @param array           $raw_sidebar Sidebar instance.
-	 * @param WP_REST_Request $request     Full details about the request.
-	 *
+	 * @param array           $item    Sidebar instance.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Prepared response object.
 	 */
-	public function prepare_item_for_response( $raw_sidebar, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
 		global $wp_registered_sidebars, $wp_registered_widgets;
 
-		$id      = $raw_sidebar['id'];
-		$sidebar = array( 'id' => $id );
+		// Restores the more descriptive, specific name for use within this method.
+		$raw_sidebar = $item;
+		$id          = $raw_sidebar['id'];
+		$sidebar     = array( 'id' => $id );
 
 		if ( isset( $wp_registered_sidebars[ $id ] ) ) {
 			$registered_sidebar = $wp_registered_sidebars[ $id ];
 
 			$sidebar['status']        = 'active';
 			$sidebar['name']          = isset( $registered_sidebar['name'] ) ? $registered_sidebar['name'] : '';
-			$sidebar['description']   = isset( $registered_sidebar['description'] ) ? $registered_sidebar['description'] : '';
+			$sidebar['description']   = isset( $registered_sidebar['description'] ) ? wp_sidebar_description( $id ) : '';
 			$sidebar['class']         = isset( $registered_sidebar['class'] ) ? $registered_sidebar['class'] : '';
 			$sidebar['before_widget'] = isset( $registered_sidebar['before_widget'] ) ? $registered_sidebar['before_widget'] : '';
 			$sidebar['after_widget']  = isset( $registered_sidebar['after_widget'] ) ? $registered_sidebar['after_widget'] : '';
@@ -309,7 +307,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 				}
 			);
 
-			$sidebar['widgets'] = $widgets;
+			$sidebar['widgets'] = array_values( $widgets );
 		}
 
 		$schema = $this->get_item_schema();
@@ -348,7 +346,6 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param array $sidebar Sidebar.
-	 *
 	 * @return array Links for the given widget.
 	 */
 	protected function prepare_links( $sidebar ) {
@@ -368,6 +365,8 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the block type' schema, conforming to JSON Schema.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @return array Item schema data.
 	 */

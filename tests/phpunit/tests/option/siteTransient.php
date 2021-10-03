@@ -5,8 +5,8 @@
  */
 class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'Not testable with an external object cache.' );
@@ -56,6 +56,6 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$options = wp_load_alloptions();
 
-		$this->assertFalse( isset( $options[ '_site_transient_' . $key ] ) );
+		$this->assertArrayNotHasKey( '_site_transient_' . $key, $options );
 	}
 }

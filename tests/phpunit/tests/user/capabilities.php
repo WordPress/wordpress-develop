@@ -53,8 +53,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		// Keep track of users we create.
 		$this->_flush_roles();
 
@@ -1608,11 +1608,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$author = self::$users['author'];
 
 		$author->add_cap( 'foo', false );
-		$this->assertTrue( isset( $author->caps['foo'] ) );
+		$this->assertArrayHasKey( 'foo', $author->caps );
 		$this->assertFalse( user_can( $author->ID, 'foo' ) );
 
 		$author->remove_cap( 'foo' );
-		$this->assertFalse( isset( $author->caps['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $author->caps );
 		$this->assertFalse( user_can( $author->ID, 'foo' ) );
 	}
 
@@ -2237,7 +2237,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$wp_roles = wp_roles();
 		$wp_roles->for_site( $site_id );
 
-		$this->assertTrue( isset( $wp_roles->role_objects[ $role_name ] ) );
+		$this->assertArrayHasKey( $role_name, $wp_roles->role_objects );
 	}
 
 	/**

@@ -5780,7 +5780,7 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "app_id": {
-                            "description": "A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
+                            "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
                             "format": "uuid",
                             "required": false
@@ -5864,7 +5864,7 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "app_id": {
-                            "description": "A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
+                            "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
                             "format": "uuid",
                             "required": false
@@ -6656,6 +6656,11 @@ mockedApiResponse.Schema = {
                                 "open",
                                 "closed"
                             ],
+                            "required": false
+                        },
+                        "site_logo": {
+                            "description": "Site logo.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -7526,7 +7531,8 @@ mockedApiResponse.Schema = {
                 ]
             }
         }
-    }
+    },
+    "site_logo": false
 };
 
 mockedApiResponse.oembed = {
@@ -8940,5 +8946,6 @@ mockedApiResponse.settings = {
     "default_post_format": "0",
     "posts_per_page": 10,
     "default_ping_status": "open",
-    "default_comment_status": "open"
+    "default_comment_status": "open",
+    "site_logo": null
 };

@@ -1,13 +1,13 @@
 {
   "name": "twentynineteen",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Default WP Theme",
   "bugs": {
     "url": "https://core.trac.wordpress.org/"
   },
   "homepage": "https://wordpress.org/themes/twentynineteen/",
   "devDependencies": {
-    "@wordpress/browserslist-config": "^4.0.0",
+    "@wordpress/browserslist-config": "^4.0.1",
     "autoprefixer": "^9.8.6",
     "chokidar-cli": "^2.1.0",
     "node-sass": "^6.0.0",

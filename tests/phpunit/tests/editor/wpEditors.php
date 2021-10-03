@@ -9,7 +9,7 @@ if ( ! class_exists( '_WP_Editors', false ) ) {
  *
  * @coversDefaultClass _WP_Editors
  */
-class Tests_WP_Editors extends WP_UnitTestCase {
+class Tests_Editor_wpEditors extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_link_query
