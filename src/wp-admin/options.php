@@ -244,13 +244,12 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		);
 	}
 
+	$options = $allowed_options[ $option_page ];
 	if ( 'options' === $option_page ) {
 		if ( is_multisite() && ! current_user_can( 'manage_network_options' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to modify unregistered settings for this site.' ) );
 		}
 		$options = explode( ',', wp_unslash( $_POST['page_options'] ) );
-	} else {
-		$options = $allowed_options[ $option_page ];
 	}
 
 	if ( 'general' === $option_page ) {
@@ -367,21 +366,21 @@ foreach ( (array) $options as $option ) :
 		continue;
 	}
 
+	$value = $option->option_value;
+	$class = 'all-options';
 	if ( is_serialized( $option->option_value ) ) {
+		$value    = 'SERIALIZED DATA';
+		$class    = 'all-options disabled';
+		$disabled = true;
 		if ( is_serialized_string( $option->option_value ) ) {
 			// This is a serialized string, so we should display it.
 			$value               = maybe_unserialize( $option->option_value );
 			$options_to_update[] = $option->option_name;
 			$class               = 'all-options';
-		} else {
-			$value    = 'SERIALIZED DATA';
-			$disabled = true;
-			$class    = 'all-options disabled';
+			$disabled            = false;
 		}
 	} else {
-		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;
-		$class               = 'all-options';
 	}
 
 	$name = esc_attr( $option->option_name );

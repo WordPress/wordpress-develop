@@ -41,9 +41,8 @@ if ( $key ) {
 		setcookie( $activate_cookie, $key, 0, $activate_path, COOKIE_DOMAIN, is_ssl(), true );
 		wp_safe_redirect( $redirect_url );
 		exit;
-	} else {
-		$result = wpmu_activate_signup( $key );
 	}
+	$result = wpmu_activate_signup( $key );
 }
 
 if ( null === $result && isset( $_COOKIE[ $activate_cookie ] ) ) {

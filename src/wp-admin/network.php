@@ -48,14 +48,13 @@ if ( ! network_domain_check() && ( ! defined( 'WP_ALLOW_MULTISITE' ) || ! WP_ALL
 	);
 }
 
+// Used in the HTML title tag.
+$title       = __( 'Create a Network of WordPress Sites' );
+$parent_file = 'tools.php';
 if ( is_network_admin() ) {
 	// Used in the HTML title tag.
 	$title       = __( 'Network Setup' );
 	$parent_file = 'settings.php';
-} else {
-	// Used in the HTML title tag.
-	$title       = __( 'Create a Network of WordPress Sites' );
-	$parent_file = 'tools.php';
 }
 
 $network_help = '<p>' . __( 'This screen allows you to configure a network as having subdomains (<code>site1.example.com</code>) or subdirectories (<code>example.com/site1</code>). Subdomains require wildcard subdomains to be enabled in Apache and DNS records, if your host allows it.' ) . '</p>' .

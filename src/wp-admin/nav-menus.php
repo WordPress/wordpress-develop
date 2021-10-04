@@ -106,10 +106,9 @@ switch ( $action ) {
 						&& ( empty( $next_item_data['menu_item_parent'] )
 							|| (int) $next_item_data['menu_item_parent'] !== (int) $menu_item_data['menu_item_parent'] )
 					) {
+						$parent_db_id = 0;
 						if ( in_array( (int) $menu_item_data['menu_item_parent'], $orders_to_dbids, true ) ) {
 							$parent_db_id = (int) $menu_item_data['menu_item_parent'];
-						} else {
-							$parent_db_id = 0;
 						}
 
 						$parent_object = wp_setup_nav_menu_item( get_post( $parent_db_id ) );
@@ -185,10 +184,9 @@ switch ( $action ) {
 						&& isset( $orders_to_dbids[ $dbids_to_orders[ $menu_item_id ] - 1 ] )
 						&& ( (int) $menu_item_data['menu_item_parent'] === $orders_to_dbids[ $dbids_to_orders[ $menu_item_id ] - 1 ] )
 					) {
+						$parent_db_id = 0;
 						if ( in_array( (int) $menu_item_data['menu_item_parent'], $orders_to_dbids, true ) ) {
 							$parent_db_id = (int) $menu_item_data['menu_item_parent'];
-						} else {
-							$parent_db_id = 0;
 						}
 
 						$parent_object = wp_setup_nav_menu_item( get_post( $parent_db_id ) );
@@ -215,10 +213,9 @@ switch ( $action ) {
 							) {
 								$_possible_parent_id = (int) get_post_meta( $orders_to_dbids[ $dbids_to_orders[ $parent_db_id ] - 1 ], '_menu_item_menu_item_parent', true );
 
+								$menu_item_data['menu_item_parent'] = 0;
 								if ( in_array( $_possible_parent_id, array_keys( $dbids_to_orders ), true ) ) {
 									$menu_item_data['menu_item_parent'] = $_possible_parent_id;
-								} else {
-									$menu_item_data['menu_item_parent'] = 0;
 								}
 
 								// Else there isn't something before the parent.
@@ -470,13 +467,10 @@ $page_count = wp_count_posts( 'page' );
  * If we have one theme location, and zero menus, we take them right
  * into editing their first menu.
  */
-if ( 1 === count( get_registered_nav_menus() ) && ! $add_new_screen
-	&& empty( $nav_menus ) && ! empty( $page_count->publish )
-) {
-	$one_theme_location_no_menus = true;
-} else {
-	$one_theme_location_no_menus = false;
-}
+$one_theme_location_no_menus = (
+	1 === count( get_registered_nav_menus() ) && ! $add_new_screen &&
+	empty( $nav_menus ) && ! empty( $page_count->publish )
+);
 
 $nav_menus_l10n = array(
 	'oneThemeLocationNoMenus' => $one_theme_location_no_menus,
@@ -982,10 +976,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 									$hide_style = 'style="display: none;"';
 								}
 
+								$starter_copy = __( 'Drag the items into the order you prefer. Click the arrow on the right of the item to reveal additional configuration options.' );
 								if ( $one_theme_location_no_menus ) {
 									$starter_copy = __( 'Edit your default menu by adding or removing items. Drag the items into the order you prefer. Click Create Menu to save your changes.' );
-								} else {
-									$starter_copy = __( 'Drag the items into the order you prefer. Click the arrow on the right of the item to reveal additional configuration options.' );
 								}
 								?>
 								<div class="drag-instructions post-body-plain" <?php echo $hide_style; ?>>

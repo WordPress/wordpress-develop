@@ -61,9 +61,8 @@ if ( $action ) {
 					$redirect = self_admin_url( 'plugins.php?error=true&charsout=' . strlen( $result->get_error_data() ) . '&plugin=' . urlencode( $plugin ) . "&plugin_status=$status&paged=$page&s=$s" );
 					wp_redirect( add_query_arg( '_error_nonce', wp_create_nonce( 'plugin-activation-error_' . $plugin ), $redirect ) );
 					exit;
-				} else {
-					wp_die( $result );
 				}
+				wp_die( $result );
 			}
 
 			if ( ! is_network_admin() ) {
@@ -145,12 +144,11 @@ if ( $action ) {
 		case 'update-selected':
 			check_admin_referer( 'bulk-plugins' );
 
+			$plugins = array();
 			if ( isset( $_GET['plugins'] ) ) {
 				$plugins = explode( ',', wp_unslash( $_GET['plugins'] ) );
 			} elseif ( isset( $_POST['checked'] ) ) {
 				$plugins = (array) wp_unslash( $_POST['checked'] );
-			} else {
-				$plugins = array();
 			}
 
 			// Used in the HTML title tag.
@@ -405,11 +403,10 @@ if ( $action ) {
 
 				require_once ABSPATH . 'wp-admin/admin-footer.php';
 				exit;
-			} else {
-				$plugins_to_delete = count( $plugins );
 			} // End if verify-delete.
 
-			$delete_result = delete_plugins( $plugins );
+			$plugins_to_delete = count( $plugins );
+			$delete_result     = delete_plugins( $plugins );
 
 			// Store the result in a cache rather than a URL param due to object type & length.
 			set_transient( 'plugins_delete_result_' . $user_ID, $delete_result );
@@ -620,6 +617,7 @@ if ( ! empty( $invalid ) ) {
 
 if ( isset( $_GET['error'] ) ) :
 
+	$errmsg = __( 'Plugin could not be activated because it triggered a <strong>fatal error</strong>.' );
 	if ( isset( $_GET['main'] ) ) {
 		$errmsg = __( 'You cannot delete a plugin while it is active on the main site.' );
 	} elseif ( isset( $_GET['charsout'] ) ) {
@@ -635,8 +633,6 @@ if ( isset( $_GET['error'] ) ) :
 		$errmsg .= ' ' . __( 'If you notice &#8220;headers already sent&#8221; messages, problems with syndication feeds or other issues, try deactivating or removing this plugin.' );
 	} elseif ( 'resuming' === $_GET['error'] ) {
 		$errmsg = __( 'Plugin could not be resumed because it triggered a <strong>fatal error</strong>.' );
-	} else {
-		$errmsg = __( 'Plugin could not be activated because it triggered a <strong>fatal error</strong>.' );
 	}
 
 	?>

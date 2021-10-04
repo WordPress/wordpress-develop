@@ -155,13 +155,12 @@ for ( $i = 1; $i <= $count; $i++ ) {
 		}
 	}
 
+	// Author not found in DB, set status to pending. Author already set to admin.
+	$post_status = 'pending';
 	// Set $post_status based on $author_found and on author's publish_posts capability.
 	if ( $author_found ) {
 		$user        = new WP_User( $post_author );
 		$post_status = ( $user->has_cap( 'publish_posts' ) ) ? 'publish' : 'pending';
-	} else {
-		// Author not found in DB, set status to pending. Author already set to admin.
-		$post_status = 'pending';
 	}
 
 	$subject = trim( $subject );
@@ -255,13 +254,12 @@ for ( $i = 1; $i <= $count; $i++ ) {
 		) . '</p>';
 		$pop3->reset();
 		exit;
-	} else {
-		echo '<p>' . sprintf(
-			/* translators: %s: The message ID. */
-			__( 'Mission complete. Message %s deleted.' ),
-			'<strong>' . $i . '</strong>'
-		) . '</p>';
 	}
+	echo '<p>' . sprintf(
+		/* translators: %s: The message ID. */
+		__( 'Mission complete. Message %s deleted.' ),
+		'<strong>' . $i . '</strong>'
+	) . '</p>';
 }
 
 $pop3->quit();

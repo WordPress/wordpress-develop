@@ -222,10 +222,9 @@ $content = esc_textarea( $content );
 		<?php
 		foreach ( $plugins as $plugin_key => $a_plugin ) {
 			$plugin_name = $a_plugin['Name'];
+			$selected    = '';
 			if ( $plugin_key === $plugin ) {
 				$selected = " selected='selected'";
-			} else {
-				$selected = '';
 			}
 			$plugin_name = esc_attr( $plugin_name );
 			$plugin_key  = esc_attr( $plugin_key );

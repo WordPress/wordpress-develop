@@ -58,10 +58,9 @@ get_current_screen()->set_help_sidebar(
 
 wp_reset_vars( array( 'action', 'error', 'file', 'theme' ) );
 
+$stylesheet = get_stylesheet();
 if ( $theme ) {
 	$stylesheet = $theme;
-} else {
-	$stylesheet = get_stylesheet();
 }
 
 $theme = wp_get_theme( $stylesheet );
@@ -103,10 +102,9 @@ if ( isset( $allowed_files['style.css'] ) ) {
 	$allowed_files = array( 'style.css' => $allowed_files['style.css'] ) + $allowed_files;
 }
 
-if ( empty( $file ) ) {
-	$relative_file = 'style.css';
-	$file          = $allowed_files['style.css'];
-} else {
+$relative_file = 'style.css';
+$file          = $allowed_files['style.css'];
+if ( ! empty( $file ) ) {
 	$relative_file = wp_unslash( $file );
 	$file          = $theme->get_stylesheet_directory() . '/' . $relative_file;
 }

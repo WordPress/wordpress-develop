@@ -36,6 +36,7 @@ if ( isset( $_GET['dt'] ) ) {
 	}
 }
 
+$comment = null;
 if ( isset( $_REQUEST['c'] ) ) {
 	$comment_id = absint( $_REQUEST['c'] );
 	$comment    = get_comment( $comment_id );
@@ -46,8 +47,6 @@ if ( isset( $_REQUEST['c'] ) ) {
 			__( 'You can&#8217;t edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
 		);
 	}
-} else {
-	$comment = null;
 }
 
 switch ( $action ) {
@@ -282,14 +281,13 @@ switch ( $action ) {
 			comment_footer_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 		}
 
+		$redir = admin_url( 'edit-comments.php' );
 		if ( wp_get_referer() && ! $noredir && false === strpos( wp_get_referer(), 'comment.php' ) ) {
 			$redir = wp_get_referer();
 		} elseif ( wp_get_original_referer() && ! $noredir ) {
 			$redir = wp_get_original_referer();
 		} elseif ( in_array( $action, array( 'approvecomment', 'unapprovecomment' ), true ) ) {
 			$redir = admin_url( 'edit-comments.php?p=' . absint( $comment->comment_post_ID ) );
-		} else {
-			$redir = admin_url( 'edit-comments.php' );
 		}
 
 		$redir = remove_query_arg( array( 'spammed', 'unspammed', 'trashed', 'untrashed', 'deleted', 'ids', 'approved', 'unapproved' ), $redir );

@@ -16,10 +16,9 @@ if ( force_ssl_admin() && ! is_ssl() ) {
 	if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
 		wp_safe_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 		exit;
-	} else {
-		wp_safe_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-		exit;
 	}
+	wp_safe_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	exit;
 }
 
 /**
@@ -663,10 +662,9 @@ switch ( $action ) {
 		$expire  = apply_filters( 'post_password_expires', time() + 10 * DAY_IN_SECONDS );
 		$referer = wp_get_referer();
 
+		$secure = false;
 		if ( $referer ) {
 			$secure = ( 'https' === parse_url( $referer, PHP_URL_SCHEME ) );
-		} else {
-			$secure = false;
 		}
 
 		setcookie( 'wp-postpass_' . COOKIEHASH, $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) ), $expire, COOKIEPATH, COOKIE_DOMAIN, $secure );
@@ -815,6 +813,7 @@ switch ( $action ) {
 			exit;
 		}
 
+		$user = false;
 		if ( isset( $_COOKIE[ $rp_cookie ] ) && 0 < strpos( $_COOKIE[ $rp_cookie ], ':' ) ) {
 			list( $rp_login, $rp_key ) = explode( ':', wp_unslash( $_COOKIE[ $rp_cookie ] ), 2 );
 
@@ -823,8 +822,6 @@ switch ( $action ) {
 			if ( isset( $_POST['pass1'] ) && ! hash_equals( $rp_key, $_POST['rp_key'] ) ) {
 				$user = false;
 			}
-		} else {
-			$user = false;
 		}
 
 		if ( ! $user || is_wp_error( $user ) ) {
@@ -1127,14 +1124,13 @@ switch ( $action ) {
 			}
 		}
 
+		$redirect_to = admin_url();
 		if ( isset( $_REQUEST['redirect_to'] ) ) {
 			$redirect_to = $_REQUEST['redirect_to'];
 			// Redirect to HTTPS if user wants SSL.
 			if ( $secure_cookie && false !== strpos( $redirect_to, 'wp-admin' ) ) {
 				$redirect_to = preg_replace( '|^http://|', 'https://', $redirect_to );
 			}
-		} else {
-			$redirect_to = admin_url();
 		}
 
 		$reauth = empty( $_REQUEST['reauth'] ) ? false : true;
@@ -1272,12 +1268,11 @@ switch ( $action ) {
 					parse_str( $query_component, $query );
 				}
 
+				/* translators: %s: Website name. */
+				$message = sprintf( 'Please log in to %s to proceed with authorization.', get_bloginfo( 'name', 'display' ) );
 				if ( ! empty( $query['app_name'] ) ) {
 					/* translators: 1: Website name, 2: Application name. */
 					$message = sprintf( 'Please log in to %1$s to authorize %2$s to connect to your account.', get_bloginfo( 'name', 'display' ), '<strong>' . esc_html( $query['app_name'] ) . '</strong>' );
-				} else {
-					/* translators: %s: Website name. */
-					$message = sprintf( 'Please log in to %s to proceed with authorization.', get_bloginfo( 'name', 'display' ) );
 				}
 
 				$errors->add( 'authorize_application', $message, 'message' );
@@ -1307,10 +1302,9 @@ switch ( $action ) {
 
 		$rememberme = ! empty( $_POST['rememberme'] );
 
+		$aria_describedby_error = '';
 		if ( $errors->has_errors() ) {
 			$aria_describedby_error = ' aria-describedby="login_error"';
-		} else {
-			$aria_describedby_error = '';
 		}
 
 		wp_enqueue_script( 'user-profile' );

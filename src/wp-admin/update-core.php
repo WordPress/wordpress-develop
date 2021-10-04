@@ -61,15 +61,15 @@ function list_core_update( $update ) {
 	$mysql_version = $wpdb->db_version();
 	$show_buttons  = true;
 
+	/* translators: %s: WordPress version. */
+	$submit = sprintf( __( 'Update to version %s' ), $version_string );
+
 	// Nightly build versions have two hyphens and a commit number.
 	if ( preg_match( '/-\w+-\d+/', $update->current ) ) {
 		// Retrieve the major version number.
 		preg_match( '/^\d+.\d+/', $update->current, $update_major );
 		/* translators: %s: WordPress version. */
 		$submit = sprintf( __( 'Update to latest %s nightly' ), $update_major[0] );
-	} else {
-		/* translators: %s: WordPress version. */
-		$submit = sprintf( __( 'Update to version %s' ), $version_string );
 	}
 
 	if ( 'development' === $update->response ) {

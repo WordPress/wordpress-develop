@@ -138,16 +138,14 @@ if ( isset( $_GET['page'] ) ) {
 	$plugin_page = plugin_basename( $plugin_page );
 }
 
+$typenow = '';
 if ( isset( $_REQUEST['post_type'] ) && post_type_exists( $_REQUEST['post_type'] ) ) {
 	$typenow = $_REQUEST['post_type'];
-} else {
-	$typenow = '';
 }
 
+$taxnow = '';
 if ( isset( $_REQUEST['taxonomy'] ) && taxonomy_exists( $_REQUEST['taxonomy'] ) ) {
 	$taxnow = $_REQUEST['taxonomy'];
-} else {
-	$taxnow = '';
 }
 
 if ( WP_NETWORK_ADMIN ) {
@@ -175,10 +173,9 @@ if ( current_user_can( 'manage_options' ) ) {
 do_action( 'admin_init' );
 
 if ( isset( $plugin_page ) ) {
+	$the_parent = $pagenow;
 	if ( ! empty( $typenow ) ) {
-		$the_parent = $pagenow . '?post_type=' . $typenow;
-	} else {
-		$the_parent = $pagenow;
+		$the_parent .= '?post_type=' . $typenow;
 	}
 
 	$page_hook = get_plugin_page_hook( $plugin_page, $the_parent );
@@ -187,11 +184,10 @@ if ( isset( $plugin_page ) ) {
 
 		// Back-compat for plugins using add_management_page().
 		if ( empty( $page_hook ) && 'edit.php' === $pagenow && get_plugin_page_hook( $plugin_page, 'tools.php' ) ) {
+			$query_string = 'page=' . $plugin_page;
 			// There could be plugin specific params on the URL, so we need the whole query string.
 			if ( ! empty( $_SERVER['QUERY_STRING'] ) ) {
 				$query_string = $_SERVER['QUERY_STRING'];
-			} else {
-				$query_string = 'page=' . $plugin_page;
 			}
 			wp_redirect( admin_url( 'tools.php?' . $query_string ) );
 			exit;

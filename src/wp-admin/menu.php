@@ -34,14 +34,13 @@ if ( ! is_multisite() || current_user_can( 'update_core' ) ) {
 }
 
 if ( ! is_multisite() ) {
+	$cap = 'update_languages';
 	if ( current_user_can( 'update_core' ) ) {
 		$cap = 'update_core';
 	} elseif ( current_user_can( 'update_plugins' ) ) {
 		$cap = 'update_plugins';
 	} elseif ( current_user_can( 'update_themes' ) ) {
 		$cap = 'update_themes';
-	} else {
-		$cap = 'update_languages';
 	}
 	$submenu['index.php'][10] = array(
 		sprintf(
@@ -139,23 +138,21 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 		$menu_icon = 'dashicons-admin-' . $ptype;
 	}
 
-	$menu_class = 'menu-top menu-icon-' . $ptype_for_id;
+	$menu_class    = 'menu-top menu-icon-' . $ptype_for_id;
+	$ptype_file     = "edit.php?post_type=$ptype";
+	$post_new_file  = "post-new.php?post_type=$ptype";
+	$edit_tags_file = "edit-tags.php?taxonomy=%s&amp;post_type=$ptype";
 	// 'post' special case.
 	if ( 'post' === $ptype ) {
 		$menu_class    .= ' open-if-no-js';
 		$ptype_file     = 'edit.php';
 		$post_new_file  = 'post-new.php';
 		$edit_tags_file = 'edit-tags.php?taxonomy=%s';
-	} else {
-		$ptype_file     = "edit.php?post_type=$ptype";
-		$post_new_file  = "post-new.php?post_type=$ptype";
-		$edit_tags_file = "edit-tags.php?taxonomy=%s&amp;post_type=$ptype";
 	}
 
+	$ptype_menu_id = 'menu-posts-' . $ptype_for_id;
 	if ( in_array( $ptype, $builtin, true ) ) {
 		$ptype_menu_id = 'menu-' . $ptype_for_id . 's';
-	} else {
-		$ptype_menu_id = 'menu-posts-' . $ptype_for_id;
 	}
 	/*
 	 * If $ptype_menu_position is already populated or will be populated
@@ -263,10 +260,9 @@ if ( ! is_multisite() ) {
 
 unset( $update_data );
 
+$menu[70] = array( __( 'Profile' ), 'read', 'profile.php', '', 'menu-top menu-icon-users', 'menu-users', 'dashicons-admin-users' );
 if ( current_user_can( 'list_users' ) ) {
 	$menu[70] = array( __( 'Users' ), 'list_users', 'users.php', '', 'menu-top menu-icon-users', 'menu-users', 'dashicons-admin-users' );
-} else {
-	$menu[70] = array( __( 'Profile' ), 'read', 'profile.php', '', 'menu-top menu-icon-users', 'menu-users', 'dashicons-admin-users' );
 }
 
 if ( current_user_can( 'list_users' ) ) {

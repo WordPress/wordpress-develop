@@ -43,15 +43,14 @@ $pagenum       = $wp_list_table->get_pagenum();
 
 $title = $tax->labels->name;
 
+$parent_file  = 'edit.php';
+$submenu_file = "edit-tags.php?taxonomy=$taxonomy";
 if ( 'post' !== $post_type ) {
 	$parent_file  = ( 'attachment' === $post_type ) ? 'upload.php' : "edit.php?post_type=$post_type";
 	$submenu_file = "edit-tags.php?taxonomy=$taxonomy&amp;post_type=$post_type";
 } elseif ( 'link_category' === $tax->name ) {
 	$parent_file  = 'link-manager.php';
 	$submenu_file = 'edit-tags.php?taxonomy=link_category';
-} else {
-	$parent_file  = 'edit.php';
-	$submenu_file = "edit-tags.php?taxonomy=$taxonomy";
 }
 
 add_screen_option(
@@ -243,7 +242,7 @@ if ( current_user_can( $tax->cap->edit_terms ) ) {
 }
 
 if ( 'category' === $taxonomy || 'link_category' === $taxonomy || 'post_tag' === $taxonomy ) {
-	$help = '';
+	$help = '<p>' . __( 'You can assign keywords to your posts using <strong>tags</strong>. Unlike categories, tags have no hierarchy, meaning there&#8217;s no relationship from one tag to another.' ) . '</p>';
 	if ( 'category' === $taxonomy ) {
 		$help = '<p>' . sprintf(
 			/* translators: %s: URL to Writing Settings screen. */
@@ -252,8 +251,6 @@ if ( 'category' === $taxonomy || 'link_category' === $taxonomy || 'post_tag' ===
 		) . '</p>';
 	} elseif ( 'link_category' === $taxonomy ) {
 		$help = '<p>' . __( 'You can create groups of links by using Link Categories. Link Category names must be unique and Link Categories are separate from the categories you use for posts.' ) . '</p>';
-	} else {
-		$help = '<p>' . __( 'You can assign keywords to your posts using <strong>tags</strong>. Unlike categories, tags have no hierarchy, meaning there&#8217;s no relationship from one tag to another.' ) . '</p>';
 	}
 
 	if ( 'link_category' === $taxonomy ) {
@@ -271,10 +268,9 @@ if ( 'category' === $taxonomy || 'link_category' === $taxonomy || 'post_tag' ===
 	);
 
 	if ( 'category' === $taxonomy || 'post_tag' === $taxonomy ) {
+		$help = '<p>' . __( 'When adding a new tag on this screen, you&#8217;ll fill in the following fields:' ) . '</p>';
 		if ( 'category' === $taxonomy ) {
 			$help = '<p>' . __( 'When adding a new category on this screen, you&#8217;ll fill in the following fields:' ) . '</p>';
-		} else {
-			$help = '<p>' . __( 'When adding a new tag on this screen, you&#8217;ll fill in the following fields:' ) . '</p>';
 		}
 
 		$help .= '<ul>' .
@@ -325,10 +321,9 @@ require_once ABSPATH . 'wp-admin/includes/edit-tag-messages.php';
 
 $class = ( isset( $_REQUEST['error'] ) ) ? 'error' : 'updated';
 
+$import_link = admin_url( 'import.php' );
 if ( is_plugin_active( 'wpcat2tag-importer/wpcat2tag-importer.php' ) ) {
 	$import_link = admin_url( 'admin.php?import=wpcat2tag' );
-} else {
-	$import_link = admin_url( 'import.php' );
 }
 
 ?>

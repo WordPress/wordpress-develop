@@ -34,9 +34,8 @@ if ( is_wp_error( $comment ) ) {
 				'back_link' => true,
 			)
 		);
-	} else {
-		exit;
 	}
+	exit;
 }
 
 $user            = wp_get_current_user();

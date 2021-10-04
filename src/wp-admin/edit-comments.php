@@ -158,6 +158,8 @@ if ( $post_id ) {
 } else {
 	$comments_count = wp_count_comments();
 
+	// Used in the HTML title tag.
+	$title = __( 'Comments' );
 	if ( $comments_count->moderated > 0 ) {
 		// Used in the HTML title tag.
 		$title = sprintf(
@@ -165,9 +167,6 @@ if ( $post_id ) {
 			__( 'Comments (%s)' ),
 			number_format_i18n( $comments_count->moderated )
 		);
-	} else {
-		// Used in the HTML title tag.
-		$title = __( 'Comments' );
 	}
 }
 

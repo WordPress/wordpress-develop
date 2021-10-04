@@ -34,22 +34,20 @@ if ( empty( $current_screen ) ) {
 get_admin_page_title();
 $title = strip_tags( $title );
 
+$admin_title = get_bloginfo( 'name' );
 if ( is_network_admin() ) {
 	/* translators: Network admin screen title. %s: Network title. */
 	$admin_title = sprintf( __( 'Network Admin: %s' ), get_network()->site_name );
 } elseif ( is_user_admin() ) {
 	/* translators: User dashboard screen title. %s: Network title. */
 	$admin_title = sprintf( __( 'User Dashboard: %s' ), get_network()->site_name );
-} else {
-	$admin_title = get_bloginfo( 'name' );
 }
 
+/* translators: Admin screen title. 1: Admin screen name, 2: Network or site name. */
+$admin_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $title, $admin_title );
 if ( $admin_title === $title ) {
 	/* translators: Admin screen title. %s: Admin screen name. */
 	$admin_title = sprintf( __( '%s &#8212; WordPress' ), $title );
-} else {
-	/* translators: Admin screen title. 1: Admin screen name, 2: Network or site name. */
-	$admin_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $title, $admin_title );
 }
 
 if ( wp_is_recovery_mode() ) {

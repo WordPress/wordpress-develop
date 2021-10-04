@@ -501,14 +501,13 @@ function validate_another_blog_signup() {
  */
 function confirm_another_blog_signup( $domain, $path, $blog_title, $user_name, $user_email = '', $meta = array(), $blog_id = 0 ) {
 
+	$home_url  = 'http://' . $domain . $path;
+	$login_url = 'http://' . $domain . $path . 'wp-login.php';
 	if ( $blog_id ) {
 		switch_to_blog( $blog_id );
 		$home_url  = home_url( '/' );
 		$login_url = wp_login_url();
 		restore_current_blog();
-	} else {
-		$home_url  = 'http://' . $domain . $path;
-		$login_url = 'http://' . $domain . $path . 'wp-login.php';
 	}
 
 	$site = sprintf(

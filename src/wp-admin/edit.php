@@ -56,14 +56,13 @@ foreach ( array( 'p', 'attachment_id', 'page_id' ) as $_redirect ) {
 }
 unset( $_redirect );
 
+$parent_file   = 'edit.php';
+$submenu_file  = 'edit.php';
+$post_new_file = 'post-new.php';
 if ( 'post' !== $post_type ) {
 	$parent_file   = "edit.php?post_type=$post_type";
 	$submenu_file  = "edit.php?post_type=$post_type";
 	$post_new_file = "post-new.php?post_type=$post_type";
-} else {
-	$parent_file   = 'edit.php';
-	$submenu_file  = 'edit.php';
-	$post_new_file = 'post-new.php';
 }
 
 $doaction = $wp_list_table->current_action();
@@ -170,10 +169,8 @@ if ( $doaction ) {
 					if ( ! wp_delete_attachment( $post_id ) ) {
 						wp_die( __( 'Error in deleting the attachment.' ) );
 					}
-				} else {
-					if ( ! wp_delete_post( $post_id ) ) {
-						wp_die( __( 'Error in deleting the item.' ) );
-					}
+				} elseif ( ! wp_delete_post( $post_id ) ) {
+					wp_die( __( 'Error in deleting the item.' ) );
 				}
 				$deleted++;
 			}

@@ -137,11 +137,7 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 }
 
 if ( $iis7_permalinks ) {
-	if ( ( ! file_exists( $home_path . 'web.config' ) && win_is_writable( $home_path ) ) || win_is_writable( $home_path . 'web.config' ) ) {
-		$writable = true;
-	} else {
-		$writable = false;
-	}
+	$writable = ( ( ! file_exists( $home_path . 'web.config' ) && win_is_writable( $home_path ) ) || win_is_writable( $home_path . 'web.config' ) );
 } elseif ( $is_nginx ) {
 	$writable = false;
 } else {
@@ -163,16 +159,15 @@ if ( $structure_updated ) {
 
 	if ( ! is_multisite() && $permalink_structure && ! $using_index_permalinks ) {
 		if ( $iis7_permalinks ) {
+			$message = sprintf(
+				/* translators: %s: web.config */
+				__( 'Permalink structure updated. Remove write access on %s file now!' ),
+				'<code>web.config</code>'
+			);
 			if ( ! $writable ) {
 				$message = sprintf(
 					/* translators: %s: web.config */
 					__( 'You should update your %s file now.' ),
-					'<code>web.config</code>'
-				);
-			} else {
-				$message = sprintf(
-					/* translators: %s: web.config */
-					__( 'Permalink structure updated. Remove write access on %s file now!' ),
 					'<code>web.config</code>'
 				);
 			}

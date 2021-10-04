@@ -16,14 +16,13 @@ $submenu_file = 'edit.php';
 
 wp_reset_vars( array( 'action' ) );
 
+$post_id = 0;
 if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post'] !== (int) $_POST['post_ID'] ) {
 	wp_die( __( 'A post ID mismatch has been detected.' ), __( 'Sorry, you are not allowed to edit this item.' ), 400 );
 } elseif ( isset( $_GET['post'] ) ) {
 	$post_id = (int) $_GET['post'];
 } elseif ( isset( $_POST['post_ID'] ) ) {
 	$post_id = (int) $_POST['post_ID'];
-} else {
-	$post_id = 0;
 }
 $post_ID = $post_id;
 
@@ -160,10 +159,9 @@ switch ( $action ) {
 			$submenu_file  = 'upload.php';
 			$post_new_file = 'media-new.php';
 		} else {
+			$parent_file = "edit.php?post_type=$post_type";
 			if ( isset( $post_type_object ) && $post_type_object->show_in_menu && true !== $post_type_object->show_in_menu ) {
 				$parent_file = $post_type_object->show_in_menu;
-			} else {
-				$parent_file = "edit.php?post_type=$post_type";
 			}
 			$submenu_file  = "edit.php?post_type=$post_type";
 			$post_new_file = "post-new.php?post_type=$post_type";
@@ -321,10 +319,8 @@ switch ( $action ) {
 			if ( ! wp_delete_attachment( $post_id, $force ) ) {
 				wp_die( __( 'Error in deleting the attachment.' ) );
 			}
-		} else {
-			if ( ! wp_delete_post( $post_id, true ) ) {
-				wp_die( __( 'Error in deleting the item.' ) );
-			}
+		} elseif ( ! wp_delete_post( $post_id, true ) ) {
+			wp_die( __( 'Error in deleting the item.' ) );
 		}
 
 		wp_redirect( add_query_arg( 'deleted', 1, $sendback ) );

@@ -428,10 +428,9 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 			 * If this file doesn't exist, then we are using the wp-config-sample.php
 			 * file one level up, which is for the develop repo.
 			 */
+			$path_to_wp_config = dirname( ABSPATH ) . '/wp-config.php';
 			if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
 				$path_to_wp_config = ABSPATH . 'wp-config.php';
-			} else {
-				$path_to_wp_config = dirname( ABSPATH ) . '/wp-config.php';
 			}
 
 			$error_message = '';
@@ -448,18 +447,17 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 				fclose( $handle );
 			} else {
 				$wp_config_perms = fileperms( $path_to_wp_config );
+				$error_message  = sprintf(
+					/* translators: %s: wp-config.php */
+					__( 'Unable to write to %s file.' ),
+					'<code>wp-config.php</code>'
+				);
 				if ( ! empty( $wp_config_perms ) && ! is_writable( $path_to_wp_config ) ) {
 					$error_message = sprintf(
 						/* translators: 1: wp-config.php, 2: Documentation URL. */
 						__( 'You need to make the file %1$s writable before you can save your changes. See <a href="%2$s">Changing File Permissions</a> for more information.' ),
 						'<code>wp-config.php</code>',
 						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
-					);
-				} else {
-					$error_message = sprintf(
-						/* translators: %s: wp-config.php */
-						__( 'Unable to write to %s file.' ),
-						'<code>wp-config.php</code>'
 					);
 				}
 			}

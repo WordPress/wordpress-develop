@@ -23,10 +23,9 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 	$redirect    = '';
 
 	if ( isset( $_POST['reject'] ) ) {
+		$redirect = admin_url();
 		if ( $reject_url ) {
 			$redirect = $reject_url;
-		} else {
-			$redirect = admin_url();
 		}
 	} elseif ( isset( $_POST['approve'] ) ) {
 		$created = WP_Application_Passwords::create_new_application_password(
@@ -69,12 +68,11 @@ $app_name    = ! empty( $_REQUEST['app_name'] ) ? $_REQUEST['app_name'] : '';
 $app_id      = ! empty( $_REQUEST['app_id'] ) ? $_REQUEST['app_id'] : '';
 $success_url = ! empty( $_REQUEST['success_url'] ) ? $_REQUEST['success_url'] : null;
 
+$reject_url = null;
 if ( ! empty( $_REQUEST['reject_url'] ) ) {
 	$reject_url = $_REQUEST['reject_url'];
 } elseif ( $success_url ) {
 	$reject_url = add_query_arg( 'success', 'false', $success_url );
-} else {
-	$reject_url = null;
 }
 
 $user = wp_get_current_user();
@@ -102,10 +100,9 @@ if ( wp_is_site_protected_by_basic_auth( 'front' ) ) {
 }
 
 if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
+	$message = __( 'Application passwords are not available.' );
 	if ( wp_is_application_passwords_available() ) {
 		$message = __( 'Application passwords are not available for your account. Please contact the site administrator for assistance.' );
-	} else {
-		$message = __( 'Application passwords are not available.' );
 	}
 
 	wp_die(
