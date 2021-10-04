@@ -682,7 +682,12 @@ class WP_Automatic_Updater {
 			$next_user_core_update = $core_update;
 		}
 
-		$newer_version_available = 'upgrade' === $next_user_core_update->response && version_compare( $next_user_core_update->version, $core_update->version, '>' );
+		$newer_version_available = false;
+		if ( 'upgrade' === $next_user_core_update->response
+ 			&& version_compare( $next_user_core_update->version, $core_update->version, '>' )
+ 		) {
+			$newer_version_available = true;
+		}
 
 		/**
 		 * Filters whether to send an email following an automatic background core update.
