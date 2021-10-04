@@ -23,9 +23,9 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 	$redirect    = '';
 
 	if ( isset( $_POST['reject'] ) ) {
-		$redirect = admin_url();
-		if ( $reject_url ) {
-			$redirect = $reject_url;
+		$redirect = $reject_url;
+		if ( ! $reject_url ) {
+			$redirect = admin_url();
 		}
 	} elseif ( isset( $_POST['approve'] ) ) {
 		$created = WP_Application_Passwords::create_new_application_password(
