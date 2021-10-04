@@ -1,5 +1,6 @@
 import {
     visitAdminPage,
+    __experimentalRest as rest,
 } from '@wordpress/e2e-test-utils';
 import { addQueryArgs } from "@wordpress/url";
 
@@ -31,6 +32,30 @@ async function deleteAllCategories() {
         await page.keyboard.press('Enter');
         await page.waitForSelector('#message p')
     }
+}
+
+const postsEndpoint = '/wp/v2/posts';
+
+export async function createPost(post) {
+    await rest({
+        method: 'POST',
+        path: postsEndpoint,
+        data: {
+            title: post.title,
+            status: 'publish',
+            categories: post.categories,
+        }
+    });
+}
+
+export async function deleteAllPosts() {
+    const posts = await rest({ path: postsEndpoint });
+    posts.map(async(post) => {
+        await rest({
+            method: 'DELETE',
+            path: `${ postsEndpoint }/${ post.id }`,
+        });
+    });
 }
 
 describe('Manage categories', () => {
@@ -157,5 +182,105 @@ describe('Manage categories', () => {
         expect(
             await noItemContent.evaluate((element) => element.textContent)
         ).toContain('No categories found.');
+    });
+
+    it('correctly sort categories per name', async() => {
+        const categoriesNames = ['Category 1', 'Category 2', 'Category 3'];
+        for (let i = 0, n = categoriesNames.length; i < n; i++) {
+            await createNewCategory(categoriesNames[i]);
+        }
+
+        await page.waitForSelector('#the-list');
+
+        // ASC order
+        await page.click('#name');
+        await page.waitForSelector('#the-list');
+
+        const categoriesTitles = await page.$$('#the-list tr .row-title');
+
+        // Check that the last item is "Uncategorized"
+        const lastCategoryTitle = await categoriesTitles[categoriesTitles.length - 1].evaluate((element) => element.textContent);
+        expect(lastCategoryTitle).toBe('Uncategorized');
+
+        // Remove the last item because it is the "Uncategorized" category
+        categoriesTitles.pop();
+
+        categoriesTitles.map(async(categoryTitle, index) => {
+            expect(
+                await categoryTitle.evaluate((element) => element.textContent)
+            ).toBe(categoriesNames[index]);
+        });
+
+        // DESC order
+        await page.click('#name');
+        await page.waitForSelector('#the-list');
+
+        const categoriesTitles2 = await page.$$('#the-list tr .row-title');
+
+        // Check that the last first is "Uncategorized"
+        const firstCategoryTitle = await categoriesTitles2[0].evaluate((element) => element.textContent);
+        expect(firstCategoryTitle).toBe('Uncategorized');
+
+        // Remove the first item because it is the "Uncategorized" category
+        categoriesTitles2.shift();
+
+        categoriesTitles2.map(async(categoryTitle, index) => {
+            expect(
+                await categoryTitle.evaluate((element) => element.textContent)
+            ).toBe(categoriesNames[categoriesNames.length - index - 1]);
+        });
+    });
+
+    it('correctly sorts categories per post count', async() => {
+        const categoriesNames = ['Category 0', 'Category 1'];
+        const postTitle = 'Post 1';
+
+        for (let i = 0, n = categoriesNames.length; i < n; i++) {
+            await createNewCategory(categoriesNames[i]);
+        }
+
+        // Get the ID of 'Category 1'
+        await page.reload();
+        let category1Id = await page.$('#the-list tr:nth-child(2)');
+        category1Id = await category1Id.evaluate(element => (element.id));
+        category1Id = category1Id.split('tag-')[1];
+
+        await deleteAllPosts();
+
+        await createPost({
+            title: 'Post 0',
+        });
+        await createPost({
+            title: 'Post 1',
+            categories: [category1Id],
+        });
+
+        // ASC order
+        await page.click('#posts');
+        await page.waitForSelector('#the-list');
+        const categoriesTitles = await page.$$('#the-list tr .row-title');
+
+        // Remove the second item because it is the "Uncategorized" category
+        categoriesTitles.splice(1, 1);
+
+        categoriesTitles.map(async(categoryTitle, index) => {
+            expect(
+                await categoryTitle.evaluate((element) => element.textContent)
+            ).toBe(categoriesNames[index]);
+        });
+
+        // DESC order
+        await page.click('#posts');
+        await page.waitForSelector('#the-list');
+        const categoriesTitles2 = await page.$$('#the-list tr .row-title');
+
+        // Remove the first item because it is the "Uncategorized" category
+        categoriesTitles2.shift();
+
+        categoriesTitles2.map(async(categoryTitle, index) => {
+            expect(
+                await categoryTitle.evaluate((element) => element.textContent)
+            ).toBe(categoriesNames[categoriesNames.length - index - 1]);
+        });
     });
 });
