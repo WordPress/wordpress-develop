@@ -2688,13 +2688,11 @@ class wpdb {
 			return null;
 		}
 
-		if ( $query ) {
-			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
-				$this->check_current_query = false;
-			}
-
-			$this->query( $query );
+		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
+			$this->check_current_query = false;
 		}
+
+		$this->query( $query );
 
 		if ( ! isset( $this->last_result[ $y ] ) ) {
 			return null;
@@ -2770,13 +2768,11 @@ class wpdb {
 			return null;
 		}
 
-		if ( $query ) {
-			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
-				$this->check_current_query = false;
-			}
-
-			$this->query( $query );
+		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
+			$this->check_current_query = false;
 		}
+
+		$this->query( $query );
 
 		$new_array = array();
 		if ( OBJECT === $output ) {
