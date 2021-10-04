@@ -219,9 +219,8 @@ function before_last_bar( $string ) {
 	$last_bar = strrpos( $string, '|' );
 	if ( false === $last_bar ) {
 		return $string;
-	} else {
-		return substr( $string, 0, $last_bar );
 	}
+	return substr( $string, 0, $last_bar );
 }
 
 /**
@@ -672,9 +671,8 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
 
 	if ( $nooped_plural['context'] ) {
 		return _nx( $nooped_plural['singular'], $nooped_plural['plural'], $count, $nooped_plural['context'], $domain );
-	} else {
-		return _n( $nooped_plural['singular'], $nooped_plural['plural'], $count, $domain );
 	}
+	return _n( $nooped_plural['singular'], $nooped_plural['plural'], $count, $domain );
 }
 
 /**
@@ -883,13 +881,12 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		return true;
 	}
 
+	$path = WP_PLUGIN_DIR;
 	if ( false !== $plugin_rel_path ) {
 		$path = WP_PLUGIN_DIR . '/' . trim( $plugin_rel_path, '/' );
 	} elseif ( false !== $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '2.7.0' );
 		$path = ABSPATH . trim( $deprecated, '/' );
-	} else {
-		$path = WP_PLUGIN_DIR;
 	}
 
 	return load_textdomain( $domain, $path . '/' . $mofile );
@@ -1042,10 +1039,9 @@ function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
 		( ! isset( $src_url['host'] ) || ! isset( $content_url['host'] ) || $src_url['host'] === $content_url['host'] )
 	) {
 		// Make the src relative the specific plugin or theme.
+		$relative = $src_url['path'];
 		if ( isset( $content_url['path'] ) ) {
 			$relative = substr( $src_url['path'], strlen( $content_url['path'] ) );
-		} else {
-			$relative = $src_url['path'];
 		}
 		$relative = trim( $relative, '/' );
 		$relative = explode( '/', $relative );
@@ -1059,10 +1055,9 @@ function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
 		( ! isset( $src_url['host'] ) || ! isset( $plugins_url['host'] ) || $src_url['host'] === $plugins_url['host'] )
 	) {
 		// Make the src relative the specific plugin.
+		$relative = $src_url['path'];
 		if ( isset( $plugins_url['path'] ) ) {
 			$relative = substr( $src_url['path'], strlen( $plugins_url['path'] ) );
-		} else {
-			$relative = $src_url['path'];
 		}
 		$relative = trim( $relative, '/' );
 		$relative = explode( '/', $relative );
@@ -1744,12 +1739,11 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 		$group_key           = '*';
 		$translated_settings = array();
 		foreach ( $settings as $key => $value ) {
+			$translated_settings[ $key ] = $value;
 			if ( isset( $i18n_schema->$key ) ) {
 				$translated_settings[ $key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $value, $textdomain );
 			} elseif ( isset( $i18n_schema->$group_key ) ) {
 				$translated_settings[ $key ] = translate_settings_using_i18n_schema( $i18n_schema->$group_key, $value, $textdomain );
-			} else {
-				$translated_settings[ $key ] = $value;
 			}
 		}
 		return $translated_settings;

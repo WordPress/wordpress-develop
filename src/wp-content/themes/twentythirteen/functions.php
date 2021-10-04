@@ -527,11 +527,10 @@ if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 	 * @return string The HTML-formatted post date.
 	 */
 	function twentythirteen_entry_date( $echo = true ) {
+		$format_prefix = '%2$s';
 		if ( has_post_format( array( 'chat', 'status' ) ) ) {
 			/* translators: 1: Post format name, 2: Date. */
 			$format_prefix = _x( '%1$s on %2$s', '1: post format name. 2: date', 'twentythirteen' );
-		} else {
-			$format_prefix = '%2$s';
 		}
 
 		$date = sprintf(

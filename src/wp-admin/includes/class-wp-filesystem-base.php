@@ -343,6 +343,7 @@ class WP_Filesystem_Base {
 	public function gethchmod( $file ) {
 		$perms = intval( $this->getchmod( $file ), 8 );
 
+		$info = 'u'; // Unknown.
 		if ( ( $perms & 0xC000 ) === 0xC000 ) { // Socket.
 			$info = 's';
 		} elseif ( ( $perms & 0xA000 ) === 0xA000 ) { // Symbolic Link.
@@ -357,8 +358,6 @@ class WP_Filesystem_Base {
 			$info = 'c';
 		} elseif ( ( $perms & 0x1000 ) === 0x1000 ) { // FIFO pipe.
 			$info = 'p';
-		} else { // Unknown.
-			$info = 'u';
 		}
 
 		// Owner.

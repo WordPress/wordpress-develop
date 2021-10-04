@@ -778,10 +778,9 @@ class wpdb {
 
 		if ( function_exists( 'is_multisite' ) && is_multisite() ) {
 			$charset = 'utf8';
+			$collate = 'utf8_general_ci';
 			if ( defined( 'DB_COLLATE' ) && DB_COLLATE ) {
 				$collate = DB_COLLATE;
-			} else {
-				$collate = 'utf8_general_ci';
 			}
 		} elseif ( defined( 'DB_COLLATE' ) ) {
 			$collate = DB_COLLATE;
@@ -1048,12 +1047,10 @@ class wpdb {
 
 			if ( defined( 'MULTISITE' ) && ( 0 === $blog_id || 1 === $blog_id ) ) {
 				return $this->base_prefix;
-			} else {
-				return $this->base_prefix . $blog_id . '_';
 			}
-		} else {
-			return $this->base_prefix;
+			return $this->base_prefix . $blog_id . '_';
 		}
+		return $this->base_prefix;
 	}
 
 	/**
@@ -1120,10 +1117,9 @@ class wpdb {
 			$base_prefix   = $this->base_prefix;
 			$global_tables = array_merge( $this->global_tables, $this->ms_global_tables );
 			foreach ( $tables as $k => $table ) {
+				$tables[ $table ] = $blog_prefix . $table;
 				if ( in_array( $table, $global_tables, true ) ) {
 					$tables[ $table ] = $base_prefix . $table;
-				} else {
-					$tables[ $table ] = $blog_prefix . $table;
 				}
 				unset( $tables[ $k ] );
 			}
@@ -1896,10 +1892,8 @@ class wpdb {
 			if ( ! empty( $this->dbh ) && mysqli_ping( $this->dbh ) ) {
 				return true;
 			}
-		} else {
-			if ( ! empty( $this->dbh ) && mysql_ping( $this->dbh ) ) {
-				return true;
-			}
+		} elseif ( ! empty( $this->dbh ) && mysql_ping( $this->dbh ) ) {
+			return true;
 		}
 
 		$error_reporting = false;
@@ -2690,14 +2684,16 @@ class wpdb {
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
 
+		if ( ! $query ) {
+			return null;
+		}
+
 		if ( $query ) {
 			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
 				$this->check_current_query = false;
 			}
 
 			$this->query( $query );
-		} else {
-			return null;
 		}
 
 		if ( ! isset( $this->last_result[ $y ] ) ) {
@@ -2770,14 +2766,16 @@ class wpdb {
 	public function get_results( $query = null, $output = OBJECT ) {
 		$this->func_call = "\$db->get_results(\"$query\", $output)";
 
+		if ( ! $query ) {
+			return null;
+		}
+
 		if ( $query ) {
 			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
 				$this->check_current_query = false;
 			}
 
 			$this->query( $query );
-		} else {
-			return null;
 		}
 
 		$new_array = array();
@@ -3018,11 +3016,10 @@ class wpdb {
 
 		$typeinfo = explode( '(', $this->col_meta[ $tablekey ][ $columnkey ]->Type );
 
-		$type = strtolower( $typeinfo[0] );
+		$type   = strtolower( $typeinfo[0] );
+		$length = false;
 		if ( ! empty( $typeinfo[1] ) ) {
 			$length = trim( $typeinfo[1], ')' );
-		} else {
-			$length = false;
 		}
 
 		switch ( $type ) {
@@ -3518,9 +3515,8 @@ class wpdb {
 					$i++;
 				}
 				return $new_array;
-			} else {
-				return $this->col_info[ $col_offset ]->{$info_type};
 			}
+			return $this->col_info[ $col_offset ]->{$info_type};
 		}
 	}
 
@@ -3717,9 +3713,8 @@ class wpdb {
 				if ( false !== strpos( $client_version, 'mysqlnd' ) ) {
 					$client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $client_version );
 					return version_compare( $client_version, '5.0.9', '>=' );
-				} else {
-					return version_compare( $client_version, '5.5.3', '>=' );
 				}
+				return version_compare( $client_version, '5.5.3', '>=' );
 			case 'utf8mb4_520': // @since 4.6.0
 				return version_compare( $version, '5.6', '>=' );
 		}

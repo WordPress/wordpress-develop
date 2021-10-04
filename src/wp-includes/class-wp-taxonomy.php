@@ -398,10 +398,9 @@ final class WP_Taxonomy {
 
 		// If not set, use the default meta box.
 		if ( null === $args['meta_box_cb'] ) {
+			$args['meta_box_cb'] = 'post_tags_meta_box';
 			if ( $args['hierarchical'] ) {
 				$args['meta_box_cb'] = 'post_categories_meta_box';
-			} else {
-				$args['meta_box_cb'] = 'post_tags_meta_box';
 			}
 		}
 
@@ -461,10 +460,9 @@ final class WP_Taxonomy {
 		}
 
 		if ( false !== $this->rewrite && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
+			$tag = '([^/]+)';
 			if ( $this->hierarchical && $this->rewrite['hierarchical'] ) {
 				$tag = '(.+?)';
-			} else {
-				$tag = '([^/]+)';
 			}
 
 			add_rewrite_tag( "%$this->name%", $tag, $this->query_var ? "{$this->query_var}=" : "taxonomy=$this->name&term=" );

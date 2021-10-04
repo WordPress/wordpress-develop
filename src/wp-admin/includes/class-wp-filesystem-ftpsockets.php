@@ -620,11 +620,10 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * }
 	 */
 	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
+		$limit_file = false;
 		if ( $this->is_file( $path ) ) {
 			$limit_file = basename( $path );
 			$path       = dirname( $path ) . '/';
-		} else {
-			$limit_file = false;
 		}
 
 		mbstring_binary_safe_encoding();
@@ -655,10 +654,9 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			}
 
 			if ( 'd' === $struc['type'] ) {
+				$struc['files'] = array();
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
-				} else {
-					$struc['files'] = array();
 				}
 			}
 

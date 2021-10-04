@@ -535,10 +535,9 @@ function wp_http_validate_url( $url ) {
 
 	$parsed_home = parse_url( get_option( 'home' ) );
 
+	$same_host = false;
 	if ( isset( $parsed_home['host'] ) ) {
 		$same_host = strtolower( $parsed_home['host'] ) === strtolower( $parsed_url['host'] );
-	} else {
-		$same_host = false;
 	}
 
 	if ( ! $same_host ) {
@@ -721,9 +720,8 @@ function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
 	$key = _wp_translate_php_url_constant_to_key( $component );
 	if ( false !== $key && is_array( $url_parts ) && isset( $url_parts[ $key ] ) ) {
 		return $url_parts[ $key ];
-	} else {
-		return null;
 	}
+	return null;
 }
 
 /**
@@ -753,7 +751,6 @@ function _wp_translate_php_url_constant_to_key( $constant ) {
 
 	if ( isset( $translation[ $constant ] ) ) {
 		return $translation[ $constant ];
-	} else {
-		return false;
 	}
+	return false;
 }

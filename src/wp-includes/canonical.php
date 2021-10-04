@@ -455,10 +455,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 					$addl_path .= 'comments/';
 				}
 
+				$format = ( $default_feed === $feed || 'feed' === $feed ) ? '' : $feed;
 				if ( ( 'rss' === $default_feed && 'feed' === $feed ) || 'rss' === $feed ) {
 					$format = ( 'rss2' === $default_feed ) ? '' : 'rss2';
-				} else {
-					$format = ( $default_feed === $feed || 'feed' === $feed ) ? '' : $feed;
 				}
 
 				$addl_path .= user_trailingslashit( 'feed/' . $format, 'feed' );
@@ -529,11 +528,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 
 		if ( 'wp-register.php' === basename( $redirect['path'] ) ) {
+			$redirect_url = wp_registration_url();
 			if ( is_multisite() ) {
 				/** This filter is documented in wp-login.php */
 				$redirect_url = apply_filters( 'wp_signup_location', network_site_url( 'wp-signup.php' ) );
-			} else {
-				$redirect_url = wp_registration_url();
 			}
 
 			wp_redirect( $redirect_url, 301 );
@@ -798,14 +796,12 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		if ( ! redirect_canonical( $redirect_url, false ) ) {
 			wp_redirect( $redirect_url, 301 );
 			exit;
-		} else {
-			// Debug.
-			// die("1: $redirect_url<br />2: " . redirect_canonical( $redirect_url, false ) );
-			return;
 		}
-	} else {
-		return $redirect_url;
+		// Debug.
+		// die("1: $redirect_url<br />2: " . redirect_canonical( $redirect_url, false ) );
+		return;
 	}
+	return $redirect_url;
 }
 
 /**
@@ -960,11 +956,11 @@ function redirect_guess_404_permalink() {
 
 		if ( get_query_var( 'feed' ) ) {
 			return get_post_comments_feed_link( $post_id, get_query_var( 'feed' ) );
-		} elseif ( get_query_var( 'page' ) > 1 ) {
-			return trailingslashit( get_permalink( $post_id ) ) . user_trailingslashit( get_query_var( 'page' ), 'single_paged' );
-		} else {
-			return get_permalink( $post_id );
 		}
+		if ( get_query_var( 'page' ) > 1 ) {
+			return trailingslashit( get_permalink( $post_id ) ) . user_trailingslashit( get_query_var( 'page' ), 'single_paged' );
+		}
+		return get_permalink( $post_id );
 	}
 
 	return false;

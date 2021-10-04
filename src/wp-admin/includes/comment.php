@@ -147,14 +147,8 @@ function get_comment_to_edit( $id ) {
 function get_pending_comments_num( $post_id ) {
 	global $wpdb;
 
-	$single = false;
-	if ( ! is_array( $post_id ) ) {
-		$post_id_array = (array) $post_id;
-		$single        = true;
-	} else {
-		$post_id_array = $post_id;
-	}
-	$post_id_array = array_map( 'intval', $post_id_array );
+	$single        = ! is_array( $post_id );
+	$post_id_array = array_map( 'intval', (array) $post_id );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
 	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' GROUP BY comment_post_ID", ARRAY_A );
@@ -162,9 +156,8 @@ function get_pending_comments_num( $post_id ) {
 	if ( $single ) {
 		if ( empty( $pending ) ) {
 			return 0;
-		} else {
-			return absint( $pending[0]['num_comments'] );
 		}
+		return absint( $pending[0]['num_comments'] );
 	}
 
 	$pending_keyed = array();

@@ -102,6 +102,7 @@ class Core_Upgrader extends WP_Upgrader {
 		 * the new_bundled zip. Don't though if the constant is set to skip bundled items.
 		 * If the API returns a no_content zip, go with it. Finally, default to the full zip.
 		 */
+		$to_download = 'full';
 		if ( $parsed_args['do_rollback'] && $current->packages->rollback ) {
 			$to_download = 'rollback';
 		} elseif ( $current->packages->partial && 'reinstall' !== $current->response && $wp_version === $current->partial_version && $partial ) {
@@ -111,8 +112,6 @@ class Core_Upgrader extends WP_Upgrader {
 			$to_download = 'new_bundled';
 		} elseif ( $current->packages->no_content ) {
 			$to_download = 'no_content';
-		} else {
-			$to_download = 'full';
 		}
 
 		// Lock to prevent multiple Core Updates occurring.

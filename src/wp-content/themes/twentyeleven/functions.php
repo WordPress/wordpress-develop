@@ -150,10 +150,10 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		add_theme_support( 'post-formats', array( 'aside', 'link', 'gallery', 'status', 'quote', 'image' ) );
 
 		$theme_options = twentyeleven_get_theme_options();
+
+		$default_background_color = 'e2e2e2';
 		if ( 'dark' === $theme_options['color_scheme'] ) {
 			$default_background_color = '1d1d1d';
-		} else {
-			$default_background_color = 'e2e2e2';
 		}
 
 		// Add support for custom backgrounds.
@@ -748,11 +748,10 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					</div><!-- .comment-author .vcard -->
 
 					<?php
-					$commenter = wp_get_current_commenter();
+					$commenter       = wp_get_current_commenter();
+					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'twentyeleven' );
 					if ( $commenter['comment_author_email'] ) {
 						$moderation_note = __( 'Your comment is awaiting moderation.', 'twentyeleven' );
-					} else {
-						$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'twentyeleven' );
 					}
 					?>
 

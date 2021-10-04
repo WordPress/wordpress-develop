@@ -590,9 +590,8 @@ function _wp_ajax_add_hierarchical_term() {
 
 		if ( ! $cat_id || is_wp_error( $cat_id ) ) {
 			continue;
-		} else {
-			$cat_id = $cat_id['term_id'];
 		}
+		$cat_id = $cat_id['term_id'];
 
 		$checked_categories[] = $cat_id;
 
@@ -769,9 +768,8 @@ function wp_ajax_delete_tag() {
 
 	if ( wp_delete_term( $tag_id, $taxonomy ) ) {
 		wp_die( 1 );
-	} else {
-		wp_die( 0 );
 	}
+	wp_die( 0 );
 }
 
 /**
@@ -795,9 +793,8 @@ function wp_ajax_delete_link() {
 
 	if ( wp_delete_link( $id ) ) {
 		wp_die( 1 );
-	} else {
-		wp_die( 0 );
 	}
+	wp_die( 0 );
 }
 
 /**
@@ -851,9 +848,8 @@ function wp_ajax_delete_post( $action ) {
 
 	if ( wp_delete_post( $id ) ) {
 		wp_die( 1 );
-	} else {
-		wp_die( 0 );
 	}
+	wp_die( 0 );
 }
 
 /**
@@ -932,9 +928,8 @@ function wp_ajax_delete_page( $action ) {
 
 	if ( wp_delete_post( $id ) ) {
 		wp_die( 1 );
-	} else {
-		wp_die( 0 );
 	}
+	wp_die( 0 );
 }
 
 /**

@@ -264,10 +264,9 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$data = array();
 
 			if ( isset( $value['size'] ) ) {
+				$data['size'] = (int) $value['size'];
 				if ( is_string( $value['size'] ) ) {
 					$data['size'] = sanitize_text_field( $value['size'] );
-				} else {
-					$data['size'] = (int) $value['size'];
 				}
 			}
 
