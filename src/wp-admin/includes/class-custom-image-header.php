@@ -557,8 +557,8 @@ class Custom_Image_Header {
 				?>
 	<div id="headimg" style="<?php echo $header_image_style; ?>">
 				<?php
-					$style = ' style="display:none;"';
-					if ( display_header_text() ) {
+				$style = ' style="display:none;"';
+				if ( display_header_text() ) {
 					$style = ' style="color:#' . get_header_textcolor() . ';"';
 				}
 				?>
