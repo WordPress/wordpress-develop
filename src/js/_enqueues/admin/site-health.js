@@ -11,10 +11,10 @@ jQuery( function( $ ) {
 	var __ = wp.i18n.__,
 		_n = wp.i18n._n,
 		sprintf = wp.i18n.sprintf,
-		clipboard = new ClipboardJS( '.site-health-copy-buttons .copy-button' ),
-		isStatusTab = $( '.health-check-body.health-check-status-tab' ).length,
-		isDebugTab = $( '.health-check-body.health-check-debug-tab' ).length,
-		pathsSizesSection = $( '#health-check-accordion-block-wp-paths-sizes' ),
+		clipboard = new ClipboardJS( '.admin-page-copy-buttons .copy-button' ),
+		isStatusTab = $( '.admin-page-body.admin-page-status-tab' ).length,
+		isDebugTab = $( '.admin-page-body.admin-page-debug-tab' ).length,
+		pathsSizesSection = $( '#admin-page-accordion-block-wp-paths-sizes' ),
 		successTimeout;
 
 	// Debug information copy section.
@@ -45,7 +45,7 @@ jQuery( function( $ ) {
 	} );
 
 	// Accordion handling in various areas.
-	$( '.health-check-accordion' ).on( 'click', '.health-check-accordion-trigger', function() {
+	$( '.admin-page-accordion' ).on( 'click', '.admin-page-accordion-trigger', function() {
 		var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
 
 		if ( isExpanded ) {
@@ -59,8 +59,8 @@ jQuery( function( $ ) {
 
 	// Site Health test handling.
 
-	$( '.site-health-view-passed' ).on( 'click', function() {
-		var goodIssuesWrapper = $( '#health-check-issues-good' );
+	$( '.admin-page-view-passed' ).on( 'click', function() {
+		var goodIssuesWrapper = $( '#admin-page-issues-good' );
 
 		goodIssuesWrapper.toggleClass( 'hidden' );
 		$( this ).attr( 'aria-expanded', ! goodIssuesWrapper.hasClass( 'hidden' ) );
@@ -126,7 +126,7 @@ jQuery( function( $ ) {
 	 */
 	function appendIssue( issue ) {
 		var template = wp.template( 'health-check-issue' ),
-			issueWrapper = $( '#health-check-issues-' + issue.status ),
+			issueWrapper = $( '#admin-page-issues-' + issue.status ),
 			heading,
 			count;
 
@@ -165,10 +165,10 @@ jQuery( function( $ ) {
 		}
 
 		if ( heading ) {
-			$( '.site-health-issue-count-title', issueWrapper ).html( heading );
+			$( '.admin-page-issue-count-title', issueWrapper ).html( heading );
 		}
 
-		$( '.issues', '#health-check-issues-' + issue.status ).append( template( issue ) );
+		$( '.issues', '#admin-page-issues-' + issue.status ).append( template( issue ) );
 	}
 
 	/**
@@ -178,10 +178,10 @@ jQuery( function( $ ) {
 	 */
 	function recalculateProgression() {
 		var r, c, pct;
-		var $progress = $( '.site-health-progress' );
-		var $wrapper = $progress.closest( '.site-health-progress-wrapper' );
-		var $progressLabel = $( '.site-health-progress-label', $wrapper );
-		var $circle = $( '.site-health-progress svg #bar' );
+		var $progress = $( '.admin-page-progress' );
+		var $wrapper = $progress.closest( '.admin-page-progress-wrapper' );
+		var $progressLabel = $( '.admin-page-progress-label', $wrapper );
+		var $circle = $( '.admin-page-progress svg #bar' );
 		var totalTests = parseInt( SiteHealth.site_status.issues.good, 0 ) +
 			parseInt( SiteHealth.site_status.issues.recommended, 0 ) +
 			( parseInt( SiteHealth.site_status.issues.critical, 0 ) * 1.5 );
@@ -211,11 +211,11 @@ jQuery( function( $ ) {
 		$circle.css( { strokeDashoffset: pct } );
 
 		if ( 1 > parseInt( SiteHealth.site_status.issues.critical, 0 ) ) {
-			$( '#health-check-issues-critical' ).addClass( 'hidden' );
+			$( '#admin-page-issues-critical' ).addClass( 'hidden' );
 		}
 
 		if ( 1 > parseInt( SiteHealth.site_status.issues.recommended, 0 ) ) {
-			$( '#health-check-issues-recommended' ).addClass( 'hidden' );
+			$( '#admin-page-issues-recommended' ).addClass( 'hidden' );
 		}
 
 		if ( 80 <= val && 0 === parseInt( SiteHealth.site_status.issues.critical, 0 ) ) {
@@ -386,7 +386,7 @@ jQuery( function( $ ) {
 		} ).always( function() {
 			var delay = ( new Date().getTime() ) - timestamp;
 
-			$( '.health-check-wp-paths-sizes.spinner' ).css( 'visibility', 'hidden' );
+			$( '.admin-page-wp-paths-sizes.spinner' ).css( 'visibility', 'hidden' );
 			recalculateProgression();
 
 			if ( delay > 3000 ) {
@@ -409,7 +409,7 @@ jQuery( function( $ ) {
 				window.clearTimeout( timeout );
 			}
 
-			$( document ).trigger( 'site-health-info-dirsizes-done' );
+			$( document ).trigger( 'admin-page-info-dirsizes-done' );
 		} );
 	}
 
@@ -446,7 +446,7 @@ jQuery( function( $ ) {
 	}
 
 	// Trigger a class toggle when the extended menu button is clicked.
-	$( '.health-check-offscreen-nav-wrapper' ).on( 'click', function() {
+	$( '.admin-page-offscreen-nav-wrapper' ).on( 'click', function() {
 		$( this ).toggleClass( 'visible' );
 	} );
 } );
