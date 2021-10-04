@@ -202,7 +202,6 @@ describe('Manage tags', () => {
 
     it('correctly sorts tags per posts count', async() => {
         const tags = ['Tag 0', 'Tag 1'];
-        const postTitle = 'Post 1';
 
         for (let i = 0, n = tags.length; i < n; i++) {
             await createNewTag(tags[i]);
@@ -211,7 +210,7 @@ describe('Manage tags', () => {
         // Get the ID of 'Tag 1'
         let tag1Id = await page.$('#the-list tr:first-child');
         tag1Id = await tag1Id.evaluate(element => (element.id));
-        tag1Id = tag1Id.split('tag-')[1]
+        tag1Id = tag1Id.split('tag-')[1];
 
         await deleteAllPosts();
 
