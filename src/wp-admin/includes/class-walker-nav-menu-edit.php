@@ -166,9 +166,8 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 							?>
 						</span>
 						<?php
-						if ( isset( $_GET['edit-menu-item'] ) && $item_id === $_GET['edit-menu-item'] ) {
-							$edit_url = admin_url( 'nav-menus.php' );
-						} else {
+						$edit_url = admin_url( 'nav-menus.php' );
+						if ( ! isset( $_GET['edit-menu-item'] ) || $item_id !== $_GET['edit-menu-item'] ) {
 							$edit_url = add_query_arg(
 								array(
 									'edit-menu-item' => $item_id,

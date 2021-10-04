@@ -74,15 +74,14 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 				)
 			);
 
-			if ( ! is_wp_error( $result ) ) {
-				$redirect = add_query_arg(
-					array(
-						'update'  => 'addnoconfirmation',
-						'user_id' => $user_id,
-					),
-					'user-new.php'
-				);
-			} else {
+			$redirect = add_query_arg(
+				array(
+					'update'  => 'addnoconfirmation',
+					'user_id' => $user_id,
+				),
+				'user-new.php'
+			);
+			if ( is_wp_error( $result ) ) {
 				$redirect = add_query_arg( array( 'update' => 'could_not_add' ), 'user-new.php' );
 			}
 		} else {
@@ -191,9 +190,8 @@ Please click the following link to confirm the invite:
 		if ( is_wp_error( $user_id ) ) {
 			$add_user_errors = $user_id;
 		} else {
-			if ( current_user_can( 'list_users' ) ) {
-				$redirect = 'users.php?update=add&id=' . $user_id;
-			} else {
+			$redirect = 'users.php?update=add&id=' . $user_id;
+			if ( ! current_user_can( 'list_users' ) ) {
 				$redirect = add_query_arg( 'update', 'add', 'user-new.php' );
 			}
 			wp_redirect( $redirect );
@@ -411,14 +409,14 @@ if ( is_multisite() && current_user_can( 'promote_users' ) ) {
 	if ( $do_both ) {
 		echo '<h2 id="add-existing-user">' . __( 'Add Existing User' ) . '</h2>';
 	}
+	$label = __( 'Email or Username' );
+	$type  = 'text';
 	if ( ! current_user_can( 'manage_network_users' ) ) {
 		echo '<p>' . __( 'Enter the email address of an existing user on this network to invite them to this site. That person will be sent an email asking them to confirm the invite.' ) . '</p>';
 		$label = __( 'Email' );
 		$type  = 'email';
 	} else {
 		echo '<p>' . __( 'Enter the email address or username of an existing user on this network to invite them to this site. That person will be sent an email asking them to confirm the invite.' ) . '</p>';
-		$label = __( 'Email or Username' );
-		$type  = 'text';
 	}
 	?>
 <form method="post" name="adduser" id="adduser" class="validate" novalidate="novalidate"

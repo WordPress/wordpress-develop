@@ -232,12 +232,11 @@ if ( isset( $_GET['action'] ) ) {
 
 		check_admin_referer( 'bulk-update-themes' );
 
+		$themes = array();
 		if ( isset( $_GET['themes'] ) ) {
 			$themes = explode( ',', stripslashes( $_GET['themes'] ) );
 		} elseif ( isset( $_POST['checked'] ) ) {
 			$themes = (array) $_POST['checked'];
-		} else {
-			$themes = array();
 		}
 
 		$themes = array_map( 'urldecode', $themes );

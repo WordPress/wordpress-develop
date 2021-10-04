@@ -86,14 +86,13 @@ get_current_screen()->set_screen_reader_content(
 	)
 );
 
+$redirect = 'users.php';
+$referer  = '';
 if ( empty( $_REQUEST ) ) {
 	$referer = '<input type="hidden" name="wp_http_referer" value="' . esc_attr( wp_unslash( $_SERVER['REQUEST_URI'] ) ) . '" />';
 } elseif ( isset( $_REQUEST['wp_http_referer'] ) ) {
 	$redirect = remove_query_arg( array( 'wp_http_referer', 'updated', 'delete_count' ), wp_unslash( $_REQUEST['wp_http_referer'] ) );
 	$referer  = '<input type="hidden" name="wp_http_referer" value="' . esc_attr( $redirect ) . '" />';
-} else {
-	$redirect = 'users.php';
-	$referer  = '';
 }
 
 $update = '';
@@ -529,9 +528,8 @@ switch ( $wp_list_table->current_action() ) {
 				case 'del':
 				case 'del_many':
 					$delete_count = isset( $_GET['delete_count'] ) ? (int) $_GET['delete_count'] : 0;
-					if ( 1 == $delete_count ) {
-						$message = __( 'User deleted.' );
-					} else {
+					$message      = __( 'User deleted.' );
+					if ( 1 !== $delete_count ) {
 						/* translators: %s: Number of users. */
 						$message = _n( '%s user deleted.', '%s users deleted.', $delete_count );
 					}
@@ -559,9 +557,8 @@ switch ( $wp_list_table->current_action() ) {
 					break;
 				case 'resetpassword':
 					$reset_count = isset( $_GET['reset_count'] ) ? (int) $_GET['reset_count'] : 0;
-					if ( 1 === $reset_count ) {
-						$message = __( 'Password reset link sent.' );
-					} else {
+					$message     = __( 'Password reset link sent.' );
+					if ( 1 !== $reset_count ) {
 						/* translators: %s: Number of users. */
 						$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
 					}

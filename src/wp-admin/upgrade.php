@@ -23,10 +23,9 @@ require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 delete_site_transient( 'update_core' );
 
+$step = 0;
 if ( isset( $_GET['step'] ) ) {
 	$step = $_GET['step'];
-} else {
-	$step = 0;
 }
 
 // Do it. No output.
@@ -47,9 +46,8 @@ $step = (int) $step;
 $php_version   = phpversion();
 $mysql_version = $wpdb->db_version();
 $php_compat    = version_compare( $php_version, $required_php_version, '>=' );
-if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
-	$mysql_compat = true;
-} else {
+$mysql_compat  = true;
+if ( ! file_exists( WP_CONTENT_DIR . '/db.php' ) || ! empty( $wpdb->is_mysql ) ) {
 	$mysql_compat = version_compare( $mysql_version, $required_mysql_version, '>=' );
 }
 

@@ -60,16 +60,14 @@ function edit_link( $link_id = 0 ) {
  */
 function get_default_link_to_edit() {
 	$link = new stdClass;
+	$link->link_url = '';
 	if ( isset( $_GET['linkurl'] ) ) {
 		$link->link_url = esc_url( wp_unslash( $_GET['linkurl'] ) );
-	} else {
-		$link->link_url = '';
 	}
 
+	$link->link_name = '';
 	if ( isset( $_GET['name'] ) ) {
 		$link->link_name = esc_attr( wp_unslash( $_GET['name'] ) );
-	} else {
-		$link->link_name = '';
 	}
 
 	$link->link_visible = 'Y';
@@ -196,11 +194,10 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 	}
 
 	if ( '' === trim( $link_name ) ) {
-		if ( '' !== trim( $link_url ) ) {
-			$link_name = $link_url;
-		} else {
+		if ( '' === trim( $link_url ) ) {
 			return 0;
 		}
+		$link_name = $link_url;
 	}
 
 	if ( '' === trim( $link_url ) ) {
@@ -227,17 +224,15 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 		if ( false === $wpdb->update( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss' ), compact( 'link_id' ) ) ) {
 			if ( $wp_error ) {
 				return new WP_Error( 'db_update_error', __( 'Could not update link in the database.' ), $wpdb->last_error );
-			} else {
-				return 0;
 			}
+			return 0;
 		}
 	} else {
 		if ( false === $wpdb->insert( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss' ) ) ) {
 			if ( $wp_error ) {
 				return new WP_Error( 'db_insert_error', __( 'Could not insert link into the database.' ), $wpdb->last_error );
-			} else {
-				return 0;
 			}
+			return 0;
 		}
 		$link_id = (int) $wpdb->insert_id;
 	}

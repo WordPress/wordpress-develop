@@ -839,12 +839,11 @@ class WP_Comments_List_Table extends WP_List_Table {
 		foreach ( $actions as $action => $link ) {
 			++$i;
 
+			$sep = ' | ';
 			if ( ( ( 'approve' === $action || 'unapprove' === $action ) && 2 === $i )
 				|| 1 === $i
 			) {
 				$sep = '';
-			} else {
-				$sep = ' | ';
 			}
 
 			// Reply and quickedit need a hide-if-no-js span when not added with Ajax.
@@ -1026,11 +1025,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$this->pending_count[ $post->ID ] = $pending_comments;
 		}
 
+		$post_link = esc_html( get_the_title( $post->ID ) );
 		if ( current_user_can( 'edit_post', $post->ID ) ) {
-			$post_link  = "<a href='" . get_edit_post_link( $post->ID ) . "' class='comments-edit-item-link'>";
-			$post_link .= esc_html( get_the_title( $post->ID ) ) . '</a>';
-		} else {
-			$post_link = esc_html( get_the_title( $post->ID ) );
+			$post_link  = "<a href='" . get_edit_post_link( $post->ID ) . "' class='comments-edit-item-link'>" . $post_link . '</a>';
 		}
 
 		echo '<div class="response-links">';

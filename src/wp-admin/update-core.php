@@ -80,10 +80,9 @@ function list_core_update( $update ) {
 			$submit      = sprintf( __( 'Re-install version %s' ), $version_string );
 			$form_action = 'update-core.php?action=do-core-reinstall';
 		} else {
-			$php_compat = version_compare( $php_version, $update->php_version, '>=' );
-			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
-				$mysql_compat = true;
-			} else {
+			$php_compat   = version_compare( $php_version, $update->php_version, '>=' );
+			$mysql_compat = true;
+			if ( ! file_exists( WP_CONTENT_DIR . '/db.php' ) || ! empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = version_compare( $mysql_version, $update->mysql_version, '>=' );
 			}
 
@@ -105,6 +104,13 @@ function list_core_update( $update ) {
 				$php_update_message .= '</p><p><em>' . $annotation . '</em>';
 			}
 
+			$message = sprintf(
+				/* translators: 1: Installed WordPress version number, 2: URL to WordPress release notes, 3: New WordPress version number, including locale if necessary. */
+				__( 'You can update from WordPress %1$s to <a href="%2$s">WordPress %3$s</a> manually:' ),
+				$wp_version,
+				$version_url,
+				$version_string
+			);
 			if ( ! $mysql_compat && ! $php_compat ) {
 				$message = sprintf(
 					/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required PHP version number, 4: Minimum required MySQL version number, 5: Current PHP version number, 6: Current MySQL version number. */
@@ -133,14 +139,6 @@ function list_core_update( $update ) {
 					$update->current,
 					$update->mysql_version,
 					$mysql_version
-				);
-			} else {
-				$message = sprintf(
-					/* translators: 1: Installed WordPress version number, 2: URL to WordPress release notes, 3: New WordPress version number, including locale if necessary. */
-					__( 'You can update from WordPress %1$s to <a href="%2$s">WordPress %3$s</a> manually:' ),
-					$wp_version,
-					$version_url,
-					$version_string
 				);
 			}
 
@@ -502,13 +500,13 @@ function list_plugin_updates() {
 			}
 		}
 
+
+		/* translators: %s: WordPress version. */
+		$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $cur_wp_version );
 		// Get plugin compat for running version of WordPress.
 		if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $cur_wp_version, '>=' ) ) {
 			/* translators: %s: WordPress version. */
 			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $cur_wp_version );
-		} else {
-			/* translators: %s: WordPress version. */
-			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $cur_wp_version );
 		}
 		// Get plugin compat for updated version of WordPress.
 		if ( $core_update_version ) {
@@ -540,10 +538,9 @@ function list_plugin_updates() {
 		}
 
 		// Get the upgrade notice for the new plugin version.
+		$upgrade_notice = '';
 		if ( isset( $plugin_data->update->upgrade_notice ) ) {
 			$upgrade_notice = '<br />' . strip_tags( $plugin_data->update->upgrade_notice );
-		} else {
-			$upgrade_notice = '';
 		}
 
 		$details_url = self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . $plugin_data->update->slug . '&section=changelog&TB_iframe=true&width=640&height=662' );
@@ -820,10 +817,9 @@ function do_core_upgrade( $reinstall = false ) {
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
+	$url = 'update-core.php?action=do-core-upgrade';
 	if ( $reinstall ) {
 		$url = 'update-core.php?action=do-core-reinstall';
-	} else {
-		$url = 'update-core.php?action=do-core-upgrade';
 	}
 	$url = wp_nonce_url( $url, 'upgrade-core' );
 
@@ -1096,11 +1092,7 @@ if ( 'upgrade-core' === $action ) {
 	}
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';
-	if ( 'do-core-reinstall' === $action ) {
-		$reinstall = true;
-	} else {
-		$reinstall = false;
-	}
+	$reinstall = 'do-core-reinstall' === $action;
 
 	if ( isset( $_POST['upgrade'] ) ) {
 		do_core_upgrade( $reinstall );

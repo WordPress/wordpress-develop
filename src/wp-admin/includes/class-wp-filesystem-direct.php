@@ -340,9 +340,8 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			$this->delete( $source );
 
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -599,11 +598,10 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * }
 	 */
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
+		$limit_file = false;
 		if ( $this->is_file( $path ) ) {
 			$limit_file = basename( $path );
-			$path       = dirname( $path );
-		} else {
-			$limit_file = false;
+			$path      = dirname( $path );
 		}
 
 		if ( ! $this->is_dir( $path ) || ! $this->is_readable( $path ) ) {
@@ -646,10 +644,9 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			$struc['type']        = $this->is_dir( $path . '/' . $entry ) ? 'd' : 'f';
 
 			if ( 'd' === $struc['type'] ) {
+				$struc['files'] = array();
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
-				} else {
-					$struc['files'] = array();
 				}
 			}
 

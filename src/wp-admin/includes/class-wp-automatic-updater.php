@@ -161,6 +161,7 @@ class WP_Automatic_Updater {
 		}
 
 		// Next up, is this an item we can update?
+		$update = ! empty( $item->autoupdate );
 		if ( 'core' === $type ) {
 			$update = Core_Upgrader::should_update_to_version( $item->current );
 		} elseif ( 'plugin' === $type || 'theme' === $type ) {
@@ -171,8 +172,6 @@ class WP_Automatic_Updater {
 				$auto_updates = (array) get_site_option( "auto_update_{$type}s", array() );
 				$update       = in_array( $item->{$type}, $auto_updates, true );
 			}
-		} else {
-			$update = ! empty( $item->autoupdate );
 		}
 
 		// If the `disable_autoupdate` flag is set, override any user-choice, but allow filters.
@@ -222,9 +221,8 @@ class WP_Automatic_Updater {
 			global $wpdb;
 
 			$php_compat = version_compare( phpversion(), $item->php_version, '>=' );
-			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
-				$mysql_compat = true;
-			} else {
+			$mysql_compat = true;
+			if ( ! file_exists( WP_CONTENT_DIR . '/db.php' ) || ! empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = version_compare( $wpdb->db_version(), $item->mysql_version, '>=' );
 			}
 
@@ -684,13 +682,7 @@ class WP_Automatic_Updater {
 			$next_user_core_update = $core_update;
 		}
 
-		if ( 'upgrade' === $next_user_core_update->response
-			&& version_compare( $next_user_core_update->version, $core_update->version, '>' )
-		) {
-			$newer_version_available = true;
-		} else {
-			$newer_version_available = false;
-		}
+		$newer_version_available = 'upgrade' === $next_user_core_update->response && version_compare( $next_user_core_update->version, $core_update->version, '>' );
 
 		/**
 		 * Filters whether to send an email following an automatic background core update.
@@ -845,12 +837,11 @@ class WP_Automatic_Updater {
 			$body .= ' ' . __( 'We have some data that describes the error your site encountered.' );
 			$body .= ' ' . __( 'Your hosting company, support forum volunteers, or a friendly developer may be able to use this information to help you:' );
 
+			$errors = array( $result );
 			// If we had a rollback and we're still critical, then the rollback failed too.
 			// Loop through all errors (the main WP_Error, the update result, the rollback result) for code, data, etc.
 			if ( 'rollback_was_required' === $result->get_error_code() ) {
 				$errors = array( $result, $result->get_error_data()->update, $result->get_error_data()->rollback );
-			} else {
-				$errors = array( $result );
 			}
 
 			foreach ( $errors as $error ) {

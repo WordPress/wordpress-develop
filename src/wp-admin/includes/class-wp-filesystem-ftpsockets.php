@@ -39,9 +39,8 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		$this->ftp = new ftp();
 
-		if ( empty( $opt['port'] ) ) {
-			$this->options['port'] = 21;
-		} else {
+		$this->options['port'] = 21;
+		if ( ! empty( $opt['port'] ) ) {
 			$this->options['port'] = (int) $opt['port'];
 		}
 

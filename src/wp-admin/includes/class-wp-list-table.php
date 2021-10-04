@@ -462,6 +462,7 @@ class WP_List_Table {
 	 *                      This is designated as optional for backward compatibility.
 	 */
 	protected function bulk_actions( $which = '' ) {
+		$two = '2';
 		if ( is_null( $this->_actions ) ) {
 			$this->_actions = $this->get_bulk_actions();
 
@@ -479,8 +480,6 @@ class WP_List_Table {
 			$this->_actions = apply_filters( "bulk_actions-{$this->screen->id}", $this->_actions ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 			$two = '';
-		} else {
-			$two = '2';
 		}
 
 		if ( empty( $this->_actions ) ) {
@@ -984,10 +983,9 @@ class WP_List_Table {
 		}
 		$output .= "\n<span class='$pagination_links_class'>" . implode( "\n", $page_links ) . '</span>';
 
+		$page_class = ' no-pages';
 		if ( $total_pages ) {
 			$page_class = $total_pages < 2 ? ' one-page' : '';
-		} else {
-			$page_class = ' no-pages';
 		}
 		$this->_pagination = "<div class='tablenav-pages{$page_class}'>$output</div>";
 
@@ -1186,16 +1184,14 @@ class WP_List_Table {
 		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 		$current_url = remove_query_arg( 'paged', $current_url );
 
+		$current_orderby = '';
 		if ( isset( $_GET['orderby'] ) ) {
 			$current_orderby = $_GET['orderby'];
-		} else {
-			$current_orderby = '';
 		}
 
+		$current_order = 'asc';
 		if ( isset( $_GET['order'] ) && 'desc' === $_GET['order'] ) {
 			$current_order = 'desc';
-		} else {
-			$current_order = 'asc';
 		}
 
 		if ( ! empty( $columns['cb'] ) ) {

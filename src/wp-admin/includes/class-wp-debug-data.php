@@ -50,11 +50,10 @@ class WP_Debug_Data {
 
 		if ( is_array( $core_updates ) ) {
 			foreach ( $core_updates as $core => $update ) {
+				$core_update_needed = '';
 				if ( 'upgrade' === $update->response ) {
 					/* translators: %s: Latest WordPress version number. */
 					$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
-				} else {
-					$core_update_needed = '';
 				}
 			}
 		}
@@ -208,39 +207,35 @@ class WP_Debug_Data {
 		}
 
 		// Check CONCATENATE_SCRIPTS.
+		$concatenate_scripts       = __( 'Undefined' );
+		$concatenate_scripts_debug = 'undefined';
 		if ( defined( 'CONCATENATE_SCRIPTS' ) ) {
 			$concatenate_scripts       = CONCATENATE_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
 			$concatenate_scripts_debug = CONCATENATE_SCRIPTS ? 'true' : 'false';
-		} else {
-			$concatenate_scripts       = __( 'Undefined' );
-			$concatenate_scripts_debug = 'undefined';
 		}
 
 		// Check COMPRESS_SCRIPTS.
+		$compress_scripts       = __( 'Undefined' );
+		$compress_scripts_debug = 'undefined';
 		if ( defined( 'COMPRESS_SCRIPTS' ) ) {
 			$compress_scripts       = COMPRESS_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
 			$compress_scripts_debug = COMPRESS_SCRIPTS ? 'true' : 'false';
-		} else {
-			$compress_scripts       = __( 'Undefined' );
-			$compress_scripts_debug = 'undefined';
 		}
 
 		// Check COMPRESS_CSS.
+		$compress_css       = __( 'Undefined' );
+		$compress_css_debug = 'undefined';
 		if ( defined( 'COMPRESS_CSS' ) ) {
 			$compress_css       = COMPRESS_CSS ? __( 'Enabled' ) : __( 'Disabled' );
 			$compress_css_debug = COMPRESS_CSS ? 'true' : 'false';
-		} else {
-			$compress_css       = __( 'Undefined' );
-			$compress_css_debug = 'undefined';
 		}
 
 		// Check WP_LOCAL_DEV.
+		$wp_local_dev       = __( 'Undefined' );
+		$wp_local_dev_debug = 'undefined';
 		if ( defined( 'WP_LOCAL_DEV' ) ) {
 			$wp_local_dev       = WP_LOCAL_DEV ? __( 'Enabled' ) : __( 'Disabled' );
 			$wp_local_dev_debug = WP_LOCAL_DEV ? 'true' : 'false';
-		} else {
-			$wp_local_dev       = __( 'Undefined' );
-			$wp_local_dev_debug = 'undefined';
 		}
 
 		$info['wp-constants'] = array(
@@ -513,12 +508,11 @@ class WP_Debug_Data {
 		);
 
 		// Get ImageMagic information, if available.
+		$imagemagick_version = __( 'Not available' );
 		if ( class_exists( 'Imagick' ) ) {
 			// Save the Imagick instance for later use.
 			$imagick             = new Imagick();
 			$imagemagick_version = $imagick->getVersion();
-		} else {
-			$imagemagick_version = __( 'Not available' );
 		}
 
 		$info['wp-media']['fields']['imagick_module_version'] = array(
@@ -619,10 +613,9 @@ class WP_Debug_Data {
 		}
 
 		// Get GD information, if available.
+		$gd = false;
 		if ( function_exists( 'gd_info' ) ) {
 			$gd = gd_info();
-		} else {
-			$gd = false;
 		}
 
 		$info['wp-media']['fields']['gd_version'] = array(
@@ -659,18 +652,15 @@ class WP_Debug_Data {
 		}
 
 		// Get Ghostscript information, if available.
+		$gs       = __( 'Unable to determine if Ghostscript is installed' );
+		$gs_debug = 'unknown';
 		if ( function_exists( 'exec' ) ) {
-			$gs = exec( 'gs --version' );
-
+			$gs       = exec( 'gs --version' );
+			$gs_debug = $gs;
 			if ( empty( $gs ) ) {
 				$gs       = $not_available;
 				$gs_debug = 'not available';
-			} else {
-				$gs_debug = $gs;
 			}
-		} else {
-			$gs       = __( 'Unable to determine if Ghostscript is installed' );
-			$gs_debug = 'unknown';
 		}
 
 		$info['wp-media']['fields']['ghostscript_version'] = array(
@@ -680,12 +670,13 @@ class WP_Debug_Data {
 		);
 
 		// Populate the server debug fields.
+		$server_architecture = 'unknown';
 		if ( function_exists( 'php_uname' ) ) {
 			$server_architecture = sprintf( '%s %s %s', php_uname( 's' ), php_uname( 'r' ), php_uname( 'm' ) );
-		} else {
-			$server_architecture = 'unknown';
 		}
 
+		$php_version       = __( 'Unable to determine PHP version' );
+		$php_version_debug = 'unknown';
 		if ( function_exists( 'phpversion' ) ) {
 			$php_version_debug = phpversion();
 			// Whether PHP supports 64-bit.
@@ -700,15 +691,11 @@ class WP_Debug_Data {
 			if ( $php64bit ) {
 				$php_version_debug .= ' 64bit';
 			}
-		} else {
-			$php_version       = __( 'Unable to determine PHP version' );
-			$php_version_debug = 'unknown';
 		}
 
+		$php_sapi = 'unknown';
 		if ( function_exists( 'php_sapi_name' ) ) {
 			$php_sapi = php_sapi_name();
-		} else {
-			$php_sapi = 'unknown';
 		}
 
 		$info['wp-server']['fields']['server_architecture'] = array(
@@ -753,6 +740,10 @@ class WP_Debug_Data {
 				'value' => ini_get( 'max_execution_time' ),
 			);
 
+			$info['wp-server']['fields']['memory_limit'] = array(
+				'label' => __( 'PHP memory limit' ),
+				'value' => ini_get( 'memory_limit' ),
+			);
 			if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
 				$info['wp-server']['fields']['memory_limit']       = array(
 					'label' => __( 'PHP memory limit' ),
@@ -760,11 +751,6 @@ class WP_Debug_Data {
 				);
 				$info['wp-server']['fields']['admin_memory_limit'] = array(
 					'label' => __( 'PHP memory limit (only for admin screens)' ),
-					'value' => ini_get( 'memory_limit' ),
-				);
-			} else {
-				$info['wp-server']['fields']['memory_limit'] = array(
-					'label' => __( 'PHP memory limit' ),
 					'value' => ini_get( 'memory_limit' ),
 				);
 			}
@@ -783,18 +769,17 @@ class WP_Debug_Data {
 			);
 		}
 
+		$info['wp-server']['fields']['curl_version'] = array(
+			'label' => __( 'cURL version' ),
+			'value' => $not_available,
+			'debug' => 'not available',
+		);
 		if ( function_exists( 'curl_version' ) ) {
 			$curl = curl_version();
 
 			$info['wp-server']['fields']['curl_version'] = array(
 				'label' => __( 'cURL version' ),
 				'value' => sprintf( '%s %s', $curl['version'], $curl['ssl_version'] ),
-			);
-		} else {
-			$info['wp-server']['fields']['curl_version'] = array(
-				'label' => __( 'cURL version' ),
-				'value' => $not_available,
-				'debug' => 'not available',
 			);
 		}
 
@@ -834,12 +819,11 @@ class WP_Debug_Data {
 			$filtered_htaccess_content = trim( preg_replace( '/\# BEGIN WordPress[\s\S]+?# END WordPress/si', '', $htaccess_content ) );
 			$filtered_htaccess_content = ! empty( $filtered_htaccess_content );
 
+			/* translators: %s: .htaccess */
+			$htaccess_rules_string = sprintf( __( 'Your %s file contains only core WordPress features.' ), '.htaccess' );
 			if ( $filtered_htaccess_content ) {
 				/* translators: %s: .htaccess */
 				$htaccess_rules_string = sprintf( __( 'Custom rules have been added to your %s file.' ), '.htaccess' );
-			} else {
-				/* translators: %s: .htaccess */
-				$htaccess_rules_string = sprintf( __( 'Your %s file contains only core WordPress features.' ), '.htaccess' );
 			}
 
 			$info['wp-server']['fields']['htaccess_extra_rules'] = array(
@@ -849,6 +833,7 @@ class WP_Debug_Data {
 			);
 		}
 
+		$extension = null; // Unknown sql extension.
 		// Populate the database debug fields.
 		if ( is_resource( $wpdb->dbh ) ) {
 			// Old mysql extension.
@@ -856,9 +841,6 @@ class WP_Debug_Data {
 		} elseif ( is_object( $wpdb->dbh ) ) {
 			// mysqli or PDO.
 			$extension = get_class( $wpdb->dbh );
-		} else {
-			// Unknown sql extension.
-			$extension = null;
 		}
 
 		$server = $wpdb->get_var( 'SELECT VERSION()' );
@@ -866,11 +848,10 @@ class WP_Debug_Data {
 		if ( isset( $wpdb->use_mysqli ) && $wpdb->use_mysqli ) {
 			$client_version = $wpdb->dbh->client_info;
 		} else {
+			$client_version = null;
 			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
 			if ( preg_match( '|[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}|', mysql_get_client_info(), $matches ) ) {
 				$client_version = $matches[0];
-			} else {
-				$client_version = null;
 			}
 		}
 
@@ -1041,16 +1022,14 @@ class WP_Debug_Data {
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, (object) $item );
 
-				if ( ! is_null( $auto_update_forced ) ) {
-					$enabled = $auto_update_forced;
-				} else {
+				$enabled = $auto_update_forced;
+				if ( is_null( $auto_update_forced ) ) {
 					$enabled = in_array( $plugin_path, $auto_updates, true );
 				}
 
+				$auto_updates_string = __( 'Auto-updates disabled' );
 				if ( $enabled ) {
 					$auto_updates_string = __( 'Auto-updates enabled' );
-				} else {
-					$auto_updates_string = __( 'Auto-updates disabled' );
 				}
 
 				/**
@@ -1109,6 +1088,8 @@ class WP_Debug_Data {
 
 		$active_theme_author_uri = $active_theme->display( 'AuthorURI' );
 
+		$active_theme_parent_theme       = __( 'None' );
+		$active_theme_parent_theme_debug = 'none';
 		if ( $active_theme->parent_theme ) {
 			$active_theme_parent_theme = sprintf(
 				/* translators: 1: Theme name. 2: Theme slug. */
@@ -1121,9 +1102,6 @@ class WP_Debug_Data {
 				$active_theme->parent_theme,
 				$active_theme->template
 			);
-		} else {
-			$active_theme_parent_theme       = __( 'None' );
-			$active_theme_parent_theme_debug = 'none';
 		}
 
 		$info['wp-active-theme']['fields'] = array(
@@ -1183,16 +1161,14 @@ class WP_Debug_Data {
 
 			$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
 
-			if ( ! is_null( $auto_update_forced ) ) {
-				$enabled = $auto_update_forced;
-			} else {
+			$enabled = $auto_update_forced;
+			if ( is_null( $auto_update_forced ) ) {
 				$enabled = in_array( $active_theme->stylesheet, $auto_updates, true );
 			}
 
+			$auto_updates_string = __( 'Disabled' );
 			if ( $enabled ) {
 				$auto_updates_string = __( 'Enabled' );
-			} else {
-				$auto_updates_string = __( 'Disabled' );
 			}
 
 			/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
@@ -1269,16 +1245,14 @@ class WP_Debug_Data {
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
 
-				if ( ! is_null( $auto_update_forced ) ) {
-					$enabled = $auto_update_forced;
-				} else {
+				$enabled = $auto_update_forced;
+				if ( is_null( $auto_update_forced ) ) {
 					$enabled = in_array( $parent_theme->stylesheet, $auto_updates, true );
 				}
 
+				$parent_theme_auto_update_string = __( 'Disabled' );
 				if ( $enabled ) {
 					$parent_theme_auto_update_string = __( 'Enabled' );
-				} else {
-					$parent_theme_auto_update_string = __( 'Disabled' );
 				}
 
 				/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
@@ -1357,16 +1331,14 @@ class WP_Debug_Data {
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
 
-				if ( ! is_null( $auto_update_forced ) ) {
-					$enabled = $auto_update_forced;
-				} else {
+				$enabled = $auto_update_forced;
+				if ( is_null( $auto_update_forced ) ) {
 					$enabled = in_array( $theme_slug, $auto_updates, true );
 				}
 
+				$auto_updates_string = __( 'Auto-updates disabled' );
 				if ( $enabled ) {
 					$auto_updates_string = __( 'Auto-updates enabled' );
-				} else {
-					$auto_updates_string = __( 'Auto-updates disabled' );
 				}
 
 				/**
@@ -1516,6 +1488,7 @@ class WP_Debug_Data {
 					$debug_data = $field['value'];
 				}
 
+				$value = $debug_data;
 				// Can be array, one level deep only.
 				if ( is_array( $debug_data ) ) {
 					$value = '';
@@ -1527,8 +1500,6 @@ class WP_Debug_Data {
 					$value = $debug_data ? 'true' : 'false';
 				} elseif ( empty( $debug_data ) && '0' !== $debug_data ) {
 					$value = 'undefined';
-				} else {
-					$value = $debug_data;
 				}
 
 				if ( 'debug' === $type ) {
@@ -1661,6 +1632,10 @@ class WP_Debug_Data {
 			$all_sizes[ $name ] = $results;
 		}
 
+		$all_sizes['database_size'] = array(
+			'size'  => __( 'Not available' ),
+			'debug' => 'not available',
+		);
 		if ( $size_db > 0 ) {
 			$database_size = size_format( $size_db, 2 );
 
@@ -1669,13 +1644,12 @@ class WP_Debug_Data {
 				'size'  => $database_size,
 				'debug' => $database_size . " ({$size_db} bytes)",
 			);
-		} else {
-			$all_sizes['database_size'] = array(
-				'size'  => __( 'Not available' ),
-				'debug' => 'not available',
-			);
 		}
 
+		$all_sizes['total_size'] = array(
+			'size'  => __( 'Total size is not available. Some errors were encountered when determining the size of your installation.' ),
+			'debug' => 'not available',
+		);
 		if ( null !== $size_total && $size_db > 0 ) {
 			$total_size    = $size_total + $size_db;
 			$total_size_mb = size_format( $total_size, 2 );
@@ -1684,11 +1658,6 @@ class WP_Debug_Data {
 				'raw'   => $total_size,
 				'size'  => $total_size_mb,
 				'debug' => $total_size_mb . " ({$total_size} bytes)",
-			);
-		} else {
-			$all_sizes['total_size'] = array(
-				'size'  => __( 'Total size is not available. Some errors were encountered when determining the size of your installation.' ),
-				'debug' => 'not available',
 			);
 		}
 

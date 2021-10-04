@@ -300,9 +300,8 @@ if ( ! empty( $_GET['posted'] ) ) {
 
 if ( ! empty( $_GET['attached'] ) && absint( $_GET['attached'] ) ) {
 	$attached = absint( $_GET['attached'] );
-	if ( 1 === $attached ) {
-		$message = __( 'Media file attached.' );
-	} else {
+	$message  = __( 'Media file attached.' );
+	if ( 1 !== $attached ) {
 		/* translators: %s: Number of media files. */
 		$message = _n( '%s media file attached.', '%s media files attached.', $attached );
 	}
@@ -312,9 +311,8 @@ if ( ! empty( $_GET['attached'] ) && absint( $_GET['attached'] ) ) {
 
 if ( ! empty( $_GET['detach'] ) && absint( $_GET['detach'] ) ) {
 	$detached = absint( $_GET['detach'] );
-	if ( 1 === $detached ) {
-		$message = __( 'Media file detached.' );
-	} else {
+	$message  = __( 'Media file detached.' );
+	if ( 1 !== $detached ) {
 		/* translators: %s: Number of media files. */
 		$message = _n( '%s media file detached.', '%s media files detached.', $detached );
 	}
@@ -324,9 +322,8 @@ if ( ! empty( $_GET['detach'] ) && absint( $_GET['detach'] ) ) {
 
 if ( ! empty( $_GET['deleted'] ) && absint( $_GET['deleted'] ) ) {
 	$deleted = absint( $_GET['deleted'] );
-	if ( 1 === $deleted ) {
-		$message = __( 'Media file permanently deleted.' );
-	} else {
+	$message = __( 'Media file permanently deleted.' );
+	if ( 1 !== $deleted ) {
 		/* translators: %s: Number of media files. */
 		$message = _n( '%s media file permanently deleted.', '%s media files permanently deleted.', $deleted );
 	}
@@ -336,9 +333,8 @@ if ( ! empty( $_GET['deleted'] ) && absint( $_GET['deleted'] ) ) {
 
 if ( ! empty( $_GET['trashed'] ) && absint( $_GET['trashed'] ) ) {
 	$trashed = absint( $_GET['trashed'] );
-	if ( 1 === $trashed ) {
-		$message = __( 'Media file moved to the Trash.' );
-	} else {
+	$message = __( 'Media file moved to the Trash.' );
+	if ( 1 !== $trashed ) {
 		/* translators: %s: Number of media files. */
 		$message = _n( '%s media file moved to the Trash.', '%s media files moved to the Trash.', $trashed );
 	}
@@ -349,9 +345,8 @@ if ( ! empty( $_GET['trashed'] ) && absint( $_GET['trashed'] ) ) {
 
 if ( ! empty( $_GET['untrashed'] ) && absint( $_GET['untrashed'] ) ) {
 	$untrashed = absint( $_GET['untrashed'] );
-	if ( 1 === $untrashed ) {
-		$message = __( 'Media file restored from the Trash.' );
-	} else {
+	$message   = __( 'Media file restored from the Trash.' );
+	if ( 1 !== $untrashed ) {
 		/* translators: %s: Number of media files. */
 		$message = _n( '%s media file restored from the Trash.', '%s media files restored from the Trash.', $untrashed );
 	}

@@ -43,9 +43,8 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			define( 'FS_TIMEOUT', 240 );
 		}
 
-		if ( empty( $opt['port'] ) ) {
-			$this->options['port'] = 21;
-		} else {
+		$this->options['port'] = 21;
+		if ( ! empty( $opt['port'] ) ) {
 			$this->options['port'] = $opt['port'];
 		}
 
@@ -602,10 +601,9 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 			$b['isdir'] = ( '<DIR>' === $lucifer[7] );
 
+			$b['type'] = 'f';
 			if ( $b['isdir'] ) {
 				$b['type'] = 'd';
-			} else {
-				$b['type'] = 'f';
 			}
 
 			$b['size']   = $lucifer[7];
@@ -632,12 +630,11 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				$b['isdir']  = 'd' === $lucifer[0][0];
 				$b['islink'] = 'l' === $lucifer[0][0];
 
+				$b['type'] = 'f';
 				if ( $b['isdir'] ) {
 					$b['type'] = 'd';
 				} elseif ( $b['islink'] ) {
 					$b['type'] = 'l';
-				} else {
-					$b['type'] = 'f';
 				}
 
 				$b['perms']  = $lucifer[0];
@@ -654,8 +651,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 					$b['time'] = mktime( $b['hour'], $b['minute'], 0, $b['month'], $b['day'], $b['year'] );
 					$b['name'] = $lucifer[7];
 				} else {
-					$b['month'] = $lucifer[5];
-					$b['day']   = $lucifer[6];
+					$b['month']  = $lucifer[5];
+					$b['day']    = $lucifer[6];
+					$b['hour']   = 0;
+					$b['minute'] = 0;
 
 					if ( preg_match( '/([0-9]{2}):([0-9]{2})/', $lucifer[7], $l2 ) ) {
 						$b['year']   = gmdate( 'Y' );
@@ -663,8 +662,6 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 						$b['minute'] = $l2[2];
 					} else {
 						$b['year']   = $lucifer[7];
-						$b['hour']   = 0;
-						$b['minute'] = 0;
 					}
 
 					$b['time'] = strtotime( sprintf( '%d %s %d %02d:%02d', $b['day'], $b['month'], $b['year'], $b['hour'], $b['minute'] ) );
@@ -707,11 +704,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * }
 	 */
 	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
+		$limit_file = false;
 		if ( $this->is_file( $path ) ) {
 			$limit_file = basename( $path );
-			$path       = dirname( $path ) . '/';
-		} else {
-			$limit_file = false;
+			$path      = dirname( $path ) . '/';
 		}
 
 		$pwd = ftp_pwd( $this->link );
@@ -756,10 +752,9 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		foreach ( (array) $dirlist as $struc ) {
 			if ( 'd' === $struc['type'] ) {
+				$struc['files'] = array();
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
-				} else {
-					$struc['files'] = array();
 				}
 			}
 

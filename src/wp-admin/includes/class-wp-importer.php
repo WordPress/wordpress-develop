@@ -290,10 +290,9 @@ function get_cli_args( $param, $required = false ) {
 			$parts = explode( '=', $match[1] );
 			$key   = preg_replace( '/[^a-z0-9]+/', '', $parts[0] );
 
+			$out[ $key ] = true;
 			if ( isset( $parts[1] ) ) {
 				$out[ $key ] = $parts[1];
-			} else {
-				$out[ $key ] = true;
 			}
 
 			$last_arg = $key;

@@ -74,16 +74,14 @@ class Walker_Category_Checklist extends Walker {
 		// Restores the more descriptive, specific name for use within this method.
 		$category = $data_object;
 
-		if ( empty( $args['taxonomy'] ) ) {
-			$taxonomy = 'category';
-		} else {
+		$taxonomy = 'category';
+		if ( ! empty( $args['taxonomy'] ) ) {
 			$taxonomy = $args['taxonomy'];
 		}
 
+		$name = 'tax_input[' . $taxonomy . ']';
 		if ( 'category' === $taxonomy ) {
 			$name = 'post_category';
-		} else {
-			$name = 'tax_input[' . $taxonomy . ']';
 		}
 
 		$args['popular_cats'] = ! empty( $args['popular_cats'] ) ? array_map( 'intval', $args['popular_cats'] ) : array();

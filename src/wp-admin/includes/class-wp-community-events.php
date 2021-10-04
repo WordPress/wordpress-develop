@@ -127,49 +127,49 @@ class WP_Community_Events {
 
 		if ( is_wp_error( $response_error ) ) {
 			return $response_error;
-		} else {
-			$expiration = false;
-
-			if ( isset( $response_body['ttl'] ) ) {
-				$expiration = $response_body['ttl'];
-				unset( $response_body['ttl'] );
-			}
-
-			/*
-			 * The IP in the response is usually the same as the one that was sent
-			 * in the request, but in some cases it is different. In those cases,
-			 * it's important to reset it back to the IP from the request.
-			 *
-			 * For example, if the IP sent in the request is private (e.g., 192.168.1.100),
-			 * then the API will ignore that and use the corresponding public IP instead,
-			 * and the public IP will get returned. If the public IP were saved, though,
-			 * then get_cached_events() would always return `false`, because the transient
-			 * would be generated based on the public IP when saving the cache, but generated
-			 * based on the private IP when retrieving the cache.
-			 */
-			if ( ! empty( $response_body['location']['ip'] ) ) {
-				$response_body['location']['ip'] = $request_args['body']['ip'];
-			}
-
-			/*
-			 * The API doesn't return a description for latitude/longitude requests,
-			 * but the description is already saved in the user location, so that
-			 * one can be used instead.
-			 */
-			if ( $this->coordinates_match( $request_args['body'], $response_body['location'] ) && empty( $response_body['location']['description'] ) ) {
-				$response_body['location']['description'] = $this->user_location['description'];
-			}
-
-			/*
-			 * Store the raw response, because events will expire before the cache does.
-			 * The response will need to be processed every page load.
-			 */
-			$this->cache_events( $response_body, $expiration );
-
-			$response_body['events'] = $this->trim_events( $response_body['events'] );
-
-			return $response_body;
 		}
+
+		$expiration = false;
+
+		if ( isset( $response_body['ttl'] ) ) {
+			$expiration = $response_body['ttl'];
+			unset( $response_body['ttl'] );
+		}
+
+		/*
+		* The IP in the response is usually the same as the one that was sent
+		* in the request, but in some cases it is different. In those cases,
+		* it's important to reset it back to the IP from the request.
+		*
+		* For example, if the IP sent in the request is private (e.g., 192.168.1.100),
+		* then the API will ignore that and use the corresponding public IP instead,
+		* and the public IP will get returned. If the public IP were saved, though,
+		* then get_cached_events() would always return `false`, because the transient
+		* would be generated based on the public IP when saving the cache, but generated
+		* based on the private IP when retrieving the cache.
+		*/
+		if ( ! empty( $response_body['location']['ip'] ) ) {
+			$response_body['location']['ip'] = $request_args['body']['ip'];
+		}
+
+		/*
+		* The API doesn't return a description for latitude/longitude requests,
+		* but the description is already saved in the user location, so that
+		* one can be used instead.
+		*/
+		if ( $this->coordinates_match( $request_args['body'], $response_body['location'] ) && empty( $response_body['location']['description'] ) ) {
+			$response_body['location']['description'] = $this->user_location['description'];
+		}
+
+		/*
+		* Store the raw response, because events will expire before the cache does.
+		* The response will need to be processed every page load.
+		*/
+		$this->cache_events( $response_body, $expiration );
+
+		$response_body['events'] = $this->trim_events( $response_body['events'] );
+
+		return $response_body;
 	}
 
 	/**
