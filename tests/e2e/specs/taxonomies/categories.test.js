@@ -233,7 +233,6 @@ describe('Manage categories', () => {
 
     it('correctly sorts categories per post count', async() => {
         const categoriesNames = ['Category 0', 'Category 1'];
-        const postTitle = 'Post 1';
 
         for (let i = 0, n = categoriesNames.length; i < n; i++) {
             await createNewCategory(categoriesNames[i]);
