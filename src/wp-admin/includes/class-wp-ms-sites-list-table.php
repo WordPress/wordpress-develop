@@ -137,10 +137,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		} elseif ( 'lastupdated' === $order_by ) {
 			$order_by = 'last_updated';
 		} elseif ( 'blogname' === $order_by ) {
+			$order_by = 'path';
 			if ( is_subdomain_install() ) {
 				$order_by = 'domain';
-			} else {
-				$order_by = 'path';
 			}
 		} elseif ( 'blog_id' === $order_by ) {
 			$order_by = 'id';
@@ -154,10 +153,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			$args['order'] = ( isset( $_REQUEST['order'] ) && 'DESC' === strtoupper( $_REQUEST['order'] ) ) ? 'DESC' : 'ASC';
 		}
 
+		$args['no_found_rows'] = false;
 		if ( wp_is_large_network() ) {
 			$args['no_found_rows'] = true;
-		} else {
-			$args['no_found_rows'] = false;
 		}
 
 		// Take into account the role the user has selected.
@@ -475,9 +473,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	public function column_lastupdated( $blog ) {
 		global $mode;
 
-		if ( 'list' === $mode ) {
-			$date = __( 'Y/m/d' );
-		} else {
+		$date = __( 'Y/m/d' );
+		if ( 'list' !== $mode ) {
 			$date = __( 'Y/m/d g:i:s a' );
 		}
 
@@ -496,17 +493,16 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	public function column_registered( $blog ) {
 		global $mode;
 
-		if ( 'list' === $mode ) {
-			$date = __( 'Y/m/d' );
-		} else {
+		$date = __( 'Y/m/d' );
+		if ( 'list' !== $mode ) {
 			$date = __( 'Y/m/d g:i:s a' );
 		}
 
-		if ( '0000-00-00 00:00:00' === $blog['registered'] ) {
-			echo '&#x2014;';
-		} else {
+		if ( '0000-00-00 00:00:00' !== $blog['registered'] ) {
 			echo mysql2date( $date, $blog['registered'] );
+			return;
 		}
+		echo '&#x2014;';
 	}
 
 	/**

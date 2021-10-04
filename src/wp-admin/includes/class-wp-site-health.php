@@ -1005,11 +1005,10 @@ class WP_Site_Health {
 				 * If that other function has a failure, mark this module as required for usual operations.
 				 * If that other function hasn't failed, skip this test as it's only a fallback.
 				 */
-				if ( isset( $failures[ $module['fallback_for'] ] ) ) {
-					$module['required'] = true;
-				} else {
+				if ( ! isset( $failures[ $module['fallback_for'] ] ) ) {
 					continue;
 				}
+				$module['required'] = true;
 			}
 
 			if ( ! $this->test_php_extension_availability( $extension, $function, $constant, $class_name ) && ( ! isset( $module['php_bundled_version'] ) || version_compare( PHP_VERSION, $module['php_bundled_version'], '<' ) ) ) {

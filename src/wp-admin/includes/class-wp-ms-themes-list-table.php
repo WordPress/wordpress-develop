@@ -561,10 +561,9 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 					$url
 				);
 
-				if ( $this->is_site_themes ) {
-					/* translators: %s: Theme name. */
-					$aria_label = sprintf( __( 'Enable %s' ), $theme->display( 'Name' ) );
-				} else {
+				/* translators: %s: Theme name. */
+				$aria_label = sprintf( __( 'Enable %s' ), $theme->display( 'Name' ) );
+				if ( ! $this->is_site_themes ) {
 					/* translators: %s: Theme name. */
 					$aria_label = sprintf( __( 'Network Enable %s' ), $theme->display( 'Name' ) );
 				}

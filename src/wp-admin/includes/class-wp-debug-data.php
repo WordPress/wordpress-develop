@@ -998,26 +998,26 @@ class WP_Debug_Data {
 			}
 
 			if ( $auto_updates_enabled ) {
+				$item = array(
+					'id'            => $plugin_path,
+					'slug'          => '',
+					'plugin'        => $plugin_path,
+					'new_version'   => '',
+					'url'           => '',
+					'package'       => '',
+					'icons'         => array(),
+					'banners'       => array(),
+					'banners_rtl'   => array(),
+					'tested'        => '',
+					'requires_php'  => '',
+					'compatibility' => new stdClass(),
+				);
+				$item = wp_parse_args( $plugin, $item );
+
 				if ( isset( $transient->response[ $plugin_path ] ) ) {
 					$item = $transient->response[ $plugin_path ];
 				} elseif ( isset( $transient->no_update[ $plugin_path ] ) ) {
 					$item = $transient->no_update[ $plugin_path ];
-				} else {
-					$item = array(
-						'id'            => $plugin_path,
-						'slug'          => '',
-						'plugin'        => $plugin_path,
-						'new_version'   => '',
-						'url'           => '',
-						'package'       => '',
-						'icons'         => array(),
-						'banners'       => array(),
-						'banners_rtl'   => array(),
-						'tested'        => '',
-						'requires_php'  => '',
-						'compatibility' => new stdClass(),
-					);
-					$item = wp_parse_args( $plugin, $item );
 				}
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, (object) $item );
@@ -1144,19 +1144,19 @@ class WP_Debug_Data {
 		);
 
 		if ( $auto_updates_enabled ) {
+			$item = array(
+				'theme'        => $active_theme->stylesheet,
+				'new_version'  => $active_theme->version,
+				'url'          => '',
+				'package'      => '',
+				'requires'     => '',
+				'requires_php' => '',
+			);
+
 			if ( isset( $transient->response[ $active_theme->stylesheet ] ) ) {
 				$item = $transient->response[ $active_theme->stylesheet ];
 			} elseif ( isset( $transient->no_update[ $active_theme->stylesheet ] ) ) {
 				$item = $transient->no_update[ $active_theme->stylesheet ];
-			} else {
-				$item = array(
-					'theme'        => $active_theme->stylesheet,
-					'new_version'  => $active_theme->version,
-					'url'          => '',
-					'package'      => '',
-					'requires'     => '',
-					'requires_php' => '',
-				);
 			}
 
 			$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
@@ -1228,19 +1228,19 @@ class WP_Debug_Data {
 			);
 
 			if ( $auto_updates_enabled ) {
+				$item = array(
+					'theme'        => $parent_theme->stylesheet,
+					'new_version'  => $parent_theme->version,
+					'url'          => '',
+					'package'      => '',
+					'requires'     => '',
+					'requires_php' => '',
+				);
+
 				if ( isset( $transient->response[ $parent_theme->stylesheet ] ) ) {
 					$item = $transient->response[ $parent_theme->stylesheet ];
 				} elseif ( isset( $transient->no_update[ $parent_theme->stylesheet ] ) ) {
 					$item = $transient->no_update[ $parent_theme->stylesheet ];
-				} else {
-					$item = array(
-						'theme'        => $parent_theme->stylesheet,
-						'new_version'  => $parent_theme->version,
-						'url'          => '',
-						'package'      => '',
-						'requires'     => '',
-						'requires_php' => '',
-					);
 				}
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
@@ -1293,18 +1293,14 @@ class WP_Debug_Data {
 				/* translators: 1: Theme version number. 2: Theme author name. */
 				$theme_version_string       = sprintf( __( 'Version %1$s by %2$s' ), $theme_version, $theme_author );
 				$theme_version_string_debug = sprintf( 'version: %s, author: %s', $theme_version, $theme_author );
-			} else {
-				if ( ! empty( $theme_author ) ) {
-					/* translators: %s: Theme author name. */
-					$theme_version_string       = sprintf( __( 'By %s' ), $theme_author );
-					$theme_version_string_debug = sprintf( 'author: %s, version: (undefined)', $theme_author );
-				}
-
-				if ( ! empty( $theme_version ) ) {
-					/* translators: %s: Theme version number. */
-					$theme_version_string       = sprintf( __( 'Version %s' ), $theme_version );
-					$theme_version_string_debug = sprintf( 'author: (undefined), version: %s', $theme_version );
-				}
+			} elseif ( ! empty( $theme_author ) ) {
+				/* translators: %s: Theme author name. */
+				$theme_version_string       = sprintf( __( 'By %s' ), $theme_author );
+				$theme_version_string_debug = sprintf( 'author: %s, version: (undefined)', $theme_author );
+			} elseif ( ! empty( $theme_version ) ) {
+				/* translators: %s: Theme version number. */
+				$theme_version_string       = sprintf( __( 'Version %s' ), $theme_version );
+				$theme_version_string_debug = sprintf( 'author: (undefined), version: %s', $theme_version );
 			}
 
 			if ( array_key_exists( $theme_slug, $theme_updates ) ) {
@@ -1314,19 +1310,19 @@ class WP_Debug_Data {
 			}
 
 			if ( $auto_updates_enabled ) {
+				$item = array(
+					'theme'        => $theme_slug,
+					'new_version'  => $theme->version,
+					'url'          => '',
+					'package'      => '',
+					'requires'     => '',
+					'requires_php' => '',
+				);
+
 				if ( isset( $transient->response[ $theme_slug ] ) ) {
 					$item = $transient->response[ $theme_slug ];
 				} elseif ( isset( $transient->no_update[ $theme_slug ] ) ) {
 					$item = $transient->no_update[ $theme_slug ];
-				} else {
-					$item = array(
-						'theme'        => $theme_slug,
-						'new_version'  => $theme->version,
-						'url'          => '',
-						'package'      => '',
-						'requires'     => '',
-						'requires_php' => '',
-					);
 				}
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
@@ -1484,7 +1480,7 @@ class WP_Debug_Data {
 
 				if ( 'debug' === $type && isset( $field['debug'] ) ) {
 					$debug_data = $field['debug'];
-				} else {
+				} elseif ( isset( $field['value'] ) ) {
 					$debug_data = $field['value'];
 				}
 
@@ -1504,7 +1500,7 @@ class WP_Debug_Data {
 
 				if ( 'debug' === $type ) {
 					$label = $field_name;
-				} else {
+				} elseif ( isset( $field['label'] ) ) {
 					$label = $field['label'];
 				}
 

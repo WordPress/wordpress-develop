@@ -1980,10 +1980,8 @@ function wp_ajax_inline_save() {
 		if ( ! current_user_can( 'edit_page', $post_ID ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this page.' ) );
 		}
-	} else {
-		if ( ! current_user_can( 'edit_post', $post_ID ) ) {
-			wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
-		}
+	} elseif ( ! current_user_can( 'edit_post', $post_ID ) ) {
+		wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 	}
 
 	$last = wp_check_post_lock( $post_ID );
@@ -2780,22 +2778,20 @@ function wp_ajax_wp_fullscreen_save_post() {
 		wp_send_json_error();
 	}
 
+	$last_date = date_i18n( __( 'F j, Y' ) );
+	$last_time = date_i18n( __( 'g:i a' ) );
 	if ( $post ) {
 		$last_date = mysql2date( __( 'F j, Y' ), $post->post_modified );
 		$last_time = mysql2date( __( 'g:i a' ), $post->post_modified );
-	} else {
-		$last_date = date_i18n( __( 'F j, Y' ) );
-		$last_time = date_i18n( __( 'g:i a' ) );
 	}
 
 	$last_id = get_post_meta( $post_id, '_edit_last', true );
+	/* translators: 1: Date of last edit, 2: Time of last edit. */
+	$last_edited = sprintf( __( 'Last edited on %1$s at %2$s' ), $last_date, $last_time );
 	if ( $last_id ) {
 		$last_user = get_userdata( $last_id );
 		/* translators: 1: User's display name, 2: Date of last edit, 3: Time of last edit. */
 		$last_edited = sprintf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), $last_date, $last_time );
-	} else {
-		/* translators: 1: Date of last edit, 2: Time of last edit. */
-		$last_edited = sprintf( __( 'Last edited on %1$s at %2$s' ), $last_date, $last_time );
 	}
 
 	wp_send_json_success( array( 'last_edited' => $last_edited ) );

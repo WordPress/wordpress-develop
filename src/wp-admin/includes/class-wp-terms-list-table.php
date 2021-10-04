@@ -254,9 +254,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 		}
 
 		if ( is_taxonomy_hierarchical( $taxonomy ) && ! isset( $args['orderby'] ) ) {
-			if ( ! empty( $args['search'] ) ) {// Ignore children on searches.
-				$children = array();
-			} else {
+			$children = array(); // Ignore children on searches.
+			if ( empty( $args['search'] ) ) {
 				$children = _get_term_hierarchy( $taxonomy );
 			}
 
@@ -351,11 +350,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		$this->level = $level;
 
+		$level = 'level-0';
 		if ( $tag->parent ) {
 			$count = count( get_ancestors( $tag->term_id, $taxonomy, 'taxonomy' ) );
 			$level = 'level-' . $count;
-		} else {
-			$level = 'level-0';
 		}
 
 		echo '<tr id="tag-' . $tag->term_id . '" class="' . $level . '">';
@@ -565,9 +563,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 	public function column_description( $tag ) {
 		if ( $tag->description ) {
 			return $tag->description;
-		} else {
-			return '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . __( 'No description' ) . '</span>';
 		}
+		return '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . __( 'No description' ) . '</span>';
 	}
 
 	/**

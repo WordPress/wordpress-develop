@@ -1190,11 +1190,10 @@ endif;
 			$header_image_data = $uploaded[ $choice ];
 		} else {
 			$this->process_default_headers();
-			if ( isset( $this->default_headers[ $choice ] ) ) {
-				$header_image_data = $this->default_headers[ $choice ];
-			} else {
+			if ( ! isset( $this->default_headers[ $choice ] ) ) {
 				return;
 			}
+			$header_image_data = $this->default_headers[ $choice ];
 		}
 
 		set_theme_mod( 'header_image', esc_url_raw( $header_image_data['url'] ) );

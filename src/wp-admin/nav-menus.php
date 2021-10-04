@@ -194,6 +194,7 @@ switch ( $action ) {
 						if ( ! is_wp_error( $parent_object ) ) {
 							$parent_data = (array) $parent_object;
 
+							$menu_item_data['menu_item_parent'] = 0;
 							/*
 							 * If there is something before the parent and parent a child of it,
 							 * make menu item a child also of it.
@@ -217,10 +218,7 @@ switch ( $action ) {
 								if ( in_array( $_possible_parent_id, array_keys( $dbids_to_orders ), true ) ) {
 									$menu_item_data['menu_item_parent'] = $_possible_parent_id;
 								}
-
 								// Else there isn't something before the parent.
-							} else {
-								$menu_item_data['menu_item_parent'] = 0;
 							}
 
 							// Set former parent's [menu_order] to that of menu-item's.

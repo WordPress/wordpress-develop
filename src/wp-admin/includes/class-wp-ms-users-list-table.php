@@ -31,11 +31,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		global $mode, $usersearch, $role;
 
+		$mode = get_user_setting( 'network_users_list_mode', 'list' );
 		if ( ! empty( $_REQUEST['mode'] ) ) {
 			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
 			set_user_setting( 'network_users_list_mode', $mode );
-		} else {
-			$mode = get_user_setting( 'network_users_list_mode', 'list' );
 		}
 
 		$usersearch = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
@@ -334,9 +333,8 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 */
 	public function column_registered( $user ) {
 		global $mode;
-		if ( 'list' === $mode ) {
-			$date = __( 'Y/m/d' );
-		} else {
+		$date = __( 'Y/m/d' );
+		if ( 'list' !== $mode ) {
 			$date = __( 'Y/m/d g:i:s a' );
 		}
 		echo mysql2date( $date, $user->user_registered );

@@ -336,12 +336,11 @@ class WP_Media_List_Table extends WP_List_Table {
 		$taxonomies = array_filter( $taxonomies, 'taxonomy_exists' );
 
 		foreach ( $taxonomies as $taxonomy ) {
+			$column_key = 'taxonomy-' . $taxonomy;
 			if ( 'category' === $taxonomy ) {
 				$column_key = 'categories';
 			} elseif ( 'post_tag' === $taxonomy ) {
 				$column_key = 'tags';
-			} else {
-				$column_key = 'taxonomy-' . $taxonomy;
 			}
 
 			$posts_columns[ $column_key ] = get_taxonomy( $taxonomy )->labels->name;
@@ -500,11 +499,10 @@ class WP_Media_List_Table extends WP_List_Table {
 			$time      = get_post_timestamp( $post );
 			$time_diff = time() - $time;
 
+			$h_time = get_the_time( __( 'Y/m/d' ), $post );
 			if ( $time && $time_diff > 0 && $time_diff < DAY_IN_SECONDS ) {
 				/* translators: %s: Human-readable time difference. */
 				$h_time = sprintf( __( '%s ago' ), human_time_diff( $time ) );
-			} else {
-				$h_time = get_the_time( __( 'Y/m/d' ), $post );
 			}
 		}
 
@@ -521,10 +519,9 @@ class WP_Media_List_Table extends WP_List_Table {
 	public function column_parent( $post ) {
 		$user_can_edit = current_user_can( 'edit_post', $post->ID );
 
+		$parent = false;
 		if ( $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
-		} else {
-			$parent = false;
 		}
 
 		if ( $parent ) {
@@ -607,14 +604,13 @@ class WP_Media_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
+		$taxonomy = false;
 		if ( 'categories' === $column_name ) {
 			$taxonomy = 'category';
 		} elseif ( 'tags' === $column_name ) {
 			$taxonomy = 'post_tag';
 		} elseif ( 0 === strpos( $column_name, 'taxonomy-' ) ) {
 			$taxonomy = substr( $column_name, 9 );
-		} else {
-			$taxonomy = false;
 		}
 
 		if ( $taxonomy ) {
@@ -755,58 +751,52 @@ class WP_Media_List_Table extends WP_List_Table {
 					__( 'Attach' )
 				);
 			}
-		} else {
-			if ( current_user_can( 'edit_post', $post->ID ) && ! $this->is_trash ) {
-				$actions['edit'] = sprintf(
-					'<a href="%s" aria-label="%s">%s</a>',
-					get_edit_post_link( $post->ID ),
+		} elseif ( current_user_can( 'edit_post', $post->ID ) && ! $this->is_trash ) {
+			$actions['edit'] = sprintf(
+				'<a href="%s" aria-label="%s">%s</a>',
+				get_edit_post_link( $post->ID ),
+				/* translators: %s: Attachment title. */
+				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
+				__( 'Edit' )
+			);
+		} elseif ( current_user_can( 'delete_post', $post->ID ) ) {
+			if ( $this->is_trash ) {
+				$actions['untrash'] = sprintf(
+					'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
+					wp_nonce_url( "post.php?action=untrash&amp;post=$post->ID", 'untrash-post_' . $post->ID ),
 					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'Edit' )
+					esc_attr( sprintf( __( 'Restore &#8220;%s&#8221; from the Trash' ), $att_title ) ),
+					__( 'Restore' )
+				);
+			} elseif ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
+				$actions['trash'] = sprintf(
+					'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
+					wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
+					_x( 'Trash', 'verb' )
 				);
 			}
 
-			if ( current_user_can( 'delete_post', $post->ID ) ) {
-				if ( $this->is_trash ) {
-					$actions['untrash'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=untrash&amp;post=$post->ID", 'untrash-post_' . $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Restore &#8220;%s&#8221; from the Trash' ), $att_title ) ),
-						__( 'Restore' )
-					);
-				} elseif ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
-					$actions['trash'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
-						_x( 'Trash', 'verb' )
-					);
-				}
-
-				if ( $this->is_trash || ! EMPTY_TRASH_DAYS || ! MEDIA_TRASH ) {
-					$delete_ays        = ( ! $this->is_trash && ! MEDIA_TRASH ) ? " onclick='return showNotice.warn();'" : '';
-					$actions['delete'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
-						$delete_ays,
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
-						__( 'Delete Permanently' )
-					);
-				}
-			}
-
-			if ( ! $this->is_trash ) {
-				$actions['view'] = sprintf(
-					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-					get_permalink( $post->ID ),
+			if ( $this->is_trash || ! EMPTY_TRASH_DAYS || ! MEDIA_TRASH ) {
+				$delete_ays        = ( ! $this->is_trash && ! MEDIA_TRASH ) ? " onclick='return showNotice.warn();'" : '';
+				$actions['delete'] = sprintf(
+					'<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
+					wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
+					$delete_ays,
 					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'View' )
+					esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
+					__( 'Delete Permanently' )
 				);
 			}
+		} elseif ( ! $this->is_trash ) {
+			$actions['view'] = sprintf(
+				'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
+				get_permalink( $post->ID ),
+				/* translators: %s: Attachment title. */
+				esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
+				__( 'View' )
+			);
 		}
 
 		/**

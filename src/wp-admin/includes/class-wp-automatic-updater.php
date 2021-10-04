@@ -684,8 +684,8 @@ class WP_Automatic_Updater {
 
 		$newer_version_available = false;
 		if ( 'upgrade' === $next_user_core_update->response
- 			&& version_compare( $next_user_core_update->version, $core_update->version, '>' )
- 		) {
+			&& version_compare( $next_user_core_update->version, $core_update->version, '>' )
+		) {
 			$newer_version_available = true;
 		}
 

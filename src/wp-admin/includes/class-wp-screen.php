@@ -263,12 +263,11 @@ final class WP_Screen {
 				$in_admin = 'site';
 			}
 		} else {
+			$in_admin = 'site';
 			if ( defined( 'WP_NETWORK_ADMIN' ) && WP_NETWORK_ADMIN ) {
 				$in_admin = 'network';
 			} elseif ( defined( 'WP_USER_ADMIN' ) && WP_USER_ADMIN ) {
 				$in_admin = 'user';
-			} else {
-				$in_admin = 'site';
 			}
 		}
 
@@ -291,14 +290,13 @@ final class WP_Screen {
 
 			switch ( $base ) {
 				case 'post':
+					$post_id = 0;
 					if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post'] !== (int) $_POST['post_ID'] ) {
 						wp_die( __( 'A post ID mismatch has been detected.' ), __( 'Sorry, you are not allowed to edit this item.' ), 400 );
 					} elseif ( isset( $_GET['post'] ) ) {
 						$post_id = (int) $_GET['post'];
 					} elseif ( isset( $_POST['post_ID'] ) ) {
 						$post_id = (int) $_POST['post_ID'];
-					} else {
-						$post_id = 0;
 					}
 
 					if ( $post_id ) {

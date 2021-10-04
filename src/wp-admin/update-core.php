@@ -72,9 +72,8 @@ function list_core_update( $update ) {
 		$submit = sprintf( __( 'Update to latest %s nightly' ), $update_major[0] );
 	}
 
-	if ( 'development' === $update->response ) {
-		$message = __( 'You can update to the latest nightly build manually:' );
-	} else {
+	$message = __( 'You can update to the latest nightly build manually:' );
+	if ( 'development' !== $update->response ) {
 		if ( $current ) {
 			/* translators: %s: WordPress version. */
 			$submit      = sprintf( __( 'Re-install version %s' ), $version_string );
@@ -449,11 +448,10 @@ function list_plugin_updates() {
 	}
 	$form_action = 'update-core.php?action=do-plugin-upgrade';
 
-	$core_updates = get_core_updates();
+	$core_updates        = get_core_updates();
+	$core_update_version = $core_updates[0]->current;
 	if ( ! isset( $core_updates[0]->response ) || 'latest' === $core_updates[0]->response || 'development' === $core_updates[0]->response || version_compare( $core_updates[0]->current, $cur_wp_version, '=' ) ) {
 		$core_update_version = false;
-	} else {
-		$core_update_version = $core_updates[0]->current;
 	}
 
 	$plugins_count = count( $plugins );
@@ -1240,15 +1238,14 @@ if ( 'upgrade-core' === $action ) {
 
 	wp_redirect( $redirect_url );
 	exit;
-} else {
-	/**
-	 * Fires for each custom update action on the WordPress Updates screen.
-	 *
-	 * The dynamic portion of the hook name, `$action`, refers to the
-	 * passed update action. The hook fires in lieu of all available
-	 * default update actions.
-	 *
-	 * @since 3.2.0
-	 */
-	do_action( "update-core-custom_{$action}" );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
+/**
+ * Fires for each custom update action on the WordPress Updates screen.
+ *
+ * The dynamic portion of the hook name, `$action`, refers to the
+ * passed update action. The hook fires in lieu of all available
+ * default update actions.
+ *
+ * @since 3.2.0
+ */
+do_action( "update-core-custom_{$action}" );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores

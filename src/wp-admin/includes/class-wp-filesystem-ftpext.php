@@ -656,12 +656,11 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 					$b['hour']   = 0;
 					$b['minute'] = 0;
 
+					$b['year'] = $lucifer[7];
 					if ( preg_match( '/([0-9]{2}):([0-9]{2})/', $lucifer[7], $l2 ) ) {
 						$b['year']   = gmdate( 'Y' );
 						$b['hour']   = $l2[1];
 						$b['minute'] = $l2[2];
-					} else {
-						$b['year'] = $lucifer[7];
 					}
 
 					$b['time'] = strtotime( sprintf( '%d %s %d %02d:%02d', $b['day'], $b['month'], $b['year'], $b['hour'], $b['minute'] ) );

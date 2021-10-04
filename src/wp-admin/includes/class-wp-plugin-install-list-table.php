@@ -449,9 +449,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 		if ( 'DESC' === $this->order ) {
 			return ( $a < $b ) ? 1 : -1;
-		} else {
-			return ( $a < $b ) ? -1 : 1;
 		}
+		return ( $a < $b ) ? -1 : 1;
 	}
 
 	public function display_rows() {
@@ -489,13 +488,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 			// Display the group heading if there is one.
 			if ( isset( $plugin['group'] ) && $plugin['group'] !== $group ) {
+				$group_name = $plugin['group'];
 				if ( isset( $this->groups[ $plugin['group'] ] ) ) {
 					$group_name = $this->groups[ $plugin['group'] ];
 					if ( isset( $plugins_group_titles[ $group_name ] ) ) {
 						$group_name = $plugins_group_titles[ $group_name ];
 					}
-				} else {
-					$group_name = $plugin['group'];
 				}
 
 				// Starting a new group, close off the divs of the last one.

@@ -46,9 +46,8 @@ function edit_link( $link_id = 0 ) {
 	if ( ! empty( $link_id ) ) {
 		$_POST['link_id'] = $link_id;
 		return wp_update_link( $_POST );
-	} else {
-		return wp_insert_link( $_POST );
 	}
+	return wp_insert_link( $_POST );
 }
 
 /**

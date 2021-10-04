@@ -739,11 +739,10 @@ class Theme_Upgrader extends WP_Upgrader {
 	 */
 	public function theme_info( $theme = null ) {
 		if ( empty( $theme ) ) {
-			if ( ! empty( $this->result['destination_name'] ) ) {
-				$theme = $this->result['destination_name'];
-			} else {
+			if ( empty( $this->result['destination_name'] ) ) {
 				return false;
 			}
+			$theme = $this->result['destination_name'];
 		}
 
 		$theme = wp_get_theme( $theme );

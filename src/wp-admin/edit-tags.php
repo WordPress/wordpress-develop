@@ -87,10 +87,9 @@ switch ( $wp_list_table->current_action() ) {
 			);
 		}
 
-		$ret = wp_insert_term( $_POST['tag-name'], $taxonomy, $_POST );
-		if ( $ret && ! is_wp_error( $ret ) ) {
-			$location = add_query_arg( 'message', 1, $referer );
-		} else {
+		$ret      = wp_insert_term( $_POST['tag-name'], $taxonomy, $_POST );
+		$location = add_query_arg( 'message', 1, $referer );
+		if ( ! $ret || is_wp_error( $ret ) ) {
 			$location = add_query_arg(
 				array(
 					'error'   => true,
@@ -181,9 +180,8 @@ switch ( $wp_list_table->current_action() ) {
 
 		$ret = wp_update_term( $tag_ID, $taxonomy, $_POST );
 
-		if ( $ret && ! is_wp_error( $ret ) ) {
-			$location = add_query_arg( 'message', 3, $referer );
-		} else {
+		$location = add_query_arg( 'message', 3, $referer );
+		if ( ! $ret || ιs_wp_error( $ret ) ) {
 			$location = add_query_arg(
 				array(
 					'error'   => true,

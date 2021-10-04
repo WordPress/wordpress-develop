@@ -68,9 +68,8 @@ class WP_Users_List_Table extends WP_List_Table {
 	public function ajax_user_can() {
 		if ( $this->is_site_users ) {
 			return current_user_can( 'manage_sites' );
-		} else {
-			return current_user_can( 'list_users' );
 		}
+		return current_user_can( 'list_users' );
 	}
 
 	/**
@@ -268,10 +267,8 @@ class WP_Users_List_Table extends WP_List_Table {
 			if ( current_user_can( 'remove_users' ) ) {
 				$actions['remove'] = __( 'Remove' );
 			}
-		} else {
-			if ( current_user_can( 'delete_users' ) ) {
-				$actions['delete'] = __( 'Delete' );
-			}
+		} elseif ( current_user_can( 'delete_users' ) ) {
+			$actions['delete'] = __( 'Delete' );
 		}
 
 		// Add a password reset link to the bulk actions dropdown.
@@ -425,10 +422,9 @@ class WP_Users_List_Table extends WP_List_Table {
 		$user_object->filter = 'display';
 		$email               = $user_object->user_email;
 
+		$url = 'users.php?';
 		if ( $this->is_site_users ) {
 			$url = "site-users.php?id={$this->site_id}&amp;";
-		} else {
-			$url = 'users.php?';
 		}
 
 		$user_roles = $this->get_role_list( $user_object );
@@ -444,16 +440,16 @@ class WP_Users_List_Table extends WP_List_Table {
 			}
 		}
 
+		$edit = "<strong>{$user_object->user_login}{$super_admin}</strong>";
 		// Check if the user for this row is editable.
 		if ( current_user_can( 'list_users' ) ) {
 			// Set up the user editing link.
 			$edit_link = esc_url( add_query_arg( 'wp_http_referer', urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ), get_edit_user_link( $user_object->ID ) ) );
 
+			$edit = "<strong>{$user_object->user_login}{$super_admin}</strong><br />";
 			if ( current_user_can( 'edit_user', $user_object->ID ) ) {
 				$edit            = "<strong><a href=\"{$edit_link}\">{$user_object->user_login}</a>{$super_admin}</strong><br />";
 				$actions['edit'] = '<a href="' . $edit_link . '">' . __( 'Edit' ) . '</a>';
-			} else {
-				$edit = "<strong>{$user_object->user_login}{$super_admin}</strong><br />";
 			}
 
 			if ( ! is_multisite() && get_current_user_id() != $user_object->ID && current_user_can( 'delete_user', $user_object->ID ) ) {
@@ -504,9 +500,6 @@ class WP_Users_List_Table extends WP_List_Table {
 				sprintf( __( 'Select %s' ), $user_object->user_login ),
 				$role_classes
 			);
-
-		} else {
-			$edit = "<strong>{$user_object->user_login}{$super_admin}</strong>";
 		}
 
 		$avatar = get_avatar( $user_object->ID, 32 );
