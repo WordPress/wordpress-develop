@@ -220,7 +220,7 @@ class WP_Automatic_Updater {
 		if ( 'core' === $type ) {
 			global $wpdb;
 
-			$php_compat = version_compare( phpversion(), $item->php_version, '>=' );
+			$php_compat   = version_compare( phpversion(), $item->php_version, '>=' );
 			$mysql_compat = true;
 			if ( ! file_exists( WP_CONTENT_DIR . '/db.php' ) || ! empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = version_compare( $wpdb->db_version(), $item->mysql_version, '>=' );

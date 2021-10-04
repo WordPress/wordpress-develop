@@ -1027,7 +1027,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$post_link = esc_html( get_the_title( $post->ID ) );
 		if ( current_user_can( 'edit_post', $post->ID ) ) {
-			$post_link  = "<a href='" . get_edit_post_link( $post->ID ) . "' class='comments-edit-item-link'>" . $post_link . '</a>';
+			$post_link = "<a href='" . get_edit_post_link( $post->ID ) . "' class='comments-edit-item-link'>" . $post_link . '</a>';
 		}
 
 		echo '<div class="response-links">';

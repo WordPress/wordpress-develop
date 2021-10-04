@@ -500,7 +500,6 @@ function list_plugin_updates() {
 			}
 		}
 
-
 		/* translators: %s: WordPress version. */
 		$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $cur_wp_version );
 		// Get plugin compat for running version of WordPress.

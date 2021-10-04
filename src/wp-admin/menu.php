@@ -138,7 +138,7 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 		$menu_icon = 'dashicons-admin-' . $ptype;
 	}
 
-	$menu_class    = 'menu-top menu-icon-' . $ptype_for_id;
+	$menu_class     = 'menu-top menu-icon-' . $ptype_for_id;
 	$ptype_file     = "edit.php?post_type=$ptype";
 	$post_new_file  = "post-new.php?post_type=$ptype";
 	$edit_tags_file = "edit-tags.php?taxonomy=%s&amp;post_type=$ptype";

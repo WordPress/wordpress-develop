@@ -661,7 +661,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 						$b['hour']   = $l2[1];
 						$b['minute'] = $l2[2];
 					} else {
-						$b['year']   = $lucifer[7];
+						$b['year'] = $lucifer[7];
 					}
 
 					$b['time'] = strtotime( sprintf( '%d %s %d %02d:%02d', $b['day'], $b['month'], $b['year'], $b['hour'], $b['minute'] ) );
@@ -707,7 +707,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		$limit_file = false;
 		if ( $this->is_file( $path ) ) {
 			$limit_file = basename( $path );
-			$path      = dirname( $path ) . '/';
+			$path       = dirname( $path ) . '/';
 		}
 
 		$pwd = ftp_pwd( $this->link );

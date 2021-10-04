@@ -447,7 +447,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 				fclose( $handle );
 			} else {
 				$wp_config_perms = fileperms( $path_to_wp_config );
-				$error_message  = sprintf(
+				$error_message   = sprintf(
 					/* translators: %s: wp-config.php */
 					__( 'Unable to write to %s file.' ),
 					'<code>wp-config.php</code>'
