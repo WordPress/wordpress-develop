@@ -103,7 +103,6 @@ ul.add-menu-item-tabs li {
 
 #nav-menu-bulk-actions-bottom {
 	margin: 1em 0;
-	margin: calc( 1em + 9px ) 0 ; 
 }
 
 .bulk-actions input.button {
@@ -198,7 +197,6 @@ input.bulk-select-switcher:focus + .bulk-select-button-label{
 
 .menu-settings {
 	border-top: 1px solid #f0f0f1;
-	margin-top: 2em;
 }
 
 .menu-settings-group {
@@ -295,6 +293,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label{
 
 .nav-menus-php #post-body-content .post-body-plain {
 	margin-bottom: 0;
+	padding: 0.1em 0;
 }
 
 #menu-management .menu-add-new abbr {
@@ -534,7 +533,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label{
 	clear: both;
 	line-height: 1.5;
 	position: relative;
-	margin: 9px 0 0;
+	margin: 9px 0;
 }
 
 .menu-item-bar .menu-item-handle {
