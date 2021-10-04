@@ -1,0 +1,358 @@
+/* Note: Any Site Health selectors that use
+duplicate styling from the Privacy settings screen
+are styled in the Privacy section of edit.css */
+
+.admin-page-body h2 {
+	line-height: 1.4;
+}
+
+.admin-page-body h3 {
+	padding: 0;
+	font-weight: 400;
+}
+
+.admin-page-widget-title-section {
+	text-align: center;
+}
+
+.admin-page-progress-wrapper {
+	margin-bottom: 1rem;
+}
+
+.admin-page-progress {
+	display: inline-block;
+	height: 20px;
+	width: 20px;
+	margin: 0;
+	border-radius: 100%;
+	position: relative;
+	font-weight: 600;
+	font-size: 0.4rem;
+}
+
+.admin-page-progress-count {
+	position: absolute;
+	display: block;
+	height: 80px;
+	width: 80px;
+	left: 50%;
+	top: 50%;
+	margin-top: -40px;
+	margin-left: -40px;
+	border-radius: 100%;
+	line-height: 6.3;
+	font-size: 2em;
+}
+
+.loading .admin-page-progress svg #bar {
+	stroke-dashoffset: 0;
+	stroke: #c3c4c7;
+	animation: loadingPulse 3s infinite ease-in-out;
+}
+
+.admin-page-progress svg circle {
+	stroke-dashoffset: 0;
+	transition: stroke-dashoffset 1s linear;
+	stroke: #c3c4c7;
+	stroke-width: 2em;
+}
+
+.admin-page-progress svg #bar {
+	stroke-dashoffset: 565;
+	stroke: #d63638;
+}
+
+.green .admin-page-progress #bar {
+	stroke: #00a32a;
+}
+.green .admin-page-progress .admin-page-progress-label {
+	color: #00a32a;
+}
+
+.orange .admin-page-progress #bar {
+	stroke: #dba617;
+}
+.orange .admin-page-progress .admin-page-progress-label {
+	color: #dba617;
+}
+
+.admin-page-progress-label {
+	font-weight: 600;
+	line-height: 20px;
+	margin-left: 0.3rem;
+}
+
+@keyframes loadingPulse {
+	0% {
+		stroke: #c3c4c7;
+	}
+	50% {
+		stroke: #72aee6;
+	}
+	100% {
+		stroke: #c3c4c7;
+	}
+}
+
+.admin-page-tabs-wrapper {
+	/* IE 11 */
+	display: -ms-inline-grid;
+	-ms-grid-columns: 1fr 1fr 1fr 1fr;
+	vertical-align: top;
+	/* modern browsers */
+	display: inline-grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+.admin-page-tabs-wrapper.tab-count-1 {
+	grid-template-columns: 1fr;
+}
+.admin-page-tabs-wrapper.tab-count-2 {
+	grid-template-columns: 1fr 1fr;
+}
+.admin-page-tabs-wrapper.tab-count-3 {
+	grid-template-columns: 1fr 1fr 1fr;
+}
+
+.admin-page-tab {
+	display: block; /* IE 11 */
+	text-decoration: none;
+	color: inherit;
+	padding: 0.5rem 1rem 1rem;
+	margin: 0 1rem;
+	transition: box-shadow 0.5s ease-in-out;
+}
+
+.admin-page-offscreen-nav-wrapper {
+	position: relative;
+	background: transparent;
+	border: none;
+}
+.admin-page-offscreen-nav-wrapper:focus .admin-page-offscreen-nav {
+	left: initial;
+}
+
+.admin-page-offscreen-nav {
+	display: none;
+	position: absolute;
+	padding-top: 10px;
+	right: 0;
+	top: 100%;
+	width: 13rem;
+}
+.admin-page-offscreen-nav-wrapper.visible .admin-page-offscreen-nav {
+	display: inline-block;
+}
+.admin-page-offscreen-nav:before {
+	position: absolute;
+	content: "";
+	width: 0;
+	height: 0;
+	border-style: solid;
+	border-width: 0 10px 5px;
+	border-color: transparent transparent #ffffff;
+	right: 20px;
+	top: 5px;
+}
+
+.admin-page-offscreen-nav .admin-page-tab {
+	background: #fff;
+	box-shadow: 0 2px 5px 0 rgba( 0, 0, 0, 0.75 );
+}
+
+.admin-page-offscreen-nav .admin-page-tab.active {
+	box-shadow: inset 3px 0 #3582c4;
+	font-weight: 600;
+}
+
+.admin-page-body {
+	max-width: 800px;
+	margin: 0 auto;
+}
+
+.admin-page-table td:first-child {
+	width: 30%;
+}
+
+.admin-page-table td {
+	width: 70%;
+}
+
+.admin-page-table ul,
+.admin-page-table ol {
+	margin: 0;
+}
+
+.admin-page-body li {
+	line-height: 1.5;
+}
+
+.admin-page-body .pass::before,
+.admin-page-body .good::before {
+	content: "\f147";
+	color: #00a32a;
+}
+
+.admin-page-body .warning::before {
+	content: "\f460";
+	color: #dba617;
+}
+
+.admin-page-body .info::before {
+	content: "\f348";
+	color: #72aee6;
+}
+
+.admin-page-body .fail::before,
+.admin-page-body .error::before {
+	content: "\f335";
+	color: #d63638;
+}
+
+.admin-page-copy-buttons {
+	margin: 1rem 0;
+}
+
+.admin-page-copy-buttons .copy-button-wrapper {
+	display: inline-flex;
+	align-items: center;
+	margin: 0.5rem 0 1rem;
+}
+
+.admin-page-copy-buttons .success {
+	color: #008a20;
+	margin-left: 0.5rem;
+}
+
+.site-status-has-issues.hide {
+	display: none;
+}
+
+.admin-page-view-more {
+	text-align: center;
+}
+
+.admin-page-issues-wrapper:first-of-type {
+	margin-top: 3rem;
+}
+
+.admin-page-issues-wrapper {
+	margin-bottom: 3rem;
+	margin-top: 2rem;
+}
+
+.site-status-all-clear {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	height: 100%;
+	width: 100%;
+	margin-top: 0;
+}
+
+@media all and (min-width: 784px) {
+	.site-status-all-clear {
+		margin: 5rem 0;
+	}
+}
+
+.site-status-all-clear.hide {
+	display: none;
+}
+
+.site-status-all-clear .dashicons {
+	font-size: 150px;
+	height: 130px;
+	width: 150px;
+}
+
+.site-status-all-clear .encouragement {
+	font-size: 1.5rem;
+	font-weight: 600;
+}
+
+.site-status-all-clear p {
+	margin: 0;
+}
+
+.wp-core-ui .button.admin-page-view-passed {
+	position: relative;
+	padding-right: 40px;
+	padding-left: 20px;
+}
+
+
+/* Better position for the WordPress admin notices and update nag. */
+.admin-page .notice {
+	margin: 5px 20px 15px 22px;
+}
+
+.admin-page .update-nag {
+	margin-bottom: 20px;
+	margin-left: 22px;
+}
+
+.admin-page-wp-paths-sizes.spinner {
+	visibility: visible;
+	float: none;
+	margin: 0 4px;
+	flex-shrink: 0;
+}
+
+/* Styling unique to the dashboard widget. */
+#dashboard_site_health .admin-page-details {
+	padding-left: 16px;
+}
+
+#dashboard_site_health .admin-page-widget {
+	display: grid;
+	grid-template-columns: 1fr 2fr;
+	grid-auto-rows: minmax(64px, auto);
+	column-gap: 16px;
+	align-items: center;
+}
+#dashboard_site_health .admin-page-progress-label {
+	margin-left: 0;
+}
+
+@media screen and (max-width: 480px) {
+	#dashboard_site_health .admin-page-widget {
+		grid-template-columns: 100%;
+	}
+}
+
+@media screen and (max-width: 782px) {
+
+	.admin-page-issues-wrapper .admin-page-accordion-trigger {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.admin-page-accordion-trigger .badge {
+		margin: 1em 0 0;
+	}
+
+	.admin-page-table {
+		table-layout: fixed;
+	}
+
+	.admin-page-table td {
+		box-sizing: border-box;
+		display: block;
+		width: 100%;
+		word-wrap: break-word;
+	}
+
+	.admin-page-table td:first-child {
+		width: 100%;
+		padding-bottom: 0;
+		font-weight: 600;
+	}
+
+	.wp-core-ui .admin-page-copy-buttons .copy-button {
+		margin-bottom: 0;
+	}
+}
+
