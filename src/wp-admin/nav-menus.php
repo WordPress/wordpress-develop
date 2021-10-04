@@ -467,10 +467,12 @@ $page_count = wp_count_posts( 'page' );
  * If we have one theme location, and zero menus, we take them right
  * into editing their first menu.
  */
-$one_theme_location_no_menus = (
-	1 === count( get_registered_nav_menus() ) && ! $add_new_screen &&
-	empty( $nav_menus ) && ! empty( $page_count->publish )
-);
+$one_theme_location_no_menus = false;
+if ( 1 === count( get_registered_nav_menus() ) && ! $add_new_screen
+	&& empty( $nav_menus ) && ! empty( $page_count->publish )
+) {
+	$one_theme_location_no_menus = true;
+}
 
 $nav_menus_l10n = array(
 	'oneThemeLocationNoMenus' => $one_theme_location_no_menus,
