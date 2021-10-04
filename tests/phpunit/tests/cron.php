@@ -24,12 +24,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->plus_thirty_minutes  = strtotime( '+30 minutes' );
 	}
 
-	function tear_down() {
-		// Make sure the schedule is clear.
-		_set_cron_array( array() );
-		parent::tear_down();
-	}
-
 	function test_wp_get_schedule_empty() {
 		// Nothing scheduled.
 		$hook = __FUNCTION__;
