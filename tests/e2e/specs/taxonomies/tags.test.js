@@ -1,9 +1,9 @@
 import {
     visitAdminPage,
-    trashAllPosts,
-    createNewPost,
-    publishPost,
+    __experimentalRest as rest,
 } from '@wordpress/e2e-test-utils';
+
+const postsEndpoint = '/wp/v2/posts';
 
 async function createNewTag(name) {
     await visitAdminPage('edit-tags.php');
@@ -27,6 +27,29 @@ async function deleteAllTags() {
         await page.keyboard.press('Enter');
         await page.waitForSelector('#message p')
     }
+}
+
+export async function createPost(post) {
+    await rest({
+        method: 'POST',
+        path: postsEndpoint,
+        data: {
+            title: post.title,
+            status: 'publish',
+            tags: post.tags,
+        }
+    });
+}
+
+export async function deleteAllPosts() {
+    const posts = await rest({ path: postsEndpoint });
+    posts.map(async(post) => {
+        await rest({
+            method: 'DELETE',
+            path: `${ postsEndpoint }/${ post.id }`,
+        });
+    });
+
 }
 
 describe('Manage tags', () => {
@@ -185,18 +208,20 @@ describe('Manage tags', () => {
             await createNewTag(tags[i]);
         }
 
-        await trashAllPosts();
+        // Get the ID of 'Tag 1'
+        let tag1Id = await page.$('#the-list tr:first-child');
+        tag1Id = await tag1Id.evaluate(element => (element.id));
+        tag1Id = tag1Id.split('tag-')[1]
 
-        // Create one post with no tags and a second post with one tag
-        await createNewPost({ title: `${postTitle}` });
-        const tagTitlePanel = await page.$('.components-panel__body:nth-child(4)');
-        await tagTitlePanel.click();
-        await page.waitForSelector('input.components-form-token-field__input');
-        await page.type('input.components-form-token-field__input', tags[1]);
-        await page.keyboard.press('Enter');
-        await page.screenshot({ path: 'screenshot.png' });
+        await deleteAllPosts();
 
-        await publishPost();
+        await createPost({
+            title: 'Post 0',
+        });
+        await createPost({
+            title: 'Post 1',
+            tags: [tag1Id],
+        });
 
         // ASC order
         await visitAdminPage('edit-tags.php');
