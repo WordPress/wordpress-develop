@@ -9,6 +9,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		return array(
 			array( 'blockquote' ),
 			array( 'div' ),
+			array( 'figure' ),
 			array( 'object' ),
 			array( 'q' ),
 			array( 'span' ),
