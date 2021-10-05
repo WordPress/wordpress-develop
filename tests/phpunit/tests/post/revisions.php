@@ -15,8 +15,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->post_type = rand_str( 20 );
 	}
 
@@ -594,7 +594,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_revisions_to_keep',
-			function () use ( $expected ) {
+			static function () use ( $expected ) {
 				return $expected;
 			}
 		);
@@ -619,7 +619,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_revisions_to_keep',
-			function () use ( $generic ) {
+			static function () use ( $generic ) {
 				return $generic;
 			}
 		);
@@ -630,7 +630,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		add_filter(
 			"wp_{$post->post_type}_revisions_to_keep",
-			function () use ( $expected ) {
+			static function () use ( $expected ) {
 				return $expected;
 			}
 		);

@@ -13,8 +13,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		'args'        => array(),
 	);
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
@@ -455,7 +455,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$term_meta_id = add_term_meta( $t, 'foo', 'bar' );
 		$meta         = has_term_meta( $t );
 
-		$this->assertSame( 1, count( $meta ) );
+		$this->assertCount( 1, $meta );
 
 		$expected = array(
 			'meta_key'   => 'foo',

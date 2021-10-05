@@ -12,8 +12,8 @@
  */
 class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
 
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
@@ -29,11 +29,11 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function filter_set_theme_root() {
@@ -47,69 +47,22 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	public function test_fields_are_extracted() {
-		$actual = WP_Theme_JSON_Resolver::get_fields_to_translate();
-
-		$expected = array(
-			array(
-				'path'    => array( 'settings', 'typography', 'fontSizes' ),
-				'key'     => 'name',
-				'context' => 'Font size name',
-			),
-			array(
-				'path'    => array( 'settings', 'color', 'palette' ),
-				'key'     => 'name',
-				'context' => 'Color name',
-			),
-			array(
-				'path'    => array( 'settings', 'color', 'gradients' ),
-				'key'     => 'name',
-				'context' => 'Gradient name',
-			),
-			array(
-				'path'    => array( 'settings', 'color', 'duotone' ),
-				'key'     => 'name',
-				'context' => 'Duotone name',
-			),
-			array(
-				'path'    => array( 'settings', 'blocks', '*', 'typography', 'fontSizes' ),
-				'key'     => 'name',
-				'context' => 'Font size name',
-			),
-			array(
-				'path'    => array( 'settings', 'blocks', '*', 'color', 'palette' ),
-				'key'     => 'name',
-				'context' => 'Color name',
-			),
-			array(
-				'path'    => array( 'settings', 'blocks', '*', 'color', 'gradients' ),
-				'key'     => 'name',
-				'context' => 'Gradient name',
-			),
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * @ticket 52991
-	 */
 	public function test_translations_are_applied() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
-		load_textdomain( 'fse', realpath( DIR_TESTDATA . '/languages/themes/fse-pl_PL.mo' ) );
+		load_textdomain( 'block-theme', realpath( DIR_TESTDATA . '/languages/themes/block-theme-pl_PL.mo' ) );
 
-		switch_theme( 'fse' );
+		switch_theme( 'block-theme' );
 
 		$actual = WP_Theme_JSON_Resolver::get_theme_data();
 
-		unload_textdomain( 'fse' );
+		unload_textdomain( 'block-theme' );
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
 
-		$this->assertSame( wp_get_theme()->get( 'TextDomain' ), 'fse' );
+		$this->assertSame( wp_get_theme()->get( 'TextDomain' ), 'block-theme' );
 		$this->assertSame(
 			array(
-				'color'  => array(
-					'palette' => array(
+				'color'      => array(
+					'palette'        => array(
 						'theme' => array(
 							array(
 								'slug'  => 'light',
@@ -123,9 +76,38 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 							),
 						),
 					),
-					'custom'  => false,
+					'gradients'      => array(
+						'theme' => array(
+							array(
+								'name'     => 'Custom gradient',
+								'gradient' => 'linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)',
+								'slug'     => 'custom-gradient',
+							),
+						),
+					),
+					'custom'         => false,
+					'customGradient' => false,
 				),
-				'blocks' => array(
+				'typography' => array(
+					'fontSizes'        => array(
+						'theme' => array(
+							array(
+								'name' => 'Custom',
+								'slug' => 'custom',
+								'size' => '100px',
+							),
+						),
+					),
+					'customFontSize'   => false,
+					'customLineHeight' => true,
+				),
+				'spacing'    => array(
+					'units'         => array(
+						'rem',
+					),
+					'customPadding' => true,
+				),
+				'blocks'     => array(
 					'core/paragraph' => array(
 						'color' => array(
 							'palette' => array(
@@ -154,11 +136,11 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$default = WP_Theme_JSON_Resolver::theme_has_support();
 
 		// Switch to a theme that does have support.
-		switch_theme( 'fse' );
-		$fse = WP_Theme_JSON_Resolver::theme_has_support();
+		switch_theme( 'block-theme' );
+		$has_theme_json_support = WP_Theme_JSON_Resolver::theme_has_support();
 
 		$this->assertFalse( $default );
-		$this->assertTrue( $fse );
+		$this->assertTrue( $has_theme_json_support );
 	}
 
 }

@@ -97,7 +97,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		return $this->permissions_check();
+		return $this->permissions_check( $request );
 	}
 
 	/**
@@ -139,7 +139,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		return $this->permissions_check();
+		return $this->permissions_check( $request );
 	}
 
 	/**
@@ -176,7 +176,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
-		return $this->permissions_check();
+		return $this->permissions_check( $request );
 	}
 
 	/**
@@ -220,7 +220,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function update_item_permissions_check( $request ) {
-		return $this->permissions_check();
+		return $this->permissions_check( $request );
 	}
 
 	/**
@@ -235,6 +235,18 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 */
 	public function update_item( $request ) {
 		global $wp_widget_factory;
+
+		/*
+		 * retrieve_widgets() contains logic to move "hidden" or "lost" widgets to the
+		 * wp_inactive_widgets sidebar based on the contents of the $sidebars_widgets global.
+		 *
+		 * When batch requests are processed, this global is not properly updated by previous
+		 * calls, resulting in widgets incorrectly being moved to the wp_inactive_widgets
+		 * sidebar.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/53657.
+		 */
+		wp_get_sidebars_widgets();
 
 		retrieve_widgets();
 
@@ -283,7 +295,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function delete_item_permissions_check( $request ) {
-		return $this->permissions_check();
+		return $this->permissions_check( $request );
 	}
 
 	/**
@@ -299,6 +311,18 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 */
 	public function delete_item( $request ) {
 		global $wp_widget_factory, $wp_registered_widget_updates;
+
+		/*
+		 * retrieve_widgets() contains logic to move "hidden" or "lost" widgets to the
+		 * wp_inactive_widgets sidebar based on the contents of the $sidebars_widgets global.
+		 *
+		 * When batch requests are processed, this global is not properly updated by previous
+		 * calls, resulting in widgets incorrectly being moved to the wp_inactive_widgets
+		 * sidebar.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/53657.
+		 */
+		wp_get_sidebars_widgets();
 
 		retrieve_widgets();
 
@@ -398,9 +422,10 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error
 	 */
-	protected function permissions_check() {
+	protected function permissions_check( $request ) {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_widgets',
@@ -767,7 +792,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array(),
 					'arg_options' => array(
-						'sanitize_callback' => function( $string ) {
+						'sanitize_callback' => static function( $string ) {
 							$array = array();
 							wp_parse_str( $string, $array );
 							return $array;

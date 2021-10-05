@@ -29,8 +29,8 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	/**
 	 * Set up.
 	 */
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->wp_customize      = $GLOBALS['wp_customize'];
@@ -111,7 +111,7 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 		$this->assertSame( $args['render_callback'], $partial->render_callback );
 		$this->assertFalse( $partial->container_inclusive );
 		$this->assertFalse( $partial->fallback_refresh );
-		$this->assertContains( 'Lorem Ipsum', $partial->render() );
+		$this->assertStringContainsString( 'Lorem Ipsum', $partial->render() );
 
 		$partial = new WP_Customize_Partial(
 			$this->selective_refresh,
@@ -390,9 +390,9 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	/**
 	 * Tear down.
 	 */
-	function tearDown() {
+	function tear_down() {
 		$this->wp_customize = null;
 		unset( $GLOBALS['wp_customize'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 }

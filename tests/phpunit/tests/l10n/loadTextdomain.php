@@ -17,8 +17,8 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->locale = '';
 
@@ -195,8 +195,6 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 
 		load_muplugin_textdomain( 'wp-tests-domain' );
 
-		set_current_screen( 'front' );
-
 		$this->assertSame( get_user_locale(), $this->locale );
 	}
 
@@ -215,8 +213,6 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 
 		load_plugin_textdomain( 'wp-tests-domain' );
 
-		set_current_screen( 'front' );
-
 		$this->assertSame( get_user_locale(), $this->locale );
 	}
 
@@ -234,8 +230,6 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		wp_set_current_user( self::$user_id );
 
 		load_theme_textdomain( 'wp-tests-domain' );
-
-		set_current_screen( 'front' );
 
 		$this->assertSame( get_user_locale(), $this->locale );
 	}

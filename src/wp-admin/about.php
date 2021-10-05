@@ -9,9 +9,7 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
-wp_enqueue_script( 'wp-components' );
-wp_enqueue_style( 'wp-components' );
-
+// Used in the HTML title tag.
 /* translators: Page title of the About WordPress page in the admin. */
 $title = _x( 'About', 'page title' );
 
@@ -44,13 +42,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<hr />
 
 		<div class="about__section">
-			<h2 class="aligncenter has-accent-color">
+			<h2 class="aligncenter">
 				<?php _e( 'Three Essential Powerhouses' ); ?>
 			</h2>
 		</div>
 
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image has-subtle-background-color"></div>
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-widgets-blocks.png" alt="" />
+			</div>
 			<div class="column">
 				<h3>
 					<?php _e( 'Manage Widgets with Blocks' ); ?>
@@ -60,14 +60,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Widgets dev note link. */
 						__( 'After months of hard work, the power of blocks has come to both the Block Widgets Editor and the Customizer. Now you can add blocks both in widget areas across your site and with live preview through the Customizer. This opens up new possibilities to create content: from no-code mini layouts to the vast library of core and third-party blocks. For our developers, you can find more details in the <a href="%s">Widgets dev note</a>.' ),
-						'#'
+						'https://make.wordpress.org/core/2021/06/29/block-based-widgets-editor-in-wordpress-5-8/'
 					);
 					?>
 				</p>
 			</div>
 		</div>
-
-		<hr />
 
 		<div class="about__section has-2-columns is-wider-right">
 			<div class="column">
@@ -75,22 +73,18 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php _e( 'Display Posts with New Blocks and Patterns' ); ?>
 				</h3>
 				<p>
-					<?php
-					printf(
-						/* translators: %s: Query Loop dev note link. */
-						__( 'The Query Loop Block makes it possible to display posts based on specified parameters; like a PHP loop without the code. Easily display posts from a specific category, to do things like create a portfolio or a page full of your favorite recipes. Think of it as a more complex and powerful Latest Posts Block! Plus, pattern suggestions make it easier than ever to create a list of posts with the design you want. For our theme authors, learn more about experimenting with this awesome tool in the <a href="%s">Query Loop Block dev note</a>.' ),
-						'#'
-					);
-					?>
+					<?php _e( 'The Query Loop Block makes it possible to display posts based on specified parameters; like a PHP loop without the code. Easily display posts from a specific category, to do things like create a portfolio or a page full of your favorite recipes. Think of it as a more complex and powerful Latest Posts Block! Plus, pattern suggestions make it easier than ever to create a list of posts with the design you want.' ); ?>
 				</p>
 			</div>
-			<div class="column about__image has-subtle-background-color"></div>
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-query-loop.png" alt="" />
+			</div>
 		</div>
 
-		<hr />
-
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image has-subtle-background-color"></div>
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-template.png" alt="" />
+			</div>
 			<div class="column">
 				<h3>
 					<?php _e( 'Edit the Templates Around Posts' ); ?>
@@ -106,13 +100,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<hr class="is-large" />
 
 		<div class="about__section">
-			<h2 class="aligncenter has-accent-color">
+			<h2 class="aligncenter">
 				<?php _e( 'Three Workflow Helpers' ); ?>
 			</h2>
 		</div>
 
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image has-subtle-background-color"></div>
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-list-view.png" alt="" />
+			</div>
 			<div class="column">
 				<h3>
 					<?php _e( 'Overview of the Page Structure' ); ?>
@@ -125,8 +121,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 
-		<hr />
-
 		<div class="about__section has-2-columns is-wider-right">
 			<div class="column">
 				<h3>
@@ -138,13 +132,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
-			<div class="column about__image has-subtle-background-color"></div>
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-pattern-suggestions.png" alt="" />
+			</div>
 		</div>
 
-		<hr />
-
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image has-subtle-background-color"></div>
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-duotone.png" alt="" />
+			</div>
 			<div class="column">
 				<h3>
 					<?php _e( 'Style and Colorize Images' ); ?>
@@ -160,10 +156,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<hr class="is-large" />
 
 		<div class="about__section">
-			<h2 class="aligncenter has-accent-color">
+			<h2 class="aligncenter" style="margin-bottom:0;">
 				<?php _e( 'For Developers to Explore' ); ?>
 			</h2>
-			<div class="column about__image has-subtle-background-color" style="margin:32px 0;height:360px;"></div>
+			<div class="column about__image is-vertically-aligned-center">
+				<picture>
+					<source srcset="https://s.w.org/images/core/5.8/about-theme-json.png, https://s.w.org/images/core/5.8/about-theme-json-2x.png 2x" />
+					<img src="https://s.w.org/images/core/5.8/about-theme-json.png" alt="" />
+				</picture>
+			</div>
 		</div>
 
 		<div class="about__section has-1-column">
@@ -173,13 +174,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</h3>
 				<p>
 					<?php
-					_e( 'Introducing the Global Styles and Global Settings APIs: control the editor settings, available customization tools, and style blocks using a theme.json file in the active theme. This configuration file enables or disables features and sets default styles for both a website and blocks. If you build themes, you can experiment with this early iteration of a useful new feature. For more about what is currently available and how it works, check out this dev note.' );
+					printf(
+						/* translators: %s: Theme.json dev note link. */
+						__( 'Introducing the Global Styles and Global Settings APIs: control the editor settings, available customization tools, and style blocks using a theme.json file in the active theme. This configuration file enables or disables features and sets default styles for both a website and blocks. If you build themes, you can experiment with this early iteration of a useful new feature. For more about what is currently available and how it works, <a href="%s">check out this dev note</a>.' ),
+						'https://make.wordpress.org/core/2021/06/25/introducing-theme-json-in-wordpress-5-8/'
+					);
 					?>
 				</p>
 			</div>
 		</div>
-
-		<hr />
 
 		<div class="about__section has-3-columns">
 			<div class="column">
@@ -213,8 +216,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %1$s: Link to 5.6's block dev notes. %2$s: Link to 5.7's block dev notes. %1$s: Link to 5.8's block dev notes. */
-						__( 'Expanding on previously implemented block supports in WordPress <a href="%1$s">5.6</a> and <a href="%2$s">5.7</a>, WordPress 5.8 introduces several new block <code>supports</code> flags and new options to customize your registered blocks. More information is available in the <a href="%3$s">block supports dev note</a>.' ),
+						/* translators: %1$s: Link to 5.6's block dev notes. %2$s: Link to 5.7's block dev notes. %3$s: Link to 5.8's block dev notes. */
+						__( 'Expanding on previously implemented block supports in WordPress <a href="%1$s">5.6</a> and <a href="%2$s">5.7</a>, WordPress 5.8 introduces several new block support flags and new options to customize your registered blocks. More information is available in the <a href="%3$s">block supports dev note</a>.' ),
 						'https://make.wordpress.org/core/2020/11/18/block-supports-in-wordpress-5-6/',
 						'https://make.wordpress.org/core/2021/02/24/changes-to-block-editor-components-and-blocks/',
 						'https://make.wordpress.org/core/2021/06/25/block-supports-api-updates-for-wordpress-5-8/'
@@ -234,7 +237,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress 5.8 Field Guide link. */
 						__( 'Check out the latest version of the WordPress Field Guide. It highlights developer notes for each change you may want to be aware of. <a href="%s">WordPress 5.8 Field Guide.</a>' ),
-						'#'
+						'https://make.wordpress.org/core/2021/07/03/wordpress-5-8-field-guide/'
 					);
 					?>
 				</p>

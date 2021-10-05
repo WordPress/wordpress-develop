@@ -14,8 +14,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 	protected static $user_ids = array();
 
-	public static function setUpBeforeClass() {
-		parent::setUpBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 
 		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
 	}
@@ -264,7 +264,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$admin_bar = new WP_Admin_Bar();
 		$admin_bar->add_node( $node_data );
 		$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
-		$this->assertContains( $expected_html, $admin_bar_html );
+		$this->assertStringContainsString( $expected_html, $admin_bar_html );
 	}
 
 	/**
@@ -400,8 +400,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
-
 		$this->assertNull( $node );
 	}
 
@@ -415,8 +413,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
-
 		$this->assertNotNull( $node );
 	}
 
@@ -428,8 +424,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
-
-		set_current_screen( 'front' );
 
 		$this->assertNull( $node );
 	}
@@ -508,7 +502,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -532,7 +525,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -556,7 +548,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -679,7 +670,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 		$wp_customize->start_previewing_theme();
 
-		set_current_screen( 'front' );
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'customize' );
 		$this->assertNotEmpty( $node );
@@ -688,7 +678,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$query_params = array();
 		wp_parse_str( $parsed_url['query'], $query_params );
 		$this->assertSame( $uuid, $query_params['changeset_uuid'] );
-		$this->assertNotContains( 'changeset_uuid', $query_params['url'] );
+		$this->assertStringNotContainsString( 'changeset_uuid', $query_params['url'] );
 	}
 
 	/**
@@ -702,7 +692,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %s must not display for a regular user.', $id ) );
+			$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %s must not display for a regular user.', $id ) );
 		}
 	}
 
@@ -719,7 +709,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %s must display for a super admin.', $id ) );
+			$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %s must display for a super admin.', $id ) );
 		}
 	}
 
@@ -745,9 +735,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
 			if ( in_array( $cap, $network_user_caps, true ) ) {
-				$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
+				$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
 			} else {
-				$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
+				$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
 			}
 		}
 	}

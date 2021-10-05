@@ -4,8 +4,8 @@
  * @group taxonomy
  */
 class Tests_Term_GetTerm extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
@@ -104,14 +104,14 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_A );
 		$this->assertIsArray( $term );
-		$this->assertTrue( isset( $term['term_id'] ) );
+		$this->assertArrayHasKey( 'term_id', $term );
 	}
 
 	public function test_output_array_n() {
 		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_N );
 		$this->assertIsArray( $term );
-		$this->assertFalse( isset( $term['term_id'] ) );
+		$this->assertArrayNotHasKey( 'term_id', $term );
 		foreach ( $term as $k => $v ) {
 			$this->assertIsInt( $k );
 		}

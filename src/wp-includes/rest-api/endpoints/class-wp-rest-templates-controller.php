@@ -109,9 +109,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
-	protected function permissions_check() {
+	protected function permissions_check( $request ) {
 		// Verify if the current user has edit_theme_options capability.
 		// This capability is required to edit/view/delete templates.
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
@@ -401,13 +402,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Prepare a single template output for response
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Renamed `$template` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Block_Template $template Template instance.
+	 * @param WP_Block_Template $item    Template instance.
 	 * @param WP_REST_Request   $request Request object.
 	 * @return WP_REST_Response $data
 	 */
-	public function prepare_item_for_response( $template, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-		$result = array(
+	public function prepare_item_for_response( $item, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+		// Restores the more descriptive, specific name for use within this method.
+		$template = $item;
+		$result   = array(
 			'id'             => $template->id,
 			'theme'          => $template->theme,
 			'content'        => array( 'raw' => $template->content ),

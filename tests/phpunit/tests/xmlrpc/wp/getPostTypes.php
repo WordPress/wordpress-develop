@@ -16,7 +16,7 @@ class Tests_XMLRPC_wp_getPostTypes extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPostTypes( array( 1, 'subscriber', 'subscriber' ) );
 		$this->assertNotIXRError( $result );
 		$this->assertIsArray( $result );
-		$this->assertSame( 0, count( $result ) );
+		$this->assertCount( 0, $result );
 	}
 
 	function test_capable_user() {
