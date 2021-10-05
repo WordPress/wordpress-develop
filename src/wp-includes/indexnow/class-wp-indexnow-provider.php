@@ -43,10 +43,10 @@ class WP_IndexNow_Provider {
 	 * @since 5.9.0
 	 */
 	private function remove_scheme( $url ) {
-		if ( substr( $url, 0, 7 ) === self::HTTP ) {
+		if ( self::HTTP === substr( $url, 0, 7 ) ) {
 			return substr( $url, 7 );
 		}
-		if ( substr( $url, 0, 8 ) === self::HTTPS ) {
+		if ( self::HTTPS === substr( $url, 0, 8 ) ) {
 			return substr( $url, 8 );
 		}
 		return $url;
@@ -84,7 +84,7 @@ class WP_IndexNow_Provider {
 			return 'error:RequestFailed';
 		}
 		try {
-			if ( $response['response']['code'] === 200 ) {
+			if ( 200 === $response['response']['code'] ) {
 				return 'success';
 			} else {
 				if ( $response['response']['code'] >= 500 ) {

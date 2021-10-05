@@ -301,7 +301,7 @@ class WP_IndexNow {
 
 				$is_public_post = is_post_publicly_viewable( $post );
 
-				if ( ! $is_public_post && $type != 'delete' ) {
+				if ( ! $is_public_post && 'delete' !== $type ) {
 					add_action( 'transition_post_status', array( $this, 'on_post_published' ), 1, 3 );
 					return;
 				}
