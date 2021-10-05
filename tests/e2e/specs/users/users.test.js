@@ -2,19 +2,14 @@ import {
 	visitAdminPage,
 } from "@wordpress/e2e-test-utils";
 
-async function deleteNonDefaultUsers() {
+async function deleteNonCurrentUsers() {
 	await visitAdminPage( 'users.php' );
-
-	// Wait for the users rows to appear
 	await page.waitForSelector( '#the-list tr' );
 
 	const allUsersRows = await page.$$( '#the-list tr' );
 	if( allUsersRows.length > 1 ) {
 		await page.click( '#cb-select-all-1' );
 		await page.select( '#bulk-action-selector-top', 'delete' );
-
-		// Do not delete the defaut admin user
-		await page.click( '#user_1' );
 
 		await page.click( '#doaction' );
 
@@ -59,7 +54,7 @@ async function goToUserProfilePage( username ) {
 
 describe( 'Core Users', () => {
 	beforeEach( async () => {
-		await deleteNonDefaultUsers();
+		await deleteNonCurrentUsers();
 		await createBasicUser();
 	} );
 
