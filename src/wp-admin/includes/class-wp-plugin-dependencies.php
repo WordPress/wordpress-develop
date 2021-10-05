@@ -129,7 +129,6 @@ class WP_Plugin_Dependencies {
 					'short_description' => true,
 					'icons'             => true,
 				),
-
 			);
 			$response = plugins_api( 'plugin_information', $args );
 			if ( is_wp_error( $response ) ) {
