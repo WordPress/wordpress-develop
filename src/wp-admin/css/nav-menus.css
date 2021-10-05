@@ -746,6 +746,10 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	padding: 0.1em 0;
 }
 
+#menu-name-desc {
+	padding-bottom: 1.1em;
+}
+
 .menu-item-settings {
 	display: block;
 	max-width: 392px;
