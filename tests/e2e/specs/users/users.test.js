@@ -20,7 +20,7 @@ async function deleteNonCurrentUsers() {
     }
 }
 
-async function createBasicUser() {
+async function createBasicUser(username, useremail) {
     await visitAdminPage('user-new.php');
 
     // Wait for the username field to appear and focus it
@@ -28,9 +28,9 @@ async function createBasicUser() {
     await newUsernameField.focus();
 
     // Type the user name and user email
-    await page.keyboard.type('testuser');
+    await page.keyboard.type(username);
     await page.keyboard.press('Tab');
-    await page.keyboard.type('testuser@test.com');
+    await page.keyboard.type(useremail);
 
     // Add the user
     await page.click('input#createusersub');
@@ -53,12 +53,16 @@ async function goToUserProfilePage(username) {
 }
 
 describe('Core Users', () => {
+    const e2eTestUser = 'testuser';
+    const e2eTestUserEmail = 'testuser@test.com';
+
     beforeEach(async() => {
         await deleteNonCurrentUsers();
-        await createBasicUser();
     });
 
     it('Correctly shows a new added user', async() => {
+        createBasicUser(e2eTestUser, e2eTestUserEmail)
+
         // Wait for two users rows to appear
         await page.waitForSelector('#the-list tr + tr');
 
@@ -70,12 +74,14 @@ describe('Core Users', () => {
     });
 
     it('Returns the appropriate result when searching for an existing user', async() => {
+        createBasicUser(e2eTestUser, e2eTestUserEmail)
+
         // Wait for the search field to appear and focus it
         const userSearchInput = await page.waitForSelector('#user-search-input');
         userSearchInput.focus();
 
         // Type the new username in the search input
-        await page.keyboard.type('testuser');
+        await page.keyboard.type(e2eTestUser);
 
         // Move to the search button and click on it
         await page.keyboard.press('Tab');
@@ -90,10 +96,12 @@ describe('Core Users', () => {
         const foundUserRow = await page.waitForSelector('#the-list td.column-username a');
         expect(
             await foundUserRow.evaluate((element) => element.textContent)
-        ).toContain('testuser');
+        ).toContain(e2eTestUser);
     });
 
     it('Should return No users found. when searching for a user that does not exist', async() => {
+        createBasicUser(e2eTestUser, e2eTestUserEmail)
+
         // Wait for the search field to appear and focus it
         const userSearchInput = await page.waitForSelector('#user-search-input');
         userSearchInput.focus();
@@ -118,7 +126,8 @@ describe('Core Users', () => {
     });
 
     it('Correctly edit a user first and last names', async() => {
-        await goToUserProfilePage("testuser");
+        createBasicUser(e2eTestUser, e2eTestUserEmail)
+        await goToUserProfilePage(e2eTestUser);
 
         // Wait for the user first name input to appears
         await page.waitForSelector('input#first_name');
@@ -149,7 +158,8 @@ describe('Core Users', () => {
     });
 
     it('Correctly changes the role of a user', async() => {
-        await goToUserProfilePage("testuser");
+        createBasicUser(e2eTestUser, e2eTestUserEmail)
+        await goToUserProfilePage(e2eTestUser);
 
         // Wait for the role field to appears
         await page.waitForSelector('select#role');
