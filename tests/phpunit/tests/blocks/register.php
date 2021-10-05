@@ -1,6 +1,6 @@
 <?php
 /**
- * Block registry tests.
+ * Block registration tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names()
+ * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names().
  *
  * @since 5.0.0
  *
  * @group blocks
  */
-class WP_Test_Block_Register extends WP_UnitTestCase {
+class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
 	 * ID for a test post.
@@ -57,7 +57,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	function tearDown() {
+	function tear_down() {
 		$registry = WP_Block_Type_Registry::get_instance();
 
 		foreach ( array( 'core/test-static', 'core/test-dynamic', 'tests/notice' ) as $block_name ) {
@@ -66,7 +66,16 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 			}
 		}
 
-		parent::tearDown();
+		parent::tear_down();
+	}
+
+	/**
+	 * Returns Polish locale string.
+	 *
+	 * @return string
+	 */
+	function filter_set_locale_to_polish() {
+		return 'pl_PL';
 	}
 
 	/**
@@ -144,6 +153,10 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 			generate_block_asset_handle( $block_name, 'script' )
 		);
 		$this->assertSame(
+			'unit-tests-my-block-view-script',
+			generate_block_asset_handle( $block_name, 'viewScript' )
+		);
+		$this->assertSame(
 			'unit-tests-my-block-editor-style',
 			generate_block_asset_handle( $block_name, 'editorStyle' )
 		);
@@ -168,6 +181,10 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			'wp-block-paragraph',
 			generate_block_asset_handle( $block_name, 'script' )
+		);
+		$this->assertSame(
+			'wp-block-paragraph-view',
+			generate_block_asset_handle( $block_name, 'viewScript' )
 		);
 		$this->assertSame(
 			'wp-block-paragraph-editor',
@@ -395,6 +412,17 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array(
+				array(
+					'name'        => 'error',
+					'title'       => 'Error',
+					'description' => 'Shows error.',
+					'keywords'    => array( 'failure' ),
+				),
+			),
+			$result->variations
+		);
+		$this->assertSame(
+			array(
 				'attributes' => array(
 					'message' => 'This is a notice!',
 				),
@@ -403,6 +431,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		);
 		$this->assertSame( 'tests-notice-editor-script', $result->editor_script );
 		$this->assertSame( 'tests-notice-script', $result->script );
+		$this->assertSame( 'tests-notice-view-script', $result->view_script );
 		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
 		$this->assertSame( 'tests-notice-style', $result->style );
 
@@ -431,10 +460,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_type_from_metadata
 	 */
 	function test_block_registers_with_metadata_i18n_support() {
-		function filter_set_locale_to_polish() {
-			return 'pl_PL';
-		}
-		add_filter( 'locale', 'filter_set_locale_to_polish' );
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
 		load_textdomain( 'notice', WP_LANG_DIR . '/plugins/notice-pl_PL.mo' );
 
 		$result = register_block_type_from_metadata(
@@ -442,7 +468,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		);
 
 		unload_textdomain( 'notice' );
-		remove_filter( 'locale', 'filter_set_locale_to_polish' );
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
 		$this->assertSame( 'tests/notice', $result->name );
@@ -462,6 +488,17 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 				),
 			),
 			$result->styles
+		);
+		$this->assertSame(
+			array(
+				array(
+					'name'        => 'error',
+					'title'       => 'Błąd',
+					'description' => 'Wyświetla błąd.',
+					'keywords'    => array( 'niepowodzenie' ),
+				),
+			),
+			$result->variations
 		);
 	}
 
@@ -512,7 +549,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_type
 	 */
 	public function test_filter_block_registration() {
-		$filter_registration = function( $args, $name ) {
+		$filter_registration = static function( $args, $name ) {
 			$args['attributes'] = array( $name => array( 'type' => 'boolean' ) );
 			return $args;
 		};
@@ -532,7 +569,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_filter_block_registration_metadata() {
-		$filter_metadata_registration = function( $metadata ) {
+		$filter_metadata_registration = static function( $metadata ) {
 			$metadata['apiVersion'] = 3;
 			return $metadata;
 		};
@@ -552,7 +589,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_filter_block_registration_metadata_settings() {
-		$filter_metadata_registration = function( $settings, $metadata ) {
+		$filter_metadata_registration = static function( $settings, $metadata ) {
 			$settings['api_version'] = $metadata['apiVersion'] + 1;
 			return $settings;
 		};

@@ -7,10 +7,10 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -439,9 +439,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$url = wp_get_attachment_url( $attachment_id );
 
-		// Cleanup.
-		set_current_screen( 'front' );
-
 		$this->assertSame( set_url_scheme( $url, 'http' ), $url );
 	}
 
@@ -469,7 +466,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$url = wp_get_attachment_url( $attachment_id );
 
 		// Cleanup.
-		set_current_screen( 'front' );
 		remove_filter( 'upload_dir', '_upload_dir_https' );
 
 		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
@@ -555,7 +551,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	public function test_wp_mime_type_icon() {
 		$icon = wp_mime_type_icon();
 
-		$this->assertContains( 'images/media/default.png', $icon );
+		$this->assertStringContainsString( 'images/media/default.png', $icon );
 	}
 
 	/**
@@ -566,6 +562,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	public function test_wp_mime_type_icon_video() {
 		$icon = wp_mime_type_icon( 'video/mp4' );
 
-		$this->assertContains( 'images/media/video.png', $icon );
+		$this->assertStringContainsString( 'images/media/video.png', $icon );
 	}
 }

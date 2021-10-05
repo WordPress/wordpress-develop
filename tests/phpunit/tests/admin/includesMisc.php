@@ -3,7 +3,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_includesMisc extends WP_UnitTestCase {
+class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::url_shorten

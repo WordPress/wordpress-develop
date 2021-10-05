@@ -3,7 +3,7 @@
  * @group plugins
  * @group admin
  */
-class Tests_Admin_includesPlugin extends WP_UnitTestCase {
+class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::_back_up_mu_plugins();
 	}
@@ -103,8 +103,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 		// Clean up the temporary user.
 		wp_delete_user( $admin_user );
-		// Reset current screen.
-		set_current_screen( 'front' );
 
 		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'custom-position', $submenu[ $parent ][ $expected_position ][2] );
@@ -213,8 +211,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 		// Clean up the temporary user.
 		wp_delete_user( $admin_user );
-		// Reset current screen.
-		set_current_screen( 'front' );
 
 		foreach ( $actual_positions as $test => $actual_position ) {
 			// Verify the menu was inserted at the expected position.
@@ -300,8 +296,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
 		wp_delete_user( $admin_user );
-		// Reset current screen.
-		set_current_screen( 'front' );
 
 		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'main_slug', $submenu['main_slug'][0][2] );
@@ -335,8 +329,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
 		wp_delete_user( $admin_user );
-		// Reset current screen.
-		set_current_screen( 'front' );
 
 		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'submenu_page_1', $submenu['main_slug'][1][2] );
@@ -396,7 +388,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	public function test_get_plugin_files_folder() {
 		$plugin_dir = WP_PLUGIN_DIR . '/list_files_test_plugin';
 		@mkdir( $plugin_dir );
-		$plugin = $this->_create_plugin( null, 'list_files_test_plugin.php', $plugin_dir );
+		$plugin = $this->_create_plugin( '', 'list_files_test_plugin.php', $plugin_dir );
 
 		$sub_dir = trailingslashit( dirname( $plugin[1] ) ) . 'subdir';
 		mkdir( $sub_dir );
@@ -433,7 +425,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_when_mu_plugins_directory_does_not_exist() {
-		$this->assertFileNotExists( WPMU_PLUGIN_DIR );
+		$this->assertFileDoesNotExist( WPMU_PLUGIN_DIR );
 		$this->assertSame( array(), get_mu_plugins() );
 	}
 

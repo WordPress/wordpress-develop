@@ -6,8 +6,8 @@
  * @covers ::is_taxonomy_viewable
  */
 class Tests_Taxonomy_IsTaxonomyViewable extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		register_post_type( 'wptests_pt' );
 		register_taxonomy( 'wptests_tax_viewable', 'wptests_pt', array( 'publicly_queryable' => true ) );

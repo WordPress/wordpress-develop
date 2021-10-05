@@ -70,8 +70,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		self::delete_user( self::$uploader_id );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Add an uploader role to test upload capabilities.
 		add_role( 'uploader', 'File upload role' );
@@ -88,7 +88,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		copy( $orig_file2, $this->test_file2 );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		if ( file_exists( $this->test_file ) ) {
 			unlink( $this->test_file );
 		}
@@ -104,7 +104,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			WP_Image_Editor_Mock::$size_return = null;
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function test_register_routes() {
@@ -675,6 +675,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @requires function imagejpeg
+	 *
 	 * @covers ::get_item
 	 */
 	public function test_get_item_sizes() {
@@ -707,6 +708,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @requires function imagejpeg
+	 *
 	 * @covers ::get_item
 	 */
 	public function test_get_item_sizes_with_no_url() {
@@ -794,6 +796,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item() {
@@ -849,6 +853,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_with_files() {
@@ -870,6 +876,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_with_upload_files_role() {
@@ -1014,6 +1022,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_alt_text() {
@@ -1030,6 +1040,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_unsafe_alt_text() {
@@ -1046,6 +1058,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 40861
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_ensure_relative_path() {
@@ -1056,7 +1070,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_body( file_get_contents( $this->test_file ) );
 		$response   = rest_get_server()->dispatch( $request );
 		$attachment = $response->get_data();
-		$this->assertNotContains( ABSPATH, get_post_meta( $attachment['id'], '_wp_attached_file', true ) );
+		$this->assertStringNotContainsString( ABSPATH, get_post_meta( $attachment['id'], '_wp_attached_file', true ) );
 	}
 
 	/**
@@ -1168,6 +1182,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 40399
+	 *
 	 * @covers ::update_item
 	 */
 	public function test_update_item_with_existing_inherit_status() {
@@ -1193,6 +1208,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 40399
+	 *
 	 * @covers ::update_item
 	 */
 	public function test_update_item_with_new_inherit_status() {
@@ -1384,6 +1400,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @dataProvider attachment_roundtrip_provider
+	 * @requires function imagejpeg
 	 */
 	public function test_post_roundtrip_as_author( $raw, $expected ) {
 		wp_set_current_user( self::$author_id );
@@ -1391,6 +1408,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->verify_attachment_roundtrip( $raw, $expected );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	public function test_attachment_roundtrip_as_editor_unfiltered_html() {
 		wp_set_current_user( self::$editor_id );
 		if ( is_multisite() ) {
@@ -1442,6 +1462,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		}
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	public function test_attachment_roundtrip_as_superadmin_unfiltered_html() {
 		wp_set_current_user( self::$superadmin_id );
 		$this->assertTrue( current_user_can( 'unfiltered_html' ) );
@@ -1845,6 +1868,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 43751
 	 * @group multisite
 	 * @group ms-required
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_with_file_exceeds_multisite_max_filesize() {
@@ -1876,6 +1900,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 43751
 	 * @group multisite
 	 * @group ms-required
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_with_data_exceeds_multisite_max_filesize() {
@@ -1898,6 +1923,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 43751
 	 * @group multisite
 	 * @group ms-required
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_with_file_exceeds_multisite_site_upload_space() {
@@ -1929,6 +1955,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 43751
 	 * @group multisite
 	 * @group ms-required
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_with_data_exceeds_multisite_site_upload_space() {
@@ -1952,6 +1979,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * once when attachments are created.
 	 *
 	 * @ticket 45269
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_rest_insert_attachment_hooks_fire_once_on_create() {
@@ -1983,6 +2012,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * once when attachments are updated.
 	 *
 	 * @ticket 45269
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_rest_insert_attachment_hooks_fire_once_on_update() {
@@ -2011,6 +2041,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44567
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_with_meta_values() {
@@ -2049,6 +2081,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::edit_media_item_permissions_check
 	 * @covers ::edit_media_item
 	 */
@@ -2063,6 +2097,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::edit_media_item_permissions_check
 	 * @covers ::edit_media_item
 	 */
@@ -2081,6 +2117,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::edit_media_item_permissions_check
 	 * @covers ::edit_media_item
 	 */
@@ -2096,6 +2134,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 *
 	 * @covers ::edit_media_item_permissions_check
 	 * @covers ::edit_media_item
 	 */
@@ -2111,6 +2150,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::edit_media_item_permissions_check
 	 * @covers ::edit_media_item
 	 */
@@ -2132,6 +2173,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::edit_media_item_permissions_check
 	 * @covers ::edit_media_item
 	 */
@@ -2147,6 +2190,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_rotate() {
@@ -2172,6 +2217,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_crop() {
@@ -2209,8 +2256,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
-	 * @covers ::edit_media_item
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image() {
 		wp_set_current_user( self::$superadmin_id );
@@ -2232,7 +2280,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
 		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
-		$this->assertContains( 'canola', $item['media_details']['parent_image']['file'] );
+		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 
 	/**
@@ -2275,11 +2323,13 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
 		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
-		$this->assertContains( 'canola', $item['media_details']['parent_image']['file'] );
+		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 
 	/**
 	 * @ticket 50565
+	 * @requires function imagejpeg
+	 *
 	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_returns_error_if_mismatched_src() {

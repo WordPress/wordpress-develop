@@ -82,8 +82,6 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 			wp_deregister_script( $library );
 			$this->assertTrue( wp_script_is( $library, 'registered' ) );
 		}
-
-		set_current_screen( 'front' );
 	}
 
 	/**

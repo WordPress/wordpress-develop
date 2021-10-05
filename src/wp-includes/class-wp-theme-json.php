@@ -179,8 +179,12 @@ class WP_Theme_JSON {
 	 * @var array
 	 */
 	const ALLOWED_SETTINGS = array(
+		'border'     => array(
+			'customRadius' => null,
+		),
 		'color'      => array(
 			'custom'         => null,
+			'customDuotone'  => null,
 			'customGradient' => null,
 			'duotone'        => null,
 			'gradients'      => null,
@@ -188,7 +192,10 @@ class WP_Theme_JSON {
 			'palette'        => null,
 		),
 		'custom'     => null,
-		'layout'     => null,
+		'layout'     => array(
+			'contentSize' => null,
+			'wideSize'    => null,
+		),
 		'spacing'    => array(
 			'customMargin'  => null,
 			'customPadding' => null,
@@ -207,6 +214,9 @@ class WP_Theme_JSON {
 	 * @var array
 	 */
 	const ALLOWED_STYLES = array(
+		'border'     => array(
+			'radius' => null,
+		),
 		'color'      => array(
 			'background' => null,
 			'gradient'   => null,
@@ -626,7 +636,7 @@ class WP_Theme_JSON {
 
 		$declaration_block = array_reduce(
 			$declarations,
-			function ( $carry, $element ) {
+			static function ( $carry, $element ) {
 				return $carry .= $element['name'] . ': ' . $element['value'] . ';'; },
 			''
 		);
@@ -1174,7 +1184,7 @@ class WP_Theme_JSON {
 				$theme_settings['settings']['spacing'] = array();
 			}
 			$theme_settings['settings']['spacing']['units'] = ( true === $settings['enableCustomUnits'] ) ?
-				array( 'px', 'em', 'rem', 'vh', 'vw' ) :
+				array( 'px', 'em', 'rem', 'vh', 'vw', '%' ) :
 				$settings['enableCustomUnits'];
 		}
 

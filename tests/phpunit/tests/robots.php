@@ -14,8 +14,8 @@
  */
 class Tests_Robots extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		remove_all_filters( 'wp_robots' );
 	}
@@ -45,7 +45,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	public function test_wp_robots_parses_directives_correctly() {
 		add_filter(
 			'wp_robots',
-			function( array $robots ) {
+			static function( array $robots ) {
 				// Directives that should have values must use strings.
 				$robots['directive-with-value']         = 'yes';
 				$robots['directive-with-numeric-value'] = '1';
@@ -70,7 +70,7 @@ class Tests_Robots extends WP_UnitTestCase {
 		);
 
 		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'{$expected_directives_string}'", $output );
+		$this->assertStringContainsString( "'{$expected_directives_string}'", $output );
 	}
 
 	/**
@@ -85,7 +85,7 @@ class Tests_Robots extends WP_UnitTestCase {
 
 		update_option( 'blog_public', '0' );
 		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'noindex, nofollow'", $output );
+		$this->assertStringContainsString( "'noindex, nofollow'", $output );
 	}
 
 	/**
@@ -96,11 +96,11 @@ class Tests_Robots extends WP_UnitTestCase {
 
 		update_option( 'blog_public', '1' );
 		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'noindex, follow'", $output );
+		$this->assertStringContainsString( "'noindex, follow'", $output );
 
 		update_option( 'blog_public', '0' );
 		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'noindex, nofollow'", $output );
+		$this->assertStringContainsString( "'noindex, nofollow'", $output );
 	}
 
 	/**
@@ -110,7 +110,7 @@ class Tests_Robots extends WP_UnitTestCase {
 		add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
 
 		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'noindex, noarchive'", $output );
+		$this->assertStringContainsString( "'noindex, noarchive'", $output );
 	}
 
 	/**
@@ -121,7 +121,7 @@ class Tests_Robots extends WP_UnitTestCase {
 
 		update_option( 'blog_public', '1' );
 		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'max-image-preview:large'", $output );
+		$this->assertStringContainsString( "'max-image-preview:large'", $output );
 
 		update_option( 'blog_public', '0' );
 		$output = get_echo( 'wp_robots' );
@@ -136,7 +136,7 @@ class Tests_Robots extends WP_UnitTestCase {
 		$this->go_to( home_url( '?s=ticket+52457+core.trac.wordpress.org' ) );
 
 		$output = get_echo( 'wp_robots' );
-		$this->assertContains( 'noindex', $output );
+		$this->assertStringContainsString( 'noindex', $output );
 	}
 
 	/**
@@ -147,7 +147,7 @@ class Tests_Robots extends WP_UnitTestCase {
 		$this->go_to( home_url() );
 
 		$output = get_echo( 'wp_robots' );
-		$this->assertNotContains( 'noindex', $output );
+		$this->assertStringNotContainsString( 'noindex', $output );
 	}
 
 	public function add_noindex_directive( array $robots ) {

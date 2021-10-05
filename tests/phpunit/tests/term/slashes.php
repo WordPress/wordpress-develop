@@ -12,8 +12,8 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 		self::$author_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		wp_set_current_user( self::$author_id );
 

@@ -9,8 +9,8 @@ class Tests_WP extends WP_UnitTestCase {
 	 */
 	protected $wp;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->wp = new WP();
 	}
 

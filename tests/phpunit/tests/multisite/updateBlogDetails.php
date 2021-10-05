@@ -8,7 +8,7 @@ if ( is_multisite() ) :
 	 *
 	 * @covers ::update_blog_details
 	 */
-	class Tests_Multisite_Update_Blog_Details extends WP_UnitTestCase {
+	class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
 		/**
 		 * If `update_blog_details()` is called with any kind of empty arguments, it
 		 * should return false.

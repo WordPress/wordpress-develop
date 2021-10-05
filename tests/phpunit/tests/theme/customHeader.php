@@ -19,8 +19,8 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		self::$header_video_id = $factory->attachment->create_upload_object( $file );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
@@ -29,7 +29,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		wp_dequeue_script( 'wp-custom-header' );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$this->customize_manager = null;
 		unset( $GLOBALS['wp_customize'] );
 
@@ -39,7 +39,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		remove_theme_mod( 'header_video' );
 		remove_theme_mod( 'external_header_video' );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -112,7 +112,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 
 		$html = get_header_image_tag();
 		$this->assertStringStartsWith( '<img ', $html );
-		$this->assertContains( sprintf( 'src="%s"', $default ), $html );
+		$this->assertStringContainsString( sprintf( 'src="%s"', $default ), $html );
 	}
 
 	/**
@@ -142,7 +142,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		set_theme_mod( 'header_image', $custom );
 		$html = get_header_image_tag();
 		$this->assertStringStartsWith( '<img ', $html );
-		$this->assertContains( sprintf( 'src="%s"', $custom ), $html );
+		$this->assertStringContainsString( sprintf( 'src="%s"', $custom ), $html );
 	}
 
 	/**
@@ -172,7 +172,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		$html = get_custom_header_markup();
 		$this->assertTrue( has_custom_header() );
 		$this->assertStringStartsWith( '<div id="wp-custom-header" class="wp-custom-header">', $html );
-		$this->assertContains( sprintf( 'src="%s"', $default ), $html );
+		$this->assertStringContainsString( sprintf( 'src="%s"', $default ), $html );
 	}
 
 	/**

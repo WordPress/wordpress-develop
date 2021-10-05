@@ -4,7 +4,7 @@
  * @group admin
  * @group adminScreen
  */
-class Tests_Admin_includesScreen extends WP_UnitTestCase {
+class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 	public $core_screens = array(
 		'index.php'                            => array(
 			'base'            => 'dashboard',
@@ -155,16 +155,9 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		),
 	);
 
-	function setUp() {
-		parent::setUp();
-		set_current_screen( 'front' );
-	}
-
-	function tearDown() {
+	function tear_down() {
 		unset( $GLOBALS['wp_taxonomies']['old-or-new'] );
-		unset( $GLOBALS['screen'] );
-		unset( $GLOBALS['current_screen'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -336,6 +329,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			'callback' => false,
 		);
 
+		set_current_screen( 'edit.php' );
 		$screen = get_current_screen();
 		$screen->add_help_tab( $tab_args );
 		$this->assertSame(
@@ -403,6 +397,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			// Don't include a priority.
 		);
 
+		set_current_screen( 'edit.php' );
 		$screen = get_current_screen();
 
 		// Add help tabs.
@@ -476,6 +471,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			'option'  => $option,
 		);
 
+		set_current_screen( 'edit.php' );
 		$screen = get_current_screen();
 
 		$screen->add_option( $option, $option_args );
@@ -495,8 +491,6 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 	 * @covers WP_Screen::in_admin
 	 */
 	function test_in_admin() {
-		$screen = get_current_screen();
-
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( get_current_screen()->in_admin() );
 		$this->assertTrue( get_current_screen()->in_admin( 'site' ) );
@@ -520,8 +514,6 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		$this->assertFalse( get_current_screen()->in_admin( 'site' ) );
 		$this->assertFalse( get_current_screen()->in_admin( 'network' ) );
 		$this->assertFalse( get_current_screen()->in_admin( 'user' ) );
-
-		$GLOBALS['current_screen'] = $screen;
 	}
 
 	/**

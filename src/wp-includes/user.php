@@ -1711,9 +1711,10 @@ function validate_username( $username ) {
  * @since 2.0.0
  * @since 3.6.0 The `aim`, `jabber`, and `yim` fields were removed as default user contact
  *              methods for new installations. See wp_get_user_contact_methods().
- * @since 4.7.0 The user's locale can be passed to `$userdata`.
+ * @since 4.7.0 The `locale` field can be passed to `$userdata`.
  * @since 5.3.0 The `user_activation_key` field can be passed to `$userdata`.
  * @since 5.3.0 The `spam` field can be passed to `$userdata` (Multisite only).
+ * @since 5.9.0 The `meta_input` field can be passed to `$userdata` to allow addition of user meta data.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1758,6 +1759,8 @@ function validate_username( $username ) {
  *                                        as a string literal, not boolean. Default 'true'.
  *     @type string $role                 User's role.
  *     @type string $locale               User's locale. Default empty.
+ *     @type array  $meta_input           Array of custom user meta values keyed by meta key.
+ *                                        Default empty.
  * }
  * @return int|WP_Error The newly created user's ID or a WP_Error object if the user could not
  *                      be created.
@@ -2058,6 +2061,8 @@ function wp_insert_user( $userdata ) {
 	 *
 	 * Does not include contact methods. These are added using `wp_get_user_contact_methods( $user )`.
 	 *
+	 * For custom meta fields, see the {@see 'insert_custom_user_meta'} filter.
+	 *
 	 * @since 4.4.0
 	 * @since 5.8.0 The $userdata parameter was added.
 	 *
@@ -2083,6 +2088,28 @@ function wp_insert_user( $userdata ) {
 	 * @param array   $userdata The raw array of data passed to wp_insert_user().
 	 */
 	$meta = apply_filters( 'insert_user_meta', $meta, $user, $update, $userdata );
+
+	$custom_meta = array();
+	if ( array_key_exists( 'meta_input', $userdata ) && is_array( $userdata['meta_input'] ) && ! empty( $userdata['meta_input'] ) ) {
+		$custom_meta = $userdata['meta_input'];
+	}
+
+	/**
+	 * Filters a user's custom meta values and keys immediately after the user is created or updated
+	 * and before any user meta is inserted or updated.
+	 *
+	 * For non-custom meta fields, see the {@see 'insert_user_meta'} filter.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array   $custom_meta Array of custom user meta values keyed by meta key.
+	 * @param WP_User $user        User object.
+	 * @param bool    $update      Whether the user is being updated rather than created.
+	 * @param array   $userdata    The raw array of data passed to wp_insert_user().
+	 */
+	$custom_meta = apply_filters( 'insert_custom_user_meta', $custom_meta, $user, $update, $userdata );
+
+	$meta = array_merge( $meta, $custom_meta );
 
 	// Update user meta.
 	foreach ( $meta as $key => $value ) {
@@ -3459,7 +3486,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 		// Remove items that use reserved names.
 		$extra_data = array_filter(
 			$_extra_data,
-			function( $item ) use ( $reserved_names ) {
+			static function( $item ) use ( $reserved_names ) {
 				return ! in_array( $item['name'], $reserved_names, true );
 			}
 		);
@@ -3676,8 +3703,7 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 
 	/* translators: Do not translate SITENAME, USER_EMAIL, DESCRIPTION, MANAGE_URL, SITEURL; those are placeholders. */
 	$content = __(
-// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
-'Howdy,
+		'Howdy,
 
 A user data privacy request has been confirmed on ###SITENAME###:
 
@@ -3696,9 +3722,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the body of the user request confirmation email.
 	 *
-	 * Use {@see 'user_request_confirmed_email_content'} instead.
-	 *
-	 * The email is sent to an administrator when an user request is confirmed.
+	 * The email is sent to an administrator when a user request is confirmed.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
 	 *
@@ -3708,11 +3732,10 @@ All at ###SITENAME###
 	 * ###MANAGE_URL###  The URL to manage requests.
 	 * ###SITEURL###     The URL to the site.
 	 *
-	 * For fulfillment email content use {@see 'user_erasure_fulfillment_email_content'} instead.
-	 *
 	 * @since 4.9.6
-	 *
-	 * @deprecated 5.8.0 Use {@see 'user_request_confirmed_email_content'} instead. For fulfillment email content use {@see 'user_erasure_fulfillment_email_content'} instead.
+	 * @deprecated 5.8.0 Use {@see 'user_request_confirmed_email_content'} instead.
+	 *                   For user erasure fulfillment email content
+	 *                   use {@see 'user_erasure_fulfillment_email_content'} instead.
 	 *
 	 * @param string $content    The email content.
 	 * @param array  $email_data {
@@ -3720,7 +3743,8 @@ All at ###SITENAME###
 	 *
 	 *     @type WP_User_Request $request     User request object.
 	 *     @type string          $user_email  The email address confirming a request
-	 *     @type string          $description Description of the action being performed so the user knows what the email is for.
+	 *     @type string          $description Description of the action being performed
+	 *                                        so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
 	 *     @type string          $sitename    The site name sending the mail.
 	 *     @type string          $siteurl     The site URL sending the mail.
@@ -3732,7 +3756,7 @@ All at ###SITENAME###
 		array( $content, $email_data ),
 		'5.8.0',
 		sprintf(
-			/* translators: 1 & 2: Deprecation replacement options */
+			/* translators: 1 & 2: Deprecation replacement options. */
 			__( '%1$s or %2$s' ),
 			'user_request_confirmed_email_content',
 			'user_erasure_fulfillment_email_content'
@@ -3742,7 +3766,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the body of the user request confirmation email.
 	 *
-	 * The email is sent to an administrator when an user request is confirmed.
+	 * The email is sent to an administrator when a user request is confirmed.
 	 * The following strings have a special meaning and will get replaced dynamically:
 	 *
 	 * ###SITENAME###    The name of the site.
@@ -3864,10 +3888,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	/**
 	 * Filters the subject of the email sent when an erasure request is completed.
 	 *
-	 * Use {@see 'user_erasure_fulfillment_email_subject'} instead.
-	 *
 	 * @since 4.9.8
-	 *
 	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_subject'} instead.
 	 *
 	 * @param string $subject    The email subject.
@@ -3884,7 +3905,12 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	 *     @type string          $siteurl            The site URL sending the mail.
 	 * }
 	 */
-	$subject = apply_filters_deprecated( 'user_erasure_complete_email_subject', array( $subject, $email_data['sitename'], $email_data ), '5.8.0', 'user_erasure_fulfillment_email_subject' );
+	$subject = apply_filters_deprecated(
+		'user_erasure_complete_email_subject',
+		array( $subject, $email_data['sitename'], $email_data ),
+		'5.8.0',
+		'user_erasure_fulfillment_email_subject'
+	);
 
 	/**
 	 * Filters the subject of the email sent when an erasure request is completed.
@@ -3909,8 +3935,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 
 	/* translators: Do not translate SITENAME, SITEURL; those are placeholders. */
 	$content = __(
-// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
-'Howdy,
+		'Howdy,
 
 Your request to erase your personal data on ###SITENAME### has been completed.
 
@@ -3924,8 +3949,7 @@ All at ###SITENAME###
 	if ( ! empty( $email_data['privacy_policy_url'] ) ) {
 		/* translators: Do not translate SITENAME, SITEURL, PRIVACY_POLICY_URL; those are placeholders. */
 		$content = __(
-// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
-'Howdy,
+			'Howdy,
 
 Your request to erase your personal data on ###SITENAME### has been completed.
 
@@ -3942,9 +3966,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the body of the data erasure fulfillment notification.
 	 *
-	 * Use {@see 'user_erasure_fulfillment_email_content'} instead.
-	 *
-	 * The email is sent to a user when a their data erasure request is fulfilled
+	 * The email is sent to a user when their data erasure request is fulfilled
 	 * by an administrator.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
@@ -3953,11 +3975,10 @@ All at ###SITENAME###
 	 * ###PRIVACY_POLICY_URL### Privacy policy page URL.
 	 * ###SITEURL###            The URL to the site.
 	 *
-	 * For user request confirmation email content use {@see 'user_request_confirmed_email_content'} instead.
-	 *
 	 * @since 4.9.6
-	 *
-	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_content'} instead. For user request confirmation email content use {@see 'user_request_confirmed_email_content'} instead.
+	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_content'} instead.
+	 *                   For user request confirmation email content
+	 *                   use {@see 'user_request_confirmed_email_content'} instead.
 	 *
 	 * @param string $content The email content.
 	 * @param array  $email_data {
@@ -3977,7 +3998,7 @@ All at ###SITENAME###
 		array( $content, $email_data ),
 		'5.8.0',
 		sprintf(
-			/* translators: 1 & 2: Deprecation replacement options */
+			/* translators: 1 & 2: Deprecation replacement options. */
 			__( '%1$s or %2$s' ),
 			'user_erasure_fulfillment_email_content',
 			'user_request_confirmed_email_content'
@@ -3987,7 +4008,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the body of the data erasure fulfillment notification.
 	 *
-	 * The email is sent to a user when a their data erasure request is fulfilled
+	 * The email is sent to a user when their data erasure request is fulfilled
 	 * by an administrator.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
@@ -4022,10 +4043,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the headers of the data erasure fulfillment notification.
 	 *
-	 * Use {@see 'user_erasure_fulfillment_email_headers'} instead.
-	 *
 	 * @since 5.4.0
-	 *
 	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_headers'} instead.
 	 *
 	 * @param string|array $headers    The email headers.
@@ -4044,7 +4062,12 @@ All at ###SITENAME###
 	 *     @type string          $siteurl            The site URL sending the mail.
 	 * }
 	 */
-	$headers = apply_filters_deprecated( 'user_erasure_complete_email_headers', array( $headers, $subject, $content, $request_id, $email_data ), '5.8.0', 'user_erasure_fulfillment_email_headers' );
+	$headers = apply_filters_deprecated(
+		'user_erasure_complete_email_headers',
+		array( $headers, $subject, $content, $request_id, $email_data ),
+		'5.8.0',
+		'user_erasure_fulfillment_email_headers'
+	);
 
 	/**
 	 * Filters the headers of the data erasure fulfillment notification.
@@ -4290,8 +4313,7 @@ function wp_send_user_request( $request_id ) {
 
 	/* translators: Do not translate DESCRIPTION, CONFIRM_URL, SITENAME, SITEURL: those are placeholders. */
 	$content = __(
-// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
-'Howdy,
+		'Howdy,
 
 A request has been made to perform the following action on your account:
 

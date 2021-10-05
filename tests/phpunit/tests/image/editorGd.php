@@ -63,6 +63,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	/**
 	 * Test resizing an image, not using crop
 	 *
+	 * @requires function imagejpeg
+	 *
 	 * @covers WP_Image_Editor_GD::resize
 	 */
 	public function test_resize() {
@@ -84,6 +86,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test multi_resize with single image resize and no crop
+	 *
+	 * @requires function imagejpeg
 	 *
 	 * @covers WP_Image_Editor_GD::multi_resize
 	 */
@@ -198,6 +202,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * Test multi_resize with multiple sizes
 	 *
 	 * @ticket 26823
+	 * @requires function imagejpeg
 	 *
 	 * @covers WP_Image_Editor_GD::multi_resize
 	 */

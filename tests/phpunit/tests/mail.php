@@ -4,14 +4,14 @@
  * @group mail
  */
 class Tests_Mail extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		reset_phpmailer_instance();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -86,8 +86,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 		// We need some better assertions here but these catch the failure for now.
 		$this->assertSameIgnoreEOL( $body, $mailer->get_sent()->body );
-		$this->assertTrue( strpos( iconv_mime_decode_headers( ( $mailer->get_sent()->header ) )['Content-Type'][0], 'boundary="----=_Part_4892_25692638.1192452070893"' ) > 0 );
-		$this->assertTrue( strpos( $mailer->get_sent()->header, 'charset=' ) > 0 );
+		$this->assertStringContainsString( 'boundary="----=_Part_4892_25692638.1192452070893"', iconv_mime_decode_headers( ( $mailer->get_sent()->header ) )['Content-Type'][0] );
+		$this->assertStringContainsString( 'charset=', $mailer->get_sent()->header );
 	}
 
 	/**
@@ -208,7 +208,7 @@ class Tests_Mail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message, $headers );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertTrue( strpos( $mailer->get_sent()->header, $expected ) > 0 );
+		$this->assertStringContainsString( $expected, $mailer->get_sent()->header );
 	}
 
 	/**
@@ -226,7 +226,7 @@ class Tests_Mail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message, $headers );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertTrue( strpos( $mailer->get_sent()->header, $expected ) > 0 );
+		$this->assertStringContainsString( $expected, $mailer->get_sent()->header );
 	}
 
 	/**
@@ -244,7 +244,7 @@ class Tests_Mail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message, $headers );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertTrue( strpos( $mailer->get_sent()->header, $expected ) > 0 );
+		$this->assertStringContainsString( $expected, $mailer->get_sent()->header );
 	}
 
 	/**
@@ -262,7 +262,7 @@ class Tests_Mail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message, $headers );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertTrue( strpos( $mailer->get_sent()->header, $expected ) > 0 );
+		$this->assertStringContainsString( $expected, $mailer->get_sent()->header );
 	}
 
 	/**
@@ -280,7 +280,7 @@ class Tests_Mail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message, $headers );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertTrue( strpos( $mailer->get_sent()->header, $expected ) > 0 );
+		$this->assertStringContainsString( $expected, $mailer->get_sent()->header );
 	}
 
 	/**
@@ -298,7 +298,7 @@ class Tests_Mail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message, $headers );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertTrue( strpos( $mailer->get_sent()->header, $expected ) > 0 );
+		$this->assertStringContainsString( $expected, $mailer->get_sent()->header );
 	}
 
 	/**
@@ -352,7 +352,7 @@ class Tests_Mail extends WP_UnitTestCase {
 			'Content-Type: text/html'
 		);
 
-		$this->assertNotContains( 'quoted-printable', $GLOBALS['phpmailer']->mock_sent[0]['header'] );
+		$this->assertStringNotContainsString( 'quoted-printable', $GLOBALS['phpmailer']->mock_sent[0]['header'] );
 	}
 
 	/**

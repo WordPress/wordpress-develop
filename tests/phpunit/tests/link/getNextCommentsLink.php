@@ -17,7 +17,7 @@ class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
 
 		$link = get_next_comments_link( 'Next', 5 );
 
-		$this->assertContains( 'cpage=4', $link );
+		$this->assertStringContainsString( 'cpage=4', $link );
 
 		set_query_var( 'cpage', $cpage );
 	}
@@ -34,7 +34,7 @@ class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
 
 		$link = get_next_comments_link( 'Next', 5 );
 
-		$this->assertContains( 'cpage=2', $link );
+		$this->assertStringContainsString( 'cpage=2', $link );
 
 		set_query_var( 'cpage', $cpage );
 	}

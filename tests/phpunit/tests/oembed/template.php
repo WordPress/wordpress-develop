@@ -36,8 +36,8 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertFalse( strpos( $actual, 'That embed can&#8217;t be found.' ) );
-		$this->assertNotFalse( strpos( $actual, 'Hello World' ) );
+		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'Hello World', $actual );
 	}
 
 	/**
@@ -71,9 +71,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertFalse( strpos( $actual, 'That embed can&#8217;t be found.' ) );
-		$this->assertNotFalse( strpos( $actual, 'Hello World' ) );
-		$this->assertNotFalse( strpos( $actual, 'canola.jpg' ) );
+		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'Hello World', $actual );
+		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
 
 	/**
@@ -91,7 +91,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertNotFalse( strpos( $actual, 'That embed can&#8217;t be found.' ) );
+		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
 	}
 
 	/**
@@ -121,9 +121,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertFalse( strpos( $actual, 'That embed can&#8217;t be found.' ) );
-		$this->assertNotFalse( strpos( $actual, 'Hello World' ) );
-		$this->assertNotFalse( strpos( $actual, 'canola.jpg' ) );
+		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'Hello World', $actual );
+		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
 
 	/**
@@ -149,7 +149,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertNotFalse( strpos( $actual, 'That embed can&#8217;t be found.' ) );
+		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
 	}
 
 	/**
@@ -162,7 +162,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 				'post_content' => 'Foo Bar',
 				'post_excerpt' => 'Bar Baz',
 				'post_status'  => 'future',
-				'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'    => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 
@@ -176,7 +176,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertNotFalse( strpos( $actual, 'That embed can&#8217;t be found.' ) );
+		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
 	}
 
 	/**
@@ -202,7 +202,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertNotFalse( strpos( $actual, 'That embed can&#8217;t be found.' ) );
+		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
 	}
 
 	/**
@@ -232,8 +232,8 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertFalse( strpos( $actual, 'That embed can&#8217;t be found.' ) );
-		$this->assertNotFalse( strpos( $actual, 'Hello World' ) );
+		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'Hello World', $actual );
 	}
 
 	/**
@@ -354,6 +354,6 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * @ticket 34698
 	 */
 	function test_js_no_ampersands() {
-		$this->assertNotContains( '&', file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' ) );
+		$this->assertStringNotContainsString( '&', file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' ) );
 	}
 }

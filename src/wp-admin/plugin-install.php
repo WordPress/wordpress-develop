@@ -47,6 +47,7 @@ if ( $pagenum > $total_pages && $total_pages > 0 ) {
 	exit;
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Add Plugins' );
 $parent_file = 'plugins.php';
 
@@ -62,8 +63,19 @@ wp_enqueue_script( 'updates' );
 /**
  * Fires before each tab on the Install Plugins screen is loaded.
  *
- * The dynamic portion of the action hook, `$tab`, allows for targeting
- * individual tabs, for instance 'install_plugins_pre_plugin-information'.
+ * The dynamic portion of the hook name, `$tab`, allows for targeting
+ * individual tabs.
+ *
+ * Possible hook names include:
+ *
+ *  - `install_plugins_pre_beta`
+ *  - `install_plugins_pre_favorites`
+ *  - `install_plugins_pre_featured`
+ *  - `install_plugins_pre_plugin-information`
+ *  - `install_plugins_pre_popular`
+ *  - `install_plugins_pre_recommended`
+ *  - `install_plugins_pre_search`
+ *  - `install_plugins_pre_upload`
  *
  * @since 2.7.0
  */
@@ -163,8 +175,19 @@ if ( 'upload' !== $tab ) {
 /**
  * Fires after the plugins list table in each tab of the Install Plugins screen.
  *
- * The dynamic portion of the action hook, `$tab`, allows for targeting
- * individual tabs, for instance 'install_plugins_plugin-information'.
+ * The dynamic portion of the hook name, `$tab`, allows for targeting
+ * individual tabs.
+ *
+ * Possible hook names include:
+ *
+ *  - `install_plugins_beta`
+ *  - `install_plugins_favorites`
+ *  - `install_plugins_featured`
+ *  - `install_plugins_plugin-information`
+ *  - `install_plugins_popular`
+ *  - `install_plugins_recommended`
+ *  - `install_plugins_search`
+ *  - `install_plugins_upload`
  *
  * @since 2.7.0
  *

@@ -50,8 +50,7 @@ jobs:
   # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
   # - Ensures version-controlled files are not modified or deleted.
-  # - todo: Configure Slack notifications for failing scans.
-  php-comatibility:
+  php-compatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}

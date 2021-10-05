@@ -20,7 +20,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class" value="foo-label" />';
 		$hidden = get_comment_id_fields( $p );
-		$this->assertRegExp( '|<p class="form\-submit">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
+		$this->assertMatchesRegularExpression( '|<p class="form\-submit">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
 	}
 
 	public function test_custom_submit_button() {
@@ -37,7 +37,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$form = get_echo( 'comment_form', array( $args, $p ) );
 
 		$button = '<input name="custom-foo-name" type="submit" id="custom-foo-id" class="custom-foo-class" value="custom-foo-label" />';
-		$this->assertContains( $button, $form );
+		$this->assertStringContainsString( $button, $form );
 	}
 
 	public function test_custom_submit_field() {
@@ -55,7 +55,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class" value="foo-label" />';
 		$hidden = get_comment_id_fields( $p );
-		$this->assertRegExp( '|<p class="my\-custom\-submit\-field">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
+		$this->assertMatchesRegularExpression( '|<p class="my\-custom\-submit\-field">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
 	}
 
 	/**
@@ -77,7 +77,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class" value="foo-label" />';
 		$hidden = get_comment_id_fields( $p );
-		$this->assertRegExp( '|<p class="form\-submit">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
+		$this->assertMatchesRegularExpression( '|<p class="form\-submit">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
 	}
 
 	public function filter_comment_form_defaults( $defaults ) {
@@ -104,7 +104,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		remove_filter( 'option_show_comments_cookies_opt_in', '__return_true' );
 
-		$this->assertRegExp( '|<p class="comment\-form\-cookies\-consent">.*?</p>|', $form );
+		$this->assertMatchesRegularExpression( '|<p class="comment\-form\-cookies\-consent">.*?</p>|', $form );
 	}
 
 	/**
@@ -115,7 +115,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$form_with_aria = get_echo( 'comment_form', array( array(), $p ) );
 
-		$this->assertContains( 'aria-describedby="email-notes"', $form_with_aria );
+		$this->assertStringContainsString( 'aria-describedby="email-notes"', $form_with_aria );
 
 		$args = array(
 			'comment_notes_before' => '',
@@ -123,6 +123,6 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$form_without_aria = get_echo( 'comment_form', array( $args, $p ) );
 
-		$this->assertNotContains( 'aria-describedby="email-notes"', $form_without_aria );
+		$this->assertStringNotContainsString( 'aria-describedby="email-notes"', $form_without_aria );
 	}
 }

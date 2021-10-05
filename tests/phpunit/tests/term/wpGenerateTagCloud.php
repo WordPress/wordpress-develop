@@ -85,7 +85,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( '>' . $tags[0]->name . '<', $found );
+		$this->assertStringContainsString( '>' . $tags[0]->name . '<', $found );
 	}
 
 	function test_hide_empty_false_format_array() {
@@ -109,7 +109,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $found );
-		$this->assertContains( '>' . $tags[0]->name . '<', $found[0] );
+		$this->assertStringContainsString( '>' . $tags[0]->name . '<', $found[0] );
 	}
 
 	function test_hide_empty_false_format_list() {
@@ -131,9 +131,9 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertRegExp( "|^<ul class='wp-tag-cloud' role='list'>|", $found );
-		$this->assertRegExp( "|</ul>\n|", $found );
-		$this->assertContains( '>' . $tags[0]->name . '<', $found );
+		$this->assertMatchesRegularExpression( "|^<ul class='wp-tag-cloud' role='list'>|", $found );
+		$this->assertMatchesRegularExpression( "|</ul>\n|", $found );
+		$this->assertStringContainsString( '>' . $tags[0]->name . '<', $found );
 	}
 
 	function test_hide_empty_false_multi() {
@@ -159,7 +159,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		foreach ( $tags as $tag ) {
-			$this->assertContains( '>' . $tag->name . '<', $found );
+			$this->assertStringContainsString( '>' . $tag->name . '<', $found );
 		}
 	}
 
@@ -186,11 +186,11 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertRegExp( "|^<ul class='wp-tag-cloud' role='list'>|", $found );
-		$this->assertRegExp( "|</ul>\n|", $found );
+		$this->assertMatchesRegularExpression( "|^<ul class='wp-tag-cloud' role='list'>|", $found );
+		$this->assertMatchesRegularExpression( "|</ul>\n|", $found );
 
 		foreach ( $tags as $tag ) {
-			$this->assertContains( '>' . $tag->name . '<', $found );
+			$this->assertStringContainsString( '>' . $tag->name . '<', $found );
 		}
 	}
 
@@ -226,8 +226,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'aria-label="' . $term_objects[0]->name . ' (Term has 1 post)"', $actual[0] );
-		$this->assertContains( 'aria-label="' . $term_objects[1]->name . ' (Term has 2 posts)"', $actual[1] );
+		$this->assertStringContainsString( 'aria-label="' . $term_objects[0]->name . ' (Term has 1 post)"', $actual[0] );
+		$this->assertStringContainsString( 'aria-label="' . $term_objects[1]->name . ' (Term has 2 posts)"', $actual[1] );
 	}
 
 	public function test_topic_count_text_callback() {
@@ -257,8 +257,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'aria-label="' . $term_objects[0]->name . ' (1 foo)"', $actual[0] );
-		$this->assertContains( 'aria-label="' . $term_objects[1]->name . ' (2 foo)"', $actual[1] );
+		$this->assertStringContainsString( 'aria-label="' . $term_objects[0]->name . ' (1 foo)"', $actual[0] );
+		$this->assertStringContainsString( 'aria-label="' . $term_objects[1]->name . ' (2 foo)"', $actual[1] );
 	}
 
 	/**

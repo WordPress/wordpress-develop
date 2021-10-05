@@ -4,8 +4,8 @@
  * @group taxonomy
  */
 class Tests_Term_getTerms extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		_clean_term_filters();
 		wp_cache_delete( 'last_changed', 'terms' );

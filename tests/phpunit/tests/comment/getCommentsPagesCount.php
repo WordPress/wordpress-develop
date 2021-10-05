@@ -15,12 +15,12 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * setUp options
 	 */
-	function setUp() {
-		parent::setUp();
-		$this->option_page_comments     = get_option( 'page_comments' );
-		$this->option_comments_per_page = get_option( 'comments_per_page' );
-		$this->option_thread_comments   = get_option( 'thread_comments' );
-		$this->option_posts_per_rss     = get_option( 'posts_per_rss' );
+	function set_up() {
+		parent::set_up();
+		$this->option_page_comments = get_option( 'page_comments' );
+		$this->comments_per_page = get_option( 'comments_per_page' );
+		$this->thread_comments = get_option( 'thread_comments' );
+		$this->option_posts_per_rss = get_option( 'posts_per_rss' );
 
 		update_option( 'page_comments', true );
 	}
@@ -28,12 +28,12 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * tearDown options
 	 */
-	function tearDown() {
+	function tear_down() {
 		update_option( 'page_comments', $this->option_page_comments );
 		update_option( 'comments_per_page', $this->option_comments_per_page );
 		update_option( 'thread_comments', $this->option_thread_comments );
 		update_option( 'posts_per_rss', $this->option_posts_per_rss );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

@@ -10,6 +10,7 @@
 require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/includes/credits.php';
 
+// Used in the HTML title tag.
 $title = __( 'Credits' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
@@ -52,7 +53,7 @@ $credits = wp_credits();
 				);
 				?>
 				<br />
-				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress' ); ?></a>.
+				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php else : ?>
@@ -60,7 +61,7 @@ $credits = wp_credits();
 			<p>
 				<?php _e( 'Want to see your name in lights on this page?' ); ?>
 				<br />
-				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress' ); ?></a>.
+				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php endif; ?>

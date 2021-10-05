@@ -6,9 +6,8 @@
  * @group redirect
  */
 class Tests_Formatting_Redirect extends WP_UnitTestCase {
-
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		add_filter( 'home_url', array( $this, 'home_url' ) );
 	}
 

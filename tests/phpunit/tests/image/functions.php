@@ -10,8 +10,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Setup test fixture
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
@@ -190,18 +190,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_save_image_file
 	 */
 	public function test_wp_save_image_file() {
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
+		$classes = $this->get_image_editor_engine_classes();
 
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
@@ -254,18 +243,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @covers WP_Image_Editor_Imagick::save
 	 */
 	public function test_mime_overrides_filename() {
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
+		$classes = $this->get_image_editor_engine_classes();
 
 		// Test each image editor engine.
 		foreach ( $classes as $class ) {
@@ -299,18 +277,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @covers WP_Image_Editor_Imagick::save
 	 */
 	public function test_inferred_mime_types() {
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
+		$classes = $this->get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -369,18 +336,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$editor2 = wp_get_image_editor( DIR_TESTDATA );
 		$this->assertInstanceOf( 'WP_Error', $editor2 );
 
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
+		$classes = $this->get_image_editor_engine_classes();
 
 		// Then, test with editors.
 		foreach ( $classes as $class ) {
@@ -390,6 +346,28 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->assertInstanceOf( 'WP_Error', $loaded );
 			$this->assertSame( 'error_loading_image', $loaded->get_error_code() );
 		}
+	}
+
+	/**
+	 * Get the available image editor engine class(es).
+	 *
+	 * @return string[] Available image editor classes; empty array when none are avaialble.
+	 */
+	private function get_image_editor_engine_classes() {
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
+
+		foreach ( $classes as $key => $class ) {
+			if ( ! call_user_func( array( $class, 'test' ) ) ) {
+				// If the image editor isn't available, skip it.
+				unset( $classes[ $key ] );
+			}
+		}
+
+		if ( empty( $classes ) ) {
+			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
+		}
+
+		return $classes;
 	}
 
 	/**

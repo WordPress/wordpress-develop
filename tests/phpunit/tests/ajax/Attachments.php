@@ -65,6 +65,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @ticket 36578
+	 * @group ms-excluded
 	 *
 	 * @covers ::wp_ajax_send_attachment_to_editor
 	 */

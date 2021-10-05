@@ -44,8 +44,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		self::delete_user( self::$editor );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
@@ -59,12 +59,12 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->oembed_result_filter_count = 0;
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

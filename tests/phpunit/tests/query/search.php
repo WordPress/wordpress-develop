@@ -9,8 +9,8 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	protected $q;
 	protected $post_type;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->post_type = rand_str( 12 );
 		register_post_type( $this->post_type );
@@ -18,10 +18,10 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		$this->q = new WP_Query();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		unset( $this->q );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function get_search_results( $terms ) {
@@ -261,7 +261,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotRegExp( '|ORDER BY \(CASE[^\)]+\)|', $q->request );
+		$this->assertDoesNotMatchRegularExpression( '|ORDER BY \(CASE[^\)]+\)|', $q->request );
 	}
 
 	/**
@@ -311,7 +311,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		remove_filter( 'posts_search', array( $this, 'filter_posts_search' ) );
 		remove_filter( 'posts_search_orderby', array( $this, 'filter_posts_search' ) );
 
-		$this->assertNotContains( 'posts_search', $q->request );
+		$this->assertStringNotContainsString( 'posts_search', $q->request );
 	}
 
 	/**
