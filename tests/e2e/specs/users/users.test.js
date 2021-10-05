@@ -1,187 +1,187 @@
-import { 
-	visitAdminPage,
+import {
+    visitAdminPage,
 } from "@wordpress/e2e-test-utils";
 
 async function deleteNonCurrentUsers() {
-	await visitAdminPage( 'users.php' );
-	await page.waitForSelector( '#the-list tr' );
+    await visitAdminPage('users.php');
+    await page.waitForSelector('#the-list tr');
 
-	const allUsersRows = await page.$$( '#the-list tr' );
-	if( allUsersRows.length > 1 ) {
-		await page.click( '#cb-select-all-1' );
-		await page.select( '#bulk-action-selector-top', 'delete' );
+    const allUsersRows = await page.$$('#the-list tr');
+    if (allUsersRows.length > 1) {
+        await page.click('#cb-select-all-1');
+        await page.select('#bulk-action-selector-top', 'delete');
 
-		await page.click( '#doaction' );
+        await page.click('#doaction');
 
-		await page.waitForSelector( 'input#submit' );
-		await page.click( 'input#submit' );
+        await page.waitForSelector('input#submit');
+        await page.click('input#submit');
 
-		await page.waitForNavigation();
-	}
+        await page.waitForNavigation();
+    }
 }
 
 async function createBasicUser() {
-	await visitAdminPage( 'user-new.php' );
+    await visitAdminPage('user-new.php');
 
-	// Wait for the username field to appear and focus it
-	const newUsernameField = await page.waitForSelector( 'input#user_login' );
-	await newUsernameField.focus();
+    // Wait for the username field to appear and focus it
+    const newUsernameField = await page.waitForSelector('input#user_login');
+    await newUsernameField.focus();
 
-	// Type the user name and user email
-	await page.keyboard.type( 'testuser' );
-	await page.keyboard.press( 'Tab' );
-	await page.keyboard.type( 'testuser@test.com' );
+    // Type the user name and user email
+    await page.keyboard.type('testuser');
+    await page.keyboard.press('Tab');
+    await page.keyboard.type('testuser@test.com');
 
-	// Add the user
-	await page.click( 'input#createusersub' );
+    // Add the user
+    await page.click('input#createusersub');
 }
 
-async function goToUserProfilePage( username ) {
-	// Wait for the username to appears before focus on it
-	await page.waitForSelector( 'td.column-username' );
+async function goToUserProfilePage(username) {
+    // Wait for the username to appears before focus on it
+    await page.waitForSelector('td.column-username');
 
-	const [ newUserLink ] = await page.$x(
-		`//td[contains( @class, "column-username" )]//a[contains( text(), "${ username }" )]`
-	);
+    const [newUserLink] = await page.$x(
+        `//td[contains( @class, "column-username" )]//a[contains( text(), "${ username }" )]`
+    );
 
-	// Focus on the new user link and move to the edit link
-	newUserLink.focus();
-	await page.keyboard.press( 'Tab' );
+    // Focus on the new user link and move to the edit link
+    newUserLink.focus();
+    await page.keyboard.press('Tab');
 
-	// Click on the edit link
-	await page.keyboard.press( 'Enter' );
+    // Click on the edit link
+    await page.keyboard.press('Enter');
 }
 
-describe( 'Core Users', () => {
-	beforeEach( async () => {
-		await deleteNonCurrentUsers();
-		await createBasicUser();
-	} );
+describe('Core Users', () => {
+    beforeEach(async() => {
+        await deleteNonCurrentUsers();
+        await createBasicUser();
+    });
 
-	it( 'Correctly shows a new added user', async () => {
-		// Wait for two users rows to appear
-		await page.waitForSelector( '#the-list tr + tr' );
+    it('Correctly shows a new added user', async() => {
+        // Wait for two users rows to appear
+        await page.waitForSelector('#the-list tr + tr');
 
-		// Check that the new user is added and shows correctly
-		const newUserLink = await page.$x(
-			`//td[contains( @class, "column-username" )]//a[contains( text(), "testuser" )]`
-		);
-		expect( newUserLink.length ).toBe( 1 );
-	} );
+        // Check that the new user is added and shows correctly
+        const newUserLink = await page.$x(
+            `//td[contains( @class, "column-username" )]//a[contains( text(), "testuser" )]`
+        );
+        expect(newUserLink.length).toBe(1);
+    });
 
-	it( 'Returns the appropriate result when searching for an existing user', async () => {
-		// Wait for the search field to appear and focus it
-		const userSearchInput = await page.waitForSelector( '#user-search-input' );
-		userSearchInput.focus();
+    it('Returns the appropriate result when searching for an existing user', async() => {
+        // Wait for the search field to appear and focus it
+        const userSearchInput = await page.waitForSelector('#user-search-input');
+        userSearchInput.focus();
 
-		// Type the new username in the search input
-		await page.keyboard.type( 'testuser' );
+        // Type the new username in the search input
+        await page.keyboard.type('testuser');
 
-		// Move to the search button and click on it
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Enter' );
-		await page.waitForNavigation();
+        // Move to the search button and click on it
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Enter');
+        await page.waitForNavigation();
 
-		// Check that there is only one user row
-		const allUsersRows = await page.$$( '#the-list tr' );
-		expect( allUsersRows.length ).toBe( 1 );
-		
-		// Check that the remaining user is "testuser"
-		const foundUserRow = await page.waitForSelector( '#the-list td.column-username a' );
-		expect(
-			await foundUserRow.evaluate( ( element ) => element.innerText )
-		).toContain( 'testuser' );
-	} );
+        // Check that there is only one user row
+        const allUsersRows = await page.$$('#the-list tr');
+        expect(allUsersRows.length).toBe(1);
 
-	it( 'Should return No users found. when searching for a user that does not exist', async () => {
-		// Wait for the search field to appear and focus it
-		const userSearchInput = await page.waitForSelector( '#user-search-input' );
-		userSearchInput.focus();
+        // Check that the remaining user is "testuser"
+        const foundUserRow = await page.waitForSelector('#the-list td.column-username a');
+        expect(
+            await foundUserRow.evaluate((element) => element.innerText)
+        ).toContain('testuser');
+    });
 
-		// Type the new username in the search input
-		await page.keyboard.type( 'nonexistinguser' );
+    it('Should return No users found. when searching for a user that does not exist', async() => {
+        // Wait for the search field to appear and focus it
+        const userSearchInput = await page.waitForSelector('#user-search-input');
+        userSearchInput.focus();
 
-		// Move to the search button and click on it
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Enter' );
-		await page.waitForNavigation();
+        // Type the new username in the search input
+        await page.keyboard.type('nonexistinguser');
 
-		// Check that there is only one user row
-		const allUsersRows = await page.$$( '#the-list tr.no-items' );
-		expect( allUsersRows.length ).toBe( 1 );
-		
-		// Check that the remaining row contains "No users found."
-		const notFoundUserRow = await page.waitForSelector( '#the-list tr.no-items' );
-		expect(
-			await notFoundUserRow.evaluate( ( element ) => element.innerText )
-		).toContain( 'No users found.' );
-	} );
+        // Move to the search button and click on it
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Enter');
+        await page.waitForNavigation();
 
-	it( 'Correctly edit a user first and last names', async () => {
-		await goToUserProfilePage( "testuser" );
+        // Check that there is only one user row
+        const allUsersRows = await page.$$('#the-list tr.no-items');
+        expect(allUsersRows.length).toBe(1);
 
-		// Wait for the user first name input to appears
-		await page.waitForSelector( 'input#first_name' );
-		
-		// Focus on the user first name input field
-		await page.focus( 'input#first_name' );
+        // Check that the remaining row contains "No users found."
+        const notFoundUserRow = await page.waitForSelector('#the-list tr.no-items');
+        expect(
+            await notFoundUserRow.evaluate((element) => element.innerText)
+        ).toContain('No users found.');
+    });
 
-		// Edit the user first and last names
-		await page.keyboard.type( 'Test' );
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.type( 'User' );
+    it('Correctly edit a user first and last names', async() => {
+        await goToUserProfilePage("testuser");
 
-		// Focus on the submit button and save the changes
-		await page.focus( 'input#submit' );
-		await page.keyboard.press( 'Enter' );
+        // Wait for the user first name input to appears
+        await page.waitForSelector('input#first_name');
 
-		// Wait for the success notice message to show
-		await page.waitForSelector( '#message' );
+        // Focus on the user first name input field
+        await page.focus('input#first_name');
 
-		// Go back to the users list page
-		await visitAdminPage( 'users.php' );
+        // Edit the user first and last names
+        await page.keyboard.type('Test');
+        await page.keyboard.press('Tab');
+        await page.keyboard.type('User');
 
-		// Check that the new user complete name is "Test User"
-		const editedUserFullName = await page.$x(
-			`//td[contains( @class, "column-name" )][contains( text(), "Test User" )]`
-		);
-		expect( editedUserFullName.length ).toBe( 1 );
-	} );
+        // Focus on the submit button and save the changes
+        await page.focus('input#submit');
+        await page.keyboard.press('Enter');
 
-	it( 'Correctly changes the role of a user', async () => {
-		await goToUserProfilePage( "testuser" );
+        // Wait for the success notice message to show
+        await page.waitForSelector('#message');
 
-		// Wait for the role field to appears
-		await page.waitForSelector( 'select#role' );
+        // Go back to the users list page
+        await visitAdminPage('users.php');
 
-		// Change the user role to author
-		await page.select( 'select#role', 'author' );
+        // Check that the new user complete name is "Test User"
+        const editedUserFullName = await page.$x(
+            `//td[contains( @class, "column-name" )][contains( text(), "Test User" )]`
+        );
+        expect(editedUserFullName.length).toBe(1);
+    });
 
-		// Focus on the submit button and save the changes
-		await page.focus( 'input#submit' );
-		await page.keyboard.press( 'Enter' );
+    it('Correctly changes the role of a user', async() => {
+        await goToUserProfilePage("testuser");
 
-		// Wait for the success notice message to show
-		await page.waitForSelector( '#message' );
+        // Wait for the role field to appears
+        await page.waitForSelector('select#role');
 
-		// Go back to the users list page
-		await visitAdminPage( 'users.php' );
+        // Change the user role to author
+        await page.select('select#role', 'author');
 
-		// Check that the new user role name is "author"
-		const editedUserRole = await page.$x(
-			`//td[contains( @class, "column-role" )][contains( text(), "Author" )]`
-		);
-		expect( editedUserRole.length ).toBe( 1 );
-	} );
+        // Focus on the submit button and save the changes
+        await page.focus('input#submit');
+        await page.keyboard.press('Enter');
 
-	it( 'Should not allows the main admin user to change their role', async () => {
-		await goToUserProfilePage( "admin" );
-		await page.waitForNavigation();
+        // Wait for the success notice message to show
+        await page.waitForSelector('#message');
 
-		// Check that there is no field to change the admin role
-		const changeUserRoleField = await page.$x(
-			`//select[contains( @id, "role" )]`
-		);
-		expect( changeUserRoleField.length ).toBe( 0 );
-	} );
-} );
+        // Go back to the users list page
+        await visitAdminPage('users.php');
+
+        // Check that the new user role name is "author"
+        const editedUserRole = await page.$x(
+            `//td[contains( @class, "column-role" )][contains( text(), "Author" )]`
+        );
+        expect(editedUserRole.length).toBe(1);
+    });
+
+    it('Should not allows the main admin user to change their role', async() => {
+        await goToUserProfilePage("admin");
+        await page.waitForNavigation();
+
+        // Check that there is no field to change the admin role
+        const changeUserRoleField = await page.$x(
+            `//select[contains( @id, "role" )]`
+        );
+        expect(changeUserRoleField.length).toBe(0);
+    });
+});
