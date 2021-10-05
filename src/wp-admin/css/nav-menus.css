@@ -293,7 +293,6 @@ input.bulk-select-switcher:focus + .bulk-select-button-label{
 
 .nav-menus-php #post-body-content .post-body-plain {
 	margin-bottom: 0;
-	padding: 0.1em 0;
 }
 
 #menu-management .menu-add-new abbr {
@@ -741,6 +740,10 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 /* Menu editing */
 .menu-instructions-inactive {
 	display: none;
+}
+
+#menu-instructions {
+	padding: 0.1em 0;
 }
 
 .menu-item-settings {
