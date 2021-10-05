@@ -89,7 +89,7 @@ describe('Core Users', () => {
         // Check that the remaining user is "testuser"
         const foundUserRow = await page.waitForSelector('#the-list td.column-username a');
         expect(
-            await foundUserRow.evaluate((element) => element.innerText)
+            await foundUserRow.evaluate((element) => element.textContent)
         ).toContain('testuser');
     });
 
@@ -113,7 +113,7 @@ describe('Core Users', () => {
         // Check that the remaining row contains "No users found."
         const notFoundUserRow = await page.waitForSelector('#the-list tr.no-items');
         expect(
-            await notFoundUserRow.evaluate((element) => element.innerText)
+            await notFoundUserRow.evaluate((element) => element.textContent)
         ).toContain('No users found.');
     });
 
