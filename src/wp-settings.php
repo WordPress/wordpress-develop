@@ -320,7 +320,7 @@ require ABSPATH . WPINC . '/block-supports/layout.php';
 require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
 
-// Loading IndexNow specific files. 
+// Loading IndexNow specific files.
 require ABSPATH . WPINC . '/indexnow.php';
 require ABSPATH . WPINC . '/indexnow/class-wp-indexnow.php';
 require ABSPATH . WPINC . '/indexnow/class-wp-indexnow-provider.php';
@@ -596,10 +596,16 @@ if ( is_multisite() ) {
  * Adding IndexNow complaint search engine endpoints if enabled.
  */
 
-if( defined( 'WP_INDEXNOW' ) && true == WP_INDEXNOW) {
-	  define( 'WP_INDEXNOW_PROVIDERS', array(
-		'bing' => 'https://www.bing.com' ,
-	) );
+if ( defined( 'WP_INDEXNOW' ) && true == WP_INDEXNOW ) {
+	define(
+		'WP_INDEXNOW_PROVIDERS',
+		serialize(
+			array(
+				'bing'   => 'https://www.bing.com',
+				'yandex' => 'https://yandex.com',
+			)
+		)
+	);
 	$wp_indexnow->init_search_engines();
 }
 

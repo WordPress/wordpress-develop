@@ -17,10 +17,10 @@
 
 class WP_IndexNow {
 
-	public const WP_IN_PREFIX = 'wp_indexnow_' ;
-	public const WP_IN_KEY_SET = self::WP_IN_PREFIX . 'key_set' ;
-	public const WP_IN_API_KEY = self::WP_IN_PREFIX . 'api_key' ;
-	public const WP_IN_ENABLED = 'blog_public' ;
+	const WP_IN_PREFIX  = 'wp_indexnow_';
+	const WP_IN_KEY_SET = self::WP_IN_PREFIX . 'key_set';
+	const WP_IN_API_KEY = self::WP_IN_PREFIX . 'api_key';
+	const WP_IN_ENABLED = 'blog_public';
 
 	/**
 	 * Array to store the instances of available indexnow complaint search engines.
@@ -55,8 +55,8 @@ class WP_IndexNow {
 	 * @since 5.9.0
 	 */
 	public function __construct() {
-		$this->excluded_paths = array();
-		$this->search_engines = array();
+		$this->excluded_paths        = array();
+		$this->search_engines        = array();
 		$this->key_refresh_timestamp = date_timestamp_get( date_create() );
 	}
 
@@ -64,7 +64,7 @@ class WP_IndexNow {
 	 * Checks if IndexNow is enabled.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 * @return bool Whether IndexNow is enabled or not.
 	 */
 	public function wp_indexnow_enabled() {
@@ -97,14 +97,14 @@ class WP_IndexNow {
 	 * Add the subpath to be ignored.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 */
-	public function ignore_path($exclude) {
-		if ( ! $this->wp_indexnow_enabled() || in_array( $exclude, $this->excluded_paths )) {
+	public function ignore_path( $exclude ) {
+		if ( ! $this->wp_indexnow_enabled() || in_array( $exclude, $this->excluded_paths ) ) {
 			return false;
 		}
-		
-		array_push( $this->excluded_paths , $exclude ); 
+
+		array_push( $this->excluded_paths, $exclude );
 		return true;
 	}
 
@@ -112,24 +112,26 @@ class WP_IndexNow {
 	 * Remove the subpath from excluded array.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 */
 	public function remove_path( $path ) {
-		if ( ! $this->wp_indexnow_enabled()) {
+		if ( ! $this->wp_indexnow_enabled() ) {
 			return false;
 		}
-		
-		$idx = array_search( $this->excluded_paths , $path );
-		if ( $idx !== false ) return false;
+
+		$idx = array_search( $this->excluded_paths, $path );
+		if ( $idx !== false ) {
+			return false;
+		}
 		array_splice( $this->excluded_paths, $idx, $idx );
 		return true;
 	}
-	
+
 	/**
 	 * Returns the current IndexNow key.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 * @return string Current IndexNow key.
 	 */
 	public function get_api_key() {
@@ -138,8 +140,8 @@ class WP_IndexNow {
 		}
 
 		$this->refresh_indexnow_key_if_expired();
-		$admin_api_key    = get_option( self::WP_IN_API_KEY );
-		$api_key = base64_decode( $admin_api_key );
+		$admin_api_key = get_option( self::WP_IN_API_KEY );
+		$api_key       = base64_decode( $admin_api_key );
 		return $api_key;
 	}
 
@@ -148,14 +150,16 @@ class WP_IndexNow {
 	 * of complaint search engines from WP_INDEXNOW_PROVIDERS.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 */
 	public function init_search_engines() {
 
-		if( !defined( 'WP_INDEXNOW_PROVIDERS' ) || !$this->wp_indexnow_enabled() ) return;
-		$providers = WP_INDEXNOW_PROVIDERS;
-		foreach( $providers as $name => $url) {
-			if( $name != null && $url != null ) {
+		if ( ! defined( 'WP_INDEXNOW_PROVIDERS' ) || ! $this->wp_indexnow_enabled() ) {
+			return;
+		}
+		$providers = unserialize( WP_INDEXNOW_PROVIDERS );
+		foreach ( $providers as $name => $url ) {
+			if ( $name !== null && $url !== null ) {
 				$this->search_engines[ $name ] = new WP_IndexNow_Provider( $url );
 			}
 		}
@@ -165,19 +169,18 @@ class WP_IndexNow {
 	 * Generates the IndexNow api key and stores it in options on init.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 */
 	private function generate_indexnow_key() {
 		$api_key = wp_generate_uuid4();
-		$api_key = preg_replace('[-]', '', $api_key);
+		$api_key = preg_replace( '[-]', '', $api_key );
 
-		
 		$is_key_set = get_option( self::WP_IN_KEY_SET );
 		if ( ! $is_key_set ) {
 			error_log( $api_key );
 
-			update_option( self::WP_IN_API_KEY , base64_encode( $api_key ) );
-			update_option( self::WP_IN_KEY_SET , true );
+			update_option( self::WP_IN_API_KEY, base64_encode( $api_key ) );
+			update_option( self::WP_IN_KEY_SET, true );
 			$this->key_refresh_timestamp = date_timestamp_get( date_create() );
 		}
 	}
@@ -186,14 +189,14 @@ class WP_IndexNow {
 	 * Regenerates the IndexNow api key if expired.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 */
 	private function refresh_indexnow_key_if_expired() {
-		$current_timestamp = date_timestamp_get( date_create() );
+		$current_timestamp    = date_timestamp_get( date_create() );
 		$time_elapsed_in_days = ( $current_timestamp - $this->key_refresh_timestamp ) / ( 60 * 60 * 24 );
-		
+
 		//refreshing key after 7 days
-		if( $time_elapsed_in_days  >= 7 ) {
+		if ( $time_elapsed_in_days >= 7 ) {
 			$this->refresh_indexnow_key();
 			$this->key_refresh_timestamp = $current_timestamp;
 		}
@@ -204,15 +207,15 @@ class WP_IndexNow {
 	 * Refreshes the IndexNow api key and updates it in options.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 * @return string|null
 	 */
 	public function refresh_indexnow_key() {
 		if ( ! $this->wp_indexnow_enabled() ) {
 			return null;
 		}
-		
-		update_option( self::WP_IN_KEY_SET , false );
+
+		update_option( self::WP_IN_KEY_SET, false );
 		$this->generate_indexnow_key();
 		return $this->get_api_key();
 	}
@@ -221,21 +224,21 @@ class WP_IndexNow {
 	 *  Renders the IndexNow page for path site_url/{apikey}.txt.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 */
 	public function check_for_indexnow_page() {
 		$admin_api_key = get_option( self::WP_IN_API_KEY );
 		$api_key       = base64_decode( $admin_api_key );
 		global $wp;
 		$current_url = home_url( $wp->request );
-		
-		if( isset($current_url) &&  $current_url === trailingslashit(get_home_url()) . $api_key . '.txt' ){
-			header('Content-Type: text/plain');
-			header('X-Robots-Tag: noindex');
+
+		if ( isset( $current_url ) && $current_url === trailingslashit( get_home_url() ) . $api_key . '.txt' ) {
+			header( 'Content-Type: text/plain' );
+			header( 'X-Robots-Tag: noindex' );
 			status_header( 200 );
-			echo  $api_key;
-		
-        	exit();
+			echo $api_key;
+
+			exit();
 		}
 	}
 
@@ -243,20 +246,20 @@ class WP_IndexNow {
 	 *  Checks if the regex $pattern satisfies $original_string .
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 * @return bool
 	 */
-	public function starts_with($original_string, $pattern) {
-		$home_url_len = strlen(get_home_url());
-		$path = substr($original_string, $home_url_len);
-		return preg_match($pattern, $path);
+	public function starts_with( $original_string, $pattern ) {
+		$home_url_len = strlen( get_home_url() );
+		$path         = substr( $original_string, $home_url_len );
+		return preg_match( $pattern, $path );
 	}
-    
+
 	/**
 	 *  Submits the relevant updated post to the complaint search engines.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 */
 	public function on_post_published( $new_status, $old_status, $post ) {
 		remove_action( 'transition_post_status', array( $this, 'on_post_published' ), 1, 3 );
@@ -268,7 +271,7 @@ class WP_IndexNow {
 		if ( $old_status === 'publish' && $new_status === 'publish' ) {
 			$is_change = true;
 			$type      = 'update';
-		} elseif ( $old_status != 'publish' && $new_status === 'publish' ) {
+		} elseif ( $old_status !== 'publish' && $new_status === 'publish' ) {
 			$is_change = true;
 			$type      = 'add';
 		} elseif ( $old_status === 'publish' && $new_status === 'trash' ) {
@@ -280,8 +283,8 @@ class WP_IndexNow {
 			$api_key = base64_decode( $admin_api_key );
 			if ( isset( $post ) && $post->post_name !== $api_key ) {
 				$link = get_permalink( $post->ID );
-				foreach($this->excluded_paths as $path ) {
-					if( $this->starts_with($link, $path) ) {
+				foreach ( $this->excluded_paths as $path ) {
+					if ( $this->starts_with( $link, $path ) ) {
 						// error_log( 'path is exluded ' . $link );
 						return;
 					}
@@ -291,7 +294,7 @@ class WP_IndexNow {
 					$link = substr( $link, 0, strlen( $link ) - 10 ) . '/';
 				}
 
-				if ( empty( $link ) ) {	
+				if ( empty( $link ) ) {
 					add_action( 'transition_post_status', array( $this, 'on_post_published' ), 1, 3 );
 					return;
 				}
@@ -304,13 +307,13 @@ class WP_IndexNow {
 				}
 
 				$siteUrl = get_home_url();
-				
+
 				$engine_status_codes = array();
 				foreach ( $this->search_engines as $name => $engine ) {
 
 					$output                       = $engine->submit_url( $siteUrl, $link, $api_key );
 					$engine_status_codes[ $name ] = $output;
-					// error_log( 'status message ' . $output );
+					//error_log( $name . ' status message ' . $output );
 				}
 			}
 		}

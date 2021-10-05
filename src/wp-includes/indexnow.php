@@ -19,7 +19,7 @@
  */
 function wp_indexnow_get_instance() {
 	global $wp_indexnow;
-	// error_log( __METHOD__ );
+
 	// If there isn't a global instance, set and bootstrap the indexnow system.
 	if ( empty( $wp_indexnow ) && defined( 'WP_INDEXNOW' ) && true == WP_INDEXNOW ) {
 		$wp_indexnow = new WP_IndexNow();
@@ -52,7 +52,7 @@ function wp_indexnow_regenerate_key() {
 function wp_indexnow_get_api_key() {
 	$wp_indexnow = wp_indexnow_get_instance();
 
-	return $wp_indexnow->get_api_key(); 
+	return $wp_indexnow->get_api_key();
 }
 
 
@@ -61,7 +61,7 @@ function wp_indexnow_get_api_key() {
  *
  * @example for all urls under /abc/, i.e, <site_url>/abc/*
  * pass regex '/\/^abc\//' in below function.
- * 
+ *
  * @since 5.9.0
  *
  * @return bool.
@@ -69,7 +69,7 @@ function wp_indexnow_get_api_key() {
 function wp_indexnow_ignore_path( $path ) {
 	$wp_indexnow = wp_indexnow_get_instance();
 
-	return $wp_indexnow->ignore_path( $path ); 
+	return $wp_indexnow->ignore_path( $path );
 }
 
 /**
@@ -82,5 +82,5 @@ function wp_indexnow_ignore_path( $path ) {
 function wp_indexnow_remove_path( $path ) {
 	$wp_indexnow = wp_indexnow_get_instance();
 
-	return $wp_indexnow->remove_path( $path ); 
+	return $wp_indexnow->remove_path( $path );
 }

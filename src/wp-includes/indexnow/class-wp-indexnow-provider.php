@@ -18,15 +18,16 @@
 class WP_IndexNow_Provider {
 
 	private $search_engine_url;
-	private const SUBMIT_API_PATH = '/indexnow/';
-	private const HOST            = 'host';
-	private const KEY             = 'key';
-	private const URL_LIST        = 'urlList';
-	private const BODY            = 'body';
-	private const HEADERS         = 'headers';
-	private const CONTENT_TYPE    = 'Content-Type';
-	private const KEY_LOCATION    = 'keyLocation';
-	
+	const SUBMIT_API_PATH = '/indexnow/';
+	const HOST            = 'host';
+	const KEY             = 'key';
+	const URL_LIST        = 'urlList';
+	const BODY            = 'body';
+	const HEADERS         = 'headers';
+	const CONTENT_TYPE    = 'Content-Type';
+	const KEY_LOCATION    = 'keyLocation';
+	const HTTP            = 'http://';
+	const HTTPS           = 'https://';
 	/**
 	 * WP_IndexNow_Provider constructor.
 	 *
@@ -37,29 +38,44 @@ class WP_IndexNow_Provider {
 	}
 
 	/**
+	 * Removes scheme/protocol from thr url.
+	 *
+	 * @since 5.9.0
+	 */
+	private function remove_scheme( $url ) {
+		if ( substr( $url, 0, 7 ) === self::HTTP ) {
+			return substr( $url, 7 );
+		}
+		if ( substr( $url, 0, 8 ) === self::HTTPS ) {
+			return substr( $url, 8 );
+		}
+		return $url;
+	}
+
+	/**
 	 * Submits the url to search engine.
 	 *
 	 * @since 5.9.0
-	 * 
+	 *
 	 * @return string returns response message appropriately.
 	 */
-	public function submit_url( $siteUrl, $url, $api_key ) {
+	public function submit_url( $site_url, $url, $api_key ) {
 		$data = json_encode(
 			array(
-				self::HOST     => $siteUrl,
-				self::KEY      => $api_key,
-				self::KEY_LOCATION => trailingslashit($siteUrl) . $api_key.'.txt',
-				self::URL_LIST => array( $url ),
+				self::HOST         => $this->remove_scheme( $site_url ),
+				self::KEY          => $api_key,
+				self::KEY_LOCATION => trailingslashit( $site_url ) . $api_key . '.txt',
+				self::URL_LIST     => array( $url ),
 			)
 		);
 
-		$response = wp_remote_post(
-			$this->search_engine_url . self::SUBMIT_API_PATH,
-			array(
-				self::BODY    => $data,
-				self::HEADERS => array( self::CONTENT_TYPE => 'application/json' ),
-			)
-		);
+			$response = wp_remote_post(
+				$this->search_engine_url . self::SUBMIT_API_PATH,
+				array(
+					self::BODY    => $data,
+					self::HEADERS => array( self::CONTENT_TYPE => 'application/json' ),
+				)
+			);
 
 		if ( is_wp_error( $response ) ) {
 			return 'error:WP_Error';
