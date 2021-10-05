@@ -31,6 +31,6 @@ class Tests_Indexnow_WP_Indexnow_Provider extends WP_UnitTestCase {
 			)
 		);
 		$result    = $provider->submit_url( get_home_url(), get_permalink( $test_post->ID ), $api_key );
-		$this->assertTrue( $result === 'success', $result );
+		$this->assertTrue( 'success' === $result, $result );
 	}
 }

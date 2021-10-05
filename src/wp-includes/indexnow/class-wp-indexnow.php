@@ -120,7 +120,7 @@ class WP_IndexNow {
 		}
 
 		$idx = array_search( $this->excluded_paths, $path );
-		if ( $idx !== false ) {
+		if ( false !== $idx ) {
 			return false;
 		}
 		array_splice( $this->excluded_paths, $idx, $idx );
@@ -159,7 +159,7 @@ class WP_IndexNow {
 		}
 		$providers = unserialize( WP_INDEXNOW_PROVIDERS );
 		foreach ( $providers as $name => $url ) {
-			if ( $name !== null && $url !== null ) {
+			if ( null !== $name && null !== $url ) {
 				$this->search_engines[ $name ] = new WP_IndexNow_Provider( $url );
 			}
 		}
@@ -232,7 +232,7 @@ class WP_IndexNow {
 		global $wp;
 		$current_url = home_url( $wp->request );
 
-		if ( isset( $current_url ) && $current_url === trailingslashit( get_home_url() ) . $api_key . '.txt' ) {
+		if ( isset( $current_url ) && trailingslashit( get_home_url() ) . $api_key . '.txt' === $current_url ) {
 			header( 'Content-Type: text/plain' );
 			header( 'X-Robots-Tag: noindex' );
 			status_header( 200 );
@@ -268,13 +268,13 @@ class WP_IndexNow {
 		$is_valid_api_key = get_option( self::WP_IN_KEY_SET );
 		$is_change        = false;
 		$type             = 'add';
-		if ( $old_status === 'publish' && $new_status === 'publish' ) {
+		if ( 'publish' === $old_status && 'publish' === $new_status ) {
 			$is_change = true;
 			$type      = 'update';
-		} elseif ( $old_status !== 'publish' && $new_status === 'publish' ) {
+		} elseif ( 'publish' !== $old_status && 'publish' === $new_status ) {
 			$is_change = true;
 			$type      = 'add';
-		} elseif ( $old_status === 'publish' && $new_status === 'trash' ) {
+		} elseif ( 'publish' === $old_status && 'trash' === $new_status ) {
 			$is_change = true;
 			$type      = 'delete';
 		}
