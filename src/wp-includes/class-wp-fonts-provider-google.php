@@ -108,7 +108,7 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 		$css            = get_site_transient( $transient_name );
 
 		// Get remote response and cache the CSS if it hasn't been cached already.
-		if ( ! $css ) {
+		if ( false === $css ) {
 			// Get the remote URL contents.
 			$response = wp_remote_get(
 				$remote_url,
@@ -119,7 +119,8 @@ final class WP_Fonts_Provider_Google extends WP_Fonts_Provider {
 			);
 
 			// Early return if the request failed.
-			if ( is_wp_error( $response ) ) {
+			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+				set_site_transient( $transient_name, '', 60 );
 				return '';
 			}
 
