@@ -9,157 +9,55 @@
  */
 
 /**
- * Register a webfont's stylesheet and generate CSS rules for it.
- *
- * @see WP_Dependencies::add()
- * @link https://www.w3.org/TR/CSS2/media.html#media-types List of CSS media types.
+ * Registers a font-collection.
  *
  * @since 5.9.0
  *
- * @param string           $handle Name of the webfont. Should be unique.
- * @param string|bool      $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
- * @param array            $params Optional. An array of parameters. Default empty array.
- * @param string|bool|null $ver    Optional. String specifying stylesheet version number, if it has one, which is added to the URL
- *                                 as a query string for cache busting purposes. If version is set to false, a version
- *                                 number is automatically added equal to current installed WordPress version.
- *                                 If set to null, no version is added.
- * @param string           $media  Optional. The media for which this stylesheet has been defined.
- *                                 Default 'screen'. Accepts media types like 'all', 'print' and 'screen', or media queries like
- *                                 '(orientation: portrait)' and '(max-width: 640px)'.
- * @return bool Whether the style has been registered. True on success, false on failure.
+ * @param array $fonts An array of fonts to be registered.
  */
-function wp_register_webfont( $handle = '', $src = '', $params = array(), $ver = null, $media = 'screen' ) {
-
-	// Generate handle if not provided.
-	if ( empty( $handle && ! empty( $params ) ) ) {
-		$handle = md5( json_encode( $params ) );
+function wp_register_font_collection( $fonts ) {
+	// Get the stylesheet handle.
+	$stylesheet_handle = 'webfonts';
+	$hook              = 'wp_enqueue_scripts';
+	if ( did_action( 'wp_enqueue_scripts' ) ) {
+		$stylesheet_handle = 'webfonts-footer';
+		$hook              = 'wp_print_footer_scripts';
 	}
 
-	// Early return if there is no handle.
-	if ( empty( $handle ) ) {
-		return;
-	}
+	add_action(
+		$hook,
+		function() use ( $stylesheet_handle, $fonts ) {
+			// Generate the styles.
+			$styles = wp_webfonts_collection_generate_styles( $fonts );
 
-	// Register the stylesheet.
-	$result = wp_register_style( "webfont-$handle", $src, array(), $ver, $media );
+			// Enqueue the stylesheet.
+			wp_register_style( $stylesheet_handle, '' );
+			wp_enqueue_style( $stylesheet_handle );
 
-	// Add inline styles for generated @font-face styles.
-	$inline_styles = wp_webfont_generate_styles( $params );
-	if ( $inline_styles ) {
-		wp_add_inline_style( "webfont-$handle", $inline_styles );
-	}
-
-	// Add preconnect links for external webfonts.
-	_wp_webfont_add_preconnect_links( $params );
-
-	return $result;
+			// Add the styles to the stylesheet.
+			wp_add_inline_style( $stylesheet_handle, $styles );
+		}
+	);
 }
 
 /**
- * Remove a registered webfont.
- *
- * @see WP_Dependencies::remove()
+ * Generate styles for a webfonts collection.
  *
  * @since 5.9.0
  *
- * @param string $handle Name of the webfont to be removed.
+ * @param array $fonts An array of webfonts.
+ *
+ * @return string The generated styles.
  */
-function wp_deregister_webfont( $handle ) {
-	wp_deregister_style( "webfont-$handle" );
-}
+function wp_webfonts_collection_generate_styles( $fonts ) {
+	$styles = '';
+	foreach ( $fonts as $font ) {
+		$styles .= wp_webfont_generate_styles( $font );
 
-/**
- * Enqueue a webfont's CSS stylesheet and generate CSS rules for it.
- *
- * Registers the style if source provided (does NOT overwrite) and enqueues.
- *
- * @see WP_Dependencies::add()
- * @see WP_Dependencies::enqueue()
- * @link https://www.w3.org/TR/CSS2/media.html#media-types List of CSS media types.
- *
- * @since 5.9.0
- *
- * @param string           $handle Name of the webfont. Should be unique.
- * @param string           $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
- *                                 Default empty.
- * @param array            $params Optional. An array of parameters. Default empty array.
- * @param string|bool|null $ver    Optional. String specifying stylesheet version number, if it has one, which is added to the URL
- *                                 as a query string for cache busting purposes. If version is set to false, a version
- *                                 number is automatically added equal to current installed WordPress version.
- *                                 If set to null, no version is added.
- * @param string           $media  Optional. The media for which this stylesheet has been defined.
- *                                 Default 'screen'. Accepts media types like 'all', 'print' and 'screen', or media queries like
- *                                 '(orientation: portrait)' and '(max-width: 640px)'.
- */
-function wp_enqueue_webfont( $handle = '', $src = '', $params = array(), $ver = null, $media = 'screen' ) {
-	if ( $src || ! empty( $params ) ) {
-		wp_register_webfont( $handle, $src, $params, $ver, $media );
+		// Add preconnect links for external webfonts.
+		_wp_webfont_add_preconnect_links( $font );
 	}
-
-	// Generate handle if not provided.
-	if ( empty( $handle && ! empty( $params ) ) ) {
-		$handle = md5( json_encode( $params ) );
-	}
-
-	// Early return if there is no handle.
-	if ( empty( $handle ) ) {
-		return;
-	}
-
-	return wp_enqueue_style( "webfont-$handle" );
-}
-
-/**
- * Remove a previously enqueued webfont.
- *
- * @see WP_Dependencies::dequeue()
- *
- * @since 5.9.0
- *
- * @param string $handle Name of the webfont to be removed.
- */
-function wp_dequeue_webfont( $handle ) {
-	wp_dequeue_style( "webfont-$handle" );
-}
-
-/**
- * Check whether a webfont's CSS stylesheet has been added to the queue.
- *
- * @since 5.9.0
- *
- * @param string $handle Name of the webfont.
- * @param string $list   Optional. Status of the webfont to check. Default 'enqueued'.
- *                       Accepts 'enqueued', 'registered', 'queue', 'to_do', and 'done'.
- * @return bool Whether style is queued.
- */
-function wp_webfont_is( $handle, $list = 'enqueued' ) {
-	return wp_style_is( "webfont-$handle", $list );
-}
-
-/**
- * Add metadata to a CSS stylesheet.
- *
- * Works only if the stylesheet has already been added.
- *
- * Possible values for $key and $value:
- * 'conditional' string      Comments for IE 6, lte IE 7 etc.
- * 'rtl'         bool|string To declare an RTL stylesheet.
- * 'suffix'      string      Optional suffix, used in combination with RTL.
- * 'alt'         bool        For rel="alternate stylesheet".
- * 'title'       string      For preferred/alternate stylesheets.
- *
- * @see WP_Dependencies::add_data()
- *
- * @since 5.9.0
- *
- * @param string $handle Name of the stylesheet.
- * @param string $key    Name of data point for which we're storing a value.
- *                       Accepts 'conditional', 'rtl' and 'suffix', 'alt' and 'title'.
- * @param mixed  $value  String containing the CSS data to be added.
- * @return bool True on success, false on failure.
- */
-function wp_webfont_add_data( $handle, $key, $value ) {
-	return wp_style_add_data( "webfont-$handle", $key, $value );
+	return $styles;
 }
 
 /**
@@ -172,10 +70,19 @@ function wp_webfont_add_data( $handle, $key, $value ) {
  * @return string The generated styles.
  */
 function wp_webfont_generate_styles( $params ) {
+	// Get the array of providers.
+	$providers = wp_get_webfont_providers();
+
 	// Fallback to local provider if none is specified.
-	$provider = isset( $params['provider'] ) ? $params['provider'] : new WP_Fonts_Provider_Local();
+	$provider_id = isset( $params['provider'] ) ? $params['provider'] : 'local';
+	if ( ! isset( $providers[ $provider_id ] ) ) {
+		return '';
+	}
+	$provider = $providers[ $provider_id ];
+
 	// Set the $params to the object.
 	$provider->set_params( $params );
+
 	// Get the CSS.
 	return $provider->get_css();
 }
@@ -191,11 +98,16 @@ function wp_webfont_generate_styles( $params ) {
  */
 function _wp_webfont_add_preconnect_links( $params ) {
 
-	$provider = isset( $params['provider'] ) ? $params['provider'] : new WP_Fonts_Provider_Local();
+	$provider_id = isset( $params['provider'] ) ? $params['provider'] : 'local';
+	if ( ! isset( $providers[ $provider_id ] ) ) {
+		return;
+	}
+	$provider = $providers[ $provider_id ];
 	$provider->set_params( $params );
 
 	// Store a static var to avoid adding the same preconnect links multiple times.
 	static $preconnect_urls_added_from_api = array();
+
 	// Add preconnect links.
 	add_action(
 		'wp_head',
@@ -224,4 +136,56 @@ function _wp_webfont_add_preconnect_links( $params ) {
 			$preconnect_urls_added_from_api[] = $provider->get_id();
 		}
 	);
+}
+
+/**
+ * Register a webfont provider.
+ *
+ * @since 5.9.0
+ *
+ * @param string $id The provider ID.
+ * @param string $class The provider class name.
+ */
+function wp_register_webfont_provider( $id, $class ) {
+	global $wp_webfonts_providers;
+	if ( ! $wp_webfonts_providers ) {
+		$wp_webfonts_providers = array();
+	}
+	$wp_webfonts_providers[ $id ] = $class;
+}
+
+/**
+ * Get webfonts providers.
+ *
+ * @since 5.9.0
+ *
+ * @return array
+ */
+function wp_get_webfont_providers() {
+	global $wp_webfonts_providers;
+	if ( ! $wp_webfonts_providers ) {
+		$wp_webfonts_providers = array(
+			'local'  => 'WP_Fonts_Provider_Local',
+			'google' => 'WP_Fonts_Provider_Google',
+		);
+	}
+
+	$providers = array();
+	foreach ( $wp_webfonts_providers as $id => $class_name ) {
+		if ( ! class_exists( $class_name ) ) {
+			continue;
+		}
+		$providers[ $id ] = new $class_name();
+	}
+
+	/**
+	 * Filters the list of registered webfont providers.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $wp_webfonts_providers An array of registered webfont providers.
+	 *
+	 * @return array
+	 */
+	return apply_filters( 'wp_webfonts_providers', $providers );
 }
