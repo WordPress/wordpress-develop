@@ -8,12 +8,10 @@
  */
 class Tests_Walker extends WP_UnitTestCase {
 
-	function setUp() {
+	function set_up() {
+		parent::set_up();
 
 		$this->walker = new Walker_Test();
-
-		parent::setUp();
-
 	}
 
 	function test_single_item() {
@@ -282,12 +280,42 @@ class Tests_Walker extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @ticket 53474
+	 */
+	function test_multiple_items_non_numeric_parent() {
+
+		$items  = array(
+			(object) array(
+				'id'     => 1,
+				'parent' => '',
+			),
+			(object) array(
+				'id'     => 2,
+				'parent' => '',
+			),
+		);
+		$output = $this->walker->walk( $items, 0 );
+
+		$this->assertSame( 2, $this->walker->get_number_of_root_elements( $items ) );
+		$this->assertSame( '<li>1</li><li>2</li>', $output );
+
+		$output = $this->walker->paged_walk( $items, 0, 1, 1 );
+
+		$this->assertSame( '<li>1</li>', $output );
+
+		$output = $this->walker->paged_walk( $items, 0, 2, 1 );
+
+		$this->assertSame( '<li>2</li>', $output );
+
+	}
+
 }
 
 class Walker_Test extends Walker {
 
-	var $tree_type = 'test';
-	var $db_fields = array(
+	public $tree_type = 'test';
+	public $db_fields = array(
 		'parent' => 'parent',
 		'id'     => 'id',
 	);

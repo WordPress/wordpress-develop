@@ -3,14 +3,14 @@
  * @group post
  * @group menu
  */
-class Test_Nav_Menus extends WP_UnitTestCase {
+class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * @var int
 	 */
 	public $menu_id;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->menu_id = wp_create_nav_menu( rand_str() );
 	}
@@ -40,7 +40,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 0, strpos( $menu, '<ul' ) );
+		$this->assertStringStartsWith( '<ul', $menu );
 	}
 
 	function test_wp_get_associated_nav_menu_items() {
@@ -460,8 +460,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		// The markup should include whitespace between <li>'s.
-		$this->assertRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
-		$this->assertNotRegExp( '/<\/li><li.*>/U', $menu );
+		$this->assertMatchesRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/<\/li><li.*>/U', $menu );
 
 		// Whitespace suppressed.
 		$menu = wp_nav_menu(
@@ -473,8 +473,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		// The markup should not include whitespace around <li>'s.
-		$this->assertNotRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
-		$this->assertRegExp( '/><li.*>|<\/li></U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertMatchesRegularExpression( '/><li.*>|<\/li></U', $menu );
 	}
 
 	/*
@@ -551,22 +551,22 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 	 * Run tests required to confrim Walker_Nav_Menu receives an $args object.
 	 */
 	function _confirm_nav_menu_item_args_object( $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $args;
 	}
 
 	function _confirm_second_param_args_object( $ignored_1, $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
 	function _confirm_third_param_args_object( $ignored_1, $ignored_2, $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
 	function _confirm_forth_param_args_object( $ignored_1, $ignored_2, $ignored_3, $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
@@ -991,5 +991,154 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 
 		$category_item = get_post( $category_item_id );
 		$this->assertEmpty( $category_item->post_title );
+	}
+
+	/**
+	 * Test passed post_date/post_date_gmt.
+	 *
+	 * When inserting a nav menu item, it should be possible to set the post_date
+	 * of it to ensure that this data is maintained during an import.
+	 *
+	 * @ticket 52189
+	 */
+	function test_wp_update_nav_menu_item_with_post_date() {
+		$post_date     = '2020-12-28 11:26:35';
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date-gmt' => $post_date_gmt,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( get_date_from_gmt( $post_date_gmt ), $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date-gmt' => $invalid_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( '1970-01-01 00:00:00', $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+				'menu-item-post-date' => $post_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( $post_date, $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date'     => $post_date,
+				'menu-item-post-date-gmt' => $post_date_gmt,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( $post_date, $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date'     => $post_date,
+				'menu-item-post-date-gmt' => $invalid_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( $post_date, $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+				'menu-item-post-date' => $invalid_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date'     => $invalid_date,
+				'menu-item-post-date-gmt' => $post_date_gmt,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date'     => $invalid_date,
+				'menu-item-post-date-gmt' => $invalid_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 	}
 }

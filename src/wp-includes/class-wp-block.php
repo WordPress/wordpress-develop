@@ -61,7 +61,7 @@ class WP_Block {
 	 * List of inner blocks (of this same class)
 	 *
 	 * @since 5.5.0
-	 * @var WP_Block[]
+	 * @var WP_Block_List
 	 */
 	public $inner_blocks = array();
 
@@ -213,13 +213,24 @@ class WP_Block {
 		}
 
 		if ( $is_dynamic ) {
-			$global_post   = $post;
+			$global_post = $post;
+			$parent      = WP_Block_Supports::$block_to_render;
+
+			WP_Block_Supports::$block_to_render = $this->parsed_block;
+
 			$block_content = (string) call_user_func( $this->block_type->render_callback, $this->attributes, $block_content, $this );
-			$post          = $global_post;
+
+			WP_Block_Supports::$block_to_render = $parent;
+
+			$post = $global_post;
 		}
 
 		if ( ! empty( $this->block_type->script ) ) {
 			wp_enqueue_script( $this->block_type->script );
+		}
+
+		if ( ! empty( $this->block_type->view_script ) && empty( $this->block_type->render_callback ) ) {
+			wp_enqueue_script( $this->block_type->view_script );
 		}
 
 		if ( ! empty( $this->block_type->style ) ) {
@@ -230,11 +241,30 @@ class WP_Block {
 		 * Filters the content of a single block.
 		 *
 		 * @since 5.0.0
+		 * @since 5.9.0 The `$instance` parameter was added.
 		 *
-		 * @param string $block_content The block content about to be appended.
-		 * @param array  $block         The full block, including name and attributes.
+		 * @param string   $block_content The block content about to be appended.
+		 * @param array    $block         The full block, including name and attributes.
+		 * @param WP_Block $instance      The block instance.
 		 */
-		return apply_filters( 'render_block', $block_content, $this->parsed_block );
+		$block_content = apply_filters( 'render_block', $block_content, $this->parsed_block, $this );
+
+		/**
+		 * Filters the content of a single block.
+		 *
+		 * The dynamic portion of the hook name, `$name`, refers to
+		 * the block name, e.g. "core/paragraph".
+		 *
+		 * @since 5.7.0
+		 * @since 5.9.0 The `$instance` parameter was added.
+		 *
+		 * @param string   $block_content The block content about to be appended.
+		 * @param array    $block         The full block, including name and attributes.
+		 * @param WP_Block $instance      The block instance.
+		 */
+		$block_content = apply_filters( "render_block_{$this->name}", $block_content, $this->parsed_block, $this );
+
+		return $block_content;
 	}
 
 }

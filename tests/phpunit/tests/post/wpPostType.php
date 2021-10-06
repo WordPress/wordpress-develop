@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_WP_Post_Type extends WP_UnitTestCase {
+class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	public function test_instances() {
 		global $wp_post_types;
 
@@ -119,7 +119,7 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 		);
 		$post_type_object->add_rewrite_rules();
 
-		$this->assertFalse( in_array( 'foobar', $wp->public_query_vars, true ) );
+		$this->assertNotContains( 'foobar', $wp->public_query_vars );
 	}
 
 	public function test_adds_query_var_if_public() {

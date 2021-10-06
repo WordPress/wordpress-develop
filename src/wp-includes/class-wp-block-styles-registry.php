@@ -36,21 +36,27 @@ final class WP_Block_Styles_Registry {
 	 *
 	 * @param string $block_name       Block type name including namespace.
 	 * @param array  $style_properties Array containing the properties of the style name, label,
-	 *                                 style (name of the stylesheet to be enqueued),
+	 *                                 is_default, style_handle (name of the stylesheet to be enqueued),
 	 *                                 inline_style (string containing the CSS to be added).
-	 * @return boolean True if the block style was registered with success and false otherwise.
+	 * @return bool True if the block style was registered with success and false otherwise.
 	 */
 	public function register( $block_name, $style_properties ) {
 
 		if ( ! isset( $block_name ) || ! is_string( $block_name ) ) {
-			$message = __( 'Block name must be a string.' );
-			_doing_it_wrong( __METHOD__, $message, '5.3.0' );
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Block name must be a string.' ),
+				'5.3.0'
+			);
 			return false;
 		}
 
 		if ( ! isset( $style_properties['name'] ) || ! is_string( $style_properties['name'] ) ) {
-			$message = __( 'Block style name must be a string.' );
-			_doing_it_wrong( __METHOD__, $message, '5.3.0' );
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Block style name must be a string.' ),
+				'5.3.0'
+			);
 			return false;
 		}
 
@@ -69,13 +75,16 @@ final class WP_Block_Styles_Registry {
 	 *
 	 * @param string $block_name       Block type name including namespace.
 	 * @param string $block_style_name Block style name.
-	 * @return boolean True if the block style was unregistered with success and false otherwise.
+	 * @return bool True if the block style was unregistered with success and false otherwise.
 	 */
 	public function unregister( $block_name, $block_style_name ) {
 		if ( ! $this->is_registered( $block_name, $block_style_name ) ) {
-			/* translators: 1: Block name, 2: Block style name. */
-			$message = sprintf( __( 'Block "%1$s" does not contain a style named "%2$s".' ), $block_name, $block_style_name );
-			_doing_it_wrong( __METHOD__, $message, '5.3.0' );
+			_doing_it_wrong(
+				__METHOD__,
+				/* translators: 1: Block name, 2: Block style name. */
+				sprintf( __( 'Block "%1$s" does not contain a style named "%2$s".' ), $block_name, $block_style_name ),
+				'5.3.0'
+			);
 			return false;
 		}
 

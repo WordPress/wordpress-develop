@@ -17,19 +17,19 @@ if ( is_multisite() ) :
 		protected static $site_ids;
 		protected static $uninitialized_site_id;
 
-		function setUp() {
+		function set_up() {
 			global $wpdb;
-			parent::setUp();
+			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tear_down() {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
+			parent::tear_down();
 		}
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'make.wordpress.org/' => array(
 					'domain' => 'make.wordpress.org',
@@ -94,7 +94,7 @@ if ( is_multisite() ) :
 			$this->assertSame( array(), $_wp_switched_stack );
 			$this->assertFalse( ms_is_switched() );
 			$current_blog_id = get_current_blog_id();
-			$this->assertInternalType( 'integer', $current_blog_id );
+			$this->assertIsInt( $current_blog_id );
 
 			wp_cache_set( 'switch-test', $current_blog_id, 'switch-test' );
 			$this->assertSame( $current_blog_id, wp_cache_get( 'switch-test', 'switch-test' ) );
@@ -141,7 +141,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create();
 
-			$this->assertInternalType( 'int', $blog_id );
+			$this->assertIsInt( $blog_id );
 			$prefix = $wpdb->get_blog_prefix( $blog_id );
 
 			// $get_all = false, only retrieve details from the blogs table.
@@ -391,13 +391,13 @@ if ( is_multisite() ) :
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 
 			wpmu_delete_blog( $blog_id, true );
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 		}
 
 		function test_wpmu_update_blogs_date() {
@@ -486,6 +486,36 @@ if ( is_multisite() ) :
 			$this->assertSame( 1, $test_action_counter );
 
 			remove_action( 'make_ham_blog', array( $this, '_action_counter_cb' ), 10 );
+		}
+
+		function test_content_from_spam_blog_is_not_available() {
+			$spam_blog_id = self::factory()->blog->create();
+			switch_to_blog( $spam_blog_id );
+			$post_data      = array(
+				'post_title'   => 'Hello World!',
+				'post_content' => 'Hello world content',
+			);
+			$post_id        = self::factory()->post->create( $post_data );
+			$post           = get_post( $post_id );
+			$spam_permalink = site_url() . '/?p=' . $post->ID;
+			$spam_embed_url = get_post_embed_url( $post_id );
+
+			restore_current_blog();
+			$this->assertNotEmpty( $spam_permalink );
+			$this->assertSame( $post_data['post_title'], $post->post_title );
+
+			update_blog_status( $spam_blog_id, 'spam', 1 );
+
+			$post_id = self::factory()->post->create(
+				array(
+					'post_content' => "\n $spam_permalink \n",
+				)
+			);
+			$post    = get_post( $post_id );
+			$content = apply_filters( 'the_content', $post->post_content );
+
+			$this->assertStringNotContainsString( $post_data['post_title'], $content );
+			$this->assertStringNotContainsString( "src=\"{$spam_embed_url}#?", $content );
 		}
 
 		function test_update_blog_status_make_spam_blog_action() {
@@ -808,27 +838,28 @@ if ( is_multisite() ) :
 			$this->assertTrue( is_main_site() );
 
 			$site = get_current_site();
+			$date = date_format( date_create( 'now' ), 'Y/m' );
 
 			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 
 			$blog_id = self::factory()->blog->create();
 
 			switch_to_blog( $blog_id );
 			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 			restore_current_blog();
 
 			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 		}
 
@@ -1298,7 +1329,7 @@ if ( is_multisite() ) :
 			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
 			$site_id = wp_insert_site( $site_data );
 
-			$this->assertInternalType( 'integer', $site_id );
+			$this->assertIsInt( $site_id );
 
 			$site = get_site( $site_id );
 			foreach ( $expected_data as $key => $value ) {
@@ -1404,7 +1435,7 @@ if ( is_multisite() ) :
 
 			remove_action( 'clean_site_cache', array( $this, 'action_database_insert_on_clean_site_cache' ) );
 
-			$this->assertInternalType( 'integer', $site_id );
+			$this->assertIsInt( $site_id );
 
 		}
 
@@ -1789,7 +1820,7 @@ if ( is_multisite() ) :
 					'network_id' => 1,
 				)
 			);
-			$this->assertInternalType( 'integer', $site_id );
+			$this->assertIsInt( $site_id );
 
 			$site = get_site( $site_id );
 			$this->assertEqualsWithDelta( strtotime( $first_date ), strtotime( $site->registered ), 2, 'The dates should be equal' );
@@ -1797,7 +1828,7 @@ if ( is_multisite() ) :
 
 			$second_date = current_time( 'mysql', true );
 			$site_id     = wp_update_site( $site_id, array() );
-			$this->assertInternalType( 'integer', $site_id );
+			$this->assertIsInt( $site_id );
 
 			$site = get_site( $site_id );
 			$this->assertEqualsWithDelta( strtotime( $first_date ), strtotime( $site->registered ), 2, 'The dates should be equal' );

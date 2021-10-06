@@ -405,8 +405,8 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
  *     @type string       $style         If 'list', each author is wrapped in an `<li>` element, otherwise the authors
  *                                       will be separated by commas.
  *     @type bool         $html          Whether to list the items in HTML form or plaintext. Default true.
- *     @type array|string $exclude       Array or comma/space-separated list of author IDs to exclude. Default empty.
- *     @type array|string $include       Array or comma/space-separated list of author IDs to include. Default empty.
+ *     @type int[]|string $exclude       Array or comma/space-separated list of author IDs to exclude. Default empty.
+ *     @type int[]|string $include       Array or comma/space-separated list of author IDs to include. Default empty.
  * }
  * @return void|string Void if 'echo' argument is true, list of authors if 'echo' is false.
  */
@@ -474,7 +474,7 @@ function wp_list_authors( $args = '' ) {
 
 		$link = sprintf(
 			'<a href="%1$s" title="%2$s">%3$s</a>',
-			get_author_posts_url( $author->ID, $author->user_nicename ),
+			esc_url( get_author_posts_url( $author->ID, $author->user_nicename ) ),
 			/* translators: %s: Author's display name. */
 			esc_attr( sprintf( __( 'Posts by %s' ), $author->display_name ) ),
 			$name

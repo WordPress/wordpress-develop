@@ -560,9 +560,9 @@ class WP_Meta_Query {
 				$join .= $i ? " AS $alias" : '';
 
 				if ( 'LIKE' === $meta_compare_key ) {
-					$join .= $wpdb->prepare( " ON ($this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key LIKE %s )", '%' . $wpdb->esc_like( $clause['key'] ) . '%' );
+					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key LIKE %s )", '%' . $wpdb->esc_like( $clause['key'] ) . '%' );
 				} else {
-					$join .= $wpdb->prepare( " ON ($this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key = %s )", $clause['key'] );
+					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key = %s )", $clause['key'] );
 				}
 
 				// All other JOIN clauses.
@@ -691,7 +691,7 @@ class WP_Meta_Query {
 				if ( ! is_array( $meta_value ) ) {
 					$meta_value = preg_split( '/[,\s]+/', $meta_value );
 				}
-			} else {
+			} elseif ( is_string( $meta_value ) ) {
 				$meta_value = trim( $meta_value );
 			}
 
@@ -822,10 +822,10 @@ class WP_Meta_Query {
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param string|bool   $alias        Table alias, or false if none was found.
+		 * @param string|false  $alias        Table alias, or false if none was found.
 		 * @param array         $clause       First-order query clause.
 		 * @param array         $parent_query Parent of $clause.
-		 * @param WP_Meta_Query $this         WP_Meta_Query object.
+		 * @param WP_Meta_Query $query        WP_Meta_Query object.
 		 */
 		return apply_filters( 'meta_query_find_compatible_table_alias', $alias, $clause, $parent_query, $this );
 	}

@@ -3,14 +3,15 @@
 /**
  * @group date
  * @group datetime
+ * @covers ::mysql2date
  */
 class Tests_Date_mysql2date extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tear_down() {
 		// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
 		date_default_timezone_set( 'UTC' );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

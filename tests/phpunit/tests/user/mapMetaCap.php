@@ -13,8 +13,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	protected static $post_id      = null;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$user_id   = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		self::$author_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		self::$user_id   = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$author_id = $factory->user->create( array( 'role' => 'administrator' ) );
 
 		if ( isset( $GLOBALS['super_admins'] ) ) {
 			self::$super_admins = $GLOBALS['super_admins'];

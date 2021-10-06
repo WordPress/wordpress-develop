@@ -199,25 +199,17 @@ class PluralFormsTest extends WP_UnitTestCase {
 	/**
 	 * Ensures that an exception is thrown when an invalid plural form is encountered.
 	 *
-	 * The `@expectedException Exception` notation for PHPUnit cannot be used because expecting an
-	 * exception of type `Exception` is not supported before PHPUnit 3.7. The CI tests for PHP 5.2
-	 * run on PHPUnit 3.6.
-	 *
 	 * @ticket 41562
 	 * @dataProvider data_exceptions
 	 */
-	public function test_exceptions( $expression, $expected_exception, $call_get ) {
-		try {
-			$plural_forms = new Plural_Forms( $expression );
-			if ( $call_get ) {
-				$plural_forms->get( 1 );
-			}
-		} catch ( Exception $e ) {
-			$this->assertSame( $expected_exception, $e->getMessage() );
-			return;
-		}
+	public function test_exceptions( $expression, $expected_message, $call_get ) {
+		$this->expectException( 'Exception' );
+		$this->expectExceptionMessage( $expected_message );
 
-		$this->fail( 'Expected exception was not thrown.' );
+		$plural_forms = new Plural_Forms( $expression );
+		if ( $call_get ) {
+			$plural_forms->get( 1 );
+		}
 	}
 
 	/**

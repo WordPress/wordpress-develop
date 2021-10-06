@@ -21,26 +21,18 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	protected static $_wpdb;
 
-	public static function setUpBeforeClass() {
-		parent::setUpBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 		self::$_wpdb = new WpdbExposedMethodsForTesting();
 	}
 
 	/**
 	 * Set up the test fixture
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->_queries = array();
 		add_filter( 'query', array( $this, 'query_filter' ) );
-	}
-
-	/**
-	 * Tear down the test fixture
-	 */
-	public function tearDown() {
-		remove_filter( 'query', array( $this, 'query_filter' ) );
-		parent::tearDown();
 	}
 
 	/**
@@ -92,7 +84,7 @@ class Tests_DB extends WP_UnitTestCase {
 		// Switch to a locale using comma as a decimal point separator.
 		$flag = setlocale( LC_ALL, 'ru_RU.utf8', 'rus', 'fr_FR.utf8', 'fr_FR', 'de_DE.utf8', 'de_DE', 'es_ES.utf8', 'es_ES' );
 		if ( false === $flag ) {
-			$this->markTestSkipped( 'No European locales available for testing' );
+			$this->markTestSkipped( 'No European locales available for testing.' );
 		}
 
 		// Try an update query.
@@ -107,11 +99,11 @@ class Tests_DB extends WP_UnitTestCase {
 		$wpdb->suppress_errors( false );
 
 		// Ensure the float isn't 0,700.
-		$this->assertContains( '0.700', array_pop( $this->_queries ) );
+		$this->assertStringContainsString( '0.700', array_pop( $this->_queries ) );
 
 		// Try a prepare.
 		$sql = $wpdb->prepare( 'UPDATE test_table SET float_column = %f AND meta_id = %d', 0.7, 5 );
-		$this->assertContains( '0.700', $sql );
+		$this->assertStringContainsString( '0.700', $sql );
 
 		// Restore locale settings.
 		foreach ( $current_locales as $locale_setting ) {
@@ -278,7 +270,7 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_double_escaped_placeholders() {
 		global $wpdb;
 		$sql = $wpdb->prepare( "UPDATE test_table SET string_column = '%%f is a float, %%d is an int %d, %%s is a string', field = %s", 3, '4' );
-		$this->assertContains( $wpdb->placeholder_escape(), $sql );
+		$this->assertStringContainsString( $wpdb->placeholder_escape(), $sql );
 
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 		$this->assertSame( "UPDATE test_table SET string_column = '%f is a float, %d is an int 3, %s is a string', field = '4'", $sql );
@@ -379,7 +371,6 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
-	 * @requires PHP < 8.0
 	 */
 	function test_prepare_sprintf_invalid_args() {
 		global $wpdb;
@@ -402,7 +393,6 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
-	 * @requires PHP < 8.0
 	 */
 	function test_prepare_vsprintf_invalid_args() {
 		global $wpdb;
@@ -420,7 +410,6 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @ticket 42040
 	 * @dataProvider data_prepare_incorrect_arg_count
 	 * @expectedIncorrectUsage wpdb::prepare
-	 * @requires PHP < 8.0
 	 */
 	public function test_prepare_incorrect_arg_count( $query, $args, $expected ) {
 		global $wpdb;
@@ -492,7 +481,7 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 		$str    = $wpdb->get_caller();
 		$calls  = explode( ', ', $str );
-		$called = join( '->', array( __CLASS__, __FUNCTION__ ) );
+		$called = implode( '->', array( __CLASS__, __FUNCTION__ ) );
 		$this->assertSame( $called, end( $calls ) );
 	}
 
@@ -527,11 +516,10 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertEmpty( $wpdb->check_database_version() );
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 */
 	function test_bail() {
 		global $wpdb;
+
+		$this->expectException( 'WPDieException' );
 		$wpdb->bail( 'Database is dead.' );
 	}
 
@@ -572,7 +560,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertNotEmpty( $wpdb->insert_id );
 
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE ID = %d", $wpdb->insert_id ) );
-		$this->assertInternalType( 'object', $row );
+		$this->assertIsObject( $row );
 		$this->assertSame( 'Walter Sobchak', $row->display_name );
 	}
 
@@ -720,7 +708,7 @@ class Tests_DB extends WP_UnitTestCase {
 	function test_mysqli_flush_sync() {
 		global $wpdb;
 		if ( ! $wpdb->use_mysqli ) {
-			$this->markTestSkipped( 'mysqli not being used' );
+			$this->markTestSkipped( 'mysqli not being used.' );
 		}
 
 		$suppress = $wpdb->suppress_errors( true );
@@ -734,7 +722,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		if ( count( $wpdb->get_results( 'SHOW CREATE PROCEDURE `test_mysqli_flush_sync_procedure`' ) ) < 1 ) {
 			$wpdb->suppress_errors( $suppress );
-			$this->fail( 'procedure could not be created (missing privileges?)' );
+			$this->fail( 'Procedure could not be created (missing privileges?)' );
 		}
 
 		$post_id = self::factory()->post->create();
@@ -1052,7 +1040,7 @@ class Tests_DB extends WP_UnitTestCase {
 		}
 
 		if ( ! in_array( $expected_charset, array( 'utf8', 'utf8mb4', 'latin1' ), true ) ) {
-			$this->markTestSkipped( 'This test only works with utf8, utf8mb4 or latin1 character sets' );
+			$this->markTestSkipped( 'This test only works with utf8, utf8mb4 or latin1 character sets.' );
 		}
 
 		$data     = array( 'post_content' => '¡foo foo foo!' );
@@ -1620,7 +1608,7 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		$part = $wpdb->prepare( ' AND meta_value = %s', ' %s ' );
-		$this->assertNotContains( '%s', $part );
+		$this->assertStringNotContainsString( '%s', $part );
 		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$query = $wpdb->prepare( 'SELECT * FROM {$wpdb->postmeta} WHERE meta_key = %s $part', array( 'foo', 'bar' ) );
 		$this->assertNull( $query );
@@ -1637,8 +1625,8 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 
 		/* Floats can be right padded, need to assert differently */
-		$this->assertContains( ' first=1.1', $actual );
-		$this->assertContains( ' second=2.2', $actual );
+		$this->assertStringContainsString( ' first=1.1', $actual );
+		$this->assertStringContainsString( ' second=2.2', $actual );
 	}
 
 	function test_prepare_numeric_placeholders_float_array() {
@@ -1651,8 +1639,8 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 
 		/* Floats can be right padded, need to assert differently */
-		$this->assertContains( ' first=1.1', $actual );
-		$this->assertContains( ' second=2.2', $actual );
+		$this->assertStringContainsString( ' first=1.1', $actual );
+		$this->assertStringContainsString( ' second=2.2', $actual );
 	}
 
 	function test_query_unescapes_placeholders() {
@@ -1670,7 +1658,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$wpdb->query( "DROP TABLE {$wpdb->prefix}test_placeholder" );
 
-		$this->assertNotContains( '%s', $sql );
+		$this->assertStringNotContainsString( '%s', $sql );
 		$this->assertSame( $value, $actual );
 	}
 
@@ -1694,7 +1682,7 @@ class Tests_DB extends WP_UnitTestCase {
 		if ( $expect_bail ) {
 			$this->assertFalse( $data );
 		} else {
-			$this->assertInternalType( 'array', $data );
+			$this->assertIsArray( $data );
 
 			list( $parsed_host, $parsed_port, $parsed_socket, $parsed_is_ipv6 ) = $data;
 

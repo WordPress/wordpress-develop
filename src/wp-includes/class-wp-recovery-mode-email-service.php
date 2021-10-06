@@ -206,6 +206,7 @@ When seeking help with this issue, you may be asked for some of the following in
 		 * Filters the contents of the Recovery Mode email.
 		 *
 		 * @since 5.2.0
+		 * @since 5.6.0 The `$email` argument includes the `attachments` key.
 		 *
 		 * @param array  $email {
 		 *     Used to build a call to wp_mail().
@@ -288,7 +289,7 @@ When seeking help with this issue, you may be asked for some of the following in
 	 * @since 5.3.0
 	 *
 	 * @param array $extension The extension that caused the error.
-	 * @return bool|array A plugin array {@see get_plugins()} or `false` if no plugin was found.
+	 * @return array|false A plugin array {@see get_plugins()} or `false` if no plugin was found.
 	 */
 	private function get_plugin( $extension ) {
 		if ( ! function_exists( 'get_plugins' ) ) {
@@ -330,8 +331,8 @@ When seeking help with this issue, you may be asked for some of the following in
 		}
 
 		$debug = array(
-			/* translators: %s: Current WordPress version number. */
 			'wp'    => sprintf(
+				/* translators: %s: Current WordPress version number. */
 				__( 'WordPress version %s' ),
 				$wp_version
 			),

@@ -29,7 +29,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 */
 	protected static $post_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 
 		$comment_ids    = $factory->comment->create_post_comments( self::$post_id, 8 );
@@ -108,7 +108,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 		// Check for either possible total.
 		$message = sprintf( 'returned value: %1$d $total: %2$d  $recalc_total: %3$d', (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], $total, $recalc_total );
-		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ), true ), $message );
+		$this->assertContains( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ), $message );
 	}
 
 	/**
@@ -137,7 +137,8 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		$_POST['_url']        = admin_url( 'edit-comments.php' );
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'delete-comment' );
 	}
 
@@ -168,7 +169,8 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		$_POST['_url']        = admin_url( 'edit-comments.php' );
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'delete-comment' );
 	}
 
@@ -203,7 +205,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 			$this->fail( 'Expected exception: WPAjaxDieStopException' );
 		} catch ( WPAjaxDieStopException $e ) {
 			$this->assertSame( 10, strlen( $e->getMessage() ) );
-			$this->assertTrue( is_numeric( $e->getMessage() ) );
+			$this->assertIsNumeric( $e->getMessage() );
 		} catch ( Exception $e ) {
 			$this->fail( 'Unexpected exception type: ' . get_class( $e ) );
 		}
@@ -253,7 +255,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 			$this->fail( 'Expected exception: WPAjaxDieStopException' );
 		} catch ( WPAjaxDieStopException $e ) {
 			$this->assertSame( 10, strlen( $e->getMessage() ) );
-			$this->assertTrue( is_numeric( $e->getMessage() ) );
+			$this->assertIsNumeric( $e->getMessage() );
 		} catch ( Exception $e ) {
 			$this->fail( 'Unexpected exception type: ' . get_class( $e ) );
 		}

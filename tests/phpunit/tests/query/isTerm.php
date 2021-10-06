@@ -22,10 +22,8 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	protected $tag;
 	protected $tax;
 
-	function setUp() {
-		parent::setUp();
-
-		set_current_screen( 'front' );
+	function set_up() {
+		parent::set_up();
 
 		$GLOBALS['wp_the_query'] = new WP_Query();
 		$GLOBALS['wp_query']     = $GLOBALS['wp_the_query'];
@@ -63,17 +61,6 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		_make_cat_compat( $this->uncat );
 
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts_tax_category_tax_query' ) );
-	}
-
-	function tearDown() {
-		global $wp_rewrite;
-
-		_unregister_taxonomy( 'testtax' );
-
-		$wp_rewrite->init();
-
-		remove_action( 'pre_get_posts', array( $this, 'pre_get_posts_tax_category_tax_query' ) );
-		parent::tearDown();
 	}
 
 	function test_tag_action_tax() {

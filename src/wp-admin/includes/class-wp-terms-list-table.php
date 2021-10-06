@@ -171,7 +171,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @return string
 	 */
 	public function current_action() {
-		if ( isset( $_REQUEST['action'] ) && isset( $_REQUEST['delete_tags'] ) && ( 'delete' === $_REQUEST['action'] || 'delete' === $_REQUEST['action2'] ) ) {
+		if ( isset( $_REQUEST['action'] ) && isset( $_REQUEST['delete_tags'] ) && 'delete' === $_REQUEST['action'] ) {
 			return 'bulk-delete';
 		}
 
@@ -292,27 +292,32 @@ class WP_Terms_List_Table extends WP_List_Table {
 				break;
 			}
 
-			if ( $term->parent != $parent && empty( $_REQUEST['s'] ) ) {
+			if ( $term->parent !== $parent && empty( $_REQUEST['s'] ) ) {
 				continue;
 			}
 
 			// If the page starts in a subtree, print the parents.
-			if ( $count == $start && $term->parent > 0 && empty( $_REQUEST['s'] ) ) {
+			if ( $count === $start && $term->parent > 0 && empty( $_REQUEST['s'] ) ) {
 				$my_parents = array();
 				$parent_ids = array();
 				$p          = $term->parent;
+
 				while ( $p ) {
 					$my_parent    = get_term( $p, $taxonomy );
 					$my_parents[] = $my_parent;
 					$p            = $my_parent->parent;
+
 					if ( in_array( $p, $parent_ids, true ) ) { // Prevent parent loops.
 						break;
 					}
+
 					$parent_ids[] = $p;
 				}
+
 				unset( $parent_ids );
 
 				$num_parents = count( $my_parents );
+
 				while ( $my_parent = array_pop( $my_parents ) ) {
 					echo "\t";
 					$this->single_row( $my_parent, $level - $num_parents );
@@ -359,10 +364,15 @@ class WP_Terms_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @param WP_Term $tag Term object.
+	 * @since 5.9.0 Renamed `$tag` to `$item` to match parent class for PHP 8 named parameter support.
+	 *
+	 * @param WP_Term $item Term object.
 	 * @return string
 	 */
-	public function column_cb( $tag ) {
+	public function column_cb( $item ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$tag = $item;
+
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
 			return sprintf(
 				'<label class="screen-reader-text" for="cb-select-%1$s">%2$s</label>' .
@@ -451,18 +461,21 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * Generates and displays row action links.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$tag` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Term $tag         Tag being acted upon.
+	 * @param WP_Term $item        Tag being acted upon.
 	 * @param string  $column_name Current column name.
 	 * @param string  $primary     Primary column name.
 	 * @return string Row actions output for terms, or an empty string
 	 *                if the current column is not the primary column.
 	 */
-	protected function handle_row_actions( $tag, $column_name, $primary ) {
+	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
 		}
 
+		// Restores the more descriptive, specific name for use within this method.
+		$tag      = $item;
 		$taxonomy = $this->screen->taxonomy;
 		$tax      = get_taxonomy( $taxonomy );
 		$uri      = wp_doing_ajax() ? wp_get_referer() : $_SERVER['REQUEST_URI'];
@@ -474,6 +487,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 		);
 
 		$actions = array();
+
 		if ( current_user_can( 'edit_term', $tag->term_id ) ) {
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
@@ -489,6 +503,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 				__( 'Quick&nbsp;Edit' )
 			);
 		}
+
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
 			$actions['delete'] = sprintf(
 				'<a href="%s" class="delete-tag aria-button-if-js" aria-label="%s">%s</a>',
@@ -498,6 +513,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 				__( 'Delete' )
 			);
 		}
+
 		if ( is_taxonomy_viewable( $tax ) ) {
 			$actions['view'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
@@ -525,6 +541,11 @@ class WP_Terms_List_Table extends WP_List_Table {
 		 * Filters the action links displayed for each term in the terms list table.
 		 *
 		 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `category_row_actions`
+		 *  - `post_tag_row_actions`
 		 *
 		 * @since 3.0.0
 		 *
@@ -598,31 +619,40 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 */
 	public function column_links( $tag ) {
 		$count = number_format_i18n( $tag->count );
+
 		if ( $count ) {
 			$count = "<a href='link-manager.php?cat_id=$tag->term_id'>$count</a>";
 		}
+
 		return $count;
 	}
 
 	/**
-	 * @param WP_Term $tag         Term object.
+	 * @since 5.9.0 Renamed `$tag` to `$item` to match parent class for PHP 8 named parameter support.
+	 *
+	 * @param WP_Term $item        Term object.
 	 * @param string  $column_name Name of the column.
 	 * @return string
 	 */
-	public function column_default( $tag, $column_name ) {
+	public function column_default( $item, $column_name ) {
 		/**
 		 * Filters the displayed columns in the terms list table.
 		 *
 		 * The dynamic portion of the hook name, `$this->screen->taxonomy`,
 		 * refers to the slug of the current taxonomy.
 		 *
+		 * Possible hook names include:
+		 *
+		 *  - `manage_category_custom_column`
+		 *  - `manage_post_tag_custom_column`
+		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $string      Blank string.
+		 * @param string $string      Custom column output. Default empty.
 		 * @param string $column_name Name of the column.
 		 * @param int    $term_id     Term ID.
 		 */
-		return apply_filters( "manage_{$this->screen->taxonomy}_custom_column", '', $column_name, $tag->term_id );
+		return apply_filters( "manage_{$this->screen->taxonomy}_custom_column", '', $column_name, $item->term_id );
 	}
 
 	/**

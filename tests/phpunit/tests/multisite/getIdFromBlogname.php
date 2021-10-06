@@ -8,11 +8,11 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_Get_Id_From_Blogname extends WP_UnitTestCase {
+	class Tests_Multisite_GetIdFromBlogname extends WP_UnitTestCase {
 		protected static $network_ids;
 		protected static $site_ids;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'wordpress.org/'     => array(
 					'domain' => 'wordpress.org',
