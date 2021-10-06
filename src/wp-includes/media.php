@@ -5224,15 +5224,8 @@ function wp_get_loading_attr_default( $context ) {
 		return 'lazy';
 	}
 
-	// Only elements within the main query have special handling.
-	if ( is_admin() || ! is_main_query() ) {
-		return 'lazy';
-	}
-
-	// Only elements within the main query loop have special handling, with one exception:
-	// The current featured image in singular context should also be affected, as several themes render it in the
-	// header for that context.
-	if ( ! in_the_loop() && ( 'the_post_thumbnail' !== $context || ! is_singular() ) ) {
+	// Only elements within the main query loop have special handling.
+	if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
 		return 'lazy';
 	}
 
