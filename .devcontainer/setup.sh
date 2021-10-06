@@ -14,7 +14,7 @@ exec 1>setup.log 2>&1
 source ~/.bashrc
 
 # Install dependencies
-cd /var/www/html/
+cd /var/www/
 npm install && npm run build:dev
 
 # Install WordPress and activate the plugin/theme.

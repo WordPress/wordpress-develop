@@ -4,6 +4,6 @@
 	"service": "wordpress",
 	"forwardPorts": [ 8080 ],
 	"workspaceFolder": "/var/www/html/",
-	"postCreateCommand": "/wordpress-develop/.devcontainer/setup.sh",
+	"postCreateCommand": "/var/www/.devcontainer/setup.sh",
 	"remoteUser": "www-data"
 }
