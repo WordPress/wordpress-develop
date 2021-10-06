@@ -14,7 +14,6 @@ services:
       WORDPRESS_DB_NAME: exampledb
     volumes:
       - ../src:/var/www/html
-      - ../:/var/www
 
   db:
     image: mariadb
