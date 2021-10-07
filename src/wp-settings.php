@@ -603,6 +603,7 @@ if ( defined( 'WP_INDEXNOW' ) && true == WP_INDEXNOW ) {
 			array(
 				'bing'   => 'https://www.bing.com',
 				'yandex' => 'https://yandex.com',
+				'baidu'  => 'https://ziyuan.baidu.com/',
 			)
 		)
 	);
