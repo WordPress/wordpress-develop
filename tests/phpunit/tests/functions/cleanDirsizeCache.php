@@ -87,4 +87,38 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 			'string' => array( 'size' => 42 ),
 		);
 	}
+
+	/**
+	 * Test the behaviour of the function when the transient doesn't exist.
+	 *
+	 * @ticket 52241
+	 * @ticket 53635
+	 *
+	 * @covers ::recurse_dirsize
+	 */
+	public function test_recurse_dirsize_without_transient() {
+		delete_transient( 'dirsize_cache' );
+
+		$size = recurse_dirsize( __DIR__ . '/fixtures' );
+
+		$this->assertGreaterThan( 10, $size );
+	}
+
+	/**
+	 * Test the behaviour of the function when the transient does exist, but is not an array.
+	 *
+	 * In particular, this tests that no PHP TypeErrors are being thrown.
+	 *
+	 * @ticket 52241
+	 * @ticket 53635
+	 *
+	 * @covers ::recurse_dirsize
+	 */
+	public function test_recurse_dirsize_with_invalid_transient() {
+		set_transient( 'dirsize_cache', 'this is not a valid transient for dirsize cache' );
+
+		$size = recurse_dirsize( __DIR__ . '/fixtures' );
+
+		$this->assertGreaterThan( 10, $size );
+	}
 }
