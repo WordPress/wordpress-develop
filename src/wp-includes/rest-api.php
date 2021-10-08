@@ -1223,7 +1223,7 @@ function rest_parse_date( $date, $force_utc = false ) {
 		return false;
 	}
 
-	return strtotime( $date );
+	return ( new DateTimeImmutable( $date ) )->getTimestamp();
 }
 
 /**
