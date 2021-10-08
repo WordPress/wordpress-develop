@@ -397,7 +397,7 @@ class WP_Community_Events {
 				$formatted_time = date_i18n( get_option( 'time_format' ), $timestamp );
 
 				if ( isset( $event['end_date'] ) ) {
-					$end_timestamp      = strtotime( ( new DateTimeImmutable( $event['end_date'] ) )->getTimestamp() );
+					$end_timestamp      = ( new DateTimeImmutable( $event['end_date'] ) )->getTimestamp();
 					$formatted_end_date = date_i18n( __( 'l, M j, Y' ), $end_timestamp );
 
 					if ( 'meetup' !== $event['type'] && $formatted_end_date !== $formatted_date ) {
