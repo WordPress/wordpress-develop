@@ -3741,7 +3741,7 @@ function wp_get_media_creation_timestamp( $metadata ) {
 		case 'matroska':
 		case 'webm':
 			if ( isset( $metadata['matroska']['comments']['creation_time']['0'] ) ) {
-				$creation_date = strtotime( $metadata['matroska']['comments']['creation_time']['0'] );
+				$creation_date = ( new DateTimeImmutable( $metadata['matroska']['comments']['creation_time']['0'] ) )->getTimestamp();
 			} elseif ( isset( $metadata['matroska']['info']['0']['DateUTC_unix'] ) ) {
 				$creation_date = (int) $metadata['matroska']['info']['0']['DateUTC_unix'];
 			}
