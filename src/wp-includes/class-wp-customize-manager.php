@@ -2471,7 +2471,7 @@ final class WP_Customize_Manager {
 		/*
 		 * Validate changeset date param. Date is assumed to be in local time for
 		 * the WP if in MySQL format (YYYY-MM-DD HH:MM:SS). Otherwise, the date
-		 * is parsed with strtotime() so that ISO date format may be supplied
+		 * is parsed with DateTimeImmutable() so that ISO date format may be supplied
 		 * or a string like "+10 minutes".
 		 */
 		$changeset_date_gmt = null;
