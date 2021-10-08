@@ -3367,7 +3367,7 @@ function _close_comments_for_old_post( $open, $post_id ) {
 		return $open;
 	}
 
-	if ( time() - strtotime( $post->post_date_gmt ) > ( $days_old * DAY_IN_SECONDS ) ) {
+	if ( time() - ( new DateTimeImmutable( $post->post_date_gmt ) )->getTimestamp() > ( $days_old * DAY_IN_SECONDS ) ) {
 		return false;
 	}
 
