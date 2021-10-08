@@ -2487,7 +2487,7 @@ final class WP_Customize_Manager {
 				}
 				$changeset_date_gmt = get_gmt_from_date( $changeset_date );
 			} else {
-				$timestamp = strtotime( $changeset_date );
+				$timestamp = ( new DateTimeImmutable( $changeset_date ) )->getTimestamp();
 				if ( ! $timestamp ) {
 					wp_send_json_error( 'bad_customize_changeset_date', 400 );
 				}
