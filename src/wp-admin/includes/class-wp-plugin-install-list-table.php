@@ -664,7 +664,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			 */
 			$action_links = apply_filters( 'plugin_install_action_links', $action_links, $plugin );
 
-			$last_updated_timestamp = strtotime( $plugin['last_updated'] );
+			$last_updated_timestamp = ( new DateTimeImmutable( $plugin['last_updated'] ) )->getTimestamp();
 			?>
 		<div class="plugin-card plugin-card-<?php echo sanitize_html_class( $plugin['slug'] ); ?>">
 			<?php
