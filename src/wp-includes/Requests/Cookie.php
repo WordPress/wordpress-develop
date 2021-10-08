@@ -259,7 +259,7 @@ class Requests_Cookie {
 					return $value;
 				}
 
-				$expiry_time = strtotime($value);
+				$expiry_time = ( new DateTimeImmutable( $value ) )->getTimestamp();
 				if ($expiry_time === false) {
 					return null;
 				}
