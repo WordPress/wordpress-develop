@@ -658,7 +658,7 @@ function install_plugin_information() {
 				<li><strong><?php _e( 'Last Updated:' ); ?></strong>
 					<?php
 					/* translators: %s: Human-readable time difference. */
-					printf( __( '%s ago' ), human_time_diff( strtotime( $api->last_updated ) ) );
+					printf( __( '%s ago' ), human_time_diff( ( new DateTimeImmutable( $api->last_updated ) )->getTimestamp() ) );
 					?>
 				</li>
 			<?php } if ( ! empty( $api->requires ) ) { ?>
