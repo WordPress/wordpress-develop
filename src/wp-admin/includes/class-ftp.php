@@ -215,7 +215,8 @@ class ftp_base {
 					$b['hour'] = 0;
 					$b['minute'] = 0;
 				}
-				$b['time'] = strtotime(sprintf("%d %s %d %02d:%02d",$b['day'],$b['month'],$b['year'],$b['hour'],$b['minute']));
+
+				$b['time'] = ( new DateTimeImmutable( sprintf("%d %s %d %02d:%02d",$b['day'],$b['month'],$b['year'],$b['hour'],$b['minute']) ) )->getTimestamp();
 				$b['name'] = $lucifer[8];
 			}
 		}
@@ -712,7 +713,7 @@ class ftp_base {
 				}
 			}
 			@chmod($local."/".$el["name"], $el["perms"]);
-			$t=strtotime($el["date"]);
+			$t=( new DateTimeImmutable( $el["date"] ) )->getTimestamp();
 			if($t!==-1 and $t!==false) @touch($local."/".$el["name"], $t);
 		}
 		return $ret;
