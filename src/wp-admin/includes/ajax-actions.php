@@ -2441,7 +2441,7 @@ function wp_ajax_media_create_image_subsizes() {
 			$attachment = get_post( $attachment_id );
 
 			// Created at most 10 min ago.
-			if ( $attachment && ( time() - strtotime( $attachment->post_date_gmt ) < 600 ) ) {
+			if ( $attachment && ( time() - ( new DateTimeImmutable( $attachment->post_date_gmt ) )->getTimestamp() < 600 ) ) {
 				wp_delete_attachment( $attachment_id, true );
 				wp_send_json_success();
 			}
