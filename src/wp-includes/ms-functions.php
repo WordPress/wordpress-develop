@@ -1947,7 +1947,7 @@ function get_most_recent_post_of_user( $user_id ) {
 
 		// Make sure we found a post.
 		if ( isset( $recent_post['ID'] ) ) {
-			$post_gmt_ts = strtotime( $recent_post['post_date_gmt'] );
+			$post_gmt_ts = ( new DateTimeImmutable( $recent_post['post_date_gmt'] ) )->getTimestamp();
 
 			/*
 			 * If this is the first post checked
