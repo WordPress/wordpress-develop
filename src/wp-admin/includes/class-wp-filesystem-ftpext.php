@@ -667,7 +667,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 						$b['minute'] = 0;
 					}
 
-					$b['time'] = strtotime( sprintf( '%d %s %d %02d:%02d', $b['day'], $b['month'], $b['year'], $b['hour'], $b['minute'] ) );
+					$b['time'] = ( new DateTimeImmutable( sprintf( '%d %s %d %02d:%02d', $b['day'], $b['month'], $b['year'], $b['hour'], $b['minute'] ) ) )->getTimestamp();
 					$b['name'] = $lucifer[8];
 				}
 			}
