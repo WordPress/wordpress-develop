@@ -7,7 +7,9 @@ End-To-End (E2E) tests for WordPress.
 
 The e2e tests require a production-like environment to run. By default, they will assume an environment is available at `http://localhost:8889`, with username=admin and password=password.
 
-You can launch the tests by running:
+If you don't already have an environment ready, you can set one up by following the instructions [here](https://github.com/WordPress/wordpress-develop/blob/master/README.md).
+
+Then you can launch the tests by running:
 
 ```
 npm run test:e2e
@@ -37,11 +39,8 @@ npm run test:e2e tests/e2e/specs/hello.test.js
 
 ## Documentation
 
-Block Editor Handbook end to end testing overview:
-https://developer.wordpress.org/block-editor/contributors/code/testing-overview/#end-to-end-testing
+* Block Editor Handbook end to end testing overview: https://developer.wordpress.org/block-editor/contributors/code/testing-overview/#end-to-end-testing
 
-Gutenberg e2e-test-utils package API docs:
-https://github.com/WordPress/gutenberg/tree/trunk/packages/e2e-test-utils
+* Gutenberg e2e-test-utils package API docs: https://github.com/WordPress/gutenberg/tree/trunk/packages/e2e-test-utils
 
-Puppeteer API docs:
-https://github.com/puppeteer/puppeteer#readme (the version we are using is indicated in the @wordpress/scripts package: https://github.com/WordPress/gutenberg/blob/trunk/packages/scripts/package.json)
+* Puppeteer API docs: https://github.com/puppeteer/puppeteer#readme (the version we are using is indicated in the @wordpress/scripts package: https://github.com/WordPress/gutenberg/blob/trunk/packages/scripts/package.json)
