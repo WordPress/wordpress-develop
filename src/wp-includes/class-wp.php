@@ -479,10 +479,9 @@ class WP {
 
 			$client_last_modified = empty( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ? '' : trim( $_SERVER['HTTP_IF_MODIFIED_SINCE'] );
 			// If string is empty, return 0. If not, attempt to parse into a timestamp.
-			$client_modified_timestamp = $client_last_modified ? strtotime( $client_last_modified ) : 0;
-
+			$client_modified_timestamp = $client_last_modified ? ( new DateTimeImmutable( $client_last_modified ) )->getTimestamp() : 0;
 			// Make a timestamp for our most recent modification..
-			$wp_modified_timestamp = strtotime( $wp_last_modified );
+			$wp_modified_timestamp = ( new DateTimeImmutable( $wp_last_modified ) )->getTimestamp();
 
 			if ( ( $client_last_modified && $client_etag ) ?
 					( ( $client_modified_timestamp >= $wp_modified_timestamp ) && ( $client_etag == $wp_etag ) ) :
