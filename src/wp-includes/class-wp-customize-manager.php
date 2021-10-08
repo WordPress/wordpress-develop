@@ -2471,7 +2471,7 @@ final class WP_Customize_Manager {
 		/*
 		 * Validate changeset date param. Date is assumed to be in local time for
 		 * the WP if in MySQL format (YYYY-MM-DD HH:MM:SS). Otherwise, the date
-		 * is parsed with strtotime() so that ISO date format may be supplied
+		 * is parsed with ( new DateTimeImmutable( ) )->getTimestamp() so that ISO date format may be supplied
 		 * or a string like "+10 minutes".
 		 */
 		$changeset_date_gmt = null;
@@ -2487,7 +2487,7 @@ final class WP_Customize_Manager {
 				}
 				$changeset_date_gmt = get_gmt_from_date( $changeset_date );
 			} else {
-				$timestamp = strtotime( $changeset_date );
+				$timestamp = ( new DateTimeImmutable( $changeset_date ) )->getTimestamp();
 				if ( ! $timestamp ) {
 					wp_send_json_error( 'bad_customize_changeset_date', 400 );
 				}
