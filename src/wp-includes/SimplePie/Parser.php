@@ -611,7 +611,7 @@ class SimplePie_Parser
 					$item['category'] = array(array('data' => $category_csv));
 				}
 				if (isset($entry['properties']['published'][0])) {
-					$timestamp = strtotime($entry['properties']['published'][0]);
+					$timestamp = ( new DateTimeImmutable( $entry['properties']['published'][0] ) )->getTimestamp();
 					$pub_date = date('F j Y g:ia', $timestamp).' GMT';
 					$item['pubDate'] = array(array('data' => $pub_date));
 				}
