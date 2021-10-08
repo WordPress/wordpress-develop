@@ -132,6 +132,9 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			return this;
 		}
 
+		// Pause current audio/video even after closing the modal.
+		$( '.mejs-pause button' ).trigger( 'click' );
+
 		// Enable page scrolling.
 		$( 'body' ).removeClass( 'modal-open' );
 
@@ -152,7 +155,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			// Fallback to the admin page main element.
 			$( '#wpbody-content' )
 				.attr( 'tabindex', '-1' )
-				.focus();
+				.trigger( 'focus' );
 		}
 
 		this.propagate('close');

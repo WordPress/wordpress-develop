@@ -11,21 +11,22 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @subpackage UnitTests
  * @since      3.5.0
  * @group      ajax
+ *
+ * @requires   function imagejpeg
  */
 class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tear down the test fixture.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		// Cleanup.
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
 	 * @ticket 22985
-	 * @requires function imagejpeg
 	 */
 	public function testCropImageThumbnail() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
@@ -55,7 +56,6 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @ticket 32171
-	 * @requires function imagejpeg
 	 */
 	public function testImageEditOverwriteConstant() {
 		define( 'IMAGE_EDIT_OVERWRITE', true );
@@ -96,7 +96,7 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 		}
 
 		foreach ( $files_that_shouldnt_exist as $file ) {
-			$this->assertFileNotExists( $file, 'IMAGE_EDIT_OVERWRITE is leaving garbage image files behind.' );
+			$this->assertFileDoesNotExist( $file, 'IMAGE_EDIT_OVERWRITE is leaving garbage image files behind.' );
 		}
 	}
 }

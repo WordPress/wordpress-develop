@@ -157,9 +157,9 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 */
 	public function test_format_validation_is_applied_if_missing_type() {
 		if ( PHP_VERSION_ID >= 80000 ) {
-			$this->expectException( 'PHPUnit_Framework_Error_Warning' ); // For the undefined index.
+			$this->expectWarning(); // For the undefined index.
 		} else {
-			$this->expectException( 'PHPUnit_Framework_Error_Notice' );
+			$this->expectNotice(); // For the undefined index.
 		}
 
 		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
@@ -250,6 +250,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51911
+	 * @ticket 52932
 	 *
 	 * @dataProvider data_different_types_of_value_and_enum_elements
 	 *
@@ -301,6 +302,14 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				array(
 					'type' => 'integer',
 					'enum' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type' => 'integer',
+					'enum' => array( 0.0, 1.0 ),
 				),
 				true,
 			),
@@ -375,6 +384,14 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				array(
 					'type' => 'number',
 					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type' => 'number',
+					'enum' => array( 0, 1 ),
 				),
 				true,
 			),

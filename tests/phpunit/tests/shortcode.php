@@ -6,8 +6,8 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	protected $shortcodes = array( 'test-shortcode-tag', 'footag', 'bartag', 'baztag', 'dumptag', 'hyphen', 'hyphen-foo', 'hyphen-foo-bar', 'url', 'img' );
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		foreach ( $this->shortcodes as $shortcode ) {
 			add_shortcode( $shortcode, array( $this, '_shortcode_' . str_replace( '-', '_', $shortcode ) ) );
@@ -19,12 +19,12 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $shortcode_tags;
 		foreach ( $this->shortcodes as $shortcode ) {
 			unset( $shortcode_tags[ $shortcode ] );
 		}
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function _shortcode_test_shortcode_tag( $atts, $content = null, $tagname = null ) {
@@ -744,9 +744,27 @@ EOF;
 		return data_whole_posts();
 	}
 
+	/**
+	 * Ensure the shortcode attribute regex is the same in both the PHP and JS implementations.
+	 *
+	 * @ticket 34191
+	 * @ticket 51734
+	 */
 	function test_php_and_js_shortcode_attribute_regexes_match() {
+		// This test uses the source file by default but will use the built file if it exists.
+		// This allows the test to run using either the src or build directory.
+		$file_src   = ABSPATH . 'js/_enqueues/wp/shortcode.js';
+		$file_build = ABSPATH . 'wp-includes/js/shortcode.js';
 
-		$file    = file_get_contents( ABSPATH . WPINC . '/js/shortcode.js' );
+		$this->assertTrue( file_exists( $file_src ) || file_exists( $file_build ) );
+
+		$path = $file_src;
+
+		if ( file_exists( $file_build ) ) {
+			$path = $file_build;
+		}
+
+		$file    = file_get_contents( $path );
 		$matched = preg_match( '|\s+pattern = (\/.+\/)g;|', $file, $matches );
 		$php     = get_shortcode_atts_regex();
 

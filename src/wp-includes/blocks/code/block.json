@@ -1,7 +1,10 @@
 {
 	"apiVersion": 2,
 	"name": "core/code",
+	"title": "Code",
 	"category": "text",
+	"description": "Display code snippets that respect your spacing and tabs.",
+	"textdomain": "default",
 	"attributes": {
 		"content": {
 			"type": "string",
@@ -10,6 +13,10 @@
 		}
 	},
 	"supports": {
-		"anchor": true
-	}
+		"anchor": true,
+		"typography": {
+			"fontSize": true
+		}
+	},
+	"style": "wp-block-code"
 }

@@ -21,7 +21,7 @@ class Tests_Media extends WP_UnitTestCase {
 		foreach ( $post_statuses as $post_status ) {
 			$date = '';
 			if ( 'future' === $post_status ) {
-				strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+				date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 			}
 
 			self::$post_ids[ $post_status ] = $factory->post->create(
@@ -51,13 +51,13 @@ class Tests_Media extends WP_UnitTestCase {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
 	}
 
-	public static function tearDownAfterClass() {
+	public static function tear_down_after_class() {
 		wp_delete_post( self::$large_id, true );
-		parent::tearDownAfterClass();
+		parent::tear_down_after_class();
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->caption           = 'A simple caption.';
 		$this->alternate_caption = 'Alternate caption.';
 		$this->html_content      = <<<CAP
@@ -84,7 +84,7 @@ CAP;
 
 	function test_img_caption_shortcode_with_empty_params() {
 		$result = img_caption_shortcode( array() );
-		$this->assertNull( $result );
+		$this->assertSame( '', $result );
 	}
 
 	/**
@@ -134,7 +134,7 @@ CAP;
 				'caption' => '',
 			)
 		);
-		$this->assertNull( $result );
+		$this->assertSame( '', $result );
 	}
 
 	/**
@@ -280,6 +280,8 @@ CAP;
 
 	/**
 	 * @ticket 23776
+	 *
+	 * @group external-http
 	 */
 	function test_autoembed_no_paragraphs_around_urls() {
 		global $wp_embed;
@@ -379,7 +381,7 @@ https://w.org</a>',
 		$post = get_post( $id );
 
 		$prepped = wp_prepare_attachment_for_js( $post );
-		$this->assertInternalType( 'array', $prepped );
+		$this->assertIsArray( $prepped );
 		$this->assertSame( 0, $prepped['uploadedTo'] );
 		$this->assertSame( '', $prepped['mime'] );
 		$this->assertSame( '', $prepped['type'] );
@@ -444,7 +446,7 @@ https://w.org</a>',
 
 		$prepped = wp_prepare_attachment_for_js( get_post( $id ) );
 
-		$this->assertTrue( isset( $prepped['sizes'] ) );
+		$this->assertArrayHasKey( 'sizes', $prepped );
 	}
 
 	/**
@@ -821,12 +823,12 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://example.com/foo.mp3', $actual );
-		$this->assertNotContains( 'loop', $actual );
-		$this->assertNotContains( 'autoplay', $actual );
-		$this->assertContains( 'preload="none"', $actual );
-		$this->assertContains( 'class="wp-audio-shortcode"', $actual );
-		$this->assertContains( 'style="width: 100%;"', $actual );
+		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
+		$this->assertStringNotContainsString( 'loop', $actual );
+		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringContainsString( 'preload="none"', $actual );
+		$this->assertStringContainsString( 'class="wp-audio-shortcode"', $actual );
+		$this->assertStringContainsString( 'style="width: 100%;"', $actual );
 
 		$actual = wp_audio_shortcode(
 			array(
@@ -839,12 +841,12 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://example.com/foo.mp3', $actual );
-		$this->assertContains( 'loop="1"', $actual );
-		$this->assertContains( 'autoplay="1"', $actual );
-		$this->assertContains( 'preload="1"', $actual );
-		$this->assertContains( 'class="foobar"', $actual );
-		$this->assertContains( 'style="padding:0;"', $actual );
+		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
+		$this->assertStringContainsString( 'loop="1"', $actual );
+		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'class="foobar"', $actual );
+		$this->assertStringContainsString( 'style="padding:0;"', $actual );
 	}
 
 	/**
@@ -926,13 +928,13 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://example.com/foo.mp4', $actual );
-		$this->assertNotContains( 'loop', $actual );
-		$this->assertNotContains( 'autoplay', $actual );
-		$this->assertContains( 'preload="metadata"', $actual );
-		$this->assertContains( 'width="640"', $actual );
-		$this->assertContains( 'height="360"', $actual );
-		$this->assertContains( 'class="wp-video-shortcode"', $actual );
+		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
+		$this->assertStringNotContainsString( 'loop', $actual );
+		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringContainsString( 'preload="metadata"', $actual );
+		$this->assertStringContainsString( 'width="640"', $actual );
+		$this->assertStringContainsString( 'height="360"', $actual );
+		$this->assertStringContainsString( 'class="wp-video-shortcode"', $actual );
 
 		$actual = wp_video_shortcode(
 			array(
@@ -947,14 +949,14 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://example.com/foo.mp4', $actual );
-		$this->assertContains( 'poster="https://example.com/foo.png', $actual );
-		$this->assertContains( 'loop="1"', $actual );
-		$this->assertContains( 'autoplay="1"', $actual );
-		$this->assertContains( 'preload="1"', $actual );
-		$this->assertContains( 'width="123"', $actual );
-		$this->assertContains( 'height="456"', $actual );
-		$this->assertContains( 'class="foobar"', $actual );
+		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
+		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
+		$this->assertStringContainsString( 'loop="1"', $actual );
+		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'width="123"', $actual );
+		$this->assertStringContainsString( 'height="456"', $actual );
+		$this->assertStringContainsString( 'class="foobar"', $actual );
 	}
 
 	/**
@@ -968,7 +970,7 @@ VIDEO;
 			)
 		);
 
-		$this->assertNotContains( 'feature=youtu.be', $actual );
+		$this->assertStringNotContainsString( 'feature=youtu.be', $actual );
 	}
 
 	/**
@@ -982,7 +984,7 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://www.youtube.com/watch?v=72xdCU__XCk', $actual );
+		$this->assertStringContainsString( 'src="https://www.youtube.com/watch?v=72xdCU__XCk', $actual );
 	}
 
 	/**
@@ -996,8 +998,8 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://vimeo.com/76979871', $actual );
-		$this->assertNotContains( 'blah=meh', $actual );
+		$this->assertStringContainsString( 'src="https://vimeo.com/76979871', $actual );
+		$this->assertStringNotContainsString( 'blah=meh', $actual );
 	}
 
 	/**
@@ -1011,7 +1013,7 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://vimeo.com/76979871?loop=0', $actual );
+		$this->assertStringContainsString( 'src="https://vimeo.com/76979871?loop=0', $actual );
 	}
 
 	/**
@@ -1026,7 +1028,7 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://vimeo.com/76979871?loop=1', $actual );
+		$this->assertStringContainsString( 'src="https://vimeo.com/76979871?loop=1', $actual );
 	}
 
 	/**
@@ -1162,7 +1164,7 @@ VIDEO;
 	 */
 	function test_attachment_url_to_postid_with_empty_url() {
 		$post_id = attachment_url_to_postid( '' );
-		$this->assertInternalType( 'int', $post_id );
+		$this->assertIsInt( $post_id );
 		$this->assertSame( 0, $post_id );
 	}
 
@@ -1280,6 +1282,8 @@ EOF;
 
 	/**
 	 * @ticket 33016
+	 *
+	 * @group external-http
 	 */
 	function test_multiline_comment_with_embeds() {
 		$content = <<<EOF
@@ -1323,6 +1327,8 @@ EOF;
 
 	/**
 	 * @ticket 33016
+	 *
+	 * @group external-http
 	 */
 	function test_oembed_explicit_media_link() {
 		global $wp_embed;
@@ -1648,7 +1654,7 @@ EOF;
 
 		// Test to confirm all sources in the array include the same edit hash.
 		foreach ( $sizes as $size ) {
-			$this->assertNotFalse( strpos( $size, $hash ) );
+			$this->assertStringContainsString( $hash, $size );
 		}
 	}
 
@@ -1716,6 +1722,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_calculate_image_srcset_no_width() {
 		$file       = get_attached_file( self::$large_id );
@@ -2223,7 +2230,7 @@ EOF;
 		// Full size GIFs should not return a srcset.
 		$this->assertFalse( wp_calculate_image_srcset( $size_array, $full_src, $image_meta ) );
 		// Intermediate sized GIFs should not include the full size in the srcset.
-		$this->assertFalse( strpos( wp_calculate_image_srcset( $size_array, $large_src, $image_meta ), $full_src ) );
+		$this->assertStringNotContainsString( $full_src, wp_calculate_image_srcset( $size_array, $large_src, $image_meta ) );
 	}
 
 	/**
@@ -2855,7 +2862,7 @@ EOF;
 		$img = '<img src="example.png" alt=" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertContains( ' loading="lazy"', $img );
+		$this->assertStringContainsString( ' loading="lazy"', $img );
 	}
 
 	/**
@@ -2866,7 +2873,7 @@ EOF;
 		$img = '<img alt=" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
 	/**
@@ -2877,11 +2884,11 @@ EOF;
 		$img = "<img src='example.png' alt=' width='300' height='225' />";
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 
 		// Test specifically that the attribute is not there with double-quotes,
 		// to avoid regressions.
-		$this->assertNotContains( ' loading="lazy"', $img );
+		$this->assertStringNotContainsString( ' loading="lazy"', $img );
 	}
 
 	/**
@@ -2892,7 +2899,7 @@ EOF;
 		$img = '<img src="example.png" alt=" width="300" height="225" />';
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
 	/**
@@ -2902,7 +2909,7 @@ EOF;
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertContains( ' loading="lazy"', $iframe );
+		$this->assertStringContainsString( ' loading="lazy"', $iframe );
 	}
 
 	/**
@@ -2912,7 +2919,7 @@ EOF;
 		$iframe = '<iframe width="640" height="360"></iframe>';
 		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertNotContains( ' loading=', $iframe );
+		$this->assertStringNotContainsString( ' loading=', $iframe );
 	}
 
 	/**
@@ -2922,11 +2929,11 @@ EOF;
 		$iframe = "<iframe src='https://www.example.com' width='640' height='360'></iframe>";
 		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertNotContains( ' loading=', $iframe );
+		$this->assertStringNotContainsString( ' loading=', $iframe );
 
 		// Test specifically that the attribute is not there with double-quotes,
 		// to avoid regressions.
-		$this->assertNotContains( ' loading="lazy"', $iframe );
+		$this->assertStringNotContainsString( ' loading="lazy"', $iframe );
 	}
 
 	/**
@@ -2935,8 +2942,21 @@ EOF;
 	function test_wp_iframe_tag_add_loading_attr_opt_out() {
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		add_filter( 'wp_iframe_tag_add_loading_attr', '__return_false' );
+		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertNotContains( ' loading=', $iframe );
+		$this->assertStringNotContainsString( ' loading=', $iframe );
+	}
+
+	/**
+	 * @ticket 52768
+	 */
+	function test_wp_iframe_tag_add_loading_attr_skip_wp_embed() {
+		$iframe   = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$fallback = '<blockquote>Fallback content.</blockquote>';
+		$iframe   = wp_filter_oembed_result( $fallback . $iframe, (object) array( 'type' => 'rich' ), 'https://www.example.com' );
+		$iframe   = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
+
+		$this->assertStringNotContainsString( ' loading=', $iframe );
 	}
 
 	/**
@@ -2946,7 +2966,7 @@ EOF;
 	function test_wp_get_attachment_image_loading() {
 		$img = wp_get_attachment_image( self::$large_id );
 
-		$this->assertContains( ' loading="lazy"', $img );
+		$this->assertStringContainsString( ' loading="lazy"', $img );
 	}
 
 	/**
@@ -2958,7 +2978,7 @@ EOF;
 		$img = wp_get_attachment_image( self::$large_id );
 
 		// There should not be any loading attribute in this case.
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
 	/**
@@ -2973,7 +2993,7 @@ EOF;
 		$img = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array( 'loading' => false ) );
 
 		// There should not be any loading attribute in this case.
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
 	/**
@@ -3003,6 +3023,7 @@ EOF;
 
 	/**
 	 * @ticket 50425
+	 * @ticket 53463
 	 * @dataProvider data_wp_lazy_loading_enabled_context_defaults
 	 *
 	 * @param string $context  Function context.
@@ -3022,6 +3043,7 @@ EOF;
 			'the_content => true'             => array( 'the_content', true ),
 			'the_excerpt => true'             => array( 'the_excerpt', true ),
 			'widget_text_content => true'     => array( 'widget_text_content', true ),
+			'widget_block_content => true'    => array( 'widget_block_content', true ),
 			'get_avatar => true'              => array( 'get_avatar', true ),
 			'arbitrary context => true'       => array( 'something_completely_arbitrary', true ),
 		);
@@ -3094,7 +3116,7 @@ EOF;
 				'ids' => self::$large_id,
 			)
 		);
-		$this->assertContains( '?attachment_id=', $actual );
+		$this->assertStringContainsString( '?attachment_id=', $actual );
 
 		// File: Links to image file URL.
 		$actual = gallery_shortcode(
@@ -3112,7 +3134,7 @@ EOF;
 				'link' => 'none',
 			)
 		);
-		$this->assertNotContains( '<a ', $actual );
+		$this->assertStringNotContainsString( '<a ', $actual );
 	}
 
 	/**
@@ -3122,11 +3144,11 @@ EOF;
 	 * @ticket 51776
 	 *
 	 * @param string $post_key     Post as keyed in the shared fixture array.
-	 * @param string $expected     Expected result.
+	 * @param string $expected_url Expected permalink.
 	 * @param bool   $expected_404 Whether the page is expected to return a 404 result.
 	 *
 	 */
-	function test_attachment_permalinks_based_on_parent_status( $post_key, $expected, $expected_404 ) {
+	function test_attachment_permalinks_based_on_parent_status( $post_key, $expected_url, $expected_404 ) {
 		$this->set_permalink_structure( '/%postname%' );
 		$post = get_post( self::$post_ids[ $post_key ] );
 
@@ -3134,11 +3156,16 @@ EOF;
 		 * The dataProvider runs before the fixures are set up, therefore the
 		 * post object IDs are placeholders that needs to be replaced.
 		 */
-		$expected = home_url( str_replace( '%ID%', $post->ID, $expected ) );
+		$expected_url = home_url( str_replace( '%ID%', $post->ID, $expected_url ) );
 
-		$this->assertSame( $expected, get_permalink( $post ) );
 		$this->go_to( get_permalink( $post ) );
-		$this->assertSame( $expected_404, is_404() );
+		$this->assertSame( $expected_url, get_permalink( $post ) );
+		if ( $expected_404 ) {
+			$this->assertQueryTrue( 'is_404' );
+		} else {
+			$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
+		}
+		$this->assertSame( 'attachment', $post->post_type );
 	}
 
 	/**
@@ -3146,7 +3173,7 @@ EOF;
 	 *
 	 * @return array[] {
 	 *     @type string $post_key     Post as keyed in the shared fixture array.
-	 *     @type string $expected     Expected result.
+	 *     @type string $expected_url Expected permalink.
 	 *     $type bool   $expected_404 Whether the page is expected to return a 404 result.
 	 * }
 	 */

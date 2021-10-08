@@ -55,14 +55,22 @@ function list_core_update( $update ) {
 		$current = true;
 	}
 
-	$is_development_version = preg_match( '/alpha|beta|RC/', $version_string );
-
 	$message       = '';
-	$submit        = $is_development_version ? __( 'Update to latest nightly' ) : __( 'Update now' );
 	$form_action   = 'update-core.php?action=do-core-upgrade';
 	$php_version   = phpversion();
 	$mysql_version = $wpdb->db_version();
 	$show_buttons  = true;
+
+	// Nightly build versions have two hyphens and a commit number.
+	if ( preg_match( '/-\w+-\d+/', $update->current ) ) {
+		// Retrieve the major version number.
+		preg_match( '/^\d+.\d+/', $update->current, $update_major );
+		/* translators: %s: WordPress version. */
+		$submit = sprintf( __( 'Update to latest %s nightly' ), $update_major[0] );
+	} else {
+		/* translators: %s: WordPress version. */
+		$submit = sprintf( __( 'Update to version %s' ), $version_string );
+	}
 
 	if ( 'development' === $update->response ) {
 		$message = __( 'You can update to the latest nightly build manually:' );
@@ -150,8 +158,8 @@ function list_core_update( $update ) {
 	wp_nonce_field( 'upgrade-core' );
 
 	echo '<p>';
-	echo '<input name="version" value="' . esc_attr( $update->current ) . '" type="hidden"/>';
-	echo '<input name="locale" value="' . esc_attr( $update->locale ) . '" type="hidden"/>';
+	echo '<input name="version" value="' . esc_attr( $update->current ) . '" type="hidden" />';
+	echo '<input name="locale" value="' . esc_attr( $update->locale ) . '" type="hidden" />';
 	if ( $show_buttons ) {
 		if ( $first_pass ) {
 			submit_button( $submit, $current ? '' : 'primary regular', 'upgrade', false );
@@ -306,7 +314,7 @@ function core_auto_updates_settings() {
 	$upgrade_major = get_site_option( 'auto_update_core_major', 'unset' ) === 'enabled';
 
 	$can_set_update_option = true;
-	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'minor', false.
+	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.
 	if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
 		if ( false === WP_AUTO_UPDATE_CORE ) {
 			// Defaults to turned off, unless a filter allows it.
@@ -314,8 +322,7 @@ function core_auto_updates_settings() {
 			$upgrade_minor = false;
 			$upgrade_major = false;
 		} elseif ( true === WP_AUTO_UPDATE_CORE
-			|| 'beta' === WP_AUTO_UPDATE_CORE
-			|| 'rc' === WP_AUTO_UPDATE_CORE
+			|| in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
 		) {
 			// ALL updates for core.
 			$upgrade_dev   = true;
@@ -414,6 +421,14 @@ function core_auto_updates_settings() {
 	 * Fires after the major core auto-update settings.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @param array $auto_update_settings {
+	 *     Array of core auto-update settings.
+	 *
+	 *     @type bool $dev   Whether to enable automatic updates for development versions.
+	 *     @type bool $minor Whether to enable minor automatic core updates.
+	 *     @type bool $major Whether to enable major automatic core updates.
+	 * }
 	 */
 	do_action( 'after_core_auto_updates_settings', $auto_update_settings );
 }
@@ -442,8 +457,18 @@ function list_plugin_updates() {
 	} else {
 		$core_update_version = $core_updates[0]->current;
 	}
+
+	$plugins_count = count( $plugins );
 	?>
-<h2><?php _e( 'Plugins' ); ?></h2>
+<h2>
+	<?php
+	printf(
+		'%s <span class="count">(%d)</span>',
+		__( 'Plugins' ),
+		number_format_i18n( $plugins_count )
+	);
+	?>
+</h2>
 <p><?php _e( 'The following plugins have new versions available. Check the ones you want to update and then click &#8220;Update Plugins&#8221;.' ); ?></p>
 <form method="post" action="<?php echo esc_url( $form_action ); ?>" name="upgrade-plugins" class="upgrade">
 	<?php wp_nonce_field( 'upgrade-core' ); ?>
@@ -595,8 +620,18 @@ function list_theme_updates() {
 	}
 
 	$form_action = 'update-core.php?action=do-theme-upgrade';
+
+	$themes_count = count( $themes );
 	?>
-<h2><?php _e( 'Themes' ); ?></h2>
+<h2>
+	<?php
+	printf(
+		'%s <span class="count">(%d)</span>',
+		__( 'Themes' ),
+		number_format_i18n( $themes_count )
+	);
+	?>
+</h2>
 <p><?php _e( 'The following themes have new versions available. Check the ones you want to update and then click &#8220;Update Themes&#8221;.' ); ?></p>
 <p>
 	<?php
@@ -1101,6 +1136,7 @@ if ( 'upgrade-core' === $action ) {
 	$url = 'update.php?action=update-selected&plugins=' . urlencode( implode( ',', $plugins ) );
 	$url = wp_nonce_url( $url, 'bulk-update-plugins' );
 
+	// Used in the HTML title tag.
 	$title = __( 'Update Plugins' );
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -1141,6 +1177,7 @@ if ( 'upgrade-core' === $action ) {
 	$url = 'update.php?action=update-selected-themes&themes=' . urlencode( implode( ',', $themes ) );
 	$url = wp_nonce_url( $url, 'bulk-update-themes' );
 
+	// Used in the HTML title tag.
 	$title = __( 'Update Themes' );
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';

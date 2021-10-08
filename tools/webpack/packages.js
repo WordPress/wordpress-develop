@@ -63,7 +63,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	buildTarget = buildTarget  + '/wp-includes';
 
 	const WORDPRESS_NAMESPACE = '@wordpress/';
-	const BUNDLED_PACKAGES = [ '@wordpress/icons' ];
+	const BUNDLED_PACKAGES = [ '@wordpress/icons', '@wordpress/interface' ];
 	const packages = Object.keys( dependencies )
 		.filter( ( packageName ) =>
  			! BUNDLED_PACKAGES.includes( packageName ) &&
@@ -73,94 +73,41 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const vendors = {
 		'lodash.js': 'lodash/lodash.js',
-		'wp-polyfill.js': '@babel/polyfill/dist/polyfill.js',
+		'wp-polyfill.js': '@wordpress/babel-preset-default/build/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
-		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-url.js': 'core-js-url-browser/url.js',
-		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
+		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
+		'wp-polyfill-object-fit.js': 'objectFitPolyfill/src/objectFitPolyfill.js',
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
+		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
 	};
 
 	const minifiedVendors = {
 		'lodash.min.js': 'lodash/lodash.min.js',
-		'wp-polyfill.min.js': '@babel/polyfill/dist/polyfill.min.js',
+		'wp-polyfill.min.js': '@wordpress/babel-preset-default/build/polyfill.min.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
+		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',
 		'moment.min.js': 'moment/min/moment.min.js',
 		'react.min.js': 'react/umd/react.production.min.js',
 		'react-dom.min.js': 'react-dom/umd/react-dom.production.min.js',
 	};
 
 	const minifyVendors = {
+		'regenerator-runtime.min.js': 'regenerator-runtime/runtime.js',
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
-		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
-		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
+		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
+		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 	};
 
-	const dynamicBlockFolders = [
-		'archives',
-		'block',
-		'calendar',
-		'categories',
-		'latest-comments',
-		'latest-posts',
-		'rss',
-		'search',
-		'shortcode',
-		'social-link',
-		'tag-cloud',
-	];
-	const blockFolders = [
-		'audio',
-		'button',
-		'buttons',
-		'classic',
-		'code',
-		'column',
-		'columns',
-		'embed',
-		'file',
-		'gallery',
-		'group',
-		'heading',
-		'html',
-		'image',
-		'list',
-		'media-text',
-		'missing',
-		'more',
-		'nextpage',
-		'paragraph',
-		'preformatted',
-		'pullquote',
-		'quote',
-		'separator',
-		'social-links',
-		'spacer',
-		'subhead',
-		'table',
-		'text-columns',
-		'verse',
-		'video',
-		...dynamicBlockFolders,
-	];
 	const phpFiles = {
 		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
-		...dynamicBlockFolders.reduce( ( files, blockName ) => {
-			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
-			return files;
-		} , {} ),
-	};
-	const blockMetadataFiles = {
-		...blockFolders.reduce( ( files, blockName ) => {
-			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
-			return files;
-		} , {} ),
 	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
@@ -207,11 +154,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		to: join( baseDir, `src/${ phpFiles[ filename ] }` ),
 	} ) );
 
-	const blockMetadataCopies = Object.keys( blockMetadataFiles ).map( ( filename ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
-	} ) );
-
 	const config = {
 		mode,
 
@@ -247,10 +189,15 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 				},
 			],
 		},
+		optimization: {
+			moduleIds: mode === 'production' ? 'hashed' : 'named',
+		},
 		plugins: [
 			new DefinePlugin( {
 				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
 				'process.env.GUTENBERG_PHASE': 1,
+				// Inject the `COMPONENT_SYSTEM_PHASE` global, used for controlling Component System roll-out.
+				'process.env.COMPONENT_SYSTEM_PHASE': 0,
 				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
 					process.env.FORCE_REDUCED_MOTION
 				),
@@ -297,7 +244,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...vendorCopies,
 					...cssCopies,
 					...phpCopies,
-					...blockMetadataCopies,
 				],
 			),
 		],
@@ -316,7 +262,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		delete config.devtool;
 		config.mode = 'production';
 		config.optimization = {
-			minimize: false
+			minimize: false,
+			moduleIds: 'hashed',
 		};
 	}
 

@@ -32,8 +32,10 @@ if ( wp_is_application_passwords_available_for_user( $user_id ) ) {
 }
 
 if ( IS_PROFILE_PAGE ) {
+	// Used in the HTML title tag.
 	$title = __( 'Profile' );
 } else {
+	// Used in the HTML title tag.
 	/* translators: %s: User's display name. */
 	$title = __( 'Edit User %s' );
 }
@@ -551,12 +553,12 @@ endif;
 			/**
 			 * Filters a user contactmethod label.
 			 *
-			 * The dynamic portion of the filter hook, `$name`, refers to
-			 * each of the keys in the contactmethods array.
+			 * The dynamic portion of the hook name, `$name`, refers to
+			 * each of the keys in the contact methods array.
 			 *
 			 * @since 2.9.0
 			 *
-			 * @param string $desc The translatable label for the contactmethod.
+			 * @param string $desc The translatable label for the contact method.
 			 */
 			echo apply_filters( "user_{$name}_label", $desc );
 			?>
@@ -609,7 +611,6 @@ endif;
 	</td>
 </tr>
 <?php endif; ?>
-
 		<?php
 		/**
 		 * Filters the display of the password fields.
@@ -672,6 +673,28 @@ endif;
 	<?php endif; ?>
 
 		<?php
+		// Allow admins to send reset password link.
+		if ( ! IS_PROFILE_PAGE ) :
+			?>
+	<tr class="user-generate-reset-link-wrap hide-if-no-js">
+		<th><?php _e( 'Password Reset' ); ?></th>
+		<td>
+			<div class="generate-reset-link">
+				<button type="button" class="button button-secondary" id="generate-reset-link">
+					<?php _e( 'Send Reset Link' ); ?>
+				</button>
+			</div>
+			<p class="description">
+				<?php
+				/* translators: %s: User's display name. */
+				printf( __( 'Send %s a link to reset their password. This will not change their password, nor will it force a change.' ), esc_html( $profileuser->display_name ) );
+				?>
+			</p>
+		</td>
+	</tr>
+		<?php endif; ?>
+
+		<?php
 		if ( IS_PROFILE_PAGE && count( $sessions->get_all() ) === 1 ) :
 			?>
 	<tr class="user-sessions-wrap hide-if-no-js">
@@ -724,10 +747,10 @@ endif;
 					<p>
 						<?php
 						printf(
-							/* translators: 1: URL to my-sites.php, 2: Number of blogs the user has. */
+							/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
 							_n(
-								'Application passwords grant access to <a href="%1$s">the %2$s blog in this installation that you have permissions on</a>.',
-								'Application passwords grant access to <a href="%1$s">all %2$s blogs in this installation that you have permissions on</a>.',
+								'Application passwords grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
+								'Application passwords grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
 								$blogs_count
 							),
 							admin_url( 'my-sites.php' ),
@@ -744,7 +767,7 @@ endif;
 			<div class="create-application-password form-wrap">
 				<div class="form-field">
 					<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-					<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" />
+					<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" />
 					<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 				</div>
 
@@ -759,7 +782,7 @@ endif;
 				do_action( 'wp_create_application_password_form', $profileuser );
 				?>
 
-				<?php submit_button( __( 'Add New Application Password' ), 'secondary', 'do_new_application_password' ); ?>
+				<button type="button" name="do_new_application_password" id="do_new_application_password" class="button button-secondary"><?php _e( 'Add New Application Password' ); ?></button>
 			</div>
 		<?php } else { ?>
 			<div class="notice notice-error inline">

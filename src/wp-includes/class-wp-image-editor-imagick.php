@@ -197,18 +197,31 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
-			if ( 'image/jpeg' === $this->mime_type ) {
-				$this->image->setImageCompressionQuality( $quality );
-				$this->image->setImageCompression( imagick::COMPRESSION_JPEG );
-			} else {
-				$this->image->setImageCompressionQuality( $quality );
+			switch ( $this->mime_type ) {
+				case 'image/jpeg':
+					$this->image->setImageCompressionQuality( $quality );
+					$this->image->setImageCompression( imagick::COMPRESSION_JPEG );
+					break;
+				case 'image/webp':
+					$webp_info = wp_get_webp_info( $this->file );
+
+					if ( 'lossless' === $webp_info['type'] ) {
+						// Use WebP lossless settings.
+						$this->image->setImageCompressionQuality( 100 );
+						$this->image->setOption( 'webp:lossless', 'true' );
+					} else {
+						$this->image->setImageCompressionQuality( $quality );
+					}
+					break;
+				default:
+					$this->image->setImageCompressionQuality( $quality );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_quality_error', $e->getMessage() );
 		}
-
 		return true;
 	}
+
 
 	/**
 	 * Sets or updates current image size.
@@ -649,8 +662,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string $destfilename
-	 * @param string $mime_type
+	 * @param string $destfilename Optional. Destination filename. Default null.
+	 * @param string $mime_type    Optional. The mime-type. Default null.
 	 * @return array|WP_Error {'path'=>string, 'file'=>string, 'width'=>int, 'height'=>int, 'mime-type'=>string}
 	 */
 	public function save( $destfilename = null, $mime_type = null ) {
@@ -888,7 +901,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return true|WP_error
+	 * @return true|WP_Error
 	 */
 	protected function pdf_load_source() {
 		$filename = $this->pdf_setup();

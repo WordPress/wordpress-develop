@@ -33,15 +33,10 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		);
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		setup_postdata( get_post( self::$post_id ) );
-	}
-
-	function tearDown() {
-		wp_reset_postdata();
-		parent::tearDown();
 	}
 
 	function test_get_the_author() {
@@ -119,9 +114,9 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 		$url = sprintf( 'http://%1$s/?author=%2$s', WP_TESTS_DOMAIN, $author->ID );
 
-		$this->assertContains( $url, $link );
-		$this->assertContains( 'Posts by Test Author', $link );
-		$this->assertContains( '>Test Author</a>', $link );
+		$this->assertStringContainsString( $url, $link );
+		$this->assertStringContainsString( 'Posts by Test Author', $link );
+		$this->assertStringContainsString( '>Test Author</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
 	}
@@ -142,9 +137,9 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '' );
 
-		$this->assertContains( $url, $link );
-		$this->assertContains( 'Posts by Test Author', $link );
-		$this->assertContains( '>Test Author</a>', $link );
+		$this->assertStringContainsString( $url, $link );
+		$this->assertStringContainsString( 'Posts by Test Author', $link );
+		$this->assertStringContainsString( '>Test Author</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
 	}

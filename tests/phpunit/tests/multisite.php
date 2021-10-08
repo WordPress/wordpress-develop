@@ -8,19 +8,6 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite extends WP_UnitTestCase {
-		protected $suppress = false;
-
-		function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tearDown() {
-			global $wpdb;
-			parent::tearDown();
-			$wpdb->suppress_errors( $this->suppress );
-		}
 
 		function test_wpmu_log_new_registrations() {
 			global $wpdb;

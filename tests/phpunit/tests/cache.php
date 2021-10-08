@@ -6,16 +6,16 @@
 class Tests_Cache extends WP_UnitTestCase {
 	public $cache = null;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		// Create two cache objects with a shared cache directory.
 		// This simulates a typical cache situation, two separate requests interacting.
 		$this->cache =& $this->init_cache();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$this->flush_cache();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function &init_cache() {
@@ -251,7 +251,7 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	function test_switch_to_blog() {
 		if ( ! method_exists( $this->cache, 'switch_to_blog' ) ) {
-			return;
+			$this->markTestSkipped( 'This test requires a switch_to_blog() method on the cache object.' );
 		}
 
 		$key  = __FUNCTION__;
@@ -324,7 +324,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		wp_cache_replace( $key, $val2 );
 		$this->assertSame( $val2, wp_cache_get( $key ) );
 
-		// Non-existant key should fail.
+		// Non-existent key should fail.
 		$this->assertFalse( wp_cache_replace( $fake_key, $val1 ) );
 
 		// Make sure $fake_key is not stored.

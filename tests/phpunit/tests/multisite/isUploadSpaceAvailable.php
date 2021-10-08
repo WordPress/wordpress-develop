@@ -10,39 +10,11 @@ if ( is_multisite() ) :
 	 *
 	 * @group multisite
 	 */
-	class Tests_Multisite_Is_Upload_Space_Available extends WP_UnitTestCase {
-		protected $suppress = false;
+	class Tests_Multisite_IsUploadSpaceAvailable extends WP_UnitTestCase {
 
-		protected static $original_site_blog_upload_space;
-		protected static $original_blog_upload_space;
-
-		public static function setUpBeforeClass() {
-			parent::setUpBeforeClass();
-
-			self::$original_site_blog_upload_space = get_site_option( 'blog_upload_space' );
-			self::$original_blog_upload_space      = get_option( 'blog_upload_space' );
-		}
-
-		public function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-
+		public function set_up() {
+			parent::set_up();
 			update_site_option( 'upload_space_check_disabled', false );
-		}
-
-		public function tearDown() {
-			global $wpdb;
-
-			/**
-			 * Reset the two `blog_upload_space` options to their original values so
-			 * they can be relied on in other test classes.
-			 */
-			update_site_option( 'blog_upload_space', self::$original_site_blog_upload_space );
-			update_option( 'blog_upload_space', self::$original_blog_upload_space );
-
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
 		}
 
 		/**

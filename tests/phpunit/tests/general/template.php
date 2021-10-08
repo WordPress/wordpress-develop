@@ -2,6 +2,7 @@
 /**
  * A set of unit tests for functions in wp-includes/general-template.php
  *
+ * @group general
  * @group template
  * @group site_icon
  */
@@ -16,23 +17,25 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public $custom_logo_id;
 	public $custom_logo_url;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->wp_site_icon = new WP_Site_Icon();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $wp_customize;
 		$this->_remove_custom_logo();
 		$this->_remove_site_icon();
 		$wp_customize = null;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
 	 * @group site_icon
+	 * @covers ::get_site_icon_url
+	 * @requires function imagejpeg
 	 */
 	function test_get_site_icon_url() {
 		$this->assertEmpty( get_site_icon_url() );
@@ -46,6 +49,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group site_icon
+	 * @covers ::site_icon_url
+	 * @requires function imagejpeg
 	 */
 	function test_site_icon_url() {
 		$this->expectOutputString( '' );
@@ -58,6 +63,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group site_icon
+	 * @covers ::has_site_icon
+	 * @requires function imagejpeg
 	 */
 	function test_has_site_icon() {
 		$this->assertFalse( has_site_icon() );
@@ -73,6 +80,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group site_icon
 	 * @group multisite
 	 * @group ms-required
+	 * @covers ::has_site_icon
 	 */
 	function test_has_site_icon_returns_true_when_called_for_other_site_with_site_icon_set() {
 		$blog_id = $this->factory->blog->create();
@@ -87,6 +95,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group site_icon
 	 * @group multisite
 	 * @group ms-required
+	 * @covers ::has_site_icon
 	 */
 	function test_has_site_icon_returns_false_when_called_for_other_site_without_site_icon_set() {
 		$blog_id = $this->factory->blog->create();
@@ -96,6 +105,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group site_icon
+	 * @covers ::wp_site_icon
+	 * @requires function imagejpeg
 	 */
 	function test_wp_site_icon() {
 		$this->expectOutputString( '' );
@@ -117,6 +128,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group site_icon
+	 * @covers ::wp_site_icon
+	 * @requires function imagejpeg
 	 */
 	function test_wp_site_icon_with_filter() {
 		$this->expectOutputString( '' );
@@ -140,8 +153,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group site_icon
 	 * @ticket 38377
+	 * @group site_icon
+	 * @covers ::wp_site_icon
 	 */
 	function test_customize_preview_wp_site_icon_empty() {
 		global $wp_customize;
@@ -157,8 +171,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group site_icon
 	 * @ticket 38377
+	 * @group site_icon
+	 * @covers ::wp_site_icon
 	 */
 	function test_customize_preview_wp_site_icon_dirty() {
 		global $wp_customize;
@@ -241,6 +256,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group custom_logo
+	 * @covers ::has_custom_logo
 	 *
 	 * @since 4.5.0
 	 */
@@ -258,6 +274,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group custom_logo
 	 * @group multisite
 	 * @group ms-required
+	 * @covers ::has_custom_logo
 	 */
 	function test_has_custom_logo_returns_true_when_called_for_other_site_with_custom_logo_set() {
 		$blog_id = $this->factory->blog->create();
@@ -272,6 +289,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group custom_logo
 	 * @group multisite
 	 * @group ms-required
+	 * @covers ::has_custom_logo
 	 */
 	function test_has_custom_logo_returns_false_when_called_for_other_site_without_custom_logo_set() {
 		$blog_id = $this->factory->blog->create();
@@ -281,6 +299,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group custom_logo
+	 * @covers ::get_custom_logo
 	 *
 	 * @since 4.5.0
 	 */
@@ -290,7 +309,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->_set_custom_logo();
 		$custom_logo = get_custom_logo();
 		$this->assertNotEmpty( $custom_logo );
-		$this->assertInternalType( 'string', $custom_logo );
+		$this->assertIsString( $custom_logo );
 
 		$this->_remove_custom_logo();
 		$this->assertEmpty( get_custom_logo() );
@@ -300,6 +319,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group custom_logo
 	 * @group multisite
 	 * @group ms-required
+	 * @covers ::get_custom_logo
 	 */
 	function test_get_custom_logo_returns_logo_when_called_for_other_site_with_custom_logo_set() {
 		$blog_id = $this->factory->blog->create();
@@ -328,6 +348,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group custom_logo
+	 * @covers ::the_custom_logo
 	 *
 	 * @since 4.5.0
 	 */
@@ -355,8 +376,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group custom_logo
 	 * @ticket 38768
+	 * @group custom_logo
+	 * @covers ::the_custom_logo
 	 */
 	function test_the_custom_logo_with_alt() {
 		$this->_set_custom_logo();
@@ -420,6 +442,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 38253
 	 * @group ms-required
+	 * @covers ::get_site_icon_url
 	 */
 	function test_get_site_icon_url_preserves_switched_state() {
 		$blog_id = $this->factory->blog->create();
@@ -439,6 +462,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 38253
 	 * @group ms-required
+	 * @covers ::has_custom_logo
 	 */
 	function test_has_custom_logo_preserves_switched_state() {
 		$blog_id = $this->factory->blog->create();
@@ -458,6 +482,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 38253
 	 * @group ms-required
+	 * @covers ::get_custom_logo
 	 */
 	function test_get_custom_logo_preserves_switched_state() {
 		$blog_id = $this->factory->blog->create();
@@ -476,6 +501,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40969
+	 *
+	 * @covers ::get_header
 	 */
 	function test_get_header_returns_nothing_on_success() {
 		$this->expectOutputRegex( '/Header/' );
@@ -487,6 +514,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40969
+	 *
+	 * @covers ::get_footer
 	 */
 	function test_get_footer_returns_nothing_on_success() {
 		$this->expectOutputRegex( '/Footer/' );
@@ -498,6 +527,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40969
+	 *
+	 * @covers ::get_sidebar
 	 */
 	function test_get_sidebar_returns_nothing_on_success() {
 		$this->expectOutputRegex( '/Sidebar/' );
@@ -509,6 +540,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40969
+	 *
+	 * @covers ::get_template_part
 	 */
 	function test_get_template_part_returns_nothing_on_success() {
 		$this->expectOutputRegex( '/Template Part/' );
@@ -520,6 +553,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40969
+	 *
+	 * @covers ::get_template_part
 	 */
 	function test_get_template_part_returns_false_on_failure() {
 		$this->assertFalse( get_template_part( 'non-existing-template' ) );
@@ -527,6 +562,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21676
+	 *
+	 * @covers ::get_template_part
 	 */
 	function test_get_template_part_passes_arguments_to_template() {
 		$this->expectOutputRegex( '/{"foo":"baz"}/' );
@@ -535,48 +572,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 9862
-	 * @dataProvider data_selected_and_checked_with_equal_values
-	 */
-	function test_selected_and_checked_with_equal_values( $selected, $current ) {
-		$this->assertSame( " selected='selected'", selected( $selected, $current, false ) );
-		$this->assertSame( " checked='checked'", checked( $selected, $current, false ) );
-	}
-
-	function data_selected_and_checked_with_equal_values() {
-		return array(
-			array( 'foo', 'foo' ),
-			array( '1', 1 ),
-			array( '1', true ),
-			array( 1, 1 ),
-			array( 1, true ),
-			array( true, true ),
-			array( '0', 0 ),
-			array( 0, 0 ),
-			array( '', false ),
-			array( false, false ),
-		);
-	}
-
-	/**
-	 * @ticket 9862
-	 * @dataProvider data_selected_and_checked_with_non_equal_values
-	 */
-	function test_selected_and_checked_with_non_equal_values( $selected, $current ) {
-		$this->assertSame( '', selected( $selected, $current, false ) );
-		$this->assertSame( '', checked( $selected, $current, false ) );
-	}
-
-	function data_selected_and_checked_with_non_equal_values() {
-		return array(
-			array( '0', '' ),
-			array( 0, '' ),
-			array( 0, false ),
-		);
-	}
-
-	/**
 	 * @ticket 44183
+	 *
+	 * @covers ::get_the_archive_title
 	 */
 	function test_get_the_archive_title_is_correct_for_author_queries() {
 		$user_with_posts    = $this->factory()->user->create_and_get(
