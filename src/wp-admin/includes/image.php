@@ -673,7 +673,7 @@ function wp_exif_date2ts( $str ) {
 	list( $date, $time ) = explode( ' ', trim( $str ) );
 	list( $y, $m, $d )   = explode( ':', $date );
 
-	return strtotime( "{$y}-{$m}-{$d} {$time}" );
+	return ( new DateTimeImmutable( "{$y}-{$m}-{$d} {$time}" ) )->getTimestamp();
 }
 
 /**
@@ -773,7 +773,7 @@ function wp_read_image_metadata( $file ) {
 			}
 
 			if ( ! empty( $iptc['2#055'][0] ) && ! empty( $iptc['2#060'][0] ) ) { // Created date and time.
-				$meta['created_timestamp'] = strtotime( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0] );
+				$meta['created_timestamp'] = ( new DateTimeImmutable( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0]  ) )->getTimestamp();
 			}
 
 			if ( ! empty( $iptc['2#116'][0] ) ) { // Copyright.
