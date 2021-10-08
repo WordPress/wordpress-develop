@@ -384,7 +384,7 @@ class WP_Community_Events {
 
 		if ( isset( $response_body['events'] ) ) {
 			foreach ( $response_body['events'] as $key => $event ) {
-				$timestamp = strtotime( $event['date'] );
+				$timestamp = ( new DateTimeImmutable( $event['date'] ) )->getTimestamp();
 
 				/*
 				 * The `date_format` option is not used because it's important
@@ -397,7 +397,7 @@ class WP_Community_Events {
 				$formatted_time = date_i18n( get_option( 'time_format' ), $timestamp );
 
 				if ( isset( $event['end_date'] ) ) {
-					$end_timestamp      = strtotime( $event['end_date'] );
+					$end_timestamp      = strtotime( ( new DateTimeImmutable( $event['end_date'] ) )->getTimestamp() );
 					$formatted_end_date = date_i18n( __( 'l, M j, Y' ), $end_timestamp );
 
 					if ( 'meetup' !== $event['type'] && $formatted_end_date !== $formatted_date ) {
