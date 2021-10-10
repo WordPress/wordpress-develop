@@ -1148,9 +1148,13 @@ function _wp_get_attachment_relative_path( $file ) {
 		return '';
 	}
 
-	if ( false !== strpos( $dirname, 'wp-content/uploads' ) ) {
+	if ( defined( 'UPLOADS' ) && false !== strpos( $dirname, UPLOADS ) ) {
+		$dirname = substr( $dirname, strpos( $dirname, UPLOADS ) + strlen( UPLOADS ) );
+		$dirname = ltrim( $dirname, '/' );
+	} elseif ( false !== strpos( $dirname, str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/uploads' ) ){
 		// Get the directory name relative to the upload directory (back compat for pre-2.7 uploads).
-		$dirname = substr( $dirname, strpos( $dirname, 'wp-content/uploads' ) + 18 );
+		$uploads_rel_path = str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/uploads';
+		$dirname = substr( $dirname, strpos( $dirname, $uploads_rel_path ) + strlen( $uploads_rel_path ) );
 		$dirname = ltrim( $dirname, '/' );
 	}
 

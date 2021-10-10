@@ -1083,7 +1083,9 @@ function update_core( $from, $to ) {
 
 	// Don't copy wp-content, we'll deal with that below.
 	// We also copy version.php last so failed updates report their old version.
-	$skip              = array( 'wp-content', 'wp-includes/version.php' );
+	$wp_content_dir = str_replace( ABSPATH, '', WP_CONTENT_DIR );
+	$wp_content_dir_length = strlen( $wp_content_dir );
+	$skip              = array( $wp_content_dir, 'wp-includes/version.php' );
 	$check_is_writable = array();
 
 	// Check to see which files don't really need updating - only available for 3.7 and higher.
@@ -1099,7 +1101,7 @@ function update_core( $from, $to ) {
 
 		if ( is_array( $checksums ) ) {
 			foreach ( $checksums as $file => $checksum ) {
-				if ( 'wp-content' === substr( $file, 0, 10 ) ) {
+				if ( substr( $file, 0, strlen( $wp_content_dir ) ) === $wp_content_dir ) {
 					continue;
 				}
 
@@ -1201,12 +1203,12 @@ function update_core( $from, $to ) {
 	}
 
 	// Check to make sure everything copied correctly, ignoring the contents of wp-content.
-	$skip   = array( 'wp-content' );
+	$skip   = array( $wp_content_dir );
 	$failed = array();
 
 	if ( isset( $checksums ) && is_array( $checksums ) ) {
 		foreach ( $checksums as $file => $checksum ) {
-			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
+			if ( substr( $file, 0, strlen( $wp_content_dir ) ) === $wp_content_dir ) {
 				continue;
 			}
 

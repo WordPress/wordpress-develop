@@ -2780,6 +2780,7 @@ function get_subdirectory_reserved_names() {
 		'feed',
 		'wp-admin',
 		'wp-content',
+		str_replace( ABSPATH, '', WP_CONTENT_DIR ),
 		'wp-includes',
 		'wp-json',
 		'embed',

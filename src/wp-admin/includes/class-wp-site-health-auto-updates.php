@@ -356,7 +356,8 @@ class WP_Site_Health_Auto_Updates {
 
 		$unwritable_files = array();
 		foreach ( array_keys( $checksums ) as $file ) {
-			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
+			$wp_content_dir = str_replace( ABSPATH, '', WP_CONTENT_DIR );
+			if ( substr( $file, 0, strlen( $wp_content_dir ) ) === $wp_content_dir ) {
 				continue;
 			}
 			if ( ! file_exists( ABSPATH . $file ) ) {
