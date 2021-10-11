@@ -8336,6 +8336,7 @@ mockedApiResponse.TypesCollection = {
             "post_tag"
         ],
         "rest_base": "posts",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8363,6 +8364,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "page",
         "taxonomies": [],
         "rest_base": "pages",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8390,6 +8392,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "attachment",
         "taxonomies": [],
         "rest_base": "media",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8417,6 +8420,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "wp_block",
         "taxonomies": [],
         "rest_base": "blocks",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8444,6 +8448,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "wp_template",
         "taxonomies": [],
         "rest_base": "templates",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8475,7 +8480,8 @@ mockedApiResponse.TypeModel = {
         "category",
         "post_tag"
     ],
-    "rest_base": "posts"
+    "rest_base": "posts",
+    "rest_namespace": "wp/v2"
 };
 
 mockedApiResponse.StatusesCollection = {
