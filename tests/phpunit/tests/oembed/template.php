@@ -310,7 +310,6 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$prepended_post_embed = wp_prepend_oembed_host_inline_script_tag( $post_embed );
 		$this->assertNotEquals( $post_embed, $prepended_post_embed );
 		$this->assertStringContainsString( '<script', $prepended_post_embed );
-		$this->assertStringContainsString( 'wp.receiveEmbedMessage', $prepended_post_embed );
 	}
 
 	/**
