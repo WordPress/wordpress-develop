@@ -155,15 +155,15 @@ class WP_User_Query {
 	 *     @type string       $capability          An array or a comma-separated list of capability names that users must match
 	 *                                             to be included in results. Note that this is an inclusive list: users
 	 *                                             must match *each* capability.
-	 *                                             Does NOT work for capabilities not in the database or filtered via `map_meta_cap`.
+	 *                                             Does NOT work for capabilities not in the database or filtered via {@see 'map_meta_cap'}.
 	 *                                             Default empty.
 	 *     @type string[]     $capability__in      An array capability names. Matched users must have at least one of these
 	 *                                             capabilities.
-	 *                                             Does NOT work for capabilities not in the database or filtered via `map_meta_cap`.
+	 *                                             Does NOT work for capabilities not in the database or filtered via {@see 'map_meta_cap'}.
 	 *                                             Default empty array.
 	 *     @type string[]     $capability__not_in  An array of capability names to exclude. Users matching one or more of these
 	 *                                             capabilities will not be included in results.
-	 *                                             Does NOT work for capabilities not in the database or filtered via `map_meta_cap`.
+	 *                                             Does NOT work for capabilities not in the database or filtered via {@see 'map_meta_cap'}.
 	 *                                             Default empty array.
 	 *     @type string       $meta_key            User meta key. Default empty.
 	 *     @type string       $meta_value          User meta value. Default empty.
