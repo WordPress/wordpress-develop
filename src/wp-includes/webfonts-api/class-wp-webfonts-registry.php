@@ -2,11 +2,9 @@
 /**
  * Webfonts API: Webfonts Registry
  *
- * This is the main class integrating all other classes.
- *
  * @package WordPress
  * @subpackage Webfonts
- * @since 5.5.0
+ * @since 5.9.0
  */
 
 /**
@@ -15,6 +13,7 @@
  * Handles schema validation, webfont registration, and query of webfonts.
  */
 final class WP_Webfonts_Registry {
+
 	/**
 	 * Registered webfonts.
 	 *

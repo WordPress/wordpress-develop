@@ -1,9 +1,20 @@
 <?php
+/**
+ * Webfonts API: Provider Registry
+ *
+ * @package WordPress
+ * @subpackage Webfonts
+ * @since 5.9.0
+ */
+
+/**
+ * Provider Registry.
+ */
 
 final class WP_Webfonts_Provider_Registry {
 
 	/**
-	 * Array of registered providers.
+	 * Registered providers.
 	 *
 	 * @since 5.9.0
 	 *
@@ -72,6 +83,13 @@ final class WP_Webfonts_Provider_Registry {
 		return $id;
 	}
 
+	/**
+	 * Get the preconnect links HTML.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return string Preconnect links HTML.
+	 */
 	public function get_preconnect_links() {
 		// Store a static var to avoid adding the same preconnect links multiple times.
 		static $generated = array();
@@ -84,7 +102,7 @@ final class WP_Webfonts_Provider_Registry {
 				continue;
 			}
 
-			$links .= $this->get_preconnect_link( $provider );
+			$links .= $this->generate_preconnect_link( $provider );
 
 			$added[ $provider_id ] = true;
 		}
@@ -92,7 +110,15 @@ final class WP_Webfonts_Provider_Registry {
 		return $links;
 	}
 
-	private function get_preconnect_link( $provider ) {
+	/**
+	 * Generate the preconnect links HTML for the given provider.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Webfonts_Provider $provider Instance of the provider.
+	 * @return string Preconnect links HTML for the provider.
+	 */
+	private function generate_preconnect_link( WP_Webfonts_Provider $provider ) {
 		$link = '';
 
 		foreach ( $provider->get_preconnect_urls() as $preconnection ) {

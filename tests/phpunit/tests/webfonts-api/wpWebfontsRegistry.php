@@ -14,7 +14,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::register
+	 * @covers WP_Webfonts_Registry::register
 	 *
 	 * @dataProvider data_register_with_invalid_schema
 	 *
@@ -152,11 +152,11 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::register
+	 * @covers WP_Webfonts_Registry::register
 	 *
 	 * @dataProvider data_register_with_valid_schema
 	 *
-	 * @param array Webfonts input.
+	 * @param array  Webfonts input.
 	 * @param string Expected registration key.
 	 */
 	public function test_register_with_valid_schema( array $webfont, $expected ) {
@@ -165,6 +165,11 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 		$this->assertSame( $expected, $registry->register( $webfont ) );
 	}
 
+	/**
+	 * Data Provider.
+	 *
+	 * return @array
+	 */
 	public function data_register_with_valid_schema() {
 		return array(
 			'Open Sans; normal; 400' => array(
@@ -213,7 +218,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::get_by_font_family
+	 * @covers WP_Webfonts_Registry::get_by_font_family
 	 *
 	 * @dataProvider data_get_by_font_family_with_invalid_input
 	 *
