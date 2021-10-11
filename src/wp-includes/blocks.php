@@ -116,7 +116,7 @@ function register_block_script_handle( $metadata, $field_name ) {
 		return false;
 	}
 
-	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $script_dependencies ) ) {
+	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $script_dependencies, true ) ) {
 		wp_set_script_translations( $script_handle, $metadata['textdomain'] );
 	}
 
@@ -488,13 +488,17 @@ function get_dynamic_block_names() {
  * substitution for characters which might otherwise interfere with embedding
  * the result in an HTML comment.
  *
+ * This function must produce output that remains in sync with the output of
+ * the serializeAttributes JavaScript function in the block editor in order
+ * to ensure consistent operation between PHP and JavaScript.
+ *
  * @since 5.3.1
  *
  * @param array $block_attributes Attributes object.
  * @return string Serialized attributes.
  */
 function serialize_block_attributes( $block_attributes ) {
-	$encoded_attributes = json_encode( $block_attributes );
+	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	$encoded_attributes = preg_replace( '/--/', '\\u002d\\u002d', $encoded_attributes );
 	$encoded_attributes = preg_replace( '/</', '\\u003c', $encoded_attributes );
 	$encoded_attributes = preg_replace( '/>/', '\\u003e', $encoded_attributes );
@@ -809,16 +813,19 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  */
 function render_block( $parsed_block ) {
 	global $post;
+	$parent_block = null;
 
 	/**
 	 * Allows render_block() to be short-circuited, by returning a non-null value.
 	 *
 	 * @since 5.1.0
+	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param string|null $pre_render   The pre-rendered content. Default null.
-	 * @param array       $parsed_block The block being rendered.
+	 * @param string|null   $pre_render   The pre-rendered content. Default null.
+	 * @param array         $parsed_block The block being rendered.
+	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
-	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block );
+	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block, $parent_block );
 	if ( ! is_null( $pre_render ) ) {
 		return $pre_render;
 	}
@@ -829,11 +836,13 @@ function render_block( $parsed_block ) {
 	 * Filters the block being rendered in render_block(), before it's processed.
 	 *
 	 * @since 5.1.0
+	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param array $parsed_block The block being rendered.
-	 * @param array $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+	 * @param array         $parsed_block The block being rendered.
+	 * @param array         $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
-	$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block );
+	$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block, $parent_block );
 
 	$context = array();
 
@@ -853,11 +862,13 @@ function render_block( $parsed_block ) {
 	 * Filters the default context provided to a rendered block.
 	 *
 	 * @since 5.5.0
+	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param array $context      Default context.
-	 * @param array $parsed_block Block being rendered, filtered by `render_block_data`.
+	 * @param array         $context      Default context.
+	 * @param array         $parsed_block Block being rendered, filtered by `render_block_data`.
+	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
-	$context = apply_filters( 'render_block_context', $context, $parsed_block );
+	$context = apply_filters( 'render_block_context', $context, $parsed_block, $parent_block );
 
 	$block = new WP_Block( $parsed_block, $context );
 

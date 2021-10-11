@@ -4,9 +4,16 @@
  * @group pomo
  */
 class Tests_POMO_PO extends WP_UnitTestCase {
-	function set_up() {
-		parent::set_up();
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
 		require_once ABSPATH . '/wp-includes/pomo/po.php';
+	}
+
+	public function set_up() {
+		parent::set_up();
+
 		// Not so random wordpress.pot string -- multiple lines.
 		$this->mail    = 'Your new WordPress blog has been successfully set up at:
 

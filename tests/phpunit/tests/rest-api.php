@@ -955,6 +955,31 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51636
+	 */
+	function test_rest_preload_api_request_removes_trailing_slashes() {
+		$rest_server               = $GLOBALS['wp_rest_server'];
+		$GLOBALS['wp_rest_server'] = null;
+
+		$preload_paths = array(
+			'/wp/v2/types//',
+			array( '/wp/v2/media///', 'OPTIONS' ),
+			'////',
+		);
+
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS', '/' ) );
+		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
+
+		$GLOBALS['wp_rest_server'] = $rest_server;
+	}
+
+	/**
 	 * @ticket 40614
 	 */
 	function test_rest_ensure_request_accepts_path_string() {

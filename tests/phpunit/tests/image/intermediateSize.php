@@ -69,7 +69,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	function test_image_editor_output_format_filter() {
 		add_filter(
 			'image_editor_output_format',
-			function() {
+			static function() {
 				return array( 'image/jpeg' => 'image/webp' );
 			}
 		);
