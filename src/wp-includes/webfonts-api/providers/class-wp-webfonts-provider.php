@@ -12,12 +12,11 @@
 /**
  * Abstract class for webfonts API providers.
  */
-abstract class WP_Fonts_Provider {
+abstract class WP_Webfonts_Provider {
 
 	/**
 	 * The provider's unique ID.
 	 *
-	 * @access protected
 	 * @since 5.9.0
 	 * @var string
 	 */
@@ -26,7 +25,6 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * An array of URLs to preconnect to.
 	 *
-	 * @access protected
 	 * @since 5.9.0
 	 * @var array
 	 */
@@ -35,7 +33,6 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * The provider's root URL.
 	 *
-	 * @access protected
 	 * @since 5.9.0
 	 * @var string
 	 */
@@ -44,7 +41,6 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * Webfont parameters.
 	 *
-	 * @access protected
 	 * @since 5.9.0
 	 * @var array
 	 */
@@ -53,7 +49,6 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * An array of valid CSS properties for @font-face.
 	 *
-	 * @access protected
 	 * @since 5.9.0
 	 * @var array
 	 */
@@ -77,7 +72,6 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * An array of API parameters which will not be added to the @font-face.
 	 *
-	 * @access protected
 	 * @since 5.9.0
 	 * @var array
 	 */
@@ -86,7 +80,6 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * Get the provider's unique ID.
 	 *
-	 * @access public
 	 * @since 5.9.0
 	 * @return string
 	 */
@@ -97,7 +90,8 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * Get the root URL for the provider.
 	 *
-	 * @access public
+	 * @since 5.9.0
+	 *
 	 * @return string
 	 */
 	public function get_root_url() {
@@ -107,7 +101,8 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * Get the array of URLs to preconnect to.
 	 *
-	 * @access public
+	 * @since 5.9.0
+	 *
 	 * @return array
 	 */
 	public function get_preconnect_urls() {
@@ -117,10 +112,9 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * Set the object's params.
 	 *
-	 * @access public
 	 * @since 5.9.0
+	 *
 	 * @param array $params The webfont's parameters.
-	 * @return void
 	 */
 	public function set_params( $params ) {
 		// Default values.
@@ -238,8 +232,8 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * Get the object's params.
 	 *
-	 * @access public
 	 * @since 5.9.0
+	 *
 	 * @return array
 	 */
 	public function get_params() {
@@ -249,8 +243,8 @@ abstract class WP_Fonts_Provider {
 	/**
 	 * Get the CSS for the font.
 	 *
-	 * @access public
 	 * @since 5.9.0
+	 *
 	 * @return string
 	 */
 	abstract public function get_css();
