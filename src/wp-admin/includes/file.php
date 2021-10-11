@@ -1929,7 +1929,8 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @param string $from        Source directory.
  * @param string $to          Destination directory.
- * @param string $working_dir Remote file source directory.
+ * @param string $working_dir Remote file source directory. Optional.
+ *
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function move_dir( $from, $to, $working_dir = '' ) {
