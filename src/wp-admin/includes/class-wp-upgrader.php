@@ -1043,7 +1043,7 @@ class WP_Upgrader {
 		}
 
 		// Move to the temp-backup directory.
-		if ( ! $wp_filesystem->move( $src, $dest, true ) ) {
+		if ( ! move_dir( $src, $dest ) ) {
 			return new WP_Error( 'fs_temp_backup_move', $this->strings['temp_backup_move_failed'] );
 		}
 
@@ -1077,7 +1077,7 @@ class WP_Upgrader {
 			}
 
 			// Move it.
-			if ( ! $wp_filesystem->move( $src, $dest, true ) ) {
+			if ( ! move_dir( $src, $dest ) ) {
 				return new WP_Error( 'fs_temp_backup_delete', $this->strings['temp_backup_restore_failed'] );
 			}
 		}
