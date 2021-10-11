@@ -116,6 +116,8 @@ final class WP_Webfonts_Registry {
 	 * @return string Registration key.
 	 */
 	public function register( array $webfont ) {
+		$webfont = $this->merge_optional_parameters( $webfont );
+
 		// Validate schema.
 		if ( ! $this->is_schema_valid( $webfont ) ) {
 			return '';
@@ -129,6 +131,26 @@ final class WP_Webfonts_Registry {
 		}
 
 		return $registration_key;
+	}
+
+	/**
+	 * Merge optional parameters into webfont definition.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string[] $webfont Webfont definition.
+	 * @return string[] Webfont with optional parameters.
+	 */
+	private function merge_optional_parameters( array $webfont ) {
+		if ( ! isset( $webfont['fontStyle'] ) ) {
+			$webfont['fontStyle'] = 'normal';
+		}
+
+		if ( ! isset( $webfont['fontWeight'] ) ) {
+			$webfont['fontWeight'] = '400';
+		}
+
+		return $webfont;
 	}
 
 	/**

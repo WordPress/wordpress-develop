@@ -79,9 +79,10 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	 */
 	public function data_register_webfonts_with_invalid_schema() {
 		return array(
-			'provider: not set'        => array(
+			'provider: invalid type'   => array(
 				'webfonts' => array(
 					array(
+						'provider'   => null,
 						'fontFamily' => 'Open Sans',
 						'fontStyle'  => 'normal',
 						'fontWeight' => '400',

@@ -62,7 +62,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 			),
 			'provider: invalid type'    => array(
 				array(
-					'provider'   => null,
+					'provider'   => true,
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'normal',
 					'fontWeight' => '400',
@@ -86,7 +86,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 			'font family: invalid type' => array(
 				array(
 					'provider'   => 'local',
-					'fontFamily' => null,
+					'fontFamily' => true,
 					'fontStyle'  => 'normal',
 					'fontWeight' => '400',
 				),
@@ -103,7 +103,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 				array(
 					'provider'   => 'local',
 					'fontFamily' => 'Open Sans',
-					'fontStyle'  => null,
+					'fontStyle'  => true,
 					'fontWeight' => '400',
 				),
 			),
@@ -128,7 +128,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 					'provider'   => 'local',
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'normal',
-					'fontWeight' => null,
+					'fontWeight' => true,
 				),
 			),
 			/* @todo uncomment once value validation is added.
