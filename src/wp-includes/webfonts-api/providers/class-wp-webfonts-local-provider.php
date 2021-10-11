@@ -10,7 +10,7 @@
 /**
  * Webfonts API provider for locally-hosted fonts.
  */
-final class WP_Webfonts_Local_Provider extends WP_Fonts_Provider {
+final class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 
 	/**
 	 * The provider's unique ID.
