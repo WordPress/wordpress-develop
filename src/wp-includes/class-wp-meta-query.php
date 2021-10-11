@@ -398,8 +398,6 @@ class WP_Meta_Query {
 	 * @param array $query Query to parse (passed by reference).
 	 * @param int   $depth Optional. Number of tree levels deep we currently are.
 	 *                     Used to calculate indentation. Default 0.
-	 * @param bool  $has_or_condition Optional. Whether the query contains any OR comparisons.
-	 *                     Used by $this->get_sql_for_clause() to determine JOIN syntax. Default false.
 	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a single query array.
 	 *
@@ -407,7 +405,7 @@ class WP_Meta_Query {
 	 *     @type string $where SQL fragment to append to the main WHERE clause.
 	 * }
 	 */
-	protected function get_sql_for_query( &$query, $depth = 0, $has_or_condition = false ) {
+	protected function get_sql_for_query( &$query, $depth = 0 ) {
 		$sql_chunks = array(
 			'join'  => array(),
 			'where' => array(),
@@ -424,7 +422,6 @@ class WP_Meta_Query {
 		}
 
 		$relation = ! empty( $query['relation'] ) ? $query['relation'] : 'AND';
-		$has_or_condition = $has_or_condition || 'OR' === $relation;
 		foreach ( $query as $key => &$clause ) {
 			// We've already grabbed the relation above so no need to consider it again.
 			if ( 'relation' === $key ) {
@@ -433,7 +430,7 @@ class WP_Meta_Query {
 
 				// This is a first-order clause.
 				if ( $this->is_first_order_clause( $clause ) ) {
-					$clause_sql = $this->get_sql_for_clause( $clause, $query, $key, $has_or_condition );
+					$clause_sql = $this->get_sql_for_clause( $clause, $query, $key, $this->has_or_relation );
 
 					$where_count = count( $clause_sql['where'] );
 					if ( ! $where_count ) {
@@ -447,7 +444,7 @@ class WP_Meta_Query {
 					$sql_chunks['join'] = array_merge( $sql_chunks['join'], $clause_sql['join'] );
 					// This is a subquery, so we recurse.
 				} else {
-					$clause_sql = $this->get_sql_for_query( $clause, $depth + 1, $has_or_condition );
+					$clause_sql = $this->get_sql_for_query( $clause, $depth + 1, $this->has_or_relation );
 
 					$sql_chunks['where'][] = $clause_sql['where'];
 					$sql_chunks['join'][]  = $clause_sql['join'];
@@ -485,8 +482,6 @@ class WP_Meta_Query {
 	 * @param array  $parent_query     Parent query array.
 	 * @param string $clause_key       Optional. The array key used to name the clause in the original `$meta_query`
 	 *                                 parameters. If not provided, a key will be generated automatically.
-	 * @param bool   $has_or_condition Optional. Whether the query contains any OR comparisons.
-	 *                                 Used to determine JOIN syntax. Default false.
 	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
@@ -494,7 +489,7 @@ class WP_Meta_Query {
 	 *     @type string $where SQL fragment to append to the main WHERE clause.
 	 * }
 	 */
-	public function get_sql_for_clause( &$clause, $parent_query, $clause_key = '', $has_or_condition = false ) {
+	public function get_sql_for_clause( &$clause, $parent_query, $clause_key = '' ) {
 		global $wpdb;
 
 		$sql_chunks = array(
@@ -590,7 +585,7 @@ class WP_Meta_Query {
 					'EXISTS',
 				);
 
-				if ( ! $has_or_condition && ! empty( $clause['key'] ) && in_array( $meta_compare, $key_join_compatible_operators ) && in_array( $meta_compare_key, $key_join_compatible_key_operators ) ) {
+				if ( ! $this->has_or_relation && ! empty( $clause['key'] ) && in_array( $meta_compare, $key_join_compatible_operators ) && in_array( $meta_compare_key, $key_join_compatible_key_operators ) ) {
 					if ( 'LIKE' === $meta_compare_key ) {
 						$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key LIKE %s )", '%' . $wpdb->esc_like( $clause['key'] ) . '%' );
 					} else {
