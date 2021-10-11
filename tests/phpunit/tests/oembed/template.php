@@ -286,10 +286,29 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringEndsWith( $expected, get_post_embed_html( 200, 200, $post_id ) );
 	}
 
+	/** @covers ::wp_oembed_add_host_js() */
 	public function test_add_host_js() {
+		remove_all_filters( 'embed_oembed_html' );
+
 		wp_oembed_add_host_js();
 
-		$this->assertTrue( wp_script_is( 'wp-embed' ) );
+		$this->assertEquals( 10, has_filter( 'embed_oembed_html', 'wp_prepend_oembed_host_inline_script_tag' ) );
+	}
+
+	/** @covers ::wp_prepend_oembed_host_inline_script_tag() */
+	function test_wp_prepend_oembed_host_inline_script_tag() {
+		$post_embed     = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
+		$non_post_embed = '<iframe title="Zoo Cares For 23 Tiny Pond Turtles" width="750" height="422" src="https://www.youtube.com/embed/6ZXHqUjL6f8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+
+		$this->assertEquals(
+			$non_post_embed,
+			wp_prepend_oembed_host_inline_script_tag( $non_post_embed )
+		);
+
+		$prepended_post_embed = wp_prepend_oembed_host_inline_script_tag( $post_embed );
+		$this->assertNotEquals( $post_embed, $prepended_post_embed );
+		$this->assertStringContainsString( '<script', $prepended_post_embed );
+		$this->assertStringContainsString( 'wp.receiveEmbedMessage', $prepended_post_embed );
 	}
 
 	/**

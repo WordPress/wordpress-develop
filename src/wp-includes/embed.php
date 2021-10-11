@@ -359,7 +359,41 @@ function wp_oembed_add_discovery_links() {
  * @since 4.4.0
  */
 function wp_oembed_add_host_js() {
-	wp_enqueue_script( 'wp-embed' );
+	add_filter( 'embed_oembed_html', 'wp_prepend_oembed_host_inline_script_tag' );
+}
+
+/**
+ * Inline oEmbed host script before post embeds.
+ *
+ * The wp-embed script is printed before to ensure that the `message` event listener is added before the iframe'd post
+ * embed is able to be loaded. Additionally, it is inlined to prevent the external script from blocking the page from
+ * continuing to render. The wp-embed script is printed before each post embed and not just before the first instance
+ * because it is possible that the filters may apply on content that is not initially printed.
+ *
+ * @since 5.8.2
+ *
+ * @param string $html Embed markup.
+ * @return string Embed markup with oEmbed host JS prepended.
+ */
+function wp_prepend_oembed_host_inline_script_tag( $html ) {
+	if ( ! preg_match( '/<blockquote\s[^>]*wp-embedded-content/', $html ) ) {
+		return $html;
+	}
+
+	$dependency = wp_scripts()->query( 'wp-embed' );
+	if ( ! $dependency ) {
+		return $html;
+	}
+
+	// @todo What if a plugin override the src to be somewhere else?
+	$path = ABSPATH . ltrim( $dependency->src, '/' );
+	if ( ! file_exists( $path ) ) {
+		return $html;
+	}
+
+	$script = wp_get_inline_script_tag( file_get_contents( $path ) );
+
+	return $script . $html;
 }
 
 /**
