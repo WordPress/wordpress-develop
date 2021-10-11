@@ -66,7 +66,7 @@
  *     @type string $RequiresWP      Minimum required version of WordPress.
  *     @type string $RequiresPHP     Minimum required version of PHP.
  *     @type string $UpdateURI       ID of the plugin for update purposes, should be a URI.
- *     @type string $RequiredPlugins Comma separated list of dot org plugin slugs.
+ *     @type string $RequiresPlugins Comma separated list of dot org plugin slugs.
  * }
  */
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
@@ -84,7 +84,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 		'RequiresWP'      => 'Requires at least',
 		'RequiresPHP'     => 'Requires PHP',
 		'UpdateURI'       => 'Update URI',
-		'RequiredPlugins' => 'Required Plugins',
+		'RequiresPlugins' => 'Requires Plugins',
 		// Site Wide Only is deprecated in favor of Network.
 		'_sitewide'       => 'Site Wide Only',
 	);
