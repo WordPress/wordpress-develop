@@ -154,7 +154,7 @@ class WP_Plugin_Dependencies {
 			$res->info = array(
 				'page'    => 1,
 				'pages'   => 1,
-				'results' => count( $this->plugin_data ),
+				'results' => count( (array) $this->plugin_data ),
 			);
 
 			$res->plugins = $this->plugin_data;
