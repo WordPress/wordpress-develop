@@ -83,18 +83,21 @@ describe('Manage applications passwords', () => {
         expect(
             await successMessage.evaluate((element) => element.textContent)
         ).toContain('Application password revoked.');
+
+        const response = await getResponseForApplicationPassword();
+        expect(response).toEqual([]);
     });
 
     it('correctly revokes all the application passwords', async() => {
         await createApplicationPassword(testApplicationName);
         await revokeAllApplicationPasswords();
 
-        const response = await getResponseForApplicationPassword();
-        expect(response).toEqual([]);
-
         const successMessage = await page.waitForSelector('.notice-success');
         expect(
             await successMessage.evaluate((element) => element.textContent)
         ).toContain('All application passwords revoked.');
+
+        const response = await getResponseForApplicationPassword();
+        expect(response).toEqual([]);
     });
 });
