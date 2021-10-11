@@ -1943,7 +1943,7 @@ function move_dir( $from, $to ) {
 
 	if ( ! $wp_filesystem->is_dir( $to ) ) {
 		if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
-			return new WP_Error( 'mkdir_failed_copy_dir', __( 'Could not create directory.' ), $to );
+			return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
 		}
 	}
 	$result = copy_dir( $from, $to );
