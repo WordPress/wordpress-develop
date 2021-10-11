@@ -1,16 +1,34 @@
 <?php
+/**
+ * Webfonts API: Webfonts Registry
+ *
+ * This is the main class integrating all other classes.
+ *
+ * @package WordPress
+ * @subpackage Webfonts
+ * @since 5.5.0
+ */
 
+/**
+ * Webfonts Registry.
+ *
+ * Handles schema validation, webfont registration, and query of webfonts.
+ */
 final class WP_Webfonts_Registry {
 	/**
-	 * Array of registered webfonts.
+	 * Registered webfonts.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @var array[]
+	 * @var string[][]
 	 */
 	private $registry = array();
 
-
+	/**
+	 * Registration keys per provider.
+	 *
+	 * @var string[]
+	 */
 	private $registry_by_provider = array();
 
 	/**
@@ -36,7 +54,7 @@ final class WP_Webfonts_Registry {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return array[] Registered webfonts.
+	 * @return string[][] Registered webfonts.
 	 */
 	public function get_registry() {
 		return $this->registry;
@@ -48,7 +66,7 @@ final class WP_Webfonts_Registry {
 	 * @since 5.9.0
 	 *
 	 * @param string $provider_id Provider ID to fetch.
-	 * @return array[] Registered webfonts.
+	 * @return string[][] Registered webfonts.
 	 */
 	public function get_by_provider( $provider_id ) {
 		if ( ! isset( $this->registry_by_provider[ $provider_id ] ) ) {
@@ -74,7 +92,7 @@ final class WP_Webfonts_Registry {
 	 * @since 5.9.0
 	 *
 	 * @param string $font_family Family font to fetch.
-	 * @return array[] Registered webfonts.
+	 * @return string[][] Registered webfonts.
 	 */
 	public function get_by_font_family( $font_family ) {
 		if ( ! is_string( $font_family ) || '' === $font_family ) {
@@ -87,7 +105,7 @@ final class WP_Webfonts_Registry {
 
 		foreach ( $this->registry as $registration_key => $webfont ) {
 			// Skip if webfont's family font does not match.
-			if ( ! substr( $registration_key, 0, $last_char ) !== $font_family_key ) {
+			if ( substr( $registration_key, 0, $last_char ) !== $font_family_key ) {
 				continue;
 			}
 
@@ -133,11 +151,12 @@ final class WP_Webfonts_Registry {
 	 * @return string Registration key.
 	 */
 	private function generate_registration_key( array $webfont ) {
-		$key  = $this->convert_font_family_into_key( $webfont['fontFamily'] );
-		$key .= trim( $webfont['fontStyle'] );
-		$key .= trim( $webfont['fontWeight'] );
-
-		return $key;
+		return sprintf(
+			'%s.%s.%s',
+			$this->convert_font_family_into_key( $webfont['fontFamily'] ),
+			trim( $webfont['fontStyle'] ),
+			trim( $webfont['fontWeight'] )
+		);
 	}
 
 	/**
@@ -173,6 +192,7 @@ final class WP_Webfonts_Registry {
 				__( 'Webfont must define a string "fontFamily".' ),
 				'5.9.0'
 			);
+
 			return false;
 		}
 
@@ -182,6 +202,7 @@ final class WP_Webfonts_Registry {
 				__( 'Webfont must define a string "fontStyle".' ),
 				'5.9.0'
 			);
+
 			return false;
 		}
 
@@ -189,22 +210,25 @@ final class WP_Webfonts_Registry {
 			_doing_it_wrong(
 				'register_webfonts',
 				sprintf(
-					/* translators: 1: Slant angle, 2: Given font style. */
+				/* translators: 1: Slant angle, 2: Given font style. */
 					__( 'Webfont font style must be normal, italic, oblique, or oblique %1$s. Given: %2$s.' ),
 					'<angle>',
 					$webfont['fontStyle']
 				),
 				'5.9.0'
 			);
+
 			return false;
 		}
 
+		// @todo validate the value.
 		if ( empty( $webfont['fontWeight'] ) || ! is_string( $webfont['fontWeight'] ) ) {
 			_doing_it_wrong(
 				'register_webfonts',
 				__( 'Webfont must define a string "fontWeight".' ),
 				'5.9.0'
 			);
+
 			return false;
 		}
 
@@ -215,12 +239,21 @@ final class WP_Webfonts_Registry {
 				__( 'Webfont must define a string "provider".' ),
 				'5.9.0'
 			);
+
 			return false;
 		}
 
 		return true;
 	}
 
+	/**
+	 * Checks if the given font-style is valid.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $font_style Font style to validate.
+	 * @return bool True when font-style is valid.
+	 */
 	private function is_valid_font_style( $font_style ) {
 		if ( in_array( $font_style, $this->valid_font_style, true ) ) {
 			return true;
@@ -228,5 +261,6 @@ final class WP_Webfonts_Registry {
 
 		// @todo Check for oblique <angle>.
 
+		return false;
 	}
 }
