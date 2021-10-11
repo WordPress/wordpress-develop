@@ -12,9 +12,9 @@ function wp_webfonts() {
 	static $instance;
 
 	if ( ! $instance instanceof WP_Webfonts ) {
-		require_once __DIR__ . '/class-wp-webfonts-registry.php';
-		require_once __DIR__ . '/class-wp-webfonts-provider-registry.php';
-		require_once __DIR__ . '/class-wp-webfonts-controller.php';
+		require_once __DIR__ . '/webfonts-api/class-wp-webfonts-registry.php';
+		require_once __DIR__ . '/webfonts-api/class-wp-webfonts-provider-registry.php';
+		require_once __DIR__ . '/webfonts-api/class-wp-webfonts-controller.php';
 
 		$instance = new WP_Webfonts_Controller(
 			new WP_Webfonts_Registry(),
