@@ -110,13 +110,15 @@ abstract class WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Set the object's params.
+	 * Validate the $params array.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $params The webfont's parameters.
+	 * @param array $params The parameters to validate.
+	 *
+	 * @return array
 	 */
-	public function set_params( $params ) {
+	public function get_validated_params( $params ) {
 		// Default values.
 		$defaults = array(
 			'font-weight'  => '400',
@@ -226,6 +228,18 @@ abstract class WP_Webfonts_Provider {
 			$params['font-weight'] = 'normal';
 		}
 
+		return $params;
+	}
+
+	/**
+	 * Set the object's params.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $params The webfont's parameters.
+	 */
+	public function set_params( $params ) {
+		$params = $this->get_validated_params( $params );
 		$this->params = $params;
 	}
 
