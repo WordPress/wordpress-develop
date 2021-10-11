@@ -21,6 +21,24 @@ final class WP_Webfonts_Local_Provider extends WP_Fonts_Provider {
 	protected $id = 'local';
 
 	/**
+	 * Get validated params.
+	 *
+	 * @access public
+	 * @since 5.9.0
+	 * @param array $params The webfont's parameters.
+	 * @return array
+	 */
+	public function get_validated_params( $params ) {
+		$params = parent::get_validated_params( $params );
+
+		// Wrap font-family in quotes if it contains spaces.
+		if ( false !== strpos( $params['font-family'], ' ' ) && false === strpos( $params['font-family'], '"' ) && false === strpos( $params['font-family'], "'" ) ) {
+			$params['font-family'] = '"' . $params['font-family'] . '"';
+		}
+		return $params;
+	}
+
+	/**
 	 * Get the CSS for the font.
 	 *
 	 * @since 5.9.0
