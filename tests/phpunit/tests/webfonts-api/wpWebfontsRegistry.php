@@ -8,9 +8,16 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	private static $webfonts;
 
 	public static function wpSetUpBeforeClass() {
+		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-schema-validator.php';
 		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-registry.php';
 
 		self::$webfonts = self::get_webfonts();
+	}
+
+	private function get_registry() {
+		return new WP_Webfonts_Registry(
+			new WP_Webfonts_Schema_Validator()
+		);
 	}
 
 	/**
@@ -23,7 +30,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	public function test_register_with_invalid_schema( array $webfont ) {
 		$this->setExpectedIncorrectUsage( 'register_webfonts' );
 
-		$registry = new WP_Webfonts_Registry();
+		$registry = $this->get_registry();
 
 		$this->assertSame( '', $registry->register( $webfont ) );
 	}
@@ -146,7 +153,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	 * @param string Expected registration key.
 	 */
 	public function test_register_with_valid_schema( array $webfont, $expected ) {
-		$registry = new WP_Webfonts_Registry();
+		$registry = $this->get_registry();
 
 		$this->assertSame( $expected, $registry->register( $webfont ) );
 	}
@@ -183,7 +190,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	 * @covers WP_Webfonts_Registry::get_registry
 	 */
 	public function test_get_registry() {
-		$registry = new WP_Webfonts_Registry();
+		$registry = $this->get_registry();
 		$this->register_webfonts( $registry );
 
 		$this->assertSame( self::$webfonts, $registry->get_registry() );
@@ -193,7 +200,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	 * @covers WP_Webfonts_Registry::get_by_font_family
 	 */
 	public function test_get_by_font_family() {
-		$registry = new WP_Webfonts_Registry();
+		$registry = $this->get_registry();
 		$this->register_webfonts( $registry );
 
 		$expected = array(
@@ -211,7 +218,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	 * @param mixed Font family input.
 	 */
 	public function test_get_by_font_family_with_invalid_input( $font_family ) {
-		$registry = new WP_Webfonts_Registry();
+		$registry = $this->get_registry();
 		$this->register_webfonts( $registry );
 
 		$this->assertSame( array(), $registry->get_by_font_family( $font_family ) );

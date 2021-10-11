@@ -31,22 +31,15 @@ final class WP_Webfonts_Registry {
 	private $registry_by_provider = array();
 
 	/**
-	 * Valid font styles.
+	 * Schema validator.
 	 *
-	 * @since 5.9.0
-	 *
-	 * @var string[]
+	 * @var WP_Webfonts_Schema_Validator
 	 */
-	private $valid_font_style = array(
-		'normal',
-		'italic',
-		'oblique',
-		// Global values.
-		'inherit',
-		'initial',
-		'revert',
-		'unset',
-	);
+	private $validator;
+
+	public function __construct( WP_Webfonts_Schema_Validator $validator ) {
+		$this->validator = $validator;
+	}
 
 	/**
 	 * Gets the webfont registry.
@@ -185,81 +178,6 @@ final class WP_Webfonts_Registry {
 	 * @return bool True when valid. False when invalid.
 	 */
 	private function is_schema_valid( array $webfont ) {
-		if ( empty( $webfont['fontFamily'] ) || ! is_string( $webfont['fontFamily'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
-				__( 'Webfont must define a string "fontFamily".' ),
-				'5.9.0'
-			);
-
-			return false;
-		}
-
-		if ( empty( $webfont['fontStyle'] ) || ! is_string( $webfont['fontStyle'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
-				__( 'Webfont must define a string "fontStyle".' ),
-				'5.9.0'
-			);
-
-			return false;
-		}
-
-		if ( ! $this->is_valid_font_style( $webfont['fontStyle'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
-				sprintf(
-				/* translators: 1: Slant angle, 2: Given font style. */
-					__( 'Webfont font style must be normal, italic, oblique, or oblique %1$s. Given: %2$s.' ),
-					'<angle>',
-					$webfont['fontStyle']
-				),
-				'5.9.0'
-			);
-
-			return false;
-		}
-
-		// @todo validate the value.
-		if ( empty( $webfont['fontWeight'] ) || ! is_string( $webfont['fontWeight'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
-				__( 'Webfont must define a string "fontWeight".' ),
-				'5.9.0'
-			);
-
-			return false;
-		}
-
-		// @todo check if provider is registered.
-		if ( empty( $webfont['provider'] ) || ! is_string( $webfont['provider'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
-				__( 'Webfont must define a string "provider".' ),
-				'5.9.0'
-			);
-
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Checks if the given font-style is valid.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $font_style Font style to validate.
-	 * @return bool True when font-style is valid.
-	 */
-	private function is_valid_font_style( $font_style ) {
-		if ( in_array( $font_style, $this->valid_font_style, true ) ) {
-			return true;
-		}
-
-		// @todo Check for oblique <angle>.
-
-		return false;
+		return $this->validator->is_schema_valid( $webfont );
 	}
 }

@@ -8,6 +8,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	private static $webfonts;
 
 	public static function wpSetUpBeforeClass() {
+		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-schema-validator.php';
 		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-registry.php';
 		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-provider-registry.php';
 		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-controller.php';
@@ -18,7 +19,9 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 
 	private function get_controller() {
 		$controller = new WP_Webfonts_Controller(
-			new WP_Webfonts_Registry(),
+			new WP_Webfonts_Registry(
+				new WP_Webfonts_Schema_Validator()
+			),
 			new WP_Webfonts_Provider_Registry()
 		);
 		$controller->init();
