@@ -484,8 +484,17 @@ function get_post_embed_html( $width, $height, $post = null ) {
 
 	$embed_url = get_post_embed_url( $post );
 
-	$output = '<blockquote class="wp-embedded-content"><a href="' . esc_url( get_permalink( $post ) ) . '">' . get_the_title( $post ) . "</a></blockquote>\n";
+	$secret     = wp_generate_password( 10, false );
+	$embed_url .= "#?secret={$secret}";
 
+	$output = sprintf(
+		'<blockquote class="wp-embedded-content" data-secret="%1$s"><a href="%2$s">%3$s</a></blockquote>',
+		esc_attr( $secret ),
+		esc_url( get_permalink( $post ) ),
+		get_the_title( $post )
+	);
+
+	// @todo This should be moved to a embed_html filter and utilize wp_prepend_oembed_host_inline_script_tag().
 	$output .= "<script type='text/javascript'>\n";
 	$output .= "<!--//--><![CDATA[//><!--\n";
 	if ( SCRIPT_DEBUG ) {
@@ -509,7 +518,7 @@ JS;
 	$output .= "\n</script>";
 
 	$output .= sprintf(
-		'<iframe sandbox="allow-scripts" security="restricted" src="%1$s" width="%2$d" height="%3$d" title="%4$s" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>',
+		'<iframe sandbox="allow-scripts" security="restricted" src="%1$s" width="%2$d" height="%3$d" title="%4$s" data-secret="%5$s" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>',
 		esc_url( $embed_url ),
 		absint( $width ),
 		absint( $height ),
@@ -520,7 +529,8 @@ JS;
 				get_the_title( $post ),
 				get_bloginfo( 'name' )
 			)
-		)
+		),
+		esc_attr( $secret )
 	);
 
 	/**

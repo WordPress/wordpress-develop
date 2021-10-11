@@ -281,9 +281,11 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = '<iframe sandbox="allow-scripts" security="restricted" src="' . esc_url( get_post_embed_url( $post_id ) ) . '" width="200" height="200" title="' . $title . '" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>';
+		$expected = '<iframe sandbox="allow-scripts" security="restricted" src="' . esc_url( get_post_embed_url( $post_id ) ) . '#?secret=__SECRET__" width="200" height="200" title="' . $title . '" data-secret=__SECRET__ frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>';
+		$actual   = get_post_embed_html( 200, 200, $post_id );
+		$actual   = preg_replace( '/secret=("?)\w+\1/', 'secret=__SECRET__', $actual );
 
-		$this->assertStringEndsWith( $expected, get_post_embed_html( 200, 200, $post_id ) );
+		$this->assertStringEndsWith( $expected, $actual );
 	}
 
 	/** @covers ::wp_oembed_add_host_js() */
