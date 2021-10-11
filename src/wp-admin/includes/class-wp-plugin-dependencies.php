@@ -11,7 +11,7 @@
  * Core class for installing plugin dependencies.
  *
  * It is designed to add plugin dependencies as designated in the
- * `Required Plugins` header to a new view in the plugins install page.
+ * `Requires Plugins` header to a new view in the plugins install page.
  */
 class WP_Plugin_Dependencies {
 
@@ -68,7 +68,7 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Parse 'Required Plugins' header.
+	 * Parse 'Requires Plugins' header.
 	 * Store result with dependent plugin.
 	 *
 	 * @return \stdClass
@@ -77,9 +77,9 @@ class WP_Plugin_Dependencies {
 		$this->get_plugins();
 		$required_headers = array();
 		foreach ( array_keys( $this->plugins ) as $plugin ) {
-			$required_plugins = get_file_data( WP_PLUGIN_DIR . '/' . $plugin, array( 'RequiredPlugins' => 'Required Plugins' ) );
-			if ( ! empty( $required_plugins['RequiredPlugins'] ) ) {
-				$required_headers[ $plugin ] = $required_plugins;
+			$requires_plugins = get_file_data( WP_PLUGIN_DIR . '/' . $plugin, array( 'RequiresPlugins' => 'Requires Plugins' ) );
+			if ( ! empty( $requires_plugins['RequiresPlugins'] ) ) {
+				$required_headers[ $plugin ] = $requires_plugins;
 			}
 		}
 
@@ -96,7 +96,7 @@ class WP_Plugin_Dependencies {
 		$all_slugs = array();
 		foreach ( $required_headers as $key => $headers ) {
 			$sanitized_slugs = array();
-			$exploded        = explode( ',', $headers['RequiredPlugins'] );
+			$exploded        = explode( ',', $headers['RequiresPlugins'] );
 			foreach ( $exploded as $slug ) {
 				$slug = trim( $slug );
 
@@ -106,7 +106,7 @@ class WP_Plugin_Dependencies {
 				}
 			}
 			$sanitized_slugs                          = array_unique( $sanitized_slugs );
-			$this->plugins[ $key ]['RequiredPlugins'] = $sanitized_slugs;
+			$this->plugins[ $key ]['RequiresPlugins'] = $sanitized_slugs;
 			$all_slugs                                = array_merge( $all_slugs, $sanitized_slugs );
 		}
 		asort( $all_slugs );
@@ -280,9 +280,9 @@ class WP_Plugin_Dependencies {
 	private function get_dependency_sources( $plugin_data ) {
 		$sources = array();
 		foreach ( $this->plugins as $plugin ) {
-			if ( ! empty( $plugin['RequiredPlugins'] ) ) {
-				foreach ( $plugin['RequiredPlugins'] as $dependent ) {
-					if ( isset( $this->plugin_data[ $dependent ] ) && in_array( $plugin_data['slug'], $plugin['RequiredPlugins'], true ) ) {
+			if ( ! empty( $plugin['RequiresPlugins'] ) ) {
+				foreach ( $plugin['RequiresPlugins'] as $dependent ) {
+					if ( isset( $this->plugin_data[ $dependent ] ) && in_array( $plugin_data['slug'], $plugin['RequiresPlugins'], true ) ) {
 						$sources[] = $plugin['Name'];
 					}
 				}
