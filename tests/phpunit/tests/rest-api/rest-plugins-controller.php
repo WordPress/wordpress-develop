@@ -82,12 +82,15 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$admin );
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-
+	public function tear_down() {
 		if ( file_exists( WP_PLUGIN_DIR . '/test-plugin/test-plugin.php' ) ) {
 			$this->rmdir( WP_PLUGIN_DIR . '/test-plugin' );
 		}
+		if ( file_exists( DIR_TESTDATA . '/link-manager.zip' ) ) {
+			unlink( DIR_TESTDATA . '/link-manager.zip' );
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -443,6 +446,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		}
 
 		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
@@ -466,6 +470,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		}
 
 		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
@@ -531,7 +536,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 		$this->prevent_requests_to_host( 'api.wordpress.org' );
 
-		$this->expectException( 'PHPUnit_Framework_Error_Warning' );
+		$this->expectWarning();
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'plugins_api_failed', $response, 500 );
 	}
@@ -839,7 +844,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( $response->get_data()['deleted'] );
 		$this->assertSame( self::PLUGIN, $response->get_data()['previous']['plugin'] );
-		$this->assertFileNotExists( WP_PLUGIN_DIR . '/' . self::PLUGIN_FILE );
+		$this->assertFileDoesNotExist( WP_PLUGIN_DIR . '/' . self::PLUGIN_FILE );
 	}
 
 	/**

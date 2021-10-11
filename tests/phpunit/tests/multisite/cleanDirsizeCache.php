@@ -8,20 +8,7 @@ if ( is_multisite() ) :
 	 * @ticket 19879
 	 * @group multisite
 	 */
-	class Tests_Multisite_Dirsize_Cache extends WP_UnitTestCase {
-		protected $suppress = false;
-
-		function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tearDown() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
-		}
+	class Tests_Multisite_CleanDirsizeCache extends WP_UnitTestCase {
 
 		/**
 		 * Test whether dirsize_cache values are used correctly with a more complex dirsize cache mock.
@@ -65,7 +52,7 @@ if ( is_multisite() ) :
 			$this->assertSame( 0, recurse_dirsize( $upload_dir['basedir'] ) );
 
 			// No cache match on non existing directory should return false.
-			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
+			$this->assertFalse( recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
 
 			// Cleanup.
 			$this->remove_added_uploads();
@@ -101,19 +88,19 @@ if ( is_multisite() ) :
 			// Set the dirsize cache to our mock.
 			set_transient( 'dirsize_cache', $this->_get_mock_dirsize_cache_for_site( $blog_id ) );
 
-			$this->assertSame( true, array_key_exists( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) ) );
-			$this->assertSame( true, array_key_exists( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) ) );
-			$this->assertSame( true, array_key_exists( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) ) );
+			$this->assertArrayHasKey( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) );
+			$this->assertArrayHasKey( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) );
+			$this->assertArrayHasKey( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) );
 
 			// Invalidation should also respect the directory tree up.
 			// Should work fine with path to directory OR file.
 			clean_dirsize_cache( $upload_dir['basedir'] . '/2/1/file.dummy' );
 
-			$this->assertSame( false, array_key_exists( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) ) );
-			$this->assertSame( false, array_key_exists( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) ) );
+			$this->assertArrayNotHasKey( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) );
+			$this->assertArrayNotHasKey( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) );
 
 			// Other cache paths should not be invalidated.
-			$this->assertSame( true, array_key_exists( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) ) );
+			$this->assertArrayHasKey( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) );
 
 			// Cleanup.
 			$this->remove_added_uploads();
@@ -149,19 +136,19 @@ if ( is_multisite() ) :
 			// Set the dirsize cache to our mock.
 			set_transient( 'dirsize_cache', $this->_get_mock_dirsize_cache_for_site( $blog_id ) );
 
-			$this->assertSame( true, array_key_exists( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) ) );
-			$this->assertSame( true, array_key_exists( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) ) );
-			$this->assertSame( true, array_key_exists( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) ) );
+			$this->assertArrayHasKey( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) );
+			$this->assertArrayHasKey( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) );
+			$this->assertArrayHasKey( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) );
 
 			// Invalidation should also respect the directory tree up.
 			// Should work fine with path to directory OR file.
 			clean_dirsize_cache( $upload_dir['basedir'] . '/2/1' );
 
-			$this->assertSame( false, array_key_exists( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) ) );
-			$this->assertSame( false, array_key_exists( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) ) );
+			$this->assertArrayNotHasKey( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) );
+			$this->assertArrayNotHasKey( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) );
 
 			// Other cache paths should not be invalidated.
-			$this->assertSame( true, array_key_exists( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) ) );
+			$this->assertArrayHasKey( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) );
 
 			// Cleanup.
 			$this->remove_added_uploads();
@@ -206,7 +193,7 @@ if ( is_multisite() ) :
 
 			// `dirsize_cache` should now be filled after upload and recurse_dirsize() call.
 			$cache_path = untrailingslashit( $upload_dir['path'] );
-			$this->assertSame( true, is_array( get_transient( 'dirsize_cache' ) ) );
+			$this->assertIsArray( get_transient( 'dirsize_cache' ) );
 			$this->assertSame( $size, get_transient( 'dirsize_cache' )[ $cache_path ] );
 
 			// Cleanup.
@@ -280,7 +267,7 @@ if ( is_multisite() ) :
 			 * will try to fetch a live value, but in this case the folder doesn't actually
 			 * exist on disk, so the function should fail.
 			 */
-			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
+			$this->assertFalse( recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
 
 			/*
 			 * Now that it's confirmed that old cached values aren't being returned, create the
@@ -304,7 +291,7 @@ if ( is_multisite() ) :
 			$this->assertSame( 21, get_transient( 'dirsize_cache' )[ $upload_dir['basedir'] . '/2/1' ] );
 
 			// No cache match on non existing directory should return false.
-			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
+			$this->assertFalse( recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
 
 			// Cleanup.
 			$this->remove_added_uploads();

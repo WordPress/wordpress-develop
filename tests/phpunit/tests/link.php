@@ -108,7 +108,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$p = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 
@@ -131,7 +131,7 @@ class Tests_Link extends WP_UnitTestCase {
 			array(
 				'post_status' => 'future',
 				'post_type'   => 'wptests_pt',
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 
@@ -204,6 +204,9 @@ class Tests_Link extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertSame( home_url( user_trailingslashit( $attachment->post_name ) ), get_permalink( $attachment_id ) );
+		$this->assertSame( home_url( "/?attachment_id={$attachment->ID}" ), get_permalink( $attachment_id ) );
+		// Visit permalink.
+		$this->go_to( get_permalink( $attachment_id ) );
+		$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
 	}
 }

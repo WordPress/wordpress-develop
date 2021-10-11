@@ -1,8 +1,15 @@
 <phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
 		bootstrap="includes/bootstrap.php"
 		backupGlobals="false"
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
 		>
 	<php>
 		<const name="WP_TESTS_MULTISITE" value="1" />
@@ -28,51 +35,40 @@
 			<group>oembed-headers</group>
 		</exclude>
 	</groups>
-	<listeners>
-		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
-			<arguments>
-				<array>
-					<element key="slowThreshold">
-						<integer>150</integer>
-					</element>
-				</array>
-			</arguments>
-		</listener>
-	</listeners>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
-			<directory suffix=".php">../../build</directory>
+			<directory suffix=".php">../../src</directory>
 			<exclude>
 				<!-- Third party library exclusions. -->
-				<directory suffix=".php">../../build/wp-includes/ID3</directory>
-				<directory suffix=".php">../../build/wp-includes/IXR</directory>
-				<directory suffix=".php">../../build/wp-includes/random_compat</directory>
-				<directory suffix=".php">../../build/wp-includes/PHPMailer</directory>
-				<directory suffix=".php">../../build/wp-includes/Requests</directory>
-				<directory suffix=".php">../../build/wp-includes/SimplePie</directory>
-				<directory suffix=".php">../../build/wp-includes/sodium_compat</directory>
-				<directory suffix=".php">../../build/wp-includes/Text</directory>
+				<directory suffix=".php">../../src/wp-includes/ID3</directory>
+				<directory suffix=".php">../../src/wp-includes/IXR</directory>
+				<directory suffix=".php">../../src/wp-includes/random_compat</directory>
+				<directory suffix=".php">../../src/wp-includes/PHPMailer</directory>
+				<directory suffix=".php">../../src/wp-includes/Requests</directory>
+				<directory suffix=".php">../../src/wp-includes/SimplePie</directory>
+				<directory suffix=".php">../../src/wp-includes/sodium_compat</directory>
+				<directory suffix=".php">../../src/wp-includes/Text</directory>
 
 				<!-- Plugins and themes. -->
-				<directory suffix=".php">../../build/wp-content/</directory>
+				<directory suffix=".php">../../src/wp-content/</directory>
 
-				<file>../../build/wp-admin/includes/class-ftp*</file>
-				<file>../../build/wp-admin/includes/class-pclzip.php</file>
-				<file>../../build/wp-admin/includes/deprecated.php</file>
-				<file>../../build/wp-admin/includes/ms-deprecated.php</file>
+				<file>../../src/wp-admin/includes/class-ftp*</file>
+				<file>../../src/wp-admin/includes/class-pclzip.php</file>
+				<file>../../src/wp-admin/includes/deprecated.php</file>
+				<file>../../src/wp-admin/includes/ms-deprecated.php</file>
 
-				<file>../../build/wp-includes/atomlib.php</file>
-				<file>../../build/wp-includes/class-IXR.php</file>
-				<file>../../build/wp-includes/class-json.php</file>
-				<file>../../build/wp-includes/class-phpass.php</file>
-				<file>../../build/wp-includes/class-pop3.php</file>
-				<file>../../build/wp-includes/class-requests.php</file>
-				<file>../../build/wp-includes/class-simplepie.php</file>
-				<file>../../build/wp-includes/class-snoopy.php</file>
-				<file>../../build/wp-includes/deprecated.php</file>
-				<file>../../build/wp-includes/ms-deprecated.php</file>
-				<file>../../build/wp-includes/pluggable-deprecated.php</file>
-				<file>../../build/wp-includes/rss.php</file>
+				<file>../../src/wp-includes/atomlib.php</file>
+				<file>../../src/wp-includes/class-IXR.php</file>
+				<file>../../src/wp-includes/class-json.php</file>
+				<file>../../src/wp-includes/class-phpass.php</file>
+				<file>../../src/wp-includes/class-pop3.php</file>
+				<file>../../src/wp-includes/class-requests.php</file>
+				<file>../../src/wp-includes/class-simplepie.php</file>
+				<file>../../src/wp-includes/class-snoopy.php</file>
+				<file>../../src/wp-includes/deprecated.php</file>
+				<file>../../src/wp-includes/ms-deprecated.php</file>
+				<file>../../src/wp-includes/pluggable-deprecated.php</file>
+				<file>../../src/wp-includes/rss.php</file>
 			</exclude>
 		</whitelist>
 	</filter>

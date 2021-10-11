@@ -47,15 +47,19 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$plugin_info = get_site_transient( 'update_plugins' );
 		if ( isset( $plugin_info->no_update ) ) {
 			foreach ( $plugin_info->no_update as $plugin ) {
-				$plugin->upgrade          = false;
-				$plugins[ $plugin->slug ] = $plugin;
+				if ( isset( $plugin->slug ) ) {
+					$plugin->upgrade          = false;
+					$plugins[ $plugin->slug ] = $plugin;
+				}
 			}
 		}
 
 		if ( isset( $plugin_info->response ) ) {
 			foreach ( $plugin_info->response as $plugin ) {
-				$plugin->upgrade          = true;
-				$plugins[ $plugin->slug ] = $plugin;
+				if ( isset( $plugin->slug ) ) {
+					$plugin->upgrade          = true;
+					$plugins[ $plugin->slug ] = $plugin;
+				}
 			}
 		}
 
@@ -213,7 +217,16 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		 * Filters API request arguments for each Add Plugins screen tab.
 		 *
 		 * The dynamic portion of the hook name, `$tab`, refers to the plugin install tabs.
-		 * Default tabs include 'featured', 'popular', 'recommended', 'favorites', and 'upload'.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `install_plugins_table_api_args_favorites`
+		 *  - `install_plugins_table_api_args_featured`
+		 *  - `install_plugins_table_api_args_popular`
+		 *  - `install_plugins_table_api_args_recommended`
+		 *  - `install_plugins_table_api_args_upload`
+		 *  - `install_plugins_table_api_args_search`
+		 *  - `install_plugins_table_api_args_beta`
 		 *
 		 * @since 3.7.0
 		 *
@@ -575,31 +588,38 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 								_x( 'Active', 'plugin' )
 							);
 						} elseif ( current_user_can( 'activate_plugin', $status['file'] ) ) {
-							$button_text = __( 'Activate' );
-							/* translators: %s: Plugin name. */
-							$button_label = _x( 'Activate %s', 'plugin' );
-							$activate_url = add_query_arg(
-								array(
-									'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $status['file'] ),
-									'action'   => 'activate',
-									'plugin'   => $status['file'],
-								),
-								network_admin_url( 'plugins.php' )
-							);
-
-							if ( is_network_admin() ) {
-								$button_text = __( 'Network Activate' );
+							if ( $compatible_php && $compatible_wp ) {
+								$button_text = __( 'Activate' );
 								/* translators: %s: Plugin name. */
-								$button_label = _x( 'Network Activate %s', 'plugin' );
-								$activate_url = add_query_arg( array( 'networkwide' => 1 ), $activate_url );
-							}
+								$button_label = _x( 'Activate %s', 'plugin' );
+								$activate_url = add_query_arg(
+									array(
+										'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $status['file'] ),
+										'action'   => 'activate',
+										'plugin'   => $status['file'],
+									),
+									network_admin_url( 'plugins.php' )
+								);
 
-							$action_links[] = sprintf(
-								'<a href="%1$s" class="button activate-now" aria-label="%2$s">%3$s</a>',
-								esc_url( $activate_url ),
-								esc_attr( sprintf( $button_label, $plugin['name'] ) ),
-								$button_text
-							);
+								if ( is_network_admin() ) {
+									$button_text = __( 'Network Activate' );
+									/* translators: %s: Plugin name. */
+									$button_label = _x( 'Network Activate %s', 'plugin' );
+									$activate_url = add_query_arg( array( 'networkwide' => 1 ), $activate_url );
+								}
+
+								$action_links[] = sprintf(
+									'<a href="%1$s" class="button activate-now" aria-label="%2$s">%3$s</a>',
+									esc_url( $activate_url ),
+									esc_attr( sprintf( $button_label, $plugin['name'] ) ),
+									$button_text
+								);
+							} else {
+								$action_links[] = sprintf(
+									'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
+									_x( 'Cannot Activate', 'plugin' )
+								);
+							}
 						} else {
 							$action_links[] = sprintf(
 								'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
@@ -702,7 +722,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					<h3>
 						<a href="<?php echo esc_url( $details_link ); ?>" class="thickbox open-plugin-details-modal">
 						<?php echo $title; ?>
-						<img src="<?php echo esc_attr( $plugin_icon_url ); ?>" class="plugin-icon" alt="" />
+						<img src="<?php echo esc_url( $plugin_icon_url ); ?>" class="plugin-icon" alt="" />
 						</a>
 					</h3>
 				</div>

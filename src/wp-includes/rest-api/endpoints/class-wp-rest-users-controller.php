@@ -37,7 +37,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for users.
 	 *
 	 * @since 4.7.0
 	 *
@@ -963,13 +963,15 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Prepares a single user output for response.
 	 *
 	 * @since 4.7.0
+	 * @since 5.9.0 Renamed `$user` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_User         $user    User object.
+	 * @param WP_User         $item    User object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $user, $request ) {
-
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$user   = $item;
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
@@ -1172,6 +1174,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Determines if the current user is allowed to make the desired roles change.
 	 *
 	 * @since 4.7.0
+	 *
+	 * @global WP_Roles $wp_roles WordPress role management object.
 	 *
 	 * @param int   $user_id User ID.
 	 * @param array $roles   New user roles.
@@ -1520,7 +1524,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$query_params['orderby'] = array(
 			'default'     => 'name',
-			'description' => __( 'Sort collection by object attribute.' ),
+			'description' => __( 'Sort collection by user attribute.' ),
 			'enum'        => array(
 				'id',
 				'include',
@@ -1559,7 +1563,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filters collection parameters for the users controller.
+		 * Filters REST API collection parameters for the users controller.
 		 *
 		 * This filter registers the collection parameter, but does not map the
 		 * collection parameter to an internal WP_User_Query parameter.  Use the

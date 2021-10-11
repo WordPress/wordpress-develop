@@ -45,7 +45,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for block types.
 	 *
 	 * @since 5.5.0
 	 *
@@ -236,15 +236,17 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * Prepares a block type object for serialization.
 	 *
 	 * @since 5.5.0
+	 * @since 5.9.0 Renamed `$block_type` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Block_Type   $block_type Block type data.
-	 * @param WP_REST_Request $request    Full details about the request.
+	 * @param WP_Block_Type   $item    Block type data.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Block type data.
 	 */
-	public function prepare_item_for_response( $block_type, $request ) {
-
-		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$block_type = $item;
+		$fields     = $this->get_fields_for_response( $request );
+		$data       = array();
 
 		if ( rest_is_field_included( 'attributes', $fields ) ) {
 			$data['attributes'] = $block_type->get_attributes();
@@ -272,8 +274,10 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			'example',
 			'editor_script',
 			'script',
+			'view_script',
 			'editor_style',
 			'style',
+			'variations',
 		);
 		foreach ( $extra_fields as $extra_field ) {
 			if ( rest_is_field_included( $extra_field, $fields ) ) {
@@ -361,6 +365,71 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			return $this->add_additional_fields_schema( $this->schema );
 		}
 
+		// rest_validate_value_from_schema doesn't understand $refs, pull out reused definitions for readability.
+		$inner_blocks_definition = array(
+			'description' => __( 'The list of inner blocks used in the example.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'type'       => 'object',
+				'properties' => array(
+					'name'        => array(
+						'description' => __( 'The name of the inner block.' ),
+						'type'        => 'string',
+					),
+					'attributes'  => array(
+						'description' => __( 'The attributes of the inner block.' ),
+						'type'        => 'object',
+					),
+					'innerBlocks' => array(
+						'description' => __( "A list of the inner block's own inner blocks. This is a recursive definition following the parent innerBlocks schema." ),
+						'type'        => 'array',
+					),
+				),
+			),
+		);
+
+		$example_definition = array(
+			'description' => __( 'Block example.' ),
+			'type'        => array( 'object', 'null' ),
+			'default'     => null,
+			'properties'  => array(
+				'attributes'  => array(
+					'description' => __( 'The attributes used in the example.' ),
+					'type'        => 'object',
+				),
+				'innerBlocks' => $inner_blocks_definition,
+			),
+			'context'     => array( 'embed', 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
+		$keywords_definition = array(
+			'description' => __( 'Block keywords.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'type' => 'string',
+			),
+			'default'     => array(),
+			'context'     => array( 'embed', 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
+		$icon_definition = array(
+			'description' => __( 'Icon of block type.' ),
+			'type'        => array( 'string', 'null' ),
+			'default'     => null,
+			'context'     => array( 'embed', 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
+		$category_definition = array(
+			'description' => __( 'Block category.' ),
+			'type'        => array( 'string', 'null' ),
+			'default'     => null,
+			'context'     => array( 'embed', 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'block-type',
@@ -394,13 +463,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'icon'             => array(
-					'description' => __( 'Icon of block type.' ),
-					'type'        => array( 'string', 'null' ),
-					'default'     => null,
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
+				'icon'             => $icon_definition,
 				'attributes'       => array(
 					'description'          => __( 'Block attributes.' ),
 					'type'                 => array( 'object', 'null' ),
@@ -441,13 +504,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'category'         => array(
-					'description' => __( 'Block category.' ),
-					'type'        => array( 'string', 'null' ),
-					'default'     => null,
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
+				'category'         => $category_definition,
 				'is_dynamic'       => array(
 					'description' => __( 'Is the block dynamically rendered.' ),
 					'type'        => 'boolean',
@@ -463,6 +520,13 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'script'           => array(
+					'description' => __( 'Public facing and editor script handle.' ),
+					'type'        => array( 'string', 'null' ),
+					'default'     => null,
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'view_script'      => array(
 					'description' => __( 'Public facing script handle.' ),
 					'type'        => array( 'string', 'null' ),
 					'default'     => null,
@@ -477,7 +541,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'style'            => array(
-					'description' => __( 'Public facing style handle.' ),
+					'description' => __( 'Public facing and editor style handle.' ),
 					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
@@ -512,6 +576,58 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
+				'variations'       => array(
+					'description' => __( 'Block variations.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type'       => 'object',
+						'properties' => array(
+							'name'        => array(
+								'description' => __( 'The unique and machine-readable name.' ),
+								'type'        => 'string',
+								'required'    => true,
+							),
+							'title'       => array(
+								'description' => __( 'A human-readable variation title.' ),
+								'type'        => 'string',
+								'required'    => true,
+							),
+							'description' => array(
+								'description' => __( 'A detailed variation description.' ),
+								'type'        => 'string',
+								'required'    => false,
+							),
+							'category'    => $category_definition,
+							'icon'        => $icon_definition,
+							'isDefault'   => array(
+								'description' => __( 'Indicates whether the current variation is the default one.' ),
+								'type'        => 'boolean',
+								'required'    => false,
+								'default'     => false,
+							),
+							'attributes'  => array(
+								'description' => __( 'The initial values for attributes.' ),
+								'type'        => 'object',
+							),
+							'innerBlocks' => $inner_blocks_definition,
+							'example'     => $example_definition,
+							'scope'       => array(
+								'description' => __( 'The list of scopes where the variation is applicable. When not provided, it assumes all available scopes.' ),
+								'type'        => array( 'array', 'null' ),
+								'default'     => null,
+								'items'       => array(
+									'type' => 'string',
+									'enum' => array( 'block', 'inserter', 'transform' ),
+								),
+								'readonly'    => true,
+							),
+							'keywords'    => $keywords_definition,
+						),
+					),
+					'readonly'    => true,
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'default'     => null,
+				),
 				'textdomain'       => array(
 					'description' => __( 'Public text domain.' ),
 					'type'        => array( 'string', 'null' ),
@@ -529,50 +645,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'keywords'         => array(
-					'description' => __( 'Block keywords.' ),
-					'type'        => 'array',
-					'items'       => array(
-						'type' => 'string',
-					),
-					'default'     => array(),
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'example'          => array(
-					'description' => __( 'Block example.' ),
-					'type'        => array( 'object', 'null' ),
-					'default'     => null,
-					'properties'  => array(
-						'attributes'  => array(
-							'description' => __( 'The attributes used in the example.' ),
-							'type'        => 'object',
-						),
-						'innerBlocks' => array(
-							'description' => __( 'The list of inner blocks used in the example.' ),
-							'type'        => 'array',
-							'items'       => array(
-								'type'       => 'object',
-								'properties' => array(
-									'name'        => array(
-										'description' => __( 'The name of the inner block.' ),
-										'type'        => 'string',
-									),
-									'attributes'  => array(
-										'description' => __( 'The attributes of the inner block.' ),
-										'type'        => 'object',
-									),
-									'innerBlocks' => array(
-										'description' => __( "A list of the inner block's own inner blocks. This is a recursive definition following the parent innerBlocks schema." ),
-										'type'        => 'array',
-									),
-								),
-							),
-						),
-					),
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
+				'keywords'         => $keywords_definition,
+				'example'          => $example_definition,
 			),
 		);
 

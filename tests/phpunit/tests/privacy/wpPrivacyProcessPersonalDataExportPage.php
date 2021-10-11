@@ -8,14 +8,14 @@
  */
 
 /**
- * Tests_Privacy_WpPrivacyProcessPersonalDataExportPage class.
+ * Tests_Privacy_wpPrivacyProcessPersonalDataExportPage class.
  *
  * @group privacy
  * @covers ::wp_privacy_process_personal_data_export_page
  *
  * @since 5.2.0
  */
-class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCase {
 	/**
 	 * Request ID.
 	 *
@@ -191,8 +191,8 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @since 5.2.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Avoid writing export files to disk. Using `WP_Filesystem_MockFS` is blocked by #44204.
 		remove_action( 'wp_privacy_personal_data_export_file', 'wp_privacy_generate_personal_data_export_file', 10 );
@@ -218,10 +218,10 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @since 5.2.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		error_reporting( $this->_error_level );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -367,7 +367,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		$invalid_request_id = 0;
 
 		// Process data, given the last exporter, on the last page and send as email.
-		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging user privacy exporter data."}' );
+		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging personal data to export."}' );
 
 		wp_privacy_process_personal_data_export_page(
 			$response,
@@ -399,7 +399,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		$request_id = wp_create_user_request( self::$requester_email, 'remove_personal_data' );
 
 		// Process data, given the last exporter, on the last page and send as email.
-		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging user privacy exporter data."}' );
+		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging personal data to export."}' );
 
 		wp_privacy_process_personal_data_export_page(
 			$response,

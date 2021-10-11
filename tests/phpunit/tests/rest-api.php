@@ -14,17 +14,17 @@ require_once __DIR__ . '/../includes/class-jsonserializable-object.php';
  * @group restapi
  */
 class Tests_REST_API extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Override the normal server with our spying server.
 		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
 		do_action( 'rest_api_init', $GLOBALS['wp_rest_server'] );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -237,7 +237,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			true
 		);
 		$endpoints = $GLOBALS['wp_rest_server']->get_routes();
-		$this->assertFalse( isset( $endpoints['/test-empty-namespace'] ) );
+		$this->assertArrayNotHasKey( '/test-empty-namespace', $endpoints );
 	}
 
 	/**
@@ -257,7 +257,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			true
 		);
 		$endpoints = $GLOBALS['wp_rest_server']->get_routes();
-		$this->assertFalse( isset( $endpoints['/test-empty-route'] ) );
+		$this->assertArrayNotHasKey( '/test-empty-route', $endpoints );
 	}
 
 	/**
@@ -265,7 +265,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	function test_rest_route_query_var() {
 		rest_api_init();
-		$this->assertTrue( in_array( 'rest_route', $GLOBALS['wp']->public_query_vars, true ) );
+		$this->assertContains( 'rest_route', $GLOBALS['wp']->public_query_vars );
 	}
 
 	public function test_route_method() {
@@ -789,12 +789,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 		// Test an HTTPS URL.
 		$_SERVER['HTTPS'] = 'on';
 		$url              = get_rest_url();
-		$this->assertSame( 'http', parse_url( $url, PHP_URL_SCHEME ) );
+		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
 
 		// Reset.
 		update_option( 'siteurl', $_siteurl );
-		set_current_screen( 'front' );
-
 	}
 
 	/**
@@ -951,7 +949,32 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS' ) );
-		$this->assertTrue( isset( $preload_data['OPTIONS']['/wp/v2/media'] ) );
+		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
+
+		$GLOBALS['wp_rest_server'] = $rest_server;
+	}
+
+	/**
+	 * @ticket 51636
+	 */
+	function test_rest_preload_api_request_removes_trailing_slashes() {
+		$rest_server               = $GLOBALS['wp_rest_server'];
+		$GLOBALS['wp_rest_server'] = null;
+
+		$preload_paths = array(
+			'/wp/v2/types//',
+			array( '/wp/v2/media///', 'OPTIONS' ),
+			'////',
+		);
+
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS', '/' ) );
+		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;
 	}
@@ -2326,6 +2349,58 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'hello',
 				array( 'integer', 'string' ),
 			),
+		);
+	}
+
+	/**
+	 * @ticket 51722
+	 * @dataProvider data_rest_preload_api_request_embeds_links
+	 *
+	 * @param string   $embed        The embed parameter.
+	 * @param string[] $expected     The list of link relations that should be embedded.
+	 * @param string[] $not_expected The list of link relations that should not be embedded.
+	 */
+	public function test_rest_preload_api_request_embeds_links( $embed, $expected, $not_expected ) {
+		wp_set_current_user( 1 );
+		$post_id = self::factory()->post->create();
+		self::factory()->comment->create_post_comments( $post_id );
+
+		$url           = sprintf( '/wp/v2/posts/%d?%s', $post_id, $embed );
+		$preload_paths = array( $url );
+
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		$this->assertSame( array_keys( $preload_data ), $preload_paths );
+		$this->assertArrayHasKey( 'body', $preload_data[ $url ] );
+		$this->assertArrayHasKey( '_links', $preload_data[ $url ]['body'] );
+
+		if ( $expected ) {
+			$this->assertArrayHasKey( '_embedded', $preload_data[ $url ]['body'] );
+		} else {
+			$this->assertArrayNotHasKey( '_embedded', $preload_data[ $url ]['body'] );
+		}
+
+		foreach ( $expected as $rel ) {
+			$this->assertArrayHasKey( $rel, $preload_data[ $url ]['body']['_embedded'] );
+		}
+
+		foreach ( $not_expected as $rel ) {
+			$this->assertArrayNotHasKey( $rel, $preload_data[ $url ]['body']['_embedded'] );
+		}
+	}
+
+	public function data_rest_preload_api_request_embeds_links() {
+		return array(
+			array( '_embed=wp:term,author', array( 'wp:term', 'author' ), array( 'replies' ) ),
+			array( '_embed[]=wp:term&_embed[]=author', array( 'wp:term', 'author' ), array( 'replies' ) ),
+			array( '_embed', array( 'wp:term', 'author', 'replies' ), array() ),
+			array( '_embed=1', array( 'wp:term', 'author', 'replies' ), array() ),
+			array( '_embed=true', array( 'wp:term', 'author', 'replies' ), array() ),
+			array( '', array(), array() ),
 		);
 	}
 }

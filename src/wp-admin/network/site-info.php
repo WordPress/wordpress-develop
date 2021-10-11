@@ -122,6 +122,7 @@ if ( isset( $_GET['update'] ) ) {
 	}
 }
 
+// Used in the HTML title tag.
 /* translators: %s: Site title. */
 $title = sprintf( __( 'Edit Site: %s' ), esc_html( $details->blogname ) );
 
@@ -181,7 +182,7 @@ if ( ! empty( $messages ) ) {
 			<td><input name="blog[last_updated]" type="text" id="blog_last_updated" value="<?php echo esc_attr( $details->last_updated ); ?>" /></td>
 		</tr>
 		<?php
-		$attribute_fields = array( 'public' => __( 'Public' ) );
+		$attribute_fields = array( 'public' => _x( 'Public', 'site' ) );
 		if ( ! $is_main_site ) {
 			$attribute_fields['archived'] = __( 'Archived' );
 			$attribute_fields['spam']     = _x( 'Spam', 'site' );

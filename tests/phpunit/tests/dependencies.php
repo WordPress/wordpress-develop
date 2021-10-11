@@ -100,12 +100,12 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$dep->dequeue( 'one' );
 		$this->assertFalse( $dep->query( 'one', 'queue' ) );
 		$this->assertTrue( $dep->query( 'two', 'queue' ) );
-		$this->assertFalse( isset( $dep->args['one'] ) );
+		$this->assertArrayNotHasKey( 'one', $dep->args );
 
 		$dep->dequeue( 'two' );
 		$this->assertFalse( $dep->query( 'one', 'queue' ) );
 		$this->assertFalse( $dep->query( 'two', 'queue' ) );
-		$this->assertFalse( isset( $dep->args['two'] ) );
+		$this->assertArrayNotHasKey( 'two', $dep->args );
 	}
 
 	/**

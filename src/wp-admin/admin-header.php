@@ -132,7 +132,7 @@ do_action( 'admin_print_scripts' );
 /**
  * Fires in head section for a specific admin page.
  *
- * The dynamic portion of the hook, `$hook_suffix`, refers to the hook suffix
+ * The dynamic portion of the hook name, `$hook_suffix`, refers to the hook suffix
  * for the admin page.
  *
  * @since 2.1.0
@@ -190,12 +190,7 @@ if ( is_network_admin() ) {
 $admin_body_class .= ' no-customize-support no-svg';
 
 if ( $current_screen->is_block_editor() ) {
-	// Default to is-fullscreen-mode to avoid jumps in the UI.
-	$admin_body_class .= ' block-editor-page is-fullscreen-mode wp-embed-responsive';
-
-	if ( current_theme_supports( 'editor-styles' ) && current_theme_supports( 'dark-editor-style' ) ) {
-		$admin_body_class .= ' is-dark-theme';
-	}
+	$admin_body_class .= ' block-editor-page wp-embed-responsive';
 }
 
 $error_get_last = error_get_last();

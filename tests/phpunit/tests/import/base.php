@@ -24,7 +24,7 @@ abstract class WP_Import_UnitTestCase extends WP_UnitTestCase {
 		$importer = new WP_Import();
 		$file     = realpath( $filename );
 
-		$this->assertTrue( ! empty( $file ), 'Path to import file is empty.' );
+		$this->assertNotEmpty( $file, 'Path to import file is empty.' );
 		$this->assertTrue( is_file( $file ), 'Import file is not a file.' );
 
 		$authors = array();

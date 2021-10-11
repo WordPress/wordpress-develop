@@ -45,6 +45,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 			'classname'                   => 'widget_custom_html',
 			'description'                 => __( 'Arbitrary HTML code.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		$control_ops = array(
 			'width'  => 400,
@@ -156,7 +157,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		 *
 		 * @param string                $content  The widget content.
 		 * @param array                 $instance Array of settings for the current widget.
-		 * @param WP_Widget_Custom_HTML $this     Current Custom HTML widget instance.
+		 * @param WP_Widget_Custom_HTML $widget   Current Custom HTML widget instance.
 		 */
 		$content = apply_filters( 'widget_custom_html_content', $content, $instance, $this );
 
@@ -247,7 +248,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	public function form( $instance ) {
 		$instance = wp_parse_args( (array) $instance, $this->default_instance );
 		?>
-		<input id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" class="title sync-input" type="hidden" value="<?php echo esc_attr( $instance['title'] ); ?>"/>
+		<input id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" class="title sync-input" type="hidden" value="<?php echo esc_attr( $instance['title'] ); ?>" />
 		<textarea id="<?php echo $this->get_field_id( 'content' ); ?>" name="<?php echo $this->get_field_name( 'content' ); ?>" class="content sync-input" hidden><?php echo esc_textarea( $instance['content'] ); ?></textarea>
 		<?php
 	}

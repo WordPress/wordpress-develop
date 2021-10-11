@@ -145,6 +145,9 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 'Test', $out->post_title );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 
@@ -280,11 +283,11 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->make_user_by_role( 'editor' );
 
 		$tag1 = wp_create_tag( 'tag1' );
-		$this->assertInternalType( 'array', $tag1 );
+		$this->assertIsArray( $tag1 );
 		$tag2 = wp_create_tag( 'tag2' );
-		$this->assertInternalType( 'array', $tag2 );
+		$this->assertIsArray( $tag2 );
 		$tag3 = wp_create_tag( 'tag3' );
-		$this->assertInternalType( 'array', $tag3 );
+		$this->assertIsArray( $tag3 );
 
 		$post   = array(
 			'post_title' => 'Test',

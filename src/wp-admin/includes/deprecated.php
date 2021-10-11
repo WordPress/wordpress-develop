@@ -75,6 +75,8 @@ function get_udims( $width, $height ) {
  * @deprecated 2.6.0 Use wp_category_checklist()
  * @see wp_category_checklist()
  *
+ * @global int $post_ID
+ *
  * @param int $default       Unused.
  * @param int $parent        Unused.
  * @param array $popular_ids Unused.
@@ -91,6 +93,8 @@ function dropdown_categories( $default = 0, $parent = 0, $popular_ids = array() 
  * @since 2.1.0
  * @deprecated 2.6.0 Use wp_link_category_checklist()
  * @see wp_link_category_checklist()
+ *
+ * @global int $link_id
  *
  * @param int $default Unused.
  */
@@ -161,7 +165,7 @@ function wp_dropdown_cats( $currentcat = 0, $currentparent = 0, $parent = 0, $le
  *
  * @param string $option_group A settings group name. Should correspond to an allowed option key name.
  *                             Default allowed option key names include 'general', 'discussion', 'media',
- *                             'reading', 'writing', 'misc', 'options', and 'privacy'.
+ *                             'reading', 'writing', and 'options'.
  * @param string $option_name The name of an option to sanitize and save.
  * @param callable $sanitize_callback A callback function that sanitizes the option's value.
  */
@@ -493,7 +497,7 @@ class WP_User_Search {
 
 		$this->search_term = wp_unslash( $search_term );
 		$this->raw_page = ( '' == $page ) ? false : (int) $page;
-		$this->page = (int) ( '' == $page ) ? 1 : $page;
+		$this->page = ( '' == $page ) ? 1 : (int) $page;
 		$this->role = $role;
 
 		$this->prepare_query();

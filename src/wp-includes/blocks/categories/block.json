@@ -1,7 +1,10 @@
 {
 	"apiVersion": 2,
 	"name": "core/categories",
+	"title": "Categories",
 	"category": "widgets",
+	"description": "Display a list of all categories.",
+	"textdomain": "default",
 	"attributes": {
 		"displayAsDropdown": {
 			"type": "boolean",
@@ -19,5 +22,7 @@
 	"supports": {
 		"align": true,
 		"html": false
-	}
+	},
+	"editorStyle": "wp-block-categories-editor",
+	"style": "wp-block-categories"
 }

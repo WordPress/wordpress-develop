@@ -28,7 +28,6 @@ $twenty_twenty_one_comment_count = get_comments_number();
 
 	<?php
 	if ( have_comments() ) :
-		;
 		?>
 		<h2 class="comments-title">
 			<?php if ( '1' === $twenty_twenty_one_comment_count ) : ?>
@@ -36,7 +35,7 @@ $twenty_twenty_one_comment_count = get_comments_number();
 			<?php else : ?>
 				<?php
 				printf(
-					/* translators: %s: comment count number. */
+					/* translators: %s: Comment count number. */
 					esc_html( _nx( '%s comment', '%s comments', $twenty_twenty_one_comment_count, 'Comments title', 'twentytwentyone' ) ),
 					esc_html( number_format_i18n( $twenty_twenty_one_comment_count ) )
 				);

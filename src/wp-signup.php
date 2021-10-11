@@ -3,7 +3,7 @@
 /** Sets up the WordPress Environment. */
 require __DIR__ . '/wp-load.php';
 
-add_action( 'wp_head', 'wp_no_robots' );
+add_filter( 'wp_robots', 'wp_robots_no_robots' );
 
 require __DIR__ . '/wp-blog-header.php';
 
@@ -15,7 +15,7 @@ if ( is_array( get_site_option( 'illegal_names' ) ) && isset( $_GET['new'] ) && 
 }
 
 /**
- * Prints signup_header via wp_head
+ * Prints signup_header via wp_head.
  *
  * @since MU (3.0.0)
  */
@@ -50,7 +50,7 @@ $wp_query->is_404 = false;
 do_action( 'before_signup_header' );
 
 /**
- * Prints styles for front-end Multisite signup pages
+ * Prints styles for front-end Multisite signup pages.
  *
  * @since MU (3.0.0)
  */
@@ -89,7 +89,7 @@ do_action( 'before_signup_form' );
 <div class="mu_register wp-signup-container" role="main">
 <?php
 /**
- * Generates and displays the Signup and Create Site forms
+ * Generates and displays the Signup and Create Site forms.
  *
  * @since MU (3.0.0)
  *
@@ -224,11 +224,12 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 }
 
 /**
- * Validate the new site signup
+ * Validates the new site signup.
  *
  * @since MU (3.0.0)
  *
  * @return array Contains the new site data and error messages.
+ *               See wpmu_validate_blog_signup() for details.
  */
 function validate_blog_form() {
 	$user = '';
@@ -287,18 +288,19 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 }
 
 /**
- * Validate user signup name and email
+ * Validates user signup name and email.
  *
  * @since MU (3.0.0)
  *
  * @return array Contains username, email, and error messages.
+ *               See wpmu_validate_user_signup() for details.
  */
 function validate_user_form() {
 	return wpmu_validate_user_signup( $_POST['user_name'], $_POST['user_email'] );
 }
 
 /**
- * Allow returning users to sign up for another site
+ * Shows a form for returning users to sign up for another site.
  *
  * @since MU (3.0.0)
  *
@@ -392,17 +394,17 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
 }
 
 /**
- * Validate a new site signup for an existing user.
- *
- * @global string          $blogname   The new site's subdomain or directory name.
- * @global string          $blog_title The new site's title.
- * @global WP_Error        $errors     Existing errors in the global scope.
- * @global string          $domain     The new site's domain.
- * @global string          $path       The new site's path.
+ * Validates a new site signup for an existing user.
  *
  * @since MU (3.0.0)
  *
- * @return null|bool True if site signup was validated, false if error.
+ * @global string   $blogname   The new site's subdomain or directory name.
+ * @global string   $blog_title The new site's title.
+ * @global WP_Error $errors     Existing errors in the global scope.
+ * @global string   $domain     The new site's domain.
+ * @global string   $path       The new site's path.
+ *
+ * @return null|bool True if site signup was validated, false on error.
  *                   The function halts all execution if the user is not logged in.
  */
 function validate_another_blog_signup() {
@@ -484,7 +486,7 @@ function validate_another_blog_signup() {
 }
 
 /**
- * Confirm a new site signup.
+ * Shows a message confirming that the new site has been created.
  *
  * @since MU (3.0.0)
  * @since 4.4.0 Added the `$blog_id` parameter.
@@ -550,6 +552,9 @@ function confirm_another_blog_signup( $domain, $path, $blog_title, $user_name, $
  * Shows a form for a visitor to sign up for a new user account.
  *
  * @since MU (3.0.0)
+ *
+ * @global string $active_signup String that returns registration type. The value can be
+ *                               'all', 'none', 'blog', or 'user'.
  *
  * @param string          $user_name  The username.
  * @param string          $user_email The user's email.
@@ -624,11 +629,11 @@ function signup_user( $user_name = '', $user_email = '', $errors = '' ) {
 }
 
 /**
- * Validate the new user signup
+ * Validates the new user signup.
  *
  * @since MU (3.0.0)
  *
- * @return bool True if new user signup was validated, false if error
+ * @return bool True if new user signup was validated, false on error.
  */
 function validate_user_signup() {
 	$result     = validate_user_form();
@@ -654,12 +659,12 @@ function validate_user_signup() {
 }
 
 /**
- * New user signup confirmation
+ * Shows a message confirming that the new user has been registered and is awaiting activation.
  *
  * @since MU (3.0.0)
  *
- * @param string $user_name The username
- * @param string $user_email The user's email address
+ * @param string $user_name  The username.
+ * @param string $user_email The user's email address.
  */
 function confirm_user_signup( $user_name, $user_email ) {
 	?>
@@ -748,11 +753,11 @@ function signup_blog( $user_name = '', $user_email = '', $blogname = '', $blog_t
 }
 
 /**
- * Validate new site signup
+ * Validates new site signup.
  *
  * @since MU (3.0.0)
  *
- * @return bool True if the site signup was validated, false if error
+ * @return bool True if the site signup was validated, false on error.
  */
 function validate_blog_signup() {
 	// Re-validate user info.
@@ -861,7 +866,8 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
  *
  * @see get_available_languages()
  *
- * @return array List of available languages.
+ * @return string[] Array of available language codes. Language codes are formed by
+ *                  stripping the .mo extension from the language file names.
  */
 function signup_get_available_languages() {
 	/**
@@ -874,7 +880,8 @@ function signup_get_available_languages() {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $available_languages Available languages.
+	 * @param string[] $languages Array of available language codes. Language codes are formed by
+	 *                            stripping the .mo extension from the language file names.
 	 */
 	$languages = (array) apply_filters( 'signup_get_available_languages', get_available_languages() );
 
@@ -984,13 +991,13 @@ if ( 'none' === $active_signup ) {
 				if ( 'blog' === $active_signup || 'all' === $active_signup ) {
 					printf(
 						/* translators: %s: Site address. */
-						'<p><em>' . __( 'The site you were looking for, %s, does not exist, but you can create it now!' ) . '</em></p>',
+						'<p>' . __( 'The site you were looking for, %s, does not exist, but you can create it now!' ) . '</p>',
 						'<strong>' . $newblog . '</strong>'
 					);
 				} else {
 					printf(
 						/* translators: %s: Site address. */
-						'<p><em>' . __( 'The site you were looking for, %s, does not exist.' ) . '</em></p>',
+						'<p>' . __( 'The site you were looking for, %s, does not exist.' ) . '</p>',
 						'<strong>' . $newblog . '</strong>'
 					);
 				}

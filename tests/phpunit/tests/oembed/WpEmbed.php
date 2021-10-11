@@ -9,8 +9,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	 */
 	protected $wp_embed;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->wp_embed = new WP_Embed();
 	}
 
@@ -54,7 +54,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		unset( $GLOBALS['post'] );
 		unset( $GLOBALS['message'] );
 
-		$this->assertContains( $url, $actual );
+		$this->assertStringContainsString( $url, $actual );
 	}
 
 	public function test_wp_maybe_load_embeds() {
@@ -105,6 +105,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'youtube_embed_url', $handlers );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_autoembed_should_do_nothing_without_matching_handler() {
 		$content = "\nhttp://example.com/embed/foo\n";
 
@@ -112,6 +115,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertSame( $content, $actual );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_autoembed_should_return_modified_content() {
 		$handle   = __FUNCTION__;
 		$regex    = '#https?://example\.com/embed/([^/]+)#i';
@@ -317,6 +323,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		remove_filter( 'oembed_ttl', '__return_zero' );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_shortcode_should_get_url_from_src_attribute() {
 		$url    = 'http://example.com/embed/foo';
 		$actual = $this->wp_embed->shortcode( array( 'src' => $url ) );
@@ -324,10 +333,16 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_shortcode_should_return_empty_string_for_missing_url() {
 		$this->assertEmpty( $this->wp_embed->shortcode( array() ) );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_shortcode_should_make_link_for_unknown_url() {
 		$url    = 'http://example.com/embed/foo';
 		$actual = $this->wp_embed->shortcode( array(), $url );
@@ -335,6 +350,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_run_shortcode_url_only() {
 		$url    = 'http://example.com/embed/foo';
 		$actual = $this->wp_embed->run_shortcode( '[embed]' . $url . '[/embed]' );

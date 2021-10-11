@@ -214,7 +214,7 @@ class WP_Comment_Query {
 	 *     @type string|array $post_status               Post status or array of post statuses to retrieve
 	 *                                                   affiliated comments for. Pass 'any' to match any value.
 	 *                                                   Default empty.
-	 *     @type string       $post_type                 Post type or array of post types to retrieve affiliated
+	 *     @type string|array $post_type                 Post type or array of post types to retrieve affiliated
 	 *                                                   comments for. Pass 'any' to match any value. Default empty.
 	 *     @type string       $post_name                 Post name to retrieve affiliated comments for.
 	 *                                                   Default empty.
@@ -324,7 +324,7 @@ class WP_Comment_Query {
 		 *
 		 * @since 4.2.0
 		 *
-		 * @param WP_Comment_Query $this The WP_Comment_Query instance (passed by reference).
+		 * @param WP_Comment_Query $query The WP_Comment_Query instance (passed by reference).
 		 */
 		do_action_ref_array( 'parse_comment_query', array( &$this ) );
 	}
@@ -370,7 +370,7 @@ class WP_Comment_Query {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param WP_Comment_Query $this Current instance of WP_Comment_Query (passed by reference).
+		 * @param WP_Comment_Query $query Current instance of WP_Comment_Query (passed by reference).
 		 */
 		do_action_ref_array( 'pre_get_comments', array( &$this ) );
 
@@ -410,7 +410,7 @@ class WP_Comment_Query {
 		 * @param array|int|null   $comment_data Return an array of comment data to short-circuit WP's comment query,
 		 *                                       the comment count as an integer if `$this->query_vars['count']` is set,
 		 *                                       or null to allow WP to run its normal queries.
-		 * @param WP_Comment_Query $this         The WP_Comment_Query instance, passed by reference.
+		 * @param WP_Comment_Query $query        The WP_Comment_Query instance, passed by reference.
 		 */
 		$comment_data = apply_filters_ref_array( 'comments_pre_query', array( $comment_data, &$this ) );
 
@@ -494,7 +494,7 @@ class WP_Comment_Query {
 		 * @since 3.1.0
 		 *
 		 * @param WP_Comment[]     $_comments An array of comments.
-		 * @param WP_Comment_Query $this      Current instance of WP_Comment_Query (passed by reference).
+		 * @param WP_Comment_Query $query     Current instance of WP_Comment_Query (passed by reference).
 		 */
 		$_comments = apply_filters_ref_array( 'the_comments', array( $_comments, &$this ) );
 
@@ -801,7 +801,7 @@ class WP_Comment_Query {
 		}
 
 		// Falsey search strings are ignored.
-		if ( strlen( $this->query_vars['search'] ) ) {
+		if ( isset( $this->query_vars['search'] ) && strlen( $this->query_vars['search'] ) ) {
 			$search_sql = $this->get_search_sql(
 				$this->query_vars['search'],
 				array( 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_author_IP', 'comment_content' )
@@ -904,7 +904,7 @@ class WP_Comment_Query {
 		 * @since 3.1.0
 		 *
 		 * @param string[]         $pieces An associative array of comment query clauses.
-		 * @param WP_Comment_Query $this   Current instance of WP_Comment_Query (passed by reference).
+		 * @param WP_Comment_Query $query  Current instance of WP_Comment_Query (passed by reference).
 		 */
 		$clauses = apply_filters_ref_array( 'comments_clauses', array( compact( $pieces ), &$this ) );
 

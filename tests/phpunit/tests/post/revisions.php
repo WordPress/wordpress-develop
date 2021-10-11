@@ -15,14 +15,9 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->post_type = rand_str( 20 );
-	}
-
-	function tearDown() {
-		unset( $GLOBALS['wp_post_types'][ $this->post_type ] );
-		parent::tearDown();
 	}
 
 	/**
@@ -580,5 +575,83 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$revisions = wp_get_post_revisions( $post['ID'] );
 
 		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
+	}
+
+	/**
+	 * @ticket 51550
+	 */
+	public function test_wp_revisions_to_keep_filter() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title'   => 'some-post',
+				'post_type'    => 'post',
+				'post_content' => 'some_content',
+			)
+		);
+
+		$default  = wp_revisions_to_keep( $post );
+		$expected = $default + 1;
+
+		add_filter(
+			'wp_revisions_to_keep',
+			static function () use ( $expected ) {
+				return $expected;
+			}
+		);
+
+		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
+	}
+
+	/**
+	 * @ticket 51550
+	 */
+	public function test_wp_post_type_revisions_to_keep_filter() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title'   => 'some-post',
+				'post_type'    => 'post',
+				'post_content' => 'some_content',
+			)
+		);
+
+		$default = wp_revisions_to_keep( $post );
+		$generic = $default + 1;
+
+		add_filter(
+			'wp_revisions_to_keep',
+			static function () use ( $generic ) {
+				return $generic;
+			}
+		);
+
+		$this->assertSame( $generic, wp_revisions_to_keep( $post ) );
+
+		$expected = $generic + 1;
+
+		add_filter(
+			"wp_{$post->post_type}_revisions_to_keep",
+			static function () use ( $expected ) {
+				return $expected;
+			}
+		);
+
+		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
+	}
+
+	/**
+	 * Verifies that trying to create a revision with an invalid ID returns a WP_Error.
+	 *
+	 * @ticket 30009
+	 */
+	public function test_wp_save_post_revision_error() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'ID' => PHP_INT_MAX,
+			)
+		);
+
+		$revision = _wp_put_post_revision( $post );
+
+		$this->assertWPError( $revision );
 	}
 }

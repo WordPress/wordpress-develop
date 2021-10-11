@@ -13,8 +13,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 
 	public $q;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		unset( $this->q );
 		$this->q = new WP_Query();
 	}
@@ -931,8 +931,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 
 		$this->assertSame( array( $p1 ), wp_list_pluck( $posts, 'ID' ) );
 
-		$this->assertContains( "MONTH( $wpdb->posts.post_date ) = 5", $this->q->request );
-		$this->assertNotContains( "MONTH( $wpdb->posts.post_date ) = 9", $this->q->request );
+		$this->assertStringContainsString( "MONTH( $wpdb->posts.post_date ) = 5", $this->q->request );
+		$this->assertStringNotContainsString( "MONTH( $wpdb->posts.post_date ) = 9", $this->q->request );
 	}
 
 	public function test_date_params_week_w_duplicate() {
@@ -953,8 +953,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 
 		$this->assertSame( array( $p2 ), wp_list_pluck( $posts, 'ID' ) );
 
-		$this->assertContains( "WEEK( $wpdb->posts.post_date, 1 ) = 43", $this->q->request );
-		$this->assertNotContains( "WEEK( $wpdb->posts.post_date, 1 ) = 42", $this->q->request );
+		$this->assertStringContainsString( "WEEK( $wpdb->posts.post_date, 1 ) = 43", $this->q->request );
+		$this->assertStringNotContainsString( "WEEK( $wpdb->posts.post_date, 1 ) = 42", $this->q->request );
 	}
 
 	/**

@@ -899,10 +899,8 @@ function validate_current_theme() {
  * Uses the information from `Requires at least` and `Requires PHP` headers
  * defined in the theme's `style.css` file.
  *
- * If the headers are not present in the theme's stylesheet file,
- * `readme.txt` is also checked as a fallback.
- *
  * @since 5.5.0
+ * @since 5.8.0 Removed support for using `readme.txt` as a fallback.
  *
  * @param string $stylesheet Directory name for the theme.
  * @return true|WP_Error True if requirements are met, WP_Error on failure.
@@ -910,25 +908,24 @@ function validate_current_theme() {
 function validate_theme_requirements( $stylesheet ) {
 	$theme = wp_get_theme( $stylesheet );
 
+	// If the theme is a Full Site Editing theme, check for the presence of the Gutenberg plugin.
+	$theme_tags = $theme->get( 'Tags' );
+
+	if ( ! empty( $theme_tags ) && in_array( 'full-site-editing', $theme_tags, true ) && ! function_exists( 'gutenberg_is_fse_theme' ) ) {
+		return new WP_Error(
+			'theme_requires_gutenberg_plugin',
+			sprintf(
+					/* translators: %s: Theme name. */
+				_x( '<strong>Error:</strong> This theme (%s) uses Full Site Editing, which requires the Gutenberg plugin to be activated.', 'theme' ),
+				$theme->display( 'Name' )
+			)
+		);
+	}
+
 	$requirements = array(
 		'requires'     => ! empty( $theme->get( 'RequiresWP' ) ) ? $theme->get( 'RequiresWP' ) : '',
 		'requires_php' => ! empty( $theme->get( 'RequiresPHP' ) ) ? $theme->get( 'RequiresPHP' ) : '',
 	);
-
-	$readme_file = $theme->theme_root . '/' . $stylesheet . '/readme.txt';
-
-	if ( file_exists( $readme_file ) ) {
-		$readme_headers = get_file_data(
-			$readme_file,
-			array(
-				'requires'     => 'Requires at least',
-				'requires_php' => 'Requires PHP',
-			),
-			'theme'
-		);
-
-		$requirements = array_merge( $readme_headers, $requirements );
-	}
 
 	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
 	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
@@ -969,38 +966,46 @@ function validate_theme_requirements( $stylesheet ) {
  * Retrieves all theme modifications.
  *
  * @since 3.1.0
+ * @since 5.9.0 The return value is always an array.
  *
- * @return array|void Theme modifications.
+ * @return array Theme modifications.
  */
 function get_theme_mods() {
 	$theme_slug = get_option( 'stylesheet' );
 	$mods       = get_option( "theme_mods_$theme_slug" );
+
 	if ( false === $mods ) {
 		$theme_name = get_option( 'current_theme' );
 		if ( false === $theme_name ) {
 			$theme_name = wp_get_theme()->get( 'Name' );
 		}
+
 		$mods = get_option( "mods_$theme_name" ); // Deprecated location.
 		if ( is_admin() && false !== $mods ) {
 			update_option( "theme_mods_$theme_slug", $mods );
 			delete_option( "mods_$theme_name" );
 		}
 	}
+
+	if ( ! is_array( $mods ) ) {
+		$mods = array();
+	}
+
 	return $mods;
 }
 
 /**
  * Retrieves theme modification value for the current theme.
  *
- * If the modification name does not exist, then the $default will be passed
- * through {@link https://www.php.net/sprintf sprintf()} PHP function with
- * the template directory URI as the first string and the stylesheet directory URI
- * as the second string.
+ * If the modification name does not exist and `$default` is a string, then the
+ * default will be passed through the {@link https://www.php.net/sprintf sprintf()}
+ * PHP function with the template directory URI as the first value and the
+ * stylesheet directory URI as the second value.
  *
  * @since 2.1.0
  *
- * @param string       $name    Theme modification name.
- * @param string|false $default Optional. Theme modification default value. Default false.
+ * @param string $name    Theme modification name.
+ * @param mixed  $default Optional. Theme modification default value. Default false.
  * @return mixed Theme modification value.
  */
 function get_theme_mod( $name, $default = false ) {
@@ -1016,7 +1021,7 @@ function get_theme_mod( $name, $default = false ) {
 		 *
 		 * @since 2.2.0
 		 *
-		 * @param string $current_mod The value of the current theme modification.
+		 * @param mixed $current_mod The value of the current theme modification.
 		 */
 		return apply_filters( "theme_mod_{$name}", $mods[ $name ] );
 	}
@@ -1057,8 +1062,8 @@ function set_theme_mod( $name, $value ) {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param string $value     The new value of the theme modification.
-	 * @param string $old_value The current value of the theme modification.
+	 * @param mixed $value     The new value of the theme modification.
+	 * @param mixed $old_value The current value of the theme modification.
 	 */
 	$mods[ $name ] = apply_filters( "pre_set_theme_mod_{$name}", $value, $old_value );
 
@@ -2482,15 +2487,40 @@ function get_theme_starter_content() {
  * @since 5.5.0 The `core-block-patterns` feature was added and is enabled by default.
  * @since 5.5.0 The `custom-logo` feature now also accepts 'unlink-homepage-logo'.
  * @since 5.6.0 The `post-formats` feature warns if no array is passed.
+ * @since 5.8.0 The `widgets-block-editor` feature enables the Widgets block editor.
  *
  * @global array $_wp_theme_features
  *
- * @param string $feature The feature being added. Likely core values include 'post-formats', 'post-thumbnails',
- *                        'custom-header', 'custom-background', 'custom-logo', 'menus', 'automatic-feed-links',
- *                        'html5', 'title-tag', 'customize-selective-refresh-widgets', 'starter-content',
- *                        'responsive-embeds', 'align-wide', 'dark-editor-style', 'disable-custom-colors',
- *                        'disable-custom-font-sizes', 'editor-color-palette', 'editor-font-sizes',
- *                        'editor-styles', 'wp-block-styles', and 'core-block-patterns'.
+ * @param string $feature The feature being added. Likely core values include:
+ *                          - 'admin-bar'
+ *                          - 'align-wide'
+ *                          - 'automatic-feed-links'
+ *                          - 'core-block-patterns'
+ *                          - 'custom-background'
+ *                          - 'custom-header'
+ *                          - 'custom-line-height'
+ *                          - 'custom-logo'
+ *                          - 'customize-selective-refresh-widgets'
+ *                          - 'custom-spacing'
+ *                          - 'custom-units'
+ *                          - 'dark-editor-style'
+ *                          - 'disable-custom-colors'
+ *                          - 'disable-custom-font-sizes'
+ *                          - 'editor-color-palette'
+ *                          - 'editor-gradient-presets'
+ *                          - 'editor-font-sizes'
+ *                          - 'editor-styles'
+ *                          - 'featured-content'
+ *                          - 'html5'
+ *                          - 'menus'
+ *                          - 'post-formats'
+ *                          - 'post-thumbnails'
+ *                          - 'responsive-embeds'
+ *                          - 'starter-content'
+ *                          - 'title-tag'
+ *                          - 'wp-block-styles'
+ *                          - 'widgets'
+ *                          - 'widgets-block-editor'
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
  * @return void|false Void on success, false on failure.
  */
