@@ -380,18 +380,27 @@ function wp_prepend_oembed_host_inline_script_tag( $html ) {
 		return $html;
 	}
 
-	$dependency = wp_scripts()->query( 'wp-embed' );
-	if ( ! $dependency ) {
-		return $html;
+	$script  = "<script type='text/javascript'>\n";
+	$script .= "<!--//--><![CDATA[//><!--\n";
+	if ( SCRIPT_DEBUG ) {
+		$script .= file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' );
+	} else {
+		/*
+		 * If you're looking at a src version of this file, you'll see an "include"
+		 * statement below. This is used by the `npm run build` process to directly
+		 * include a minified version of wp-embed.js, instead of using the
+		 * file_get_contents() method from above.
+		 *
+		 * If you're looking at a build version of this file, you'll see a string of
+		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
+		 * and edit wp-embed.js directly.
+		 */
+		$script .= <<<JS
+		include "js/wp-embed.min.js"
+JS;
 	}
-
-	// @todo What if a plugin override the src to be somewhere else?
-	$path = ABSPATH . ltrim( $dependency->src, '/' );
-	if ( ! file_exists( $path ) ) {
-		return $html;
-	}
-
-	$script = wp_get_inline_script_tag( file_get_contents( $path ) );
+	$script .= "\n//--><!]]>";
+	$script .= "\n</script>";
 
 	return $script . $html;
 }
@@ -493,29 +502,6 @@ function get_post_embed_html( $width, $height, $post = null ) {
 		esc_url( get_permalink( $post ) ),
 		get_the_title( $post )
 	);
-
-	// @todo This should be moved to a embed_html filter and utilize wp_prepend_oembed_host_inline_script_tag().
-	$output .= "<script type='text/javascript'>\n";
-	$output .= "<!--//--><![CDATA[//><!--\n";
-	if ( SCRIPT_DEBUG ) {
-		$output .= file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' );
-	} else {
-		/*
-		 * If you're looking at a src version of this file, you'll see an "include"
-		 * statement below. This is used by the `npm run build` process to directly
-		 * include a minified version of wp-embed.js, instead of using the
-		 * file_get_contents() method from above.
-		 *
-		 * If you're looking at a build version of this file, you'll see a string of
-		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
-		 * and edit wp-embed.js directly.
-		 */
-		$output .= <<<JS
-		include "js/wp-embed.min.js"
-JS;
-	}
-	$output .= "\n//--><!]]>";
-	$output .= "\n</script>";
 
 	$output .= sprintf(
 		'<iframe sandbox="allow-scripts" security="restricted" src="%1$s" width="%2$d" height="%3$d" title="%4$s" data-secret="%5$s" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>',

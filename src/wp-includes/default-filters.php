@@ -656,6 +656,7 @@ add_filter( 'oembed_dataparse', 'wp_filter_oembed_iframe_title_attribute', 5, 3 
 add_filter( 'oembed_dataparse', 'wp_filter_oembed_result', 10, 3 );
 add_filter( 'oembed_response_data', 'get_oembed_response_data_rich', 10, 4 );
 add_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10, 3 );
+add_filter( 'embed_html', 'wp_prepend_oembed_host_inline_script_tag' );
 
 // Capabilities.
 add_filter( 'user_has_cap', 'wp_maybe_grant_install_languages_cap', 1 );
