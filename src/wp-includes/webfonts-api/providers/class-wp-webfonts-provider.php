@@ -112,6 +112,8 @@ abstract class WP_Webfonts_Provider {
 	/**
 	 * Validate the $params array.
 	 *
+	 * @todo Move to validator.Validation should happen during webfont collection, i.e.during the schema validation.
+	 *
 	 * @since 5.9.0
 	 *
 	 * @param array $params The parameters to validate.
@@ -236,11 +238,11 @@ abstract class WP_Webfonts_Provider {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $params The webfont's parameters.
+	 * @param string[][] $webfonts The webfont's parameters.
 	 */
-	public function set_params( $params ) {
-		$params = $this->get_validated_params( $params );
-		$this->params = $params;
+	public function set_webfonts( array $webfonts ) {
+		//$params = $this->get_validated_params( $params );
+		$this->params = $webfonts;
 	}
 
 	/**

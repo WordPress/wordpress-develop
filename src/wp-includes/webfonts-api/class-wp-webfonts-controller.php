@@ -29,7 +29,10 @@ class WP_Webfonts_Controller {
 	 * @param WP_Webfonts_Registry          $webfonts_registry Instance of the webfonts registry.
 	 * @param WP_Webfonts_Provider_Registry $provider_registry Instance of the providers registry.
 	 */
-	public function __construct( WP_Webfonts_Registry $webfonts_registry, WP_Webfonts_Provider_Registry $provider_registry ) {
+	public function __construct(
+		WP_Webfonts_Registry $webfonts_registry,
+		WP_Webfonts_Provider_Registry $provider_registry
+	) {
 		$this->webfonts_registry  = $webfonts_registry;
 		$this->providers_registry = $provider_registry;
 	}
@@ -40,9 +43,9 @@ class WP_Webfonts_Controller {
 	 * @since 5.9.0
 	 */
 	public function init() {
-		$this->provider->init();
+		$this->providers_registry->init();
 
-		// Register enqueue callback to
+		// Register callback to generate and enqueue styles.
 		if ( did_action( 'wp_enqueue_scripts' ) ) {
 			$this->stylesheet_handle = 'webfonts-footer';
 			$hook                    = 'wp_print_footer_scripts';
@@ -50,7 +53,7 @@ class WP_Webfonts_Controller {
 			$this->stylesheet_handle = 'webfonts';
 			$hook                    = 'wp_enqueue_scripts';
 		}
-		add_action( $hook, array( $this, 'enqueue' ) );
+		add_action( $hook, array( $this, 'generate_and_enqueue_styles' ) );
 	}
 
 	/**
@@ -58,37 +61,92 @@ class WP_Webfonts_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array[] $webfonts Webfonts to be registered.
+	 * @param string[][] $webfonts Webfonts to be registered.
 	 */
 	public function register_webfonts( array $webfonts ) {
+		// Bail out if no webfonts collection was injected.
+		if ( empty( $webfonts ) ) {
+			return;
+		}
+
 		array_walk( $webfonts, array( $this, 'register_webfont' ) );
 	}
 
-
 	/**
-	 * Registers a webfont.
+	 * Registers the given webfont if its schema is valid.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param string[] $webfont Webfont definition.
 	 */
 	public function register_webfont( array $webfont ) {
-		$registration_key = $this->webfonts_registry->register( $webfont );
-		if ( '' === $registration_key ) {
-			return;
-		}
-
-		// Register the webfont's registration key to its provider.
-		$this->providers_registry->register_webfont( $webfont['provider'], $registration_key );
+		$this->webfonts_registry->register( $webfont );
 	}
 
+	/**
+	 * Gets the registered webfonts.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return string[][] Registered webfonts.
+	 */
+	public function get_webfonts() {
+		return $this->webfonts_registry->get_registry();
+	}
+
+	/**
+	 * Gets the registered webfonts for the given provider.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $provider_id Provider ID to fetch.
+	 * @return string[][] Registered webfonts.
+	 */
+	public function get_webfonts_by_provider( $provider_id ) {
+		return $this->webfonts_registry->get_by_provider( $provider_id );
+	}
+
+	/**
+	 * Gets the registered webfonts for the given font-family.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $font_family Family font to fetch.
+	 * @return string[][] Registered webfonts.
+	 */
+	public function get_webfonts_by_font_family( $font_family ) {
+		return $this->webfonts_registry->get_by_font_family( $font_family );
+	}
+
+	/**
+	 * Gets the registered providers.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return WP_Webfonts_Provider[] Registered providers.
+	 */
 	public function get_registered_providers() {
 		return $this->providers_registry->get_registry();
 	}
 
+	/**
+	 * Registers the given provider.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $classname The provider class name.
+	 * @return bool True when registered. False when provider does not exist.
+	 */
 	public function register_provider( $classname ) {
 		return $this->providers_registry->register( $classname );
 	}
 
-	public function enqueue() {
+	/**
+	 * Generate and enqueue webfonts styles.
+	 *
+	 * @since 5.9.0
+	 */
+	public function generate_and_enqueue_styles() {
 		// Generate the styles.
 		$styles = $this->generate_styles();
 

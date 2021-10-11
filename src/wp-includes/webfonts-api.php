@@ -1,6 +1,6 @@
 <?php
 /**
- * Dependencies API: Webfonts functions
+ * Webfonts API: Webfonts functions
  *
  * @since 5.9.0
  *
@@ -8,6 +8,13 @@
  * @subpackage Webfonts
  */
 
+/**
+ * Instantiates the webfonts controller, if not already set, and returns it.
+ *
+ * @since 5.9.0
+ *
+ * @return WP_Webfonts_Controller Instance of the controller.
+ */
 function wp_webfonts() {
 	static $instance;
 
@@ -31,10 +38,21 @@ function wp_webfonts() {
  *
  * @since 5.9.0
  *
- * @param array[] $webfonts Webfonts to be registered.
+ * @param string[][] $webfonts Webfonts to be registered.
  */
 function wp_register_webfonts( array $webfonts ) {
 	wp_webfonts()->register_webfonts( $webfonts );
+}
+
+/**
+ * Registers a single webfont.
+ *
+ * @since 5.9.0
+ *
+ * @param string[] $webfont Webfont to be registered.
+ */
+function wp_register_webfont( array $webfont ) {
+	wp_webfonts()->register_webfont( $webfont );
 }
 
 /**

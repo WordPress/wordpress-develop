@@ -84,13 +84,6 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 					'fontWeight' => '400',
 				),
 			),
-			'font style: not set'       => array(
-				array(
-					'provider'   => 'local',
-					'fontFamily' => 'Open Sans',
-					'fontWeight' => '400',
-				),
-			),
 			'font style: empty string'  => array(
 				array(
 					'provider'   => 'local',
@@ -113,13 +106,6 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'invalid',
 					'fontWeight' => '400',
-				),
-			),
-			'font weight: not set'      => array(
-				array(
-					'provider'   => 'local',
-					'fontFamily' => 'Open Sans',
-					'fontStyle'  => 'normal',
 				),
 			),
 			'font wegith: empty string' => array(
