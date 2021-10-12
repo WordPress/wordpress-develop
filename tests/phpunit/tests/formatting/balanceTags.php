@@ -7,11 +7,15 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
 	function nestable_tags() {
 		return array(
+			array( 'article' ),
+			array( 'aside' ),
 			array( 'blockquote' ),
+			array( 'details' ),
 			array( 'div' ),
 			array( 'figure' ),
 			array( 'object' ),
 			array( 'q' ),
+			array( 'section' ),
 			array( 'span' ),
 		);
 	}
@@ -35,6 +39,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			array( 'meta' ),
 			array( 'param' ),
 			array( 'source' ),
+			array( 'track' ),
+			array( 'wbr' ),
 		);
 	}
 
