@@ -39,49 +39,52 @@ final class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Get the CSS for the font.
+	 * Get the CSS for a collection of fonts.
 	 *
+	 * @access public
 	 * @since 5.9.0
 	 * @return string
 	 */
 	public function get_css() {
-		if ( empty( $this->params['font-family'] ) ) {
-			return '';
-		}
+		$css = '';
+		foreach ( $this->params as $font ) {
 
-		$css = '@font-face{';
-		foreach ( $this->params as $key => $value ) {
+			// Validate font params.
+			$font = $this->get_validated_params( $font );
 
-			// Skip the "preload" parameter.
-			if ( 'preload' === $key ) {
+			if ( empty( $font['font-family'] ) ) {
 				continue;
 			}
 
-			// Compile the "src" parameter.
-			if ( 'src' === $key ) {
-				$src = "local({$this->params['font-family']})";
-				foreach ( $value as $item ) {
-					$src .= ( 'data' === $item['format'] )
-						? ", url({$item['url']})"
-						: ", url('{$item['url']}') format('{$item['format']}')";
-				}
-				$value = $src;
-			}
+			$css .= '@font-face{';
+			foreach ( $font as $key => $value ) {
 
-			// If font-variation-settings is an array, convert it to a string.
-			if ( 'font-variation-settings' === $key && is_array( $value ) ) {
-				$variations = array();
-				foreach ( $value as $key => $val ) {
-					$variations[] = "$key $val";
+				// Compile the "src" parameter.
+				if ( 'src' === $key ) {
+					$src = "local({$font['font-family']})";
+					foreach ( $value as $item ) {
+						$src .= ( 'data' === $item['format'] )
+							? ", url({$item['url']})"
+							: ", url('{$item['url']}') format('{$item['format']}')";
+					}
+					$value = $src;
 				}
-				$value = implode( ', ', $variations );
-			}
 
-			if ( ! empty( $value ) ) {
-				$css .= "$key:$value;";
+				// If font-variation-settings is an array, convert it to a string.
+				if ( 'font-variation-settings' === $key && is_array( $value ) ) {
+					$variations = array();
+					foreach ( $value as $key => $val ) {
+						$variations[] = "$key $val";
+					}
+					$value = implode( ', ', $variations );
+				}
+
+				if ( ! empty( $value ) ) {
+					$css .= "$key:$value;";
+				}
 			}
+			$css .= '}';
 		}
-		$css .= '}';
 
 		return $css;
 	}

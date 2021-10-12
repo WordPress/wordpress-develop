@@ -273,6 +273,84 @@ abstract class WP_Webfonts_Provider {
 	abstract public function get_css();
 
 	/**
+	 * Get cached styles from a remote URL.
+	 *
+	 * @access public
+	 * @since 5.9.0
+	 *
+	 * @param string $url              The URL to fetch.
+	 * @param string $id               An ID used to cache the styles.
+	 * @param array  $args             The arguments to pass to wp_remote_get().
+	 * @param array  $additional_props Additional properties to add to the @font-face styles.
+	 *
+	 * @return string The styles.
+	 */
+	public function get_cached_remote_styles( $id, $url, $args = array(), $additional_props = array() ) {
+		$css = get_site_transient( $id );
+
+		// Get remote response and cache the CSS if it hasn't been cached already.
+		if ( false === $css ) {
+			$css = $this->get_remote_styles( $url, $args );
+
+			// Early return if the request failed.
+			// Cache an empty string for 60 seconds to avoid bottlenecks.
+			if ( empty( $css ) ) {
+				set_site_transient( $id, '', 60 );
+				return '';
+			}
+
+			// Cache the CSS for a month.
+			set_site_transient( $id, $css, MONTH_IN_SECONDS );
+		}
+
+		// If there are additional props not included in the CSS provided by the API, add them to the final CSS.
+		foreach ( $additional_props as $prop ) {
+			$css = str_replace(
+				'@font-face {',
+				'@font-face {' . $prop . ':' . $this->params[ $prop ] . ';',
+				$css
+			);
+		}
+
+		return $css;
+	}
+
+	/**
+	 * Get styles from a remote URL.
+	 *
+	 * @access public
+	 * @since 5.9.0
+	 *
+	 * @param string $url              The URL to fetch.
+	 * @param string $id               An ID used to cache the styles.
+	 * @param array  $args             The arguments to pass to wp_remote_get().
+	 * @param array  $additional_props Additional properties to add to the @font-face styles.
+	 *
+	 * @return string The styles.
+	 */
+	public function get_remote_styles( $url, $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				// Use a modern user-agent, to get woff2 files.
+				'user-agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0',
+			)
+		);
+
+		// Get the remote URL contents.
+		$response = wp_remote_get( $url, $args );
+
+		// Early return if the request failed.
+		// Cache an empty string for 60 seconds to avoid bottlenecks.
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return '';
+		}
+
+		// Get the response body.
+		return wp_remote_retrieve_body( $response );
+	}
+
+	/**
 	 * Convert camelCase to kebab-case.
 	 *
 	 * @since 5.9.0
