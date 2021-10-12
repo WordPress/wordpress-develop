@@ -121,6 +121,13 @@ abstract class WP_Webfonts_Provider {
 	 * @return array
 	 */
 	public function get_validated_params( $params ) {
+
+		// Convert camelCase to kebab-case.
+		$kebab = array();
+		foreach ( $params as $key => $value ) {
+			$kebab[ $this->camel_to_kebab( $key ) ] = $value;
+		}
+
 		// Default values.
 		$defaults = array(
 			'font-weight'  => '400',
@@ -130,7 +137,7 @@ abstract class WP_Webfonts_Provider {
 		);
 
 		// Merge defaults with passed params.
-		$params = wp_parse_args( $params, $defaults );
+		$params = wp_parse_args( $kebab, $defaults );
 
 		// Whitelisted params.
 		$whitelist = array_merge( $this->valid_font_face_properties, $this->api_params );
@@ -264,4 +271,17 @@ abstract class WP_Webfonts_Provider {
 	 * @return string
 	 */
 	abstract public function get_css();
+
+	/**
+	 * Convert camelCase to kebab-case.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $string The string to convert.
+	 *
+	 * @return string
+	 */
+	public function camel_to_kebab( $string ) {
+		return strtolower( preg_replace( '/(?<!^)[A-Z]/', '-$0', $string ) );
+	}
 }
