@@ -2738,7 +2738,7 @@ function wp_maybe_inline_styles() {
 /**
  * Make URLs relative to the WordPress installation.
  *
- * @since 5.9.0
+ * @since 5.8.2
  *
  * @param string $css            The CSS to make URLs relative to the WordPress installation.
  * @param string $stylesheet_url The URL to the stylesheet.
