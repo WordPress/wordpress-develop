@@ -2720,28 +2720,7 @@ function wp_maybe_inline_styles() {
 
 			// Check if the style contains relative URLs that need to be modified.
 			// URLs relative to the stylesheet's path should be converted to relative to the site's root.
-			$has_src_results = preg_match_all( '#url\s*\(\s*[\'"]?\s*([^\'"\)]+)#', $style['css'], $src_results );
-			if ( $has_src_results ) {
-				// Loop through the URLs to find relative ones.
-				foreach ( $src_results[1] as $src_index => $src_result ) {
-					// Skip if this is an absolute URL.
-					if ( 0 === strpos( $src_result, 'http' ) ) {
-						continue;
-					}
-
-					// Build the absolute URL.
-					$absolute_url = dirname( $style['src'] ) . '/' . ltrim( $src_result, './' );
-					// Convert to URL related to the site root.
-					$relative_url = wp_make_link_relative( $absolute_url );
-
-					// Replace the URL in the CSS.
-					$style['css'] = str_replace(
-						$src_results[0][ $src_index ],
-						str_replace( $src_result, $relative_url, $src_results[0][ $src_index ] ),
-						$style['css']
-					);
-				}
-			}
+			$style['css'] = _wp_make_css_links_relative( $style['css'], $style['src'] );
 
 			// Set `src` to `false` and add styles inline.
 			$wp_styles->registered[ $style['handle'] ]->src = false;
@@ -2754,6 +2733,43 @@ function wp_maybe_inline_styles() {
 			$total_inline_size += (int) $style['size'];
 		}
 	}
+}
+
+/**
+ * Make URLs relative to the WordPress installation.
+ *
+ * @since 5.9.0
+ *
+ * @param string $css            The CSS to make URLs relative to the WordPress installation.
+ * @param string $stylesheet_url The URL to the stylesheet.
+ *
+ * @return string The CSS with URLs made relative to the WordPress installation.
+ */
+function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
+	$has_src_results = preg_match_all( '#url\s*\(\s*[\'"]?\s*([^\'"\)]+)#', $css, $src_results );
+	if ( $has_src_results ) {
+		// Loop through the URLs to find relative ones.
+		foreach ( $src_results[1] as $src_index => $src_result ) {
+			// Skip if this is an absolute URL.
+			if ( 0 === strpos( $src_result, 'http' ) ) {
+				continue;
+			}
+
+			// Build the absolute URL.
+			$absolute_url = dirname( $stylesheet_url ) . '/' . ltrim( $src_result, './' );
+			// Convert to URL related to the site root.
+			$relative_url = wp_make_link_relative( $absolute_url );
+
+			// Replace the URL in the CSS.
+			$css = str_replace(
+				$src_results[0][ $src_index ],
+				str_replace( $src_result, $relative_url, $src_results[0][ $src_index ] ),
+				$css
+			);
+		}
+	}
+
+	return $css;
 }
 
 /**
