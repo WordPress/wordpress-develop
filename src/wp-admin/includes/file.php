@@ -1948,7 +1948,7 @@ function move_dir( $from, $to, $working_dir = '' ) {
 
 			// Clear the working folder?
 			if ( ! empty( $working_dir ) ) {
-				$wp_filesystem->delete( $working_dir );
+				$wp_filesystem->delete( $working_dir, true );
 			}
 
 			return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
@@ -1958,7 +1958,7 @@ function move_dir( $from, $to, $working_dir = '' ) {
 
 	// Clear the working folder?
 	if ( ! empty( $working_dir ) ) {
-		$wp_filesystem->delete( $working_dir );
+		$wp_filesystem->delete( $working_dir, true );
 	}
 
 	return $result;
