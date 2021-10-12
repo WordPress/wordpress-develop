@@ -211,7 +211,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		foreach ( $tests as $input => $expected ) {
 			$this->assertSame(
 				$expected,
-				_wp_normalize_relative_css_links( $input, site_url( 'wp-content/themes/test/style.css' ) ),
+				_wp_normalize_relative_css_links( $input, site_url( 'wp-content/themes/test/style.css' ) )
 			);
 		}
 	}
