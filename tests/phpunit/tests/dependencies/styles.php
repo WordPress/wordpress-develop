@@ -198,13 +198,13 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		$tests = array(
 			// Double quotes, same path.
-			'p {background:url( "image0.svg" );}'                         => 'p {background:url( "/wp-content/themes/test/image0.svg" );}',
+			'p {background:url( "image0.svg" );}'          => 'p {background:url( "/wp-content/themes/test/image0.svg" );}',
 			// Single quotes, same path, prefixed with "./".
-			'p {background-image: url(\'./image2.png\');}'                => 'p {background-image: url(\'/wp-content/themes/test/image2.png\');}',
+			'p {background-image: url(\'./image2.png\');}' => 'p {background-image: url(\'/wp-content/themes/test/image2.png\');}',
 			// Single quotes, one level up, prefixed with "../".
-			'p {background-image: url(\'../image1.jpg\');}'               => 'p {background-image: url(\'/wp-content/themes/test/../image1.jpg\');}',
+			'p {background-image: url(\'../image1.jpg\');}' => 'p {background-image: url(\'/wp-content/themes/test/../image1.jpg\');}',
 			// External URLs, shouldn't change.
-			'p {background-image: url(\'http://foo.com/image2.png\');}'   => 'p {background-image: url(\'http://foo.com/image2.png\');}',
+			'p {background-image: url(\'http://foo.com/image2.png\');}' => 'p {background-image: url(\'http://foo.com/image2.png\');}',
 			'p {background-image: url( \'https://bar.com/image2.png\');}' => 'p {background-image: url( \'https://bar.com/image2.png\');}',
 		);
 
