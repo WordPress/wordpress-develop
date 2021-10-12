@@ -2720,7 +2720,7 @@ function wp_maybe_inline_styles() {
 
 			// Check if the style contains relative URLs that need to be modified.
 			// URLs relative to the stylesheet's path should be converted to relative to the site's root.
-			$style['css'] = _wp_make_css_links_relative( $style['css'], $style['src'] );
+			$style['css'] = _wp_normalize_relative_css_links( $style['css'], $style['src'] );
 
 			// Set `src` to `false` and add styles inline.
 			$wp_styles->registered[ $style['handle'] ]->src = false;
@@ -2751,7 +2751,7 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
 		// Loop through the URLs to find relative ones.
 		foreach ( $src_results[1] as $src_index => $src_result ) {
 			// Skip if this is an absolute URL.
-			if ( 0 === strpos( $src_result, 'http' ) ) {
+			if ( 0 === strpos( $src_result, 'http' ) || 0 === strpos( $src_result, '//' ) ) {
 				continue;
 			}
 
