@@ -181,6 +181,6 @@ class WP_Webfonts_Controller {
 	 * @since 5.9.0
 	 */
 	public function add_preconnect_links() {
-		echo $this->providers_registry->generate_preconnect_links();
+		echo $this->providers_registry->get_preconnect_links();
 	}
 }
