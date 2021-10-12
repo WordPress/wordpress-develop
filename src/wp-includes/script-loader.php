@@ -2756,7 +2756,8 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
 			}
 
 			// Build the absolute URL.
-			$absolute_url = dirname( $stylesheet_url ) . '/' . ltrim( $src_result, './' );
+			$absolute_url = dirname( $stylesheet_url ) . '/' . $src_result;
+			$absolute_url = str_replace( '/./', '/', $absolute_url );
 			// Convert to URL related to the site root.
 			$relative_url = wp_make_link_relative( $absolute_url );
 
