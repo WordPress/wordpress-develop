@@ -6,7 +6,7 @@
  */
 class Tests_Webfonts_API_wpWebfontsProviderRegistry extends WP_UnitTestCase {
 
-	public static function wpSetUpBeforeClass() {
+	public static function set_up_before_class() {
 		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-provider-registry.php';
 		require_once __DIR__ . '/mocks/class-my-custom-webfonts-provider-mock.php';
 	}

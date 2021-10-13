@@ -27,8 +27,9 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	 *
 	 * @param array Webfonts input.
 	 */
-	public function test_register_with_invalid_schema( array $webfont ) {
-		$this->setExpectedIncorrectUsage( 'register_webfonts' );
+	public function test_register_with_invalid_schema( array $webfont, $expected_message ) {
+		$this->expectNotice();
+		$this->expectNoticeMessage( $expected_message );
 
 		$registry = $this->get_registry();
 
@@ -43,102 +44,116 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	public function data_register_with_invalid_schema() {
 		return array(
 			'empty array - no schema'   => array(
-				array(),
+				'webfont'          => array(),
+				'expected_message' => 'Webfont provider must be a non-empty string.',
 			),
 			'provider: not set'         => array(
-				array(
+				'webfont'          => array(
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'normal',
 					'fontWeight' => '400',
 				),
+				'expected_message' => 'Webfont provider must be a non-empty string.',
 			),
 			'provider: empty string'    => array(
-				array(
+				'webfont'          => array(
 					'provider'   => '',
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'normal',
 					'fontWeight' => '400',
 				),
+				'expected_message' => 'Webfont provider must be a non-empty string.',
 			),
 			'provider: invalid type'    => array(
-				array(
+				'webfont'          => array(
 					'provider'   => true,
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'normal',
 					'fontWeight' => '400',
 				),
+				'expected_message' => 'Webfont provider must be a non-empty string.',
 			),
 			'font family: not set'      => array(
-				array(
+				'webfont'          => array(
 					'provider'   => 'local',
 					'fontStyle'  => 'normal',
 					'fontWeight' => '400',
 				),
+				'expected_message' => 'Webfont font family must be a non-empty string.',
 			),
 			'font family: empty string' => array(
-				array(
+				'webfont'          => array(
 					'provider'   => 'local',
 					'fontFamily' => '',
 					'fontStyle'  => 'normal',
 					'fontWeight' => '400',
 				),
+				'expected_message' => 'Webfont font family must be a non-empty string.',
 			),
 			'font family: invalid type' => array(
-				array(
+				'webfont'          => array(
 					'provider'   => 'local',
 					'fontFamily' => true,
 					'fontStyle'  => 'normal',
 					'fontWeight' => '400',
 				),
+				'expected_message' => 'Webfont font family must be a non-empty string.',
 			),
 			'font style: empty string'  => array(
-				array(
+				'webfont'          => array(
 					'provider'   => 'local',
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => '',
 					'fontWeight' => '400',
 				),
+				'expected_message' => 'Webfont font style must be a non-empty string.',
 			),
 			'font style: invalid type'  => array(
-				array(
+				'webfont'          => array(
 					'provider'   => 'local',
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => true,
 					'fontWeight' => '400',
 				),
+				'expected_message' => 'Webfont font style must be a non-empty string.',
 			),
 			'font style: invalid value' => array(
-				array(
+				'webfont'          => array(
 					'provider'   => 'local',
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'invalid',
 					'fontWeight' => '400',
 				),
+				'expected_message' => 'Webfont font style must be normal, italic, oblique, or oblique <angle>. Given: invalid.',
 			),
-			'font wegith: empty string' => array(
-				array(
+			'font weight: empty string' => array(
+				'webfont'          => array(
 					'provider'   => 'local',
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'normal',
 					'fontWeight' => '',
 				),
+				'expected_message' => 'Webfont font weight must be a non-empty string.',
 			),
 			'font weight: invalid type' => array(
-				array(
+				'webfont'          => array(
 					'provider'   => 'local',
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'normal',
 					'fontWeight' => true,
 				),
+				'expected_message' => 'Webfont font weight must be a non-empty string.',
 			),
-			/* @todo uncomment once value validation is added.
+			// @todo uncomment once value validation is added.
+			/*
 			'font weight: invalid value' => array(
-				array(
+				'webfont'          => array(
 					'provider'   => 'local',
 					'fontFamily' => 'Open Sans',
 					'fontStyle'  => 'normal',
 					'fontWeight' => 'invalid',
 				),
+				'expected_message' => 'Webfont font weight must be a non-empty string.',
 			),
 			*/
 		);

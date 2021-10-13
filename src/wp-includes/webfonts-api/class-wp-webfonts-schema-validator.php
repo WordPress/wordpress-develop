@@ -73,11 +73,7 @@ class WP_Webfonts_Schema_Validator {
 		// @todo check if provider is registered.
 
 		if ( empty( $this->webfont['provider'] ) || ! is_string( $this->webfont['provider'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
-				__( 'Webfont must define a string "provider".' ),
-				'5.9.0'
-			);
+			trigger_error( __( 'Webfont provider must be a non-empty string.' ) );
 
 			return false;
 		}
@@ -94,11 +90,7 @@ class WP_Webfonts_Schema_Validator {
 	 */
 	private function is_font_family_valid() {
 		if ( empty( $this->webfont['fontFamily'] ) || ! is_string( $this->webfont['fontFamily'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
-				__( 'Webfont must define a string "fontFamily".' ),
-				'5.9.0'
-			);
+			trigger_error( __( 'Webfont font family must be a non-empty string.' ) );
 
 			return false;
 		}
@@ -115,25 +107,18 @@ class WP_Webfonts_Schema_Validator {
 	 */
 	private function is_font_style_valid() {
 		if ( empty( $this->webfont['fontStyle'] ) || ! is_string( $this->webfont['fontStyle'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
-				__( 'Webfont must define a string "fontStyle".' ),
-				'5.9.0'
-			);
-
+			trigger_error( __( 'Webfont font style must be a non-empty string.' ) );
 			return false;
 		}
 
 		if ( ! $this->is_font_style_value_valid( $this->webfont['fontStyle'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
+			trigger_error(
 				sprintf(
-				/* translators: 1: Slant angle, 2: Given font style. */
+					/* translators: 1: Slant angle, 2: Given font style. */
 					__( 'Webfont font style must be normal, italic, oblique, or oblique %1$s. Given: %2$s.' ),
 					'<angle>',
 					$this->webfont['fontStyle']
-				),
-				'5.9.0'
+				)
 			);
 
 			return false;
@@ -170,11 +155,7 @@ class WP_Webfonts_Schema_Validator {
 	private function is_font_weight_valid() {
 		// @todo validate the value.
 		if ( empty( $this->webfont['fontWeight'] ) || ! is_string( $this->webfont['fontWeight'] ) ) {
-			_doing_it_wrong(
-				'register_webfonts',
-				__( 'Webfont must define a string "fontWeight".' ),
-				'5.9.0'
-			);
+			trigger_error( __( 'Webfont font weight must be a non-empty string.' ) );
 
 			return false;
 		}

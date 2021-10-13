@@ -7,7 +7,7 @@
 class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	private static $webfonts;
 
-	public static function wpSetUpBeforeClass() {
+	public static function set_up_before_class() {
 		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-schema-validator.php';
 		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-registry.php';
 		require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-provider-registry.php';
@@ -51,19 +51,19 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Controller::register_webfonts
-	 * @covers       WP_Webfonts_Controller::register_webfont
+	 * @covers WP_Webfonts_Controller::register_webfonts
+	 * @covers WP_Webfonts_Controller::register_webfont
 	 *
 	 * @dataProvider data_register_webfonts_with_invalid_schema
 	 *
 	 * @param array $webfonts Webfonts input.
-	 * @param array $expected Exptected registered webfonts.
+	 * @param array $expected Expected registered webfonts.
 	 */
-	public function test_register_webfonts_with_invalid_schema( array $webfonts, array $expected ) {
+	public function test_register_webfonts_with_invalid_schema( array $webfonts, $expected_message, array $expected ) {
+		$this->expectNotice();
+		$this->expectNoticeMessage( $expected_message );
+
 		$controller = $this->get_controller();
-
-		$this->setExpectedIncorrectUsage( 'register_webfonts' );
-
 		$controller->register_webfonts( $webfonts );
 
 		$this->assertSame( $expected, $controller->get_webfonts() );
@@ -80,7 +80,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	public function data_register_webfonts_with_invalid_schema() {
 		return array(
 			'provider: invalid type'   => array(
-				'webfonts' => array(
+				'webfonts'         => array(
 					array(
 						'provider'   => null,
 						'fontFamily' => 'Open Sans',
@@ -94,7 +94,8 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 						'fontWeight' => '700',
 					),
 				),
-				'expected' => array(
+				'expected_message' => 'Webfont provider must be a non-empty string.',
+				'expected'         => array(
 					'open-sans.italic.700' => array(
 						'provider'   => 'google',
 						'fontFamily' => 'Open Sans',
@@ -104,7 +105,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 				),
 			),
 			'font family: invalid key' => array(
-				'webfonts' => array(
+				'webfonts'         => array(
 					array(
 						'provider'   => 'google',
 						'fontFamily' => 'Roboto',
@@ -118,7 +119,8 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 						'fontWeight'  => '400',
 					),
 				),
-				'expected' => array(
+				'expected_message' => 'Webfont font family must be a non-empty string.',
+				'expected'         => array(
 					'roboto.normal.900' => array(
 						'provider'   => 'google',
 						'fontFamily' => 'Roboto',
@@ -191,7 +193,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Controller::get_webfonts_by_font_family
+	 * @covers WP_Webfonts_Controller::get_webfonts_by_font_family
 	 *
 	 * @dataProvider data_get_by_font_family_with_invalid_input
 	 *
