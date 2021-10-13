@@ -175,7 +175,7 @@ class WP_Webfonts_Controller {
 	 *
 	 * @since 5.9.0
 	 */
-	public function generate_styles() {
+	private function generate_styles() {
 		$styles = '';
 		foreach ( $this->get_registered_providers() as $provider_id => $provider ) {
 			$registered_webfonts = $this->webfonts_registry->get_by_provider( $provider_id );
