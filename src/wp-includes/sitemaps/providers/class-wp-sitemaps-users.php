@@ -119,7 +119,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 
 		$total_users = $query->get_total();
 
-		return (int) ceil( $total_users / wp_sitemaps_get_max_urls( $this->object_type ) );
+		return wp_total_pages( $total_users, wp_sitemaps_get_max_urls( $this->object_type ) );
 	}
 
 	/**

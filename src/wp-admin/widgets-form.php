@@ -498,7 +498,7 @@ $single_sidebar_class = '';
 $sidebars_count       = count( $theme_sidebars );
 
 if ( $sidebars_count > 1 ) {
-	$split = (int) ceil( $sidebars_count / 2 );
+	$split = wp_total_pages( $sidebars_count, 2 );
 } else {
 	$single_sidebar_class = ' single-sidebar';
 }

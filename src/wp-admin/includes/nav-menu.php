@@ -732,7 +732,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 		return;
 	}
 
-	$num_pages = ceil(
+	$num_pages = wp_total_pages(
 		wp_count_terms(
 			array_merge(
 				$args,
@@ -741,7 +741,8 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 					'offset' => '',
 				)
 			)
-		) / $per_page
+		),
+		$per_page
 	);
 
 	$page_links = paginate_links(
