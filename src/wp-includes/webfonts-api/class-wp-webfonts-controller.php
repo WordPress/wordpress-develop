@@ -54,6 +54,9 @@ class WP_Webfonts_Controller {
 			$hook                    = 'wp_enqueue_scripts';
 		}
 		add_action( $hook, array( $this, 'generate_and_enqueue_styles' ) );
+
+		// Enqueue webfonts in the block editor.
+		add_action( 'admin_init', array( $this, 'generate_and_enqueue_editor_styles' ) );
 	}
 
 	/**
@@ -158,6 +161,20 @@ class WP_Webfonts_Controller {
 		wp_add_inline_style( $this->stylesheet_handle, $styles );
 	}
 
+	/**
+	 * Generate and enqueue editor styles.
+	 *
+	 * @since 5.9.0
+	 */
+	public function generate_and_enqueue_editor_styles() {
+		wp_add_inline_style( 'wp-block-library', $this->generate_styles() );
+	}
+
+	/**
+	 * Generate styles for webfonts.
+	 *
+	 * @since 5.9.0
+	 */
 	private function generate_styles() {
 		$styles = '';
 		foreach ( $this->get_registered_providers() as $provider_id => $provider ) {
