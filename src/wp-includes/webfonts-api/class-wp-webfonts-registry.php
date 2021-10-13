@@ -10,9 +10,9 @@
 /**
  * Webfonts Registry.
  *
- * Handles schema validation, webfont registration, and query of webfonts.
+ * Handles webfont registration and query of webfonts.
  */
-final class WP_Webfonts_Registry {
+class WP_Webfonts_Registry {
 
 	/**
 	 * Registered webfonts.
@@ -26,12 +26,16 @@ final class WP_Webfonts_Registry {
 	/**
 	 * Registration keys per provider.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @var string[]
 	 */
 	private $registry_by_provider = array();
 
 	/**
 	 * Schema validator.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @var WP_Webfonts_Schema_Validator
 	 */

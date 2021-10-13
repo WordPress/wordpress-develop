@@ -1,9 +1,23 @@
 <?php
+/**
+ * Webfonts API: Webfonts Controller
+ *
+ * @package WordPress
+ * @subpackage Webfonts
+ * @since 5.9.0
+ */
 
+/**
+ * Webfonts Controller.
+ *
+ * Receives the incoming requests and handles the processing.
+ */
 class WP_Webfonts_Controller {
 
 	/**
 	 * Instance of the webfonts registry.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @var WP_Webfonts_Registry
 	 */
@@ -12,6 +26,8 @@ class WP_Webfonts_Controller {
 	/**
 	 * Instance of the provider registry.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @var WP_Webfonts_Provider_Registry
 	 */
 	private $providers_registry;
@@ -19,12 +35,16 @@ class WP_Webfonts_Controller {
 	/**
 	 * Stylesheet handle.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @var string
 	 */
 	private $stylesheet_handle = '';
 
 	/**
 	 * Create the controller.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param WP_Webfonts_Registry          $webfonts_registry Instance of the webfonts registry.
 	 * @param WP_Webfonts_Provider_Registry $provider_registry Instance of the providers registry.
@@ -174,6 +194,8 @@ class WP_Webfonts_Controller {
 	 * Generate styles for webfonts.
 	 *
 	 * @since 5.9.0
+	 *
+	 * @return string $styles Generated styles.
 	 */
 	private function generate_styles() {
 		$styles = '';
@@ -184,7 +206,7 @@ class WP_Webfonts_Controller {
 				continue;
 			}
 
-			add_action( 'wp_head', array( $this, 'add_preconnect_links' ) );
+			add_action( 'wp_head', array( $this, 'render_preconnect_links' ) );
 
 			$provider->set_webfonts( $registered_webfonts );
 			$styles .= $provider->get_css();
@@ -193,11 +215,11 @@ class WP_Webfonts_Controller {
 	}
 
 	/**
-	 * Add preconnect links to <head> for enqueued webfonts.
+	 * Renders preconnect links to <head> for enqueued webfonts.
 	 *
 	 * @since 5.9.0
 	 */
-	public function add_preconnect_links() {
+	public function render_preconnect_links() {
 		echo $this->providers_registry->get_preconnect_links();
 	}
 }

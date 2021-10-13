@@ -1,5 +1,17 @@
 <?php
+/**
+ * Webfonts API: Webfonts Schema Validator
+ *
+ * @package WordPress
+ * @subpackage Webfonts
+ * @since 5.9.0
+ */
 
+/**
+ * Webfonts Schema Validator.
+ *
+ * Validates the webfont schema.
+ */
 class WP_Webfonts_Schema_Validator {
 
 	/**
@@ -50,6 +62,13 @@ class WP_Webfonts_Schema_Validator {
 		return $is_valid;
 	}
 
+	/**
+	 * Checks if the provider is validate.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return bool True if valid. False if invalid.
+	 */
 	private function is_provider_valid() {
 		// @todo check if provider is registered.
 
@@ -66,6 +85,13 @@ class WP_Webfonts_Schema_Validator {
 		return true;
 	}
 
+	/**
+	 * Checks if the font family is validate.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return bool True if valid. False if invalid.
+	 */
 	private function is_font_family_valid() {
 		if ( empty( $this->webfont['fontFamily'] ) || ! is_string( $this->webfont['fontFamily'] ) ) {
 			_doing_it_wrong(
@@ -80,6 +106,13 @@ class WP_Webfonts_Schema_Validator {
 		return true;
 	}
 
+	/**
+	 * Checks if the font style is validate.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return bool True if valid. False if invalid.
+	 */
 	private function is_font_style_valid() {
 		if ( empty( $this->webfont['fontStyle'] ) || ! is_string( $this->webfont['fontStyle'] ) ) {
 			_doing_it_wrong(
@@ -127,6 +160,13 @@ class WP_Webfonts_Schema_Validator {
 		return false;
 	}
 
+	/**
+	 * Checks if the font weight is validate.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return bool True if valid. False if invalid.
+	 */
 	private function is_font_weight_valid() {
 		// @todo validate the value.
 		if ( empty( $this->webfont['fontWeight'] ) || ! is_string( $this->webfont['fontWeight'] ) ) {

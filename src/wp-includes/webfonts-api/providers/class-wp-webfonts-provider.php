@@ -1,6 +1,6 @@
 <?php
 /**
- * Webfonts API provider abstract class.
+ * Webfonts API: Provider abstract class.
  *
  * Individual webfonts providers should extend this class and implement.
  *
@@ -10,7 +10,7 @@
  */
 
 /**
- * Abstract class for webfonts API providers.
+ * Abstract class for Webfonts API providers.
  */
 abstract class WP_Webfonts_Provider {
 
@@ -18,6 +18,7 @@ abstract class WP_Webfonts_Provider {
 	 * The provider's unique ID.
 	 *
 	 * @since 5.9.0
+	 *
 	 * @var string
 	 */
 	protected $id;
@@ -26,6 +27,7 @@ abstract class WP_Webfonts_Provider {
 	 * An array of URLs to preconnect to.
 	 *
 	 * @since 5.9.0
+	 *
 	 * @var array
 	 */
 	protected $preconnect_urls = array();
@@ -34,6 +36,7 @@ abstract class WP_Webfonts_Provider {
 	 * The provider's root URL.
 	 *
 	 * @since 5.9.0
+	 *
 	 * @var string
 	 */
 	protected $root_url = '';
@@ -42,6 +45,7 @@ abstract class WP_Webfonts_Provider {
 	 * Webfont parameters.
 	 *
 	 * @since 5.9.0
+	 *
 	 * @var array
 	 */
 	protected $params = array();
@@ -50,6 +54,7 @@ abstract class WP_Webfonts_Provider {
 	 * An array of valid CSS properties for @font-face.
 	 *
 	 * @since 5.9.0
+	 *
 	 * @var array
 	 */
 	protected $valid_font_face_properties = array(
@@ -73,6 +78,7 @@ abstract class WP_Webfonts_Provider {
 	 * An array of API parameters which will not be added to the @font-face.
 	 *
 	 * @since 5.9.0
+	 *
 	 * @var array
 	 */
 	protected $api_params = array();
@@ -81,6 +87,7 @@ abstract class WP_Webfonts_Provider {
 	 * Get the provider's unique ID.
 	 *
 	 * @since 5.9.0
+	 *
 	 * @return string
 	 */
 	public function get_id() {
@@ -318,14 +325,10 @@ abstract class WP_Webfonts_Provider {
 	/**
 	 * Get styles from a remote URL.
 	 *
-	 * @access public
 	 * @since 5.9.0
 	 *
-	 * @param string $url              The URL to fetch.
-	 * @param string $id               An ID used to cache the styles.
-	 * @param array  $args             The arguments to pass to wp_remote_get().
-	 * @param array  $additional_props Additional properties to add to the @font-face styles.
-	 *
+	 * @param string $url  The URL to fetch.
+	 * @param array  $args The arguments to pass to wp_remote_get().
 	 * @return string The styles.
 	 */
 	public function get_remote_styles( $url, $args = array() ) {
@@ -356,7 +359,6 @@ abstract class WP_Webfonts_Provider {
 	 * @since 5.9.0
 	 *
 	 * @param string $string The string to convert.
-	 *
 	 * @return string
 	 */
 	public function camel_to_kebab( $string ) {

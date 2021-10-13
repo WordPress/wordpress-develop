@@ -10,7 +10,7 @@
 /**
  * Webfonts API provider for Google Fonts.
  */
-final class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
+class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 
 	/**
 	 * The provider's unique ID.

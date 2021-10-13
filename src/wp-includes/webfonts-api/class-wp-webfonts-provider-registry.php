@@ -10,7 +10,7 @@
 /**
  * Provider Registry.
  */
-final class WP_Webfonts_Provider_Registry {
+class WP_Webfonts_Provider_Registry {
 
 	/**
 	 * Registered providers.

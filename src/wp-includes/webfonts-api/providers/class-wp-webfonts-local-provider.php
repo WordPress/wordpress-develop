@@ -1,6 +1,6 @@
 <?php
 /**
- * Webfonts API provider for locally-hosted fonts.
+ * Webfonts API: Provider for locally-hosted fonts.
  *
  * @package    WordPress
  * @subpackage WebFonts
@@ -10,12 +10,13 @@
 /**
  * Webfonts API provider for locally-hosted fonts.
  */
-final class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
+class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 
 	/**
 	 * The provider's unique ID.
 	 *
 	 * @since 5.9.0
+	 *
 	 * @var string
 	 */
 	protected $id = 'local';
@@ -23,8 +24,8 @@ final class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	/**
 	 * Get validated params.
 	 *
-	 * @access public
 	 * @since 5.9.0
+	 *
 	 * @param array $params The webfont's parameters.
 	 * @return array
 	 */
@@ -41,8 +42,8 @@ final class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	/**
 	 * Get the CSS for a collection of fonts.
 	 *
-	 * @access public
 	 * @since 5.9.0
+	 *
 	 * @return string
 	 */
 	public function get_css() {
