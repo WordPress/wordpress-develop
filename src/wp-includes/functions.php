@@ -8294,9 +8294,11 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * @return int The total number of pages.
  */
 function wp_total_pages( $total_items, $per_page ) {
-		$remainder = $total_items % $per_page;
-		if ( $remainder ) {
-				$total_items += $per_page - $remainder;
-			}
- 	return $total_items / $per_page;
+	$remainder = $total_items % $per_page;
+
+	if ( $remainder ) {
+		$total_items += $per_page - $remainder;
+	}
+
+	return $total_items / $per_page;
 }
