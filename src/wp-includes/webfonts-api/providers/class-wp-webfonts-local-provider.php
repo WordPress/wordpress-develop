@@ -63,6 +63,13 @@ final class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 				if ( 'src' === $key ) {
 					$src = "local({$font['font-family']})";
 					foreach ( $value as $item ) {
+
+						// If the URL starts with "file:./" then it originated in a theme.json file.
+						// Tweak the URL to be relative to the theme root.
+						if ( 0 === strpos( $item['url'], 'file:./' ) ) {
+							$item['url'] = wp_make_link_relative( get_theme_file_uri( str_replace( 'file:./', '', $item['url'] ) ) );
+						}
+
 						$src .= ( 'data' === $item['format'] )
 							? ", url({$item['url']})"
 							: ", url('{$item['url']}') format('{$item['format']}')";
