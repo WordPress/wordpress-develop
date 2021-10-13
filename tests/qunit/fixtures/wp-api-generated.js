@@ -15,6 +15,7 @@ mockedApiResponse.Schema = {
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
+        "wp-block-editor/v1",
         "wp-site-health/v1"
     ],
     "authentication": [],
@@ -6402,6 +6403,57 @@ mockedApiResponse.Schema = {
             ],
             "_links": {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/search"
+            }
+        },
+        "/wp-block-editor/v1": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "default": "wp-block-editor/v1",
+                            "required": false
+                        },
+                        "context": {
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1"
+                    }
+                ]
+            }
+        },
+        "/wp-block-editor/v1/settings": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1/settings"
+                    }
+                ]
             }
         },
         "/wp/v2/block-renderer/(?P<name>[a-z0-9-]+/[a-z0-9-]+)": {
