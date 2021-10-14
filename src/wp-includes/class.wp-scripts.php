@@ -241,7 +241,25 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		echo "</script>\n";
+		$tag = "<script type='text/javascript'>\n"; // CDATA and type='text/javascript' is not needed for HTML 5
+	        $tag .= "/* <![CDATA[ */\n";
+	        $tag .= "$output\n";
+	        $tag .= "/* ]]> */\n";
+	        $tag .= "</script>\n";
 
+	        /**
+		 * Filters the HTML script tag of an enqueued script.
+		 *
+		 * @since 5.8.3
+		 *
+		 * @param string $tag    The `<script>` tag for the enqueued script.
+		 * @param string $handle The script's registered handle.
+		 * @param string $output The script's content (raw JS).
+		 */
+		$tag = apply_filters( 'inline_script_tag', $tag, $handle, $output );
+
+                echo $tag;
+		
 		return true;
 	}
 
