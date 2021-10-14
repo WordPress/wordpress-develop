@@ -198,8 +198,24 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
+		// Process orderby first, to allow for an early exit when a request is a client error (400)
+		$orderby_keys = array();
+		if ( isset( $request['orderby'] ) ) {
+			// The orderby query string parameter can look like ?orderby=menu_order, ?orderby[]=menu_order, or ?orderby[menu_order]=asc.
+			if ( rest_is_array( $request['orderby'] ) ) {
+				// An array: ?orderby[]=menu_order
+				// A fake array: ?orderby=menu_order,title
+				// A string: ?orderby=menu_order
+				// The latter two because rest_is_array() and rest_sanitize_array() pass scalars through wp_parse_list()
+				$orderby_keys = $request['orderby'];
+			} else {
+				// An object: ?orderby[menu_order]=asc
+				$orderby_keys = array_keys( $request['orderby'] );
+			}
+		}
+
 		// Ensure a search string is set in case the orderby is set to 'relevance'.
-		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
+		if ( ! empty( $request['orderby'] ) && in_array( 'relevance', $orderby_keys, true ) && empty( $request['search'] ) ) {
 			return new WP_Error(
 				'rest_no_search_term_defined',
 				__( 'You need to define a search term to order by relevance.' ),
@@ -208,7 +224,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Ensure an include parameter is set in case the orderby is set to 'include'.
-		if ( ! empty( $request['orderby'] ) && 'include' === $request['orderby'] && empty( $request['include'] ) ) {
+		if ( ! empty( $request['orderby'] ) && in_array( 'include', $orderby_keys, true ) && empty( $request['include'] ) ) {
 			return new WP_Error(
 				'rest_orderby_include_missing_include',
 				__( 'You need to define an include parameter to order by include.' ),
@@ -1072,7 +1088,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Map to proper WP_Query orderby param.
-		if ( isset( $query_args['orderby'] ) && isset( $request['orderby'] ) ) {
+		if ( isset( $query_args['orderby'] ) ) {
 			$orderby_mappings = array(
 				'id'            => 'ID',
 				'include'       => 'post__in',
@@ -1080,8 +1096,42 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'include_slugs' => 'post_name__in',
 			);
 
-			if ( isset( $orderby_mappings[ $request['orderby'] ] ) ) {
-				$query_args['orderby'] = $orderby_mappings[ $request['orderby'] ];
+			// The orderby query string parameter can look like ?orderby=menu_order, ?orderby[]=menu_order, or ?orderby[menu_order]=asc.
+			if ( rest_is_array( $query_args['orderby'] ) ) {
+				// An array: ?orderby[]=menu_order
+				// A fake array: ?orderby=menu_order,title
+				// A string: ?orderby=menu_order
+				// The latter two because rest_is_array() and rest_sanitize_array() pass scalars through wp_parse_list()
+				$orderby_mappings_in_request = array_intersect_key( $orderby_mappings, array_flip( $query_args['orderby'] ) );
+
+				$new_arg = array();
+				// Remaps values. Preserves value order.
+				foreach ( $query_args['orderby'] as $orderby ) {
+					if ( array_key_exists( $orderby, $orderby_mappings_in_request ) ) {
+						$new_arg[] = $orderby_mappings_in_request[ $orderby ];
+					} else {
+						$new_arg[] = $orderby;
+					}
+				}
+
+				// WP_Query expects a space separated list.
+				$query_args['orderby'] = join( ' ', $new_arg );
+			} else {
+				// An object: ?orderby[menu_order]=asc
+				$orderby_mappings_in_request = array_intersect_key( $orderby_mappings, $query_args['orderby'] );
+
+				$new_arg = array();
+				// Remaps keys. Preserves key order.
+				foreach ( $query_args['orderby'] as $orderby => $order ) {
+					if ( array_key_exists( $orderby, $orderby_mappings_in_request ) ) {
+						$new_arg[ $orderby_mappings_in_request[ $orderby ] ] = $order;
+					} else {
+						$new_arg[ $orderby ] = $order;
+					}
+				}
+
+				// WP_Query expects an array with orderby (database table column) keys and order ("asc", "desc") values.
+				$query_args['orderby'] = $new_arg;
 			}
 		}
 
@@ -2794,27 +2844,74 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'enum'        => array( 'asc', 'desc' ),
 		);
 
-		$query_params['orderby'] = array(
-			'description' => __( 'Sort collection by post attribute.' ),
-			'type'        => 'string',
-			'default'     => 'date',
-			'enum'        => array(
-				'author',
-				'date',
-				'id',
-				'include',
-				'modified',
-				'parent',
-				'relevance',
-				'slug',
-				'include_slugs',
-				'title',
-			),
+		$orderby_enum = array(
+			'author',
+			'date',
+			'id',
+			'include',
+			'modified',
+			'parent',
+			'relevance',
+			'slug',
+			'include_slugs',
+			'title',
 		);
 
 		if ( 'page' === $this->post_type || post_type_supports( $this->post_type, 'page-attributes' ) ) {
-			$query_params['orderby']['enum'][] = 'menu_order';
+			$orderby_enum[] = 'menu_order';
 		}
+
+		$query_params['orderby'] = array(
+			'description' => __( 'Sort collection by post attribute.' ),
+			'type'        => array( 'string', 'array', 'object' ),
+			'anyOf'       => array(
+				// ?orderby[]=date&orderby[]=title OR ?orderby=date,title
+				array(
+					'type'  => 'array',
+					'items' => array(
+						'type' => 'string',
+						'enum' => $orderby_enum,
+					),
+				),
+				/* The string case *must* come after the array case above.
+				 * anyOf will use the first schema that validates, and the array case above will
+				 * correctly validate ?orderby=date and ?orderby=date,title, which both look like
+				 * strings but are handled as arrays since rest_is_array() and rest_sanitize_array()
+				 * will pass scalars through wp_parse_list().
+				 *
+				 * If the string case were first, we'd need more complex logic in ->get_items() and
+				 * ->prepare_items_query().
+				 *
+				 * This string case, then, is never used and is here only for documentation in the
+				 * schema.
+				 *
+				 * Note that oneOf may seem more natural than anyOf here, but, because of this string
+				 * parsing behavior of the array case, string inputs match both the array case and the
+				 * string case.
+				 */
+				// ?orderby=date
+				array(
+					'type' => 'string',
+					'enum' => $orderby_enum,
+				),
+				// ?orderby[date]=desc&orderby[title]=desc
+				array(
+					'type'                 => 'object',
+					'properties'           => array_fill_keys(
+						$orderby_enum,
+						array(
+							'type' => 'string',
+							'enum' => array(
+								'asc',
+								'desc',
+							),
+						)
+					),
+					'additionalProperties' => false,
+				),
+			),
+			'default'     => 'date',
+		);
 
 		$post_type = get_post_type_object( $this->post_type );
 
