@@ -3823,7 +3823,13 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type int[]  $post_category         Array of category IDs.
  *                                         Defaults to value of the 'default_category' option.
  *     @type array  $tags_input            Array of tag names, slugs, or IDs. Default empty.
- *     @type array  $tax_input             Array of taxonomy terms keyed by their taxonomy name. Default empty.
+ *     @type array  $tax_input             An array of taxonomy terms keyed by their taxonomy name. Default empty.
+ *                                         If the taxonomy is hierarchical the term list needs to be either an array of
+ *                                         term IDs, or comma-separated string with IDs.
+ *                                         Otherwise the terms list can be an array that contains term names or slugs or
+ *                                         a comma-separated string of names or slugs.
+ *                                         This is because, in hierarchical taxonomy, child terms can have the same names
+ *                                         with different parent terms, so the only way to connect them is using ID.
  *     @type array  $meta_input            Array of post meta values keyed by their post meta key. Default empty.
  * }
  * @param bool  $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
