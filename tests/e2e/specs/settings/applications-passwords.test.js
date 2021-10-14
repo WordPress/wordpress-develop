@@ -5,7 +5,7 @@ import {
 
 async function getResponseForApplicationPassword() {
     return await rest({
-        methode: 'GET',
+        method: 'GET',
         path: '/wp/v2/users/me/application-passwords'
     });
 }
