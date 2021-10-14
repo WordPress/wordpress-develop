@@ -1517,8 +1517,32 @@ EOF;
 	function data_wp_kses_object_tag_allowed() {
 		return array(
 			array(
-				'<object type="application/pdf" data="htttps://wordpress.org/foo.pdf" />',
-				'<object type="application/pdf" data="htttps://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			array(
+				'<object type="application/exe" data="https://wordpress.org/foo.exe" />',
+				'',
+			),
+			array(
+				'<object type="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			array(
+				'<object type="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			array(
+				'<object type="" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			array(
+				'<object type data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			array(
+				'<object data="https://wordpress.org/foo.pdf" />',
+				'',
 			),
 		);
 	}
