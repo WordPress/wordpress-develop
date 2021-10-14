@@ -1496,4 +1496,30 @@ EOF;
 
 		$this->assertSame( $html, wp_kses_post( $html ) );
 	}
+
+	/**
+	 * Test that object tags are allowed under limited circumstances.
+	 *
+	 * @ticket 54261
+	 *
+	 * @dataProvider data_wp_kses_object_tag_allowed
+	 *
+	 * @param string $html     A string of HTML to test.
+	 * @param string $expected The expected result from KSES.
+	 */
+	function test_wp_kses_object_tag_allowed( $html, $expected ) {
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_object_tag_allowed().
+	 */
+	function data_wp_kses_object_tag_allowed() {
+		return array(
+			array(
+				'<object type="application/pdf" data="htttps://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="htttps://wordpress.org/foo.pdf" />',
+			),
+		);
+	}
 }

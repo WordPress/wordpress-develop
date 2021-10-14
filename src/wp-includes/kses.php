@@ -271,6 +271,12 @@ if ( ! CUSTOM_TAGS ) {
 			'lang'     => true,
 			'xml:lang' => true,
 		),
+		'object'     => array(
+			'data' => true,
+			'type' => array(
+				'value' => 'application/pdf',
+			),
+		),
 		'p'          => array(
 			'align'    => true,
 			'dir'      => true,
@@ -1165,13 +1171,34 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 	// Split it.
 	$attrarr = wp_kses_hair( $attr, $allowed_protocols );
 
+	// Check if there are attributes with a required value.
+	$required_attrs = array();
+	foreach ( $allowed_html[ $element_low ] as $required_attr => $required_attr_limits ) {
+		if ( is_array( $required_attr_limits ) && isset( $required_attr_limits['value'] ) ) {
+			$required_attrs[ $required_attr ] = $required_attr_limits['value'];
+		}
+	}
+
 	// Go through $attrarr, and save the allowed attributes for this element
 	// in $attr2.
 	$attr2 = '';
 	foreach ( $attrarr as $arreach ) {
+		// If an attribute requires a value, and that value isn't set correctly, the entire tag is not allowed.
+		if ( isset( $required_attrs[ $arreach['name'] ] ) ) {
+			if ( strtolower( $arreach['value'] ) !== $required_attrs[ $arreach['name'] ] ) {
+				return '';
+			} else {
+				unset( $required_attrs[ $arreach['name'] ] );
+			}
+		}
 		if ( wp_kses_attr_check( $arreach['name'], $arreach['value'], $arreach['whole'], $arreach['vless'], $element, $allowed_html ) ) {
 			$attr2 .= ' ' . $arreach['whole'];
 		}
+	}
+
+	// If some required attributes weren't set, the entire tag is not allowed.
+	if ( ! empty( $required_attrs ) ) {
+		return '';
 	}
 
 	// Remove any "<" or ">" characters.
