@@ -17,7 +17,7 @@
 class WP_REST_Block_Editor_Settings_Controller extends WP_REST_Controller {
 	/**
 	 * Constructs the controller.
-	 * 
+	 *
 	 * @since 5.9.0
 	 */
 	public function __construct() {
@@ -27,7 +27,7 @@ class WP_REST_Block_Editor_Settings_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the necessary REST API routes.
-	 * 
+	 *
 	 * @since 5.9.0
 	 */
 	public function register_routes() {

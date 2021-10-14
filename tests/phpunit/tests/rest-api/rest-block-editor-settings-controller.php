@@ -76,11 +76,11 @@ class REST_Block_Editor_Settings_Controller_Test extends WP_Test_REST_Controller
 
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
-		$editor_context = new WP_Block_Editor_Context();
+		$editor_context    = new WP_Block_Editor_Context();
 		$expected_settings = get_block_editor_settings( array(), $editor_context );
 
-		$request    = new WP_REST_Request( 'GET', '/wp-block-editor/v1/settings' );
-		$response   = rest_get_server()->dispatch( $request );
+		$request  = new WP_REST_Request( 'GET', '/wp-block-editor/v1/settings' );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( $response->get_data(), $expected_settings );
@@ -112,8 +112,8 @@ class REST_Block_Editor_Settings_Controller_Test extends WP_Test_REST_Controller
 	public function test_prepare_item() {}
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
-		$request    = new WP_REST_Request( 'GET', '/wp-block-editor/v1/settings' );
-		$response   = rest_get_server()->dispatch( $request );
-		$data       = $response->get_data();
+		$request  = new WP_REST_Request( 'GET', '/wp-block-editor/v1/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
 	}
 }
