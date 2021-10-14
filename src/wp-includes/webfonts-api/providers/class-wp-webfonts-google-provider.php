@@ -1,6 +1,6 @@
 <?php
 /**
- * Webfonts API provider for Google fonts.
+ * Webfonts API: Google Fonts provider.
  *
  * @package    WordPress
  * @subpackage WebFonts
@@ -16,6 +16,7 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	 * The provider's unique ID.
 	 *
 	 * @since 5.9.0
+	 *
 	 * @var string
 	 */
 	protected $id = 'google';
@@ -51,7 +52,7 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	 * @since 5.9.0
 	 * @var array
 	 */
-	protected $api_params = array(
+	protected $invalid_parameters = array(
 		'subset',
 		'text',
 		'effect',
@@ -60,18 +61,13 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	/**
 	 * Build the API URL for a collection of fonts.
 	 *
-	 * @access protected
 	 * @since 5.9.0
-	 * @param array $fonts
-	 * @return string
+	 *
+	 * @param array $fonts Registered webfonts.
+	 * @return array Collection by font-family urls.
 	 */
-	protected function build_collection_api_urls( $fonts ) {
+	protected function build_collection_api_urls( array $fonts ) {
 		$font_families_urls = array();
-
-		// Validate all fonts.
-		foreach ( $fonts as $key => $font ) {
-			$fonts[ $key ] = $this->get_validated_params( $font );
-		}
 
 		// Group by font-display.
 		// Each font-display will need to be a separate request.
@@ -140,7 +136,7 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	 */
 	public function get_css() {
 		$css  = '';
-		$urls = $this->build_collection_api_urls( $this->params );
+		$urls = $this->build_collection_api_urls( $this->webfonts );
 
 		foreach ( $urls as $url ) {
 			$css .= $this->get_cached_remote_styles( 'google_fonts_' . md5( $url ), $url );

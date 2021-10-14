@@ -11,7 +11,26 @@ class My_Custom_Webfonts_Provider_Mock extends WP_Webfonts_Provider {
 		),
 	);
 
+	public function set_webfonts( array $webfonts ) {
+		// do nothing.
+	}
+
 	public function get_css() {
-		return '';
+		return "
+		@font-face{
+			font-family: 'Source Serif Pro';
+			font-weight: 200 900;
+			font-style: normal;
+			font-stretch: normal;
+			src: url('" . get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' ) . "') format('woff2');
+		}
+		@font-face{
+			font-family: 'Source Serif Pro';
+			font-weight: 200 900;
+			font-style: italic;
+			font-stretch: normal;
+			src: url('" . get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Italic.ttf.woff2' ) . "') format('woff2');
+		}
+		";
 	}
 }

@@ -22,78 +22,205 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	protected $id = 'local';
 
 	/**
-	 * Get validated params.
+	 * Prepares the given webfont.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $params The webfont's parameters.
+	 * @param array $webfont Webfont to validate.
 	 * @return array
 	 */
-	public function get_validated_params( $params ) {
-		$params = parent::get_validated_params( $params );
+	protected function prepare( array $webfont ) {
+		$webfont = parent::prepare( $webfont );
+		$webfont = $this->order_src( $webfont );
 
 		// Wrap font-family in quotes if it contains spaces.
-		if ( false !== strpos( $params['font-family'], ' ' ) && false === strpos( $params['font-family'], '"' ) && false === strpos( $params['font-family'], "'" ) ) {
-			$params['font-family'] = '"' . $params['font-family'] . '"';
+		if (
+			false !== strpos( $webfont['font-family'], ' ' ) &&
+			false === strpos( $webfont['font-family'], '"' ) &&
+			false === strpos( $webfont['font-family'], "'" )
+		) {
+			$webfont['font-family'] = '"' . $webfont['font-family'] . '"';
 		}
-		return $params;
+
+		return $webfont;
 	}
 
 	/**
-	 * Get the CSS for a collection of fonts.
+	 * Order `src` items to optimize for browser support.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return string
+	 * @param string[] $webfont Webfont to process.
+	 * @return string[]
+	 */
+	private function order_src( array $webfont ) {
+		if ( ! is_array( $webfont['src'] ) ) {
+			$webfont['src'] = (array) $webfont['src'];
+		}
+
+		$src         = array();
+		$src_ordered = array();
+
+		foreach ( $webfont['src'] as $url ) {
+			// Add data URIs first.
+			if ( 0 === strpos( trim( $url ), 'data:' ) ) {
+				$src_ordered[] = array(
+					'url'    => $url,
+					'format' => 'data',
+				);
+				continue;
+			}
+			$format         = pathinfo( $url, PATHINFO_EXTENSION );
+			$src[ $format ] = $url;
+		}
+
+		// Add woff2.
+		if ( ! empty( $src['woff2'] ) ) {
+			$src_ordered[] = array(
+				'url'    => $src['woff2'],
+				'format' => 'woff2',
+			);
+		}
+
+		// Add woff.
+		if ( ! empty( $src['woff'] ) ) {
+			$src_ordered[] = array(
+				'url'    => $src['woff'],
+				'format' => 'woff',
+			);
+		}
+
+		// Add ttf.
+		if ( ! empty( $src['ttf'] ) ) {
+			$src_ordered[] = array(
+				'url'    => $src['ttf'],
+				'format' => 'truetype',
+			);
+		}
+
+		// Add eot.
+		if ( ! empty( $src['eot'] ) ) {
+			$src_ordered[] = array(
+				'url'    => $src['eot'],
+				'format' => 'embedded-opentype',
+			);
+		}
+
+		// Add otf.
+		if ( ! empty( $src['otf'] ) ) {
+			$src_ordered[] = array(
+				'url'    => $src['otf'],
+				'format' => 'opentype',
+			);
+		}
+		$webfont['src'] = $src_ordered;
+
+		return $webfont;
+	}
+
+	/**
+	 * Get the CSS for a collection of webfonts.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return string The CSS.
 	 */
 	public function get_css() {
 		$css = '';
-		foreach ( $this->params as $font ) {
 
-			// Validate font params.
-			$font = $this->get_validated_params( $font );
-
-			if ( empty( $font['font-family'] ) ) {
-				continue;
-			}
-
-			$css .= '@font-face{';
-			foreach ( $font as $key => $value ) {
-
-				// Compile the "src" parameter.
-				if ( 'src' === $key ) {
-					$src = "local({$font['font-family']})";
-					foreach ( $value as $item ) {
-
-						// If the URL starts with "file:./" then it originated in a theme.json file.
-						// Tweak the URL to be relative to the theme root.
-						if ( 0 === strpos( $item['url'], 'file:./' ) ) {
-							$item['url'] = wp_make_link_relative( get_theme_file_uri( str_replace( 'file:./', '', $item['url'] ) ) );
-						}
-
-						$src .= ( 'data' === $item['format'] )
-							? ", url({$item['url']})"
-							: ", url('{$item['url']}') format('{$item['format']}')";
-					}
-					$value = $src;
-				}
-
-				// If font-variation-settings is an array, convert it to a string.
-				if ( 'font-variation-settings' === $key && is_array( $value ) ) {
-					$variations = array();
-					foreach ( $value as $key => $val ) {
-						$variations[] = "$key $val";
-					}
-					$value = implode( ', ', $variations );
-				}
-
-				if ( ! empty( $value ) ) {
-					$css .= "$key:$value;";
-				}
-			}
-			$css .= '}';
+		foreach ( $this->webfonts as $webfont ) {
+			$css .= "@font-face{\n" . $this->build_font_css( $webfont ) . "}\n";
 		}
 
 		return $css;
+	}
+
+	/**
+	 * Builds the font-family's CSS.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $webfont Webfont to process.
+	 * @return string This font-family's CSS.
+	 */
+	private function build_font_css( array $webfont ) {
+		$css = '';
+		foreach ( $webfont as $key => $value ) {
+
+			// Compile the "src" parameter.
+			if ( 'src' === $key ) {
+				$value = $this->compile_src( $webfont['font-family'], $value );
+			}
+
+			// @todo Is this a needed configuration parameter? If yes, need to add to Validator; else will be stripped out.
+			// If font-variation-settings is an array, convert it to a string.
+			if ( 'font-variation-settings' === $key && is_array( $value ) ) {
+				$value = $this->compile_variations( $value );
+			}
+
+			if ( ! empty( $value ) ) {
+				$css .= "\t$key:$value;\n";
+			}
+		}
+
+		return $css;
+	}
+
+	/**
+	 * Compiles the `src` into valid CSS.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $font_family Font family.
+	 * @param array  $value       Value to process.
+	 * @return string The CSS.
+	 */
+	private function compile_src( $font_family, array $value ) {
+		$src = "local($font_family)";
+
+		foreach ( $value as $item ) {
+			// If the URL starts with "file:./" then it originated in a theme.json file.
+			// Tweak the URL to be relative to the theme root.
+			if ( 0 === strpos( $item['url'], 'file:./' ) ) {
+				$item['url'] = $this->replace_url_temp_placeholder( $item['url'] );
+			}
+
+			$src .= ( 'data' === $item['format'] )
+				? ", url({$item['url']})"
+				: ", url('{$item['url']}') format('{$item['format']}')";
+		}
+		return $src;
+	}
+
+	/**
+	 * Replace URL's temporary placeholder with theme path.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $url URL with temporary placeholder.
+	 * @return string URL to font file.
+	 */
+	private function replace_url_temp_placeholder( $url ) {
+		$url = str_replace( 'file:./', '', $url );
+
+		return wp_make_link_relative( get_theme_file_uri( $url ) );
+	}
+
+	/**
+	 * Compiles the font variation settings.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $font_variation_settings Array of font variation settings.
+	 * @return string The CSS.
+	 */
+	private function compile_variations( array $font_variation_settings ) {
+		$variations = '';
+
+		foreach ( $font_variation_settings as $key => $value ) {
+			$variations .= "$key $value";
+		}
+
+		return $variations;
 	}
 }

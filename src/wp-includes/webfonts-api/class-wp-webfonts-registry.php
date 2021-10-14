@@ -88,7 +88,7 @@ class WP_Webfonts_Registry {
 	 * @since 5.9.0
 	 *
 	 * @param string $font_family Family font to fetch.
-	 * @return string[][] Registered webfonts.
+	 * @return array[] Registered webfonts.
 	 */
 	public function get_by_font_family( $font_family ) {
 		if ( ! is_string( $font_family ) || '' === $font_family ) {
@@ -116,16 +116,18 @@ class WP_Webfonts_Registry {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string[] $webfont Webfont definition.
+	 * @param array $webfont Webfont definition.
 	 * @return string Registration key.
 	 */
 	public function register( array $webfont ) {
-		$webfont = $this->merge_optional_parameters( $webfont );
+		$webfont = $this->convert_to_kabeb_case( $webfont );
 
 		// Validate schema.
-		if ( ! $this->is_schema_valid( $webfont ) ) {
+		if ( ! $this->validator->is_valid_schema( $webfont ) ) {
 			return '';
 		}
+
+		$webfont = $this->validator->set_valid_properties( $webfont );
 
 		// Add to registry.
 		$registration_key = $this->generate_registration_key( $webfont );
@@ -138,29 +140,24 @@ class WP_Webfonts_Registry {
 	}
 
 	/**
-	 * Merge optional parameters into webfont definition.
+	 * Convert camelCase parameters into kabeb_case.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param string[] $webfont Webfont definition.
-	 * @return string[] Webfont with optional parameters.
+	 * @return array Webfont with kabeb_case parameters (keys).
 	 */
-	private function merge_optional_parameters( array $webfont ) {
-		if ( ! isset( $webfont['fontStyle'] ) ) {
-			$webfont['fontStyle'] = 'normal';
-		}
+	private function convert_to_kabeb_case( array $webfont ) {
+		$kebab_case = preg_replace( '/(?<!^)[A-Z]/', '-$0', array_keys( $webfont ) );
+		$kebab_case = array_map( 'strtolower', $kebab_case );
 
-		if ( ! isset( $webfont['fontWeight'] ) ) {
-			$webfont['fontWeight'] = '400';
-		}
-
-		return $webfont;
+		return array_combine( $kebab_case, array_values( $webfont ) );
 	}
 
 	/**
 	 * Generates the registration key.
 	 *
-	 * Format: fontFamily.fontStyle.fontWeight
+	 * Format: font-family.font-style.font-weight
 	 * For example: `'open-sans.normal.400'`.
 	 *
 	 * @since 5.9.0
@@ -171,9 +168,9 @@ class WP_Webfonts_Registry {
 	private function generate_registration_key( array $webfont ) {
 		return sprintf(
 			'%s.%s.%s',
-			$this->convert_font_family_into_key( $webfont['fontFamily'] ),
-			trim( $webfont['fontStyle'] ),
-			trim( $webfont['fontWeight'] )
+			$this->convert_font_family_into_key( $webfont['font-family'] ),
+			trim( $webfont['font-style'] ),
+			trim( $webfont['font-weight'] )
 		);
 	}
 
