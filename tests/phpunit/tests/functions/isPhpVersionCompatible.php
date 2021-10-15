@@ -18,8 +18,8 @@ class Tests_Functions_isPhpVersionCompatible extends WP_UnitTestCase {
 		$more = explode( '.', $php_version );
 		$less = $more;
 
-		-- $less[ count($less)-1 ];
-		++ $more[ count($less)-1 ];
+		-- $less[ count( $less ) - 1 ];
+		++ $more[ count( $less ) - 1 ];
 
 		return array(
 			'greater' => array(
