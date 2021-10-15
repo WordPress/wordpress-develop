@@ -13,7 +13,7 @@ async function getResponseForApplicationPassword() {
 async function createApplicationPassword(applicationName) {
     await visitAdminPage('profile.php');
     await page.waitForSelector('#new_application_password_name');
-    await page.type('#new_application_password_name', `${applicationName}`);
+    await page.type('#new_application_password_name', applicationName);
     await page.click('#do_new_application_password');
 
     await page.waitForSelector('.notice');
