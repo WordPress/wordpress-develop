@@ -701,11 +701,14 @@
 		focus = function () {
 			// If a child section is currently expanded, collapse it.
 			if ( construct.extended( api.Panel ) ) {
-				construct.sections().forEach( function ( section ) {
-					if ( section.expanded() ) {
-						section.collapse();
-					}
-				} );
+				var sections = construct.sections();
+				if ( 1 < sections.length ) {
+					sections.forEach( function ( section ) {
+						if ( section.expanded() ) {
+							section.collapse();
+						}
+					} );
+				}
 			}
 
 			var focusContainer;
