@@ -16,7 +16,7 @@ async function createApplicationPassword(applicationName) {
     await page.type('#new_application_password_name', applicationName);
     await page.click('#do_new_application_password');
 
-    await page.waitForSelector('.notice');
+    await page.waitForSelector('#application-passwords-section .notice');
 }
 
 async function revokeAllApplicationPasswords() {
@@ -34,7 +34,7 @@ async function revokeAllApplicationPasswords() {
     if (revokeAllButtonVisibility) {
         await page.click('#revoke-all-application-passwords');
         await page.keyboard.press('Enter');
-        await page.waitForSelector('.notice-success');
+        await page.waitForSelector('#application-passwords-section .notice-success');
     }
 }
 
@@ -51,7 +51,7 @@ describe('Manage applications passwords', () => {
         const response = await getResponseForApplicationPassword();
         expect(response[0]['name']).toBe(testApplicationName);
 
-        const successMessage = await page.waitForSelector('.notice-success');
+        const successMessage = await page.waitForSelector('#application-passwords-section .notice-success');
         expect(
             await successMessage.evaluate((element) => element.textContent)
         ).toContain('Your new password for Test Application is:');
@@ -65,7 +65,7 @@ describe('Manage applications passwords', () => {
         await createApplicationPassword(testApplicationName);
         await createApplicationPassword(testApplicationName);
 
-        const errorMessage = await page.waitForSelector('.notice-error');
+        const errorMessage = await page.waitForSelector('#application-passwords-section .notice-error');
 
         expect(
             await errorMessage.evaluate((element) => element.textContent)
@@ -79,7 +79,7 @@ describe('Manage applications passwords', () => {
         await revokeApplicationButton.click();
         await page.keyboard.press('Enter');
 
-        const successMessage = await page.waitForSelector('.notice-success');
+        const successMessage = await page.waitForSelector('#application-passwords-section .notice-success');
         expect(
             await successMessage.evaluate((element) => element.textContent)
         ).toContain('Application password revoked.');
@@ -92,7 +92,7 @@ describe('Manage applications passwords', () => {
         await createApplicationPassword(testApplicationName);
         await revokeAllApplicationPasswords();
 
-        const successMessage = await page.waitForSelector('.notice-success');
+        const successMessage = await page.waitForSelector('#application-passwords-section .notice-success');
         expect(
             await successMessage.evaluate((element) => element.textContent)
         ).toContain('All application passwords revoked.');
