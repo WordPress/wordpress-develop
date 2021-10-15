@@ -64,12 +64,8 @@ describe('Manage applications passwords', () => {
 
         const successMessage = await page.waitForSelector('#application-passwords-section .notice-success');
         expect(
-            await successMessage.evaluate((element) => element.textContent)
-        ).toContain('Your new password for Test Application is:');
-
-        expect(
-            await successMessage.evaluate((element) => element.textContent)
-        ).toContain('Be sure to save this in a safe location. You will not be able to retrieve it.');
+            await successMessage.evaluate((element) => element.innerText)
+        ).toContain(`Your new password for ${testApplicationName} is: \n\nBe sure to save this in a safe location. You will not be able to retrieve it.`);
     });
 
     it('should not allows to create two applications passwords with the same name', async() => {
