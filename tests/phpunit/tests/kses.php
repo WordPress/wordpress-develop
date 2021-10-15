@@ -1529,7 +1529,23 @@ EOF;
 				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 			),
 			array(
+				'<object TYPE="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
+				'<object TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			array(
+				'<object type="application/pdf" TYPE="application/exe" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			array(
 				'<object type="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			array(
+				'<object TYPE="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			array(
+				'<object type="application/exe" TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
 				'',
 			),
 			array(
@@ -1544,6 +1560,64 @@ EOF;
 				'<object data="https://wordpress.org/foo.pdf" />',
 				'',
 			),
+		);
+	}
+
+	/**
+	 * Test that attributes with a list of allowed values are filtered correctly.
+	 *
+	 * @ticket 54261
+	 *
+	 * @dataProvider data_wp_kses_allowed_values_list
+	 *
+	 * @param string $html         A string of HTML to test.
+	 * @param string $expected     The expected result from KSES.
+	 * @param array  $allowed_html The allowed HTML to pass to KSES.
+	 */
+	function test_wp_kses_allowed_values_list( $html, $expected, $allowed_html ) {
+		$this->assertSame( $expected, wp_kses( $html, $allowed_html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_allowed_values_list().
+	 */
+	function data_wp_kses_allowed_values_list() {
+		$data = array(
+			array(
+				'<p dir="ltr">foo</p>',
+				'<p dir="ltr">foo</p>',
+			),
+			array(
+				'<p DIR="RTL">foo</p>',
+				'<p DIR="RTL">foo</p>',
+			),
+			array(
+				'<p dir="up">foo</p>',
+				'<p>foo</p>',
+			),
+			array(
+				'<p dir="">foo</p>',
+				'<p>foo</p>',
+			),
+			array(
+				'<p dir>foo</p>',
+				'<p>foo</p>',
+			),
+		);
+
+		return array_map(
+			function ( $datum ) {
+				$datum[] = array(
+					'p' => array(
+						'dir' => array(
+							'values' => array( 'ltr', 'rtl' ),
+						),
+					),
+				);
+
+				return $datum;
+			},
+			$data
 		);
 	}
 }

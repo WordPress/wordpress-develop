@@ -274,7 +274,8 @@ if ( ! CUSTOM_TAGS ) {
 		'object'     => array(
 			'data' => true,
 			'type' => array(
-				'value' => 'application/pdf',
+				'required' => true,
+				'values'   => array( 'application/pdf' ),
 			),
 		),
 		'p'          => array(
@@ -1171,28 +1172,31 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 	// Split it.
 	$attrarr = wp_kses_hair( $attr, $allowed_protocols );
 
-	// Check if there are attributes with a required value.
-	$required_attrs = array();
-	foreach ( $allowed_html[ $element_low ] as $required_attr => $required_attr_limits ) {
-		if ( is_array( $required_attr_limits ) && isset( $required_attr_limits['value'] ) ) {
-			$required_attrs[ $required_attr ] = $required_attr_limits['value'];
+	// Check if there are attributes that are required.
+	$required_attrs = array_filter(
+		$allowed_html[ $element_low ],
+		function( $required_attr_limits ) {
+			return ! empty( $required_attr_limits['required'] ) && true === $required_attr_limits['required'];
 		}
-	}
+	);
 
 	// Go through $attrarr, and save the allowed attributes for this element
 	// in $attr2.
 	$attr2 = '';
 	foreach ( $attrarr as $arreach ) {
-		// If an attribute requires a value, and that value isn't set correctly, the entire tag is not allowed.
-		if ( isset( $required_attrs[ $arreach['name'] ] ) ) {
-			if ( strtolower( $arreach['value'] ) !== $required_attrs[ $arreach['name'] ] ) {
-				return '';
-			} else {
-				unset( $required_attrs[ $arreach['name'] ] );
-			}
-		}
+		// Check if this attribute is required.
+		$required = isset( $required_attrs[ strtolower( $arreach['name'] ) ] );
+
 		if ( wp_kses_attr_check( $arreach['name'], $arreach['value'], $arreach['whole'], $arreach['vless'], $element, $allowed_html ) ) {
 			$attr2 .= ' ' . $arreach['whole'];
+
+			// If this was a required attribute, we can mark it as found.
+			if ( $required ) {
+				unset( $required_attrs[ strtolower( $arreach['name'] ) ] );
+			}
+		} elseif ( $required ) {
+			// This attribute was required, but didn't pass the check. The entire tag is not allowed.
+			return '';
 		}
 	}
 
@@ -1624,6 +1628,17 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 			 */
 
 			if ( strtolower( $checkvalue ) != $vless ) {
+				$ok = false;
+			}
+			break;
+
+		case 'values':
+			/*
+			 * The values check is used when you want to make sure that the attribute
+			 * has one of the given values.
+			 */
+
+			if ( false === array_search( strtolower( $value ), $checkvalue, true ) ) {
 				$ok = false;
 			}
 			break;
