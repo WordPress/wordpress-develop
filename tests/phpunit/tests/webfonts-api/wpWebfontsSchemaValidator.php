@@ -14,7 +14,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Webfonts_Registry::is_valid_schema
+	 * @covers       WP_Webfonts_Registry::is_valid_schema
 	 *
 	 * @dataProvider data_is_valid_schema_with_valid
 	 *
@@ -49,7 +49,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Webfonts_Registry::is_valid_schema
+	 * @covers       WP_Webfonts_Registry::is_valid_schema
 	 *
 	 * @dataProvider data_is_valid_schema_with_invalid
 	 *
@@ -70,11 +70,11 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	 */
 	public function data_is_valid_schema_with_invalid() {
 		return array(
-			'empty array - no schema'   => array(
+			'empty array - no schema'             => array(
 				'webfont'          => array(),
 				'expected_message' => 'Webfont provider must be a non-empty string.',
 			),
-			'provider: not defined'     => array(
+			'provider: not defined'               => array(
 				'webfont'          => array(
 					'font-family' => 'Some Font',
 					'font-style'  => 'normal',
@@ -82,7 +82,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 				),
 				'expected_message' => 'Webfont provider must be a non-empty string.',
 			),
-			'provider: empty string'    => array(
+			'provider: empty string'              => array(
 				'webfont'          => array(
 					'provider'    => '',
 					'font-family' => 'Some Font',
@@ -91,7 +91,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 				),
 				'expected_message' => 'Webfont provider must be a non-empty string.',
 			),
-			'provider: not a string'    => array(
+			'provider: not a string'              => array(
 				'webfont'          => array(
 					'provider'    => null,
 					'font-family' => 'Some Font',
@@ -100,7 +100,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 				),
 				'expected_message' => 'Webfont provider must be a non-empty string.',
 			),
-			'font-family: not defined'  => array(
+			'font-family: not defined'            => array(
 				'webfont'          => array(
 					'provider'    => 'some-provider',
 					'font-style'  => 'normal',
@@ -108,7 +108,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 				),
 				'expected_message' => 'Webfont font family must be a non-empty string.',
 			),
-			'font-family: empty string' => array(
+			'font-family: empty string'           => array(
 				'webfont'          => array(
 					'provider'    => 'some-provider',
 					'font-family' => '',
@@ -117,7 +117,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 				),
 				'expected_message' => 'Webfont font family must be a non-empty string.',
 			),
-			'font-family: not a string' => array(
+			'font-family: not a string'           => array(
 				'webfont'          => array(
 					'provider'    => 'some-provider',
 					'font-family' => null,
@@ -126,11 +126,60 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 				),
 				'expected_message' => 'Webfont font family must be a non-empty string.',
 			),
+			'src: not defined'                    => array(
+				'webfont'          => array(
+					'provider'    => 'local',
+					'font-family' => 'Source Serif Pro',
+					'font-style'  => 'normal',
+					'font-weight' => '200 900',
+				),
+				'expected_message' => 'Webfont src must be a non-empty string or an array of strings.',
+			),
+			'src: type is invalid'                => array(
+				'webfont'          => array(
+					'provider'    => 'local',
+					'font-family' => 'Source Serif Pro',
+					'font-style'  => 'normal',
+					'font-weight' => '200 900',
+					'src'         => null,
+				),
+				'expected_message' => 'Webfont src must be a non-empty string or an array of strings.',
+			),
+			'src: individual src is not a string' => array(
+				'webfont'          => array(
+					'provider'    => 'local',
+					'font-family' => 'Source Serif Pro',
+					'font-style'  => 'normal',
+					'font-weight' => '200 900',
+					'src'         => array( null ),
+				),
+				'expected_message' => 'Each webfont src must be a non-empty string.',
+			),
+			'src: invalid url'                    => array(
+				'webfont'          => array(
+					'provider'    => 'local',
+					'font-family' => 'Source Serif Pro',
+					'font-style'  => 'normal',
+					'font-weight' => '200 900',
+					'src'         => '/assets/fonts/font.woff2',
+				),
+				'expected_message' => 'Webfont src must be a valid URL or a data URI.',
+			),
+			'src: invalid data uri'               => array(
+				'webfont'          => array(
+					'provider'    => 'local',
+					'font-family' => 'Source Serif Pro',
+					'font-style'  => 'normal',
+					'font-weight' => '200 900',
+					'src'         => 'data:text/plain',
+				),
+				'expected_message' => 'Webfont src must be a valid URL or a data URI.',
+			),
 		);
 	}
 
 	/**
-	 * @covers WP_Webfonts_Registry::set_valid_properties
+	 * @covers       WP_Webfonts_Registry::set_valid_properties
 	 *
 	 * @dataProvider data_set_valid_properties_with_valid_input
 	 *
@@ -178,7 +227,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-display' => 'fallback',
 				),
 			),
-			'with src'                       => array(
+			'src: file::./ relative'         => array(
 				'webfont'  => array(
 					'provider'    => 'local',
 					'font-family' => 'Source Serif Pro',
@@ -193,6 +242,57 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-weight'  => '200 900',
 					'font-display' => 'fallback',
 					'src'          => 'file:./assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+				),
+			),
+			'src: with protocol'             => array(
+				'webfont'  => array(
+					'provider'    => 'local',
+					'font-family' => 'Source Serif Pro',
+					'font-style'  => 'normal',
+					'font-weight' => '200 900',
+					'src'         => 'http://example.org/assets/fonts/SourceSerif4Variable-Roman.ttf.woff2',
+				),
+				'expected' => array(
+					'provider'     => 'local',
+					'font-family'  => 'Source Serif Pro',
+					'font-style'   => 'normal',
+					'font-weight'  => '200 900',
+					'font-display' => 'fallback',
+					'src'          => 'http://example.org/assets/fonts/SourceSerif4Variable-Roman.ttf.woff2',
+				),
+			),
+			'src: without protocol'          => array(
+				'webfont'  => array(
+					'provider'    => 'local',
+					'font-family' => 'Source Serif Pro',
+					'font-style'  => 'normal',
+					'font-weight' => '200 900',
+					'src'         => '//example.org/assets/fonts/SourceSerif4Variable-Roman.ttf.woff2',
+				),
+				'expected' => array(
+					'provider'     => 'local',
+					'font-family'  => 'Source Serif Pro',
+					'font-style'   => 'normal',
+					'font-weight'  => '200 900',
+					'font-display' => 'fallback',
+					'src'          => '//example.org/assets/fonts/SourceSerif4Variable-Roman.ttf.woff2',
+				),
+			),
+			'src: data:'                     => array(
+				'webfont'  => array(
+					'provider'    => 'local',
+					'font-family' => 'Source Serif Pro',
+					'font-style'  => 'normal',
+					'font-weight' => '200 900',
+					'src'         => 'data:font/opentype; base64, SGVsbG8sIFdvcmxkIQ==',
+				),
+				'expected' => array(
+					'provider'     => 'local',
+					'font-family'  => 'Source Serif Pro',
+					'font-style'   => 'normal',
+					'font-weight'  => '200 900',
+					'font-display' => 'fallback',
+					'src'          => 'data:font/opentype; base64, SGVsbG8sIFdvcmxkIQ==',
 				),
 			),
 			'with font-stretch'              => array(
@@ -218,7 +318,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Webfonts_Registry::set_valid_properties
+	 * @covers       WP_Webfonts_Registry::set_valid_properties
 	 *
 	 * @dataProvider data_set_valid_properties_with_invalid_input
 	 *
@@ -306,7 +406,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Webfonts_Registry::set_valid_properties
+	 * @covers       WP_Webfonts_Registry::set_valid_properties
 	 *
 	 * @dataProvider data_set_valid_properties_with_invalid_and_error
 	 *

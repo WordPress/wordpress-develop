@@ -21,16 +21,7 @@ class WP_Webfonts_Schema_Validator {
 	 *
 	 * @var string[]
 	 */
-	protected $font_style = array( 'normal', 'italic', 'oblique', 'inherit', 'initial', 'revert', 'unset' );
-
-	/**
-	 * Valid font weight values.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @var string[]
-	 */
-	protected $font_weight = array( 'normal', 'bold', 'bolder', 'lighter', 'inherit' );
+	const VALID_FONT_STYLE = array( 'normal', 'italic', 'oblique', 'inherit', 'initial', 'revert', 'unset' );
 
 	/**
 	 * Valid font display values.
@@ -39,7 +30,16 @@ class WP_Webfonts_Schema_Validator {
 	 *
 	 * @var string[]
 	 */
-	protected $font_display = array( 'auto', 'block', 'swap', 'fallback' );
+	const VALID_FONT_DISPLAY = array( 'auto', 'block', 'fallback', 'swap' );
+
+	/**
+	 * Valid font weight values.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @var string[]
+	 */
+	const VALID_FONT_WEIGHT = array( 'normal', 'bold', 'bolder', 'lighter', 'inherit' );
 
 	/**
 	 * An array of valid CSS properties for @font-face.
@@ -98,10 +98,20 @@ class WP_Webfonts_Schema_Validator {
 	 * @return bool True when valid. False when invalid.
 	 */
 	public function is_valid_schema( array $webfont ) {
-		return (
+		$is_valid = (
 			$this->is_valid_provider( $webfont ) &&
 			$this->is_valid_font_family( $webfont )
 		);
+
+		if ( ! $is_valid ) {
+			return false;
+		}
+
+		if ( 'local' === $webfont['provider'] || array_key_exists( 'src', $webfont ) ) {
+			$is_valid = $this->is_src_valid( $webfont );
+		}
+
+		return $is_valid;
 	}
 
 	/**
@@ -109,7 +119,7 @@ class WP_Webfonts_Schema_Validator {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $webfont Webfont to valiate.
+	 * @param array $webfont Webfont to validate.
 	 * @return bool True if valid. False if invalid.
 	 */
 	private function is_valid_provider( array $webfont ) {
@@ -133,7 +143,7 @@ class WP_Webfonts_Schema_Validator {
 	 * @since 5.9.0
 	 *
 	 * @param array $webfont Webfont to validate.
-	 * @return bool True if valid. False if invalid.
+	 * @return bool True when valid. False when invalid.
 	 */
 	private function is_valid_font_family( array $webfont ) {
 		if (
@@ -146,6 +156,75 @@ class WP_Webfonts_Schema_Validator {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Checks if the "src" value is valid.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $webfont Webfont to validate.
+	 * @return bool True if valid. False if invalid.
+	 */
+	private function is_src_valid( $webfont ) {
+		if (
+			empty( $webfont['src'] ) ||
+			(
+				! is_string( $webfont['src'] ) && ! is_array( $webfont['src'] )
+			)
+		) {
+			trigger_error( __( 'Webfont src must be a non-empty string or an array of strings.' ) );
+
+			return false;
+		}
+
+		foreach ( (array) $webfont['src'] as $src ) {
+			if ( ! is_string( $src ) ) {
+				trigger_error( __( 'Each webfont src must be a non-empty string.' ) );
+
+				return false;
+			}
+
+			if ( ! $this->is_src_value_valid( $src ) ) {
+				trigger_error( __( 'Webfont src must be a valid URL or a data URI.' ) );
+
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Checks if the given `src` value is valid.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $src Source to validate.
+	 * @return bool True when valid. False when invalid.
+	 */
+	private function is_src_value_valid( $src ) {
+		// Validate data URLs.
+		if ( preg_match( '/^data:.+;base64/', $src ) ) {
+			return true;
+		}
+
+		// Validate URLs.
+		if ( filter_var( $src, FILTER_VALIDATE_URL ) ) {
+			return true;
+		}
+
+		// Check if it's a URL starting with "//" (omitted protocol).
+		if ( 0 === strpos( $src, '//' ) ) {
+			return true;
+		}
+
+		// Check if it's a relative URL.
+		if ( 0 === strpos( $src, 'file:./' ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -205,7 +284,7 @@ class WP_Webfonts_Schema_Validator {
 			trigger_error( __( 'Webfont font style must be a non-empty string.' ) );
 
 		} elseif ( // Bail out if the font-weight is a valid value.
-			in_array( $this->webfont['font-style'], $this->font_style, true ) ||
+			in_array( $this->webfont['font-style'], self::VALID_FONT_STYLE, true ) ||
 			preg_match( '/^oblique\s+(\d+)%/', $this->webfont['font-style'] )
 		) {
 			return;
@@ -228,8 +307,11 @@ class WP_Webfonts_Schema_Validator {
 			trigger_error( __( 'Webfont font weight must be a non-empty string.' ) );
 
 		} elseif ( // Bail out if the font-weight is a valid value.
-			in_array( $this->webfont['font-weight'], $this->font_weight, true ) ||
+			// Check if value is a single font-weight, formatted as a number.
+			in_array( $this->webfont['font-weight'], self::VALID_FONT_WEIGHT, true ) ||
+			// Check if value is a single font-weight, formatted as a number.
 			preg_match( '/^(\d+)$/', $this->webfont['font-weight'], $matches ) ||
+			// Check if value is a range of font-weights, formatted as a number range.
 			preg_match( '/^(\d+)\s+(\d+)$/', $this->webfont['font-weight'], $matches )
 		) {
 			return;
@@ -247,7 +329,7 @@ class WP_Webfonts_Schema_Validator {
 	private function set_valid_font_display() {
 		if (
 			! empty( $this->webfont['font-display'] ) &&
-			in_array( $this->webfont['font-display'], $this->font_display, true )
+			in_array( $this->webfont['font-display'], self::VALID_FONT_DISPLAY, true )
 		) {
 			return;
 		}
