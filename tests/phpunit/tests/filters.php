@@ -264,11 +264,6 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	}
 
-	public function _self_removal( $tag ) {
-		remove_action( $tag, array( $this, '_self_removal' ), 10, 1 );
-		return $tag;
-	}
-
 	/**
 	 * @ticket 29070
 	 */
