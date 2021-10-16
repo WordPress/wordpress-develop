@@ -361,7 +361,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$expected = _get_cron_array();
 
-		add_filter( 'pre_schedule_event', array( $this, '_filter_pre_schedule_event_filter' ), 10, 2 );
+		add_filter( 'pre_schedule_event', array( $this, 'filter_pre_schedule_event_filter' ), 10, 2 );
 
 		$this->assertTrue( wp_schedule_single_event( $ts1, $hook, $args ) );
 		$this->assertTrue( wp_schedule_event( $ts2, 'hourly', $hook ) );
@@ -387,7 +387,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * Filter the scheduling of events to use the preflight array.
 	 */
-	public function _filter_pre_schedule_event_filter( $null, $event ) {
+	public function filter_pre_schedule_event_filter( $null, $event ) {
 		$key = md5( serialize( $event->args ) );
 
 		$this->preflight_cron_array[ $event->timestamp ][ $event->hook ][ $key ] = array(

@@ -10,7 +10,7 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		parent::set_up();
 
 		foreach ( $this->shortcodes as $shortcode ) {
-			add_shortcode( $shortcode, array( $this, '_shortcode_' . str_replace( '-', '_', $shortcode ) ) );
+			add_shortcode( $shortcode, array( $this, 'shortcode_' . str_replace( '-', '_', $shortcode ) ) );
 		}
 
 		$this->atts    = null;
@@ -27,7 +27,7 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	public function _shortcode_test_shortcode_tag( $atts, $content = null, $tagname = null ) {
+	public function shortcode_test_shortcode_tag( $atts, $content = null, $tagname = null ) {
 		$this->atts              = $atts;
 		$this->content           = $content;
 		$this->tagname           = $tagname;
@@ -37,13 +37,13 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	}
 
 	// [footag foo="bar"]
-	public function _shortcode_footag( $atts ) {
+	public function shortcode_footag( $atts ) {
 		$foo = isset( $atts['foo'] ) ? $atts['foo'] : '';
 		return "foo = $foo";
 	}
 
 	// [bartag foo="bar"]
-	public function _shortcode_bartag( $atts ) {
+	public function shortcode_bartag( $atts ) {
 		$processed_atts = shortcode_atts(
 			array(
 				'foo' => 'no foo',
@@ -57,11 +57,11 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	}
 
 	// [baztag]content[/baztag]
-	public function _shortcode_baztag( $atts, $content = '' ) {
+	public function shortcode_baztag( $atts, $content = '' ) {
 		return 'content = ' . do_shortcode( $content );
 	}
 
-	public function _shortcode_dumptag( $atts ) {
+	public function shortcode_dumptag( $atts ) {
 		$out = '';
 		foreach ( $atts as $k => $v ) {
 			$out .= "$k = $v\n";
@@ -69,23 +69,23 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		return $out;
 	}
 
-	public function _shortcode_hyphen() {
+	public function shortcode_hyphen() {
 		return __FUNCTION__;
 	}
 
-	public function _shortcode_hyphen_foo() {
+	public function shortcode_hyphen_foo() {
 		return __FUNCTION__;
 	}
 
-	public function _shortcode_hyphen_foo_bar() {
+	public function shortcode_hyphen_foo_bar() {
 		return __FUNCTION__;
 	}
 
-	public function _shortcode_url() {
+	public function shortcode_url() {
 		return 'http://www.wordpress.org/';
 	}
 
-	public function _shortcode_img( $atts ) {
+	public function shortcode_img( $atts ) {
 		$out = '<img';
 		foreach ( $atts as $k => $v ) {
 			$out .= " $k=\"$v\"";
@@ -134,9 +134,9 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	 * @ticket 17657
 	 */
 	public function test_tag_hyphen() {
-		$this->assertSame( '_shortcode_hyphen', do_shortcode( '[hyphen]' ) );
-		$this->assertSame( '_shortcode_hyphen_foo', do_shortcode( '[hyphen-foo]' ) );
-		$this->assertSame( '_shortcode_hyphen_foo_bar', do_shortcode( '[hyphen-foo-bar]' ) );
+		$this->assertSame( 'shortcode_hyphen', do_shortcode( '[hyphen]' ) );
+		$this->assertSame( 'shortcode_hyphen_foo', do_shortcode( '[hyphen-foo]' ) );
+		$this->assertSame( 'shortcode_hyphen_foo_bar', do_shortcode( '[hyphen-foo-bar]' ) );
 		$this->assertSame( '[hyphen-baz]', do_shortcode( '[hyphen-baz]' ) );
 		$this->assertSame( '[hyphen-foo-bar-baz]', do_shortcode( '[hyphen-foo-bar-baz]' ) );
 	}
@@ -425,17 +425,17 @@ EOF;
 	 * @ticket 37767
 	 */
 	public function test_strip_shortcodes_filter() {
-		add_filter( 'strip_shortcodes_tagnames', array( $this, '_filter_strip_shortcodes_tagnames' ) );
+		add_filter( 'strip_shortcodes_tagnames', array( $this, 'filter_strip_shortcodes_tagnames' ) );
 		$this->assertSame( 'beforemiddle [footag]after', strip_shortcodes( 'before[gallery]middle [footag]after' ) );
-		remove_filter( 'strip_shortcodes_tagnames', array( $this, '_filter_strip_shortcodes_tagnames' ) );
+		remove_filter( 'strip_shortcodes_tagnames', array( $this, 'filter_strip_shortcodes_tagnames' ) );
 	}
 
-	public function _filter_strip_shortcodes_tagnames() {
+	public function filter_strip_shortcodes_tagnames() {
 		return array( 'gallery' );
 	}
 
 	// Store passed in shortcode_atts_{$shortcode} args.
-	public function _filter_atts( $out, $pairs, $atts ) {
+	public function filter_atts( $out, $pairs, $atts ) {
 		$this->filter_atts_out   = $out;
 		$this->filter_atts_pairs = $pairs;
 		$this->filter_atts_atts  = $atts;
@@ -443,7 +443,7 @@ EOF;
 	}
 
 	// Filter shortcode atts in various ways.
-	public function _filter_atts2( $out, $pairs, $atts ) {
+	public function filter_atts2( $out, $pairs, $atts ) {
 		// If foo attribute equals "foo1", change it to be default value.
 		if ( isset( $out['foo'] ) && 'foo1' === $out['foo'] ) {
 			$out['foo'] = $pairs['foo'];
@@ -459,7 +459,7 @@ EOF;
 	}
 
 	public function test_shortcode_atts_filter_passes_original_arguments() {
-		add_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts' ), 10, 3 );
+		add_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts' ), 10, 3 );
 
 		do_shortcode( '[bartag foo="foo1" /]' );
 		$this->assertSame(
@@ -478,11 +478,11 @@ EOF;
 		);
 		$this->assertSame( array( 'foo' => 'foo1' ), $this->filter_atts_atts );
 
-		remove_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts' ), 10, 3 );
+		remove_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts' ), 10, 3 );
 	}
 
 	public function test_shortcode_atts_filtering() {
-		add_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts2' ), 10, 3 );
+		add_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts2' ), 10, 3 );
 
 		$out = do_shortcode( '[bartag foo="foo1" baz="baz1" /]' );
 		$this->assertSame( array( 'foo' => 'no foo' ), $this->filter_atts_out );
@@ -491,7 +491,7 @@ EOF;
 		$out = do_shortcode( '[bartag foo="foo2" /]' );
 		$this->assertSame( 'foo = foo2', $out );
 
-		remove_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts2' ), 10, 3 );
+		remove_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts2' ), 10, 3 );
 	}
 
 	/**
@@ -801,17 +801,17 @@ EOF;
 	public function test_pre_do_shortcode_tag() {
 		// Does nothing if no filters are set up.
 		$str = 'pre_do_shortcode_tag';
-		add_shortcode( $str, array( $this, '_shortcode_pre_do_shortcode_tag' ) );
+		add_shortcode( $str, array( $this, 'shortcode_pre_do_shortcode_tag' ) );
 		$result_nofilter = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'foo', $result_nofilter );
 
 		// Short-circuit with filter.
-		add_filter( 'pre_do_shortcode_tag', array( $this, '_filter_pre_do_shortcode_tag_bar' ) );
+		add_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_bar' ) );
 		$result_filter = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'bar', $result_filter );
 
 		// Respect priority.
-		add_filter( 'pre_do_shortcode_tag', array( $this, '_filter_pre_do_shortcode_tag_p11' ), 11 );
+		add_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_p11' ), 11 );
 		$result_priority = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'p11', $result_priority );
 
@@ -833,29 +833,29 @@ EOF;
 				'',
 			),
 		);
-		add_filter( 'pre_do_shortcode_tag', array( $this, '_filter_pre_do_shortcode_tag_attr' ), 12, 4 );
+		add_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_attr' ), 12, 4 );
 		$result_atts = do_shortcode( "[{$str} a='b' c='d']" );
 		$this->assertSame( wp_json_encode( $arr ), $result_atts );
 
-		remove_filter( 'pre_do_shortcode_tag', array( $this, '_filter_pre_do_shortcode_tag_attr' ), 12, 4 );
-		remove_filter( 'pre_do_shortcode_tag', array( $this, '_filter_pre_do_shortcode_tag_p11' ), 11 );
-		remove_filter( 'pre_do_shortcode_tag', array( $this, '_filter_pre_do_shortcode_tag_bar' ) );
+		remove_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_attr' ), 12, 4 );
+		remove_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_p11' ), 11 );
+		remove_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_bar' ) );
 		remove_shortcode( $str );
 	}
 
-	public function _shortcode_pre_do_shortcode_tag( $atts = array(), $content = '' ) {
+	public function shortcode_pre_do_shortcode_tag( $atts = array(), $content = '' ) {
 		return 'foo';
 	}
 
-	public function _filter_pre_do_shortcode_tag_bar() {
+	public function filter_pre_do_shortcode_tag_bar() {
 		return 'bar';
 	}
 
-	public function _filter_pre_do_shortcode_tag_p11() {
+	public function filter_pre_do_shortcode_tag_p11() {
 		return 'p11';
 	}
 
-	public function _filter_pre_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
+	public function filter_pre_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
 		$arr = array(
 			'return' => $return,
 			'key'    => $key,
@@ -871,17 +871,17 @@ EOF;
 	public function test_do_shortcode_tag_filter() {
 		// Does nothing if no filters are set up.
 		$str = 'do_shortcode_tag';
-		add_shortcode( $str, array( $this, '_shortcode_do_shortcode_tag' ) );
+		add_shortcode( $str, array( $this, 'shortcode_do_shortcode_tag' ) );
 		$result_nofilter = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'foo', $result_nofilter );
 
 		// Modify output with filter.
-		add_filter( 'do_shortcode_tag', array( $this, '_filter_do_shortcode_tag_replace' ) );
+		add_filter( 'do_shortcode_tag', array( $this, 'filter_do_shortcode_tag_replace' ) );
 		$result_filter = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'fee', $result_filter );
 
 		// Respect priority.
-		add_filter( 'do_shortcode_tag', array( $this, '_filter_do_shortcode_tag_generate' ), 11 );
+		add_filter( 'do_shortcode_tag', array( $this, 'filter_do_shortcode_tag_generate' ), 11 );
 		$result_priority = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'foobar', $result_priority );
 
@@ -903,29 +903,29 @@ EOF;
 				'',
 			),
 		);
-		add_filter( 'do_shortcode_tag', array( $this, '_filter_do_shortcode_tag_attr' ), 12, 4 );
+		add_filter( 'do_shortcode_tag', array( $this, 'filter_do_shortcode_tag_attr' ), 12, 4 );
 		$result_atts = do_shortcode( "[{$str} a='b' c='d']" );
 		$this->assertSame( wp_json_encode( $arr ), $result_atts );
 
-		remove_filter( 'do_shortcode_tag', array( $this, '_filter_do_shortcode_tag_attr' ), 12 );
-		remove_filter( 'do_shortcode_tag', array( $this, '_filter_do_shortcode_tag_generate' ), 11 );
-		remove_filter( 'do_shortcode_tag', array( $this, '_filter_do_shortcode_tag_replace' ) );
+		remove_filter( 'do_shortcode_tag', array( $this, 'filter_do_shortcode_tag_attr' ), 12 );
+		remove_filter( 'do_shortcode_tag', array( $this, 'filter_do_shortcode_tag_generate' ), 11 );
+		remove_filter( 'do_shortcode_tag', array( $this, 'filter_do_shortcode_tag_replace' ) );
 		remove_shortcode( $str );
 	}
 
-	public function _shortcode_do_shortcode_tag( $atts = array(), $content = '' ) {
+	public function shortcode_do_shortcode_tag( $atts = array(), $content = '' ) {
 		return 'foo';
 	}
 
-	public function _filter_do_shortcode_tag_replace( $return ) {
+	public function filter_do_shortcode_tag_replace( $return ) {
 		return str_replace( 'oo', 'ee', $return );
 	}
 
-	public function _filter_do_shortcode_tag_generate( $return ) {
+	public function filter_do_shortcode_tag_generate( $return ) {
 		return 'foobar';
 	}
 
-	public function _filter_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
+	public function filter_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
 		$arr = array(
 			'return' => $return,
 			'key'    => $key,

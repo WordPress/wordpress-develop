@@ -990,13 +990,13 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider _dp_rest_parse_embed_param
+	 * @dataProvider data_rest_parse_embed_param
 	 */
 	public function test_rest_parse_embed_param( $expected, $embed ) {
 		$this->assertSame( $expected, rest_parse_embed_param( $embed ) );
 	}
 
-	public function _dp_rest_parse_embed_param() {
+	public function data_rest_parse_embed_param() {
 		return array(
 			array( true, '' ),
 			array( true, null ),
@@ -1019,7 +1019,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 48819
 	 *
-	 * @dataProvider _dp_rest_filter_response_by_context
+	 * @dataProvider data_rest_filter_response_by_context
 	 */
 	public function test_rest_filter_response_by_context( $schema, $data, $expected ) {
 		$this->assertSame( $expected, rest_filter_response_by_context( $data, $schema, 'view' ) );
@@ -1106,7 +1106,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertTrue( $registered );
 	}
 
-	public function _dp_rest_filter_response_by_context() {
+	public function data_rest_filter_response_by_context() {
 		return array(
 			'default'                                      => array(
 				array(
@@ -1922,7 +1922,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_rest_is_object
+	 * @dataProvider data_rest_is_object
 	 *
 	 * @param bool  $expected Expected result of the check.
 	 * @param mixed $value    The value to check.
@@ -1937,7 +1937,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function _dp_rest_is_object() {
+	public function data_rest_is_object() {
 		return array(
 			array(
 				true,
@@ -1985,7 +1985,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_rest_sanitize_object
+	 * @dataProvider data_rest_sanitize_object
 	 *
 	 * @param array $expected Expected sanitized version.
 	 * @param mixed $value    The value to sanitize.
@@ -1995,7 +1995,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, $sanitized );
 	}
 
-	public function _dp_rest_sanitize_object() {
+	public function data_rest_sanitize_object() {
 		return array(
 			array(
 				array(),
@@ -2043,7 +2043,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_rest_is_array
+	 * @dataProvider data_rest_is_array
 	 *
 	 * @param bool  $expected Expected result of the check.
 	 * @param mixed $value    The value to check.
@@ -2058,7 +2058,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function _dp_rest_is_array() {
+	public function data_rest_is_array() {
 		return array(
 			array(
 				true,
@@ -2114,7 +2114,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_rest_sanitize_array
+	 * @dataProvider data_rest_sanitize_array
 	 *
 	 * @param array $expected Expected sanitized version.
 	 * @param mixed $value    The value to sanitize.
@@ -2124,7 +2124,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, $sanitized );
 	}
 
-	public function _dp_rest_sanitize_array() {
+	public function data_rest_sanitize_array() {
 		return array(
 			array(
 				array(),
@@ -2184,7 +2184,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 51146
 	 *
-	 * @dataProvider _dp_rest_is_integer
+	 * @dataProvider data_rest_is_integer
 	 *
 	 * @param bool  $expected Expected result of the check.
 	 * @param mixed $value    The value to check.
@@ -2199,7 +2199,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function _dp_rest_is_integer() {
+	public function data_rest_is_integer() {
 		return array(
 			array(
 				true,
@@ -2247,7 +2247,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_get_best_type_for_value
+	 * @dataProvider data_get_best_type_for_value
 	 *
 	 * @param string $expected The expected best type.
 	 * @param mixed  $value    The value to test.
@@ -2257,7 +2257,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, rest_get_best_type_for_value( $value, $types ) );
 	}
 
-	public function _dp_get_best_type_for_value() {
+	public function data_get_best_type_for_value() {
 		return array(
 			array(
 				'array',

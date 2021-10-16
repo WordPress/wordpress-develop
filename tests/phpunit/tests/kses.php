@@ -474,7 +474,7 @@ EOF;
 		}
 	}
 
-	public function _wp_kses_allowed_html_filter( $html, $context ) {
+	public function wp_kses_allowed_html_filter( $html, $context ) {
 		if ( 'post' === $context ) {
 			return array( 'a' => array( 'href' => true ) );
 		} else {
@@ -523,12 +523,12 @@ EOF;
 
 		$this->assertSame( $custom_tags, wp_kses_allowed_html( $custom_tags ) );
 
-		add_filter( 'wp_kses_allowed_html', array( $this, '_wp_kses_allowed_html_filter' ), 10, 2 );
+		add_filter( 'wp_kses_allowed_html', array( $this, 'wp_kses_allowed_html_filter' ), 10, 2 );
 
 		$this->assertSame( array( 'a' => array( 'href' => true ) ), wp_kses_allowed_html( 'post' ) );
 		$this->assertSame( array( 'a' => array( 'href' => false ) ), wp_kses_allowed_html( 'data' ) );
 
-		remove_filter( 'wp_kses_allowed_html', array( $this, '_wp_kses_allowed_html_filter' ) );
+		remove_filter( 'wp_kses_allowed_html', array( $this, 'wp_kses_allowed_html_filter' ) );
 		$this->assertSame( $allowedposttags, wp_kses_allowed_html( 'post' ) );
 		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
 	}

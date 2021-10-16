@@ -707,7 +707,7 @@ class Tests_User extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27317
-	 * @dataProvider _illegal_user_logins_data
+	 * @dataProvider data_illegal_user_logins
 	 */
 	public function test_illegal_user_logins_single( $user_login ) {
 		$user_data = array(
@@ -716,13 +716,13 @@ class Tests_User extends WP_UnitTestCase {
 			'user_pass'  => wp_generate_password(),
 		);
 
-		add_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = wp_insert_user( $user_data );
 		$this->assertInstanceOf( 'WP_Error', $response );
 		$this->assertSame( 'invalid_username', $response->get_error_code() );
 
-		remove_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$user_id = wp_insert_user( $user_data );
 		$user    = get_user_by( 'id', $user_id );
@@ -731,18 +731,18 @@ class Tests_User extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27317
-	 * @dataProvider _illegal_user_logins_data
+	 * @dataProvider data_illegal_user_logins
 	 */
 	public function test_illegal_user_logins_single_wp_create_user( $user_login ) {
 		$user_email = 'testuser-' . $user_login . '@example.com';
 
-		add_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = register_new_user( $user_login, $user_email );
 		$this->assertInstanceOf( 'WP_Error', $response );
 		$this->assertSame( 'invalid_username', $response->get_error_code() );
 
-		remove_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = register_new_user( $user_login, $user_email );
 		$user     = get_user_by( 'id', $response );
@@ -759,20 +759,20 @@ class Tests_User extends WP_UnitTestCase {
 			'user_email' => 'testuser@example.com',
 		);
 
-		add_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = wpmu_validate_user_signup( $user_data['user_login'], $user_data['user_email'] );
 		$this->assertInstanceOf( 'WP_Error', $response['errors'] );
 		$this->assertSame( 'user_name', $response['errors']->get_error_code() );
 
-		remove_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = wpmu_validate_user_signup( $user_data['user_login'], $user_data['user_email'] );
 		$this->assertInstanceOf( 'WP_Error', $response['errors'] );
 		$this->assertCount( 0, $response['errors']->get_error_codes() );
 	}
 
-	public function _illegal_user_logins_data() {
+	public function data_illegal_user_logins() {
 		$data = array(
 			array( 'testuser' ),
 		);
@@ -784,7 +784,7 @@ class Tests_User extends WP_UnitTestCase {
 		return $data;
 	}
 
-	public function _illegal_user_logins() {
+	public function illegal_user_logins() {
 		return array( 'testuser' );
 	}
 

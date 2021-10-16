@@ -13,7 +13,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->delete_meta_id = add_metadata( 'user', $this->author->ID, 'delete_meta_key', 'delete_meta_value' );
 	}
 
-	public function _meta_sanitize_cb( $meta_value, $meta_key, $meta_type ) {
+	public function meta_sanitize_cb( $meta_value, $meta_key, $meta_type ) {
 		return 'sanitized';
 	}
 
@@ -21,7 +21,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		$meta = sanitize_meta( 'some_meta', 'unsanitized', 'post' );
 		$this->assertSame( 'unsanitized', $meta );
 
-		register_meta( 'post', 'some_meta', array( $this, '_meta_sanitize_cb' ) );
+		register_meta( 'post', 'some_meta', array( $this, 'meta_sanitize_cb' ) );
 		$meta = sanitize_meta( 'some_meta', 'unsanitized', 'post' );
 		$this->assertSame( 'sanitized', $meta );
 	}

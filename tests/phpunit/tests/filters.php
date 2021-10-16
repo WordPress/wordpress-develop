@@ -353,14 +353,14 @@ class Tests_Filters extends WP_UnitTestCase {
 	 * @ticket 39007
 	 */
 	public function test_current_priority() {
-		add_action( 'test_current_priority', array( $this, '_current_priority_action' ), 99 );
+		add_action( 'test_current_priority', array( $this, 'current_priority_action' ), 99 );
 		do_action( 'test_current_priority' );
-		remove_action( 'test_current_priority', array( $this, '_current_priority_action' ), 99 );
+		remove_action( 'test_current_priority', array( $this, 'current_priority_action' ), 99 );
 
 		$this->assertSame( 99, $this->current_priority );
 	}
 
-	public function _current_priority_action() {
+	public function current_priority_action() {
 		global $wp_filter;
 		$this->current_priority = $wp_filter[ current_filter() ]->current_priority();
 	}
@@ -369,14 +369,14 @@ class Tests_Filters extends WP_UnitTestCase {
 	 * @ticket 39007
 	 */
 	public function test_other_priority() {
-		add_action( 'test_current_priority', array( $this, '_other_priority_action' ), 99 );
+		add_action( 'test_current_priority', array( $this, 'other_priority_action' ), 99 );
 		do_action( 'test_current_priority' );
-		remove_action( 'test_current_priority', array( $this, '_other_priority_action' ), 99 );
+		remove_action( 'test_current_priority', array( $this, 'other_priority_action' ), 99 );
 
 		$this->assertFalse( $this->current_priority );
 	}
 
-	public function _other_priority_action() {
+	public function other_priority_action() {
 		global $wp_filter;
 		$this->current_priority = $wp_filter['the_content']->current_priority();
 	}

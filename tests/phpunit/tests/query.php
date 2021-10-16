@@ -64,7 +64,7 @@ class Tests_Query extends WP_UnitTestCase {
 		self::factory()->tag->create( array( 'slug' => $slug ) );
 		$tag = get_term_by( 'slug', $slug, 'post_tag' );
 
-		add_action( 'pre_get_posts', array( $this, '_tag_queried_object' ), 11 );
+		add_action( 'pre_get_posts', array( $this, 'tag_queried_object' ), 11 );
 
 		$this->go_to( get_term_link( $tag ) );
 
@@ -75,10 +75,10 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertCount( 1, get_query_var( 'tag_slug__in' ) );
 		$this->assertEquals( get_queried_object(), $tag );
 
-		remove_action( 'pre_get_posts', array( $this, '_tag_queried_object' ), 11 );
+		remove_action( 'pre_get_posts', array( $this, 'tag_queried_object' ), 11 );
 	}
 
-	public function _tag_queried_object( &$query ) {
+	public function tag_queried_object( &$query ) {
 		$tag = get_term_by( 'slug', 'tag-slug-26627', 'post_tag' );
 		$this->assertTrue( $query->is_tag() );
 		$this->assertTrue( $query->is_archive() );

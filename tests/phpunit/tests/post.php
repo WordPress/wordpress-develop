@@ -42,14 +42,14 @@ class Tests_Post extends WP_UnitTestCase {
 	/**
 	 * Helper function: return the timestamp(s) of cron jobs for the specified hook and post.
 	 */
-	private function _next_schedule_for_post( $hook, $id ) {
+	private function next_schedule_for_post( $hook, $id ) {
 		return wp_next_scheduled( 'publish_future_post', array( 0 => (int) $id ) );
 	}
 
 	/**
 	 * Helper function, unsets current user globally.
 	 */
-	private function _unset_current_user() {
+	private function unset_current_user() {
 		global $current_user, $user_ID;
 
 		$current_user = null;
@@ -148,7 +148,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// There should be a publish_future_post hook scheduled on the future date.
-		$this->assertSame( $future_date, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertSame( $future_date, $this->next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
 	/**
@@ -177,7 +177,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// Check that there's a publish_future_post job scheduled at the right time.
-		$this->assertSame( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertSame( $future_date_1, $this->next_schedule_for_post( 'publish_future_post', $id ) );
 
 		// Now save it again with a date further in the future.
 
@@ -192,7 +192,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// And the correct date on the cron job.
-		$this->assertSame( $future_date_2, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertSame( $future_date_2, $this->next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
 	/**
@@ -222,7 +222,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// Check that there's a publish_future_post job scheduled at the right time.
-		$this->assertSame( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertSame( $future_date_1, $this->next_schedule_for_post( 'publish_future_post', $id ) );
 
 		// Now save it again with a date further in the future.
 
@@ -237,7 +237,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// And the correct date on the cron job.
-		$this->assertSame( $future_date_2, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertSame( $future_date_2, $this->next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
 	/**
@@ -271,7 +271,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// There should be a publish_future_post hook scheduled on the future date.
-		$this->assertFalse( $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $id ) );
 
 	}
 
@@ -299,7 +299,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// Check that there's a publish_future_post job scheduled at the right time.
-		$this->assertSame( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertSame( $future_date_1, $this->next_schedule_for_post( 'publish_future_post', $id ) );
 
 		// Now save it again with status set to draft.
 
@@ -313,7 +313,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// And the correct date on the cron job.
-		$this->assertFalse( $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
 	/**
@@ -343,7 +343,7 @@ class Tests_Post extends WP_UnitTestCase {
 			$this->assertSame( $post['post_date'], $out->post_date );
 
 			// Check that there's a publish_future_post job scheduled at the right time.
-			$this->assertSame( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+			$this->assertSame( $future_date_1, $this->next_schedule_for_post( 'publish_future_post', $id ) );
 
 			// Now save it again with status changed.
 
@@ -357,7 +357,7 @@ class Tests_Post extends WP_UnitTestCase {
 			$this->assertSame( $post['post_date'], $out->post_date );
 
 			// And the correct date on the cron job.
-			$this->assertFalse( $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+			$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $id ) );
 		}
 	}
 
@@ -392,7 +392,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// There should be a publish_future_post hook scheduled on the future date.
-		$this->assertFalse( $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
 	/**
@@ -442,7 +442,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// Check that there's a publish_future_post job scheduled at the right time.
-		$this->assertSame( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertSame( $future_date_1, $this->next_schedule_for_post( 'publish_future_post', $id ) );
 
 		// Now save it again with status set to draft.
 
@@ -456,7 +456,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( $post['post_date'], $out->post_date );
 
 		// And the correct date on the cron job.
-		$this->assertFalse( $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
 	/**
@@ -543,12 +543,12 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->post_ids[] = $id;
 
 		// Check that there's a publish_future_post job scheduled at the right time.
-		$this->assertSame( $future_date, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertSame( $future_date, $this->next_schedule_for_post( 'publish_future_post', $id ) );
 
 		// Now delete the post and make sure the cron entry is removed.
 		wp_delete_post( $id );
 
-		$this->assertFalse( $this->_next_schedule_for_post( 'publish_future_post', $id ) );
+		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
 	/**
@@ -778,7 +778,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * @ticket 19373
 	 */
 	public function test_insert_programmatic_sanitized() {
-		$this->_unset_current_user();
+		$this->unset_current_user();
 
 		register_taxonomy( 'test_tax', 'post' );
 

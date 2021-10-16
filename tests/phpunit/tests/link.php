@@ -4,7 +4,7 @@
  */
 class Tests_Link extends WP_UnitTestCase {
 
-	public function _get_pagenum_link_cb( $url ) {
+	public function get_pagenum_link_cb( $url ) {
 		return $url . '/WooHoo';
 	}
 
@@ -16,11 +16,11 @@ class Tests_Link extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
-		add_filter( 'home_url', array( $this, '_get_pagenum_link_cb' ) );
+		add_filter( 'home_url', array( $this, 'get_pagenum_link_cb' ) );
 		$_SERVER['REQUEST_URI'] = '/woohoo';
 		$paged                  = get_pagenum_link( 2 );
 
-		remove_filter( 'home_url', array( $this, '_get_pagenum_link_cb' ) );
+		remove_filter( 'home_url', array( $this, 'get_pagenum_link_cb' ) );
 		$this->assertSame( $paged, home_url( '/WooHoo/page/2/' ) );
 
 		$_SERVER['REQUEST_URI'] = $old_req_uri;

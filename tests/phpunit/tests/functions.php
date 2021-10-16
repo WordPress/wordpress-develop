@@ -1330,7 +1330,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40017
-	 * @dataProvider _wp_get_image_mime
+	 * @dataProvider wp_get_image_mime
 	 */
 	public function test_wp_get_image_mime( $file, $expected ) {
 		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
@@ -1365,7 +1365,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39550
-	 * @dataProvider _wp_check_filetype_and_ext_data
+	 * @dataProvider wp_check_filetype_and_ext_data
 	 * @requires extension fileinfo
 	 */
 	public function test_wp_check_filetype_and_ext( $file, $filename, $expected ) {
@@ -1387,7 +1387,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			'proper_filename' => false,
 		);
 
-		add_filter( 'upload_mimes', array( $this, '_filter_mime_types_svg' ) );
+		add_filter( 'upload_mimes', array( $this, 'filter_mime_types_svg' ) );
 		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 
 		// Cleanup.
@@ -1409,19 +1409,19 @@ class Tests_Functions extends WP_UnitTestCase {
 			'proper_filename' => false,
 		);
 
-		add_filter( 'upload_mimes', array( $this, '_filter_mime_types_woff' ) );
+		add_filter( 'upload_mimes', array( $this, 'filter_mime_types_woff' ) );
 		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 
 		// Cleanup.
 		remove_filter( 'upload_mimes', array( $this, '_test_add_mime_types_woff' ) );
 	}
 
-	public function _filter_mime_types_svg( $mimes ) {
+	public function filter_mime_types_svg( $mimes ) {
 		$mimes['svg'] = 'image/svg+xml';
 		return $mimes;
 	}
 
-	public function _filter_mime_types_woff( $mimes ) {
+	public function filter_mime_types_woff( $mimes ) {
 		$mimes['woff'] = 'application/font-woff';
 		return $mimes;
 	}
@@ -1429,7 +1429,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_get_image_mime().
 	 */
-	public function _wp_get_image_mime() {
+	public function wp_get_image_mime() {
 		$data = array(
 			// Standard JPEG.
 			array(
@@ -1584,7 +1584,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		return $data;
 	}
 
-	public function _wp_check_filetype_and_ext_data() {
+	public function wp_check_filetype_and_ext_data() {
 		$data = array(
 			// Standard image.
 			array(

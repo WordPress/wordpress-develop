@@ -9,10 +9,10 @@ class Tests_Upload extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->_reset_options();
+		$this->reset_options();
 	}
 
-	private function _reset_options() {
+	private function reset_options() {
 		// System defaults.
 		update_option( 'upload_path', 'wp-content/uploads' );
 		update_option( 'upload_url_path', '' );

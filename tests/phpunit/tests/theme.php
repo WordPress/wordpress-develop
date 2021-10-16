@@ -30,7 +30,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$backup_wp_theme_directories = $wp_theme_directories;
 		$wp_theme_directories        = array( WP_CONTENT_DIR . '/themes' );
 
-		add_filter( 'extra_theme_headers', array( $this, '_theme_data_extra_headers' ) );
+		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 	}
@@ -40,7 +40,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$wp_theme_directories = $this->wp_theme_directories;
 
-		remove_filter( 'extra_theme_headers', array( $this, '_theme_data_extra_headers' ) );
+		remove_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
@@ -251,7 +251,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertSame( $theme_data['License'], $wp_theme->get( 'License' ) );
 	}
 
-	public function _theme_data_extra_headers() {
+	public function theme_data_extra_headers() {
 		return array( 'License' );
 	}
 
@@ -621,7 +621,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * @ticket 49406
 	 *
-	 * @dataProvider _dp_register_theme_support_validation
+	 * @dataProvider data_register_theme_support_validation
 	 *
 	 * @param string $error_code The error code expected.
 	 * @param array  $args       The args to register.
@@ -633,7 +633,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertSame( $error_code, $registered->get_error_code() );
 	}
 
-	public function _dp_register_theme_support_validation() {
+	public function data_register_theme_support_validation() {
 		return array(
 			array(
 				'invalid_type',

@@ -99,7 +99,7 @@ CAP;
 	 * @ticket 33981
 	 */
 	public function test_img_caption_shortcode_short_circuit_filter() {
-		add_filter( 'img_caption_shortcode', array( $this, '_return_alt_caption' ) );
+		add_filter( 'img_caption_shortcode', array( $this, 'return_alt_caption' ) );
 
 		$result = img_caption_shortcode( array(), $this->caption );
 		$this->assertSame( $this->alternate_caption, $result );
@@ -108,7 +108,7 @@ CAP;
 	/**
 	 * Filter used in test_img_caption_shortcode_short_circuit_filter()
 	 */
-	public function _return_alt_caption() {
+	public function return_alt_caption() {
 		return $this->alternate_caption;
 	}
 
@@ -1148,13 +1148,13 @@ VIDEO;
 			)
 		);
 
-		add_filter( 'upload_dir', array( $this, '_upload_dir' ) );
+		add_filter( 'upload_dir', array( $this, 'upload_dir' ) );
 		$image_url = 'http://192.168.1.20.com/wp-content/uploads/' . $image_path;
 		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ) );
-		remove_filter( 'upload_dir', array( $this, '_upload_dir' ) );
+		remove_filter( 'upload_dir', array( $this, 'upload_dir' ) );
 	}
 
-	public function _upload_dir( $dir ) {
+	public function upload_dir( $dir ) {
 		$dir['baseurl'] = 'http://192.168.1.20.com/wp-content/uploads';
 		return $dir;
 	}
@@ -1486,7 +1486,7 @@ EOF;
 	/**
 	 * Helper function to get image size array from size "name".
 	 */
-	private function _get_image_size_array_from_meta( $image_meta, $size_name ) {
+	private function get_image_size_array_from_meta( $image_meta, $size_name ) {
 		$array = false;
 
 		if ( is_array( $image_meta ) ) {
@@ -1507,7 +1507,7 @@ EOF;
 	/**
 	 * Helper function to move the src image to the first position in the expected srcset string.
 	 */
-	private function _src_first( $srcset, $src_url, $src_width ) {
+	private function src_first( $srcset, $src_url, $src_width ) {
 		$src_string    = $src_url . ' ' . $src_width . 'w';
 		$src_not_first = ', ' . $src_string;
 
@@ -1553,7 +1553,7 @@ EOF;
 
 		foreach ( $intermediates as $int ) {
 			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->_get_image_size_array_from_meta( $image_meta, $int );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
 
 			if ( 'full' === $int ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
@@ -1562,7 +1562,7 @@ EOF;
 				$_expected = $expected;
 			}
 
-			$expected_srcset = $this->_src_first( $_expected, $image_url, $size_array[0] );
+			$expected_srcset = $this->src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 	}
@@ -1605,7 +1605,7 @@ EOF;
 		$expected = trim( $expected, ' ,' );
 
 		foreach ( $intermediates as $int ) {
-			$size_array = $this->_get_image_size_array_from_meta( $image_meta, $int );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
 			$image_url  = wp_get_attachment_image_url( $id, $int );
 
 			if ( 'full' === $int ) {
@@ -1615,7 +1615,7 @@ EOF;
 				$_expected = $expected;
 			}
 
-			$expected_srcset = $this->_src_first( $_expected, $image_url, $size_array[0] );
+			$expected_srcset = $this->src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 
@@ -1633,7 +1633,7 @@ EOF;
 		// Start by getting the attachment metadata.
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$image_url  = wp_get_attachment_image_url( self::$large_id, 'medium' );
-		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
+		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
 		// Copy hash generation method used in wp_save_image().
 		$hash = 'e' . time() . rand( 100, 999 );
@@ -1696,7 +1696,7 @@ EOF;
 
 		foreach ( $intermediates as $int ) {
 			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->_get_image_size_array_from_meta( $image_meta, $int );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
 
 			if ( 'full' === $int ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
@@ -1705,7 +1705,7 @@ EOF;
 				$_expected = $expected;
 			}
 
-			$expected_srcset = $this->_src_first( $_expected, $image_url, $size_array[0] );
+			$expected_srcset = $this->src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 	}
@@ -1992,7 +1992,7 @@ EOF;
 
 		$expected .= $uploads_dir . $image_meta['file'] . ' ' . $image_meta['width'] . 'w';
 
-		$expected_srcset = $this->_src_first( $expected, $uploads_dir . $image_meta['file'], $size_array[0] );
+		$expected_srcset = $this->src_first( $expected, $uploads_dir . $image_meta['file'], $size_array[0] );
 
 		$this->assertSame( $expected_srcset, $srcset );
 	}
@@ -2061,7 +2061,7 @@ EOF;
 		remove_all_filters( 'wp_calculate_image_sizes' );
 
 		foreach ( $intermediates as $int_size ) {
-			$size_array             = $this->_get_image_size_array_from_meta( $image_meta, $int_size );
+			$size_array             = $this->get_image_size_array_from_meta( $image_meta, $int_size );
 			$image_src              = $image_meta['sizes'][ $int_size ]['file'];
 			list( $width, $height ) = $size_array;
 
@@ -2078,7 +2078,7 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
-		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
+		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
 		$srcset = sprintf( 'srcset="%s"', wp_get_attachment_image_srcset( self::$large_id, $size_array, $image_meta ) );
 		$sizes  = sprintf( 'sizes="%s"', wp_get_attachment_image_sizes( self::$large_id, $size_array, $image_meta ) );
@@ -2240,7 +2240,7 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_schemes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
-		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
+		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
 		$srcset = sprintf( 'srcset="%s"', wp_get_attachment_image_srcset( self::$large_id, $size_array, $image_meta ) );
 		$sizes  = sprintf( 'sizes="%s"', wp_get_attachment_image_sizes( self::$large_id, $size_array, $image_meta ) );
@@ -2411,7 +2411,7 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_get_attachment_image_should_use_wp_get_attachment_metadata() {
-		add_filter( 'wp_get_attachment_metadata', array( $this, '_filter_36246' ), 10, 2 );
+		add_filter( 'wp_get_attachment_metadata', array( $this, 'filter_36246' ), 10, 2 );
 
 		remove_all_filters( 'wp_calculate_image_sizes' );
 
@@ -2427,12 +2427,12 @@ EOF;
 
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
 
-		remove_filter( 'wp_get_attachment_metadata', array( $this, '_filter_36246' ) );
+		remove_filter( 'wp_get_attachment_metadata', array( $this, 'filter_36246' ) );
 
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function _filter_36246( $data, $attachment_id ) {
+	public function filter_36246( $data, $attachment_id ) {
 		$data['sizes']['testsize'] = array(
 			'file'      => 'test-image-testsize-999x999.jpg',
 			'width'     => 999,
@@ -2701,7 +2701,7 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_width_height() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
-		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
+		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
 		$img                 = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img_no_width_height = str_replace( ' width="' . $size_array[0] . '"', '', $img );
@@ -2748,7 +2748,7 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
-		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
+		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
 		$img                    = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img_xhtml              = str_replace( ' />', '/>', $img );

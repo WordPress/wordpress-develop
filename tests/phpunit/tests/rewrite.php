@@ -130,7 +130,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$network_home        = home_url();
 		$this->blog_id_35531 = self::factory()->blog->create();
 
-		add_filter( 'home_url', array( $this, '_filter_http_home_url' ), 10, 4 );
+		add_filter( 'home_url', array( $this, 'filter_http_home_url' ), 10, 4 );
 
 		switch_to_blog( $this->blog_id_35531 );
 
@@ -141,7 +141,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		restore_current_blog();
 
 		// Cleanup.
-		remove_filter( 'home_url', array( $this, '_filter_http_home_url' ), 10 );
+		remove_filter( 'home_url', array( $this, 'filter_http_home_url' ), 10 );
 
 		// Test the tests.
 		$this->assertSame( 'http', parse_url( $permalink, PHP_URL_SCHEME ) );
@@ -160,7 +160,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 * @param int|null    $blog_id     Site ID, or null for the current site.
 	 * @return string                  The complete home URL including scheme and path.
 	 */
-	public function _filter_http_home_url( $url, $path, $orig_scheme, $_blog_id ) {
+	public function filter_http_home_url( $url, $path, $orig_scheme, $_blog_id ) {
 		global $blog_id;
 
 		if ( $this->blog_id_35531 === $blog_id ) {
