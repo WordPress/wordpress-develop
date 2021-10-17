@@ -80,7 +80,7 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 		$this->assertSame( 'aaeiouuAEIOUU', remove_accents( 'aɑeiouüAEIOUÜ' ) );
 	}
 
-	function _remove_accents_germanic_umlauts_cb() {
+	public function _remove_accents_germanic_umlauts_cb() {
 		return 'de_DE';
 	}
 
