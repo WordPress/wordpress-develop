@@ -92,7 +92,7 @@ function register_block_script_handle( $metadata, $field_name ) {
 			__FUNCTION__,
 			sprintf(
 				/* translators: 1: Field name, 2: Block name. */
-				__( 'The asset file for the "%1$s" defined in "%2$s" block definition is missing.' ),
+				__( 'The asset file for the %1$s defined in %2$s block definition is missing.' ),
 				$field_name,
 				$metadata['name']
 			),
@@ -1038,7 +1038,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
 				'register_block_type_from_metadata()',
 				sprintf(
 					/* translators: 1: Block type, 2: Typography supports key, e.g: fontSize, lineHeight, etc. 3: block.json, 4: Old metadata key, 5: New metadata key. */
-					__( 'Block "%1$s" is declaring %2$s support in %3$s file under %4$s. %2$s support is now declared under %5$s.' ),
+					__( 'Block %1$s is declaring %2$s support in %3$s file under %4$s. %2$s support is now declared under %5$s.' ),
 					$metadata['name'],
 					"<code>$typography_key</code>",
 					'<code>block.json</code>',

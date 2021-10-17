@@ -1441,7 +1441,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	// Require an item schema when registering array meta.
 	if ( false !== $args['show_in_rest'] && 'array' === $args['type'] ) {
 		if ( ! is_array( $args['show_in_rest'] ) || ! isset( $args['show_in_rest']['schema']['items'] ) ) {
-			_doing_it_wrong( __FUNCTION__, __( 'When registering an "array" meta type to show in the REST API, you must specify the schema for each array item in "show_in_rest.schema.items".' ), '5.3.0' );
+			_doing_it_wrong( __FUNCTION__, __( 'When registering an array meta type to show in the REST API, you must specify the schema for each array item in show_in_rest.schema.items.' ), '5.3.0' );
 
 			return false;
 		}

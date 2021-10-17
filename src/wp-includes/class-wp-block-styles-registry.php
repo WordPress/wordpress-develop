@@ -82,7 +82,7 @@ final class WP_Block_Styles_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: 1: Block name, 2: Block style name. */
-				sprintf( __( 'Block "%1$s" does not contain a style named "%2$s".' ), $block_name, $block_style_name ),
+				sprintf( __( 'Block %1$s does not contain a style named %2$s.' ), $block_name, $block_style_name ),
 				'5.3.0'
 			);
 			return false;

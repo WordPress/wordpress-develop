@@ -262,7 +262,7 @@ final class WP_Theme implements ArrayAccess {
 					'theme_not_found',
 					sprintf(
 						/* translators: %s: Theme directory name. */
-						__( 'The theme directory "%s" does not exist.' ),
+						__( 'The theme directory %s does not exist.' ),
 						esc_html( $this->stylesheet )
 					)
 				);
@@ -378,7 +378,7 @@ final class WP_Theme implements ArrayAccess {
 					'theme_no_parent',
 					sprintf(
 						/* translators: %s: Theme directory name. */
-						__( 'The parent theme is missing. Please install the "%s" parent theme.' ),
+						__( 'The parent theme is missing. Please install the %s parent theme.' ),
 						esc_html( $this->template )
 					)
 				);
@@ -405,7 +405,7 @@ final class WP_Theme implements ArrayAccess {
 					'theme_parent_invalid',
 					sprintf(
 						/* translators: %s: Theme directory name. */
-						__( 'The "%s" theme is not a valid parent theme.' ),
+						__( 'The %s theme is not a valid parent theme.' ),
 						esc_html( $_child->template )
 					)
 				);
@@ -424,7 +424,7 @@ final class WP_Theme implements ArrayAccess {
 						'theme_parent_invalid',
 						sprintf(
 							/* translators: %s: Theme directory name. */
-							__( 'The "%s" theme is not a valid parent theme.' ),
+							__( 'The %s theme is not a valid parent theme.' ),
 							esc_html( $this->template )
 						)
 					);

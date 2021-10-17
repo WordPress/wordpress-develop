@@ -88,7 +88,7 @@ final class WP_Block_Patterns_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Pattern name. */
-				sprintf( __( 'Pattern "%s" not found.' ), $pattern_name ),
+				sprintf( __( 'Pattern %s not found.' ), $pattern_name ),
 				'5.5.0'
 			);
 			return false;

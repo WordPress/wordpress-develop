@@ -92,7 +92,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$post_type = get_post_type_object( $post->post_type );
 			if ( ! $post_type ) {
 				/* translators: 1: Post type, 2: Capability name. */
-				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
+				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability %2$s against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
 			}
@@ -163,7 +163,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$post_type = get_post_type_object( $post->post_type );
 			if ( ! $post_type ) {
 				/* translators: 1: Post type, 2: Capability name. */
-				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
+				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability %2$s against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
 			}
@@ -232,7 +232,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$post_type = get_post_type_object( $post->post_type );
 			if ( ! $post_type ) {
 				/* translators: 1: Post type, 2: Capability name. */
-				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
+				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability %2$s against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
 			}
@@ -249,7 +249,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$status_obj = get_post_status_object( get_post_status( $post ) );
 			if ( ! $status_obj ) {
 				/* translators: 1: Post status, 2: Capability name. */
-				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post status %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post with that status.' ), get_post_status( $post ), $cap ), '5.4.0' );
+				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post status %1$s is not registered, so it may not be reliable to check the capability %2$s against a post with that status.' ), get_post_status( $post ), $cap ), '5.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
 			}
@@ -277,7 +277,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$post_type = get_post_type_object( $post->post_type );
 			if ( ! $post_type ) {
 				/* translators: 1: Post type, 2: Capability name. */
-				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
+				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability %2$s against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
 			}

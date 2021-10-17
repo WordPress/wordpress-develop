@@ -1201,7 +1201,7 @@ function wp_default_scripts( $scripts ) {
 				'plural'   => _n( 'Unable to save due to %s invalid setting.', 'Unable to save due to %s invalid settings.', 2 ),
 				// @todo This is lacking, as some languages have a dedicated dual form. For proper handling of plurals in JS, see #20491.
 			),
-			'scheduleDescription'     => __( 'Schedule your customization changes to publish ("go live") at a future date.' ),
+			'scheduleDescription'     => __( 'Schedule your customization changes to publish (go live) at a future date.' ),
 			'themePreviewUnavailable' => __( 'Sorry, you can&#8217;t preview new themes when you have changes scheduled or saved as a draft. Please publish your changes, or wait until they publish to preview new themes.' ),
 			'themeInstallUnavailable' => sprintf(
 				/* translators: %s: URL to Add Themes admin screen. */

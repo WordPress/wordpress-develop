@@ -100,7 +100,7 @@ function get_option( $option, $default = false ) {
 			'5.5.0',
 			sprintf(
 				/* translators: 1: Deprecated option key, 2: New option key. */
-				__( 'The "%1$s" option key has been renamed to "%2$s".' ),
+				__( 'The %1$s option key has been renamed to %2$s.' ),
 				$option,
 				$deprecated_keys[ $option ]
 			)
@@ -404,7 +404,7 @@ function update_option( $option, $value, $autoload = null ) {
 			'5.5.0',
 			sprintf(
 				/* translators: 1: Deprecated option key, 2: New option key. */
-				__( 'The "%1$s" option key has been renamed to "%2$s".' ),
+				__( 'The %1$s option key has been renamed to %2$s.' ),
 				$option,
 				$deprecated_keys[ $option ]
 			)
@@ -594,7 +594,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 			'5.5.0',
 			sprintf(
 				/* translators: 1: Deprecated option key, 2: New option key. */
-				__( 'The "%1$s" option key has been renamed to "%2$s".' ),
+				__( 'The %1$s option key has been renamed to %2$s.' ),
 				$option,
 				$deprecated_keys[ $option ]
 			)
@@ -2316,7 +2316,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 
 	// Require an item schema when registering settings with an array type.
 	if ( false !== $args['show_in_rest'] && 'array' === $args['type'] && ( ! is_array( $args['show_in_rest'] ) || ! isset( $args['show_in_rest']['schema']['items'] ) ) ) {
-		_doing_it_wrong( __FUNCTION__, __( 'When registering an "array" setting to show in the REST API, you must specify the schema for each array item in "show_in_rest.schema.items".' ), '5.4.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'When registering an array setting to show in the REST API, you must specify the schema for each array item in show_in_rest.schema.items.' ), '5.4.0' );
 	}
 
 	if ( ! is_array( $wp_registered_settings ) ) {
@@ -2329,7 +2329,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 			'3.0.0',
 			sprintf(
 				/* translators: %s: misc */
-				__( 'The "%s" options group has been removed. Use another settings group.' ),
+				__( 'The %s options group has been removed. Use another settings group.' ),
 				'misc'
 			)
 		);
@@ -2342,7 +2342,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 			'3.5.0',
 			sprintf(
 				/* translators: %s: privacy */
-				__( 'The "%s" options group has been removed. Use another settings group.' ),
+				__( 'The %s options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
 		);
@@ -2402,7 +2402,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 			'3.0.0',
 			sprintf(
 				/* translators: %s: misc */
-				__( 'The "%s" options group has been removed. Use another settings group.' ),
+				__( 'The %s options group has been removed. Use another settings group.' ),
 				'misc'
 			)
 		);
@@ -2415,7 +2415,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 			'3.5.0',
 			sprintf(
 				/* translators: %s: privacy */
-				__( 'The "%s" options group has been removed. Use another settings group.' ),
+				__( 'The %s options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
 		);

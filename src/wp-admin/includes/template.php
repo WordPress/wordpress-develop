@@ -1566,7 +1566,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
 			'3.0.0',
 			sprintf(
 				/* translators: %s: misc */
-				__( 'The "%s" options group has been removed. Use another settings group.' ),
+				__( 'The %s options group has been removed. Use another settings group.' ),
 				'misc'
 			)
 		);
@@ -1579,7 +1579,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
 			'3.5.0',
 			sprintf(
 				/* translators: %s: privacy */
-				__( 'The "%s" options group has been removed. Use another settings group.' ),
+				__( 'The %s options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
 		);
@@ -1637,7 +1637,7 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 			'3.0.0',
 			sprintf(
 				/* translators: %s: misc */
-				__( 'The "%s" options group has been removed. Use another settings group.' ),
+				__( 'The %s options group has been removed. Use another settings group.' ),
 				'misc'
 			)
 		);
@@ -1650,7 +1650,7 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 			'3.5.0',
 			sprintf(
 				/* translators: %s: privacy */
-				__( 'The "%s" options group has been removed. Use another settings group.' ),
+				__( 'The %s options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
 		);
@@ -2694,7 +2694,7 @@ function _wp_block_editor_posts_page_notice() {
 	wp_add_inline_script(
 		'wp-notices',
 		sprintf(
-			'wp.data.dispatch( "core/notices" ).createWarningNotice( "%s", { isDismissible: false } )',
+			'wp.data.dispatch( "core/notices" ).createWarningNotice( %s, { isDismissible: false } )',
 			__( 'You are currently editing the page that shows your latest posts.' )
 		),
 		'after'
