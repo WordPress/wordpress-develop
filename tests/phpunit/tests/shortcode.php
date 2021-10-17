@@ -656,7 +656,7 @@ EOF;
 	 * @expectedIncorrectUsage add_shortcode
 	 */
 	public function test_registration_bad( $input, $expected ) {
-		return $this->sub_registration( $input, $expected );
+		$this->sub_registration( $input, $expected );
 	}
 
 	/**
@@ -665,17 +665,16 @@ EOF;
 	 * @dataProvider data_registration_good
 	 */
 	public function test_registration_good( $input, $expected ) {
-		return $this->sub_registration( $input, $expected );
+		$this->sub_registration( $input, $expected );
 	}
 
 	private function sub_registration( $input, $expected ) {
 		add_shortcode( $input, '' );
 		$actual = shortcode_exists( $input );
-		$test   = $this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 		if ( $actual ) {
 			remove_shortcode( $input );
 		}
-		return $test;
 	}
 
 	public function data_registration_bad() {
