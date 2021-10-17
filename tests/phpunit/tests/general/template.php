@@ -25,8 +25,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	public function tear_down() {
 		global $wp_customize;
-		$this->_remove_custom_logo();
-		$this->_remove_site_icon();
+		$this->remove_custom_logo();
+		$this->remove_site_icon();
 		$wp_customize = null;
 
 		parent::tear_down();
@@ -40,10 +40,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function test_get_site_icon_url() {
 		$this->assertEmpty( get_site_icon_url() );
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$this->assertSame( $this->site_icon_url, get_site_icon_url() );
 
-		$this->_remove_site_icon();
+		$this->remove_site_icon();
 		$this->assertEmpty( get_site_icon_url() );
 	}
 
@@ -56,7 +56,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->expectOutputString( '' );
 		site_icon_url();
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$this->expectOutputString( $this->site_icon_url );
 		site_icon_url();
 	}
@@ -69,10 +69,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function test_has_site_icon() {
 		$this->assertFalse( has_site_icon() );
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$this->assertTrue( has_site_icon() );
 
-		$this->_remove_site_icon();
+		$this->remove_site_icon();
 		$this->assertFalse( has_site_icon() );
 	}
 
@@ -85,7 +85,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function test_has_site_icon_returns_true_when_called_for_other_site_with_site_icon_set() {
 		$blog_id = $this->factory->blog->create();
 		switch_to_blog( $blog_id );
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		restore_current_blog();
 
 		$this->assertTrue( has_site_icon( $blog_id ) );
@@ -112,7 +112,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->expectOutputString( '' );
 		wp_site_icon();
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$output = array(
 			sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( get_site_icon_url( 32 ) ) ),
 			sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( get_site_icon_url( 192 ) ) ),
@@ -135,7 +135,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->expectOutputString( '' );
 		wp_site_icon();
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$output = array(
 			sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( get_site_icon_url( 32 ) ) ),
 			sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( get_site_icon_url( 192 ) ) ),
@@ -147,9 +147,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$output = implode( "\n", $output );
 
 		$this->expectOutputString( $output );
-		add_filter( 'site_icon_meta_tags', array( $this, '_custom_site_icon_meta_tag' ) );
+		add_filter( 'site_icon_meta_tags', array( $this, 'custom_site_icon_meta_tag' ) );
 		wp_site_icon();
-		remove_filter( 'site_icon_meta_tags', array( $this, '_custom_site_icon_meta_tag' ) );
+		remove_filter( 'site_icon_meta_tags', array( $this, 'custom_site_icon_meta_tag' ) );
 	}
 
 	/**
@@ -184,7 +184,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$wp_customize->register_controls();
 		$wp_customize->start_previewing_theme();
 
-		$attachment_id = $this->_insert_attachment();
+		$attachment_id = $this->insert_attachment();
 		$wp_customize->set_post_value( 'site_icon', $attachment_id );
 		$wp_customize->get_setting( 'site_icon' )->preview();
 		$output = array(
@@ -207,7 +207,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @param $meta_tags
 	 * @return array
 	 */
-	public function _custom_site_icon_meta_tag( $meta_tags ) {
+	public function custom_site_icon_meta_tag( $meta_tags ) {
 		$meta_tags[] = sprintf( '<link rel="apple-touch-icon" sizes="150x150" href="%s" />', esc_url( get_site_icon_url( 150 ) ) );
 
 		return $meta_tags;
@@ -218,10 +218,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.3.0
 	 */
-	private function _set_site_icon() {
+	private function set_site_icon() {
 		if ( ! $this->site_icon_id ) {
 			add_filter( 'intermediate_image_sizes_advanced', array( $this->wp_site_icon, 'additional_sizes' ) );
-			$this->_insert_attachment();
+			$this->insert_attachment();
 			remove_filter( 'intermediate_image_sizes_advanced', array( $this->wp_site_icon, 'additional_sizes' ) );
 		}
 
@@ -233,7 +233,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.3.0
 	 */
-	private function _remove_site_icon() {
+	private function remove_site_icon() {
 		delete_option( 'site_icon' );
 	}
 
@@ -242,7 +242,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.3.0
 	 */
-	private function _insert_attachment() {
+	private function insert_attachment() {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
 
@@ -263,10 +263,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function test_has_custom_logo() {
 		$this->assertFalse( has_custom_logo() );
 
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 		$this->assertTrue( has_custom_logo() );
 
-		$this->_remove_custom_logo();
+		$this->remove_custom_logo();
 		$this->assertFalse( has_custom_logo() );
 	}
 
@@ -279,7 +279,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function test_has_custom_logo_returns_true_when_called_for_other_site_with_custom_logo_set() {
 		$blog_id = $this->factory->blog->create();
 		switch_to_blog( $blog_id );
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 		restore_current_blog();
 
 		$this->assertTrue( has_custom_logo( $blog_id ) );
@@ -306,12 +306,12 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function test_get_custom_logo() {
 		$this->assertEmpty( get_custom_logo() );
 
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 		$custom_logo = get_custom_logo();
 		$this->assertNotEmpty( $custom_logo );
 		$this->assertIsString( $custom_logo );
 
-		$this->_remove_custom_logo();
+		$this->remove_custom_logo();
 		$this->assertEmpty( get_custom_logo() );
 	}
 
@@ -325,7 +325,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$blog_id = $this->factory->blog->create();
 		switch_to_blog( $blog_id );
 
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 
 		$custom_logo_attr = array(
 			'class'   => 'custom-logo',
@@ -356,7 +356,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->expectOutputString( '' );
 		the_custom_logo();
 
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 
 		$custom_logo_attr = array(
 			'class'   => 'custom-logo',
@@ -381,7 +381,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::the_custom_logo
 	 */
 	public function test_the_custom_logo_with_alt() {
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 
 		$image_alt = 'My alt attribute';
 
@@ -406,9 +406,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	private function _set_custom_logo() {
+	private function set_custom_logo() {
 		if ( ! $this->custom_logo_id ) {
-			$this->_insert_custom_logo();
+			$this->insert_custom_logo();
 		}
 
 		set_theme_mod( 'custom_logo', $this->custom_logo_id );
@@ -419,7 +419,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	private function _remove_custom_logo() {
+	private function remove_custom_logo() {
 		remove_theme_mod( 'custom_logo' );
 	}
 
@@ -428,7 +428,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	private function _insert_custom_logo() {
+	private function insert_custom_logo() {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
 		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
