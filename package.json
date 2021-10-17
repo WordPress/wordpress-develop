@@ -172,6 +172,8 @@
 		"env:pull": "node ./tools/local-env/scripts/docker.js pull",
 		"test:php": "node ./tools/local-env/scripts/docker.js run -T php composer update -W && node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit",
 		"test:e2e": "node ./tests/e2e/run-tests.js",
-		"wp-packages-update": "wp-scripts packages-update"
+		"wp-packages-update": "wp-scripts packages-update",
+		"phpcs:src": "node ./tools/local-env/scripts/docker.js run -T php composer update -W && node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpcs",
+		"phpcs:tests": "node ./tools/local-env/scripts/docker.js run -T php composer update -W && node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpcs ./tests/phpunit"
 	}
 }
