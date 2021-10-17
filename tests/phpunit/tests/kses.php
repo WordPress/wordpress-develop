@@ -1620,4 +1620,123 @@ EOF;
 			$data
 		);
 	}
+
+	/**
+	 * Test that attributes with the required flag are handled correctly.
+	 *
+	 * @ticket 54261
+	 *
+	 * @dataProvider data_wp_kses_required_attribute
+	 *
+	 * @param string $html         A string of HTML to test.
+	 * @param string $expected     The expected result from KSES.
+	 * @param array  $allowed_html The allowed HTML to pass to KSES.
+	 */
+	function test_wp_kses_required_attribute( $html, $expected, $allowed_html ) {
+		$this->assertSame( $expected, wp_kses( $html, $allowed_html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_required_attribute().
+	 */
+	function data_wp_kses_required_attribute() {
+		$data = array(
+			array(
+				'<p dir="ltr">foo</p>', // Test HTML.
+				'<p dir="ltr">foo</p>', // Expected result when dir is not required.
+				'<p dir="ltr">foo</p>', // Expected result when dir is required.
+				'<p dir="ltr">foo</p>', // Expected result when dir is required, but has no value filter.
+			),
+			array(
+				'<p DIR="RTL">foo</p>',
+				'<p DIR="RTL">foo</p>',
+				'<p DIR="RTL">foo</p>',
+				'<p DIR="RTL">foo</p>',
+			),
+			array(
+				'<p dir="up">foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p dir="up">foo</p>',
+			),
+			array(
+				'<p dir="">foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p dir="">foo</p>',
+			),
+			array(
+				'<p dir>foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p dir>foo</p>',
+			),
+			array(
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+			),
+		);
+
+		$return_data = array();
+
+		foreach ( $data as $datum ) {
+			// Test that the required flag defaults to false.
+			$return_data[] = array(
+				$datum[0],
+				$datum[1],
+				array(
+					'p' => array(
+						'dir' => array(
+							'values' => array( 'ltr', 'rtl' ),
+						),
+					),
+				),
+			);
+
+			// Test when the attribute is not required, but has allowed values.
+			$return_data[] = array(
+				$datum[0],
+				$datum[1],
+				array(
+					'p' => array(
+						'dir' => array(
+							'required' => false,
+							'values'   => array( 'ltr', 'rtl' ),
+						),
+					),
+				),
+			);
+
+			// Test when the attribute is required, but has allowed values.
+			$return_data[] = array(
+				$datum[0],
+				$datum[2],
+				array(
+					'p' => array(
+						'dir' => array(
+							'required' => true,
+							'values'   => array( 'ltr', 'rtl' ),
+						),
+					),
+				),
+			);
+
+			// Test when the attribute is required, but has no allowed values.
+			$return_data[] = array(
+				$datum[0],
+				$datum[3],
+				array(
+					'p' => array(
+						'dir' => array(
+							'required' => true,
+						),
+					),
+				),
+			);
+		}
+
+		return $return_data;
+	}
 }

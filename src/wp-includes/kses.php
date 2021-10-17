@@ -1180,6 +1180,14 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 		}
 	);
 
+	// If a required attribute check fails, we can return nothing for a self-closing tag,
+	// but for a non-self-closing tag the best option is to return the element with attributes,
+	// as KSES doesn't handle matching the relevant closing tag.
+	$stripped_tag = '';
+	if ( empty( $xhtml_slash ) ) {
+		$stripped_tag = "<$element>";
+	}
+
 	// Go through $attrarr, and save the allowed attributes for this element
 	// in $attr2.
 	$attr2 = '';
@@ -1196,13 +1204,13 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 			}
 		} elseif ( $required ) {
 			// This attribute was required, but didn't pass the check. The entire tag is not allowed.
-			return '';
+			return $stripped_tag;
 		}
 	}
 
 	// If some required attributes weren't set, the entire tag is not allowed.
 	if ( ! empty( $required_attrs ) ) {
-		return '';
+		return $stripped_tag;
 	}
 
 	// Remove any "<" or ">" characters.
