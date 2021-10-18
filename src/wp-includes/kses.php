@@ -1176,7 +1176,7 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 	$required_attrs = array_filter(
 		$allowed_html[ $element_low ],
 		function( $required_attr_limits ) {
-			return ! empty( $required_attr_limits['required'] ) && true === $required_attr_limits['required'];
+			return isset( $required_attr_limits['required'] ) && true === $required_attr_limits['required'];
 		}
 	);
 
