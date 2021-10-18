@@ -116,12 +116,12 @@ if ( is_multisite() ) :
 		}
 
 		public function test_get_main_network_id_filtered() {
-			add_filter( 'get_main_network_id', array( $this, '_get_main_network_id' ) );
+			add_filter( 'get_main_network_id', array( $this, 'get_main_network_id' ) );
 			$this->assertSame( 3, get_main_network_id() );
-			remove_filter( 'get_main_network_id', array( $this, '_get_main_network_id' ) );
+			remove_filter( 'get_main_network_id', array( $this, 'get_main_network_id' ) );
 		}
 
-		public function _get_main_network_id() {
+		public function get_main_network_id() {
 			return 3;
 		}
 
@@ -262,7 +262,7 @@ if ( is_multisite() ) :
 			$active_plugins = wp_get_active_network_plugins();
 			$this->assertSame( array(), $active_plugins );
 
-			add_action( 'deactivated_plugin', array( $this, '_helper_deactivate_hook' ) );
+			add_action( 'deactivated_plugin', array( $this, 'helper_deactivate_hook' ) );
 
 			// Activate the plugin sitewide.
 			activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
@@ -315,7 +315,7 @@ if ( is_multisite() ) :
 			$this->assertFalse( is_plugin_active_for_network( 'hello.php' ) );
 		}
 
-		public function _helper_deactivate_hook() {
+		public function helper_deactivate_hook() {
 			$this->plugin_hook_count++;
 		}
 

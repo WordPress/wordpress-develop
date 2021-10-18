@@ -66,7 +66,7 @@ if ( is_multisite() ) :
 				update_blog_details( $blog_id, array( $flag => '1' ) );
 			}
 
-			add_action( $hook, array( $this, '_action_counter_cb' ), 10 );
+			add_action( $hook, array( $this, 'action_counter_cb' ), 10 );
 
 			update_blog_details( $blog_id, array( $flag => $flag_value ) );
 			$blog = get_site( $blog_id );
@@ -82,7 +82,7 @@ if ( is_multisite() ) :
 			// The hook attached to this flag should not have fired again.
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( $hook, array( $this, '_action_counter_cb' ), 10 );
+			remove_action( $hook, array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function data_flag_hooks() {
@@ -101,7 +101,7 @@ if ( is_multisite() ) :
 		/**
 		 * Provide a counter to determine that hooks are firing when intended.
 		 */
-		public function _action_counter_cb() {
+		public function action_counter_cb() {
 			global $test_action_counter;
 			$test_action_counter++;
 		}

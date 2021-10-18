@@ -77,14 +77,14 @@ if ( is_multisite() ) :
 		}
 
 		public function test_get_space_used_pre_get_spaced_used_filter() {
-			add_filter( 'pre_get_space_used', array( $this, '_filter_space_used' ) );
+			add_filter( 'pre_get_space_used', array( $this, 'filter_space_used' ) );
 
 			$this->assertSame( 300, get_space_used() );
 
-			remove_filter( 'pre_get_space_used', array( $this, '_filter_space_used' ) );
+			remove_filter( 'pre_get_space_used', array( $this, 'filter_space_used' ) );
 		}
 
-		public function _filter_space_used() {
+		public function filter_space_used() {
 			return 300;
 		}
 	}

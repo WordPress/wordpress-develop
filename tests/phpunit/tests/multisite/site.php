@@ -415,7 +415,7 @@ if ( is_multisite() ) :
 		/**
 		 * Provide a counter to determine that hooks are firing when intended.
 		 */
-		public function _action_counter_cb() {
+		public function action_counter_cb() {
 			global $test_action_counter;
 			$test_action_counter++;
 		}
@@ -471,7 +471,7 @@ if ( is_multisite() ) :
 			$blog_id = self::factory()->blog->create();
 			update_blog_details( $blog_id, array( 'spam' => 1 ) );
 
-			add_action( 'make_ham_blog', array( $this, '_action_counter_cb' ), 10 );
+			add_action( 'make_ham_blog', array( $this, 'action_counter_cb' ), 10 );
 			update_blog_status( $blog_id, 'spam', 0 );
 			$blog = get_site( $blog_id );
 
@@ -485,7 +485,7 @@ if ( is_multisite() ) :
 			$this->assertSame( '0', $blog->spam );
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( 'make_ham_blog', array( $this, '_action_counter_cb' ), 10 );
+			remove_action( 'make_ham_blog', array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function test_content_from_spam_blog_is_not_available() {
@@ -524,7 +524,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create();
 
-			add_action( 'make_spam_blog', array( $this, '_action_counter_cb' ), 10 );
+			add_action( 'make_spam_blog', array( $this, 'action_counter_cb' ), 10 );
 			update_blog_status( $blog_id, 'spam', 1 );
 			$blog = get_site( $blog_id );
 
@@ -538,7 +538,7 @@ if ( is_multisite() ) :
 			$this->assertSame( '1', $blog->spam );
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( 'make_spam_blog', array( $this, '_action_counter_cb' ), 10 );
+			remove_action( 'make_spam_blog', array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function test_update_blog_status_archive_blog_action() {
@@ -547,7 +547,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create();
 
-			add_action( 'archive_blog', array( $this, '_action_counter_cb' ), 10 );
+			add_action( 'archive_blog', array( $this, 'action_counter_cb' ), 10 );
 			update_blog_status( $blog_id, 'archived', 1 );
 			$blog = get_site( $blog_id );
 
@@ -561,7 +561,7 @@ if ( is_multisite() ) :
 			$this->assertSame( '1', $blog->archived );
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( 'archive_blog', array( $this, '_action_counter_cb' ), 10 );
+			remove_action( 'archive_blog', array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function test_update_blog_status_unarchive_blog_action() {
@@ -571,7 +571,7 @@ if ( is_multisite() ) :
 			$blog_id = self::factory()->blog->create();
 			update_blog_details( $blog_id, array( 'archived' => 1 ) );
 
-			add_action( 'unarchive_blog', array( $this, '_action_counter_cb' ), 10 );
+			add_action( 'unarchive_blog', array( $this, 'action_counter_cb' ), 10 );
 			update_blog_status( $blog_id, 'archived', 0 );
 			$blog = get_site( $blog_id );
 
@@ -584,7 +584,7 @@ if ( is_multisite() ) :
 			$this->assertSame( '0', $blog->archived );
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( 'unarchive_blog', array( $this, '_action_counter_cb' ), 10 );
+			remove_action( 'unarchive_blog', array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function test_update_blog_status_make_delete_blog_action() {
@@ -593,7 +593,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create();
 
-			add_action( 'make_delete_blog', array( $this, '_action_counter_cb' ), 10 );
+			add_action( 'make_delete_blog', array( $this, 'action_counter_cb' ), 10 );
 			update_blog_status( $blog_id, 'deleted', 1 );
 			$blog = get_site( $blog_id );
 
@@ -607,7 +607,7 @@ if ( is_multisite() ) :
 			$this->assertSame( '1', $blog->deleted );
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( 'make_delete_blog', array( $this, '_action_counter_cb' ), 10 );
+			remove_action( 'make_delete_blog', array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function test_update_blog_status_make_undelete_blog_action() {
@@ -617,7 +617,7 @@ if ( is_multisite() ) :
 			$blog_id = self::factory()->blog->create();
 			update_blog_details( $blog_id, array( 'deleted' => 1 ) );
 
-			add_action( 'make_undelete_blog', array( $this, '_action_counter_cb' ), 10 );
+			add_action( 'make_undelete_blog', array( $this, 'action_counter_cb' ), 10 );
 			update_blog_status( $blog_id, 'deleted', 0 );
 			$blog = get_site( $blog_id );
 
@@ -631,7 +631,7 @@ if ( is_multisite() ) :
 			$this->assertSame( '0', $blog->deleted );
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( 'make_undelete_blog', array( $this, '_action_counter_cb' ), 10 );
+			remove_action( 'make_undelete_blog', array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function test_update_blog_status_mature_blog_action() {
@@ -640,7 +640,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create();
 
-			add_action( 'mature_blog', array( $this, '_action_counter_cb' ), 10 );
+			add_action( 'mature_blog', array( $this, 'action_counter_cb' ), 10 );
 			update_blog_status( $blog_id, 'mature', 1 );
 			$blog = get_site( $blog_id );
 
@@ -654,7 +654,7 @@ if ( is_multisite() ) :
 			$this->assertSame( '1', $blog->mature );
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( 'mature_blog', array( $this, '_action_counter_cb' ), 10 );
+			remove_action( 'mature_blog', array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function test_update_blog_status_unmature_blog_action() {
@@ -664,7 +664,7 @@ if ( is_multisite() ) :
 			$blog_id = self::factory()->blog->create();
 			update_blog_details( $blog_id, array( 'mature' => 1 ) );
 
-			add_action( 'unmature_blog', array( $this, '_action_counter_cb' ), 10 );
+			add_action( 'unmature_blog', array( $this, 'action_counter_cb' ), 10 );
 			update_blog_status( $blog_id, 'mature', 0 );
 
 			$blog = get_site( $blog_id );
@@ -678,7 +678,7 @@ if ( is_multisite() ) :
 			$this->assertSame( '0', $blog->mature );
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( 'unmature_blog', array( $this, '_action_counter_cb' ), 10 );
+			remove_action( 'unmature_blog', array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function test_update_blog_status_update_blog_public_action() {
@@ -687,7 +687,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create();
 
-			add_action( 'update_blog_public', array( $this, '_action_counter_cb' ), 10 );
+			add_action( 'update_blog_public', array( $this, 'action_counter_cb' ), 10 );
 			update_blog_status( $blog_id, 'public', 0 );
 
 			$blog = get_site( $blog_id );
@@ -701,7 +701,7 @@ if ( is_multisite() ) :
 			$this->assertSame( '0', $blog->public );
 			$this->assertSame( 1, $test_action_counter );
 
-			remove_action( 'update_blog_public', array( $this, '_action_counter_cb' ), 10 );
+			remove_action( 'update_blog_public', array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		/**
@@ -899,7 +899,7 @@ if ( is_multisite() ) :
 		 * Added as a callback to the domain_exists filter to provide manual results for
 		 * the testing of the filter and for a test which does not need the database.
 		 */
-		public function _domain_exists_cb( $exists, $domain, $path, $site_id ) {
+		public function domain_exists_cb( $exists, $domain, $path, $site_id ) {
 			if ( 'foo' === $domain && 'bar/' === $path ) {
 				return 1234;
 			} else {
@@ -934,9 +934,9 @@ if ( is_multisite() ) :
 		}
 
 		public function test_domain_filtered_to_exist() {
-			add_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
+			add_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 			$exists = domain_exists( 'foo', 'bar' );
-			remove_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
+			remove_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 			$this->assertSame( 1234, $exists );
 		}
 
@@ -945,10 +945,10 @@ if ( is_multisite() ) :
 		 * value with or without the slash should result in the same return value.
 		 */
 		public function test_slashed_path_in_domain_exists() {
-			add_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
+			add_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 			$exists1 = domain_exists( 'foo', 'bar' );
 			$exists2 = domain_exists( 'foo', 'bar/' );
-			remove_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
+			remove_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 
 			// Make sure the same result is returned with or without a trailing slash.
 			$this->assertSame( $exists1, $exists2 );
