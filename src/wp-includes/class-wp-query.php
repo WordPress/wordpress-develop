@@ -2357,7 +2357,7 @@ class WP_Query {
 						}
 					}
 				}
-				if ( $needs_ID && !$has_ID ) {
+				if ( $needs_ID && ! $has_ID ) {
 					$q['orderby']['ID'] = 'ASC';
 				}
 			} else {
