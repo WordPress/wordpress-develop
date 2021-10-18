@@ -53,7 +53,7 @@ if ( is_multisite() ) :
 			$this->assertTrue( $available );
 		}
 
-		function test_is_upload_space_available_space_used_is_more_than_allowed() {
+		public function test_is_upload_space_available_space_used_is_more_than_allowed() {
 			update_option( 'blog_upload_space', 350 );
 
 			add_filter( 'pre_get_space_used', array( $this, '_filter_space_used_large' ) );
@@ -67,7 +67,7 @@ if ( is_multisite() ) :
 		 * More comprehensive testing a 0 condition is handled in the tests
 		 * for `get_space_allowed()`. We cover one scenario here.
 		 */
-		function test_is_upload_space_available_upload_space_0_defaults_to_100() {
+		public function test_is_upload_space_available_upload_space_0_defaults_to_100() {
 			update_option( 'blog_upload_space', 0 );
 
 			add_filter( 'pre_get_space_used', array( $this, '_filter_space_used_small' ) );
@@ -77,7 +77,7 @@ if ( is_multisite() ) :
 			$this->assertFalse( $available );
 		}
 
-		function test_is_upload_space_available_upload_space_negative() {
+		public function test_is_upload_space_available_upload_space_negative() {
 			update_site_option( 'blog_upload_space', -1 );
 
 			add_filter( 'pre_get_space_used', array( $this, '_filter_space_used_small' ) );
@@ -87,11 +87,11 @@ if ( is_multisite() ) :
 			$this->assertFalse( $available );
 		}
 
-		function _filter_space_used_large() {
+		public function _filter_space_used_large() {
 			return 10000000;
 		}
 
-		function _filter_space_used_small() {
+		public function _filter_space_used_small() {
 			return 10;
 		}
 	}
