@@ -51,15 +51,6 @@ abstract class WP_Webfonts_Provider {
 	protected $webfonts = array();
 
 	/**
-	 * An array of API parameters which will not be added to the @font-face.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @var array
-	 */
-	protected $invalid_parameters = array();
-
-	/**
 	 * Get the provider's unique ID.
 	 *
 	 * @since 5.9.0
@@ -119,32 +110,6 @@ abstract class WP_Webfonts_Provider {
 	 * @return array
 	 */
 	protected function prepare( array $webfont ) {
-		if ( empty( $this->invalid_parameters ) ) {
-			return $webfont;
-		}
-
-		return $this->remove_invalid_properties( $webfont );
-	}
-
-	/**
-	 * Removes invalid properties from the webfont.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param array $webfont Webfont to process.
-	 * @return array Webfont with valid properties.
-	 */
-	private function remove_invalid_properties( array $webfont ) {
-		$invalid_parameters = $this->invalid_parameters;
-
-		$webfont = array_filter(
-			$webfont,
-			static function( $key ) use ( $invalid_parameters ) {
-				return ! in_array( $key, $invalid_parameters, true );
-			},
-			ARRAY_FILTER_USE_KEY
-		);
-
 		return $webfont;
 	}
 

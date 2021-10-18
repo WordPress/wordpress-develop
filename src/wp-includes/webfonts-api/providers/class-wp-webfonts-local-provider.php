@@ -30,7 +30,6 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	 * @return array
 	 */
 	protected function prepare( array $webfont ) {
-		$webfont = parent::prepare( $webfont );
 		$webfont = $this->order_src( $webfont );
 
 		// Wrap font-family in quotes if it contains spaces.

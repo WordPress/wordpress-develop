@@ -47,18 +47,6 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	protected $root_url = 'https://fonts.googleapis.com/css2';
 
 	/**
-	 * An array of API parameters which will not be added to the @font-face.
-	 *
-	 * @since 5.9.0
-	 * @var array
-	 */
-	protected $invalid_parameters = array(
-		'subset',
-		'text',
-		'effect',
-	);
-
-	/**
 	 * Build the API URL for a collection of fonts.
 	 *
 	 * @since 5.9.0
