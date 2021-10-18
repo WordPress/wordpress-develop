@@ -1576,6 +1576,45 @@ EOF;
 	}
 
 	/**
+	 * Test that object tags will continue to function if they've been added using the
+	 * 'wp_kses_allowed_html' filter.
+	 *
+	 * @ticket 54261
+	 */
+	function test_wp_kses_object_added_in_html_filter() {
+		$html = <<<HTML
+<object type="application/pdf" data="https://wordpress.org/foo.pdf" />
+<object type="application/x-shockwave-flash" data="https://wordpress.org/foo.swf">
+	<param name="foo" value="bar" />
+</object>
+HTML;
+
+		add_filter( 'wp_kses_allowed_html', array( $this, 'filter_wp_kses_object_added_in_html_filter' ), 10, 2 );
+
+		$filtered_html = wp_kses_post( $html );
+
+		remove_filter( 'wp_kses_allowed_html', array( $this, 'filter_wp_kses_object_added_in_html_filter' ) );
+
+		$this->assertSame( $html, $filtered_html );
+	}
+
+	function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
+		if ( 'post' === $context ) {
+			$tags['object'] = array(
+				'type' => true,
+				'data' => true,
+			);
+
+			$tags['param'] = array(
+				'name'  => true,
+				'value' => true,
+			);
+		}
+
+		return $tags;
+	}
+
+	/**
 	 * Test that attributes with a list of allowed values are filtered correctly.
 	 *
 	 * @ticket 54261
