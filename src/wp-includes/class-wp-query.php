@@ -2334,26 +2334,35 @@ class WP_Query {
 			// https://core.trac.wordpress.org/ticket/47642
 			// Database engine fix to prevent strange (duplicate or missing) results in paginated resultsets
 			// Test for possible duplicate (non-unique, numeric or datetime) DB keys, add the unique ID
-			$force_ID = array( 'post_author', 'post_date', 'post_date_gmt', 'post_modified', 'post_modified', 'post_modified_gmt', 'post_parent', 'comment_count' );
+			$force_ID = array(
+				'post_author',
+				'post_date',
+				'post_date_gmt',
+				'post_modified',
+				'post_modified',
+				'post_modified_gmt',
+				'post_parent',
+				'comment_count',
+			);
 			if ( is_array( $q['orderby'] ) ) {
 				$needs_ID = false;
-				$has_ID = false;
+				$has_ID   = false;
 				foreach ( $q['orderby'] as $_orderby => $order ) {
-					if( in_array( $_orderby, $force_ID )  ) {
+					if ( in_array( $_orderby, $force_ID, true ) ) {
 						$needs_ID = true;
 					} else {
-						if( $_orderby === 'ID' ) {
+						if ( 'ID' === $_orderby ) {
 							$has_ID = true;
 							break; // All done
 						}
 					}
 				}
-				if( $needs_ID && !$has_ID ) {
+				if ( $needs_ID && !$has_ID ) {
 					$q['orderby']['ID'] = 'ASC';
 				}
 			} else {
 				// Not an array, test as string
-				if( in_array( $q['orderby'], $force_ID )  ) {
+				if ( in_array( $q['orderby'], $force_ID, true ) ) {
 					$q['orderby'] .= ' ID'; // Add ID here, note the space
 				}
 			}
@@ -2397,14 +2406,14 @@ class WP_Query {
 		// Order search results by relevance only when another "orderby" is not specified in the query.
 		if ( ! empty( $q['s'] ) ) {
 			$search_orderby = '';
-			if ( ! empty( $q['search_orderby_title'] ) && ( empty( $q['orderby'] ) && ! $this->is_feed ) || ( isset( $q['orderby'] ) && 'relevance' === $q['orderby'] ) ) {
+			if ( ( ! empty( $q['search_orderby_title'] ) && ( empty( $q['orderby'] ) && ! $this->is_feed ) ) || ( isset( $q['orderby'] ) && 'relevance' === $q['orderby'] ) ) {
 				$search_orderby = $this->parse_search_order( $q );
 			}
 
 			if ( ! $q['suppress_filters'] ) {
 				/**
 				 * Filters the ORDER BY used when ordering search results.
-				 *
+				 *https://core.trac.wordpress.org/attachment/ticket/47642
 				 * @since 3.7.0
 				 *
 				 * @param string   $search_orderby The ORDER BY clause.

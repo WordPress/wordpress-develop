@@ -4,6 +4,8 @@
  * Tests for query result ordering, specifically indeterminate ordering.
  *
  * @group query
+ *
+ * @covers WP_Query::posts
  */
 class Tests_Query_Orderby extends WP_UnitTestCase {
 	function test_order_by_comment_count_does_not_cause_duplication_when_paginating() {
