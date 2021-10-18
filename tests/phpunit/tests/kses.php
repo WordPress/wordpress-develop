@@ -1552,7 +1552,7 @@ EOF;
 				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" /><object type="application/exe" data="https://wordpress.org/foo.exe" />',
 				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 			),
-			'multiple object tags, first invalid'      => array(
+			'multiple object tags, first invalid'     => array(
 				'<object type="application/exe" data="https://wordpress.org/foo.exe" /><object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 			),
