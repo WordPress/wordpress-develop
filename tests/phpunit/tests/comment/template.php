@@ -97,14 +97,14 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 		$this->factory->comment->create_post_comments( $post_id, $number );
 		$this->go_to( $permalink );
 
-		add_filter( 'gettext_with_context', array( $this, '_enable_comment_number_declension' ), 10, 4 );
+		add_filter( 'gettext_with_context', array( $this, 'enable_comment_number_declension' ), 10, 4 );
 
 		$this->assertSame( $output, get_comments_number_text( false, false, $input ) );
 
-		remove_filter( 'gettext_with_context', array( $this, '_enable_comment_number_declension' ), 10, 4 );
+		remove_filter( 'gettext_with_context', array( $this, 'enable_comment_number_declension' ), 10, 4 );
 	}
 
-	public function _enable_comment_number_declension( $translation, $text, $context, $domain ) {
+	public function enable_comment_number_declension( $translation, $text, $context, $domain ) {
 		if ( 'Comment number declension: on or off' === $context ) {
 			$translation = 'on';
 		}

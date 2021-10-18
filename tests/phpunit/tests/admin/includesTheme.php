@@ -11,9 +11,9 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 		$this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
 
-		add_filter( 'theme_root', array( $this, '_theme_root' ) );
-		add_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
-		add_filter( 'template_root', array( $this, '_theme_root' ) );
+		add_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 
 		// Clear caches.
 		wp_clean_themes_cache();
@@ -22,9 +22,9 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 
 	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
-		remove_filter( 'theme_root', array( $this, '_theme_root' ) );
-		remove_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
-		remove_filter( 'template_root', array( $this, '_theme_root' ) );
+		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -32,7 +32,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	}
 
 	// Replace the normal theme root directory with our premade test directory.
-	public function _theme_root( $dir ) {
+	public function filter_theme_root( $dir ) {
 		return $this->theme_root;
 	}
 
