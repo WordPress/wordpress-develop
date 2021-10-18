@@ -1516,47 +1516,55 @@ EOF;
 	 */
 	function data_wp_kses_object_tag_allowed() {
 		return array(
-			array(
+			'valid value for type'                    => array(
 				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 			),
-			array(
+			'invalid value for type'                  => array(
 				'<object type="application/exe" data="https://wordpress.org/foo.exe" />',
 				'',
 			),
-			array(
+			'multiple type attributes, last invalid'  => array(
 				'<object type="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
 				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 			),
-			array(
+			'multiple type attributes, first uppercase, last invalid' => array(
 				'<object TYPE="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
 				'<object TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
 			),
-			array(
+			'multiple type attributes, last upper case and invalid' => array(
 				'<object type="application/pdf" TYPE="application/exe" data="https://wordpress.org/foo.pdf" />',
 				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 			),
-			array(
+			'multiple type attributes, first invalid' => array(
 				'<object type="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 				'',
 			),
-			array(
+			'multiple type attributes, first upper case and invalid' => array(
 				'<object TYPE="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 				'',
 			),
-			array(
+			'multiple type attributes, first invalid, last uppercase' => array(
 				'<object type="application/exe" TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
 				'',
 			),
-			array(
+			'multiple object tags, last invalid'      => array(
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" /><object type="application/exe" data="https://wordpress.org/foo.exe" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			'multiple object tags, first invalid'      => array(
+				'<object type="application/exe" data="https://wordpress.org/foo.exe" /><object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			'type attribute with empty value'         => array(
 				'<object type="" data="https://wordpress.org/foo.pdf" />',
 				'',
 			),
-			array(
+			'type attribute with no value'            => array(
 				'<object type data="https://wordpress.org/foo.pdf" />',
 				'',
 			),
-			array(
+			'no type attribute'                       => array(
 				'<object data="https://wordpress.org/foo.pdf" />',
 				'',
 			),
@@ -1583,23 +1591,23 @@ EOF;
 	 */
 	function data_wp_kses_allowed_values_list() {
 		$data = array(
-			array(
+			'valid dir attribute value'             => array(
 				'<p dir="ltr">foo</p>',
 				'<p dir="ltr">foo</p>',
 			),
-			array(
+			'valid dir attribute value, upper case' => array(
 				'<p DIR="RTL">foo</p>',
 				'<p DIR="RTL">foo</p>',
 			),
-			array(
+			'invalid dir attribute value'           => array(
 				'<p dir="up">foo</p>',
 				'<p>foo</p>',
 			),
-			array(
+			'dir attribute with empty value'        => array(
 				'<p dir="">foo</p>',
 				'<p>foo</p>',
 			),
-			array(
+			'dir attribute with no value'           => array(
 				'<p dir>foo</p>',
 				'<p>foo</p>',
 			),
@@ -1641,37 +1649,37 @@ EOF;
 	 */
 	function data_wp_kses_required_attribute() {
 		$data = array(
-			array(
+			'valid dir attribute value'             => array(
 				'<p dir="ltr">foo</p>', // Test HTML.
 				'<p dir="ltr">foo</p>', // Expected result when dir is not required.
 				'<p dir="ltr">foo</p>', // Expected result when dir is required.
 				'<p dir="ltr">foo</p>', // Expected result when dir is required, but has no value filter.
 			),
-			array(
+			'valid dir attribute value, upper case' => array(
 				'<p DIR="RTL">foo</p>',
 				'<p DIR="RTL">foo</p>',
 				'<p DIR="RTL">foo</p>',
 				'<p DIR="RTL">foo</p>',
 			),
-			array(
+			'invalid dir attribute value'           => array(
 				'<p dir="up">foo</p>',
 				'<p>foo</p>',
 				'<p>foo</p>',
 				'<p dir="up">foo</p>',
 			),
-			array(
+			'dir attribute with empty value'        => array(
 				'<p dir="">foo</p>',
 				'<p>foo</p>',
 				'<p>foo</p>',
 				'<p dir="">foo</p>',
 			),
-			array(
+			'dir attribute with no value'           => array(
 				'<p dir>foo</p>',
 				'<p>foo</p>',
 				'<p>foo</p>',
 				'<p dir>foo</p>',
 			),
-			array(
+			'dir attribute not set'                 => array(
 				'<p>foo</p>',
 				'<p>foo</p>',
 				'<p>foo</p>',
@@ -1681,9 +1689,9 @@ EOF;
 
 		$return_data = array();
 
-		foreach ( $data as $datum ) {
+		foreach ( $data as $description => $datum ) {
 			// Test that the required flag defaults to false.
-			$return_data[] = array(
+			$return_data[ "$description - required flag not set" ] = array(
 				$datum[0],
 				$datum[1],
 				array(
@@ -1696,7 +1704,7 @@ EOF;
 			);
 
 			// Test when the attribute is not required, but has allowed values.
-			$return_data[] = array(
+			$return_data[ "$description - required flag set to false" ] = array(
 				$datum[0],
 				$datum[1],
 				array(
@@ -1710,7 +1718,7 @@ EOF;
 			);
 
 			// Test when the attribute is required, but has allowed values.
-			$return_data[] = array(
+			$return_data[ "$description - required flag set to true" ] = array(
 				$datum[0],
 				$datum[2],
 				array(
@@ -1724,7 +1732,7 @@ EOF;
 			);
 
 			// Test when the attribute is required, but has no allowed values.
-			$return_data[] = array(
+			$return_data[ "$description - required flag set to true, no allowed values specified" ] = array(
 				$datum[0],
 				$datum[3],
 				array(
