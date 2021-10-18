@@ -1556,6 +1556,10 @@ EOF;
 				'<object type="application/exe" data="https://wordpress.org/foo.exe" /><object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
 			),
+			'type attribute with partially incorrect value' => array(
+				'<object type="application/pdfa" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
 			'type attribute with empty value'         => array(
 				'<object type="" data="https://wordpress.org/foo.pdf" />',
 				'',
