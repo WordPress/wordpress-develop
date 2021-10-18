@@ -16,9 +16,9 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
 
-		add_filter( 'theme_root', array( $this, '_theme_root' ) );
-		add_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
-		add_filter( 'template_root', array( $this, '_theme_root' ) );
+		add_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -32,7 +32,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	}
 
 	// Replace the normal theme root directory with our premade test directory.
-	public function _theme_root( $dir ) {
+	public function filter_theme_root( $dir ) {
 		return $this->theme_root;
 	}
 

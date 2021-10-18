@@ -56,7 +56,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		// Keep track of users we create.
-		$this->_flush_roles();
+		$this->flush_roles();
 
 	}
 
@@ -65,7 +65,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 
-	private function _flush_roles() {
+	private function flush_roles() {
 		// We want to make sure we're testing against the DB, not just in-memory data.
 		// This will flush everything and reload it from the DB.
 		unset( $GLOBALS['wp_user_roles'] );
@@ -73,15 +73,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$wp_roles = new WP_Roles();
 	}
 
-	public function _meta_yes_you_can( $can, $key, $post_id, $user_id, $cap, $caps ) {
+	public function meta_yes_you_can( $can, $key, $post_id, $user_id, $cap, $caps ) {
 		return true;
 	}
 
-	public function _meta_no_you_cant( $can, $key, $post_id, $user_id, $cap, $caps ) {
+	public function meta_no_you_cant( $can, $key, $post_id, $user_id, $cap, $caps ) {
 		return false;
 	}
 
-	public function _meta_filter( $meta_value, $meta_key, $meta_type ) {
+	public function meta_filter( $meta_value, $meta_key, $meta_type ) {
 		return $meta_value;
 	}
 
@@ -911,7 +911,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$role_name = 'janitor';
 		add_role( $role_name, 'Janitor', array() );
 
-		$this->_flush_roles();
+		$this->flush_roles();
 		$this->assertTrue( $wp_roles->is_role( $role_name ) );
 
 		$user = self::factory()->user->create_and_get( array( 'role' => $role_name ) );
@@ -931,7 +931,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Clean up.
 		remove_role( $role_name );
-		$this->_flush_roles();
+		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
 	}
 
@@ -950,7 +950,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'level_2'    => true,
 		);
 		add_role( $role_name, 'Janitor', $expected_caps );
-		$this->_flush_roles();
+		$this->flush_roles();
 		$this->assertTrue( $wp_roles->is_role( $role_name ) );
 
 		$user = self::factory()->user->create_and_get( array( 'role' => $role_name ) );
@@ -976,7 +976,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Clean up.
 		remove_role( $role_name );
-		$this->_flush_roles();
+		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
 	}
 
@@ -988,7 +988,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		global $wp_roles;
 		$role_name = 'janitor';
 		add_role( $role_name, 'Janitor', array( 'level_1' => true ) );
-		$this->_flush_roles();
+		$this->flush_roles();
 		$this->assertTrue( $wp_roles->is_role( $role_name ) );
 
 		// Assign a user to that role.
@@ -996,7 +996,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Now add a cap to the role.
 		$wp_roles->add_cap( $role_name, 'sweep_floor' );
-		$this->_flush_roles();
+		$this->flush_roles();
 
 		$user = new WP_User( $id );
 		$this->assertTrue( $user->exists(), "Problem getting user $id" );
@@ -1017,7 +1017,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Clean up.
 		remove_role( $role_name );
-		$this->_flush_roles();
+		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
 
 	}
@@ -1038,7 +1038,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				'polish_doorknobs' => true,
 			)
 		);
-		$this->_flush_roles();
+		$this->flush_roles();
 		$this->assertTrue( $wp_roles->is_role( $role_name ) );
 
 		// Assign a user to that role.
@@ -1046,7 +1046,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Now remove a cap from the role.
 		$wp_roles->remove_cap( $role_name, 'polish_doorknobs' );
-		$this->_flush_roles();
+		$this->flush_roles();
 
 		$user = new WP_User( $id );
 		$this->assertTrue( $user->exists(), "Problem getting user $id" );
@@ -1062,7 +1062,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Clean up.
 		remove_role( $role_name );
-		$this->_flush_roles();
+		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
 
 	}
@@ -1280,7 +1280,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertFalse( $admin->has_cap( 'add_post_meta', $post, '_protected' ) );
 			$this->assertFalse( $admin->has_cap( 'delete_post_meta', $post, '_protected' ) );
 
-			register_meta( 'post', '_protected', array( $this, '_meta_filter' ), array( $this, '_meta_yes_you_can' ) );
+			register_meta( 'post', '_protected', array( $this, 'meta_filter' ), array( $this, 'meta_yes_you_can' ) );
 			$this->assertTrue( $admin->has_cap( 'edit_post_meta', $post, '_protected' ) );
 			$this->assertTrue( $admin->has_cap( 'add_post_meta', $post, '_protected' ) );
 			$this->assertTrue( $admin->has_cap( 'delete_post_meta', $post, '_protected' ) );
@@ -1289,7 +1289,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertTrue( $admin->has_cap( 'add_post_meta', $post, 'not_protected' ) );
 			$this->assertTrue( $admin->has_cap( 'delete_post_meta', $post, 'not_protected' ) );
 
-			register_meta( 'post', 'not_protected', array( $this, '_meta_filter' ), array( $this, '_meta_no_you_cant' ) );
+			register_meta( 'post', 'not_protected', array( $this, 'meta_filter' ), array( $this, 'meta_no_you_cant' ) );
 			$this->assertFalse( $admin->has_cap( 'edit_post_meta', $post, 'not_protected' ) );
 			$this->assertFalse( $admin->has_cap( 'add_post_meta', $post, 'not_protected' ) );
 			$this->assertFalse( $admin->has_cap( 'delete_post_meta', $post, 'not_protected' ) );
@@ -1660,16 +1660,16 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$orig_blog_id = get_current_blog_id();
 		$blog_id      = self::factory()->blog->create();
 
-		$this->_nullify_current_user();
+		$this->nullify_current_user();
 
-		add_action( 'switch_blog', array( $this, '_nullify_current_user_and_keep_nullifying_user' ) );
+		add_action( 'switch_blog', array( $this, 'nullify_current_user_and_keep_nullifying_user' ) );
 
 		current_user_can_for_blog( $blog_id, 'edit_posts' );
 
 		$this->assertSame( $orig_blog_id, get_current_blog_id() );
 	}
 
-	public function _nullify_current_user() {
+	public function nullify_current_user() {
 		// Prevents fatal errors in ::tearDown()'s and other uses of restore_current_blog().
 		$function_stack = wp_debug_backtrace_summary( null, 0, false );
 		if ( in_array( 'restore_current_blog', $function_stack, true ) ) {
@@ -1678,8 +1678,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$GLOBALS['current_user'] = null;
 	}
 
-	public function _nullify_current_user_and_keep_nullifying_user() {
-		add_action( 'set_current_user', array( $this, '_nullify_current_user' ) );
+	public function nullify_current_user_and_keep_nullifying_user() {
+		add_action( 'set_current_user', array( $this, 'nullify_current_user' ) );
 	}
 
 	/**

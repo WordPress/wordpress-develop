@@ -296,14 +296,14 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 		);
 		$this->assertSame( $result, $instance );
 
-		add_filter( 'sanitize_text_field', array( $this, '_return_wp_error' ) );
+		add_filter( 'sanitize_text_field', array( $this, 'return_wp_error' ) );
 		$result = $widget->update(
 			array(
 				'title' => 'Title',
 			),
 			$instance
 		);
-		remove_filter( 'sanitize_text_field', array( $this, '_return_wp_error' ) );
+		remove_filter( 'sanitize_text_field', array( $this, 'return_wp_error' ) );
 		$this->assertSame( $result, $instance );
 	}
 
@@ -312,7 +312,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 *
 	 * @return \WP_Error
 	 */
-	public function _return_wp_error() {
+	public function return_wp_error() {
 		return new WP_Error( 'some-error', 'This is not valid!' );
 	}
 
