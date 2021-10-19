@@ -39,14 +39,10 @@ async function revokeAllApplicationPasswords() {
 }
 
 async function revokeAllApplicationPasswordsWithApi() {
-    const response = await getResponseForApplicationPassword();
-    const uuids = response.map(applicationPassword => applicationPassword.uuid);
-    for (const uuid of uuids) {
-        await rest({
-            method: 'DELETE',
-            path: `/wp/v2/users/me/application-passwords/${uuid}`
-        });
-    }
+    await rest({
+        method: 'DELETE',
+        path: `/wp/v2/users/me/application-passwords`
+    });
 }
 
 describe('Manage applications passwords', () => {
