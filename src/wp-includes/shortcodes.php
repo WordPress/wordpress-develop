@@ -42,6 +42,15 @@
 $shortcode_tags = array();
 
 /**
+ * Container for storing imploded all tags and to improve performance
+ *
+ * @name $empty_shortcode_tags_implodes
+ * @var string|null
+ * @global string|null $empty_shortcode_tags_implodes
+ */
+$empty_shortcode_tags_implodes = null;
+
+/**
  * Adds a new shortcode.
  *
  * Care should be taken through prefixing or other means to ensure that the
@@ -62,6 +71,7 @@ $shortcode_tags = array();
  */
 function add_shortcode( $tag, $callback ) {
 	global $shortcode_tags;
+	global $empty_shortcode_tags_implodes;
 
 	if ( '' === trim( $tag ) ) {
 		_doing_it_wrong(
@@ -87,6 +97,7 @@ function add_shortcode( $tag, $callback ) {
 	}
 
 	$shortcode_tags[ $tag ] = $callback;
+	$empty_shortcode_tags_implodes = null;
 }
 
 /**
@@ -100,8 +111,10 @@ function add_shortcode( $tag, $callback ) {
  */
 function remove_shortcode( $tag ) {
 	global $shortcode_tags;
+	global $empty_shortcode_tags_implodes;
 
 	unset( $shortcode_tags[ $tag ] );
+	$empty_shortcode_tags_implodes = null;
 }
 
 /**
@@ -117,8 +130,10 @@ function remove_shortcode( $tag ) {
  */
 function remove_all_shortcodes() {
 	global $shortcode_tags;
+	global $empty_shortcode_tags_implodes;
 
 	$shortcode_tags = array();
+	$empty_shortcode_tags_implodes = null;
 }
 
 /**
@@ -258,11 +273,19 @@ function do_shortcode( $content, $ignore_html = false ) {
  */
 function get_shortcode_regex( $tagnames = null ) {
 	global $shortcode_tags;
+	global $empty_shortcode_tags_implodes;
 
-	if ( empty( $tagnames ) ) {
-		$tagnames = array_keys( $shortcode_tags );
+	if ( empty( $tagnames )) {
+		if ( null === $empty_shortcode_tags_implodes ) {
+			$tagnames = array_keys( $shortcode_tags );
+			$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
+			$empty_shortcode_tags_implodes = $tagregexp;
+		} else {
+			$tagregexp = $empty_shortcode_tags_implodes;
+		}
+	} else {
+		$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
 	}
-	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
 
 	// WARNING! Do not change this regex without changing do_shortcode_tag() and strip_shortcode_tag().
 	// Also, see shortcode_unautop() and shortcode.js.
