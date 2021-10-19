@@ -8575,6 +8575,7 @@ mockedApiResponse.TaxonomiesCollection = {
         ],
         "hierarchical": true,
         "rest_base": "categories",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8604,6 +8605,7 @@ mockedApiResponse.TaxonomiesCollection = {
         ],
         "hierarchical": false,
         "rest_base": "tags",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8634,7 +8636,8 @@ mockedApiResponse.TaxonomyModel = {
         "post"
     ],
     "hierarchical": true,
-    "rest_base": "categories"
+    "rest_base": "categories",
+    "rest_namespace": "wp/v2"
 };
 
 mockedApiResponse.CategoriesCollection = [
