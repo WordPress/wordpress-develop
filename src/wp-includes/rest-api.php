@@ -3160,7 +3160,7 @@ function rest_get_route_for_taxonomy( $taxonomy ) {
 	 * @param string  $route The route path.
 	 * @param WP_Taxonomy $taxonomy  The taxonomy object.
 	 */
-	return apply_filters( 'rest_route_for_term', $route, $taxonomy );
+	return apply_filters( 'rest_route_for_ taxonomy', $route, $taxonomy );
 }
 
 /**
