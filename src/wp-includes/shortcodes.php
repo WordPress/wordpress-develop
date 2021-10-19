@@ -42,7 +42,7 @@
 $shortcode_tags = array();
 
 /**
- * Container for storing imploded all tags and to improve performance
+ * Container for storing imploded all tags to improve performance
  *
  * @name $empty_shortcode_tags_implodes
  * @var string|null
