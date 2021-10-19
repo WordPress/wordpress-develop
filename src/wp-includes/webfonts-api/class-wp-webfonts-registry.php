@@ -10,27 +10,52 @@
 /**
  * Webfonts Registry.
  *
- * Handles webfont registration and query of webfonts.
+ * This registry exists to handle all webfonts.
+ *
+ * It handles the following within the API:
+ *  - loads the bundled provider files into memory;
+ *  - registers each provider with the API by:
+ *       1. creating an instance (object);
+ *       2. storing it in-memory (by its unique provider ID) for use with the API;
+ *  - handles generating the linked resources `<link>` for all providers.
  */
 class WP_Webfonts_Registry {
 
 	/**
-	 * Registered webfonts.
+	 * An in-memory storage container that holds all registered webfonts
+	 * for use within the API.
+	 *
+	 * Keyed by font-family.font-style.font-weight:
+	 *
+	 *      @type string $key => @type array Webfont.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @var string[][]
+	 * @var array[]
 	 */
-	private $registry = array();
+	private $registered = array();
 
 	/**
 	 * Registration keys per provider.
+	 *
+	 * Provides a O(1) lookup when querying by provider.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @var string[]
 	 */
 	private $registry_by_provider = array();
+
+	/**
+	 * Registration keys per font-family.
+	 *
+	 * Provides a O(1) lookup when querying by provider.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @var string[]
+	 */
+	private $registry_by_font_family = array();
 
 	/**
 	 * Schema validator.
@@ -46,14 +71,14 @@ class WP_Webfonts_Registry {
 	}
 
 	/**
-	 * Gets the webfont registry.
+	 * Gets all registered webfonts.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return string[][] Registered webfonts.
+	 * @return array[] Registered webfonts each keyed by font-family.font-style.font-weight.
 	 */
-	public function get_registry() {
-		return $this->registry;
+	public function get_all_registered() {
+		return $this->registered;
 	}
 
 	/**
@@ -62,7 +87,7 @@ class WP_Webfonts_Registry {
 	 * @since 5.9.0
 	 *
 	 * @param string $provider_id Provider ID to fetch.
-	 * @return string[][] Registered webfonts.
+	 * @return array[] Registered webfonts.
 	 */
 	public function get_by_provider( $provider_id ) {
 		if ( ! isset( $this->registry_by_provider[ $provider_id ] ) ) {
@@ -71,12 +96,12 @@ class WP_Webfonts_Registry {
 
 		$webfonts = array();
 		foreach ( $this->registry_by_provider[ $provider_id ] as $registration_key ) {
-			// Safeguard. Skip if not in registry.
-			if ( ! isset( $this->registry[ $registration_key ] ) ) {
+			// Skip if not registered.
+			if ( ! isset( $this->registered[ $registration_key ] ) ) {
 				continue;
 			}
 
-			$webfonts[ $registration_key ] = $this->registry[ $registration_key ];
+			$webfonts[ $registration_key ] = $this->registered[ $registration_key ];
 		}
 
 		return $webfonts;
@@ -95,17 +120,21 @@ class WP_Webfonts_Registry {
 			return array();
 		}
 
-		$webfonts        = array();
-		$font_family_key = $this->convert_font_family_into_key( $font_family ) . '.';
-		$last_char       = strlen( $font_family_key );
+		$font_family_key = $this->convert_font_family_into_key( $font_family );
 
-		foreach ( $this->registry as $registration_key => $webfont ) {
-			// Skip if webfont's family font does not match.
-			if ( substr( $registration_key, 0, $last_char ) !== $font_family_key ) {
+		// If the font family is not registered, bail out.
+		if ( ! isset( $this->registry_by_font_family[ $font_family_key ] ) ) {
+			return array();
+		}
+
+		$webfonts = array();
+		foreach ( $this->registry_by_font_family[ $font_family_key ] as $registration_key ) {
+			// Safeguard. Skip if not in registry.
+			if ( ! isset( $this->registered[ $registration_key ] ) ) {
 				continue;
 			}
 
-			$webfonts[ $registration_key ] = $webfont;
+			$webfonts[ $registration_key ] = $this->registered[ $registration_key ];
 		}
 
 		return $webfonts;
@@ -131,12 +160,42 @@ class WP_Webfonts_Registry {
 
 		// Add to registry.
 		$registration_key = $this->generate_registration_key( $webfont );
-		if ( ! isset( $this->registry[ $registration_key ] ) ) {
-			$this->registry[ $registration_key ]                  = $webfont;
-			$this->registry_by_provider[ $webfont['provider'] ][] = $registration_key;
+		if ( isset( $this->registered[ $registration_key ] ) ) {
+			return $registration_key;
 		}
 
+		$this->registered[ $registration_key ] = $webfont;
+		$this->store_in_query_by_containers( $webfont, $registration_key );
+
 		return $registration_key;
+	}
+
+	/**
+	 * Store the webfont into each query by container.
+	 *
+	 * These containers provide a performant way to quickly query webfonts by
+	 * provider or font-family. The registration keys are stored in each for
+	 * O(1) lookup.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array  $webfont          Webfont definition.
+	 * @param string $registration_key Webfont's registration key.
+	 */
+	private function store_in_query_by_containers( array $webfont, $registration_key ) {
+		$font_family = $this->convert_font_family_into_key( $webfont['font-family'] );
+		$provider    = $webfont['provider'];
+
+		// Initialize the arrays if they do not exist.
+		if ( ! isset( $this->registry_by_provider[ $provider ] ) ) {
+			$this->registry_by_provider[ $provider ] = array();
+		}
+		if ( ! isset( $this->registry_by_font_family[ $font_family ] ) ) {
+			$this->registry_by_font_family[ $font_family ] = array();
+		}
+
+		$this->registry_by_provider[ $provider ][]       = $registration_key;
+		$this->registry_by_font_family[ $font_family ][] = $registration_key;
 	}
 
 	/**
@@ -190,17 +249,5 @@ class WP_Webfonts_Registry {
 		}
 
 		return sanitize_title( $font_family );
-	}
-
-	/**
-	 * Checks if the given webfont schema is validate.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string[] $webfont Webfont definition.
-	 * @return bool True when valid. False when invalid.
-	 */
-	private function is_schema_valid( array $webfont ) {
-		return $this->validator->is_schema_valid( $webfont );
 	}
 }

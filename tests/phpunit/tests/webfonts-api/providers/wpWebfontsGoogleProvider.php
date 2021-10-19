@@ -56,15 +56,19 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_build_collection_api_urls
 	 *
-	 * @since        5.9.0
+	 * @since 5.9.0
 	 *
 	 * @param array $webfonts Webfonts input.
 	 * @param array $expected Expected urls.
 	 */
 	public function test_build_collection_api_urls( array $webfonts, array $expected ) {
+		$property = new ReflectionProperty( $this->provider, 'webfonts' );
+		$property->setAccessible( true );
+		$property->setValue( $this->provider, $webfonts );
+
 		$method = new ReflectionMethod( $this->provider, 'build_collection_api_urls' );
 		$method->setAccessible( true );
-		$actual = $method->invoke( $this->provider, $webfonts );
+		$actual = $method->invoke( $this->provider );
 
 		$this->assertSame( $expected, $actual );
 	}

@@ -24,13 +24,13 @@ class WP_Webfonts_Controller {
 	private $webfonts_registry;
 
 	/**
-	 * Instance of the provider registry.
+	 * Instance of the provider's registry.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @var WP_Webfonts_Provider_Registry
 	 */
-	private $providers_registry;
+	private $providers;
 
 	/**
 	 * Stylesheet handle.
@@ -53,8 +53,8 @@ class WP_Webfonts_Controller {
 		WP_Webfonts_Registry $webfonts_registry,
 		WP_Webfonts_Provider_Registry $provider_registry
 	) {
-		$this->webfonts_registry  = $webfonts_registry;
-		$this->providers_registry = $provider_registry;
+		$this->webfonts_registry = $webfonts_registry;
+		$this->providers         = $provider_registry;
 	}
 
 	/**
@@ -63,7 +63,7 @@ class WP_Webfonts_Controller {
 	 * @since 5.9.0
 	 */
 	public function init() {
-		$this->providers_registry->init();
+		$this->providers->init();
 
 		// Register callback to generate and enqueue styles.
 		if ( did_action( 'wp_enqueue_scripts' ) ) {
@@ -111,19 +111,19 @@ class WP_Webfonts_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return string[][] Registered webfonts.
+	 * @return array[] Registered webfonts.
 	 */
 	public function get_webfonts() {
-		return $this->webfonts_registry->get_registry();
+		return $this->webfonts_registry->get_all_registered();
 	}
 
 	/**
-	 * Gets the registered webfonts for the given provider.
+	 * Gets the registered webfonts for the given provider organized by font-family.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param string $provider_id Provider ID to fetch.
-	 * @return string[][] Registered webfonts.
+	 * @return array[] Registered webfonts.
 	 */
 	public function get_webfonts_by_provider( $provider_id ) {
 		return $this->webfonts_registry->get_by_provider( $provider_id );
@@ -135,7 +135,7 @@ class WP_Webfonts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param string $font_family Family font to fetch.
-	 * @return string[][] Registered webfonts.
+	 * @return array[] Registered webfonts.
 	 */
 	public function get_webfonts_by_font_family( $font_family ) {
 		return $this->webfonts_registry->get_by_font_family( $font_family );
@@ -149,7 +149,7 @@ class WP_Webfonts_Controller {
 	 * @return WP_Webfonts_Provider[] Registered providers.
 	 */
 	public function get_registered_providers() {
-		return $this->providers_registry->get_registry();
+		return $this->providers->get_all_registered();
 	}
 
 	/**
@@ -161,7 +161,7 @@ class WP_Webfonts_Controller {
 	 * @return bool True when registered. False when provider does not exist.
 	 */
 	public function register_provider( $classname ) {
-		return $this->providers_registry->register( $classname );
+		return $this->providers->register( $classname );
 	}
 
 	/**
@@ -206,7 +206,7 @@ class WP_Webfonts_Controller {
 				continue;
 			}
 
-			add_action( 'wp_head', array( $this, 'render_preconnect_links' ) );
+			add_action( 'wp_head', array( $this, 'render_links' ) );
 
 			$provider->set_webfonts( $registered_webfonts );
 			$styles .= $provider->get_css();
@@ -215,11 +215,11 @@ class WP_Webfonts_Controller {
 	}
 
 	/**
-	 * Renders preconnect links to <head> for enqueued webfonts.
+	 * Renders the HTML `<link>` for each provider into `<head>` for enqueued webfonts.
 	 *
 	 * @since 5.9.0
 	 */
-	public function render_preconnect_links() {
-		echo $this->providers_registry->get_preconnect_links();
+	public function render_links() {
+		echo $this->providers->get_links();
 	}
 }

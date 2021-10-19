@@ -2,9 +2,9 @@
 /**
  * Webfonts API: Google Fonts provider.
  *
- * @package    WordPress
- * @subpackage WebFonts
  * @since      5.9.0
+ * @subpackage WebFonts
+ * @package    WordPress
  */
 
 /**
@@ -22,12 +22,21 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	protected $id = 'google';
 
 	/**
-	 * An array of URLs to preconnect to.
+	 * The `<link>` element's attributes for each linked resource.
 	 *
 	 * @since 5.9.0
-	 * @var array
+	 *
+	 * @var array[] {
+	 *     An array of linked resources.
+	 *
+	 * @type array() {
+	 *          An array of attributes for this linked resource.
+	 *
+	 * @type string $attribute => @type string $attribute_value
+	 *     }
+	 * }
 	 */
-	protected $preconnect_urls = array(
+	protected $link_attributes = array(
 		array(
 			'href'        => 'https://fonts.gstatic.com',
 			'crossorigin' => true,
@@ -47,50 +56,43 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	protected $root_url = 'https://fonts.googleapis.com/css2';
 
 	/**
+	 * Get the CSS for a collection of fonts.
+	 *
+	 * @access public
+	 * @since  5.9.0
+	 * @return string
+	 */
+	public function get_css() {
+		$css  = '';
+		$urls = $this->build_collection_api_urls();
+
+		foreach ( $urls as $url ) {
+			$css .= $this->get_cached_remote_styles( 'google_fonts_' . md5( $url ), $url );
+		}
+
+		return $css;
+	}
+
+	/**
 	 * Build the API URL for a collection of fonts.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $fonts Registered webfonts.
 	 * @return array Collection by font-family urls.
 	 */
-	protected function build_collection_api_urls( array $fonts ) {
+	protected function build_collection_api_urls() {
 		$font_families_urls = array();
 
-		// Group by font-display.
-		// Each font-display will need to be a separate request.
-		$font_display_groups = array();
-		foreach ( $fonts as $font ) {
-			$font['font-display'] = isset( $font['font-display'] ) ? $font['font-display'] : 'fallback';
-			if ( ! isset( $font_display_groups[ $font['font-display'] ] ) ) {
-				$font_display_groups[ $font['font-display'] ] = array();
-			}
-			$font_display_groups[ $font['font-display'] ][] = $font;
-		}
-
-		// Iterate over each font-display group and group by font-family.
-		// Multiple font-families can be combined in the same request, but their params need to be grouped.
-		foreach ( $font_display_groups as $font_display => $font_display_group ) {
-			$font_families = array();
-			foreach ( $font_display_group as $font ) {
-				if ( ! isset( $font_families[ $font['font-family'] ] ) ) {
-					$font_families[ $font['font-family'] ] = array();
-				}
-				$font_families[ $font['font-family'] ][] = $font;
-			}
-			$font_display_groups[ $font_display ] = $font_families;
-		}
-
 		// Iterate over each font-family group and build the API URL partial for that font-family.
-		foreach ( $font_display_groups as $font_display => $font_families ) {
+		foreach ( $this->organize_webfonts() as $font_display => $font_families ) {
 			$font_display_url_parts = array();
-			foreach ( $font_families as $font_family => $fonts ) {
+			foreach ( $font_families as $font_family => $webfonts ) {
 				$normal_weights = array();
 				$italic_weights = array();
 				$url_part       = urlencode( $font_family );
 
 				// Build an array of font-weights for italics and default styles.
-				foreach ( $fonts as $font ) {
+				foreach ( $webfonts as $font ) {
 					if ( 'italic' === $font['font-style'] ) {
 						$italic_weights[] = $font['font-weight'];
 					} else {
@@ -116,20 +118,48 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Get the CSS for a collection of fonts.
+	 * Organizes the webfonts by font-display.
 	 *
-	 * @access public
-	 * @since 5.9.0
-	 * @return string
+	 * @since 5.8.0
+	 *
+	 * @return array Sorted by font-display.
 	 */
-	public function get_css() {
-		$css  = '';
-		$urls = $this->build_collection_api_urls( $this->webfonts );
+	private function organize_webfonts() {
+		$font_display_groups = array();
 
-		foreach ( $urls as $url ) {
-			$css .= $this->get_cached_remote_styles( 'google_fonts_' . md5( $url ), $url );
+		/*
+		 * Group by font-display.
+		 * Each font-display will need to be a separate request.
+		 */
+		foreach ( $this->webfonts as $webfont ) {
+			if ( ! isset( $font['font-display'] ) ) {
+				$webfont['font-display'] = 'fallback';
+			}
+
+			if ( ! isset( $font_display_groups[ $webfont['font-display'] ] ) ) {
+				$font_display_groups[ $webfont['font-display'] ] = array();
+			}
+			$font_display_groups[ $webfont['font-display'] ][] = $webfont;
 		}
 
-		return $css;
+		/*
+		 * Iterate over each font-display group and group by font-family.
+		 * Multiple font-families can be combined in the same request,
+		 * but their params need to be grouped.
+		 */
+		foreach ( $font_display_groups as $font_display => $font_display_group ) {
+			$font_families = array();
+
+			foreach ( $font_display_group as $webfont ) {
+				if ( ! isset( $font_families[ $webfont['font-family'] ] ) ) {
+					$font_families[ $webfont['font-family'] ] = array();
+				}
+				$font_families[ $webfont['font-family'] ][] = $webfont;
+			}
+
+			$font_display_groups[ $font_display ] = $font_families;
+		}
+
+		return $font_display_groups;
 	}
 }

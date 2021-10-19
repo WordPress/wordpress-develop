@@ -23,9 +23,9 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Webfonts_Registry::get_registry
+	 * @covers WP_Webfonts_Registry::get_all_registered
 	 */
-	public function test_get_registry() {
+	public function get_all_registered() {
 		$expected = array(
 			'open-sans.normal.400' => array(
 				'provider'     => 'google',
@@ -51,11 +51,11 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 		$property->setAccessible( true );
 		$property->setValue( $this->registry, $expected );
 
-		$this->assertSame( $expected, $this->registry->get_registry() );
+		$this->assertSame( $expected, $this->registry->get_all_registered() );
 	}
 
 	/**
-	 * @covers WP_Webfonts_Registry::register
+	 * @covers       WP_Webfonts_Registry::register
 	 *
 	 * @dataProvider data_register_with_invalid_schema
 	 *
@@ -140,7 +140,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Webfonts_Registry::register
+	 * @covers       WP_Webfonts_Registry::register
 	 *
 	 * @dataProvider data_register_with_valid_schema
 	 *
@@ -274,8 +274,8 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	 * As there are many moving parts to getting by provider, this test is an integration
 	 * test that does not mock.
 	 *
-	 * @covers WP_Webfonts_Registry::get_by_provider
-	 * @covers WP_Webfonts_Registry::register
+	 * @covers       WP_Webfonts_Registry::get_by_provider
+	 * @covers       WP_Webfonts_Registry::register
 	 *
 	 * @dataProvider data_get_by_provider_integrated
 	 *
@@ -385,7 +385,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Webfonts_Registry::get_by_font_family
+	 * @covers       WP_Webfonts_Registry::get_by_font_family
 	 *
 	 * @dataProvider data_get_by_font_family_when_invalid_input
 	 *

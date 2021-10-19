@@ -24,13 +24,21 @@ abstract class WP_Webfonts_Provider {
 	protected $id;
 
 	/**
-	 * An array of URLs to preconnect to.
+	 * The `<link>` element's attributes for each linked resource.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @var array
+	 * @var array[] {
+	 *     An array of linked resources.
+	 *
+	 *     @type array() {
+	 *          An array of attributes for this linked resource.
+	 *
+	 *          @type string $attribute => @type string $attribute_value
+	 *     }
+	 * }
 	 */
-	protected $preconnect_urls = array();
+	protected $link_attributes = array();
 
 	/**
 	 * The provider's root URL.
@@ -73,25 +81,25 @@ abstract class WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Get the array of URLs to preconnect to.
+	 * Get the `<link>` attributes.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return array
+	 * @return array[]
 	 */
-	public function get_preconnect_urls() {
-		return $this->preconnect_urls;
+	public function get_link_attributes() {
+		return $this->link_attributes;
 	}
 
 	/**
 	 * Sets the webfonts.
 	 *
 	 * The webfonts have been validated, are in kebab_case, and
-	 * are arranged by provider and then by font-family.
+	 * are arranged by provider.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array[] $webfonts The webfont's parameters.
+	 * @param array[] $webfonts Registered webfonts.
 	 */
 	public function set_webfonts( array $webfonts ) {
 		$this->webfonts = $webfonts;

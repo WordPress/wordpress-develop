@@ -148,7 +148,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 
 		$this->webfont_registry_mock
 			->expects( $this->once() )
-			->method( 'get_registry' )
+			->method( 'get_all_registered' )
 			->willReturn( $expected );
 
 		$this->assertSame( $expected, $this->controller->get_webfonts() );
@@ -222,7 +222,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 
 		$this->provider_registry_mock
 			->expects( $this->once() )
-			->method( 'get_registry' )
+			->method( 'get_all_registered' )
 			->willReturn( $expected );
 
 		$actual = $this->controller->get_registered_providers();
@@ -273,7 +273,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 		);
 		$this->provider_registry_mock
 			->expects( $this->once() )
-			->method( 'get_registry' )
+			->method( 'get_all_registered' )
 			->willReturn( $providers );
 
 		// Set up the webfonts registry mock.
