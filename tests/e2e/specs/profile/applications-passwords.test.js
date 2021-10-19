@@ -19,25 +19,6 @@ async function createApplicationPassword(applicationName) {
     await page.waitForSelector('#application-passwords-section .notice');
 }
 
-async function revokeAllApplicationPasswords() {
-    await visitAdminPage('profile.php');
-
-    const revokeAllButtonVisibility = await page.evaluate(() => {
-        const e = document.querySelector('.application-passwords-list-table-wrapper');
-        if (!e) {
-            return false;
-        }
-        const visibility = window.getComputedStyle(e);
-        return visibility && visibility.display !== 'none' && visibility.visibility !== 'hidden' && visibility.opacity !== '0';
-    });
-
-    if (revokeAllButtonVisibility) {
-        await page.click('#revoke-all-application-passwords');
-        await page.keyboard.press('Enter');
-        await page.waitForSelector('#application-passwords-section .notice-success');
-    }
-}
-
 async function revokeAllApplicationPasswordsWithApi() {
     await rest({
         method: 'DELETE',
@@ -93,7 +74,11 @@ describe('Manage applications passwords', () => {
 
     it('should correctly revoke all the application passwords', async() => {
         await createApplicationPassword(TEST_APPLICATION_NAME);
-        await revokeAllApplicationPasswords();
+
+        await page.waitForSelector('#revoke-all-application-passwords');
+        await page.click('#revoke-all-application-passwords');
+        await page.keyboard.press('Enter');
+        await page.waitForSelector('#application-passwords-section .notice-success');
 
         const successMessage = await page.waitForSelector('#application-passwords-section .notice-success');
         expect(
