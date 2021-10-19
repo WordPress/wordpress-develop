@@ -19,6 +19,16 @@ async function createApplicationPassword(applicationName) {
     await page.waitForSelector('#application-passwords-section .notice');
 }
 
+async function createApplicationPasswordWithApi(applicationName) {
+    await rest({
+        method: 'POST',
+        path: '/wp/v2/users/me/application-passwords',
+        data: {
+            name: applicationName,
+        },
+    });
+}
+
 async function revokeAllApplicationPasswordsWithApi() {
     await rest({
         method: 'DELETE',
