@@ -75,8 +75,9 @@ describe('Manage applications passwords', () => {
     it('should correctly revoke all the application passwords', async() => {
         await createApplicationPassword(TEST_APPLICATION_NAME);
 
-        await page.waitForSelector('#revoke-all-application-passwords');
-        await page.click('#revoke-all-application-passwords');
+        const revokeAllApplicationPasswordsButton = await page.waitForSelector('#revoke-all-application-passwords');
+        await revokeAllApplicationPasswordsButton.click();
+
         await page.keyboard.press('Enter');
         await page.waitForSelector('#application-passwords-section .notice-success');
 
