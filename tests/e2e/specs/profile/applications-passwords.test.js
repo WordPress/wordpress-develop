@@ -50,27 +50,27 @@ async function revokeAllApplicationPasswordsWithApi() {
 }
 
 describe('Manage applications passwords', () => {
-    const testApplicationName = 'Test Application';
+    const TEST_APPLICATION_NAME = 'Test Application';
 
     beforeEach(async() => {
         await revokeAllApplicationPasswordsWithApi();
     });
 
     it('should correctly create a new application password', async() => {
-        await createApplicationPassword(testApplicationName);
+        await createApplicationPassword(TEST_APPLICATION_NAME);
 
         const response = await getResponseForApplicationPassword();
-        expect(response[0]['name']).toBe(testApplicationName);
+        expect(response[0]['name']).toBe(TEST_APPLICATION_NAME);
 
         const successMessage = await page.waitForSelector('#application-passwords-section .notice-success');
         expect(
             await successMessage.evaluate((element) => element.innerText)
-        ).toContain(`Your new password for ${testApplicationName} is: \n\nBe sure to save this in a safe location. You will not be able to retrieve it.`);
+        ).toContain(`Your new password for ${TEST_APPLICATION_NAME} is: \n\nBe sure to save this in a safe location. You will not be able to retrieve it.`);
     });
 
     it('should not allow to create two applications passwords with the same name', async() => {
-        await createApplicationPassword(testApplicationName);
-        await createApplicationPassword(testApplicationName);
+        await createApplicationPassword(TEST_APPLICATION_NAME);
+        await createApplicationPassword(TEST_APPLICATION_NAME);
 
         const errorMessage = await page.waitForSelector('#application-passwords-section .notice-error');
 
@@ -80,7 +80,7 @@ describe('Manage applications passwords', () => {
     });
 
     it('should correctly revoke a single application password', async() => {
-        await createApplicationPassword(testApplicationName);
+        await createApplicationPassword(TEST_APPLICATION_NAME);
 
         const revokeApplicationButton = await page.waitForSelector('.application-passwords-user tr button.delete');
         await revokeApplicationButton.click();
@@ -96,7 +96,7 @@ describe('Manage applications passwords', () => {
     });
 
     it('should correctly revoke all the application passwords', async() => {
-        await createApplicationPassword(testApplicationName);
+        await createApplicationPassword(TEST_APPLICATION_NAME);
         await revokeAllApplicationPasswords();
 
         const successMessage = await page.waitForSelector('#application-passwords-section .notice-success');
