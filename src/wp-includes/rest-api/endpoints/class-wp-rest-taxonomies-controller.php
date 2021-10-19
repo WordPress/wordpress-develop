@@ -278,7 +278,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 					'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 				),
 				'https://api.w.org/items' => array(
-					'href' => rest_url( rest_get_route_for_taxonomy( $taxonomy->name ) ),
+					'href' => rest_url( rest_get_route_for_taxonomy_items( $taxonomy->name ) ),
 				),
 			)
 		);

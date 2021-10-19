@@ -2069,7 +2069,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				$terms_url = add_query_arg(
 					'post',
 					$post->ID,
-					rest_url( rest_get_route_for_taxonomy( $tax ) )
+					rest_url( rest_get_route_for_taxonomy_items( $tax ) )
 				);
 
 				$links['https://api.w.org/term'][] = array(

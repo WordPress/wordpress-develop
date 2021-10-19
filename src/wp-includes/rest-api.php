@@ -3132,7 +3132,7 @@ function rest_get_route_for_term( $term ) {
  * @param string $taxonomy Name of taxonomy.
  * @return string The route path with a leading slash for the given taxonomy.
  */
-function rest_get_route_for_taxonomy( $taxonomy ) {
+function rest_get_route_for_taxonomy_items( $taxonomy ) {
 	$taxonomy = get_taxonomy( $taxonomy );
 	if ( ! $taxonomy ) {
 		return '';
