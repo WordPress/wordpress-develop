@@ -275,7 +275,7 @@ function get_shortcode_regex( $tagnames = null ) {
 	global $shortcode_tags;
 	global $empty_shortcode_tags_implodes;
 
-	if ( empty( $tagnames )) {
+	if ( null === $tagnames || [] === $tagnames) {
 		if ( null === $empty_shortcode_tags_implodes ) {
 			$tagnames = array_keys( $shortcode_tags );
 			$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
