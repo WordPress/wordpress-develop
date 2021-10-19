@@ -2066,13 +2066,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				if ( empty( $taxonomy_obj->show_in_rest ) ) {
 					continue;
 				}
-
-				$tax_base = ! empty( $taxonomy_obj->rest_base ) ? $taxonomy_obj->rest_base : $tax;
-
 				$terms_url = add_query_arg(
 					'post',
 					$post->ID,
-					rest_url( 'wp/v2/' . $tax_base )
+					rest_url( rest_get_route_for_taxonomy( $tax ) )
 				);
 
 				$links['https://api.w.org/term'][] = array(
