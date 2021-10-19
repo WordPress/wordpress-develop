@@ -56,7 +56,7 @@ describe('Manage applications passwords', () => {
         await revokeAllApplicationPasswordsWithApi();
     });
 
-    it('correctly creates a new application password', async() => {
+    it('should correctly create a new application password', async() => {
         await createApplicationPassword(testApplicationName);
 
         const response = await getResponseForApplicationPassword();
@@ -68,7 +68,7 @@ describe('Manage applications passwords', () => {
         ).toContain(`Your new password for ${testApplicationName} is: \n\nBe sure to save this in a safe location. You will not be able to retrieve it.`);
     });
 
-    it('should not allows to create two applications passwords with the same name', async() => {
+    it('should not allow to create two applications passwords with the same name', async() => {
         await createApplicationPassword(testApplicationName);
         await createApplicationPassword(testApplicationName);
 
@@ -79,7 +79,7 @@ describe('Manage applications passwords', () => {
         ).toContain('Each application name should be unique.');
     });
 
-    it('should correctly revokes a single application password', async() => {
+    it('should correctly revoke a single application password', async() => {
         await createApplicationPassword(testApplicationName);
 
         const revokeApplicationButton = await page.waitForSelector('.application-passwords-user tr button.delete');
@@ -95,7 +95,7 @@ describe('Manage applications passwords', () => {
         expect(response).toEqual([]);
     });
 
-    it('correctly revokes all the application passwords', async() => {
+    it('should correctly revoke all the application passwords', async() => {
         await createApplicationPassword(testApplicationName);
         await revokeAllApplicationPasswords();
 
