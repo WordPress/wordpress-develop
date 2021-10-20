@@ -78,8 +78,15 @@ describe("Manage applications passwords", () => {
 		const revokeApplicationButton = await page.waitForSelector(
 			".application-passwords-user tr button.delete"
 		);
-		await revokeApplicationButton.click();
-		await page.keyboard.press("Enter");
+		
+		const revocationDialogPromise = new Promise((resolve) => {
+			page.once("dialog", resolve);
+		});
+
+		await Promise.all([
+			revocationDialogPromise,
+			revokeApplicationButton.click(),
+		]);
 
 		const successMessage = await page.waitForSelector(
 			"#application-passwords-section .notice-success"
@@ -103,15 +110,10 @@ describe("Manage applications passwords", () => {
 			page.once("dialog", resolve);
 		});
 
-		const [dialog] = await Promise.all([
+		await Promise.all([
 			revocationDialogPromise,
 			revokeAllApplicationPasswordsButton.click(),
 		]);
-
-		expect(dialog.type()).toBe("confirm");
-		expect(dialog.message()).toMatchInlineSnapshot(
-			`"Are you sure you want to revoke all passwords? This action cannot be undone."`
-		);
 
 		/**
 		 * This is commented out because we're using enablePageDialogAccept
