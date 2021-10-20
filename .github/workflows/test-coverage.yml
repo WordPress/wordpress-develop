@@ -168,3 +168,9 @@ jobs:
         with:
           file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
           flags: multisite,php
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    needs: [ test-coverage-report ]
+    if: ${{ always() }}
