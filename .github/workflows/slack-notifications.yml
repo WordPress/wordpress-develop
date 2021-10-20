@@ -7,6 +7,19 @@ name: Slack Notifications
 
 on:
   workflow_call:
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK:
+        description: 'The Slack webhook URL for a successful build.'
+        required: true
+      SLACK_GHA_CANCELLED_WEBHOOK:
+        description: 'The Slack webhook URL for a cancelled build.'
+        required: true
+      SLACK_GHA_FIXED_WEBHOOK:
+        description: 'The Slack webhook URL for a fixed build.'
+        required: true
+      SLACK_GHA_FAILURE_WEBHOOK:
+        description: 'The Slack webhook URL for a failed build.'
+        required: true
 
 jobs:
   # Gathers the details needed for Slack notifications.
