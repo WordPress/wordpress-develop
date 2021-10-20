@@ -83,3 +83,9 @@ jobs:
 
       - name: Run PHP compatibility tests
         run: phpcs --standard=phpcompat.xml.dist -q --report=checkstyle | cs2pr
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    needs: [ php-compatibility ]
+    if: ${{ always() }}

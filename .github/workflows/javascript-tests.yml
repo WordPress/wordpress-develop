@@ -81,3 +81,9 @@ jobs:
 
       - name: Run QUnit tests
         run: npm run grunt qunit:compiled
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    needs: [ test-js ]
+    if: ${{ always() }}

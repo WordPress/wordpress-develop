@@ -112,3 +112,9 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    needs: [ e2e-tests ]
+    if: ${{ always() }}

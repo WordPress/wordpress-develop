@@ -138,3 +138,9 @@ jobs:
 
       - name: Run JSHint
         run: npm run grunt jshint
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    needs: [ phpcs, jshint ]
+    if: ${{ always() }}
