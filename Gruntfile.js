@@ -35,6 +35,7 @@ module.exports = function(grunt) {
 			php: []
 		};
 
+
 	if ( 'watch:phpunit' === grunt.cli.tasks[ 0 ] && ! phpUnitWatchGroup ) {
 		grunt.log.writeln();
 		grunt.fail.fatal(
