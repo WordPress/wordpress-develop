@@ -207,7 +207,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 					'fontStyle'   => 'normal',
 					'fontWeight'  => '200 900',
 					'fontStretch' => 'normal',
-					'src'         => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' )
+					'src'         => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' ),
 				),
 				'validated_webfont' => array(
 					'provider'     => 'local',
@@ -359,7 +359,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 						'fontStyle'   => 'normal',
 						'fontWeight'  => '200 900',
 						'fontStretch' => 'normal',
-						'src'         => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' )
+						'src'         => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' ),
 					),
 					array(
 						'provider'   => 'google',
