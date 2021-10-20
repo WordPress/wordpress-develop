@@ -179,6 +179,10 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 
 		foreach ( $value as $item ) {
 
+			if ( 0 === strpos( $item['url'], get_site_url() ) ) {
+				$item['url'] = wp_make_link_relative( $item['url'] );
+			}
+
 			$src .= ( 'data' === $item['format'] )
 				? ", url({$item['url']})"
 				: ", url('{$item['url']}') format('{$item['format']}')";
