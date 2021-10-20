@@ -207,7 +207,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 					'fontStyle'   => 'normal',
 					'fontWeight'  => '200 900',
 					'fontStretch' => 'normal',
-					'src'         => 'file:./assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+					'src'         => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' )
 				),
 				'validated_webfont' => array(
 					'provider'     => 'local',
@@ -216,7 +216,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 					'font-weight'  => '200 900',
 					'font-display' => 'fallback',
 					'font-stretch' => 'normal',
-					'src'          => 'file:./assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+					'src'          => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' ),
 				),
 				'expected'          => 'source-serif-pro.normal.200 900',
 			),
@@ -227,7 +227,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '200 900',
 					'font-stretch' => 'normal',
-					'src'          => 'file:./assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+					'src'          => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' ),
 				),
 				'validated_webfont' => array(
 					'provider'     => 'local',
@@ -236,7 +236,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 					'font-weight'  => '200 900',
 					'font-display' => 'fallback',
 					'font-stretch' => 'normal',
-					'src'          => 'file:./assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+					'src'          => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' ),
 				),
 				'expected'          => 'source-serif-pro.normal.200 900',
 			),
@@ -359,7 +359,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 						'fontStyle'   => 'normal',
 						'fontWeight'  => '200 900',
 						'fontStretch' => 'normal',
-						'src'         => 'file:./assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+						'src'         => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' )
 					),
 					array(
 						'provider'   => 'google',
@@ -377,7 +377,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 						'font-weight'  => '200 900',
 						'font-display' => 'fallback',
 						'font-stretch' => 'normal',
-						'src'          => 'file:./assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+						'src'          => get_theme_file_uri( 'assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' ),
 					),
 				),
 			),
