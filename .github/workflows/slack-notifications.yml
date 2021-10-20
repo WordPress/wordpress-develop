@@ -32,7 +32,7 @@ jobs:
         uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
         with:
           script: |
-            const workflow_run = await github.actions.getWorkflowRun({
+            const workflow_run = await github.rest.actions.getWorkflowRun({
               owner: '${{ github.repository_owner }}',
               repo: 'wordpress-develop',
               run_id: ${{ github.run_id }},
@@ -44,7 +44,7 @@ jobs:
         uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
         with:
           script: |
-            const workflow_run = await github.actions.getWorkflowRun({
+            const workflow_run = await github.rest.actions.getWorkflowRun({
               owner: '${{ github.repository_owner }}',
               repo: 'wordpress-develop',
               run_id: ${{ github.run_id }},
@@ -56,7 +56,7 @@ jobs:
         uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
         with:
           script: |
-            const previous_runs = await github.actions.listWorkflowRuns({
+            const previous_runs = await github.rest.actions.listWorkflowRuns({
               owner: '${{ github.repository_owner }}',
               repo: 'wordpress-develop',
               workflow_id: ${{ steps.current-workflow-id.outputs.result }},
