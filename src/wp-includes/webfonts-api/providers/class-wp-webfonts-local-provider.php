@@ -178,31 +178,12 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 		$src = "local($font_family)";
 
 		foreach ( $value as $item ) {
-			// If the URL starts with "file:./" then it originated in a theme.json file.
-			// Tweak the URL to be relative to the theme root.
-			if ( 0 === strpos( $item['url'], 'file:./' ) ) {
-				$item['url'] = $this->replace_url_temp_placeholder( $item['url'] );
-			}
 
 			$src .= ( 'data' === $item['format'] )
 				? ", url({$item['url']})"
 				: ", url('{$item['url']}') format('{$item['format']}')";
 		}
 		return $src;
-	}
-
-	/**
-	 * Replace URL's temporary placeholder with theme path.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $url URL with temporary placeholder.
-	 * @return string URL to font file.
-	 */
-	private function replace_url_temp_placeholder( $url ) {
-		$url = str_replace( 'file:./', '', $url );
-
-		return wp_make_link_relative( get_theme_file_uri( $url ) );
 	}
 
 	/**

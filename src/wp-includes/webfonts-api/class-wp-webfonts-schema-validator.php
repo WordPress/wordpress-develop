@@ -219,11 +219,6 @@ class WP_Webfonts_Schema_Validator {
 			return true;
 		}
 
-		// Check if it's a relative URL.
-		if ( 0 === strpos( $src, 'file:./' ) ) {
-			return true;
-		}
-
 		return false;
 	}
 
