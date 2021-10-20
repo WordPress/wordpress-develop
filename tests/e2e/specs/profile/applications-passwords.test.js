@@ -86,9 +86,25 @@ describe('Manage applications passwords', () => {
         await createApplicationPassword(TEST_APPLICATION_NAME);
 
         const revokeAllApplicationPasswordsButton = await page.waitForSelector('#revoke-all-application-passwords');
-        await revokeAllApplicationPasswordsButton.click();
 
-        await page.keyboard.press('Enter');
+        const revocationDialogPromise = new Promise(resolve => {
+            page.once('dialog', resolve);
+        });
+
+        const [dialog] = await Promise.all([
+            revocationDialogPromise,
+            revokeAllApplicationPasswordsButton.click(),
+        ]);
+
+        expect(dialog.type()).toBe('confirm');
+        expect(dialog.message()).toMatchInlineSnapshot();
+
+        /**
+         * This is commented out because we're using enablePageDialogAccept
+         * which is overly aggressive and no way to temporary disable it either.
+         */
+        // await dialog.accept();
+
         await page.waitForSelector('#application-passwords-section .notice-success');
 
         const successMessage = await page.waitForSelector('#application-passwords-section .notice-success');
