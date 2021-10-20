@@ -168,7 +168,7 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 	font-style:italic;
 	font-weight:400 900;
 	font-stretch:normal;
-	src:local("Open Sans"), url('http://example.org/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf') format('ttf');
+	src:local("Open Sans"), url('/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf') format('ttf');
 }
 @font-face{
 	provider:local;
@@ -176,7 +176,7 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 	font-style:normal;
 	font-weight:400 900;
 	font-stretch:normal;
-	src:local("Open Sans"), url('http://example.org/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf') format('ttf');
+	src:local("Open Sans"), url('/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf') format('ttf');
 }
 
 CSS
