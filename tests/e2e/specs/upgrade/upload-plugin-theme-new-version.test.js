@@ -42,13 +42,17 @@ describe('Manage uploading new plugin/theme version', () => {
 
 		await page.click('a.update-from-upload-overwrite');
 
-		const contentWrap = await page.waitForSelector('.wrap');
-		expect(
-			contentWrap.evaluate((element) => element.textContent)
-		).toContain('Installing plugin from uploaded file: classic-editor.1.6.2.zipUnpacking the package…Updating the plugin…Removing the current plugin…Plugin updated successfully.Go to Plugin Installer');
+		await page.waitForSelector('.wrap');
+		const updatingMessages = await page.$$('.wrap p');
+		const mergedMessages = await Promise.all(
+			updatingMessages.map((message) => message.evaluate((element) => element.textContent))
+		);
+		const mergedMessage = mergedMessages.join(' ');
 
 		// Delete the plugin
 		await deactivatePlugin('classic-editor');
 		await uninstallPlugin('classic-editor');
 	});
+
+	it.todo('cancel and go back feature');
 });
