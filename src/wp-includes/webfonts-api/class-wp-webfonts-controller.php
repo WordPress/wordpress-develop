@@ -222,4 +222,26 @@ class WP_Webfonts_Controller {
 	public function render_links() {
 		echo $this->providers->get_links();
 	}
+
+	/**
+	 * Get the webfonts registry.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return WP_Webfonts_Registry
+	 */
+	public function get_webfonts_registry() {
+		return $this->webfonts_registry;
+	}
+
+	/**
+	 * Get the providers registry.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return WP_Webfonts_Provider_Registry
+	 */
+	public function get_providers() {
+		return $this->providers;
+	}
 }

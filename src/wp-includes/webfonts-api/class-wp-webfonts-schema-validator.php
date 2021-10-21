@@ -123,7 +123,6 @@ class WP_Webfonts_Schema_Validator {
 	 * @return bool True if valid. False if invalid.
 	 */
 	private function is_valid_provider( array $webfont ) {
-		// @todo check if provider is registered.
 
 		if (
 			empty( $webfont['provider'] ) ||
@@ -131,6 +130,12 @@ class WP_Webfonts_Schema_Validator {
 		) {
 			trigger_error( __( 'Webfont provider must be a non-empty string.' ) );
 
+			return false;
+		}
+
+		// Check if provider is registered.
+		$providers = wp_webfonts()->get_providers()->get_all_registered();
+		if ( ! array_key_exists( $webfont['provider'], $providers ) ) {
 			return false;
 		}
 
