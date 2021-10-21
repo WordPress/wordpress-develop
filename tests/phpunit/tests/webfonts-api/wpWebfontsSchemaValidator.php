@@ -42,7 +42,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	 */
 	public function data_is_valid_schema_with_valid() {
 		return array(
-			'basic schema'                  => array(
+			'basic schema' => array(
 				array(
 					'provider'    => 'google',
 					'font-family' => 'Open Sans',
