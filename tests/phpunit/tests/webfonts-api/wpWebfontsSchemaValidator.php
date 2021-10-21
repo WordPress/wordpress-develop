@@ -119,11 +119,20 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'  => 'normal',
 					'font-weight' => '400',
 				),
-				'expected_message' => 'Webfont provider must be a non-empty string.',
+				'expected_message' => array(
+					'Webfont provider must be a non-empty string.',
+			),
+			'provider: not registered' => array(
+				'webfont'          => array(
+					'provider'    => 'some-provider',
+					'font-style'  => 'normal',
+					'font-weight' => '400',
+				),
+				'expected_message' => 'Webfont provider is not registered.',
 			),
 			'font-family: not defined'            => array(
 				'webfont'          => array(
-					'provider'    => 'some-provider',
+					'provider'    => 'local',
 					'font-style'  => 'normal',
 					'font-weight' => '400',
 				),
@@ -131,7 +140,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 			),
 			'font-family: empty string'           => array(
 				'webfont'          => array(
-					'provider'    => 'some-provider',
+					'provider'    => 'local',
 					'font-family' => '',
 					'font-style'  => 'normal',
 					'font-weight' => '400',
@@ -140,7 +149,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 			),
 			'font-family: not a string'           => array(
 				'webfont'          => array(
-					'provider'    => 'some-provider',
+					'provider'    => 'local',
 					'font-family' => null,
 					'font-style'  => 'normal',
 					'font-weight' => '400',
