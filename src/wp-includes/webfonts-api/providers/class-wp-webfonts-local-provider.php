@@ -151,7 +151,6 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 				$value = $this->compile_src( $webfont['font-family'], $value );
 			}
 
-			// @todo Is this a needed configuration parameter? If yes, need to add to Validator; else will be stripped out.
 			// If font-variation-settings is an array, convert it to a string.
 			if ( 'font-variation-settings' === $key && is_array( $value ) ) {
 				$value = $this->compile_variations( $value );
