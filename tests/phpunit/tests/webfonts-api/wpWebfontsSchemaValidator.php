@@ -32,6 +32,8 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	 * @param array $webfont Webfont input.
 	 */
 	public function test_is_unregistered_schema_provider( array $webfont ) {
+		$this->expectNotice();
+		$this->expectNoticeMessage( 'Webfont provider is not registered.' );
 		$this->assertFalse( self::$validator->is_valid_schema( $webfont ) );
 	}
 
