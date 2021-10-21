@@ -49,7 +49,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'  => 'normal',
 					'font-weight' => '400',
 				),
-			)
+			),
 		);
 	}
 
