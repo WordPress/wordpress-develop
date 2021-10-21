@@ -21,23 +21,27 @@ describe('Manage uploading new plugin/theme version', () => {
 	const uploadPluginUrl = addQueryArgs('', { tab: 'upload' });
 
 	it('should replace a plugin when uploading a new version', async () => {
-		// await installPlugin('classic-editor', 'Classic Editor');
-		// await activatePlugin('classic-editor');
+		await installPlugin('classic-editor', 'Classic Editor');
+		await activatePlugin('classic-editor');
 
 		await visitAdminPage('plugin-install.php', uploadPluginUrl);
 		const pluginPath = path.join(
 			__dirname,
-			'classic-editor.zip'
+			'..',
+			'..',
+			'fixtures',
+			'plugins',
+			'classic-editor.1.6.2.zip'
 		);
 		const input = await page.$('#pluginzip');
 		await input.uploadFile(pluginPath);
 		await page.click('#install-plugin-submit');
-
 		await page.waitForSelector('.button.button-primary');
 
 		await activatePlugin('classic-editor');
 
-		// Uninstall the plugin
+		// Delete the plugin
+		await deactivatePlugin('classic-editor');
 		await uninstallPlugin('classic-editor');
 	});
 });
