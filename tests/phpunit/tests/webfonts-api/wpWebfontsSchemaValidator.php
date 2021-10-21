@@ -119,10 +119,9 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'  => 'normal',
 					'font-weight' => '400',
 				),
-				'expected_message' => array(
-					'Webfont provider must be a non-empty string.',
+				'expected_message' => 'Webfont provider must be a non-empty string.',
 			),
-			'provider: not registered' => array(
+			'provider: not registered'            => array(
 				'webfont'          => array(
 					'provider'    => 'some-provider',
 					'font-style'  => 'normal',
