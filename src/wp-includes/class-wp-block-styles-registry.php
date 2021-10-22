@@ -60,6 +60,15 @@ final class WP_Block_Styles_Registry {
 			return false;
 		}
 
+		if( preg_match( '/\\s+/', $style_properties['name'] ) )  {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Block style name must not contain any spaces.' ),
+				'5.9.0'
+			);
+			return false;
+		}
+
 		$block_style_name = $style_properties['name'];
 
 		if ( ! isset( $this->registered_block_styles[ $block_name ] ) ) {

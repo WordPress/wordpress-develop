@@ -8,7 +8,7 @@
  */
 
 /**
- * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names().
+ * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names() and register_block_style()
  *
  * @since 5.0.0
  *
@@ -558,5 +558,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		remove_filter( 'block_type_metadata_settings', $filter_metadata_registration );
 
 		$this->assertSame( 3, $result->api_version );
+	}
+
+	/**
+	 * Test case to return an E_USER_NOTICE when block style name attribute
+	 * contain spaces.
+	 * @ticket 54296
+	 * 
+	 * @expectedIncorrectUsage WP_Block_Styles_Registry::register
+	 */
+	public function test_register_block_style_name_contain_spaces() {
+		$block_name = 'core/query';
+		$block_styles = array(
+			'name'			=> 'style-class-1    style-class-2',
+			'label'			=> 'Custom Style Label'
+		);
+		register_block_style($block_name, $block_styles);
 	}
 }
