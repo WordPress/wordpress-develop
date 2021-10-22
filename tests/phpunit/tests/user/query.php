@@ -198,7 +198,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'include'  => self::$author_ids,
 				'meta_key' => 'last_name',
 				'orderby'  => 'meta_value',
-				'fields'   => 'ids',
+				'fields'   => 'ID',
 			)
 		);
 
@@ -220,7 +220,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'include'  => self::$author_ids,
 				'meta_key' => 'user_age',
 				'orderby'  => 'meta_value_num',
-				'fields'   => 'ids',
+				'fields'   => 'ID',
 			)
 		);
 
@@ -242,7 +242,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'include'  => self::$author_ids,
 				'meta_key' => 'foo',
 				'orderby'  => 'foo',
-				'fields'   => 'ids',
+				'fields'   => 'ID',
 			)
 		);
 
@@ -261,7 +261,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q = new WP_User_Query(
 			array(
-				'fields'     => 'ids',
+				'fields'     => 'ID',
 				'meta_query' => array(
 					'foo_key' => array(
 						'key'     => 'foo',
@@ -302,7 +302,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q = new WP_User_Query(
 			array(
-				'fields'     => 'ids',
+				'fields'     => 'ID',
 				'meta_query' => array(
 					'foo_key' => array(
 						'key'     => 'foo',
@@ -332,7 +332,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q = new WP_User_Query(
 			array(
-				'fields'     => 'ids',
+				'fields'     => 'ID',
 				'meta_query' => array(
 					'foo_key' => array(
 						'key'     => 'foo',
@@ -1278,7 +1278,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'paged'   => 2,
 				'orderby' => 'ID',
 				'order'   => 'DESC', // Avoid funkiness with user 1.
-				'fields'  => 'ids',
+				'fields'  => 'ID',
 			)
 		);
 
@@ -1354,7 +1354,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = get_users(
 			array(
 				'role'   => 'editor',
-				'fields' => 'ids',
+				'fields' => 'ID',
 			)
 		);
 
