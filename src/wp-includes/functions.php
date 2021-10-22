@@ -8120,8 +8120,9 @@ function get_dirsize( $directory, $max_execution_time = null ) {
  * @param string       $directory          Full path of a directory.
  * @param string|array $exclude            Optional. Full path of a subdirectory to exclude from the total,
  *                                         or array of paths. Expected without trailing slash(es).
- * @param int          $max_execution_time Maximum time to run before giving up. In seconds. The timeout is global
- *                                         and is measured from the moment WordPress started to load.
+ * @param int          $max_execution_time Optional. Maximum time to run before giving up. In seconds.
+ *                                         The timeout is global and is measured from the moment
+ *                                         WordPress started to load.
  * @param array        $directory_cache    Optional. Array of cached directory paths.
  *
  * @return int|false|null Size in bytes if a valid directory. False if not. Null if timeout.
@@ -8194,7 +8195,9 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 						}
 					}
 
-					if ( $max_execution_time > 0 && microtime( true ) - WP_START_TIMESTAMP > $max_execution_time ) {
+					if ( $max_execution_time > 0 &&
+						( microtime( true ) - WP_START_TIMESTAMP ) > $max_execution_time
+					) {
 						// Time exceeded. Give up instead of risking a fatal timeout.
 						$size = null;
 						break;
@@ -8203,6 +8206,10 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 			}
 			closedir( $handle );
 		}
+	}
+
+	if ( ! is_array( $directory_cache ) ) {
+		$directory_cache = array();
 	}
 
 	$directory_cache[ $directory ] = $size;
@@ -8221,21 +8228,50 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
  * Removes the current directory and all parent directories from the `dirsize_cache` transient.
  *
  * @since 5.6.0
+ * @since 5.9.0 Added input validation with a notice for invalid input.
  *
  * @param string $path Full path of a directory or file.
  */
 function clean_dirsize_cache( $path ) {
+	if ( ! is_string( $path ) || empty( $path ) ) {
+		trigger_error(
+			sprintf(
+				/* translators: 1: Function name, 2: A variable type, like "boolean" or "integer". */
+				__( '%1$s only accepts a non-empty path string, received %2$s.' ),
+				'<code>clean_dirsize_cache()</code>',
+				'<code>' . gettype( $path ) . '</code>'
+			)
+		);
+		return;
+	}
+
 	$directory_cache = get_transient( 'dirsize_cache' );
 
 	if ( empty( $directory_cache ) ) {
 		return;
 	}
 
-	$path = untrailingslashit( $path );
+	if (
+		strpos( $path, '/' ) === false &&
+		strpos( $path, '\\' ) === false
+	) {
+		unset( $directory_cache[ $path ] );
+		set_transient( 'dirsize_cache', $directory_cache );
+		return;
+	}
+
+	$last_path = null;
+	$path      = untrailingslashit( $path );
 	unset( $directory_cache[ $path ] );
 
-	while ( DIRECTORY_SEPARATOR !== $path && '.' !== $path && '..' !== $path ) {
-		$path = dirname( $path );
+	while (
+		$last_path !== $path &&
+		DIRECTORY_SEPARATOR !== $path &&
+		'.' !== $path &&
+		'..' !== $path
+	) {
+		$last_path = $path;
+		$path      = dirname( $path );
 		unset( $directory_cache[ $path ] );
 	}
 
