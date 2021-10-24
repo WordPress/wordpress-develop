@@ -389,19 +389,42 @@ class WP_Scripts extends WP_Dependencies {
 		$allowed_attributes = array( 'async', 'crossorigin', 'defer', 'integrity', 'nonce', 'referrerpolicy', 'type' );
 
 		$attributes_string = '';
-		$type_attribute    = false;
+		$type_attribute_exist    = false;
 
 		foreach ( $attributes as $key => $value ) {
-			if ( in_array( $key, $allowed_attributes ) && esc_attr( $value ) ) {
-				$attributes_string .= sprintf( " %s='%s' ", $key, $value );
+			if ( in_array( $key, $allowed_attributes ) ) {
 
-				if ( 'type' === $key ) {
-					$type_attribute = true;
+				if ( esc_attr( $value ) ) {
+					$attributes_string .= sprintf( " %s='%s' ", $key, $value );
+
+					if ( 'type' === $key ) {
+						$type_attribute_exist = true;
+					}
+
+				} else {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							__( 'This %s value is not valid for attribute' ),
+							'<code>$value</code>'
+						),
+						'5.8.2'
+					);
 				}
+
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						__( 'This %s attribute is not supported with script tag' ),
+						'<code>$key</code>'
+					),
+					'5.8.2'
+				);
 			}
 		}
 
-		if ( true === $type_attribute ) {
+		if ( true === $type_attribute_exist ) {
 			$this->type_attr = '';
 		}
 
