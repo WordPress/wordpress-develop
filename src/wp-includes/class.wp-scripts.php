@@ -392,18 +392,16 @@ class WP_Scripts extends WP_Dependencies {
 		$type_attribute    = false;
 
 		foreach ( $attributes as $key => $value ) {
-
 			if ( in_array( $key, $allowed_attributes ) && esc_attr( $value ) ) {
 				$attributes_string .= sprintf( " %s='%s' ", $key, $value );
 
-				if ( $key == 'type' ) {
+				if ( 'type' === $key ) {
 					$type_attribute = true;
 				}
 			}
-
 		}
 
-		if ( $type_attribute ) {
+		if ( true === $type_attribute ) {
 			$this->type_attr = '';
 		}
 
