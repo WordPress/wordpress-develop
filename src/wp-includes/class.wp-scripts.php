@@ -393,14 +393,12 @@ class WP_Scripts extends WP_Dependencies {
 
 		foreach ( $attributes as $key => $value ) {
 			if ( in_array( $key, $allowed_attributes ) ) {
-
 				if ( esc_attr( $value ) ) {
 					$attributes_string .= sprintf( " %s='%s' ", $key, $value );
 
 					if ( 'type' === $key ) {
 						$type_attribute_exist = true;
 					}
-
 				} else {
 					_doing_it_wrong(
 						__METHOD__,
@@ -411,7 +409,6 @@ class WP_Scripts extends WP_Dependencies {
 						'5.8.2'
 					);
 				}
-
 			} else {
 				_doing_it_wrong(
 					__METHOD__,
