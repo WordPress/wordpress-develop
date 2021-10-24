@@ -354,7 +354,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 		$_handle = explode( '?', $handle );
 
 		if ( $src ) {
-			$wp_scripts->add( $_handle[0], $src, $deps, $ver, null, $attr);
+			$wp_scripts->add( $_handle[0], $src, $deps, $ver, null, $attr );
 		}
 
 		if ( $in_footer ) {
