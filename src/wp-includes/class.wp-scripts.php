@@ -285,6 +285,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$src         = $obj->src;
+		$attributes  = $obj->attr;
 		$cond_before = '';
 		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
@@ -384,8 +385,30 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
+		/** process custom attributes */
+		$allowed_attributes = array( 'async', 'crossorigin', 'defer', 'integrity', 'nonce', 'referrerpolicy', 'type' );
+
+		$attributes_string = '';
+		$type_attribute    = false;
+
+		foreach ( $attributes as $key => $value ) {
+
+			if ( in_array( $key, $allowed_attributes ) && esc_attr( $value ) ) {
+				$attributes_string .= sprintf( " %s='%s' ", $key, $value );
+
+				if ( $key == 'type' ) {
+					$type_attribute = true;
+				}
+			}
+
+		}
+
+		if ( $type_attribute ) {
+			$this->type_attr = '';
+		}
+
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
+		$tag .= sprintf( "<script%s src='%s' id='%s-js' %s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $attributes_string );
 		$tag .= $after_handle . $cond_after;
 
 		/**
