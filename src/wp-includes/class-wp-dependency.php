@@ -62,7 +62,7 @@ class _WP_Dependency {
 	/**
 	 * Additional arguments for attributes.
 	 *
-	 * @since 5.8.1
+	 * @since 5.8.2
 	 * @var array
 	 */
 	public $attr = array();
