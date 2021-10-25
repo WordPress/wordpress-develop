@@ -78,12 +78,12 @@ jobs:
         multisite: [ false, true ]
         include:
           # Additional "slow" jobs for PHP 5.6.
-          - php: '5.6.20'
+          - php: '5.6'
             os: ubuntu-latest
             memcached: false
             multisite: false
             split_slow: true
-          - php: '5.6.20'
+          - php: '5.6'
             os: ubuntu-latest
             memcached: false
             multisite: true
@@ -159,7 +159,7 @@ jobs:
           elif [ ${{ env.LOCAL_PHP }} == '7.1-fpm' ]; then
             docker-compose run --rm php composer update
             git checkout -- composer.lock
-          elif [[ ${{ env.LOCAL_PHP }} == '5.6.20-fpm' || ${{ env.LOCAL_PHP }} == '7.0-fpm' ]]; then
+          elif [[ ${{ env.LOCAL_PHP }} == '5.6-fpm' || ${{ env.LOCAL_PHP }} == '7.0-fpm' ]]; then
             docker-compose run --rm php composer require --dev phpunit/phpunit:"^5.7" --update-with-dependencies
             git checkout -- composer.lock composer.json
           else
