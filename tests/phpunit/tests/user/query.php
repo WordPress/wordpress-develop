@@ -1725,4 +1725,130 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		return array( 555 );
 	}
+
+	/**
+	 * @param $field
+	 * @param $expected
+	 *
+	 * @return void
+	 *
+	 * @dataProvider data_returning_fields
+	 *
+	 * @ticket 53177
+	 *
+	 * @covers  WP_User_Query::prepare_query
+	 */
+	public function test_returning_fields( $field, $expected_values ) {
+		$q    = new WP_User_Query(
+			array(
+				'fields'   => $field,
+				'include ' => array( self::$admin_ids[0] ),
+			)
+		);
+		$results = $q->get_results();
+
+		if ( 'all_with_meta' === $field ) {
+			$data = array_shift( $results )->data;
+
+		} else {
+			$data = ( isset( $results[0]->data ) ) ? $results[0]->data : $results[0];
+		}
+
+		foreach ( $expected_values as $key => $expected_value ) {
+			if ( ! is_array( $results ) ) {
+				$this->assertEquals( array_shift( $results ), $expected_value );
+			} else {
+				$value = ( isset( $data->$key ) ) ? $data->$key : $data;
+				$this->assertEquals( $value, $expected_value );
+			}
+		}
+	}
+	public function data_returning_fields() {
+		return array(
+			'all'             => array(
+				'field'    => 'all',
+				'expected' => array(
+					'ID'                  => '1',
+					'user_login'          => 'admin',
+					'user_nicename'       => 'admin',
+					'user_email'          => 'admin@example.org',
+					'user_url'            => 'http://example.org',
+					'user_activation_key' => '',
+					'user_status'         => '0',
+					'display_name'        => 'admin',
+				),
+			),
+			'all_with_meta'   => array(
+				'field'    => 'all_with_meta',
+				'expected' => array(
+					'ID'                  => '1',
+					'user_login'          => 'admin',
+					'user_nicename'       => 'admin',
+					'user_email'          => 'admin@example.org',
+					'user_url'            => 'http://example.org',
+					'user_activation_key' => '',
+					'user_status'         => '0',
+					'display_name'        => 'admin',
+				),
+			),
+			'ID'              => array(
+				'field'    => 'ID',
+				'expected' => array(
+					'ID' => '1',
+				),
+			),
+			'display_name'    => array(
+				'field'    => 'display_name',
+				'expected' => array(
+					'display_name' => 'admin',
+				),
+			),
+			'user_login'      => array(
+				'field'    => 'user_login',
+				'expected' => array(
+					'user_login' => 'admin',
+				),
+			),
+			'user_nicename'   => array(
+				'field'    => 'user_nicename',
+				'expected' => array(
+					'user_nicename' => 'admin',
+				),
+			),
+			'user_email'      => array(
+				'field'    => 'user_email',
+				'expected' => array(
+					'user_email' => 'admin@example.org',
+				),
+			),
+			'invalid_field'   => array(
+				'field'    => 'invalid_field',
+				'expected' => array(
+					'0'         => '1',
+				),
+			),
+		);
+	}
+
+
+	/**
+	 *
+	 * @return void
+	 *
+	 * @ticket 53177
+	 *
+	 * @covers  WP_User_Query::prepare_query
+	 */
+	public function test_returning_field_user_registered() {
+		$q    = new WP_User_Query(
+			array(
+				'fields'   => 'user_registered',
+				'include ' => array( self::$admin_ids[0] ),
+			)
+		);
+		$results = $q->get_results();
+		$this->assertNotFalse( DateTime::createFromFormat( 'Y-m-d H:i:s', $results[0] ) );
+
+	}
+
 }
