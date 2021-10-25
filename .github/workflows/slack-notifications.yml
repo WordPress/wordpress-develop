@@ -118,7 +118,7 @@ jobs:
 
       - name: Construct payload and store as an output
         id: create-payload
-        run: echo "::set-output name=payload::{\"workflow_name\":\"${{ github.workflow }}\",\"ref_name\":\"${{ env.CURRENT_BRANCH }}\",\"run_url\":\"${{ github.event_name == 'workflow_run' && github.event.workflow_run.html_url || steps.current-workflow-url.outputs.result }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}"
+        run: echo "::set-output name=payload::{\"workflow_name\":\"${{ github.event_name == 'workflow_run' && github.event.workflow_run.name || github.workflow }}\",\"ref_name\":\"${{ env.CURRENT_BRANCH }}\",\"run_url\":\"${{ github.event_name == 'workflow_run' && github.event.workflow_run.html_url || steps.current-workflow-url.outputs.result }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}"
 
   # Posts notifications when a workflow fails.
   failure:
