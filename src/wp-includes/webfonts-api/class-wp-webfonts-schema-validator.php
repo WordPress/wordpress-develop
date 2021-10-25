@@ -81,6 +81,17 @@ class WP_Webfonts_Schema_Validator {
 	);
 
 	/**
+	 * Configuration parameters.
+	 *
+	 * These are configuring the webfont but are not @font-face properties.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @var array
+	 */
+	protected $configuration_params = array( 'provider' );
+
+	/**
 	 * Webfont being validated.
 	 *
 	 * Set as a property for performance.
@@ -186,7 +197,7 @@ class WP_Webfonts_Schema_Validator {
 		}
 
 		foreach ( (array) $webfont['src'] as $src ) {
-			if ( ! is_string( $src ) ) {
+			if ( empty( $src ) || ! is_string( $src ) ) {
 				trigger_error( __( 'Each webfont src must be a non-empty string.' ) );
 
 				return false;
@@ -211,18 +222,14 @@ class WP_Webfonts_Schema_Validator {
 	 * @return bool True when valid. False when invalid.
 	 */
 	private function is_src_value_valid( $src ) {
-		// Validate data URLs.
-		if ( preg_match( '/^data:.+;base64/', $src ) ) {
-			return true;
-		}
-
-		// Validate URLs.
-		if ( filter_var( $src, FILTER_VALIDATE_URL ) ) {
-			return true;
-		}
-
-		// Check if it's a URL starting with "//" (omitted protocol).
-		if ( 0 === strpos( $src, '//' ) ) {
+		if (
+			// Validate data URLs.
+			preg_match( '/^data:.+;base64/', $src ) ||
+			// Validate URLs.
+			filter_var( $src, FILTER_VALIDATE_URL ) ||
+			// Check if it's a URL starting with "//" (omitted protocol).
+			0 === strpos( $src, '//' )
+		) {
 			return true;
 		}
 
@@ -259,10 +266,10 @@ class WP_Webfonts_Schema_Validator {
 	private function set_valid_font_face_property() {
 		foreach ( array_keys( $this->webfont ) as $property ) {
 			/*
-			 * Skip valid configuration parameters (these are configuring the webfont
-			 * but are not @font-face properties.
+			 * Skip valid configuration parameters
+			 * (these are configuring the webfont but are not @font-face properties).
 			 */
-			if ( 'provider' === $property ) {
+			if ( in_array( $property, $this->configuration_params, true ) ) {
 				continue;
 			}
 
@@ -330,12 +337,10 @@ class WP_Webfonts_Schema_Validator {
 	 */
 	private function set_valid_font_display() {
 		if (
-			! empty( $this->webfont['font-display'] ) &&
-			in_array( $this->webfont['font-display'], self::VALID_FONT_DISPLAY, true )
+			empty( $this->webfont['font-display'] ) ||
+			! in_array( $this->webfont['font-display'], self::VALID_FONT_DISPLAY, true )
 		) {
-			return;
+			$this->webfont['font-display'] = 'fallback';
 		}
-
-		$this->webfont['font-display'] = 'fallback';
 	}
 }
