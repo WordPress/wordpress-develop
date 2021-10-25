@@ -129,7 +129,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 
 	$mid = (int) $wpdb->insert_id;
 
-	wp_cache_delete( $object_id, $meta_type . '_meta' );
+	clean_metadata_cache( $meta_type, $object_id );
 
 	/**
 	 * Fires immediately after meta of a specific type is added.
@@ -308,7 +308,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		return false;
 	}
 
-	wp_cache_delete( $object_id, $meta_type . '_meta' );
+	clean_metadata_cache( $meta_type, $object_id );
 
 	foreach ( $meta_ids as $meta_id ) {
 		/**
@@ -496,11 +496,10 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	}
 
 	if ( $delete_all ) {
-		$data = (array) $object_ids;
+		clean_metadata_cache( $meta_type, $object_ids );
 	} else {
-		$data = array( $object_id );
+		clean_metadata_cache( $meta_type, $object_id );
 	}
-	wp_cache_delete_multiple( $data, $meta_type . '_meta' );
 
 	/**
 	 * Fires immediately after deleting metadata of a specific type.
@@ -947,7 +946,7 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 		}
 
 		// Clear the caches.
-		wp_cache_delete( $object_id, $meta_type . '_meta' );
+		clean_metadata_cache( $meta_type, $object_id );
 
 		/** This action is documented in wp-includes/meta.php */
 		do_action( "updated_{$meta_type}_meta", $meta_id, $object_id, $meta_key, $_meta_value );
@@ -1056,7 +1055,7 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 		$result = (bool) $wpdb->delete( $table, array( $id_column => $meta_id ) );
 
 		// Clear the caches.
-		wp_cache_delete( $object_id, $meta_type . '_meta' );
+		clean_metadata_cache( $meta_type, $object_id );
 
 		/** This action is documented in wp-includes/meta.php */
 		do_action( "deleted_{$meta_type}_meta", (array) $meta_id, $object_id, $meta->meta_key, $meta->meta_value );
@@ -1200,6 +1199,23 @@ function update_meta_cache( $meta_type, $object_ids ) {
 	wp_cache_add_multiple( $data, $cache_key );
 
 	return $cache;
+}
+
+/**
+ * Clean the metadata cache.
+ *
+ * @since x.y.z
+ *
+ * @param string           $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                                     or any other object type with an associated meta table.
+ * @param string|int|int[] $object_ids Int, Array, or comma delimited list of object IDs to clean the cache for.
+ */
+function clean_metadata_cache( $meta_type, $object_ids ) {
+	$object_ids = wp_parse_id_list( $object_ids );
+
+	foreach ( $object_ids as $object_id ) {
+		wp_cache_delete( $object_id, $meta_type . '_meta' );
+	}
 }
 
 /**
