@@ -126,7 +126,7 @@ class WP_Webfonts_Schema_Validator {
 	}
 
 	/**
-	 * Checks if the provider is validate.
+	 * Checks if the provider is valid.
 	 *
 	 * @since 5.9.0
 	 *
@@ -156,7 +156,7 @@ class WP_Webfonts_Schema_Validator {
 	}
 
 	/**
-	 * Checks if the font family is validate.
+	 * Checks if the font family is valid.
 	 *
 	 * @since 5.9.0
 	 *
@@ -280,7 +280,7 @@ class WP_Webfonts_Schema_Validator {
 	}
 
 	/**
-	 * Checks if the font style is validate.
+	 * Sets a default font-style if invalid.
 	 *
 	 * @since 5.9.0
 	 */
@@ -303,7 +303,7 @@ class WP_Webfonts_Schema_Validator {
 	}
 
 	/**
-	 * Sets a default font weight if invalid.
+	 * Sets a default font-weight if invalid.
 	 *
 	 * @since 5.9.0
 	 */
@@ -331,7 +331,7 @@ class WP_Webfonts_Schema_Validator {
 	}
 
 	/**
-	 * Sets a default font display if invalid.
+	 * Sets a default font-display if invalid.
 	 *
 	 * @since 5.9.0
 	 */

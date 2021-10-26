@@ -149,7 +149,7 @@ class WP_Webfonts_Registry {
 	 * @return string Registration key.
 	 */
 	public function register( array $webfont ) {
-		$webfont = $this->convert_to_kabeb_case( $webfont );
+		$webfont = $this->convert_to_kebab_case( $webfont );
 
 		// Validate schema.
 		if ( ! $this->validator->is_valid_schema( $webfont ) ) {
@@ -199,14 +199,14 @@ class WP_Webfonts_Registry {
 	}
 
 	/**
-	 * Convert camelCase parameters into kabeb_case.
+	 * Convert camelCase parameters into kebab_case.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param string[] $webfont Webfont definition.
-	 * @return array Webfont with kabeb_case parameters (keys).
+	 * @return array Webfont with kebab_case parameters (keys).
 	 */
-	private function convert_to_kabeb_case( array $webfont ) {
+	private function convert_to_kebab_case( array $webfont ) {
 		$kebab_case = preg_replace( '/(?<!^)[A-Z]/', '-$0', array_keys( $webfont ) );
 		$kebab_case = array_map( 'strtolower', $kebab_case );
 

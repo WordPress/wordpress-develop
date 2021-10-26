@@ -128,7 +128,7 @@ class WP_Webfonts_Provider_Registry {
 			$links[ $provider_id ] = $this->generate_links( $provider );
 		}
 
-		// Put each `<link>` on a newline and then return them as a string.
+		// Combine `<link>` elements and return them as a string.
 		return implode( '', $links );
 	}
 
