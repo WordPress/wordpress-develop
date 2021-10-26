@@ -2718,6 +2718,14 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 	// Create a tablename index for an array ($cqueries) of queries.
 	foreach ( $queries as $qry ) {
+		/*
+		 * Prior to MySQL 8.0.17, integer types had a default width: BIGINT(20), INT(11).
+		 * Since MySQL 8.0.17, display width for integer data types is no longer supported.
+		 */
+		if ( version_compare( $wpdb->db_version(), '8.0.17', '>' ) ) {
+			$qry = preg_replace( '/(bigint|int)\(\d*\)/', '$1', $qry );
+		}
+
 		if ( preg_match( '|CREATE TABLE ([^ ]*)|', $qry, $matches ) ) {
 			$cqueries[ trim( $matches[1], '`' ) ] = $qry;
 			$for_update[ $matches[1] ]            = 'Created table ' . $matches[1];

@@ -708,7 +708,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	/**
 	 * @ticket 20263
 	 */
-	function test_wp_get_db_schema_does_no_alter_queries_on_existing_install() {
+	function test_wp_get_db_schema_does_not_alter_queries_on_existing_install() {
 		$updates = dbDelta( wp_get_db_schema() );
 
 		$this->assertEmpty( $updates );
