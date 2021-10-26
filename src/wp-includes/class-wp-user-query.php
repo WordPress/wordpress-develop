@@ -239,7 +239,7 @@ class WP_User_Query {
 			'user_nicename',
 			'user_email',
 			'user_url',
-			'user_registered'
+			'user_registered',
 		);
 
 		if ( is_array( $qv['fields'] ) ) {
