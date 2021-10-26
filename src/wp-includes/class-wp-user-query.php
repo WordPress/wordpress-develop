@@ -254,7 +254,6 @@ class WP_User_Query {
 		} elseif ( ! in_array( $qv['fields'], $allowed_fields, true ) ) {
 			$this->query_fields = "$wpdb->users.*";
 		} else {
-//			$this->query_fields = "$wpdb->users.ID";
 			$field              = 'ID' === $qv['fields'] ? 'ID' : sanitize_key( $qv['fields'] );
 			$this->query_fields = "$wpdb->users.$field";
 		}
@@ -659,7 +658,6 @@ class WP_User_Query {
 			$r = array();
 			foreach ( $this->results as $userid ) {
 				$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
-//				$r[ $userid ]->meta = get_user_meta( $userid );
 			}
 
 			$this->results = $r;
