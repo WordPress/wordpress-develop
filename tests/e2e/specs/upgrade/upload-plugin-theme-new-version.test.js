@@ -13,14 +13,39 @@ import {
 	activateTheme,
 	deactivatePlugin,
 	deactivateTheme,
+	__experimentalRest as rest,
 } from "@wordpress/e2e-test-utils";
 import { addQueryArgs } from "@wordpress/url";
 
+async function checkPluginStatus(pluginName) {
+	const response = await rest({
+		method: 'GET',
+		path: "/wp/v2/plugins",
+	});
+	const plugin = response.find(plugin => plugin.name === pluginName);
+
+	return plugin ? plugin.status : 'uninstalled';
+}
+
+
 describe('Manage uploading new plugin/theme version', () => {
 	const uploadPluginUrl = addQueryArgs('', { tab: 'upload' });
+	const pluginSlug = 'classic-editor';
+	const pluginName = 'Classic Editor';
 
 	it('should replace a plugin when uploading a new version', async () => {
-		await installPlugin('classic-editor', 'Classic Editor');
+		const pluginStatus = await checkPluginStatus(pluginName);
+
+		if (pluginStatus === 'active') {
+			await deactivatePlugin(pluginSlug);
+			await uninstallPlugin(pluginSlug);
+			await installPlugin(pluginSlug, pluginName);
+		} else if (pluginStatus === 'inactive') {
+			await uninstallPlugin(pluginSlug);
+			await installPlugin(pluginSlug, pluginName);
+		} else {
+			await installPlugin(pluginSlug, pluginName);
+		}
 
 		await visitAdminPage('plugin-install.php', uploadPluginUrl);
 		const pluginPath = path.join(
@@ -29,7 +54,7 @@ describe('Manage uploading new plugin/theme version', () => {
 			'..',
 			'fixtures',
 			'plugins',
-			'classic-editor.1.6.zip'
+			`${pluginSlug}.1.6.zip`
 		);
 		const input = await page.$('#pluginzip');
 		await input.uploadFile(pluginPath);
@@ -43,15 +68,25 @@ describe('Manage uploading new plugin/theme version', () => {
 		await page.click('a.update-from-upload-overwrite');
 
 		await page.waitForSelector('.wrap');
-		const updatingMessages = await page.$$('.wrap p');
-		const mergedMessages = await Promise.all(
-			updatingMessages.map((message) => message.evaluate((element) => element.textContent))
+		const updatingParagraphs = await page.$$('.wrap p');
+		let mergedMessages = await Promise.all(
+			updatingParagraphs.map((message) => message.evaluate((element) => element.textContent))
 		);
-		const mergedMessage = mergedMessages.join(' ');
+		mergedMessages = mergedMessages.join(' ');
+
+		expect(mergedMessages).toContain('Downgrading the plugin');
+		expect(mergedMessages).toContain('Removing the current plugin');
+		expect(mergedMessages).toContain('Plugin downgraded successfully');
+
+		await visitAdminPage('plugins.php');
+
+		const classicEditorVersionRow = await page.waitForSelector(`tr[data-slug="${pluginSlug}"] .plugin-version-author-uri`);
+		expect(
+			await classicEditorVersionRow.evaluate((element) => element.textContent)
+		).toContain('1.6');
 
 		// Delete the plugin
-		await deactivatePlugin('classic-editor');
-		await uninstallPlugin('classic-editor');
+		await uninstallPlugin(pluginSlug);
 	});
 
 	it.todo('cancel and go back feature');
