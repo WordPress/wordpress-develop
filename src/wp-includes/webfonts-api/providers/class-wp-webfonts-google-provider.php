@@ -78,7 +78,7 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return array Collection by font-family urls.
+	 * @return array Collection of font-family urls.
 	 */
 	protected function build_collection_api_urls() {
 		$font_families_urls = array();
