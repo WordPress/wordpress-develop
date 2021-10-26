@@ -25,19 +25,6 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::is_valid_schema
-	 *
-	 * @dataProvider data_is_unregistered_schema_provider
-	 *
-	 * @param array $webfont Webfont input.
-	 */
-	public function test_is_unregistered_schema_provider( array $webfont ) {
-		$this->expectNotice();
-		$this->expectNoticeMessage( 'Webfont provider is not registered.' );
-		$this->assertFalse( self::$validator->is_valid_schema( $webfont ) );
-	}
-
-	/**
 	 * Data Provider.
 	 *
 	 * return @array
@@ -50,22 +37,6 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-family' => 'Open Sans',
 					'font-style'  => 'normal',
 					'font-weight' => '400',
-				),
-			),
-		);
-	}
-
-	/**
-	 * Data Provider.
-	 *
-	 * return @array
-	 */
-	public function data_is_unregistered_schema_provider() {
-		return array(
-			'unregistered provider' => array(
-				'webfont' => array(
-					'provider'    => 'some-provider',
-					'font-family' => 'Some Font',
 				),
 			),
 		);
@@ -122,14 +93,6 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-weight' => '400',
 				),
 				'expected_message' => 'Webfont provider must be a non-empty string.',
-			),
-			'provider: not registered'            => array(
-				'webfont'          => array(
-					'provider'    => 'some-provider',
-					'font-style'  => 'normal',
-					'font-weight' => '400',
-				),
-				'expected_message' => 'Webfont provider is not registered.',
 			),
 			'font-family: not defined'            => array(
 				'webfont'          => array(

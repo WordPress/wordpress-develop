@@ -144,14 +144,6 @@ class WP_Webfonts_Schema_Validator {
 			return false;
 		}
 
-		// Check if provider is registered.
-		$providers = wp_webfonts()->get_providers()->get_all_registered();
-		if ( ! array_key_exists( $webfont['provider'], $providers ) ) {
-			trigger_error( __( 'Webfont provider is not registered.' ) );
-
-			return false;
-		}
-
 		return true;
 	}
 
