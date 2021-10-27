@@ -66,6 +66,10 @@ describe('Manage uploading new plugin/theme version', () => {
 		`${pluginSlug}.${newUploadedPluginVersion}.zip`
 	);
 
+	afterEach(async () => {
+		await uninstallPlugin(pluginSlug);
+	});
+
 	it('should replace a plugin when uploading a new version', async () => {
 		await checkAndInstallPlugin(pluginSlug, pluginName);
 		await uploadNewPluginVersion(classicEdirorPath);
@@ -94,9 +98,6 @@ describe('Manage uploading new plugin/theme version', () => {
 		expect(
 			await classicEditorVersionRow.evaluate((element) => element.textContent)
 		).toContain('1.6');
-
-		// Delete the plugin
-		await uninstallPlugin(pluginSlug);
 	});
 
 	it('should leave the previous version on a click on the "Cancel and go back" button', async () => {
