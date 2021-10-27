@@ -11,6 +11,8 @@
  * Webfonts Schema Validator.
  *
  * Validates the webfont schema.
+ *
+ * @since 5.9.0
  */
 class WP_Webfonts_Schema_Validator {
 

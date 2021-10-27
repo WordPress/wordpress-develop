@@ -11,6 +11,8 @@
  * Webfonts Controller.
  *
  * Receives the incoming requests and handles the processing.
+ *
+ * @since 5.9.0
  */
 class WP_Webfonts_Controller {
 

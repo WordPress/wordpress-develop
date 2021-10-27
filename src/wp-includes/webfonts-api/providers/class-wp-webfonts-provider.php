@@ -11,6 +11,8 @@
 
 /**
  * Abstract class for Webfonts API providers.
+ *
+ * @since 5.9.0
  */
 abstract class WP_Webfonts_Provider {
 

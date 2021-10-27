@@ -9,6 +9,8 @@
 
 /**
  * Webfonts API provider for Google Fonts.
+ *
+ * @since 5.9.0
  */
 class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 
