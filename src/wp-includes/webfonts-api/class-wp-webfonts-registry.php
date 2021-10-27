@@ -108,39 +108,6 @@ class WP_Webfonts_Registry {
 	}
 
 	/**
-	 * Gets the registered webfonts for the given font-family.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $font_family Family font to fetch.
-	 * @return array[] Registered webfonts.
-	 */
-	public function get_by_font_family( $font_family ) {
-		if ( ! is_string( $font_family ) || '' === $font_family ) {
-			return array();
-		}
-
-		$font_family_key = $this->convert_font_family_into_key( $font_family );
-
-		// If the font family is not registered, bail out.
-		if ( ! isset( $this->registry_by_font_family[ $font_family_key ] ) ) {
-			return array();
-		}
-
-		$webfonts = array();
-		foreach ( $this->registry_by_font_family[ $font_family_key ] as $registration_key ) {
-			// Safeguard. Skip if not in registry.
-			if ( ! isset( $this->registered[ $registration_key ] ) ) {
-				continue;
-			}
-
-			$webfonts[ $registration_key ] = $this->registered[ $registration_key ];
-		}
-
-		return $webfonts;
-	}
-
-	/**
 	 * Registers the given webfont if its schema is valid.
 	 *
 	 * @since 5.9.0

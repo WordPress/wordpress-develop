@@ -130,18 +130,6 @@ class WP_Webfonts_Controller {
 	}
 
 	/**
-	 * Gets the registered webfonts for the given font-family.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $font_family Family font to fetch.
-	 * @return array[] Registered webfonts.
-	 */
-	public function get_webfonts_by_font_family( $font_family ) {
-		return $this->webfonts_registry->get_by_font_family( $font_family );
-	}
-
-	/**
 	 * Gets the registered providers.
 	 *
 	 * @since 5.9.0

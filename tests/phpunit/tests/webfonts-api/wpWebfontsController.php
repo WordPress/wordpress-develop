@@ -190,29 +190,6 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Webfonts_Controller::get_webfonts_by_font_family
-	 */
-	public function test_get_webfonts_by_font_family() {
-		$font_family = 'roboto';
-		$expected    = array(
-			'roboto.normal.900' => array(
-				'provider'    => 'google',
-				'font-family' => 'Roboto',
-				'font-style'  => 'normal',
-				'font-weight' => '900',
-			),
-		);
-
-		$this->webfont_registry_mock
-			->expects( $this->once() )
-			->method( 'get_by_font_family' )
-			->with( $this->equalTo( $font_family ) )
-			->willReturn( $expected );
-
-		$this->assertSame( $expected, $this->controller->get_webfonts_by_font_family( $font_family ) );
-	}
-
-	/**
 	 * @covers WP_Webfonts_Controller::get_registered_providers
 	 */
 	public function test_get_registered_providers() {
