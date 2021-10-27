@@ -124,21 +124,10 @@ class WP_Webfonts_Controller {
 				continue;
 			}
 
-			add_action( 'wp_head', array( $this, 'render_links' ) );
-
 			$provider->set_webfonts( $registered_webfonts );
 			$styles .= $provider->get_css();
 		}
 		return $styles;
-	}
-
-	/**
-	 * Renders the HTML `<link>` for each provider into `<head>` for enqueued webfonts.
-	 *
-	 * @since 5.9.0
-	 */
-	public function render_links() {
-		echo $this->providers->get_links();
 	}
 
 	/**

@@ -17,7 +17,6 @@
  *  - registers each provider with the API by:
  *       1. creating an instance (object);
  *       2. storing it in-memory (by its unique provider ID) for use with the API;
- *  - handles generating the linked resources `<link>` for all providers.
  *
  * @since 5.9.0
  */
@@ -105,107 +104,5 @@ class WP_Webfonts_Provider_Registry {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Gets the HTML `<link>` for each provider.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return string HTML links for each provider.
-	 */
-	public function get_links() {
-		/*
-		 * Store each `<link>` by its provider ID. Why?
-		 * To ensure only one link is created per provider.
-		 */
-		static $links = array();
-
-		foreach ( $this->get_all_registered() as $provider_id => $provider ) {
-			// Skip if the provider already added the link.
-			if ( isset( $links[ $provider_id ] ) ) {
-				continue;
-			}
-
-			$links[ $provider_id ] = $this->generate_links( $provider );
-		}
-
-		// Combine `<link>` elements and return them as a string.
-		return implode( '', $links );
-	}
-
-	/**
-	 * Generate the `<link> element(s) for the given provider.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_Webfonts_Provider $provider Instance of the provider.
-	 * @return string The `<link>` element(s).
-	 */
-	private function generate_links( WP_Webfonts_Provider $provider ) {
-		$link_attributes = $provider->get_link_attributes();
-
-		/*
-		 * Bail out if there are no attributes for this provider
-		 * (i.e. no `<link>` is needed).
-		 */
-		if ( ! is_array( $link_attributes ) || empty( $link_attributes ) ) {
-			return '';
-		}
-
-		/*
-		 * This provider needs multiple `<link>` elements.
-		 * Loop through each array and pass its attributes
-		 * to create each of its `<link>` elements.
-		 */
-		if ( is_array( current( $link_attributes ) ) ) {
-			$links = '';
-			foreach ( $link_attributes as $attributes ) {
-				$links .= $this->create_link_element( $attributes );
-			}
-
-			return $links;
-		}
-
-		/*
-		 * This provider needs one `<link>` element.
-		 * Pass its attributes to create its `<link>` element.
-		 */
-		return $this->create_link_element( $link_attributes );
-	}
-
-	/**
-	 * Creates the `<link>` element and populates with the given attributes.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string[] $attributes An array of attributes => values.
-	 * @return string The `<link>` element.
-	 */
-	private function create_link_element( array $attributes ) {
-		$link = '';
-
-		foreach ( $attributes as $attribute => $value ) {
-			// Checks if attribute is a nonempty string. If no, skip it.
-			if ( ! is_string( $attribute ) || '' === $attribute ) {
-				continue;
-			}
-
-			if ( 'href' === $attribute ) {
-				$link .= ' href="' . esc_url( $value ) . '"';
-			} elseif ( is_bool( $value ) ) {
-				$link .= $value
-					? ' ' . esc_attr( $attribute )
-					: '';
-			} else {
-				$link .= ' ' . esc_attr( $attribute ) . '="' . esc_attr( $value ) . '"';
-			}
-		}
-
-		if ( '' === $link ) {
-			return '';
-		}
-
-		return '<link rel="preconnect"' . $link . '>' . "\n";
 	}
 }

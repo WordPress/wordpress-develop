@@ -17,7 +17,6 @@
  *  - registers each provider with the API by:
  *       1. creating an instance (object);
  *       2. storing it in-memory (by its unique provider ID) for use with the API;
- *  - handles generating the linked resources `<link>` for all providers.
  *
  * @since 5.9.0
  */

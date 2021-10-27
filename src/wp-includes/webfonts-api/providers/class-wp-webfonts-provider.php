@@ -26,23 +26,6 @@ abstract class WP_Webfonts_Provider {
 	protected $id;
 
 	/**
-	 * The `<link>` element's attributes for each linked resource.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @var array[] {
-	 *     An array of linked resources.
-	 *
-	 *     @type array() {
-	 *          An array of attributes for this linked resource.
-	 *
-	 *          @type string $attribute => @type string $attribute_value
-	 *     }
-	 * }
-	 */
-	protected $link_attributes = array();
-
-	/**
 	 * The provider's root URL.
 	 *
 	 * @since 5.9.0
@@ -80,17 +63,6 @@ abstract class WP_Webfonts_Provider {
 	 */
 	public function get_root_url() {
 		return $this->root_url;
-	}
-
-	/**
-	 * Get the `<link>` attributes.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return array[]
-	 */
-	public function get_link_attributes() {
-		return $this->link_attributes;
 	}
 
 	/**
