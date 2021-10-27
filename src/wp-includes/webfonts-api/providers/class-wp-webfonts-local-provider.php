@@ -30,18 +30,7 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	 * @return array
 	 */
 	protected function prepare( array $webfont ) {
-		$webfont = $this->order_src( $webfont );
-
-		// Wrap font-family in quotes if it contains spaces.
-		if (
-			false !== strpos( $webfont['font-family'], ' ' ) &&
-			false === strpos( $webfont['font-family'], '"' ) &&
-			false === strpos( $webfont['font-family'], "'" )
-		) {
-			$webfont['font-family'] = '"' . $webfont['font-family'] . '"';
-		}
-
-		return $webfont;
+		return $this->order_src( $webfont );
 	}
 
 	/**
@@ -144,6 +133,16 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	 */
 	private function build_font_css( array $webfont ) {
 		$css = '';
+
+		// Wrap font-family in quotes if it contains spaces.
+		if (
+			false !== strpos( $webfont['font-family'], ' ' ) &&
+			false === strpos( $webfont['font-family'], '"' ) &&
+			false === strpos( $webfont['font-family'], "'" )
+		) {
+			$webfont['font-family'] = '"' . $webfont['font-family'] . '"';
+		}
+
 		foreach ( $webfont as $key => $value ) {
 
 			// Compile the "src" parameter.

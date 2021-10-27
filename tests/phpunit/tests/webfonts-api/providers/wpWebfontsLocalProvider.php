@@ -78,7 +78,7 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 		$expected = array(
 			'source-serif-pro.normal.200 900' => array(
 				'provider'     => 'local',
-				'font-family'  => '"Source Serif Pro"',
+				'font-family'  => 'Source Serif Pro',
 				'font-style'   => 'normal',
 				'font-weight'  => '200 900',
 				'font-stretch' => 'normal',
@@ -91,7 +91,7 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 			),
 			'source-serif-pro.italic.200 900' => array(
 				'provider'     => 'local',
-				'font-family'  => '"Source Serif Pro"',
+				'font-family'  => 'Source Serif Pro',
 				'font-style'   => 'italic',
 				'font-weight'  => '200 900',
 				'font-stretch' => 'normal',
