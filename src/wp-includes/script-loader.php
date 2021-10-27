@@ -35,7 +35,7 @@ require ABSPATH . WPINC . '/class.wp-styles.php';
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
 /** WordPress Webfonts Functions */
-require ABSPATH . WPINC . '/webfonts-api.php';
+require ABSPATH . WPINC . '/webfonts.php';
 
 /**
  * Registers TinyMCE scripts.
