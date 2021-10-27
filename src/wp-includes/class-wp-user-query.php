@@ -157,7 +157,7 @@ class WP_User_Query {
 	 *                                             must match *each* capability.
 	 *                                             Does NOT work for capabilities not in the database or filtered via {@see 'map_meta_cap'}.
 	 *                                             Default empty.
-	 *     @type string[]     $capability__in      An array capability names. Matched users must have at least one of these
+	 *     @type string[]     $capability__in      An array of capability names. Matched users must have at least one of these
 	 *                                             capabilities.
 	 *                                             Does NOT work for capabilities not in the database or filtered via {@see 'map_meta_cap'}.
 	 *                                             Default empty array.
