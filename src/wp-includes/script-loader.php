@@ -34,8 +34,12 @@ require ABSPATH . WPINC . '/class.wp-styles.php';
 /** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
-/** WordPress Webfonts Functions */
-require ABSPATH . WPINC . '/webfonts.php';
+/** WordPress Webfonts Classes & Functions */
+require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-schema-validator.php';
+require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-registry.php';
+require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-provider-registry.php';
+require_once ABSPATH . WPINC . '/webfonts-api/class-wp-webfonts-controller.php';
+require_once ABSPATH . WPINC . '/webfonts.php';
 
 /**
  * Registers TinyMCE scripts.
