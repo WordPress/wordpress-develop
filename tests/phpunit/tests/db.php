@@ -1551,6 +1551,24 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 				"'hello' 'foo##'",
 			),
+			array(
+				'SELECT * FROM %i WHERE %i = 123;',
+				array( 'my_table', 'my_field' ),
+				false,
+				'SELECT * FROM `my_table` WHERE `my_field` = 123;',
+			),
+			array(
+				'WHERE id IN (%...d);',
+				array( array( 1, 2, 3, 'not-int' ) ),
+				false,
+				'WHERE id IN (1,2,3,0);',
+			),
+			array(
+				'WHERE type IN (%...s);',
+				array( array( 'post', 'page' ) ),
+				false,
+				"WHERE type IN ('post','page');",
+			),
 		);
 	}
 
