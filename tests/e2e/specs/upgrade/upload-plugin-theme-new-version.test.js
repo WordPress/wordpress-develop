@@ -27,27 +27,36 @@ async function checkPluginStatus(pluginName) {
 	return plugin ? plugin.status : 'uninstalled';
 }
 
+async function checkAndInstallPlugin(pluginSlug, pluginName) {
+	const pluginStatus = await checkPluginStatus(pluginName);
+
+	if (pluginStatus === 'active') {
+		await deactivatePlugin(pluginSlug);
+		await uninstallPlugin(pluginSlug);
+		await installPlugin(pluginSlug, pluginName);
+	} else if (pluginStatus === 'inactive') {
+		await uninstallPlugin(pluginSlug);
+		await installPlugin(pluginSlug, pluginName);
+	} else {
+		await installPlugin(pluginSlug, pluginName);
+	}
+}
+
+async function uploadNewPluginVersion(pluginPath) {
+	const uploadPluginUrl = addQueryArgs('', { tab: 'upload' });
+	await visitAdminPage('plugin-install.php', uploadPluginUrl);
+	const input = await page.$('#pluginzip');
+	await input.uploadFile(pluginPath);
+	await page.click('#install-plugin-submit');
+}
 
 describe('Manage uploading new plugin/theme version', () => {
-	const uploadPluginUrl = addQueryArgs('', { tab: 'upload' });
 	const pluginSlug = 'classic-editor';
 	const pluginName = 'Classic Editor';
 
 	it('should replace a plugin when uploading a new version', async () => {
-		const pluginStatus = await checkPluginStatus(pluginName);
+		await checkAndInstallPlugin(pluginSlug, pluginName);
 
-		if (pluginStatus === 'active') {
-			await deactivatePlugin(pluginSlug);
-			await uninstallPlugin(pluginSlug);
-			await installPlugin(pluginSlug, pluginName);
-		} else if (pluginStatus === 'inactive') {
-			await uninstallPlugin(pluginSlug);
-			await installPlugin(pluginSlug, pluginName);
-		} else {
-			await installPlugin(pluginSlug, pluginName);
-		}
-
-		await visitAdminPage('plugin-install.php', uploadPluginUrl);
 		const pluginPath = path.join(
 			__dirname,
 			'..',
@@ -56,9 +65,7 @@ describe('Manage uploading new plugin/theme version', () => {
 			'plugins',
 			`${pluginSlug}.1.6.zip`
 		);
-		const input = await page.$('#pluginzip');
-		await input.uploadFile(pluginPath);
-		await page.click('#install-plugin-submit');
+		await uploadNewPluginVersion(pluginPath);
 
 		const upgradeHeading = await page.waitForSelector('.update-from-upload-heading');
 		expect(
@@ -89,5 +96,7 @@ describe('Manage uploading new plugin/theme version', () => {
 		await uninstallPlugin(pluginSlug);
 	});
 
-	it.todo('cancel and go back feature');
+	it('should leave the previous version on a click on the "Cancel and go back" button', async () => {
+		await checkAndInstallPlugin(pluginSlug, pluginName);
+	});
 });
