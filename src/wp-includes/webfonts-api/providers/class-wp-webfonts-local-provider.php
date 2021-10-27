@@ -158,7 +158,9 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 			}
 
 			if ( ! empty( $value ) ) {
-				$css .= "\t$key:$value;\n";
+				$css .= ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG )
+					? "\t$key:$value;\n"
+					: "$key:$value";
 			}
 		}
 
