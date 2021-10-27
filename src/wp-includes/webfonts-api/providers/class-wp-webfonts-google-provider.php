@@ -40,7 +40,7 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 		array(
 			'href'        => 'https://fonts.gstatic.com',
 			'crossorigin' => true,
-		)
+		),
 	);
 
 	/**
