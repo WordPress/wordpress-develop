@@ -42,6 +42,8 @@ function wp_webfonts() {
  * @since 5.9.0
  *
  * @param array $webfonts Webfonts to be registered.
+ *                        This contains ar array of webfonts to be registered. Each webfont is an array.
+ *                        See {@see WP_Webfonts_Registry::register()} for a list of supported arguments for each webfont.
  */
 function wp_register_webfonts( array $webfonts ) {
 	wp_webfonts()->register_webfonts( $webfonts );
