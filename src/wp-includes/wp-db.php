@@ -1343,11 +1343,13 @@ class wpdb {
 		// Placeholders in the query.
 		$placeholders = preg_match_all( "/(^|[^%]|(%%)+)(%($allowed_format|\.\.\.)?)([sdfFi])/", $query, $matches, PREG_OFFSET_CAPTURE );
 
-		// If args were passed as an array (as in vsprintf), and not using '%...x', move them up.
-		$passed_as_array = false;
-		if ( ( isset( $matches[4][0][0] ) ? $matches[4][0][0] : '' ) !== '...' && is_array( $args[0] ) && count( $args ) === 1 ) {
-			$passed_as_array = true;
-			$args            = $args[0];
+		// If args were passed as an array (as in vsprintf), move them up.
+		$passed_as_array = ( count( $args ) === 1 && is_array( $args[0] ) );
+		if ( ( $passed_as_array ) && ( isset( $matches[4][0][0] ) ? $matches[4][0][0] : '' ) === '...' ) { // If the single placeholder is using variadics (e.g. '%...d').
+			$passed_as_array = ( count( $args[0] ) === 1 && is_array( $args[0][0] ) ); // Only move up if it's a double array, (e.g. `[ [ 1, 2, 3 ] ]`).
+		}
+		if ( $passed_as_array ) {
+			$args = $args[0];
 		}
 
 		$args_count = count( $args );
