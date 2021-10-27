@@ -85,8 +85,8 @@ class WP_Webfonts_Provider_Registry {
 	 * @return bool True when registered. False when provider does not exist.
 	 */
 	public function register( $classname ) {
-		// If the class does not exist in memory, bail out.
-		if ( ! class_exists( $classname ) ) {
+		// If the class does not exist in memory, or is not a subclass of WP_Webfonts_Provider, bail out.
+		if ( ! class_exists( $classname ) || ! is_subclass_of( $classname, 'WP_Webfonts_Provider' ) ) {
 			return false;
 		}
 
