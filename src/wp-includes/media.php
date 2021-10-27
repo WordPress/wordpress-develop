@@ -4711,47 +4711,12 @@ function get_post_galleries( $post, $html = true ) {
 		return array();
 	}
 
-	if ( ! has_shortcode( $post->post_content, 'gallery' ) ) {
+	if ( ! has_shortcode( $post->post_content, 'gallery' ) && ! has_block( 'gallery', $post->post_content ) ) {
 		return array();
 	}
 
-	$galleries = array();
-	if ( preg_match_all( '/' . get_shortcode_regex() . '/s', $post->post_content, $matches, PREG_SET_ORDER ) ) {
-		foreach ( $matches as $shortcode ) {
-			if ( 'gallery' === $shortcode[2] ) {
-				$srcs = array();
-
-				$shortcode_attrs = shortcode_parse_atts( $shortcode[3] );
-				if ( ! is_array( $shortcode_attrs ) ) {
-					$shortcode_attrs = array();
-				}
-
-				// Specify the post ID of the gallery we're viewing if the shortcode doesn't reference another post already.
-				if ( ! isset( $shortcode_attrs['id'] ) ) {
-					$shortcode[3] .= ' id="' . (int) $post->ID . '"';
-				}
-
-				$gallery = do_shortcode_tag( $shortcode );
-				if ( $html ) {
-					$galleries[] = $gallery;
-				} else {
-					preg_match_all( '#src=([\'"])(.+?)\1#is', $gallery, $src, PREG_SET_ORDER );
-					if ( ! empty( $src ) ) {
-						foreach ( $src as $s ) {
-							$srcs[] = $s[2];
-						}
-					}
-
-					$galleries[] = array_merge(
-						$shortcode_attrs,
-						array(
-							'src' => array_values( array_unique( $srcs ) ),
-						)
-					);
-				}
-			}
-		}
-	}
+	$galleries = get_post_galleries_from_shortcodes( $post, $html );
+	$galleries = array_merge( $galleries, get_post_galleries_from_blocks( $post, $html ) );
 
 	/**
 	 * Filters the list of all found galleries in the given post.
@@ -4764,6 +4729,170 @@ function get_post_galleries( $post, $html = true ) {
 	return apply_filters( 'get_post_galleries', $galleries, $post );
 }
 
+/**
+ * Retrieves gallery shortcodes from the passed post.
+ *
+ * @since 5.9
+ *
+ * @param WP_Post  $post The post that the shortcode content is to be extracted from .
+ * @param bool     $html Optional. Whether to return HTML or data in the array. Default true.
+ * @return array   A list of arrays, each containing gallery data and srcs parsed
+ *                 from the expanded shortcode.
+ */
+function get_post_galleries_from_shortcodes( $post, $html = true ) {
+	if ( ! preg_match_all( '/' . get_shortcode_regex() . '/s', $post->post_content, $matches, PREG_SET_ORDER ) ) {
+		return array();
+	}
+
+	foreach ( $matches as $shortcode ) {
+		if ( 'gallery' === $shortcode[2] ) {
+			$srcs = array();
+
+			$shortcode_attrs = shortcode_parse_atts( $shortcode[3] );
+			if ( ! is_array( $shortcode_attrs ) ) {
+				$shortcode_attrs = array();
+			}
+
+			// Specify the post ID of the gallery we're viewing if the shortcode doesn't reference another post already.
+			if ( ! isset( $shortcode_attrs['id'] ) ) {
+				$shortcode[3] .= ' id="' . (int) $post->ID
+				. '"';
+			}
+
+			$gallery = do_shortcode_tag( $shortcode );
+			if ( $html ) {
+				$galleries[] = $gallery;
+			} else {
+				preg_match_all( '#src=([\'"])(.+?)\1#is', $gallery, $src, PREG_SET_ORDER );
+				if ( ! empty( $src ) ) {
+					foreach ( $src as $s ) {
+						$srcs[] = $s[2];
+					}
+				}
+
+				$galleries[] = array_merge(
+					$shortcode_attrs,
+					array(
+						'src' => array_values( array_unique( $srcs ) ),
+					)
+				);
+			}
+		}
+	}
+	return $galleries;
+}
+/**
+ * Retrieves gallery shortcodes from the passed post.
+ *
+ * @since 5.9
+ *
+ * @param WP_Post  $post The post that the shortcode content is to be extracted from .
+ * @param bool     $html Optional. Whether to return HTML or data in the array. Default true.
+ * @return array   A list of arrays, each containing gallery data and srcs parsed
+ *                 from gallery blocks.
+ */
+function get_post_galleries_from_blocks( $post, $html = true ) {
+	if ( ! has_block( 'gallery', $post->post_content ) ) {
+		return array();
+	}
+
+	$post_blocks = parse_blocks( $post->post_content );
+	$galleries   = array();
+
+	// Use while/array_shift instead of foreach so we can modify the array from within the loop in order to recurse
+	// back on any innerBlocks content that is found.
+	while ( $block = array_shift( $post_blocks ) ) {
+		if ( 'core/gallery' === $block['blockName'] ) {
+			// If a Gallery block has innerBlocks it is the new format and needs to be handled separately to the old
+			// format with nested <img> tags.
+			if ( ! empty( $block['innerBlocks'] ) ) {
+				$galleries[] = get_v2_gallery_block( $block, $html );
+			} else {
+				$galleries[] = get_v1_gallery_block( $block, $html );
+			}
+		} elseif ( ! empty( $block['innerBlocks'] ) ) {
+			// If we have nested blocks then gradually flatten it by moving those onto the end of the root array for traversal
+			while ( $inner = array_pop( $block['innerBlocks'] ) ) {
+				array_push( $post_blocks, $inner );
+			}
+		}
+	}
+	return $galleries;
+}
+
+/**
+ * Retrieves gallery block data from a passed in v1 gallery block.
+ *
+ * @since 5.9
+ *
+ * @param Block    $block The post that the shortcode content is to be extracted from .
+ * @param bool     $html Optional. Whether to return HTML or data in the array. Default true.
+ * @return array   An array containing gallery data and srcs parsed from the provided v1 gallery block.
+ */
+function get_v1_gallery_block( $block, $html ) {
+	if ( $html ) {
+		return $block['innerHTML'];
+	} elseif ( ! empty( $block['attrs']['ids'] ) ) {
+		// Use the image IDs from the json blob as canonical if present
+		$gallery_srcs = array();
+		foreach ( $block['attrs']['ids'] as $gallery_img_id ) {
+			$gallery_srcs[] = wp_get_attachment_url( $gallery_img_id );
+		}
+		return array(
+			// array_filter will eliminate any empty entries that came from unknown or invalid IDs
+			'src' => array_values( array_filter( array_unique( $gallery_srcs ) ) ),
+			// Only explicitly include the ids attribute. In future this could be changed to include all attributes, similar to $shortcode_attrs above.
+			'ids' => implode( ',', $block['attrs']['ids'] ),
+		);
+	} else {
+		// Otherwise extract srcs from the innerHTML
+		$srcs = array();
+		preg_match_all( '#src=([\'"])(.+?)\1#is', $block['innerHTML'], $src, PREG_SET_ORDER );
+		if ( ! empty( $src ) ) {
+			foreach ( $src as $s ) {
+				$srcs[] = $s[2];
+			}
+		}
+
+		return array(
+			// Note that unlike shortcodes, all we are returning here is the src list
+			'src' => array_values( array_unique( $srcs ) ),
+		);
+	}
+}
+
+/**
+ * Retrieves gallery block data from a passed in v2 gallery block which uses innerBlocks.
+ *
+ * @since 5.9
+ *
+ * @param Block    $block A v2 gallery block with innerBlocks.
+ * @param bool     $html Optional. Whether to return HTML or data in the array. Default true.
+ * @return array   An array containing gallery data and srcs parsed from the provided v2 gallery block.
+ */
+function get_v2_gallery_block( $block, $html ) {
+	$gallery_srcs = array();
+	$ids          = array();
+	$block_html   = array();
+	foreach ( $block['innerBlocks'] as $image ) {
+		if ( $html ) {
+			$block_html[] = $image['innerHTML'];
+		} else {
+			$gallery_srcs[] = wp_get_attachment_url( $image ['attrs']['id'] );
+			$ids[]          = $image ['attrs']['id'];
+		}
+	}
+	if ( $html ) {
+		return '<figure>' . implode( ' ', $block_html ) . '</figure>';
+	} else {
+		return array(
+			// array_filter will eliminate any empty entries that came from unknown or invalid IDs
+			'src' => array_values( array_filter( array_unique( $gallery_srcs ) ) ),
+			// Only explicitly include the ids attribute. In future this could be changed to include all attributes, similar to $shortcode_attrs above.
+			'ids' => implode( ',', $ids ),
+		);
+	}
+}
 /**
  * Check a specified post's content for gallery and, if present, return the first
  *
