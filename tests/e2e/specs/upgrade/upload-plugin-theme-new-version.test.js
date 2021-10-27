@@ -10,9 +10,7 @@ import {
 	visitAdminPage,
 	installPlugin,
 	uninstallPlugin,
-	activateTheme,
 	deactivatePlugin,
-	deactivateTheme,
 	__experimentalRest as rest,
 } from "@wordpress/e2e-test-utils";
 import { addQueryArgs } from "@wordpress/url";
