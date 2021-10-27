@@ -81,17 +81,6 @@ class WP_Webfonts_Schema_Validator {
 	);
 
 	/**
-	 * Configuration parameters.
-	 *
-	 * These are configuring the webfont but are not @font-face properties.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @var array
-	 */
-	protected $configuration_params = array( 'provider' );
-
-	/**
 	 * Webfont being validated.
 	 *
 	 * Set as a property for performance.
@@ -261,7 +250,7 @@ class WP_Webfonts_Schema_Validator {
 			 * Skip valid configuration parameters
 			 * (these are configuring the webfont but are not @font-face properties).
 			 */
-			if ( in_array( $property, $this->configuration_params, true ) ) {
+			if ( 'provider' === $property || 'provider-params' === $property ) {
 				continue;
 			}
 
