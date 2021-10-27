@@ -41,7 +41,7 @@ function wp_webfonts() {
  *
  * @since 5.9.0
  *
- * @param string[][] $webfonts Webfonts to be registered.
+ * @param array $webfonts Webfonts to be registered.
  */
 function wp_register_webfonts( array $webfonts ) {
 	wp_webfonts()->register_webfonts( $webfonts );
@@ -52,7 +52,8 @@ function wp_register_webfonts( array $webfonts ) {
  *
  * @since 5.9.0
  *
- * @param string[] $webfont Webfont to be registered.
+ * @param array $webfont Webfont to be registered.
+ *                       See {@see WP_Webfonts_Registry::register()} for a list of supported arguments.
  */
 function wp_register_webfont( array $webfont ) {
 	wp_webfonts()->register_webfont( $webfont );
