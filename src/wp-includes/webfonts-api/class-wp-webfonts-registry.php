@@ -145,7 +145,34 @@ class WP_Webfonts_Registry {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $webfont Webfont definition.
+	 * @param array $webfont {
+	 *     Webfont definition.
+	 *
+	 *    @type string       $provider              The provider ID (e.g. 'local', 'google').
+	 *    @type string       $fontFamily            The @font-face font-family property.
+	 *    @type string       $fontWeight            The @font-face font-weight property.
+	 *                                              The font-weight can be a single value, or a range.
+	 *                                              If a single value, then the font-weight can either be
+	 *                                              a numeric value (400, 700, etc), or a word value (normal, bold, etc).
+	 *                                              If a range, then the font-weight can be a numeric range
+	 *                                              using 2 values, separated by a space ('100 700').
+	 *    @type string       $fontStyle             The @font-face font-style property.
+	 *                                              The font-style can be a valid CSS value (normal, italic etc).
+	 *    @type string       $fontDisplay           The @font-face font-display property.
+	 *                                              Accepted values: 'auto', 'block', 'fallback', 'swap'.
+	 *    @type array|string $src                   The @font-face src property.
+	 *                                              The src can be a single URL, or an array of URLs.
+	 *    @type string       $fontStretch           The @font-face font-stretch property.
+	 *    @type string       $fontVariant           The @font-face font-variant property.
+	 *    @type string       $fontFeatureSettings   The @font-face font-feature-settings property.
+	 *    @type string       $fontVariationSettings The @font-face font-variation-settings property.
+	 *    @type string       $lineHeightOverride    The @font-face line-gap-override property.
+	 *    @type string       $sizeAdjust            The @font-face size-adjust property.
+	 *    @type string       $unicodeRange          The @font-face unicode-range property.
+	 *    @type string       $ascendOverride        The @font-face ascend-override property.
+	 *    @type string       $descendOverride       The @font-face descend-override property.
+	 * }
+	 *
 	 * @return string Registration key.
 	 */
 	public function register( array $webfont ) {
