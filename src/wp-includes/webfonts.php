@@ -46,7 +46,14 @@ function wp_webfonts() {
  *                        See {@see WP_Webfonts_Registry::register()} for a list of supported arguments for each webfont.
  */
 function wp_register_webfonts( array $webfonts ) {
-	wp_webfonts()->register_webfonts( $webfonts );
+	// Bail out if the webfonts collection is empty.
+	if ( empty( $webfonts ) ) {
+		return;
+	}
+
+	foreach ( $webfonts as $webfont ) {
+		wp_webfonts()->get_webfonts_registry()->register( $webfont );
+	}
 }
 
 /**
@@ -58,7 +65,7 @@ function wp_register_webfonts( array $webfonts ) {
  *                       See {@see WP_Webfonts_Registry::register()} for a list of supported arguments.
  */
 function wp_register_webfont( array $webfont ) {
-	wp_webfonts()->register_webfont( $webfont );
+	wp_webfonts()->get_webfonts_registry()->register( $webfont );
 }
 
 /**
@@ -69,7 +76,7 @@ function wp_register_webfont( array $webfont ) {
  * @param string $classname The provider class name.
  */
 function wp_register_webfont_provider( $classname ) {
-	wp_webfonts()->register_provider( $classname );
+	wp_webfonts()->get_providers()->register( $classname );
 }
 
 /**
@@ -80,5 +87,5 @@ function wp_register_webfont_provider( $classname ) {
  * @return WP_Webfonts_Provider[] Array of registered providers.
  */
 function wp_get_webfont_providers() {
-	return wp_webfonts()->get_registered_providers();
+	return wp_webfonts()->get_providers()->get_all_registered();
 }

@@ -80,79 +80,6 @@ class WP_Webfonts_Controller {
 	}
 
 	/**
-	 * Registers a webfont collection.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string[][] $webfonts Webfonts to be registered.
-	 */
-	public function register_webfonts( array $webfonts ) {
-		// Bail out if no webfonts collection was injected.
-		if ( empty( $webfonts ) ) {
-			return;
-		}
-
-		array_walk( $webfonts, array( $this, 'register_webfont' ) );
-	}
-
-	/**
-	 * Registers the given webfont if its schema is valid.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string[] $webfont Webfont definition.
-	 */
-	public function register_webfont( array $webfont ) {
-		$this->webfonts_registry->register( $webfont );
-	}
-
-	/**
-	 * Gets the registered webfonts.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return array[] Registered webfonts.
-	 */
-	public function get_webfonts() {
-		return $this->webfonts_registry->get_all_registered();
-	}
-
-	/**
-	 * Gets the registered webfonts for the given provider organized by font-family.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $provider_id Provider ID to fetch.
-	 * @return array[] Registered webfonts.
-	 */
-	public function get_webfonts_by_provider( $provider_id ) {
-		return $this->webfonts_registry->get_by_provider( $provider_id );
-	}
-
-	/**
-	 * Gets the registered providers.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return WP_Webfonts_Provider[] Registered providers.
-	 */
-	public function get_registered_providers() {
-		return $this->providers->get_all_registered();
-	}
-
-	/**
-	 * Registers the given provider.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $classname The provider class name.
-	 * @return bool True when registered. False when provider does not exist.
-	 */
-	public function register_provider( $classname ) {
-		return $this->providers->register( $classname );
-	}
-
-	/**
 	 * Generate and enqueue webfonts styles.
 	 *
 	 * @since 5.9.0
@@ -186,8 +113,9 @@ class WP_Webfonts_Controller {
 	 * @return string $styles Generated styles.
 	 */
 	private function generate_styles() {
-		$styles = '';
-		foreach ( $this->get_registered_providers() as $provider_id => $provider ) {
+		$styles    = '';
+		$providers = $this->get_providers()->get_all_registered();
+		foreach ( $providers as $provider_id => $provider ) {
 			$registered_webfonts = $this->webfonts_registry->get_by_provider( $provider_id );
 
 			if ( empty( $registered_webfonts ) ) {
