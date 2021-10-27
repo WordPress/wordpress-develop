@@ -113,7 +113,6 @@ class Tests_Webfonts_API_wpWebfontsProviderRegistry extends WP_UnitTestCase {
 				'register_custom' => false,
 				'expected'        => <<<LINKS
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 
 LINKS
 				,
@@ -122,7 +121,6 @@ LINKS
 				'register_custom' => true,
 				'expected'        => <<<LINKS
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.my-custom-api.com" crossorigin>
 
 LINKS
