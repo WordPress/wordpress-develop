@@ -17,12 +17,17 @@ import {
 } from "@wordpress/e2e-test-utils";
 import { addQueryArgs } from "@wordpress/url";
 
-async function checkPluginStatus(pluginName) {
+async function getPlugins() {
 	const response = await rest({
 		method: 'GET',
 		path: "/wp/v2/plugins",
 	});
-	const plugin = response.find(plugin => plugin.name === pluginName);
+	return response;
+}
+
+async function checkPluginStatus(pluginName) {
+	const plugins = await getPlugins();
+	const plugin = plugins.find(plugin => plugin.name === pluginName);
 
 	return plugin ? plugin.status : 'uninstalled';
 }
@@ -53,19 +58,19 @@ async function uploadNewPluginVersion(pluginPath) {
 describe('Manage uploading new plugin/theme version', () => {
 	const pluginSlug = 'classic-editor';
 	const pluginName = 'Classic Editor';
+	const newUploadedPluginVersion = '1.6';
+	const classicEdirorPath = path.join(
+		__dirname,
+		'..',
+		'..',
+		'fixtures',
+		'plugins',
+		`${pluginSlug}.${newUploadedPluginVersion}.zip`
+	);
 
 	it('should replace a plugin when uploading a new version', async () => {
 		await checkAndInstallPlugin(pluginSlug, pluginName);
-
-		const pluginPath = path.join(
-			__dirname,
-			'..',
-			'..',
-			'fixtures',
-			'plugins',
-			`${pluginSlug}.1.6.zip`
-		);
-		await uploadNewPluginVersion(pluginPath);
+		await uploadNewPluginVersion(classicEdirorPath);
 
 		const upgradeHeading = await page.waitForSelector('.update-from-upload-heading');
 		expect(
@@ -98,5 +103,17 @@ describe('Manage uploading new plugin/theme version', () => {
 
 	it('should leave the previous version on a click on the "Cancel and go back" button', async () => {
 		await checkAndInstallPlugin(pluginSlug, pluginName);
+		await uploadNewPluginVersion(classicEdirorPath);
+		await page.waitForSelector('.update-from-upload-heading');
+
+		await page.click('.update-from-upload-actions a:not(.update-from-upload-overwrite)');
+
+		// Check that the plugin is still installed
+		const pluginStatus = await checkPluginStatus(pluginName);
+		expect(pluginStatus).toBe('inactive');
+
+		const plugins = await getPlugins();
+		const currentClassicEditorVersion = plugins.find(plugin => plugin.name === pluginName).version;
+		expect(currentClassicEditorVersion).not.toBe(newUploadedPluginVersion);
 	});
 });
