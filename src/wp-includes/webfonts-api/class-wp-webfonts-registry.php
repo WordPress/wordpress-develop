@@ -48,17 +48,6 @@ class WP_Webfonts_Registry {
 	private $registry_by_provider = array();
 
 	/**
-	 * Registration keys per font-family.
-	 *
-	 * Provides a O(1) lookup when querying by provider.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @var string[]
-	 */
-	private $registry_by_font_family = array();
-
-	/**
 	 * Schema validator.
 	 *
 	 * @since 5.9.0
@@ -67,6 +56,13 @@ class WP_Webfonts_Registry {
 	 */
 	private $validator;
 
+	/**
+	 * Creates the registry.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Webfonts_Schema_Validator $validator Instance of the validator.
+	 */
 	public function __construct( WP_Webfonts_Schema_Validator $validator ) {
 		$this->validator = $validator;
 	}
@@ -160,37 +156,31 @@ class WP_Webfonts_Registry {
 		}
 
 		$this->registered[ $registration_key ] = $webfont;
-		$this->store_in_query_by_containers( $webfont, $registration_key );
+		$this->store_for_query_by( $webfont, $registration_key );
 
 		return $registration_key;
 	}
 
 	/**
-	 * Store the webfont into each query by container.
+	 * Store the webfont for query by request.
 	 *
-	 * These containers provide a performant way to quickly query webfonts by
-	 * provider or font-family. The registration keys are stored in each for
-	 * O(1) lookup.
+	 * This container provides a performant way to quickly query webfonts by
+	 * provider. The registration keys are stored for O(1) lookup.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param array  $webfont          Webfont definition.
 	 * @param string $registration_key Webfont's registration key.
 	 */
-	private function store_in_query_by_containers( array $webfont, $registration_key ) {
-		$font_family = $this->convert_font_family_into_key( $webfont['font-family'] );
-		$provider    = $webfont['provider'];
+	private function store_for_query_by( array $webfont, $registration_key ) {
+		$provider = $webfont['provider'];
 
-		// Initialize the arrays if they do not exist.
+		// Initialize the array if it does not exist.
 		if ( ! isset( $this->registry_by_provider[ $provider ] ) ) {
 			$this->registry_by_provider[ $provider ] = array();
 		}
-		if ( ! isset( $this->registry_by_font_family[ $font_family ] ) ) {
-			$this->registry_by_font_family[ $font_family ] = array();
-		}
 
-		$this->registry_by_provider[ $provider ][]       = $registration_key;
-		$this->registry_by_font_family[ $font_family ][] = $registration_key;
+		$this->registry_by_provider[ $provider ][] = $registration_key;
 	}
 
 	/**
@@ -198,7 +188,7 @@ class WP_Webfonts_Registry {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string[] $webfont Webfont definition.
+	 * @param array $webfont Webfont definition.
 	 * @return array Webfont with kebab_case parameters (keys).
 	 */
 	private function convert_to_kebab_case( array $webfont ) {
@@ -236,7 +226,7 @@ class WP_Webfonts_Registry {
 	 * @since 5.9.0
 	 *
 	 * @param string $font_family Font family to convert into a key.
-	 * @return string
+	 * @return string Font-family as a key.
 	 */
 	private function convert_font_family_into_key( $font_family ) {
 		if ( ! is_string( $font_family ) || '' === $font_family ) {
