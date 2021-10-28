@@ -3094,24 +3094,13 @@ function rest_get_route_for_term( $term ) {
 		return '';
 	}
 
-	$taxonomy = get_taxonomy( $term->taxonomy );
-	if ( ! $taxonomy ) {
+	$taxonomy_route = rest_get_route_for_taxonomy_items( $term->taxonomy );
+	if ( ! $taxonomy_route ) {
 		return '';
 	}
 
-	$controller = $taxonomy->get_rest_controller();
-	if ( ! $controller ) {
-		return '';
-	}
 
-	$route = '';
-
-	// The only controller that works is the Terms controller.
-	if ( $controller instanceof WP_REST_Terms_Controller ) {
-		$namespace = ! empty( $taxonomy->rest_namespace ) ? $taxonomy->rest_namespace : 'wp/v2';
-		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-		$route     = sprintf( '/%s/%s/%d', $namespace, $rest_base, $term->term_id );
-	}
+	$route = sprintf( '%s/%d', $taxonomy_route, $term->term_id );
 
 	/**
 	 * Filters the REST API route for a term.
@@ -3138,19 +3127,13 @@ function rest_get_route_for_taxonomy_items( $taxonomy ) {
 		return '';
 	}
 
-	$controller = $taxonomy->get_rest_controller();
-	if ( ! $controller ) {
+	if ( ! $taxonomy->show_in_rest ) {
 		return '';
 	}
 
-	$route = '';
-
-	// The only controller that works is the Terms controller.
-	if ( $controller instanceof WP_REST_Terms_Controller ) {
-		$namespace = ! empty( $taxonomy->rest_namespace ) ? $taxonomy->rest_namespace : 'wp/v2';
-		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-		$route     = sprintf( '/%s/%s', $namespace, $rest_base );
-	}
+	$namespace = ! empty( $taxonomy->rest_namespace ) ? $taxonomy->rest_namespace : 'wp/v2';
+	$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+	$route     = sprintf( '/%s/%s', $namespace, $rest_base );
 
 	/**
 	 * Filters the REST API route for a taxonomy.
