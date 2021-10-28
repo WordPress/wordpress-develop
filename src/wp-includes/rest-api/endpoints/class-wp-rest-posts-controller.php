@@ -2060,16 +2060,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$links['https://api.w.org/term'] = array();
 
 			foreach ( $taxonomies as $tax ) {
-				$taxonomy_obj = get_taxonomy( $tax );
+				$taxonomy_route = rest_get_route_for_taxonomy_items( $tax );
 
 				// Skip taxonomies that are not public.
-				if ( empty( $taxonomy_obj->show_in_rest ) ) {
+				if ( empty( $taxonomy_route ) ) {
 					continue;
 				}
 				$terms_url = add_query_arg(
 					'post',
 					$post->ID,
-					rest_url( rest_get_route_for_taxonomy_items( $tax ) )
+					rest_url( $taxonomy_route )
 				);
 
 				$links['https://api.w.org/term'][] = array(
