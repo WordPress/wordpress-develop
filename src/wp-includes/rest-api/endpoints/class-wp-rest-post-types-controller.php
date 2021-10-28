@@ -196,9 +196,8 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 
 		if ( in_array( 'visibility', $fields, true ) ) {
 			$data['visibility'] = array(
-				'publicly_queryable' => (bool) $post_type->publicly_queryable,
-				'show_in_nav_menus'  => (bool) $post_type->show_in_nav_menus,
-				'show_ui'            => (bool) $post_type->show_ui,
+				'show_in_nav_menus' => (bool) $post_type->show_in_nav_menus,
+				'show_ui'           => (bool) $post_type->show_ui,
 			);
 		}
 
@@ -348,15 +347,11 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 					'properties'  => array(
-						'publicly_queryable' => array(
-							'description' => __( 'Whether the post type is publicly queryable.' ),
-							'type'        => 'boolean',
-						),
-						'show_ui'            => array(
+						'show_ui'           => array(
 							'description' => __( 'Whether to generate a default UI for managing this post type.' ),
 							'type'        => 'boolean',
 						),
-						'show_in_nav_menus'  => array(
+						'show_in_nav_menus' => array(
 							'description' => __( 'Whether to make the post type is available for selection in navigation menus.' ),
 							'type'        => 'boolean',
 						),
