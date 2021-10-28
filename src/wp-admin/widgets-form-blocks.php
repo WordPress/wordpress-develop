@@ -19,7 +19,8 @@ $block_editor_context = new WP_Block_Editor_Context();
 
 $preload_paths = array(
 	array( '/wp/v2/media', 'OPTIONS' ),
-	'/wp/v2/sidebars?context=edit&per_page=-1',
+	'/wp/v2/widget-types?_locale=user&context=edit&per_page=100',
+	'/wp/v2/sidebars?per_page=-1',
 	'/wp/v2/widgets?context=edit&per_page=-1&_embed=about',
 );
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
