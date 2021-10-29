@@ -3298,7 +3298,7 @@ EOF;
 		// Set a sizes sting value that will match the arbitrary value set in the filter.
 		$expected_sizes_string = sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', 9999 );
 
-		$expected_image = '<img width="' . $image_meta['width'] . '" height="' . $image_meta['height'] . '" src="' . $uploads_dir_url . $image_meta['file'] . '" class="' . $class_attribute_string . '" alt="Full size test image" srcset="' . implode( ', ', $expected_sources ) . '" sizes="' . $expected_sizes_string . '" />';
+		$expected_image = '<img width="' . $image_meta['width'] . '" height="' . $image_meta['height'] . '" src="' . $uploads_dir_url . $image_meta['file'] . '" class="' . $class_attribute_string . '" alt="Full size test image" loading="lazy" srcset="' . implode( ', ', $expected_sources ) . '" sizes="' . $expected_sizes_string . '" />';
 
 		// Images without a class attribute that will match the test filter. Should match the default image with unfiltered srcset and sizes values.
 		$this->assertSame(
