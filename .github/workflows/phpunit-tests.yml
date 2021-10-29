@@ -66,19 +66,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '5.6.20', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1' ]
+        php: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1' ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
         split_slow: [ false ]
         multisite: [ false, true ]
         include:
           # Additional "slow" jobs for PHP 5.6.
-          - php: '5.6.20'
+          - php: '5.6'
             os: ubuntu-latest
             memcached: false
             multisite: false
             split_slow: true
-          - php: '5.6.20'
+          - php: '5.6'
             os: ubuntu-latest
             memcached: false
             multisite: true
@@ -242,3 +242,14 @@ jobs:
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
         run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    needs: [ test-php ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
