@@ -828,9 +828,11 @@ function wp_setup_nav_menu_item( $menu_item ) {
 					// Denote post states for special pages (only in the admin).
 					if ( function_exists( 'get_post_states' ) ) {
 						$menu_post   = get_post( $menu_item->object_id );
-						$post_states = get_post_states( $menu_post );
-						if ( $post_states ) {
-							$menu_item->type_label = wp_strip_all_tags( implode( ', ', $post_states ) );
+						if ( ! empty( $menu_post ) && is_a( $menu_post, 'WP_Post' ) ) {
+							$post_states = get_post_states( $menu_post );
+							if ( $post_states ) {
+								$menu_item->type_label = wp_strip_all_tags( implode( ', ', $post_states ) );
+							}
 						}
 					}
 				} else {
