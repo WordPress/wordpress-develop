@@ -59,8 +59,8 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_editComment( array( 1, 'author', 'author', $comment_id, array( 'status' => 'hold' ) ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
-		$this->assertEquals( __( 'Sorry, you are not allowed to moderate or edit this comment.' ), $result->message );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( __( 'Sorry, you are not allowed to moderate or edit this comment.' ), $result->message );
 	}
 
 	function test_trash_comment() {
@@ -77,7 +77,7 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 		);
 		$comment_id   = wp_insert_comment( $comment_data );
 
-		$this->assertEquals( '1', get_comment( $comment_id )->comment_approved );
+		$this->assertSame( '1', get_comment( $comment_id )->comment_approved );
 
 		$this->myxmlrpcserver->wp_editComment(
 			array(
@@ -91,6 +91,6 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'trash', get_comment( $comment_id )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $comment_id )->comment_approved );
 	}
 }

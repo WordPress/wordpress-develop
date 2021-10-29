@@ -18,8 +18,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->post_type = rand_str( 20 );
 	}
@@ -30,13 +30,20 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$pobj = get_post_type_object( 'foo' );
 		$this->assertInstanceOf( 'WP_Post_Type', $pobj );
-		$this->assertEquals( 'foo', $pobj->name );
+		$this->assertSame( 'foo', $pobj->name );
 
-		// Test some defaults
+		// Test some defaults.
 		$this->assertFalse( is_post_type_hierarchical( 'foo' ) );
-		$this->assertEquals( array(), get_object_taxonomies( 'foo' ) );
+		$this->assertSame( array(), get_object_taxonomies( 'foo' ) );
 
 		_unregister_post_type( 'foo' );
+	}
+
+	/**
+	 * @ticket 48558
+	 */
+	function test_register_post_type_return_value() {
+		$this->assertInstanceOf( 'WP_Post_Type', register_post_type( 'foo' ) );
 	}
 
 	/**
@@ -45,7 +52,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_post_type
 	 */
 	function test_register_post_type_with_too_long_name() {
-		// post type too long
+		// Post type too long.
 		$this->assertInstanceOf( 'WP_Error', register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789' ) );
 	}
 
@@ -55,55 +62,55 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_post_type
 	 */
 	function test_register_post_type_with_empty_name() {
-		// post type too short
+		// Post type too short.
 		$this->assertInstanceOf( 'WP_Error', register_post_type( '' ) );
 	}
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_exclude_from_search_should_default_to_opposite_value_of_public() {
 		/*
 		 * 'public'              Default is false
 		 * 'exclude_from_search' Default is null (opposite 'public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		$this->assertNotEquals( $public, $args->exclude_from_search );
 	}
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_publicly_queryable_should_default_to_value_of_public() {
 		/*
 		 * 'public'             Default is false
 		 * 'publicly_queryable' Default is null ('public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		$this->assertSame( $public, $args->publicly_queryable );
 	}
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_show_ui_should_default_to_value_of_public() {
 		/*
 		 * 'public'  Default is false
 		 * 'show_ui' Default is null ('public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		$this->assertSame( $public, $args->show_ui );
 	}
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_show_in_menu_should_default_to_value_of_show_ui() {
 		/*
@@ -111,7 +118,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'show_ui'     Default is null ('public')
 		 * 'show_in_menu Default is null ('show_ui' > 'public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		// Should fall back to 'show_ui'.
 		$this->assertSame( $args->show_ui, $args->show_in_menu );
@@ -122,21 +129,21 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_show_in_nav_menus_should_default_to_value_of_public() {
 		/*
 		 * 'public'            Default is false
 		 * 'show_in_nav_menus' Default is null ('public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		$this->assertSame( $public, $args->show_in_nav_menus );
 	}
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_show_in_admin_bar_should_default_to_value_of_show_in_menu() {
 		/*
@@ -144,7 +151,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'show_in_menu'      Default is null ('show_ui' > 'public')
 		 * 'show_in_admin_bar' Default is null ('show_in_menu' > 'show_ui' > 'public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		// Should fall back to 'show_in_menu'.
 		$this->assertSame( $args->show_in_menu, $args->show_in_admin_bar );
@@ -161,9 +168,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		register_post_type( 'bar' );
 		register_taxonomy_for_object_type( 'post_tag', 'bar' );
-		$this->assertEquals( array( 'post_tag' ), get_object_taxonomies( 'bar' ) );
+		$this->assertSame( array( 'post_tag' ), get_object_taxonomies( 'bar' ) );
 		register_taxonomy_for_object_type( 'category', 'bar' );
-		$this->assertEquals( array( 'category', 'post_tag' ), get_object_taxonomies( 'bar' ) );
+		$this->assertSame( array( 'category', 'post_tag' ), get_object_taxonomies( 'bar' ) );
 
 		$this->assertTrue( is_object_in_taxonomy( 'bar', 'post_tag' ) );
 		$this->assertTrue( is_object_in_taxonomy( 'bar', 'post_tag' ) );
@@ -257,6 +264,15 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 38844
+	 */
+	public function test_get_post_type_object_includes_menu_icon_for_builtin_post_types() {
+		$this->assertSame( 'dashicons-admin-post', get_post_type_object( 'post' )->menu_icon );
+		$this->assertSame( 'dashicons-admin-page', get_post_type_object( 'page' )->menu_icon );
+		$this->assertSame( 'dashicons-admin-media', get_post_type_object( 'attachment' )->menu_icon );
+	}
+
+	/**
 	 * @ticket 14761
 	 */
 	public function test_unregister_post_type() {
@@ -305,7 +321,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', array_search( 'bar', $wp->public_query_vars, true ) );
+		$this->assertIsInt( array_search( 'bar', $wp->public_query_vars, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertFalse( array_search( 'bar', $wp->public_query_vars, true ) );
 	}
@@ -333,7 +349,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertNotContains( '%foo%', $wp_rewrite->rewritecode );
 		$this->assertNotContains( 'bar=', $wp_rewrite->queryreplace );
-		$this->assertSame( -- $count_before, count( $wp_rewrite->rewritereplace ) ); // Array was reduced by one value.
+		$this->assertCount( --$count_before, $wp_rewrite->rewritereplace ); // Array was reduced by one value.
 	}
 
 	/**
@@ -378,9 +394,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 
-		$this->assertFalse( isset( $post_type_meta_caps['read_bar'] ) );
-		$this->assertFalse( isset( $post_type_meta_caps['delete_bar'] ) );
-		$this->assertFalse( isset( $post_type_meta_caps['edit_bar'] ) );
+		$this->assertArrayNotHasKey( 'read_bar', $post_type_meta_caps );
+		$this->assertArrayNotHasKey( 'delete_bar', $post_type_meta_caps );
+		$this->assertArrayNotHasKey( 'edit_bar', $post_type_meta_caps );
 	}
 
 	/**
@@ -397,7 +413,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSetsWithIndex(
+		$this->assertSameSetsWithIndex(
 			array(
 				'editor' => true,
 				'author' => true,
@@ -406,7 +422,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			$_wp_post_type_features['foo']
 		);
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( isset( $_wp_post_type_features['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $_wp_post_type_features );
 	}
 
 	/**
@@ -423,8 +439,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
-		$this->assertInternalType( 'int', array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
+		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
+		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertFalse( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
 		$this->assertFalse( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
@@ -445,7 +461,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		);
 
 		$this->assertArrayHasKey( 'future_foo', $wp_filter );
-		$this->assertSame( 1, count( $wp_filter['future_foo']->callbacks ) );
+		$this->assertCount( 1, $wp_filter['future_foo']->callbacks );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertArrayNotHasKey( 'future_foo', $wp_filter );
 	}
@@ -465,7 +481,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		);
 
 		$this->assertArrayHasKey( 'add_meta_boxes_foo', $wp_filter );
-		$this->assertSame( 1, count( $wp_filter['add_meta_boxes_foo']->callbacks ) );
+		$this->assertCount( 1, $wp_filter['add_meta_boxes_foo']->callbacks );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertArrayNotHasKey( 'add_meta_boxes_foo', $wp_filter );
 	}
@@ -483,12 +499,12 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'object', $wp_post_types['foo'] );
-		$this->assertInternalType( 'object', get_post_type_object( 'foo' ) );
+		$this->assertIsObject( $wp_post_types['foo'] );
+		$this->assertIsObject( get_post_type_object( 'foo' ) );
 
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 
-		$this->assertFalse( isset( $wp_post_types['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $wp_post_types );
 		$this->assertNull( get_post_type_object( 'foo' ) );
 	}
 
@@ -547,28 +563,13 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 34010
 	 */
 	public function test_get_post_types_by_support_excluding_features() {
-		$this->assertEqualSets( array(), get_post_types_by_support( array( 'post-formats', 'page-attributes' ) ) );
+		$this->assertSameSets( array(), get_post_types_by_support( array( 'post-formats', 'page-attributes' ) ) );
 	}
 
 	/**
 	 * @ticket 34010
 	 */
 	public function test_get_post_types_by_support_non_existant_feature() {
-		$this->assertEqualSets( array(), get_post_types_by_support( 'somefeature' ) );
-	}
-
-	/**
-	 * Serves as a helper to register a post type for tests.
-	 *
-	 * Uses `$this->post_type` initialized in setUp().
-	 *
-	 * @since 4.5.0
-	 *
-	 * @param array $args register_post_type() arguments.
-	 * @return WP_Post_Type Post type object for `$this->post_type`.
-	 */
-	public function register_post_type( $args = array() ) {
-		register_post_type( $this->post_type, $args );
-		return get_post_type_object( $this->post_type );
+		$this->assertSameSets( array(), get_post_types_by_support( 'somefeature' ) );
 	}
 }

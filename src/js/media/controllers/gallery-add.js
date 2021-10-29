@@ -55,7 +55,7 @@ GalleryAdd = Library.extend(/** @lends wp.media.controller.GalleryAdd.prototype 
 	 *
 	 * @since 3.5.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	initialize: function() {
 		if ( ! this.get('library') ) {
@@ -73,7 +73,7 @@ GalleryAdd = Library.extend(/** @lends wp.media.controller.GalleryAdd.prototype 
 	 *
 	 * @since 3.5.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	activate: function() {
 		var library = this.get('library'),

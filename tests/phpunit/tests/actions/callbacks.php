@@ -7,6 +7,8 @@ class Tests_Actions_Callbacks extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23265
+	 *
+	 * @covers ::add_action
 	 */
 	function test_callback_representations() {
 		$tag = __FUNCTION__;
@@ -15,8 +17,8 @@ class Tests_Actions_Callbacks extends WP_UnitTestCase {
 
 		add_action( $tag, array( 'Class', 'method' ) );
 
-		$this->assertEquals( 10, has_action( $tag, array( 'Class', 'method' ) ) );
+		$this->assertSame( 10, has_action( $tag, array( 'Class', 'method' ) ) );
 
-		$this->assertEquals( 10, has_action( $tag, 'Class::method' ) );
+		$this->assertSame( 10, has_action( $tag, 'Class::method' ) );
 	}
 }

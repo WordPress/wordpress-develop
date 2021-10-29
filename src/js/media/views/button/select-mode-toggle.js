@@ -49,7 +49,7 @@ SelectModeToggle = Button.extend(/** @lends wp.media.view.SelectModeToggle.proto
 
 		children = toolbar.$( '.media-toolbar-secondary > *, .media-toolbar-primary > *' );
 
-		// TODO: the Frame should be doing all of this.
+		// @todo The Frame should be doing all of this.
 		if ( this.controller.isModeActive( 'select' ) ) {
 			this.model.set( {
 				size: 'large',

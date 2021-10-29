@@ -37,7 +37,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		});
 	},
 	/**
-	 * @returns {Object}
+	 * @return {Object}
 	 */
 	prepare: function() {
 		return {
@@ -47,7 +47,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	attach: function() {
 		if ( this.views.attached ) {
@@ -68,7 +68,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	detach: function() {
 		if ( this.$el.is(':visible') ) {
@@ -81,7 +81,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	open: function() {
 		var $el = this.$el,
@@ -102,7 +102,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 
 		$el.show();
 
-		// Try to close the onscreen keyboard
+		// Try to close the onscreen keyboard.
 		if ( 'ontouchend' in document ) {
 			if ( ( mceEditor = window.tinymce && window.tinymce.activeEditor ) && ! mceEditor.isHidden() && mceEditor.iframeElement ) {
 				mceEditor.iframeElement.focus();
@@ -115,7 +115,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		}
 
 		// Set initial focus on the content instead of this view element, to avoid page scrolling.
-		this.$( '.media-modal' ).focus();
+		this.$( '.media-modal' ).trigger( 'focus' );
 
 		// Hide the page content from assistive technologies.
 		this.focusManager.setAriaHiddenOnBodyChildren( $el );
@@ -125,18 +125,21 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 
 	/**
 	 * @param {Object} options
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	close: function( options ) {
 		if ( ! this.views.attached || ! this.$el.is(':visible') ) {
 			return this;
 		}
 
+		// Pause current audio/video even after closing the modal.
+		$( '.mejs-pause button' ).trigger( 'click' );
+
 		// Enable page scrolling.
 		$( 'body' ).removeClass( 'modal-open' );
 
-		// Hide modal and remove restricted media modal tab focus once it's closed
-		this.$el.hide().undelegate( 'keydown' );
+		// Hide the modal element by adding display none.
+		this.$el.hide();
 
 		/*
 		 * Make visible again to assistive technologies all body children that
@@ -152,7 +155,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			// Fallback to the admin page main element.
 			$( '#wpbody-content' )
 				.attr( 'tabindex', '-1' )
-				.focus();
+				.trigger( 'focus' );
 		}
 
 		this.propagate('close');
@@ -164,7 +167,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		return this;
 	},
 	/**
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	escape: function() {
 		return this.close({ escape: true });
@@ -179,7 +182,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 
 	/**
 	 * @param {Array|Object} content Views to register to '.media-modal-content'
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	content: function( content ) {
 		this.views.set( '.media-modal-content', content );
@@ -191,7 +194,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	 * forwards events to the modal's controller.
 	 *
 	 * @param {string} id
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	propagate: function( id ) {
 		this.trigger( id );

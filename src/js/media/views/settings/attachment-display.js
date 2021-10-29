@@ -42,7 +42,7 @@ AttachmentDisplay = Settings.extend(/** @lends wp.media.view.Settings.Attachment
 		Settings.prototype.dispose.apply( this, arguments );
 	},
 	/**
-	 * @returns {wp.media.view.AttachmentDisplay} Returns itself to allow chaining
+	 * @return {wp.media.view.AttachmentDisplay} Returns itself to allow chaining.
 	 */
 	render: function() {
 		var attachment = this.options.attachment;
@@ -83,6 +83,9 @@ AttachmentDisplay = Settings.extend(/** @lends wp.media.view.Settings.Attachment
 		}
 
 		$input.closest( '.setting' ).removeClass( 'hidden' );
+		if ( $input.length ) {
+			$input[0].scrollIntoView();
+		}
 	}
 });
 

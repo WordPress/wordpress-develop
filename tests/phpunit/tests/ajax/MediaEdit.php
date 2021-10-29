@@ -1,33 +1,35 @@
 <?php
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
-require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
- * Testing ajax media editing
+ * Testing Ajax media editing.
  *
  * @package    WordPress
  * @subpackage UnitTests
  * @since      3.5.0
  * @group      ajax
+ *
+ * @requires   function imagejpeg
  */
 class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tear down the test fixture.
 	 */
-	public function tearDown() {
-		// Cleanup
+	public function tear_down() {
+		// Cleanup.
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
 	 * @ticket 22985
 	 */
 	public function testCropImageThumbnail() {
-		include_once( ABSPATH . 'wp-admin/includes/image-edit.php' );
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
@@ -58,7 +60,7 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 	public function testImageEditOverwriteConstant() {
 		define( 'IMAGE_EDIT_OVERWRITE', true );
 
-		include_once( ABSPATH . 'wp-admin/includes/image-edit.php' );
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
@@ -94,7 +96,7 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 		}
 
 		foreach ( $files_that_shouldnt_exist as $file ) {
-			$this->assertFileNotExists( $file, 'IMAGE_EDIT_OVERWRITE is leaving garbage image files behind.' );
+			$this->assertFileDoesNotExist( $file, 'IMAGE_EDIT_OVERWRITE is leaving garbage image files behind.' );
 		}
 	}
 }

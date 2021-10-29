@@ -83,15 +83,16 @@ class Walker {
 	 * class methods. Includes the element output also.
 	 *
 	 * @since 2.1.0
+	 * @since 5.9.0 Renamed `$object` (a PHP reserved keyword) to `$data_object` for PHP 8 named parameter support.
 	 * @abstract
 	 *
 	 * @param string $output            Used to append additional content (passed by reference).
-	 * @param object $object            The data object.
+	 * @param object $data_object       The data object.
 	 * @param int    $depth             Depth of the item.
 	 * @param array  $args              An array of additional arguments.
-	 * @param int    $current_object_id ID of the current item.
+	 * @param int    $current_object_id Optional. ID of the current item. Default 0.
 	 */
-	public function start_el( &$output, $object, $depth = 0, $args = array(), $current_object_id = 0 ) {}
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {}
 
 	/**
 	 * Ends the element output, if needed.
@@ -99,14 +100,15 @@ class Walker {
 	 * The $args parameter holds additional values that may be used with the child class methods.
 	 *
 	 * @since 2.1.0
+	 * @since 5.9.0 Renamed `$object` (a PHP reserved keyword) to `$data_object` for PHP 8 named parameter support.
 	 * @abstract
 	 *
-	 * @param string $output Used to append additional content (passed by reference).
-	 * @param object $object The data object.
-	 * @param int    $depth  Depth of the item.
-	 * @param array  $args   An array of additional arguments.
+	 * @param string $output      Used to append additional content (passed by reference).
+	 * @param object $data_object The data object.
+	 * @param int    $depth       Depth of the item.
+	 * @param array  $args        An array of additional arguments.
 	 */
-	public function end_el( &$output, $object, $depth = 0, $args = array() ) {}
+	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {}
 
 	/**
 	 * Traverse elements to create list from elements.
@@ -135,7 +137,7 @@ class Walker {
 		$id_field = $this->db_fields['id'];
 		$id       = $element->$id_field;
 
-		//display this element
+		// Display this element.
 		$this->has_children = ! empty( $children_elements[ $id ] );
 		if ( isset( $args[0] ) && is_array( $args[0] ) ) {
 			$args[0]['has_children'] = $this->has_children; // Back-compat.
@@ -143,14 +145,14 @@ class Walker {
 
 		$this->start_el( $output, $element, $depth, ...array_values( $args ) );
 
-		// descend only when the depth is right and there are childrens for this element
-		if ( ( $max_depth == 0 || $max_depth > $depth + 1 ) && isset( $children_elements[ $id ] ) ) {
+		// Descend only when the depth is right and there are children for this element.
+		if ( ( 0 == $max_depth || $max_depth > $depth + 1 ) && isset( $children_elements[ $id ] ) ) {
 
 			foreach ( $children_elements[ $id ] as $child ) {
 
 				if ( ! isset( $newlevel ) ) {
 					$newlevel = true;
-					//start the child delimiter
+					// Start the child delimiter.
 					$this->start_lvl( $output, $depth, ...array_values( $args ) );
 				}
 				$this->display_element( $child, $children_elements, $max_depth, $depth + 1, $args, $output );
@@ -159,11 +161,11 @@ class Walker {
 		}
 
 		if ( isset( $newlevel ) && $newlevel ) {
-			//end the child delimiter
+			// End the child delimiter.
 			$this->end_lvl( $output, $depth, ...array_values( $args ) );
 		}
 
-		//end this element
+		// End this element.
 		$this->end_el( $output, $element, $depth, ...array_values( $args ) );
 	}
 
@@ -188,14 +190,14 @@ class Walker {
 	public function walk( $elements, $max_depth, ...$args ) {
 		$output = '';
 
-		//invalid parameter or nothing to walk
+		// Invalid parameter or nothing to walk.
 		if ( $max_depth < -1 || empty( $elements ) ) {
 			return $output;
 		}
 
 		$parent_field = $this->db_fields['parent'];
 
-		// flat display
+		// Flat display.
 		if ( -1 == $max_depth ) {
 			$empty_array = array();
 			foreach ( $elements as $e ) {
@@ -248,7 +250,7 @@ class Walker {
 		 * If we are displaying all levels, and remaining children_elements is not empty,
 		 * then we got orphans, which should be displayed regardless.
 		 */
-		if ( ( $max_depth == 0 ) && count( $children_elements ) > 0 ) {
+		if ( ( 0 == $max_depth ) && count( $children_elements ) > 0 ) {
 			$empty_array = array();
 			foreach ( $children_elements as $orphans ) {
 				foreach ( $orphans as $op ) {
@@ -295,7 +297,7 @@ class Walker {
 			$total_top = count( $elements );
 		}
 		if ( $page_num < 1 || $per_page < 0 ) {
-			// No paging
+			// No paging.
 			$paging = false;
 			$start  = 0;
 			if ( -1 == $max_depth ) {
@@ -311,7 +313,7 @@ class Walker {
 			}
 		}
 
-		// flat display
+		// Flat display.
 		if ( -1 == $max_depth ) {
 			if ( ! empty( $args[0]['reverse_top_level'] ) ) {
 				$elements = array_reverse( $elements );
@@ -342,7 +344,7 @@ class Walker {
 		$top_level_elements = array();
 		$children_elements  = array();
 		foreach ( $elements as $e ) {
-			if ( 0 == $e->$parent_field ) {
+			if ( empty( $e->$parent_field ) ) {
 				$top_level_elements[] = $e;
 			} else {
 				$children_elements[ $e->$parent_field ][] = $e;
@@ -412,7 +414,7 @@ class Walker {
 		$parent_field = $this->db_fields['parent'];
 
 		foreach ( $elements as $e ) {
-			if ( 0 == $e->$parent_field ) {
+			if ( empty( $e->$parent_field ) ) {
 				$num++;
 			}
 		}
@@ -425,7 +427,7 @@ class Walker {
 	 * @since 2.7.0
 	 *
 	 * @param object $e
-	 * @param array $children_elements
+	 * @param array  $children_elements
 	 */
 	public function unset_children( $e, &$children_elements ) {
 		if ( ! $e || ! $children_elements ) {
@@ -444,4 +446,4 @@ class Walker {
 		unset( $children_elements[ $id ] );
 	}
 
-} // Walker
+}

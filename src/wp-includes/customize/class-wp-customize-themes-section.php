@@ -72,7 +72,7 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 		?>
 		<li id="accordion-section-{{ data.id }}" class="theme-section">
 			<button type="button" class="customize-themes-section-title themes-section-{{ data.id }}">{{ data.title }}</button>
-			<?php if ( current_user_can( 'install_themes' ) || is_multisite() ) : // @todo: upload support ?>
+			<?php if ( current_user_can( 'install_themes' ) || is_multisite() ) : // @todo Upload support. ?>
 			<?php endif; ?>
 			<div class="customize-themes-section themes-section-{{ data.id }} control-section-content themes-php">
 				<div class="theme-overlay" tabindex="0" role="dialog" aria-label="<?php esc_attr_e( 'Theme Details' ); ?>"></div>
@@ -121,7 +121,7 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	 */
 	protected function filter_bar_content_template() {
 		?>
-		<button type="button" class="button button-primary customize-section-back customize-themes-mobile-back"><?php _e( 'Back to theme sources' ); ?></button>
+		<button type="button" class="button button-primary customize-section-back customize-themes-mobile-back"><?php _e( 'Go to theme sources' ); ?></button>
 		<# if ( 'wporg' === data.action ) { #>
 			<div class="search-form">
 				<label for="wp-filter-search-input-{{ data.id }}" class="screen-reader-text"><?php _e( 'Search themes&hellip;' ); ?></label>
@@ -149,7 +149,7 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 			<span class="themes-displayed">
 				<?php
 				/* translators: %s: Number of themes displayed. */
-				echo sprintf( __( '%s themes' ), '<span class="theme-count">0</span>' );
+				printf( __( '%s themes' ), '<span class="theme-count">0</span>' );
 				?>
 			</span>
 		</div>
@@ -164,7 +164,9 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	 * @since 4.9.0
 	 */
 	protected function filter_drawer_content_template() {
-		$feature_list = get_theme_feature_list( false ); // @todo: Use the .org API instead of the local core feature list. The .org API is currently outdated and will be reconciled when the .org themes directory is next redesigned.
+		// @todo Use the .org API instead of the local core feature list.
+		// The .org API is currently outdated and will be reconciled when the .org themes directory is next redesigned.
+		$feature_list = get_theme_feature_list( false );
 		?>
 		<# if ( 'wporg' === data.action ) { #>
 			<div class="filter-drawer filter-details">

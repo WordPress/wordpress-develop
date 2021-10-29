@@ -45,9 +45,13 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 * @since 4.1.0
 	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
 	 *
+	 * @see WP_Customize_Control::__construct()
+	 *
 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
 	 * @param string               $id      Control ID.
 	 * @param array                $args    Optional. Arguments to override class property defaults.
+	 *                                      See WP_Customize_Control::__construct() for information
+	 *                                      on accepted arguments. Default empty array.
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
 		parent::__construct( $manager, $id, $args );
@@ -86,7 +90,9 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 			if ( $this->setting->default ) {
 				// Fake an attachment model - needs all fields used by template.
 				// Note that the default value must be a URL, NOT an attachment ID.
-				$type               = in_array( substr( $this->setting->default, -3 ), array( 'jpg', 'png', 'gif', 'bmp' ) ) ? 'image' : 'document';
+				$ext  = substr( $this->setting->default, -3 );
+				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp', 'webp' ), true ) ? 'image' : 'document';
+
 				$default_attachment = array(
 					'id'    => 1,
 					'url'   => $this->setting->default,
@@ -164,13 +170,13 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 						<p class="attachment-meta">{{ data.attachment.artist || data.attachment.meta.artist }}</p>
 						<# } #>
 						<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
-							<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}"/>
+							<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}" />
 						</audio>
 					<# } else if ( 'video' === data.attachment.type ) { #>
 						<div class="wp-media-wrapper wp-video">
 							<video controls="controls" class="wp-video-shortcode" preload="metadata"
 								<# if ( data.attachment.image && data.attachment.image.src !== data.attachment.icon ) { #>poster="{{ data.attachment.image.src }}"<# } #>>
-								<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}"/>
+								<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}" />
 							</video>
 						</div>
 					<# } else { #>
@@ -207,7 +213,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @return array An associative array of default button labels.
+	 * @return string[] An associative array of default button labels keyed by the button name.
 	 */
 	public function get_default_button_labels() {
 		// Get just the mime type and strip the mime subtype if present.

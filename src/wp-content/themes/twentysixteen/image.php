@@ -13,7 +13,7 @@ get_header(); ?>
 		<main id="main" class="site-main" role="main">
 
 			<?php
-				// Start the loop.
+			// Start the loop.
 			while ( have_posts() ) :
 				the_post();
 				?>
@@ -36,7 +36,7 @@ get_header(); ?>
 					<div class="entry-attachment">
 						<?php
 							/**
-							 * Filter the default twentysixteen image attachment size.
+							 * Filters the default twentysixteen image attachment size.
 							 *
 							 * @since Twenty Sixteen 1.0
 							 *

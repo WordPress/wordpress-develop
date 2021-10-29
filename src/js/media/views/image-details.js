@@ -27,7 +27,7 @@ ImageDetails = AttachmentDisplay.extend(/** @lends wp.media.view.ImageDetails.pr
 		'keyup [data-setting="customHeight"]': 'onCustomSize'
 	} ),
 	initialize: function() {
-		// used in AttachmentDisplay.prototype.updateLinkTo
+		// Used in AttachmentDisplay.prototype.updateLinkTo.
 		this.options.attachment = this.model.attachment;
 		this.listenTo( this.model, 'change:url', this.updateUrl );
 		this.listenTo( this.model, 'change:link', this.toggleLinkSettings );
@@ -109,7 +109,7 @@ ImageDetails = AttachmentDisplay.extend(/** @lends wp.media.view.ImageDetails.pr
 			num = $( event.target ).val(),
 			value;
 
-		// Ignore bogus input
+		// Ignore bogus input.
 		if ( ! /^\d+/.test( num ) || parseInt( num, 10 ) < 1 ) {
 			event.preventDefault();
 			return;

@@ -22,7 +22,7 @@ CustomizeImageCropper = Controller.Cropper.extend(/** @lends wp.media.controller
 	 *
 	 * @param {Object} attachment The attachment to crop.
 	 *
-	 * @returns {$.promise} A jQuery promise that represents the crop image request.
+	 * @return {$.promise} A jQuery promise that represents the crop image request.
 	 */
 	doCrop: function( attachment ) {
 		var cropDetails = attachment.get( 'cropDetails' ),

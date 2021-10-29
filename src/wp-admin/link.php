@@ -10,7 +10,7 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 wp_reset_vars( array( 'action', 'cat_id', 'link_id' ) );
 
@@ -35,7 +35,7 @@ switch ( $action ) {
 		check_admin_referer( 'bulk-bookmarks' );
 
 		// For each link id (in $linkcheck[]) change category to selected value.
-		if ( count( $linkcheck ) == 0 ) {
+		if ( count( $linkcheck ) === 0 ) {
 			wp_redirect( $this_file );
 			exit;
 		}
@@ -56,11 +56,11 @@ switch ( $action ) {
 		check_admin_referer( 'bulk-bookmarks' );
 
 		// For each link id (in $linkcheck[]) change category to selected value.
-		if ( count( $linkcheck ) == 0 ) {
+		if ( count( $linkcheck ) === 0 ) {
 			wp_redirect( $this_file );
 			exit;
 		}
-		$all_links = join( ',', $linkcheck );
+		$all_links = implode( ',', $linkcheck );
 		/*
 		 * Should now have an array of links we can change:
 		 *     $q = $wpdb->query("update $wpdb->links SET link_category='$category' WHERE link_id IN ($all_links)");
@@ -108,7 +108,8 @@ switch ( $action ) {
 
 		$parent_file  = 'link-manager.php';
 		$submenu_file = 'link-manager.php';
-		$title        = __( 'Edit Link' );
+		// Used in the HTML title tag.
+		$title = __( 'Edit Link' );
 
 		$link_id = (int) $_GET['link_id'];
 
@@ -117,8 +118,8 @@ switch ( $action ) {
 			wp_die( __( 'Link not found.' ) );
 		}
 
-		include( ABSPATH . 'wp-admin/edit-link-form.php' );
-		include( ABSPATH . 'wp-admin/admin-footer.php' );
+		require ABSPATH . 'wp-admin/edit-link-form.php';
+		require_once ABSPATH . 'wp-admin/admin-footer.php';
 		break;
 
 	default:

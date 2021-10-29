@@ -22,7 +22,7 @@
  * @since 2.1.0
  * @access private
  *
- * @param array $bookmarks List of bookmarks to traverse.
+ * @param array        $bookmarks List of bookmarks to traverse.
  * @param string|array $args {
  *     Optional. Bookmarks arguments.
  *
@@ -83,7 +83,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 		$title = $desc;
 
 		if ( $parsed_args['show_updated'] ) {
-			if ( '00' != substr( $bookmark->link_updated_f, 0, 2 ) ) {
+			if ( '00' !== substr( $bookmark->link_updated_f, 0, 2 ) ) {
 				$title .= ' (';
 				$title .= sprintf(
 					/* translators: %s: Date and time of last update. */
@@ -98,25 +98,25 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 		}
 		$alt = ' alt="' . $name . ( $parsed_args['show_description'] ? ' ' . $title : '' ) . '"';
 
-		if ( '' != $title ) {
+		if ( '' !== $title ) {
 			$title = ' title="' . $title . '"';
 		}
 		$rel = $bookmark->link_rel;
-		if ( '' != $rel ) {
+		if ( '' !== $rel ) {
 			$rel = ' rel="' . esc_attr( $rel ) . '"';
 		}
 		$target = $bookmark->link_target;
-		if ( '' != $target ) {
+		if ( '' !== $target ) {
 			$target = ' target="' . $target . '"';
 		}
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target . '>';
 
 		$output .= $parsed_args['link_before'];
 
-		if ( $bookmark->link_image != null && $parsed_args['show_images'] ) {
+		if ( null != $bookmark->link_image && $parsed_args['show_images'] ) {
 			if ( strpos( $bookmark->link_image, 'http' ) === 0 ) {
 				$output .= "<img src=\"$bookmark->link_image\" $alt $title />";
-			} else { // If it's a relative path
+			} else { // If it's a relative path.
 				$output .= '<img src="' . get_option( 'siteurl' ) . "$bookmark->link_image\" $alt $title />";
 			}
 			if ( $parsed_args['show_name'] ) {
@@ -134,7 +134,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 			$output .= '</em>';
 		}
 
-		if ( $parsed_args['show_description'] && '' != $desc ) {
+		if ( $parsed_args['show_description'] && '' !== $desc ) {
 			$output .= $parsed_args['between'] . $desc;
 		}
 
@@ -147,7 +147,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 			);
 		}
 		$output .= $parsed_args['after'] . "\n";
-	} // end while
+	} // End while.
 
 	return $output;
 }
@@ -168,41 +168,42 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
  * @param string|array $args {
  *     Optional. String or array of arguments to list bookmarks.
  *
- *     @type string   $orderby          How to order the links by. Accepts post fields. Default 'name'.
- *     @type string   $order            Whether to order bookmarks in ascending or descending order.
- *                                      Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
- *     @type int      $limit            Amount of bookmarks to display. Accepts 1+ or -1 for all.
- *                                      Default -1.
- *     @type string   $category         Comma-separated list of category ids to include links from.
- *                                      Default empty.
- *     @type string   $category_name    Category to retrieve links for by name. Default empty.
- *     @type int|bool $hide_invisible   Whether to show or hide links marked as 'invisible'. Accepts
- *                                      1|true or 0|false. Default 1|true.
- *     @type int|bool $show_updated     Whether to display the time the bookmark was last updated.
- *                                      Accepts 1|true or 0|false. Default 0|false.
- *     @type int|bool $echo             Whether to echo or return the formatted bookmarks. Accepts
- *                                      1|true (echo) or 0|false (return). Default 1|true.
- *     @type int|bool $categorize       Whether to show links listed by category or in a single column.
- *                                      Accepts 1|true (by category) or 0|false (one column). Default 1|true.
- *     @type int|bool $show_description Whether to show the bookmark descriptions. Accepts 1|true or 0|false.
- *                                      Default 0|false.
- *     @type string   $title_li         What to show before the links appear. Default 'Bookmarks'.
- *     @type string   $title_before     The HTML or text to prepend to the $title_li string. Default '<h2>'.
- *     @type string   $title_after      The HTML or text to append to the $title_li string. Default '</h2>'.
- *     @type string   $class            The CSS class to use for the $title_li. Default 'linkcat'.
- *     @type string   $category_before  The HTML or text to prepend to $title_before if $categorize is true.
- *                                      String must contain '%id' and '%class' to inherit the category ID and
- *                                      the $class argument used for formatting in themes.
- *                                      Default '<li id="%id" class="%class">'.
- *     @type string   $category_after   The HTML or text to append to $title_after if $categorize is true.
- *                                      Default '</li>'.
- *     @type string   $category_orderby How to order the bookmark category based on term scheme if $categorize
- *                                      is true. Default 'name'.
- *     @type string   $category_order   Whether to order categories in ascending or descending order if
- *                                      $categorize is true. Accepts 'ASC' (ascending) or 'DESC' (descending).
- *                                      Default 'ASC'.
+ *     @type string       $orderby          How to order the links by. Accepts post fields. Default 'name'.
+ *     @type string       $order            Whether to order bookmarks in ascending or descending order.
+ *                                          Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
+ *     @type int          $limit            Amount of bookmarks to display. Accepts 1+ or -1 for all.
+ *                                          Default -1.
+ *     @type string       $category         Comma-separated list of category IDs to include links from.
+ *                                          Default empty.
+ *     @type string       $category_name    Category to retrieve links for by name. Default empty.
+ *     @type int|bool     $hide_invisible   Whether to show or hide links marked as 'invisible'. Accepts
+ *                                          1|true or 0|false. Default 1|true.
+ *     @type int|bool     $show_updated     Whether to display the time the bookmark was last updated.
+ *                                          Accepts 1|true or 0|false. Default 0|false.
+ *     @type int|bool     $echo             Whether to echo or return the formatted bookmarks. Accepts
+ *                                          1|true (echo) or 0|false (return). Default 1|true.
+ *     @type int|bool     $categorize       Whether to show links listed by category or in a single column.
+ *                                          Accepts 1|true (by category) or 0|false (one column). Default 1|true.
+ *     @type int|bool     $show_description Whether to show the bookmark descriptions. Accepts 1|true or 0|false.
+ *                                          Default 0|false.
+ *     @type string       $title_li         What to show before the links appear. Default 'Bookmarks'.
+ *     @type string       $title_before     The HTML or text to prepend to the $title_li string. Default '<h2>'.
+ *     @type string       $title_after      The HTML or text to append to the $title_li string. Default '</h2>'.
+ *     @type string|array $class            The CSS class or an array of classes to use for the $title_li.
+ *                                          Default 'linkcat'.
+ *     @type string       $category_before  The HTML or text to prepend to $title_before if $categorize is true.
+ *                                          String must contain '%id' and '%class' to inherit the category ID and
+ *                                          the $class argument used for formatting in themes.
+ *                                          Default '<li id="%id" class="%class">'.
+ *     @type string       $category_after   The HTML or text to append to $title_after if $categorize is true.
+ *                                          Default '</li>'.
+ *     @type string       $category_orderby How to order the bookmark category based on term scheme if $categorize
+ *                                          is true. Default 'name'.
+ *     @type string       $category_order   Whether to order categories in ascending or descending order if
+ *                                          $categorize is true. Accepts 'ASC' (ascending) or 'DESC' (descending).
+ *                                          Default 'ASC'.
  * }
- * @return string|void Will only return if echo option is set to not echo. Default is not return anything.
+ * @return void|string Void if 'echo' argument is true, HTML list of bookmarks if 'echo' is false.
  */
 function wp_list_bookmarks( $args = '' ) {
 	$defaults = array(
@@ -234,7 +235,7 @@ function wp_list_bookmarks( $args = '' ) {
 		$parsed_args['class'] = explode( ' ', $parsed_args['class'] );
 	}
 	$parsed_args['class'] = array_map( 'sanitize_html_class', $parsed_args['class'] );
-	$parsed_args['class'] = trim( join( ' ', $parsed_args['class'] ) );
+	$parsed_args['class'] = trim( implode( ' ', $parsed_args['class'] ) );
 
 	if ( $parsed_args['categorize'] ) {
 		$cats = get_terms(
@@ -254,7 +255,7 @@ function wp_list_bookmarks( $args = '' ) {
 	}
 
 	if ( $parsed_args['categorize'] ) {
-		// Split the bookmarks into ul's for each category
+		// Split the bookmarks into ul's for each category.
 		foreach ( (array) $cats as $cat ) {
 			$params    = array_merge( $parsed_args, array( 'category' => $cat->term_id ) );
 			$bookmarks = get_bookmarks( $params );
@@ -284,7 +285,7 @@ function wp_list_bookmarks( $args = '' ) {
 			$output .= $parsed_args['category_after'] . "\n";
 		}
 	} else {
-		//output one single list using title_li for the title
+		// Output one single list using title_li for the title.
 		$bookmarks = get_bookmarks( $parsed_args );
 
 		if ( ! empty( $bookmarks ) ) {
@@ -316,8 +317,9 @@ function wp_list_bookmarks( $args = '' ) {
 	 */
 	$html = apply_filters( 'wp_list_bookmarks', $output );
 
-	if ( ! $parsed_args['echo'] ) {
+	if ( $parsed_args['echo'] ) {
+		echo $html;
+	} else {
 		return $html;
 	}
-	echo $html;
 }

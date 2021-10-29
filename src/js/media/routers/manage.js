@@ -16,7 +16,7 @@ var Router = Backbone.Router.extend(/** @lends wp.media.view.MediaFrame.Manage.R
 		'upload.php':                      'reset'
 	},
 
-	// Map routes against the page URL
+	// Map routes against the page URL.
 	baseUrl: function( url ) {
 		return 'upload.php' + url;
 	},
@@ -29,23 +29,23 @@ var Router = Backbone.Router.extend(/** @lends wp.media.view.MediaFrame.Manage.R
 		}
 	},
 
-	// Respond to the search route by filling the search field and trigggering the input event
+	// Respond to the search route by filling the search field and triggering the input event.
 	search: function( query ) {
 		jQuery( '#media-search-input' ).val( query ).trigger( 'input' );
 	},
 
-	// Show the modal with a specific item
+	// Show the modal with a specific item.
 	showItem: function( query ) {
 		var media = wp.media,
 			frame = media.frames.browse,
 			library = frame.state().get('library'),
 			item;
 
-		// Trigger the media frame to open the correct item
+		// Trigger the media frame to open the correct item.
 		item = library.findWhere( { id: parseInt( query, 10 ) } );
-		item.set( 'skipHistory', true );
 
 		if ( item ) {
+			item.set( 'skipHistory', true );
 			frame.trigger( 'edit:attachment', item );
 		} else {
 			item = media.attachment( query );

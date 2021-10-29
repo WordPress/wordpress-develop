@@ -246,7 +246,6 @@ body#tinymce.wp-editor.content h6 {
 /* Blockquote -------------------------------- */
 
 body#tinymce.wp-editor.content blockquote {
-	border-style: solid;
 	border: none;
 	border-left: 2px solid #cd2653;
 	margin: 0 0 1.6em 0;
@@ -283,7 +282,7 @@ body#tinymce.wp-editor.content ul {
 body#tinymce.wp-editor.content ol {
 	margin-left: 1.5em;
 	padding-left: 0;
-	list-style: square;
+	list-style: decimal;
 }
 
 body#tinymce.wp-editor.content ul ul {

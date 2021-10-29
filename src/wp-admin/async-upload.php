@@ -15,17 +15,17 @@ if ( ! defined( 'WP_ADMIN' ) ) {
 }
 
 if ( defined( 'ABSPATH' ) ) {
-	require_once( ABSPATH . 'wp-load.php' );
+	require_once ABSPATH . 'wp-load.php';
 } else {
-	require_once( dirname( dirname( __FILE__ ) ) . '/wp-load.php' );
+	require_once dirname( __DIR__ ) . '/wp-load.php';
 }
 
-require_once( ABSPATH . 'wp-admin/admin.php' );
+require_once ABSPATH . 'wp-admin/admin.php';
 
 header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ) );
 
 if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action'] ) {
-	include( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+	require ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 	send_nosniff_header();
 	nocache_headers();
@@ -38,29 +38,50 @@ if ( ! current_user_can( 'upload_files' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to upload files.' ) );
 }
 
-// just fetch the detail form for that attachment
-if ( isset( $_REQUEST['attachment_id'] ) && intval( $_REQUEST['attachment_id'] ) && $_REQUEST['fetch'] ) {
-	$id   = intval( $_REQUEST['attachment_id'] );
+// Just fetch the detail form for that attachment.
+if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && $_REQUEST['fetch'] ) {
+	$id   = (int) $_REQUEST['attachment_id'];
 	$post = get_post( $id );
-	if ( 'attachment' != $post->post_type ) {
+	if ( 'attachment' !== $post->post_type ) {
 		wp_die( __( 'Invalid post type.' ) );
-	}
-	if ( ! current_user_can( 'edit_post', $id ) ) {
-		wp_die( __( 'Sorry, you are not allowed to edit this item.' ) );
 	}
 
 	switch ( $_REQUEST['fetch'] ) {
 		case 3:
-			$thumb_url = wp_get_attachment_image_src( $id, 'thumbnail', true );
-			if ( $thumb_url ) {
-				echo '<img class="pinkynail" src="' . esc_url( $thumb_url[0] ) . '" alt="" />';
-			}
-			echo '<a class="edit-attachment" href="' . esc_url( get_edit_post_link( $id ) ) . '" target="_blank">' . _x( 'Edit', 'media item' ) . '</a>';
+			?>
+			<div class="media-item-wrapper">
+				<div class="attachment-details">
+					<?php
+					$thumb_url = wp_get_attachment_image_src( $id, 'thumbnail', true );
+					if ( $thumb_url ) {
+						echo '<img class="pinkynail" src="' . esc_url( $thumb_url[0] ) . '" alt="" />';
+					}
 
-			// Title shouldn't ever be empty, but use filename just in case.
-			$file  = get_attached_file( $post->ID );
-			$title = $post->post_title ? $post->post_title : wp_basename( $file );
-			echo '<div class="filename new"><span class="title">' . esc_html( wp_html_excerpt( $title, 60, '&hellip;' ) ) . '</span></div>';
+					// Title shouldn't ever be empty, but use filename just in case.
+					$file     = get_attached_file( $post->ID );
+					$file_url = wp_get_attachment_url( $post->ID );
+					$title    = $post->post_title ? $post->post_title : wp_basename( $file );
+					?>
+					<div class="filename new">
+						<span class="media-list-title"><strong><?php echo esc_html( wp_html_excerpt( $title, 60, '&hellip;' ) ); ?></strong></span>
+						<span class="media-list-subtitle"><?php echo wp_basename( $file ); ?></span>
+					</div>
+				</div>
+				<div class="attachment-tools">
+					<span class="media-item-copy-container copy-to-clipboard-container edit-attachment">
+						<button type="button" class="button button-small copy-attachment-url" data-clipboard-text="<?php echo $file_url; ?>"><?php _e( 'Copy URL to clipboard' ); ?></button>
+						<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
+					</span>
+					<?php
+					if ( current_user_can( 'edit_post', $id ) ) {
+						echo '<a class="edit-attachment" href="' . esc_url( get_edit_post_link( $id ) ) . '" target="_blank">' . _x( 'Edit', 'media item' ) . '</a>';
+					} else {
+						echo '<span class="edit-attachment">' . _x( 'Success', 'media item' ) . '</span>';
+					}
+					?>
+				</div>
+			</div>
+			<?php
 			break;
 		case 2:
 			add_filter( 'attachment_fields_to_edit', 'media_single_attachment_fields_to_edit', 10, 2 );
@@ -112,14 +133,20 @@ if ( $_REQUEST['short'] ) {
 	// Short form response - attachment ID only.
 	echo $id;
 } else {
-	// Long form response - big chunk of html.
+	// Long form response - big chunk of HTML.
 	$type = $_REQUEST['type'];
 
 	/**
 	 * Filters the returned ID of an uploaded attachment.
 	 *
-	 * The dynamic portion of the hook name, `$type`, refers to the attachment type,
-	 * such as 'image', 'audio', 'video', 'file', etc.
+	 * The dynamic portion of the hook name, `$type`, refers to the attachment type.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `async_upload_audio`
+	 *  - `async_upload_file`
+	 *  - `async_upload_image`
+	 *  - `async_upload_video`
 	 *
 	 * @since 2.5.0
 	 *

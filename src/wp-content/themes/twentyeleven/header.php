@@ -48,7 +48,7 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 
 ?>
 	</title>
-<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="profile" href="https://gmpg.org/xfn/11" />
 <link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>?ver=20190507" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <!--[if lt IE 9]>
@@ -83,7 +83,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 			</hgroup>
 
 			<?php
-				// Check to see if the header image has been removed
+				// Check to see if the header image has been removed.
 				$header_image = get_header_image();
 			if ( $header_image ) :
 				// Compatibility with versions of WordPress prior to 3.4.
@@ -103,12 +103,13 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 				 * The header image.
 				 * Check if this is a post or page, if it has a thumbnail, and if it's a big one
 				 */
+				$image = false;
 				if ( is_singular() && has_post_thumbnail( $post->ID ) ) {
 					$image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), array( $header_image_width, $header_image_width ) );
-					if ( $image && $image[1] >= $header_image_width ) {
-						// Houston, we have a new header image!
-						echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
-					}
+				}
+				if ( $image && $image[1] >= $header_image_width ) {
+					// Houston, we have a new header image!
+					echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
 				} else {
 					// Compatibility with versions of WordPress prior to 3.4.
 					if ( function_exists( 'get_custom_header' ) ) {
@@ -121,14 +122,14 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					?>
 					<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $header_image_width ); ?>" height="<?php echo esc_attr( $header_image_height ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" />
 					<?php
-				} // end check for featured image or standard header
+				} // End check for featured image or standard header.
 				?>
 			</a>
-			<?php endif; // end check for removed header image ?>
+			<?php endif; // End check for removed header image. ?>
 
 			<?php
 				// Has the text been hidden?
-			if ( 'blank' == get_header_textcolor() ) :
+			if ( 'blank' === get_header_textcolor() ) :
 				$header_image_class = '';
 				if ( $header_image ) {
 					$header_image_class = ' with-image';
@@ -145,8 +146,14 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 
 			<nav id="access" role="navigation">
 				<h3 class="assistive-text"><?php _e( 'Main menu', 'twentyeleven' ); ?></h3>
-				<?php /* Our navigation menu. If one isn't filled out, wp_nav_menu falls back to wp_page_menu. The menu assigned to the primary location is the one used. If one isn't assigned, the menu with the lowest ID is used. */ ?>
-				<?php wp_nav_menu( array( 'theme_location' => 'primary' ) ); ?>
+				<?php
+				/*
+				 * Our navigation menu. If one isn't filled out, wp_nav_menu() falls back to wp_page_menu().
+				 * The menu assigned to the primary location is the one used.
+				 * If one isn't assigned, the menu with the lowest ID is used.
+				 */
+				wp_nav_menu( array( 'theme_location' => 'primary' ) );
+				?>
 			</nav><!-- #access -->
 	</header><!-- #branding -->
 

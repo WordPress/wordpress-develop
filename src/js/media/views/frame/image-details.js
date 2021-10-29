@@ -43,7 +43,7 @@ ImageDetails = Select.extend(/** @lends wp.media.view.MediaFrame.ImageDetails.pr
 		this.on( 'content:create:image-details', this.imageDetailsContent, this );
 		this.on( 'content:render:edit-image', this.editImageContent, this );
 		this.on( 'toolbar:render:image-details', this.renderImageDetailsToolbar, this );
-		// override the select toolbar
+		// Override the select toolbar.
 		this.on( 'toolbar:render:replace', this.renderReplaceImageToolbar, this );
 	},
 
@@ -91,7 +91,7 @@ ImageDetails = Select.extend(/** @lends wp.media.view.MediaFrame.ImageDetails.pr
 
 		this.content.set( view );
 
-		// after bringing in the frame, load the actual editor via an ajax call
+		// After bringing in the frame, load the actual editor via an Ajax call.
 		view.loadEditor();
 
 	},
@@ -111,8 +111,8 @@ ImageDetails = Select.extend(/** @lends wp.media.view.MediaFrame.ImageDetails.pr
 
 						controller.close();
 
-						// not sure if we want to use wp.media.string.image which will create a shortcode or
-						// perhaps wp.html.string to at least to build the <img />
+						// Not sure if we want to use wp.media.string.image which will create a shortcode or
+						// perhaps wp.html.string to at least to build the <img />.
 						state.trigger( 'update', controller.image.toJSON() );
 
 						// Restore and reset the default state.
@@ -160,8 +160,8 @@ ImageDetails = Select.extend(/** @lends wp.media.view.MediaFrame.ImageDetails.pr
 
 						controller.image.changeAttachment( attachment, state.display( attachment ) );
 
-						// not sure if we want to use wp.media.string.image which will create a shortcode or
-						// perhaps wp.html.string to at least to build the <img />
+						// Not sure if we want to use wp.media.string.image which will create a shortcode or
+						// perhaps wp.html.string to at least to build the <img />.
 						state.trigger( 'replace', controller.image.toJSON() );
 
 						// Restore and reset the default state.

@@ -5,8 +5,8 @@
  */
 class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'Not testable with an external object cache.' );
@@ -20,10 +20,10 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$this->assertFalse( get_site_transient( 'doesnotexist' ) );
 		$this->assertTrue( set_site_transient( $key, $value ) );
-		$this->assertEquals( $value, get_site_transient( $key ) );
+		$this->assertSame( $value, get_site_transient( $key ) );
 		$this->assertFalse( set_site_transient( $key, $value ) );
 		$this->assertTrue( set_site_transient( $key, $value2 ) );
-		$this->assertEquals( $value2, get_site_transient( $key ) );
+		$this->assertSame( $value2, get_site_transient( $key ) );
 		$this->assertTrue( delete_site_transient( $key ) );
 		$this->assertFalse( get_site_transient( $key ) );
 		$this->assertFalse( delete_site_transient( $key ) );
@@ -37,7 +37,7 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( set_site_transient( $key, $value ) );
-		$this->assertEquals( $value, get_site_transient( $key ) );
+		$this->assertSame( $value, get_site_transient( $key ) );
 
 		$value = (object) $value;
 		$this->assertTrue( set_site_transient( $key, $value ) );
@@ -56,6 +56,6 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$options = wp_load_alloptions();
 
-		$this->assertFalse( isset( $options[ '_site_transient_' . $key ] ) );
+		$this->assertArrayNotHasKey( '_site_transient_' . $key, $options );
 	}
 }

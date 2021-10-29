@@ -12,7 +12,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 	 * @group ms-excluded
 	 */
 	public function test_count_users_is_accurate( $strategy ) {
-		// Setup users
+		// Setup users.
 		$admin       = self::factory()->user->create(
 			array(
 				'role' => 'administrator',
@@ -49,10 +49,10 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			)
 		);
 
-		// Test user counts
+		// Test user counts.
 		$count = count_users( $strategy );
 
-		$this->assertEquals( 8, $count['total_users'] );
+		$this->assertSame( 8, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 2,
@@ -76,7 +76,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 	 * @dataProvider data_count_users_strategies
 	 */
 	public function test_count_users_multisite_is_accurate( $strategy ) {
-		// Setup users
+		// Setup users.
 		$admin       = self::factory()->user->create(
 			array(
 				'role' => 'administrator',
@@ -113,7 +113,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			)
 		);
 
-		// Setup blogs
+		// Setup blogs.
 		$blog_1 = (int) self::factory()->blog->create(
 			array(
 				'user_id' => $editor,
@@ -125,14 +125,14 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			)
 		);
 
-		// Add users to blogs
+		// Add users to blogs.
 		add_user_to_blog( $blog_1, $subscriber, 'editor' );
 		add_user_to_blog( $blog_2, $none, 'contributor' );
 
-		// Test users counts on root site
+		// Test users counts on root site.
 		$count = count_users( $strategy );
 
-		$this->assertEquals( 8, $count['total_users'] );
+		$this->assertSame( 8, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 2,
@@ -145,12 +145,12 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			$count['avail_roles']
 		);
 
-		// Test users counts on blog 1
+		// Test users counts on blog 1.
 		switch_to_blog( $blog_1 );
 		$count = count_users( $strategy );
 		restore_current_blog();
 
-		$this->assertEquals( 2, $count['total_users'] );
+		$this->assertSame( 2, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 1,
@@ -160,12 +160,12 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			$count['avail_roles']
 		);
 
-		// Test users counts on blog 2
+		// Test users counts on blog 2.
 		switch_to_blog( $blog_2 );
 		$count = count_users( $strategy );
 		restore_current_blog();
 
-		$this->assertEquals( 2, $count['total_users'] );
+		$this->assertSame( 2, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 1,
@@ -197,7 +197,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$count = count_users( $strategy, $site_id );
-		$this->assertEqualSetsWithIndex(
+		$this->assertSameSetsWithIndex(
 			array(
 				'tester' => 1,
 				'none'   => 0,
@@ -213,7 +213,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 	 */
 	public function test_count_users_is_accurate_with_multiple_roles( $strategy ) {
 
-		// Setup users
+		// Setup users.
 		$admin  = self::factory()->user->create(
 			array(
 				'role' => 'administrator',
@@ -227,7 +227,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 
 		get_userdata( $editor )->add_role( 'author' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'editor',
 				'author',
@@ -235,10 +235,10 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			get_userdata( $editor )->roles
 		);
 
-		// Test user counts
+		// Test user counts.
 		$count = count_users( $strategy );
 
-		$this->assertEquals( 3, $count['total_users'] );
+		$this->assertSame( 3, $count['total_users'] );
 		$this->assertEquals(
 			array(
 				'administrator' => 2,
@@ -278,7 +278,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 
 		$count2 = count_users( $strategy );
 
-		$this->assertEqualSets( $count, $count2 );
+		$this->assertSameSets( $count, $count2 );
 	}
 
 	function data_count_users_strategies() {

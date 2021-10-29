@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
-require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
  * Testing Add Meta AJAX functionality.
@@ -34,7 +34,7 @@ class Tests_Ajax_AddMeta extends WP_Ajax_UnitTestCase {
 			unset( $e );
 		}
 
-		$this->assertEquals( '', get_post_meta( $p, 'testkey', true ) );
+		$this->assertSame( '', get_post_meta( $p, 'testkey', true ) );
 	}
 
 	/**
@@ -66,6 +66,6 @@ class Tests_Ajax_AddMeta extends WP_Ajax_UnitTestCase {
 			unset( $e );
 		}
 
-		$this->assertEquals( '', get_post_meta( $p, 'testkey', true ) );
+		$this->assertSame( '', get_post_meta( $p, 'testkey', true ) );
 	}
 }

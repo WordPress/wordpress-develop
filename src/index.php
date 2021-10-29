@@ -8,7 +8,7 @@
 
 /** Define ABSPATH as this file's directory */
 if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', dirname( __FILE__ ) . '/' );
+	define( 'ABSPATH', __DIR__ . '/' );
 }
 
 if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
@@ -17,19 +17,19 @@ if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
 }
 
 define( 'WPINC', 'wp-includes' );
-require_once( ABSPATH . WPINC . '/load.php' );
+require_once ABSPATH . WPINC . '/load.php';
 
 // Standardize $_SERVER variables across setups.
 wp_fix_server_vars();
 
-require_once( ABSPATH . WPINC . '/functions.php' );
+require_once ABSPATH . WPINC . '/functions.php';
 define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
-require_once( ABSPATH . WPINC . '/version.php' );
+require_once ABSPATH . WPINC . '/version.php';
 
 wp_check_php_mysql_versions();
 wp_load_translations_early();
 
-// Die with an error message
+// Die with an error message.
 $die = sprintf(
 	'<p>%s</p>',
 	__( 'You are running WordPress without JavaScript and CSS files. These need to be built.' )

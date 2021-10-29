@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
@@ -12,12 +12,14 @@ if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 	/**
 	 * Generate CSS.
 	 *
+	 * @since Twenty Twenty 1.0
+	 *
 	 * @param string $selector The CSS selector.
-	 * @param string $style The CSS style.
-	 * @param string $value The CSS value.
-	 * @param string $prefix The CSS prefix.
-	 * @param string $suffix The CSS suffix.
-	 * @param bool   $echo Echo the styles.
+	 * @param string $style    The CSS style.
+	 * @param string $value    The CSS value.
+	 * @param string $prefix   The CSS prefix.
+	 * @param string $suffix   The CSS suffix.
+	 * @param bool   $echo     Echo the styles.
 	 */
 	function twentytwenty_generate_css( $selector, $style, $value, $prefix = '', $suffix = '', $echo = true ) {
 
@@ -35,7 +37,7 @@ if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 
 		if ( $echo ) {
 
-			echo $return; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;)
+			echo $return; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;)
 
 		}
 
@@ -50,7 +52,9 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 	 * Get CSS Built from Customizer Options.
 	 * Build CSS reflecting colors, fonts and other options set in the Customizer, and return them for output.
 	 *
-	 * @param string $type Whether to return CSS for the "front-end", "block-editor" or "classic-editor".
+	 * @since Twenty Twenty 1.0
+	 *
+	 * @param string $type Whether to return CSS for the "front-end", "block-editor", or "classic-editor".
 	 */
 	function twentytwenty_get_customizer_css( $type = 'front-end' ) {
 
@@ -78,7 +82,7 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 
 		ob_start();
 
-		/**
+		/*
 		 * Note – Styles are applied in this order:
 		 * 1. Element specific
 		 * 2. Helper classes
@@ -86,7 +90,7 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 		 * This enables all helper classes to overwrite base element styles,
 		 * meaning that any color classes applied in the block editor will
 		 * have a higher priority than the base element styles.
-		*/
+		 */
 
 		// Front-End Styles.
 		if ( 'front-end' === $type ) {
@@ -122,14 +126,15 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 			// Colors.
 			// Accent color.
 			if ( $accent && $accent !== $accent_default ) {
-				twentytwenty_generate_css( '.has-accent-color, .editor-styles-wrapper .editor-block-list__layout a, .editor-styles-wrapper .has-drop-cap:not(:focus)::first-letter, .editor-styles-wrapper .wp-block-button.is-style-outline .wp-block-button__link, .editor-styles-wrapper .wp-block-pullquote::before, .editor-styles-wrapper .wp-block-file .wp-block-file__textlink', 'color', $accent );
+				twentytwenty_generate_css( ':root .has-accent-color, .editor-styles-wrapper a, .editor-styles-wrapper .has-drop-cap:not(:focus)::first-letter, .editor-styles-wrapper .wp-block-button.is-style-outline .wp-block-button__link, .editor-styles-wrapper .wp-block-pullquote::before, .editor-styles-wrapper .wp-block-file .wp-block-file__textlink', 'color', $accent );
 				twentytwenty_generate_css( '.editor-styles-wrapper .wp-block-quote', 'border-color', $accent, '' );
 				twentytwenty_generate_css( '.has-accent-background-color, .editor-styles-wrapper .wp-block-button__link, .editor-styles-wrapper .wp-block-file__button', 'background-color', $accent );
 			}
 
 			// Background color.
 			if ( $background && $background !== $background_default ) {
-				twentytwenty_generate_css( '.editor-styles-wrapper', 'background', '#' . $background );
+				twentytwenty_generate_css( '.editor-styles-wrapper', 'background-color', '#' . $background );
+				twentytwenty_generate_css( '.has-background.has-primary-background-color:not(.has-text-color),.has-background.has-primary-background-color *:not(.has-text-color),.has-background.has-accent-background-color:not(.has-text-color),.has-background.has-accent-background-color *:not(.has-text-color)', 'color', '#' . $background );
 			}
 
 			// Borders color.
@@ -164,7 +169,7 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 
 			// Background color.
 			if ( $background && $background !== $background_default ) {
-				twentytwenty_generate_css( 'body#tinymce.wp-editor.content', 'background', '#' . $background );
+				twentytwenty_generate_css( 'body#tinymce.wp-editor.content', 'background-color', '#' . $background );
 			}
 
 			// Text color.

@@ -27,7 +27,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for taxonomies.
 	 *
 	 * @since 4.7.0
 	 *
@@ -87,13 +87,20 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			} else {
 				$taxonomies = get_taxonomies( '', 'objects' );
 			}
+
 			foreach ( $taxonomies as $taxonomy ) {
 				if ( ! empty( $taxonomy->show_in_rest ) && current_user_can( $taxonomy->cap->assign_terms ) ) {
 					return true;
 				}
 			}
-			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you are not allowed to manage terms in this taxonomy.' ), array( 'status' => rest_authorization_required_code() ) );
+
+			return new WP_Error(
+				'rest_cannot_view',
+				__( 'Sorry, you are not allowed to manage terms in this taxonomy.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
+
 		return true;
 	}
 
@@ -115,11 +122,14 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		} else {
 			$taxonomies = get_taxonomies( '', 'objects' );
 		}
+
 		$data = array();
+
 		foreach ( $taxonomies as $tax_type => $value ) {
 			if ( empty( $value->show_in_rest ) || ( 'edit' === $request['context'] && ! current_user_can( $value->cap->assign_terms ) ) ) {
 				continue;
 			}
+
 			$tax               = $this->prepare_item_for_response( $value, $request );
 			$tax               = $this->prepare_response_for_collection( $tax );
 			$data[ $tax_type ] = $tax;
@@ -149,8 +159,13 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			if ( empty( $tax_obj->show_in_rest ) ) {
 				return false;
 			}
+
 			if ( 'edit' === $request['context'] && ! current_user_can( $tax_obj->cap->assign_terms ) ) {
-				return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to manage terms in this taxonomy.' ), array( 'status' => rest_authorization_required_code() ) );
+				return new WP_Error(
+					'rest_forbidden_context',
+					__( 'Sorry, you are not allowed to manage terms in this taxonomy.' ),
+					array( 'status' => rest_authorization_required_code() )
+				);
 			}
 		}
 
@@ -167,10 +182,17 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 */
 	public function get_item( $request ) {
 		$tax_obj = get_taxonomy( $request['taxonomy'] );
+
 		if ( empty( $tax_obj ) ) {
-			return new WP_Error( 'rest_taxonomy_invalid', __( 'Invalid taxonomy.' ), array( 'status' => 404 ) );
+			return new WP_Error(
+				'rest_taxonomy_invalid',
+				__( 'Invalid taxonomy.' ),
+				array( 'status' => 404 )
+			);
 		}
+
 		$data = $this->prepare_item_for_response( $tax_obj, $request );
+
 		return rest_ensure_response( $data );
 	}
 
@@ -178,13 +200,16 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * Prepares a taxonomy object for serialization.
 	 *
 	 * @since 4.7.0
+	 * @since 5.9.0 Renamed `$taxonomy` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param stdClass        $taxonomy Taxonomy data.
-	 * @param WP_REST_Request $request  Full details about the request.
+	 * @param WP_Taxonomy     $item    Taxonomy data.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $taxonomy, $request ) {
-		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$taxonomy = $item;
+		$base     = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
@@ -262,7 +287,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		 * @since 4.7.0
 		 *
 		 * @param WP_REST_Response $response The response object.
-		 * @param object           $item     The original taxonomy object.
+		 * @param WP_Taxonomy      $item     The original taxonomy object.
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_taxonomy', $response, $taxonomy, $request );
@@ -379,6 +404,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		);
 
 		$this->schema = $schema;
+
 		return $this->add_additional_fields_schema( $this->schema );
 	}
 

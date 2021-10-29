@@ -1,11 +1,24 @@
 <?php
 
-// misc help functions and utilities
+// Misc help functions and utilities.
 
+/**
+ * Returns a string of the required length containing random characters. Note that
+ * the maximum possible string length is 32.
+ *
+ * @param int $len Optional. The required length. Default 32.
+ * @return string The string.
+ */
 function rand_str( $len = 32 ) {
 	return substr( md5( uniqid( rand() ) ), 0, $len );
 }
 
+/**
+ * Returns a string of the required length containing random characters.
+ *
+ * @param int $len The required length.
+ * @return string The string.
+ */
 function rand_long_str( $length ) {
 	$chars  = 'abcdefghijklmnopqrstuvwxyz';
 	$string = '';
@@ -18,7 +31,12 @@ function rand_long_str( $length ) {
 	return $string;
 }
 
-// strip leading and trailing whitespace from each line in the string
+/**
+ * Strips leading and trailing whitespace from each line in the string.
+ *
+ * @param string $txt The text.
+ * @return string Text with line-leading and line-trailing whitespace stripped.
+ */
 function strip_ws( $txt ) {
 	$lines  = explode( "\n", $txt );
 	$result = array();
@@ -28,16 +46,20 @@ function strip_ws( $txt ) {
 		}
 	}
 
-	return trim( join( "\n", $result ) );
+	return trim( implode( "\n", $result ) );
 }
 
-// helper class for testing code that involves actions and filters
-// typical use:
-// $ma = new MockAction();
-// add_action('foo', array(&$ma, 'action'));
+/*
+ * Helper class for testing code that involves actions and filters.
+ *
+ * Typical use:
+ *
+ *     $ma = new MockAction();
+ *     add_action( 'foo', array( &$ma, 'action' ) );
+ */
 class MockAction {
-	var $events;
-	var $debug;
+	public $events;
+	public $debug;
 
 	/**
 	 * PHP5 constructor.
@@ -129,7 +151,7 @@ class MockAction {
 	}
 
 	function filterall( $tag, ...$args ) {
-		// this one doesn't return the result, so it's safe to use with the new 'all' filter
+		// This one doesn't return the result, so it's safe to use with the new 'all' filter.
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -141,12 +163,12 @@ class MockAction {
 		);
 	}
 
-	// return a list of all the actions, tags and args
+	// Return a list of all the actions, tags and args.
 	function get_events() {
 		return $this->events;
 	}
 
-	// return a count of the number of times the action was called since the last reset
+	// Return a count of the number of times the action was called since the last reset.
 	function get_call_count( $tag = '' ) {
 		if ( $tag ) {
 			$count = 0;
@@ -160,7 +182,7 @@ class MockAction {
 		return count( $this->events );
 	}
 
-	// return an array of the tags that triggered calls to this action
+	// Return an array of the tags that triggered calls to this action.
 	function get_tags() {
 		$out = array();
 		foreach ( $this->events as $e ) {
@@ -169,7 +191,7 @@ class MockAction {
 		return $out;
 	}
 
-	// return an array of args passed in calls to this action
+	// Return an array of args passed in calls to this action.
 	function get_args() {
 		$out = array();
 		foreach ( $this->events as $e ) {
@@ -179,11 +201,11 @@ class MockAction {
 	}
 }
 
-// convert valid xml to an array tree structure
-// kinda lame but it works with a default php 4 installation
+// Convert valid XML to an array tree structure.
+// Kinda lame, but it works with a default PHP 4 installation.
 class TestXMLParser {
-	var $xml;
-	var $data = array();
+	public $xml;
+	public $data = array();
 
 	/**
 	 * PHP5 constructor.
@@ -238,11 +260,31 @@ class TestXMLParser {
 	}
 }
 
+/**
+ * Converts an XML string into an array tree structure.
+ *
+ * The output of this function can be passed to xml_find() to find nodes by their path.
+ *
+ * @param string $in The XML string.
+ * @return array XML as an array.
+ */
 function xml_to_array( $in ) {
 	$p = new TestXMLParser( $in );
 	return $p->data;
 }
 
+/**
+ * Finds XML nodes by a given "path".
+ *
+ * Example usage:
+ *
+ *     $tree = xml_to_array( $rss );
+ *     $items = xml_find( $tree, 'rss', 'channel', 'item' );
+ *
+ * @param array     $tree     An array tree structure of XML, typically from xml_to_array().
+ * @param string ...$elements Names of XML nodes to create a "path" to find within the XML.
+ * @return array Array of matching XML node information.
+ */
 function xml_find( $tree, ...$elements ) {
 	$n   = count( $elements );
 	$out = array();
@@ -273,7 +315,7 @@ function xml_join_atts( $atts ) {
 	foreach ( $atts as $k => $v ) {
 		$a[] = $k . '="' . $v . '"';
 	}
-	return join( ' ', $a );
+	return implode( ' ', $a );
 }
 
 function xml_array_dumbdown( &$data ) {
@@ -297,7 +339,7 @@ function xml_array_dumbdown( &$data ) {
 
 function dmp( ...$args ) {
 	foreach ( $args as $thing ) {
-		echo ( is_scalar( $thing ) ? strval( $thing ) : var_export( $thing, true ) ), "\n";
+		echo ( is_scalar( $thing ) ? (string) $thing : var_export( $thing, true ) ), "\n";
 	}
 }
 
@@ -312,12 +354,12 @@ function get_echo( $callable, $args = array() ) {
 	return ob_get_clean();
 }
 
-// recursively generate some quick assertEquals tests based on an array
+// Recursively generate some quick assertEquals() tests based on an array.
 function gen_tests_array( $name, $array ) {
 	$out = array();
 	foreach ( $array as $k => $v ) {
 		if ( is_numeric( $k ) ) {
-			$index = strval( $k );
+			$index = (string) $k;
 		} else {
 			$index = "'" . addcslashes( $k, "\n\r\t'\\" ) . "'";
 		}
@@ -330,13 +372,13 @@ function gen_tests_array( $name, $array ) {
 			$out[] = gen_tests_array( "{$name}[{$index}]", $v );
 		}
 	}
-	return join( "\n", $out ) . "\n";
+	return implode( "\n", $out ) . "\n";
 }
 
 /**
  * Use to create objects by yourself
  */
-class MockClass {};
+class MockClass {}
 
 /**
  * Drops all tables from the WordPress database
@@ -367,7 +409,7 @@ function print_backtrace() {
 	echo "\n";
 }
 
-// mask out any input fields matching the given name
+// Mask out any input fields matching the given name.
 function mask_input_value( $in, $name = '_wpnonce' ) {
 	return preg_replace( '@<input([^>]*) name="' . preg_quote( $name ) . '"([^>]*) value="[^>]*" />@', '<input$1 name="' . preg_quote( $name ) . '"$2 value="***" />', $in );
 }
@@ -395,7 +437,7 @@ function _unregister_post_status( $status ) {
 }
 
 function _cleanup_query_vars() {
-	// clean out globals to stop them polluting wp and wp_query
+	// Clean out globals to stop them polluting wp and wp_query.
 	foreach ( $GLOBALS['wp']->public_query_vars as $v ) {
 		unset( $GLOBALS[ $v ] );
 	}

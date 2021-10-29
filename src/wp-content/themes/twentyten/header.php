@@ -38,7 +38,7 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 
 ?>
 	</title>
-<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="profile" href="https://gmpg.org/xfn/11" />
 <link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>?ver=20190507" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <?php
@@ -86,13 +86,14 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					$header_image_width = HEADER_IMAGE_WIDTH;
 				}
 
-				// Check if this is a post or page, if it has a thumbnail, and if it's a big one
+				// Check if this is a post or page, if it has a thumbnail, and if it's a big one.
+				$image = false;
 				if ( is_singular() && has_post_thumbnail( $post->ID ) ) {
 					$image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), array( $header_image_width, $header_image_width ) );
-					if ( $image && $image[1] >= $header_image_width ) {
-						// Houston, we have a new header image!
-						echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
-					}
+				}
+				if ( $image && $image[1] >= $header_image_width ) {
+					// Houston, we have a new header image!
+					echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
 				} else {
 					// Compatibility with versions of WordPress prior to 3.4.
 					if ( function_exists( 'get_custom_header' ) ) {
@@ -105,15 +106,19 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					?>
 					<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $header_image_width ); ?>" height="<?php echo esc_attr( $header_image_height ); ?>" alt="" />
 					<?php
-				} // end check for featured image or standard header
+				} // End check for featured image or standard header.
 				?>
 			</div><!-- #branding -->
 
 			<div id="access" role="navigation">
-				<?php /* Allow screen readers / text browsers to skip the navigation menu and get right to the good stuff */ ?>
+				<?php // Allow screen readers / text browsers to skip the navigation menu and get right to the good stuff. ?>
 				<div class="skip-link screen-reader-text"><a href="#content" title="<?php esc_attr_e( 'Skip to content', 'twentyten' ); ?>"><?php _e( 'Skip to content', 'twentyten' ); ?></a></div>
-				<?php /* Our navigation menu. If one isn't filled out, wp_nav_menu falls back to wp_page_menu. The menu assiged to the primary position is the one used. If none is assigned, the menu with the lowest ID is used. */ ?>
 				<?php
+				/*
+				 * Our navigation menu. If one isn't filled out, wp_nav_menu() falls back to wp_page_menu().
+				 * The menu assigned to the primary location is the one used.
+				 * If one isn't assigned, the menu with the lowest ID is used.
+				 */
 				wp_nav_menu(
 					array(
 						'container_class' => 'menu-header',

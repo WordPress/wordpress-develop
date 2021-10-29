@@ -10,7 +10,7 @@
 define( 'IFRAME_REQUEST', true );
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'customize' ) ) {
 	wp_die(
@@ -132,10 +132,7 @@ $body_class = 'wp-core-ui wp-customizer js';
 
 if ( wp_is_mobile() ) :
 	$body_class .= ' mobile';
-
-	?>
-	<meta name="viewport" id="viewport-meta" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=1.2" />
-	<?php
+	add_filter( 'admin_viewport_meta', '_customizer_mobile_viewport_meta' );
 endif;
 
 if ( $wp_customize->is_ios() ) {
@@ -147,10 +144,14 @@ if ( is_rtl() ) {
 }
 $body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
 
+if ( wp_use_widgets_block_editor() ) {
+	$body_class .= ' wp-embed-responsive';
+}
+
 $admin_title = sprintf( $wp_customize->get_document_title_template(), __( 'Loading&hellip;' ) );
 
 ?>
-<title><?php echo $admin_title; ?></title>
+<title><?php echo esc_html( $admin_title ); ?></title>
 
 <script type="text/javascript">
 var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ) ); ?>,
@@ -171,17 +172,43 @@ do_action( 'customize_controls_print_styles' );
  * @since 3.4.0
  */
 do_action( 'customize_controls_print_scripts' );
+
+/**
+ * Fires in head section of Customizer controls.
+ *
+ * @since 5.5.0
+ */
+do_action( 'customize_controls_head' );
 ?>
 </head>
 <body class="<?php echo esc_attr( $body_class ); ?>">
 <div class="wp-full-overlay expanded">
 	<form id="customize-controls" class="wrap wp-full-overlay-sidebar">
 		<div id="customize-header-actions" class="wp-full-overlay-header">
-			<?php $save_text = $wp_customize->is_theme_active() ? __( 'Publish' ) : __( 'Activate &amp; Publish' ); ?>
-			<div id="customize-save-button-wrapper" class="customize-save-button-wrapper" >
-				<?php submit_button( $save_text, 'primary save', 'save', false ); ?>
-				<button id="publish-settings" class="publish-settings button-primary button dashicons dashicons-admin-generic" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled></button>
-			</div>
+			<?php
+			$compatible_wp  = is_wp_version_compatible( $wp_customize->theme()->get( 'RequiresWP' ) );
+			$compatible_php = is_php_version_compatible( $wp_customize->theme()->get( 'RequiresPHP' ) );
+			$fse_safe       = true;
+
+			// Check if the theme requires the Gutenberg plugin to work correctly.
+			$theme_tags = $wp_customize->theme()->get( 'Tags' );
+
+			if ( ! empty( $theme_tags ) && in_array( 'full-site-editing', $theme_tags, true ) && ! function_exists( 'gutenberg_is_fse_theme' ) ) {
+				$fse_safe = false;
+			}
+			?>
+			<?php if ( $compatible_wp && $compatible_php && $fse_safe ) : ?>
+				<?php $save_text = $wp_customize->is_theme_active() ? __( 'Publish' ) : __( 'Activate &amp; Publish' ); ?>
+				<div id="customize-save-button-wrapper" class="customize-save-button-wrapper" >
+					<?php submit_button( $save_text, 'primary save', 'save', false ); ?>
+					<button id="publish-settings" class="publish-settings button-primary button dashicons dashicons-admin-generic" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled></button>
+				</div>
+			<?php else : ?>
+				<?php $save_text = _x( 'Cannot Activate', 'theme' ); ?>
+				<div id="customize-save-button-wrapper" class="customize-save-button-wrapper disabled" >
+					<button class="button button-primary disabled" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled><?php echo $save_text; ?></button>
+				</div>
+			<?php endif; ?>
 			<span class="spinner"></span>
 			<button type="button" class="customize-controls-preview-toggle">
 				<span class="controls"><?php _e( 'Customize' ); ?></span>
@@ -208,7 +235,7 @@ do_action( 'customize_controls_print_scripts' );
 						<span class="preview-notice">
 						<?php
 							/* translators: %s: The site/panel title in the Customizer. */
-							echo sprintf( __( 'You are customizing %s' ), '<strong class="panel-title site-title">' . get_bloginfo( 'name', 'display' ) . '</strong>' );
+							printf( __( 'You are customizing %s' ), '<strong class="panel-title site-title">' . get_bloginfo( 'name', 'display' ) . '</strong>' );
 						?>
 						</span>
 						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text"><?php _e( 'Help' ); ?></span></button>
@@ -227,7 +254,7 @@ do_action( 'customize_controls_print_scripts' );
 		</div>
 
 		<div id="customize-footer-actions" class="wp-full-overlay-footer">
-			<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php echo esc_attr( _x( 'Hide Controls', 'label for hide controls button without length constraints' ) ); ?>">
+			<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php echo esc_attr_x( 'Hide Controls', 'label for hide controls button without length constraints' ); ?>">
 				<span class="collapse-sidebar-arrow"></span>
 				<span class="collapse-sidebar-label"><?php _ex( 'Hide Controls', 'short (~12 characters) label for hide controls button' ); ?></span>
 			</button>

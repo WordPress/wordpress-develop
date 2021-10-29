@@ -119,7 +119,7 @@ window._wpCustomizeSettings.panels.nav_menus = {
 	'instanceNumber': 2
 };
 
-// Nav Menu Locations
+// Nav Menu Locations.
 window._wpCustomizeSettings.sections.menu_locations = {
 	'id': 'menu_locations',
 	'description': '<p>Your theme contains 1 menu location. Select which menu you would like to use.<\/p><p>You can also place menus in widget areas with the Custom Menu widget.<\/p>',
@@ -169,7 +169,7 @@ window._wpCustomizeSettings.controls['nav_menu_locations[primary]'] = {
 	'type': 'nav_menu_location'
 };
 
-// Nav Menus
+// Nav Menus.
 window._wpCustomizeSettings.sections['nav_menu[3]'] = {
 	'id': 'nav_menu[3]',
 	'description': '',
@@ -218,7 +218,7 @@ window._wpCustomizeSettings.settings['nav_menu[2]'] = {
 	'dirty': false
 };
 
-// Menu items
+// Menu items.
 window._wpCustomizeSettings.settings['nav_menu_item[2000]'] = {
 	'dirty': false,
 	'transport': 'postMessage',
@@ -370,7 +370,7 @@ window._wpCustomizeSettings.controls['nav_menu_item[2002]'] = {
 	'xfn': ''
 };
 
-// Meta controls
+// Meta controls.
 window._wpCustomizeSettings.sections.add_menu = {
 	'id': 'add_menu',
 	'description': '',
@@ -395,7 +395,7 @@ window._wpCustomizeSettings.controls.new_menu_name = {
 	'instanceNumber': 46
 };
 
-// From nav-menu.js
+// From nav-menu.js.
 window.wpNavMenu = {
 	'options': {
 		'menuItemDepthPerLevel': 30,

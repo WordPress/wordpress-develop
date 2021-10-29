@@ -7,17 +7,12 @@
 class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 	private $old_current_user;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->author_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 
 		// Override the post/archive slug collision prevention in `wp_unique_post_slug()`.
 		add_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ), 10, 6 );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
-		remove_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ), 10, 6 );
 	}
 
 	public function test_go_to_year_segment_collision_without_title() {
@@ -35,7 +30,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		// Force an ID that resembles a year format
+		// Force an ID that resembles a year format.
 		$wpdb->update(
 			$wpdb->posts,
 			array(
@@ -65,7 +60,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		// Force an ID that resembles a year format
+		// Force an ID that resembles a year format.
 		$wpdb->update(
 			$wpdb->posts,
 			array(
@@ -75,7 +70,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array( 'ID' => $id )
 		);
 
-		$this->assertEquals( '2015', url_to_postid( get_permalink( '2015' ) ) );
+		$this->assertSame( 2015, url_to_postid( get_permalink( '2015' ) ) );
 	}
 
 	public function test_go_to_year_segment_collision_with_title() {
@@ -109,7 +104,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_without_title() {
@@ -145,7 +140,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_without_title_no_leading_zero() {
@@ -181,7 +176,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_with_title() {
@@ -215,7 +210,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_with_title_no_leading_zero() {
@@ -249,7 +244,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_day_segment_collision_without_title() {
@@ -285,7 +280,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_day_segment_collision_with_title() {
@@ -319,7 +314,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_numeric_slug_permalink_conflicts_should_only_be_resolved_for_the_main_query() {

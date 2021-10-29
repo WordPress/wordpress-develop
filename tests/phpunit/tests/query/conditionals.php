@@ -14,10 +14,8 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	protected $page_ids;
 	protected $post_ids;
 
-	function setUp() {
-		parent::setUp();
-
-		set_current_screen( 'front' );
+	function set_up() {
+		parent::set_up();
 
 		update_option( 'comments_per_page', 5 );
 		update_option( 'posts_per_page', 5 );
@@ -187,16 +185,16 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			$url = get_permalink( $page_id );
 			$this->go_to( "{$url}trackback/" );
 
-			// make sure the correct wp_query flags are set
+			// Make sure the correct WP_Query flags are set.
 			$this->assertQueryTrue( 'is_page', 'is_singular', 'is_trackback' );
 
-			// make sure the correct page was fetched
+			// Make sure the correct page was fetched.
 			global $wp_query;
-			$this->assertEquals( $page_id, $wp_query->get_queried_object()->ID );
+			$this->assertSame( $page_id, $wp_query->get_queried_object()->ID );
 		}
 	}
 
-	//'(about)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?pagename=$matches[1]&feed=$matches[2]'
+	// '(about)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?pagename=$matches[1]&feed=$matches[2]'
 	function test_page_feed() {
 		$page_ids   = array();
 		$page_id    = self::factory()->post->create(
@@ -226,12 +224,12 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			$url = get_permalink( $page_id );
 			$this->go_to( "{$url}feed/" );
 
-			// make sure the correct wp_query flags are set
+			// Make sure the correct WP_Query flags are set.
 			$this->assertQueryTrue( 'is_page', 'is_singular', 'is_feed', 'is_comment_feed' );
 
-			// make sure the correct page was fetched
+			// Make sure the correct page was fetched.
 			global $wp_query;
-			$this->assertEquals( $page_id, $wp_query->get_queried_object()->ID );
+			$this->assertSame( $page_id, $wp_query->get_queried_object()->ID );
 		}
 	}
 
@@ -263,12 +261,12 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			$url = get_permalink( $page_id );
 			$this->go_to( "{$url}feed/" );
 
-			// make sure the correct wp_query flags are set
+			// Make sure the correct WP_Query flags are set.
 			$this->assertQueryTrue( 'is_page', 'is_singular', 'is_feed', 'is_comment_feed' );
 
-			// make sure the correct page was fetched
+			// Make sure the correct page was fetched.
 			global $wp_query;
-			$this->assertEquals( $page_id, $wp_query->get_queried_object()->ID );
+			$this->assertSame( $page_id, $wp_query->get_queried_object()->ID );
 		}
 	}
 
@@ -303,12 +301,12 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			$url = get_permalink( $page_id );
 			$this->go_to( "{$url}feed/atom/" );
 
-			// make sure the correct wp_query flags are set
+			// Make sure the correct WP_Query flags are set.
 			$this->assertQueryTrue( 'is_page', 'is_singular', 'is_feed', 'is_comment_feed' );
 
-			// make sure the correct page was fetched
+			// Make sure the correct page was fetched.
 			global $wp_query;
-			$this->assertEquals( $page_id, $wp_query->get_queried_object()->ID );
+			$this->assertSame( $page_id, $wp_query->get_queried_object()->ID );
 		}
 	}
 
@@ -323,12 +321,12 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		);
 		$this->go_to( '/about/page/2/' );
 
-		// make sure the correct wp_query flags are set
+		// Make sure the correct WP_Query flags are set.
 		$this->assertQueryTrue( 'is_page', 'is_singular', 'is_paged' );
 
-		// make sure the correct page was fetched
+		// Make sure the correct page was fetched.
 		global $wp_query;
-		$this->assertEquals( $page_id, $wp_query->get_queried_object()->ID );
+		$this->assertSame( $page_id, $wp_query->get_queried_object()->ID );
 	}
 
 	// '(about)/page/?([0-9]{1,})/?$' => 'index.php?pagename=$matches[1]&paged=$matches[2]'
@@ -342,12 +340,12 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		);
 		$this->go_to( '/about/page2/' );
 
-		// make sure the correct wp_query flags are set
+		// Make sure the correct WP_Query flags are set.
 		$this->assertQueryTrue( 'is_page', 'is_singular', 'is_paged' );
 
-		// make sure the correct page was fetched
+		// Make sure the correct page was fetched.
 		global $wp_query;
-		$this->assertEquals( $page_id, $wp_query->get_queried_object()->ID );
+		$this->assertSame( $page_id, $wp_query->get_queried_object()->ID );
 	}
 
 	// '(about)(/[0-9]+)?/?$' => 'index.php?pagename=$matches[1]&page=$matches[2]'
@@ -366,15 +364,15 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 
 		$this->assertQueryTrue( 'is_home', 'is_posts_page' );
 
-		// make sure the correct page was fetched
+		// Make sure the correct page was fetched.
 		global $wp_query;
-		$this->assertEquals( $page_id, $wp_query->get_queried_object()->ID );
+		$this->assertSame( $page_id, $wp_query->get_queried_object()->ID );
 
 		update_option( 'show_on_front', 'posts' );
 		delete_option( 'page_for_posts' );
 	}
 
-	// FIXME: no tests for these yet
+	// FIXME: no tests for these yet:
 	// 'about/attachment/([^/]+)/?$' => 'index.php?attachment=$matches[1]',
 	// 'about/attachment/([^/]+)/trackback/?$' => 'index.php?attachment=$matches[1]&tb=1',
 	// 'about/attachment/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?attachment=$matches[1]&feed=$matches[2]',
@@ -386,13 +384,13 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		self::factory()->post->create(); // @test_404
 		$feeds = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 
-		// long version
+		// Long version.
 		foreach ( $feeds as $feed ) {
 			$this->go_to( "/feed/{$feed}/" );
 			$this->assertQueryTrue( 'is_feed' );
 		}
 
-		// short version
+		// Short version.
 		foreach ( $feeds as $feed ) {
 			$this->go_to( "/{$feed}/" );
 			$this->assertQueryTrue( 'is_feed' );
@@ -425,18 +423,18 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create( array( 'post_title' => 'hello-world' ) );
 		self::factory()->comment->create_post_comments( $post_id, 2 );
 
-		// check the url as generated by get_post_comments_feed_link()
+		// Check the URL as generated by get_post_comments_feed_link().
 		$this->go_to( get_post_comments_feed_link( $post_id ) );
 		$this->assertQueryTrue( 'is_feed', 'is_single', 'is_singular', 'is_comment_feed' );
 
-		// check the long form
+		// Check the long form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/comments/feed/{$type}" );
 				$this->assertQueryTrue( 'is_feed', 'is_comment_feed' );
 		}
 
-		// check the short form
+		// Check the short form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/comments/{$type}" );
@@ -448,14 +446,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	// 'search/(.+)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?s=$matches[1]&feed=$matches[2]',
 	// 'search/(.+)/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?s=$matches[1]&feed=$matches[2]',
 	function test_search_feed() {
-		// check the long form
+		// Check the long form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/search/test/feed/{$type}" );
 				$this->assertQueryTrue( 'is_feed', 'is_search' );
 		}
 
-		// check the short form
+		// Сheck the short form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/search/test/{$type}" );
@@ -482,7 +480,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	 */
 	function test_search_encoded_chars() {
 		$this->go_to( '/search/F%C3%BCnf%2Bbar/' );
-		$this->assertEquals( get_query_var( 's' ), 'Fünf+bar' );
+		$this->assertSame( get_query_var( 's' ), 'Fünf+bar' );
 	}
 
 	// 'category/(.+?)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?category_name=$matches[1]&feed=$matches[2]',
@@ -495,14 +493,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			)
 		);
 
-		// check the long form
+		// Check the long form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 			$this->go_to( "/category/cat-a/feed/{$type}" );
 			$this->assertQueryTrue( 'is_archive', 'is_feed', 'is_category' );
 		}
 
-		// check the short form
+		// Check the short form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 			$this->go_to( "/category/cat-a/{$type}" );
@@ -539,14 +537,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 				'taxonomy' => 'post_tag',
 			)
 		);
-		// check the long form
+		// Check the long form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/tag/tag-a/feed/{$type}" );
 				$this->assertQueryTrue( 'is_archive', 'is_feed', 'is_tag' );
 		}
 
-		// check the short form
+		// Check the short form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/tag/tag-a/{$type}" );
@@ -593,14 +591,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	// 'author/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?author_name=$matches[1]&feed=$matches[2]',
 	function test_author_feed() {
 		self::factory()->user->create( array( 'user_login' => 'user-a' ) );
-		// check the long form
+		// Check the long form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/author/user-a/feed/{$type}" );
 				$this->assertQueryTrue( 'is_archive', 'is_feed', 'is_author' );
 		}
 
-		// check the short form
+		// Check the short form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/author/user-a/{$type}" );
@@ -635,14 +633,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	// '([0-9]{4})/([0-9]{1,2})/([0-9]{1,2})/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?year=$matches[1]&monthnum=$matches[2]&day=$matches[3]&feed=$matches[4]',
 	function test_ymd_feed() {
 		self::factory()->post->create( array( 'post_date' => '2007-09-04 00:00:00' ) );
-		// check the long form
+		// Check the long form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/2007/09/04/feed/{$type}" );
 				$this->assertQueryTrue( 'is_archive', 'is_feed', 'is_day', 'is_date' );
 		}
 
-		// check the short form
+		// Check the short form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/2007/09/04/{$type}" );
@@ -669,14 +667,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	// '([0-9]{4})/([0-9]{1,2})/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?year=$matches[1]&monthnum=$matches[2]&feed=$matches[3]',
 	function test_ym_feed() {
 		self::factory()->post->create( array( 'post_date' => '2007-09-04 00:00:00' ) );
-		// check the long form
+		// Check the long form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/2007/09/feed/{$type}" );
 				$this->assertQueryTrue( 'is_archive', 'is_feed', 'is_month', 'is_date' );
 		}
 
-		// check the short form
+		// Check the short form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/2007/09/{$type}" );
@@ -703,14 +701,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	// '([0-9]{4})/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?year=$matches[1]&feed=$matches[2]',
 	function test_y_feed() {
 		self::factory()->post->create( array( 'post_date' => '2007-09-04 00:00:00' ) );
-		// check the long form
+		// Check the long form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/2007/feed/{$type}" );
 				$this->assertQueryTrue( 'is_archive', 'is_feed', 'is_year', 'is_date' );
 		}
 
-		// check the short form
+		// Check the short form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "/2007/{$type}" );
@@ -746,14 +744,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	function test_post_comment_feed() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
-
+		// Check the long form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "{$permalink}feed/{$type}" );
 				$this->assertQueryTrue( 'is_single', 'is_singular', 'is_feed', 'is_comment_feed' );
 		}
 
-		// check the short form
+		// Check the short form.
 		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 		foreach ( $types as $type ) {
 				$this->go_to( "{$permalink}{$type}" );
@@ -771,7 +769,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			)
 		);
 		$this->go_to( get_permalink( $post_id ) . '2/' );
-		// should is_paged be true also?
+		// Should is_paged be true also?
 		$this->assertQueryTrue( 'is_single', 'is_singular' );
 
 	}
@@ -823,13 +821,13 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 
 		$this->go_to( '/ptawtq/' );
 		$this->assertQueryTrue( 'is_post_type_archive', 'is_archive' );
-		$this->assertEquals( get_queried_object(), get_post_type_object( $cpt_name ) );
+		$this->assertSame( get_queried_object(), get_post_type_object( $cpt_name ) );
 
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts_with_tax_query' ) );
 
 		$this->go_to( '/ptawtq/' );
 		$this->assertQueryTrue( 'is_post_type_archive', 'is_archive' );
-		$this->assertEquals( get_queried_object(), get_post_type_object( $cpt_name ) );
+		$this->assertSame( get_queried_object(), get_post_type_object( $cpt_name ) );
 
 		remove_action( 'pre_get_posts', array( $this, 'pre_get_posts_with_tax_query' ) );
 	}
@@ -865,13 +863,13 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 
 		$this->go_to( "/$cpt_name/" );
 		$this->assertQueryTrue( 'is_post_type_archive', 'is_archive' );
-		$this->assertEquals( get_queried_object(), get_post_type_object( $cpt_name ) );
+		$this->assertSame( get_queried_object(), get_post_type_object( $cpt_name ) );
 
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts_with_type_array' ) );
 
 		$this->go_to( "/$cpt_name/" );
 		$this->assertQueryTrue( 'is_post_type_archive', 'is_archive' );
-		$this->assertEquals( get_queried_object(), get_post_type_object( 'post' ) );
+		$this->assertSame( get_queried_object(), get_post_type_object( 'post' ) );
 
 		remove_action( 'pre_get_posts', array( $this, 'pre_get_posts_with_type_array' ) );
 	}
@@ -901,7 +899,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	 * @ticket 16802
 	 */
 	function test_is_single_with_parent() {
-		// Use custom hierarchical post type
+		// Use custom hierarchical post type.
 		$post_type = 'test_hierarchical';
 
 		register_post_type(
@@ -914,7 +912,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			)
 		);
 
-		// Create parent and child posts
+		// Create parent and child posts.
 		$parent_id = self::factory()->post->create(
 			array(
 				'post_type' => $post_type,
@@ -930,7 +928,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			)
 		);
 
-		// Tests
+		// Tests.
 		$this->go_to( "/?p=$post_id&post_type=$post_type" );
 
 		$post = get_queried_object();
@@ -1199,7 +1197,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$this->go_to( "/?page_id=$post_id" );
 
-		// override post ID to 0 temporarily for testing
+		// Override post ID to 0 temporarily for testing.
 		$_id                           = $GLOBALS['wp_query']->post->ID;
 		$GLOBALS['wp_query']->post->ID = 0;
 
@@ -1210,7 +1208,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertFalse( $q->is_page( 'sample-page' ) );
 		$this->assertFalse( $q->is_page( 'random-page-slug' ) );
 
-		// revert $wp_query global change
+		// Revert $wp_query global change.
 		$GLOBALS['wp_query']->post->ID = $_id;
 	}
 

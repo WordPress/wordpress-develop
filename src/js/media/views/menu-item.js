@@ -42,12 +42,12 @@ MenuItem = wp.media.View.extend(/** @lends wp.media.view.MenuItem.prototype */{
 		if ( state ) {
 			this.controller.setState( state );
 			// Toggle the menu visibility in the responsive view.
-			this.views.parent.$el.removeClass( 'visible' ); // TODO: or hide on any click, see below
+			this.views.parent.$el.removeClass( 'visible' ); // @todo Or hide on any click, see below.
 		}
 	},
 
 	/**
-	 * @returns {wp.media.view.MenuItem} returns itself to allow chaining
+	 * @return {wp.media.view.MenuItem} returns itself to allow chaining.
 	 */
 	render: function() {
 		var options = this.options,

@@ -5,10 +5,10 @@
  *
  * @since 5.3.0
  *
- * @covers wp_array_slice_assoc
  * @group functions.php
+ * @covers ::wp_array_slice_assoc
  */
-class Tests_Functions_WpArraySliceAssoc extends WP_UnitTestCase {
+class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
 
 	/**
 	 * Test wp_array_slice_assoc().

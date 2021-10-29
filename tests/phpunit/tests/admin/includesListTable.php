@@ -3,7 +3,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_includesListTable extends WP_UnitTestCase {
+class Tests_Admin_IncludesListTable extends WP_UnitTestCase {
 	protected static $top           = array();
 	protected static $children      = array();
 	protected static $grandchildren = array();
@@ -14,15 +14,15 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 */
 	protected $table;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-page' ) );
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
-		// note that our top/children/grandchildren arrays are 1-indexed
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Note that our top/children/grandchildren arrays are 1-indexed.
 
-		// create top level pages
+		// Create top-level pages.
 		$num_posts = 5;
 		foreach ( range( 1, $num_posts ) as $i ) {
 			$p = $factory->post->create_and_get(
@@ -36,7 +36,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 			self::$post_ids[] = $p->ID;
 		}
 
-		// create child pages
+		// Create child pages.
 		$num_children = 3;
 		foreach ( self::$top as $top => $top_page ) {
 			foreach ( range( 1, $num_children ) as $i ) {
@@ -53,7 +53,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 			}
 		}
 
-		// create grand-child pages for the third and fourth top-level pages
+		// Create grand-child pages for the third and fourth top-level pages.
 		$num_grandchildren = 3;
 		foreach ( range( 3, 4 ) as $top ) {
 			foreach ( self::$children[ $top ] as $child => $child_page ) {
@@ -144,7 +144,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 */
 	function test_grandchildren_hierarchical_pages_first_page() {
-		// page 6 is the first page with grandchildren
+		// Page 6 is the first page with grandchildren.
 		$this->_test_list_hierarchical_page(
 			array(
 				'paged'          => 6,
@@ -163,7 +163,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 */
 	function test_grandchildren_hierarchical_pages_second_page() {
-		// page 7 is the second page with grandchildren
+		// Page 7 is the second page with grandchildren.
 		$this->_test_list_hierarchical_page(
 			array(
 				'paged'          => 7,
@@ -221,7 +221,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->assertCount( count( $expected_ids ), array_keys( $matches[0] ) );
 
 		foreach ( $expected_ids as $id ) {
-			$this->assertContains( sprintf( 'id="post-%d"', $id ), $output );
+			$this->assertStringContainsString( sprintf( 'id="post-%d"', $id ), $output );
 		}
 	}
 
@@ -236,7 +236,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="post-query-submit"', $output );
+		$this->assertStringNotContainsString( 'id="post-query-submit"', $output );
 	}
 
 	/**
@@ -250,7 +250,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="filter-by-date"', $output );
+		$this->assertStringNotContainsString( 'id="filter-by-date"', $output );
 	}
 
 	/**
@@ -264,7 +264,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="cat"', $output );
+		$this->assertStringNotContainsString( 'id="cat"', $output );
 	}
 
 	/**
@@ -278,7 +278,65 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="delete_all"', $output );
+		$this->assertStringNotContainsString( 'id="delete_all"', $output );
+	}
+
+	/**
+	 * @ticket 40188
+	 */
+	public function test_filter_button_should_not_be_shown_if_there_are_no_comments() {
+		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
+
+		ob_start();
+		$table->extra_tablenav( 'top' );
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'id="post-query-submit"', $output );
+	}
+
+	/**
+	 * @ticket 40188
+	 */
+	public function test_filter_button_should_be_shown_if_there_are_comments() {
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
+		$table->prepare_items();
+
+		ob_start();
+		$table->extra_tablenav( 'top' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'id="post-query-submit"', $output );
+	}
+
+	/**
+	 * @ticket 40188
+	 */
+	public function test_filter_comment_type_dropdown_should_be_shown_if_there_are_comments() {
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
+		$table->prepare_items();
+
+		ob_start();
+		$table->extra_tablenav( 'top' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'id="filter-by-comment-type"', $output );
+		$this->assertStringContainsString( "<option value='comment'>", $output );
 	}
 
 	/**
@@ -291,6 +349,114 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$table->extra_tablenav( 'top' );
 		$output = ob_get_clean();
 
-		$this->assertNotContains( 'id="delete_all"', $output );
+		$this->assertStringNotContainsString( 'id="delete_all"', $output );
 	}
+
+	/**
+	 * @ticket 19278
+	 */
+	public function test_bulk_action_menu_supports_options_and_optgroups() {
+		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
+
+		add_filter(
+			'bulk_actions-edit-comments',
+			static function() {
+				return array(
+					'delete'       => 'Delete',
+					'Change State' => array(
+						'feature' => 'Featured',
+						'sale'    => 'On Sale',
+					),
+				);
+			}
+		);
+
+		ob_start();
+		$table->bulk_actions();
+		$output = ob_get_clean();
+
+		$expected = <<<'OPTIONS'
+<option value="delete">Delete</option>
+	<optgroup label="Change State">
+		<option value="feature">Featured</option>
+		<option value="sale">On Sale</option>
+	</optgroup>
+OPTIONS;
+		$expected = str_replace( "\r\n", "\n", $expected );
+
+		$this->assertStringContainsString( $expected, $output );
+	}
+
+	/**
+	 * @ticket 45089
+	 */
+	public function test_sortable_columns() {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php';
+
+		$override_sortable_columns = array(
+			'author'   => array( 'comment_author', true ),
+			'response' => 'comment_post_ID',
+			'date'     => array( 'comment_date', 'dEsC' ), // The ordering support should be case-insensitive.
+		);
+
+		// Stub the get_sortable_columns() method.
+		$object = $this->getMockBuilder( 'WP_Comments_List_Table' )
+			->setConstructorArgs( array( array( 'screen' => 'edit-comments' ) ) )
+			->setMethods( array( 'get_sortable_columns' ) )
+			->getMock();
+
+		// Change the null return value of the stubbed get_sortable_columns() method.
+		$object->method( 'get_sortable_columns' )
+			->willReturn( $override_sortable_columns );
+
+		$output = get_echo( array( $object, 'print_column_headers' ) );
+
+		$this->assertStringContainsString( '?orderby=comment_author&#038;order=desc', $output, 'Mismatch of the default link ordering for comment author column. Should be desc.' );
+		$this->assertStringContainsString( 'column-author sortable asc', $output, 'Mismatch of CSS classes for the comment author column.' );
+
+		$this->assertStringContainsString( '?orderby=comment_post_ID&#038;order=asc', $output, 'Mismatch of the default link ordering for comment response column. Should be asc.' );
+		$this->assertStringContainsString( 'column-response sortable desc', $output, 'Mismatch of CSS classes for the comment post ID column.' );
+
+		$this->assertStringContainsString( '?orderby=comment_date&#038;order=desc', $output, 'Mismatch of the default link ordering for comment date column. Should be asc.' );
+		$this->assertStringContainsString( 'column-date sortable asc', $output, 'Mismatch of CSS classes for the comment date column.' );
+	}
+
+	/**
+	 * @ticket 45089
+	 */
+	public function test_sortable_columns_with_current_ordering() {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php';
+
+		$override_sortable_columns = array(
+			'author'   => array( 'comment_author', false ),
+			'response' => 'comment_post_ID',
+			'date'     => array( 'comment_date', 'asc' ), // We will override this with current ordering.
+		);
+
+		// Current ordering.
+		$_GET['orderby'] = 'comment_date';
+		$_GET['order']   = 'desc';
+
+		// Stub the get_sortable_columns() method.
+		$object = $this->getMockBuilder( 'WP_Comments_List_Table' )
+			->setConstructorArgs( array( array( 'screen' => 'edit-comments' ) ) )
+			->setMethods( array( 'get_sortable_columns' ) )
+			->getMock();
+
+		// Change the null return value of the stubbed get_sortable_columns() method.
+		$object->method( 'get_sortable_columns' )
+			->willReturn( $override_sortable_columns );
+
+		$output = get_echo( array( $object, 'print_column_headers' ) );
+
+		$this->assertStringContainsString( '?orderby=comment_author&#038;order=asc', $output, 'Mismatch of the default link ordering for comment author column. Should be asc.' );
+		$this->assertStringContainsString( 'column-author sortable desc', $output, 'Mismatch of CSS classes for the comment author column.' );
+
+		$this->assertStringContainsString( '?orderby=comment_post_ID&#038;order=asc', $output, 'Mismatch of the default link ordering for comment response column. Should be asc.' );
+		$this->assertStringContainsString( 'column-response sortable desc', $output, 'Mismatch of CSS classes for the comment post ID column.' );
+
+		$this->assertStringContainsString( '?orderby=comment_date&#038;order=asc', $output, 'Mismatch of the current link ordering for comment date column. Should be asc.' );
+		$this->assertStringContainsString( 'column-date sorted desc', $output, 'Mismatch of CSS classes for the comment date column.' );
+	}
+
 }

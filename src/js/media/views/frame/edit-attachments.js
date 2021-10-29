@@ -94,7 +94,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 				// Remove the keydown event.
 				$( 'body' ).off( 'keydown.media-modal' );
 				// Move focus back to the original item in the grid if possible.
-				$( 'li.attachment[data-id="' + this.model.get( 'id' ) +'"]' ).focus();
+				$( 'li.attachment[data-id="' + this.model.get( 'id' ) +'"]' ).trigger( 'focus' );
 				this.resetRoute();
 			}, this ) );
 
@@ -232,7 +232,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 * @param {string} which A CSS selector to target the button to focus.
 	 */
 	focusNavButton: function( which ) {
-		$( which ).focus();
+		$( which ).trigger( 'focus' );
 	},
 
 	getCurrentIndex: function() {
@@ -255,11 +255,11 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 			return;
 		}
 
-		// The right arrow key
+		// The right arrow key.
 		if ( 39 === event.keyCode ) {
 			this.nextMediaItem();
 		}
-		// The left arrow key
+		// The left arrow key.
 		if ( 37 === event.keyCode ) {
 			this.previousMediaItem();
 		}

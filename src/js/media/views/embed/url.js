@@ -39,7 +39,7 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 		}
 	},
 	/**
-	 * @returns {wp.media.view.EmbedUrl} Returns itself to allow chaining
+	 * @return {wp.media.view.EmbedUrl} Returns itself to allow chaining.
 	 */
 	render: function() {
 		var $input = this.$input;
@@ -57,7 +57,8 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 	},
 
 	url: function( event ) {
-		this.model.set( 'url', $.trim( event.target.value ) );
+		var url = event.target.value || '';
+		this.model.set( 'url', url.trim() );
 	}
 });
 

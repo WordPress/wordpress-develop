@@ -33,7 +33,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Updates an existing object.
 	 *
-	 * @param int   $object The object id.
+	 * @param int   $object The object ID.
 	 * @param array $fields The values to update.
 	 *
 	 * @return mixed The result. Can be anything.
@@ -90,7 +90,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Retrieves an object by ID.
 	 *
-	 * @param int $object_id The object id.
+	 * @param int $object_id The object ID.
 	 *
 	 * @return mixed The object. Can be anything.
 	 */
@@ -114,7 +114,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Combines the given argument with the generation_definitions (defaults) and applies
+	 * Combines the given arguments with the generation_definitions (defaults) and applies
 	 * possibly set callbacks on it.
 	 *
 	 * @param array       $args                   Optional. The arguments to combine with defaults. Default is empty array.
@@ -130,8 +130,9 @@ abstract class WP_UnitTest_Factory_For_Thing {
 		}
 
 		// Use the same incrementor for all fields belonging to this object.
-		$gen  = new WP_UnitTest_Generator_Sequence();
-		$incr = $gen->get_incr();
+		$gen = new WP_UnitTest_Generator_Sequence();
+		// Add leading zeros to make sure MySQL sorting works as expected.
+		$incr = zeroise( $gen->get_incr(), 7 );
 
 		foreach ( array_keys( $generation_definitions ) as $field_name ) {
 			if ( ! isset( $args[ $field_name ] ) ) {

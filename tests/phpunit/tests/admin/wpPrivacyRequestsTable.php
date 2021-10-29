@@ -8,20 +8,20 @@
  */
 
 /**
- * Tests_Admin_WpPrivacyRequestsTable class.
+ * Tests_Admin_wpPrivacyRequestsTable class.
  *
  * @group admin
  * @group privacy
  *
  * @since 5.1.0
  */
-class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
+class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	/**
 	 * Get instance for mocked class.
 	 *
 	 * @since 5.1.0
 	 *
-	 * @return PHPUnit_Framework_MockObject_MockObject|WP_Privacy_Requests_Table $instance Mocked class instance.
+	 * @return PHPUnit_Framework_MockObject_MockObject|WP_Privacy_Requests_Table Mocked class instance.
 	 */
 	public function get_mocked_class_instance() {
 		$args = array(
@@ -61,7 +61,7 @@ class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * @param string      $expected Expected in SQL query.
 
 	 * @dataProvider data_test_columns_should_be_sortable
-	 * @covers WP_Privacy_Requests_Table::prepare_items()
+	 * @covers WP_Privacy_Requests_Table::prepare_items
 	 * @ticket 43960
 	 */
 	public function test_columns_should_be_sortable( $order, $orderby, $search, $expected ) {
@@ -82,7 +82,7 @@ class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
 		unset( $_REQUEST['orderby'] );
 		unset( $_REQUEST['s'] );
 
-		$this->assertContains( "ORDER BY {$wpdb->posts}.{$expected}", $this->sql );
+		$this->assertStringContainsString( "ORDER BY {$wpdb->posts}.{$expected}", $this->sql );
 	}
 
 	/**
@@ -91,7 +91,7 @@ class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * @since 5.1.0
 	 *
 	 * @param string $request The complete SQL query.
-	 * @return string $request The complete SQL query.
+	 * @return string The complete SQL query.
 	 */
 	public function filter_posts_request( $request ) {
 		$this->sql = $request;

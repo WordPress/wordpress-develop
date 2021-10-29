@@ -2,26 +2,28 @@
 /**
  * Test cases for the `_wp_privacy_send_request_confirmation_notification()` function.
  *
+ * @package WordPress
+ * @subpackage UnitTests
  * @since 4.9.8
  */
 
 /**
- * Tests_User_WpPrivacySendRequestConfirmationNotification class.
- *
- * @since 4.9.8
+ * Tests_Privacy_wpPrivacySendRequestConfirmationNotification class.
  *
  * @group privacy
  * @group user
- * @covers _wp_privacy_send_request_confirmation_notification()
+ * @covers ::_wp_privacy_send_request_confirmation_notification
+ *
+ * @since 4.9.8
  */
-class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
 	/**
 	 * Reset the mocked PHPMailer instance before each test method.
 	 *
 	 * @since 4.9.8
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
@@ -30,9 +32,9 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 	 *
 	 * @since 4.9.8
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		reset_phpmailer_instance();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -83,9 +85,9 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 		$this->assertTrue( (bool) get_post_meta( $request_id, '_wp_user_request_confirmed_timestamp', true ) );
 		$this->assertTrue( (bool) get_post_meta( $request_id, '_wp_admin_notified', true ) );
 		$this->assertSame( get_site_option( 'admin_email' ), $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'Action Confirmed', $mailer->get_sent()->subject );
-		$this->assertContains( 'Request: Export Personal Data', $mailer->get_sent()->body );
-		$this->assertContains( 'A user data privacy request has been confirmed', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Action Confirmed', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Request: Export Personal Data', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'A user data privacy request has been confirmed', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -152,16 +154,16 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 	}
 
 	/**
-	 * Filter callback that modifies the recipient of the data request confirmation notification.
+	 * Filter callback that modifies the recipient of the user request confirmation notification.
 	 *
 	 * @since 4.9.8
 	 *
-	 * @param string          $admin_email  The email address of the notification recipient.
-	 * @param WP_User_Request $request_data The request that is initiating the notification.
+	 * @param string          $admin_email The email address of the notification recipient.
+	 * @param WP_User_Request $request     The request that is initiating the notification.
 	 * @return string Admin email address.
 	 */
-	public function modify_email_address( $admin_email, $request_data ) {
-		$admin_email = $request_data->email;
+	public function modify_email_address( $admin_email, $request ) {
+		$admin_email = $request->email;
 		return $admin_email;
 	}
 
@@ -176,12 +178,12 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 
 		_wp_privacy_account_request_confirmed( $request_id );
 
-		add_filter( 'user_confirmed_action_email_content', array( $this, 'modify_email_content' ), 10, 2 );
+		add_filter( 'user_request_confirmed_email_content', array( $this, 'modify_email_content' ), 10, 2 );
 		_wp_privacy_send_request_confirmation_notification( $request_id );
-		remove_filter( 'user_confirmed_action_email_content', array( $this, 'modify_email_content' ), 10 );
+		remove_filter( 'user_request_confirmed_email_content', array( $this, 'modify_email_content' ), 10 );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertContains( 'Custom content containing email address:' . $email, $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Custom content containing email address:' . $email, $mailer->get_sent()->body );
 	}
 
 	/**
@@ -205,6 +207,44 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 	public function modify_email_content( $email_text, $email_data ) {
 		$email_text = 'Custom content containing email address:' . $email_data['user_email'];
 		return $email_text;
+	}
+
+	/**
+	 * The email headers should be filterable.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @ticket 44501
+	 */
+	public function test_email_headers_should_be_filterable() {
+		$email      = 'export.request.from.unregistered.user@example.com';
+		$request_id = wp_create_user_request( $email, 'export_personal_data' );
+
+		_wp_privacy_account_request_confirmed( $request_id );
+
+		add_filter( 'user_request_confirmed_email_headers', array( $this, 'modify_email_headers' ) );
+		_wp_privacy_send_request_confirmation_notification( $request_id );
+		remove_filter( 'user_request_confirmed_email_headers', array( $this, 'modify_email_headers' ) );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertStringContainsString( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
+	}
+
+	/**
+	 * Filter callback that modifies the headers of the user request confirmation email.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string|array $headers The email headers.
+	 * @return array The new email headers.
+	 */
+	public function modify_email_headers( $headers ) {
+		$headers = array(
+			'From: Tester <tester@example.com>',
+		);
+
+		return $headers;
 	}
 
 }

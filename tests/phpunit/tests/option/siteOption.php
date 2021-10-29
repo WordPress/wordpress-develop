@@ -24,7 +24,7 @@ class Tests_Option_SiteOption extends WP_UnitTestCase {
 		$key   = __FUNCTION__;
 		$value = __FUNCTION__;
 		add_site_option( $key, $value );
-		$this->assertEquals( $value, get_site_option( $key ) );
+		$this->assertSame( $value, get_site_option( $key ) );
 	}
 
 	function test_get_site_option_returns_updated_value() {
@@ -33,32 +33,32 @@ class Tests_Option_SiteOption extends WP_UnitTestCase {
 		$new_value = __FUNCTION__ . '_2';
 		add_site_option( $key, $value );
 		update_site_option( $key, $new_value );
-		$this->assertEquals( $new_value, get_site_option( $key ) );
+		$this->assertSame( $new_value, get_site_option( $key ) );
 	}
 
 	function test_get_site_option_does_not_exist_returns_filtered_default_with_no_default_provided() {
 		add_filter( 'default_site_option_doesnotexist', array( $this, '__return_foo' ) );
 		$site_option = get_site_option( 'doesnotexist' );
 		remove_filter( 'default_site_option_doesnotexist', array( $this, '__return_foo' ) );
-		$this->assertEquals( 'foo', $site_option );
+		$this->assertSame( 'foo', $site_option );
 	}
 
 	function test_get_site_option_does_not_exist_returns_filtered_default_with_default_provided() {
 		add_filter( 'default_site_option_doesnotexist', array( $this, '__return_foo' ) );
 		$site_option = get_site_option( 'doesnotexist', 'bar' );
 		remove_filter( 'default_site_option_doesnotexist', array( $this, '__return_foo' ) );
-		$this->assertEquals( 'foo', $site_option );
+		$this->assertSame( 'foo', $site_option );
 	}
 
 	function test_get_site_option_does_not_exist_returns_provided_default() {
-		$this->assertEquals( 'bar', get_site_option( 'doesnotexist', 'bar' ) );
+		$this->assertSame( 'bar', get_site_option( 'doesnotexist', 'bar' ) );
 	}
 
 	function test_get_site_option_exists_does_not_return_provided_default() {
 		$key   = __FUNCTION__;
 		$value = __FUNCTION__;
 		add_site_option( $key, $value );
-		$this->assertEquals( $value, get_site_option( $key, 'foo' ) );
+		$this->assertSame( $value, get_site_option( $key, 'foo' ) );
 	}
 
 	function test_get_site_option_exists_does_not_return_filtered_default() {
@@ -68,7 +68,7 @@ class Tests_Option_SiteOption extends WP_UnitTestCase {
 		add_filter( 'default_site_option_' . $key, array( $this, '__return_foo' ) );
 		$site_option = get_site_option( $key );
 		remove_filter( 'default_site_option_' . $key, array( $this, '__return_foo' ) );
-		$this->assertEquals( $value, $site_option );
+		$this->assertSame( $value, $site_option );
 	}
 
 	function test_add_site_option_returns_true_for_new_option() {
@@ -121,7 +121,7 @@ class Tests_Option_SiteOption extends WP_UnitTestCase {
 			'bar' => true,
 		);
 		add_site_option( $key, $value );
-		$this->assertEquals( $value, get_site_option( $key ) );
+		$this->assertSame( $value, get_site_option( $key ) );
 	}
 
 	function test_site_option_add_and_get_serialized_object() {
@@ -133,23 +133,31 @@ class Tests_Option_SiteOption extends WP_UnitTestCase {
 		$this->assertEquals( $value, get_site_option( $key ) );
 	}
 
-	// #15497 - ensure update_site_option will add options with false-y values
+	/**
+	 * Ensure update_site_option() will add options with false-y values.
+	 *
+	 * @ticket 15497
+	 */
 	function test_update_adds_falsey_value() {
 		$key   = __FUNCTION__;
 		$value = 0;
 
 		delete_site_option( $key );
 		$this->assertTrue( update_site_option( $key, $value ) );
-		$this->flush_cache(); // ensure we're getting the value from the DB
+		$this->flush_cache(); // Ensure we're getting the value from the DB.
 		$this->assertEquals( $value, get_site_option( $key ) );
 	}
 
-	// #18955 - ensure get_site_option doesn't cache the default value for non-existent options
+	/**
+	 * Ensure get_site_option() doesn't cache the default value for non-existent options.
+	 *
+	 * @ticket 18955
+	 */
 	function test_get_doesnt_cache_default_value() {
 		$option  = __FUNCTION__;
 		$default = 'a default';
 
-		$this->assertEquals( get_site_option( $option, $default ), $default );
+		$this->assertSame( get_site_option( $option, $default ), $default );
 		$this->assertFalse( get_site_option( $option ) );
 	}
 }

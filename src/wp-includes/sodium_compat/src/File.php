@@ -141,7 +141,9 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             ParagonIE_Sodium_Compat::memzero($nonce);
             ParagonIE_Sodium_Compat::memzero($ephKeypair);
         } catch (SodiumException $ex) {
-            unset($ephKeypair);
+            if (isset($ephKeypair)) {
+                unset($ephKeypair);
+            }
         }
         return $res;
     }
@@ -241,6 +243,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             ParagonIE_Sodium_Compat::memzero($nonce);
             ParagonIE_Sodium_Compat::memzero($ephKeypair);
         } catch (SodiumException $ex) {
+            /** @psalm-suppress PossiblyUndefinedVariable */
             unset($ephKeypair);
         }
         return $res;
@@ -328,7 +331,9 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             ParagonIE_Sodium_Compat::memzero($nonce);
             ParagonIE_Sodium_Compat::memzero($ephKeypair);
         } catch (SodiumException $ex) {
-            unset($ephKeypair);
+            if (isset($ephKeypair)) {
+                unset($ephKeypair);
+            }
         }
         return $res;
     }
@@ -537,6 +542,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         try {
             ParagonIE_Sodium_Compat::memzero($key);
         } catch (SodiumException $ex) {
+            /** @psalm-suppress PossiblyUndefinedVariable */
             unset($key);
         }
         return $res;
@@ -591,7 +597,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $az[31] = self::intToChr((self::chrToInt($az[31]) & 63) | 64);
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($az, 32, 32));
+        self::hash_update($hs, self::substr($az, 32, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
 
@@ -610,8 +616,8 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         );
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($sig, 0, 32));
-        hash_update($hs, self::substr($pk, 0, 32));
+        self::hash_update($hs, self::substr($sig, 0, 32));
+        self::hash_update($hs, self::substr($pk, 0, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
 
@@ -679,7 +685,11 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         }
 
         /* Security checks */
-        if (ParagonIE_Sodium_Core_Ed25519::check_S_lt_L(self::substr($sig, 32, 32))) {
+        if (
+            (ParagonIE_Sodium_Core_Ed25519::chrToInt($sig[63]) & 240)
+                &&
+            ParagonIE_Sodium_Core_Ed25519::check_S_lt_L(self::substr($sig, 32, 32))
+        ) {
             throw new SodiumException('S < L - Invalid signature');
         }
         if (ParagonIE_Sodium_Core_Ed25519::small_order($sig)) {
@@ -718,8 +728,8 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $A = ParagonIE_Sodium_Core_Ed25519::ge_frombytes_negate_vartime($publicKey);
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($sig, 0, 32));
-        hash_update($hs, self::substr($publicKey, 0, 32));
+        self::hash_update($hs, self::substr($sig, 0, 32));
+        self::hash_update($hs, self::substr($publicKey, 0, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
         /** @var string $hDigest */
@@ -841,7 +851,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         if (!is_string($plaintext)) {
             throw new SodiumException('Could not read input file');
         }
-        $first32 = ftell($ifp);
+        $first32 = self::ftell($ifp);
 
         /** @var string $subkey */
         $subkey = ParagonIE_Sodium_Core_HSalsa20::hsalsa20($nonce, $key);
@@ -875,7 +885,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         );
 
         // Pre-write 16 blank bytes for the Poly1305 tag
-        $start = ftell($ofp);
+        $start = self::ftell($ofp);
         fwrite($ofp, str_repeat("\x00", 16));
 
         /** @var string $c */
@@ -926,7 +936,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             $block0 = null;
             $subkey = null;
         }
-        $end = ftell($ofp);
+        $end = self::ftell($ofp);
 
         /*
          * Write the Poly1305 authentication tag that provides integrity
@@ -1043,7 +1053,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $mlen = 0
     ) {
         /** @var int $pos */
-        $pos = ftell($ifp);
+        $pos = self::ftell($ifp);
 
         /** @var int $iter */
         $iter = 1;
@@ -1073,7 +1083,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * Update a hash context with the contents of a file, without
      * loading the entire file into memory.
      *
-     * @param resource|object $hash
+     * @param resource|HashContext $hash
      * @param resource $fp
      * @param int $size
      * @return resource|object Resource on PHP < 7.2, HashContext object on PHP >= 7.2
@@ -1106,7 +1116,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         }
 
         /** @var int $originalPosition */
-        $originalPosition = ftell($fp);
+        $originalPosition = self::ftell($fp);
 
         // Move file pointer to beginning of file
         fseek($fp, 0, SEEK_SET);
@@ -1123,7 +1133,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             }
             /** @var string $message */
             /** @psalm-suppress InvalidArgument */
-            hash_update($hash, $message);
+            self::hash_update($hash, $message);
         }
         // Reset file pointer's position
         fseek($fp, $originalPosition, SEEK_SET);
@@ -1165,7 +1175,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $az[31] = self::intToChr((self::chrToInt($az[31]) & 63) | 64);
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($az, 32, 32));
+        self::hash_update($hs, self::substr($az, 32, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
 
@@ -1184,8 +1194,8 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         );
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($sig, 0, 32));
-        hash_update($hs, self::substr($pk, 0, 32));
+        self::hash_update($hs, self::substr($sig, 0, 32));
+        self::hash_update($hs, self::substr($pk, 0, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
 
@@ -1268,8 +1278,8 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $A = ParagonIE_Sodium_Core32_Ed25519::ge_frombytes_negate_vartime($publicKey);
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($sig, 0, 32));
-        hash_update($hs, self::substr($publicKey, 0, 32));
+        self::hash_update($hs, self::substr($sig, 0, 32));
+        self::hash_update($hs, self::substr($publicKey, 0, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
         /** @var string $hDigest */
@@ -1314,7 +1324,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         if (!is_string($plaintext)) {
             throw new SodiumException('Could not read input file');
         }
-        $first32 = ftell($ifp);
+        $first32 = self::ftell($ifp);
 
         /** @var string $subkey */
         $subkey = ParagonIE_Sodium_Core32_HSalsa20::hsalsa20($nonce, $key);
@@ -1348,7 +1358,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         );
 
         // Pre-write 16 blank bytes for the Poly1305 tag
-        $start = ftell($ofp);
+        $start = self::ftell($ofp);
         fwrite($ofp, str_repeat("\x00", 16));
 
         /** @var string $c */
@@ -1399,7 +1409,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             $block0 = null;
             $subkey = null;
         }
-        $end = ftell($ofp);
+        $end = self::ftell($ofp);
 
         /*
          * Write the Poly1305 authentication tag that provides integrity
@@ -1515,13 +1525,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $mlen = 0
     ) {
         /** @var int $pos */
-        $pos = ftell($ifp);
-
-        /** @var int $iter */
-        $iter = 1;
-
-        /** @var int $incr */
-        $incr = self::BUFFER_SIZE >> 6;
+        $pos = self::ftell($ifp);
 
         while ($mlen > 0) {
             $blockSize = $mlen > self::BUFFER_SIZE
@@ -1533,11 +1537,24 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             }
             $state->update($ciphertext);
             $mlen -= $blockSize;
-            $iter += $incr;
         }
         $res = ParagonIE_Sodium_Core32_Util::verify_16($tag, $state->finish());
 
         fseek($ifp, $pos, SEEK_SET);
         return $res;
+    }
+
+    /**
+     * @param resource $resource
+     * @return int
+     * @throws SodiumException
+     */
+    private static function ftell($resource)
+    {
+        $return = ftell($resource);
+        if (!is_int($return)) {
+            throw new SodiumException('ftell() returned false');
+        }
+        return (int) $return;
     }
 }

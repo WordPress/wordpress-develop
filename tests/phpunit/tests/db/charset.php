@@ -22,18 +22,14 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	 */
 	private static $server_info;
 
-	public static function setUpBeforeClass() {
-		parent::setUpBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 
-		require_once( dirname( dirname( __FILE__ ) ) . '/db.php' );
+		require_once dirname( __DIR__ ) . '/db.php';
 
 		self::$_wpdb = new WpdbExposedMethodsForTesting();
 
-		if ( self::$_wpdb->use_mysqli ) {
-			self::$server_info = mysqli_get_server_info( self::$_wpdb->dbh );
-		} else {
-			self::$server_info = mysql_get_server_info( self::$_wpdb->dbh );
-		}
+		self::$server_info = self::$_wpdb->db_server_info();
 	}
 
 	/**
@@ -72,7 +68,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'ascii'                                 => array(
-				// ascii gets special treatment, make sure it's covered
+				// ascii gets special treatment, make sure it's covered.
 				'charset'  => 'ascii',
 				'value'    => 'Hello World',
 				'expected' => 'Hello World',
@@ -82,7 +78,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'ascii_char_length'                     => array(
-				// ascii gets special treatment, make sure it's covered
+				// ascii gets special treatment, make sure it's covered.
 				'charset'  => 'ascii',
 				'value'    => str_repeat( 'A', 11 ),
 				'expected' => str_repeat( 'A', 10 ),
@@ -92,7 +88,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'ascii_byte_length'                     => array(
-				// ascii gets special treatment, make sure it's covered
+				// ascii gets special treatment, make sure it's covered.
 				'charset'  => 'ascii',
 				'value'    => str_repeat( 'A', 11 ),
 				'expected' => str_repeat( 'A', 10 ),
@@ -102,7 +98,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8'                                  => array(
-				// utf8 only allows <= 3-byte chars
+				// utf8 only allows <= 3-byte chars.
 				'charset'  => 'utf8',
 				'value'    => "H€llo\xf0\x9f\x98\x88World¢",
 				'expected' => 'H€lloWorld¢',
@@ -112,7 +108,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8_23char_length'                    => array(
-				// utf8 only allows <= 3-byte chars
+				// utf8 only allows <= 3-byte chars.
 				'charset'  => 'utf8',
 				'value'    => str_repeat( '²３', 10 ),
 				'expected' => str_repeat( '²３', 5 ),
@@ -122,7 +118,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8_23byte_length'                    => array(
-				// utf8 only allows <= 3-byte chars
+				// utf8 only allows <= 3-byte chars.
 				'charset'  => 'utf8',
 				'value'    => str_repeat( '²３', 10 ),
 				'expected' => '²３²３',
@@ -132,7 +128,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8_3char_length'                     => array(
-				// utf8 only allows <= 3-byte chars
+				// utf8 only allows <= 3-byte chars.
 				'charset'  => 'utf8',
 				'value'    => str_repeat( '３', 11 ),
 				'expected' => str_repeat( '３', 10 ),
@@ -142,7 +138,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8_3byte_length'                     => array(
-				// utf8 only allows <= 3-byte chars
+				// utf8 only allows <= 3-byte chars.
 				'charset'  => 'utf8',
 				'value'    => str_repeat( '３', 11 ),
 				'expected' => '３３３',
@@ -152,7 +148,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb3'                               => array(
-				// utf8mb3 should behave the same an utf8
+				// utf8mb3 should behave the same an utf8.
 				'charset'  => 'utf8mb3',
 				'value'    => "H€llo\xf0\x9f\x98\x88World¢",
 				'expected' => 'H€lloWorld¢',
@@ -162,7 +158,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb3_23char_length'                 => array(
-				// utf8mb3 should behave the same an utf8
+				// utf8mb3 should behave the same an utf8.
 				'charset'  => 'utf8mb3',
 				'value'    => str_repeat( '²３', 10 ),
 				'expected' => str_repeat( '²３', 5 ),
@@ -172,7 +168,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb3_23byte_length'                 => array(
-				// utf8mb3 should behave the same an utf8
+				// utf8mb3 should behave the same an utf8.
 				'charset'  => 'utf8mb3',
 				'value'    => str_repeat( '²３', 10 ),
 				'expected' => '²３²３',
@@ -182,7 +178,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb3_3char_length'                  => array(
-				// utf8mb3 should behave the same an utf8
+				// utf8mb3 should behave the same an utf8.
 				'charset'  => 'utf8mb3',
 				'value'    => str_repeat( '３', 11 ),
 				'expected' => str_repeat( '３', 10 ),
@@ -192,7 +188,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb3_3byte_length'                  => array(
-				// utf8mb3 should behave the same an utf8
+				// utf8mb3 should behave the same an utf8.
 				'charset'  => 'utf8mb3',
 				'value'    => str_repeat( '３', 10 ),
 				'expected' => '３３３',
@@ -202,7 +198,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb4'                               => array(
-				// utf8mb4 allows 4-byte characters, too
+				// utf8mb4 allows 4-byte characters, too.
 				'charset'  => 'utf8mb4',
 				'value'    => "H€llo\xf0\x9f\x98\x88World¢",
 				'expected' => "H€llo\xf0\x9f\x98\x88World¢",
@@ -212,7 +208,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb4_234char_length'                => array(
-				// utf8mb4 allows 4-byte characters, too
+				// utf8mb4 allows 4-byte characters, too.
 				'charset'  => 'utf8mb4',
 				'value'    => str_repeat( '²３𝟜', 10 ),
 				'expected' => '²３𝟜²３𝟜²３𝟜²',
@@ -222,7 +218,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb4_234byte_length'                => array(
-				// utf8mb4 allows 4-byte characters, too
+				// utf8mb4 allows 4-byte characters, too.
 				'charset'  => 'utf8mb4',
 				'value'    => str_repeat( '²３𝟜', 10 ),
 				'expected' => '²３𝟜',
@@ -232,7 +228,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb4_4char_length'                  => array(
-				// utf8mb4 allows 4-byte characters, too
+				// utf8mb4 allows 4-byte characters, too.
 				'charset'  => 'utf8mb4',
 				'value'    => str_repeat( '𝟜', 11 ),
 				'expected' => str_repeat( '𝟜', 10 ),
@@ -242,7 +238,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'utf8mb4_4byte_length'                  => array(
-				// utf8mb4 allows 4-byte characters, too
+				// utf8mb4 allows 4-byte characters, too.
 				'charset'  => 'utf8mb4',
 				'value'    => str_repeat( '𝟜', 10 ),
 				'expected' => '𝟜𝟜',
@@ -326,8 +322,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				'expected' => 'WordPress',
 				'length'   => false,
 				// Don't set 'ascii' => true/false.
-				// That's a different codepath than it being unset even if
-				// three's only only ASCII in the value.
+				// That's a different codepath than it being unset
+				// even if there's only ASCII in the value.
 			),
 			'cp1251_char_length'                    => array(
 				'charset'  => 'cp1251',
@@ -405,7 +401,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				),
 			),
 			'false'                                 => array(
-				// false is a column with no character set (ie, a number column)
+				// False is a column with no character set (i.e. a number column).
 				'charset'  => false,
 				'value'    => 100,
 				'expected' => 100,
@@ -414,13 +410,13 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		);
 
 		if ( function_exists( 'mb_convert_encoding' ) ) {
-			// big5 is a non-Unicode multibyte charset
-			$utf8      = "a\xe5\x85\xb1b"; // UTF-8 Character 20849
+			// big5 is a non-Unicode multibyte charset.
+			$utf8      = "a\xe5\x85\xb1b"; // UTF-8 Character 20849.
 			$big5      = mb_convert_encoding( $utf8, 'BIG-5', 'UTF-8' );
 			$conv_utf8 = mb_convert_encoding( $big5, 'UTF-8', 'BIG-5' );
-			// Make sure PHP's multibyte conversions are working correctly
+			// Make sure PHP's multibyte conversions are working correctly.
 			$this->assertNotEquals( $utf8, $big5 );
-			$this->assertEquals( $utf8, $conv_utf8 );
+			$this->assertSame( $utf8, $conv_utf8 );
 
 			$fields['big5'] = array(
 				'charset'  => 'big5',
@@ -480,6 +476,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_strip_invalid_text
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::strip_invalid_text
 	 */
 	function test_strip_invalid_text( $data, $expected, $message ) {
 		$charset = self::$_wpdb->charset;
@@ -511,13 +509,15 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::process_fields
 	 */
 	function test_process_fields_failure() {
 		global $wpdb;
 
 		$charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
 		if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
-			$this->markTestSkipped( 'This test requires a utf8 character set' );
+			$this->markTestSkipped( 'This test requires a utf8 character set.' );
 		}
 
 		// \xf0\xff\xff\xff is invalid in utf8 and utf8mb4.
@@ -535,7 +535,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 			$charset = $GLOBALS['wpdb']->get_col_charset( $GLOBALS['wpdb']->posts, 'post_content' );
 		}
 
-		// 'value' and 'format' are $data, 'charset' ends up as part of $expected
+		// 'value' and 'format' are $data, 'charset' ends up as part of $expected.
 
 		$no_string_fields = array(
 			'post_parent'   => array(
@@ -563,7 +563,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 			),
 		);
 
-		// This is the same data used in process_field_charsets_for_nonexistent_table()
+		// This is the same data used in process_field_charsets_for_nonexistent_table().
 		$non_ascii_string_fields = array(
 			'post_content' => array(
 				'value'   => '¡foo foo foo!',
@@ -596,6 +596,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_process_field_charsets
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::process_field_charsets
 	 */
 	function test_process_field_charsets( $data, $expected, $message ) {
 		$actual = self::$_wpdb->process_field_charsets( $data, $GLOBALS['wpdb']->posts );
@@ -623,6 +625,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::check_ascii
 	 */
 	function test_check_ascii() {
 		$ascii = "\0\t\n\r '" . '!"#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
@@ -631,6 +635,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::check_ascii
 	 */
 	function test_check_ascii_false() {
 		$this->assertFalse( self::$_wpdb->check_ascii( 'ABCDEFGHIJKLMNOPQRSTUVWXYZ¡©«' ) );
@@ -638,20 +644,22 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::strip_invalid_text_for_column
 	 */
 	function test_strip_invalid_text_for_column() {
 		global $wpdb;
 
 		$charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
 		if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
-			$this->markTestSkipped( 'This test requires a utf8 character set' );
+			$this->markTestSkipped( 'This test requires a utf8 character set.' );
 		}
 
-		// Invalid 3-byte and 4-byte sequences
+		// Invalid 3-byte and 4-byte sequences.
 		$value    = "H€llo\xe0\x80\x80World\xf0\xff\xff\xff¢";
 		$expected = 'H€lloWorld¢';
 		$actual   = $wpdb->strip_invalid_text_for_column( $wpdb->posts, 'post_content', $value );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -746,22 +754,23 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_test_get_table_charset
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::get_table_charset
 	 */
 	function test_get_table_charset( $drop, $create, $table, $expected_charset ) {
 		self::$_wpdb->query( $drop );
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		self::$_wpdb->query( $create );
 
 		$charset = self::$_wpdb->get_table_charset( $table );
-		$this->assertEquals( $charset, $expected_charset );
+		$this->assertSame( $charset, $expected_charset );
 
 		$charset = self::$_wpdb->get_table_charset( strtoupper( $table ) );
-		$this->assertEquals( $charset, $expected_charset );
+		$this->assertSame( $charset, $expected_charset );
 
 		self::$_wpdb->query( $drop );
 	}
@@ -786,20 +795,21 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_test_get_column_charset
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::get_col_charset
 	 */
 	function test_get_column_charset( $drop, $create, $table, $expected_charset ) {
 		self::$_wpdb->query( $drop );
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		self::$_wpdb->query( $create );
 
 		foreach ( $expected_charset as $column => $charset ) {
-			$this->assertEquals( $charset, self::$_wpdb->get_col_charset( $table, $column ) );
-			$this->assertEquals( $charset, self::$_wpdb->get_col_charset( strtoupper( $table ), strtoupper( $column ) ) );
+			$this->assertSame( $charset, self::$_wpdb->get_col_charset( $table, $column ) );
+			$this->assertSame( $charset, self::$_wpdb->get_col_charset( strtoupper( $table ), strtoupper( $column ) ) );
 		}
 
 		self::$_wpdb->query( $drop );
@@ -808,13 +818,14 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_test_get_column_charset
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::get_col_charset
 	 */
 	function test_get_column_charset_non_mysql( $drop, $create, $table, $columns ) {
 		self::$_wpdb->query( $drop );
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		self::$_wpdb->is_mysql = false;
@@ -823,7 +834,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		$columns = array_keys( $columns );
 		foreach ( $columns as $column => $charset ) {
-			$this->assertEquals( false, self::$_wpdb->get_col_charset( $table, $column ) );
+			$this->assertFalse( self::$_wpdb->get_col_charset( $table, $column ) );
 		}
 
 		self::$_wpdb->query( $drop );
@@ -834,13 +845,14 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_test_get_column_charset
 	 * @ticket 33501
+	 *
+	 * @covers wpdb::get_col_charset
 	 */
 	function test_get_column_charset_is_mysql_undefined( $drop, $create, $table, $columns ) {
 		self::$_wpdb->query( $drop );
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		unset( self::$_wpdb->is_mysql );
@@ -849,7 +861,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		$columns = array_keys( $columns );
 		foreach ( $columns as $column => $charset ) {
-			$this->assertEquals( false, self::$_wpdb->get_col_charset( $table, $column ) );
+			$this->assertFalse( self::$_wpdb->get_col_charset( $table, $column ) );
 		}
 
 		self::$_wpdb->query( $drop );
@@ -864,13 +876,13 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		$table_name = 'strip_invalid_text_from_query_table';
 		$data       = array(
 			array(
-				// binary tables don't get stripped
-				'( a VARCHAR(50) CHARACTER SET utf8, b BINARY )', // create
-				"('foo\xf0\x9f\x98\x88bar', 'foo')",              // query
-				"('foo\xf0\x9f\x98\x88bar', 'foo')",               // expected result
+				// Binary tables don't get stripped.
+				'( a VARCHAR(50) CHARACTER SET utf8, b BINARY )', // Create.
+				"('foo\xf0\x9f\x98\x88bar', 'foo')",              // Query.
+				"('foo\xf0\x9f\x98\x88bar', 'foo')",              // Expected result.
 			),
 			array(
-				// utf8/utf8mb4 tables default to utf8
+				// utf8/utf8mb4 tables default to utf8.
 				'( a VARCHAR(50) CHARACTER SET utf8, b VARCHAR(50) CHARACTER SET utf8mb4 )',
 				"('foo\xf0\x9f\x98\x88bar', 'foo')",
 				"('foobar', 'foo')",
@@ -893,19 +905,20 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_strip_invalid_text_from_query
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::strip_invalid_text_from_query
 	 */
 	function test_strip_invalid_text_from_query( $create, $query, $expected, $drop ) {
 		self::$_wpdb->query( $drop );
 
 		if ( ! self::$_wpdb->has_cap( 'utf8mb4' ) && preg_match( '/utf8mb[34]/i', $create ) ) {
 			$this->markTestSkipped( "This version of MySQL doesn't support utf8mb4." );
-			return;
 		}
 
 		self::$_wpdb->query( $create );
 
 		$return = self::$_wpdb->strip_invalid_text_from_query( $query );
-		$this->assertEquals( $expected, $return );
+		$this->assertSame( $expected, $return );
 
 		self::$_wpdb->query( $drop );
 	}
@@ -936,21 +949,25 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_dont_strip_text_from_schema_queries
 	 * @ticket 32104
+	 *
+	 * @covers wpdb::strip_invalid_text_from_query
 	 */
 	function test_dont_strip_text_from_schema_queries( $query ) {
 		$return = self::$_wpdb->strip_invalid_text_from_query( $query );
-		$this->assertEquals( $query, $return );
+		$this->assertSame( $query, $return );
 	}
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::query
 	 */
 	function test_invalid_characters_in_query() {
 		global $wpdb;
 
 		$charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
 		if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
-			$this->markTestSkipped( 'This test requires a utf8 character set' );
+			$this->markTestSkipped( 'This test requires a utf8 character set.' );
 		}
 
 		$this->assertFalse( $wpdb->query( "INSERT INTO {$wpdb->posts} (post_content) VALUES ('foo\xf0\xff\xff\xffbar')" ) );
@@ -964,8 +981,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		$data       = array(
 			array(
 				// utf8_bin tables don't need extra sanity checking.
-				'( a VARCHAR(50) COLLATE utf8_bin )', // create
-				true,                                  // expected result
+				'( a VARCHAR(50) COLLATE utf8_bin )', // Create.
+				true,                                 // Expected result.
 			),
 			array(
 				// Neither do utf8_general_ci tables.
@@ -1014,6 +1031,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_table_collation_check
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::check_safe_collation
 	 */
 	function test_table_collation_check( $create, $expected, $query, $drop, $always_true ) {
 		self::$_wpdb->query( $drop );
@@ -1021,7 +1040,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		self::$_wpdb->query( $create );
 
 		$return = self::$_wpdb->check_safe_collation( $query );
-		$this->assertEquals( $expected, $return );
+		$this->assertSame( $expected, $return );
 
 		foreach ( $always_true as $true_query ) {
 			$return = self::$_wpdb->check_safe_collation( $true_query );
@@ -1031,25 +1050,30 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		self::$_wpdb->query( $drop );
 	}
 
+	/**
+	 * @covers wpdb::strip_invalid_text_for_column
+	 */
 	function test_strip_invalid_text_for_column_bails_if_ascii_input_too_long() {
 		global $wpdb;
 
-		// TEXT column
+		// TEXT column.
 		$stripped = $wpdb->strip_invalid_text_for_column( $wpdb->comments, 'comment_content', str_repeat( 'A', 65536 ) );
-		$this->assertEquals( 65535, strlen( $stripped ) );
+		$this->assertSame( 65535, strlen( $stripped ) );
 
-		// VARCHAR column
+		// VARCHAR column.
 		$stripped = $wpdb->strip_invalid_text_for_column( $wpdb->comments, 'comment_agent', str_repeat( 'A', 256 ) );
-		$this->assertEquals( 255, strlen( $stripped ) );
+		$this->assertSame( 255, strlen( $stripped ) );
 	}
 
 	/**
 	 * @ticket 32279
+	 *
+	 * @covers wpdb::strip_invalid_text_from_query
 	 */
 	function test_strip_invalid_text_from_query_cp1251_is_safe() {
 		$tablename = 'test_cp1251_query_' . rand_str( 5 );
 		if ( ! self::$_wpdb->query( "CREATE TABLE $tablename ( a VARCHAR(50) ) DEFAULT CHARSET 'cp1251'" ) ) {
-			$this->markTestSkipped( "Test requires the 'cp1251' charset" );
+			$this->markTestSkipped( "Test requires the 'cp1251' charset." );
 		}
 
 		$safe_query     = "INSERT INTO $tablename( `a` ) VALUES( 'safe data' )";
@@ -1057,16 +1081,18 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		self::$_wpdb->query( "DROP TABLE $tablename" );
 
-		$this->assertEquals( $safe_query, $stripped_query );
+		$this->assertSame( $safe_query, $stripped_query );
 	}
 
 	/**
 	 * @ticket 34708
+	 *
+	 * @covers wpdb::strip_invalid_text_from_query
 	 */
 	function test_no_db_charset_defined() {
 		$tablename = 'test_cp1251_query_' . rand_str( 5 );
 		if ( ! self::$_wpdb->query( "CREATE TABLE $tablename ( a VARCHAR(50) ) DEFAULT CHARSET 'cp1251'" ) ) {
-			$this->markTestSkipped( "Test requires the 'cp1251' charset" );
+			$this->markTestSkipped( "Test requires the 'cp1251' charset." );
 		}
 
 		$charset              = self::$_wpdb->charset;
@@ -1079,20 +1105,22 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		self::$_wpdb->charset = $charset;
 
-		$this->assertEquals( $safe_query, $stripped_query );
+		$this->assertSame( $safe_query, $stripped_query );
 	}
 
 	/**
 	 * @ticket 36649
+	 *
+	 * @covers wpdb::set_charset
 	 */
 	function test_set_charset_changes_the_connection_collation() {
 		self::$_wpdb->set_charset( self::$_wpdb->dbh, 'utf8', 'utf8_general_ci' );
 		$results = self::$_wpdb->get_results( "SHOW VARIABLES WHERE Variable_name='collation_connection'" );
-		$this->assertEquals( 'utf8_general_ci', $results[0]->Value );
+		$this->assertSame( 'utf8_general_ci', $results[0]->Value );
 
 		self::$_wpdb->set_charset( self::$_wpdb->dbh, 'utf8mb4', 'utf8mb4_unicode_ci' );
 		$results = self::$_wpdb->get_results( "SHOW VARIABLES WHERE Variable_name='collation_connection'" );
-		$this->assertEquals( 'utf8mb4_unicode_ci', $results[0]->Value );
+		$this->assertSame( 'utf8mb4_unicode_ci', $results[0]->Value );
 
 		self::$_wpdb->set_charset( self::$_wpdb->dbh );
 	}

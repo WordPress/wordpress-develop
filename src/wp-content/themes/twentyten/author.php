@@ -41,7 +41,7 @@ if ( get_the_author_meta( 'description' ) ) :
 						<div id="author-avatar">
 							<?php
 							/**
-							 * Filter the Twenty Ten author bio avatar size.
+							 * Filters the Twenty Ten author bio avatar size.
 							 *
 							 * @since Twenty Ten 1.0
 							 *
@@ -65,9 +65,9 @@ if ( get_the_author_meta( 'description' ) ) :
 
 <?php
 	/*
-	 * Since we called the_post() above, we need to
-	 * rewind the loop back to the beginning that way
-	 * we can run the loop properly, in full.
+	 * Since we called the_post() above, we need
+	 * to rewind the loop back to the beginning.
+	 * That way we can run the loop properly, in full.
 	 */
 	rewind_posts();
 

@@ -14,9 +14,10 @@
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|stdClass $bookmark
- * @param string $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                       an stdClass object, an associative array, or a numeric array, respectively. Default OBJECT.
- * @param string $filter Optional, default is 'raw'.
+ * @param string       $output   Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                               correspond to an stdClass object, an associative array, or a numeric array,
+ *                               respectively. Default OBJECT.
+ * @param string       $filter   Optional. How to sanitize bookmark fields. Default 'raw'.
  * @return array|object|null Type returned depends on $output value.
  */
 function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
@@ -52,11 +53,11 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 
 	$_bookmark = sanitize_bookmark( $_bookmark, $filter );
 
-	if ( $output == OBJECT ) {
+	if ( OBJECT === $output ) {
 		return $_bookmark;
-	} elseif ( $output == ARRAY_A ) {
+	} elseif ( ARRAY_A === $output ) {
 		return get_object_vars( $_bookmark );
-	} elseif ( $output == ARRAY_N ) {
+	} elseif ( ARRAY_N === $output ) {
 		return array_values( get_object_vars( $_bookmark ) );
 	} else {
 		return $_bookmark;
@@ -68,9 +69,9 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
  *
  * @since 2.3.0
  *
- * @param string $field The name of the data field to return
- * @param int $bookmark The bookmark ID to get field
- * @param string $context Optional. The context of how the field will be used.
+ * @param string $field    The name of the data field to return.
+ * @param int    $bookmark The bookmark ID to get field.
+ * @param string $context  Optional. The context of how the field will be used.
  * @return string|WP_Error
  */
 function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
@@ -116,7 +117,7 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  *                                    Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
  *     @type int      $limit          Amount of bookmarks to display. Accepts any positive number or
  *                                    -1 for all.  Default -1.
- *     @type string   $category       Comma-separated list of category ids to include links from.
+ *     @type string   $category       Comma-separated list of category IDs to include links from.
  *                                    Default empty.
  *     @type string   $category_name  Category to retrieve links for by name. Default empty.
  *     @type int|bool $hide_invisible Whether to show or hide links marked as 'invisible'. Accepts
@@ -129,7 +130,7 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  *                                    and searched in 'link_url', 'link_name' and 'link_description'.
  *                                    Default empty.
  * }
- * @return array List of bookmark row objects.
+ * @return object[] List of bookmark row objects.
  */
 function get_bookmarks( $args = '' ) {
 	global $wpdb;
@@ -167,8 +168,8 @@ function get_bookmarks( $args = '' ) {
 			 *
 			 * @see get_bookmarks()
 			 *
-			 * @param array $bookmarks List of the cached bookmarks.
-			 * @param array $parsed_args         An array of bookmark query arguments.
+			 * @param array $bookmarks   List of the cached bookmarks.
+			 * @param array $parsed_args An array of bookmark query arguments.
 			 */
 			return apply_filters( 'get_bookmarks', $bookmarks, $parsed_args );
 		}
@@ -180,7 +181,7 @@ function get_bookmarks( $args = '' ) {
 
 	$inclusions = '';
 	if ( ! empty( $parsed_args['include'] ) ) {
-		$parsed_args['exclude']       = '';  //ignore exclude, category, and category_name params if using include
+		$parsed_args['exclude']       = '';  // Ignore exclude, category, and category_name params if using include.
 		$parsed_args['category']      = '';
 		$parsed_args['category_name'] = '';
 
@@ -279,9 +280,9 @@ function get_bookmarks( $args = '' ) {
 			foreach ( explode( ',', $orderby ) as $ordparam ) {
 				$ordparam = trim( $ordparam );
 
-				if ( in_array( 'link_' . $ordparam, $keys ) ) {
+				if ( in_array( 'link_' . $ordparam, $keys, true ) ) {
 					$orderparams[] = 'link_' . $ordparam;
-				} elseif ( in_array( $ordparam, $keys ) ) {
+				} elseif ( in_array( $ordparam, $keys, true ) ) {
 					$orderparams[] = $ordparam;
 				}
 			}
@@ -293,7 +294,7 @@ function get_bookmarks( $args = '' ) {
 	}
 
 	$order = strtoupper( $parsed_args['order'] );
-	if ( '' !== $order && ! in_array( $order, array( 'ASC', 'DESC' ) ) ) {
+	if ( '' !== $order && ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
 		$order = 'ASC';
 	}
 
@@ -305,7 +306,7 @@ function get_bookmarks( $args = '' ) {
 	$query  = "SELECT * $length $recently_updated_test $get_updated FROM $wpdb->links $join WHERE 1=1 $visible $category_query";
 	$query .= " $exclusions $inclusions $search";
 	$query .= " ORDER BY $orderby $order";
-	if ( $parsed_args['limit'] != -1 ) {
+	if ( -1 != $parsed_args['limit'] ) {
 		$query .= ' LIMIT ' . $parsed_args['limit'];
 	}
 
@@ -321,13 +322,12 @@ function get_bookmarks( $args = '' ) {
 }
 
 /**
- * Sanitizes all bookmark fields
+ * Sanitizes all bookmark fields.
  *
  * @since 2.3.0
  *
- * @param stdClass|array $bookmark Bookmark row
- * @param string $context Optional, default is 'display'. How to filter the
- *      fields
+ * @param stdClass|array $bookmark Bookmark row.
+ * @param string         $context  Optional. How to filter the fields. Default 'display'.
  * @return stdClass|array Same type as $bookmark but with fields sanitized.
  */
 function sanitize_bookmark( $bookmark, $context = 'display' ) {
@@ -391,20 +391,21 @@ function sanitize_bookmark( $bookmark, $context = 'display' ) {
  * @param string $field       The bookmark field.
  * @param mixed  $value       The bookmark field value.
  * @param int    $bookmark_id Bookmark ID.
- * @param string $context     How to filter the field value. Accepts 'raw', 'edit', 'attribute',
- *                            'js', 'db', or 'display'
+ * @param string $context     How to filter the field value. Accepts 'raw', 'edit', 'db',
+ *                            'display', 'attribute', or 'js'. Default 'display'.
  * @return mixed The filtered value.
  */
 function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
+	$int_fields = array( 'link_id', 'link_rating' );
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
+	}
+
 	switch ( $field ) {
-		case 'link_id': // ints
-		case 'link_rating':
-			$value = (int) $value;
-			break;
 		case 'link_category': // array( ints )
 			$value = array_map( 'absint', (array) $value );
 			// We return here so that the categories aren't filtered.
-			// The 'link_category' filter is for the name of a link category, not an array of a link's link categories
+			// The 'link_category' filter is for the name of a link category, not an array of a link's link categories.
 			return $value;
 
 		case 'link_visible': // bool stored as Y|N
@@ -412,37 +413,42 @@ function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
 			break;
 		case 'link_target': // "enum"
 			$targets = array( '_top', '_blank' );
-			if ( ! in_array( $value, $targets ) ) {
+			if ( ! in_array( $value, $targets, true ) ) {
 				$value = '';
 			}
 			break;
 	}
 
-	if ( 'raw' == $context ) {
+	if ( 'raw' === $context ) {
 		return $value;
 	}
 
-	if ( 'edit' == $context ) {
+	if ( 'edit' === $context ) {
 		/** This filter is documented in wp-includes/post.php */
 		$value = apply_filters( "edit_{$field}", $value, $bookmark_id );
 
-		if ( 'link_notes' == $field ) {
+		if ( 'link_notes' === $field ) {
 			$value = esc_html( $value ); // textarea_escaped
 		} else {
 			$value = esc_attr( $value );
 		}
-	} elseif ( 'db' == $context ) {
+	} elseif ( 'db' === $context ) {
 		/** This filter is documented in wp-includes/post.php */
 		$value = apply_filters( "pre_{$field}", $value );
 	} else {
 		/** This filter is documented in wp-includes/post.php */
 		$value = apply_filters( "{$field}", $value, $bookmark_id, $context );
 
-		if ( 'attribute' == $context ) {
+		if ( 'attribute' === $context ) {
 			$value = esc_attr( $value );
-		} elseif ( 'js' == $context ) {
+		} elseif ( 'js' === $context ) {
 			$value = esc_js( $value );
 		}
+	}
+
+	// Restore the type for integer fields after esc_attr().
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
 	}
 
 	return $value;

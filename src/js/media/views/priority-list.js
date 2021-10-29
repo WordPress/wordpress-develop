@@ -25,7 +25,7 @@ var PriorityList = wp.media.View.extend(/** @lends wp.media.view.PriorityList.pr
 	 * @param {string} id
 	 * @param {wp.media.View|Object} view
 	 * @param {Object} options
-	 * @returns {wp.media.view.PriorityList} Returns itself to allow chaining
+	 * @return {wp.media.view.PriorityList} Returns itself to allow chaining.
 	 */
 	set: function( id, view, options ) {
 		var priority, views, index;
@@ -66,14 +66,14 @@ var PriorityList = wp.media.View.extend(/** @lends wp.media.view.PriorityList.pr
 	},
 	/**
 	 * @param {string} id
-	 * @returns {wp.media.View}
+	 * @return {wp.media.View}
 	 */
 	get: function( id ) {
 		return this._views[ id ];
 	},
 	/**
 	 * @param {string} id
-	 * @returns {wp.media.view.PriorityList}
+	 * @return {wp.media.view.PriorityList}
 	 */
 	unset: function( id ) {
 		var view = this.get( id );
@@ -87,7 +87,7 @@ var PriorityList = wp.media.View.extend(/** @lends wp.media.view.PriorityList.pr
 	},
 	/**
 	 * @param {Object} options
-	 * @returns {wp.media.View}
+	 * @return {wp.media.View}
 	 */
 	toView: function( options ) {
 		return new wp.media.View( options );

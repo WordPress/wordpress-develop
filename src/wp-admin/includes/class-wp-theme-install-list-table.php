@@ -34,7 +34,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 * @global array  $theme_field_defaults
 	 */
 	public function prepare_items() {
-		include( ABSPATH . 'wp-admin/includes/theme-install.php' );
+		require ABSPATH . 'wp-admin/includes/theme-install.php';
 
 		global $tabs, $tab, $paged, $type, $theme_field_defaults;
 		wp_reset_vars( array( 'tab' ) );
@@ -82,7 +82,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$nonmenu_tabs = apply_filters( 'install_themes_nonmenu_tabs', $nonmenu_tabs );
 
 		// If a non-valid menu tab has been selected, And it's not a non-menu action.
-		if ( empty( $tab ) || ( ! isset( $tabs[ $tab ] ) && ! in_array( $tab, (array) $nonmenu_tabs ) ) ) {
+		if ( empty( $tab ) || ( ! isset( $tabs[ $tab ] ) && ! in_array( $tab, (array) $nonmenu_tabs, true ) ) ) {
 			$tab = key( $tabs );
 		}
 
@@ -132,12 +132,20 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		 * Filters API request arguments for each Install Themes screen tab.
 		 *
 		 * The dynamic portion of the hook name, `$tab`, refers to the theme install
-		 * tabs. Default tabs are 'dashboard', 'search', 'upload', 'featured',
-		 * 'new', and 'updated'.
+		 * tab.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `install_themes_table_api_args_dashboard`
+		 *  - `install_themes_table_api_args_featured`
+		 *  - `install_themes_table_api_args_new`
+		 *  - `install_themes_table_api_args_search`
+		 *  - `install_themes_table_api_args_updated`
+		 *  - `install_themes_table_api_args_upload`
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param array $args An array of themes API arguments.
+		 * @param array|false $args Theme install API arguments.
 		 */
 		$args = apply_filters( "install_themes_table_api_args_{$tab}", $args );
 
@@ -148,7 +156,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$api = themes_api( 'query_themes', $args );
 
 		if ( is_wp_error( $api ) ) {
-			wp_die( $api->get_error_message() . '</p> <p><a href="#" onclick="document.location.reload(); return false;">' . __( 'Try Again' ) . '</a>' );
+			wp_die( '<p>' . $api->get_error_message() . '</p> <p><a href="#" onclick="document.location.reload(); return false;">' . __( 'Try Again' ) . '</a></p>' );
 		}
 
 		$this->items = $api->themes;
@@ -231,7 +239,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 				?>
 				</div>
 			<?php
-		} // end foreach $theme_names
+		} // End foreach $theme_names.
 
 		$this->theme_installer();
 	}
@@ -246,15 +254,15 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 * @param object $theme {
 	 *     An object that contains theme data returned by the WordPress.org API.
 	 *
-	 *     @type string $name           Theme name, e.g. 'Twenty Twenty'.
-	 *     @type string $slug           Theme slug, e.g. 'twentytwenty'.
+	 *     @type string $name           Theme name, e.g. 'Twenty Twenty-One'.
+	 *     @type string $slug           Theme slug, e.g. 'twentytwentyone'.
 	 *     @type string $version        Theme version, e.g. '1.1'.
 	 *     @type string $author         Theme author username, e.g. 'melchoyce'.
-	 *     @type string $preview_url    Preview URL, e.g. 'http://2020.wordpress.net/'.
-	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://wordpress.org/themes/twentytwenty/'.
+	 *     @type string $preview_url    Preview URL, e.g. 'https://2021.wordpress.net/'.
+	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://wordpress.org/themes/twentytwentyone/'.
 	 *     @type float  $rating         Rating score.
 	 *     @type int    $num_ratings    The number of ratings.
-	 *     @type string $homepage       Theme homepage, e.g. 'https://wordpress.org/themes/twentytwenty/'.
+	 *     @type string $homepage       Theme homepage, e.g. 'https://wordpress.org/themes/twentytwentyone/'.
 	 *     @type string $description    Theme description.
 	 *     @type string $download_link  Theme ZIP download URL.
 	 * }
@@ -323,7 +331,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					'<a class="install-now" href="%s" title="%s">%s</a>',
 					esc_url( wp_nonce_url( $install_url, 'install-theme_' . $theme->slug ) ),
 					/* translators: %s: Theme name. */
-					esc_attr( sprintf( __( 'Install %s' ), $name ) ),
+					esc_attr( sprintf( _x( 'Install %s', 'theme' ), $name ) ),
 					__( 'Install Now' )
 				);
 				break;

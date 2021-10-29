@@ -5,8 +5,9 @@
  *
  * @group functions.php
  * @group plugins
+ * @covers ::plugin_basename
  */
-class Tests_Plugin_Basename extends WP_UnitTestCase {
+class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 
 	/**
 	 * @var array
@@ -20,17 +21,17 @@ class Tests_Plugin_Basename extends WP_UnitTestCase {
 	 */
 	protected $wp_plugin_path;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->wp_plugin_paths_backup = $GLOBALS['wp_plugin_paths'];
 		$this->wp_plugin_path         = wp_normalize_path( WP_PLUGIN_DIR );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp_plugin_paths'] = $this->wp_plugin_paths_backup;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

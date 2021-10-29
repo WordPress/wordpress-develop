@@ -63,7 +63,7 @@ class WP_Http_Curl {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $url The request URL.
+	 * @param string       $url  The request URL.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'. A WP_Error instance upon error
 	 */
@@ -129,7 +129,7 @@ class WP_Http_Curl {
 
 		curl_setopt( $handle, CURLOPT_URL, $url );
 		curl_setopt( $handle, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $handle, CURLOPT_SSL_VERIFYHOST, ( $ssl_verify === true ) ? 2 : false );
+		curl_setopt( $handle, CURLOPT_SSL_VERIFYHOST, ( true === $ssl_verify ) ? 2 : false );
 		curl_setopt( $handle, CURLOPT_SSL_VERIFYPEER, $ssl_verify );
 
 		if ( $ssl_verify ) {
@@ -173,7 +173,7 @@ class WP_Http_Curl {
 		curl_setopt( $handle, CURLOPT_HEADER, false );
 
 		if ( isset( $parsed_args['limit_response_size'] ) ) {
-			$this->max_body_length = intval( $parsed_args['limit_response_size'] );
+			$this->max_body_length = (int) $parsed_args['limit_response_size'];
 		} else {
 			$this->max_body_length = false;
 		}
@@ -209,7 +209,7 @@ class WP_Http_Curl {
 			curl_setopt( $handle, CURLOPT_HTTPHEADER, $headers );
 		}
 
-		if ( $parsed_args['httpversion'] == '1.0' ) {
+		if ( '1.0' === $parsed_args['httpversion'] ) {
 			curl_setopt( $handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0 );
 		} else {
 			curl_setopt( $handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
@@ -223,9 +223,9 @@ class WP_Http_Curl {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param resource $handle  The cURL handle returned by curl_init() (passed by reference).
-		 * @param array    $parsed_args       The HTTP request arguments.
-		 * @param string   $url     The request URL.
+		 * @param resource $handle      The cURL handle returned by curl_init() (passed by reference).
+		 * @param array    $parsed_args The HTTP request arguments.
+		 * @param string   $url         The request URL.
 		 */
 		do_action_ref_array( 'http_api_curl', array( &$handle, $parsed_args, $url ) );
 
@@ -238,7 +238,7 @@ class WP_Http_Curl {
 				curl_close( $handle );
 				return new WP_Error( 'http_request_failed', $curl_error );
 			}
-			if ( in_array( curl_getinfo( $handle, CURLINFO_HTTP_CODE ), array( 301, 302 ) ) ) {
+			if ( in_array( curl_getinfo( $handle, CURLINFO_HTTP_CODE ), array( 301, 302 ), true ) ) {
 				curl_close( $handle );
 				return new WP_Error( 'http_request_failed', __( 'Too many redirects.' ) );
 			}
@@ -256,7 +256,8 @@ class WP_Http_Curl {
 		}
 
 		curl_exec( $handle );
-		$theHeaders          = WP_Http::processHeaders( $this->headers, $url );
+
+		$processed_headers   = WP_Http::processHeaders( $this->headers, $url );
 		$theBody             = $this->body;
 		$bytes_written_total = $this->bytes_written_total;
 
@@ -267,7 +268,7 @@ class WP_Http_Curl {
 		$curl_error = curl_errno( $handle );
 
 		// If an error occurred, or, no response.
-		if ( $curl_error || ( 0 == strlen( $theBody ) && empty( $theHeaders['headers'] ) ) ) {
+		if ( $curl_error || ( 0 == strlen( $theBody ) && empty( $processed_headers['headers'] ) ) ) {
 			if ( CURLE_WRITE_ERROR /* 23 */ == $curl_error ) {
 				if ( ! $this->max_body_length || $this->max_body_length != $bytes_written_total ) {
 					if ( $parsed_args['stream'] ) {
@@ -286,7 +287,7 @@ class WP_Http_Curl {
 					return new WP_Error( 'http_request_failed', $curl_error );
 				}
 			}
-			if ( in_array( curl_getinfo( $handle, CURLINFO_HTTP_CODE ), array( 301, 302 ) ) ) {
+			if ( in_array( curl_getinfo( $handle, CURLINFO_HTTP_CODE ), array( 301, 302 ), true ) ) {
 				curl_close( $handle );
 				return new WP_Error( 'http_request_failed', __( 'Too many redirects.' ) );
 			}
@@ -299,20 +300,22 @@ class WP_Http_Curl {
 		}
 
 		$response = array(
-			'headers'  => $theHeaders['headers'],
+			'headers'  => $processed_headers['headers'],
 			'body'     => null,
-			'response' => $theHeaders['response'],
-			'cookies'  => $theHeaders['cookies'],
+			'response' => $processed_headers['response'],
+			'cookies'  => $processed_headers['cookies'],
 			'filename' => $parsed_args['filename'],
 		);
 
 		// Handle redirects.
-		$redirect_response = WP_HTTP::handle_redirects( $url, $parsed_args, $response );
+		$redirect_response = WP_Http::handle_redirects( $url, $parsed_args, $response );
 		if ( false !== $redirect_response ) {
 			return $redirect_response;
 		}
 
-		if ( true === $parsed_args['decompress'] && true === WP_Http_Encoding::should_decode( $theHeaders['headers'] ) ) {
+		if ( true === $parsed_args['decompress']
+			&& true === WP_Http_Encoding::should_decode( $processed_headers['headers'] )
+		) {
 			$theBody = WP_Http_Encoding::decompress( $theBody );
 		}
 

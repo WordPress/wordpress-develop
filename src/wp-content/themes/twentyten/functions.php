@@ -27,7 +27,7 @@
  * <code>
  * add_action( 'after_setup_theme', 'my_child_theme_setup' );
  * function my_child_theme_setup() {
- *     // We are providing our own filter for excerpt_length (or using the unfiltered value)
+ *     // We are providing our own filter for excerpt_length (or using the unfiltered value).
  *     remove_filter( 'excerpt_length', 'twentyten_excerpt_length' );
  *     ...
  * }
@@ -119,15 +119,15 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 		// Post Format support. You can also use the legacy "gallery" or "asides" (note the plural) categories.
 		add_theme_support( 'post-formats', array( 'aside', 'gallery' ) );
 
-		// This theme uses post thumbnails
+		// This theme uses post thumbnails.
 		add_theme_support( 'post-thumbnails' );
 
-		// Add default posts and comments RSS feed links to head
+		// Add default posts and comments RSS feed links to head.
 		add_theme_support( 'automatic-feed-links' );
 
 		/*
 		 * Make theme available for translation.
-		 * Translations can be filed in the /languages/ directory
+		 * Translations can be filed in the /languages/ directory.
 		 */
 		load_theme_textdomain( 'twentyten', get_template_directory() . '/languages' );
 
@@ -157,7 +157,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			'default-image'       => '%s/images/headers/path.jpg',
 			// The height and width of our custom header.
 			/**
-			 * Filter the Twenty Ten default header image width.
+			 * Filters the Twenty Ten default header image width.
 			 *
 			 * @since Twenty Ten 1.0
 			 *
@@ -165,7 +165,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			 */
 			'width'               => apply_filters( 'twentyten_header_image_width', 940 ),
 			/**
-			 * Filter the Twenty Ten defaul header image height.
+			 * Filters the Twenty Ten defaul header image height.
 			 *
 			 * @since Twenty Ten 1.0
 			 *
@@ -200,7 +200,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 		 */
 		set_post_thumbnail_size( $custom_header_support['width'], $custom_header_support['height'], true );
 
-		// ... and thus ends the custom header business.
+		// ...and thus ends the custom header business.
 
 		// Default custom headers packaged with the theme. %s is a placeholder for the theme template directory URI.
 		register_default_headers(
@@ -341,7 +341,7 @@ endif;
  * @since Twenty Ten 1.0
  *
  * @param string $more The Read More text.
- * @return string An ellipsis.
+ * @return string The filtered Read More text.
  */
 function twentyten_auto_excerpt_more( $more ) {
 	if ( ! is_admin() ) {
@@ -359,7 +359,7 @@ add_filter( 'excerpt_more', 'twentyten_auto_excerpt_more' );
  *
  * @since Twenty Ten 1.0
  *
- * @param string $output The "Coninue Reading" link.
+ * @param string $output The "Continue Reading" link.
  * @return string Excerpt with a pretty "Continue Reading" link.
  */
 function twentyten_custom_excerpt_more( $output ) {
@@ -394,7 +394,7 @@ add_filter( 'use_default_gallery_style', '__return_false' );
 function twentyten_remove_gallery_css( $css ) {
 	return preg_replace( "#<style type='text/css'>(.*?)</style>#s", '', $css );
 }
-// Backwards compatibility with WordPress 3.0.
+// Backward compatibility with WordPress 3.0.
 if ( version_compare( $GLOBALS['wp_version'], '3.1', '<' ) ) {
 	add_filter( 'gallery_style', 'twentyten_remove_gallery_css' );
 }
@@ -410,14 +410,15 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 	 *
 	 * @since Twenty Ten 1.0
 	 *
-	 * @param object $comment The comment object.
-	 * @param array  $args    An array of arguments. @see get_comment_reply_link()
-	 * @param int    $depth   The depth of the comment.
+	 * @param WP_Comment $comment The comment object.
+	 * @param array      $args    An array of arguments. @see get_comment_reply_link()
+	 * @param int        $depth   The depth of the comment.
 	 */
 	function twentyten_comment( $comment, $args, $depth ) {
 		$GLOBALS['comment'] = $comment;
 		switch ( $comment->comment_type ) :
 			case '':
+			case 'comment':
 				?>
 		<li <?php comment_class(); ?> id="li-comment-<?php comment_ID(); ?>">
 		<div id="comment-<?php comment_ID(); ?>">
@@ -434,7 +435,7 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 				if ( $commenter['comment_author_email'] ) {
 					$moderation_note = __( 'Your comment is awaiting moderation.', 'twentyten' );
 				} else {
-					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview, your comment will be visible after it has been approved.', 'twentyten' );
+					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'twentyten' );
 				}
 				?>
 
@@ -629,8 +630,9 @@ if ( ! function_exists( 'twentyten_posted_in' ) ) :
 	 */
 	function twentyten_posted_in() {
 		// Retrieves tag list of current post, separated by commas.
-		$tag_list = get_the_tag_list( '', ', ' );
-		if ( $tag_list && ! is_wp_error( $tag_list ) ) {
+		$tags_list = get_the_tag_list( '', ', ' );
+
+		if ( $tags_list && ! is_wp_error( $tags_list ) ) {
 			/* translators: 1: Category name, 2: Tag name, 3: Post permalink, 4: Post title. */
 			$posted_in = __( 'This entry was posted in %1$s and tagged %2$s. Bookmark the <a href="%3$s" title="Permalink to %4$s" rel="bookmark">permalink</a>.', 'twentyten' );
 		} elseif ( is_object_in_taxonomy( get_post_type(), 'category' ) ) {
@@ -640,11 +642,12 @@ if ( ! function_exists( 'twentyten_posted_in' ) ) :
 			/* translators: 3: Post permalink, 4: Post title. */
 			$posted_in = __( 'Bookmark the <a href="%3$s" title="Permalink to %4$s" rel="bookmark">permalink</a>.', 'twentyten' );
 		}
+
 		// Prints the string, replacing the placeholders.
 		printf(
 			$posted_in,
 			get_the_category_list( ', ' ),
-			$tag_list,
+			$tags_list,
 			get_permalink(),
 			the_title_attribute( 'echo=0' )
 		);
@@ -732,15 +735,18 @@ add_action( 'wp_enqueue_scripts', 'twentyten_scripts_styles' );
  */
 function twentyten_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20181218' );
+	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20201208' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyten_block_editor_styles' );
+
+// Block Patterns.
+require get_template_directory() . '/block-patterns.php';
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
 	 * Fire the wp_body_open action.
 	 *
-	 * Added for backwards compatibility to support pre 5.2.0 WordPress versions.
+	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *
 	 * @since Twenty Ten 2.9
 	 */

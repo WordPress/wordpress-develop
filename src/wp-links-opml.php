@@ -12,13 +12,13 @@
  * @package WordPress
  */
 
-require_once( dirname( __FILE__ ) . '/wp-load.php' );
+require_once __DIR__ . '/wp-load.php';
 
 header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
 $link_cat = '';
 if ( ! empty( $_GET['link_cat'] ) ) {
 	$link_cat = $_GET['link_cat'];
-	if ( ! in_array( $link_cat, array( 'all', '0' ) ) ) {
+	if ( ! in_array( $link_cat, array( 'all', '0' ), true ) ) {
 		$link_cat = absint( (string) urldecode( $link_cat ) );
 	}
 }
@@ -82,7 +82,7 @@ foreach ( (array) $cats as $cat ) :
 		?>
 <outline text="<?php echo esc_attr( $title ); ?>" type="link" xmlUrl="<?php echo esc_attr( $bookmark->link_rss ); ?>" htmlUrl="<?php echo esc_attr( $bookmark->link_url ); ?>" updated="
 							<?php
-							if ( '0000-00-00 00:00:00' != $bookmark->link_updated ) {
+							if ( '0000-00-00 00:00:00' !== $bookmark->link_updated ) {
 								echo $bookmark->link_updated;}
 							?>
 " />

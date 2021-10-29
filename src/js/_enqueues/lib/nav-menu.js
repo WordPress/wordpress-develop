@@ -9,7 +9,7 @@
  * @output wp-admin/js/nav-menu.js
  */
 
-/* global menus, postboxes, columns, isRtl, navMenuL10n, ajaxurl, wpNavMenu */
+/* global menus, postboxes, columns, isRtl, ajaxurl, wpNavMenu */
 
 (function($) {
 
@@ -45,6 +45,11 @@
 
 			this.attachMenuEditListeners();
 
+			this.attachBulkSelectButtonListeners();
+			this.attachMenuCheckBoxListeners();
+			this.attachMenuItemDeleteButton();
+			this.attachPendingMenuItemsListForDeletion();
+
 			this.attachQuickSearchListeners();
 			this.attachThemeLocationsListeners();
 			this.attachMenuSaveSubmitListeners();
@@ -69,7 +74,7 @@
 		},
 
 		jQueryExtensions : function() {
-			// jQuery extensions
+			// jQuery extensions.
 			$.fn.extend({
 				menuItemDepth : function() {
 					var margin = api.isRTL ? this.eq(0).css('margin-right') : this.eq(0).css('margin-left');
@@ -114,7 +119,7 @@
 							depth = t.menuItemDepth(),
 							newDepth = depth + dir;
 
-						// Change .menu-item-depth-n class
+						// Change .menu-item-depth-n class.
 						t.moveHorizontally( newDepth, depth );
 					});
 				},
@@ -125,10 +130,10 @@
 							diff = newDepth - depth,
 							subItemText = t.find('.is-submenu');
 
-						// Change .menu-item-depth-n class
+						// Change .menu-item-depth-n class.
 						t.updateDepthClass( newDepth, depth ).updateParentMenuItemDBId();
 
-						// If it has children, move those too
+						// If it has children, move those too.
 						if ( children ) {
 							children.each(function() {
 								var t = $(this),
@@ -138,7 +143,7 @@
 							});
 						}
 
-						// Show "Sub item" helper text
+						// Show "Sub item" helper text.
 						if (0 === newDepth)
 							subItemText.hide();
 						else
@@ -153,7 +158,7 @@
 							parentDepth = depth - 1,
 							parent = item.prevAll( '.menu-item-depth-' + parentDepth ).first();
 
-						if ( 0 === depth ) { // Item is on the top level, has no parent
+						if ( 0 === depth ) { // Item is on the top level, has no parent.
 							input.val(0);
 						} else { // Find the parent item, and retrieve its object id.
 							input.val( parent.find( '.menu-item-data-db-id' ).val() );
@@ -191,10 +196,10 @@
 						if ( !checkboxes.length )
 							return false;
 
-						// Show the ajax spinner
+						// Show the Ajax spinner.
 						t.find( '.button-controls .spinner' ).addClass( 'is-active' );
 
-						// Retrieve menu item data
+						// Retrieve menu item data.
 						$(checkboxes).each(function(){
 							var t = $(this),
 								listItemDBIDMatch = re.exec( t.attr('name') ),
@@ -205,9 +210,9 @@
 							menuItems[listItemDBID] = t.closest('li').getItemData( 'add-menu-item', listItemDBID );
 						});
 
-						// Add the items
+						// Add the items.
 						api.addItemToMenu(menuItems, processMethod, function(){
-							// Deselect the items and hide the ajax spinner
+							// Deselect the items and hide the Ajax spinner.
 							checkboxes.prop( 'checked', false );
 							t.find( '.button-controls .select-all' ).prop( 'checked', false );
 							t.find( '.button-controls .spinner' ).removeClass( 'is-active' );
@@ -312,22 +317,22 @@
 			case 'up':
 				newItemPosition = thisItemPosition - 1;
 
-				// Already at top
+				// Already at top.
 				if ( 0 === thisItemPosition )
 					break;
 
-				// If a sub item is moved to top, shift it to 0 depth
+				// If a sub item is moved to top, shift it to 0 depth.
 				if ( 0 === newItemPosition && 0 !== thisItemDepth )
 					thisItem.moveHorizontally( 0, thisItemDepth );
 
-				// If prev item is sub item, shift to match depth
+				// If prev item is sub item, shift to match depth.
 				if ( 0 !== prevItemDepth )
 					thisItem.moveHorizontally( prevItemDepth, thisItemDepth );
 
 				// Does this item have sub items?
 				if ( thisItemChildren ) {
 					items = thisItem.add( thisItemChildren );
-					// Move the entire block
+					// Move the entire block.
 					items.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId();
 				} else {
 					thisItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId();
@@ -351,46 +356,46 @@
 
 					items.detach().insertAfter( menuItems.eq( thisItemPosition + items.length ) ).updateParentMenuItemDBId();
 				} else {
-					// If next item has sub items, shift depth
+					// If next item has sub items, shift depth.
 					if ( 0 !== nextItemChildren.length )
 						thisItem.moveHorizontally( nextItemDepth, thisItemDepth );
 
-					// Have we reached the bottom
+					// Have we reached the bottom?
 					if ( menuItemsCount === thisItemPosition + 1 )
 						break;
 					thisItem.detach().insertAfter( menuItems.eq( thisItemPosition + 1 ) ).updateParentMenuItemDBId();
 				}
 				break;
 			case 'top':
-				// Already at top
+				// Already at top.
 				if ( 0 === thisItemPosition )
 					break;
 				// Does this item have sub items?
 				if ( thisItemChildren ) {
 					items = thisItem.add( thisItemChildren );
-					// Move the entire block
+					// Move the entire block.
 					items.detach().insertBefore( menuItems.eq( 0 ) ).updateParentMenuItemDBId();
 				} else {
 					thisItem.detach().insertBefore( menuItems.eq( 0 ) ).updateParentMenuItemDBId();
 				}
 				break;
 			case 'left':
-				// As far left as possible
+				// As far left as possible.
 				if ( 0 === thisItemDepth )
 					break;
 				thisItem.shiftHorizontally( -1 );
 				break;
 			case 'right':
-				// Can't be sub item at top
+				// Can't be sub item at top.
 				if ( 0 === thisItemPosition )
 					break;
-				// Already sub item of prevItem
+				// Already sub item of prevItem.
 				if ( thisItemData['menu-item-parent-id'] === prevItemId )
 					break;
 				thisItem.shiftHorizontally( 1 );
 				break;
 			}
-			$this.focus();
+			$this.trigger( 'focus' );
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
@@ -402,7 +407,7 @@
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
 
-			// Refresh the accessibility when the user comes close to the item in any way
+			// Refresh the accessibility when the user comes close to the item in any way.
 			menu.on( 'mouseenter.refreshAccessibility focus.refreshAccessibility touchstart.refreshAccessibility' , '.menu-item' , function(){
 				api.refreshAdvancedAccessibilityOfItem( $( this ).find( 'a.item-edit' ) );
 			} );
@@ -412,7 +417,7 @@
 				api.refreshAdvancedAccessibilityOfItem( $( this ) );
 			} );
 
-			// Links for moving items
+			// Links for moving items.
 			menu.on( 'click', '.menus-move', function () {
 				var $this = $( this ),
 					dir = $this.data( 'dir' );
@@ -429,11 +434,11 @@
 		 * Refreshes advanced accessibility buttons for one menu item.
 		 * Shows or hides buttons based on the location of the menu item.
 		 *
-		 * @param  {object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
+		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
 		 */
 		refreshAdvancedAccessibilityOfItem : function( itemToRefresh ) {
 
-			// Only refresh accessibility when necessary
+			// Only refresh accessibility when necessary.
 			if ( true !== $( itemToRefresh ).data( 'needs_accessibility_refresh' ) ) {
 				return;
 			}
@@ -494,7 +499,7 @@
 				itemPosition = primaryItems.index( menuItem ) + 1,
 				totalMenuItems = primaryItems.length,
 
-				// String together help text for primary menu items
+				// String together help text for primary menu items.
 				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$d', itemPosition ).replace( '%3$d', totalMenuItems );
 			} else {
 				parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
@@ -503,13 +508,13 @@
 				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
 				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
 
-				// String together help text for sub menu items
+				// String together help text for sub menu items.
 				title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$d', itemPosition ).replace( '%3$s', parentItemName );
 			}
 
 			$this.attr( 'aria-label', title );
 
-			// Mark this item's accessibility as refreshed
+			// Mark this item's accessibility as refreshed.
 			$this.data( 'needs_accessibility_refresh', false );
 		},
 
@@ -523,10 +528,10 @@
 			// Hide all the move buttons by default.
 			$( '.menu-item-settings .field-move .menus-move' ).hide();
 
-			// Mark all menu items as unprocessed
+			// Mark all menu items as unprocessed.
 			$( 'a.item-edit' ).data( 'needs_accessibility_refresh', true );
 
-			// All open items have to be refreshed or they will show no links
+			// All open items have to be refreshed or they will show no links.
 			$( '.menu-item-edit-active a.item-edit' ).each( function() {
 				api.refreshAdvancedAccessibilityOfItem( this );
 			} );
@@ -541,18 +546,18 @@
 						thisItem = $this.parents( 'li.menu-item' ),
 						thisItemData = thisItem.getItemData();
 
-					// Bail if it's not an arrow key
+					// Bail if it's not an arrow key.
 					if ( 37 != e.which && 38 != e.which && 39 != e.which && 40 != e.which )
 						return;
 
-					// Avoid multiple keydown events
+					// Avoid multiple keydown events.
 					$this.off('keydown');
 
-					// Bail if there is only one menu item
+					// Bail if there is only one menu item.
 					if ( 1 === $('#menu-to-edit li').length )
 						return;
 
-					// If RTL, swap left/right arrows
+					// If RTL, swap left/right arrows.
 					arrows = { '38': 'up', '40': 'down', '37': 'left', '39': 'right' };
 					if ( $('body').hasClass('rtl') )
 						arrows = { '38' : 'up', '40' : 'down', '39' : 'left', '37' : 'right' };
@@ -571,8 +576,8 @@
 						api.moveMenuItem( $this, 'right' );
 						break;
 					}
-					// Put focus back on same menu item
-					$( '#edit-' + thisItemData['menu-item-db-id'] ).focus();
+					// Put focus back on same menu item.
+					$( '#edit-' + thisItemData['menu-item-db-id'] ).trigger( 'focus' );
 					return false;
 				});
 			});
@@ -588,16 +593,16 @@
 				if ( title ) {
 					titleEl.text( title ).removeClass( 'no-title' );
 				} else {
-					titleEl.text( navMenuL10n.untitled ).addClass( 'no-title' );
+					titleEl.text( wp.i18n._x( '(no label)', 'missing menu item navigation label' ) ).addClass( 'no-title' );
 				}
 			} );
 		},
 
 		initToggles : function() {
-			// init postboxes
+			// Init postboxes.
 			postboxes.add_postbox_toggles('nav-menus');
 
-			// adjust columns functions for menus UI
+			// Adjust columns functions for menus UI.
 			columns.useCheckboxesForHidden();
 			columns.checked = function(field) {
 				$('.field-' + field).removeClass('hidden-field');
@@ -605,10 +610,10 @@
 			columns.unchecked = function(field) {
 				$('.field-' + field).addClass('hidden-field');
 			};
-			// hide fields
+			// Hide fields.
 			api.menuList.hideAdvancedMenuItemFields();
 
-			$('.hide-postbox-tog').click(function () {
+			$('.hide-postbox-tog').on( 'click', function () {
 				var hidden = $( '.accordion-container li.accordion-section' ).filter(':hidden').map(function() { return this.id; }).get().join(',');
 				$.post(ajaxurl, {
 					action: 'closed-postboxes',
@@ -639,7 +644,7 @@
 				start: function(e, ui) {
 					var height, width, parent, children, tempHolder;
 
-					// handle placement for rtl orientation
+					// Handle placement for RTL orientation.
 					if ( api.isRTL )
 						ui.item[0].style.right = 'auto';
 
@@ -649,19 +654,19 @@
 					originalDepth = ui.item.menuItemDepth();
 					updateCurrentDepth(ui, originalDepth);
 
-					// Attach child elements to parent
-					// Skip the placeholder
+					// Attach child elements to parent.
+					// Skip the placeholder.
 					parent = ( ui.item.next()[0] == ui.placeholder[0] ) ? ui.item.next() : ui.item;
 					children = parent.childMenuItems();
 					transport.append( children );
 
 					// Update the height of the placeholder to match the moving item.
 					height = transport.outerHeight();
-					// If there are children, account for distance between top of children and parent
+					// If there are children, account for distance between top of children and parent.
 					height += ( height > 0 ) ? (ui.placeholder.css('margin-top').slice(0, -2) * 1) : 0;
 					height += ui.helper.outerHeight();
 					helperHeight = height;
-					height -= 2; // Subtract 2 for borders
+					height -= 2;                                              // Subtract 2 for borders.
 					ui.placeholder.height(height);
 
 					// Update the width of the placeholder to match the moving item.
@@ -670,18 +675,18 @@
 						var depth = $(this).menuItemDepth();
 						maxChildDepth = (depth > maxChildDepth) ? depth : maxChildDepth;
 					});
-					width = ui.helper.find('.menu-item-handle').outerWidth(); // Get original width
-					width += api.depthToPx(maxChildDepth - originalDepth); // Account for children
-					width -= 2; // Subtract 2 for borders
+					width = ui.helper.find('.menu-item-handle').outerWidth(); // Get original width.
+					width += api.depthToPx(maxChildDepth - originalDepth);    // Account for children.
+					width -= 2;                                               // Subtract 2 for borders.
 					ui.placeholder.width(width);
 
 					// Update the list of menu items.
 					tempHolder = ui.placeholder.next( '.menu-item' );
-					tempHolder.css( 'margin-top', helperHeight + 'px' ); // Set the margin to absorb the placeholder
-					ui.placeholder.detach(); // detach or jQuery UI will think the placeholder is a menu item
-					$(this).sortable( 'refresh' ); // The children aren't sortable. We should let jQ UI know.
-					ui.item.after( ui.placeholder ); // reattach the placeholder.
-					tempHolder.css('margin-top', 0); // reset the margin
+					tempHolder.css( 'margin-top', helperHeight + 'px' ); // Set the margin to absorb the placeholder.
+					ui.placeholder.detach();         // Detach or jQuery UI will think the placeholder is a menu item.
+					$(this).sortable( 'refresh' );   // The children aren't sortable. We should let jQuery UI know.
+					ui.item.after( ui.placeholder ); // Reattach the placeholder.
+					tempHolder.css('margin-top', 0); // Reset the margin.
 
 					// Now that the element is complete, we can update...
 					updateSharedVars(ui);
@@ -690,31 +695,31 @@
 					var children, subMenuTitle,
 						depthChange = currentDepth - originalDepth;
 
-					// Return child elements to the list
+					// Return child elements to the list.
 					children = transport.children().insertAfter(ui.item);
 
-					// Add "sub menu" description
+					// Add "sub menu" description.
 					subMenuTitle = ui.item.find( '.item-title .is-submenu' );
 					if ( 0 < currentDepth )
 						subMenuTitle.show();
 					else
 						subMenuTitle.hide();
 
-					// Update depth classes
+					// Update depth classes.
 					if ( 0 !== depthChange ) {
 						ui.item.updateDepthClass( currentDepth );
 						children.shiftDepthClass( depthChange );
 						updateMenuMaxDepth( depthChange );
 					}
-					// Register a change
+					// Register a change.
 					api.registerChange();
 					// Update the item data.
 					ui.item.updateParentMenuItemDBId();
 
-					// address sortable's incorrectly-calculated top in opera
+					// Address sortable's incorrectly-calculated top in Opera.
 					ui.item[0].style.top = 0;
 
-					// handle drop placement for rtl orientation
+					// Handle drop placement for rtl orientation.
 					if ( api.isRTL ) {
 						ui.item[0].style.left = 'auto';
 						ui.item[0].style.right = 0;
@@ -736,9 +741,11 @@
 						edge = api.isRTL ? offset.left + ui.helper.width() : offset.left,
 						depth = api.negateIfRTL * api.pxToDepth( edge - menuEdge );
 
-					// Check and correct if depth is not within range.
-					// Also, if the dragged element is dragged upwards over
-					// an item, shift the placeholder to a child position.
+					/*
+					 * Check and correct if depth is not within range.
+					 * Also, if the dragged element is dragged upwards over an item,
+					 * shift the placeholder to a child position.
+					 */
 					if ( depth > maxDepth || offset.top < ( prevBottom - api.options.targetTolerance ) ) {
 						depth = maxDepth;
 					} else if ( depth < minDepth ) {
@@ -748,7 +755,7 @@
 					if( depth != currentDepth )
 						updateCurrentDepth(ui, depth);
 
-					// If we overlap the next element, manually shift downwards
+					// If we overlap the next element, manually shift downwards.
 					if( nextThreshold && offset.top + helperHeight > nextThreshold ) {
 						next.after( ui.placeholder );
 						updateSharedVars( ui );
@@ -807,7 +814,7 @@
 		},
 
 		initManageLocations : function () {
-			$('#menu-locations-wrap form').submit(function(){
+			$('#menu-locations-wrap form').on( 'submit', function(){
 				window.onbeforeunload = null;
 			});
 			$('.menu-location-menus select').on('change', function () {
@@ -821,7 +828,7 @@
 
 		attachMenuEditListeners : function() {
 			var that = this;
-			$('#update-nav-menu').bind('click', function(e) {
+			$('#update-nav-menu').on('click', function(e) {
 				if ( e.target && e.target.className ) {
 					if ( -1 != e.target.className.indexOf('item-edit') ) {
 						return that.eventOnClickEditLink(e.target);
@@ -850,14 +857,204 @@
 				}
 			}, 500 ) );
 
-			$('#add-custom-links input[type="text"]').keypress(function(e){
+			$('#add-custom-links input[type="text"]').on( 'keypress', function(e){
 				$('#customlinkdiv').removeClass('form-invalid');
 
 				if ( e.keyCode === 13 ) {
 					e.preventDefault();
-					$( '#submit-customlinkdiv' ).click();
+					$( '#submit-customlinkdiv' ).trigger( 'click' );
 				}
 			});
+		},
+
+		/**
+		 * Handle toggling bulk selection checkboxes for menu items.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachBulkSelectButtonListeners : function() {
+			var that = this;
+
+			$( '.bulk-select-switcher' ).on( 'change', function() {
+				if ( this.checked ) {
+					$( '.bulk-select-switcher' ).prop( 'checked', true );
+					that.enableBulkSelection();
+				} else {
+					$( '.bulk-select-switcher' ).prop( 'checked', false );
+					that.disableBulkSelection();
+				}
+			});
+		},
+
+		/**
+		 * Enable bulk selection checkboxes for menu items.
+		 *
+		 * @since 5.8.0
+		 */ 
+		enableBulkSelection : function() {
+			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
+
+			$( '#menu-to-edit' ).addClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-top' ).addClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-bottom' ).addClass( 'bulk-selection' );
+
+			$.each( checkbox, function() {
+				$(this).prop( 'disabled', false );
+			});
+		},
+
+		/**
+		 * Disable bulk selection checkboxes for menu items.
+		 *
+		 * @since 5.8.0
+		 */ 
+		disableBulkSelection : function() {
+			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
+
+			$( '#menu-to-edit' ).removeClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-top' ).removeClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-bottom' ).removeClass( 'bulk-selection' );
+
+			if ( $( '.menu-items-delete' ).is( '[aria-describedby="pending-menu-items-to-delete"]' ) ) {
+				$( '.menu-items-delete' ).removeAttr( 'aria-describedby' );
+			}
+
+			$.each( checkbox, function() {
+				$(this).prop( 'disabled', true ).prop( 'checked', false );
+			});
+
+			$( '.menu-items-delete' ).addClass( 'disabled' );
+			$( '#pending-menu-items-to-delete ul' ).empty();
+		},
+
+		/**
+		 * Listen for state changes on bulk action checkboxes.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachMenuCheckBoxListeners : function() {
+			var that = this;
+
+			$( '#menu-to-edit' ).on( 'change', '.menu-item-checkbox', function() {
+				that.setRemoveSelectedButtonStatus();
+			});
+		},
+
+		/**
+		 * Create delete button to remove menu items from collection.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachMenuItemDeleteButton : function() {
+			var that = this;
+
+			$( document ).on( 'click', '.menu-items-delete', function( e ) {
+				var itemsPendingDeletion, itemsPendingDeletionList, deletionSpeech;
+
+				e.preventDefault();
+
+				if ( ! $(this).hasClass( 'disabled' ) ) {
+					$.each( $( '.menu-item-checkbox:checked' ), function( index, element ) {
+						$( element ).parents( 'li' ).find( 'a.item-delete' ).trigger( 'click' );
+					});
+
+					$( '.menu-items-delete' ).addClass( 'disabled' );
+					$( '.bulk-select-switcher' ).prop( 'checked', false );
+
+					itemsPendingDeletion     = '';
+					itemsPendingDeletionList = $( '#pending-menu-items-to-delete ul li' );
+
+					$.each( itemsPendingDeletionList, function( index, element ) {
+						var itemName = $( element ).find( '.pending-menu-item-name' ).text();
+						var itemSpeech = menus.menuItemDeletion.replace( '%s', itemName );
+
+						itemsPendingDeletion += itemSpeech;
+						if ( ( index + 1 ) < itemsPendingDeletionList.length ) {
+							itemsPendingDeletion += ', ';
+						}
+					});
+
+					deletionSpeech = menus.itemsDeleted.replace( '%s', itemsPendingDeletion );
+					wp.a11y.speak( deletionSpeech, 'polite' );
+					that.disableBulkSelection();
+				}
+			});
+		},
+
+		/**
+		 * List menu items awaiting deletion.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachPendingMenuItemsListForDeletion : function() {
+			$( '#post-body-content' ).on( 'change', '.menu-item-checkbox', function() {
+				var menuItemName, menuItemType, menuItemID, listedMenuItem;
+
+				if ( ! $( '.menu-items-delete' ).is( '[aria-describedby="pending-menu-items-to-delete"]' ) ) {
+					$( '.menu-items-delete' ).attr( 'aria-describedby', 'pending-menu-items-to-delete' );
+				}
+
+				menuItemName = $(this).next().text();
+				menuItemType = $(this).parent().next( '.item-controls' ).find( '.item-type' ).text();
+				menuItemID   = $(this).attr( 'data-menu-item-id' );
+
+				listedMenuItem = $( '#pending-menu-items-to-delete ul' ).find( '[data-menu-item-id=' + menuItemID + ']' );
+				if ( listedMenuItem.length > 0 ) {
+					listedMenuItem.remove();
+				}
+
+				if ( this.checked === true ) {
+					$( '#pending-menu-items-to-delete ul' ).append(
+						'<li data-menu-item-id="' + menuItemID + '">' +
+							'<span class="pending-menu-item-name">' + menuItemName + '</span> ' +
+							'<span class="pending-menu-item-type">(' + menuItemType + ')</span>' +
+							'<span class="separator"></span>' +
+						'</li>'
+					);
+				}
+
+				$( '#pending-menu-items-to-delete li .separator' ).html( ', ' );
+				$( '#pending-menu-items-to-delete li .separator' ).last().html( '.' );
+			});
+		},
+
+		/**
+		 * Set status of bulk delete checkbox.
+		 *
+		 * @since 5.8.0
+		 */ 
+		setBulkDeleteCheckboxStatus : function() {
+			var that = this;
+			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
+
+			$.each( checkbox, function() {
+				if ( $(this).prop( 'disabled' ) ) {
+					$(this).prop( 'disabled', false );
+				} else {
+					$(this).prop( 'disabled', true );
+				}
+
+				if ( $(this).is( ':checked' ) ) {
+					$(this).prop( 'checked', false );
+				}
+			});
+
+			that.setRemoveSelectedButtonStatus();
+		},
+
+		/**
+		 * Set status of menu items removal button.
+		 *
+		 * @since 5.8.0
+		 */ 
+		setRemoveSelectedButtonStatus : function() {
+			var button = $( '.menu-items-delete' );
+
+			if ( $( '.menu-item-checkbox:checked' ).length > 0 ) {
+				button.removeClass( 'disabled' );
+			} else {
+				button.addClass( 'disabled' );
+			}
 		},
 
 		attachMenuSaveSubmitListeners : function() {
@@ -865,7 +1062,7 @@
 			 * When a navigation menu is saved, store a JSON representation of all form data
 			 * in a single input to avoid PHP `max_input_vars` limitations. See #14134.
 			 */
-			$( '#update-nav-menu' ).submit( function() {
+			$( '#update-nav-menu' ).on( 'submit', function() {
 				var navMenuData = $( '#update-nav-menu' ).serializeArray();
 				$( '[name="nav-menu-data"]' ).val( JSON.stringify( navMenuData ) );
 			});
@@ -875,7 +1072,7 @@
 			var loc = $('#nav-menu-theme-locations'), params = {};
 			params.action = 'menu-locations-save';
 			params['menu-settings-column-nonce'] = $('#menu-settings-column-nonce').val();
-			loc.find('input[type="submit"]').click(function() {
+			loc.find('input[type="submit"]').on( 'click', function() {
 				loc.find('select').each(function() {
 					params[this.name] = $(this).val();
 				});
@@ -906,7 +1103,7 @@
 
 				searchTimer = setTimeout( function() {
 					api.updateQuickSearchResults( $this );
- 				}, 500 );
+				}, 500 );
 			}).on( 'blur', '.quick-search', function() {
 				api.lastSearch = '';
 			});
@@ -918,7 +1115,7 @@
 				q = input.val();
 
 			/*
-			 * Minimum characters for a search. Also avoid a new AJAX search when
+			 * Minimum characters for a search. Also avoid a new Ajax search when
 			 * the pressed key (e.g. arrows) doesn't change the searched term.
 			 */
 			if ( q.length < minSearchLength || api.lastSearch == q ) {
@@ -945,8 +1142,12 @@
 		},
 
 		addCustomLink : function( processMethod ) {
-			var url = $('#custom-menu-item-url').val().trim(),
+			var url = $('#custom-menu-item-url').val().toString(),
 				label = $('#custom-menu-item-name').val();
+
+			if ( '' !== url ) {
+				url = url.trim();
+			}
 
 			processMethod = processMethod || api.addMenuItemToBottom;
 
@@ -955,13 +1156,13 @@
 				return false;
 			}
 
-			// Show the ajax spinner
+			// Show the Ajax spinner.
 			$( '.customlinkdiv .spinner' ).addClass( 'is-active' );
 			this.addLinkToMenu( url, label, processMethod, function() {
-				// Remove the ajax spinner
+				// Remove the Ajax spinner.
 				$( '.customlinkdiv .spinner' ).removeClass( 'is-active' );
-				// Set custom link form back to defaults
-				$('#custom-menu-item-name').val('').blur();
+				// Set custom link form back to defaults.
+				$('#custom-menu-item-name').val('').trigger( 'blur' );
 				$( '#custom-menu-item-url' ).val( '' ).attr( 'placeholder', 'https://' );
 			});
 		},
@@ -997,10 +1198,11 @@
 			$.post( ajaxurl, params, function(menuMarkup) {
 				var ins = $('#menu-instructions');
 
-				menuMarkup = $.trim( menuMarkup ); // Trim leading whitespaces
+				menuMarkup = menuMarkup || '';
+				menuMarkup = menuMarkup.toString().trim(); // Trim leading whitespaces.
 				processMethod(menuMarkup, params);
 
-				// Make it stand out a bit more visually, by adding a fadeIn
+				// Make it stand out a bit more visually, by adding a fadeIn.
 				$( 'li.pending' ).hide().fadeIn('slow');
 				$( '.drag-instructions' ).show();
 				if( ! ins.hasClass( 'menu-instructions-inactive' ) && ins.siblings().length )
@@ -1041,18 +1243,18 @@
 		},
 
 		attachUnsavedChangesListener : function() {
-			$('#menu-management input, #menu-management select, #menu-management, #menu-management textarea, .menu-location-menus select').change(function(){
+			$('#menu-management input, #menu-management select, #menu-management, #menu-management textarea, .menu-location-menus select').on( 'change', function(){
 				api.registerChange();
 			});
 
 			if ( 0 !== $('#menu-to-edit').length || 0 !== $('.menu-location-menus select').length ) {
 				window.onbeforeunload = function(){
 					if ( api.menusChanged )
-						return navMenuL10n.saveAlert;
+						return wp.i18n.__( 'The changes you made will be lost if you navigate away from this page.' );
 				};
 			} else {
-				// Make the post boxes read-only, as they can't be used yet
-				$( '#menu-settings-column' ).find( 'input,select' ).end().find( 'a' ).attr( 'href', '#' ).unbind( 'click' );
+				// Make the post boxes read-only, as they can't be used yet.
+				$( '#menu-settings-column' ).find( 'input,select' ).end().find( 'a' ).attr( 'href', '#' ).off( 'click' );
 			}
 		},
 
@@ -1061,7 +1263,7 @@
 		},
 
 		attachTabsPanelListeners : function() {
-			$('#menu-settings-column').bind('click', function(e) {
+			$('#menu-settings-column').on('click', function(e) {
 				var selectAreaMatch, selectAll, panelId, wrapper, items,
 					target = $(e.target);
 
@@ -1071,7 +1273,7 @@
 
 					wrapper = target.parents('.accordion-section-content').first();
 
-					// upon changing tabs, we want to uncheck all checkboxes
+					// Upon changing tabs, we want to uncheck all checkboxes.
 					$( 'input', wrapper ).prop( 'checked', false );
 
 					$('.tabs-panel-active', wrapper).removeClass('tabs-panel-active').addClass('tabs-panel-inactive');
@@ -1080,8 +1282,8 @@
 					$('.tabs', wrapper).removeClass('tabs');
 					target.parent().addClass('tabs');
 
-					// select the search bar
-					$('.quick-search', wrapper).focus();
+					// Select the search bar.
+					$('.quick-search', wrapper).trigger( 'focus' );
 
 					// Hide controls in the search tab if no items found.
 					if ( ! wrapper.find( '.tabs-panel-active .menu-item-title' ).length ) {
@@ -1134,7 +1336,7 @@
 
 				$.post( ajaxurl, this.href.replace( /.*\?/, '' ).replace( /action=([^&]*)/, '' ) + '&action=menu-get-metabox',
 					function( resp ) {
-						var metaBoxData = $.parseJSON( resp ),
+						var metaBoxData = JSON.parse( resp ),
 							toReplace;
 
 						if ( -1 === resp.indexOf( 'replace-id' ) ) {
@@ -1160,6 +1362,7 @@
 		eventOnClickEditLink : function(clickedEl) {
 			var settings, item,
 			matchedSection = /#(.*)$/.exec(clickedEl.href);
+
 			if ( matchedSection && matchedSection[1] ) {
 				settings = $('#'+matchedSection[1]);
 				item = settings.parent();
@@ -1184,8 +1387,12 @@
 		eventOnClickCancelLink : function(clickedEl) {
 			var settings = $( clickedEl ).closest( '.menu-item-settings' ),
 				thisMenuItem = $( clickedEl ).closest( '.menu-item' );
-			thisMenuItem.removeClass('menu-item-edit-active').addClass('menu-item-edit-inactive');
-			settings.setItemData( settings.data('menu-item-data') ).hide();
+
+			thisMenuItem.removeClass( 'menu-item-edit-active' ).addClass( 'menu-item-edit-inactive' );
+			settings.setItemData( settings.data( 'menu-item-data' ) ).hide();
+			// Restore the title of the currently active/expanded menu item.
+			thisMenuItem.find( '.menu-item-title' ).text( settings.data( 'menu-item-data' )['menu-item-title'] );
+
 			return false;
 		},
 
@@ -1193,17 +1400,18 @@
 			var locs = '',
 			menuName = $('#menu-name'),
 			menuNameVal = menuName.val();
-			// Cancel and warn if invalid menu name
+
+			// Cancel and warn if invalid menu name.
 			if ( ! menuNameVal || ! menuNameVal.replace( /\s+/, '' ) ) {
 				menuName.parent().addClass( 'form-invalid' );
 				return false;
 			}
-			// Copy menu theme locations
+			// Copy menu theme locations.
 			$('#nav-menu-theme-locations select').each(function() {
 				locs += '<input type="hidden" name="' + this.name + '" value="' + $(this).val() + '" />';
 			});
 			$('#update-nav-menu').append( locs );
-			// Update menu item position data
+			// Update menu item position data.
 			api.menuList.find('.menu-item-data-position').val( function(index) { return index + 1; } );
 			window.onbeforeunload = null;
 
@@ -1211,8 +1419,8 @@
 		},
 
 		eventOnClickMenuDelete : function() {
-			// Delete warning AYS
-			if ( window.confirm( navMenuL10n.warnDeleteMenu ) ) {
+			// Delete warning AYS.
+			if ( window.confirm( wp.i18n.__( 'You are about to permanently delete this menu.\n\'Cancel\' to stop, \'OK\' to delete.' ) ) ) {
 				window.onbeforeunload = null;
 				return true;
 			}
@@ -1221,6 +1429,7 @@
 
 		eventOnClickMenuItemDelete : function(clickedEl) {
 			var itemID = parseInt(clickedEl.id.replace('delete-', ''), 10);
+
 			api.removeMenuItem( $('#menu-item-' + itemID) );
 			api.registerChange();
 			return false;
@@ -1244,7 +1453,7 @@
 			$item;
 
 			if( ! $items.length ) {
-				$('.categorychecklist', panel).html( '<li><p>' + navMenuL10n.noResultsFound + '</p></li>' );
+				$('.categorychecklist', panel).html( '<li><p>' + wp.i18n.__( 'No results found.' ) + '</p></li>' );
 				$( '.spinner', panel ).removeClass( 'is-active' );
 				wrapper.addClass( 'has-no-menu-item' );
 				return;
@@ -1253,7 +1462,7 @@
 			$items.each(function(){
 				$item = $(this);
 
-				// make a unique DB ID number
+				// Make a unique DB ID number.
 				matched = pattern.exec($item.html());
 
 				if ( matched && matched[1] ) {
@@ -1283,7 +1492,8 @@
 
 		/**
 		 * Remove a menu item.
-		 * @param  {object} el The element to be removed as a jQuery object.
+		 *
+		 * @param {Object} el The element to be removed as a jQuery object.
 		 *
 		 * @fires document#menu-removing-item Passes the element to be removed.
 		 */
@@ -1316,6 +1526,27 @@
 
 	};
 
-	$(document).ready(function(){ wpNavMenu.init(); });
+	$( function() {
+
+		wpNavMenu.init();
+
+		// Prevent focused element from being hidden by the sticky footer.
+		$( '.menu-edit a, .menu-edit button, .menu-edit input, .menu-edit textarea, .menu-edit select' ).on('focus', function() {
+			if ( window.innerWidth >= 783 ) {
+				var navMenuHeight = $( '#nav-menu-footer' ).height() + 20;
+				var bottomOffset = $(this).offset().top - ( $(window).scrollTop() + $(window).height() - $(this).height() );
+
+				if ( bottomOffset > 0 ) {
+					bottomOffset = 0;
+				}
+				bottomOffset = bottomOffset * -1;
+
+				if( bottomOffset < navMenuHeight ) {
+					var scrollTop = $(document).scrollTop();
+					$(document).scrollTop( scrollTop + ( navMenuHeight - bottomOffset ) );
+				}
+			}
+		});
+	});
 
 })(jQuery);

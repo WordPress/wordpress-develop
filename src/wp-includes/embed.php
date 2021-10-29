@@ -57,8 +57,12 @@ function wp_embed_unregister_handler( $id, $priority = 10 ) {
  * @global int $content_width
  *
  * @param string $url Optional. The URL that should be embedded. Default empty.
+ * @return array {
+ *     Indexed array of the embed width and height in pixels.
  *
- * @return array Default embed parameters.
+ *     @type int $0 The embed width.
+ *     @type int $1 The embed height.
+ * }
  */
 function wp_embed_defaults( $url = '' ) {
 	if ( ! empty( $GLOBALS['content_width'] ) ) {
@@ -76,8 +80,12 @@ function wp_embed_defaults( $url = '' ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param array  $size An array of embed width and height values
-	 *                     in pixels (in that order).
+	 * @param int[]  $size {
+	 *     Indexed array of the embed width and height in pixels.
+	 *
+	 *     @type int $0 The embed width.
+	 *     @type int $1 The embed height.
+	 * }
 	 * @param string $url  The URL that should be embedded.
 	 */
 	return apply_filters( 'embed_defaults', compact( 'width', 'height' ), $url );
@@ -91,9 +99,16 @@ function wp_embed_defaults( $url = '' ) {
  * @see WP_oEmbed
  *
  * @param string $url  The URL that should be embedded.
- * @param array  $args Optional. Additional arguments and parameters for retrieving embed HTML.
- *                     Default empty.
- * @return false|string False on failure or the embed HTML on success.
+ * @param array|string $args {
+ *     Optional. Additional arguments for retrieving embed HTML. Default empty.
+ *
+ *     @type int|string $width    Optional. The `maxwidth` value passed to the provider URL.
+ *     @type int|string $height   Optional. The `maxheight` value passed to the provider URL.
+ *     @type bool       $discover Optional. Determines whether to attempt to discover link tags
+ *                                at the given URL for an oEmbed provider when the provider URL
+ *                                is not found in the built-in providers list. Default true.
+ * }
+ * @return string|false The embed HTML on success, false on failure.
  */
 function wp_oembed_get( $url, $args = '' ) {
 	$oembed = _wp_oembed_get_object();
@@ -105,8 +120,6 @@ function wp_oembed_get( $url, $args = '' ) {
  *
  * @since 2.9.0
  * @access private
- *
- * @staticvar WP_oEmbed $wp_oembed
  *
  * @return WP_oEmbed object.
  */
@@ -126,10 +139,10 @@ function _wp_oembed_get_object() {
  *
  * @see WP_oEmbed
  *
- * @param string  $format   The format of URL that this provider can handle. You can use asterisks
- *                          as wildcards.
- * @param string  $provider The URL to the oEmbed provider.
- * @param boolean $regex    Optional. Whether the `$format` parameter is in a RegEx format. Default false.
+ * @param string $format   The format of URL that this provider can handle. You can use asterisks
+ *                         as wildcards.
+ * @param string $provider The URL to the oEmbed provider.
+ * @param bool   $regex    Optional. Whether the `$format` parameter is in a RegEx format. Default false.
  */
 function wp_oembed_add_provider( $format, $provider, $regex = false ) {
 	if ( did_action( 'plugins_loaded' ) ) {
@@ -198,7 +211,7 @@ function wp_maybe_load_embeds() {
 	 *
 	 * @param callable $handler Audio embed handler callback function.
 	 */
-	wp_embed_register_handler( 'audio', '#^https?://.+?\.(' . join( '|', wp_get_audio_extensions() ) . ')$#i', apply_filters( 'wp_audio_embed_handler', 'wp_embed_handler_audio' ), 9999 );
+	wp_embed_register_handler( 'audio', '#^https?://.+?\.(' . implode( '|', wp_get_audio_extensions() ) . ')$#i', apply_filters( 'wp_audio_embed_handler', 'wp_embed_handler_audio' ), 9999 );
 
 	/**
 	 * Filters the video embed handler callback.
@@ -207,7 +220,7 @@ function wp_maybe_load_embeds() {
 	 *
 	 * @param callable $handler Video embed handler callback function.
 	 */
-	wp_embed_register_handler( 'video', '#^https?://.+?\.(' . join( '|', wp_get_video_extensions() ) . ')$#i', apply_filters( 'wp_video_embed_handler', 'wp_embed_handler_video' ), 9999 );
+	wp_embed_register_handler( 'video', '#^https?://.+?\.(' . implode( '|', wp_get_video_extensions() ) . ')$#i', apply_filters( 'wp_video_embed_handler', 'wp_embed_handler_video' ), 9999 );
 }
 
 /**
@@ -496,7 +509,8 @@ JS;
  *
  * @param WP_Post|int $post  Post object or ID.
  * @param int         $width The requested width.
- * @return array|false Response data on success, false if post doesn't exist.
+ * @return array|false Response data on success, false if post doesn't exist
+ *                     or is not publicly viewable.
  */
 function get_oembed_response_data( $post, $width ) {
 	$post  = get_post( $post );
@@ -506,7 +520,7 @@ function get_oembed_response_data( $post, $width ) {
 		return false;
 	}
 
-	if ( 'publish' !== get_post_status( $post ) ) {
+	if ( ! is_post_publicly_viewable( $post ) ) {
 		return false;
 	}
 
@@ -604,7 +618,12 @@ function get_oembed_response_data_for_url( $url, $args ) {
 		$sites = get_sites( $qv );
 		$site  = reset( $sites );
 
-		if ( $site && (int) $site->blog_id !== get_current_blog_id() ) {
+		// Do not allow embeds for deleted/archived/spam sites.
+		if ( ! empty( $site->deleted ) || ! empty( $site->spam ) || ! empty( $site->archived ) ) {
+			return false;
+		}
+
+		if ( $site && get_current_blog_id() !== (int) $site->blog_id ) {
 			switch_to_blog( $site->blog_id );
 			$switched_blog = true;
 		}
@@ -703,10 +722,10 @@ function wp_oembed_ensure_format( $format ) {
  * @access private
  * @since 4.4.0
  *
- * @param bool                      $served  Whether the request has already been served.
- * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_REST_Response.
- * @param WP_REST_Request           $request Request used to generate the response.
- * @param WP_REST_Server            $server  Server instance.
+ * @param bool             $served  Whether the request has already been served.
+ * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
+ * @param WP_REST_Request  $request Request used to generate the response.
+ * @param WP_REST_Server   $server  Server instance.
  * @return true
  */
 function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
@@ -791,17 +810,30 @@ function _oembed_create_xml( $data, $node = null ) {
  * @return string The filtered oEmbed result.
  */
 function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
-	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ) ) ) {
+	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
 		return $result;
 	}
 
 	$title = ! empty( $data->title ) ? $data->title : '';
 
-	$pattern        = '`<iframe[^>]*?title=(\\\\\'|\\\\"|[\'"])([^>]*?)\1`i';
-	$has_title_attr = preg_match( $pattern, $result, $matches );
+	$pattern = '`<iframe([^>]*)>`i';
+	if ( preg_match( $pattern, $result, $matches ) ) {
+		$attrs = wp_kses_hair( $matches[1], wp_allowed_protocols() );
 
-	if ( $has_title_attr && ! empty( $matches[2] ) ) {
-		$title = $matches[2];
+		foreach ( $attrs as $attr => $item ) {
+			$lower_attr = strtolower( $attr );
+			if ( $lower_attr === $attr ) {
+				continue;
+			}
+			if ( ! isset( $attrs[ $lower_attr ] ) ) {
+				$attrs[ $lower_attr ] = $item;
+				unset( $attrs[ $attr ] );
+			}
+		}
+	}
+
+	if ( ! empty( $attrs['title']['value'] ) ) {
+		$title = $attrs['title']['value'];
 	}
 
 	/**
@@ -820,11 +852,11 @@ function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
 		return $result;
 	}
 
-	if ( $has_title_attr ) {
-		// Remove the old title, $matches[1]: quote, $matches[2]: title attribute value.
-		$result = str_replace( ' title=' . $matches[1] . $matches[2] . $matches[1], '', $result );
+	if ( isset( $attrs['title'] ) ) {
+		unset( $attrs['title'] );
+		$attr_string = implode( ' ', wp_list_pluck( $attrs, 'whole' ) );
+		$result      = str_replace( $matches[0], '<iframe ' . trim( $attr_string ) . '>', $result );
 	}
-
 	return str_ireplace( '<iframe ', sprintf( '<iframe title="%s" ', esc_attr( $title ) ), $result );
 }
 
@@ -845,7 +877,7 @@ function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
  * @return string The filtered and sanitized oEmbed result.
  */
 function wp_filter_oembed_result( $result, $data, $url ) {
-	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ) ) ) {
+	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
 		return $result;
 	}
 
@@ -974,7 +1006,7 @@ function wp_embed_excerpt_attachment( $content ) {
 }
 
 /**
- * Enqueue embed iframe default CSS and JS & fire do_action('enqueue_embed_scripts')
+ * Enqueues embed iframe default CSS and JS.
  *
  * Enqueue PNG fallback CSS for embed iframe for legacy versions of IE.
  *
@@ -1170,10 +1202,10 @@ function print_embed_sharing_dialog() {
  */
 function the_embed_site_title() {
 	$site_title = sprintf(
-		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon"/><span>%s</span></a>',
+		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon" /><span>%s</span></a>',
 		esc_url( home_url() ),
-		esc_url( get_site_icon_url( 32, admin_url( 'images/w-logo-blue.png' ) ) ),
-		esc_url( get_site_icon_url( 64, admin_url( 'images/w-logo-blue.png' ) ) ),
+		esc_url( get_site_icon_url( 32, includes_url( 'images/w-logo-blue.png' ) ) ),
+		esc_url( get_site_icon_url( 64, includes_url( 'images/w-logo-blue.png' ) ) ),
 		esc_html( get_bloginfo( 'name' ) )
 	);
 

@@ -26,6 +26,7 @@ class WP_Widget_Search extends WP_Widget {
 			'classname'                   => 'widget_search',
 			'description'                 => __( 'A search form for your site.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		parent::__construct( 'search', _x( 'Search', 'Search widget' ), $widget_ops );
 	}
@@ -50,7 +51,7 @@ class WP_Widget_Search extends WP_Widget {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 
-		// Use current theme search form if it exists
+		// Use current theme search form if it exists.
 		get_search_form();
 
 		echo $args['after_widget'];
@@ -67,7 +68,10 @@ class WP_Widget_Search extends WP_Widget {
 		$instance = wp_parse_args( (array) $instance, array( 'title' => '' ) );
 		$title    = $instance['title'];
 		?>
-		<p><label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?> <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" /></label></p>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
+		</p>
 		<?php
 	}
 

@@ -8,7 +8,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 ?>
@@ -25,7 +25,7 @@
 
 	?>
 
-	<div class="post-inner section-inner <?php echo is_page_template( 'templates/template-full-width.php' ) ? '' : 'thin'; ?> ">
+	<div class="post-inner <?php echo is_page_template( 'templates/template-full-width.php' ) ? '' : 'thin'; ?> ">
 
 		<div class="entry-content">
 
@@ -39,6 +39,9 @@
 
 		</div><!-- .entry-content -->
 
+	</div><!-- .post-inner -->
+
+	<div class="section-inner">
 		<?php
 		wp_link_pages(
 			array(
@@ -54,14 +57,14 @@
 		// Single bottom post meta.
 		twentytwenty_the_post_meta( get_the_ID(), 'single-bottom' );
 
-		if ( is_single() ) {
+		if ( post_type_supports( get_post_type( get_the_ID() ), 'author' ) && is_single() ) {
 
 			get_template_part( 'template-parts/entry-author-bio' );
 
 		}
 		?>
 
-	</div><!-- .post-inner -->
+	</div><!-- .section-inner -->
 
 	<?php
 
@@ -71,10 +74,10 @@
 
 	}
 
-	/**
-	 *  Output comments wrapper if it's a post, or if comments are open,
+	/*
+	 * Output comments wrapper if it's a post, or if comments are open,
 	 * or if there's a comment number – and check for password.
-	 * */
+	 */
 	if ( ( is_single() || is_page() ) && ( comments_open() || get_comments_number() ) && ! post_password_required() ) {
 		?>
 

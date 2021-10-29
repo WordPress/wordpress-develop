@@ -6,14 +6,15 @@
  * @output wp-admin/js/edit-comments.js
  */
 
-/* global adminCommentsL10n, thousandsSeparator, list_args, QTags, ajaxurl, wpAjax */
+/* global adminCommentsSettings, thousandsSeparator, list_args, QTags, ajaxurl, wpAjax */
 /* global commentReply, theExtraList, theList, setCommentsList */
 
 (function($) {
 var getCount, updateCount, updateCountText, updatePending, updateApproved,
 	updateHtmlTitle, updateDashboardText, updateInModerationText, adminTitle = document.title,
 	isDashboard = $('#dashboard_right_now').length,
-	titleDiv, titleRegEx;
+	titleDiv, titleRegEx,
+	__ = wp.i18n.__;
 
 	/**
 	 * Extracts a number from the content of a jQuery element.
@@ -158,7 +159,7 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param {object} response Ajax response from the server that includes a
+	 * @param {Object} response Ajax response from the server that includes a
 	 *                          translated "comments in moderation" message.
 	 *
 	 * @return {void}
@@ -191,8 +192,9 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 	updateHtmlTitle = function( diff ) {
 		var newTitle, regExMatch, titleCount, commentFrag;
 
-		titleRegEx = titleRegEx || new RegExp( adminCommentsL10n.docTitleCommentsCount.replace( '%s', '\\([0-9' + thousandsSeparator + ']+\\)' ) + '?' );
-		// count funcs operate on a $'d element
+		/* translators: %s: Comments count. */
+		titleRegEx = titleRegEx || new RegExp( __( 'Comments (%s)' ).replace( '%s', '\\([0-9' + thousandsSeparator + ']+\\)' ) + '?' );
+		// Count funcs operate on a $'d element.
 		titleDiv = titleDiv || $( '<div />' );
 		newTitle = adminTitle;
 
@@ -210,12 +212,13 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 			updateCount( titleDiv, titleCount );
 			regExMatch = titleRegEx.exec( document.title );
 			if ( regExMatch ) {
-				newTitle = document.title.replace( regExMatch[0], adminCommentsL10n.docTitleCommentsCount.replace( '%s', titleDiv.text() ) + ' ' );
+				/* translators: %s: Comments count. */
+				newTitle = document.title.replace( regExMatch[0], __( 'Comments (%s)' ).replace( '%s', titleDiv.text() ) + ' ' );
 			}
 		} else {
 			regExMatch = titleRegEx.exec( newTitle );
 			if ( regExMatch ) {
-				newTitle = newTitle.replace( regExMatch[0], adminCommentsL10n.docTitleComments );
+				newTitle = newTitle.replace( regExMatch[0], __( 'Comments' ) );
 			}
 		}
 		document.title = newTitle;
@@ -256,7 +259,7 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 			return;
 		}
 
-		// cache selectors to not get dupes
+		// Cache selectors to not get dupes.
 		pending = $( 'span.' + pendingClass, postSelector );
 		noPending = $( 'span.' + noClass, postSelector );
 
@@ -360,14 +363,14 @@ window.setCommentsList = function() {
 
 		if ( c.is('.unapproved') ) {
 			if ( settings.data.id == replyID )
-				replyButton.text(adminCommentsL10n.replyApprove);
+				replyButton.text( __( 'Approve and Reply' ) );
 
 			c.find( '.row-actions span.view' ).addClass( 'hidden' ).end()
 				.find( 'div.comment_status' ).html( '0' );
 
 		} else {
 			if ( settings.data.id == replyID )
-				replyButton.text(adminCommentsL10n.reply);
+				replyButton.text( __( 'Reply' ) );
 
 			c.find( '.row-actions span.view' ).removeClass( 'hidden' ).end()
 				.find( 'div.comment_status' ).html( '1' );
@@ -442,9 +445,9 @@ window.setCommentsList = function() {
 			a.attr('class', 'vim-z vim-destructive aria-button-if-js');
 			$('.avatar', el).first().clone().prependTo('#undo-' + id + ' .' + action + '-undo-inside');
 
-			a.click(function( e ){
+			a.on( 'click', function( e ){
 				e.preventDefault();
-				e.stopPropagation(); // ticket #35904
+				e.stopPropagation(); // Ticket #35904.
 				list.wpList.del(this);
 				$('#undo-' + id).css( {backgroundColor:'#ceb'} ).fadeOut(350, function(){
 					$(this).remove();
@@ -491,17 +494,19 @@ window.setCommentsList = function() {
 			unapproved = commentRow.hasClass( 'unapproved' ),
 			spammed = commentRow.hasClass( 'spam' ),
 			trashed = commentRow.hasClass( 'trash' ),
-			undoing = false; // ticket #35904
+			undoing = false; // Ticket #35904.
 
 		updateDashboardText( newTotal );
 		updateInModerationText( newTotal );
 
-		// the order of these checks is important
-		// .unspam can also have .approve or .unapprove
-		// .untrash can also have .approve or .unapprove
+		/*
+		 * The order of these checks is important.
+		 * .unspam can also have .approve or .unapprove.
+		 * .untrash can also have .approve or .unapprove.
+		 */
 
 		if ( targetParent.is( 'span.undo' ) ) {
-			// the comment was spammed
+			// The comment was spammed.
 			if ( targetParent.hasClass( 'unspam' ) ) {
 				spamDiff = -1;
 
@@ -513,7 +518,7 @@ window.setCommentsList = function() {
 					pendingDiff = 1;
 				}
 
-			// the comment was trashed
+			// The comment was trashed.
 			} else if ( targetParent.hasClass( 'untrash' ) ) {
 				trashDiff = -1;
 
@@ -528,32 +533,32 @@ window.setCommentsList = function() {
 
 			undoing = true;
 
-		// user clicked "Spam"
+		// User clicked "Spam".
 		} else if ( targetParent.is( 'span.spam' ) ) {
-			// the comment is currently approved
+			// The comment is currently approved.
 			if ( approved ) {
 				approvedDiff = -1;
-			// the comment is currently pending
+			// The comment is currently pending.
 			} else if ( unapproved ) {
 				pendingDiff = -1;
-			// the comment was in the trash
+			// The comment was in the Trash.
 			} else if ( trashed ) {
 				trashDiff = -1;
 			}
-			// you can't spam an item on the spam screen
+			// You can't spam an item on the Spam screen.
 			spamDiff = 1;
 
-		// user clicked "Unspam"
+		// User clicked "Unspam".
 		} else if ( targetParent.is( 'span.unspam' ) ) {
 			if ( approved ) {
 				pendingDiff = 1;
 			} else if ( unapproved ) {
 				approvedDiff = 1;
 			} else if ( trashed ) {
-				// the comment was previously approved
+				// The comment was previously approved.
 				if ( targetParent.hasClass( 'approve' ) ) {
 					approvedDiff = 1;
-				// the comment was previously pending
+				// The comment was previously pending.
 				} else if ( targetParent.hasClass( 'unapprove' ) ) {
 					pendingDiff = 1;
 				}
@@ -565,23 +570,23 @@ window.setCommentsList = function() {
 					pendingDiff = 1;
 				}
 			}
-			// you can Unspam an item on the spam screen
+			// You can unspam an item on the Spam screen.
 			spamDiff = -1;
 
-		// user clicked "Trash"
+		// User clicked "Trash".
 		} else if ( targetParent.is( 'span.trash' ) ) {
 			if ( approved ) {
 				approvedDiff = -1;
 			} else if ( unapproved ) {
 				pendingDiff = -1;
-			// the comment was in the spam queue
+			// The comment was in the spam queue.
 			} else if ( spammed ) {
 				spamDiff = -1;
 			}
-			// you can't trash an item on the trash screen
+			// You can't trash an item on the Trash screen.
 			trashDiff = 1;
 
-		// user clicked "Restore"
+		// User clicked "Restore".
 		} else if ( targetParent.is( 'span.untrash' ) ) {
 			if ( approved ) {
 				pendingDiff = 1;
@@ -594,21 +599,21 @@ window.setCommentsList = function() {
 					pendingDiff = 1;
 				}
 			}
-			// you can't go from trash to spam
-			// you can untrash on the trash screen
+			// You can't go from Trash to Spam.
+			// You can untrash on the Trash screen.
 			trashDiff = -1;
 
-		// User clicked "Approve"
+		// User clicked "Approve".
 		} else if ( targetParent.is( 'span.approve:not(.unspam):not(.untrash)' ) ) {
 			approvedDiff = 1;
 			pendingDiff = -1;
 
-		// User clicked "Unapprove"
+		// User clicked "Unapprove".
 		} else if ( targetParent.is( 'span.unapprove:not(.unspam):not(.untrash)' ) ) {
 			approvedDiff = -1;
 			pendingDiff = 1;
 
-		// User clicked "Delete Permanently"
+		// User clicked "Delete Permanently".
 		} else if ( targetParent.is( 'span.delete' ) ) {
 			if ( spammed ) {
 				spamDiff = -1;
@@ -713,17 +718,17 @@ window.setCommentsList = function() {
 
 		if (ev) {
 			theExtraList.empty();
-			args.number = Math.min(8, per_page); // see WP_Comments_List_Table::prepare_items() @ class-wp-comments-list-table.php
+			args.number = Math.min(8, per_page); // See WP_Comments_List_Table::prepare_items() in class-wp-comments-list-table.php.
 		} else {
 			args.number = 1;
-			args.offset = Math.min(8, per_page) - 1; // fetch only the next item on the extra list
+			args.offset = Math.min(8, per_page) - 1; // Fetch only the next item on the extra list.
 		}
 
 		args.no_placeholder = true;
 
 		args.paged ++;
 
-		// $.query.get() needs some correction to be sent into an ajax request
+		// $.query.get() needs some correction to be sent into an Ajax request.
 		if ( true === args.comment_type )
 			args.comment_type = '';
 
@@ -757,7 +762,7 @@ window.setCommentsList = function() {
 	 * @global
 	 */
 	window.theList = $('#the-comment-list').wpList( { alt: '', delBefore: delBefore, dimAfter: dimAfter, delAfter: delAfter, addColor: 'none' } )
-		.bind('wpListDelEnd', function(e, s){
+		.on('wpListDelEnd', function(e, s){
 			var wpListsData = $(s.target).attr('data-wp-lists'), id = s.element.replace(/[^0-9]+/g, '');
 
 			if ( wpListsData.indexOf(':trash=1') != -1 || wpListsData.indexOf(':spam=1') != -1 )
@@ -781,16 +786,16 @@ window.commentReply = {
 	/**
 	 * Initializes the comment reply functionality.
 	 *
-	 * @memberof commentReply
-	 *
 	 * @since 2.7.0
+	 *
+	 * @memberof commentReply
 	 */
 	init : function() {
 		var row = $('#replyrow');
 
-		$( '.cancel', row ).click( function() { return commentReply.revert(); } );
-		$( '.save', row ).click( function() { return commentReply.send(); } );
-		$( 'input#author-name, input#author-email, input#author-url', row ).keypress( function( e ) {
+		$( '.cancel', row ).on( 'click', function() { return commentReply.revert(); } );
+		$( '.save', row ).on( 'click', function() { return commentReply.send(); } );
+		$( 'input#author-name, input#author-email, input#author-url', row ).on( 'keypress', function( e ) {
 			if ( e.which == 13 ) {
 				commentReply.send();
 				e.preventDefault();
@@ -798,12 +803,12 @@ window.commentReply = {
 			}
 		});
 
-		// add events
-		$('#the-comment-list .column-comment > p').dblclick(function(){
+		// Add events.
+		$('#the-comment-list .column-comment > p').on( 'dblclick', function(){
 			commentReply.toggle($(this).parent());
 		});
 
-		$('#doaction, #doaction2, #post-query-submit').click(function(){
+		$('#doaction, #post-query-submit').on( 'click', function(){
 			if ( $('#the-comment-list #replyrow').length > 0 )
 				commentReply.close();
 		});
@@ -826,7 +831,7 @@ window.commentReply = {
 	 */
 	addEvents : function(r) {
 		r.each(function() {
-			$(this).find('.column-comment > p').dblclick(function(){
+			$(this).find('.column-comment > p').on( 'dblclick', function(){
 				commentReply.toggle($(this).parent());
 			});
 		});
@@ -844,8 +849,8 @@ window.commentReply = {
 	 * @return {void}
 	 */
 	toggle : function(el) {
-		if ( 'none' !== $( el ).css( 'display' ) && ( $( '#replyrow' ).parent().is('#com-reply') || window.confirm( adminCommentsL10n.warnQuickEdit ) ) ) {
-			$( el ).find( 'button.vim-q' ).click();
+		if ( 'none' !== $( el ).css( 'display' ) && ( $( '#replyrow' ).parent().is('#com-reply') || window.confirm( __( 'Are you sure you want to edit this comment?\nThe changes you made will be lost.' ) ) ) ) {
+			$( el ).find( 'button.vim-q' ).trigger( 'click' );
 		}
 	},
 
@@ -900,7 +905,7 @@ window.commentReply = {
 					.show()
 					.find( '.vim-q' )
 						.attr( 'aria-expanded', 'false' )
-						.focus();
+						.trigger( 'focus' );
 			} ).css( 'backgroundColor', '' );
 		}
 
@@ -908,10 +913,10 @@ window.commentReply = {
 		if ( 'replyto-comment' === this.act ) {
 			commentRow.find( '.vim-r' )
 				.attr( 'aria-expanded', 'false' )
-				.focus();
+				.trigger( 'focus' );
 		}
 
-		// reset the Quicktags buttons
+		// Reset the Quicktags buttons.
  		if ( typeof QTags != 'undefined' )
 			QTags.closeAllTags('replycontent');
 
@@ -937,8 +942,8 @@ window.commentReply = {
 	 *
 	 * @memberof commentReply
 	 *
-	 * @param {number} comment_id The comment id to open an editor for.
-	 * @param {number} post_id The post id to open an editor for.
+	 * @param {number} comment_id The comment ID to open an editor for.
+	 * @param {number} post_id The post ID to open an editor for.
 	 * @param {string} action The action to perform. Either 'edit' or 'replyto'.
 	 *
 	 * @return {boolean} Always false.
@@ -1005,9 +1010,9 @@ window.commentReply = {
 			c.after(editRow);
 
 			if ( c.hasClass('unapproved') ) {
-				replyButton.text(adminCommentsL10n.replyApprove);
+				replyButton.text( __( 'Approve and Reply' ) );
 			} else {
-				replyButton.text(adminCommentsL10n.reply);
+				replyButton.text( __( 'Reply' ) );
 			}
 
 			$('#replyrow').fadeIn(300, function(){ $(this).show(); });
@@ -1027,9 +1032,9 @@ window.commentReply = {
 			else if ( rtop - 20 < scrollTop )
 				window.scroll(0, rtop - 35);
 
-			$('#replycontent').focus().keyup(function(e){
+			$('#replycontent').trigger( 'focus' ).on( 'keyup', function(e){
 				if ( e.which == 27 )
-					commentReply.revert(); // close on Escape
+					commentReply.revert(); // Close on Escape.
 			});
 		}, 600);
 
@@ -1130,7 +1135,8 @@ window.commentReply = {
 			updateCountText( 'span.all-count', 1 );
 		}
 
-		c = $.trim(r.data); // Trim leading whitespaces
+		r.data = r.data || '';
+		c = r.data.toString().trim(); // Trim leading whitespaces.
 		$(c).hide();
 		$('#replyrow').after(c);
 
@@ -1184,7 +1190,7 @@ window.commentReply = {
 	 *
 	 * @memberof commentReply
 	 *
-	 * @param {number} post_id The post id.
+	 * @param {number} post_id The post ID.
 	 *
 	 * @return {void}
 	 */
@@ -1215,11 +1221,11 @@ window.commentReply = {
 			return true;
 		}
 
-		return window.confirm( adminCommentsL10n.warnCommentChanges );
+		return window.confirm( __( 'Are you sure you want to do this?\nThe comment changes you made will be lost.' ) );
 	}
 };
 
-$(document).ready(function(){
+$( function(){
 	var make_hotkeys_redirect, edit_comment, toggle_all, make_bulk;
 
 	setCommentsList();
@@ -1292,7 +1298,7 @@ $(document).ready(function(){
 			return function() {
 				var scope = $('select[name="action"]');
 				$('option[value="' + value + '"]', scope).prop('selected', true);
-				$('#doaction').click();
+				$('#doaction').trigger( 'click' );
 			};
 		};
 
@@ -1310,8 +1316,8 @@ $(document).ready(function(){
 				['shift+u', make_bulk('unapprove')]
 			],
 			{
-				highlight_first: adminCommentsL10n.hotkeys_highlight_first,
-				highlight_last: adminCommentsL10n.hotkeys_highlight_last,
+				highlight_first: adminCommentsSettings.hotkeys_highlight_first,
+				highlight_last: adminCommentsSettings.hotkeys_highlight_last,
 				prev_page_link_cb: make_hotkeys_redirect('prev'),
 				next_page_link_cb: make_hotkeys_redirect('next'),
 				hotkeys_opts: {

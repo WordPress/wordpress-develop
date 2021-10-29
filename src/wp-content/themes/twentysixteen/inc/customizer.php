@@ -19,19 +19,19 @@ function twentysixteen_custom_header_and_background() {
 	$default_background_color = trim( $color_scheme[0], '#' );
 	$default_text_color       = trim( $color_scheme[3], '#' );
 
-	/**
-	 * Filter the arguments used when adding 'custom-background' support in Twenty Sixteen.
-	 *
-	 * @since Twenty Sixteen 1.0
-	 *
-	 * @param array $args {
-	 *     An array of custom-background support arguments.
-	 *
-	 *     @type string $default-color Default color of the background.
-	 * }
-	 */
 	add_theme_support(
 		'custom-background',
+		/**
+		 * Filters the arguments used when adding 'custom-background' support in Twenty Sixteen.
+		 *
+		 * @since Twenty Sixteen 1.0
+		 *
+		 * @param array $args {
+		 *     An array of custom-background support arguments.
+		 *
+		 *     @type string $default-color Default color of the background.
+		 * }
+		 */
 		apply_filters(
 			'twentysixteen_custom_background_args',
 			array(
@@ -40,24 +40,24 @@ function twentysixteen_custom_header_and_background() {
 		)
 	);
 
-	/**
-	 * Filter the arguments used when adding 'custom-header' support in Twenty Sixteen.
-	 *
-	 * @since Twenty Sixteen 1.0
-	 *
-	 * @param array $args {
-	 *     An array of custom-header support arguments.
-	 *
-	 *     @type string $default-text-color Default color of the header text.
-	 *     @type int      $width            Width in pixels of the custom header image. Default 1200.
-	 *     @type int      $height           Height in pixels of the custom header image. Default 280.
-	 *     @type bool     $flex-height      Whether to allow flexible-height header images. Default true.
-	 *     @type callable $wp-head-callback Callback function used to style the header image and text
-	 *                                      displayed on the blog.
-	 * }
-	 */
 	add_theme_support(
 		'custom-header',
+		/**
+		 * Filters the arguments used when adding 'custom-header' support in Twenty Sixteen.
+		 *
+		 * @since Twenty Sixteen 1.0
+		 *
+		 * @param array $args {
+		 *     An array of custom-header support arguments.
+		 *
+		 *     @type string   $default-text-color Default color of the header text.
+		 *     @type int      $width              Width in pixels of the custom header image. Default 1200.
+		 *     @type int      $height             Height in pixels of the custom header image. Default 280.
+		 *     @type bool     $flex-height        Whether to allow flexible-height header images. Default true.
+		 *     @type callable $wp-head-callback   Callback function used to style the header image and text
+		 *                                        displayed on the blog.
+		 * }
+		 */
 		apply_filters(
 			'twentysixteen_custom_header_args',
 			array(
@@ -103,7 +103,7 @@ if ( ! function_exists( 'twentysixteen_header_style' ) ) :
 		</style>
 		<?php
 	}
-endif; // twentysixteen_header_style
+endif; // twentysixteen_header_style()
 
 /**
  * Adds postMessage support for site title and description for the Customizer.
@@ -251,6 +251,7 @@ add_action( 'customize_register', 'twentysixteen_customize_register', 11 );
  * Render the site title for the selective refresh partial.
  *
  * @since Twenty Sixteen 1.2
+ *
  * @see twentysixteen_customize_register()
  *
  * @return void
@@ -263,6 +264,7 @@ function twentysixteen_customize_partial_blogname() {
  * Render the site tagline for the selective refresh partial.
  *
  * @since Twenty Sixteen 1.2
+ *
  * @see twentysixteen_customize_register()
  *
  * @return void
@@ -289,7 +291,7 @@ function twentysixteen_customize_partial_blogdescription() {
  */
 function twentysixteen_get_color_schemes() {
 	/**
-	 * Filter the color schemes registered for use with Twenty Sixteen.
+	 * Filters the color schemes registered for use with Twenty Sixteen.
 	 *
 	 * The default schemes include 'default', 'dark', 'gray', 'red', and 'yellow'.
 	 *
@@ -385,7 +387,7 @@ if ( ! function_exists( 'twentysixteen_get_color_scheme' ) ) :
 
 		return $color_schemes['default']['colors'];
 	}
-endif; // twentysixteen_get_color_scheme
+endif; // twentysixteen_get_color_scheme()
 
 if ( ! function_exists( 'twentysixteen_get_color_scheme_choices' ) ) :
 	/**
@@ -408,7 +410,7 @@ if ( ! function_exists( 'twentysixteen_get_color_scheme_choices' ) ) :
 
 		return $color_scheme_control_options;
 	}
-endif; // twentysixteen_get_color_scheme_choices
+endif; // twentysixteen_get_color_scheme_choices()
 
 
 if ( ! function_exists( 'twentysixteen_sanitize_color_scheme' ) ) :
@@ -432,7 +434,7 @@ if ( ! function_exists( 'twentysixteen_sanitize_color_scheme' ) ) :
 
 		return $value;
 	}
-endif; // twentysixteen_sanitize_color_scheme
+endif; // twentysixteen_sanitize_color_scheme()
 
 /**
  * Enqueues front-end CSS for color scheme.

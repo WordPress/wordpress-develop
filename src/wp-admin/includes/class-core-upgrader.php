@@ -48,21 +48,21 @@ class Core_Upgrader extends WP_Upgrader {
 	 *
 	 * @param object $current Response object for whether WordPress is current.
 	 * @param array  $args {
-	 *        Optional. Arguments for upgrading WordPress core. Default empty array.
+	 *     Optional. Arguments for upgrading WordPress core. Default empty array.
 	 *
-	 *        @type bool $pre_check_md5    Whether to check the file checksums before
-	 *                                     attempting the upgrade. Default true.
-	 *        @type bool $attempt_rollback Whether to attempt to rollback the chances if
-	 *                                     there is a problem. Default false.
-	 *        @type bool $do_rollback      Whether to perform this "upgrade" as a rollback.
-	 *                                     Default false.
+	 *     @type bool $pre_check_md5    Whether to check the file checksums before
+	 *                                  attempting the upgrade. Default true.
+	 *     @type bool $attempt_rollback Whether to attempt to rollback the chances if
+	 *                                  there is a problem. Default false.
+	 *     @type bool $do_rollback      Whether to perform this "upgrade" as a rollback.
+	 *                                  Default false.
 	 * }
-	 * @return null|false|WP_Error False or WP_Error on failure, null on success.
+	 * @return string|false|WP_Error New WordPress version on success, false or WP_Error on failure.
 	 */
 	public function upgrade( $current, $args = array() ) {
 		global $wp_filesystem;
 
-		include( ABSPATH . WPINC . '/version.php' ); // $wp_version;
+		require ABSPATH . WPINC . '/version.php'; // $wp_version;
 
 		$start_time = time();
 
@@ -78,7 +78,7 @@ class Core_Upgrader extends WP_Upgrader {
 		$this->upgrade_strings();
 
 		// Is an update available?
-		if ( ! isset( $current->response ) || $current->response == 'latest' ) {
+		if ( ! isset( $current->response ) || 'latest' === $current->response ) {
 			return new WP_Error( 'up_to_date', $this->strings['up_to_date'] );
 		}
 
@@ -104,7 +104,7 @@ class Core_Upgrader extends WP_Upgrader {
 		 */
 		if ( $parsed_args['do_rollback'] && $current->packages->rollback ) {
 			$to_download = 'rollback';
-		} elseif ( $current->packages->partial && 'reinstall' != $current->response && $wp_version == $current->partial_version && $partial ) {
+		} elseif ( $current->packages->partial && 'reinstall' !== $current->response && $wp_version === $current->partial_version && $partial ) {
 			$to_download = 'partial';
 		} elseif ( $current->packages->new_bundled && version_compare( $wp_version, $current->new_bundled, '<' )
 			&& ( ! defined( 'CORE_UPGRADE_SKIP_NEW_BUNDLED' ) || ! CORE_UPGRADE_SKIP_NEW_BUNDLED ) ) {
@@ -115,7 +115,7 @@ class Core_Upgrader extends WP_Upgrader {
 			$to_download = 'full';
 		}
 
-		// Lock to prevent multiple Core Updates occurring
+		// Lock to prevent multiple Core Updates occurring.
 		$lock = WP_Upgrader::create_lock( 'core_updater', 15 * MINUTE_IN_SECONDS );
 		if ( ! $lock ) {
 			return new WP_Error( 'locked', $this->strings['locked'] );
@@ -161,7 +161,8 @@ class Core_Upgrader extends WP_Upgrader {
 		}
 		$wp_filesystem->chmod( $wp_dir . 'wp-admin/includes/update-core.php', FS_CHMOD_FILE );
 
-		require_once( ABSPATH . 'wp-admin/includes/update-core.php' );
+		wp_opcache_invalidate( ABSPATH . 'wp-admin/includes/update-core.php' );
+		require_once ABSPATH . 'wp-admin/includes/update-core.php';
 
 		if ( ! function_exists( 'update_core' ) ) {
 			WP_Upgrader::release_lock( 'core_updater' );
@@ -220,7 +221,7 @@ class Core_Upgrader extends WP_Upgrader {
 			)
 		);
 
-		// Clear the current updates
+		// Clear the current updates.
 		delete_site_transient( 'update_core' );
 
 		if ( ! $parsed_args['do_rollback'] ) {
@@ -270,31 +271,34 @@ class Core_Upgrader extends WP_Upgrader {
 	 * @return bool True if we should update to the offered version, otherwise false.
 	 */
 	public static function should_update_to_version( $offered_ver ) {
-		include( ABSPATH . WPINC . '/version.php' ); // $wp_version; // x.y.z
+		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
 
-		$current_branch                 = implode( '.', array_slice( preg_split( '/[.-]/', $wp_version ), 0, 2 ) ); // x.y
-		$new_branch                     = implode( '.', array_slice( preg_split( '/[.-]/', $offered_ver ), 0, 2 ) ); // x.y
+		$current_branch = implode( '.', array_slice( preg_split( '/[.-]/', $wp_version ), 0, 2 ) ); // x.y
+		$new_branch     = implode( '.', array_slice( preg_split( '/[.-]/', $offered_ver ), 0, 2 ) ); // x.y
+
 		$current_is_development_version = (bool) strpos( $wp_version, '-' );
 
 		// Defaults:
-		$upgrade_dev   = true;
-		$upgrade_minor = true;
-		$upgrade_major = false;
+		$upgrade_dev   = get_site_option( 'auto_update_core_dev', 'enabled' ) === 'enabled';
+		$upgrade_minor = get_site_option( 'auto_update_core_minor', 'enabled' ) === 'enabled';
+		$upgrade_major = get_site_option( 'auto_update_core_major', 'unset' ) === 'enabled';
 
-		// WP_AUTO_UPDATE_CORE = true (all), 'minor', false.
+		// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.
 		if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
 			if ( false === WP_AUTO_UPDATE_CORE ) {
-				// Defaults to turned off, unless a filter allows it
+				// Defaults to turned off, unless a filter allows it.
 				$upgrade_dev   = false;
 				$upgrade_minor = false;
 				$upgrade_major = false;
-			} elseif ( true === WP_AUTO_UPDATE_CORE ) {
-				// ALL updates for core
+			} elseif ( true === WP_AUTO_UPDATE_CORE
+				|| in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
+			) {
+				// ALL updates for core.
 				$upgrade_dev   = true;
 				$upgrade_minor = true;
 				$upgrade_major = true;
 			} elseif ( 'minor' === WP_AUTO_UPDATE_CORE ) {
-				// Only minor updates for core
+				// Only minor updates for core.
 				$upgrade_dev   = false;
 				$upgrade_minor = true;
 				$upgrade_major = false;
@@ -302,11 +306,11 @@ class Core_Upgrader extends WP_Upgrader {
 		}
 
 		// 1: If we're already on that version, not much point in updating?
-		if ( $offered_ver == $wp_version ) {
+		if ( $offered_ver === $wp_version ) {
 			return false;
 		}
 
-		// 2: If we're running a newer version, that's a nope
+		// 2: If we're running a newer version, that's a nope.
 		if ( version_compare( $wp_version, $offered_ver, '>' ) ) {
 			return false;
 		}
@@ -319,19 +323,21 @@ class Core_Upgrader extends WP_Upgrader {
 			}
 
 			// Don't claim we can update on update-core.php if we have a non-critical failure logged.
-			if ( $wp_version == $failure_data['current'] && false !== strpos( $offered_ver, '.1.next.minor' ) ) {
+			if ( $wp_version === $failure_data['current'] && false !== strpos( $offered_ver, '.1.next.minor' ) ) {
 				return false;
 			}
 
-			// Cannot update if we're retrying the same A to B update that caused a non-critical failure.
-			// Some non-critical failures do allow retries, like download_failed.
-			// 3.7.1 => 3.7.2 resulted in files_not_writable, if we are still on 3.7.1 and still trying to update to 3.7.2.
-			if ( empty( $failure_data['retry'] ) && $wp_version == $failure_data['current'] && $offered_ver == $failure_data['attempted'] ) {
+			/*
+			 * Cannot update if we're retrying the same A to B update that caused a non-critical failure.
+			 * Some non-critical failures do allow retries, like download_failed.
+			 * 3.7.1 => 3.7.2 resulted in files_not_writable, if we are still on 3.7.1 and still trying to update to 3.7.2.
+			 */
+			if ( empty( $failure_data['retry'] ) && $wp_version === $failure_data['current'] && $offered_ver === $failure_data['attempted'] ) {
 				return false;
 			}
 		}
 
-		// 3: 3.7-alpha-25000 -> 3.7-alpha-25678 -> 3.7-beta1 -> 3.7-beta2
+		// 3: 3.7-alpha-25000 -> 3.7-alpha-25678 -> 3.7-beta1 -> 3.7-beta2.
 		if ( $current_is_development_version ) {
 
 			/**
@@ -348,8 +354,8 @@ class Core_Upgrader extends WP_Upgrader {
 			// Else fall through to minor + major branches below.
 		}
 
-		// 4: Minor In-branch updates (3.7.0 -> 3.7.1 -> 3.7.2 -> 3.7.4)
-		if ( $current_branch == $new_branch ) {
+		// 4: Minor in-branch updates (3.7.0 -> 3.7.1 -> 3.7.2 -> 3.7.4).
+		if ( $current_branch === $new_branch ) {
 
 			/**
 			 * Filters whether to enable minor automatic core updates.
@@ -361,7 +367,7 @@ class Core_Upgrader extends WP_Upgrader {
 			return apply_filters( 'allow_minor_auto_core_updates', $upgrade_minor );
 		}
 
-		// 5: Major version updates (3.7.0 -> 3.8.0 -> 3.9.1)
+		// 5: Major version updates (3.7.0 -> 3.8.0 -> 3.9.1).
 		if ( version_compare( $new_branch, $current_branch, '>' ) ) {
 
 			/**
@@ -374,7 +380,7 @@ class Core_Upgrader extends WP_Upgrader {
 			return apply_filters( 'allow_major_auto_core_updates', $upgrade_major );
 		}
 
-		// If we're not sure, we don't want it
+		// If we're not sure, we don't want it.
 		return false;
 	}
 
@@ -383,8 +389,8 @@ class Core_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @global string $wp_version
-	 * @global string $wp_local_package
+	 * @global string $wp_version       The WordPress version string.
+	 * @global string $wp_local_package Locale code of the package.
 	 *
 	 * @return bool True if the checksums match, otherwise false.
 	 */
@@ -398,8 +404,8 @@ class Core_Upgrader extends WP_Upgrader {
 		}
 
 		foreach ( $checksums as $file => $checksum ) {
-			// Skip files which get updated
-			if ( 'wp-content' == substr( $file, 0, 10 ) ) {
+			// Skip files which get updated.
+			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
 				continue;
 			}
 			if ( ! file_exists( ABSPATH . $file ) || md5_file( ABSPATH . $file ) !== $checksum ) {

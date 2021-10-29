@@ -7,7 +7,7 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 $parent_file  = 'upload.php';
 $submenu_file = 'upload.php';
@@ -29,7 +29,7 @@ switch ( $action ) {
 			$location = 'media.php';
 			$referer  = wp_get_original_referer();
 			if ( $referer ) {
-				if ( false !== strpos( $referer, 'upload.php' ) || ( url_to_postid( $referer ) == $attachment_id ) ) {
+				if ( false !== strpos( $referer, 'upload.php' ) || ( url_to_postid( $referer ) === $attachment_id ) ) {
 					$location = $referer;
 				}
 			}
@@ -45,6 +45,7 @@ switch ( $action ) {
 
 		// No break.
 	case 'edit':
+		// Used in the HTML title tag.
 		$title = __( 'Edit Media' );
 
 		if ( empty( $errors ) ) {
@@ -53,7 +54,7 @@ switch ( $action ) {
 
 		if ( empty( $_GET['attachment_id'] ) ) {
 			wp_redirect( admin_url( 'upload.php' ) );
-			exit();
+			exit;
 		}
 		$att_id = (int) $_GET['attachment_id'];
 
@@ -69,7 +70,7 @@ switch ( $action ) {
 		if ( 'attachment' !== $att->post_type ) {
 			wp_die( __( 'You attempted to edit an item that isn&#8217;t an attachment. Please go back and try again.' ) );
 		}
-		if ( $att->post_status == 'trash' ) {
+		if ( 'trash' === $att->post_status ) {
 			wp_die( __( 'You can&#8217;t edit this attachment because it is in the Trash. Please move it out of the Trash and try again.' ) );
 		}
 
@@ -97,7 +98,7 @@ switch ( $action ) {
 			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 		);
 
-		require( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$parent_file = 'upload.php';
 		$message     = '';
@@ -166,7 +167,7 @@ switch ( $action ) {
 
 		<?php
 
-		require( ABSPATH . 'wp-admin/admin-footer.php' );
+		require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 		exit;
 

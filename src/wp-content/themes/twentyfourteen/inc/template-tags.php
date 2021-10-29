@@ -24,7 +24,7 @@ if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 			return;
 		}
 
-		$paged        = get_query_var( 'paged' ) ? intval( get_query_var( 'paged' ) ) : 1;
+		$paged        = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 		$pagenum_link = html_entity_decode( get_pagenum_link() );
 		$query_args   = array();
 		$url_parts    = explode( '?', $pagenum_link );
@@ -128,29 +128,29 @@ endif;
  *
  * @since Twenty Fourteen 1.0
  *
- * @return boolean true if blog has more than 1 category
+ * @return bool true if blog has more than 1 category
  */
 function twentyfourteen_categorized_blog() {
 	$all_the_cool_cats = get_transient( 'twentyfourteen_category_count' );
 	if ( false === $all_the_cool_cats ) {
-		// Create an array of all the categories that are attached to posts
+		// Create an array of all the categories that are attached to posts.
 		$all_the_cool_cats = get_categories(
 			array(
 				'hide_empty' => 1,
 			)
 		);
 
-		// Count the number of categories that are attached to the posts
+		// Count the number of categories that are attached to the posts.
 		$all_the_cool_cats = count( $all_the_cool_cats );
 
 		set_transient( 'twentyfourteen_category_count', $all_the_cool_cats );
 	}
 
 	if ( $all_the_cool_cats > 1 || is_preview() ) {
-		// This blog has more than 1 category so twentyfourteen_categorized_blog should return true
+		// This blog has more than 1 category so twentyfourteen_categorized_blog() should return true.
 		return true;
 	} else {
-		// This blog has only 1 category so twentyfourteen_categorized_blog should return false
+		// This blog has only 1 category so twentyfourteen_categorized_blog() should return false.
 		return false;
 	}
 }
@@ -208,7 +208,7 @@ if ( ! function_exists( 'twentyfourteen_post_thumbnail' ) ) :
 	</a>
 
 			<?php
-	endif; // End is_singular()
+	endif; // End is_singular().
 	}
 endif;
 
@@ -238,7 +238,7 @@ if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
 	 * Fire the wp_body_open action.
 	 *
-	 * Added for backwards compatibility to support pre 5.2.0 WordPress versions.
+	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *
 	 * @since Twenty Fourteen 2.7
 	 */

@@ -9,8 +9,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	 */
 	protected $wp_embed;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->wp_embed = new WP_Embed();
 	}
 
@@ -54,18 +54,18 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		unset( $GLOBALS['post'] );
 		unset( $GLOBALS['message'] );
 
-		$this->assertContains( $url, $actual );
+		$this->assertStringContainsString( $url, $actual );
 	}
 
 	public function test_wp_maybe_load_embeds() {
-		$this->assertEqualSets( array( 10, 9999 ), array_keys( $GLOBALS['wp_embed']->handlers ) );
-		$this->assertEqualSets(
+		$this->assertSameSets( array( 10, 9999 ), array_keys( $GLOBALS['wp_embed']->handlers ) );
+		$this->assertSameSets(
 			array(
 				'youtube_embed_url',
 			),
 			array_keys( $GLOBALS['wp_embed']->handlers[10] )
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'audio',
 				'video',
@@ -105,13 +105,19 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'youtube_embed_url', $handlers );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_autoembed_should_do_nothing_without_matching_handler() {
 		$content = "\nhttp://example.com/embed/foo\n";
 
 		$actual = $this->wp_embed->autoembed( $content );
-		$this->assertEquals( $content, $actual );
+		$this->assertSame( $content, $actual );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_autoembed_should_return_modified_content() {
 		$handle   = __FUNCTION__;
 		$regex    = '#https?://example\.com/embed/([^/]+)#i';
@@ -124,7 +130,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$actual = $GLOBALS['wp_embed']->autoembed( $content );
 		wp_embed_unregister_handler( $handle );
 
-		$this->assertEquals( "\nEmbedded http://example.com/embed/foo\n", $actual );
+		$this->assertSame( "\nEmbedded http://example.com/embed/foo\n", $actual );
 	}
 
 	public function test_delete_oembed_caches() {
@@ -136,8 +142,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 
 		$this->wp_embed->delete_oembed_caches( $post_id );
 
-		$this->assertEquals( array(), get_post_meta( $post_id, '_oembed_foo' ) );
-		$this->assertEquals( array(), get_post_meta( $post_id, '_oembed_baz' ) );
+		$this->assertSame( array(), get_post_meta( $post_id, '_oembed_foo' ) );
+		$this->assertSame( array(), get_post_meta( $post_id, '_oembed_baz' ) );
 	}
 
 	public function test_cache_oembed_invalid_post_type() {
@@ -168,7 +174,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		remove_filter( 'pre_oembed_result', array( $this, '_pre_oembed_result_callback' ) );
 
 		$this->assertSame( $post_id, $this->wp_embed->post_ID );
-		$this->assertEquals( $expected, get_post_meta( $post_id, $cachekey, true ) );
+		$this->assertSame( $expected, get_post_meta( $post_id, $cachekey, true ) );
 		$this->assertNotEmpty( get_post_meta( $post_id, $cachekey_time, true ) );
 	}
 
@@ -194,9 +200,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		// Cleanup.
 		unset( $post );
 
-		$this->assertEquals( $expected, $actual );
-		$this->assertEquals( $expected, $actual_2 );
-		$this->assertEquals( $expected, $cached );
+		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual_2 );
+		$this->assertSame( $expected, $cached );
 	}
 
 	public function test_shortcode_should_get_cached_failure_from_post_meta_for_known_post() {
@@ -225,10 +231,10 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		// Cleanup.
 		unset( $post );
 
-		$this->assertEquals( $expected, $actual );
-		$this->assertEquals( '{{unknown}}', $cached );
+		$this->assertSame( $expected, $actual );
+		$this->assertSame( '{{unknown}}', $cached );
 		$this->assertEmpty( $cached_time );
-		$this->assertEquals( $expected, $actual_2 );
+		$this->assertSame( $expected, $actual_2 );
 	}
 
 	/**
@@ -252,9 +258,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		wp_delete_post( $oembed_post_id );
 
 		$this->assertNotNull( $oembed_post_id );
-		$this->assertEquals( $expected, $post_content );
-		$this->assertEquals( $expected, $actual );
-		$this->assertEquals( $expected, $actual_2 );
+		$this->assertSame( $expected, $post_content );
+		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual_2 );
 	}
 
 	/**
@@ -277,10 +283,10 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 
 		wp_delete_post( $oembed_post_id );
 
-		$this->assertEquals( $expected, $actual );
-		$this->assertEquals( $expected, $actual_2 );
+		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual_2 );
 		$this->assertNotNull( $oembed_post_id );
-		$this->assertEquals( '{{unknown}}', $post_content );
+		$this->assertSame( '{{unknown}}', $post_content );
 	}
 
 	/**
@@ -317,35 +323,47 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		remove_filter( 'oembed_ttl', '__return_zero' );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_shortcode_should_get_url_from_src_attribute() {
 		$url    = 'http://example.com/embed/foo';
 		$actual = $this->wp_embed->shortcode( array( 'src' => $url ) );
 
-		$this->assertEquals( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
+		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_shortcode_should_return_empty_string_for_missing_url() {
 		$this->assertEmpty( $this->wp_embed->shortcode( array() ) );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_shortcode_should_make_link_for_unknown_url() {
 		$url    = 'http://example.com/embed/foo';
 		$actual = $this->wp_embed->shortcode( array(), $url );
 
-		$this->assertEquals( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
+		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_run_shortcode_url_only() {
 		$url    = 'http://example.com/embed/foo';
 		$actual = $this->wp_embed->run_shortcode( '[embed]' . $url . '[/embed]' );
-		$this->assertEquals( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
+		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}
 
 	public function test_maybe_make_link() {
 		$url    = 'http://example.com/embed/foo';
 		$actual = $this->wp_embed->maybe_make_link( $url );
 
-		$this->assertEquals( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
+		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}
 
 	public function test_maybe_make_link_return_false_on_fail() {
@@ -357,6 +375,6 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$url = 'http://example.com/';
 
 		$this->wp_embed->linkifunknown = false;
-		$this->assertEquals( $url, $this->wp_embed->maybe_make_link( $url ) );
+		$this->assertSame( $url, $this->wp_embed->maybe_make_link( $url ) );
 	}
 }

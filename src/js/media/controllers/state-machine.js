@@ -31,13 +31,13 @@ _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller
 	 * Implicitly creates states.
 	 *
 	 * Ensure that the `states` collection exists so the `StateMachine`
-	 *   can be used as a mixin.
+	 * can be used as a mixin.
 	 *
 	 * @since 3.5.0
 	 *
 	 * @param {string} id
-	 * @returns {wp.media.controller.State} Returns a State model
-	 *   from the StateMachine collection
+	 * @return {wp.media.controller.State} Returns a State model from
+	 *                                     the StateMachine collection.
 	 */
 	state: function( id ) {
 		this.states = this.states || new Backbone.Collection();
@@ -65,7 +65,7 @@ _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller
 	 * @fires wp.media.controller.State#deactivate
 	 * @fires wp.media.controller.State#activate
 	 *
-	 * @returns {wp.media.controller.StateMachine} Returns itself to allow chaining
+	 * @return {wp.media.controller.StateMachine} Returns itself to allow chaining.
 	 */
 	setState: function( id ) {
 		var previous = this.state();
@@ -93,8 +93,8 @@ _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller
 	 *
 	 * @since 3.5.0
 	 *
-	 * @returns {wp.media.controller.State} Returns a State model
-	 *    from the StateMachine collection
+	 * @return {wp.media.controller.State} Returns a State model from
+	 *                                     the StateMachine collection.
 	 */
 	lastState: function() {
 		if ( this._lastState ) {
@@ -109,19 +109,19 @@ _.each([ 'on', 'off', 'trigger' ], function( method ) {
 	 * @function on
 	 * @memberOf wp.media.controller.StateMachine
 	 * @instance
-	 * @returns {wp.media.controller.StateMachine} Returns itself to allow chaining.
+	 * @return {wp.media.controller.StateMachine} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function off
 	 * @memberOf wp.media.controller.StateMachine
 	 * @instance
-	 * @returns {wp.media.controller.StateMachine} Returns itself to allow chaining.
+	 * @return {wp.media.controller.StateMachine} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function trigger
 	 * @memberOf wp.media.controller.StateMachine
 	 * @instance
-	 * @returns {wp.media.controller.StateMachine} Returns itself to allow chaining.
+	 * @return {wp.media.controller.StateMachine} Returns itself to allow chaining.
 	 */
 	StateMachine.prototype[ method ] = function() {
 		// Ensure that the `states` collection exists so the `StateMachine`

@@ -22,10 +22,8 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	protected $tag;
 	protected $tax;
 
-	function setUp() {
-		parent::setUp();
-
-		set_current_screen( 'front' );
+	function set_up() {
+		parent::set_up();
 
 		$GLOBALS['wp_the_query'] = new WP_Query();
 		$GLOBALS['wp_query']     = $GLOBALS['wp_the_query'];
@@ -65,19 +63,8 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts_tax_category_tax_query' ) );
 	}
 
-	function tearDown() {
-		global $wp_rewrite;
-
-		_unregister_taxonomy( 'testtax' );
-
-		$wp_rewrite->init();
-
-		remove_action( 'pre_get_posts', array( $this, 'pre_get_posts_tax_category_tax_query' ) );
-		parent::tearDown();
-	}
-
 	function test_tag_action_tax() {
-		// tag with tax added
+		// Tag with taxonomy added.
 		$this->go_to( home_url( '/tag/tag-slug/' ) );
 		$this->assertQueryTrue( 'is_tag', 'is_archive' );
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
@@ -88,7 +75,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	}
 
 	function test_tag_query_cat_action_tax() {
-		// tag + category with tax added
+		// Tag + category with taxonomy added.
 		$this->go_to( home_url( "/tag/tag-slug/?cat=$this->cat_id" ) );
 		$this->assertQueryTrue( 'is_category', 'is_tag', 'is_archive' );
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
@@ -100,7 +87,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	}
 
 	function test_tag_query_cat_query_tax_action_tax() {
-		// tag + category + tax with tax added
+		// Tag + category + tax with taxonomy added.
 		$this->go_to( home_url( "/tag/tag-slug/?cat=$this->cat_id&testtax=tax-slug2" ) );
 		$this->assertQueryTrue( 'is_category', 'is_tag', 'is_tax', 'is_archive' );
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
@@ -113,7 +100,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	}
 
 	function test_cat_action_tax() {
-		// category with tax added
+		// Category with taxonomy added.
 		$this->go_to( home_url( '/category/cat-slug/' ) );
 		$this->assertQueryTrue( 'is_category', 'is_archive' );
 		$this->assertNotEmpty( get_query_var( 'cat' ) );
@@ -127,7 +114,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	 * @ticket 26627
 	 */
 	function test_cat_uncat_action_tax() {
-		// category with tax added
+		// Category with taxonomy added.
 		add_action( 'pre_get_posts', array( $this, '_cat_uncat_action_tax' ), 11 );
 
 		$this->go_to( home_url( '/category/uncategorized/' ) );
@@ -153,7 +140,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	 * @ticket 26728
 	 */
 	function test_tax_action_tax() {
-		// tax with tax added
+		// Taxonomy with taxonomy added.
 		$this->go_to( home_url( '/testtax/tax-slug2/' ) );
 		$this->assertQueryTrue( 'is_tax', 'is_archive' );
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
@@ -163,7 +150,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	}
 
 	function test_tax_query_tag_action_tax() {
-		// tax + tag with tax added
+		// Taxonomy + tag with taxonomy added.
 		$this->go_to( home_url( "/testtax/tax-slug2/?tag_id=$this->tag_id" ) );
 		$this->assertQueryTrue( 'is_tag', 'is_tax', 'is_archive' );
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
@@ -174,7 +161,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	}
 
 	function test_tax_query_cat_action_tax() {
-		// tax + cat with tax added
+		// Taxonomy + category with taxonomy added.
 		$this->go_to( home_url( "/testtax/tax-slug2/?cat=$this->cat_id" ) );
 		$this->assertQueryTrue( 'is_category', 'is_tax', 'is_archive' );
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
@@ -251,7 +238,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$expected = get_term( $this->tax_id, 'testtax' );
 
 		// Only compare term_id because object_id may or may not be part of either value.
-		$this->assertEquals( $expected->term_id, $object->term_id );
+		$this->assertSame( $expected->term_id, $object->term_id );
 	}
 
 	/**
@@ -295,6 +282,6 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$expected = get_term( $this->tax_id, 'testtax' );
 
 		// Only compare term_id because object_id may or may not be part of either value.
-		$this->assertEquals( $expected->term_id, $object->term_id );
+		$this->assertSame( $expected->term_id, $object->term_id );
 	}
 }

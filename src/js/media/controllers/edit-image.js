@@ -36,7 +36,7 @@ EditImage = wp.media.controller.State.extend(/** @lends wp.media.controller.Edit
 	 *
 	 * @since 3.9.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	activate: function() {
 		this.frame.on( 'toolbar:render:edit-image', _.bind( this.toolbar, this ) );
@@ -47,7 +47,7 @@ EditImage = wp.media.controller.State.extend(/** @lends wp.media.controller.Edit
 	 *
 	 * @since 3.9.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	deactivate: function() {
 		this.frame.off( 'toolbar:render:edit-image' );
@@ -62,7 +62,7 @@ EditImage = wp.media.controller.State.extend(/** @lends wp.media.controller.Edit
 	 *
 	 * @since 3.9.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	toolbar: function() {
 		var frame = this.frame,

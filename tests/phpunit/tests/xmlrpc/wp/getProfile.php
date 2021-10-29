@@ -9,7 +9,7 @@ class Tests_XMLRPC_wp_getProfile extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getProfile( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_subscriber() {
@@ -43,6 +43,6 @@ class Tests_XMLRPC_wp_getProfile extends WP_XMLRPC_UnitTestCase {
 		$keys            = array_keys( $result );
 		sort( $expected_fields );
 		sort( $keys );
-		$this->assertEqualSets( $expected_fields, $keys );
+		$this->assertSameSets( $expected_fields, $keys );
 	}
 }

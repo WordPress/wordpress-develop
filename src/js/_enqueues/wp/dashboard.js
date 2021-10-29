@@ -5,13 +5,14 @@
 /* global pagenow, ajaxurl, postboxes, wpActiveEditor:true, ajaxWidgets */
 /* global ajaxPopulateWidgets, quickPressLoad,  */
 window.wp = window.wp || {};
+window.communityEventsData = window.communityEventsData || {};
 
 /**
  * Initializes the dashboard widget functionality.
  *
  * @since 2.7.0
  */
-jQuery(document).ready( function($) {
+jQuery( function($) {
 	var welcomePanel = $( '#welcome-panel' ),
 		welcomePanelHide = $('#wp_welcome_panel-hide'),
 		updateWelcomePanel;
@@ -23,7 +24,7 @@ jQuery(document).ready( function($) {
 	 *
 	 * @param {boolean} visible Should it be visible or not.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	updateWelcomePanel = function( visible ) {
 		$.post( ajaxurl, {
@@ -39,7 +40,7 @@ jQuery(document).ready( function($) {
 	}
 
 	// Hide the welcome panel when the dismiss button or close button is clicked.
-	$('.welcome-panel-close, .welcome-panel-dismiss a', welcomePanel).click( function(e) {
+	$('.welcome-panel-close, .welcome-panel-dismiss a', welcomePanel).on( 'click', function(e) {
 		e.preventDefault();
 		welcomePanel.addClass('hidden');
 		updateWelcomePanel( 0 );
@@ -47,7 +48,7 @@ jQuery(document).ready( function($) {
 	});
 
 	// Set welcome panel visibility based on Welcome Option checkbox value.
-	welcomePanelHide.click( function() {
+	welcomePanelHide.on( 'click', function() {
 		welcomePanel.toggleClass('hidden', ! this.checked );
 		updateWelcomePanel( this.checked ? 1 : 0 );
 	});
@@ -64,7 +65,7 @@ jQuery(document).ready( function($) {
 	window.ajaxWidgets = ['dashboard_primary'];
 
 	/**
-	 * Triggers widget updates via AJAX.
+	 * Triggers widget updates via Ajax.
 	 *
 	 * @since 2.7.0
 	 *
@@ -72,7 +73,7 @@ jQuery(document).ready( function($) {
 	 *
 	 * @param {string} el Optional. Widget to fetch or none to update all.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	window.ajaxPopulateWidgets = function(el) {
 		/**
@@ -81,7 +82,7 @@ jQuery(document).ready( function($) {
 		 * @param {number} i Number of half-seconds to use as the timeout.
 		 * @param {string} id ID of the element which is going to be checked for changes.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		function show(i, id) {
 			var p, e = $('#' + id + ' div.inside:visible').find('.widget-loading');
@@ -103,7 +104,7 @@ jQuery(document).ready( function($) {
 		// If we have received a specific element to fetch, check if it is valid.
 		if ( el ) {
 			el = el.toString();
-			// If the element is available as AJAX widget, show it.
+			// If the element is available as Ajax widget, show it.
 			if ( $.inArray(el, ajaxWidgets) !== -1 ) {
 				// Show element without any delay.
 				show(0, el);
@@ -127,7 +128,7 @@ jQuery(document).ready( function($) {
 	 *
 	 * @global
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	window.quickPressLoad = function() {
 		var act = $('#quickpost-action'), t;
@@ -135,7 +136,7 @@ jQuery(document).ready( function($) {
 		// Enable the submit buttons.
 		$( '#quick-press .submit input[type="submit"], #quick-press .submit input[type="reset"]' ).prop( 'disabled' , false );
 
-		t = $('#quick-press').submit( function( e ) {
+		t = $('#quick-press').on( 'submit', function( e ) {
 			e.preventDefault();
 
 			// Show a spinner.
@@ -153,13 +154,13 @@ jQuery(document).ready( function($) {
 				highlightLatestPost();
 
 				// Focus the title to allow for quickly drafting another post.
-				$('#title').focus();
+				$('#title').trigger( 'focus' );
 			});
 
 			/**
 			 * Highlights the latest post for one second.
 			 *
-			 * @returns {void}
+			 * @return {void}
  			 */
 			function highlightLatestPost () {
 				var latestPost = $('.drafts ul li').first();
@@ -171,7 +172,7 @@ jQuery(document).ready( function($) {
 		} );
 
 		// Change the QuickPost action to the publish value.
-		$('#publish').click( function() { act.val( 'post-quickpress-publish' ); } );
+		$('#publish').on( 'click', function() { act.val( 'post-quickpress-publish' ); } );
 
 		$('#quick-press').on( 'click focusin', function() {
 			wpActiveEditor = 'content';
@@ -189,7 +190,7 @@ jQuery(document).ready( function($) {
 	 *
 	 * @since 3.6.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function autoResizeTextarea() {
 		// When IE8 or older is used to render this document, exit.
@@ -265,7 +266,12 @@ jQuery(document).ready( function($) {
 jQuery( function( $ ) {
 	'use strict';
 
-	var communityEventsData = window.communityEventsData || {},
+	var communityEventsData = window.communityEventsData,
+		dateI18n = wp.date.dateI18n,
+		format = wp.date.format,
+		sprintf = wp.i18n.sprintf,
+		__ = wp.i18n.__,
+		_x = wp.i18n._x,
 		app;
 
 	/**
@@ -285,7 +291,7 @@ jQuery( function( $ ) {
 		 *
 		 * @since 4.8.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		init: function() {
 			if ( app.initialized ) {
@@ -319,10 +325,10 @@ jQuery( function( $ ) {
 			/**
 			 * Filters events based on entered location.
 			 *
-			 * @returns {void}
+			 * @return {void}
 			 */
 			$container.on( 'submit', '.community-events-form', function( event ) {
-				var location = $.trim( $( '#community-events-location' ).val() );
+				var location = $( '#community-events-location' ).val().trim();
 
 				event.preventDefault();
 
@@ -356,7 +362,7 @@ jQuery( function( $ ) {
 		 * @param {event|string} action 'show' or 'hide' to specify a state;
 		 *                              or an event object to flip between states.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		toggleLocationForm: function( action ) {
 			var $toggleButton = $( '.community-events-toggle-location' ),
@@ -385,7 +391,7 @@ jQuery( function( $ ) {
 				 * lose their place.
 				 */
 				if ( $target.hasClass( 'community-events-cancel' ) ) {
-					$toggleButton.focus();
+					$toggleButton.trigger( 'focus' );
 				}
 			} else {
 				$toggleButton.attr( 'aria-expanded', 'true' );
@@ -401,7 +407,7 @@ jQuery( function( $ ) {
 		 *
 		 * @param {Object} requestParams REST API Request parameters object.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		getEvents: function( requestParams ) {
 			var initiatedBy,
@@ -441,6 +447,7 @@ jQuery( function( $ ) {
 				.fail( function() {
 					app.renderEventsTemplate({
 						'location' : false,
+						'events'   : [],
 						'error'    : true
 					}, initiatedBy );
 				});
@@ -455,15 +462,19 @@ jQuery( function( $ ) {
 		 * @param {string} initiatedBy    'user' to indicate that this was triggered manually by the user;
 		 *                                'app' to indicate it was triggered automatically by the app itself.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		renderEventsTemplate: function( templateParams, initiatedBy ) {
 			var template,
 				elementVisibility,
-				l10nPlaceholder  = /%(?:\d\$)?s/g, // Match `%s`, `%1$s`, `%2$s`, etc.
 				$toggleButton    = $( '.community-events-toggle-location' ),
 				$locationMessage = $( '#community-events-location-message' ),
 				$results         = $( '.community-events-results' );
+
+			templateParams.events = app.populateDynamicEventFields(
+				templateParams.events,
+				communityEventsData.time_format
+			);
 
 			/*
 			 * Hide all toggleable elements by default, to keep the logic simple.
@@ -494,7 +505,7 @@ jQuery( function( $ ) {
 				 * If the API determined the location by geolocating an IP, it will
 				 * provide events, but not a specific location.
 				 */
-				$locationMessage.text( communityEventsData.l10n.attend_event_near_generic );
+				$locationMessage.text( __( 'Attend an upcoming event near you.' ) );
 
 				if ( templateParams.events.length ) {
 					template = wp.template( 'community-events-event-list' );
@@ -521,7 +532,14 @@ jQuery( function( $ ) {
 				}
 
 				if ( 'user' === initiatedBy ) {
-					wp.a11y.speak( communityEventsData.l10n.city_updated.replace( l10nPlaceholder, templateParams.location.description ), 'assertive' );
+					wp.a11y.speak(
+						sprintf(
+							/* translators: %s: The name of a city. */
+							__( 'City updated. Listing events near %s.' ),
+							templateParams.location.description
+						),
+						'assertive'
+					);
 				}
 
 				elementVisibility['#community-events-location-message'] = true;
@@ -531,7 +549,28 @@ jQuery( function( $ ) {
 			} else if ( templateParams.unknownCity ) {
 				template = wp.template( 'community-events-could-not-locate' );
 				$( '.community-events-could-not-locate' ).html( template( templateParams ) );
-				wp.a11y.speak( communityEventsData.l10n.could_not_locate_city.replace( l10nPlaceholder, templateParams.unknownCity ) );
+				wp.a11y.speak(
+					sprintf(
+						/*
+						 * These specific examples were chosen to highlight the fact that a
+						 * state is not needed, even for cities whose name is not unique.
+						 * It would be too cumbersome to include that in the instructions
+						 * to the user, so it's left as an implication.
+						 */
+						/*
+						 * translators: %s is the name of the city we couldn't locate.
+						 * Replace the examples with cities related to your locale. Test that
+						 * they match the expected location and have upcoming events before
+						 * including them. If no cities related to your locale have events,
+						 * then use cities related to your locale that would be recognizable
+						 * to most users. Use only the city name itself, without any region
+						 * or country. Use the endonym (native locale name) instead of the
+						 * English name if possible.
+						 */
+						__( 'We couldn’t locate %s. Please try another nearby city. For example: Kansas City; Springfield; Portland.' ),
+						templateParams.unknownCity
+					)
+				);
 
 				elementVisibility['.community-events-errors']           = true;
 				elementVisibility['.community-events-could-not-locate'] = true;
@@ -543,12 +582,12 @@ jQuery( function( $ ) {
 				 * Showing error messages for an event that user isn't aware of
 				 * could be confusing or unnecessarily distracting.
 				 */
-				wp.a11y.speak( communityEventsData.l10n.error_occurred_please_try_again );
+				wp.a11y.speak( __( 'An error occurred. Please try again.' ) );
 
 				elementVisibility['.community-events-errors']         = true;
 				elementVisibility['.community-events-error-occurred'] = true;
 			} else {
-				$locationMessage.text( communityEventsData.l10n.enter_closest_city );
+				$locationMessage.text( __( 'Enter your closest city to find nearby events.' ) );
 
 				elementVisibility['#community-events-location-message'] = true;
 				elementVisibility['.community-events-toggle-location']  = true;
@@ -571,11 +610,200 @@ jQuery( function( $ ) {
 					 * bring the focus back to the toggle button so users relying
 					 * on screen readers don't lose their place.
 					 */
-					$toggleButton.focus();
+					$toggleButton.trigger( 'focus' );
 				}
 			} else {
 				app.toggleLocationForm( 'show' );
 			}
+		},
+
+		/**
+		 * Populate event fields that have to be calculated on the fly.
+		 *
+		 * These can't be stored in the database, because they're dependent on
+		 * the user's current time zone, locale, etc.
+		 *
+		 * @since 5.5.2
+		 *
+		 * @param {Array}  rawEvents  The events that should have dynamic fields added to them.
+		 * @param {string} timeFormat A time format acceptable by `wp.date.dateI18n()`.
+		 *
+		 * @returns {Array}
+		 */
+		populateDynamicEventFields: function( rawEvents, timeFormat ) {
+			// Clone the parameter to avoid mutating it, so that this can remain a pure function.
+			var populatedEvents = JSON.parse( JSON.stringify( rawEvents ) );
+
+			$.each( populatedEvents, function( index, event ) {
+				var timeZone = app.getTimeZone( event.start_unix_timestamp * 1000 );
+
+				event.user_formatted_date = app.getFormattedDate(
+					event.start_unix_timestamp * 1000,
+					event.end_unix_timestamp * 1000,
+					timeZone
+				);
+
+				event.user_formatted_time = dateI18n(
+					timeFormat,
+					event.start_unix_timestamp * 1000,
+					timeZone
+				);
+
+				event.timeZoneAbbreviation = app.getTimeZoneAbbreviation( event.start_unix_timestamp * 1000 );
+			} );
+
+			return populatedEvents;
+		},
+
+		/**
+		 * Returns the user's local/browser time zone, in a form suitable for `wp.date.i18n()`.
+		 *
+		 * @since 5.5.2
+		 *
+		 * @param startTimestamp
+		 *
+		 * @returns {string|number}
+		 */
+		getTimeZone: function( startTimestamp ) {
+			/*
+			 * Prefer a name like `Europe/Helsinki`, since that automatically tracks daylight savings. This
+			 * doesn't need to take `startTimestamp` into account for that reason.
+			 */
+			var timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+			/*
+			 * Fall back to an offset for IE11, which declares the property but doesn't assign a value.
+			 */
+			if ( 'undefined' === typeof timeZone ) {
+				/*
+				 * It's important to use the _event_ time, not the _current_
+				 * time, so that daylight savings time is accounted for.
+				 */
+				timeZone = app.getFlippedTimeZoneOffset( startTimestamp );
+			}
+
+			return timeZone;
+		},
+
+		/**
+		 * Get intuitive time zone offset.
+		 *
+		 * `Data.prototype.getTimezoneOffset()` returns a positive value for time zones
+		 * that are _behind_ UTC, and a _negative_ value for ones that are ahead.
+		 *
+		 * See https://stackoverflow.com/questions/21102435/why-does-javascript-date-gettimezoneoffset-consider-0500-as-a-positive-off.
+		 *
+		 * @since 5.5.2
+		 *
+		 * @param {number} startTimestamp
+		 *
+		 * @returns {number}
+		 */
+		getFlippedTimeZoneOffset: function( startTimestamp ) {
+			return new Date( startTimestamp ).getTimezoneOffset() * -1;
+		},
+
+		/**
+		 * Get a short time zone name, like `PST`.
+		 *
+		 * @since 5.5.2
+		 *
+		 * @param {number} startTimestamp
+		 *
+		 * @returns {string}
+		 */
+		getTimeZoneAbbreviation: function( startTimestamp ) {
+			var timeZoneAbbreviation,
+				eventDateTime = new Date( startTimestamp );
+
+			/*
+			 * Leaving the `locales` argument undefined is important, so that the browser
+			 * displays the abbreviation that's most appropriate for the current locale. For
+			 * some that will be `UTC{+|-}{n}`, and for others it will be a code like `PST`.
+			 *
+			 * This doesn't need to take `startTimestamp` into account, because a name like
+			 * `America/Chicago` automatically tracks daylight savings.
+			 */
+			var shortTimeStringParts = eventDateTime.toLocaleTimeString( undefined, { timeZoneName : 'short' } ).split( ' ' );
+
+			if ( 3 === shortTimeStringParts.length ) {
+				timeZoneAbbreviation = shortTimeStringParts[2];
+			}
+
+			if ( 'undefined' === typeof timeZoneAbbreviation ) {
+				/*
+				 * It's important to use the _event_ time, not the _current_
+				 * time, so that daylight savings time is accounted for.
+				 */
+				var timeZoneOffset = app.getFlippedTimeZoneOffset( startTimestamp ),
+					sign = -1 === Math.sign( timeZoneOffset ) ? '' : '+';
+
+				// translators: Used as part of a string like `GMT+5` in the Events Widget.
+				timeZoneAbbreviation = _x( 'GMT', 'Events widget offset prefix' ) + sign + ( timeZoneOffset / 60 );
+			}
+
+			return timeZoneAbbreviation;
+		},
+
+		/**
+		 * Format a start/end date in the user's local time zone and locale.
+		 *
+		 * @since 5.5.2
+		 *
+		 * @param {int}    startDate   The Unix timestamp in milliseconds when the the event starts.
+		 * @param {int}    endDate     The Unix timestamp in milliseconds when the the event ends.
+		 * @param {string} timeZone    A time zone string or offset which is parsable by `wp.date.i18n()`.
+		 *
+		 * @returns {string}
+		 */
+		getFormattedDate: function( startDate, endDate, timeZone ) {
+			var formattedDate;
+
+			/*
+			 * The `date_format` option is not used because it's important
+			 * in this context to keep the day of the week in the displayed date,
+			 * so that users can tell at a glance if the event is on a day they
+			 * are available, without having to open the link.
+			 *
+			 * The case of crossing a year boundary is intentionally not handled.
+			 * It's so rare in practice that it's not worth the complexity
+			 * tradeoff. The _ending_ year should be passed to
+			 * `multiple_month_event`, though, just in case.
+			 */
+			/* translators: Date format for upcoming events on the dashboard. Include the day of the week. See https://www.php.net/manual/datetime.format.php */
+			var singleDayEvent = __( 'l, M j, Y' ),
+				/* translators: Date string for upcoming events. 1: Month, 2: Starting day, 3: Ending day, 4: Year. */
+				multipleDayEvent = __( '%1$s %2$d–%3$d, %4$d' ),
+				/* translators: Date string for upcoming events. 1: Starting month, 2: Starting day, 3: Ending month, 4: Ending day, 5: Ending year. */
+				multipleMonthEvent = __( '%1$s %2$d – %3$s %4$d, %5$d' );
+
+			// Detect single-day events.
+			if ( ! endDate || format( 'Y-m-d', startDate ) === format( 'Y-m-d', endDate ) ) {
+				formattedDate = dateI18n( singleDayEvent, startDate, timeZone );
+
+			// Multiple day events.
+			} else if ( format( 'Y-m', startDate ) === format( 'Y-m', endDate ) ) {
+				formattedDate = sprintf(
+					multipleDayEvent,
+					dateI18n( _x( 'F', 'upcoming events month format' ), startDate, timeZone ),
+					dateI18n( _x( 'j', 'upcoming events day format' ), startDate, timeZone ),
+					dateI18n( _x( 'j', 'upcoming events day format' ), endDate, timeZone ),
+					dateI18n( _x( 'Y', 'upcoming events year format' ), endDate, timeZone )
+				);
+
+			// Multi-day events that cross a month boundary.
+			} else {
+				formattedDate = sprintf(
+					multipleMonthEvent,
+					dateI18n( _x( 'F', 'upcoming events month format' ), startDate, timeZone ),
+					dateI18n( _x( 'j', 'upcoming events day format' ), startDate, timeZone ),
+					dateI18n( _x( 'F', 'upcoming events month format' ), endDate, timeZone ),
+					dateI18n( _x( 'j', 'upcoming events day format' ), endDate, timeZone ),
+					dateI18n( _x( 'Y', 'upcoming events year format' ), endDate, timeZone )
+				);
+			}
+
+			return formattedDate;
 		}
 	};
 
@@ -591,3 +819,21 @@ jQuery( function( $ ) {
 		});
 	}
 });
+
+/**
+ * Removed in 5.6.0, needed for back-compatibility.
+ *
+ * @since 4.8.0
+ * @deprecated 5.6.0
+ *
+ * @type {object}
+*/
+window.communityEventsData.l10n = window.communityEventsData.l10n || {
+	enter_closest_city: '',
+	error_occurred_please_try_again: '',
+	attend_event_near_generic: '',
+	could_not_locate_city: '',
+	city_updated: ''
+};
+
+window.communityEventsData.l10n = window.wp.deprecateL10nObject( 'communityEventsData.l10n', window.communityEventsData.l10n, '5.6.0' );

@@ -2,7 +2,7 @@
  * @output wp-admin/js/comment.js
  */
 
-/* global postboxes, commentL10n */
+/* global postboxes */
 
 /**
  * Binds to the document ready event.
@@ -11,7 +11,7 @@
  *
  * @param {jQuery} $ The jQuery object.
  */
-jQuery(document).ready( function($) {
+jQuery( function($) {
 
 	postboxes.add_postbox_toggles('comment');
 
@@ -27,13 +27,13 @@ jQuery(document).ready( function($) {
 	 * @listens $edittimestamp:click
 	 *
 	 * @param {Event} event The event object.
-	 * @returns {void}
+	 * @return {void}
 	 */
-	$edittimestamp.click( function( event ) {
+	$edittimestamp.on( 'click', function( event ) {
 		if ( $timestampdiv.is( ':hidden' ) ) {
 			// Slide down the form and set focus on the first field.
 			$timestampdiv.slideDown( 'fast', function() {
-				$( 'input, select', $timestampwrap ).first().focus();
+				$( 'input, select', $timestampwrap ).first().trigger( 'focus' );
 			} );
 			$(this).hide();
 		}
@@ -46,12 +46,12 @@ jQuery(document).ready( function($) {
 	 * @listens .cancel-timestamp:click
 	 *
 	 * @param {Event} event The event object.
-	 * @returns {void}
+	 * @return {void}
 	 */
 
-	$timestampdiv.find('.cancel-timestamp').click( function( event ) {
+	$timestampdiv.find('.cancel-timestamp').on( 'click', function( event ) {
 		// Move focus back to the Edit link.
-		$edittimestamp.show().focus();
+		$edittimestamp.show().trigger( 'focus' );
 		$timestampdiv.slideUp( 'fast' );
 		$('#mm').val($('#hidden_mm').val());
 		$('#jj').val($('#hidden_jj').val());
@@ -68,9 +68,9 @@ jQuery(document).ready( function($) {
 	 * @listens .save-timestamp:click
 	 *
 	 * @param {Event} event The event object.
-	 * @returns {void}
+	 * @return {void}
 	 */
-	$timestampdiv.find('.save-timestamp').click( function( event ) { // crazyhorse - multiple ok cancels
+	$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
 		var aa = $('#aa').val(), mm = $('#mm').val(), jj = $('#jj').val(), hh = $('#hh').val(), mn = $('#mn').val(),
 			newD = new Date( aa, mm - 1, jj, hh, mn );
 
@@ -84,8 +84,9 @@ jQuery(document).ready( function($) {
 		}
 
 		$timestamp.html(
-			commentL10n.submittedOn + ' <b>' +
-			commentL10n.dateFormat
+			wp.i18n.__( 'Submitted on:' ) + ' <b>' +
+			/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
+			wp.i18n.__( '%1$s %2$s, %3$s at %4$s:%5$s' )
 				.replace( '%1$s', $( 'option[value="' + mm + '"]', '#mm' ).attr( 'data-text' ) )
 				.replace( '%2$s', parseInt( jj, 10 ) )
 				.replace( '%3$s', aa )
@@ -95,7 +96,7 @@ jQuery(document).ready( function($) {
 		);
 
 		// Move focus back to the Edit link.
-		$edittimestamp.show().focus();
+		$edittimestamp.show().trigger( 'focus' );
 		$timestampdiv.slideUp( 'fast' );
 	});
 });

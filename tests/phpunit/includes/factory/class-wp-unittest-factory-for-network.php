@@ -33,7 +33,7 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 		}
 
 		populate_network( $args['network_id'], $args['domain'], $email, $args['title'], $args['path'], $args['subdomain_install'] );
-		return $args['network_id'];
+		return (int) $args['network_id'];
 	}
 
 	public function update_object( $network_id, $fields ) {}

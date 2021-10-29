@@ -18,16 +18,16 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 *
 		 * @var boolean
 		 */
-		var $is_plural = false;
+		public $is_plural = false;
 
-		var $context             = null;
-		var $singular            = null;
-		var $plural              = null;
-		var $translations        = array();
-		var $translator_comments = '';
-		var $extracted_comments  = '';
-		var $references          = array();
-		var $flags               = array();
+		public $context             = null;
+		public $singular            = null;
+		public $plural              = null;
+		public $translations        = array();
+		public $translator_comments = '';
+		public $extracted_comments  = '';
+		public $references          = array();
+		public $flags               = array();
 
 		/**
 		 * @param array $args associative array, support following keys:
@@ -40,12 +40,12 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 *  - references (array) -- places in the code this strings is used, in relative_to_root_path/file.php:linenum form
 		 *  - flags (array) -- flags like php-format
 		 */
-		function __construct( $args = array() ) {
-			// if no singular -- empty object
+		public function __construct( $args = array() ) {
+			// If no singular -- empty object.
 			if ( ! isset( $args['singular'] ) ) {
 				return;
 			}
-			// get member variable values from args hash
+			// Get member variable values from args hash.
 			foreach ( $args as $varname => $value ) {
 				$this->$varname = $value;
 			}
@@ -80,14 +80,14 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 *
 		 * @return string|bool the key or false if the entry is empty
 		 */
-		function key() {
+		public function key() {
 			if ( null === $this->singular || '' === $this->singular ) {
 				return false;
 			}
 
-			// Prepend context and EOT, like in MO files
+			// Prepend context and EOT, like in MO files.
 			$key = ! $this->context ? $this->singular : $this->context . "\4" . $this->singular;
-			// Standardize on \n line endings
+			// Standardize on \n line endings.
 			$key = str_replace( array( "\r\n", "\r" ), "\n", $key );
 
 			return $key;
@@ -96,7 +96,7 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		/**
 		 * @param object $other
 		 */
-		function merge_with( &$other ) {
+		public function merge_with( &$other ) {
 			$this->flags      = array_unique( array_merge( $this->flags, $other->flags ) );
 			$this->references = array_unique( array_merge( $this->references, $other->references ) );
 			if ( $this->extracted_comments != $other->extracted_comments ) {

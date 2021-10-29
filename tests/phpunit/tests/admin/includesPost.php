@@ -3,7 +3,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_Includes_Post extends WP_UnitTestCase {
+class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	protected static $contributor_id;
 	protected static $author_ids;
 	protected static $editor_id;
@@ -12,7 +12,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 	protected static $user_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_ids   = $factory->user->create_many( 2, array( 'role' => 'author' ) );
 		self::$author_ids = self::$user_ids;
 
@@ -29,7 +29,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 
-		// Create New Draft Post
+		// Create new draft post.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';
@@ -37,10 +37,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$_results = _wp_translate_postdata( false, $_post_data );
 		$this->assertNotWPError( $_results );
-		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
-		$this->assertEquals( 'draft', $_results['post_status'] );
+		$this->assertSame( $_post_data['post_author'], $_results['post_author'] );
+		$this->assertSame( 'draft', $_results['post_status'] );
 
-		// Submit Post for Approval
+		// Submit post for approval.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';
@@ -48,10 +48,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$_results = _wp_translate_postdata( false, $_post_data );
 		$this->assertNotWPError( $_results );
-		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
-		$this->assertEquals( 'pending', $_results['post_status'] );
+		$this->assertSame( $_post_data['post_author'], $_results['post_author'] );
+		$this->assertSame( 'pending', $_results['post_status'] );
 
-		// Create New Draft Post for another user
+		// Create new draft post for another user.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
@@ -59,10 +59,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$_results = _wp_translate_postdata( false, $_post_data );
 		$this->assertInstanceOf( 'WP_Error', $_results );
-		$this->assertEquals( 'edit_others_posts', $_results->get_error_code() );
-		$this->assertEquals( 'Sorry, you are not allowed to create posts as this user.', $_results->get_error_message() );
+		$this->assertSame( 'edit_others_posts', $_results->get_error_code() );
+		$this->assertSame( 'Sorry, you are not allowed to create posts as this user.', $_results->get_error_message() );
 
-		// Edit Draft Post for another user
+		// Edit draft post for another user.
 		$_post_data                = array();
 		$_post_data['post_ID']     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		$_post_data['post_author'] = self::$editor_id;
@@ -72,14 +72,14 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$_results = _wp_translate_postdata( true, $_post_data );
 		$this->assertInstanceOf( 'WP_Error', $_results );
-		$this->assertEquals( 'edit_others_posts', $_results->get_error_code() );
-		$this->assertEquals( 'Sorry, you are not allowed to edit posts as this user.', $_results->get_error_message() );
+		$this->assertSame( 'edit_others_posts', $_results->get_error_code() );
+		$this->assertSame( 'Sorry, you are not allowed to edit posts as this user.', $_results->get_error_message() );
 	}
 
 	function test__wp_translate_postdata_cap_checks_editor() {
 		wp_set_current_user( self::$editor_id );
 
-		// Create New Draft Post
+		// Create new draft post.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
@@ -87,10 +87,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$_results = _wp_translate_postdata( false, $_post_data );
 		$this->assertNotWPError( $_results );
-		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
-		$this->assertEquals( 'draft', $_results['post_status'] );
+		$this->assertSame( $_post_data['post_author'], $_results['post_author'] );
+		$this->assertSame( 'draft', $_results['post_status'] );
 
-		// Publish Post
+		// Publish post.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
@@ -98,10 +98,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$_results = _wp_translate_postdata( false, $_post_data );
 		$this->assertNotWPError( $_results );
-		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
-		$this->assertEquals( 'publish', $_results['post_status'] );
+		$this->assertSame( $_post_data['post_author'], $_results['post_author'] );
+		$this->assertSame( 'publish', $_results['post_status'] );
 
-		// Create New Draft Post for another user
+		// Create new draft post for another user.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';
@@ -109,10 +109,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$_results = _wp_translate_postdata( false, $_post_data );
 		$this->assertNotWPError( $_results );
-		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
-		$this->assertEquals( 'draft', $_results['post_status'] );
+		$this->assertSame( $_post_data['post_author'], $_results['post_author'] );
+		$this->assertSame( 'draft', $_results['post_status'] );
 
-		// Edit Draft Post for another user
+		// Edit draft post for another user.
 		$_post_data                = array();
 		$_post_data['post_ID']     = self::factory()->post->create( array( 'post_author' => self::$contributor_id ) );
 		$_post_data['post_author'] = self::$contributor_id;
@@ -122,8 +122,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$_results = _wp_translate_postdata( true, $_post_data );
 		$this->assertNotWPError( $_results );
-		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
-		$this->assertEquals( 'draft', $_results['post_status'] );
+		$this->assertSame( $_post_data['post_author'], $_results['post_author'] );
+		$this->assertSame( 'draft', $_results['post_status'] );
 	}
 
 	/**
@@ -134,7 +134,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	function test_edit_post_auto_draft() {
 		wp_set_current_user( self::$editor_id );
 		$post = self::factory()->post->create_and_get( array( 'post_status' => 'auto-draft' ) );
-		$this->assertEquals( 'auto-draft', $post->post_status );
+		$this->assertSame( 'auto-draft', $post->post_status );
 		$post_data = array(
 			'post_title' => 'Post title',
 			'content'    => 'Post content',
@@ -142,7 +142,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 			'post_ID'    => $post->ID,
 		);
 		edit_post( $post_data );
-		$this->assertEquals( 'draft', get_post( $post->ID )->post_status );
+		$this->assertSame( 'draft', get_post( $post->ID )->post_status );
 	}
 
 	/**
@@ -252,10 +252,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$post = get_post( $post2 );
 
 		// Check that the first post's values don't stomp the second post.
-		$this->assertEquals( 'draft', $post->post_status );
+		$this->assertSame( 'draft', $post->post_status );
 		$this->assertEquals( self::$author_ids[1], $post->post_author );
-		$this->assertEquals( 'closed', $post->comment_status );
-		$this->assertEquals( 'closed', $post->ping_status );
+		$this->assertSame( 'closed', $post->comment_status );
+		$this->assertSame( 'closed', $post->ping_status );
 	}
 
 	/**
@@ -314,7 +314,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 	public function check_post_format( $post_id ) {
 		if ( self::$post_id === $post_id ) {
-			$this->assertEquals( 'aside', get_post_format( $post_id ) );
+			$this->assertSame( 'aside', get_post_format( $post_id ) );
 		}
 	}
 
@@ -391,8 +391,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink_html( $p );
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/?p=' . $p . '"', $found );
-		$this->assertContains( '>' . get_option( 'home' ) . '/?p=' . $p . '<', $found );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/?p=' . $p . '"', $found );
+		$this->assertStringContainsString( '>' . get_option( 'home' ) . '/?p=' . $p . '<', $found );
 	}
 
 	/**
@@ -415,8 +415,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$found = get_sample_permalink_html( $p );
 		$post  = get_post( $p );
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found );
-		$this->assertContains( '>' . urldecode( $post->post_name ) . '<', $found );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found );
+		$this->assertStringContainsString( '>' . urldecode( $post->post_name ) . '<', $found );
 	}
 
 	/**
@@ -440,8 +440,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$found = get_sample_permalink_html( $p );
 		$post  = get_post( $p );
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found );
-		$this->assertContains( '>' . urldecode( get_permalink( $post ) ) . '<', $found );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found );
+		$this->assertStringContainsString( '>' . urldecode( get_permalink( $post ) ) . '<', $found );
 	}
 
 	/**
@@ -453,7 +453,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$admin_id );
 
-		// Published posts should use published permalink
+		// Published posts should use published permalink.
 		$p = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
@@ -464,10 +464,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$found   = get_sample_permalink_html( $p, null, 'new_slug-صورة' );
 		$post    = get_post( $p );
 		$message = 'Published post';
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
-		$this->assertContains( '>new_slug-صورة<', $found, $message );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
+		$this->assertStringContainsString( '>new_slug-صورة<', $found, $message );
 
-		// Scheduled posts should use published permalink
+		// Scheduled posts should use published permalink.
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
 		$p           = self::factory()->post->create(
 			array(
@@ -480,10 +480,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$found   = get_sample_permalink_html( $p, null, 'new_slug-صورة' );
 		$post    = get_post( $p );
 		$message = 'Scheduled post';
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
-		$this->assertContains( '>new_slug-صورة<', $found, $message );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
+		$this->assertStringContainsString( '>new_slug-صورة<', $found, $message );
 
-		// Draft posts should use preview link
+		// Draft posts should use preview link.
 		$p = self::factory()->post->create(
 			array(
 				'post_status' => 'draft',
@@ -498,8 +498,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$preview_link = get_permalink( $post->ID );
 		$preview_link = add_query_arg( 'preview', 'true', $preview_link );
 
-		$this->assertContains( 'href="' . esc_url( $preview_link ) . '"', $found, $message );
-		$this->assertContains( '>new_slug-صورة<', $found, $message );
+		$this->assertStringContainsString( 'href="' . esc_url( $preview_link ) . '"', $found, $message );
+		$this->assertStringContainsString( '>new_slug-صورة<', $found, $message );
 	}
 
 	/**
@@ -522,7 +522,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$found = get_sample_permalink_html( $p );
 		$post  = get_post( $p );
-		$this->assertContains( 'href="' . esc_url( get_preview_post_link( $post ) ), $found );
+		$this->assertStringContainsString( 'href="' . esc_url( get_preview_post_link( $post ) ), $found );
 	}
 
 	/**
@@ -538,7 +538,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink( $p );
-		$this->assertEquals( '2015-2', $found[1] );
+		$this->assertSame( '2015-2', $found[1] );
 	}
 
 	/**
@@ -554,7 +554,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink( $p );
-		$this->assertEquals( '2015', $found[1] );
+		$this->assertSame( '2015', $found[1] );
 	}
 
 	/**
@@ -570,7 +570,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink( $p );
-		$this->assertEquals( '11-2', $found[1] );
+		$this->assertSame( '11-2', $found[1] );
 	}
 
 	/**
@@ -586,7 +586,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink( $p );
-		$this->assertEquals( '13', $found[1] );
+		$this->assertSame( '13', $found[1] );
 	}
 
 	/**
@@ -602,7 +602,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink( $p );
-		$this->assertEquals( '30-2', $found[1] );
+		$this->assertSame( '30-2', $found[1] );
 	}
 
 	/**
@@ -624,7 +624,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink( $p );
-		$this->assertEquals( '30-3', $found[1] );
+		$this->assertSame( '30-3', $found[1] );
 	}
 
 	/**
@@ -640,7 +640,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink( $p );
-		$this->assertEquals( '32', $found[1] );
+		$this->assertSame( '32', $found[1] );
 	}
 
 	/**
@@ -656,7 +656,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink( $p );
-		$this->assertEquals( '30', $found[1] );
+		$this->assertSame( '30', $found[1] );
 	}
 
 	/**
@@ -826,6 +826,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$name     = 'core/test';
 		$settings = array(
 			'icon'            => 'text',
+			'category'        => 'common',
 			'render_callback' => 'foo',
 		);
 
@@ -836,7 +837,20 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		unregister_block_type( $name );
 
 		$this->assertArrayHasKey( $name, $blocks );
-		$this->assertSame( array( 'icon' => 'text' ), $blocks[ $name ] );
+		$this->assertSame(
+			array(
+				'apiVersion'  => 1,
+				'title'       => '',
+				'description' => '',
+				'icon'        => 'text',
+				'usesContext' => array(),
+				'category'    => 'common',
+				'styles'      => array(),
+				'keywords'    => array(),
+				'variations'  => array(),
+			),
+			$blocks[ $name ]
+		);
 	}
 
 	/**
@@ -853,7 +867,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$this->assertNotFalse( add_meta( $p ) );
-		$this->assertEquals( '', get_post_meta( $p, 'testkey', true ) );
+		$this->assertSame( '', get_post_meta( $p, 'testkey', true ) );
 	}
 
 	/**
@@ -888,5 +902,84 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( 0, post_exists( $title, null, null, 'post' ) );
+	}
+
+	/**
+	 * Test the status support in post_exists()
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_support_post_status() {
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'publish';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+		$this->assertSame( $post_id, post_exists( $title, null, null, null, $post_status ) );
+	}
+
+
+	/**
+	 * Test the type and status query in post_exists()
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_support_post_type_status_combined() {
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'publish';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+		$this->assertSame( $post_id, post_exists( $title, null, null, $post_type, $post_status ) );
+	}
+
+	/**
+	 * Test that post_exists() doesn't find an existing draft post when looking for publish
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_only_match_correct_post_status() {
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'draft';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+		$this->assertSame( 0, post_exists( $title, null, null, null, 'publish' ) );
+	}
+
+	/**
+	 * Test the status support in post_exists()
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_not_match_invalid_post_type_and_status_combined() {
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'publish';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+
+		$this->assertSame( 0, post_exists( $title, null, null, $post_type, 'draft' ) );
+		$this->assertSame( 0, post_exists( $title, null, null, 'wp_tests', $post_status ) );
 	}
 }

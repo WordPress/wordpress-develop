@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Nineteen
- * @since 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 
 if ( ! function_exists( 'twentynineteen_posted_on' ) ) :
@@ -76,10 +76,10 @@ if ( ! function_exists( 'twentynineteen_entry_footer' ) ) :
 		// Hide author, post date, category and tag text for pages.
 		if ( 'post' === get_post_type() ) {
 
-			// Posted by
+			// Posted by.
 			twentynineteen_posted_by();
 
-			// Posted on
+			// Posted on.
 			twentynineteen_posted_on();
 
 			/* translators: Used between list items, there is a space after the comma. */
@@ -96,7 +96,7 @@ if ( ! function_exists( 'twentynineteen_entry_footer' ) ) :
 
 			/* translators: Used between list items, there is a space after the comma. */
 			$tags_list = get_the_tag_list( '', __( ', ', 'twentynineteen' ) );
-			if ( $tags_list ) {
+			if ( $tags_list && ! is_wp_error( $tags_list ) ) {
 				printf(
 					/* translators: 1: SVG icon. 2: Posted in label, only visible to screen readers. 3: List of tags. */
 					'<span class="tags-links">%1$s<span class="screen-reader-text">%2$s </span>%3$s</span>',
@@ -243,7 +243,7 @@ if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
 	 * Fire the wp_body_open action.
 	 *
-	 * Added for backwards compatibility to support pre 5.2.0 WordPress versions.
+	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *
 	 * @since Twenty Nineteen 1.4
 	 */

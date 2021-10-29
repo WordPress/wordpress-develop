@@ -4,18 +4,22 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 	/**
 	 * CUSTOM COMMENT WALKER
 	 * A custom walker for comments, based on the walker in Twenty Nineteen.
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	class TwentyTwenty_Walker_Comment extends Walker_Comment {
 
 		/**
 		 * Outputs a comment in the HTML5 format.
+		 *
+		 * @since Twenty Twenty 1.0
 		 *
 		 * @see wp_list_comments()
 		 * @see https://developer.wordpress.org/reference/functions/get_comment_author_url/
@@ -33,7 +37,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 			$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
 
 			?>
-			<<?php echo $tag; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( $this->has_children ? 'parent' : '', $comment ); ?>>
+			<<?php echo $tag; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( $this->has_children ? 'parent' : '', $comment ); ?>>
 				<article id="div-comment-<?php comment_ID(); ?>" class="comment-body">
 					<footer class="comment-meta">
 						<div class="comment-author vcard">
@@ -45,7 +49,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 								if ( empty( $comment_author_url ) ) {
 									echo wp_kses_post( $avatar );
 								} else {
-									printf( '<a href="%s" rel="external nofollow" class="url">', $comment_author_url ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped --Escaped in https://developer.wordpress.org/reference/functions/get_comment_author_url/
+									printf( '<a href="%s" rel="external nofollow" class="url">', $comment_author_url ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped --Escaped in https://developer.wordpress.org/reference/functions/get_comment_author_url/
 									echo wp_kses_post( $avatar );
 								}
 							}
@@ -63,18 +67,24 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 						</div><!-- .comment-author -->
 
 						<div class="comment-metadata">
-							<a href="<?php echo esc_url( get_comment_link( $comment, $args ) ); ?>">
-								<?php
-								/* Translators: 1 = comment date, 2 = comment time */
-								$comment_timestamp = sprintf( __( '%1$s at %2$s', 'twentytwenty' ), get_comment_date( '', $comment ), get_comment_time() );
-								?>
-								<time datetime="<?php comment_time( 'c' ); ?>" title="<?php echo esc_attr( $comment_timestamp ); ?>">
-									<?php echo esc_html( $comment_timestamp ); ?>
-								</time>
-							</a>
 							<?php
+							/* translators: 1: Comment date, 2: Comment time. */
+							$comment_timestamp = sprintf( __( '%1$s at %2$s', 'twentytwenty' ), get_comment_date( '', $comment ), get_comment_time() );
+
+							printf(
+								'<a href="%s"><time datetime="%s" title="%s">%s</time></a>',
+								esc_url( get_comment_link( $comment, $args ) ),
+								get_comment_time( 'c' ),
+								esc_attr( $comment_timestamp ),
+								esc_html( $comment_timestamp )
+							);
+
 							if ( get_edit_comment_link() ) {
-								echo ' <span aria-hidden="true">&bull;</span> <a class="comment-edit-link" href="' . esc_url( get_edit_comment_link() ) . '">' . __( 'Edit', 'twentytwenty' ) . '</a>';
+								printf(
+									' <span aria-hidden="true">&bull;</span> <a class="comment-edit-link" href="%s">%s</a>',
+									esc_url( get_edit_comment_link() ),
+									__( 'Edit', 'twentytwenty' )
+								);
 							}
 							?>
 						</div><!-- .comment-metadata -->
@@ -121,7 +131,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 
 							<?php
 							if ( $comment_reply_link ) {
-								echo $comment_reply_link; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped --Link is escaped in https://developer.wordpress.org/reference/functions/get_comment_reply_link/
+								echo $comment_reply_link; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Link is escaped in https://developer.wordpress.org/reference/functions/get_comment_reply_link/
 							}
 							if ( $by_post_author ) {
 								echo '<span class="by-post-author">' . __( 'By Post Author', 'twentytwenty' ) . '</span>';

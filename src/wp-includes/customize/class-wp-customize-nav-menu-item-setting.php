@@ -155,12 +155,12 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_Customize_Manager $manager Bootstrap Customizer instance.
-	 * @param string               $id      An specific ID of the setting. Can be a
-	 *                                      theme mod or option name.
-	 * @param array                $args    Optional. Setting arguments.
-	 *
 	 * @throws Exception If $id is not valid for this setting type.
+	 *
+	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
+	 * @param string               $id      A specific ID of the setting.
+	 *                                      Can be a theme mod or option name.
+	 * @param array                $args    Optional. Setting arguments.
 	 */
 	public function __construct( WP_Customize_Manager $manager, $id, array $args = array() ) {
 		if ( empty( $manager->nav_menus ) ) {
@@ -171,7 +171,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 			throw new Exception( "Illegal widget setting ID: $id" );
 		}
 
-		$this->post_id = intval( $matches['id'] );
+		$this->post_id = (int) $matches['id'];
 		add_action( 'wp_update_nav_menu_item', array( $this, 'flush_cached_value' ), 10, 2 );
 
 		parent::__construct( $manager, $id, $args );
@@ -211,7 +211,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 * @return array|false Instance data array, or false if the item is marked for deletion.
 	 */
 	public function value() {
-		if ( $this->is_previewed && $this->_previewed_blog_id === get_current_blog_id() ) {
+		if ( $this->is_previewed && get_current_blog_id() === $this->_previewed_blog_id ) {
 			$undefined  = new stdClass(); // Symbol.
 			$post_value = $this->post_value( $undefined );
 
@@ -299,7 +299,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 * @since 4.7.0
 	 *
 	 * @param object $item Nav menu item.
-	 * @returns string The type label.
+	 * @return string The type label.
 	 */
 	protected function get_type_label( $item ) {
 		if ( 'post_type' === $item->type ) {
@@ -368,7 +368,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 
 		foreach ( array( 'object_id', 'menu_item_parent', 'nav_menu_term_id' ) as $key ) {
 			if ( ! is_int( $this->value[ $key ] ) ) {
-				$this->value[ $key ] = intval( $this->value[ $key ] );
+				$this->value[ $key ] = (int) $this->value[ $key ];
 			}
 		}
 		foreach ( array( 'classes', 'xfn' ) as $key ) {
@@ -605,6 +605,11 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 			$item->post_title = $item->title;
 		}
 
+		// 'classes' should be an array, as in wp_setup_nav_menu_item().
+		if ( isset( $item->classes ) && is_scalar( $item->classes ) ) {
+			$item->classes = explode( ' ', $item->classes );
+		}
+
 		$item->ID    = $this->post_id;
 		$item->db_id = $this->post_id;
 		$post        = new WP_Post( (object) $item );
@@ -648,12 +653,16 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 * we remove that in this override.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$menu_item_value` to `$value` for PHP 8 named parameter support.
 	 *
-	 * @param array $menu_item_value The value to sanitize.
+	 * @param array $value The menu item value to sanitize.
 	 * @return array|false|null|WP_Error Null or WP_Error if an input isn't valid. False if it is marked for deletion.
 	 *                                   Otherwise the sanitized value.
 	 */
-	public function sanitize( $menu_item_value ) {
+	public function sanitize( $value ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$menu_item_value = $value;
+
 		// Menu is marked for deletion.
 		if ( false === $menu_item_value ) {
 			return $menu_item_value;
@@ -684,11 +693,11 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 		);
 		$menu_item_value             = array_merge( $default, $menu_item_value );
 		$menu_item_value             = wp_array_slice_assoc( $menu_item_value, array_keys( $default ) );
-		$menu_item_value['position'] = intval( $menu_item_value['position'] );
+		$menu_item_value['position'] = (int) $menu_item_value['position'];
 
 		foreach ( array( 'object_id', 'menu_item_parent', 'nav_menu_term_id' ) as $key ) {
 			// Note we need to allow negative-integer IDs for previewed objects not inserted yet.
-			$menu_item_value[ $key ] = intval( $menu_item_value[ $key ] );
+			$menu_item_value[ $key ] = (int) $menu_item_value[ $key ];
 		}
 
 		foreach ( array( 'type', 'object', 'target' ) as $key ) {
@@ -798,7 +807,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 					return;
 				}
 
-				if ( $nav_menu_setting->previous_term_id !== intval( $value['nav_menu_term_id'] ) ) {
+				if ( (int) $value['nav_menu_term_id'] !== $nav_menu_setting->previous_term_id ) {
 					$this->update_status = 'error';
 					$this->update_error  = new WP_Error( 'unexpected_previous_term_id' );
 					return;
@@ -824,7 +833,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 					return;
 				}
 
-				if ( $parent_nav_menu_item_setting->previous_post_id !== intval( $value['menu_item_parent'] ) ) {
+				if ( (int) $value['menu_item_parent'] !== $parent_nav_menu_item_setting->previous_post_id ) {
 					$this->update_status = 'error';
 					$this->update_error  = new WP_Error( 'unexpected_previous_post_id' );
 					return;

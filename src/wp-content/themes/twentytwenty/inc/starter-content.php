@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 /**
@@ -14,8 +14,9 @@
  *
  * Passes it through the `twentytwenty_starter_content` filter before returning.
  *
- * @since  Twenty Twenty 1.0.0
- * @return array a filtered array of args for the starter_content.
+ * @since Twenty Twenty 1.0
+ *
+ * @return array A filtered array of args for the starter_content.
  */
 function twentytwenty_get_starter_content() {
 
@@ -47,7 +48,7 @@ function twentytwenty_get_starter_content() {
 				'post_title'   => __( 'The New UMoMA Opens its Doors', 'twentytwenty' ),
 				// Use the above featured image with the predefined about page.
 				'thumbnail'    => '{{image-opening}}',
-				'post_content' => join(
+				'post_content' => implode(
 					'',
 					array(
 						'<!-- wp:group {"align":"wide"} -->',
@@ -126,7 +127,7 @@ function twentytwenty_get_starter_content() {
 						'<!-- /wp:image -->',
 						'<!-- wp:group {"align":"wide"} -->',
 						'<div class="wp-block-group alignwide"><div class="wp-block-group__inner-container"><!-- wp:heading {"align":"center","textColor":"accent"} -->',
-						'<h2 class="has-accent-color has-text-align-center">' . __( '”Cyborgs, as the philosopher Donna Haraway established, are not reverent. They do not remember the cosmos.”', 'twentytwenty' ) . '</h2>',
+						'<h2 class="has-accent-color has-text-align-center">' . __( '&#8220;Cyborgs, as the philosopher Donna Haraway established, are not reverent. They do not remember the cosmos.&#8221;', 'twentytwenty' ) . '</h2>',
 						'<!-- /wp:heading --></div></div>',
 						'<!-- /wp:group -->',
 						'<!-- wp:paragraph {"dropCap":true} -->',
@@ -175,16 +176,20 @@ function twentytwenty_get_starter_content() {
 			'primary'  => array(
 				'name'  => __( 'Primary', 'twentytwenty' ),
 				'items' => array(
+					'link_home', // Note that the core "home" page is actually a link in case a static front page is not used.
+					'page_about',
+					'page_blog',
 					'page_contact',
 				),
 			),
-			// Assign a menu to the "expanded" (modal) menu location.
+			// This replicates primary just to demonstrate the expanded menu.
 			'expanded' => array(
 				'name'  => __( 'Primary', 'twentytwenty' ),
 				'items' => array(
 					'link_home', // Note that the core "home" page is actually a link in case a static front page is not used.
 					'page_about',
 					'page_blog',
+					'page_contact',
 				),
 			),
 			// Assign a menu to the "social" location.
@@ -204,7 +209,7 @@ function twentytwenty_get_starter_content() {
 	/**
 	 * Filters Twenty Twenty array of starter content.
 	 *
-	 * @since Twenty Twenty 1.0.0
+	 * @since Twenty Twenty 1.0
 	 *
 	 * @param array $starter_content Array of starter content.
 	 */

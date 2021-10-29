@@ -3,7 +3,7 @@
  * Error Protection API: WP_Recovery_Mode_Link_Handler class
  *
  * @package WordPress
- * @since   5.2.0
+ * @since 5.2.0
  */
 
 /**
@@ -65,6 +65,8 @@ class WP_Recovery_Mode_Link_Service {
 	 *
 	 * @since 5.2.0
 	 *
+	 * @global string $pagenow
+	 *
 	 * @param int $ttl Number of seconds the link should be valid for.
 	 */
 	public function handle_begin_link( $ttl ) {
@@ -114,7 +116,7 @@ class WP_Recovery_Mode_Link_Service {
 		);
 
 		/**
-		 * Filter the URL to begin recovery mode.
+		 * Filters the URL to begin recovery mode.
 		 *
 		 * @since 5.2.0
 		 *

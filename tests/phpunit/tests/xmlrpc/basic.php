@@ -13,23 +13,23 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertIXRError( $result );
 		// If disabled, 405 would result.
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_login_pass_ok() {
-		$user_id = $this->make_user_by_role( 'subscriber' );
+		$this->make_user_by_role( 'subscriber' );
 
 		$this->assertTrue( $this->myxmlrpcserver->login_pass_ok( 'subscriber', 'subscriber' ) );
 		$this->assertInstanceOf( 'WP_User', $this->myxmlrpcserver->login( 'subscriber', 'subscriber' ) );
 	}
 
 	function test_login_pass_bad() {
-		$user_id = $this->make_user_by_role( 'subscriber' );
+		$this->make_user_by_role( 'subscriber' );
 
 		$this->assertFalse( $this->myxmlrpcserver->login_pass_ok( 'username', 'password' ) );
 		$this->assertFalse( $this->myxmlrpcserver->login( 'username', 'password' ) );
 
-		// The auth will still fail due to authentication blocking after the first failed attempt
+		// The auth will still fail due to authentication blocking after the first failed attempt.
 		$this->assertFalse( $this->myxmlrpcserver->login_pass_ok( 'subscriber', 'subscriber' ) );
 	}
 
@@ -45,7 +45,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		);
 
 		$method_calls = array(
-			// Valid login
+			// Valid login.
 			array(
 				'methodName' => 'wp.editPost',
 				'params'     => array(
@@ -58,7 +58,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 					),
 				),
 			),
-			// *Invalid* login
+			// *Invalid* login.
 			array(
 				'methodName' => 'wp.editPost',
 				'params'     => array(
@@ -71,7 +71,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 					),
 				),
 			),
-			// Valid login
+			// Valid login.
 			array(
 				'methodName' => 'wp.editPost',
 				'params'     => array(
@@ -107,5 +107,14 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$return .= '</struct>';
 
 		$this->assertXmlStringEqualsXmlString( $return, $value->getXML() );
+	}
+
+	function test_disabled() {
+		add_filter( 'xmlrpc_enabled', '__return_false' );
+		$testcase_xmlrpc_server = new wp_xmlrpc_server();
+		$result                 = $testcase_xmlrpc_server->wp_getOptions( array( 1, 'username', 'password' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 405, $result->code );
 	}
 }

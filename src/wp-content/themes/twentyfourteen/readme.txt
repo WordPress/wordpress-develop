@@ -1,12 +1,11 @@
 === Twenty Fourteen ===
 Contributors: wordpressdotorg
 Requires at least: WordPress 3.6
-Tested up to: WordPress 5.0
-Requires PHP: 5.2.4
-Stable tag: 2.7
+Tested up to: 5.8
+Stable tag: 3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
-Tags: blog, news, two-columns, three-columns, left-sidebar, right-sidebar, custom-background, custom-header, custom-menu, editor-style, featured-images, flexible-header, footer-widgets, full-width-template, microformats, post-formats, rtl-language-support, sticky-post, theme-options, translation-ready, accessibility-ready
+Tags: blog, news, two-columns, three-columns, left-sidebar, right-sidebar, custom-background, custom-header, custom-menu, editor-style, featured-images, flexible-header, footer-widgets, full-width-template, microformats, post-formats, rtl-language-support, sticky-post, theme-options, translation-ready, accessibility-ready, block-patterns
 
 == Description ==
 In 2014, our default theme lets you create a responsive magazine website with a sleek, modern design. Feature your favorite homepage content in either a grid or a slider. Use the three widget areas to customize your website, and change your content's layout with a full-width page template and a contributor page to show off your authors. Creating a magazine website with WordPress has never been easier.
@@ -23,7 +22,7 @@ For more information about Twenty Fourteen please go to https://codex.wordpress.
 
 == Copyright ==
 
-Twenty Fourteen WordPress Theme, Copyright 2013-2018 WordPress.org & Automattic.com
+Twenty Fourteen WordPress Theme, Copyright 2013-2021 WordPress.org & Automattic.com
 Twenty Fourteen is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -49,7 +48,40 @@ Genericons icon font, Copyright 2013-2017 Automattic.com
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
+Photos from Stocksnap, used in block patterns.
+License: CC0
+Source: https://stocksnap.io/photo/fog-mountain-ZKN6UKFKEO
+        https://stocksnap.io/photo/ocean-beach-AEZJXB5LL5
+        https://stocksnap.io/photo/architecture-building-BIL5D73PRC
+        https://stocksnap.io/photo/sea-ocean-G5GBM522C6
+        https://stocksnap.io/photo/guy-man-7CFLDIWXK5
+
 == Changelog ==
+
+= 3.2 =
+* Released: July 20, 2021
+
+https://codex.wordpress.org/Twenty_Fourteen_Theme_Changelog#Version_3.2
+
+= 3.1 =
+* Released: March 9, 2021
+
+https://codex.wordpress.org/Twenty_Fourteen_Theme_Changelog#Version_3.1
+
+= 3.0 =
+* Released: December 8, 2020
+
+https://codex.wordpress.org/Twenty_Fourteen_Theme_Changelog#Version_3.0
+
+= 2.9 =
+* Released: August 11, 2020
+
+https://codex.wordpress.org/Twenty_Fourteen_Theme_Changelog#Version_2.9
+
+= 2.8 =
+* Released: March 31, 2020
+
+https://codex.wordpress.org/Twenty_Fourteen_Theme_Changelog#Version_2.8
 
 = 2.7 =
 * Released: May 7, 2019

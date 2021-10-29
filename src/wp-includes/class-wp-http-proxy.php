@@ -160,21 +160,14 @@ class WP_HTTP_Proxy {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @staticvar array|null $bypass_hosts
-	 * @staticvar array      $wildcard_regex
-	 *
-	 * @param string $uri URI to check.
-	 * @return bool True, to send through the proxy and false if, the proxy should not be used.
+	 * @param string $uri URL of the request.
+	 * @return bool Whether to send the request through the proxy.
 	 */
 	public function send_through_proxy( $uri ) {
-		/*
-		 * parse_url() only handles http, https type URLs, and will emit E_WARNING on failure.
-		 * This will be displayed on sites, which is not reasonable.
-		 */
-		$check = @parse_url( $uri );
+		$check = parse_url( $uri );
 
 		// Malformed URL, can not process, but this could mean ssl, so let through anyway.
-		if ( $check === false ) {
+		if ( false === $check ) {
 			return true;
 		}
 
@@ -188,17 +181,17 @@ class WP_HTTP_Proxy {
 		 *
 		 * @since 3.5.0
 		 *
-		 * @param bool|null $override Whether to override the request result. Default null.
-		 * @param string    $uri      URL to check.
-		 * @param array     $check    Associative array result of parsing the request URI.
-		 * @param array     $home     Associative array result of parsing the site URL.
+		 * @param bool|null $override Whether to send the request through the proxy. Default null.
+		 * @param string    $uri      URL of the request.
+		 * @param array     $check    Associative array result of parsing the request URL with `parse_url()`.
+		 * @param array     $home     Associative array result of parsing the site URL with `parse_url()`.
 		 */
 		$result = apply_filters( 'pre_http_send_through_proxy', null, $uri, $check, $home );
 		if ( ! is_null( $result ) ) {
 			return $result;
 		}
 
-		if ( 'localhost' == $check['host'] || ( isset( $home['host'] ) && $home['host'] == $check['host'] ) ) {
+		if ( 'localhost' === $check['host'] || ( isset( $home['host'] ) && $home['host'] === $check['host'] ) ) {
 			return false;
 		}
 
@@ -223,7 +216,7 @@ class WP_HTTP_Proxy {
 		if ( ! empty( $wildcard_regex ) ) {
 			return ! preg_match( $wildcard_regex, $check['host'] );
 		} else {
-			return ! in_array( $check['host'], $bypass_hosts );
+			return ! in_array( $check['host'], $bypass_hosts, true );
 		}
 	}
 }

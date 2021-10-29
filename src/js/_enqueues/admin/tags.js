@@ -7,9 +7,9 @@
  * @output wp-admin/js/tags.js
  */
 
- /* global ajaxurl, wpAjax, tagsl10n, showNotice, validateForm */
+ /* global ajaxurl, wpAjax, showNotice, validateForm */
 
-jQuery(document).ready(function($) {
+jQuery( function($) {
 
 	var addingTerm = false;
 
@@ -20,7 +20,7 @@ jQuery(document).ready(function($) {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @returns boolean Always returns false to cancel the default event handling.
+	 * @return {boolean} Always returns false to cancel the default event handling.
 	 */
 	$( '#the-list' ).on( 'click', '.delete-tag', function() {
 		var t = $(this), tr = t.parents('tr'), r = true, data;
@@ -37,7 +37,7 @@ jQuery(document).ready(function($) {
 			 *
 			 * @param {string} r The response from the server.
 			 *
-			 * @returns {void}
+			 * @return {void}
 			 */
 			$.post(ajaxurl, data, function(r){
 				if ( '1' == r ) {
@@ -47,19 +47,19 @@ jQuery(document).ready(function($) {
 					/**
 					 * Removes the term from the parent box and the tag cloud.
 					 *
-					 * `data.match(/tag_ID=(\d+)/)[1]` matches the term id from the data variable.
-					 * This term id is then used to select the relevant HTML elements:
+					 * `data.match(/tag_ID=(\d+)/)[1]` matches the term ID from the data variable.
+					 * This term ID is then used to select the relevant HTML elements:
 					 * The parent box and the tag cloud.
 					 */
 					$('select#parent option[value="' + data.match(/tag_ID=(\d+)/)[1] + '"]').remove();
 					$('a.tag-link-' + data.match(/tag_ID=(\d+)/)[1]).remove();
 
 				} else if ( '-1' == r ) {
-					$('#ajax-response').empty().append('<div class="error"><p>' + tagsl10n.noPerm + '</p></div>');
+					$('#ajax-response').empty().append('<div class="error"><p>' + wp.i18n.__( 'Sorry, you are not allowed to do that.' ) + '</p></div>');
 					tr.children().css('backgroundColor', '');
 
 				} else {
-					$('#ajax-response').empty().append('<div class="error"><p>' + tagsl10n.broken + '</p></div>');
+					$('#ajax-response').empty().append('<div class="error"><p>' + wp.i18n.__( 'Something went wrong.' ) + '</p></div>');
 					tr.children().css('backgroundColor', '');
 				}
 			});
@@ -75,7 +75,7 @@ jQuery(document).ready(function($) {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	$( '#edittag' ).on( 'click', '.delete', function( e ) {
 		if ( 'undefined' === typeof showNotice ) {
@@ -96,9 +96,9 @@ jQuery(document).ready(function($) {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @returns boolean Always returns false to cancel the default event handling.
+	 * @return {boolean} Always returns false to cancel the default event handling.
 	 */
-	$('#submit').click(function(){
+	$('#submit').on( 'click', function(){
 		var form = $(this).parents('form');
 
 		if ( ! validateForm( form ) )
@@ -117,7 +117,7 @@ jQuery(document).ready(function($) {
 		 *
 		 * @param {string} r The response from the server.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		$.post(ajaxurl, $('#addtag').serialize(), function(r){
 			var res, parent, term, indent, i;
@@ -132,10 +132,14 @@ jQuery(document).ready(function($) {
 
 			parent = form.find( 'select#parent' ).val();
 
-			if ( parent > 0 && $('#tag-' + parent ).length > 0 ) // If the parent exists on this page, insert it below. Else insert it at the top of the list.
-				$( '.tags #tag-' + parent ).after( res.responses[0].supplemental.noparents ); // As the parent exists, Insert the version with - - - prefixed
-			else
-				$( '.tags' ).prepend( res.responses[0].supplemental.parents ); // As the parent is not visible, Insert the version with Parent - Child - ThisTerm
+			// If the parent exists on this page, insert it below. Else insert it at the top of the list.
+			if ( parent > 0 && $('#tag-' + parent ).length > 0 ) {
+				// As the parent exists, insert the version with - - - prefixed.
+				$( '.tags #tag-' + parent ).after( res.responses[0].supplemental.noparents );
+			} else {
+				// As the parent is not visible, insert the version with Parent - Child - ThisTerm.
+				$( '.tags' ).prepend( res.responses[0].supplemental.parents );
+			}
 
 			$('.tags .no-items').remove();
 
@@ -143,7 +147,7 @@ jQuery(document).ready(function($) {
 				// Parents field exists, Add new term to the list.
 				term = res.responses[1].supplemental;
 
-				// Create an indent for the Parent field
+				// Create an indent for the Parent field.
 				indent = '';
 				for ( i = 0; i < res.responses[1].position; i++ )
 					indent += '&nbsp;&nbsp;&nbsp;';

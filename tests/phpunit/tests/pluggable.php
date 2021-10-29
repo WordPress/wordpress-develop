@@ -62,7 +62,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 		foreach ( $expected as $function => $sig ) {
 			$msg = 'Function: ' . $function . '()';
 			$this->assertTrue( function_exists( $function ), $msg );
-			$this->assertTrue( in_array( $function, $defined, true ), $msg );
+			$this->assertContains( $function, $defined, $msg );
 		}
 
 	}
@@ -88,7 +88,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 			'wp-includes/pluggable.php',
 		);
 
-		// Pluggable function signatures are not tested when an external object cache is in use. #31491
+		// Pluggable function signatures are not tested when an external object cache is in use. See #31491.
 		if ( ! wp_using_ext_object_cache() ) {
 			$test_files[] = 'wp-includes/cache.php';
 		}
@@ -260,7 +260,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 			'install_global_terms'            => array(),
 		);
 
-		// Pluggable function signatures are not tested when an external object cache is in use. #31491
+		// Pluggable function signatures are not tested when an external object cache is in use. See #31491.
 		if ( ! wp_using_ext_object_cache() ) {
 			$signatures = array_merge(
 				$signatures,
@@ -289,6 +289,11 @@ class Tests_Pluggable extends WP_UnitTestCase {
 						'group' => '',
 						'force' => false,
 						'found' => null,
+					),
+					'wp_cache_get_multiple'              => array(
+						'keys',
+						'group' => '',
+						'force' => false,
 					),
 					'wp_cache_incr'                      => array(
 						'key',
@@ -319,4 +324,19 @@ class Tests_Pluggable extends WP_UnitTestCase {
 		return $signatures;
 	}
 
+	/**
+	 * @ticket 28020
+	 */
+	public function test_get_user_by_should_return_same_instance_as_wp_get_current_user() {
+		// Create a test user.
+		$new_user = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+
+		// Set the test user as the current user.
+		$current_user = wp_set_current_user( $new_user );
+
+		// Get the test user using get_user_by().
+		$from_get_user_by = get_user_by( 'id', $new_user );
+
+		$this->assertSame( $current_user, $from_get_user_by );
+	}
 }

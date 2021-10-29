@@ -10,7 +10,7 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'upload_files' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to upload files.' ) );
@@ -29,7 +29,7 @@ if ( isset( $_REQUEST['post_id'] ) ) {
 if ( $_POST ) {
 	if ( isset( $_POST['html-upload'] ) && ! empty( $_FILES ) ) {
 		check_admin_referer( 'media-form' );
-		// Upload File button was clicked
+		// Upload File button was clicked.
 		$upload_id = media_handle_upload( 'async-upload', $post_id );
 		if ( is_wp_error( $upload_id ) ) {
 			wp_die( $upload_id );
@@ -39,6 +39,7 @@ if ( $_POST ) {
 	exit;
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Upload New Media' );
 $parent_file = 'upload.php';
 
@@ -61,7 +62,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 $form_class = 'media-upload-form type-form validate';
 
@@ -72,18 +73,18 @@ if ( get_user_setting( 'uploader' ) || isset( $_GET['browser-uploader'] ) ) {
 <div class="wrap">
 	<h1><?php echo esc_html( $title ); ?></h1>
 
-	<form enctype="multipart/form-data" method="post" action="<?php echo admin_url( 'media-new.php' ); ?>" class="<?php echo esc_attr( $form_class ); ?>" id="file-form">
+	<form enctype="multipart/form-data" method="post" action="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="<?php echo esc_attr( $form_class ); ?>" id="file-form">
 
 	<?php media_upload_form(); ?>
 
 	<script type="text/javascript">
-	var post_id = <?php echo $post_id; ?>, shortform = 3;
+	var post_id = <?php echo absint( $post_id ); ?>, shortform = 3;
 	</script>
-	<input type="hidden" name="post_id" id="post_id" value="<?php echo $post_id; ?>" />
+	<input type="hidden" name="post_id" id="post_id" value="<?php echo absint( $post_id ); ?>" />
 	<?php wp_nonce_field( 'media-form' ); ?>
 	<div id="media-items" class="hide-if-no-js"></div>
 	</form>
 </div>
 
 <?php
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

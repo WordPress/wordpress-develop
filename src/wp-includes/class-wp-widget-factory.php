@@ -46,19 +46,6 @@ class WP_Widget_Factory {
 	}
 
 	/**
-	 * Memory for the number of times unique class instances have been hashed.
-	 *
-	 * This can be eliminated in favor of straight spl_object_hash() when 5.3
-	 * is the minimum requirement for PHP.
-	 *
-	 * @since 4.6.0
-	 * @var array
-	 *
-	 * @see WP_Widget_Factory::hash_object()
-	 */
-	private $hashed_class_counts = array();
-
-	/**
 	 * Registers a widget subclass.
 	 *
 	 * @since 2.8.0
@@ -106,7 +93,7 @@ class WP_Widget_Factory {
 		$registered = array_map( '_get_widget_id_base', $registered );
 
 		foreach ( $keys as $key ) {
-			// don't register new widget if old widget with the same id is already registered
+			// Don't register new widget if old widget with the same id is already registered.
 			if ( in_array( $this->widgets[ $key ]->id_base, $registered, true ) ) {
 				unset( $this->widgets[ $key ] );
 				continue;
@@ -114,5 +101,40 @@ class WP_Widget_Factory {
 
 			$this->widgets[ $key ]->_register();
 		}
+	}
+
+	/**
+	 * Returns the registered WP_Widget object for the given widget type.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $id_base Widget type ID.
+	 * @return WP_Widget|null
+	 */
+	public function get_widget_object( $id_base ) {
+		$key = $this->get_widget_key( $id_base );
+		if ( '' === $key ) {
+			return null;
+		}
+
+		return $this->widgets[ $key ];
+	}
+
+	/**
+	 * Returns the registered key for the given widget type.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $id_base Widget type ID.
+	 * @return string
+	 */
+	public function get_widget_key( $id_base ) {
+		foreach ( $this->widgets as $key => $widget_object ) {
+			if ( $widget_object->id_base === $id_base ) {
+				return $key;
+			}
+		}
+
+		return '';
 	}
 }

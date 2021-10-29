@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Nineteen
- * @since 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 
 /**
@@ -141,7 +141,6 @@ add_action( 'customize_controls_enqueue_scripts', 'twentynineteen_panels_js' );
  * Sanitize custom color choice.
  *
  * @param string $choice Whether image filter is active.
- *
  * @return string
  */
 function twentynineteen_sanitize_color_option( $choice ) {

@@ -4,17 +4,21 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 	/**
 	 * CUSTOMIZER SETTINGS
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	class TwentyTwenty_Customize {
 
 		/**
 		 * Register customizer options.
+		 *
+		 * @since Twenty Twenty 1.0
 		 *
 		 * @param WP_Customize_Manager $wp_customize Theme Customizer object.
 		 */
@@ -122,8 +126,8 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 					'section' => 'colors',
 					'label'   => __( 'Primary Color', 'twentytwenty' ),
 					'choices' => array(
-						'default' => __( 'Default', 'twentytwenty' ),
-						'custom'  => __( 'Custom', 'twentytwenty' ),
+						'default' => _x( 'Default', 'color', 'twentytwenty' ),
+						'custom'  => _x( 'Custom', 'color', 'twentytwenty' ),
 					),
 				)
 			);
@@ -134,7 +138,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 			 * The control is a hue-only colorpicker, and there is a separate setting that holds values
 			 * for other colors calculated based on the selected hue and various background-colors on the page.
 			 *
-			 * @since 1.0.0
+			 * @since Twenty Twenty 1.0
 			 */
 
 			// Add the setting for the hue colorpicker.
@@ -182,7 +186,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 						'settings'        => 'accent_hue',
 						'description'     => __( 'Apply a custom color for links, buttons, featured images.', 'twentytwenty' ),
 						'mode'            => 'hue',
-						'active_callback' => function() use ( $wp_customize ) {
+						'active_callback' => static function() use ( $wp_customize ) {
 							return ( 'custom' === $wp_customize->get_setting( 'accent_hue_active' )->value() );
 						},
 					)
@@ -205,7 +209,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 				)
 			);
 
-			/* Enable Header Search --------- */
+			/* Enable Header Search ----------------------------------------------- */
 
 			$wp_customize->add_setting(
 				'enable_header_search',
@@ -223,6 +227,27 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 					'section'  => 'options',
 					'priority' => 10,
 					'label'    => __( 'Show search in header', 'twentytwenty' ),
+				)
+			);
+
+			/* Show author bio ---------------------------------------------------- */
+
+			$wp_customize->add_setting(
+				'show_author_bio',
+				array(
+					'capability'        => 'edit_theme_options',
+					'default'           => true,
+					'sanitize_callback' => array( __CLASS__, 'sanitize_checkbox' ),
+				)
+			);
+
+			$wp_customize->add_control(
+				'show_author_bio',
+				array(
+					'type'     => 'checkbox',
+					'section'  => 'options',
+					'priority' => 10,
+					'label'    => __( 'Show author bio', 'twentytwenty' ),
 				)
 			);
 
@@ -391,11 +416,10 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		/**
 		 * Sanitization callback for the "accent_accessible_colors" setting.
 		 *
-		 * @static
-		 * @access public
-		 * @since 1.0.0
+		 * @since Twenty Twenty 1.0
+		 *
 		 * @param array $value The value we want to sanitize.
-		 * @return array       Returns sanitized value. Each item in the array gets sanitized separately.
+		 * @return array Returns sanitized value. Each item in the array gets sanitized separately.
 		 */
 		public static function sanitize_accent_accessible_colors( $value ) {
 
@@ -415,10 +439,11 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		/**
 		 * Sanitize select.
 		 *
-		 * @param string $input The input from the setting.
-		 * @param object $setting The selected setting.
+		 * @since Twenty Twenty 1.0
 		 *
-		 * @return string $input|$setting->default The input from the setting or the default setting.
+		 * @param string $input   The input from the setting.
+		 * @param object $setting The selected setting.
+		 * @return string The input from the setting or the default setting.
 		 */
 		public static function sanitize_select( $input, $setting ) {
 			$input   = sanitize_key( $input );
@@ -429,8 +454,9 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		/**
 		 * Sanitize boolean for checkbox.
 		 *
-		 * @param bool $checked Whether or not a box is checked.
+		 * @since Twenty Twenty 1.0
 		 *
+		 * @param bool $checked Whether or not a box is checked.
 		 * @return bool
 		 */
 		public static function sanitize_checkbox( $checked ) {
@@ -450,6 +476,8 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 if ( ! function_exists( 'twentytwenty_customize_partial_blogname' ) ) {
 	/**
 	 * Render the site title for the selective refresh partial.
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	function twentytwenty_customize_partial_blogname() {
 		bloginfo( 'name' );
@@ -459,6 +487,8 @@ if ( ! function_exists( 'twentytwenty_customize_partial_blogname' ) ) {
 if ( ! function_exists( 'twentytwenty_customize_partial_blogdescription' ) ) {
 	/**
 	 * Render the site description for the selective refresh partial.
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	function twentytwenty_customize_partial_blogdescription() {
 		bloginfo( 'description' );
@@ -470,6 +500,8 @@ if ( ! function_exists( 'twentytwenty_customize_partial_site_logo' ) ) {
 	 * Render the site logo for the selective refresh partial.
 	 *
 	 * Doing it this way so we don't have issues with `render_callback`'s arguments.
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	function twentytwenty_customize_partial_site_logo() {
 		twentytwenty_site_logo();
@@ -480,18 +512,22 @@ if ( ! function_exists( 'twentytwenty_customize_partial_site_logo' ) ) {
 /**
  * Input attributes for cover overlay opacity option.
  *
+ * @since Twenty Twenty 1.0
+ *
  * @return array Array containing attribute names and their values.
  */
 function twentytwenty_customize_opacity_range() {
 	/**
-	 * Filter the input attributes for opacity
+	 * Filters the input attributes for opacity.
+	 *
+	 * @since Twenty Twenty 1.0
 	 *
 	 * @param array $attrs {
-	 *     The attributes
+	 *     The attributes.
 	 *
-	 *     @type int $min Minimum value
-	 *     @type int $max Maximum value
-	 *     @type int $step Interval between numbers
+	 *     @type int $min  Minimum value.
+	 *     @type int $max  Maximum value.
+	 *     @type int $step Interval between numbers.
 	 * }
 	 */
 	return apply_filters(

@@ -31,7 +31,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	 *
 	 * @since 4.2.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	activate: function() {
 		this.frame.on( 'content:create:crop', this.createCropContent, this );
@@ -44,7 +44,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	 *
 	 * @since 4.2.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	deactivate: function() {
 		this.frame.toolbar.mode('browse');
@@ -59,7 +59,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	 *
 	 * @fires crop window
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	createCropContent: function() {
 		this.cropperView = new wp.media.view.Cropper({
@@ -76,7 +76,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	 *
 	 * @since 4.2.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	removeCropper: function() {
 		this.imgSelect.cancelSelection();
@@ -90,7 +90,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	 *
 	 * @since 4.2.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	createCropToolbar: function() {
 		var canSkipCrop, toolbarOptions;
@@ -152,7 +152,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	 *
 	 * @since 4.2.0
 	 *
-	 * @returns {$.promise} A jQuery promise with the custom header crop details.
+	 * @return {$.promise} A jQuery promise with the custom header crop details.
 	 */
 	doCrop: function( attachment ) {
 		return wp.ajax.post( 'custom-header-crop', _.extend(

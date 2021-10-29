@@ -8,11 +8,11 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_Get_Main_Site_ID extends WP_UnitTestCase {
+	class Tests_Multisite_GetMainSiteId extends WP_UnitTestCase {
 		protected static $network_ids;
 		protected static $site_ids;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'wordpress.org/' => array(
 					'domain' => 'wordpress.org',
@@ -35,14 +35,14 @@ if ( is_multisite() ) :
 					'path'   => '/',
 				),
 				'wordpress.org/'     => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'wordpress.org/foo/' => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/foo/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 			);
 
@@ -54,7 +54,7 @@ if ( is_multisite() ) :
 
 		public static function wpTearDownAfterClass() {
 			foreach ( self::$site_ids as $id ) {
-				wpmu_delete_blog( $id, true );
+				wp_delete_site( $id );
 			}
 
 			global $wpdb;

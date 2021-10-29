@@ -7,112 +7,115 @@
  */
 
 /**
- * Endpoint Mask for default, which is nothing.
+ * Endpoint mask that matches nothing.
  *
  * @since 2.1.0
  */
 define( 'EP_NONE', 0 );
 
 /**
- * Endpoint Mask for Permalink.
+ * Endpoint mask that matches post permalinks.
  *
  * @since 2.1.0
  */
 define( 'EP_PERMALINK', 1 );
 
 /**
- * Endpoint Mask for Attachment.
+ * Endpoint mask that matches attachment permalinks.
  *
  * @since 2.1.0
  */
 define( 'EP_ATTACHMENT', 2 );
 
 /**
- * Endpoint Mask for date.
+ * Endpoint mask that matches any date archives.
  *
  * @since 2.1.0
  */
 define( 'EP_DATE', 4 );
 
 /**
- * Endpoint Mask for year
+ * Endpoint mask that matches yearly archives.
  *
  * @since 2.1.0
  */
 define( 'EP_YEAR', 8 );
 
 /**
- * Endpoint Mask for month.
+ * Endpoint mask that matches monthly archives.
  *
  * @since 2.1.0
  */
 define( 'EP_MONTH', 16 );
 
 /**
- * Endpoint Mask for day.
+ * Endpoint mask that matches daily archives.
  *
  * @since 2.1.0
  */
 define( 'EP_DAY', 32 );
 
 /**
- * Endpoint Mask for root.
+ * Endpoint mask that matches the site root.
  *
  * @since 2.1.0
  */
 define( 'EP_ROOT', 64 );
 
 /**
- * Endpoint Mask for comments.
+ * Endpoint mask that matches comment feeds.
  *
  * @since 2.1.0
  */
 define( 'EP_COMMENTS', 128 );
 
 /**
- * Endpoint Mask for searches.
+ * Endpoint mask that matches searches.
+ *
+ * Note that this only matches a search at a "pretty" URL such as
+ * `/search/my-search-term`, not `?s=my-search-term`.
  *
  * @since 2.1.0
  */
 define( 'EP_SEARCH', 256 );
 
 /**
- * Endpoint Mask for categories.
+ * Endpoint mask that matches category archives.
  *
  * @since 2.1.0
  */
 define( 'EP_CATEGORIES', 512 );
 
 /**
- * Endpoint Mask for tags.
+ * Endpoint mask that matches tag archives.
  *
  * @since 2.3.0
  */
 define( 'EP_TAGS', 1024 );
 
 /**
- * Endpoint Mask for authors.
+ * Endpoint mask that matches author archives.
  *
  * @since 2.1.0
  */
 define( 'EP_AUTHORS', 2048 );
 
 /**
- * Endpoint Mask for pages.
+ * Endpoint mask that matches pages.
  *
  * @since 2.1.0
  */
 define( 'EP_PAGES', 4096 );
 
 /**
- * Endpoint Mask for all archive views.
+ * Endpoint mask that matches all archive views.
  *
  * @since 3.7.0
  */
 define( 'EP_ALL_ARCHIVES', EP_DATE | EP_YEAR | EP_MONTH | EP_DAY | EP_CATEGORIES | EP_TAGS | EP_AUTHORS );
 
 /**
- * Endpoint Mask for everything.
+ * Endpoint mask that matches everything.
  *
  * @since 2.1.0
  */
@@ -143,9 +146,9 @@ function add_rewrite_rule( $regex, $query, $after = 'bottom' ) {
 /**
  * Add a new rewrite tag (like %postname%).
  *
- * The $query parameter is optional. If it is omitted you must ensure that
- * you call this on, or before, the {@see 'init'} hook. This is because $query defaults
- * to "$tag=", and for this to work a new query var has to be added.
+ * The `$query` parameter is optional. If it is omitted you must ensure that you call
+ * this on, or before, the {@see 'init'} hook. This is because `$query` defaults to
+ * `$tag=`, and for this to work a new query var has to be added.
  *
  * @since 2.1.0
  *
@@ -157,8 +160,8 @@ function add_rewrite_rule( $regex, $query, $after = 'bottom' ) {
  * @param string $query Optional. String to append to the rewritten query. Must end in '='. Default empty.
  */
 function add_rewrite_tag( $tag, $regex, $query = '' ) {
-	// validate the tag's name
-	if ( strlen( $tag ) < 3 || $tag[0] != '%' || $tag[ strlen( $tag ) - 1 ] != '%' ) {
+	// Validate the tag's name.
+	if ( strlen( $tag ) < 3 || '%' !== $tag[0] || '%' !== $tag[ strlen( $tag ) - 1 ] ) {
 		return;
 	}
 
@@ -247,13 +250,13 @@ function remove_permastruct( $name ) {
 function add_feed( $feedname, $function ) {
 	global $wp_rewrite;
 
-	if ( ! in_array( $feedname, $wp_rewrite->feeds ) ) {
+	if ( ! in_array( $feedname, $wp_rewrite->feeds, true ) ) {
 		$wp_rewrite->feeds[] = $feedname;
 	}
 
 	$hook = 'do_feed_' . $feedname;
 
-	// Remove default function hook
+	// Remove default function hook.
 	remove_action( $hook, $hook );
 
 	add_action( $hook, $function, 10, 2 );
@@ -269,7 +272,7 @@ function add_feed( $feedname, $function ) {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param bool $hard Whether to update .htaccess (hard flush) or just update
- *                   rewrite_rules transient (soft flush). Default is true (hard).
+ *                   rewrite_rules option (soft flush). Default is true (hard).
  */
 function flush_rewrite_rules( $hard = true ) {
 	global $wp_rewrite;
@@ -308,6 +311,23 @@ function flush_rewrite_rules( $hard = true ) {
  *
  * @param string      $name      Name of the endpoint.
  * @param int         $places    Endpoint mask describing the places the endpoint should be added.
+ *                               Accepts a mask of:
+ *                               - `EP_ALL`
+ *                               - `EP_NONE`
+ *                               - `EP_ALL_ARCHIVES`
+ *                               - `EP_ATTACHMENT`
+ *                               - `EP_AUTHORS`
+ *                               - `EP_CATEGORIES`
+ *                               - `EP_COMMENTS`
+ *                               - `EP_DATE`
+ *                               - `EP_DAY`
+ *                               - `EP_MONTH`
+ *                               - `EP_PAGES`
+ *                               - `EP_PERMALINK`
+ *                               - `EP_ROOT`
+ *                               - `EP_SEARCH`
+ *                               - `EP_TAGS`
+ *                               - `EP_YEAR`
  * @param string|bool $query_var Name of the corresponding query variable. Pass `false` to skip registering a query_var
  *                               for this endpoint. Defaults to the value of `$name`.
  */
@@ -364,7 +384,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 
 	// Identify the 'postname' position in the permastruct array.
 	$permastructs   = array_values( array_filter( explode( '/', get_option( 'permalink_structure' ) ) ) );
-	$postname_index = array_search( '%postname%', $permastructs );
+	$postname_index = array_search( '%postname%', $permastructs, true );
 
 	if ( false === $postname_index ) {
 		return $query_vars;
@@ -400,12 +420,12 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	// If the date of the post doesn't match the date specified in the URL, resolve to the date archive.
 	if ( preg_match( '/^([0-9]{4})\-([0-9]{2})/', $post->post_date, $matches ) && isset( $query_vars['year'] ) && ( 'monthnum' === $compare || 'day' === $compare ) ) {
 		// $matches[1] is the year the post was published.
-		if ( intval( $query_vars['year'] ) !== intval( $matches[1] ) ) {
+		if ( (int) $query_vars['year'] !== (int) $matches[1] ) {
 			return $query_vars;
 		}
 
 		// $matches[2] is the month the post was published.
-		if ( 'day' === $compare && isset( $query_vars['monthnum'] ) && intval( $query_vars['monthnum'] ) !== intval( $matches[2] ) ) {
+		if ( 'day' === $compare && isset( $query_vars['monthnum'] ) && (int) $query_vars['monthnum'] !== (int) $matches[2] ) {
 			return $query_vars;
 		}
 	}
@@ -420,7 +440,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	} elseif ( 'monthnum' === $compare && isset( $query_vars['day'] ) ) {
 		$maybe_page = $query_vars['day'];
 	}
-	// Bug found in #11694 - 'page' was returning '/4'
+	// Bug found in #11694 - 'page' was returning '/4'.
 	$maybe_page = (int) trim( $maybe_page, '/' );
 
 	$post_page_count = substr_count( $post->post_content, '<!--nextpage-->' ) + 1;
@@ -437,7 +457,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 
 	// If we've gotten to this point, we have a slug/date clash. First, adjust for nextpage.
 	if ( '' !== $maybe_page ) {
-		$query_vars['page'] = intval( $maybe_page );
+		$query_vars['page'] = (int) $maybe_page;
 	}
 
 	// Next, unset autodetected date-related query vars.
@@ -485,7 +505,7 @@ function url_to_postid( $url ) {
 		return 0;
 	}
 
-	// First, check to see if there is a 'p=N' or 'page_id=N' to match against
+	// First, check to see if there is a 'p=N' or 'page_id=N' to match against.
 	if ( preg_match( '#[?&](p|page_id|attachment_id)=(\d+)#', $url, $values ) ) {
 		$id = absint( $values[2] );
 		if ( $id ) {
@@ -493,11 +513,11 @@ function url_to_postid( $url ) {
 		}
 	}
 
-	// Get rid of the #anchor
+	// Get rid of the #anchor.
 	$url_split = explode( '#', $url );
 	$url       = $url_split[0];
 
-	// Get rid of URL ?query=string
+	// Get rid of URL ?query=string.
 	$url_split = explode( '?', $url );
 	$url       = $url_split[0];
 
@@ -505,17 +525,17 @@ function url_to_postid( $url ) {
 	$scheme = parse_url( home_url(), PHP_URL_SCHEME );
 	$url    = set_url_scheme( $url, $scheme );
 
-	// Add 'www.' if it is absent and should be there
+	// Add 'www.' if it is absent and should be there.
 	if ( false !== strpos( home_url(), '://www.' ) && false === strpos( $url, '://www.' ) ) {
 		$url = str_replace( '://', '://www.', $url );
 	}
 
-	// Strip 'www.' if it is present and shouldn't be
+	// Strip 'www.' if it is present and shouldn't be.
 	if ( false === strpos( home_url(), '://www.' ) ) {
 		$url = str_replace( '://www.', '://', $url );
 	}
 
-	if ( trim( $url, '/' ) === home_url() && 'page' == get_option( 'show_on_front' ) ) {
+	if ( trim( $url, '/' ) === home_url() && 'page' === get_option( 'show_on_front' ) ) {
 		$page_on_front = get_option( 'page_on_front' );
 
 		if ( $page_on_front && get_post( $page_on_front ) instanceof WP_Post ) {
@@ -523,30 +543,30 @@ function url_to_postid( $url ) {
 		}
 	}
 
-	// Check to see if we are using rewrite rules
+	// Check to see if we are using rewrite rules.
 	$rewrite = $wp_rewrite->wp_rewrite_rules();
 
-	// Not using rewrite rules, and 'p=N' and 'page_id=N' methods failed, so we're out of options
+	// Not using rewrite rules, and 'p=N' and 'page_id=N' methods failed, so we're out of options.
 	if ( empty( $rewrite ) ) {
 		return 0;
 	}
 
-	// Strip 'index.php/' if we're not using path info permalinks
+	// Strip 'index.php/' if we're not using path info permalinks.
 	if ( ! $wp_rewrite->using_index_permalinks() ) {
 		$url = str_replace( $wp_rewrite->index . '/', '', $url );
 	}
 
 	if ( false !== strpos( trailingslashit( $url ), home_url( '/' ) ) ) {
-		// Chop off http://domain.com/[path]
+		// Chop off http://domain.com/[path].
 		$url = str_replace( home_url(), '', $url );
 	} else {
-		// Chop off /path/to/blog
+		// Chop off /path/to/blog.
 		$home_path = parse_url( home_url( '/' ) );
 		$home_path = isset( $home_path['path'] ) ? $home_path['path'] : '';
 		$url       = preg_replace( sprintf( '#^%s#', preg_quote( $home_path ) ), '', trailingslashit( $url ) );
 	}
 
-	// Trim leading and lagging slashes
+	// Trim leading and lagging slashes.
 	$url = trim( $url, '/' );
 
 	$request              = $url;
@@ -562,8 +582,8 @@ function url_to_postid( $url ) {
 	$request_match = $request;
 	foreach ( (array) $rewrite as $match => $query ) {
 
-		// If the requesting file is the anchor of the match, prepend it
-		// to the path info.
+		// If the requesting file is the anchor of the match,
+		// prepend it to the path info.
 		if ( ! empty( $url ) && ( $url != $request ) && ( strpos( $match, $url ) === 0 ) ) {
 			$request_match = $url . '/' . $request;
 		}
@@ -591,12 +611,12 @@ function url_to_postid( $url ) {
 			// Substitute the substring matches into the query.
 			$query = addslashes( WP_MatchesMapRegex::apply( $query, $matches ) );
 
-			// Filter out non-public query vars
+			// Filter out non-public query vars.
 			global $wp;
 			parse_str( $query, $query_vars );
 			$query = array();
 			foreach ( (array) $query_vars as $key => $value ) {
-				if ( in_array( $key, $wp->public_query_vars ) ) {
+				if ( in_array( (string) $key, $wp->public_query_vars, true ) ) {
 					$query[ $key ] = $value;
 					if ( isset( $post_type_query_vars[ $key ] ) ) {
 						$query['post_type'] = $post_type_query_vars[ $key ];
@@ -608,7 +628,7 @@ function url_to_postid( $url ) {
 			// Resolve conflicts between posts with numeric slugs and date archive queries.
 			$query = wp_resolve_numeric_slug_conflicts( $query );
 
-			// Do the query
+			// Do the query.
 			$query = new WP_Query( $query );
 			if ( ! empty( $query->posts ) && $query->is_singular ) {
 				return $query->post->ID;

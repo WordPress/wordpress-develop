@@ -27,7 +27,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param array $args The comment details.
 	 *
-	 * @return false|int The comment's ID on success, false on failure.
+	 * @return int|false The comment's ID on success, false on failure.
 	 */
 	public function create_object( $args ) {
 		return wp_insert_comment( $this->addslashes_deep( $args ) );
@@ -36,10 +36,10 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Updates a comment.
 	 *
-	 * @param int   $comment_id The comment id.
+	 * @param int   $comment_id The comment ID.
 	 * @param array $fields     The comment details.
 	 *
-	 * @return int When updated 1, not update 0.
+	 * @return int The value 1 if the comment was updated, 0 if not updated.
 	 */
 	public function update_object( $comment_id, $fields ) {
 		$fields['comment_ID'] = $comment_id;
@@ -47,14 +47,14 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Creates multiple comments on given post.
+	 * Creates multiple comments on a given post.
 	 *
-	 * @param int   $post_id                The post id to create comments for.
+	 * @param int   $post_id                ID of the post to create comments for.
 	 * @param int   $count                  Total amount of comments to create.
 	 * @param array $args                   The comment details.
 	 * @param null  $generation_definitions Default values.
 	 *
-	 * @return int[] Array with the comment ids.
+	 * @return int[] Array with the comment IDs.
 	 */
 	public function create_post_comments( $post_id, $count = 1, $args = array(), $generation_definitions = null ) {
 		$args['comment_post_ID'] = $post_id;
@@ -62,11 +62,11 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Returns a comment.
+	 * Retrieves a comment by a given ID.
 	 *
-	 * @param int $comment_id The comment id.
+	 * @param int $comment_id ID of the comment to retrieve.
 	 *
-	 * @return null|WP_Comment WP_Comment when found, null when not found.
+	 * @return WP_Comment|null WP_Comment object on success, null on failure.
 	 */
 	public function get_object_by_id( $comment_id ) {
 		return get_comment( $comment_id );

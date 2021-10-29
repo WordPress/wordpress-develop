@@ -12,11 +12,10 @@
  *
  * @since 3.6.0
  *
- * @param object|int $post         The post object. Also accepts a post ID.
- * @param int        $compare_from The revision ID to compare from.
- * @param int        $compare_to   The revision ID to come to.
- *
- * @return array|bool Associative array of a post's revisioned fields and their diffs.
+ * @param WP_Post|int $post         The post object or post ID.
+ * @param int         $compare_from The revision ID to compare from.
+ * @param int         $compare_to   The revision ID to come to.
+ * @return array|false Associative array of a post's revisioned fields and their diffs.
  *                    Or, false on failure.
  */
 function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
@@ -55,7 +54,7 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		$compare_to   = $temp;
 	}
 
-	// Add default title if title field is empty
+	// Add default title if title field is empty.
 	if ( $compare_from && empty( $compare_from->post_title ) ) {
 		$compare_from->post_title = __( '(no title)' );
 	}
@@ -69,8 +68,14 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		/**
 		 * Contextually filter a post revision field.
 		 *
-		 * The dynamic portion of the hook name, `$field`, corresponds to each of the post
-		 * fields of the revision object being iterated over in a foreach statement.
+		 * The dynamic portion of the hook name, `$field`, corresponds to a name of a
+		 * field of the revision object.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `_wp_post_revision_field_post_title`
+		 *  - `_wp_post_revision_field_post_content`
+		 *  - `_wp_post_revision_field_post_excerpt`
 		 *
 		 * @since 3.6.0
 		 *
@@ -87,6 +92,8 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 
 		$args = array(
 			'show_split_view' => true,
+			'title_left'      => __( 'Removed' ),
+			'title_right'     => __( 'Added' ),
 		);
 
 		/**
@@ -158,10 +165,9 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
  *
  * @since 3.6.0
  *
- * @param object|int $post                 The post object. Also accepts a post ID.
- * @param int        $selected_revision_id The selected revision ID.
- * @param int        $from                 Optional. The revision ID to compare from.
- *
+ * @param WP_Post|int $post                 The post object or post ID.
+ * @param int         $selected_revision_id The selected revision ID.
+ * @param int         $from                 Optional. The revision ID to compare from.
  * @return array An associative array of revision data and related settings.
  */
 function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null ) {
@@ -277,11 +283,11 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 	 * If we only have one revision, the initial revision is missing; This happens
 	 * when we have an autsosave and the user has clicked 'View the Autosave'
 	 */
-	if ( 1 === sizeof( $revisions ) ) {
+	if ( 1 === count( $revisions ) ) {
 		$revisions[ $post->ID ] = array(
 			'id'         => $post->ID,
 			'title'      => get_the_title( $post->ID ),
-			'author'     => $authors[ $post->post_author ],
+			'author'     => $authors[ $revision->post_author ],
 			'date'       => date_i18n( __( 'M j, Y @ H:i' ), strtotime( $post->post_modified ) ),
 			'dateShort'  => date_i18n( _x( 'j M @ H:i', 'revision date short format' ), strtotime( $post->post_modified ) ),
 			/* translators: %s: Human-readable time difference. */
@@ -314,7 +320,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 	// Now, grab the initial diff.
 	$compare_two_mode = is_numeric( $from );
 	if ( ! $compare_two_mode ) {
-		$found = array_search( $selected_revision_id, array_keys( $revisions ) );
+		$found = array_search( $selected_revision_id, array_keys( $revisions ), true );
 		if ( $found ) {
 			$from = array_keys( array_slice( $revisions, $found - 1, 1, true ) );
 			$from = reset( $from );
@@ -340,7 +346,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 		'from'           => $from,
 		'diffData'       => $diffs,
 		'baseUrl'        => parse_url( admin_url( 'revision.php' ), PHP_URL_PATH ),
-		'compareTwoMode' => absint( $compare_two_mode ), // Apparently booleans are not allowed
+		'compareTwoMode' => absint( $compare_two_mode ), // Apparently booleans are not allowed.
 		'revisionIds'    => array_keys( $revisions ),
 	);
 }

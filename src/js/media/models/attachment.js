@@ -18,7 +18,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * @param {wp.media.model.Attachment} model
 	 * @param {Object} [options={}]
 	 *
-	 * @returns {Promise}
+	 * @return {Promise}
 	 */
 	sync: function( method, model, options ) {
 		// If the attachment does not yet have an `id`, return an instantly
@@ -39,7 +39,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 
 		// Overload the `update` request so properties can be saved.
 		} else if ( 'update' === method ) {
-			// If we do not have the necessary nonce, fail immeditately.
+			// If we do not have the necessary nonce, fail immediately.
 			if ( ! this.get('nonces') || ! this.get('nonces').update ) {
 				return $.Deferred().rejectWith( this ).promise();
 			}
@@ -100,8 +100,8 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * Convert date strings into Date objects.
 	 *
 	 * @param {Object} resp The raw response object, typically returned by fetch()
-	 * @returns {Object} The modified response object, which is the attributes hash
-	 *    to be set on the model.
+	 * @return {Object} The modified response object, which is the attributes hash
+	 *                  to be set on the model.
 	 */
 	parse: function( resp ) {
 		if ( ! resp ) {
@@ -118,12 +118,12 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 *
 	 * @this Backbone.Model
 	 *
-	 * @returns {Promise}
+	 * @return {Promise}
 	 */
 	saveCompat: function( data, options ) {
 		var model = this;
 
-		// If we do not have the necessary nonce, fail immeditately.
+		// If we do not have the necessary nonce, fail immediately.
 		if ( ! this.get('nonces') || ! this.get('nonces').update ) {
 			return $.Deferred().rejectWith( this ).promise();
 		}
@@ -143,7 +143,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * @static
 	 *
 	 * @param {Object} attrs
-	 * @returns {wp.media.model.Attachment}
+	 * @return {wp.media.model.Attachment}
 	 */
 	create: function( attrs ) {
 		var Attachments = wp.media.model.Attachments;
@@ -158,7 +158,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * @static
 	 * @param {string} id A string used to identify a model.
 	 * @param {Backbone.Model|undefined} attachment
-	 * @returns {wp.media.model.Attachment}
+	 * @return {wp.media.model.Attachment}
 	 */
 	get: _.memoize( function( id, attachment ) {
 		var Attachments = wp.media.model.Attachments;

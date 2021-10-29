@@ -19,7 +19,7 @@ if ( ! defined( 'WP_ADMIN' ) ) {
 }
 
 /** Load WordPress Bootstrap */
-require_once( dirname( dirname( __FILE__ ) ) . '/wp-load.php' );
+require_once dirname( __DIR__ ) . '/wp-load.php';
 
 /** Allow for cross-domain requests (from the front end). */
 send_origin_headers();
@@ -27,16 +27,16 @@ send_origin_headers();
 header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
 header( 'X-Robots-Tag: noindex' );
 
-// Require an action parameter
+// Require an action parameter.
 if ( empty( $_REQUEST['action'] ) ) {
 	wp_die( '0', 400 );
 }
 
 /** Load WordPress Administration APIs */
-require_once( ABSPATH . 'wp-admin/includes/admin.php' );
+require_once ABSPATH . 'wp-admin/includes/admin.php';
 
 /** Load Ajax Handlers for WordPress Core */
-require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 send_nosniff_header();
 nocache_headers();
@@ -139,20 +139,32 @@ $core_actions_post = array(
 	'health-check-background-updates',
 	'health-check-loopback-requests',
 	'health-check-get-sizes',
+	'toggle-auto-updates',
+	'send-password-reset',
 );
 
-// Deprecated
-$core_actions_post_deprecated = array( 'wp-fullscreen-save-post', 'press-this-save-post', 'press-this-add-category' );
+// Deprecated.
+$core_actions_post_deprecated = array(
+	'wp-fullscreen-save-post',
+	'press-this-save-post',
+	'press-this-add-category',
+	'health-check-dotorg-communication',
+	'health-check-is-in-debug-mode',
+	'health-check-background-updates',
+	'health-check-loopback-requests',
+);
 $core_actions_post            = array_merge( $core_actions_post, $core_actions_post_deprecated );
 
 // Register core Ajax calls.
-if ( ! empty( $_GET['action'] ) && in_array( $_GET['action'], $core_actions_get ) ) {
+if ( ! empty( $_GET['action'] ) && in_array( $_GET['action'], $core_actions_get, true ) ) {
 	add_action( 'wp_ajax_' . $_GET['action'], 'wp_ajax_' . str_replace( '-', '_', $_GET['action'] ), 1 );
 }
 
-if ( ! empty( $_POST['action'] ) && in_array( $_POST['action'], $core_actions_post ) ) {
+if ( ! empty( $_POST['action'] ) && in_array( $_POST['action'], $core_actions_post, true ) ) {
 	add_action( 'wp_ajax_' . $_POST['action'], 'wp_ajax_' . str_replace( '-', '_', $_POST['action'] ), 1 );
 }
+
+add_action( 'wp_ajax_nopriv_generate-password', 'wp_ajax_nopriv_generate_password' );
 
 add_action( 'wp_ajax_nopriv_heartbeat', 'wp_ajax_nopriv_heartbeat', 1 );
 
@@ -189,5 +201,5 @@ if ( is_user_logged_in() ) {
 	 */
 	do_action( "wp_ajax_nopriv_{$action}" );
 }
-// Default status
+// Default status.
 wp_die( '0' );

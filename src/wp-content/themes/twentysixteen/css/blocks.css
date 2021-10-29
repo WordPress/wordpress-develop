@@ -145,10 +145,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-code {
 	border: 0;
 	font-family: Inconsolata, monospace;
-	font-size: 16px;
-	font-size: 1rem;
 	line-height: 1.75;
 	padding: 0;
+}
+
+.wp-block-code code {
+	font-size: inherit;
 }
 
 /* Pullquote */
@@ -158,17 +160,19 @@ p.has-drop-cap:not(:focus)::first-letter {
 }
 
 .wp-block-pullquote blockquote {
-	border-left: 0;
+	color: #686868;
+	border-left: 4px solid #1a1a1a;
 	margin: 0;
-	padding: 0;
+	padding: 0 0 0 24px;
 }
 
 .rtl .wp-block-pullquote blockquote {
-	border-right: 0;
+	border-left: none;
+	border-right: 4px solid #1a1a1a;
+	padding: 0 24px 0 0;
 }
 
 .wp-block-pullquote p {
-	color: #686868;
 	font-size: 19px;
 	font-size: 1.1875rem;
 }
@@ -198,7 +202,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-table {
 	border-collapse: separate;
 	border-spacing: 0;
-	border-width: 1px 0 0 1px;
+	border-width: 0;
 	margin: 0 0 1.75em;
 	table-layout: fixed;
 	width: 100%;
@@ -323,7 +327,7 @@ hr.wp-block-separator {
 	line-height: 1.6153846154;
 }
 
-.wp-block-latest-comments .wp-block-latest-comments__comment {
+.wp-block-latest-comments .wp-block-latest-comments__comment:not(:first-child) {
 	border-top: 1px solid #d1d1d1;
 	margin-bottom: 0;
 	padding: 1.75em 0;
@@ -331,6 +335,21 @@ hr.wp-block-separator {
 
 .wp-block-latest-comments__comment-excerpt p:last-child {
 	margin-bottom: 0;
+}
+
+/* Query Loop & Post Template */
+
+.wp-block-query .wp-block-post-template {
+	margin-left: 0;
+}
+
+.wp-block-query .wp-block-post-template li {
+	margin-bottom: 0;
+	padding: 1.5em 0 0;
+}
+
+.wp-block-query .wp-block-post-template li:not(:first-child) {
+	border-top: 1px solid #d1d1d1;
 }
 
 /*--------------------------------------------------------------

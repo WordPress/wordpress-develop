@@ -1,0 +1,59 @@
+name: Welcome New Contributors
+
+on:
+  pull_request_target:
+    types: [ opened ]
+
+jobs:
+  # Comments on a pull request when the author is a new contributor.
+  post-welcome-message:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+
+    steps:
+      - uses: bubkoo/welcome-action@8dbbac2540d155744c90e4e37da6b05ffc9c5e2c # v1.0.3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FIRST_PR_COMMENT: >
+            Hi @{{ author }}! 👋
+
+
+            Thank you for your contribution to WordPress! 💖
+
+
+            It looks like this is your first pull request to `wordpress-develop`. Here are a few things to be aware of that may help you out!
+
+
+            **No one monitors this repository for new pull requests.** Pull requests **must** be attached to a Trac ticket to be considered for inclusion in WordPress Core. To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description.
+
+
+            **Pull requests are never merged on GitHub.** The WordPress codebase continues to be managed through the SVN repository that this GitHub repository mirrors. Please feel free to open pull requests to work on any contribution you are making.
+
+
+            More information about how GitHub pull requests can be used to contribute to WordPress can be found in [this blog post](https://make.wordpress.org/core/2020/02/21/working-on-trac-tickets-using-github-pull-requests/).
+
+
+            **Please include automated tests.** Including tests in your pull request is one way to help your patch be considered faster. To learn about WordPress' test suites, visit the [Automated Testing](https://make.wordpress.org/core/handbook/testing/automated-testing/) page in the handbook.
+
+
+            If you have not had a chance, please review the [Contribute with Code page](https://make.wordpress.org/core/handbook/contribute/) in the [WordPress Core Handbook](https://make.wordpress.org/core/handbook/).
+
+
+            The [Developer Hub](https://developer.wordpress.org/) also documents the various [coding standards](https://make.wordpress.org/core/handbook/best-practices/coding-standards/) that are followed:
+
+            - [PHP Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/)
+
+            - [CSS Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/css/)
+
+            - [HTML Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/html/)
+
+            - [JavaScript Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/javascript/)
+
+            - [Accessibility Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/accessibility/)
+
+            - [Inline Documentation Standards](https://developer.wordpress.org/coding-standards/inline-documentation-standards/)
+
+
+            Thank you,
+
+            The WordPress Project

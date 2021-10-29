@@ -1,7 +1,9 @@
+/* global ClipboardJS */
 var Attachment = wp.media.view.Attachment,
 	l10n = wp.media.view.l10n,
 	$ = jQuery,
-	Details;
+	Details,
+	__ = wp.i18n.__;
 
 Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototype */{
 	tagName:   'div',
@@ -27,6 +29,42 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	},
 
 	/**
+	 * Copies the attachment URL to the clipboard.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param {MouseEvent} event A click event.
+	 *
+	 * @return {void}
+	 */
+	 copyAttachmentDetailsURLClipboard: function() {
+		var clipboard = new ClipboardJS( '.copy-attachment-url' ),
+			successTimeout;
+
+		clipboard.on( 'success', function( event ) {
+			var triggerElement = $( event.trigger ),
+				successElement = $( '.success', triggerElement.closest( '.copy-to-clipboard-container' ) );
+
+			// Clear the selection and move focus back to the trigger.
+			event.clearSelection();
+			// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
+			triggerElement.trigger( 'focus' );
+
+			// Show success visual feedback.
+			clearTimeout( successTimeout );
+			successElement.removeClass( 'hidden' );
+
+			// Hide success visual feedback after 3 seconds since last success.
+			successTimeout = setTimeout( function() {
+				successElement.addClass( 'hidden' );
+			}, 3000 );
+
+			// Handle success audible feedback.
+			wp.a11y.speak( __( 'The file URL has been copied to your clipboard' ) );
+		} );
+	 },
+
+	/**
 	 * Shows the details of an attachment.
 	 *
 	 * @since 3.5.0
@@ -34,7 +72,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 * @constructs wp.media.view.Attachment.Details
 	 * @augments wp.media.view.Attachment
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	initialize: function() {
 		this.options = _.defaults( this.options, {
@@ -43,6 +81,8 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 
 		// Call 'initialize' directly on the parent class.
 		Attachment.prototype.initialize.apply( this, arguments );
+
+		this.copyAttachmentDetailsURLClipboard();
 	},
 
 	/**
@@ -65,18 +105,18 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 */
 	moveFocus: function() {
 		if ( this.previousAttachment.length ) {
-			this.previousAttachment.focus();
+			this.previousAttachment.trigger( 'focus' );
 			return;
 		}
 
 		if ( this.nextAttachment.length ) {
-			this.nextAttachment.focus();
+			this.nextAttachment.trigger( 'focus' );
 			return;
 		}
 
 		// Fallback: move focus to the "Select Files" button in the media modal.
 		if ( this.controller.uploader && this.controller.uploader.$browser ) {
-			this.controller.uploader.$browser.focus();
+			this.controller.uploader.$browser.trigger( 'focus' );
 			return;
 		}
 
@@ -93,7 +133,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 		// Last fallback: make the frame focusable and move focus to it.
 		$( '.media-frame' )
 			.attr( 'tabindex', '-1' )
-			.focus();
+			.trigger( 'focus' );
 	},
 
 	/**
@@ -106,7 +146,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	deleteAttachment: function( event ) {
 		event.preventDefault();
@@ -120,7 +160,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	},
 
 	/**
-	 * Sets the trash state on an attachment, or destroys the model itself.
+	 * Sets the Trash state on an attachment, or destroys the model itself.
 	 *
 	 * If the mediaTrash setting is set to true, trashes the attachment.
 	 * Otherwise, the model itself is destroyed.
@@ -129,7 +169,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	trashAttachment: function( event ) {
 		var library = this.controller.library,
@@ -138,7 +178,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 
 		this.getFocusableElements();
 
-		// When in the Media Library and the Media trash is enabled.
+		// When in the Media Library and the Media Trash is enabled.
 		if ( wp.media.view.settings.mediaTrash &&
 			'edit-metadata' === this.controller.content.mode() ) {
 
@@ -146,10 +186,10 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 			this.model.save().done( function() {
 				library._requery( true );
 				/*
-				 * @todo: We need to move focus back to the previous, next, or first
-				 * attachment but the library gets re-queried and refreshed. Thus,
-				 * the references to the previous attachments are lost. We need an
-				 * alternate method.
+				 * @todo We need to move focus back to the previous, next, or first
+				 * attachment but the library gets re-queried and refreshed.
+				 * Thus, the references to the previous attachments are lost.
+				 * We need an alternate method.
 				 */
 				self.moveFocusToLastFallback();
 			} );
@@ -158,6 +198,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 			this.moveFocus();
 		}
 	},
+
 	/**
 	 * Untrashes an attachment.
 	 *
@@ -165,7 +206,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	untrashAttachment: function( event ) {
 		var library = this.controller.library;
@@ -184,7 +225,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	editAttachment: function( event ) {
 		var editState = this.controller.states.get( 'edit-image' );
@@ -210,13 +251,23 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {KeyboardEvent} event A keyboard event.
 	 *
-	 * @returns {boolean|void} Returns false or undefined.
+	 * @return {boolean|void} Returns false or undefined.
 	 */
 	toggleSelectionHandler: function( event ) {
 		if ( 'keydown' === event.type && 9 === event.keyCode && event.shiftKey && event.target === this.$( ':tabbable' ).get( 0 ) ) {
 			this.controller.trigger( 'attachment:details:shift-tab', event );
 			return false;
 		}
+	},
+
+	render: function() {
+		Attachment.prototype.render.apply( this, arguments );
+
+		wp.media.mixin.removeAllPlayers();
+		this.$( 'audio, video' ).each( function (i, elem) {
+			var el = wp.media.view.MediaDetails.prepareSrc( elem );
+			new window.MediaElementPlayer( el, wp.media.mixin.mejsSettings );
+		} );
 	}
 });
 

@@ -19,7 +19,7 @@
  */
 ?>
 
-<?php /* Display navigation to next/previous pages when applicable */ ?>
+<?php // Display navigation to next/previous pages when applicable. ?>
 <?php if ( $wp_query->max_num_pages > 1 ) : ?>
 	<div id="nav-above" class="navigation">
 		<div class="nav-previous"><?php next_posts_link( __( '<span class="meta-nav">&larr;</span> Older posts', 'twentyten' ) ); ?></div>
@@ -62,7 +62,7 @@ while ( have_posts() ) :
 
 	<?php /* How to display posts of the Gallery format. The gallery category is the old way. */ ?>
 
-	<?php if ( ( function_exists( 'get_post_format' ) && 'gallery' == get_post_format( $post->ID ) ) || in_category( _x( 'gallery', 'gallery category slug', 'twentyten' ) ) ) : ?>
+	<?php if ( ( function_exists( 'get_post_format' ) && 'gallery' === get_post_format( $post->ID ) ) || in_category( _x( 'gallery', 'gallery category slug', 'twentyten' ) ) ) : ?>
 		<div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 			<h2 class="entry-title"><a href="<?php the_permalink(); ?>" rel="bookmark"><?php the_title(); ?></a></h2>
 
@@ -94,7 +94,7 @@ while ( have_posts() ) :
 						);
 					?>
 							</em></p>
-				<?php endif; // end twentyten_get_gallery_images() check ?>
+				<?php endif; // End twentyten_get_gallery_images() check. ?>
 						<?php the_excerpt(); ?>
 <?php endif; ?>
 			</div><!-- .entry-content -->
@@ -102,7 +102,7 @@ while ( have_posts() ) :
 			<div class="entry-utility">
 			<?php
 			$gallery = get_term_by( 'slug', _x( 'gallery', 'gallery category slug', 'twentyten' ), 'category' );
-			if ( function_exists( 'get_post_format' ) && 'gallery' == get_post_format( $post->ID ) ) :
+			if ( function_exists( 'get_post_format' ) && 'gallery' === get_post_format( $post->ID ) ) :
 				?>
 				<a href="<?php echo esc_url( get_post_format_link( 'gallery' ) ); ?>" title="<?php esc_attr_e( 'View Galleries', 'twentyten' ); ?>"><?php _e( 'More Galleries', 'twentyten' ); ?></a>
 				<span class="meta-sep">|</span>
@@ -117,7 +117,7 @@ while ( have_posts() ) :
 
 		<?php /* How to display posts of the Aside format. The asides category is the old way. */ ?>
 
-	<?php elseif ( ( function_exists( 'get_post_format' ) && 'aside' == get_post_format( $post->ID ) ) || in_category( _x( 'asides', 'asides category slug', 'twentyten' ) ) ) : ?>
+	<?php elseif ( ( function_exists( 'get_post_format' ) && 'aside' === get_post_format( $post->ID ) ) || in_category( _x( 'asides', 'asides category slug', 'twentyten' ) ) ) : ?>
 		<div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
 		<?php if ( is_archive() || is_search() ) : // Display excerpts for archives and search. ?>
@@ -176,9 +176,10 @@ while ( have_posts() ) :
 					</span>
 					<span class="meta-sep">|</span>
 				<?php endif; ?>
+
 				<?php
-					$tags_list = get_the_tag_list( '', ', ' );
-				if ( $tags_list ) :
+				$tags_list = get_the_tag_list( '', ', ' );
+				if ( $tags_list && ! is_wp_error( $tags_list ) ) :
 					?>
 				<span class="tag-links">
 					<?php
@@ -188,7 +189,9 @@ while ( have_posts() ) :
 				</span>
 				<span class="meta-sep">|</span>
 				<?php endif; ?>
+
 				<span class="comments-link"><?php comments_popup_link( __( 'Leave a comment', 'twentyten' ), __( '1 Comment', 'twentyten' ), __( '% Comments', 'twentyten' ) ); ?></span>
+
 				<?php edit_post_link( __( 'Edit', 'twentyten' ), '<span class="meta-sep">|</span> <span class="edit-link">', '</span>' ); ?>
 			</div><!-- .entry-utility -->
 		</div><!-- #post-<?php the_ID(); ?> -->
@@ -197,9 +200,9 @@ while ( have_posts() ) :
 
 	<?php endif; // This was the if statement that broke the loop into three parts based on categories. ?>
 
-<?php endwhile; // End the loop. Whew. ?>
+<?php endwhile; // End of the loop. Whew. ?>
 
-<?php /* Display navigation to next/previous pages when applicable */ ?>
+<?php // Display navigation to next/previous pages when applicable. ?>
 <?php if ( $wp_query->max_num_pages > 1 ) : ?>
 				<div id="nav-below" class="navigation">
 					<div class="nav-previous"><?php next_posts_link( __( '<span class="meta-nav">&larr;</span> Older posts', 'twentyten' ) ); ?></div>

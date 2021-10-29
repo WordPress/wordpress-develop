@@ -33,7 +33,6 @@ const pageEvents = [];
 // The Jest timeout is increased because these tests are a bit slow
 jest.setTimeout( PUPPETEER_TIMEOUT || 100000 );
 
-
 /**
  * Adds an event listener to the page to handle additions of page event
  * handlers, to assure that they are removed at test teardown.
@@ -69,6 +68,12 @@ function observeConsoleLogging() {
 		// An exception is made for _blanket_ deprecation warnings: Those
 		// which log regardless of whether a deprecated feature is in use.
 		if ( text.includes( 'This is a global warning' ) ) {
+			return;
+		}
+
+		// An exception is made for jQuery migrate console warnings output by
+		// the unminified script loaded in development environments.
+		if ( text.includes( 'JQMIGRATE' ) ) {
 			return;
 		}
 

@@ -17,7 +17,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 						'role'       => 'author',
 					)
 				),
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 	}
@@ -25,7 +25,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	/**
@@ -36,7 +36,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'subscriber', 'subscriber' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_no_editable_posts() {
@@ -44,7 +44,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( 0, count( $result ) );
+		$this->assertCount( 0, $result );
 	}
 
 	function test_valid_post() {
@@ -57,47 +57,50 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 		foreach ( $results as $result ) {
 			$post = get_post( $result['postid'] );
 
-			// Check data types
-			$this->assertInternalType( 'string', $result['userid'] );
-			$this->assertInternalType( 'string', $result['postid'] );
-			$this->assertInternalType( 'string', $result['description'] );
-			$this->assertInternalType( 'string', $result['title'] );
-			$this->assertInternalType( 'string', $result['link'] );
-			$this->assertInternalType( 'string', $result['permaLink'] );
-			$this->assertInternalType( 'array', $result['categories'] );
-			$this->assertInternalType( 'string', $result['mt_excerpt'] );
-			$this->assertInternalType( 'string', $result['mt_text_more'] );
-			$this->assertInternalType( 'string', $result['wp_more_text'] );
-			$this->assertInternalType( 'int', $result['mt_allow_comments'] );
-			$this->assertInternalType( 'int', $result['mt_allow_pings'] );
-			$this->assertInternalType( 'string', $result['mt_keywords'] );
-			$this->assertInternalType( 'string', $result['wp_slug'] );
-			$this->assertInternalType( 'string', $result['wp_password'] );
-			$this->assertInternalType( 'string', $result['wp_author_id'] );
-			$this->assertInternalType( 'string', $result['wp_author_display_name'] );
-			$this->assertInternalType( 'string', $result['post_status'] );
-			$this->assertInternalType( 'array', $result['custom_fields'] );
-			$this->assertInternalType( 'string', $result['wp_post_format'] );
+			// Check data types.
+			$this->assertIsString( $result['userid'] );
+			$this->assertIsString( $result['postid'] );
+			$this->assertIsString( $result['description'] );
+			$this->assertIsString( $result['title'] );
+			$this->assertIsString( $result['link'] );
+			$this->assertIsString( $result['permaLink'] );
+			$this->assertIsArray( $result['categories'] );
+			$this->assertIsString( $result['mt_excerpt'] );
+			$this->assertIsString( $result['mt_text_more'] );
+			$this->assertIsString( $result['wp_more_text'] );
+			$this->assertIsInt( $result['mt_allow_comments'] );
+			$this->assertIsInt( $result['mt_allow_pings'] );
+			$this->assertIsString( $result['mt_keywords'] );
+			$this->assertIsString( $result['wp_slug'] );
+			$this->assertIsString( $result['wp_password'] );
+			$this->assertIsString( $result['wp_author_id'] );
+			$this->assertIsString( $result['wp_author_display_name'] );
+			$this->assertIsString( $result['post_status'] );
+			$this->assertIsArray( $result['custom_fields'] );
+			$this->assertIsString( $result['wp_post_format'] );
 
-			// Check expected values
+			// Check expected values.
 			$this->assertStringMatchesFormat( '%d', $result['userid'] );
 			$this->assertStringMatchesFormat( '%d', $result['postid'] );
-			$this->assertEquals( $post->post_title, $result['title'] );
-			$this->assertEquals( 'draft', $result['post_status'] );
+			$this->assertSame( $post->post_title, $result['title'] );
+			$this->assertSame( 'draft', $result['post_status'] );
 			$this->assertStringMatchesFormat( '%d', $result['wp_author_id'] );
-			$this->assertEquals( $post->post_excerpt, $result['mt_excerpt'] );
-			$this->assertEquals( url_to_postid( $result['link'] ), $post->ID );
+			$this->assertSame( $post->post_excerpt, $result['mt_excerpt'] );
+			$this->assertSame( url_to_postid( $result['link'] ), $post->ID );
 
-			$this->assertEquals( '', $result['wp_post_thumbnail'] );
+			$this->assertSame( '', $result['wp_post_thumbnail'] );
 		}
 
 		remove_theme_support( 'post-thumbnails' );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 
-		// create attachment
+		// Create attachment.
 		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename, self::$post_id );
 		set_post_thumbnail( self::$post_id, $attachment_id );
@@ -106,13 +109,13 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results );
 
 		foreach ( $results as $result ) {
-			$this->assertInternalType( 'string', $result['wp_post_thumbnail'] );
+			$this->assertIsString( $result['wp_post_thumbnail'] );
 			$this->assertStringMatchesFormat( '%d', $result['wp_post_thumbnail'] );
 
 			if ( ! empty( $result['wp_post_thumbnail'] ) || $result['postid'] === self::$post_id ) {
 				$attachment_id = get_post_meta( $result['postid'], '_thumbnail_id', true );
 
-				$this->assertEquals( $attachment_id, $result['wp_post_thumbnail'] );
+				$this->assertSame( $attachment_id, $result['wp_post_thumbnail'] );
 			}
 		}
 
@@ -135,10 +138,10 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 			$this->assertInstanceOf( 'IXR_Date', $result['date_modified'] );
 			$this->assertInstanceOf( 'IXR_Date', $result['date_modified_gmt'] );
 
-			$this->assertEquals( strtotime( $post->post_date ), $result['dateCreated']->getTimestamp() );
-			$this->assertEquals( $date_gmt, $result['date_created_gmt']->getTimestamp() );
-			$this->assertEquals( strtotime( $post->post_date ), $result['date_modified']->getTimestamp() );
-			$this->assertEquals( $date_modified_gmt, $result['date_modified_gmt']->getTimestamp() );
+			$this->assertSame( strtotime( $post->post_date ), $result['dateCreated']->getTimestamp() );
+			$this->assertSame( $date_gmt, $result['date_created_gmt']->getTimestamp() );
+			$this->assertSame( strtotime( $post->post_date ), $result['date_modified']->getTimestamp() );
+			$this->assertSame( $date_modified_gmt, $result['date_modified_gmt']->getTimestamp() );
 		}
 	}
 }

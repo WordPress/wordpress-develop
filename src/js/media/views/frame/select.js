@@ -64,7 +64,7 @@ Select = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Select.prototype 
 
 		this.content.set( view );
 
-		// after creating the wrapper view, load the actual editor via an ajax call
+		// After creating the wrapper view, load the actual editor via an Ajax call.
 		view.loadEditor();
 	},
 

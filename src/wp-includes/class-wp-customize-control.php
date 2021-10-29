@@ -60,7 +60,7 @@ class WP_Customize_Control {
 	 * The primary setting for the control (if there is one).
 	 *
 	 * @since 3.4.0
-	 * @var string
+	 * @var string|WP_Customize_Setting|null
 	 */
 	public $setting = 'default';
 
@@ -174,7 +174,7 @@ class WP_Customize_Control {
 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
 	 * @param string               $id      Control ID.
 	 * @param array                $args    {
-	 *     Optional. Arguments to override class property defaults.
+	 *     Optional. Array of properties for the new Control object. Default empty array.
 	 *
 	 *     @type int                  $instance_number Order in which this instance was created in relation
 	 *                                                 to other instances.
@@ -184,6 +184,8 @@ class WP_Customize_Control {
 	 *                                                 be used.
 	 *     @type string               $setting         The primary setting for the control (if there is one).
 	 *                                                 Default 'default'.
+	 *     @type string               $capability      Capability required to use this control. Normally this is empty
+	 *                                                 and the capability is derived from `$settings`.
 	 *     @type int                  $priority        Order priority to load the control. Default 10.
 	 *     @type string               $section         Section the control belongs to. Default empty.
 	 *     @type string               $label           Label for the control. Default empty.
@@ -195,11 +197,14 @@ class WP_Customize_Control {
 	 *                                                 attribute names are the keys and values are the values. Not
 	 *                                                 used for 'checkbox', 'radio', 'select', 'textarea', or
 	 *                                                 'dropdown-pages' control types. Default empty array.
+	 *     @type bool                 $allow_addition  Show UI for adding new content, currently only used for the
+	 *                                                 dropdown-pages control. Default false.
 	 *     @type array                $json            Deprecated. Use WP_Customize_Control::json() instead.
 	 *     @type string               $type            Control type. Core controls include 'text', 'checkbox',
 	 *                                                 'textarea', 'radio', 'select', and 'dropdown-pages'. Additional
 	 *                                                 input types such as 'email', 'url', 'number', 'hidden', and
 	 *                                                 'date' are supported implicitly. Default 'text'.
+	 *     @type callable             $active_callback Active callback.
 	 * }
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
@@ -392,7 +397,7 @@ class WP_Customize_Control {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Control $this WP_Customize_Control instance.
+		 * @param WP_Customize_Control $control WP_Customize_Control instance.
 		 */
 		do_action( 'customize_render_control', $this );
 
@@ -404,7 +409,7 @@ class WP_Customize_Control {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Control $this WP_Customize_Control instance.
+		 * @param WP_Customize_Control $control WP_Customize_Control instance.
 		 */
 		do_action( "customize_render_control_{$this->id}", $this );
 
@@ -627,8 +632,8 @@ class WP_Customize_Control {
 						?>
 					</button>
 					<div class="new-content-item">
-						<label for="create-input-<?php echo $this->id; ?>"><span class="screen-reader-text"><?php _e( 'New page title' ); ?></span></label>
-						<input type="text" id="create-input-<?php echo $this->id; ?>" class="create-item-input" placeholder="<?php esc_attr_e( 'New page title&hellip;' ); ?>">
+						<label for="create-input-<?php echo esc_attr( $this->id ); ?>"><span class="screen-reader-text"><?php _e( 'New page title' ); ?></span></label>
+						<input type="text" id="create-input-<?php echo esc_attr( $this->id ); ?>" class="create-item-input" placeholder="<?php esc_attr_e( 'New page title&hellip;' ); ?>">
 						<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
 					</div>
 				<?php endif; ?>
@@ -670,7 +675,7 @@ class WP_Customize_Control {
 	 */
 	final public function print_template() {
 		?>
-		<script type="text/html" id="tmpl-customize-control-<?php echo $this->type; ?>-content">
+		<script type="text/html" id="tmpl-customize-control-<?php echo esc_attr( $this->type ); ?>-content">
 			<?php $this->content_template(); ?>
 		</script>
 		<?php
@@ -693,100 +698,105 @@ class WP_Customize_Control {
 /**
  * WP_Customize_Color_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-color-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-color-control.php';
 
 /**
  * WP_Customize_Media_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-media-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-media-control.php';
 
 /**
  * WP_Customize_Upload_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-upload-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-upload-control.php';
 
 /**
  * WP_Customize_Image_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-image-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-image-control.php';
 
 /**
  * WP_Customize_Background_Image_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-background-image-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-background-image-control.php';
 
 /**
  * WP_Customize_Background_Position_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-background-position-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-background-position-control.php';
 
 /**
  * WP_Customize_Cropped_Image_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-cropped-image-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-cropped-image-control.php';
 
 /**
  * WP_Customize_Site_Icon_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-site-icon-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-site-icon-control.php';
 
 /**
  * WP_Customize_Header_Image_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-header-image-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-header-image-control.php';
 
 /**
  * WP_Customize_Theme_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-theme-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-theme-control.php';
 
 /**
  * WP_Widget_Area_Customize_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-widget-area-customize-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-widget-area-customize-control.php';
 
 /**
  * WP_Widget_Form_Customize_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-widget-form-customize-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-widget-form-customize-control.php';
 
 /**
  * WP_Customize_Nav_Menu_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-control.php';
 
 /**
  * WP_Customize_Nav_Menu_Item_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-item-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-item-control.php';
 
 /**
  * WP_Customize_Nav_Menu_Location_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-location-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-location-control.php';
 
 /**
  * WP_Customize_Nav_Menu_Name_Control class.
  *
  * As this file is deprecated, it will trigger a deprecation notice if instantiated. In a subsequent
- * release, the require_once() here will be removed and _deprecated_file() will be called if file is
+ * release, the require_once here will be removed and _deprecated_file() will be called if file is
  * required at all.
  *
  * @deprecated 4.9.0 This file is no longer used due to new menu creation UX.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-name-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-name-control.php';
 
 /**
  * WP_Customize_Nav_Menu_Locations_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-locations-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-locations-control.php';
 
 /**
  * WP_Customize_Nav_Menu_Auto_Add_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-auto-add-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-auto-add-control.php';
 
 /**
  * WP_Customize_Date_Time_Control class.
  */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-date-time-control.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-date-time-control.php';
+
+/**
+ * WP_Sidebar_Block_Editor_Control class.
+ */
+require_once ABSPATH . WPINC . '/customize/class-wp-sidebar-block-editor-control.php';

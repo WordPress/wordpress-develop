@@ -12,7 +12,7 @@
 	<header class="entry-header">
 		<h1 class="entry-title"><?php the_title(); ?></h1>
 
-		<?php if ( 'post' == get_post_type() ) : ?>
+		<?php if ( 'post' === get_post_type() ) : ?>
 		<div class="entry-meta">
 			<?php twentyeleven_posted_on(); ?>
 		</div><!-- .entry-meta -->
@@ -33,15 +33,16 @@
 
 	<footer class="entry-meta">
 		<?php
-			/* translators: Used between list items, there is a space after the comma. */
-			$categories_list = get_the_category_list( __( ', ', 'twentyeleven' ) );
+		/* translators: Used between list items, there is a space after the comma. */
+		$categories_list = get_the_category_list( __( ', ', 'twentyeleven' ) );
 
-			/* translators: Used between list items, there is a space after the comma. */
-			$tag_list = get_the_tag_list( '', __( ', ', 'twentyeleven' ) );
-		if ( '' != $tag_list ) {
+		/* translators: Used between list items, there is a space after the comma. */
+		$tags_list = get_the_tag_list( '', __( ', ', 'twentyeleven' ) );
+
+		if ( $tags_list && ! is_wp_error( $tags_list ) ) {
 			/* translators: 1: Categories list, 2: Tag list, 3: Permalink, 4: Post title, 5: Author name, 6: Author URL. */
 			$utility_text = __( 'This entry was posted in %1$s and tagged %2$s by <a href="%6$s">%5$s</a>. Bookmark the <a href="%3$s" title="Permalink to %4$s" rel="bookmark">permalink</a>.', 'twentyeleven' );
-		} elseif ( '' != $categories_list ) {
+		} elseif ( $categories_list ) {
 			/* translators: 1: Categories list, 2: Tag list, 3: Permalink, 4: Post title, 5: Author name, 6: Author URL. */
 			$utility_text = __( 'This entry was posted in %1$s by <a href="%6$s">%5$s</a>. Bookmark the <a href="%3$s" title="Permalink to %4$s" rel="bookmark">permalink</a>.', 'twentyeleven' );
 		} else {
@@ -49,19 +50,23 @@
 			$utility_text = __( 'This entry was posted by <a href="%6$s">%5$s</a>. Bookmark the <a href="%3$s" title="Permalink to %4$s" rel="bookmark">permalink</a>.', 'twentyeleven' );
 		}
 
-			printf(
-				$utility_text,
-				$categories_list,
-				$tag_list,
-				esc_url( get_permalink() ),
-				the_title_attribute( 'echo=0' ),
-				get_the_author(),
-				esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) )
-			);
-			?>
+		printf(
+			$utility_text,
+			$categories_list,
+			$tags_list,
+			esc_url( get_permalink() ),
+			the_title_attribute( 'echo=0' ),
+			get_the_author(),
+			esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) )
+		);
+		?>
+
 		<?php edit_post_link( __( 'Edit', 'twentyeleven' ), '<span class="edit-link">', '</span>' ); ?>
 
-		<?php if ( get_the_author_meta( 'description' ) && ( ! function_exists( 'is_multi_author' ) || is_multi_author() ) ) : // If a user has filled out their description and this is a multi-author blog, show a bio on their entries ?>
+		<?php
+		// If a user has filled out their description and this is a multi-author blog, show a bio on their entries.
+		if ( get_the_author_meta( 'description' ) && ( ! function_exists( 'is_multi_author' ) || is_multi_author() ) ) :
+			?>
 		<div id="author-info">
 			<div id="author-avatar">
 				<?php

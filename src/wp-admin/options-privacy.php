@@ -7,11 +7,25 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'manage_privacy_options' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to manage privacy on this site.' ) );
+	wp_die( __( 'Sorry, you are not allowed to manage privacy options on this site.' ) );
 }
+
+if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
+	require_once dirname( __FILE__ ) . '/privacy-policy-guide.php';
+	return;
+}
+
+add_filter(
+	'admin_body_class',
+	static function( $body_class ) {
+		$body_class .= ' privacy-settings ';
+
+		return $body_class;
+	}
+);
 
 $action = isset( $_POST['action'] ) ? $_POST['action'] : '';
 
@@ -49,7 +63,7 @@ if ( ! empty( $action ) ) {
 	} elseif ( 'create-privacy-page' === $action ) {
 
 		if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php' );
+			require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
 		}
 
 		$privacy_policy_page_content = WP_Privacy_Policy_Content::get_default_content();
@@ -100,8 +114,8 @@ if ( ! empty( $privacy_policy_page_id ) ) {
 				'page_for_privacy_policy',
 				'page_for_privacy_policy',
 				sprintf(
-					/* translators: URL to Pages Trash. */
-					__( 'The currently selected Privacy Policy page is in the trash. Please create or select a new Privacy Policy page or <a href="%s">restore the current page</a>.' ),
+					/* translators: %s: URL to Pages Trash. */
+					__( 'The currently selected Privacy Policy page is in the Trash. Please create or select a new Privacy Policy page or <a href="%s">restore the current page</a>.' ),
 					'edit.php?post_status=trash&post_type=page'
 				),
 				'error'
@@ -112,15 +126,45 @@ if ( ! empty( $privacy_policy_page_id ) ) {
 	}
 }
 
-$title       = __( 'Privacy Settings' );
 $parent_file = 'options-general.php';
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+wp_enqueue_script( 'privacy-tools' );
+
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
-<div class="wrap">
-	<h1><?php echo $title; ?></h1>
-	<h2><?php _e( 'Privacy Policy Page' ); ?></h2>
+<div class="privacy-settings-header">
+	<div class="privacy-settings-title-section">
+		<h1>
+			<?php _e( 'Privacy' ); ?>
+		</h1>
+	</div>
+
+	<nav class="privacy-settings-tabs-wrapper hide-if-no-js" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
+		<a href="<?php echo esc_url( admin_url( 'options-privacy.php' ) ); ?>" class="privacy-settings-tab active" aria-current="true">
+			<?php
+			/* translators: Tab heading for Site Health Status page. */
+			_ex( 'Settings', 'Privacy Settings' );
+			?>
+		</a>
+
+		<a href="<?php echo esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) ); ?>" class="privacy-settings-tab">
+			<?php
+			/* translators: Tab heading for Site Health Status page. */
+			_ex( 'Policy Guide', 'Privacy Settings' );
+			?>
+		</a>
+	</nav>
+</div>
+
+<hr class="wp-header-end">
+
+<div class="notice notice-error hide-if-js">
+	<p><?php _e( 'The Privacy Settings require JavaScript.' ); ?></p>
+</div>
+
+<div class="privacy-settings-body hide-if-no-js">
+	<h2><?php _e( 'Privacy Settings' ); ?></h2>
 	<p>
 		<?php _e( 'As a website owner, you may need to follow national or international privacy laws. For example, you may need to create and display a Privacy Policy.' ); ?>
 		<?php _e( 'If you already have a Privacy Policy page, please select it below. If not, please create one.' ); ?>
@@ -133,55 +177,85 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 		<?php _e( 'After your Privacy Policy page is set, we suggest that you edit it.' ); ?>
 		<?php _e( 'We would also suggest reviewing your Privacy Policy from time to time, especially after installing or updating any themes or plugins. There may be changes or new suggested information for you to consider adding to your policy.' ); ?>
 	</p>
-	<?php
-
-	if ( $privacy_policy_page_exists ) {
-		$edit_href = add_query_arg(
-			array(
-				'post'   => $privacy_policy_page_id,
-				'action' => 'edit',
-			),
-			admin_url( 'post.php' )
-		);
-
-		$view_href = get_permalink( $privacy_policy_page_id );
-		?>
-		<p class="tools-privacy-edit"><strong>
-			<?php
-			if ( 'publish' === get_post_status( $privacy_policy_page_id ) ) {
-				printf(
-					/* translators: 1: URL to edit Privacy Policy page, 2: URL to view Privacy Policy page. */
-					__( '<a href="%1$s">Edit</a> or <a href="%2$s">view</a> your Privacy Policy page content.' ),
-					esc_url( $edit_href ),
-					esc_url( $view_href )
-				);
-			} else {
-				printf(
-					/* translators: 1: URL to edit Privacy Policy page, 2: URL to preview Privacy Policy page. */
-					__( '<a href="%1$s">Edit</a> or <a href="%2$s">preview</a> your Privacy Policy page content.' ),
-					esc_url( $edit_href ),
-					esc_url( $view_href )
-				);
-			}
-			?>
-		</strong></p>
-		<?php
-	}
-	?>
 	<p>
 		<?php
+		if ( $privacy_policy_page_exists ) {
+			$edit_href = add_query_arg(
+				array(
+					'post'   => $privacy_policy_page_id,
+					'action' => 'edit',
+				),
+				admin_url( 'post.php' )
+			);
+			$view_href = get_permalink( $privacy_policy_page_id );
+			?>
+				<strong>
+				<?php
+				if ( 'publish' === get_post_status( $privacy_policy_page_id ) ) {
+					printf(
+						/* translators: 1: URL to edit Privacy Policy page, 2: URL to view Privacy Policy page. */
+						__( '<a href="%1$s">Edit</a> or <a href="%2$s">view</a> your Privacy Policy page content.' ),
+						esc_url( $edit_href ),
+						esc_url( $view_href )
+					);
+				} else {
+					printf(
+						/* translators: 1: URL to edit Privacy Policy page, 2: URL to preview Privacy Policy page. */
+						__( '<a href="%1$s">Edit</a> or <a href="%2$s">preview</a> your Privacy Policy page content.' ),
+						esc_url( $edit_href ),
+						esc_url( $view_href )
+					);
+				}
+				?>
+				</strong>
+			<?php
+		}
 		printf(
 			/* translators: 1: Privacy Policy guide URL, 2: Additional link attributes, 3: Accessibility text. */
-			__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out our guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
-			esc_url( admin_url( 'privacy-policy-guide.php' ) ),
+			__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out our Privacy Policy guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
+			esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) ),
 			'',
 			''
 		);
 		?>
 	</p>
-
 	<hr>
+	<?php
+	$has_pages = (bool) get_posts(
+		array(
+			'post_type'      => 'page',
+			'posts_per_page' => 1,
+			'post_status'    => array(
+				'publish',
+				'draft',
+			),
+		)
+	);
+	?>
 	<table class="form-table tools-privacy-policy-page" role="presentation">
+		<tr>
+			<th scope="row">
+				<label for="create-page">
+				<?php
+				if ( $has_pages ) {
+					_e( 'Create a new Privacy Policy Page' );
+				} else {
+					_e( 'There are no pages.' );
+				}
+				?>
+				</label>
+			</th>
+			<td>
+				<form class="wp-create-privacy-page" method="post" action="">
+					<input type="hidden" name="action" value="create-privacy-page" />
+					<?php
+					wp_nonce_field( 'create-privacy-page' );
+					submit_button( __( 'Create' ), 'secondary', 'submit', false, array( 'id' => 'create-page' ) );
+					?>
+				</form>
+			</td>
+		</tr>
+		<?php if ( $has_pages ) : ?>
 		<tr>
 			<th scope="row">
 				<label for="page_for_privacy_policy">
@@ -195,61 +269,29 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 				</label>
 			</th>
 			<td>
-				<?php
-				$has_pages = (bool) get_posts(
-					array(
-						'post_type'      => 'page',
-						'posts_per_page' => 1,
-						'post_status'    => array(
-							'publish',
-							'draft',
-						),
-					)
-				);
-
-				if ( $has_pages ) :
-					?>
-					<form method="post" action="">
-						<input type="hidden" name="action" value="set-privacy-page" />
-						<?php
-						wp_dropdown_pages(
-							array(
-								'name'              => 'page_for_privacy_policy',
-								'show_option_none'  => __( '&mdash; Select &mdash;' ),
-								'option_none_value' => '0',
-								'selected'          => $privacy_policy_page_id,
-								'post_status'       => array( 'draft', 'publish' ),
-							)
-						);
-
-						wp_nonce_field( 'set-privacy-page' );
-
-						submit_button( __( 'Use This Page' ), 'primary', 'submit', false, array( 'id' => 'set-page' ) );
-						?>
-					</form>
-				<?php endif; ?>
-
-				<form class="wp-create-privacy-page" method="post" action="">
-					<input type="hidden" name="action" value="create-privacy-page" />
-					<span>
-						<?php
-						if ( $has_pages ) {
-							_e( 'Or:' );
-						} else {
-							_e( 'There are no pages.' );
-						}
-						?>
-					</span>
+				<form method="post" action="">
+					<input type="hidden" name="action" value="set-privacy-page" />
 					<?php
-					wp_nonce_field( 'create-privacy-page' );
+					wp_dropdown_pages(
+						array(
+							'name'              => 'page_for_privacy_policy',
+							'show_option_none'  => __( '&mdash; Select &mdash;' ),
+							'option_none_value' => '0',
+							'selected'          => $privacy_policy_page_id,
+							'post_status'       => array( 'draft', 'publish' ),
+						)
+					);
 
-					submit_button( __( 'Create New Page' ), 'primary', 'submit', false, array( 'id' => 'create-page' ) );
+					wp_nonce_field( 'set-privacy-page' );
+
+					submit_button( __( 'Use This Page' ), 'primary', 'submit', false, array( 'id' => 'set-page' ) );
 					?>
 				</form>
 			</td>
 		</tr>
+		<?php endif; ?>
 	</table>
 </div>
 <?php
 
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';
