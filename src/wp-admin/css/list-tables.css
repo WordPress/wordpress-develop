@@ -55,7 +55,7 @@
 	min-width: 24px;
 	height: 2em;
 	border-radius: 5px;
-	background-color: #787c82;
+	background-color: #646970;
 	color: #fff;
 	font-size: 11px;
 	line-height: 1.90909090;
@@ -71,7 +71,7 @@
 	margin-left: 8px;
 	width: 0;
 	height: 0;
-	border-top: 5px solid #787c82;
+	border-top: 5px solid #646970;
 	border-right: 5px solid transparent;
 }
 
@@ -235,7 +235,7 @@
 }
 
 #the-comment-list .unapprove a {
-	color: #bd8600;
+	color: #996800;
 }
 
 #the-comment-list th,
@@ -318,7 +318,6 @@ table.fixed {
 .fixed .column-role,
 .fixed .column-posts {
 	-webkit-hyphens: auto;
-	-ms-hyphens: auto;
 	hyphens: auto;
 }
 
@@ -798,7 +797,7 @@ p.pagenav {
 }
 
 .row-actions {
-	color: #dcdcde;
+	color: #a7aaad;
 	font-size: 13px;
 	padding: 2px 0 0;
 	position: relative;
@@ -1255,6 +1254,11 @@ ul.cat-checklist {
 	padding: 0 0 5px;
 }
 
+.plugins .row-actions {
+	white-space: normal;
+	min-width: 12em;
+}
+
 .plugins .update .second,
 .plugins .update .row-actions,
 .plugins .updated .second,
@@ -1553,7 +1557,7 @@ div.action-links,
 }
 
 .plugin-card .notice {
-	margin: 20px 20px 0 20px;
+	margin: 20px 20px 0;
 }
 
 .plugin-icon {
@@ -1577,20 +1581,16 @@ div.action-links,
 /* ms */
 /* Background Color for Site Status */
 .wp-list-table .site-deleted,
-.wp-list-table tr.site-deleted {
-	background: #ff8085;
-}
-.wp-list-table .site-spammed,
-.wp-list-table tr.site-spammed {
-	background: #ffabaf;
-}
+.wp-list-table tr.site-deleted,
 .wp-list-table .site-archived,
 .wp-list-table tr.site-archived {
 	background: #fcf0f1;
 }
+.wp-list-table .site-spammed,
+.wp-list-table tr.site-spammed,
 .wp-list-table .site-mature,
 .wp-list-table tr.site-mature {
-	background: #facfd2;
+	background: #fcf9e8;
 }
 
 .sites.fixed .column-lastupdated,
@@ -1648,7 +1648,7 @@ div.action-links,
 	}
 
 	.tablenav.top {
-		margin: 20px 0 5px 0;
+		margin: 20px 0 5px;
 	}
 
 	.tablenav.bottom {
@@ -1876,23 +1876,24 @@ div.action-links,
 		padding-top: 10px;
 	}
 
-	/* Make row actions more easy to select on mobile */
-	body:not(.plugins-php) .row-actions {
-		display: -ms-grid;
-		display: grid;
-		-ms-grid-columns: auto auto auto;
-		grid-template-columns: auto auto auto;
-		color: transparent;
+	.row-actions {
+		margin-left: -8px;
+		margin-right: -8px;
+		padding-top: 4px;
 	}
 
-	.row-actions span {
-		padding: 4px 0;
+	/* Make row actions more easy to select on mobile */
+	body:not(.plugins-php) .row-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		color: transparent;
 	}
 
 	.row-actions span a,
 	.row-actions span .button-link {
 		display: inline-block;
-		padding: 4px 0;
+		padding: 4px 8px;
 		line-height: 1.5;
 	}
 
@@ -2073,11 +2074,6 @@ div.action-links,
 		display: table-cell;
 	}
 
-	.plugins .active.update + .plugin-update-tr:before {
-		border-left: 4px solid #d63638;
-		background-color: #f6f7f7;
-	}
-
 	.plugins #the-list .plugin-update-tr .plugin-update {
 		border-left: none;
 	}
@@ -2086,8 +2082,9 @@ div.action-links,
 		margin-left: 0;
 	}
 
-	.plugins .active.update + .plugin-update-tr:before {
-		background-color: #fff;
+	.plugins .active.update + .plugin-update-tr:before,
+	.plugins .active.updated + .plugin-update-tr:before {
+		background-color: #f0f6fc;
 		border-left: 4px solid #72aee6;
 	}
 
@@ -2146,17 +2143,16 @@ div.action-links,
 		margin-right: 0;
 		width: 100%;
 	}
+
+	table.media .column-title .has-media-icon ~ .row-actions {
+		margin-left: 0;
+		clear: both;
+	}
 }
 
 @media screen and (max-width: 480px) {
 	.tablenav-pages .current-page {
 		margin: 0;
-	}
-
-	/* Drop row actions to two columns on a small screen */
-	.row-actions:not(.plugins-php) {
-		-ms-grid-columns: auto auto;
-		grid-template-columns: auto auto;
 	}
 
 	.tablenav.bottom .displaying-num {

@@ -19,6 +19,15 @@ class Tests_Option_Theme_Mods extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_theme_mod( 'test_name' ) );
 	}
 
+	/**
+	 * @ticket 51423
+	 */
+	function test_theme_mod_set_with_invalid_theme_mods_option() {
+		$theme_slug = get_option( 'stylesheet' );
+		update_option( 'theme_mods_' . $theme_slug, '' );
+		self::test_theme_mod_set();
+	}
+
 	function test_theme_mod_update() {
 		set_theme_mod( 'test_update', 'first_value' );
 		$expected = 'updated_value';

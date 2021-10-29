@@ -16,18 +16,18 @@ class Tests_Cron extends WP_UnitTestCase {
 	 */
 	private $plus_thirty_minutes;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		// Make sure the schedule is clear.
 		_set_cron_array( array() );
 		$this->preflight_cron_array = array();
 		$this->plus_thirty_minutes  = strtotime( '+30 minutes' );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		// Make sure the schedule is clear.
 		_set_cron_array( array() );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_wp_get_schedule_empty() {
@@ -98,7 +98,54 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertFalse( wp_next_scheduled( $hook, array( 'bar' ) ) );
 
 		$this->assertSame( $recur, wp_get_schedule( $hook, $args ) );
+	}
 
+	/**
+	 * Tests that a call to wp_schedule_event() on a site without any scheduled events
+	 * does not result in a PHP deprecation warning on PHP 8.1 or higher.
+	 *
+	 * The warning that we should not see:
+	 * `Deprecated: Automatic conversion of false to array is deprecated`.
+	 *
+	 * @ticket 53635
+	 *
+	 * @covers ::wp_schedule_event
+	 */
+	function test_wp_schedule_event_without_cron_option_does_not_throw_warning() {
+		delete_option( 'cron' );
+
+		// Verify that the cause of the error is in place.
+		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+
+		$hook      = __FUNCTION__;
+		$timestamp = strtotime( '+10 minutes' );
+
+		// Add an event.
+		$this->assertTrue( wp_schedule_event( $timestamp, 'daily', $hook ) );
+	}
+
+	/**
+	 * Tests that a call to wp_schedule_single_event() on a site without any scheduled events
+	 * does not result in the value "false" being added into the cron array.
+	 *
+	 * @ticket 53950
+	 *
+	 * @covers ::wp_schedule_single_event
+	 */
+	function test_wp_schedule_single_event_without_cron_option() {
+		delete_option( 'cron' );
+
+		// Verify that the cause of the error is in place.
+		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+
+		$hook      = __FUNCTION__;
+		$timestamp = strtotime( '+10 minutes' );
+
+		// Add an event.
+		$this->assertTrue( wp_schedule_single_event( $timestamp, $hook ), 'Scheduling single event failed' );
+
+		// Verify that "false" is not a value in the final cron array.
+		$this->assertNotContains( false, get_option( 'cron' ), 'Resulting cron array contains the value "false"' );
 	}
 
 	function test_unschedule_event() {
@@ -126,15 +173,15 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( strtotime( '+4 hour' ), $hook, $args );
 
 		// Make sure they're returned by wp_next_scheduled().
-		$this->assertTrue( wp_next_scheduled( $hook ) > 0 );
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook ) );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the no args events and make sure it's gone.
 		$hook_unscheduled = wp_clear_scheduled_hook( $hook );
 		$this->assertSame( 2, $hook_unscheduled );
 		$this->assertFalse( wp_next_scheduled( $hook ) );
 		// The args events should still be there.
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the args events and make sure they're gone too.
 		// Note: wp_clear_scheduled_hook() expects args passed directly, rather than as an array.
@@ -165,14 +212,14 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( strtotime( '+4 hour' ), $hook, $args );
 
 		// Make sure they're returned by wp_next_scheduled().
-		$this->assertTrue( wp_next_scheduled( $hook ) > 0 );
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook ) );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the no args events and make sure it's gone.
 		wp_clear_scheduled_hook( $hook );
 		$this->assertFalse( wp_next_scheduled( $hook ) );
 		// The args events should still be there.
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the args events and make sure they're gone too.
 		// Note: wp_clear_scheduled_hook() used to expect args passed directly, rather than as an array pre WP 3.0.
@@ -198,14 +245,14 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( strtotime( '+6 hour' ), $multi_hook, $multi_args );
 
 		// Make sure they're returned by wp_next_scheduled().
-		$this->assertTrue( wp_next_scheduled( $hook ) > 0 );
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook ) );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the no args events and make sure it's gone.
 		wp_clear_scheduled_hook( $hook );
 		$this->assertFalse( wp_next_scheduled( $hook ) );
 		// The args events should still be there.
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule for the args events and make sure they're gone too.
 		// wp_clear_scheduled_hook() should take args as an array like the other functions.
@@ -232,8 +279,8 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( strtotime( '+4 hour' ), $hook, $args );
 
 		// Make sure they're returned by wp_next_scheduled().
-		$this->assertTrue( wp_next_scheduled( $hook ) > 0 );
-		$this->assertTrue( wp_next_scheduled( $hook, $args ) > 0 );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook ) );
+		$this->assertGreaterThan( 0, wp_next_scheduled( $hook, $args ) );
 
 		// Clear the schedule and make sure it's gone.
 		$unschedule_hook = wp_unschedule_hook( $hook );
@@ -245,7 +292,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		$hook           = __FUNCTION__;
 		$unrelated_hook = __FUNCTION__ . '_two';
 
-		// Attempt to clear schedule on non-existant hook.
+		// Attempt to clear schedule on non-existent hook.
 		$unschedule_hook = wp_unschedule_hook( $hook );
 		$this->assertSame( 0, $unschedule_hook );
 		$this->assertFalse( wp_next_scheduled( $hook ) );
@@ -271,8 +318,12 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// First one works.
 		$this->assertTrue( wp_schedule_single_event( $ts1, $hook, $args ) );
-		// Second one is ignored.
+
+		// Subsequent ones are ignored.
 		$this->assertFalse( wp_schedule_single_event( $ts2, $hook, $args ) );
+		$subsequent = wp_schedule_single_event( $ts2, $hook, $args, true );
+		$this->assertWPError( $subsequent );
+		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
 
 		// The next event should be at +5 minutes, not +3.
 		$this->assertSame( $ts1, wp_next_scheduled( $hook, $args ) );
@@ -617,6 +668,11 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// Third event fails.
 		$this->assertFalse( wp_schedule_single_event( $ts3, $hook, $args ) );
+
+		// Fourth event fails.
+		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
+		$this->assertWPError( $subsequent );
+		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
 	}
 
 	/**
@@ -639,6 +695,12 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// Third event fails.
 		$this->assertFalse( wp_schedule_single_event( $ts3, $hook, $args ) );
+
+		// Fourth event fails.
+		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
+		$this->assertWPError( $subsequent );
+		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
+
 	}
 
 	/**
@@ -659,6 +721,10 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Events within ten minutes should fail.
 		$this->assertFalse( wp_schedule_single_event( $ts2, $hook, $args ) );
 		$this->assertFalse( wp_schedule_single_event( $ts3, $hook, $args ) );
+
+		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
+		$this->assertWPError( $subsequent );
+		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
 	}
 
 	/**
@@ -680,4 +746,417 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertTrue( wp_schedule_single_event( $ts2, $hook, $args ) );
 		$this->assertTrue( wp_schedule_single_event( $ts3, $hook, $args ) );
 	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_invalid_timestamp_for_event_returns_error() {
+		$single_event      = wp_schedule_single_event( -50, 'hook', array(), true );
+		$event             = wp_schedule_event( -50, 'daily', 'hook', array(), true );
+		$rescheduled_event = wp_reschedule_event( -50, 'daily', 'hook', array(), true );
+		$unscheduled_event = wp_unschedule_event( -50, 'hook', array(), true );
+
+		$this->assertWPError( $single_event );
+		$this->assertSame( 'invalid_timestamp', $single_event->get_error_code() );
+
+		$this->assertWPError( $event );
+		$this->assertSame( 'invalid_timestamp', $event->get_error_code() );
+
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'invalid_timestamp', $rescheduled_event->get_error_code() );
+
+		$this->assertWPError( $unscheduled_event );
+		$this->assertSame( 'invalid_timestamp', $unscheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_invalid_recurrence_for_event_returns_error() {
+		$event             = wp_schedule_event( time(), 'invalid', 'hook', array(), true );
+		$rescheduled_event = wp_reschedule_event( time(), 'invalid', 'hook', array(), true );
+
+		$this->assertWPError( $event );
+		$this->assertSame( 'invalid_schedule', $event->get_error_code() );
+
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'invalid_schedule', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_disallowed_event_returns_false_when_wp_error_is_set_to_false() {
+		add_filter( 'schedule_event', '__return_false' );
+
+		$single_event      = wp_schedule_single_event( time(), 'hook', array() );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array() );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array() );
+
+		$this->assertFalse( $single_event );
+		$this->assertFalse( $event );
+		$this->assertFalse( $rescheduled_event );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_disallowed_event_returns_error_when_wp_error_is_set_to_true() {
+		add_filter( 'schedule_event', '__return_false' );
+
+		$single_event      = wp_schedule_single_event( time(), 'hook', array(), true );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array(), true );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array(), true );
+
+		$this->assertWPError( $single_event );
+		$this->assertSame( 'schedule_event_false', $single_event->get_error_code() );
+
+		$this->assertWPError( $event );
+		$this->assertSame( 'schedule_event_false', $event->get_error_code() );
+
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'schedule_event_false', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_schedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
+		$return_error = function( $pre, $event, $wp_error ) {
+			$this->assertFalse( $wp_error );
+
+			return new WP_Error(
+				'my_error',
+				'An error ocurred'
+			);
+		};
+
+		// Add filters which return a WP_Error:
+		add_filter( 'pre_schedule_event', $return_error, 10, 3 );
+		add_filter( 'pre_reschedule_event', $return_error, 10, 3 );
+
+		// Schedule events without the `$wp_error` parameter:
+		$single_event      = wp_schedule_single_event( time(), 'hook', array() );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array() );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array() );
+
+		// Ensure boolean false is returned:
+		$this->assertFalse( $single_event );
+		$this->assertFalse( $event );
+		$this->assertFalse( $rescheduled_event );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_schedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
+		$return_error = function( $pre, $event, $wp_error ) {
+			$this->assertTrue( $wp_error );
+
+			return new WP_Error(
+				'my_error',
+				'An error ocurred'
+			);
+		};
+
+		// Add filters which return a WP_Error:
+		add_filter( 'pre_schedule_event', $return_error, 10, 3 );
+		add_filter( 'pre_reschedule_event', $return_error, 10, 3 );
+
+		// Schedule events with the `$wp_error` parameter:
+		$single_event      = wp_schedule_single_event( time(), 'hook', array(), true );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array(), true );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array(), true );
+
+		// Ensure the error object is returned:
+		$this->assertWPError( $single_event );
+		$this->assertSame( 'my_error', $single_event->get_error_code() );
+
+		$this->assertWPError( $event );
+		$this->assertSame( 'my_error', $event->get_error_code() );
+
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'my_error', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_schedule_short_circuit_with_false_returns_false_when_wp_error_is_set_to_false() {
+		// Add filters which return false:
+		add_filter( 'pre_schedule_event', '__return_false' );
+		add_filter( 'pre_reschedule_event', '__return_false' );
+
+		// Schedule events without the `$wp_error` parameter:
+		$single_event      = wp_schedule_single_event( time(), 'hook', array() );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array() );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array() );
+
+		// Ensure false is returned:
+		$this->assertFalse( $single_event );
+		$this->assertFalse( $event );
+		$this->assertFalse( $rescheduled_event );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_schedule_short_circuit_with_false_returns_error_when_wp_error_is_set_to_true() {
+		// Add filters which return false:
+		add_filter( 'pre_schedule_event', '__return_false' );
+		add_filter( 'pre_reschedule_event', '__return_false' );
+
+		// Schedule events with the `$wp_error` parameter:
+		$single_event      = wp_schedule_single_event( time(), 'hook', array(), true );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array(), true );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array(), true );
+
+		// Ensure an error object is returned:
+		$this->assertWPError( $single_event );
+		$this->assertSame( 'pre_schedule_event_false', $single_event->get_error_code() );
+
+		$this->assertWPError( $event );
+		$this->assertSame( 'pre_schedule_event_false', $event->get_error_code() );
+
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'pre_reschedule_event_false', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 * @expectedDeprecated wp_clear_scheduled_hook
+	 */
+	public function test_deprecated_argument_usage_of_wp_clear_scheduled_hook() {
+		$return_pre = function( $pre, $hook, $args, $wp_error ) {
+			$this->assertSame( array( 1, 2, 3 ), $args );
+			$this->assertFalse( $wp_error );
+
+			return $pre;
+		};
+
+		add_filter( 'pre_clear_scheduled_hook', $return_pre, 10, 4 );
+
+		$cleared = wp_clear_scheduled_hook( 'hook', 1, 2, 3 );
+
+		$this->assertSame( 0, $cleared );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_clear_scheduled_hook_returns_default_pre_filter_error_when_wp_error_is_set_to_true() {
+		add_filter( 'pre_unschedule_event', '__return_false' );
+
+		wp_schedule_single_event( strtotime( '+1 hour' ), 'test_hook' );
+		wp_schedule_single_event( strtotime( '+2 hours' ), 'test_hook' );
+
+		$cleared = wp_clear_scheduled_hook( 'test_hook', array(), true );
+
+		$this->assertWPError( $cleared );
+		$this->assertSame(
+			array(
+				'pre_unschedule_event_false',
+			),
+			$cleared->get_error_codes()
+		);
+		$this->assertCount( 2, $cleared->get_error_messages() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_clear_scheduled_hook_returns_custom_pre_filter_error_when_wp_error_is_set_to_true() {
+		$return_error = function( $pre, $timestamp, $hook, $args, $wp_error ) {
+			$this->assertTrue( $wp_error );
+
+			return new WP_Error( 'error_code', 'error message' );
+		};
+
+		add_filter( 'pre_unschedule_event', $return_error, 10, 5 );
+
+		wp_schedule_single_event( strtotime( '+1 hour' ), 'test_hook' );
+		wp_schedule_single_event( strtotime( '+2 hours' ), 'test_hook' );
+
+		$cleared = wp_clear_scheduled_hook( 'test_hook', array(), true );
+
+		$this->assertWPError( $cleared );
+		$this->assertSame(
+			array(
+				'error_code',
+			),
+			$cleared->get_error_codes()
+		);
+		$this->assertSame(
+			array(
+				'error message',
+				'error message',
+			),
+			$cleared->get_error_messages()
+		);
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_unschedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
+		$return_error = function( $pre, $hook, $wp_error ) {
+			$this->assertFalse( $wp_error );
+
+			return new WP_Error(
+				'my_error',
+				'An error ocurred'
+			);
+		};
+
+		// Add a filter which returns a WP_Error:
+		add_filter( 'pre_unschedule_hook', $return_error, 10, 3 );
+
+		// Unschedule a hook without the `$wp_error` parameter:
+		$result = wp_unschedule_hook( 'hook' );
+
+		// Ensure boolean false is returned:
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_unschedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
+		$return_error = function( $pre, $hook, $wp_error ) {
+			$this->assertTrue( $wp_error );
+
+			return new WP_Error(
+				'my_error',
+				'An error ocurred'
+			);
+		};
+
+		// Add a filter which returns a WP_Error:
+		add_filter( 'pre_unschedule_hook', $return_error, 10, 3 );
+
+		// Unschedule a hook with the `$wp_error` parameter:
+		$result = wp_unschedule_hook( 'hook', true );
+
+		// Ensure the error object is returned:
+		$this->assertWPError( $result );
+		$this->assertSame( 'my_error', $result->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_unschedule_short_circuit_with_false_returns_false_when_wp_error_is_set_to_false() {
+		// Add a filter which returns false:
+		add_filter( 'pre_unschedule_hook', '__return_false' );
+
+		// Unschedule a hook without the `$wp_error` parameter:
+		$result = wp_unschedule_hook( 'hook' );
+
+		// Ensure false is returned:
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_unschedule_short_circuit_with_false_returns_error_when_wp_error_is_set_to_true() {
+		// Add a filter which returns false:
+		add_filter( 'pre_unschedule_hook', '__return_false' );
+
+		// Unchedule a hook with the `$wp_error` parameter:
+		$result = wp_unschedule_hook( 'hook', true );
+
+		// Ensure an error object is returned:
+		$this->assertWPError( $result );
+		$this->assertSame( 'pre_unschedule_hook_false', $result->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_cron_array_error_is_returned_when_scheduling_single_event() {
+		// Force update_option() to fail by setting the new value to match the existing:
+		add_filter(
+			'pre_update_option_cron',
+			static function() {
+				return get_option( 'cron' );
+			}
+		);
+
+		// Attempt to schedule a valid event:
+		$event = wp_schedule_single_event( time(), 'hook', array(), true );
+
+		// Ensure an error object is returned:
+		$this->assertWPError( $event );
+		$this->assertSame( 'could_not_set', $event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_cron_array_error_is_returned_when_scheduling_event() {
+		// Force update_option() to fail by setting the new value to match the existing:
+		add_filter(
+			'pre_update_option_cron',
+			static function() {
+				return get_option( 'cron' );
+			}
+		);
+
+		// Attempt to schedule a valid event:
+		$event = wp_schedule_event( time(), 'daily', 'hook', array(), true );
+
+		// Ensure an error object is returned:
+		$this->assertWPError( $event );
+		$this->assertSame( 'could_not_set', $event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_cron_array_error_is_returned_when_unscheduling_hook() {
+		// Schedule a valid event:
+		$event = wp_schedule_event( strtotime( '+1 hour' ), 'daily', 'hook', array(), true );
+
+		// Force update_option() to fail by setting the new value to match the existing:
+		add_filter(
+			'pre_update_option_cron',
+			static function() {
+				return get_option( 'cron' );
+			}
+		);
+
+		// Attempt to unschedule the hook:
+		$unscheduled = wp_unschedule_hook( 'hook', true );
+
+		// Ensure an error object is returned:
+		$this->assertTrue( $event );
+		$this->assertWPError( $unscheduled );
+		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_cron_array_error_is_returned_when_unscheduling_event() {
+		// Schedule a valid event:
+		$event = wp_schedule_event( strtotime( '+1 hour' ), 'daily', 'hook', array(), true );
+
+		// Force update_option() to fail by setting the new value to match the existing:
+		add_filter(
+			'pre_update_option_cron',
+			static function() {
+				return get_option( 'cron' );
+			}
+		);
+
+		// Attempt to unschedule the event:
+		$unscheduled = wp_unschedule_event( wp_next_scheduled( 'hook' ), 'hook', array(), true );
+
+		// Ensure an error object is returned:
+		$this->assertTrue( $event );
+		$this->assertWPError( $unscheduled );
+		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
+	}
+
 }

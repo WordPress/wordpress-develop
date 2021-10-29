@@ -70,7 +70,7 @@ div#media-upload-header {
 
 .media-upload-form label.form-help,
 td.help {
-	color: #787c82;
+	color: #646970;
 }
 
 form {
@@ -100,7 +100,7 @@ th {
 	width: 100%;
 	border: none;
 	text-align: justify;
-	margin: 0 0 1em 0;
+	margin: 0 0 1em;
 	padding: 0;
 }
 

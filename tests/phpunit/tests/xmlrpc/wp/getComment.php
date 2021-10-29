@@ -54,20 +54,20 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result['user_id'] );
-		$this->assertInternalType( 'string', $result['comment_id'] );
+		$this->assertIsString( $result['user_id'] );
+		$this->assertIsString( $result['comment_id'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['date_created_gmt'] );
-		$this->assertInternalType( 'string', $result['parent'] );
-		$this->assertInternalType( 'string', $result['status'] );
-		$this->assertInternalType( 'string', $result['content'] );
-		$this->assertInternalType( 'string', $result['link'] );
-		$this->assertInternalType( 'string', $result['post_id'] );
-		$this->assertInternalType( 'string', $result['post_title'] );
-		$this->assertInternalType( 'string', $result['author'] );
-		$this->assertInternalType( 'string', $result['author_url'] );
-		$this->assertInternalType( 'string', $result['author_email'] );
-		$this->assertInternalType( 'string', $result['author_ip'] );
-		$this->assertInternalType( 'string', $result['type'] );
+		$this->assertIsString( $result['parent'] );
+		$this->assertIsString( $result['status'] );
+		$this->assertIsString( $result['content'] );
+		$this->assertIsString( $result['link'] );
+		$this->assertIsString( $result['post_id'] );
+		$this->assertIsString( $result['post_title'] );
+		$this->assertIsString( $result['author'] );
+		$this->assertIsString( $result['author_url'] );
+		$this->assertIsString( $result['author_email'] );
+		$this->assertIsString( $result['author_ip'] );
+		$this->assertIsString( $result['type'] );
 
 		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['user_id'] );

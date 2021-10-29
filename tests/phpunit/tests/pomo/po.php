@@ -4,9 +4,16 @@
  * @group pomo
  */
 class Tests_POMO_PO extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
 		require_once ABSPATH . '/wp-includes/pomo/po.php';
+	}
+
+	public function set_up() {
+		parent::set_up();
+
 		// Not so random wordpress.pot string -- multiple lines.
 		$this->mail    = 'Your new WordPress blog has been successfully set up at:
 
@@ -317,7 +324,7 @@ msgstr[2] "бабаяга"',
 	function test_import_from_file_with_windows_line_endings_should_work_as_with_unix_line_endings() {
 		$po = new PO();
 		$this->assertTrue( $po->import_from_file( DIR_TESTDATA . '/pomo/windows-line-endings.po' ) );
-		$this->assertSame( 1, count( $po->entries ) );
+		$this->assertCount( 1, $po->entries );
 	}
 
 	// TODO: Add tests for bad files.

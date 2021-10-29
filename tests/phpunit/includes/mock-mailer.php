@@ -76,7 +76,7 @@ class MockPHPMailer extends PHPMailer\PHPMailer\PHPMailer {
  *
  * @since 4.4.0
  *
- * @return object|bool
+ * @return MockPHPMailer|false
  */
 function tests_retrieve_phpmailer_instance() {
 	$mailer = false;

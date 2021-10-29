@@ -41,7 +41,7 @@ class Tests_XMLRPC_wp_getRevisions extends WP_XMLRPC_UnitTestCase {
 		); // Create the initial revision.
 
 		$result = $this->myxmlrpcserver->wp_getRevisions( array( 1, 'editor', 'editor', $post_id ) );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertCount( 1, $result );
 
 		wp_insert_post(
@@ -52,7 +52,7 @@ class Tests_XMLRPC_wp_getRevisions extends WP_XMLRPC_UnitTestCase {
 		);
 
 		$result = $this->myxmlrpcserver->wp_getRevisions( array( 1, 'editor', 'editor', $post_id ) );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertCount( 2, $result );
 	}
 

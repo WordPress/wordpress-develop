@@ -252,6 +252,12 @@ if ( ! CUSTOM_TAGS ) {
 			'align' => true,
 			'value' => true,
 		),
+		'main'       => array(
+			'align'    => true,
+			'dir'      => true,
+			'lang'     => true,
+			'xml:lang' => true,
+		),
 		'map'        => array(
 			'name' => true,
 		),
@@ -840,22 +846,26 @@ function wp_kses_one_attr( $string, $element ) {
  *
  * @param string|array $context The context for which to retrieve tags. Allowed values are 'post',
  *                              'strip', 'data', 'entities', or the name of a field filter such as
- *                              'pre_user_description'.
+ *                              'pre_user_description', or an array of allowed HTML elements and attributes.
  * @return array Array of allowed HTML tags and their allowed attributes.
  */
 function wp_kses_allowed_html( $context = '' ) {
 	global $allowedposttags, $allowedtags, $allowedentitynames;
 
 	if ( is_array( $context ) ) {
+		// When `$context` is an array it's actually an array of allowed HTML elements and attributes.
+		$html    = $context;
+		$context = 'explicit';
+
 		/**
-		 * Filters the HTML that is allowed for a given context.
+		 * Filters the HTML tags that are allowed for a given context.
 		 *
 		 * @since 3.5.0
 		 *
-		 * @param array[]|string $context      Context to judge allowed tags by.
-		 * @param string         $context_type Context name.
+		 * @param array[] $html    Allowed HTML tags.
+		 * @param string  $context Context name.
 		 */
-		return apply_filters( 'wp_kses_allowed_html', $context, 'explicit' );
+		return apply_filters( 'wp_kses_allowed_html', $html, $context );
 	}
 
 	switch ( $context ) {
@@ -1034,7 +1044,7 @@ function wp_kses_uri_attributes() {
  *                                                or a context name such as 'post'.
  * @global string[]       $pass_allowed_protocols Array of allowed URL protocols.
  *
- * @param array $matches preg_replace regexp matches
+ * @param array $match preg_replace regexp matches
  * @return string
  */
 function _wp_kses_split_callback( $match ) {
@@ -2142,6 +2152,16 @@ function kses_init() {
  * Filters an inline style attribute and removes disallowed rules.
  *
  * @since 2.8.1
+ * @since 4.4.0 Added support for `min-height`, `max-height`, `min-width`, and `max-width`.
+ * @since 4.6.0 Added support for `list-style-type`.
+ * @since 5.0.0 Added support for `background-image`.
+ * @since 5.1.0 Added support for `text-transform`.
+ * @since 5.2.0 Added support for `background-position` and `grid-template-columns`.
+ * @since 5.3.0 Added support for `grid`, `flex` and `column` layout properties.
+ *              Extend `background-*` support of individual properties.
+ * @since 5.3.1 Added support for gradient backgrounds.
+ * @since 5.7.1 Added support for `object-position`.
+ * @since 5.8.0 Added support for `calc()` and `var()` values.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2160,17 +2180,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	$css_array = explode( ';', trim( $css ) );
 
 	/**
-	 * Filters list of allowed CSS attributes.
+	 * Filters the list of allowed CSS attributes.
 	 *
 	 * @since 2.8.1
-	 * @since 4.4.0 Added support for `min-height`, `max-height`, `min-width`, and `max-width`.
-	 * @since 4.6.0 Added support for `list-style-type`.
-	 * @since 5.0.0 Added support for `background-image`.
-	 * @since 5.1.0 Added support for `text-transform`.
-	 * @since 5.2.0 Added support for `background-position` and `grid-template-columns`.
-	 * @since 5.3.0 Added support for `grid`, `flex` and `column` layout properties.
-	 *              Extend `background-*` support of individual properties.
-	 * @since 5.3.1 Added support for gradient backgrounds.
 	 *
 	 * @param string[] $attr Array of allowed CSS attributes.
 	 */
@@ -2284,6 +2296,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'direction',
 			'float',
 			'list-style-type',
+			'object-position',
 			'overflow',
 			'vertical-align',
 		)
@@ -2379,7 +2392,13 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found ) {
-			// Check for any CSS containing \ ( & } = or comments, except for url() usage checked above.
+			// Allow CSS calc().
+			$css_test_string = preg_replace( '/calc\(((?:\([^()]*\)?|[^()])*)\)/', '', $css_test_string );
+			// Allow CSS var().
+			$css_test_string = preg_replace( '/\(?var\(--[a-zA-Z0-9_-]*\)/', '', $css_test_string );
+
+			// Check for any CSS containing \ ( & } = or comments,
+			// except for url(), calc(), or var() usage checked above.
 			$allow_css = ! preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
 
 			/**
@@ -2396,7 +2415,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 */
 			$allow_css = apply_filters( 'safecss_filter_attr_allow_css', $allow_css, $css_test_string );
 
-			 // Only add the CSS part if it passes the regex check.
+			// Only add the CSS part if it passes the regex check.
 			if ( $allow_css ) {
 				if ( '' !== $css ) {
 					$css .= ';';

@@ -14,8 +14,8 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		self::$user_id   = $factory->user->create();
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		wp_set_current_user( self::$author_id );
 

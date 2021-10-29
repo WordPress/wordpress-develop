@@ -63,15 +63,15 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		self::delete_user( self::$admin );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
 	}
 
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
 		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
+		parent::tear_down();
 	}
 
 	/**
@@ -891,7 +891,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$response = rest_do_request( '/wp/v2/users/me/application-passwords/introspect' );
 		$this->assertNotWPError( $response->as_error() );
 
-		$this->assertEquals( $password['uuid'], $response->get_data()['uuid'] );
+		$this->assertSame( $password['uuid'], $response->get_data()['uuid'] );
 	}
 
 	/**
@@ -901,7 +901,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$password = $this->setup_app_password_authenticated_request();
 		$response = rest_do_request( '/wp/v2/users/' . self::$admin . '/application-passwords/introspect' );
 
-		$this->assertEquals( $password['uuid'], $response->get_data()['uuid'] );
+		$this->assertSame( $password['uuid'], $response->get_data()['uuid'] );
 	}
 
 	/**
@@ -937,7 +937,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->setup_app_password_authenticated_request();
 		add_action(
 			'application_password_did_authenticate',
-			function() {
+			static function() {
 				$GLOBALS['wp_rest_application_password_uuid'] = 'invalid_uuid';
 			}
 		);

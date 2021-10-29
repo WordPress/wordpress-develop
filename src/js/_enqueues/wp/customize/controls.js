@@ -6,6 +6,12 @@
 (function( exports, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
+	var reducedMotionMediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+	var isReducedMotion = reducedMotionMediaQuery.matches;
+	reducedMotionMediaQuery.addEventListener( 'change' , function handleReducedMotionChange( event ) {
+		isReducedMotion = event.matches;
+	});
+
 	api.OverlayNotification = api.Notification.extend(/** @lends wp.customize.OverlayNotification.prototype */{
 
 		/**
@@ -289,7 +295,7 @@
 					collection.focusContainer.focus();
 				}
 			} else if ( collection.previousActiveElement ) {
-				$( collection.previousActiveElement ).focus();
+				$( collection.previousActiveElement ).trigger( 'focus' );
 				collection.previousActiveElement = null;
 			}
 
@@ -1264,11 +1270,14 @@
 		 * @return {void}
 		 */
 		_animateChangeExpanded: function( completeCallback ) {
-			// Return if CSS transitions are not supported.
-			if ( ! normalizedTransitionendEventName ) {
-				if ( completeCallback ) {
-					completeCallback();
-				}
+			// Return if CSS transitions are not supported or if reduced motion is enabled.
+			if ( ! normalizedTransitionendEventName || isReducedMotion ) {
+				// Schedule the callback until the next tick to prevent focus loss.
+				_.defer( function () {
+					if ( completeCallback ) {
+						completeCallback();
+					}
+				} );
 				return;
 			}
 
@@ -1592,7 +1601,7 @@
 				if ( args.unchanged ) {
 					expand = args.completeCallback;
 				} else {
-					expand = $.proxy( function() {
+					expand = function() {
 						section._animateChangeExpanded( function() {
 							sectionTitle.attr( 'tabindex', '-1' );
 							backBtn.attr( 'tabindex', '0' );
@@ -1609,7 +1618,7 @@
 						content.addClass( 'open' );
 						overlay.addClass( 'section-open' );
 						api.state( 'expandedSection' ).set( section );
-					}, this );
+					}.bind( this );
 				}
 
 				if ( ! args.allowMultiple ) {
@@ -2696,12 +2705,12 @@
 				if ( args.unchanged ) {
 					expand = args.completeCallback;
 				} else {
-					expand = $.proxy( function() {
+					expand = function() {
 						section._animateChangeExpanded( function() {
 							sectionTitle.attr( 'tabindex', '-1' );
 							backBtn.attr( 'tabindex', '0' );
 
-							backBtn.focus();
+							backBtn.trigger( 'focus' );
 							content.css( 'top', '' );
 							container.scrollTop( 0 );
 
@@ -2711,7 +2720,7 @@
 						} );
 
 						content.addClass( 'open' );
-					}, this );
+					}.bind( this );
 				}
 
 				if ( section.panel() ) {
@@ -2956,7 +2965,7 @@
 						topPanel.attr( 'tabindex', '-1' );
 						backBtn.attr( 'tabindex', '0' );
 
-						backBtn.focus();
+						backBtn.trigger( 'focus' );
 						accordionSection.css( 'top', '' );
 						container.scrollTop( 0 );
 
@@ -3874,9 +3883,9 @@
 
 			control.container.toggleClass( 'has-notifications', 0 !== notifications.length );
 			control.container.toggleClass( 'has-error', hasError );
-			container.empty().append( $.trim(
-				control.notificationsTemplate( { notifications: notifications, altNotice: Boolean( control.altNotice ) } )
-			) );
+			container.empty().append(
+				control.notificationsTemplate( { notifications: notifications, altNotice: Boolean( control.altNotice ) } ).trim()
+			);
 		},
 
 		/**
@@ -8449,6 +8458,13 @@
 			 * This ensures that ESC meant to collapse a modal dialog or a TinyMCE toolbar won't collapse something else.
 			 */
 			if ( ! $( event.target ).is( 'body' ) && ! $.contains( $( '#customize-controls' )[0], event.target ) ) {
+				return;
+			}
+
+			// Abort if we're inside of a block editor instance.
+			if ( event.target.closest( '.block-editor-writing-flow' ) !== null ||
+				event.target.closest( '.block-editor-block-list__block-popover' ) !== null
+			) {
 				return;
 			}
 

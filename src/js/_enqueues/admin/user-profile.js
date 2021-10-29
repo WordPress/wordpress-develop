@@ -95,7 +95,7 @@
 	 * Handle the password reset button. Sets up an ajax callback to trigger sending
 	 * a password reset email.
 	 */
-	function bindPasswordRestLink() {
+	function bindPasswordResetLink() {
 		$( '#generate-reset-link' ).on( 'click', function() {
 			var $this  = $(this),
 				data = {
@@ -157,7 +157,7 @@
 		var $generateButton,
 			$cancelButton;
 
-		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap' );
+		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap, .reset-pass-submit' );
 
 		// Hide the confirm password field when JavaScript support is enabled.
 		$('.user-pass2-wrap').hide();
@@ -319,7 +319,7 @@
 		}
 	}
 
-	$(document).ready( function() {
+	$( function() {
 		var $colorpicker, $stylesheet, user_id, current_user_id,
 			select       = $( '#display_name' ),
 			current_name = select.val(),
@@ -374,7 +374,7 @@
 					return;
 				}
 
-				var display_name = $.trim( this.value ) || current_name;
+				var display_name = this.value.trim() || current_name;
 
 				greeting.text( display_name );
 			} );
@@ -408,7 +408,7 @@
 				// Repaint icons.
 				if ( typeof wp !== 'undefined' && wp.svgPainter ) {
 					try {
-						colors = $.parseJSON( $this.children( '.icon_colors' ).val() );
+						colors = JSON.parse( $this.children( '.icon_colors' ).val() );
 					} catch ( error ) {}
 
 					if ( colors ) {
@@ -431,7 +431,7 @@
 		});
 
 		bindPasswordForm();
-		bindPasswordRestLink();
+		bindPasswordResetLink();
 	});
 
 	$( '#destroy-sessions' ).on( 'click', function( e ) {
@@ -460,5 +460,16 @@
 			return __( 'Your new password has not been saved.' );
 		}
 	} );
+
+	/*
+	 * We need to generate a password as soon as the Reset Password page is loaded,
+	 * to avoid double clicking the button to retrieve the first generated password.
+	 * See ticket #39638.
+	 */
+	$( function() {
+		if ( $( '.reset-pass-submit' ).length ) {
+			$( '.reset-pass-submit button.wp-generate-pw' ).trigger( 'click' );
+		}
+	});
 
 })(jQuery);

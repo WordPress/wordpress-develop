@@ -125,7 +125,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		$found       = get_term_by( 'slug', 'foo', 'wptests_tax' );
 		$num_queries++;
 
-		$this->assertTrue( $found instanceof WP_Term );
+		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertSame( $t, $found->term_id );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -151,7 +151,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 		$found = get_term_by( 'name', $term_name_slashed, 'wptests_tax' );
 
-		$this->assertTrue( $found instanceof WP_Term );
+		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertSame( $t, $found->term_id );
 		$this->assertSame( $term_name, $found->name );
 	}
@@ -171,7 +171,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		// Whitespace should get replaced by a '-'.
 		$found1 = get_term_by( 'slug', 'foo foo', 'wptests_tax' );
 
-		$this->assertTrue( $found1 instanceof WP_Term );
+		$this->assertInstanceOf( 'WP_Term', $found1 );
 		$this->assertSame( $t1, $found1->term_id );
 
 		$t2 = self::factory()->term->create(
@@ -184,7 +184,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		// Slug should get urlencoded.
 		$found2 = get_term_by( 'slug', '仪表盘', 'wptests_tax' );
 
-		$this->assertTrue( $found2 instanceof WP_Term );
+		$this->assertInstanceOf( 'WP_Term', $found2 );
 		$this->assertSame( $t2, $found2->term_id );
 	}
 
@@ -202,7 +202,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		);
 		$found   = get_term_by( 'name', 'burrito', 'post_tag' );
 		$this->assertSame( $term_id, $found->term_id );
-		$this->assertNotContains( 'ORDER BY', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query );
 	}
 
 	/**
@@ -219,7 +219,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		);
 		$found   = get_term_by( 'name', 'burrito', 'post_tag' );
 		$this->assertSame( $term_id, $found->term_id );
-		$this->assertContains( 'LIMIT 1', $wpdb->last_query );
+		$this->assertStringContainsString( 'LIMIT 1', $wpdb->last_query );
 	}
 
 	/**

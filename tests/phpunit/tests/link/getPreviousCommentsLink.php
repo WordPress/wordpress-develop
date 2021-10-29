@@ -16,7 +16,7 @@ class Tests_Link_GetPreviousCommentsLink extends WP_UnitTestCase {
 
 		$link = get_previous_comments_link( 'Next' );
 
-		$this->assertContains( 'cpage=2', $link );
+		$this->assertStringContainsString( 'cpage=2', $link );
 
 		set_query_var( 'cpage', $cpage );
 	}

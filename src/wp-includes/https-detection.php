@@ -40,8 +40,8 @@ function wp_is_home_url_using_https() {
 /**
  * Checks whether the current site's URL where WordPress is stored is using HTTPS.
  *
- * This checks the URL where WordPress application files (e.g. wp-blog-header.php or the wp-admin/ folder) are
- * accessible.
+ * This checks the URL where WordPress application files (e.g. wp-blog-header.php or the wp-admin/ folder)
+ * are accessible.
  *
  * @since 5.7.0
  * @see site_url()
@@ -130,13 +130,13 @@ function wp_update_https_detection_errors() {
 
 		if ( is_wp_error( $unverified_response ) ) {
 			$support_errors->add(
-				$unverified_response->get_error_code(),
-				$unverified_response->get_error_message()
+				'https_request_failed',
+				__( 'HTTPS request failed.' )
 			);
 		} else {
 			$support_errors->add(
 				'ssl_verification_failed',
-				$response->get_error_message()
+				__( 'SSL verification failed.' )
 			);
 		}
 
@@ -204,7 +204,7 @@ function wp_cron_conditionally_prevent_sslverify( $request ) {
 function wp_is_local_html_output( $html ) {
 	// 1. Check if HTML includes the site's Really Simple Discovery link.
 	if ( has_action( 'wp_head', 'rsd_link' ) ) {
-		$pattern = esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) ); // See rsd_link().
+		$pattern = preg_replace( '#^https?:(?=//)#', '', esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) ) ); // See rsd_link().
 		return false !== strpos( $html, $pattern );
 	}
 
@@ -218,7 +218,7 @@ function wp_is_local_html_output( $html ) {
 	// 3. Check if HTML includes the site's REST API link.
 	if ( has_action( 'wp_head', 'rest_output_link_wp_head' ) ) {
 		// Try both HTTPS and HTTP since the URL depends on context.
-		$pattern = esc_url( preg_replace( '#^https?:(?=//)#', '', get_rest_url() ) ); // See rest_output_link_wp_head().
+		$pattern = preg_replace( '#^https?:(?=//)#', '', esc_url( get_rest_url() ) ); // See rest_output_link_wp_head().
 		return false !== strpos( $html, $pattern );
 	}
 

@@ -8,7 +8,7 @@
  *
  * @group feed
  */
-class Tests_Feeds_RSS2 extends WP_UnitTestCase {
+class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $user_id;
 	public static $posts;
 	public static $category;
@@ -63,8 +63,8 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->post_count   = (int) get_option( 'posts_per_rss' );
 		$this->excerpt_only = get_option( 'rss_use_excerpt' );
@@ -106,7 +106,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 
 		$this->assertSame( '2.0', $rss[0]['attributes']['version'] );
 		$this->assertSame( 'http://purl.org/rss/1.0/modules/content/', $rss[0]['attributes']['xmlns:content'] );
@@ -114,7 +114,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$this->assertSame( 'http://purl.org/dc/elements/1.1/', $rss[0]['attributes']['xmlns:dc'] );
 
 		// RSS should have exactly one child element (channel).
-		$this->assertSame( 1, count( $rss[0]['child'] ) );
+		$this->assertCount( 1, $rss[0]['child'] );
 	}
 
 	/**
@@ -131,7 +131,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$channel = xml_find( $xml, 'rss', 'channel' );
 
 		// The channel should be free of attributes.
-		$this->assertTrue( empty( $channel[0]['attributes'] ) );
+		$this->assertArrayNotHasKey( 'attributes', $channel[0] );
 
 		// Verify the channel is present and contains a title child element.
 		$title = xml_find( $xml, 'rss', 'channel', 'title' );
@@ -150,7 +150,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	/**
 	 * Test that translated feeds have a valid listed date.
 	 *
-	 * @group 39141
+	 * @ticket 39141
 	 */
 	function test_channel_pubdate_element_translated() {
 		$original_locale = $GLOBALS['wp_locale'];
@@ -172,7 +172,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 
 		// Verify the date is untranslated.
 		$pubdate = xml_find( $xml, 'rss', 'channel', 'lastBuildDate' );
-		$this->assertNotContains( 'Tue_Translated', $pubdate[0]['content'] );
+		$this->assertStringNotContainsString( 'Tue_Translated', $pubdate[0]['content'] );
 	}
 
 	function test_item_elements() {
@@ -320,7 +320,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -348,7 +348,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -381,7 +381,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -409,7 +409,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -437,7 +437,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -465,7 +465,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/**

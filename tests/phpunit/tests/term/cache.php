@@ -4,8 +4,8 @@
  * @group taxonomy
  */
 class Tests_Term_Cache extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		wp_cache_delete( 'last_changed', 'terms' );
 	}
@@ -83,7 +83,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 			}
 
 			$terms = get_terms( $tax, array( 'hide_empty' => false ) );
-			$this->assertSame( $i, count( $terms ) );
+			$this->assertCount( $i, $terms );
 			if ( $i > 1 ) {
 				$hierarchy = _get_term_hierarchy( $tax );
 				$this->assertNotEmpty( $hierarchy );
@@ -433,7 +433,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$num_queries++;
-		$this->assertTrue( $term instanceof WP_Term );
+		$this->assertInstanceOf( 'WP_Term', $term );
 		$this->assertSame( $term_id, $term->term_id );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 

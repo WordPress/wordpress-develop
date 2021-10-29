@@ -218,11 +218,11 @@ function get_comment( $comment = null, $output = OBJECT ) {
 	 */
 	$_comment = apply_filters( 'get_comment', $_comment );
 
-	if ( OBJECT == $output ) {
+	if ( OBJECT === $output ) {
 		return $_comment;
-	} elseif ( ARRAY_A == $output ) {
+	} elseif ( ARRAY_A === $output ) {
 		return $_comment->to_array();
-	} elseif ( ARRAY_N == $output ) {
+	} elseif ( ARRAY_N === $output ) {
 		return array_values( $_comment->to_array() );
 	}
 	return $_comment;
@@ -493,10 +493,12 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  * @param string $key        Optional. The meta key to retrieve. By default,
  *                           returns data for all keys.
  * @param bool   $single     Optional. Whether to return a single value.
- *                           This parameter has no effect if $key is not specified.
+ *                           This parameter has no effect if `$key` is not specified.
  *                           Default false.
- * @return mixed An array if $single is false. The value of meta data field
- *               if $single is true. False for an invalid $comment_id.
+ * @return mixed An array of values if `$single` is false.
+ *               The value of meta data field if `$single` is true.
+ *               False for an invalid `$comment_id` (non-numeric, zero, or negative value).
+ *               An empty string if a valid but non-existing comment ID is passed.
  */
 function get_comment_meta( $comment_id, $key = '', $single = false ) {
 	return get_metadata( 'comment', $comment_id, $key, $single );
@@ -615,9 +617,10 @@ function sanitize_comment_cookies() {
 		 *
 		 * @param string $author_cookie The comment author name cookie.
 		 */
-		$comment_author                            = apply_filters( 'pre_comment_author_name', $_COOKIE[ 'comment_author_' . COOKIEHASH ] );
-		$comment_author                            = wp_unslash( $comment_author );
-		$comment_author                            = esc_attr( $comment_author );
+		$comment_author = apply_filters( 'pre_comment_author_name', $_COOKIE[ 'comment_author_' . COOKIEHASH ] );
+		$comment_author = wp_unslash( $comment_author );
+		$comment_author = esc_attr( $comment_author );
+
 		$_COOKIE[ 'comment_author_' . COOKIEHASH ] = $comment_author;
 	}
 
@@ -632,9 +635,10 @@ function sanitize_comment_cookies() {
 		 *
 		 * @param string $author_email_cookie The comment author email cookie.
 		 */
-		$comment_author_email                            = apply_filters( 'pre_comment_author_email', $_COOKIE[ 'comment_author_email_' . COOKIEHASH ] );
-		$comment_author_email                            = wp_unslash( $comment_author_email );
-		$comment_author_email                            = esc_attr( $comment_author_email );
+		$comment_author_email = apply_filters( 'pre_comment_author_email', $_COOKIE[ 'comment_author_email_' . COOKIEHASH ] );
+		$comment_author_email = wp_unslash( $comment_author_email );
+		$comment_author_email = esc_attr( $comment_author_email );
+
 		$_COOKIE[ 'comment_author_email_' . COOKIEHASH ] = $comment_author_email;
 	}
 
@@ -649,8 +653,9 @@ function sanitize_comment_cookies() {
 		 *
 		 * @param string $author_url_cookie The comment author URL cookie.
 		 */
-		$comment_author_url                            = apply_filters( 'pre_comment_author_url', $_COOKIE[ 'comment_author_url_' . COOKIEHASH ] );
-		$comment_author_url                            = wp_unslash( $comment_author_url );
+		$comment_author_url = apply_filters( 'pre_comment_author_url', $_COOKIE[ 'comment_author_url_' . COOKIEHASH ] );
+		$comment_author_url = wp_unslash( $comment_author_url );
+
 		$_COOKIE[ 'comment_author_url_' . COOKIEHASH ] = $comment_author_url;
 	}
 }
@@ -1821,6 +1826,15 @@ function wp_transition_comment_status( $new_status, $old_status, $comment ) {
 		 * The dynamic portions of the hook name, `$old_status`, and `$new_status`,
 		 * refer to the old and new comment statuses, respectively.
 		 *
+		 * Possible hook names include:
+		 *
+		 *  - `comment_unapproved_to_approved`
+		 *  - `comment_spam_to_approved`
+		 *  - `comment_approved_to_unapproved`
+		 *  - `comment_spam_to_unapproved`
+		 *  - `comment_unapproved_to_spam`
+		 *  - `comment_approved_to_spam`
+		 *
 		 * @since 2.7.0
 		 *
 		 * @param WP_Comment $comment Comment object.
@@ -1833,8 +1847,19 @@ function wp_transition_comment_status( $new_status, $old_status, $comment ) {
 	 * The dynamic portions of the hook name, `$new_status`, and `$comment->comment_type`,
 	 * refer to the new comment status, and the type of comment, respectively.
 	 *
-	 * Typical comment types include an empty string (standard comment), 'pingback',
-	 * or 'trackback'.
+	 * Typical comment types include 'comment', 'pingback', or 'trackback'.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `comment_approved_comment`
+	 *  - `comment_approved_pingback`
+	 *  - `comment_approved_trackback`
+	 *  - `comment_unapproved_comment`
+	 *  - `comment_unapproved_pingback`
+	 *  - `comment_unapproved_trackback`
+	 *  - `comment_spam_comment`
+	 *  - `comment_spam_pingback`
+	 *  - `comment_spam_trackback`
 	 *
 	 * @since 2.7.0
 	 *
@@ -1922,6 +1947,8 @@ function wp_get_current_commenter() {
  * Used to allow the commenter to see their pending comment.
  *
  * @since 5.1.0
+ * @since 5.7.0 The window within which the author email for an unapproved comment
+ *              can be retrieved was extended to 10 minutes.
  *
  * @return string The unapproved comment author's email (when supplied).
  */
@@ -1933,8 +1960,8 @@ function wp_get_unapproved_comment_author_email() {
 		$comment    = get_comment( $comment_id );
 
 		if ( $comment && hash_equals( $_GET['moderation-hash'], wp_hash( $comment->comment_date_gmt ) ) ) {
-			// The comment will only be viewable by the comment author for 1 minute.
-			$comment_preview_expires = strtotime( $comment->comment_date_gmt . '+1 minute' );
+			// The comment will only be viewable by the comment author for 10 minutes.
+			$comment_preview_expires = strtotime( $comment->comment_date_gmt . '+10 minutes' );
 
 			if ( time() < $comment_preview_expires ) {
 				$commenter_email = $comment->comment_author_email;
@@ -2346,114 +2373,6 @@ function wp_new_comment_notify_postauthor( $comment_ID ) {
 	}
 
 	return wp_notify_postauthor( $comment_ID );
-}
-
-/**
- * Notifies the comment author when their comment gets approved.
- *
- * This notification is only sent once when the comment status
- * changes from unapproved to approved.
- *
- * @since 5.7.0
- *
- * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
- * @return bool Whether the email was sent.
- */
-function wp_new_comment_notify_comment_author( $comment_id ) {
-	$comment = get_comment( $comment_id );
-
-	if ( ! $comment ) {
-		return false;
-	}
-
-	$post = get_post( $comment->comment_post_ID );
-
-	if ( ! $post ) {
-		return false;
-	}
-
-	// Make sure the comment author can be notified by email.
-	if ( empty( $comment->comment_author_email ) ) {
-		return false;
-	}
-
-	if ( ! get_comment_meta( $comment->comment_ID, '_wp_comment_author_notification_optin', true ) ) {
-		return false;
-	}
-
-	/**
-	 * The blogname option is escaped with esc_html when
-	 * saved into the database, we need to reverse this for
-	 * the plain text area of the email.
-	 */
-	$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-
-	$subject = sprintf(
-		/* translators: 1: Blog name, 2: Post title. */
-		__( '[%1$s] Your comment on "%2$s" has been approved' ),
-		$blogname,
-		$post->post_title
-	);
-
-	if ( ! empty( $comment->comment_author ) ) {
-		$notify_message = sprintf(
-			/* translators: %s: Comment author's name. */
-			__( 'Howdy %s,' ),
-			$comment->comment_author
-		) . "\r\n\r\n";
-	} else {
-		$notify_message = __( 'Howdy,' ) . "\r\n\r\n";
-	}
-
-	$notify_message .= sprintf(
-		/* translators: %s: Post title. */
-		__( 'Your comment on "%s" has been approved.' ),
-		$post->post_title
-	) . "\r\n\r\n";
-
-	$notify_message .= sprintf(
-		/* translators: %s: Comment permalink. */
-		__( 'View comment: %s' ),
-		get_comment_link( $comment )
-	) . "\r\n";
-
-	$email = array(
-		'to'      => $comment->comment_author_email,
-		'subject' => $subject,
-		'message' => $notify_message,
-		'headers' => '',
-	);
-
-	/**
-	 * Filters the contents of the email sent to notify a comment author that their comment was approved.
-	 *
-	 * Content should be formatted for transmission via wp_mail().
-	 *
-	 * @since 5.7.0
-	 *
-	 * @param array      $email   {
-	 *     Used to build wp_mail().
-	 *
-	 *     @type string $to      The email address of the comment author.
-	 *     @type string $subject The subject of the email.
-	 *     @type string $message The content of the email.
-	 *     @type string $headers Headers.
-	 * }
-	 * @param WP_Comment $comment Comment object.
-	 */
-	$email = apply_filters( 'comment_approval_notification', $email, $comment );
-
-	$sent = wp_mail(
-		$email['to'],
-		wp_specialchars_decode( $email['subject'] ),
-		$email['message'],
-		$email['headers']
-	);
-
-	// Delete the opt-in now the notification has been sent.
-	delete_comment_meta( $comment->comment_ID, '_wp_comment_author_notification_optin' );
-
-	return $sent;
 }
 
 /**

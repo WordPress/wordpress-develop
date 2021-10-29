@@ -122,12 +122,12 @@
 		t.postid = postid;
 		$('#imgedit-response-' + postid).empty();
 
-		$('input[type="text"]', '#imgedit-panel-' + postid).keypress(function(e) {
+		$('#imgedit-panel-' + postid).on( 'keypress', 'input[type="text"]', function(e) {
 			var k = e.keyCode;
 
 			// Key codes 37 through 40 are the arrow keys.
 			if ( 36 < k && k < 41 ) {
-				$(this).blur();
+				$(this).trigger( 'blur' );
 			}
 
 			// The key code 13 is the Enter key.
@@ -384,7 +384,7 @@
 						 */
 						t.setDisabled( $( '#image-undo-' + postid) , true );
 						// Move focus to the undo button to avoid a focus loss.
-						$( '#image-undo-' + postid ).focus();
+						$( '#image-undo-' + postid ).trigger( 'focus' );
 					}
 				}
 
@@ -402,7 +402,7 @@
 				}
 
 				if ( $('#imgedit-history-' + postid).val() && $('#imgedit-undone-' + postid).val() === '0' ) {
-					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).removeAttr('disabled');
+					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', false);
 				} else {
 					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', true);
 				}
@@ -458,10 +458,10 @@
 			fh = t.intval(h.val());
 
 			if ( fw < 1 ) {
-				w.focus();
+				w.trigger( 'focus' );
 				return false;
 			} else if ( fh < 1 ) {
-				h.focus();
+				h.trigger( 'focus' );
 				return false;
 			}
 
@@ -689,7 +689,7 @@
 				elementToSetFocusTo = $( '.imgedit-wrap' ).find( ':tabbable:first' );
 			}
 
-			elementToSetFocusTo.focus();
+			elementToSetFocusTo.trigger( 'focus' );
 		}, 100 );
 	},
 
@@ -867,7 +867,7 @@
 			$('#image-editor-' + postid).fadeOut('fast', function() {
 				$( '#media-head-' + postid ).fadeIn( 'fast', function() {
 					// Move focus back to the Edit Image button. Runs also when saving.
-					$( '#imgedit-open-btn-' + postid ).focus();
+					$( '#imgedit-open-btn-' + postid ).trigger( 'focus' );
 				});
 				$(this).empty();
 			});
@@ -893,7 +893,7 @@
 			pop = this.intval( $('#imgedit-undone-' + postid).val() );
 
 		if ( pop < history.length ) {
-			if ( confirm( $('#imgedit-leaving-' + postid).html() ) ) {
+			if ( confirm( $('#imgedit-leaving-' + postid).text() ) ) {
 				return false;
 			}
 			return true;
@@ -1042,7 +1042,7 @@
 			t.setDisabled(button, pop < history.length);
 			// When undo gets disabled, move focus to the redo button to avoid a focus loss.
 			if ( history.length === pop ) {
-				$( '#image-redo-' + postid ).focus();
+				$( '#image-redo-' + postid ).trigger( 'focus' );
 			}
 		});
 	},
@@ -1073,7 +1073,7 @@
 			t.setDisabled(button, pop > 0);
 			// When redo gets disabled, move focus to the undo button to avoid a focus loss.
 			if ( 0 === pop ) {
-				$( '#image-undo-' + postid ).focus();
+				$( '#image-undo-' + postid ).trigger( 'focus' );
 			}
 		});
 	},

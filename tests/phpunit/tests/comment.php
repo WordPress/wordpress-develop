@@ -8,8 +8,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $notify_message = '';
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
@@ -515,7 +515,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_new_comment_notify_postauthor( $c2 );
 		remove_filter( 'comment_notification_text', array( $this, 'save_comment_notification_text' ) );
 
-		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+		$this->assertStringContainsString( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
 	}
 
 	/**
@@ -540,7 +540,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_new_comment_notify_moderator( $c2 );
 		remove_filter( 'comment_moderation_text', array( $this, 'save_comment_notification_text' ) );
 
-		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+		$this->assertStringContainsString( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
 	}
 
 	/**
@@ -552,58 +552,6 @@ class Tests_Comment extends WP_UnitTestCase {
 	public function save_comment_notification_text( $notify_message = '' ) {
 		self::$notify_message = $notify_message;
 		return $notify_message;
-	}
-
-	/**
-	 * @ticket 33717
-	 */
-	public function test_wp_new_comment_notify_comment_author_once_only() {
-		$c = self::factory()->comment->create(
-			array(
-				'comment_post_ID'      => self::$post_id,
-				'comment_approved'     => '0',
-				'comment_author_email' => 'foo@bar.mail',
-			)
-		);
-
-		// The comment author subscribed to receive an email once comment is approved.
-		update_comment_meta( $c, '_wp_comment_author_notification_optin', true );
-
-		// For the purpose of the test we are removing this hook to directly use the function to notify the comment author.
-		remove_action( 'comment_unapproved_to_approved', 'wp_new_comment_notify_comment_author' );
-
-		// Approve the comment.
-		wp_set_comment_status( $c, 'approve' );
-
-		$sent   = wp_new_comment_notify_comment_author( $c );
-		$resent = wp_new_comment_notify_comment_author( $c );
-
-		$this->assertTrue( $sent );
-		$this->assertFalse( $resent );
-	}
-
-	/**
-	 * @ticket 33717
-	 */
-	public function test_wp_new_comment_notify_comment_author_has_not_opted_in() {
-		$c = self::factory()->comment->create(
-			array(
-				'comment_post_ID'      => self::$post_id,
-				'comment_approved'     => '0',
-				'comment_author_email' => 'bat@man.mail',
-			)
-		);
-
-		// For the purpose of the test we are removing this hook to directly use the function to notify the comment author.
-		remove_action( 'comment_unapproved_to_approved', 'wp_new_comment_notify_comment_author' );
-
-		// Approve the comment.
-		wp_set_comment_status( $c, 'approve' );
-
-		$sent = wp_new_comment_notify_comment_author( $c );
-
-		// The comment author hasn't subscribed to receive an email, no email should be sent.
-		$this->assertFalse( $sent );
 	}
 
 	/**
@@ -909,8 +857,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Close comments more than one day old.
 		update_option( 'close_comments_days_old', 1 );
 
-		$old_date    = strtotime( '-25 hours' );
-		$old_post_id = self::factory()->post->create( array( 'post_date' => strftime( '%Y-%m-%d %H:%M:%S', $old_date ) ) );
+		$old_date    = date_create( '-25 hours' );
+		$old_post_id = self::factory()->post->create( array( 'post_date' => date_format( $old_date, 'Y-m-d H:i:s' ) ) );
 
 		$old_post_comment_status = _close_comments_for_old_post( true, $old_post_id );
 		$this->assertFalse( $old_post_comment_status );
@@ -1317,10 +1265,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported comments.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported comment properties.
-		$this->assertSame( 8, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 8, $actual['data'][0]['data'] );
 
 		// Exported group.
 		$this->assertSame( 'comments', $actual['data'][0]['group_id'] );
@@ -1380,10 +1328,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported comments.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported comment properties.
-		$this->assertSame( 7, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 7, $actual['data'][0]['data'] );
 	}
 
 	/**
@@ -1411,6 +1359,6 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported comments.
-		$this->assertSame( 0, count( $actual['data'] ) );
+		$this->assertCount( 0, $actual['data'] );
 	}
 }

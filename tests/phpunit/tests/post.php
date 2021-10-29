@@ -30,8 +30,8 @@ class Tests_Post extends WP_UnitTestCase {
 		remove_role( 'grammarian' );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		wp_set_current_user( self::$editor_id );
 		_set_cron_array( array() );
@@ -79,8 +79,8 @@ class Tests_Post extends WP_UnitTestCase {
 
 			// Insert a post and make sure the ID is OK.
 			$id = wp_insert_post( $post );
-			$this->assertTrue( is_numeric( $id ) );
-			$this->assertTrue( $id > 0 );
+			$this->assertIsNumeric( $id );
+			$this->assertGreaterThan( 0, $id );
 
 			// Fetch the post and make sure it matches.
 			$out = get_post( $id );
@@ -97,13 +97,13 @@ class Tests_Post extends WP_UnitTestCase {
 
 			update_object_term_cache( $id, $post_type );
 			$tcache = wp_cache_get( $id, 'post_tag_relationships' );
-			$this->assertInternalType( 'array', $tcache );
-			$this->assertSame( 2, count( $tcache ) );
+			$this->assertIsArray( $tcache );
+			$this->assertCount( 2, $tcache );
 
 			$tcache = wp_cache_get( $id, 'ctax_relationships' );
 			if ( 'cpt' === $post_type ) {
-				$this->assertInternalType( 'array', $tcache );
-				$this->assertSame( 2, count( $tcache ) );
+				$this->assertIsArray( $tcache );
+				$this->assertCount( 2, $tcache );
 			} else {
 				$this->assertFalse( $tcache );
 			}
@@ -128,15 +128,15 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
+			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 		// dmp( _get_cron_array() );
-		$this->assertTrue( is_numeric( $id ) );
-		$this->assertTrue( $id > 0 );
+		$this->assertIsNumeric( $id );
+		$this->assertGreaterThan( 0, $id );
 
 		// Fetch the post and make sure it matches.
 		$out = get_post( $id );
@@ -164,7 +164,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -182,7 +182,7 @@ class Tests_Post extends WP_UnitTestCase {
 		// Now save it again with a date further in the future.
 
 		$post['ID']            = $id;
-		$post['post_date']     = strftime( '%Y-%m-%d %H:%M:%S', $future_date_2 );
+		$post['post_date']     = date_format( date_create( "@{$future_date_2}" ), 'Y-m-d H:i:s' );
 		$post['post_date_gmt'] = null;
 		wp_update_post( $post );
 
@@ -209,7 +209,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -227,7 +227,7 @@ class Tests_Post extends WP_UnitTestCase {
 		// Now save it again with a date further in the future.
 
 		$post['ID']            = $id;
-		$post['post_date']     = strftime( '%Y-%m-%d %H:%M:%S', $future_date_2 );
+		$post['post_date']     = date_format( date_create( "@{$future_date_2}" ), 'Y-m-d H:i:s' );
 		$post['post_date_gmt'] = null;
 		wp_update_post( $post );
 
@@ -251,15 +251,15 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'draft',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
+			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 		// dmp( _get_cron_array() );
-		$this->assertTrue( is_numeric( $id ) );
-		$this->assertTrue( $id > 0 );
+		$this->assertIsNumeric( $id );
+		$this->assertGreaterThan( 0, $id );
 
 		// Fetch the post and make sure it matches.
 		$out = get_post( $id );
@@ -286,7 +286,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -330,7 +330,7 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
-				'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+				'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 			);
 
 			// Insert a post and make sure the ID is OK.
@@ -372,15 +372,15 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'private',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
+			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 		// dmp( _get_cron_array() );
-		$this->assertTrue( is_numeric( $id ) );
-		$this->assertTrue( $id > 0 );
+		$this->assertIsNumeric( $id );
+		$this->assertGreaterThan( 0, $id );
 
 		// Fetch the post and make sure it matches.
 		$out = get_post( $id );
@@ -429,7 +429,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -498,7 +498,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $p );
 
-		$this->assertContains( 'wptests_pt=' . $p, $post->guid );
+		$this->assertStringContainsString( 'wptests_pt=' . $p, $post->guid );
 	}
 
 	/**
@@ -535,7 +535,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
+			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -793,7 +793,8 @@ class Tests_Post extends WP_UnitTestCase {
 			),
 		);
 		$insert_post_id = wp_insert_post( $post_data, true, true );
-		$this->assertTrue( ( is_int( $insert_post_id ) && $insert_post_id > 0 ) );
+		$this->assertIsInt( $insert_post_id );
+		$this->assertGreaterThan( 0, $insert_post_id );
 
 		$post = get_post( $insert_post_id );
 		$this->assertEquals( $post->post_author, self::$editor_id );
@@ -891,7 +892,7 @@ class Tests_Post extends WP_UnitTestCase {
 		register_post_status( 'test' );
 
 		$counts = wp_count_posts();
-		$this->assertTrue( isset( $counts->test ) );
+		$this->assertObjectHasAttribute( 'test', $counts );
 		$this->assertSame( 0, $counts->test );
 	}
 
@@ -917,14 +918,14 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		preg_match_all( '|href="([^"]+)"|', $wp_tag_cloud, $matches );
-		$this->assertSame( 1, count( $matches[1] ) );
+		$this->assertCount( 1, $matches[1] );
 
 		$terms = get_terms( $tax );
 		$term  = reset( $terms );
 
 		foreach ( $matches[1] as $url ) {
-			$this->assertContains( 'tag_ID=' . $term->term_id, $url );
-			$this->assertContains( 'post_type=new_post_type', $url );
+			$this->assertStringContainsString( 'tag_ID=' . $term->term_id, $url );
+			$this->assertStringContainsString( 'post_type=new_post_type', $url );
 		}
 	}
 
@@ -1411,7 +1412,7 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		$post    = get_post( $post_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1421,7 +1422,7 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		$post    = get_post( $post_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 
 		// Empty post_date_gmt without floating status
 		$post_id = self::factory()->post->create(
@@ -1450,8 +1451,8 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertEquals( get_date_from_gmt( $post_date_gmt ), $post->post_date );
-		$this->assertEquals( $post_date_gmt, $post->post_date_gmt );
+		$this->assertSame( get_date_from_gmt( $post_date_gmt ), $post->post_date );
+		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
 
 		// Invalid post_date_gmt
 		$post_id = self::factory()->post->create(
@@ -1460,8 +1461,8 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertEquals( '1970-01-01 00:00:00', $post->post_date );
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '1970-01-01 00:00:00', $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 	}
 
 	/**
@@ -1480,8 +1481,8 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertEquals( $post_date, $post->post_date );
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1491,8 +1492,8 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertEquals( $post_date, $post->post_date );
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 
 		// Empty post_date_gmt without floating status
 		$post_id = self::factory()->post->create(
@@ -1502,8 +1503,8 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertEquals( $post_date, $post->post_date );
-		$this->assertEquals( get_gmt_from_date( $post_date ), $post->post_date_gmt );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( get_gmt_from_date( $post_date ), $post->post_date_gmt );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1513,8 +1514,8 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertEquals( $post_date, $post->post_date );
-		$this->assertEquals( get_gmt_from_date( $post_date ), $post->post_date_gmt );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( get_gmt_from_date( $post_date ), $post->post_date_gmt );
 
 		// Valid post_date_gmt
 		$post_id = self::factory()->post->create(
@@ -1524,8 +1525,8 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertEquals( $post_date, $post->post_date );
-		$this->assertEquals( $post_date_gmt, $post->post_date_gmt );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
 
 		// Invalid post_date_gmt
 		$post_id = self::factory()->post->create(
@@ -1535,8 +1536,8 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertEquals( $post_date, $post->post_date );
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 	}
 
 	/**
@@ -1554,7 +1555,7 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_status' => 'draft',
 			)
 		);
-		$this->assertEquals( 0, $post_id );
+		$this->assertSame( 0, $post_id );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1563,7 +1564,7 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_status'   => 'draft',
 			)
 		);
-		$this->assertEquals( 0, $post_id );
+		$this->assertSame( 0, $post_id );
 
 		// Empty post_date_gmt without floating status
 		$post_id = self::factory()->post->create(
@@ -1572,7 +1573,7 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_status' => 'publish',
 			)
 		);
-		$this->assertEquals( 0, $post_id );
+		$this->assertSame( 0, $post_id );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1581,7 +1582,7 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_status'   => 'publish',
 			)
 		);
-		$this->assertEquals( 0, $post_id );
+		$this->assertSame( 0, $post_id );
 
 		// Valid post_date_gmt
 		$post_id = self::factory()->post->create(
@@ -1590,7 +1591,7 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_date_gmt' => $post_date_gmt,
 			)
 		);
-		$this->assertEquals( 0, $post_id );
+		$this->assertSame( 0, $post_id );
 
 		// Invalid post_date_gmt
 		$post_id = self::factory()->post->create(
@@ -1599,7 +1600,7 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_date_gmt' => $invalid_date,
 			)
 		);
-		$this->assertEquals( 0, $post_id );
+		$this->assertSame( 0, $post_id );
 	}
 
 	/**
@@ -1614,19 +1615,19 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $resolved_post_date ), 2, 'The dates should be equal' );
 
 		$resolved_post_date = wp_resolve_post_date( '', $post_date_gmt );
-		$this->assertEquals( get_date_from_gmt( $post_date_gmt ), $resolved_post_date );
+		$this->assertSame( get_date_from_gmt( $post_date_gmt ), $resolved_post_date );
 
 		$resolved_post_date = wp_resolve_post_date( '', $invalid_date );
-		$this->assertEquals( '1970-01-01 00:00:00', $resolved_post_date );
+		$this->assertSame( '1970-01-01 00:00:00', $resolved_post_date );
 
 		$resolved_post_date = wp_resolve_post_date( $post_date );
-		$this->assertEquals( $post_date, $resolved_post_date );
+		$this->assertSame( $post_date, $resolved_post_date );
 
 		$resolved_post_date = wp_resolve_post_date( $post_date, $post_date_gmt );
-		$this->assertEquals( $post_date, $resolved_post_date );
+		$this->assertSame( $post_date, $resolved_post_date );
 
 		$resolved_post_date = wp_resolve_post_date( $post_date, $invalid_date );
-		$this->assertEquals( $post_date, $resolved_post_date );
+		$this->assertSame( $post_date, $resolved_post_date );
 
 		$resolved_post_date = wp_resolve_post_date( $invalid_date );
 		$this->assertFalse( $resolved_post_date );
@@ -1636,5 +1637,164 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$resolved_post_date = wp_resolve_post_date( $invalid_date, $invalid_date );
 		$this->assertFalse( $resolved_post_date );
+	}
+
+	/**
+	 * Ensure sticking a post updates the `sticky_posts` option.
+	 *
+	 * @covers ::stick_post
+	 */
+	function test_stick_post_updates_option() {
+		stick_post( 1 );
+		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
+
+		stick_post( 2 );
+		$this->assertSameSets( array( 1, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure sticking a post does not duplicate post IDs in the option.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 * @dataProvider data_stick_post_does_not_duplicate_post_ids
+	 *
+	 * @param mixed $stick Value to pass to stick_post().
+	 */
+	function test_stick_post_does_not_duplicate_post_ids( $stick ) {
+		update_option( 'sticky_posts', array( 1, 2 ) );
+
+		stick_post( $stick );
+		$this->assertSameSets( array( 1, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Data provider for test_stick_post_does_not_duplicate_post_ids().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type mixed $stick Value to pass to stick_post().
+	 * }
+	 */
+	function data_stick_post_does_not_duplicate_post_ids() {
+		return array(
+			array( 1 ),
+			array( '1' ),
+			array( 2.0 ),
+		);
+	}
+
+	/**
+	 * Ensure sticking a post removes other duplicate post IDs from the option.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 *
+	 * @param mixed $stick Value to pass to stick_post().
+	 */
+	function test_stick_post_removes_duplicate_post_ids_when_adding_new_value() {
+		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );
+
+		stick_post( 3 );
+		$this->assertSameSets( array( 1, 2, 3 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure unsticking a post updates the `sticky_posts` option.
+	 *
+	 * @covers ::unstick_post
+	 */
+	function test_unstick_post_updates_option() {
+		update_option( 'sticky_posts', array( 1 ) );
+		unstick_post( 1 );
+		$this->assertEmpty( get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', array( 1, 2 ) );
+		unstick_post( 1 );
+		$this->assertSameSets( array( 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure unsticking a post removes duplicate post IDs from the option.
+	 *
+	 * @ticket 52007
+	 * @covers ::unstick_post
+	 *
+	 * @dataProvider data_unstick_post_removes_duplicate_post_ids
+	 *
+	 * @param array $starting_option Original value of `sticky_posts` option.
+	 * @param mixed $unstick         Parameter passed to `unstick_post()`
+	 * @param array $expected
+	 */
+	function test_unstick_post_removes_duplicate_post_ids( $starting_option, $unstick, $expected ) {
+		update_option( 'sticky_posts', $starting_option );
+		unstick_post( $unstick );
+		$this->assertSameSets( $expected, get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Data provider for test_unstick_post_removes_duplicate_post_ids().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type array $starting_option Original value of `sticky_posts` option.
+	 *     @type mixed $unstick         Parameter passed to `unstick_post()`
+	 *     @type array $expected
+	 * }
+	 */
+	function data_unstick_post_removes_duplicate_post_ids() {
+		return array(
+			array(
+				array( 1, 1 ),
+				1,
+				array(),
+			),
+			array(
+				array( 1, 1 ),
+				'1',
+				array(),
+			),
+			array(
+				array( 1, 2, 1 ),
+				1,
+				array( 2 ),
+			),
+			array(
+				array( 1, 2, 1 ),
+				2,
+				array( 1 ),
+			),
+			array(
+				array( 1, 2, 1 ),
+				2.0,
+				array( 1 ),
+			),
+		);
+	}
+
+	/**
+	 * Ensure sticking a duplicate post does not update the `sticky_posts` option.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 */
+	function test_stick_post_with_duplicate_post_id_does_not_update_option() {
+		update_option( 'sticky_posts', array( 1, 2, 2 ) );
+		stick_post( 2 );
+		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure unsticking a non-sticky post does not update the `sticky_posts` option.
+	 *
+	 * @ticket 52007
+	 * @covers ::unstick_post
+	 */
+	function test_unstick_post_with_non_sticky_post_id_does_not_update_option() {
+		update_option( 'sticky_posts', array( 1, 2, 2 ) );
+		unstick_post( 3 );
+		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
 }

@@ -231,7 +231,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( $args[0][0], $obj );
 		// Just in case we don't trust assertSame().
 		$obj->foo = true;
-		$this->assertFalse( empty( $args[0][0]->foo ) );
+		$this->assertNotEmpty( $args[0][0]->foo );
 	}
 
 	/**
@@ -254,13 +254,13 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( $args[0][1], $obj );
 		// Just in case we don't trust assertSame().
 		$obj->foo = true;
-		$this->assertFalse( empty( $args[0][1]->foo ) );
+		$this->assertNotEmpty( $args[0][1]->foo );
 
 		$args = $b->get_args();
 		$this->assertSame( $args[0][1], $obj );
 		// Just in case we don't trust assertSame().
 		$obj->foo = true;
-		$this->assertFalse( empty( $args[0][1]->foo ) );
+		$this->assertNotEmpty( $args[0][1]->foo );
 
 	}
 

@@ -736,6 +736,9 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
 	if ( ! is_main_site() ) {
 		return $data;
 	}
+	if ( isset( $data['post_parent'] ) && $data['post_parent'] ) {
+		return $data;
+	}
 
 	$post_name = $data['post_name'];
 	$c         = 0;
@@ -1017,6 +1020,8 @@ jQuery(document).ready( function($) {
  * Outputs the HTML for a network's "Edit Site" tabular interface.
  *
  * @since 4.6.0
+ *
+ * @global string $pagenow
  *
  * @param array $args {
  *     Optional. Array or string of Query parameters. Default empty array.

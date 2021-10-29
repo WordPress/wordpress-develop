@@ -7,15 +7,16 @@
  *
  * @group datequery
  * @group date
+ * @covers WP_Date_Query
  */
-class Tests_WP_Date_Query extends WP_UnitTestCase {
+class Tests_Date_Query extends WP_UnitTestCase {
 	/**
 	 * @var WP_Date_Query $q
 	 */
 	public $q;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		unset( $this->q );
 		$this->q = new WP_Date_Query( array( 'm' => 2 ) );
 	}
@@ -225,10 +226,10 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 
 		$found = $q->get_compare(
 			array(
-				'compare' => 'BETWEEN',
+				'compare' => 'NOT BETWEEN',
 			)
 		);
-		$this->assertSame( 'BETWEEN', $found );
+		$this->assertSame( 'NOT BETWEEN', $found );
 	}
 
 	public function test_validate_column_post_date() {
@@ -291,6 +292,11 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( 'my_custom_column', $q->validate_column( 'my_custom_column' ) );
 
 		remove_filter( 'date_query_valid_columns', array( $this, 'date_query_valid_columns_callback' ) );
+	}
+
+	public function date_query_valid_columns_callback( $columns ) {
+		$columns[] = 'my_custom_column';
+		return $columns;
 	}
 
 	/**
@@ -604,7 +610,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 
 		$found = $q->build_time_query( 'post_date', '=', 0, 10 );
 
-		$this->assertContains( '%H', $wpdb->remove_placeholder_escape( $found ) );
+		$this->assertStringContainsString( '%H', $wpdb->remove_placeholder_escape( $found ) );
 	}
 
 	public function test_build_time_query_compare_in() {
@@ -707,7 +713,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 
 		// $compare value is floating point - use regex to account for
 		// varying precision on different PHP installations.
-		$this->assertRegExp( "/DATE_FORMAT\( post_date, '%H\.%i' \) = 5\.150*/", $wpdb->remove_placeholder_escape( $found ) );
+		$this->assertMatchesRegularExpression( "/DATE_FORMAT\( post_date, '%H\.%i' \) = 5\.150*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
 	public function test_build_time_query_hour_minute_second() {
@@ -718,7 +724,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 
 		// $compare value is floating point - use regex to account for
 		// varying precision on different PHP installations.
-		$this->assertRegExp( "/DATE_FORMAT\( post_date, '%H\.%i%s' \) = 5\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
+		$this->assertMatchesRegularExpression( "/DATE_FORMAT\( post_date, '%H\.%i%s' \) = 5\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
 	public function test_build_time_query_minute_second() {
@@ -729,7 +735,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 
 		// $compare value is floating point - use regex to account for
 		// varying precision on different PHP installations.
-		$this->assertRegExp( "/DATE_FORMAT\( post_date, '0\.%i%s' \) = 0\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
+		$this->assertMatchesRegularExpression( "/DATE_FORMAT\( post_date, '0\.%i%s' \) = 0\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
 	/**
@@ -1128,12 +1134,5 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 
 		// MySQL ignores the invalid clause.
 		$this->assertSame( array( $p1, $p2 ), $q->posts );
-	}
-
-	/** Helpers */
-
-	public function date_query_valid_columns_callback( $columns ) {
-		$columns[] = 'my_custom_column';
-		return $columns;
 	}
 }

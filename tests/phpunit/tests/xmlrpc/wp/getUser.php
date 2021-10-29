@@ -7,21 +7,14 @@
 class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 	protected $administrator_id;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		// Create a super admin.
 		$this->administrator_id = $this->make_user_by_role( 'administrator' );
 		if ( is_multisite() ) {
 			grant_super_admin( $this->administrator_id );
 		}
-	}
-
-	function tearDown() {
-		if ( is_multisite() ) {
-			revoke_super_admin( $this->administrator_id );
-		}
-		parent::tearDown();
 	}
 
 	function test_invalid_username_password() {
@@ -68,7 +61,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 			'user_url'        => 'http://www.example.com/testuser',
 			'role'            => 'author',
 			'aim'             => 'wordpress',
-			'user_registered' => strftime( '%Y-%m-%d %H:%M:%S', $registered_date ),
+			'user_registered' => date_format( date_create( "@{$registered_date}" ), 'Y-m-d H:i:s' ),
 		);
 		$user_id         = wp_insert_user( $user_data );
 
@@ -76,19 +69,19 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result['user_id'] );
+		$this->assertIsString( $result['user_id'] );
 		$this->assertStringMatchesFormat( '%d', $result['user_id'] );
-		$this->assertInternalType( 'string', $result['username'] );
-		$this->assertInternalType( 'string', $result['first_name'] );
-		$this->assertInternalType( 'string', $result['last_name'] );
+		$this->assertIsString( $result['username'] );
+		$this->assertIsString( $result['first_name'] );
+		$this->assertIsString( $result['last_name'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['registered'] );
-		$this->assertInternalType( 'string', $result['bio'] );
-		$this->assertInternalType( 'string', $result['email'] );
-		$this->assertInternalType( 'string', $result['nickname'] );
-		$this->assertInternalType( 'string', $result['nicename'] );
-		$this->assertInternalType( 'string', $result['url'] );
-		$this->assertInternalType( 'string', $result['display_name'] );
-		$this->assertInternalType( 'array', $result['roles'] );
+		$this->assertIsString( $result['bio'] );
+		$this->assertIsString( $result['email'] );
+		$this->assertIsString( $result['nickname'] );
+		$this->assertIsString( $result['nicename'] );
+		$this->assertIsString( $result['url'] );
+		$this->assertIsString( $result['display_name'] );
+		$this->assertIsArray( $result['roles'] );
 
 		// Check expected values.
 		$this->assertEquals( $user_id, $result['user_id'] );

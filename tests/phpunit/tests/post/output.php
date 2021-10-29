@@ -8,16 +8,16 @@
  */
 class Tests_Post_Output extends WP_UnitTestCase {
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		add_shortcode( 'dumptag', array( $this, '_shortcode_dumptag' ) );
 		add_shortcode( 'paragraph', array( $this, '_shortcode_paragraph' ) );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $shortcode_tags;
 		unset( $shortcode_tags['dumptag'], $shortcode_tags['paragraph'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function _shortcode_dumptag( $atts ) {
@@ -305,11 +305,11 @@ EOF;
 
 		foreach ( array( true, false ) as $strip_teaser ) {
 			$actual = get_echo( 'the_content', array( null, $strip_teaser ) );
-			$this->assertContains( 'Teaser part', $actual );
-			$this->assertContains( 'Read More</a>', $actual );
-			$this->assertNotContains( '<!--more-->', $actual );
-			$this->assertNotContains( 'wp:more', $actual );
-			$this->assertNotContains( 'wp:paragraph', $actual );
+			$this->assertStringContainsString( 'Teaser part', $actual );
+			$this->assertStringContainsString( 'Read More</a>', $actual );
+			$this->assertStringNotContainsString( '<!--more-->', $actual );
+			$this->assertStringNotContainsString( 'wp:more', $actual );
+			$this->assertStringNotContainsString( 'wp:paragraph', $actual );
 		}
 	}
 
@@ -346,12 +346,12 @@ EOF;
 
 		foreach ( array( true, false ) as $strip_teaser ) {
 			$actual = get_echo( 'the_content', array( null, $strip_teaser ) );
-			$this->assertContains( 'Teaser part', $actual );
-			$this->assertContains( '(more&hellip;)</span></a>', $actual );
-			$this->assertNotContains( '<!--more-->', $actual );
-			$this->assertNotContains( '<!--noteaser-->', $actual ); // We placed the noteaser tag below the more tag.
-			$this->assertNotContains( 'wp:more', $actual );
-			$this->assertNotContains( 'wp:paragraph', $actual );
+			$this->assertStringContainsString( 'Teaser part', $actual );
+			$this->assertStringContainsString( '(more&hellip;)</span></a>', $actual );
+			$this->assertStringNotContainsString( '<!--more-->', $actual );
+			$this->assertStringNotContainsString( '<!--noteaser-->', $actual ); // We placed the noteaser tag below the more tag.
+			$this->assertStringNotContainsString( 'wp:more', $actual );
+			$this->assertStringNotContainsString( 'wp:paragraph', $actual );
 		}
 	}
 }

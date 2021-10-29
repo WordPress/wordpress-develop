@@ -26,7 +26,7 @@ class Tests_XMLRPC_wp_setOptions extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertSame( $escaped_string_with_quote, $result['blog_title']['value'] );
 		$this->assertSame( 'open', $result['default_comment_status']['value'] );
 	}

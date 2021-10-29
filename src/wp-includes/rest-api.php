@@ -118,8 +118,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  * @global array $wp_rest_additional_fields Holds registered fields, organized
  *                                          by object type.
  *
- * @param string|array $object_type Object(s) the field is being registered
- *                                  to, "post"|"term"|"comment" etc.
+ * @param string|array $object_type Object(s) the field is being registered to,
+ *                                  "post"|"term"|"comment" etc.
  * @param string       $attribute   The attribute name.
  * @param array        $args {
  *     Optional. An array of arguments used to handle the registered field.
@@ -135,6 +135,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  * }
  */
 function register_rest_field( $object_type, $attribute, $args = array() ) {
+	global $wp_rest_additional_fields;
+
 	$defaults = array(
 		'get_callback'    => null,
 		'update_callback' => null,
@@ -142,8 +144,6 @@ function register_rest_field( $object_type, $attribute, $args = array() ) {
 	);
 
 	$args = wp_parse_args( $args, $defaults );
-
-	global $wp_rest_additional_fields;
 
 	$object_types = (array) $object_type;
 
@@ -313,8 +313,24 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Plugins_Controller();
 	$controller->register_routes();
 
+	// Sidebars.
+	$controller = new WP_REST_Sidebars_Controller();
+	$controller->register_routes();
+
+	// Widget Types.
+	$controller = new WP_REST_Widget_Types_Controller();
+	$controller->register_routes();
+
+	// Widgets.
+	$controller = new WP_REST_Widgets_Controller();
+	$controller->register_routes();
+
 	// Block Directory.
 	$controller = new WP_REST_Block_Directory_Controller();
+	$controller->register_routes();
+
+	// Pattern Directory.
+	$controller = new WP_REST_Pattern_Directory_Controller();
 	$controller->register_routes();
 
 	// Site Health.
@@ -385,9 +401,9 @@ function rest_get_url_prefix() {
  * @todo Check if this is even necessary
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param int    $blog_id Optional. Blog ID. Default of null returns URL for current blog.
- * @param string $path    Optional. REST route. Default '/'.
- * @param string $scheme  Optional. Sanitization scheme. Default 'rest'.
+ * @param int|null $blog_id Optional. Blog ID. Default of null returns URL for current blog.
+ * @param string   $path    Optional. REST route. Default '/'.
+ * @param string   $scheme  Optional. Sanitization scheme. Default 'rest'.
  * @return string Full URL to the endpoint.
  */
 function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
@@ -441,10 +457,10 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $url     REST URL.
-	 * @param string $path    REST route.
-	 * @param int    $blog_id Blog ID.
-	 * @param string $scheme  Sanitization scheme.
+	 * @param string   $url     REST URL.
+	 * @param string   $path    REST route.
+	 * @param int|null $blog_id Blog ID.
+	 * @param string   $scheme  Sanitization scheme.
 	 */
 	return apply_filters( 'rest_url', $url, $path, $blog_id, $scheme );
 }
@@ -1012,7 +1028,7 @@ function rest_cookie_check_errors( $result ) {
 	$result = wp_verify_nonce( $nonce, 'wp_rest' );
 
 	if ( ! $result ) {
-		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
+		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie check failed' ), array( 'status' => 403 ) );
 	}
 
 	// Send a refreshed nonce in header.
@@ -1785,8 +1801,8 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 		return new WP_Error( 'rest_no_matching_schema', wp_sprintf( __( '%1$s is not a valid %2$l.' ), $param, $schema_titles ) );
 	}
 
-	/* translators: 1: Parameter. */
-	return new WP_Error( 'rest_no_matching_schema', sprintf( __( '%1$s does not match any of the expected formats.' ), $param ) );
+	/* translators: %s: Parameter. */
+	return new WP_Error( 'rest_no_matching_schema', sprintf( __( '%s does not match any of the expected formats.' ), $param ) );
 }
 
 /**
@@ -1889,8 +1905,8 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 
 		return new WP_Error(
 			'rest_one_of_multiple_matches',
-			/* translators: 1: Parameter. */
-			sprintf( __( '%1$s matches more than one of the expected formats.' ), $param ),
+			/* translators: %s: Parameter. */
+			sprintf( __( '%s matches more than one of the expected formats.' ), $param ),
 			array( 'positions' => $schema_positions )
 		);
 	}
@@ -1924,6 +1940,12 @@ function rest_are_values_equal( $value1, $value2 ) {
 		}
 
 		return true;
+	}
+
+	if ( is_int( $value1 ) && is_float( $value2 )
+		|| is_float( $value1 ) && is_int( $value2 )
+	) {
+		return (float) $value1 === (float) $value2;
 	}
 
 	return $value1 === $value2;
@@ -2284,8 +2306,8 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
 		return new WP_Error(
 			'rest_too_few_properties',
-			/* translators: 1: Parameter, 2: Number. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at least %2$s property.',
 					'%1$s must contain at least %2$s properties.',
@@ -2300,8 +2322,8 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
 		return new WP_Error(
 			'rest_too_many_properties',
-			/* translators: 1: Parameter, 2: Number. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at most %2$s property.',
 					'%1$s must contain at most %2$s properties.',
@@ -2350,8 +2372,8 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
 		return new WP_Error(
 			'rest_too_few_items',
-			/* translators: 1: Parameter, 2: Number. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at least %2$s item.',
 					'%1$s must contain at least %2$s items.',
@@ -2365,9 +2387,9 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 
 	if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
 		return new WP_Error(
-			'test_too_many_items',
-			/* translators: 1: Parameter, 2: Number. */
+			'rest_too_many_items',
 			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at most %2$s item.',
 					'%1$s must contain at most %2$s items.',
@@ -2380,8 +2402,8 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 	}
 
 	if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
-		/* translators: 1: Parameter. */
-		return new WP_Error( 'rest_duplicate_items', sprintf( __( '%1$s has duplicate items.' ), $param ) );
+		/* translators: %s: Parameter. */
+		return new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
 	}
 
 	return true;
@@ -2456,8 +2478,8 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 			if ( $value >= $args['maximum'] || $value <= $args['minimum'] ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2471,8 +2493,8 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 			if ( $value > $args['maximum'] || $value <= $args['minimum'] ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2486,8 +2508,8 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 			if ( $value >= $args['maximum'] || $value < $args['minimum'] ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2501,8 +2523,8 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 			if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2539,8 +2561,8 @@ function rest_validate_string_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['minLength'] ) && mb_strlen( $value ) < $args['minLength'] ) {
 		return new WP_Error(
 			'rest_too_short',
-			/* translators: 1: Parameter, 2: Number of characters. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number of characters. */
 				_n(
 					'%1$s must be at least %2$s character long.',
 					'%1$s must be at least %2$s characters long.',
@@ -2555,8 +2577,8 @@ function rest_validate_string_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['maxLength'] ) && mb_strlen( $value ) > $args['maxLength'] ) {
 		return new WP_Error(
 			'rest_too_long',
-			/* translators: 1: Parameter, 2: Number of characters. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number of characters. */
 				_n(
 					'%1$s must be at most %2$s character long.',
 					'%1$s must be at most %2$s characters long.',
@@ -2613,6 +2635,7 @@ function rest_validate_integer_value_from_schema( $value, $args, $param ) {
  * @since 4.7.0
  * @since 5.5.0 Added the `$param` parameter.
  * @since 5.6.0 Support the "anyOf" and "oneOf" keywords.
+ * @since 5.9.0 Added `text-field` and `textarea-field` formats.
  *
  * @param mixed  $value The value to sanitize.
  * @param array  $args  Schema array to use for sanitization.
@@ -2682,8 +2705,8 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
-			/* translators: 1: Parameter. */
-			return new WP_Error( 'rest_duplicate_items', sprintf( __( '%1$s has duplicate items.' ), $param ) );
+			/* translators: %s: Parameter. */
+			return new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
 		}
 
 		return $value;
@@ -2755,6 +2778,12 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 
 			case 'uuid':
 				return sanitize_text_field( $value );
+
+			case 'text-field':
+				return sanitize_text_field( $value );
+
+			case 'textarea-field':
+				return sanitize_textarea_field( $value );
 		}
 	}
 
@@ -2794,6 +2823,11 @@ function rest_preload_api_request( $memo, $path ) {
 		if ( ! in_array( $method, array( 'GET', 'OPTIONS' ), true ) ) {
 			$method = 'GET';
 		}
+	}
+
+	$path = untrailingslashit( $path );
+	if ( empty( $path ) ) {
+		$path = '/';
 	}
 
 	$path_parts = parse_url( $path );
@@ -3181,4 +3215,58 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	}
 
 	return $endpoint_args;
+}
+
+
+/**
+ * Converts an error to a response object.
+ *
+ * This iterates over all error codes and messages to change it into a flat
+ * array. This enables simpler client behaviour, as it is represented as a
+ * list in JSON rather than an object/map.
+ *
+ * @since 5.7.0
+ *
+ * @param WP_Error $error WP_Error instance.
+ *
+ * @return WP_REST_Response List of associative arrays with code and message keys.
+ */
+function rest_convert_error_to_response( $error ) {
+	$status = array_reduce(
+		$error->get_all_error_data(),
+		static function ( $status, $error_data ) {
+			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
+		},
+		500
+	);
+
+	$errors = array();
+
+	foreach ( (array) $error->errors as $code => $messages ) {
+		$all_data  = $error->get_all_error_data( $code );
+		$last_data = array_pop( $all_data );
+
+		foreach ( (array) $messages as $message ) {
+			$formatted = array(
+				'code'    => $code,
+				'message' => $message,
+				'data'    => $last_data,
+			);
+
+			if ( $all_data ) {
+				$formatted['additional_data'] = $all_data;
+			}
+
+			$errors[] = $formatted;
+		}
+	}
+
+	$data = $errors[0];
+	if ( count( $errors ) > 1 ) {
+		// Remove the primary error.
+		array_shift( $errors );
+		$data['additional_errors'] = $errors;
+	}
+
+	return new WP_REST_Response( $data, $status );
 }

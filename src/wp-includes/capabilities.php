@@ -28,10 +28,11 @@
  *              and `manage_privacy_options` capabilities.
  * @since 5.1.0 Added the `update_php` capability.
  * @since 5.2.0 Added the `resume_plugin` and `resume_theme` capabilities.
- * @since 5.3.0 Formalized the existing and already documented `...$args` parameter by adding it
- *              to the function signature.
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
  * @since 5.7.0 Added the `create_app_password`, `list_app_passwords`, `read_app_password`,
- *              `edit_app_password`, `delete_app_passwords`, and `delete_app_password` capabilities.
+ *              `edit_app_password`, `delete_app_passwords`, `delete_app_password`,
+ *              and `update_https` capabilities.
  *
  * @global array $post_type_meta_caps Used to get post type meta capabilities.
  *
@@ -678,6 +679,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
  * @since 2.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 5.8.0 Converted to wrapper for the user_can() function.
  *
  * @see WP_User::has_cap()
  * @see map_meta_cap()
@@ -688,13 +690,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
  *              passed, whether the current user has the given meta capability for the given object.
  */
 function current_user_can( $capability, ...$args ) {
-	$current_user = wp_get_current_user();
-
-	if ( empty( $current_user ) ) {
-		return false;
-	}
-
-	return $current_user->has_cap( $capability, ...$args );
+	return user_can( wp_get_current_user(), $capability, ...$args );
 }
 
 /**
@@ -713,6 +709,7 @@ function current_user_can( $capability, ...$args ) {
  * @since 3.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 5.8.0 Wraps current_user_can() after switching to blog.
  *
  * @param int    $blog_id    Site ID.
  * @param string $capability Capability name.
@@ -722,16 +719,7 @@ function current_user_can( $capability, ...$args ) {
 function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
 	$switched = is_multisite() ? switch_to_blog( $blog_id ) : false;
 
-	$current_user = wp_get_current_user();
-
-	if ( empty( $current_user ) ) {
-		if ( $switched ) {
-			restore_current_blog();
-		}
-		return false;
-	}
-
-	$can = $current_user->has_cap( $capability, ...$args );
+	$can = current_user_can( $capability, ...$args );
 
 	if ( $switched ) {
 		restore_current_blog();
@@ -804,8 +792,10 @@ function user_can( $user, $capability, ...$args ) {
 		$user = get_userdata( $user );
 	}
 
-	if ( ! $user || ! $user->exists() ) {
-		return false;
+	if ( empty( $user ) ) {
+		// User is logged out, create anonymous user object.
+		$user = new WP_User( 0 );
+		$user->init( new stdClass );
 	}
 
 	return $user->has_cap( $capability, ...$args );

@@ -9,9 +9,9 @@
  */
 class Tests_Category extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tear_down() {
 		_unregister_taxonomy( 'test_tax_cat' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -29,7 +29,7 @@ class Tests_Category extends WP_UnitTestCase {
 
 		// Validate length is 1 + created due to uncategorized.
 		$cat_ids = get_all_category_ids();
-		$this->assertSame( 3, count( $cat_ids ) );
+		$this->assertCount( 3, $cat_ids );
 	}
 
 	/**

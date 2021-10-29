@@ -12,16 +12,16 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 
 	public $attachment_id = 0;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->wp_site_icon = new WP_Site_Icon();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$this->_remove_custom_logo();
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function _remove_custom_logo() {
@@ -120,7 +120,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$object     = $this->wp_site_icon->create_attachment_object( $cropped, $attachment_id );
 		$cropped_id = $this->wp_site_icon->insert_attachment( $object, $cropped );
 
-		$this->assertInternalType( 'int', $cropped_id );
+		$this->assertIsInt( $cropped_id );
 		$this->assertGreaterThan( 0, $cropped_id );
 	}
 

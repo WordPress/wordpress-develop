@@ -194,6 +194,20 @@ p.has-drop-cap:not(:focus)::first-letter {
 	display: flex;
 }
 
+body:not(.sidebar) .wp-block-cover > .wp-block-cover__inner-container > * {
+	width: 604px;
+	max-width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+@media screen and (min-width: 665px) {
+	body:not(.sidebar) .wp-block-cover__inner-container > .wp-block-group.alignfull, 
+	body:not(.sidebar) .wp-block-cover__inner-container > .wp-block-group.has-background.alignfull {
+		padding: 20px;
+	}
+}
+
 /* File */
 
 .wp-block-file .wp-block-file__button {
@@ -356,15 +370,20 @@ body:not(.sidebar) .wp-block-table.alignfull {
 .entry-content .wp-block-button__link:hover,
 .entry-content .wp-block-button__link:focus,
 .wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color):hover,
-.wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color):focus {
+.wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color):focus,
+.wp-block-button.is-style-outline .wp-block-button__link:not(.has-background):hover,
+.wp-block-button.is-style-outline .wp-block-button__link:not(.has-background):focus {
 	background: #ed6a31;
 	color: #fff;
 }
 
 .wp-block-button.is-style-outline .wp-block-button__link {
-	background-color: inherit;
-	border-color: inherit;
 	border-width: 2px;
+	border-color: inherit;
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link:not(.has-background) {
+	background-color: inherit;
 }
 
 .wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color) {
@@ -391,6 +410,10 @@ body:not(.sidebar) .wp-block-table.alignfull {
 	border: none;
 	border-top: 3px solid #b93207;
 	padding: 10px 24px 11px;
+}
+
+.entry-content .wp-block-button.is-style-no-shadow .wp-block-button__link {
+	border-bottom: none;
 }
 
 /* Separator */
@@ -560,7 +583,7 @@ body:not(.sidebar) .wp-block-table.alignfull {
 	font-size: 16px;
 }
 
-.wp-block-latest-comments .wp-block-latest-comments__comment {
+.wp-block-latest-comments .wp-block-latest-comments__comment:not(:first-child) {
 	background: url(../images/dotted-line.png) repeat-x left top;
 	margin-bottom: 0;
 	padding: 24px 0;

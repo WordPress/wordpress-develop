@@ -13,24 +13,11 @@
 		"php": ">=5.6"
 	},
 	"require-dev": {
-		"dealerdirect/phpcodesniffer-composer-installer": "^0.6.2 || ^0.7.0",
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+		"squizlabs/php_codesniffer": "3.6.0",
 		"wp-coding-standards/wpcs": "~2.3.0",
-		"phpcompatibility/phpcompatibility-wp": "^2.1.0",
-		"phpunit/phpunit": "^7.5"
-	},
-	"autoload-dev": {
-		"files": [
-			"tests/phpunit/includes/phpunit7/MockObject/Builder/NamespaceMatch.php",
-			"tests/phpunit/includes/phpunit7/MockObject/Builder/ParametersMatch.php",
-			"tests/phpunit/includes/phpunit7/MockObject/InvocationMocker.php",
-			"tests/phpunit/includes/phpunit7/MockObject/MockMethod.php"
-		],
-		"exclude-from-classmap": [
-			"vendor/phpunit/phpunit/src/Framework/MockObject/Builder/NamespaceMatch.php",
-			"vendor/phpunit/phpunit/src/Framework/MockObject/Builder/ParametersMatch.php",
-			"vendor/phpunit/phpunit/src/Framework/MockObject/InvocationMocker.php",
-			"vendor/phpunit/phpunit/src/Framework/MockObject/MockMethod.php"
-		]
+		"phpcompatibility/phpcompatibility-wp": "~2.1.2",
+		"yoast/phpunit-polyfills": "^1.0.1"
 	},
 	"scripts": {
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",

@@ -2,8 +2,8 @@
 
 class Tests_Query extends WP_UnitTestCase {
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
@@ -154,7 +154,7 @@ class Tests_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "ORDER BY $wpdb->posts.post_title DESC, $wpdb->posts.post_date DESC", $q->request );
+		$this->assertStringContainsString( "ORDER BY $wpdb->posts.post_title DESC, $wpdb->posts.post_date DESC", $q->request );
 	}
 
 	public function test_cat_querystring_single_term() {
@@ -571,7 +571,7 @@ class Tests_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'LIMIT 0, 5', $q->request );
+		$this->assertStringContainsString( 'LIMIT 0, 5', $q->request );
 	}
 
 	/**
@@ -585,7 +585,7 @@ class Tests_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'LIMIT 5, 5', $q->request );
+		$this->assertStringContainsString( 'LIMIT 5, 5', $q->request );
 	}
 
 	/**
@@ -600,7 +600,7 @@ class Tests_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'LIMIT 5, 5', $q->request );
+		$this->assertStringContainsString( 'LIMIT 5, 5', $q->request );
 	}
 
 	/**

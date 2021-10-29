@@ -71,7 +71,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		);
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter ) );
 		$this->assertNotIXRError( $results );
-		$this->assertSame( $num_posts, count( $results ) );
+		$this->assertCount( $num_posts, $results );
 
 		// Page through results.
 		$posts_found      = array();
@@ -83,7 +83,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 			$filter['offset'] += $filter['number'];
 		} while ( count( $presults ) > 0 );
 		// Verify that $post_ids matches $posts_found.
-		$this->assertSame( 0, count( array_diff( $post_ids, $posts_found ) ) );
+		$this->assertCount( 0, array_diff( $post_ids, $posts_found ) );
 
 		// Add comments to some of the posts.
 		foreach ( $post_ids as $key => $post_id ) {
@@ -117,7 +117,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		);
 		$results3 = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter3 ) );
 		$this->assertNotIXRError( $results3 );
-		$this->assertSame( 1, count( $results3 ) );
+		$this->assertCount( 1, $results3 );
 		$this->assertEquals( $post->ID, $results3[0]['post_id'] );
 
 		_unregister_post_type( $cpt_name );
@@ -159,13 +159,13 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$filter  = array( 's' => 'Third' );
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter ) );
 		$this->assertNotIXRError( $results );
-		$this->assertSame( 0, count( $results ) );
+		$this->assertCount( 0, $results );
 
 		// Search for one of them.
 		$filter  = array( 's' => 'First:' );
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter ) );
 		$this->assertNotIXRError( $results );
-		$this->assertSame( 1, count( $results ) );
+		$this->assertCount( 1, $results );
 	}
 
 }

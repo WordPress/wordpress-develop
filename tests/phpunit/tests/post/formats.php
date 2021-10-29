@@ -4,10 +4,6 @@
  * @group post
  */
 class Tests_Post_Formats extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
-	}
-
 	function test_set_get_post_format_for_post() {
 		$post_id = self::factory()->post->create();
 
@@ -16,21 +12,21 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 		$result = set_post_format( $post_id, 'aside' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
-		$this->assertSame( 1, count( $result ) );
+		$this->assertIsArray( $result );
+		$this->assertCount( 1, $result );
 
 		$format = get_post_format( $post_id );
 		$this->assertSame( 'aside', $format );
 
 		$result = set_post_format( $post_id, 'standard' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
-		$this->assertSame( 0, count( $result ) );
+		$this->assertIsArray( $result );
+		$this->assertCount( 0, $result );
 
 		$result = set_post_format( $post_id, '' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
-		$this->assertSame( 0, count( $result ) );
+		$this->assertIsArray( $result );
+		$this->assertCount( 0, $result );
 	}
 
 	/**
@@ -44,8 +40,8 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 		$result = set_post_format( $post_id, 'aside' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
-		$this->assertSame( 1, count( $result ) );
+		$this->assertIsArray( $result );
+		$this->assertCount( 1, $result );
 		// The format can be set but not retrieved until it is registered.
 		$format = get_post_format( $post_id );
 		$this->assertFalse( $format );
@@ -57,13 +53,13 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 		$result = set_post_format( $post_id, 'standard' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
-		$this->assertSame( 0, count( $result ) );
+		$this->assertIsArray( $result );
+		$this->assertCount( 0, $result );
 
 		$result = set_post_format( $post_id, '' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
-		$this->assertSame( 0, count( $result ) );
+		$this->assertIsArray( $result );
+		$this->assertCount( 0, $result );
 
 		remove_post_type_support( 'page', 'post-formats' );
 	}
@@ -76,14 +72,14 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 		$result = set_post_format( $post_id, 'aside' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
-		$this->assertSame( 1, count( $result ) );
+		$this->assertIsArray( $result );
+		$this->assertCount( 1, $result );
 		$this->assertTrue( has_post_format( 'aside', $post_id ) );
 
 		$result = set_post_format( $post_id, 'standard' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
-		$this->assertSame( 0, count( $result ) );
+		$this->assertIsArray( $result );
+		$this->assertCount( 0, $result );
 		// Standard is a special case. It shows as false when set.
 		$this->assertFalse( has_post_format( 'standard', $post_id ) );
 

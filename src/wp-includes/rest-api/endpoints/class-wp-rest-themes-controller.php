@@ -27,7 +27,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for themes.
 	 *
 	 * @since 5.0.0
 	 *
@@ -204,12 +204,15 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * Prepares a single theme output for response.
 	 *
 	 * @since 5.0.0
+	 * @since 5.9.0 Renamed `$theme` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Theme        $theme   Theme object.
+	 * @param WP_Theme        $item    Theme object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $theme, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$theme  = $item;
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
@@ -349,7 +352,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Theme $theme_a First theme to compare.
 	 * @param WP_Theme $theme_b Second theme to compare.
-	 *
 	 * @return bool
 	 */
 	protected function is_same_theme( $theme_a, $theme_b ) {

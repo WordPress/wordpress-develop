@@ -483,7 +483,7 @@ window.columns = {
 	}
 };
 
-$document.ready(function(){columns.init();});
+$( function() { columns.init(); } );
 
 /**
  * Validates that the required form fields are not empty.
@@ -802,7 +802,7 @@ $availableStructureTags.on( 'click', function() {
 	}
 } );
 
-$document.ready( function() {
+$( function() {
 	var checks, first, last, checked, sliced, mobileEvent, transitionTimeout, focusedRowActions,
 		lastClicked = false,
 		pageInput = $('input.current-page'),
@@ -1695,6 +1695,25 @@ $document.ready( function() {
 				}
 			} );
 
+			// Close sidebar when focus moves outside of toggle and sidebar.
+			$( '#wp-admin-bar-menu-toggle, #adminmenumain' ).on( 'focusout', function() {
+				var focusIsInToggle, focusIsInSidebar;
+
+				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) ) {
+					return;
+				}
+
+				// A brief delay is required to allow focus to switch to another element.
+				setTimeout( function() {
+					focusIsInToggle  = $.contains( $( '#wp-admin-bar-menu-toggle' )[0], $( ':focus' )[0] );
+					focusIsInSidebar = $.contains( $( '#adminmenumain' )[0], $( ':focus' )[0] );
+
+					if ( ! focusIsInToggle && ! focusIsInSidebar ) {
+						$( '#wp-admin-bar-menu-toggle' ).trigger( 'click.wp-responsive' );
+					}
+				}, 10 );
+			} );
+
 			// Add menu events.
 			$adminmenu.on( 'click.wp-responsive', 'li.wp-has-submenu > a', function( event ) {
 				if ( ! $adminmenu.data('wp-responsive') ) {
@@ -1706,7 +1725,7 @@ $document.ready( function() {
 			});
 
 			self.trigger();
-			$document.on( 'wp-window-resized.wp-responsive', $.proxy( this.trigger, this ) );
+			$document.on( 'wp-window-resized.wp-responsive', this.trigger.bind( this ) );
 
 			// This needs to run later as UI Sortable may be initialized later on $(document).ready().
 			$window.on( 'load.wp-responsive', this.maybeDisableSortables );
@@ -1889,7 +1908,7 @@ $document.ready( function() {
 		$( '.aria-button-if-js' ).attr( 'role', 'button' );
 	}
 
-	$( document ).ajaxComplete( function() {
+	$( document ).on( 'ajaxComplete', function() {
 		aria_button_if_js();
 	});
 
@@ -2008,7 +2027,7 @@ $document.ready( function() {
  *
  * @since 5.5.0
  */
-$document.ready( function( $ ) {
+$( function( $ ) {
 	var $overwrite, $warning;
 
 	if ( ! $body.hasClass( 'update-php' ) ) {

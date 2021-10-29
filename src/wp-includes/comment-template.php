@@ -262,7 +262,7 @@ function comment_author_link( $comment_ID = 0 ) {
  *
  * @param int|WP_Comment $comment_ID Optional. WP_Comment or the ID of the comment for which to get the author's IP address.
  *                                   Default current comment.
- * @return string Comment author's IP address.
+ * @return string Comment author's IP address, or an empty string if it's not available.
  */
 function get_comment_author_IP( $comment_ID = 0 ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$comment = get_comment( $comment_ID );
@@ -273,7 +273,7 @@ function get_comment_author_IP( $comment_ID = 0 ) { // phpcs:ignore WordPress.Na
 	 * @since 1.5.0
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
-	 * @param string     $comment_author_IP The comment author's IP address.
+	 * @param string     $comment_author_IP The comment author's IP address, or an empty string if it's not available.
 	 * @param int        $comment_ID        The comment ID.
 	 * @param WP_Comment $comment           The comment object.
 	 */
@@ -1706,6 +1706,12 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 		return false;
 	}
 
+	if ( get_option( 'page_comments' ) ) {
+		$permalink = str_replace( '#comment-' . $comment->comment_ID, '', get_comment_link( $comment ) );
+	} else {
+		$permalink = get_permalink( $post->ID );
+	}
+
 	/**
 	 * Filters the comment reply link arguments.
 	 *
@@ -1750,7 +1756,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 						'unapproved'      => false,
 						'moderation-hash' => false,
 					),
-					get_permalink( $post->ID )
+					$permalink
 				)
 			) . '#' . $args['respond_id'],
 			$data_attribute_string,
@@ -2640,8 +2646,16 @@ function comment_form( $args = array(), $post_id = null ) {
 					/**
 					 * Filters a comment form field for display.
 					 *
-					 * The dynamic portion of the filter hook, `$name`, refers to the name
-					 * of the comment form field. Such as 'author', 'email', or 'url'.
+					 * The dynamic portion of the hook name, `$name`, refers to the name
+					 * of the comment form field.
+					 *
+					 * Possible hook names include:
+					 *
+					 *  - `comment_form_field_comment`
+					 *  - `comment_form_field_author`
+					 *  - `comment_form_field_email`
+					 *  - `comment_form_field_url`
+					 *  - `comment_form_field_cookies`
 					 *
 					 * @since 3.0.0
 					 *

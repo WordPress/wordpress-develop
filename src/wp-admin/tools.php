@@ -21,7 +21,7 @@ if ( isset( $_GET['page'] ) && ! empty( $_POST ) ) {
 // The privacy policy guide used to be outputted from here. Since WP 5.3 it is in wp-admin/privacy-policy-guide.php.
 if ( isset( $_GET['wp-privacy-policy-guide'] ) ) {
 	require_once dirname( __DIR__ ) . '/wp-load.php';
-	wp_redirect( admin_url( 'privacy-policy-guide.php' ), 301 );
+	wp_redirect( admin_url( 'options-privacy.php?tab=policyguide' ), 301 );
 	exit;
 } elseif ( isset( $_GET['page'] ) ) {
 	// These were also moved to files in WP 5.3.
@@ -39,6 +39,7 @@ if ( isset( $_GET['wp-privacy-policy-guide'] ) ) {
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+// Used in the HTML title tag.
 $title = __( 'Tools' );
 
 get_current_screen()->add_help_tab(

@@ -7,10 +7,10 @@
 class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 	protected $_wp_nav_menu_max_depth;
 
-	function setUp() {
+	function set_up() {
 		global $_wp_nav_menu_max_depth;
 
-		parent::setUp();
+		parent::set_up();
 
 		/** Walker_Nav_Menu_Edit class */
 		require_once ABSPATH . 'wp-admin/includes/class-walker-nav-menu-edit.php';
@@ -20,12 +20,12 @@ class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 		$this->_wp_nav_menu_max_depth = $_wp_nav_menu_max_depth;
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $_wp_nav_menu_max_depth;
 
 		$_wp_nav_menu_max_depth = $this->_wp_nav_menu_max_depth;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -55,6 +55,6 @@ class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 
 		$this->walker->start_el( $expected, (object) $item );
 
-		$this->assertNotRegExp( '#<p class="link-to-original">\s*Original: <a href=""></a>#', $expected );
+		$this->assertDoesNotMatchRegularExpression( '#<p class="link-to-original">\s*Original: <a href=""></a>#', $expected );
 	}
 }

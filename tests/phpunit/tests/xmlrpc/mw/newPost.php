@@ -128,6 +128,9 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 'Test', $out->post_title );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 

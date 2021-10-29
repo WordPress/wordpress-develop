@@ -576,25 +576,50 @@ function wp_login_form( $args = array() ) {
 	 */
 	$login_form_bottom = apply_filters( 'login_form_bottom', '', $args );
 
-	$form = '
-		<form name="' . $args['form_id'] . '" id="' . $args['form_id'] . '" action="' . esc_url( site_url( 'wp-login.php', 'login_post' ) ) . '" method="post">
-			' . $login_form_top . '
-			<p class="login-username">
-				<label for="' . esc_attr( $args['id_username'] ) . '">' . esc_html( $args['label_username'] ) . '</label>
-				<input type="text" name="log" id="' . esc_attr( $args['id_username'] ) . '" class="input" value="' . esc_attr( $args['value_username'] ) . '" size="20" />
-			</p>
-			<p class="login-password">
-				<label for="' . esc_attr( $args['id_password'] ) . '">' . esc_html( $args['label_password'] ) . '</label>
-				<input type="password" name="pwd" id="' . esc_attr( $args['id_password'] ) . '" class="input" value="" size="20" />
-			</p>
-			' . $login_form_middle . '
-			' . ( $args['remember'] ? '<p class="login-remember"><label><input name="rememberme" type="checkbox" id="' . esc_attr( $args['id_remember'] ) . '" value="forever"' . ( $args['value_remember'] ? ' checked="checked"' : '' ) . ' /> ' . esc_html( $args['label_remember'] ) . '</label></p>' : '' ) . '
-			<p class="login-submit">
-				<input type="submit" name="wp-submit" id="' . esc_attr( $args['id_submit'] ) . '" class="button button-primary" value="' . esc_attr( $args['label_log_in'] ) . '" />
-				<input type="hidden" name="redirect_to" value="' . esc_url( $args['redirect'] ) . '" />
-			</p>
-			' . $login_form_bottom . '
-		</form>';
+	$form =
+		sprintf(
+			'<form name="%1$s" id="%1$s" action="%2$s" method="post">',
+			esc_attr( $args['form_id'] ),
+			esc_url( site_url( 'wp-login.php', 'login_post' ) )
+		) .
+		$login_form_top .
+		sprintf(
+			'<p class="login-username">
+				<label for="%1$s">%2$s</label>
+				<input type="text" name="log" id="%1$s" class="input" value="%3$s" size="20" />
+			</p>',
+			esc_attr( $args['id_username'] ),
+			esc_html( $args['label_username'] ),
+			esc_attr( $args['value_username'] )
+		) .
+		sprintf(
+			'<p class="login-password">
+				<label for="%1$s">%2$s</label>
+				<input type="password" name="pwd" id="%1$s" class="input" value="" size="20" />
+			</p>',
+			esc_attr( $args['id_password'] ),
+			esc_html( $args['label_password'] )
+		) .
+		$login_form_middle .
+		( $args['remember'] ?
+			sprintf(
+				'<p class="login-remember"><label><input name="rememberme" type="checkbox" id="%1$s" value="forever"%2$s /> %3$s</label></p>',
+				esc_attr( $args['id_remember'] ),
+				( $args['value_remember'] ? ' checked="checked"' : '' ),
+				esc_html( $args['label_remember'] )
+			) : ''
+		) .
+		sprintf(
+			'<p class="login-submit">
+				<input type="submit" name="wp-submit" id="%1$s" class="button button-primary" value="%2$s" />
+				<input type="hidden" name="redirect_to" value="%3$s" />
+			</p>',
+			esc_attr( $args['id_submit'] ),
+			esc_attr( $args['label_log_in'] ),
+			esc_url( $args['redirect'] )
+		) .
+		$login_form_bottom .
+		'</form>';
 
 	if ( $args['echo'] ) {
 		echo $form;
@@ -1006,7 +1031,8 @@ function has_custom_logo( $blog_id = 0 ) {
  * Returns a custom logo, linked to home unless the theme supports removing the link on the home page.
  *
  * @since 4.5.0
- * @since 5.5.0 Added option to remove the link on the home page with `unlink-homepage-logo` theme support.
+ * @since 5.5.0 Added option to remove the link on the home page with `unlink-homepage-logo` theme support
+ *              for the `custom-logo` theme feature.
  * @since 5.5.1 Disabled lazy-loading by default.
  *
  * @param int $blog_id Optional. ID of the blog in question. Default is the ID of the current blog.
@@ -1237,10 +1263,15 @@ function wp_get_document_title() {
 	$title = apply_filters( 'document_title_parts', $title );
 
 	$title = implode( " $sep ", array_filter( $title ) );
-	$title = wptexturize( $title );
-	$title = convert_chars( $title );
-	$title = esc_html( $title );
-	$title = capital_P_dangit( $title );
+
+	/**
+	 * Filters the document title.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $title Document title.
+	 */
+	$title = apply_filters( 'document_title', $title );
 
 	return $title;
 }
@@ -1284,7 +1315,7 @@ function _wp_render_title_tag() {
  *                            Default '&raquo;'.
  * @param bool   $display     Optional. Whether to display or retrieve title. Default true.
  * @param string $seplocation Optional. Location of the separator ('left' or 'right').
- * @return string|null String on retrieve, null when displaying.
+ * @return string|void String when `$display` is true, nothing otherwise.
  */
 function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	global $wp_locale;
@@ -3288,9 +3319,25 @@ function wp_resource_hints() {
 		 * Filters domains and URLs for resource hints of relation type.
 		 *
 		 * @since 4.6.0
+		 * @since 4.7.0 The `$urls` parameter accepts arrays of specific HTML attributes
+		 *              as its child elements.
 		 *
-		 * @param array  $urls          URLs to print for resource hints.
-		 * @param string $relation_type The relation type the URLs are printed for, e.g. 'preconnect' or 'prerender'.
+		 * @param array  $urls {
+		 *     Array of resources and their attributes, or URLs to print for resource hints.
+		 *
+		 *     @type array|string ...$0 {
+		 *         Array of resource attributes, or a URL string.
+		 *
+		 *         @type string $href        URL to include in resource hints. Required.
+		 *         @type string $as          How the browser should treat the resource
+		 *                                   (`script`, `style`, `image`, `document`, etc).
+		 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
+		 *         @type float  $pr          Expected probability that the resource hint will be used.
+		 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
+		 *     }
+		 * }
+		 * @param string $relation_type The relation type the URLs are printed for,
+		 *                              e.g. 'preconnect' or 'prerender'.
 		 */
 		$urls = apply_filters( 'wp_resource_hints', $urls, $relation_type );
 
@@ -3534,7 +3581,7 @@ function wp_enqueue_editor() {
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
- *     @type array    $htmlhint   JSHint rule overrides.
+ *     @type array    $htmlhint   HTMLHint rule overrides.
  * }
  * @return array|false Settings for the enqueued code editor, or false if the editor was not enqueued.
  */
@@ -3625,7 +3672,7 @@ function wp_enqueue_code_editor( $args ) {
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
- *     @type array    $htmlhint   JSHint rule overrides.
+ *     @type array    $htmlhint   HTMLHint rule overrides.
  * }
  * @return array|false Settings for the code editor.
  */
@@ -3962,7 +4009,7 @@ function wp_get_code_editor_settings( $args ) {
 	 *     @type array    $codemirror Additional CodeMirror setting overrides.
 	 *     @type array    $csslint    CSSLint rule overrides.
 	 *     @type array    $jshint     JSHint rule overrides.
-	 *     @type array    $htmlhint   JSHint rule overrides.
+	 *     @type array    $htmlhint   HTMLHint rule overrides.
 	 * }
 	 */
 	return apply_filters( 'wp_code_editor_settings', $settings, $args );
@@ -4392,7 +4439,7 @@ function register_admin_color_schemes() {
 		'fresh',
 		_x( 'Default', 'admin color scheme' ),
 		false,
-		array( '#1d2327', '#2c3338', '#3582c4', '#72aee6' ),
+		array( '#1d2327', '#2c3338', '#2271b1', '#72aee6' ),
 		array(
 			'base'    => '#a7aaad',
 			'focus'   => '#72aee6',
@@ -4719,6 +4766,16 @@ function get_the_generator( $type = '' ) {
 	 *
 	 * The dynamic portion of the hook name, `$type`, refers to the generator type.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_the_generator_atom`
+	 *  - `get_the_generator_comment`
+	 *  - `get_the_generator_export`
+	 *  - `get_the_generator_html`
+	 *  - `get_the_generator_rdf`
+	 *  - `get_the_generator_rss2`
+	 *  - `get_the_generator_xhtml`
+	 *
 	 * @since 2.5.0
 	 *
 	 * @param string $gen  The HTML markup output to wp_head().
@@ -4731,14 +4788,16 @@ function get_the_generator( $type = '' ) {
 /**
  * Outputs the HTML checked attribute.
  *
- * Compares the first two arguments and if identical marks as checked
+ * Compares the first two arguments and if identical marks as checked.
  *
  * @since 1.0.0
  *
- * @param mixed $checked One of the values to compare
- * @param mixed $current (true) The other value to compare if not just true
- * @param bool  $echo    Whether to echo or just return the string
- * @return string HTML attribute or empty string
+ * @param mixed $checked One of the values to compare.
+ * @param mixed $current Optional. The other value to compare if not just true.
+ *                       Default true.
+ * @param bool  $echo    Optional. Whether to echo or just return the string.
+ *                       Default true.
+ * @return string HTML attribute or empty string.
  */
 function checked( $checked, $current = true, $echo = true ) {
 	return __checked_selected_helper( $checked, $current, $echo, 'checked' );
@@ -4747,14 +4806,16 @@ function checked( $checked, $current = true, $echo = true ) {
 /**
  * Outputs the HTML selected attribute.
  *
- * Compares the first two arguments and if identical marks as selected
+ * Compares the first two arguments and if identical marks as selected.
  *
  * @since 1.0.0
  *
- * @param mixed $selected One of the values to compare
- * @param mixed $current  (true) The other value to compare if not just true
- * @param bool  $echo     Whether to echo or just return the string
- * @return string HTML attribute or empty string
+ * @param mixed $selected One of the values to compare.
+ * @param mixed $current  Optional. The other value to compare if not just true.
+ *                        Default true.
+ * @param bool  $echo     Optional. Whether to echo or just return the string.
+ *                        Default true.
+ * @return string HTML attribute or empty string.
  */
 function selected( $selected, $current = true, $echo = true ) {
 	return __checked_selected_helper( $selected, $current, $echo, 'selected' );
@@ -4763,14 +4824,16 @@ function selected( $selected, $current = true, $echo = true ) {
 /**
  * Outputs the HTML disabled attribute.
  *
- * Compares the first two arguments and if identical marks as disabled
+ * Compares the first two arguments and if identical marks as disabled.
  *
  * @since 3.0.0
  *
- * @param mixed $disabled One of the values to compare
- * @param mixed $current  (true) The other value to compare if not just true
- * @param bool  $echo     Whether to echo or just return the string
- * @return string HTML attribute or empty string
+ * @param mixed $disabled One of the values to compare.
+ * @param mixed $current  Optional. The other value to compare if not just true.
+ *                        Default true.
+ * @param bool  $echo     Optional. Whether to echo or just return the string.
+ *                        Default true.
+ * @return string HTML attribute or empty string.
  */
 function disabled( $disabled, $current = true, $echo = true ) {
 	return __checked_selected_helper( $disabled, $current, $echo, 'disabled' );
@@ -4779,32 +4842,44 @@ function disabled( $disabled, $current = true, $echo = true ) {
 /**
  * Outputs the HTML readonly attribute.
  *
- * Compares the first two arguments and if identical marks as readonly
+ * Compares the first two arguments and if identical marks as readonly.
  *
- * @since 4.9.0
+ * @since 5.9.0
  *
- * @param mixed $readonly One of the values to compare
- * @param mixed $current  (true) The other value to compare if not just true
- * @param bool  $echo     Whether to echo or just return the string
- * @return string HTML attribute or empty string
+ * @param mixed $readonly One of the values to compare.
+ * @param mixed $current  Optional. The other value to compare if not just true.
+ *                        Default true.
+ * @param bool  $echo     Optional. Whether to echo or just return the string.
+ *                        Default true.
+ * @return string HTML attribute or empty string.
  */
-function readonly( $readonly, $current = true, $echo = true ) {
+function wp_readonly( $readonly, $current = true, $echo = true ) {
 	return __checked_selected_helper( $readonly, $current, $echo, 'readonly' );
+}
+
+/*
+ * Include a compat `readonly()` function on PHP < 8.1. Since PHP 8.1,
+ * `readonly` is a reserved keyword and cannot be used as a function name.
+ * In order to avoid PHP parser errors, this function was extracted
+ * to a separate file and is only included conditionally on PHP < 8.1.
+ */
+if ( PHP_VERSION_ID < 80100 ) {
+	require_once __DIR__ . '/php-compat/readonly.php';
 }
 
 /**
  * Private helper function for checked, selected, disabled and readonly.
  *
- * Compares the first two arguments and if identical marks as $type
+ * Compares the first two arguments and if identical marks as `$type`.
  *
  * @since 2.8.0
  * @access private
  *
- * @param mixed  $helper  One of the values to compare
- * @param mixed  $current (true) The other value to compare if not just true
- * @param bool   $echo    Whether to echo or just return the string
- * @param string $type    The type of checked|selected|disabled|readonly we are doing
- * @return string HTML attribute or empty string
+ * @param mixed  $helper  One of the values to compare.
+ * @param mixed  $current The other value to compare if not just true.
+ * @param bool   $echo    Whether to echo or just return the string.
+ * @param string $type    The type of checked|selected|disabled|readonly we are doing.
+ * @return string HTML attribute or empty string.
  */
 function __checked_selected_helper( $helper, $current, $echo, $type ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	if ( (string) $helper === (string) $current ) {

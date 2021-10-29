@@ -46,8 +46,6 @@ class Tests_Basic extends WP_UnitTestCase {
 	function test_package_json_node_engine( $package_json ) {
 		$this->assertArrayHasKey( 'engines', $package_json );
 		$this->assertArrayHasKey( 'node', $package_json['engines'] );
-		$node = $package_json['engines']['node'];
-		$this->assertRegExp( '~^=?\d+\.\d+\.\d+$~', $node, "package.json's node version cannot be a range." );
 	}
 
 	// Test some helper utility functions.

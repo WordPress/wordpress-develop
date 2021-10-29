@@ -15,6 +15,7 @@
  * robots meta tag is output if there is at least one relevant directive.
  *
  * @since 5.7.0
+ * @since 5.7.1 No longer prevents specific directives to occur together.
  */
 function wp_robots() {
 	/**
@@ -29,20 +30,6 @@ function wp_robots() {
 	 *                      boolean `true` if it is a boolean directive, i.e. without a value.
 	 */
 	$robots = apply_filters( 'wp_robots', array() );
-
-	// Don't allow mutually exclusive directives.
-	if ( ! empty( $robots['follow'] ) ) {
-		unset( $robots['nofollow'] );
-	}
-	if ( ! empty( $robots['nofollow'] ) ) {
-		unset( $robots['follow'] );
-	}
-	if ( ! empty( $robots['archive'] ) ) {
-		unset( $robots['noarchive'] );
-	}
-	if ( ! empty( $robots['noarchive'] ) ) {
-		unset( $robots['archive'] );
-	}
 
 	$robots_strings = array();
 	foreach ( $robots as $directive => $value ) {
@@ -74,6 +61,7 @@ function wp_robots() {
  *     add_filter( 'wp_robots', 'wp_robots_noindex' );
  *
  * @since 5.7.0
+ *
  * @see wp_robots_no_robots()
  *
  * @param array $robots Associative array of robots directives.
@@ -81,6 +69,54 @@ function wp_robots() {
  */
 function wp_robots_noindex( array $robots ) {
 	if ( ! get_option( 'blog_public' ) ) {
+		return wp_robots_no_robots( $robots );
+	}
+
+	return $robots;
+}
+
+/**
+ * Adds noindex to the robots meta tag for embeds.
+ *
+ * Typical usage is as a {@see 'wp_robots'} callback:
+ *
+ *     add_filter( 'wp_robots', 'wp_robots_noindex_embeds' );
+ *
+ * @since 5.7.0
+ *
+ * @see wp_robots_no_robots()
+ *
+ * @param array $robots Associative array of robots directives.
+ * @return array Filtered robots directives.
+ */
+function wp_robots_noindex_embeds( array $robots ) {
+	if ( is_embed() ) {
+		return wp_robots_no_robots( $robots );
+	}
+
+	return $robots;
+}
+
+/**
+ * Adds noindex to the robots meta tag if a search is being performed.
+ *
+ * If a search is being performed then noindex will be output to
+ * tell web robots not to index the page content. Add this to the
+ * {@see 'wp_robots'} filter.
+ *
+ * Typical usage is as a {@see 'wp_robots'} callback:
+ *
+ *     add_filter( 'wp_robots', 'wp_robots_noindex_search' );
+ *
+ * @since 5.7.0
+ *
+ * @see wp_robots_no_robots()
+ *
+ * @param array $robots Associative array of robots directives.
+ * @return array Filtered robots directives.
+ */
+function wp_robots_noindex_search( array $robots ) {
+	if ( is_search() ) {
 		return wp_robots_no_robots( $robots );
 	}
 
