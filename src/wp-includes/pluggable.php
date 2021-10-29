@@ -2675,6 +2675,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'force_display' => false,
 			'loading'       => null,
 			'extra_attr'    => '',
+			'decoding'      => 'async',
 		);
 
 		if ( wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
@@ -2760,6 +2761,13 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			}
 
 			$extra_attr .= "loading='{$loading}'";
+		}
+
+		if ( isset( $args['decoding'] ) && in_array( $args['decoding'], array( 'async', 'sync', 'auto' ) ) && ! preg_match( '/\bdecoding\s*=/', $extra_attr ) ) {
+			if ( ! empty( $extra_attr ) ) {
+				$extra_attr .= ' ';
+			}
+			$extra_attr .= "decoding='{$args['decoding']}'";
 		}
 
 		$avatar = sprintf(

@@ -67,7 +67,7 @@ CAP;
 <img src="pic.jpg" id='anId' alt="pic"/>
 CAP;
 		$this->img_name          = 'image.jpg';
-		$this->img_url           = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $this->img_name;
+		$this->img_url           = WP_CONTENT_URL . '/uploads/' . $this->img_name;
 		$this->img_html          = '<img src="' . $this->img_url . '"/>';
 		$this->img_meta          = array(
 			'width'  => 100,
@@ -430,7 +430,7 @@ https://w.org</a>',
 				'post_type'      => 'attachment',
 				'post_parent'    => 0,
 				'post_mime_type' => 'image/jpeg',
-				'guid'           => 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test-image.jpg',
+				'guid'           => WP_CONTENT_URL . '/uploads/test-image.jpg',
 			)
 		);
 
@@ -524,7 +524,7 @@ https://w.org</a>',
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids1[]      = $attachment_id;
-			$ids1_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids1_srcs[] = WP_CONTENT_URL . '/uploads/' . "image$i.jpg";
 		}
 
 		$ids2      = array();
@@ -541,7 +541,7 @@ https://w.org</a>',
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids2[]      = $attachment_id;
-			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids2_srcs[] = WP_CONTENT_URL . '/uploads/' . "image$i.jpg";
 		}
 
 		$ids1_joined = implode( ',', $ids1 );
@@ -605,7 +605,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			WP_CONTENT_URL . '/uploads/test.jpg',
 		);
 
 		// Set the global $post context to the other post.
@@ -640,7 +640,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			WP_CONTENT_URL . '/uploads/test.jpg',
 		);
 
 		$galleries = get_post_galleries( $post_id_two, false );
@@ -674,7 +674,7 @@ BLOB;
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids1[]      = $attachment_id;
-			$ids1_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids1_srcs[] = WP_CONTENT_URL . '/uploads/' . "image$i.jpg";
 		}
 
 		$ids2      = array();
@@ -691,7 +691,7 @@ BLOB;
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids2[]      = $attachment_id;
-			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids2_srcs[] = WP_CONTENT_URL . '/uploads/' . "image$i.jpg";
 		}
 
 		$ids1_joined = implode( ',', $ids1 );
@@ -1087,7 +1087,7 @@ VIDEO;
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_path;
+		$image_url = WP_CONTENT_URL . '/uploads/' . $image_path;
 		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ) );
 	}
 
@@ -1105,7 +1105,7 @@ VIDEO;
 			)
 		);
 
-		$image_url = 'https://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_path;
+		$image_url = set_url_scheme( WP_CONTENT_URL, 'https' ) . '/uploads/' . $image_path;
 		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ) );
 	}
 
@@ -1133,7 +1133,7 @@ VIDEO;
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_path_upper_case;
+		$image_url = WP_CONTENT_URL . '/uploads/' . $image_path_upper_case;
 		$this->assertSame( $attachment_id_upper_case, attachment_url_to_postid( $image_url ) );
 	}
 
@@ -1370,7 +1370,7 @@ EOF;
 	public function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" decoding="async" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -1408,7 +1408,7 @@ EOF;
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" decoding="async" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -1528,7 +1528,7 @@ EOF;
 
 		$year_month      = gmdate( 'Y/m' );
 		$image_meta      = wp_get_attachment_metadata( self::$large_id );
-		$uploads_dir_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
+		$uploads_dir_url = WP_CONTENT_URL . '/uploads/';
 
 		// Set up test cases for all expected size names.
 		$intermediates = array( 'medium', 'medium_large', 'large', 'full' );
@@ -1582,7 +1582,7 @@ EOF;
 		$id       = self::factory()->attachment->create_upload_object( $filename );
 
 		$image_meta      = wp_get_attachment_metadata( $id );
-		$uploads_dir_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
+		$uploads_dir_url = WP_CONTENT_URL . '/uploads/';
 
 		// Set up test cases for all expected size names.
 		$intermediates = array( 'medium', 'medium_large', 'large', 'full' );
@@ -1667,7 +1667,7 @@ EOF;
 
 		$year_month      = gmdate( 'Y/m' );
 		$image_meta      = wp_get_attachment_metadata( self::$large_id );
-		$uploads_dir_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
+		$uploads_dir_url = WP_CONTENT_URL . '/uploads/';
 
 		// Set up test cases for all expected size names.
 		$intermediates = array( 'medium', 'medium_large', 'large', 'full' );
@@ -1744,7 +1744,7 @@ EOF;
 	public function test_wp_calculate_image_srcset_ratio_variance() {
 		// Mock data for this test.
 		$size_array = array( 218, 300 );
-		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-768x1055-218x300.png';
+		$image_src  = WP_CONTENT_URL . '/uploads/2015/12/test-768x1055-218x300.png';
 		$image_meta = array(
 			'width'  => 768,
 			'height' => 1055,
@@ -1777,7 +1777,7 @@ EOF;
 			),
 		);
 
-		$uploads_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/';
+		$uploads_url = WP_CONTENT_URL . '/uploads/2015/12/';
 
 		$expected_srcset = $uploads_url . 'test-768x1055-218x300.png 218w, ' .
 			$uploads_url . 'test-768x1055-600x824.png 600w, ' .
@@ -1793,7 +1793,7 @@ EOF;
 	public function test_wp_calculate_image_srcset_include_src() {
 		// Mock data for this test.
 		$size_array = array( 2000, 1000 );
-		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test.png';
+		$image_src  = WP_CONTENT_URL . '/uploads/2015/12/test.png';
 		$image_meta = array(
 			'width'  => 2000,
 			'height' => 1000,
@@ -1826,7 +1826,7 @@ EOF;
 			),
 		);
 
-		$uploads_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/';
+		$uploads_url = WP_CONTENT_URL . '/uploads/2015/12/';
 
 		$expected_srcset = $uploads_url . 'test.png 2000w, ' .
 			$uploads_url . 'test-300x150.png 300w, ' .
@@ -1841,7 +1841,7 @@ EOF;
 	 */
 	public function test_wp_calculate_image_srcset_corrupted_image_meta() {
 		$size_array = array( 300, 150 );
-		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-300x150.png';
+		$image_src  = WP_CONTENT_URL . '/uploads/2015/12/test-300x150.png';
 		$image_meta = array(
 			'width'  => 1600,
 			'height' => 800,
@@ -1875,10 +1875,10 @@ EOF;
 		);
 
 		$srcset = array(
-			300  => 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-300x150.png 300w',
-			768  => 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-768x384.png 768w',
-			1024 => 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-1024x512.png 1024w',
-			1600 => 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test.png 1600w',
+			300  => WP_CONTENT_URL . '/uploads/2015/12/test-300x150.png 300w',
+			768  => WP_CONTENT_URL . '/uploads/2015/12/test-768x384.png 768w',
+			1024 => WP_CONTENT_URL . '/uploads/2015/12/test-1024x512.png 1024w',
+			1600 => WP_CONTENT_URL . '/uploads/2015/12/test.png 1600w',
 		);
 
 		// No sizes array.
@@ -1915,7 +1915,7 @@ EOF;
 	 */
 	public function test_wp_calculate_image_srcset_with_spaces_in_filenames() {
 		// Mock data for this test.
-		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test image-300x150.png';
+		$image_src  = WP_CONTENT_URL . '/uploads/2015/12/test image-300x150.png';
 		$image_meta = array(
 			'width'  => 3000,
 			'height' => 1500,
@@ -1948,7 +1948,7 @@ EOF;
 			),
 		);
 
-		$uploads_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/';
+		$uploads_url = WP_CONTENT_URL . '/uploads/2015/12/';
 
 		$expected_srcset = $uploads_url . 'test%20image-300x150.png 300w, ' .
 			$uploads_url . 'test%20image-768x384.png 768w, ' .
@@ -1970,7 +1970,7 @@ EOF;
 		$srcset = wp_get_attachment_image_srcset( self::$large_id, $size_array, $image_meta );
 
 		$year_month  = gmdate( 'Y/m' );
-		$uploads_dir = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
+		$uploads_dir = WP_CONTENT_URL . '/uploads/';
 
 		// Set up test cases for all expected size names.
 		$intermediates = array( 'medium', 'medium_large', 'large', 'full' );
@@ -2144,6 +2144,7 @@ EOF;
 			$respimg_xhtml,
 			$respimg_html5
 		);
+		$content_filtered = wp_img_tag_add_decoding_async_attr( $content_filtered );
 
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2169,6 +2170,7 @@ EOF;
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img = wp_img_tag_add_decoding_async_attr( $img );
 
 		// Replace the src URL.
 		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $img );
@@ -2183,6 +2185,7 @@ EOF;
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img = wp_img_tag_add_decoding_async_attr( $img );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
 
 		// The content filter should return the image unchanged.
@@ -2221,8 +2224,8 @@ EOF;
 			),
 		);
 
-		$full_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_meta['file'];
-		$large_src = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_meta['sizes']['large']['file'];
+		$full_src  = WP_CONTENT_URL . '/uploads/' . $image_meta['file'];
+		$large_src = WP_CONTENT_URL . '/uploads/' . $image_meta['sizes']['large']['file'];
 
 		// Test with soft resized size array.
 		$size_array = array( 900, 450 );
@@ -2279,6 +2282,7 @@ EOF;
 			$respimg_https,
 			$respimg_relative
 		);
+		$expected = wp_img_tag_add_decoding_async_attr( $expected );
 
 		$actual = wp_filter_content_tags( $unfiltered );
 
@@ -2314,13 +2318,15 @@ EOF;
 			),
 		);
 
+		$wp_content_path = wp_parse_url( WP_CONTENT_URL, PHP_URL_PATH );
+
 		// Test using the large file size.
 		$size_array = array( 1024, 512 );
-		$image_url  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_meta['sizes']['large']['file'];
+		$image_url  = 'http://' . WP_TESTS_DOMAIN . $wp_content_path . '/uploads/' . $image_meta['sizes']['large']['file'];
 
 		$_SERVER['HTTPS'] = 'on';
 
-		$uploads_url = 'https://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
+		$uploads_url = 'https://' . WP_TESTS_DOMAIN . $wp_content_path . '/uploads/';
 
 		$expected = $uploads_url . 'test-1024x512.jpg 1024w, ' .
 			$uploads_url . 'test-300x150.jpg 300w, ' .
@@ -2417,13 +2423,13 @@ EOF;
 
 		$basename    = wp_basename( self::$large_filename, '.jpg' );
 		$year_month  = gmdate( 'Y/m' );
-		$uploads_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year_month . '/';
+		$uploads_url = WP_CONTENT_URL . '/uploads/' . $year_month . '/';
 
 		$expected = '<img width="999" height="999" ' .
 			'src="' . $uploads_url . 'test-image-testsize-999x999.jpg" ' .
 			'class="attachment-testsize size-testsize" alt="" loading="lazy" ' .
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
-			'sizes="(max-width: 999px) 100vw, 999px" />';
+			'sizes="(max-width: 999px) 100vw, 999px" decoding="async" />';
 
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
 
@@ -2728,7 +2734,7 @@ EOF;
 			%4$s';
 
 		$content_unfiltered = sprintf( $content, $img, $img_no_width_height, $img_no_width, $img_no_height );
-		$content_filtered   = sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height );
+		$content_filtered   = wp_img_tag_add_decoding_async_attr( sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height ) );
 
 		// Do not add loading, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
@@ -2786,7 +2792,7 @@ EOF;
 			%8$s';
 
 		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe, $iframe_eager, $iframe_no_width_height );
-		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $lazy_iframe, $iframe_eager, $iframe_no_width_height );
+		$content_filtered   = wp_img_tag_add_decoding_async_attr( sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $lazy_iframe, $iframe_eager, $iframe_no_width_height ) );
 
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2815,7 +2821,7 @@ EOF;
 			%2$s';
 
 		$content_unfiltered = sprintf( $content, $img, $iframe );
-		$content_filtered   = sprintf( $content, $lazy_img, $lazy_iframe );
+		$content_filtered   = sprintf( $content, wp_img_tag_add_decoding_async_attr( $lazy_img ), $lazy_iframe );
 
 		// Do not add srcset and sizes while testing.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -2833,7 +2839,7 @@ EOF;
 	 * @ticket 50756
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_out() {
-		$img    = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img    = wp_img_tag_add_decoding_async_attr( get_image_tag( self::$large_id, '', '', '', 'medium' ) );
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 
 		$content = '
@@ -3297,7 +3303,7 @@ EOF;
 
 		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
-		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
+		$content_expected   = wp_img_tag_add_decoding_async_attr( $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2 );
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
