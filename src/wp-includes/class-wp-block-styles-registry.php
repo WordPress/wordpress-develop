@@ -60,7 +60,7 @@ final class WP_Block_Styles_Registry {
 			return false;
 		}
 
-		if ( preg_match( '/\\s+/', $style_properties['name'] ) ) {
+		if ( strpos( $style_properties['name'], ' ' ) !== false ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Block style name must not contain any spaces.' ),
