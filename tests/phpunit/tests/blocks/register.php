@@ -562,8 +562,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
 	 * Test case to return an E_USER_NOTICE when block style name attribute
-	 * contain spaces.
+	 * contains spaces.
 	 * @ticket 54296
+	 *
+	 * @covers ::register_block_style
 	 *
 	 * @expectedIncorrectUsage WP_Block_Styles_Registry::register
 	 */
