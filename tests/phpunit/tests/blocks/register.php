@@ -8,7 +8,7 @@
  */
 
 /**
- * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names() and register_block_style()
+ * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names() and register_block_style().
  *
  * @since 5.0.0
  *
