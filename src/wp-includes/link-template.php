@@ -4356,9 +4356,6 @@ function get_avatar_data( $id_or_email, $args = null ) {
 
 	if ( $email_hash ) {
 		$args['found_avatar'] = true;
-		$gravatar_server      = hexdec( $email_hash[0] ) % 3;
-	} else {
-		$gravatar_server = rand( 0, 2 );
 	}
 
 	$url_args = array(
@@ -4368,11 +4365,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 		'r' => $args['rating'],
 	);
 
-	if ( is_ssl() ) {
-		$url = 'https://secure.gravatar.com/avatar/' . $email_hash;
-	} else {
-		$url = sprintf( 'http://%d.gravatar.com/avatar/%s', $gravatar_server, $email_hash );
-	}
+	$url = 'https://www.gravatar.com/avatar/' . $email_hash;
 
 	$url = add_query_arg(
 		rawurlencode_deep( array_filter( $url_args ) ),
