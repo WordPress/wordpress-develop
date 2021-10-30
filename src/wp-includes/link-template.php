@@ -4150,7 +4150,7 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
  *     @type string $rating         What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
  *                                  judged in that order. Default is the value of the 'avatar_rating' option.
  *     @type string $scheme         URL scheme to use. See set_url_scheme() for accepted values.
- *                                  Default null.
+ *                                  Default 'https'.
  *     @type array  $processed_args When the function returns, the value will be the processed/sanitized $args
  *                                  plus a "found_avatar" guess. Pass as a reference. Default null.
  * }
@@ -4207,7 +4207,7 @@ function is_avatar_comment_type( $comment_type ) {
  *     @type string $rating         What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
  *                                  judged in that order. Default is the value of the 'avatar_rating' option.
  *     @type string $scheme         URL scheme to use. See set_url_scheme() for accepted values.
- *                                  Default null.
+ *                                  Default 'https'.
  *     @type array  $processed_args When the function returns, the value will be the processed/sanitized $args
  *                                  plus a "found_avatar" guess. Pass as a reference. Default null.
  *     @type string $extra_attr     HTML attributes to insert in the IMG element. Is not sanitized. Default empty.
@@ -4230,7 +4230,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 			'default'        => get_option( 'avatar_default', 'mystery' ),
 			'force_default'  => false,
 			'rating'         => get_option( 'avatar_rating' ),
-			'scheme'         => null,
+			'scheme'         => 'https',
 			'processed_args' => null, // If used, should be a reference.
 			'extra_attr'     => '',
 		)

@@ -2649,7 +2649,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 *     @type string       $rating        What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
 	 *                                       judged in that order. Default is the value of the 'avatar_rating' option.
 	 *     @type string       $scheme        URL scheme to use. See set_url_scheme() for accepted values.
-	 *                                       Default null.
+	 *                                       Default 'https'.
 	 *     @type array|string $class         Array or string of additional classes to add to the img element.
 	 *                                       Default null.
 	 *     @type bool         $force_display Whether to always show the avatar - ignores the show_avatars option.
@@ -2669,7 +2669,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'default'       => get_option( 'avatar_default', 'mystery' ),
 			'force_default' => false,
 			'rating'        => get_option( 'avatar_rating' ),
-			'scheme'        => null,
+			'scheme'        => 'https',
 			'alt'           => '',
 			'class'         => null,
 			'force_display' => false,
