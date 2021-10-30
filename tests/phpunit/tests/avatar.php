@@ -60,6 +60,10 @@ class Tests_Avatar extends WP_UnitTestCase {
 	 */
 	public function test_get_avatar_url_scheme() {
 		$url = get_avatar_url( 1 );
+		$this->assertSame( preg_match( '|^https://|', $url ), 1 );
+
+		$args = array( 'scheme' => 'http' );
+		$url  = get_avatar_url( 1, $args );
 		$this->assertSame( preg_match( '|^http://|', $url ), 1 );
 
 		$args = array( 'scheme' => 'https' );
