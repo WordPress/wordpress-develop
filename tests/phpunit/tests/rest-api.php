@@ -1881,10 +1881,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49116
+	 * @ticket 53656
 	 */
 	public function test_rest_get_route_for_post_custom_controller() {
 		$post = self::factory()->post->create_and_get( array( 'post_type' => 'wp_block' ) );
-		$this->assertSame( '', rest_get_route_for_post( $post ) );
+		$this->assertSame( '/wp/v2/blocks/' . $post->ID, rest_get_route_for_post( $post ) );
 	}
 
 	/**
