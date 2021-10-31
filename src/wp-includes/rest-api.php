@@ -3120,7 +3120,6 @@ function rest_get_route_for_term( $term ) {
 		return '';
 	}
 
-
 	$route = sprintf( '%s/%d', $taxonomy_route, $term->term_id );
 
 	/**
