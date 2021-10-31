@@ -2040,7 +2040,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 				),
 			)
 		);
-		rest_get_server()->serve_request( '/test-ns/v1/test' );
+		rest_do_request( '/test-ns/v1/test' );
 		$this->assertSame( 500, rest_get_server()->status );
 	}
 
