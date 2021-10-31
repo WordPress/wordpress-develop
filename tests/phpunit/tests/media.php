@@ -3206,6 +3206,7 @@ EOF;
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$this->reset_content_media_count();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3246,6 +3247,7 @@ EOF;
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
+		$this->reset_content_media_count();
 
 		// Use the filter to alter the threshold for not lazy-loading to the first three elements.
 		add_filter(
@@ -3297,6 +3299,7 @@ EOF;
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
+		$this->reset_content_media_count();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3308,6 +3311,14 @@ EOF;
 
 		// After filtering, the first image should not be lazy-loaded while the other ones should be.
 		$this->assertSame( $content_expected, $content_filtered );
+	}
+
+	private function reset_content_media_count() {
+		// Get current value without increasing.
+		$content_media_count = wp_increase_content_media_count( 0 );
+
+		// Decrease it by its current value to "reset" it back to 0.
+		wp_increase_content_media_count( - $content_media_count );
 	}
 }
 

@@ -5202,10 +5202,10 @@ function wp_get_webp_info( $filename ) {
  * omitted on the element. The purpose of this refinement is to avoid lazy-loading elements that are within the initial
  * viewport, which can have a negative performance impact.
  *
- * Under the hood, the function uses a static `$wp_content_media_count` variable which it increases every time it is
- * called for an element within the main content. If the element is the very first content element, the `loading`
- * attribute will be omitted. This default threshold of 1 content element to omit the `loading` attribute for can be
- * customized using the {@see 'wp_omit_loading_attr_threshold'} filter.
+ * Under the hood, the function uses {@see wp_increase_content_media_count()} every time it is called for an element
+ * within the main content. If the element is the very first content element, the `loading` attribute will be omitted.
+ * This default threshold of 1 content element to omit the `loading` attribute for can be customized using the
+ * {@see 'wp_omit_loading_attr_threshold'} filter.
  *
  * @since 5.9.0
  *
@@ -5214,8 +5214,6 @@ function wp_get_webp_info( $filename ) {
  *                     that the `loading` attribute should be skipped.
  */
 function wp_get_loading_attr_default( $context ) {
-	static $wp_content_media_count = 0;
-
 	// Only elements with 'the_content' or 'the_post_thumbnail' context have special handling.
 	if ( 'the_content' !== $context && 'the_post_thumbnail' !== $context ) {
 		return 'lazy';
@@ -5239,13 +5237,30 @@ function wp_get_loading_attr_default( $context ) {
 	$omit_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 1 );
 
 	// Increase the counter since this is a main query content element.
-	$wp_content_media_count++;
+	$content_media_count = wp_increase_content_media_count();
 
 	// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.
-	if ( $wp_content_media_count <= $omit_threshold ) {
+	if ( $content_media_count <= $omit_threshold ) {
 		return false;
 	}
 
 	// For elements after the threshold, lazy-load them as usual.
 	return 'lazy';
+}
+
+/**
+ * Increases an internal content media count variable.
+ *
+ * @since 5.9.0
+ * @access private
+ *
+ * @param int $amount Optional. Amount to increase by. Default 1.
+ * @return int The latest content media count, after the increase.
+ */
+function wp_increase_content_media_count( $amount = 1 ) {
+	static $wp_content_media_count = 0;
+
+	$wp_content_media_count += $amount;
+
+	return $wp_content_media_count;
 }
