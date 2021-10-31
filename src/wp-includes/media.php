@@ -4769,7 +4769,7 @@ function get_post_galleries( $post, $html = true ) {
 							$block_html[] = $image['innerHTML'];
 						} else {
 							$gallery_srcs[] = wp_get_attachment_url( $image ['attrs']['id'] );
-							$ids[]          = $image ['attrs']['id'];
+							$ids[]          = $image['attrs']['id'];
 						}
 					}
 					if ( $html ) {
