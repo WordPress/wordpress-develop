@@ -221,7 +221,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 				'show_in_nav_menus' => (bool) $post_type_obj->show_in_nav_menus,
 				'show_ui'           => (bool) $post_type_obj->show_ui,
 			);
-			$this->assertEqualSets( $visibility, $data['visibility'] );
+			$this->assertSame( $visibility, $data['visibility'] );
 			$this->assertSame( get_all_post_type_supports( $post_type_obj->name ), $data['supports'] );
 		} else {
 			$this->assertArrayNotHasKey( 'capabilities', $data );
