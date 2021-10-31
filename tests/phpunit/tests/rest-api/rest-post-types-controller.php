@@ -144,7 +144,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 10, $properties );
+		$this->assertCount( 11, $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
@@ -155,6 +155,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'supports', $properties );
 		$this->assertArrayHasKey( 'taxonomies', $properties );
 		$this->assertArrayHasKey( 'rest_base', $properties );
+		$this->assertArrayHasKey( 'visibility', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -216,6 +217,11 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 				$viewable = is_post_type_viewable( $post_type_obj );
 			}
 			$this->assertSame( $viewable, $data['viewable'] );
+			$visibility = array(
+				'show_in_nav_menus' => (bool) $post_type_obj->show_in_nav_menus,
+				'show_ui'           => (bool) $post_type_obj->show_ui,
+			);
+			$this->assertSame( $visibility, $data['visibility'] );
 			$this->assertSame( get_all_post_type_supports( $post_type_obj->name ), $data['supports'] );
 		} else {
 			$this->assertArrayNotHasKey( 'capabilities', $data );
