@@ -5202,22 +5202,19 @@ function wp_get_webp_info( $filename ) {
  * omitted on the element. The purpose of this refinement is to avoid lazy-loading elements that are within the initial
  * viewport, which can have a negative performance impact.
  *
- * Under the hood, the function uses a global `$wp_content_media_count` variable which it increases every time it is
+ * Under the hood, the function uses a static `$wp_content_media_count` variable which it increases every time it is
  * called for an element within the main content. If the element is the very first content element, the `loading`
  * attribute will be omitted. This default threshold of 1 content element to omit the `loading` attribute for can be
  * customized using the {@see 'wp_omit_loading_attr_threshold'} filter.
  *
  * @since 5.9.0
  *
- * @global int $wp_content_media_count Content media count used to enumerate elements for the contexts 'the_content'
- *                                     and 'the_post_thumbnail'.
- *
  * @param string $context Context for the element for which the `loading` attribute value is requested.
  * @return string|bool The default `loading` attribute value. Either 'lazy', 'eager', or a boolean `false`, to indicate
  *                     that the `loading` attribute should be skipped.
  */
 function wp_get_loading_attr_default( $context ) {
-	global $wp_content_media_count;
+	static $wp_content_media_count = 0;
 
 	// Only elements with 'the_content' or 'the_post_thumbnail' context have special handling.
 	if ( 'the_content' !== $context && 'the_post_thumbnail' !== $context ) {
@@ -5242,9 +5239,6 @@ function wp_get_loading_attr_default( $context ) {
 	$eager_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 1 );
 
 	// Increase the counter since this is a main query content element.
-	if ( ! isset( $wp_content_media_count ) ) {
-		$wp_content_media_count = 0;
-	}
 	$wp_content_media_count++;
 
 	// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.

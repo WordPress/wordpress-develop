@@ -3196,7 +3196,7 @@ EOF;
 	 * @param string $context
 	 */
 	function test_wp_get_loading_attr_default( $context ) {
-		global $wp_query, $wp_the_query, $wp_content_media_count;
+		global $wp_query, $wp_the_query;
 
 		// Return 'lazy' by default.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'test' ) );
@@ -3205,15 +3205,13 @@ EOF;
 		// Return 'lazy' if not in the loop or the main query.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
-		$wp_query               = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$wp_content_media_count = 0;
+		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 
 		while ( have_posts() ) {
 			the_post();
 
 			// Return 'lazy' if in the loop but not in the main query.
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
-			$this->assertSame( 0, $wp_content_media_count );
 
 			// Set as main query.
 			$wp_the_query = $wp_query;
@@ -3221,19 +3219,15 @@ EOF;
 			// For contexts other than for the main content, still return 'lazy' even in the loop
 			// and in the main query, and do not increase the content media count.
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
-			$this->assertSame( 0, $wp_content_media_count );
 
 			// Return `false` if in the loop and in the main query and it is the first element.
 			$this->assertFalse( wp_get_loading_attr_default( $context ) );
-			$this->assertSame( 1, $wp_content_media_count );
 
 			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
-			$this->assertSame( 2, $wp_content_media_count );
 
 			// Yes, for all subsequent elements.
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
-			$this->assertSame( 3, $wp_content_media_count );
 		}
 	}
 
@@ -3248,11 +3242,10 @@ EOF;
 	 * @ticket 53675
 	 */
 	function test_wp_omit_loading_attr_threshold_filter() {
-		global $wp_query, $wp_the_query, $wp_content_media_count;
+		global $wp_query, $wp_the_query;
 
-		$wp_query               = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$wp_the_query           = $wp_query;
-		$wp_content_media_count = 0;
+		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$wp_the_query = $wp_query;
 
 		// Use the filter to alter the threshold for not lazy-loading to the first three elements.
 		add_filter(
@@ -3279,7 +3272,7 @@ EOF;
 	 * @ticket 53675
 	 */
 	function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
-		global $wp_query, $wp_the_query, $wp_content_media_count;
+		global $wp_query, $wp_the_query;
 
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$iframe1      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
@@ -3302,9 +3295,8 @@ EOF;
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
 		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
 
-		$wp_query               = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$wp_the_query           = $wp_query;
-		$wp_content_media_count = 0;
+		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$wp_the_query = $wp_query;
 
 		while ( have_posts() ) {
 			the_post();
