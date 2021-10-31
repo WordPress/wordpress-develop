@@ -3160,10 +3160,10 @@ function rest_get_route_for_taxonomy_items( $taxonomy ) {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string  $route The route path.
-	 * @param WP_Taxonomy $taxonomy  The taxonomy object.
+	 * @param string      $route    The route path.
+	 * @param WP_Taxonomy $taxonomy The taxonomy object.
 	 */
-	return apply_filters( 'rest_route_for_taxonomy', $route, $taxonomy );
+	return apply_filters( 'rest_route_for_taxonomy_items', $route, $taxonomy );
 }
 
 /**
