@@ -5234,15 +5234,15 @@ function wp_get_loading_attr_default( $context ) {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param int $threshold Threshold for how many of the first content media elements to not lazy-load. Default 1.
+	 * @param int $omit_threshold Threshold for how many of the first content media elements to not lazy-load. Default 1.
 	 */
-	$eager_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 1 );
+	$omit_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 1 );
 
 	// Increase the counter since this is a main query content element.
 	$wp_content_media_count++;
 
 	// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.
-	if ( $wp_content_media_count <= $eager_threshold ) {
+	if ( $wp_content_media_count <= $omit_threshold ) {
 		return false;
 	}
 
