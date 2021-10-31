@@ -1965,7 +1965,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 54267
 	 */
-	public function test_rest_get_route_for_post_custom_namespace() {
+	public function test_rest_get_route_for_taxonomy_custom_namespace() {
 		register_taxonomy(
 			'ct',
 			'post',
@@ -1991,7 +1991,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 54267
 	 */
-	public function test_rest_get_route_for_post_type_items_custom_namespace() {
+	public function test_rest_get_route_for_taxonomy_items_custom_namespace() {
 		register_taxonomy(
 			'ct',
 			'post',
