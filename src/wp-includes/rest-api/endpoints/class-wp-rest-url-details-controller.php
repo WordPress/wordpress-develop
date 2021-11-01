@@ -2,14 +2,16 @@
 /**
  * REST API: WP_REST_URL_Details_Controller class
  *
- * @package Gutenberg
+ * @package WordPress
+ * @subpackage REST_API
+ * @since 5.9.0
  */
 
 /**
  * Controller which provides REST endpoint for retrieving information
  * from a remote site's HTML response.
  *
- * @since 5.?.0
+ * @since 5.9.0
  *
  * @see WP_REST_Controller
  */
@@ -17,6 +19,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructs the controller.
+	 *
+	 * @since 5.9.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp-block-editor/v1';
@@ -25,6 +29,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the necessary REST API routes.
+	 *
+	 * @since 5.9.0
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -37,7 +43,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 					'args'                => array(
 						'url' => array(
 							'required'          => true,
-							'description'       => __( 'The URL to process.', 'gutenberg' ),
+							'description'       => __( 'The URL to process.' ),
 							'validate_callback' => 'wp_http_validate_url',
 							'sanitize_callback' => 'esc_url_raw',
 							'type'              => 'string',
@@ -52,9 +58,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get the schema for the endpoint.
+	 * Retrieves the item's schema, conforming to JSON Schema.
 	 *
-	 * @return array the schema.
+	 * @since 5.9.0
+	 *
+	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {
@@ -67,26 +75,26 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'title'       => array(
-					'description' => __( 'The contents of the <title> element from the URL.', 'gutenberg' ),
+					'description' => __( 'The contents of the <title> element from the URL.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'icon'        => array(
-					'description' => __( 'The favicon image link of the <link rel="icon"> element from the URL.', 'gutenberg' ),
+					'description' => __( 'The favicon image link of the <link rel="icon"> element from the URL.' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'description' => array(
-					'description' => __( 'The content of the <meta name="description"> element from the URL.', 'gutenberg' ),
+					'description' => __( 'The content of the <meta name="description"> element from the URL.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'image'       => array(
-					'description' => __( 'The OG image link of the <meta property="og:image"> or <meta property="og:image:url"> element from the URL.', 'gutenberg' ),
+					'description' => __( 'The OG image link of the <meta property="og:image"> or <meta property="og:image:url"> element from the URL.' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view', 'edit', 'embed' ),
@@ -101,8 +109,9 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Retrieves the contents of the <title> tag from the HTML
-	 * response.
+	 * Retrieves the contents of the <title> tag from the HTML response.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param WP_REST_REQUEST $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error The parsed details as a response object, or an error.
@@ -111,7 +120,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		$url = untrailingslashit( $request['url'] );
 
 		if ( empty( $url ) ) {
-			return new WP_Error( 'rest_invalid_url', __( 'Invalid URL', 'gutenberg' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_invalid_url', __( 'Invalid URL' ), array( 'status' => 404 ) );
 		}
 
 		// Transient per URL.
@@ -164,6 +173,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a given request has permission to read remote urls.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @return WP_Error|bool True if the request has access, or WP_Error object.
 	 */
 	public function permissions_check() {
@@ -179,7 +190,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		return new WP_Error(
 			'rest_cannot_view_url_details',
-			__( 'Sorry, you are not allowed to process remote urls.', 'gutenberg' ),
+			__( 'Sorry, you are not allowed to process remote urls.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
 	}
@@ -187,18 +198,22 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the document title from a remote URL.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param string $url The website url whose HTML we want to access.
 	 * @return string|WP_Error The HTTP response from the remote URL, or an error.
 	 */
 	private function get_remote_url( $url ) {
 
-		// Provide a modified UA string to workaround web properties which block WordPress "Pingbacks".
-		// Why? The UA string used for pingback requests contains `WordPress/` which is very similar
-		// to that used as the default UA string by the WP HTTP API. Therefore requests from this
-		// REST endpoint are being unintentionally blocked as they are misidentified as pingback requests.
-		// By slightly modifying the UA string, but still retaining the "WordPress" identification (via "WP")
-		// we are able to work around this issue.
-		// Example UA string: `WP-URLDetails/5.9-alpha-51389 (+http://localhost:8888)`.
+		/*
+		 * Provide a modified UA string to workaround web properties which block WordPress "Pingbacks".
+		 * Why? The UA string used for pingback requests contains `WordPress/` which is very similar
+		 * to that used as the default UA string by the WP HTTP API. Therefore requests from this
+		 * REST endpoint are being unintentionally blocked as they are misidentified as pingback requests.
+		 * By slightly modifying the UA string, but still retaining the "WordPress" identification (via "WP")
+		 * we are able to work around this issue.
+		 * Example UA string: `WP-URLDetails/5.9-alpha-51389 (+http://localhost:8888)`.
+		*/
 		$modified_user_agent = 'WP-URLDetails/' . get_bloginfo( 'version' ) . ' (+' . get_bloginfo( 'url' ) . ')';
 
 		$args = array(
@@ -216,27 +231,26 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 */
 		$args = apply_filters( 'rest_url_details_http_request_args', $args, $url );
 
-		$response = wp_safe_remote_get(
-			$url,
-			$args
-		);
+		$response = wp_safe_remote_get( $url, $args );
 
 		if ( WP_Http::OK !== wp_remote_retrieve_response_code( $response ) ) {
 			// Not saving the error response to cache since the error might be temporary.
-			return new WP_Error( 'no_response', __( 'URL not found. Response returned a non-200 status code for this URL.', 'gutenberg' ), array( 'status' => WP_Http::NOT_FOUND ) );
+			return new WP_Error( 'no_response', __( 'URL not found. Response returned a non-200 status code for this URL.' ), array( 'status' => WP_Http::NOT_FOUND ) );
 		}
 
 		$remote_body = wp_remote_retrieve_body( $response );
 
 		if ( empty( $remote_body ) ) {
-			return new WP_Error( 'no_content', __( 'Unable to retrieve body from response at this URL.', 'gutenberg' ), array( 'status' => WP_Http::NOT_FOUND ) );
+			return new WP_Error( 'no_content', __( 'Unable to retrieve body from response at this URL.' ), array( 'status' => WP_Http::NOT_FOUND ) );
 		}
 
 		return $remote_body;
 	}
 
 	/**
-	 * Parses the <title> contents from the provided HTML
+	 * Parses the `<title>` contents from the provided HTML.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param string $html The HTML from the remote website at URL.
 	 * @return string The title tag contents on success, or an empty string.
@@ -255,7 +269,9 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Parses the site icon from the provided HTML
+	 * Parses the site icon from the provided HTML.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param string $html The HTML from the remote website at URL.
 	 * @param string $url  The target website URL.
@@ -280,20 +296,27 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		// If the icon is a data URL, return it.
 		$parsed_icon = parse_url( $icon );
-		if ( isset( $parsed_icon['schema'] ) && 'data' === $parsed_icon['scheme'] ) {
+		if ( isset( $parsed_icon['scheme'] ) && 'data' === $parsed_icon['scheme'] ) {
 			return $icon;
 		}
 
 		// Attempt to convert relative URLs to absolute.
+		if ( ! is_string( $url ) || '' === $url ) {
+			return $icon;
+		}
 		$parsed_url = parse_url( $url );
-		$root_url   = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
-		$icon       = WP_Http::make_absolute_url( $icon, $root_url );
+		if ( isset( $parsed_url['scheme'] ) && isset( $parsed_url['host'] ) ) {
+			$root_url = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
+			$icon     = WP_Http::make_absolute_url( $icon, $root_url );
+		}
 
 		return $icon;
 	}
 
 	/**
 	 * Parses the meta description from the provided HTML.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param array $meta_elements {
 	 *     A multi-dimensional indexed array on success, or empty array.
@@ -325,6 +348,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 *
 	 * See: https://ogp.me/.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param array  $meta_elements {
 	 *     A multi-dimensional indexed array on success, or empty array.
 	 *
@@ -345,17 +370,20 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		// Attempt to convert relative URLs to absolute.
 		$parsed_url = parse_url( $url );
-		$root_url   = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
-		$image      = WP_Http::make_absolute_url( $image, $root_url );
+		if ( isset( $parsed_url['scheme'] ) && isset( $parsed_url['host'] ) ) {
+			$root_url = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
+			$image    = WP_Http::make_absolute_url( $image, $root_url );
+		}
 
 		return $image;
 	}
 
 	/**
-	 * Prepare the metadata by:
-	 *
-	 *    - stripping all HTML tags and tag entities
+	 * Prepares the metadata by:
+	 *    - stripping all HTML tags and tag entities.
 	 *    - converting non-tag entities into characters.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param string $metadata The metadata content to prepare.
 	 * @return string The prepared metadata.
@@ -369,6 +397,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	/**
 	 * Utility function to build cache key for a given URL.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param string $url The URL for which to build a cache key.
 	 * @return string The cache key.
 	 */
@@ -378,6 +408,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 	/**
 	 * Utility function to retrieve a value from the cache at a given key.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param string $key The cache key.
 	 * @return mixed The value from the cache.
@@ -389,9 +421,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	/**
 	 * Utility function to cache a given data set at a given cache key.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param string $key  The cache key under which to store the value.
 	 * @param string $data The data to be stored at the given cache key.
-	 * @return bool True when transient set, or false.
+	 * @return bool True when transient set. False if fails.
 	 */
 	private function set_cache( $key, $data = '' ) {
 		$ttl = HOUR_IN_SECONDS;
@@ -412,8 +446,10 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the `<head>` section.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param string $html The string of HTML to parse.
-	 * @return string The `<head>..</head>` section on succes, or original HTML.
+	 * @return string The `<head>..</head>` section on success, or original HTML.
 	 */
 	private function get_document_head( $html ) {
 		$head_html = $html;
@@ -445,7 +481,9 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Gets all the <meta> elements that have a `content` attribute.
+	 * Gets all the `<meta>` elements that have a `content` attribute.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param string $html The string of HTML to be parsed.
 	 * @return array {
@@ -480,43 +518,43 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 */
 		$pattern = '#<meta\s' .
 
-		           /*
-					* Alows for additional attributes before the content attribute.
-					* Searches for anything other than > symbol.
-					*/
-		           '[^>]*' .
+				/*
+				 * Alows for additional attributes before the content attribute.
+				 * Searches for anything other than > symbol.
+				 */
+				'[^>]*' .
 
-		           /*
-					* Find the content attribute. When found, capture its value (.*).
-					*
-					* Allows for (a) single or double quotes and (b) whitespace in the value.
-					*
-					* Why capture the opening quotation mark, i.e. (["\']), and then backreference,
-					* i.e \1, for the closing quotation mark?
-					* To ensure the closing quotation mark matches the opening one. Why? Attribute values
-					* can contain quotation marks, such as an apostrophe in the content.
-					*/
-		           'content=(["\']??)(.*)\1' .
+				/*
+				* Find the content attribute. When found, capture its value (.*).
+				*
+				* Allows for (a) single or double quotes and (b) whitespace in the value.
+				*
+				* Why capture the opening quotation mark, i.e. (["\']), and then backreference,
+				* i.e \1, for the closing quotation mark?
+				* To ensure the closing quotation mark matches the opening one. Why? Attribute values
+				* can contain quotation marks, such as an apostrophe in the content.
+				*/
+				'content=(["\']??)(.*)\1' .
 
-		           /*
-					* Alows for additional attributes after the content attribute.
-					* Searches for anything other than > symbol.
-					*/
-		           '[^>]*' .
+				/*
+				* Allows for additional attributes after the content attribute.
+				* Searches for anything other than > symbol.
+				*/
+				'[^>]*' .
 
-		           /*
-					* \/?> searches for the closing > symbol, which can be in either /> or > format.
-					* # ends the pattern.
-					*/
-		           '\/?>#' .
+				/*
+				* \/?> searches for the closing > symbol, which can be in either /> or > format.
+				* # ends the pattern.
+				*/
+				'\/?>#' .
 
-		           /*
-					* These are the options:
-					* - i : case insensitive
-					* - s : allows newline characters for the . match (needed for multiline elements)
-					* - U means non-greedy matching
-					*/
-		           'isU';
+				/*
+				* These are the options:
+				* - i : case insensitive
+				* - s : allows newline characters for the . match (needed for multiline elements)
+				* - U means non-greedy matching
+				*/
+				'isU';
 
 		preg_match_all( $pattern, $html, $elements );
 
@@ -525,6 +563,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 	/**
 	 * Gets the metadata from a target meta element.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param array  $meta_elements {
 	 *     A multi-dimensional indexed array on success, or empty array.
@@ -545,26 +585,25 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		$metadata = '';
 		$pattern  = '#' .
+				/*
+				 * Target this attribute and value to find the metadata element.
+				 *
+				 * Allows for (a) no, single, double quotes and (b) whitespace in the value.
+				 *
+				 * Why capture the opening quotation mark, i.e. (["\']), and then backreference,
+				 * i.e \1, for the closing quotation mark?
+				 * To ensure the closing quotation mark matches the opening one. Why? Attribute values
+				 * can contain quotation marks, such as an apostrophe in the content.
+				 */
+				$attr . '=([\"\']??)\s*' . $attr_value . '\s*\1' .
 
-		            /*
-					 * Target this attribute and value to find the metadata element.
-					 *
-					 * Allows for (a) no, single, double quotes and (b) whitespace in the value.
-					 *
-					 * Why capture the opening quotation mark, i.e. (["\']), and then backreference,
-					 * i.e \1, for the closing quotation mark?
-					 * To ensure the closing quotation mark matches the opening one. Why? Attribute values
-					 * can contain quotation marks, such as an apostrophe in the content.
-					 */
-		            $attr . '=([\"\']??)\s*' . $attr_value . '\s*\1' .
-
-		            /*
-					 * These are the options:
-					 * - i : case insensitive
-					 * - s : allows newline characters for the . match (needed for multiline elements)
-					 * - U means non-greedy matching
-					 */
-		            '#isU';
+				/*
+				 * These are the options:
+				 * - i : case insensitive
+				 * - s : allows newline characters for the . match (needed for multiline elements)
+				 * - U means non-greedy matching
+				 */
+				'#isU';
 
 		// Find the metdata element.
 		foreach ( $meta_elements[0] as $index => $element ) {
