@@ -200,6 +200,67 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * @ticket 53915
+	 */
+	public function test_get_items_without_show_in_rest_are_removed_from_the_list() {
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name'         => 'Test sidebar',
+				'show_in_rest' => true,
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-2',
+			array(
+				'name'         => 'Test sidebar',
+				'show_in_rest' => false,
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-3',
+			array(
+				'name'         => 'Test sidebar',
+				'show_in_rest' => true,
+			)
+		);
+		wp_set_current_user( self::$author_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+		$this->assertSame(
+			array(
+				array(
+					'id'            => 'sidebar-1',
+					'name'          => 'Test sidebar',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'active',
+					'widgets'       => array(),
+				),
+				array(
+					'id'            => 'sidebar-3',
+					'name'          => 'Test sidebar',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'active',
+					'widgets'       => array(),
+				),
+			),
+			$data
+		);
+	}
+
+	/**
 	 * @ticket 41683
 	 */
 	public function test_get_items_wrong_permission_author() {
