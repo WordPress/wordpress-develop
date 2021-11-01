@@ -32,15 +32,20 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	protected $root_url = 'https://fonts.googleapis.com/css2';
 
 	/**
-	 * The object's constructor.
+	 * Array of resources hints.
 	 *
 	 * @since 5.9.0
+	 *
+	 * @var array
 	 */
-	public function __construct() {
-
-		// Add preconnect links.
-		add_filter( 'wp_resource_hints', array( $this, 'add_preconnect_urls' ), 10, 2 );
-	}
+	protected $resource_hints = array(
+		'preconnect' => array(
+			array(
+				'href'        => 'https://fonts.gstatic.com',
+				'crossorigin' => 'anonymous',
+			),
+		),
+	);
 
 	/**
 	 * Get the CSS for a collection of fonts.
@@ -148,39 +153,5 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 		}
 
 		return $font_display_groups;
-	}
-
-	/**
-	 * Adds preconnect URLs for webfonts providers.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param array  $urls {
-	 *     Array of resources and their attributes, or URLs to print for resource hints.
-	 *
-	 *     @type array|string ...$0 {
-	 *         Array of resource attributes, or a URL string.
-	 *
-	 *         @type string $href        URL to include in resource hints. Required.
-	 *         @type string $as          How the browser should treat the resource
-	 *                                   (`script`, `style`, `image`, `document`, etc).
-	 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
-	 *         @type float  $pr          Expected probability that the resource hint will be used.
-	 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
-	 *     }
-	 * }
-	 * @param string $relation_type The relation type the URLs are printed for,
-	 *                              e.g. 'preconnect' or 'prerender'.
-	 */
-	public function add_preconnect_urls( $urls, $relation_type ) {
-		if ( 'preconnect' !== $relation_type ) {
-			return $urls;
-		}
-
-		$urls[] = array(
-			'href'        => 'https://fonts.gstatic.com',
-			'crossorigin' => 'anonymous',
-		);
-		return $urls;
 	}
 }

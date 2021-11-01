@@ -44,6 +44,19 @@ abstract class WP_Webfonts_Provider {
 	protected $webfonts = array();
 
 	/**
+	 * Array of resources hints.
+	 *
+	 * Keyed by relation-type:
+	 *
+	 *      @type string $key => @type array resource hint.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @var array
+	 */
+	protected $resource_hints = array();
+
+	/**
 	 * Get the provider's unique ID.
 	 *
 	 * @since 5.9.0
@@ -168,5 +181,16 @@ abstract class WP_Webfonts_Provider {
 
 		// Get the response body.
 		return wp_remote_retrieve_body( $response );
+	}
+
+	/**
+	 * Get the provider's resource hints.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array
+	 */
+	public function get_resource_hints() {
+		return $this->resource_hints;
 	}
 }

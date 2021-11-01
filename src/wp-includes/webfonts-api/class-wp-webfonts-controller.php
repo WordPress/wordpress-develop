@@ -79,6 +79,9 @@ class WP_Webfonts_Controller {
 
 		// Enqueue webfonts in the block editor.
 		add_action( 'admin_init', array( $this, 'generate_and_enqueue_editor_styles' ) );
+
+		// Add resources hints.
+		add_filter( 'wp_resource_hints', array( $this, 'get_resource_hints' ), 10, 2 );
 	}
 
 	/**
@@ -150,5 +153,46 @@ class WP_Webfonts_Controller {
 	 */
 	public function get_providers() {
 		return $this->providers;
+	}
+
+	/**
+	 * Get the resource hints.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array  $urls {
+	 *     Array of resources and their attributes, or URLs to print for resource hints.
+	 *
+	 *     @type array|string ...$0 {
+	 *         Array of resource attributes, or a URL string.
+	 *
+	 *         @type string $href        URL to include in resource hints. Required.
+	 *         @type string $as          How the browser should treat the resource
+	 *                                   (`script`, `style`, `image`, `document`, etc).
+	 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
+	 *         @type float  $pr          Expected probability that the resource hint will be used.
+	 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
+	 *     }
+	 * }
+	 * @param string $relation_type The relation type the URLs are printed for,
+	 *                              e.g. 'preconnect' or 'prerender'.
+	 *
+	 * @return array URLs to print for resource hints.
+	 */
+	public function get_resource_hints( $urls, $relation_type ) {
+		$providers = $this->get_providers()->get_all_registered();
+		foreach ( $providers as $provider_id => $provider ) {
+			$hints = $provider->get_resource_hints();
+			foreach ( $hints as $relation => $relation_hints ) {
+				if ( $relation !== $relation_type ) {
+					continue;
+				}
+				foreach ( $relation_hints as $hint ) {
+					$urls[] = $hint;
+				}
+			}
+		}
+
+		return $urls;
 	}
 }
