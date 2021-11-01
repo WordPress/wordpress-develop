@@ -949,7 +949,7 @@ function get_post_mime_type( $post = null ) {
  *
  * @since 2.0.0
  *
- * @param int|WP_Post $post Optional. Post ID or post object. Defaults to global $post..
+ * @param int|WP_Post $post Optional. Post ID or post object. Defaults to global $post.
  * @return string|false Post status on success, false on failure.
  */
 function get_post_status( $post = null ) {
@@ -1077,7 +1077,7 @@ function _wp_privacy_statuses() {
  *
  * @since 3.0.0
  *
- * @global array $wp_post_statuses Inserts new post status object into the list
+ * @global stdClass[] $wp_post_statuses Inserts new post status object into the list
  *
  * @param string       $post_status Name of the post status.
  * @param array|string $args {
@@ -1201,12 +1201,12 @@ function register_post_status( $post_status, $args = array() ) {
  *
  * @since 3.0.0
  *
- * @global array $wp_post_statuses List of post statuses.
+ * @global stdClass[] $wp_post_statuses List of post statuses.
  *
  * @see register_post_status()
  *
  * @param string $post_status The name of a registered post status.
- * @return object|null A post status object.
+ * @return stdClass|null A post status object.
  */
 function get_post_status_object( $post_status ) {
 	global $wp_post_statuses;
@@ -1223,7 +1223,7 @@ function get_post_status_object( $post_status ) {
  *
  * @since 3.0.0
  *
- * @global array $wp_post_statuses List of post statuses.
+ * @global stdClass[] $wp_post_statuses List of post statuses.
  *
  * @see register_post_status()
  *
@@ -1418,6 +1418,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type bool         $show_in_rest          Whether to include the post type in the REST API. Set this to true
  *                                               for the post type to be available in the block editor.
  *     @type string       $rest_base             To change the base URL of REST API route. Default is $post_type.
+ *     @type string       $rest_namespace        To change the namespace URL of REST API route. Default is wp/v2.
  *     @type string       $rest_controller_class REST API controller class name. Default is 'WP_REST_Posts_Controller'.
  *     @type int          $menu_position         The position in the menu order the post type should appear. To work,
  *                                               $show_in_menu must be true. Default null (at the bottom).
@@ -2817,7 +2818,7 @@ function _count_posts_cache_key( $type = 'post', $perm = '' ) {
  *
  * @param string $type Optional. Post type to retrieve count. Default 'post'.
  * @param string $perm Optional. 'readable' or empty. Default empty.
- * @return object Number of posts for each status.
+ * @return stdClass Number of posts for each status.
  */
 function wp_count_posts( $type = 'post', $perm = '' ) {
 	global $wpdb;
@@ -2870,11 +2871,11 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param object $counts An object containing the current post_type's post
-	 *                       counts by status.
-	 * @param string $type   Post type.
-	 * @param string $perm   The permission to determine if the posts are 'readable'
-	 *                       by the current user.
+	 * @param stdClass $counts An object containing the current post_type's post
+	 *                         counts by status.
+	 * @param string   $type   Post type.
+	 * @param string   $perm   The permission to determine if the posts are 'readable'
+	 *                         by the current user.
 	 */
 	return apply_filters( 'wp_count_posts', $counts, $type, $perm );
 }
@@ -2893,7 +2894,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
  *
  * @param string|string[] $mime_type Optional. Array or comma-separated list of
  *                                   MIME patterns. Default empty.
- * @return object An object containing the attachment counts by mime type.
+ * @return stdClass An object containing the attachment counts by mime type.
  */
 function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
@@ -2912,7 +2913,7 @@ function wp_count_attachments( $mime_type = '' ) {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param object          $counts    An object containing the attachment counts by
+	 * @param stdClass        $counts    An object containing the attachment counts by
 	 *                                   mime type.
 	 * @param string|string[] $mime_type Array or comma-separated list of MIME patterns.
 	 */
@@ -2939,7 +2940,7 @@ function get_post_mime_types() {
 			),
 		),
 		'audio'       => array(
-			__( 'Audio' ),
+			_x( 'Audio', 'file type group' ),
 			__( 'Manage Audio' ),
 			/* translators: %s: Number of audio files. */
 			_n_noop(
@@ -2948,7 +2949,7 @@ function get_post_mime_types() {
 			),
 		),
 		'video'       => array(
-			__( 'Video' ),
+			_x( 'Video', 'file type group' ),
 			__( 'Manage Video' ),
 			/* translators: %s: Number of video files. */
 			_n_noop(
@@ -3823,7 +3824,14 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type int[]  $post_category         Array of category IDs.
  *                                         Defaults to value of the 'default_category' option.
  *     @type array  $tags_input            Array of tag names, slugs, or IDs. Default empty.
- *     @type array  $tax_input             Array of taxonomy terms keyed by their taxonomy name. Default empty.
+ *     @type array  $tax_input             An array of taxonomy terms keyed by their taxonomy name.
+ *                                         If the taxonomy is hierarchical, the term list needs to be
+ *                                         either an array of term IDs or a comma-separated string of IDs.
+ *                                         If the taxonomy is non-hierarchical, the term list can be an array
+ *                                         that contains term names or slugs, or a comma-separated string
+ *                                         of names or slugs. This is because, in hierarchical taxonomy,
+ *                                         child terms can have the same names with different parent terms,
+ *                                         so the only way to connect them is using ID. Default empty.
  *     @type array  $meta_input            Array of post meta values keyed by their post meta key. Default empty.
  * }
  * @param bool  $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
@@ -5112,6 +5120,12 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 * The dynamic portions of the hook name, `$new_status` and `$old_status`,
 	 * refer to the old and new post statuses, respectively.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `draft_to_publish`
+	 *  - `publish_to_trash`
+	 *  - `pending_to_draft`
+	 *
 	 * @since 2.3.0
 	 *
 	 * @param WP_Post $post Post object.
@@ -5500,6 +5514,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	if ( $foundid ) {
 		return get_post( $foundid, $output );
 	}
+
+	return null;
 }
 
 /**
@@ -5557,6 +5573,8 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 	if ( $page ) {
 		return get_post( $page, $output );
 	}
+
+	return null;
 }
 
 /**
@@ -6152,7 +6170,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	$backup_sizes = get_post_meta( $post->ID, '_wp_attachment_backup_sizes', true );
 	$file         = get_attached_file( $post_id );
 
-	if ( is_multisite() ) {
+	if ( is_multisite() && is_string( $file ) && ! empty( $file ) ) {
 		clean_dirsize_cache( $file );
 	}
 

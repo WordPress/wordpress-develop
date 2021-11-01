@@ -1496,4 +1496,298 @@ EOF;
 
 		$this->assertSame( $html, wp_kses_post( $html ) );
 	}
+
+	/**
+	 * Test that object tags are allowed under limited circumstances.
+	 *
+	 * @ticket 54261
+	 *
+	 * @dataProvider data_wp_kses_object_tag_allowed
+	 *
+	 * @param string $html     A string of HTML to test.
+	 * @param string $expected The expected result from KSES.
+	 */
+	function test_wp_kses_object_tag_allowed( $html, $expected ) {
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_object_tag_allowed().
+	 */
+	function data_wp_kses_object_tag_allowed() {
+		return array(
+			'valid value for type'                    => array(
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			'invalid value for type'                  => array(
+				'<object type="application/exe" data="https://wordpress.org/foo.exe" />',
+				'',
+			),
+			'multiple type attributes, last invalid'  => array(
+				'<object type="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			'multiple type attributes, first uppercase, last invalid' => array(
+				'<object TYPE="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
+				'<object TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			'multiple type attributes, last upper case and invalid' => array(
+				'<object type="application/pdf" TYPE="application/exe" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			'multiple type attributes, first invalid' => array(
+				'<object type="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			'multiple type attributes, first upper case and invalid' => array(
+				'<object TYPE="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			'multiple type attributes, first invalid, last uppercase' => array(
+				'<object type="application/exe" TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			'multiple object tags, last invalid'      => array(
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" /><object type="application/exe" data="https://wordpress.org/foo.exe" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			'multiple object tags, first invalid'     => array(
+				'<object type="application/exe" data="https://wordpress.org/foo.exe" /><object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+			),
+			'type attribute with partially incorrect value' => array(
+				'<object type="application/pdfa" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			'type attribute with empty value'         => array(
+				'<object type="" data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			'type attribute with no value'            => array(
+				'<object type data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+			'no type attribute'                       => array(
+				'<object data="https://wordpress.org/foo.pdf" />',
+				'',
+			),
+		);
+	}
+
+	/**
+	 * Test that object tags will continue to function if they've been added using the
+	 * 'wp_kses_allowed_html' filter.
+	 *
+	 * @ticket 54261
+	 */
+	function test_wp_kses_object_added_in_html_filter() {
+		$html = <<<HTML
+<object type="application/pdf" data="https://wordpress.org/foo.pdf" />
+<object type="application/x-shockwave-flash" data="https://wordpress.org/foo.swf">
+	<param name="foo" value="bar" />
+</object>
+HTML;
+
+		add_filter( 'wp_kses_allowed_html', array( $this, 'filter_wp_kses_object_added_in_html_filter' ), 10, 2 );
+
+		$filtered_html = wp_kses_post( $html );
+
+		remove_filter( 'wp_kses_allowed_html', array( $this, 'filter_wp_kses_object_added_in_html_filter' ) );
+
+		$this->assertSame( $html, $filtered_html );
+	}
+
+	function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
+		if ( 'post' === $context ) {
+			$tags['object'] = array(
+				'type' => true,
+				'data' => true,
+			);
+
+			$tags['param'] = array(
+				'name'  => true,
+				'value' => true,
+			);
+		}
+
+		return $tags;
+	}
+
+	/**
+	 * Test that attributes with a list of allowed values are filtered correctly.
+	 *
+	 * @ticket 54261
+	 *
+	 * @dataProvider data_wp_kses_allowed_values_list
+	 *
+	 * @param string $html         A string of HTML to test.
+	 * @param string $expected     The expected result from KSES.
+	 * @param array  $allowed_html The allowed HTML to pass to KSES.
+	 */
+	function test_wp_kses_allowed_values_list( $html, $expected, $allowed_html ) {
+		$this->assertSame( $expected, wp_kses( $html, $allowed_html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_allowed_values_list().
+	 */
+	function data_wp_kses_allowed_values_list() {
+		$data = array(
+			'valid dir attribute value'             => array(
+				'<p dir="ltr">foo</p>',
+				'<p dir="ltr">foo</p>',
+			),
+			'valid dir attribute value, upper case' => array(
+				'<p DIR="RTL">foo</p>',
+				'<p DIR="RTL">foo</p>',
+			),
+			'invalid dir attribute value'           => array(
+				'<p dir="up">foo</p>',
+				'<p>foo</p>',
+			),
+			'dir attribute with empty value'        => array(
+				'<p dir="">foo</p>',
+				'<p>foo</p>',
+			),
+			'dir attribute with no value'           => array(
+				'<p dir>foo</p>',
+				'<p>foo</p>',
+			),
+		);
+
+		return array_map(
+			function ( $datum ) {
+				$datum[] = array(
+					'p' => array(
+						'dir' => array(
+							'values' => array( 'ltr', 'rtl' ),
+						),
+					),
+				);
+
+				return $datum;
+			},
+			$data
+		);
+	}
+
+	/**
+	 * Test that attributes with the required flag are handled correctly.
+	 *
+	 * @ticket 54261
+	 *
+	 * @dataProvider data_wp_kses_required_attribute
+	 *
+	 * @param string $html         A string of HTML to test.
+	 * @param string $expected     The expected result from KSES.
+	 * @param array  $allowed_html The allowed HTML to pass to KSES.
+	 */
+	function test_wp_kses_required_attribute( $html, $expected, $allowed_html ) {
+		$this->assertSame( $expected, wp_kses( $html, $allowed_html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_required_attribute().
+	 */
+	function data_wp_kses_required_attribute() {
+		$data = array(
+			'valid dir attribute value'             => array(
+				'<p dir="ltr">foo</p>', // Test HTML.
+				'<p dir="ltr">foo</p>', // Expected result when dir is not required.
+				'<p dir="ltr">foo</p>', // Expected result when dir is required.
+				'<p dir="ltr">foo</p>', // Expected result when dir is required, but has no value filter.
+			),
+			'valid dir attribute value, upper case' => array(
+				'<p DIR="RTL">foo</p>',
+				'<p DIR="RTL">foo</p>',
+				'<p DIR="RTL">foo</p>',
+				'<p DIR="RTL">foo</p>',
+			),
+			'invalid dir attribute value'           => array(
+				'<p dir="up">foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p dir="up">foo</p>',
+			),
+			'dir attribute with empty value'        => array(
+				'<p dir="">foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p dir="">foo</p>',
+			),
+			'dir attribute with no value'           => array(
+				'<p dir>foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p dir>foo</p>',
+			),
+			'dir attribute not set'                 => array(
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+				'<p>foo</p>',
+			),
+		);
+
+		$return_data = array();
+
+		foreach ( $data as $description => $datum ) {
+			// Test that the required flag defaults to false.
+			$return_data[ "$description - required flag not set" ] = array(
+				$datum[0],
+				$datum[1],
+				array(
+					'p' => array(
+						'dir' => array(
+							'values' => array( 'ltr', 'rtl' ),
+						),
+					),
+				),
+			);
+
+			// Test when the attribute is not required, but has allowed values.
+			$return_data[ "$description - required flag set to false" ] = array(
+				$datum[0],
+				$datum[1],
+				array(
+					'p' => array(
+						'dir' => array(
+							'required' => false,
+							'values'   => array( 'ltr', 'rtl' ),
+						),
+					),
+				),
+			);
+
+			// Test when the attribute is required, but has allowed values.
+			$return_data[ "$description - required flag set to true" ] = array(
+				$datum[0],
+				$datum[2],
+				array(
+					'p' => array(
+						'dir' => array(
+							'required' => true,
+							'values'   => array( 'ltr', 'rtl' ),
+						),
+					),
+				),
+			);
+
+			// Test when the attribute is required, but has no allowed values.
+			$return_data[ "$description - required flag set to true, no allowed values specified" ] = array(
+				$datum[0],
+				$datum[3],
+				array(
+					'p' => array(
+						'dir' => array(
+							'required' => true,
+						),
+					),
+				),
+			);
+		}
+
+		return $return_data;
+	}
 }

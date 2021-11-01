@@ -269,9 +269,9 @@ class WP_Http {
 			}
 		}
 
-		$arrURL = parse_url( $url );
+		$parsed_url = parse_url( $url );
 
-		if ( empty( $url ) || empty( $arrURL['scheme'] ) ) {
+		if ( empty( $url ) || empty( $parsed_url['scheme'] ) ) {
 			$response = new WP_Error( 'http_request_failed', __( 'A valid URL was not provided.' ) );
 			/** This action is documented in wp-includes/class-http.php */
 			do_action( 'http_api_debug', $response, 'response', 'Requests', $parsed_args, $url );
@@ -309,8 +309,8 @@ class WP_Http {
 
 		// WP allows passing in headers as a string, weirdly.
 		if ( ! is_array( $parsed_args['headers'] ) ) {
-			$processedHeaders       = WP_Http::processHeaders( $parsed_args['headers'] );
-			$parsed_args['headers'] = $processedHeaders['headers'];
+			$processed_headers      = WP_Http::processHeaders( $parsed_args['headers'] );
+			$parsed_args['headers'] = $processed_headers['headers'];
 		}
 
 		// Setup arguments.
@@ -881,7 +881,7 @@ class WP_Http {
 		$home = parse_url( get_option( 'siteurl' ) );
 
 		// Don't block requests back to ourselves by default.
-		if ( 'localhost' === $check['host'] || ( isset( $home['host'] ) && $home['host'] == $check['host'] ) ) {
+		if ( 'localhost' === $check['host'] || ( isset( $home['host'] ) && $home['host'] === $check['host'] ) ) {
 			/**
 			 * Filters whether to block local HTTP API requests.
 			 *

@@ -10,20 +10,12 @@ if ( is_multisite() ) :
 	 */
 	class Tests_Multisite_Network extends WP_UnitTestCase {
 		protected $plugin_hook_count = 0;
-		protected $suppress          = false;
 
 		protected static $different_network_id;
 		protected static $different_site_ids = array();
 
-		function set_up() {
-			global $wpdb;
-			parent::set_up();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
 		function tear_down() {
-			global $wpdb, $current_site;
-			$wpdb->suppress_errors( $this->suppress );
+			global $current_site;
 			$current_site->id = 1;
 			parent::tear_down();
 		}
@@ -590,9 +582,13 @@ if ( is_multisite() ) :
 		 * @ticket 38699
 		 */
 		public function test_wpmu_create_blog_updates_correct_network_site_count() {
+			global $wpdb;
+
 			$original_count = get_blog_count( self::$different_network_id );
 
-			$site_id = wpmu_create_blog( 'example.org', '/', '', 1, array(), self::$different_network_id );
+			$suppress = $wpdb->suppress_errors();
+			$site_id  = wpmu_create_blog( 'example.org', '/', '', 1, array(), self::$different_network_id );
+			$wpdb->suppress_errors( $suppress );
 
 			$result = get_blog_count( self::$different_network_id );
 
