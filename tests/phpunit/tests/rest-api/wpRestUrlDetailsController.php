@@ -17,7 +17,7 @@
  * @group url-details
  * @group restapi
  */
-class WP_REST_URL_Details_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_REST_UrlDetailsController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Admin user ID.
@@ -1090,7 +1090,7 @@ class WP_REST_URL_Details_Controller_Test extends WP_Test_REST_Controller_Testca
 		return $this->mock_request_to_remote_url( 'empty_body', $args );
 	}
 
-	private function mock_request_to_remote_url( $result_type = 'success', $args ) {
+	private function mock_request_to_remote_url( $result_type, $args ) {
 		$this->request_args = $args;
 
 		$types = array(
