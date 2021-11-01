@@ -1963,6 +1963,50 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54267
+	 */
+	public function test_rest_get_route_for_taxonomy_custom_namespace() {
+		register_taxonomy(
+			'ct',
+			'post',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'ct',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'ct' ) );
+
+		$this->assertSame( '/wordpress/v1/ct/' . $term->term_id, rest_get_route_for_term( $term ) );
+		unregister_taxonomy( 'ct' );
+	}
+
+	/**
+	 * @ticket 54267
+	 */
+	public function test_rest_get_route_for_taxonomy_items() {
+		$this->assertSame( '/wp/v2/categories', rest_get_route_for_taxonomy_items( 'category' ) );
+	}
+
+	/**
+	 * @ticket 54267
+	 */
+	public function test_rest_get_route_for_taxonomy_items_custom_namespace() {
+		register_taxonomy(
+			'ct',
+			'post',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'ct',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+
+		$this->assertSame( '/wordpress/v1/ct', rest_get_route_for_taxonomy_items( 'ct' ) );
+		unregister_post_type( 'ct' );
+	}
+
+	/**
 	 * @ticket 50300
 	 *
 	 * @dataProvider _dp_rest_is_object
