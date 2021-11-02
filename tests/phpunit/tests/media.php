@@ -991,6 +991,46 @@ BLOB;
 		$this->assertEquals( $srcs, $ids_srcs );
 	}
 
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	function test_block_post_gallery_innerblock_images() {
+		// Make sure get_post_gallery_images() works with new version of gallery block with nested image blocks.
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 3 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0,
+				array(
+					'post_mime_type' => 'image/jpeg',
+					'post_type'      => 'attachment',
+				)
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]  = $attachment_id;
+			$url    = $ids_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$imgs[] = '<!-- wp:image {"id":' . $attachment_id . ',"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="' . $url . '" /></figure><!-- /wp:image -->';
+
+		}
+
+		$imgs_joined = join( "\n", $imgs );
+
+		$blob    = <<<BLOB
+<!-- wp:gallery -->
+<figure class="wp-block-gallery has-nested-images columns-default is-cropped">
+$imgs_joined
+</figure>
+<!-- /wp:gallery -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertEquals( $srcs, $ids_srcs );
+	}
+
 	function test_get_media_embedded_in_content() {
 		$object = <<<OBJ
 <object src="this" data="that">
