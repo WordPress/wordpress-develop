@@ -8,6 +8,8 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20449
+	 *
+	 * @covers ::get_home_path
 	 */
 	function test_get_home_path() {
 		$home    = get_option( 'home' );
@@ -34,6 +36,8 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43329
+	 *
+	 * @covers ::download_url
 	 */
 	public function test_download_url_non_200_response_code() {
 		add_filter( 'pre_http_request', array( $this, '_fake_download_url_non_200_response_code' ), 10, 3 );
