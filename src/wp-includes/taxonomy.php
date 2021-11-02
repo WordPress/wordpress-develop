@@ -191,25 +191,6 @@ function create_initial_taxonomies() {
 			'show_in_rest'      => false,
 		)
 	);
-
-	register_taxonomy(
-		'wp_template_part_area',
-		array( 'wp_template_part' ),
-		array(
-			'public'            => false,
-			'hierarchical'      => false,
-			'labels'            => array(
-				'name'          => __( 'Template Part Areas' ),
-				'singular_name' => __( 'Template Part Area' ),
-			),
-			'query_var'         => false,
-			'rewrite'           => false,
-			'show_ui'           => false,
-			'_builtin'          => true,
-			'show_in_nav_menus' => false,
-			'show_in_rest'      => false,
-		)
-	);
 }
 
 /**

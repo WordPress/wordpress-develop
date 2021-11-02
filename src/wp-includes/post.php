@@ -365,50 +365,6 @@ function create_initial_post_types() {
 		)
 	);
 
-	register_post_type(
-		'wp_template_part',
-		array(
-			'labels'                => array(
-				'name'                  => __( 'Template Parts' ),
-				'singular_name'         => __( 'Template Part' ),
-				'menu_name'             => _x( 'Template Parts', 'Admin Menu text' ),
-				'add_new'               => _x( 'Add New', 'Template Part' ),
-				'add_new_item'          => __( 'Add New Template Part' ),
-				'new_item'              => __( 'New Template Part' ),
-				'edit_item'             => __( 'Edit Template Part' ),
-				'view_item'             => __( 'View Template Part' ),
-				'all_items'             => __( 'All Template Parts' ),
-				'search_items'          => __( 'Search Template Parts' ),
-				'parent_item_colon'     => __( 'Parent Template Part:' ),
-				'not_found'             => __( 'No template parts found.' ),
-				'not_found_in_trash'    => __( 'No template parts found in Trash.' ),
-				'archives'              => __( 'Template part archives' ),
-				'insert_into_item'      => __( 'Insert into template part' ),
-				'uploaded_to_this_item' => __( 'Uploaded to this template part' ),
-				'filter_items_list'     => __( 'Filter template parts list' ),
-				'items_list_navigation' => __( 'Template parts list navigation' ),
-				'items_list'            => __( 'Template parts list' ),
-			),
-			'description'           => __( 'Template parts to include in your templates.' ),
-			'public'                => false,
-			'has_archive'           => false,
-			'show_ui'               => true,
-			'show_in_menu'          => 'themes.php',
-			'show_in_admin_bar'     => false,
-			'show_in_rest'          => true,
-			'rest_base'             => 'template-parts',
-			'rest_controller_class' => 'WP_REST_Templates_Controller',
-			'map_meta_cap'          => true,
-			'supports'              => array(
-				'title',
-				'slug',
-				'excerpt',
-				'editor',
-				'revisions',
-			),
-		)
-	);
-
 	register_post_status(
 		'publish',
 		array(
