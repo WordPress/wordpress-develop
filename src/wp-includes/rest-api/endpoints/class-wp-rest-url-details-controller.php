@@ -75,26 +75,43 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'title'       => array(
-					'description' => __( 'The contents of the <title> element from the URL.' ),
+					'description' => sprintf(
+						/* translators: %s: HTML title tag. */
+						__( 'The contents of the %s element from the URL.' ),
+						'<title>'
+					),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'icon'        => array(
-					'description' => __( 'The favicon image link of the <link rel="icon"> element from the URL.' ),
+					'description' => sprintf(
+						/* translators: %s: HTML link tag. */
+						__( 'The favicon image link of the %s element from the URL.' ),
+						'<link rel="icon">'
+					),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'description' => array(
-					'description' => __( 'The content of the <meta name="description"> element from the URL.' ),
+					'description' => sprintf(
+						/* translators: %s: HTML meta tag. */
+						__( 'The content of the %s element from the URL.' ),
+						'<meta name="description">'
+					),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'image'       => array(
-					'description' => __( 'The OG image link of the <meta property="og:image"> or <meta property="og:image:url"> element from the URL.' ),
+					'description' => sprintf(
+						/* translators: 1: HTML meta tag, 2: HTML meta tag. */
+						__( 'The Open Graph image link of the %1$s or %2$s element from the URL.' ),
+						'<meta property="og:image">',
+						'<meta property="og:image:url">'
+					),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view', 'edit', 'embed' ),
