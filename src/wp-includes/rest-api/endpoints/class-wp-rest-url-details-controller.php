@@ -69,7 +69,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 			return $this->add_additional_fields_schema( $this->schema );
 		}
 
-		$schema = array(
+		$this->schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'url-details',
 			'type'       => 'object',
@@ -119,8 +119,6 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 				),
 			),
 		);
-
-		$this->schema = $schema;
 
 		return $this->add_additional_fields_schema( $this->schema );
 	}
@@ -289,11 +287,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		$pattern = '#<title[^>]*>(.*?)<\s*/\s*title>#is';
 		preg_match( $pattern, $html, $match_title );
 
-		$title = ! empty( $match_title[1] ) && is_string( $match_title[1] ) ? trim( $match_title[1] ) : '';
-
-		if ( empty( $title ) ) {
+		if ( empty( $match_title[1] ) || ! is_string( $match_title[1] ) ) {
 			return '';
 		}
+
+		$title = trim( $match_title[1] );
 
 		return $this->prepare_metadata_for_output( $title );
 	}
@@ -311,18 +309,18 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		// Grab the icon's link element.
 		$pattern = '#<link\s[^>]*rel=(?:[\"\']??)\s*(?:icon|shortcut icon|icon shortcut)\s*(?:[\"\']??)[^>]*\/?>#isU';
 		preg_match( $pattern, $html, $element );
-		$element = ! empty( $element[0] ) && is_string( $element[0] ) ? trim( $element[0] ) : '';
-		if ( empty( $element ) ) {
+		if ( empty( $element[0] ) || ! is_string( $element[0] ) ) {
 			return '';
 		}
+		$element = trim( $element[0] );
 
 		// Get the icon's href value.
 		$pattern = '#href=([\"\']??)([^\" >]*?)\\1[^>]*#isU';
 		preg_match( $pattern, $element, $icon );
-		$icon = ! empty( $icon[2] ) && is_string( $icon[2] ) ? trim( $icon[2] ) : '';
-		if ( empty( $icon ) ) {
+		if ( empty( $icon[2] ) || ! is_string( $icon[2] ) ) {
 			return '';
 		}
+		$icon = trim( $icon[2] );
 
 		// If the icon is a data URL, return it.
 		$parsed_icon = parse_url( $icon );
@@ -613,7 +611,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 *     @type string[] 1 Content attribute's opening quotation mark.
 	 *     @type string[] 2 Content attribute's value for each meta element.
 	 * }
-	 * @param string $attr Attribute that identifies the element with the target metadata.
+	 * @param string $attr       Attribute that identifies the element with the target metadata.
 	 * @param string $attr_value The attribute's value that identifies the element with the target metadata.
 	 * @return string The metadata on success. Empty string if not found.
 	 */
