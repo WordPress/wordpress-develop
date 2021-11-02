@@ -338,8 +338,10 @@ function _build_template_result_from_post( $post ) {
  * @param array $query {
  *     Optional. Arguments to retrieve templates.
  *
- *     @type array  $slug__in List of slugs to include.
- *     @type int    $wp_id Post ID of customized template.
+ *     @type array  $slug__in  List of slugs to include.
+ *     @type int    $wp_id     Post ID of customized template.
+ *     @type string $area      A 'wp_template_part_area' taxonomy value to filter by (for wp_template_part template type only).
+ *     @type string $post_type Post type to get the templates for.
  * }
  * @param string $template_type Optional. The template type (post type). Default 'wp_template'.
  * @return WP_Block_Template[] Block template objects.
