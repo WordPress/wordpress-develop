@@ -1944,7 +1944,7 @@ class wpdb {
 
 		$message .= '<p>' . sprintf(
 			/* translators: %s: Database host. */
-			__( 'This means that we lost contact with the database server at %s. This could mean your host&#8217;s database server is down.' ),
+			__( 'This means that the contact with the database server at %s was lost. This could mean your host&#8217;s database server is down.' ),
 			'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
 		) . "</p>\n";
 
