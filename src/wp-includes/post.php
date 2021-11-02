@@ -1371,6 +1371,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *              arguments to register the post type in REST API.
  * @since 5.0.0 The `template` and `template_lock` arguments were added.
  * @since 5.3.0 The `supports` argument will now accept an array of arguments for a feature.
+ * @since 5.9.0 The `rest_namespace` argument was added.
  *
  * @global array $wp_post_types List of post types.
  *
@@ -1418,6 +1419,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type bool         $show_in_rest          Whether to include the post type in the REST API. Set this to true
  *                                               for the post type to be available in the block editor.
  *     @type string       $rest_base             To change the base URL of REST API route. Default is $post_type.
+ *     @type string       $rest_namespace        To change the namespace URL of REST API route. Default is wp/v2.
  *     @type string       $rest_controller_class REST API controller class name. Default is 'WP_REST_Posts_Controller'.
  *     @type int          $menu_position         The position in the menu order the post type should appear. To work,
  *                                               $show_in_menu must be true. Default null (at the bottom).

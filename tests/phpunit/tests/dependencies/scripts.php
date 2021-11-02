@@ -721,6 +721,16 @@ JS;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$ver       = get_bloginfo( 'version' );
 		$suffix    = wp_scripts_get_suffix();
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
@@ -746,8 +756,12 @@ JS;
 		wp_enqueue_script( 'test-example2', 'http://example2.com', array( 'wp-a11y' ), null );
 		wp_add_inline_script( 'test-example2', 'console.log("after");', 'after' );
 
-		$print_scripts  = get_echo( 'wp_print_scripts' );
-		$print_scripts .= get_echo( '_print_scripts' );
+		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
+		$this->expectOutputRegex( '`.`' );
+
+		wp_print_scripts();
+		_print_scripts();
+		$print_scripts = $this->getActualOutput();
 
 		/*
 		 * We've replaced wp-a11y.js with @wordpress/a11y package (see #45066),
@@ -776,6 +790,16 @@ JS;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$expected_tail  = "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'></script>\n";
 		$expected_tail .= "<script type='text/javascript' id='customize-dependency-js-after'>\n";
 		$expected_tail .= "tryCustomizeDependency()\n";
@@ -785,8 +809,12 @@ JS;
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
 		wp_add_inline_script( $handle, 'tryCustomizeDependency()' );
 
-		$print_scripts  = get_echo( 'wp_print_scripts' );
-		$print_scripts .= get_echo( '_print_scripts' );
+		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
+		$this->expectOutputRegex( '`.`' );
+
+		wp_print_scripts();
+		_print_scripts();
+		$print_scripts = $this->getActualOutput();
 
 		$tail = substr( $print_scripts, strrpos( $print_scripts, "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'>" ) );
 		$this->assertSame( $expected_tail, $tail );
