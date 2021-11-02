@@ -126,12 +126,12 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Retrieves the contents of the <title> tag from the HTML response.
+	 * Retrieves the contents of the `<title>` tag from the HTML response.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_REQUEST $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error The parsed details as a response object, or an error.
+	 * @return WP_REST_Response|WP_Error The parsed details as a response object. WP_Error if there are errors.
 	 */
 	public function parse_url_details( $request ) {
 		$url = untrailingslashit( $request['url'] );
@@ -181,10 +181,10 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 *
 		 * @since 5.9.0
 		 *
-		 * @param WP_REST_Response $response The response object.
-		 * @param string           $url      The requested URL.
-		 * @param WP_REST_Request  $request  Request object.
-		 * @param array            $remote_url_response HTTP response body from the remote URL.
+		 * @param WP_REST_Response $response            The response object.
+		 * @param string           $url                 The requested URL.
+		 * @param WP_REST_Request  $request             Request object.
+		 * @param string           $remote_url_response HTTP response body from the remote URL.
 		 */
 		return apply_filters( 'rest_prepare_url_details', $response, $url, $request, $remote_url_response );
 	}
@@ -194,7 +194,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return WP_Error|bool True if the request has access, or WP_Error object.
+	 * @return WP_Error|bool True if the request has permission, else WP_Error.
 	 */
 	public function permissions_check() {
 		if ( current_user_can( 'edit_posts' ) ) {
@@ -219,8 +219,9 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string $url The website url whose HTML we want to access.
-	 * @return string|WP_Error The HTTP response from the remote URL, or an error.
+	 * @param string $url The website url whose HTML to access.
+	 * @return string|WP_Error The HTTP response from the remote URL on success.
+	 *                         WP_Error if no response or no content.
 	 */
 	private function get_remote_url( $url ) {
 
@@ -247,8 +248,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 *
 		 * @since 5.9.0
 		 *
-		 * @param array $args Arguments used for the HTTP request
-		 * @param string $url The attempted URL.
+		 * @param array  $args Arguments used for the HTTP request.
+		 * @param string $url  The attempted URL.
 		 */
 		$args = apply_filters( 'rest_url_details_http_request_args', $args, $url );
 
@@ -274,7 +275,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param string $html The HTML from the remote website at URL.
-	 * @return string The title tag contents on success, or an empty string.
+	 * @return string The title tag contents on success. Empty string if not found.
 	 */
 	private function get_title( $html ) {
 		$pattern = '#<title[^>]*>(.*?)<\s*/\s*title>#is';
@@ -296,7 +297,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 *
 	 * @param string $html The HTML from the remote website at URL.
 	 * @param string $url  The target website URL.
-	 * @return string The icon URI on success, or an empty string.
+	 * @return string The icon URI on success. Empty string if not found.
 	 */
 	private function get_icon( $html, $url ) {
 		// Grab the icon's link element.
@@ -340,13 +341,13 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param array $meta_elements {
-	 *     A multi-dimensional indexed array on success, or empty array.
+	 *     A multi-dimensional indexed array on success, else empty array.
 	 *
 	 *     @type string[] 0 Meta elements with a content attribute.
 	 *     @type string[] 1 Content attribute's opening quotation mark.
 	 *     @type string[] 2 Content attribute's value for each meta element.
 	 * }
-	 * @return string The meta description contents on success, or an empty string.
+	 * @return string The meta description contents on success. Empty string if not found.
 	 */
 	private function get_description( $meta_elements ) {
 		// Bail out if there are no meta elements.
@@ -365,21 +366,21 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Parses the Open Graph Image from the provided HTML.
+	 * Parses the Open Graph (OG) Image from the provided HTML.
 	 *
 	 * See: https://ogp.me/.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param array  $meta_elements {
-	 *     A multi-dimensional indexed array on success, or empty array.
+	 *     A multi-dimensional indexed array on success, else empty array.
 	 *
 	 *     @type string[] 0 Meta elements with a content attribute.
 	 *     @type string[] 1 Content attribute's opening quotation mark.
 	 *     @type string[] 2 Content attribute's value for each meta element.
 	 * }
 	 * @param string $url The target website URL.
-	 * @return string The OG image on success, or empty string.
+	 * @return string The OG image on success. Empty string if not found.
 	 */
 	private function get_image( $meta_elements, $url ) {
 		$image = $this->get_metadata_from_meta_element( $meta_elements, 'property', '(?:og:image|og:image:url)' );
@@ -446,7 +447,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 *
 	 * @param string $key  The cache key under which to store the value.
 	 * @param string $data The data to be stored at the given cache key.
-	 * @return bool True when transient set. False if fails.
+	 * @return bool True when transient set. False if not set.
 	 */
 	private function set_cache( $key, $data = '' ) {
 		$ttl = HOUR_IN_SECONDS;
@@ -459,7 +460,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 *
 		 * @since 5.9.0
 		 *
-		 * @param int $ttl the time until cache expiration in seconds.
+		 * @param int $ttl The time until cache expiration in seconds.
 		 */
 		$cache_expiration = apply_filters( 'rest_url_details_cache_expiration', $ttl );
 
@@ -472,7 +473,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param string $html The string of HTML to parse.
-	 * @return string The `<head>..</head>` section on success, or original HTML.
+	 * @return string The `<head>..</head>` section on success. Given `$html` if not found.
 	 */
 	private function get_document_head( $html ) {
 		$head_html = $html;
@@ -510,7 +511,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 *
 	 * @param string $html The string of HTML to be parsed.
 	 * @return array {
-	 *     A multi-dimensional indexed array on success, or empty array.
+	 *     A multi-dimensional indexed array on success, else empty array.
 	 *
 	 *     @type string[] 0 Meta elements with a content attribute.
 	 *     @type string[] 1 Content attribute's opening quotation mark.
@@ -590,7 +591,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param array  $meta_elements {
-	 *     A multi-dimensional indexed array on success, or empty array.
+	 *     A multi-dimensional indexed array on success, else empty array.
 	 *
 	 *     @type string[] 0 Meta elements with a content attribute.
 	 *     @type string[] 1 Content attribute's opening quotation mark.
@@ -598,7 +599,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * }
 	 * @param string $attr Attribute that identifies the element with the target metadata.
 	 * @param string $attr_value The attribute's value that identifies the element with the target metadata.
-	 * @return string The metadata on success, or an empty string.
+	 * @return string The metadata on success. Empty string if not found.
 	 */
 	private function get_metadata_from_meta_element( $meta_elements, $attr, $attr_value ) {
 		// Bail out if there are no meta elements.
