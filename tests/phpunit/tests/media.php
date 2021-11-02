@@ -3316,6 +3316,32 @@ EOF;
 		$this->assertSame( $content_expected, $content_filtered );
 	}
 
+	/**
+	 * @ticket 53675
+	 */
+	public function test_wp_omit_loading_attr_threshold() {
+		$this->reset_omit_loading_attr_filter();
+
+		// Apply filter, ensure default value of 1.
+		$omit_threshold = wp_omit_loading_attr_threshold();
+		$this->assertSame( 1, $omit_threshold );
+
+		// Add a filter that changes the value to 3. However, the filter is not applied a subsequent time in a single
+		// page load by default, so the value is still 1.
+		add_filter(
+			'wp_omit_loading_attr_threshold',
+			function() {
+				return 3;
+			}
+		);
+		$omit_threshold = wp_omit_loading_attr_threshold();
+		$this->assertSame( 1, $omit_threshold );
+
+		// Only by enforcing a fresh check, the filter gets re-applied.
+		$omit_threshold = wp_omit_loading_attr_threshold( true );
+		$this->assertSame( 3, $omit_threshold );
+	}
+
 	private function reset_content_media_count() {
 		// Get current value without increasing.
 		$content_media_count = wp_increase_content_media_count( 0 );
