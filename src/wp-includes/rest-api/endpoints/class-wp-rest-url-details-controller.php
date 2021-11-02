@@ -162,6 +162,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		/**
 		 * Filters the URL data for the response.
 		 *
+		 * @since 5.9.0
+		 *
 		 * @param WP_REST_Response $response The response object.
 		 * @param string           $url      The requested URL.
 		 * @param WP_REST_Request  $request  Request object.
@@ -225,6 +227,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 * Filters the HTTP request args for URL data retrieval.
 		 *
 		 * Can be used to adjust response size limit and other WP_Http::request args.
+		 *
+		 * @since 5.9.0
 		 *
 		 * @param array $args Arguments used for the HTTP request
 		 * @param string $url The attempted URL.
@@ -435,6 +439,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 *
 		 * Can be used to adjust the time until expiration in seconds for the cache
 		 * of the data retrieved for the given URL.
+		 *
+		 * @since 5.9.0
 		 *
 		 * @param int $ttl the time until cache expiration in seconds.
 		 */
