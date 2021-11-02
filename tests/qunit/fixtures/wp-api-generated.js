@@ -15,7 +15,8 @@ mockedApiResponse.Schema = {
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
-        "wp-site-health/v1"
+        "wp-site-health/v1",
+        "wp-block-editor/v1"
     ],
     "authentication": [],
     "routes": {
@@ -7538,6 +7539,64 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/wp-block-editor/v1": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "default": "wp-block-editor/v1",
+                            "required": false
+                        },
+                        "context": {
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1"
+                    }
+                ]
+            }
+        },
+        "/wp-block-editor/v1/url-details": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "url": {
+                            "description": "The URL to process.",
+                            "type": "string",
+                            "format": "uri",
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1/url-details"
+                    }
+                ]
+            }
         }
     },
     "site_logo": false
@@ -8336,6 +8395,7 @@ mockedApiResponse.TypesCollection = {
             "post_tag"
         ],
         "rest_base": "posts",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8363,6 +8423,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "page",
         "taxonomies": [],
         "rest_base": "pages",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8390,6 +8451,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "attachment",
         "taxonomies": [],
         "rest_base": "media",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8417,6 +8479,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "wp_block",
         "taxonomies": [],
         "rest_base": "blocks",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8444,6 +8507,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "wp_template",
         "taxonomies": [],
         "rest_base": "templates",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8475,7 +8539,8 @@ mockedApiResponse.TypeModel = {
         "category",
         "post_tag"
     ],
-    "rest_base": "posts"
+    "rest_base": "posts",
+    "rest_namespace": "wp/v2"
 };
 
 mockedApiResponse.StatusesCollection = {
@@ -8583,6 +8648,7 @@ mockedApiResponse.TaxonomiesCollection = {
         ],
         "hierarchical": true,
         "rest_base": "categories",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8612,6 +8678,7 @@ mockedApiResponse.TaxonomiesCollection = {
         ],
         "hierarchical": false,
         "rest_base": "tags",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8642,7 +8709,8 @@ mockedApiResponse.TaxonomyModel = {
         "post"
     ],
     "hierarchical": true,
-    "rest_base": "categories"
+    "rest_base": "categories",
+    "rest_namespace": "wp/v2"
 };
 
 mockedApiResponse.CategoriesCollection = [
