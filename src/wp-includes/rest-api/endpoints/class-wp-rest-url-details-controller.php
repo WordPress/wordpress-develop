@@ -257,13 +257,21 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		if ( WP_Http::OK !== wp_remote_retrieve_response_code( $response ) ) {
 			// Not saving the error response to cache since the error might be temporary.
-			return new WP_Error( 'no_response', __( 'URL not found. Response returned a non-200 status code for this URL.' ), array( 'status' => WP_Http::NOT_FOUND ) );
+			return new WP_Error(
+				'no_response',
+				__( 'URL not found. Response returned a non-200 status code for this URL.' ),
+				array( 'status' => WP_Http::NOT_FOUND )
+			);
 		}
 
 		$remote_body = wp_remote_retrieve_body( $response );
 
 		if ( empty( $remote_body ) ) {
-			return new WP_Error( 'no_content', __( 'Unable to retrieve body from response at this URL.' ), array( 'status' => WP_Http::NOT_FOUND ) );
+			return new WP_Error(
+				'no_content',
+				__( 'Unable to retrieve body from response at this URL.' ),
+				array( 'status' => WP_Http::NOT_FOUND )
+			);
 		}
 
 		return $remote_body;
@@ -355,7 +363,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 			return '';
 		}
 
-		$description = $this->get_metadata_from_meta_element( $meta_elements, 'name', '(?:description|og:description)' );
+		$description = $this->get_metadata_from_meta_element(
+			$meta_elements,
+			'name',
+			'(?:description|og:description)'
+		);
 
 		// Bail out if description not found.
 		if ( '' === $description ) {
@@ -383,7 +395,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @return string The OG image on success. Empty string if not found.
 	 */
 	private function get_image( $meta_elements, $url ) {
-		$image = $this->get_metadata_from_meta_element( $meta_elements, 'property', '(?:og:image|og:image:url)' );
+		$image = $this->get_metadata_from_meta_element(
+			$meta_elements,
+			'property',
+			'(?:og:image|og:image:url)'
+		);
 
 		// Bail out if image not found.
 		if ( '' === $image ) {
