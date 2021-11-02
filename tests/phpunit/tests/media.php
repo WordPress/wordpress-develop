@@ -736,7 +736,8 @@ BLOB;
 			$ids1[]      = $attachment_id;
 			$ids1_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 			$ids[]       = $attachment_id;
-			$url         = $ids_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$url         = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[]  = $url;
 			$imgs[]      = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
 		}
@@ -774,9 +775,10 @@ BLOB;
 			);
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
-			$ids[]  = $attachment_id;
-			$url    = $ids_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
-			$imgs[] = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
 		}
 
@@ -815,9 +817,10 @@ BLOB;
 			);
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
-			$ids[]  = $attachment_id;
-			$url    = $ids_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
-			$imgs[] = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 		}
 
 		$ids1_joined  = join( "\n", array_slice( $ids, 0, 3 ) );
@@ -857,9 +860,10 @@ BLOB;
 			);
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
-			$ids[]  = $attachment_id;
-			$url    = $ids_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
-			$imgs[] = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
 		}
 
@@ -912,15 +916,16 @@ BLOB;
 			);
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
-			$ids[]  = $attachment_id;
-			$url    = $ids_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
-			$imgs[] = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
 		}
 
 		$ids1_joined = join( ',', array_slice( $ids, 0, 3 ) );
 		$ids2_joined = join( ',', array_slice( $ids, 3, 3 ) );
-		$blob = <<<BLOB
+		$blob        = <<<BLOB
 [gallery ids="$ids1_joined" type="type" foo="bar"]
 
 <!-- wp:gallery {"ids":[$ids2_joined],"columns":3,"imageCrop":false,"linkTo":"media"} -->
@@ -969,9 +974,10 @@ BLOB;
 			);
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
-			$ids[]  = $attachment_id;
-			$url    = $ids_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
-			$imgs[] = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
 		}
 
@@ -1011,9 +1017,10 @@ BLOB;
 			);
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
-			$ids[]  = $attachment_id;
-			$url    = $ids_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
-			$imgs[] = '<!-- wp:image {"id":' . $attachment_id . ',"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="' . $url . '" /></figure><!-- /wp:image -->';
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<!-- wp:image {"id":' . $attachment_id . ',"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="' . $url . '" /></figure><!-- /wp:image -->';
 
 		}
 
