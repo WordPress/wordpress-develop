@@ -702,7 +702,7 @@ BLOB;
 				'post_parent'    => 0,
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
-			),
+			)
 		);
 
 		$post_id = $this->factory->post->create(
