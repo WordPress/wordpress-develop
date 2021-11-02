@@ -8,18 +8,21 @@
 class Tests_wp_get_direct_update_https_url  extends WP_UnitTestCase {
 	function set_up() {
 		parent::set_up();
-		if ( ! defined( 'WP_DIRECT_UPDATE_HTTPS_URL' ) ) {
-			putenv( 'WP_DIRECT_UPDATE_HTTPS_URL=https://example.com/' );
-		}
+
 	}
 
 	function tear_down() {
 		parent::tear_down();
 		putenv( 'WP_DIRECT_UPDATE_HTTPS_URL=null' );
 	}
-
 	public function test_wp_get_direct_update_https_url() {
+		$this->assertEmpty( wp_get_direct_update_https_url() );
+	}
 
+	public function test_wp_get_direct_update_https_url_when_env_set() {
+		if ( ! defined( 'WP_DIRECT_UPDATE_HTTPS_URL' ) ) {
+			putenv( 'WP_DIRECT_UPDATE_HTTPS_URL=https://example.com/' );
+		}
 		$this->assertEquals( 'https://example.com/', wp_get_direct_update_https_url() );
 	}
 
