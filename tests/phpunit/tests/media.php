@@ -3207,6 +3207,7 @@ EOF;
 
 		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3248,6 +3249,7 @@ EOF;
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
 		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		// Use the filter to alter the threshold for not lazy-loading to the first three elements.
 		add_filter(
@@ -3300,6 +3302,7 @@ EOF;
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
 		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3319,6 +3322,17 @@ EOF;
 
 		// Decrease it by its current value to "reset" it back to 0.
 		wp_increase_content_media_count( - $content_media_count );
+	}
+
+	private function reset_omit_loading_attr_filter() {
+		// Add filter to "reset" omit threshold back to null (unset).
+		add_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
+
+		// Force filter application to re-run.
+		wp_omit_loading_attr_threshold( true );
+
+		// Clean up the above filter.
+		remove_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
 	}
 }
 

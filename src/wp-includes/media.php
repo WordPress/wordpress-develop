@@ -5214,8 +5214,6 @@ function wp_get_webp_info( $filename ) {
  *                     that the `loading` attribute should be skipped.
  */
 function wp_get_loading_attr_default( $context ) {
-	static $omit_threshold;
-
 	// Only elements with 'the_content' or 'the_post_thumbnail' context have special handling.
 	if ( 'the_content' !== $context && 'the_post_thumbnail' !== $context ) {
 		return 'lazy';
@@ -5226,8 +5224,35 @@ function wp_get_loading_attr_default( $context ) {
 		return 'lazy';
 	}
 
+	// Increase the counter since this is a main query content element.
+	$content_media_count = wp_increase_content_media_count();
+
+	// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.
+	if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
+		return false;
+	}
+
+	// For elements after the threshold, lazy-load them as usual.
+	return 'lazy';
+}
+
+/**
+ * Gets the threshold for how many of the first content media elements to not lazy-load.
+ *
+ * This function runs the {@see 'wp_omit_loading_attr_threshold'} filter, which uses a default threshold value of 1.
+ * The filter is only run once per page load, unless the `$force` parameter is used.
+ *
+ * @since 5.9.0
+ *
+ * @param bool $force Optional. If set to true, the filter will be (re-)applied even if it already has been before.
+ *                    Default false.
+ * @return int The number of content media elements to not lazy-load.
+ */
+function wp_omit_loading_attr_threshold( $force = false ) {
+	static $omit_threshold;
+
 	// This function may be called multiple times. Run the filter only once per page load.
-	if ( ! isset( $omit_threshold ) ) {
+	if ( ! isset( $omit_threshold ) || $force ) {
 		/**
 		 * Filters the threshold for how many of the first content media elements to not lazy-load.
 		 *
@@ -5241,16 +5266,7 @@ function wp_get_loading_attr_default( $context ) {
 		$omit_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 1 );
 	}
 
-	// Increase the counter since this is a main query content element.
-	$content_media_count = wp_increase_content_media_count();
-
-	// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.
-	if ( $content_media_count <= $omit_threshold ) {
-		return false;
-	}
-
-	// For elements after the threshold, lazy-load them as usual.
-	return 'lazy';
+	return $omit_threshold;
 }
 
 /**
@@ -5263,9 +5279,9 @@ function wp_get_loading_attr_default( $context ) {
  * @return int The latest content media count, after the increase.
  */
 function wp_increase_content_media_count( $amount = 1 ) {
-	static $wp_content_media_count = 0;
+	static $content_media_count = 0;
 
-	$wp_content_media_count += $amount;
+	$content_media_count += $amount;
 
-	return $wp_content_media_count;
+	return $content_media_count;
 }
