@@ -85,7 +85,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	 *
 	 * @param string $stylestyle_handle Handle for the registered stylesheet.
 	 */
-	public function test_generate_and_enqueue_editor_styles( $stylestyle_handle ) {
+	public function test_generate_and_enqueue_editor_styles( $stylesheet_handle ) {
 		/*
 		 * Set the stylesheet_handle property.
 		 * This is set in WP_Webfonts_Controller::init(); however, init is not part
