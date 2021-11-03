@@ -181,7 +181,7 @@ class WP_Webfonts_Controller {
 	 */
 	public function get_resource_hints( $urls, $relation_type ) {
 		$providers = $this->get_providers()->get_all_registered();
-		foreach ( $providers as $provider_id => $provider ) {
+		foreach ( $providers as $provider ) {
 			$hints = $provider->get_resource_hints();
 			foreach ( $hints as $relation => $relation_hints ) {
 				if ( $relation !== $relation_type ) {
