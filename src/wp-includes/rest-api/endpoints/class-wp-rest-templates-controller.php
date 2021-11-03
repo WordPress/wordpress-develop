@@ -156,6 +156,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( isset( $request['area'] ) ) {
 			$query['area'] = $request['area'];
 		}
+		if ( isset( $request['post_type'] ) ) {
+			$query['post_type'] = $request['post_type'];
+		}
 
 		$templates = array();
 		foreach ( get_block_templates( $query, $this->post_type ) as $template ) {
@@ -187,7 +190,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_item( $request ) {
-		$template = get_block_template( $request['id'], $this->post_type );
+		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
+			$template = get_block_file_template( $request['id'], $this->post_type );
+		} else {
+			$template = get_block_template( $request['id'], $this->post_type );
+		}
 
 		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
@@ -220,6 +227,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		$template = get_block_template( $request['id'], $this->post_type );
 		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
+		}
+
+		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
+			wp_delete_post( $template->wp_id, true );
+			return $this->prepare_item_for_response( get_block_file_template( $request['id'], $this->post_type ), $request );
 		}
 
 		$changes = $this->prepare_item_for_database( $request );
@@ -395,6 +407,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_excerpt = $template->description;
 		}
 
+		if ( 'wp_template_part' === $this->post_type ) {
+			if ( isset( $request['area'] ) ) {
+				$changes->tax_input['wp_template_part_area'] = filter_template_part_area( $request['area'] );
+			} elseif ( null !== $template && 'custom' !== $template->source && $template->area ) {
+				$changes->tax_input['wp_template_part_area'] = filter_template_part_area( $template->area );
+			} elseif ( ! $template->area ) {
+				$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
+			}
+		}
+
 		return $changes;
 	}
 
@@ -507,10 +529,18 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		return array(
-			'context' => $this->get_context_param(),
-			'wp_id'   => array(
+			'context'   => $this->get_context_param(),
+			'wp_id'     => array(
 				'description' => __( 'Limit to the specified post id.' ),
 				'type'        => 'integer',
+			),
+			'area'      => array(
+				'description' => __( 'Limit to the specified template part area.' ),
+				'type'        => 'string',
+			),
+			'post_type' => array(
+				'description' => __( 'Post type to get the templates for.' ),
+				'type'        => 'string',
 			),
 		);
 	}
@@ -595,6 +625,14 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 			),
 		);
+
+		if ( 'wp_template_part' === $this->post_type ) {
+			$schema['properties']['area'] = array(
+				'description' => __( 'Where the template part is intended for use (header, footer, etc.)' ),
+				'type'        => 'string',
+				'context'     => array( 'embed', 'view', 'edit' ),
+			);
+		}
 
 		$this->schema = $schema;
 
