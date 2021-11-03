@@ -1185,7 +1185,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @param array $starter_content Starter content. Defaults to `get_theme_starter_content()`.
 	 */
-	function import_theme_starter_content( $starter_content = array() ) {
+	public function import_theme_starter_content( $starter_content = array() ) {
 		if ( empty( $starter_content ) ) {
 			$starter_content = get_theme_starter_content();
 		}
@@ -2622,7 +2622,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @return array|WP_Error Returns array on success and WP_Error with array data on error.
 	 */
-	function save_changeset_post( $args = array() ) {
+	public function save_changeset_post( $args = array() ) {
 
 		$args = array_merge(
 			array(
@@ -4688,7 +4688,7 @@ final class WP_Customize_Manager {
 
 			/*
 			 * If the return URL is a page added by a theme to the Appearance menu via add_submenu_page(),
-			 * verify that belongs to the active theme, otherwise fall back to the Themes screen.
+			 * verify that it belongs to the active theme, otherwise fall back to the Themes screen.
 			 */
 			if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
 				$return_url = admin_url( 'themes.php' );

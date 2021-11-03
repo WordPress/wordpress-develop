@@ -19,8 +19,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 *
 	 * @see WP_UnitTestCase::setup()
 	 */
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		global $wp_customize;
@@ -770,7 +770,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		if ( $post_types ) {
 			foreach ( $post_types as $type ) {
 				$this->assertStringContainsString( 'available-menu-items-post_type-' . esc_attr( $type->name ), $template );
-				$this->assertRegExp( '#<h4 class="accordion-section-title".*>\s*' . esc_html( $type->labels->name ) . '#', $template );
+				$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*' . esc_html( $type->labels->name ) . '#', $template );
 				$this->assertStringContainsString( 'data-type="post_type"', $template );
 				$this->assertStringContainsString( 'data-object="' . esc_attr( $type->name ) . '"', $template );
 				$this->assertStringContainsString( 'data-type_label="' . esc_attr( $type->labels->singular_name ) . '"', $template );
@@ -781,7 +781,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		if ( $taxonomies ) {
 			foreach ( $taxonomies as $tax ) {
 				$this->assertStringContainsString( 'available-menu-items-taxonomy-' . esc_attr( $tax->name ), $template );
-				$this->assertRegExp( '#<h4 class="accordion-section-title".*>\s*' . esc_html( $tax->labels->name ) . '#', $template );
+				$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*' . esc_html( $tax->labels->name ) . '#', $template );
 				$this->assertStringContainsString( 'data-type="taxonomy"', $template );
 				$this->assertStringContainsString( 'data-object="' . esc_attr( $tax->name ) . '"', $template );
 				$this->assertStringContainsString( 'data-type_label="' . esc_attr( $tax->labels->singular_name ) . '"', $template );
@@ -789,7 +789,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		}
 
 		$this->assertStringContainsString( 'available-menu-items-custom_type', $template );
-		$this->assertRegExp( '#<h4 class="accordion-section-title".*>\s*Custom#', $template );
+		$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*Custom#', $template );
 		$this->assertStringContainsString( 'data-type="custom_type"', $template );
 		$this->assertStringContainsString( 'data-object="custom_object"', $template );
 		$this->assertStringContainsString( 'data-type_label="Custom Type"', $template );
@@ -1013,7 +1013,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertSame( $save_action_count + 1, did_action( 'customize_save_nav_menus_created_posts' ) );
 		foreach ( $drafted_post_ids as $post_id ) {
 			$this->assertSame( 'publish', get_post_status( $post_id ) );
-			$this->assertRegExp( '/^auto-draft-\d+$/', get_post( $post_id )->post_name );
+			$this->assertMatchesRegularExpression( '/^auto-draft-\d+$/', get_post( $post_id )->post_name );
 			$this->assertEmpty( get_post_meta( $post_id, '_customize_draft_post_name', true ) );
 		}
 
@@ -1144,7 +1144,12 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertStringContainsString( ' data-customize-partial-type="nav_menu_instance"', $result );
 		$this->assertTrue( (bool) preg_match( '/data-customize-partial-placement-context="(.+?)"/', $result, $matches ) );
 		$context = json_decode( html_entity_decode( $matches[1] ), true );
-		$this->assertSame( $original_args, wp_array_slice_assoc( $context, array_keys( $original_args ) ) ); // Because assertArraySubset is not available in PHP 5.2.
+
+		foreach ( $original_args as $key => $value ) {
+			$this->assertArrayHasKey( $key, $context );
+			$this->assertSame( $value, $context[ $key ] );
+		}
+
 		$this->assertTrue( $context['can_partial_refresh'] );
 	}
 

@@ -129,8 +129,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertRegExp( "|^<ul class='wp-tag-cloud' role='list'>|", $found );
-		$this->assertRegExp( "|</ul>\n|", $found );
+		$this->assertMatchesRegularExpression( "|^<ul class='wp-tag-cloud' role='list'>|", $found );
+		$this->assertMatchesRegularExpression( "|</ul>\n|", $found );
 		$this->assertStringContainsString( '>' . $tags[0]->name . '<', $found );
 	}
 
@@ -184,8 +184,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertRegExp( "|^<ul class='wp-tag-cloud' role='list'>|", $found );
-		$this->assertRegExp( "|</ul>\n|", $found );
+		$this->assertMatchesRegularExpression( "|^<ul class='wp-tag-cloud' role='list'>|", $found );
+		$this->assertMatchesRegularExpression( "|</ul>\n|", $found );
 
 		foreach ( $tags as $tag ) {
 			$this->assertStringContainsString( '>' . $tag->name . '<', $found );
@@ -263,6 +263,16 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	 * @ticket 5172
 	 */
 	public function test_should_include_tag_link_position_class() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		register_taxonomy( 'wptests_tax', 'post' );
 		$term_ids = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
 

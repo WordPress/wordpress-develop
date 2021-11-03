@@ -12,16 +12,16 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 
 	public $attachment_id = 0;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->wp_site_icon = new WP_Site_Icon();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$this->_remove_custom_logo();
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function _remove_custom_logo() {

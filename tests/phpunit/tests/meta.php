@@ -6,8 +6,8 @@
 class Tests_Meta extends WP_UnitTestCase {
 	protected $updated_mids = array();
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->author         = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
 		$this->meta_id        = add_metadata( 'user', $this->author->ID, 'meta_key', 'meta_value' );
 		$this->delete_meta_id = add_metadata( 'user', $this->author->ID, 'delete_meta_key', 'delete_meta_value' );

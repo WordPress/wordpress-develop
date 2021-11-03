@@ -21,12 +21,12 @@ class Tests_Widgets extends WP_UnitTestCase {
 		parent::clean_up_global_scope();
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $wp_customize;
 
 		$wp_customize = null;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -798,7 +798,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		unregister_widget( 'WP_Widget_Text' );
 
-		$this->assertRegExp( '/<span class="special widget_text">/', $actual );
+		$this->assertMatchesRegularExpression( '/<span class="special widget_text">/', $actual );
 
 	}
 

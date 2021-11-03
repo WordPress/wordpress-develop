@@ -62,8 +62,8 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		self::$tag_ids         = $factory->term->create_many( 5 );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		self::register_taxonomies();
 	}
 

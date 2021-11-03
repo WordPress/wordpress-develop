@@ -19,8 +19,8 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->theme_root     = DIR_TESTDATA . '/themedir1';
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
@@ -38,7 +38,7 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		_get_path_to_translation( null, true );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -46,7 +46,7 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		unset( $GLOBALS['l10n_unloaded'] );
 		_get_path_to_translation( null, true );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

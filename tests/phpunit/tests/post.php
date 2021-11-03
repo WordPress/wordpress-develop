@@ -30,8 +30,8 @@ class Tests_Post extends WP_UnitTestCase {
 		remove_role( 'grammarian' );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		wp_set_current_user( self::$editor_id );
 		_set_cron_array( array() );
@@ -128,7 +128,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
+			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -164,7 +164,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -182,7 +182,7 @@ class Tests_Post extends WP_UnitTestCase {
 		// Now save it again with a date further in the future.
 
 		$post['ID']            = $id;
-		$post['post_date']     = strftime( '%Y-%m-%d %H:%M:%S', $future_date_2 );
+		$post['post_date']     = date_format( date_create( "@{$future_date_2}" ), 'Y-m-d H:i:s' );
 		$post['post_date_gmt'] = null;
 		wp_update_post( $post );
 
@@ -209,7 +209,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -227,7 +227,7 @@ class Tests_Post extends WP_UnitTestCase {
 		// Now save it again with a date further in the future.
 
 		$post['ID']            = $id;
-		$post['post_date']     = strftime( '%Y-%m-%d %H:%M:%S', $future_date_2 );
+		$post['post_date']     = date_format( date_create( "@{$future_date_2}" ), 'Y-m-d H:i:s' );
 		$post['post_date_gmt'] = null;
 		wp_update_post( $post );
 
@@ -251,7 +251,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'draft',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
+			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -286,7 +286,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -330,7 +330,7 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
-				'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+				'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 			);
 
 			// Insert a post and make sure the ID is OK.
@@ -372,7 +372,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'private',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
+			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -429,7 +429,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
+			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.
@@ -535,7 +535,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
+			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
 		// Insert a post and make sure the ID is OK.

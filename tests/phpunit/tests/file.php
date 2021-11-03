@@ -5,8 +5,8 @@
  */
 class Tests_File extends WP_UnitTestCase {
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->dir = untrailingslashit( get_temp_dir() );
 

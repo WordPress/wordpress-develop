@@ -8,20 +8,7 @@ if ( is_multisite() ) :
 	 * @ticket 19879
 	 * @group multisite
 	 */
-	class Tests_Multisite_Dirsize_Cache extends WP_UnitTestCase {
-		protected $suppress = false;
-
-		function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tearDown() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
-		}
+	class Tests_Multisite_CleanDirsizeCache extends WP_UnitTestCase {
 
 		/**
 		 * Test whether dirsize_cache values are used correctly with a more complex dirsize cache mock.

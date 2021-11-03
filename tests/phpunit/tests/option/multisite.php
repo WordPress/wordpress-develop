@@ -10,19 +10,6 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_Option extends WP_UnitTestCase {
-		protected $suppress = false;
-
-		function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tearDown() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
-		}
 
 		function test_from_same_site() {
 			$key    = __FUNCTION__ . '_1';

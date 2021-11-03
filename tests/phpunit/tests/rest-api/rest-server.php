@@ -10,8 +10,8 @@
  * @group restapi
  */
 class Tests_REST_Server extends WP_Test_REST_TestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Reset REST server to ensure only our routes are registered.
 		$GLOBALS['wp_rest_server'] = null;
@@ -20,12 +20,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		// Remove our temporary spy server.
 		$GLOBALS['wp_rest_server'] = null;
 		unset( $_REQUEST['_wpnonce'] );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function test_envelope() {
@@ -1392,7 +1392,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function () {
+				'callback'            => static function () {
 					return new WP_REST_Response();
 				},
 				'permission_callback' => '__return_true',
@@ -1414,7 +1414,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function () {
+				'callback'            => static function () {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1505,7 +1505,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function() {
+				'callback'            => static function() {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1516,7 +1516,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function() {
+				'callback'            => static function() {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1571,7 +1571,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 50244
-	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_callbacks_are_not_executed_if_request_validation_fails() {
 		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
@@ -1929,7 +1928,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test/(?P<id>[\d+])',
 			array(
 				'methods'             => array( 'POST', 'DELETE' ),
-				'callback'            => function ( WP_REST_Request $request ) {
+				'callback'            => static function ( WP_REST_Request $request ) {
 					return new WP_REST_Response( 'test' );
 				},
 				'permission_callback' => '__return_true',
@@ -2021,6 +2020,28 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$index = rest_do_request( '/' );
 		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
+	}
+
+	/**
+	 * @ticket 53056
+	 */
+	public function test_json_encode_error_results_in_500_status_code() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => function() {
+						return new \WP_REST_Response( INF );
+					},
+					'permission_callback' => '__return_true',
+					'args'                => array(),
+				),
+			)
+		);
+		rest_get_server()->serve_request( '/test-ns/v1/test' );
+		$this->assertSame( 500, rest_get_server()->status );
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {

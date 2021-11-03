@@ -18,7 +18,7 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 						'role'       => 'administrator',
 					)
 				),
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 		self::$editor_id = $factory->user->create(

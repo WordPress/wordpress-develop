@@ -53,8 +53,8 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_post_type( 'wptests_pt' );
 	}
 

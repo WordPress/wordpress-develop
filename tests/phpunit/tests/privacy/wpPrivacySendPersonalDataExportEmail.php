@@ -57,8 +57,8 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @since 4.9.6
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
@@ -67,10 +67,10 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @since 4.9.6
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		reset_phpmailer_instance();
 		restore_previous_locale();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

@@ -116,7 +116,7 @@ function register_block_script_handle( $metadata, $field_name ) {
 		return false;
 	}
 
-	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $script_dependencies ) ) {
+	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $script_dependencies, true ) ) {
 		wp_set_script_translations( $script_handle, $metadata['textdomain'] );
 	}
 
@@ -188,10 +188,28 @@ function register_block_style_handle( $metadata, $field_name ) {
 }
 
 /**
+ * Gets i18n schema for block's metadata read from `block.json` file.
+ *
+ * @since 5.9.0
+ *
+ * @return array The schema for block's metadata.
+ */
+function get_block_metadata_i18n_schema() {
+	static $i18n_block_schema;
+
+	if ( ! isset( $i18n_block_schema ) ) {
+		$i18n_block_schema = wp_json_file_decode( __DIR__ . '/block-i18n.json' );
+	}
+
+	return $i18n_block_schema;
+}
+
+/**
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
- * @since 5.9.0 Added support for the `viewScript` field.
+ * @since 5.7.0 Added support for `textdomain` field and i18n handling for all translatable fields.
+ * @since 5.9.0 Added support for `variations` and `viewScript` fields.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -209,7 +227,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		return false;
 	}
 
-	$metadata = json_decode( file_get_contents( $metadata_file ), true );
+	$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
 		return false;
 	}
@@ -238,6 +256,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	$settings          = array();
 	$property_mappings = array(
+		'apiVersion'      => 'api_version',
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
@@ -249,53 +268,17 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'usesContext'     => 'uses_context',
 		'supports'        => 'supports',
 		'styles'          => 'styles',
+		'variations'      => 'variations',
 		'example'         => 'example',
-		'apiVersion'      => 'api_version',
 	);
+	$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
+	$i18n_schema       = get_block_metadata_i18n_schema();
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
-			$value = $metadata[ $key ];
-			if ( empty( $metadata['textdomain'] ) ) {
-				$settings[ $mapped_key ] = $value;
-				continue;
-			}
-			$textdomain = $metadata['textdomain'];
-			switch ( $key ) {
-				case 'title':
-				case 'description':
-					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain
-					$settings[ $mapped_key ] = translate_with_gettext_context( $value, sprintf( 'block %s', $key ), $textdomain );
-					break;
-				case 'keywords':
-					$settings[ $mapped_key ] = array();
-					if ( ! is_array( $value ) ) {
-						continue 2;
-					}
-
-					foreach ( $value as $keyword ) {
-						// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-						$settings[ $mapped_key ][] = translate_with_gettext_context( $keyword, 'block keyword', $textdomain );
-					}
-
-					break;
-				case 'styles':
-					$settings[ $mapped_key ] = array();
-					if ( ! is_array( $value ) ) {
-						continue 2;
-					}
-
-					foreach ( $value as $style ) {
-						if ( ! empty( $style['label'] ) ) {
-							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-							$style['label'] = translate_with_gettext_context( $style['label'], 'block style label', $textdomain );
-						}
-						$settings[ $mapped_key ][] = $style;
-					}
-
-					break;
-				default:
-					$settings[ $mapped_key ] = $value;
+			$settings[ $mapped_key ] = $metadata[ $key ];
+			if ( $textdomain && isset( $i18n_schema->$key ) ) {
+				$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
 			}
 		}
 	}
@@ -505,13 +488,17 @@ function get_dynamic_block_names() {
  * substitution for characters which might otherwise interfere with embedding
  * the result in an HTML comment.
  *
+ * This function must produce output that remains in sync with the output of
+ * the serializeAttributes JavaScript function in the block editor in order
+ * to ensure consistent operation between PHP and JavaScript.
+ *
  * @since 5.3.1
  *
  * @param array $block_attributes Attributes object.
  * @return string Serialized attributes.
  */
 function serialize_block_attributes( $block_attributes ) {
-	$encoded_attributes = json_encode( $block_attributes );
+	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	$encoded_attributes = preg_replace( '/--/', '\\u002d\\u002d', $encoded_attributes );
 	$encoded_attributes = preg_replace( '/</', '\\u003c', $encoded_attributes );
 	$encoded_attributes = preg_replace( '/>/', '\\u003e', $encoded_attributes );
@@ -826,16 +813,19 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  */
 function render_block( $parsed_block ) {
 	global $post;
+	$parent_block = null;
 
 	/**
 	 * Allows render_block() to be short-circuited, by returning a non-null value.
 	 *
 	 * @since 5.1.0
+	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param string|null $pre_render   The pre-rendered content. Default null.
-	 * @param array       $parsed_block The block being rendered.
+	 * @param string|null   $pre_render   The pre-rendered content. Default null.
+	 * @param array         $parsed_block The block being rendered.
+	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
-	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block );
+	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block, $parent_block );
 	if ( ! is_null( $pre_render ) ) {
 		return $pre_render;
 	}
@@ -846,11 +836,13 @@ function render_block( $parsed_block ) {
 	 * Filters the block being rendered in render_block(), before it's processed.
 	 *
 	 * @since 5.1.0
+	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param array $parsed_block The block being rendered.
-	 * @param array $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+	 * @param array         $parsed_block The block being rendered.
+	 * @param array         $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
-	$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block );
+	$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block, $parent_block );
 
 	$context = array();
 
@@ -870,11 +862,13 @@ function render_block( $parsed_block ) {
 	 * Filters the default context provided to a rendered block.
 	 *
 	 * @since 5.5.0
+	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param array $context      Default context.
-	 * @param array $parsed_block Block being rendered, filtered by `render_block_data`.
+	 * @param array         $context      Default context.
+	 * @param array         $parsed_block Block being rendered, filtered by `render_block_data`.
+	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
-	$context = apply_filters( 'render_block_context', $context, $parsed_block );
+	$context = apply_filters( 'render_block_context', $context, $parsed_block, $parent_block );
 
 	$block = new WP_Block( $parsed_block, $context );
 

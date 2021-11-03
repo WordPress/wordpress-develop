@@ -4,7 +4,7 @@
  * @group admin
  * @group adminScreen
  */
-class Tests_Admin_includesScreen extends WP_UnitTestCase {
+class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 	public $core_screens = array(
 		'index.php'                            => array(
 			'base'            => 'dashboard',
@@ -155,9 +155,9 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		),
 	);
 
-	function tearDown() {
+	function tear_down() {
 		unset( $GLOBALS['wp_taxonomies']['old-or-new'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_set_current_screen_with_hook_suffix() {

@@ -62,8 +62,8 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 	/**
 	 * Set up prior to each test.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Clean up variable before each test.
 		self::$last_posts_request = '';

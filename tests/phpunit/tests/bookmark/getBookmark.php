@@ -33,9 +33,9 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * Reset globals after each test.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		unset( $GLOBALS['link'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

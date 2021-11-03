@@ -12,8 +12,8 @@
  */
 class Tests_Robots extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		remove_all_filters( 'wp_robots' );
 	}
@@ -43,7 +43,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	public function test_wp_robots_parses_directives_correctly() {
 		add_filter(
 			'wp_robots',
-			function( array $robots ) {
+			static function( array $robots ) {
 				// Directives that should have values must use strings.
 				$robots['directive-with-value']         = 'yes';
 				$robots['directive-with-numeric-value'] = '1';

@@ -34,8 +34,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	/**
 	 * Set up the test fixture.
 	 */
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		// Define wp_doing_ajax so that wp_die() will be used instead of die().
 		add_filter( 'wp_doing_ajax', '__return_true' );
@@ -509,11 +509,11 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	/**
 	 * Tear down.
 	 */
-	function tearDown() {
+	function tear_down() {
 		$this->expected_partial_ids = null;
 		$this->wp_customize         = null;
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 }

@@ -136,8 +136,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		wp_set_current_user( self::$contributor_id );
 		switch_theme( 'rest-api' );

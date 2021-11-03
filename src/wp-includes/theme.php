@@ -997,15 +997,15 @@ function get_theme_mods() {
 /**
  * Retrieves theme modification value for the current theme.
  *
- * If the modification name does not exist, then the $default will be passed
- * through {@link https://www.php.net/sprintf sprintf()} PHP function with
- * the template directory URI as the first string and the stylesheet directory URI
- * as the second string.
+ * If the modification name does not exist and `$default` is a string, then the
+ * default will be passed through the {@link https://www.php.net/sprintf sprintf()}
+ * PHP function with the template directory URI as the first value and the
+ * stylesheet directory URI as the second value.
  *
  * @since 2.1.0
  *
- * @param string       $name    Theme modification name.
- * @param string|false $default Optional. Theme modification default value. Default false.
+ * @param string $name    Theme modification name.
+ * @param mixed  $default Optional. Theme modification default value. Default false.
  * @return mixed Theme modification value.
  */
 function get_theme_mod( $name, $default = false ) {
@@ -1021,7 +1021,7 @@ function get_theme_mod( $name, $default = false ) {
 		 *
 		 * @since 2.2.0
 		 *
-		 * @param string $current_mod The value of the current theme modification.
+		 * @param mixed $current_mod The value of the current theme modification.
 		 */
 		return apply_filters( "theme_mod_{$name}", $mods[ $name ] );
 	}
@@ -1062,8 +1062,8 @@ function set_theme_mod( $name, $value ) {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param string $value     The new value of the theme modification.
-	 * @param string $old_value The current value of the theme modification.
+	 * @param mixed $value     The new value of the theme modification.
+	 * @param mixed $old_value The current value of the theme modification.
 	 */
 	$mods[ $name ] = apply_filters( "pre_set_theme_mod_{$name}", $value, $old_value );
 
@@ -1233,6 +1233,16 @@ function get_header_image_tag( $attr = array() ) {
 			}
 		}
 	}
+
+	/*
+	 * Filters the list of header image attributes.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array  $attr   Array of the attributes for the image tag.
+	 * @param object $header The custom header object returned by 'get_custom_header()'.
+	 */
+	$attr = apply_filters( 'get_header_image_tag_attributes', $attr, $header );
 
 	$attr = array_map( 'esc_attr', $attr );
 	$html = '<img';
@@ -3073,7 +3083,7 @@ function require_if_theme_supports( $feature, $include ) {
  *     @type string     $type         The type of data associated with this feature.
  *                                    Valid values are 'string', 'boolean', 'integer',
  *                                    'number', 'array', and 'object'. Defaults to 'boolean'.
- *     @type boolean    $variadic     Does this feature utilize the variadic support
+ *     @type bool       $variadic     Does this feature utilize the variadic support
  *                                    of add_theme_support(), or are all arguments specified
  *                                    as the second parameter. Must be used with the "array" type.
  *     @type string     $description  A short description of the feature. Included in

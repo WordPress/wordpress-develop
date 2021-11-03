@@ -8,8 +8,8 @@
 class Tests_Rewrite extends WP_UnitTestCase {
 	private $home_url;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
@@ -17,12 +17,12 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->home_url = get_option( 'home' );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $wp_rewrite;
 		$wp_rewrite->init();
 
 		update_option( 'home', $this->home_url );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

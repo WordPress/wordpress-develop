@@ -6,8 +6,8 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	protected $shortcodes = array( 'test-shortcode-tag', 'footag', 'bartag', 'baztag', 'dumptag', 'hyphen', 'hyphen-foo', 'hyphen-foo-bar', 'url', 'img' );
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		foreach ( $this->shortcodes as $shortcode ) {
 			add_shortcode( $shortcode, array( $this, '_shortcode_' . str_replace( '-', '_', $shortcode ) ) );
@@ -19,12 +19,12 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	}
 
-	function tearDown() {
+	function tear_down() {
 		global $shortcode_tags;
 		foreach ( $this->shortcodes as $shortcode ) {
 			unset( $shortcode_tags[ $shortcode ] );
 		}
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function _shortcode_test_shortcode_tag( $atts, $content = null, $tagname = null ) {

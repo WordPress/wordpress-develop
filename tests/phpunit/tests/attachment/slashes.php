@@ -12,8 +12,8 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 		self::$author_id = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		wp_set_current_user( self::$author_id );
 

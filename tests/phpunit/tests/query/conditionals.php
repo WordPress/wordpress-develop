@@ -14,8 +14,8 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	protected $page_ids;
 	protected $post_ids;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		update_option( 'comments_per_page', 5 );
 		update_option( 'posts_per_page', 5 );

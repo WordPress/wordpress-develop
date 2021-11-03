@@ -49,8 +49,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	/**
 	 * Set up the test fixture.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		global $wp_customize;

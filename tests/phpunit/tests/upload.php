@@ -7,8 +7,8 @@ class Tests_Upload extends WP_UnitTestCase {
 
 	public $siteurl;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->_reset_options();
 	}
 
@@ -22,7 +22,7 @@ class Tests_Upload extends WP_UnitTestCase {
 	function test_upload_dir_default() {
 		// wp_upload_dir() with default parameters.
 		$info   = wp_upload_dir();
-		$subdir = gmstrftime( '/%Y/%m' );
+		$subdir = date_format( date_create( 'now' ), '/Y/m' );
 
 		$this->assertSame( get_option( 'siteurl' ) . '/wp-content/uploads' . $subdir, $info['url'] );
 		$this->assertSame( ABSPATH . 'wp-content/uploads' . $subdir, $info['path'] );
@@ -34,7 +34,7 @@ class Tests_Upload extends WP_UnitTestCase {
 		// wp_upload_dir() with a relative upload path that is not 'wp-content/uploads'.
 		update_option( 'upload_path', 'foo/bar' );
 		$info   = _wp_upload_dir();
-		$subdir = gmstrftime( '/%Y/%m' );
+		$subdir = date_format( date_create( 'now' ), '/Y/m' );
 
 		$this->assertSame( get_option( 'siteurl' ) . '/foo/bar' . $subdir, $info['url'] );
 		$this->assertSame( ABSPATH . 'foo/bar' . $subdir, $info['path'] );
@@ -57,7 +57,7 @@ class Tests_Upload extends WP_UnitTestCase {
 		// Use `_wp_upload_dir()` directly to bypass caching and work with the changed options.
 		// It doesn't create the /year/month directories.
 		$info   = _wp_upload_dir();
-		$subdir = gmstrftime( '/%Y/%m' );
+		$subdir = date_format( date_create( 'now' ), '/Y/m' );
 
 		$this->assertSame( '/baz' . $subdir, $info['url'] );
 		$this->assertSame( $path . $subdir, $info['path'] );
@@ -83,7 +83,7 @@ class Tests_Upload extends WP_UnitTestCase {
 		// Use `_wp_upload_dir()` directly to bypass caching and work with the changed options.
 		// It doesn't create the /year/month directories.
 		$info   = _wp_upload_dir();
-		$subdir = gmstrftime( '/%Y/%m' );
+		$subdir = date_format( date_create( 'now' ), '/Y/m' );
 
 		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/asdf' . $subdir, $info['url'] );
 		$this->assertSame( ABSPATH . 'wp-content/uploads' . $subdir, $info['path'] );
@@ -98,7 +98,7 @@ class Tests_Upload extends WP_UnitTestCase {
 		// Use `_wp_upload_dir()` directly to bypass caching and work with the changed options.
 		// It doesn't create the /year/month directories.
 		$info   = _wp_upload_dir();
-		$subdir = gmstrftime( '/%Y/%m' );
+		$subdir = date_format( date_create( 'now' ), '/Y/m' );
 
 		$this->assertSame( get_option( 'siteurl' ) . '/wp-content/uploads' . $subdir, $info['url'] );
 		$this->assertSame( ABSPATH . 'wp-content/uploads' . $subdir, $info['path'] );

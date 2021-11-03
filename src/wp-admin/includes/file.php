@@ -1112,6 +1112,7 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
  *
  * @since 2.5.0
  * @since 5.2.0 Signature Verification with SoftFail was added.
+ * @since 5.9.0 Support for Content-Disposition filename was added.
  *
  * @param string $url                    The URL of the file to download.
  * @param int    $timeout                The timeout for the request to download the file.
@@ -1126,7 +1127,11 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
 	}
 
-	$url_filename = basename( parse_url( $url, PHP_URL_PATH ) );
+	$url_path     = parse_url( $url, PHP_URL_PATH );
+	$url_filename = '';
+	if ( is_string( $url_path ) && '' !== $url_path ) {
+		$url_filename = basename( $url_path );
+	}
 
 	$tmpfname = wp_tempnam( $url_filename );
 	if ( ! $tmpfname ) {
@@ -1178,6 +1183,29 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		return new WP_Error( 'http_404', trim( wp_remote_retrieve_response_message( $response ) ), $data );
 	}
 
+	$content_disposition = wp_remote_retrieve_header( $response, 'content-disposition' );
+
+	if ( $content_disposition ) {
+		$content_disposition = strtolower( $content_disposition );
+
+		if ( 0 === strpos( $content_disposition, 'attachment; filename=' ) ) {
+			$tmpfname_disposition = sanitize_file_name( substr( $content_disposition, 21 ) );
+		} else {
+			$tmpfname_disposition = '';
+		}
+
+		// Potential file name must be valid string
+		if ( $tmpfname_disposition && is_string( $tmpfname_disposition ) && ( 0 === validate_file( $tmpfname_disposition ) ) ) {
+			if ( rename( $tmpfname, $tmpfname_disposition ) ) {
+				$tmpfname = $tmpfname_disposition;
+			}
+
+			if ( ( $tmpfname !== $tmpfname_disposition ) && file_exists( $tmpfname_disposition ) ) {
+				unlink( $tmpfname_disposition );
+			}
+		}
+	}
+
 	$content_md5 = wp_remote_retrieve_header( $response, 'content-md5' );
 
 	if ( $content_md5 ) {
@@ -1212,9 +1240,8 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			// WordPress.org stores signatures at $package_url.sig.
 
 			$signature_url = false;
-			$url_path      = parse_url( $url, PHP_URL_PATH );
 
-			if ( '.zip' === substr( $url_path, -4 ) || '.tar.gz' === substr( $url_path, -7 ) ) {
+			if ( is_string( $url_path ) && ( '.zip' === substr( $url_path, -4 ) || '.tar.gz' === substr( $url_path, -7 ) ) ) {
 				$signature_url = str_replace( $url_path, $url_path . '.sig', $url );
 			}
 
@@ -1243,7 +1270,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		}
 
 		// Perform the checks.
-		$signature_verification = verify_file_signature( $tmpfname, $signature, basename( parse_url( $url, PHP_URL_PATH ) ) );
+		$signature_verification = verify_file_signature( $tmpfname, $signature, $url_filename );
 	}
 
 	if ( is_wp_error( $signature_verification ) ) {
@@ -1912,6 +1939,34 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 	}
 
 	return true;
+}
+
+/**
+ * Moves a directory from one location to another via the rename() PHP function.
+ * If the renaming failed, falls back to copy_dir().
+ *
+ * Assumes that WP_Filesystem() has already been called and setup.
+ *
+ * @since 5.9.0
+ *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ *
+ * @param string $from Source directory.
+ * @param string $to   Destination directory.
+ * @return true|WP_Error True on success, WP_Error on failure.
+ */
+function move_dir( $from, $to ) {
+	global $wp_filesystem;
+
+	$wp_filesystem->rmdir( $to );
+	if ( @rename( $from, $to ) ) {
+		return true;
+	}
+
+	$wp_filesystem->mkdir( $to );
+	$result = copy_dir( $from, $to );
+
+	return $result;
 }
 
 /**

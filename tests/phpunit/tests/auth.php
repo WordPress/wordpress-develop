@@ -32,8 +32,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		self::$wp_hasher = new PasswordHash( 8, true );
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->user = clone self::$_user;
 		wp_set_current_user( self::$user_id );
@@ -42,11 +42,11 @@ class Tests_Auth extends WP_UnitTestCase {
 		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		// Cleanup all the global state.
 		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_auth_cookie_valid() {

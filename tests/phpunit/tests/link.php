@@ -108,7 +108,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$p = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 
@@ -131,7 +131,7 @@ class Tests_Link extends WP_UnitTestCase {
 			array(
 				'post_status' => 'future',
 				'post_type'   => 'wptests_pt',
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 

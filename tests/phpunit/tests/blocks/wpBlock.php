@@ -26,8 +26,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * Set up each test method.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->registry = new WP_Block_Type_Registry();
 	}
@@ -35,10 +35,10 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * Tear down each test method.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		$this->registry = null;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function filter_render_block( $content, $parsed_block ) {
@@ -275,7 +275,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/dynamic',
 			array(
-				'render_callback' => function() {
+				'render_callback' => static function() {
 					return 'b';
 				},
 			)
@@ -296,7 +296,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/greeting',
 			array(
-				'render_callback' => function( $attributes, $content, $block ) {
+				'render_callback' => static function( $attributes, $content, $block ) {
 					return sprintf( 'Hello from %s', $block->name );
 				},
 			)
@@ -366,7 +366,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 						'default' => '!',
 					),
 				),
-				'render_callback' => function( $block_attributes ) {
+				'render_callback' => static function( $block_attributes ) {
 					return sprintf(
 						'Hello %s%s',
 						$block_attributes['toWhom'],
@@ -391,7 +391,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/outer',
 			array(
-				'render_callback' => function( $block_attributes, $content ) {
+				'render_callback' => static function( $block_attributes, $content ) {
 					return $content;
 				},
 			)
@@ -399,7 +399,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/inner',
 			array(
-				'render_callback' => function() {
+				'render_callback' => static function() {
 					return 'b';
 				},
 			)
@@ -627,5 +627,45 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->assertTrue( $align_support );
 		$gradient_support = block_has_support( $block_type, array( 'color', 'gradient' ), true );
 		$this->assertFalse( $gradient_support );
+	}
+
+	/**
+	 * @ticket 51612
+	 */
+	public function test_block_filters_for_inner_blocks() {
+		$pre_render_callback           = new MockAction();
+		$render_block_data_callback    = new MockAction();
+		$render_block_context_callback = new MockAction();
+
+		$this->registry->register(
+			'core/outer',
+			array(
+				'render_callback' => function( $block_attributes, $content ) {
+					return $content;
+				},
+			)
+		);
+
+		$this->registry->register(
+			'core/inner',
+			array(
+				'render_callback' => function() {
+					return 'b';
+				},
+			)
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:outer -->a<!-- wp:inner /-->c<!-- /wp:outer -->' );
+		$parsed_block  = $parsed_blocks[0];
+
+		add_filter( 'pre_render_block', array( $pre_render_callback, 'filter' ) );
+		add_filter( 'render_block_data', array( $render_block_data_callback, 'filter' ) );
+		add_filter( 'render_block_context', array( $render_block_context_callback, 'filter' ) );
+
+		render_block( $parsed_block );
+
+		$this->assertSame( 2, $pre_render_callback->get_call_count() );
+		$this->assertSame( 2, $render_block_data_callback->get_call_count() );
+		$this->assertSame( 2, $render_block_context_callback->get_call_count() );
 	}
 }

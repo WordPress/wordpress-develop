@@ -8,8 +8,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $notify_message = '';
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
@@ -857,8 +857,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Close comments more than one day old.
 		update_option( 'close_comments_days_old', 1 );
 
-		$old_date    = strtotime( '-25 hours' );
-		$old_post_id = self::factory()->post->create( array( 'post_date' => strftime( '%Y-%m-%d %H:%M:%S', $old_date ) ) );
+		$old_date    = date_create( '-25 hours' );
+		$old_post_id = self::factory()->post->create( array( 'post_date' => date_format( $old_date, 'Y-m-d H:i:s' ) ) );
 
 		$old_post_comment_status = _close_comments_for_old_post( true, $old_post_id );
 		$this->assertFalse( $old_post_comment_status );

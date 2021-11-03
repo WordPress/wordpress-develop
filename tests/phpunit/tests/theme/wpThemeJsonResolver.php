@@ -12,8 +12,8 @@
  */
 class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
 
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
@@ -29,11 +29,11 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function filter_set_theme_root() {
@@ -42,53 +42,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	public function filter_set_locale_to_polish() {
 		return 'pl_PL';
-	}
-
-	/**
-	 * @ticket 52991
-	 */
-	public function test_fields_are_extracted() {
-		$actual = WP_Theme_JSON_Resolver::get_fields_to_translate();
-
-		$expected = array(
-			array(
-				'path'    => array( 'settings', 'typography', 'fontSizes' ),
-				'key'     => 'name',
-				'context' => 'Font size name',
-			),
-			array(
-				'path'    => array( 'settings', 'color', 'palette' ),
-				'key'     => 'name',
-				'context' => 'Color name',
-			),
-			array(
-				'path'    => array( 'settings', 'color', 'gradients' ),
-				'key'     => 'name',
-				'context' => 'Gradient name',
-			),
-			array(
-				'path'    => array( 'settings', 'color', 'duotone' ),
-				'key'     => 'name',
-				'context' => 'Duotone name',
-			),
-			array(
-				'path'    => array( 'settings', 'blocks', '*', 'typography', 'fontSizes' ),
-				'key'     => 'name',
-				'context' => 'Font size name',
-			),
-			array(
-				'path'    => array( 'settings', 'blocks', '*', 'color', 'palette' ),
-				'key'     => 'name',
-				'context' => 'Color name',
-			),
-			array(
-				'path'    => array( 'settings', 'blocks', '*', 'color', 'gradients' ),
-				'key'     => 'name',
-				'context' => 'Gradient name',
-			),
-		);
-
-		$this->assertSame( $expected, $actual );
 	}
 
 	/**

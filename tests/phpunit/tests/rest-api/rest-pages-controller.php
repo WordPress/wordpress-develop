@@ -25,8 +25,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		self::delete_user( self::$editor_id );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->has_setup_template = false;
 		add_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
 		// Re-register the route as we now have a template available.

@@ -39,13 +39,13 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	/**
 	 * Tear down each test method.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		while ( ! empty( $this->registered_block_names ) ) {
 			$block_name = array_pop( $this->registered_block_names );
 			unregister_block_type( $block_name );
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -712,7 +712,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		// Custom error handler's see Warnings even if they are suppressed by the @ symbol.
 		$errors = array();
 		set_error_handler(
-			function ( $errno = 0, $errstr = '' ) use ( &$errors ) {
+			static function ( $errno = 0, $errstr = '' ) use ( &$errors ) {
 				$errors[] = $errstr;
 				return false;
 			}

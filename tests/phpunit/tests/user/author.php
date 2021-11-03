@@ -33,8 +33,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		);
 	}
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		setup_postdata( get_post( self::$post_id ) );
 	}

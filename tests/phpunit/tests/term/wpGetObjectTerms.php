@@ -7,8 +7,8 @@
 class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	private $taxonomy = 'wptests_tax';
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 

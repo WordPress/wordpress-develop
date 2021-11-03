@@ -8,14 +8,14 @@
  */
 class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tear_down() {
 		global $wp_query;
 
 		update_option( 'timezone_string', 'UTC' );
 
 		unset( $wp_query );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

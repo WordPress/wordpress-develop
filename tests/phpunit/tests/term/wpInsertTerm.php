@@ -4,8 +4,8 @@
  * @group taxonomy
  */
 class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		_clean_term_filters();
 		// Insert one term into every post taxonomy.

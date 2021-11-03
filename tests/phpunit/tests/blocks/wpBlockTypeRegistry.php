@@ -29,8 +29,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->registry = new WP_Block_Type_Registry();
 	}
@@ -40,10 +40,10 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		$this->registry = null;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

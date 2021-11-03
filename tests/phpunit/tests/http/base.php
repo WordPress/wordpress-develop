@@ -17,8 +17,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 	protected $http_request_args;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$class = 'WP_Http_' . ucfirst( $this->transport );
 		if ( ! call_user_func( array( $class, 'test' ) ) ) {

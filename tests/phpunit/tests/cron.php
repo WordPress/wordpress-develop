@@ -16,18 +16,18 @@ class Tests_Cron extends WP_UnitTestCase {
 	 */
 	private $plus_thirty_minutes;
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		// Make sure the schedule is clear.
 		_set_cron_array( array() );
 		$this->preflight_cron_array = array();
 		$this->plus_thirty_minutes  = strtotime( '+30 minutes' );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		// Make sure the schedule is clear.
 		_set_cron_array( array() );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_wp_get_schedule_empty() {
@@ -98,7 +98,54 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertFalse( wp_next_scheduled( $hook, array( 'bar' ) ) );
 
 		$this->assertSame( $recur, wp_get_schedule( $hook, $args ) );
+	}
 
+	/**
+	 * Tests that a call to wp_schedule_event() on a site without any scheduled events
+	 * does not result in a PHP deprecation warning on PHP 8.1 or higher.
+	 *
+	 * The warning that we should not see:
+	 * `Deprecated: Automatic conversion of false to array is deprecated`.
+	 *
+	 * @ticket 53635
+	 *
+	 * @covers ::wp_schedule_event
+	 */
+	function test_wp_schedule_event_without_cron_option_does_not_throw_warning() {
+		delete_option( 'cron' );
+
+		// Verify that the cause of the error is in place.
+		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+
+		$hook      = __FUNCTION__;
+		$timestamp = strtotime( '+10 minutes' );
+
+		// Add an event.
+		$this->assertTrue( wp_schedule_event( $timestamp, 'daily', $hook ) );
+	}
+
+	/**
+	 * Tests that a call to wp_schedule_single_event() on a site without any scheduled events
+	 * does not result in the value "false" being added into the cron array.
+	 *
+	 * @ticket 53950
+	 *
+	 * @covers ::wp_schedule_single_event
+	 */
+	function test_wp_schedule_single_event_without_cron_option() {
+		delete_option( 'cron' );
+
+		// Verify that the cause of the error is in place.
+		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+
+		$hook      = __FUNCTION__;
+		$timestamp = strtotime( '+10 minutes' );
+
+		// Add an event.
+		$this->assertTrue( wp_schedule_single_event( $timestamp, $hook ), 'Scheduling single event failed' );
+
+		// Verify that "false" is not a value in the final cron array.
+		$this->assertNotContains( false, get_option( 'cron' ), 'Resulting cron array contains the value "false"' );
 	}
 
 	function test_unschedule_event() {
@@ -1031,7 +1078,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			function() {
+			static function() {
 				return get_option( 'cron' );
 			}
 		);
@@ -1051,7 +1098,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			function() {
+			static function() {
 				return get_option( 'cron' );
 			}
 		);
@@ -1074,7 +1121,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			function() {
+			static function() {
 				return get_option( 'cron' );
 			}
 		);
@@ -1098,7 +1145,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			function() {
+			static function() {
 				return get_option( 'cron' );
 			}
 		);

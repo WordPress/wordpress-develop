@@ -88,8 +88,8 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 *
 	 * @since 5.1.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
@@ -98,10 +98,10 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 *
 	 * @since 5.1.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		reset_phpmailer_instance();
 		restore_previous_locale();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

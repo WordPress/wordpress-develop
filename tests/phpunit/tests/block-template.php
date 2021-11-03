@@ -35,7 +35,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 		wp_delete_post( self::$post->ID );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		global $_wp_current_template_content;
 		unset( $_wp_current_template_content );
 	}

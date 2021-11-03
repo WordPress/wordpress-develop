@@ -15,8 +15,8 @@
 class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	const YOUTUBE_VIDEO_ID = 'i_cVJgIz_Cs';
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
@@ -26,12 +26,12 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function mock_embed_request( $preempt, $r, $url ) {
