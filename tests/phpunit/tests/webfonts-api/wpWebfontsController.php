@@ -93,7 +93,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 		 */
 		$property = new ReflectionProperty( $this->controller, 'stylesheet_handle' );
 		$property->setAccessible( true );
-		$property->setValue( $this->controller, $stylestyle_handle );
+		$property->setValue( $this->controller, $stylesheet_handle );
 
 		// Set up the provider mock.
 		$provider  = new My_Custom_Webfonts_Provider_Mock();
@@ -133,11 +133,11 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 		 * As this method adds an inline style, the test needs to print it.
 		 * Print the webfont styles and test the output matches expectation.
 		 */
-		$expected  = "<style id='{$stylestyle_handle}-inline-css' type='text/css'>\n";
+		$expected  = "<style id='{$stylesheet_handle}-inline-css' type='text/css'>\n";
 		$expected .= $provider->get_css() . "\n";
 		$expected .= "</style>\n";
 		$this->expectOutputString( $expected );
-		wp_print_styles( $stylestyle_handle );
+		wp_print_styles( $stylesheet_handle );
 	}
 
 	/**

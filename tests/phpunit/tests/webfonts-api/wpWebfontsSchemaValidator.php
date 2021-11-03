@@ -14,7 +14,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::is_valid_schema
+	 * @covers WP_Webfonts_Schema_Validator::is_valid_schema
 	 *
 	 * @dataProvider data_is_valid_schema_with_valid
 	 *
@@ -43,7 +43,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::is_valid_schema
+	 * @covers  WP_Webfonts_Schema_Validator::is_valid_schema
 	 *
 	 * @dataProvider data_is_valid_schema_with_invalid
 	 *
@@ -173,7 +173,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::set_valid_properties
+	 * @covers  WP_Webfonts_Schema_Validator::set_valid_properties
 	 *
 	 * @dataProvider data_set_valid_properties_with_valid_input
 	 *
@@ -295,7 +295,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::set_valid_properties
+	 * @covers  WP_Webfonts_Schema_Validator::set_valid_properties
 	 *
 	 * @dataProvider data_set_valid_properties_with_invalid_input
 	 *
@@ -383,7 +383,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::set_valid_properties
+	 * @covers WP_Webfonts_Schema_Validator::set_valid_properties
 	 *
 	 * @dataProvider data_set_valid_properties_with_invalid_and_error
 	 *
@@ -420,11 +420,11 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 				),
 				'expected_message' => 'Webfont font style must be a non-empty string.',
 			),
-			'font-weight: not a string' => array(
+			'font-style: not a string'  => array(
 				'webfont'          => array(
 					'provider'    => 'some-provider',
 					'font-family' => 'Some Font',
-					'font-weight' => null,
+					'font-style'  => null,
 				),
 				'expected'         => array(
 					'provider'     => 'some-provider',

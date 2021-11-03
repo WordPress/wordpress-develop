@@ -5,9 +5,13 @@ require_once ABSPATH . WPINC . '/webfonts-api/providers/class-wp-webfonts-provid
 class My_Custom_Webfonts_Provider_Mock extends WP_Webfonts_Provider {
 	protected $id = 'my-custom-provider';
 
-	protected $link_attributes = array(
-		'href'        => 'https://fonts.my-custom-api.com',
-		'crossorigin' => true,
+	protected $resource_hints = array(
+		'preconnect' => array(
+			array(
+				'href'        => 'https://fonts.my-custom-api.com',
+				'crossorigin' => 'anonymous',
+			),
+		),
 	);
 
 	public function set_webfonts( array $webfonts ) {
