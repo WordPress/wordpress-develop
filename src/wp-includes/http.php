@@ -538,14 +538,9 @@ function wp_http_validate_url( $url ) {
 	}
 
 	$parsed_home = parse_url( get_option( 'home' ) );
+	$same_host   = isset( $parsed_home['host'] ) && strtolower( $parsed_home['host'] ) === strtolower( $parsed_url['host'] );
+	$host        = trim( $parsed_url['host'], '.' );
 
-	if ( isset( $parsed_home['host'] ) ) {
-		$same_host = strtolower( $parsed_home['host'] ) === strtolower( $parsed_url['host'] );
-	} else {
-		$same_host = false;
-	}
-
-	$host = trim( $parsed_url['host'], '.' );
 	if ( ! $same_host ) {
 		if ( preg_match( '#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#', $host ) ) {
 			$ip = $host;
