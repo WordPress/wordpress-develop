@@ -124,7 +124,7 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 		 * Each font-display will need to be a separate request.
 		 */
 		foreach ( $this->webfonts as $webfont ) {
-			if ( ! isset( $font['font-display'] ) ) {
+			if ( ! isset( $webfont['font-display'] ) ) {
 				$webfont['font-display'] = 'fallback';
 			}
 
