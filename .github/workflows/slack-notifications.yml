@@ -23,6 +23,11 @@ on:
       - '5.[0-8]'
 
   workflow_call:
+    inputs:
+      calling_status:
+        description: 'The status of the calling workflow'
+        type: string
+        required: true
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK:
         description: 'The Slack webhook URL for a successful build.'
@@ -125,7 +130,7 @@ jobs:
     name: Failure notifications
     runs-on: ubuntu-latest
     needs: [ prepare ]
-    if: ${{ github.event_name == 'push' && failure() || github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' || inputs.calling_status == 'failure' || failure() }}
 
     steps:
       - name: Post failure notifications to Slack
@@ -140,7 +145,7 @@ jobs:
     name: Fixed notifications
     runs-on: ubuntu-latest
     needs: [ prepare ]
-    if: ${{ needs.prepare.outputs.previous_conclusion == 'failure' && ( github.event_name == 'push' && success() || github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' ) }}
+    if: ${{ needs.prepare.outputs.previous_conclusion == 'failure' && ( github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || inputs.calling_status == 'success' ) && success() }}
 
     steps:
       - name: Post failure notifications to Slack
@@ -155,7 +160,7 @@ jobs:
     name: Success notifications
     runs-on: ubuntu-latest
     needs: [ prepare ]
-    if: ${{ github.event_name == 'push' && success() || github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || inputs.calling_status == 'success' && success() }}
 
     steps:
       - name: Post success notifications to Slack
@@ -170,7 +175,7 @@ jobs:
     name: Cancelled notifications
     runs-on: ubuntu-latest
     needs: [ prepare ]
-    if: ${{ github.event_name == 'push' && cancelled() || github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'cancelled' }}
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'cancelled' || inputs.calling_status == 'cancelled' || cancelled() }}
 
     steps:
       - name: Post cancelled notifications to Slack
