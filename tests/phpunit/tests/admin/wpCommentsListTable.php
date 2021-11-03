@@ -18,7 +18,7 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 40188
 	 *
-	 * @covers WP_Posts_List_Table::extra_tablenav
+	 * @covers WP_Comments_List_Table::extra_tablenav
 	 */
 	public function test_filter_button_should_not_be_shown_if_there_are_no_comments() {
 		ob_start();
@@ -31,7 +31,7 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 40188
 	 *
-	 * @covers WP_Posts_List_Table::extra_tablenav
+	 * @covers WP_Comments_List_Table::extra_tablenav
 	 */
 	public function test_filter_button_should_be_shown_if_there_are_comments() {
 		$post_id    = self::factory()->post->create();
@@ -54,7 +54,7 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 40188
 	 *
-	 * @covers WP_Posts_List_Table::extra_tablenav
+	 * @covers WP_Comments_List_Table::extra_tablenav
 	 */
 	public function test_filter_comment_type_dropdown_should_be_shown_if_there_are_comments() {
 		$post_id    = self::factory()->post->create();
@@ -78,7 +78,7 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 38341
 	 *
-	 * @covers WP_Posts_List_Table::extra_tablenav
+	 * @covers WP_Comments_List_Table::extra_tablenav
 	 */
 	public function test_empty_trash_button_should_not_be_shown_if_there_are_no_comments() {
 		ob_start();
@@ -91,7 +91,7 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 19278
 	 *
-	 * @covers WP_Posts_List_Table::bulk_actions
+	 * @covers WP_Comments_List_Table::bulk_actions
 	 */
 	public function test_bulk_action_menu_supports_options_and_optgroups() {
 		add_filter(
@@ -126,7 +126,7 @@ OPTIONS;
 	/**
 	 * @ticket 45089
 	 *
-	 * @covers WP_Posts_List_Table::print_column_headers
+	 * @covers WP_Comments_List_Table::print_column_headers
 	 */
 	public function test_sortable_columns() {
 		$override_sortable_columns = array(
@@ -160,7 +160,7 @@ OPTIONS;
 	/**
 	 * @ticket 45089
 	 *
-	 * @covers WP_Posts_List_Table::print_column_headers
+	 * @covers WP_Comments_List_Table::print_column_headers
 	 */
 	public function test_sortable_columns_with_current_ordering() {
 		$override_sortable_columns = array(
