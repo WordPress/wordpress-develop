@@ -22,7 +22,7 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
 
 /**
  * Returns a filtered list of allowed area values for template parts.
- * 
+ *
  * @since 5.9.0
  *
  * @return array The supported template part area values.
@@ -159,7 +159,7 @@ function get_default_block_template_types() {
  *
  * @access private
  * @since 5.9.0
- * 
+ *
  * @param string $type Template part area name.
  *
  * @return string Input if supported, else the uncategorized value.
@@ -420,7 +420,7 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 
 /**
  * Build a unified template object based on a theme file.
- * 
+ *
  * @access private
  * @since 5.9.0
  *
@@ -827,5 +827,5 @@ function block_header_area() {
  * @return void
  */
 function block_footer_area() {
-	gutenberg_block_template_part( 'footer' );
+	block_template_part( 'footer' );
 }
