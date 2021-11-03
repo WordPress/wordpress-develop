@@ -2022,6 +2022,28 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
 	}
 
+	/**
+	 * @ticket 53056
+	 */
+	public function test_json_encode_error_results_in_500_status_code() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => function() {
+						return new \WP_REST_Response( INF );
+					},
+					'permission_callback' => '__return_true',
+					'args'                => array(),
+				),
+			)
+		);
+		rest_get_server()->serve_request( '/test-ns/v1/test' );
+		$this->assertSame( 500, rest_get_server()->status );
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );

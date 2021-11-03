@@ -1846,6 +1846,78 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test `$user_data['meta_input']` args in `wp_insert_user( $user_data )`.
+	 *
+	 * @ticket 41950
+	 */
+	public function test_wp_insert_user_with_meta() {
+		$user_data   = array(
+			'user_login' => 'test_user',
+			'user_pass'  => 'test_password',
+			'user_email' => 'user@example.com',
+			'meta_input' => array(
+				'test_meta_key' => 'test_meta_value',
+				'custom_meta'   => 'custom_value',
+			),
+		);
+		$create_user = wp_insert_user( $user_data );
+
+		$this->assertSame( 'test_meta_value', get_user_meta( $create_user, 'test_meta_key', true ) );
+		$this->assertSame( 'custom_value', get_user_meta( $create_user, 'custom_meta', true ) );
+
+		// Update the user meta thru wp_insert_user.
+		$update_data = array(
+			'ID'         => $create_user,
+			'user_login' => 'test_user',
+			'meta_input' => array(
+				'test_meta_key' => 'test_meta_updated',
+				'custom_meta'   => 'updated_value',
+				'new_meta_k'    => 'new_meta_val',
+			),
+		);
+		$update_user = wp_insert_user( $update_data );
+
+		$this->assertSame( 'test_meta_updated', get_user_meta( $update_user, 'test_meta_key', true ) );
+		$this->assertSame( 'updated_value', get_user_meta( $update_user, 'custom_meta', true ) );
+		$this->assertSame( 'new_meta_val', get_user_meta( $update_user, 'new_meta_k', true ) );
+
+		// Create new user.
+		$new_user_data = array(
+			'user_login' => 'new_test',
+			'user_pass'  => 'new_password',
+			'user_email' => 'new_user@newexample.com',
+			'meta_input' => array(
+				'test_meta_key' => 'test_meta_value',
+				'custom_meta'   => 'new_user_custom_value',
+			),
+		);
+
+		// Hook filter
+		add_filter( 'insert_custom_user_meta', array( $this, 'filter_custom_meta' ) );
+
+		$new_user = wp_insert_user( $new_user_data );
+
+		// This meta is updated by the filter.
+		$this->assertSame( 'update_from_filter', get_user_meta( $new_user, 'test_meta_key', true ) );
+		$this->assertSame( 'new_user_custom_value', get_user_meta( $new_user, 'custom_meta', true ) );
+		// This meta is inserted by the filter.
+		$this->assertSame( 'new_from_filter', get_user_meta( $new_user, 'new_meta_from_filter', true ) );
+	}
+
+	/**
+	 * Hook a filter to alter custom meta when inserting new user.
+	 * This hook is used in `test_wp_insert_user_with_meta()`.
+	 */
+	public function filter_custom_meta( $meta_input ) {
+		// Update some meta inputs
+		$meta_input['test_meta_key'] = 'update_from_filter';
+		// Add a new meta
+		$meta_input['new_meta_from_filter'] = 'new_from_filter';
+
+		return $meta_input;
+	}
+
+	/**
 	 * Testing the `wp_privacy_additional_user_profile_data` filter works.
 	 *
 	 * @since 5.4.0

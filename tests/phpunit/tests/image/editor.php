@@ -111,6 +111,92 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Test test_quality when converting image
+	 *
+	 * @ticket 6821
+	 */
+	public function test_set_quality_with_image_conversion() {
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/test-image.png' );
+		$editor->set_mime_type( 'image/png' ); // Ensure mime-specific filters act properly.
+
+		// Set conversions for uploaded images.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
+
+		// Quality setting for the source image. For PNG the fallback default of 82 is used.
+		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting is 82.' );
+
+		// Quality should change to the output format's value.
+		// A PNG image will be converted to WEBP whose quialty should be 86.
+		$editor->save();
+		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WEBP. Quality setting for it should be 86.' );
+
+		// Removing PNG to WEBP conversion on save. Quality setting should reset to the default.
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
+		$editor->save();
+		$this->assertSame( 82, $editor->get_quality(), 'After removing image conversion quality setting should reset to the default of 82.' );
+
+		unset( $editor );
+
+		// Set conversions for uploaded images.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
+		// Change the quality values.
+		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality' ), 10, 2 );
+
+		// Get a new editor to clear quality state.
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/test-image.jpg' );
+		$editor->set_mime_type( 'image/jpeg' );
+
+		$this->assertSame( 56, $editor->get_quality(), 'Filtered default quality for JPEG is 56.' );
+
+		// Quality should change to the output format's value as filtered above.
+		// A JPEG image will be converted to WEBP whose quialty should be 42.
+		$editor->save();
+		$this->assertSame( 42, $editor->get_quality(), 'Image conversion from JPEG to WEBP. Filtered WEBP quality shoild be 42.' );
+
+		// After removing the conversion the quality setting should reset to the filtered value for the original image type, JPEG.
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
+		$editor->save();
+		$this->assertSame(
+			56,
+			$editor->get_quality(),
+			'After removing image conversion the quality setting should reset to the filtered value for JPEG, 56.'
+		);
+
+		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality' ) );
+	}
+
+	/**
+	 * Changes the output format when editing images. PNG and JPEG files
+	 * will be converted to WEBP (if the image editor in PHP supports it).
+	 *
+	 * @param array $formats
+	 *
+	 * @return array
+	 */
+	public function image_editor_output_formats( $formats ) {
+		$formats['image/png']  = 'image/webp';
+		$formats['image/jpeg'] = 'image/webp';
+		return $formats;
+	}
+
+	/**
+	 * Changes the quality according to the mime-type.
+	 *
+	 * @param int    $quality   Default quality.
+	 * @param string $mime_type Image mime-type.
+	 * @return int The changed quality.
+	 */
+	public function image_editor_change_quality( $quality, $mime_type ) {
+		if ( 'image/jpeg' === $mime_type ) {
+			return 56;
+		} elseif ( 'image/webp' === $mime_type ) {
+			return 42;
+		} else {
+			return 30;
+		}
+	}
+
+	/**
 	 * Test generate_filename
 	 *
 	 * @ticket 6821
