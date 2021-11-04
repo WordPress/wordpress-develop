@@ -86,11 +86,14 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 				// Build an array of font-weights for italics and default styles.
 				foreach ( $webfonts as $font ) {
 					if ( 'italic' === $font['font-style'] ) {
-						$italic_weights[] = $font['font-weight'];
+						$italic_weights = array_merge( $italic_weights, $this->get_font_weights( $font['font-weight'] ) );
 					} else {
-						$normal_weights[] = $font['font-weight'];
+						$normal_weights = array_merge( $normal_weights, $this->get_font_weights( $font['font-weight'] ) );
 					}
 				}
+
+				$normal_weights = array_unique( $normal_weights );
+				$italic_weights = array_unique( $italic_weights );
 
 				if ( empty( $italic_weights ) && ! empty( $normal_weights ) ) {
 					$url_part .= ':wght@' . implode( ';', $normal_weights );
@@ -153,5 +156,27 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 		}
 
 		return $font_display_groups;
+	}
+
+	/**
+	 * Get an array of font-weights from the given font-weights if using a space delimited string.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $font_weights The font-weights string.
+	 *
+	 * @return array The font-weights array.
+	 */
+	protected function get_font_weights( $font_weights ) {
+		if ( false !== strpos( $font_weights, ' ' ) ) {
+			$font_weights = explode( ' ', $font_weights );
+		}
+
+		// If there are 2 values, treat them as a range.
+		if ( 2 === count( $font_weights ) ) {
+			$font_weights = range( $font_weights[0], $font_weights[1], 100 );
+		}
+
+		return $font_weights;
 	}
 }
