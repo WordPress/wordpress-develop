@@ -58,6 +58,7 @@ function wp_register_webfonts( array $webfonts ) {
  *
  * @param array $webfont Webfont to be registered.
  *                       See {@see WP_Webfonts_Registry::register()} for a list of supported arguments.
+ * @return string Registration key.
  */
 function wp_register_webfont( array $webfont ) {
 	wp_webfonts()->get_webfonts_registry()->register( $webfont );
@@ -68,10 +69,13 @@ function wp_register_webfont( array $webfont ) {
  *
  * @since 5.9.0
  *
- * @param string $classname The provider class name.
+ * @param string $classname The provider's class name.
+ *                          The class should be a child of `WP_Webfonts_Provider`.
+ *                          See {@see WP_Webfonts_Provider}.
+ * @return bool True when registered. False when provider does not exist.
  */
 function wp_register_webfont_provider( $classname ) {
-	wp_webfonts()->get_providers()->register( $classname );
+	return wp_webfonts()->get_providers()->register( $classname );
 }
 
 /**
