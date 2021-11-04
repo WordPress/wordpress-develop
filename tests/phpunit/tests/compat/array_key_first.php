@@ -21,7 +21,7 @@ class Tests_Compat_array_key_first extends WP_UnitTestCase {
 	/**
 	 * @dataProvider array_key_first_provider
 	 */
-	public function test_array_key_first_string( $expected, $array ) {
+	public function test_array_key_first( $expected, $array ) {
 		if ( ! function_exists( 'array_key_first' ) ) {
 			$this->markTestSkipped( 'array_key_first() is not available.' );
 		} else {
