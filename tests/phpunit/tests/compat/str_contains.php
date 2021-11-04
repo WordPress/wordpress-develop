@@ -56,11 +56,6 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 				'string'   => 'This is a Test',
 				'needle'   => 'Test',
 			),
-			'cammelCase'             => array(
-				'expected' => true,
-				'string'   => 'This is a cammelCase',
-				'needle'   => 'cammelCase',
-			),
 			'not_cammelCase'         => array(
 				'expected' => false,
 				'string'   => 'This is a cammelcase',
