@@ -540,7 +540,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	 *
 	 * Return a non-null value to bypass the WordPress queries.
 	 *
-	 * @since 10.8
+	 * @since 5.9
 	 *
 	 * @param WP_Block_Template[]|null $block_templates Return an array of block templates to short-circuit the default query,
 	 *                                                  or null to allow WP to run it's normal queries.
