@@ -11,7 +11,7 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 	 * Test that array_key_last() is always available (either from PHP or WP).
 	 */
 	public function test_array_key_last_availability() {
-		if( ! function_exists( 'array_key_last' ) ) {
+		if ( ! function_exists( 'array_key_last' ) ) {
 			$this->markTestSkipped( 'array_key_last() is not available.' );
 		} else {
 			$this->assertTrue( function_exists( 'array_key_last' ) );
@@ -28,7 +28,7 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 		} else {
 			$this->assertSame(
 				$expected,
-				array_key_last( $array)
+				array_key_last( $array )
 			);
 		}
 
