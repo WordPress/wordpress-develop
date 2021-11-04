@@ -42,7 +42,7 @@ function get_allowed_block_template_part_areas() {
 			'area'        => WP_TEMPLATE_PART_AREA_HEADER,
 			'label'       => __( 'Header' ),
 			'description' => __(
-				'The Header template defines a page area that typically contains a title, logo, and main navigation.',
+				'The Header template defines a page area that typically contains a title, logo, and main navigation.'
 			),
 			'icon'        => 'header',
 			'area_tag'    => 'header',
