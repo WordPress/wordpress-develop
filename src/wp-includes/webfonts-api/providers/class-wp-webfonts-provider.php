@@ -88,10 +88,10 @@ abstract class WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Sets the webfonts.
+	 * Sets this provider's webfonts property.
 	 *
-	 * The webfonts have been validated, are in kebab_case, and
-	 * are arranged by provider.
+	 * The API's Controller passes this provider's webfonts
+	 * for processing here in the provider.
 	 *
 	 * @since 5.9.0
 	 *
@@ -99,22 +99,6 @@ abstract class WP_Webfonts_Provider {
 	 */
 	public function set_webfonts( array $webfonts ) {
 		$this->webfonts = $webfonts;
-
-		foreach ( $this->webfonts as $registered_key => $webfont ) {
-			$this->webfonts[ $registered_key ] = $this->prepare( $webfont );
-		}
-	}
-
-	/**
-	 * Prepares the given webfont.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param array $webfont Webfont to validate.
-	 * @return array
-	 */
-	protected function prepare( array $webfont ) {
-		return $webfont;
 	}
 
 	/**

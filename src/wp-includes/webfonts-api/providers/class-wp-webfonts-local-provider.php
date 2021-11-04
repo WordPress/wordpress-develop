@@ -33,15 +33,24 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	protected $is_external = false;
 
 	/**
-	 * Prepares the given webfont.
+	 * Get the CSS for a collection of webfonts.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $webfont Webfont to validate.
-	 * @return array
+	 * @return string The CSS.
 	 */
-	protected function prepare( array $webfont ) {
-		return $this->order_src( $webfont );
+	public function get_css() {
+		$css = '';
+
+		foreach ( $this->webfonts as $webfont ) {
+			// Order the webfont's `src` items to optimize for browser support.
+			$webfont = $this->order_src( $webfont );
+
+			// Build the @font-face CSS for this webfont.
+			$css .= "@font-face{\n" . $this->build_font_face_css( $webfont ) . "}\n";
+		}
+
+		return $css;
 	}
 
 	/**
@@ -49,8 +58,8 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string[] $webfont Webfont to process.
-	 * @return string[]
+	 * @param array $webfont Webfont to process.
+	 * @return array
 	 */
 	private function order_src( array $webfont ) {
 		if ( ! is_array( $webfont['src'] ) ) {
@@ -118,23 +127,6 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Get the CSS for a collection of webfonts.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return string The CSS.
-	 */
-	public function get_css() {
-		$css = '';
-
-		foreach ( $this->webfonts as $webfont ) {
-			$css .= "@font-face{\n" . $this->build_font_css( $webfont ) . "}\n";
-		}
-
-		return $css;
-	}
-
-	/**
 	 * Builds the font-family's CSS.
 	 *
 	 * @since 5.9.0
@@ -142,7 +134,7 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	 * @param array $webfont Webfont to process.
 	 * @return string This font-family's CSS.
 	 */
-	private function build_font_css( array $webfont ) {
+	private function build_font_face_css( array $webfont ) {
 		$css = '';
 
 		// Wrap font-family in quotes if it contains spaces.

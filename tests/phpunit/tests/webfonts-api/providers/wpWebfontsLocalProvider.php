@@ -75,39 +75,10 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 			),
 		);
 
-		$expected = array(
-			'source-serif-pro.normal.200 900' => array(
-				'provider'     => 'local',
-				'font-family'  => 'Source Serif Pro',
-				'font-style'   => 'normal',
-				'font-weight'  => '200 900',
-				'font-stretch' => 'normal',
-				'src'          => array(
-					array(
-						'url'    => 'https://example.com/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
-						'format' => 'woff2',
-					),
-				),
-			),
-			'source-serif-pro.italic.200 900' => array(
-				'provider'     => 'local',
-				'font-family'  => 'Source Serif Pro',
-				'font-style'   => 'italic',
-				'font-weight'  => '200 900',
-				'font-stretch' => 'normal',
-				'src'          => array(
-					array(
-						'url'    => 'https://example.com/assets/fonts/source-serif-pro/SourceSerif4Variable-Italic.ttf.woff2',
-						'format' => 'woff2',
-					),
-				),
-			),
-		);
-
 		$this->provider->set_webfonts( $webfonts );
 
 		$property = $this->get_webfonts_property();
-		$this->assertSame( $expected, $property->getValue( $this->provider ) );
+		$this->assertSame( $webfonts, $property->getValue( $this->provider ) );
 	}
 
 	/**
@@ -140,12 +111,7 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 						'font-style'   => 'italic',
 						'font-weight'  => '400 900',
 						'font-stretch' => 'normal',
-						'src'          => array(
-							array(
-								'url'    => 'http://example.org/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf',
-								'format' => 'ttf',
-							),
-						),
+						'src'          => 'http://example.org/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf',
 					),
 					'open-sans.normal.400 900' => array(
 						'provider'     => 'local',
@@ -153,12 +119,7 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '400 900',
 						'font-stretch' => 'normal',
-						'src'          => array(
-							array(
-								'url'    => 'http://example.org/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf',
-								'format' => 'ttf',
-							),
-						),
+						'src'          => 'http://example.org/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf',
 					),
 				),
 				'expected' => <<<CSS
@@ -167,14 +128,14 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 	font-style:italic;
 	font-weight:400 900;
 	font-stretch:normal;
-	src:local("Open Sans"), url('/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf') format('ttf');
+	src:local("Open Sans"), url('/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf') format('truetype');
 }
 @font-face{
 	font-family:"Open Sans";
 	font-style:normal;
 	font-weight:400 900;
 	font-stretch:normal;
-	src:local("Open Sans"), url('/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf') format('ttf');
+	src:local("Open Sans"), url('/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
 }
 
 CSS
