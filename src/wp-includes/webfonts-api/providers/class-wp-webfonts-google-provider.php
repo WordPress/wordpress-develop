@@ -169,7 +169,7 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	 */
 	protected function get_font_weights( $font_weights ) {
 		if ( false === strpos( $font_weights, ' ' ) ) {
-			return $font_weights;
+			return (array) $font_weights;
 		}
 
 		$font_weights = explode( ' ', $font_weights );
