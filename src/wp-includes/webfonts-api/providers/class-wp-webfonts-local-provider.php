@@ -147,6 +147,11 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 
 		foreach ( $webfont as $key => $value ) {
 
+			// Skip "provider".
+			if ( 'provider' === $key ) {
+				continue;
+			}
+
 			// Compile the "src" parameter.
 			if ( 'src' === $key ) {
 				$value = $this->compile_src( $webfont['font-family'], $value );
