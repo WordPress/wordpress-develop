@@ -1598,6 +1598,11 @@ function wp_default_styles( $styles ) {
 			'wp-block-library',
 			'wp-reusable-blocks',
 		),
+		'edit-site'            => array(
+			'wp-components',
+			'wp-block-editor',
+			'wp-edit-blocks',
+		),
 	);
 
 	foreach ( $package_styles as $package => $dependencies ) {
@@ -1655,6 +1660,7 @@ function wp_default_styles( $styles ) {
 		'wp-components',
 		'wp-customize-widgets',
 		'wp-edit-post',
+		'wp-edit-site',
 		'wp-edit-widgets',
 		'wp-editor',
 		'wp-format-library',
