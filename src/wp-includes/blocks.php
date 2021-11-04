@@ -1146,3 +1146,12 @@ function build_query_vars_from_query_block( $block, $page ) {
 	}
 	return $query;
 }
+
+// TODO: Stub, remove this.
+function get_allowed_block_template_part_areas() {
+	return array();
+}
+
+// TODO: Stub, remove this.
+function wp_get_global_settings() {
+}
