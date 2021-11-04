@@ -368,7 +368,7 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_template_part',
 		array(
-			'labels' =>  array(
+			'labels'                => array(
 				'name'                  => __( 'Template Parts' ),
 				'singular_name'         => __( 'Template Part' ),
 				'add_new'               => _x( 'Add New', 'Template Part' ),
