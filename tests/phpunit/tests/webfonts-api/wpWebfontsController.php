@@ -112,12 +112,14 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 				'font-family' => 'Source Serif Pro',
 				'font-style'  => 'normal',
 				'font-weight' => '200 900',
+				'is-external' => true,
 			),
 			'source-serif-pro.italic.200 900' => array(
 				'provider'    => 'my-custom-provider',
 				'font-family' => 'Source Serif Pro',
 				'font-style'  => 'italic',
 				'font-weight' => '200 900',
+				'is-external' => true,
 			),
 		);
 		$this->webfont_registry_mock

@@ -197,6 +197,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-family' => 'Open Sans',
 					'font-style'  => 'normal',
 					'font-weight' => '400',
+					'is-external' => true,
 				),
 				'expected' => array(
 					'provider'     => 'google',
@@ -204,6 +205,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '400',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 				),
 			),
 			'basic schema in opposite order' => array(
@@ -212,6 +214,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'  => 'normal',
 					'font-family' => 'Open Sans',
 					'provider'    => 'google',
+					'is-external' => true,
 				),
 				'expected' => array(
 					'provider'     => 'google',
@@ -219,6 +222,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '400',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 				),
 			),
 			'src: with protocol'             => array(
@@ -235,6 +239,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '200 900',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 					'src'          => 'http://example.org/assets/fonts/SourceSerif4Variable-Roman.ttf.woff2',
 				),
 			),
@@ -252,6 +257,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '200 900',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 					'src'          => '//example.org/assets/fonts/SourceSerif4Variable-Roman.ttf.woff2',
 				),
 			),
@@ -269,6 +275,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '200 900',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 					'src'          => 'data:font/opentype; base64, SGVsbG8sIFdvcmxkIQ==',
 				),
 			),
@@ -287,6 +294,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '200 900',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 					'font-stretch' => 'normal',
 					'src'          => 'https://example.com/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
 				),
@@ -321,6 +329,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '400',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 				),
 			),
 			'with invalid @font-face property' => array(
@@ -335,6 +344,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '400',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 				),
 			),
 			'font-style: invalid value'        => array(
@@ -349,6 +359,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '400',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 				),
 			),
 			'font-weight: invalid value'       => array(
@@ -363,6 +374,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '400',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 				),
 			),
 			'font-display: invalid value'      => array(
@@ -377,6 +389,7 @@ class Tests_Webfonts_API_wpWebfontsSchemaValidator extends WP_UnitTestCase {
 					'font-style'   => 'normal',
 					'font-weight'  => '400',
 					'font-display' => 'fallback',
+					'is-external'  => true,
 				),
 			),
 		);

@@ -80,7 +80,7 @@ class WP_Webfonts_Schema_Validator {
 		'font-style'   => 'normal',
 		'font-weight'  => '400',
 		'font-display' => 'fallback',
-		'is-external'  => false,
+		'is-external'  => true,
 	);
 
 	/**

@@ -323,6 +323,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 						'font-style'   => 'italic',
 						'font-weight'  => '400',
 						'font-display' => 'fallback',
+						'is-external'  => true,
 					),
 					'roboto.normal.900' => array(
 						'provider'     => 'google',
@@ -330,6 +331,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '900',
 						'font-display' => 'fallback',
+						'is-external'  => true,
 					),
 				),
 			),
@@ -364,6 +366,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '200 900',
 						'font-display' => 'fallback',
+						'is-external'  => true,
 						'font-stretch' => 'normal',
 						'src'          => 'https://example.com/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
 					),
