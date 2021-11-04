@@ -112,36 +112,34 @@ class WP_Webfonts_Registry {
 	 * @param array $webfont {
 	 *     Webfont definition.
 	 *
-	 *    @type string       $provider              The provider ID (e.g. 'local', 'google').
-	 *    @type string       $fontFamily            The @font-face font-family property.
-	 *    @type string       $fontWeight            The @font-face font-weight property.
-	 *                                              The font-weight can be a single value, or a range.
-	 *                                              If a single value, then the font-weight can either be
-	 *                                              a numeric value (400, 700, etc), or a word value (normal, bold, etc).
-	 *                                              If a range, then the font-weight can be a numeric range
-	 *                                              using 2 values, separated by a space ('100 700').
-	 *    @type string       $fontStyle             The @font-face font-style property.
-	 *                                              The font-style can be a valid CSS value (normal, italic etc).
-	 *    @type string       $fontDisplay           The @font-face font-display property.
-	 *                                              Accepted values: 'auto', 'block', 'fallback', 'swap'.
-	 *    @type array|string $src                   The @font-face src property.
-	 *                                              The src can be a single URL, or an array of URLs.
-	 *    @type string       $fontStretch           The @font-face font-stretch property.
-	 *    @type string       $fontVariant           The @font-face font-variant property.
-	 *    @type string       $fontFeatureSettings   The @font-face font-feature-settings property.
-	 *    @type string       $fontVariationSettings The @font-face font-variation-settings property.
-	 *    @type string       $lineHeightOverride    The @font-face line-gap-override property.
-	 *    @type string       $sizeAdjust            The @font-face size-adjust property.
-	 *    @type string       $unicodeRange          The @font-face unicode-range property.
-	 *    @type string       $ascendOverride        The @font-face ascend-override property.
-	 *    @type string       $descendOverride       The @font-face descend-override property.
+	 *    @type string       $provider                The provider ID (e.g. 'local', 'google').
+	 *    @type string       $font-family             The @font-face font-family property.
+	 *    @type string       $font-weight             The @font-face font-weight property.
+	 *                                                The font-weight can be a single value, or a range.
+	 *                                                If a single value, then the font-weight can either be
+	 *                                                a numeric value (400, 700, etc), or a word value
+	 *                                                (normal, bold, etc).
+	 *                                                If a range, then the font-weight can be a numeric range
+	 *                                                using 2 values, separated by a space ('100 700').
+	 *    @type string       $font-style              The @font-face font-style property.
+	 *                                                The font-style can be a valid CSS value (normal, italic etc).
+	 *    @type string       $font-display            The @font-face font-display property.
+	 *                                                Accepted values: 'auto', 'block', 'fallback', 'swap'.
+	 *    @type array|string $src                     The @font-face src property.
+	 *                                                The src can be a single URL, or an array of URLs.
+	 *    @type string       $font-stretch            The @font-face font-stretch property.
+	 *    @type string       $font-variant            The @font-face font-variant property.
+	 *    @type string       $font-feature-settings   The @font-face font-feature-settings property.
+	 *    @type string       $font-variation-settings The @font-face font-variation-settings property.
+	 *    @type string       $line-gap-override       The @font-face line-gap-override property.
+	 *    @type string       $size-adjust             The @font-face size-adjust property.
+	 *    @type string       $unicode-range           The @font-face unicode-range property.
+	 *    @type string       $ascend-override         The @font-face ascend-override property.
+	 *    @type string       $descend-override        The @font-face descend-override property.
 	 * }
-	 *
 	 * @return string Registration key.
 	 */
 	public function register( array $webfont ) {
-		$webfont = $this->convert_to_kebab_case( $webfont );
-
 		// Validate schema.
 		if ( ! $this->validator->is_valid_schema( $webfont ) ) {
 			return '';
@@ -184,21 +182,6 @@ class WP_Webfonts_Registry {
 	}
 
 	/**
-	 * Convert camelCase parameters into kebab_case.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param array $webfont Webfont definition.
-	 * @return array Webfont with kebab_case parameters (keys).
-	 */
-	private function convert_to_kebab_case( array $webfont ) {
-		$kebab_case = preg_replace( '/(?<!^)[A-Z]/', '-$0', array_keys( $webfont ) );
-		$kebab_case = array_map( 'strtolower', $kebab_case );
-
-		return array_combine( $kebab_case, array_values( $webfont ) );
-	}
-
-	/**
 	 * Generates the registration key.
 	 *
 	 * Format: font-family.font-style.font-weight
@@ -206,7 +189,7 @@ class WP_Webfonts_Registry {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string[] $webfont Webfont definition.
+	 * @param array $webfont Webfont definition.
 	 * @return string Registration key.
 	 */
 	private function generate_registration_key( array $webfont ) {

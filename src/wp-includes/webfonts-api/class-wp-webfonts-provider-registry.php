@@ -83,6 +83,8 @@ class WP_Webfonts_Provider_Registry {
 	 * @since 5.9.0
 	 *
 	 * @param string $classname The provider's class name.
+	 *                          The class should be a child of `WP_Webfonts_Provider`.
+	 *                          See {@see WP_Webfonts_Provider}.
 	 * @return bool True when registered. False when provider does not exist.
 	 */
 	public function register( $classname ) {

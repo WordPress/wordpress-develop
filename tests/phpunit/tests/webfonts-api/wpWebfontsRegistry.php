@@ -16,8 +16,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->validator_mock = $this->getMockBuilder( 'WP_Webfonts_Schema_Validator' )
-									->getMock();
+		$this->validator_mock = $this->getMockBuilder( 'WP_Webfonts_Schema_Validator' )->getMock();
 
 		$this->registry = new WP_Webfonts_Registry( $this->validator_mock );
 	}
@@ -85,9 +84,9 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 			),
 			'provider: not defined'     => array(
 				array(
-					'fontFamily' => 'Some Font',
-					'fontStyle'  => 'normal',
-					'fontWeight' => '400',
+					'font-family' => 'Some Font',
+					'font-style'  => 'normal',
+					'font-weight' => '400',
 				),
 			),
 			'provider: empty string'    => array(
@@ -100,17 +99,17 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 			),
 			'provider: not a string'    => array(
 				array(
-					'provider'   => null,
-					'fontFamily' => 'Some Font',
-					'fontStyle'  => 'normal',
-					'fontWeight' => '400',
+					'provider'    => null,
+					'font-family' => 'Some Font',
+					'font-style'  => 'normal',
+					'font-weight' => '400',
 				),
 			),
 			'font family: not defined'  => array(
 				array(
-					'provider'   => 'local',
-					'fontStyle'  => 'normal',
-					'fontWeight' => '400',
+					'provider'    => 'local',
+					'font-style'  => 'normal',
+					'font-weight' => '400',
 				),
 			),
 			'font-family: not defined'  => array(
@@ -140,7 +139,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::register
+	 * @covers WP_Webfonts_Registry::register
 	 *
 	 * @dataProvider data_register_with_valid_schema
 	 *
@@ -168,23 +167,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	 */
 	public function data_register_with_valid_schema() {
 		return array(
-			'camelCase schema'    => array(
-				'webfont'           => array(
-					'provider'   => 'google',
-					'fontFamily' => 'Open Sans',
-					'fontStyle'  => 'normal',
-					'fontWeight' => '400',
-				),
-				'validated_webfont' => array(
-					'provider'     => 'google',
-					'font-family'  => 'Open Sans',
-					'font-style'   => 'normal',
-					'font-weight'  => '400',
-					'font-display' => 'fallback',
-				),
-				'expected'          => 'open-sans.normal.400',
-			),
-			'kebab-case schema'   => array(
+			'valid schema without font-display' => array(
 				'webfont'           => array(
 					'provider'    => 'google',
 					'font-family' => 'Roboto',
@@ -200,27 +183,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 				),
 				'expected'          => 'roboto.normal.normal',
 			),
-			'camelCase with src'  => array(
-				'webfont'           => array(
-					'provider'    => 'local',
-					'fontFamily'  => 'Source Serif Pro',
-					'fontStyle'   => 'normal',
-					'fontWeight'  => '200 900',
-					'fontStretch' => 'normal',
-					'src'         => 'https://example.com/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
-				),
-				'validated_webfont' => array(
-					'provider'     => 'local',
-					'font-family'  => 'Source Serif Pro',
-					'font-style'   => 'normal',
-					'font-weight'  => '200 900',
-					'font-display' => 'fallback',
-					'font-stretch' => 'normal',
-					'src'          => 'https://example.com/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
-				),
-				'expected'          => 'source-serif-pro.normal.200 900',
-			),
-			'kebab-case with src' => array(
+			'valid schema with src'             => array(
 				'webfont'           => array(
 					'provider'     => 'local',
 					'font-family'  => 'Source Serif Pro',
@@ -262,8 +225,8 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	 * As there are many moving parts to getting by provider, this test is an integration
 	 * test that does not mock.
 	 *
-	 * @covers       WP_Webfonts_Registry::get_by_provider
-	 * @covers       WP_Webfonts_Registry::register
+	 * @covers WP_Webfonts_Registry::get_by_provider
+	 * @covers WP_Webfonts_Registry::register
 	 *
 	 * @dataProvider data_get_by_provider_integrated
 	 *
@@ -291,10 +254,10 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 			'no webfonts for requested provider' => array(
 				'webfonts'    => array(
 					array(
-						'provider'   => 'google',
-						'fontFamily' => 'Lato',
-						'fontStyle'  => 'italic',
-						'fontWeight' => '400',
+						'provider'    => 'google',
+						'font-family' => 'Lato',
+						'font-style'  => 'italic',
+						'font-weight' => '400',
 					),
 				),
 				'provider_id' => 'local',
@@ -303,16 +266,16 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 			'with one provider'                  => array(
 				'webfonts'    => array(
 					array(
-						'provider'   => 'google',
-						'fontFamily' => 'Lato',
-						'fontStyle'  => 'italic',
-						'fontWeight' => '400',
+						'provider'    => 'google',
+						'font-family' => 'Lato',
+						'font-style'  => 'italic',
+						'font-weight' => '400',
 					),
 					array(
-						'provider'   => 'google',
-						'fontFamily' => 'Roboto',
-						'fontStyle'  => 'normal',
-						'fontWeight' => '900',
+						'provider'    => 'google',
+						'font-family' => 'Roboto',
+						'font-style'  => 'normal',
+						'font-weight' => '900',
 					),
 				),
 				'provider_id' => 'google',
@@ -338,24 +301,24 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 			'with multiple providers'            => array(
 				'webfonts'    => array(
 					array(
-						'provider'   => 'google',
-						'fontFamily' => 'Open Sans',
-						'fontStyle'  => 'normal',
-						'fontWeight' => '400',
+						'provider'    => 'google',
+						'font-family' => 'Open Sans',
+						'font-sstyle' => 'normal',
+						'font-weight' => '400',
 					),
 					array(
-						'provider'    => 'local',
-						'fontFamily'  => 'Source Serif Pro',
-						'fontStyle'   => 'normal',
-						'fontWeight'  => '200 900',
-						'fontStretch' => 'normal',
-						'src'         => 'https://example.com/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+						'provider'     => 'local',
+						'font-family'  => 'Source Serif Pro',
+						'font-style'   => 'normal',
+						'font-weight'  => '200 900',
+						'font-stretch' => 'normal',
+						'src'          => 'https://example.com/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
 					),
 					array(
-						'provider'   => 'google',
-						'fontFamily' => 'Roboto',
-						'fontStyle'  => 'normal',
-						'fontWeight' => '900',
+						'provider'    => 'google',
+						'font-family' => 'Roboto',
+						'font-style'  => 'normal',
+						'font-weight' => '900',
 					),
 				),
 				'provider_id' => 'local',
