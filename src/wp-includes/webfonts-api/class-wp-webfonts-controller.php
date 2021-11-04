@@ -118,26 +118,55 @@ class WP_Webfonts_Controller {
 	 * @return string $styles Generated styles.
 	 */
 	private function generate_styles() {
-		$styles    = '';
 		$providers = $this->get_providers()->get_all_registered();
+		if ( empty( $providers ) ) {
+			return '';
+		}
+
+		$styles = '';
+
+		/*
+		 * Loop through each of the providers to get the CSS for their respective webfonts
+		 * to incrementally generate the collective styles for all of them.
+		 */
 		foreach ( $providers as $provider_id => $provider ) {
 			$registered_webfonts = $this->webfonts_registry->get_by_provider( $provider_id );
 
-			if ( ! empty( $registered_webfonts ) && $provider->is_external() ) {
-				foreach ( $registered_webfonts as $key => $webfont ) {
-					if ( empty( $webfont['is-external'] ) || true !== $webfont['is-external'] ) {
-						unset( $registered_webfonts[ $key ] );
-					}
-				}
-			}
-
+			// If there are no registered webfonts for this provider, skip it.
 			if ( empty( $registered_webfonts ) ) {
 				continue;
 			}
 
+			/*
+			 * If the provider is external (fetches from an external font service),
+			 * remove any registered webfonts that are not marked as "okay to fetch"
+			 * from the external service.
+			 */
+			if ( $provider->is_external() ) {
+				$registered_webfonts = array_filter(
+					$registered_webfonts,
+					static function( $webfont ) {
+						return ( isset( $webfont['is-external'] ) && true === $webfont['is-external'] );
+					}
+				);
+
+				/*
+				 * After checking if each registered webfont is okay to fetch from external service,
+				 * if there are no remaining webfonts to process, skip this provider.
+				 */
+				if ( empty( $registered_webfonts ) ) {
+					continue;
+				}
+			}
+
+			/*
+			 * Process the webfonts by first passing them to the provider via `set_webfonts()`
+			 * and then getting the CSS from the provider.
+			 */
 			$provider->set_webfonts( $registered_webfonts );
 			$styles .= $provider->get_css();
 		}
+
 		return $styles;
 	}
 
