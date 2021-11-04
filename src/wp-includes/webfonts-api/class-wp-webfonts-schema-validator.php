@@ -80,6 +80,7 @@ class WP_Webfonts_Schema_Validator {
 		'font-style'   => 'normal',
 		'font-weight'  => '400',
 		'font-display' => 'fallback',
+		'is-external'  => false,
 	);
 
 	/**
@@ -252,7 +253,7 @@ class WP_Webfonts_Schema_Validator {
 			 * Skip valid configuration parameters
 			 * (these are configuring the webfont but are not @font-face properties).
 			 */
-			if ( 'provider' === $property || 'provider-params' === $property ) {
+			if ( 'provider' === $property || 'provider-params' === $property || 'is-external' === $property ) {
 				continue;
 			}
 

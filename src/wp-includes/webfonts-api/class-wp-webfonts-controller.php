@@ -123,6 +123,14 @@ class WP_Webfonts_Controller {
 		foreach ( $providers as $provider_id => $provider ) {
 			$registered_webfonts = $this->webfonts_registry->get_by_provider( $provider_id );
 
+			if ( ! empty( $registered_webfonts ) && $provider->is_external() ) {
+				foreach ( $registered_webfonts as $key => $webfont ) {
+					if ( empty( $webfont['is-external'] ) || true !== $webfont['is-external'] ) {
+						unset( $registered_webfonts[ $key ] );
+					}
+				}
+			}
+
 			if ( empty( $registered_webfonts ) ) {
 				continue;
 			}
