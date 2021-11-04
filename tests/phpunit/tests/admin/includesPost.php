@@ -876,6 +876,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 37406
 	 */
 	public function test_post_exists_should_support_post_type() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title     = 'Foo Bar';
 		$post_type = 'page';
 		$post_id   = self::factory()->post->create(
@@ -893,6 +903,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 37406
 	 */
 	public function test_post_exists_should_not_match_a_page_for_post() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title     = 'Foo Bar';
 		$post_type = 'page';
 		$post_id   = self::factory()->post->create(
@@ -910,6 +930,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 34012
 	 */
 	public function test_post_exists_should_support_post_status() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title       = 'Foo Bar';
 		$post_type   = 'post';
 		$post_status = 'publish';
@@ -930,6 +960,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 34012
 	 */
 	public function test_post_exists_should_support_post_type_status_combined() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title       = 'Foo Bar';
 		$post_type   = 'post';
 		$post_status = 'publish';
@@ -949,6 +989,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 34012
 	 */
 	public function test_post_exists_should_only_match_correct_post_status() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title       = 'Foo Bar';
 		$post_type   = 'post';
 		$post_status = 'draft';
@@ -968,6 +1018,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 34012
 	 */
 	public function test_post_exists_should_not_match_invalid_post_type_and_status_combined() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title       = 'Foo Bar';
 		$post_type   = 'post';
 		$post_status = 'publish';
