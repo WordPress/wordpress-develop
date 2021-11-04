@@ -40,6 +40,23 @@ class WP_Theme_JSON_Resolver {
 	private static $theme_has_support = null;
 
 	/**
+	 * Container for data coming from the user.
+	 *
+	 * @since 5.9.0
+	 * @var WP_Theme_JSON
+	 */
+	private static $user = null;
+
+	/**
+	 * Stores the ID of the custom post type
+	 * that holds the user data.
+	 *
+	 * @since 5.9.0
+	 * @var integer
+	 */
+	private static $user_custom_post_type_id = null;
+
+	/**
 	 * Container to keep loaded i18n schema for `theme.json`.
 	 *
 	 * @since 5.9.0
@@ -122,75 +139,244 @@ class WP_Theme_JSON_Resolver {
 	/**
 	 * Returns the theme's data.
 	 *
-	 * Data from theme.json can be augmented via the $theme_support_data variable.
-	 * This is useful, for example, to backfill the gaps in theme.json that a theme
-	 * has declared via add_theme_supports.
-	 *
-	 * Note that if the same data is present in theme.json and in $theme_support_data,
-	 * the theme.json's is not overwritten.
+	 * Data from theme.json will be backfilled from existing
+	 * theme supports, if any. Note that if the same data
+	 * is present in theme.json and in theme supports,
+	 * the theme.json takes precendence.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Theme supports have been inlined and the argument removed.
 	 *
-	 * @param array $theme_support_data Optional. Theme support data in theme.json format.
-	 *                                  Default empty array.
 	 * @return WP_Theme_JSON Entity that holds theme data.
 	 */
-	public static function get_theme_data( $theme_support_data = array() ) {
+	public static function get_theme_data() {
 		if ( null === self::$theme ) {
 			$theme_json_data = self::read_json_file( self::get_file_path_from_theme( 'theme.json' ) );
 			$theme_json_data = self::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
 			self::$theme     = new WP_Theme_JSON( $theme_json_data );
-		}
 
-		if ( empty( $theme_support_data ) ) {
-			return self::$theme;
+			if ( wp_get_theme()->parent() ) {
+				// Get parent theme.json.
+				$parent_theme_json_data = self::read_json_file( self::get_file_path_from_theme( 'theme.json', true ) );
+				$parent_theme_json_data = self::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
+				$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
+
+				// Merge the child theme.json into the parent theme.json.
+				// The child theme takes precedence over the parent.
+				$parent_theme->merge( self::$theme );
+				self::$theme = $parent_theme;
+			}
 		}
 
 		/*
-		 * We want the presets and settings declared in theme.json
-		 * to override the ones declared via add_theme_support.
-		 */
+		* We want the presets and settings declared in theme.json
+		* to override the ones declared via theme supports.
+		* So we take theme supports, transform it to theme.json shape
+		* and merge the self::$theme upon that.
+		*/
+		$theme_support_data  = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
 		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
 		$with_theme_supports->merge( self::$theme );
 
 		return $with_theme_supports;
 	}
 
+
 	/**
-	 * There are different sources of data for a site: core and theme.
+	 * Returns the CPT that contains the user's origin config
+	 * for the current theme or a void array if none found.
 	 *
-	 * While the getters {@link get_core_data}, {@link get_theme_data} return the raw data
-	 * from the respective origins, this method merges them all together.
+	 * It can also create and return a new draft CPT.
 	 *
-	 * If the same piece of data is declared in different origins (core and theme),
-	 * the last origin overrides the previous. For example, if core disables custom colors
-	 * but a theme enables them, the theme config wins.
+	 * @since 5.9.0
+	 *
+	 * @param bool  $should_create_cpt Whether a new CPT should be created if no one was found.
+	 *                                 False by default.
+	 * @param array $post_status_filter Filter CPT by post status.
+	 *                                  ['publish'] by default, so it only fetches published posts.
+	 *
+	 * @return array Custom Post Type for the user's origin config.
+	 */
+	private static function get_user_data_from_custom_post_type( $should_create_cpt = false, $post_status_filter = array( 'publish' ) ) {
+		$user_cpt         = array();
+		$post_type_filter = 'wp_global_styles';
+		$recent_posts     = wp_get_recent_posts(
+			array(
+				'numberposts' => 1,
+				'orderby'     => 'date',
+				'order'       => 'desc',
+				'post_type'   => $post_type_filter,
+				'post_status' => $post_status_filter,
+				'tax_query'   => array(
+					array(
+						'taxonomy' => 'wp_theme',
+						'field'    => 'name',
+						'terms'    => wp_get_theme()->get_stylesheet(),
+					),
+				),
+			)
+		);
+
+		if ( is_array( $recent_posts ) && ( count( $recent_posts ) === 1 ) ) {
+			$user_cpt = $recent_posts[0];
+		} elseif ( $should_create_cpt ) {
+			$cpt_post_id = wp_insert_post(
+				array(
+					'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
+					'post_status'  => 'publish',
+					'post_title'   => __( 'Custom Styles', 'default' ),
+					'post_type'    => $post_type_filter,
+					'post_name'    => 'wp-global-styles-' . urlencode( wp_get_theme()->get_stylesheet() ),
+					'tax_input'    => array(
+						'wp_theme' => array( wp_get_theme()->get_stylesheet() ),
+					),
+				),
+				true
+			);
+			$user_cpt    = get_post( $cpt_post_id, ARRAY_A );
+		}
+
+		return $user_cpt;
+	}
+
+	/**
+	 * Returns the user's origin config.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return WP_Theme_JSON Entity that holds user data.
+	 */
+	public static function get_user_data() {
+		if ( null !== self::$user ) {
+			return self::$user;
+		}
+
+		$config   = array();
+		$user_cpt = self::get_user_data_from_custom_post_type();
+		if ( array_key_exists( 'post_content', $user_cpt ) ) {
+			$decoded_data = json_decode( $user_cpt['post_content'], true );
+
+			$json_decoding_error = json_last_error();
+			if ( JSON_ERROR_NONE !== $json_decoding_error ) {
+				trigger_error( 'Error when decoding a theme.json schema for user data. ' . json_last_error_msg() );
+				return new WP_Theme_JSON( $config, 'user' );
+			}
+
+			// Very important to verify if the flag isGlobalStylesUserThemeJSON is true.
+			// If is not true the content was not escaped and is not safe.
+			if (
+				is_array( $decoded_data ) &&
+				isset( $decoded_data['isGlobalStylesUserThemeJSON'] ) &&
+				$decoded_data['isGlobalStylesUserThemeJSON']
+			) {
+				unset( $decoded_data['isGlobalStylesUserThemeJSON'] );
+				$config = $decoded_data;
+			}
+		}
+		self::$user = new WP_Theme_JSON( $config, 'user' );
+
+		return self::$user;
+	}
+
+	/**
+	 * There are three sources of data (origins) for a site:
+	 * core, theme, and user. The user's has higher priority
+	 * than the theme's, and the theme's higher than core's.
+	 *
+	 * Unlike the getters {@link get_core_data},
+	 * {@link get_theme_data}, and {@link get_user_data},
+	 * this method returns data after it has been merged
+	 * with the previous origins. This means that if the same piece of data
+	 * is declared in different origins (user, theme, and core),
+	 * the last origin overrides the previous.
+	 *
+	 * For example, if the user has set a background color
+	 * for the paragraph block, and the theme has done it as well,
+	 * the user preference wins.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Add user data and change the arguments.
 	 *
-	 * @param array $settings Optional. Existing block editor settings. Default empty array.
+	 * @param string $origin To what level should we merge data.
+	 *                       Valid values are 'theme' or 'user'.
+	 *                       Default is 'user'.
 	 * @return WP_Theme_JSON
 	 */
-	public static function get_merged_data( $settings = array() ) {
-		$theme_support_data = WP_Theme_JSON::get_from_editor_settings( $settings );
-
+	public static function get_merged_data( $origin = 'user' ) {
 		$result = new WP_Theme_JSON();
 		$result->merge( self::get_core_data() );
-		$result->merge( self::get_theme_data( $theme_support_data ) );
+		$result->merge( self::get_theme_data() );
+
+		if ( 'user' === $origin ) {
+			$result->merge( self::get_user_data() );
+		}
 
 		return $result;
+	}
+
+	/**
+	 * Registers a Custom Post Type to store the user's origin config.
+	 *
+	 * @since 5.9.0
+	 */
+	public static function register_user_custom_post_type() {
+		$args = array(
+			'label'        => __( 'Global Styles', 'gutenberg' ),
+			'description'  => 'CPT to store user design tokens',
+			'public'       => false,
+			'show_ui'      => false,
+			'show_in_rest' => false,
+			'capabilities' => array(
+				'read'                   => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+			),
+			'map_meta_cap' => true,
+			'supports'     => array(
+				'title',
+				'editor',
+				'revisions',
+			),
+		);
+		register_post_type( 'wp_global_styles', $args );
+	}
+
+	/**
+	 * Returns the ID of the custom post type
+	 * that stores user data.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return integer
+	 */
+	public static function get_user_custom_post_type_id() {
+		if ( null !== self::$user_custom_post_type_id ) {
+			return self::$user_custom_post_type_id;
+		}
+
+		$user_cpt = self::get_user_data_from_custom_post_type( true );
+		if ( array_key_exists( 'ID', $user_cpt ) ) {
+			self::$user_custom_post_type_id = $user_cpt['ID'];
+		}
+
+		return self::$user_custom_post_type_id;
 	}
 
 	/**
 	 * Whether the current theme has a theme.json file.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Also check in the parent theme.
 	 *
 	 * @return bool
 	 */
 	public static function theme_has_support() {
 		if ( ! isset( self::$theme_has_support ) ) {
-			self::$theme_has_support = (bool) self::get_file_path_from_theme( 'theme.json' );
+			self::$theme_has_support = is_readable( get_theme_file_path( 'theme.json' ) );
 		}
 
 		return self::$theme_has_support;
@@ -202,35 +388,32 @@ class WP_Theme_JSON_Resolver {
 	 * If it isn't, returns an empty string, otherwise returns the whole file path.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Adapt to work with child themes.
 	 *
 	 * @param string $file_name Name of the file.
+	 * @param bool   $template  Use template theme directroy. Default: false.
 	 * @return string The whole file path or empty if the file doesn't exist.
 	 */
-	private static function get_file_path_from_theme( $file_name ) {
-		/*
-		 * This used to be a locate_template call. However, that method proved problematic
-		 * due to its use of constants (STYLESHEETPATH) that threw errors in some scenarios.
-		 *
-		 * When the theme.json merge algorithm properly supports child themes,
-		 * this should also fall back to the template path, as locate_template did.
-		 */
-		$located   = '';
-		$candidate = get_stylesheet_directory() . '/' . $file_name;
-		if ( is_readable( $candidate ) ) {
-			$located = $candidate;
-		}
-		return $located;
+	private static function get_file_path_from_theme( $file_name, $template = false ) {
+		$path      = $template ? get_template_directory() : get_stylesheet_directory();
+		$candidate = $path . '/' . $file_name;
+
+		return is_readable( $candidate ) ? $candidate : '';
 	}
 
 	/**
 	 * Cleans the cached data so it can be recalculated.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Added new variables to reset.
 	 */
 	public static function clean_cached_data() {
-		self::$core              = null;
-		self::$theme             = null;
-		self::$theme_has_support = null;
+		self::$core                     = null;
+		self::$theme                    = null;
+		self::$user                     = null;
+		self::$user_custom_post_type_id = null;
+		self::$theme_has_support        = null;
+		self::$i18n_schema              = null;
 	}
 
 }
