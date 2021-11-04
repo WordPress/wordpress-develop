@@ -43,7 +43,7 @@ class WP_Webfonts_Registry {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @var string[]
+	 * @var array[]
 	 */
 	private $registry_by_provider = array();
 
