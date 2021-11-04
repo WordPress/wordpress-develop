@@ -191,6 +191,7 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 	 * Should retrieve the template from the theme files.
 	 */
 	function test_get_block_template_from_file() {
+		$this->markTestIncomplete();
 		// Requires switching to a block theme.
 		/* $id       = get_stylesheet() . '//' . 'index';
 		$template = get_block_template( $id, 'wp_template' );
