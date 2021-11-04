@@ -22,7 +22,7 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 	/**
 	 * @dataProvider array_key_last_provider
 	 */
-	public function test_array_key_last_string( $expected, $array ) {
+	public function test_array_key_last( $expected, $array ) {
 		if ( ! function_exists( 'array_key_last' ) ) {
 			$this->markTestSkipped( 'array_key_last() is not available.' );
 		} else {
