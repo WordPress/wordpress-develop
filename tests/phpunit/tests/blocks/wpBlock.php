@@ -628,4 +628,44 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$gradient_support = block_has_support( $block_type, array( 'color', 'gradient' ), true );
 		$this->assertFalse( $gradient_support );
 	}
+
+	/**
+	 * @ticket 51612
+	 */
+	public function test_block_filters_for_inner_blocks() {
+		$pre_render_callback           = new MockAction();
+		$render_block_data_callback    = new MockAction();
+		$render_block_context_callback = new MockAction();
+
+		$this->registry->register(
+			'core/outer',
+			array(
+				'render_callback' => function( $block_attributes, $content ) {
+					return $content;
+				},
+			)
+		);
+
+		$this->registry->register(
+			'core/inner',
+			array(
+				'render_callback' => function() {
+					return 'b';
+				},
+			)
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:outer -->a<!-- wp:inner /-->c<!-- /wp:outer -->' );
+		$parsed_block  = $parsed_blocks[0];
+
+		add_filter( 'pre_render_block', array( $pre_render_callback, 'filter' ) );
+		add_filter( 'render_block_data', array( $render_block_data_callback, 'filter' ) );
+		add_filter( 'render_block_context', array( $render_block_context_callback, 'filter' ) );
+
+		render_block( $parsed_block );
+
+		$this->assertSame( 2, $pre_render_callback->get_call_count() );
+		$this->assertSame( 2, $render_block_data_callback->get_call_count() );
+		$this->assertSame( 2, $render_block_context_callback->get_call_count() );
+	}
 }

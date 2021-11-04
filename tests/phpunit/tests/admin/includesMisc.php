@@ -4,6 +4,10 @@
  * @group admin
  */
 class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
+
+	/**
+	 * @covers ::url_shorten
+	 */
 	public function test_shorten_url() {
 		$tests = array(
 			'wordpress\.org/about/philosophy'

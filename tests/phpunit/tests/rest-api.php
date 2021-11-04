@@ -1830,6 +1830,48 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53656
+	 */
+	public function test_rest_get_route_for_post_custom_namespace() {
+		register_post_type(
+			'cpt',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'cpt',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'cpt' ) );
+
+		$this->assertSame( '/wordpress/v1/cpt/' . $post->ID, rest_get_route_for_post( $post ) );
+		unregister_post_type( 'cpt' );
+	}
+
+	/**
+	 * @ticket 53656
+	 */
+	public function test_rest_get_route_for_post_type_items() {
+		$this->assertSame( '/wp/v2/posts', rest_get_route_for_post_type_items( 'post' ) );
+	}
+
+	/**
+	 * @ticket 53656
+	 */
+	public function test_rest_get_route_for_post_type_items_custom_namespace() {
+		register_post_type(
+			'cpt',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'cpt',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+
+		$this->assertSame( '/wordpress/v1/cpt', rest_get_route_for_post_type_items( 'cpt' ) );
+		unregister_post_type( 'cpt' );
+	}
+
+	/**
 	 * @ticket 49116
 	 */
 	public function test_rest_get_route_for_post_non_rest() {
@@ -1839,10 +1881,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49116
+	 * @ticket 53656
 	 */
 	public function test_rest_get_route_for_post_custom_controller() {
 		$post = self::factory()->post->create_and_get( array( 'post_type' => 'wp_block' ) );
-		$this->assertSame( '', rest_get_route_for_post( $post ) );
+		$this->assertSame( '/wp/v2/blocks/' . $post->ID, rest_get_route_for_post( $post ) );
 	}
 
 	/**
@@ -1917,6 +1960,50 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_rest_get_route_for_term_id() {
 		$term = self::factory()->term->create_and_get();
 		$this->assertSame( '/wp/v2/tags/' . $term->term_id, rest_get_route_for_term( $term->term_id ) );
+	}
+
+	/**
+	 * @ticket 54267
+	 */
+	public function test_rest_get_route_for_taxonomy_custom_namespace() {
+		register_taxonomy(
+			'ct',
+			'post',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'ct',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'ct' ) );
+
+		$this->assertSame( '/wordpress/v1/ct/' . $term->term_id, rest_get_route_for_term( $term ) );
+		unregister_taxonomy( 'ct' );
+	}
+
+	/**
+	 * @ticket 54267
+	 */
+	public function test_rest_get_route_for_taxonomy_items() {
+		$this->assertSame( '/wp/v2/categories', rest_get_route_for_taxonomy_items( 'category' ) );
+	}
+
+	/**
+	 * @ticket 54267
+	 */
+	public function test_rest_get_route_for_taxonomy_items_custom_namespace() {
+		register_taxonomy(
+			'ct',
+			'post',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'ct',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+
+		$this->assertSame( '/wordpress/v1/ct', rest_get_route_for_taxonomy_items( 'ct' ) );
+		unregister_post_type( 'ct' );
 	}
 
 	/**

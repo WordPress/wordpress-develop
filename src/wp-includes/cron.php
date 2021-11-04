@@ -118,7 +118,11 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 	 * current time) all events scheduled within the next ten minutes
 	 * are considered duplicates.
 	 */
-	$crons     = (array) _get_cron_array();
+	$crons = _get_cron_array();
+	if ( ! is_array( $crons ) ) {
+		$crons = array();
+	}
+
 	$key       = md5( serialize( $event->args ) );
 	$duplicate = false;
 
@@ -1036,7 +1040,7 @@ function _wp_cron() {
  * @since 2.1.0
  * @since 5.4.0 The 'weekly' schedule was added.
  *
- * @return array
+ * @return array[]
  */
 function wp_get_schedules() {
 	$schedules = array(
@@ -1063,7 +1067,7 @@ function wp_get_schedules() {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param array $new_schedules An array of non-default cron schedules. Default empty.
+	 * @param array[] $new_schedules An array of non-default cron schedule arrays. Default empty.
 	 */
 	return array_merge( apply_filters( 'cron_schedules', array() ), $schedules );
 }
