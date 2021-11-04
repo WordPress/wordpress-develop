@@ -113,33 +113,35 @@ class WP_Webfonts_Registry {
 	 *     Webfont definition.
 	 *
 	 *    @type string       $provider                The provider ID (e.g. 'local', 'google').
-	 *    @type string       $font-family             The @font-face font-family property.
-	 *    @type string       $font-weight             The @font-face font-weight property.
+	 *    @type string       $font_family             The @font-face font-family property.
+	 *    @type string       $font_weight             The @font-face font-weight property.
 	 *                                                The font-weight can be a single value, or a range.
 	 *                                                If a single value, then the font-weight can either be
 	 *                                                a numeric value (400, 700, etc), or a word value
 	 *                                                (normal, bold, etc).
 	 *                                                If a range, then the font-weight can be a numeric range
 	 *                                                using 2 values, separated by a space ('100 700').
-	 *    @type string       $font-style              The @font-face font-style property.
+	 *    @type string       $font_style              The @font-face font-style property.
 	 *                                                The font-style can be a valid CSS value (normal, italic etc).
-	 *    @type string       $font-display            The @font-face font-display property.
+	 *    @type string       $font_display            The @font-face font-display property.
 	 *                                                Accepted values: 'auto', 'block', 'fallback', 'swap'.
 	 *    @type array|string $src                     The @font-face src property.
 	 *                                                The src can be a single URL, or an array of URLs.
-	 *    @type string       $font-stretch            The @font-face font-stretch property.
-	 *    @type string       $font-variant            The @font-face font-variant property.
-	 *    @type string       $font-feature-settings   The @font-face font-feature-settings property.
-	 *    @type string       $font-variation-settings The @font-face font-variation-settings property.
-	 *    @type string       $line-gap-override       The @font-face line-gap-override property.
-	 *    @type string       $size-adjust             The @font-face size-adjust property.
-	 *    @type string       $unicode-range           The @font-face unicode-range property.
-	 *    @type string       $ascend-override         The @font-face ascend-override property.
-	 *    @type string       $descend-override        The @font-face descend-override property.
+	 *    @type string       $font_stretch            The @font-face font-stretch property.
+	 *    @type string       $font_variant            The @font-face font-variant property.
+	 *    @type string       $font_feature_settings   The @font-face font-feature-settings property.
+	 *    @type string       $font_variation_settings The @font-face font-variation-settings property.
+	 *    @type string       $line_gap_override       The @font-face line-gap-override property.
+	 *    @type string       $size_adjust             The @font-face size-adjust property.
+	 *    @type string       $unicode_range           The @font-face unicode-range property.
+	 *    @type string       $ascend_override         The @font-face ascend-override property.
+	 *    @type string       $descend_override        The @font-face descend-override property.
 	 * }
 	 * @return string Registration key.
 	 */
 	public function register( array $webfont ) {
+		$webfont = $this->convert_to_kebab_case( $webfont );
+
 		// Validate schema.
 		if ( ! $this->validator->is_valid_schema( $webfont ) ) {
 			return '';
@@ -157,6 +159,24 @@ class WP_Webfonts_Registry {
 		$this->store_for_query_by( $webfont, $registration_key );
 
 		return $registration_key;
+	}
+
+	/**
+	 * Convert snake_case keys into kebab-case.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $webfont Webfont definition.
+	 * @return array Webfont with kebab-case properties (keys).
+	 */
+	private function convert_to_kebab_case( array $webfont ) {
+		$kebab_case = array();
+		foreach ( $webfont as $key => $value ) {
+			$converted_key                = str_replace( '_', '-', $key );
+			$kebab_case[ $converted_key ] = $value;
+		}
+
+		return $kebab_case;
 	}
 
 	/**
