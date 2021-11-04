@@ -163,7 +163,6 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 				),
 				'expected' => <<<CSS
 @font-face{
-	provider:local;
 	font-family:"Open Sans";
 	font-style:italic;
 	font-weight:400 900;
@@ -171,7 +170,6 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 	src:local("Open Sans"), url('/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf') format('ttf');
 }
 @font-face{
-	provider:local;
 	font-family:"Open Sans";
 	font-style:normal;
 	font-weight:400 900;
