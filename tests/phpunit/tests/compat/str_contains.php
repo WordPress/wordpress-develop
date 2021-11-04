@@ -3,7 +3,7 @@
 /**
  * @group compat
  *
- * @covers ::is_iterable
+ * @covers ::str_contains
  */
 class Tests_Compat_str_contains extends WP_UnitTestCase {
 
