@@ -7163,7 +7163,7 @@ function update_post_cache( &$posts ) {
 	}
 
 	foreach ( $posts as $post ) {
-		if ( empty( $post->filter ) ) {
+		if ( empty( $post->filter ) || 'raw' !== $post->filter ) {
 			$post = sanitize_post( $post, 'raw' );
 		}
 		wp_cache_add( $post->ID, $post, 'posts' );
