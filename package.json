@@ -99,6 +99,7 @@
 		"@wordpress/dom": "3.2.6",
 		"@wordpress/dom-ready": "3.2.2",
 		"@wordpress/edit-post": "5.0.5",
+		"@wordpress/edit-site": "3.0.5",
 		"@wordpress/edit-widgets": "3.1.0",
 		"@wordpress/editor": "12.0.2",
 		"@wordpress/element": "4.0.3",
