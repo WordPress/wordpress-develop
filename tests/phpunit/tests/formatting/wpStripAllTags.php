@@ -6,7 +6,7 @@
  */
 class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 
-	function test_wp_strip_all_tags() {
+	public function test_wp_strip_all_tags() {
 
 		$text = 'lorem<br />ipsum';
 		$this->assertSame( 'loremipsum', wp_strip_all_tags( $text ) );
