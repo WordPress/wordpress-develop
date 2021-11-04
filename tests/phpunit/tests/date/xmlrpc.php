@@ -212,7 +212,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @covers wp_xmlrpc_server::wp_editComment
 	 */
-	function test_date_edit_comment() {
+	public function test_date_edit_comment() {
 		$timezone = 'Europe/Kiev';
 		update_option( 'timezone_string', $timezone );
 
