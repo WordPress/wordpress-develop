@@ -514,6 +514,10 @@ function send_origin_headers() {
  * @return string|false URL or false on failure.
  */
 function wp_http_validate_url( $url ) {
+	if ( ! is_string( $url ) || '' === $url || is_numeric( $url ) ) {
+		return false;
+	}
+
 	$original_url = $url;
 	$url          = wp_kses_bad_protocol( $url, array( 'http', 'https' ) );
 	if ( ! $url || strtolower( $url ) !== strtolower( $original_url ) ) {
