@@ -100,7 +100,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertSame( $recur, wp_get_schedule( $hook, $args ) );
 	}
 
-
 	/**
 	 * Tests that a call to wp_schedule_event() on a site without any scheduled events
 	 * does not result in a PHP deprecation warning on PHP 8.1 or higher.
@@ -123,6 +122,30 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// Add an event.
 		$this->assertTrue( wp_schedule_event( $timestamp, 'daily', $hook ) );
+	}
+
+	/**
+	 * Tests that a call to wp_schedule_single_event() on a site without any scheduled events
+	 * does not result in the value "false" being added into the cron array.
+	 *
+	 * @ticket 53950
+	 *
+	 * @covers ::wp_schedule_single_event
+	 */
+	function test_wp_schedule_single_event_without_cron_option() {
+		delete_option( 'cron' );
+
+		// Verify that the cause of the error is in place.
+		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+
+		$hook      = __FUNCTION__;
+		$timestamp = strtotime( '+10 minutes' );
+
+		// Add an event.
+		$this->assertTrue( wp_schedule_single_event( $timestamp, $hook ), 'Scheduling single event failed' );
+
+		// Verify that "false" is not a value in the final cron array.
+		$this->assertNotContains( false, get_option( 'cron' ), 'Resulting cron array contains the value "false"' );
 	}
 
 	function test_unschedule_event() {
