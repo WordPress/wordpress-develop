@@ -2430,6 +2430,10 @@ function convert_chars( $content, $deprecated = '' ) {
  * @return string Converted string.
  */
 function convert_invalid_entities( $content ) {
+	if ( ! is_string( $content ) || '' === $content ) {
+		return $content;
+	}
+
 	$wp_htmltranswinuni = array(
 		'&#128;' => '&#8364;', // The Euro sign.
 		'&#129;' => '',
