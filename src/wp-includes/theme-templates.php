@@ -1,6 +1,34 @@
 <?php
 
 /**
+ * Sets a custom slug when creating auto-draft template parts.
+ * This is only needed for auto-drafts created by the regular WP editor.
+ * If this page is to be removed, this won't be necessary.
+ *
+ * @param int $post_id Post ID.
+ */
+function wp_set_unique_slug_on_create_template_part( $post_id ) {
+	$post = get_post( $post_id );
+	if ( 'auto-draft' !== $post->post_status ) {
+		return;
+	}
+
+	if ( ! $post->post_name ) {
+		wp_update_post(
+			array(
+				'ID'        => $post_id,
+				'post_name' => 'custom_slug_' . uniqid(),
+			)
+		);
+	}
+
+	$terms = get_the_terms( $post_id, 'wp_theme' );
+	if ( ! $terms || ! count( $terms ) ) {
+		wp_set_post_terms( $post_id, wp_get_theme()->get_stylesheet(), 'wp_theme' );
+	}
+}
+
+/**
  * Generates a unique slug for templates.
  *
  * @access private
@@ -29,7 +57,6 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 	 * in the case of new entities since is too early in the process to have been saved
 	 * to the entity. So for now we use the currently activated theme for creation.
 	 */
-
 	$theme = wp_get_theme()->get_stylesheet();
 	$terms = get_the_terms( $post_ID, 'wp_theme' );
 	if ( $terms && ! is_wp_error( $terms ) ) {
