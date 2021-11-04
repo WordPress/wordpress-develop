@@ -17,7 +17,7 @@
 class WP_Webfonts_Controller {
 
 	/**
-	 * Instance of the webfonts registry.
+	 * Instance of the webfont's registry.
 	 *
 	 * @since 5.9.0
 	 *
@@ -26,13 +26,13 @@ class WP_Webfonts_Controller {
 	private $webfonts_registry;
 
 	/**
-	 * Instance of the provider's registry.
+	 * Instance of the providers' registry.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @var WP_Webfonts_Provider_Registry
 	 */
-	private $providers;
+	private $providers_registry;
 
 	/**
 	 * Stylesheet handle.
@@ -48,15 +48,15 @@ class WP_Webfonts_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param WP_Webfonts_Registry          $webfonts_registry Instance of the webfonts registry.
-	 * @param WP_Webfonts_Provider_Registry $provider_registry Instance of the providers registry.
+	 * @param WP_Webfonts_Registry          $webfonts_registry  Instance of the webfonts' registry.
+	 * @param WP_Webfonts_Provider_Registry $providers_registry Instance of the providers' registry.
 	 */
 	public function __construct(
 		WP_Webfonts_Registry $webfonts_registry,
-		WP_Webfonts_Provider_Registry $provider_registry
+		WP_Webfonts_Provider_Registry $providers_registry
 	) {
-		$this->webfonts_registry = $webfonts_registry;
-		$this->providers         = $provider_registry;
+		$this->webfonts_registry  = $webfonts_registry;
+		$this->providers_registry = $providers_registry;
 	}
 
 	/**
@@ -65,7 +65,7 @@ class WP_Webfonts_Controller {
 	 * @since 5.9.0
 	 */
 	public function init() {
-		$this->providers->init();
+		$this->providers_registry->init();
 
 		// Register callback to generate and enqueue styles.
 		if ( did_action( 'wp_enqueue_scripts' ) ) {
@@ -82,6 +82,28 @@ class WP_Webfonts_Controller {
 
 		// Add resources hints.
 		add_filter( 'wp_resource_hints', array( $this, 'get_resource_hints' ), 10, 2 );
+	}
+
+	/**
+	 * Gets the instance of the webfonts' registry.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return WP_Webfonts_Registry
+	 */
+	public function webfonts() {
+		return $this->webfonts_registry;
+	}
+
+	/**
+	 * Gets the instance of the providers' registry.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return WP_Webfonts_Provider_Registry
+	 */
+	public function providers() {
+		return $this->providers_registry;
 	}
 
 	/**
@@ -118,7 +140,7 @@ class WP_Webfonts_Controller {
 	 * @return string $styles Generated styles.
 	 */
 	private function generate_styles() {
-		$providers = $this->get_providers()->get_all_registered();
+		$providers = $this->providers_registry->get_all_registered();
 		if ( empty( $providers ) ) {
 			return '';
 		}
@@ -171,29 +193,7 @@ class WP_Webfonts_Controller {
 	}
 
 	/**
-	 * Get the webfonts registry.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return WP_Webfonts_Registry
-	 */
-	public function get_webfonts_registry() {
-		return $this->webfonts_registry;
-	}
-
-	/**
-	 * Get the providers registry.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return WP_Webfonts_Provider_Registry
-	 */
-	public function get_providers() {
-		return $this->providers;
-	}
-
-	/**
-	 * Get the resource hints.
+	 * Gets the resource hints.
 	 *
 	 * @since 5.9.0
 	 *
@@ -213,14 +213,11 @@ class WP_Webfonts_Controller {
 	 * }
 	 * @param string $relation_type The relation type the URLs are printed for,
 	 *                              e.g. 'preconnect' or 'prerender'.
-	 *
 	 * @return array URLs to print for resource hints.
 	 */
 	public function get_resource_hints( $urls, $relation_type ) {
-		$providers = $this->get_providers()->get_all_registered();
-		foreach ( $providers as $provider ) {
-			$hints = $provider->get_resource_hints();
-			foreach ( $hints as $relation => $relation_hints ) {
+		foreach ( $this->providers_registry->get_all_registered() as $provider ) {
+			foreach ( $provider->get_resource_hints() as $relation => $relation_hints ) {
 				if ( $relation !== $relation_type ) {
 					continue;
 				}

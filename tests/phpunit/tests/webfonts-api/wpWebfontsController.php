@@ -153,4 +153,18 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 			'for wp_print_footer_scripts' => array( 'webfonts-footer' ),
 		);
 	}
+
+	/**
+	 * @covers WP_Webfonts_Controller::webfonts
+	 */
+	public function test_webfonts() {
+		$this->assertSame( $this->webfont_registry_mock, $this->controller->webfonts() );
+	}
+
+	/**
+	 * @covers WP_Webfonts_Controller::providers
+	 */
+	public function test_providers() {
+		$this->assertSame( $this->provider_registry_mock, $this->controller->providers() );
+	}
 }
