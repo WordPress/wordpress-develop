@@ -131,7 +131,7 @@ abstract class WP_Webfonts_Provider {
 			// Early return if the request failed.
 			// Cache an empty string for 60 seconds to avoid bottlenecks.
 			if ( empty( $css ) ) {
-				set_site_transient( $id, '', 60 );
+				set_site_transient( $id, '', MINUTE_IN_SECONDS );
 				return '';
 			}
 
