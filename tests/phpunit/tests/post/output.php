@@ -10,8 +10,8 @@ class Tests_Post_Output extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		add_shortcode( 'dumptag', array( $this, '_shortcode_dumptag' ) );
-		add_shortcode( 'paragraph', array( $this, '_shortcode_paragraph' ) );
+		add_shortcode( 'dumptag', array( $this, 'shortcode_dumptag' ) );
+		add_shortcode( 'paragraph', array( $this, 'shortcode_paragraph' ) );
 	}
 
 	public function tear_down() {
@@ -20,7 +20,7 @@ class Tests_Post_Output extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	public function _shortcode_dumptag( $atts ) {
+	public function shortcode_dumptag( $atts ) {
 		$out = '';
 		foreach ( $atts as $k => $v ) {
 			$out .= "$k = $v\n";
@@ -28,7 +28,7 @@ class Tests_Post_Output extends WP_UnitTestCase {
 		return $out;
 	}
 
-	public function _shortcode_paragraph( $atts, $content ) {
+	public function shortcode_paragraph( $atts, $content ) {
 		$processed_atts = shortcode_atts(
 			array(
 				'class' => 'graf',

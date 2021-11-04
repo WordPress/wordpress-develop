@@ -115,7 +115,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	 */
 	public function test_cat_uncat_action_tax() {
 		// Category with taxonomy added.
-		add_action( 'pre_get_posts', array( $this, '_cat_uncat_action_tax' ), 11 );
+		add_action( 'pre_get_posts', array( $this, 'cat_uncat_action_tax' ), 11 );
 
 		$this->go_to( home_url( '/category/uncategorized/' ) );
 		$this->assertQueryTrue( 'is_category', 'is_archive' );
@@ -125,10 +125,10 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
 		$this->assertEquals( get_queried_object(), $this->uncat );
 
-		remove_action( 'pre_get_posts', array( $this, '_cat_uncat_action_tax' ), 11 );
+		remove_action( 'pre_get_posts', array( $this, 'cat_uncat_action_tax' ), 11 );
 	}
 
-	public function _cat_uncat_action_tax( &$query ) {
+	public function cat_uncat_action_tax( &$query ) {
 		$this->assertTrue( $query->is_category() );
 		$this->assertTrue( $query->is_archive() );
 		$this->assertNotEmpty( $query->get( 'category_name' ) );

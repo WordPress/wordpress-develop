@@ -505,19 +505,19 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		 * arguments are an object.
 		 */
 		// In function.
-		add_filter( 'pre_wp_nav_menu', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
-		add_filter( 'wp_nav_menu_objects', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
-		add_filter( 'wp_nav_menu_items', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
+		add_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		add_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		add_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
 
 		// In walker.
-		add_filter( 'nav_menu_item_args', array( $this, '_confirm_nav_menu_item_args_object' ) );
+		add_filter( 'nav_menu_item_args', array( $this, 'confirm_nav_menu_item_args_object' ) );
 
-		add_filter( 'nav_menu_css_class', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		add_filter( 'nav_menu_item_id', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		add_filter( 'nav_menu_link_attributes', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		add_filter( 'nav_menu_item_title', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
+		add_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		add_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		add_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		add_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
 
-		add_filter( 'walker_nav_menu_start_el', array( $this, '_confirm_forth_param_args_object' ), 10, 4 );
+		add_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
 
 		wp_nav_menu(
 			array(
@@ -531,41 +531,41 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		 * Remove test filters.
 		 */
 		// In function.
-		remove_filter( 'pre_wp_nav_menu', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_objects', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_items', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
 
 		// In walker.
-		remove_filter( 'nav_menu_item_args', array( $this, '_confirm_nav_menu_item_args_object' ) );
+		remove_filter( 'nav_menu_item_args', array( $this, 'confirm_nav_menu_item_args_object' ) );
 
-		remove_filter( 'nav_menu_css_class', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_id', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_link_attributes', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_title', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
 
-		remove_filter( 'walker_nav_menu_start_el', array( $this, '_confirm_forth_param_args_object' ), 10, 4 );
+		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
 
 	}
 
 	/**
 	 * Run tests required to confrim Walker_Nav_Menu receives an $args object.
 	 */
-	public function _confirm_nav_menu_item_args_object( $args ) {
+	public function confirm_nav_menu_item_args_object( $args ) {
 		$this->assertIsObject( $args );
 		return $args;
 	}
 
-	public function _confirm_second_param_args_object( $ignored_1, $args ) {
+	public function confirm_second_param_args_object( $ignored_1, $args ) {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
-	public function _confirm_third_param_args_object( $ignored_1, $ignored_2, $args ) {
+	public function confirm_third_param_args_object( $ignored_1, $ignored_2, $args ) {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
-	public function _confirm_forth_param_args_object( $ignored_1, $ignored_2, $ignored_3, $args ) {
+	public function confirm_forth_param_args_object( $ignored_1, $ignored_2, $ignored_3, $args ) {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
