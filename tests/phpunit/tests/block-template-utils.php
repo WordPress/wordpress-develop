@@ -15,7 +15,7 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass() {
 		// We may need a block theme.
 		// switch_theme( 'tt1-blocks' );
-	
+
 		// Set up a template post corresponding to a different theme.
 		// We do this to ensure resolution and slug creation works as expected,
 		// even with another post of that same name present for another theme.
@@ -258,7 +258,7 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 
 		// Avoid testing the entire array because the theme might add/remove templates.
 		$this->assertContains( get_stylesheet() . '//' . 'my_template', $template_ids );
-		
+
 		// The result might change in a block theme.
 		// $this->assertContains( get_stylesheet() . '//' . 'index', $template_ids );
 
