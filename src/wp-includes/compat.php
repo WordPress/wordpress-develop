@@ -393,9 +393,9 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 * @since 5.9.0
 	 *
 	 */
-//	function str_contains( $haystack, $needle ) {
-//		return '' === $needle || false !== strpos( $haystack, $needle );
-//	}
+	function str_contains( $haystack, $needle ) {
+		return '' === $needle || false !== strpos( $haystack, $needle );
+	}
 }
 // IMG_WEBP constant is only defined in PHP 7.0.10 or later.
 if ( ! defined( 'IMG_WEBP' ) ) {
