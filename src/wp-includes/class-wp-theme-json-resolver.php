@@ -59,7 +59,8 @@ class WP_Theme_JSON_Resolver {
 	/**
 	 * Container to keep loaded i18n schema for `theme.json`.
 	 *
-	 * @since 5.9.0
+	 * @since 5.8.0
+	 * @since 5.9.0 Renamed from $theme_json_i18n
 	 * @var array
 	 */
 	private static $i18n_schema = null;
@@ -180,7 +181,6 @@ class WP_Theme_JSON_Resolver {
 
 		return $with_theme_supports;
 	}
-
 
 	/**
 	 * Returns the CPT that contains the user's origin config
