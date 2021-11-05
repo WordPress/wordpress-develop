@@ -40,10 +40,10 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 					'link'    => true,
 				),
 				'border'     => array(
-					'color'  => false,
+					'color'        => false,
 					'customRadius' => false,
-					'style'  => false,
-					'width'  => false,
+					'style'        => false,
+					'width'        => false,
 				),
 				'typography' => array(
 					'fontStyle'      => false,
@@ -55,10 +55,10 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 				'blocks'     => array(
 					'core/group' => array(
 						'border'     => array(
-							'color'  => true,
+							'color'        => true,
 							'customRadius' => true,
-							'style'  => true,
-							'width'  => true,
+							'style'        => true,
+							'width'        => true,
 						),
 						'typography' => array(
 							'fontStyle'      => true,

@@ -179,7 +179,7 @@ class WP_Theme_JSON {
 	 *
 	 * Each element maps the style property to the corresponding theme.json
 	 * setting key.
-	 * 
+	 *
 	 * @since 5.9.0
 	 */
 	const PROTECTED_PROPERTIES = array(

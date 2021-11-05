@@ -78,7 +78,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 							),
 						),
 					),
-					'gradients' => array(
+					'gradients'      => array(
 						'theme' => array(
 							array(
 								'name'     => 'Custom gradient',
@@ -208,7 +208,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'color'      => array(
 					'custom'         => false,
 					'customGradient' => false,
-					'gradients' => array(
+					'gradients'      => array(
 						'theme' => array(
 							array(
 								'name'     => 'Custom gradient',
@@ -241,7 +241,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'typography' => array(
 					'customFontSize' => false,
 					'lineHeight'     => true,
-					'fontSizes'       => array(
+					'fontSizes'      => array(
 						'theme' => array(
 							array(
 								'name' => 'Custom',

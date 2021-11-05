@@ -35,7 +35,7 @@ class WP_Theme_JSON_Schema {
 	public static function migrate( $theme_json ) {
 		if ( ! isset( $theme_json['version'] ) ) {
 			$theme_json = array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 			);
 		}
 
