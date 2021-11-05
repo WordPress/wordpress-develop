@@ -48,7 +48,8 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 
 		$this->provider->set_webfonts( $webfonts );
 
-		$this->assertSame( $webfonts, $this->get_webfonts_property() );
+		$property = $this->get_webfonts_property();
+		$this->assertSame( $webfonts, $property->getValue( $this->provider ) );
 	}
 
 	/**
@@ -156,6 +157,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 		$property = new ReflectionProperty( $this->provider, 'webfonts' );
 		$property->setAccessible( true );
 
-		return $property->getValue( $this->provider );
+		return $property;
 	}
 }
