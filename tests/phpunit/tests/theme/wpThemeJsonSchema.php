@@ -40,32 +40,32 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 					'link'    => true,
 				),
 				'border'     => array(
-					'customColor'  => false,
+					'color'  => false,
 					'customRadius' => false,
-					'customStyle'  => false,
-					'customWidth'  => false,
+					'style'  => false,
+					'width'  => false,
 				),
 				'typography' => array(
-					'customFontStyle'       => false,
-					'customFontWeight'      => false,
-					'customLetterSpacing'   => false,
-					'customTextDecorations' => false,
-					'customTextTransforms'  => false,
+					'fontStyle'      => false,
+					'fontWeight'     => false,
+					'letterSpacing'  => false,
+					'textDecoration' => false,
+					'textTransform'  => false,
 				),
 				'blocks'     => array(
 					'core/group' => array(
 						'border'     => array(
-							'customColor'  => true,
+							'color'  => true,
 							'customRadius' => true,
-							'customStyle'  => true,
-							'customWidth'  => true,
+							'style'  => true,
+							'width'  => true,
 						),
 						'typography' => array(
-							'customFontStyle'       => true,
-							'customFontWeight'      => true,
-							'customLetterSpacing'   => true,
-							'customTextDecorations' => true,
-							'customTextTransforms'  => true,
+							'fontStyle'      => true,
+							'fontWeight'     => true,
+							'letterSpacing'  => true,
+							'textDecoration' => true,
+							'textTransform'  => true,
 						),
 					),
 				),
@@ -103,7 +103,7 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 			),
 		);
 
-		$actual = WP_Theme_JSON_Schema_Gutenberg::migrate( $theme_json_v1 );
+		$actual = WP_Theme_JSON_Schema::migrate( $theme_json_v1 );
 
 		$expected = array(
 			'version'  => self::LATEST_SCHEMA_VERSION,
