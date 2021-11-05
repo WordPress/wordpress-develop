@@ -291,7 +291,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$custom_settings
 	);
 
-	$theme_json = WP_Theme_JSON_Resolver::get_merged_data( $editor_settings );
+	$theme_json = WP_Theme_JSON_Resolver::get_merged_data();
 
 	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
 		$editor_settings['styles'][] = array(
