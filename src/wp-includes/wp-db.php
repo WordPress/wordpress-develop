@@ -1170,7 +1170,7 @@ class wpdb {
 
 				$message .= '<p>' . sprintf(
 					/* translators: %s: Database name. */
-					__( 'We were able to connect to the database server (which means your username and password is okay) but not able to select the %s database.' ),
+					__( 'The database server could be connected (which means your username and password is okay) but the %s database could not be selected.' ),
 					'<code>' . htmlspecialchars( $db, ENT_QUOTES ) . '</code>'
 				) . "</p>\n";
 
@@ -1785,7 +1785,7 @@ class wpdb {
 
 			$message .= '<p>' . sprintf(
 				/* translators: 1: wp-config.php, 2: Database host. */
-				__( 'This either means that the username and password information in your %1$s file is incorrect or we can&#8217;t contact the database server at %2$s. This could mean your host&#8217;s database server is down.' ),
+				__( 'This either means that the username and password information in your %1$s file is incorrect or that contact with the database server at %2$s could not be established. This could mean your host&#8217;s database server is down.' ),
 				'<code>wp-config.php</code>',
 				'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
 			) . "</p>\n";
