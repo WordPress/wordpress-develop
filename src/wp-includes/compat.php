@@ -380,6 +380,8 @@ if ( ! function_exists( 'array_key_first' ) ) {
 	 *
 	 * Get the first key of the given array without affecting the internal array pointer.
 	 *
+	 * @ticket 45055
+	 * @ignore
 	 * @since 5.9.0
 	 *
 	 * @param array $array An array.
@@ -398,6 +400,8 @@ if ( ! function_exists( 'array_key_last' ) ) {
 	 *
 	 * Get the last key of the given array without affecting the internal array pointer.
 	 *
+	 * @ticket 45055
+	 * @ignore
 	 * @since 5.9.0
 	 *
 	 * @param array $array An array.

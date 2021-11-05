@@ -2,6 +2,7 @@
 
 /**
  * @group compat
+ * @ticket 45055
  *
  * @covers ::array_key_last
  */
@@ -30,6 +31,11 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * Data provider for test_array_key_last().
+	 *
+	 * @return array[]
+	 */
 	public function array_key_last_provider() {
 		return array(
 			'string_key'  => array(

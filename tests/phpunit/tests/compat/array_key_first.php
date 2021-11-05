@@ -2,6 +2,7 @@
 
 /**
  * @group compat
+ * @ticket 45055
  *
  * @covers ::array_key_first
  */
@@ -29,6 +30,11 @@ class Tests_Compat_array_key_first extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * Data provider for test_array_key_first().
+	 *
+	 * @return array[]
+	 */
 	public function array_key_first_provider() {
 		return array(
 			'string_key'  => array(
