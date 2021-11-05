@@ -91,7 +91,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'typography' => array(
 					'customFontSize' => false,
 					'lineHeight'     => true,
-					"fontSizes"      => array(
+					'fontSizes'      => array(
 						'theme' => array(
 							array(
 								'name' => 'Custom',
@@ -241,12 +241,12 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'typography' => array(
 					'customFontSize' => false,
 					'lineHeight'     => true,
-					"fontSizes"      => array(
+					'fontSizes'       => array(
 						'theme' => array(
 							array(
-								"name" => "Custom",
-								"slug" => "custom",
-								"size" => "100px",
+								'name' => 'Custom',
+								'slug' => 'custom',
+								'size' => '100px',
 							),
 						),
 					),
