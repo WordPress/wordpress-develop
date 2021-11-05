@@ -793,27 +793,15 @@ class WP_Theme_JSON {
 		if ( empty( $declarations ) ) {
 			return '';
 		}
-		$ruleset = '';
 
-		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-			$declaration_block = array_reduce(
-				$declarations,
-				function ( $carry, $element ) {
-					return $carry .= "\t" . $element['name'] . ': ' . $element['value'] . ";\n"; },
-				''
-			);
-			$ruleset          .= $selector . " {\n" . $declaration_block . "}\n";
-		} else {
-			$declaration_block = array_reduce(
-				$declarations,
-				function ( $carry, $element ) {
-					return $carry .= $element['name'] . ': ' . $element['value'] . ';'; },
-				''
-			);
-			$ruleset          .= $selector . '{' . $declaration_block . '}';
-		}
+		$declaration_block = array_reduce(
+			$declarations,
+			function ( $carry, $element ) {
+				return $carry .= $element['name'] . ': ' . $element['value'] . ';'; },
+			''
+		);
 
-		return $ruleset;
+		return $selector . '{' . $declaration_block . '}';
 	}
 
 	/**
