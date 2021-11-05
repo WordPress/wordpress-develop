@@ -220,6 +220,7 @@ function register_sidebars( $number = 1, $args = array() ) {
  *
  * @since 2.2.0
  * @since 5.6.0 Added the `before_sidebar` and `after_sidebar` arguments.
+ * @since 5.9.0 Added the `show_in_rest` argument.
  *
  * @global array $wp_registered_sidebars Registered sidebars.
  *
@@ -250,6 +251,8 @@ function register_sidebars( $number = 1, $args = array() ) {
  *     @type string $after_sidebar  HTML content to append to the sidebar when displayed.
  *                                  Outputs before the {@see 'dynamic_sidebar_after'} action.
  *                                  Default empty string.
+ *     @type bool $show_in_rest     Whether to show this sidebar publicly in the REST API.
+ *                                  Defaults to only showing the sidebar to administrator users.
  * }
  * @return string Sidebar ID added to $wp_registered_sidebars global.
  */
@@ -1036,7 +1039,6 @@ function wp_get_sidebars_widgets( $deprecated = true ) {
 	return apply_filters( 'sidebars_widgets', $sidebars_widgets );
 }
 
-
 /**
  * Retrieves the registered sidebar with the given id.
  *
@@ -1044,7 +1046,7 @@ function wp_get_sidebars_widgets( $deprecated = true ) {
  *
  * @global array $wp_registered_sidebars The registered sidebars.
  *
- * @param string|int $id ID of the sidebar.
+ * @param string $id The sidebar id.
  * @return array|null The discovered sidebar, or null if it is not registered.
  */
 function wp_get_sidebar( $id ) {
