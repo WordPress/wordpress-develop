@@ -881,7 +881,7 @@ class WP_Theme_JSON {
 		return $stylesheet;
 	}
 
-		/**
+	/**
 	 * Function that scopes a selector with another one. This works a bit like
 	 * SCSS nesting except the `&` operator isn't supported.
 	 *
