@@ -699,4 +699,52 @@ class Tests_Theme extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Verify the validate_theme_requirements theme responds as expected for twentyten.
+	 */
+	public function test_validate_theme_requirements_filter_default() {
+		// Default expectation since twentyten has the least strict requirements.
+		$this->assertTrue( validate_theme_requirements( 'twentyten' ) );
+	}
+
+	/**
+	 * Verify that a filtered failure of validate_theme_requirements returns WP_Error
+	 */
+	public function test_validate_theme_requirements_filter_error() {
+		// Adds an extra requirement that always fails.
+		add_filter(
+			'validate_theme_requirements',
+			function () {
+				return new WP_Error( 'theme_test_failed_requirement' );
+			}
+		);
+
+		$this->assertInstanceOf( 'WP_Error', validate_theme_requirements( 'twentyten' ) );
+
+		remove_all_filters( 'validate_theme_requirements' );
+	}
+
+	/**
+	 * Verify that the theme is passed through to the validate_theme_requirements filter by selectively erroring.
+	 */
+	public function test_validate_theme_requirements_filter_selective_failure() {
+		// Adds an extra requirement only for a particular theme.
+		add_filter(
+			'validate_theme_requirements',
+			function( $met_requirements, $stylesheet ) {
+				if ( 'twentytwenty' === $stylesheet ) {
+					return new WP_Error( 'theme_test_failed_requirement' );
+				}
+				return $met_requirements;
+			},
+			10,
+			2
+		);
+
+		$this->assertTrue( validate_theme_requirements( 'twentyten' ) );
+		$this->assertInstanceOf( 'WP_Error', validate_theme_requirements( 'twentytwenty' ) );
+
+		remove_all_filters( 'validate_theme_requirements' );
+	}
 }
