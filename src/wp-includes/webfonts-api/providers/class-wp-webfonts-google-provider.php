@@ -176,7 +176,7 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 
 		// If there are 2 values, treat them as a range.
 		if ( 2 === count( $font_weights ) ) {
-			$font_weights = range( $font_weights[0], $font_weights[1], 100 );
+			$font_weights = range( (int) $font_weights[0], (int) $font_weights[1], 100 );
 		}
 
 		return $font_weights;
