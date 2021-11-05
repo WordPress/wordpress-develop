@@ -779,11 +779,7 @@ class WP_Theme_JSON {
 	 * Given a selector and a declaration list,
 	 * creates the corresponding ruleset.
 	 *
-	 * To help debugging, will add some space
-	 * if SCRIPT_DEBUG is defined and true.
-	 *
 	 * @since 5.8.0
-	 * @since 5.9.0 Added debugging.
 	 *
 	 * @param string $selector     CSS selector.
 	 * @param array  $declarations List of declarations.
@@ -796,7 +792,7 @@ class WP_Theme_JSON {
 
 		$declaration_block = array_reduce(
 			$declarations,
-			function ( $carry, $element ) {
+			static function ( $carry, $element ) {
 				return $carry .= $element['name'] . ': ' . $element['value'] . ';'; },
 			''
 		);
