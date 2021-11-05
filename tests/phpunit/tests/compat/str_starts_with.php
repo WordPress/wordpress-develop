@@ -3,6 +3,8 @@
 /**
  * @group compat
  *
+ * @ticket 54377
+ *
  * @covers ::str_starts_with
  */
 class Tests_Compat_str_starts_with extends WP_UnitTestCase {
@@ -12,7 +14,7 @@ class Tests_Compat_str_starts_with extends WP_UnitTestCase {
 	 *
 	 * @ticket 43619
 	 */
-	public function test_is_iterable_availability() {
+	public function test_tr_starts_with_availability() {
 		$this->assertTrue( function_exists( 'str_starts_with' ) );
 	}
 	/**
@@ -30,6 +32,11 @@ class Tests_Compat_str_starts_with extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * Data provider for test_str_starts_with.
+	 *
+	 * @return array[]
+	 */
 	public function str_starts_with_provider() {
 		return array(
 			'lowercase'              => array(
@@ -51,6 +58,16 @@ class Tests_Compat_str_starts_with extends WP_UnitTestCase {
 				'expected' => true,
 				'string'   => 'cammelCase is the start',
 				'needle'   => 'cammelCase',
+			),
+			'null'                   => array(
+				'expected' => true,
+				'string'   => 'This\x00is a null test ',
+				'needle'   => 'This\x00is',
+			),
+			'trademark'              => array(
+				'expected' => true,
+				'string'   => 'trademark\x2122 is a null test ',
+				'needle'   => 'trademark\x2122',
 			),
 			'not_cammelCase'         => array(
 				'expected' => false,

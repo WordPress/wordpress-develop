@@ -340,6 +340,7 @@ if ( ! function_exists( 'sodium_crypto_box' ) ) {
 if ( ! function_exists( 'is_countable' ) ) {
 	/**
 	 * Polyfill for is_countable() function added in PHP 7.3.
+	 * @ignore
 	 *
 	 * Verify that the content of a variable is an array or an object
 	 * implementing the Countable interface.
@@ -361,6 +362,7 @@ if ( ! function_exists( 'is_countable' ) ) {
 if ( ! function_exists( 'is_iterable' ) ) {
 	/**
 	 * Polyfill for is_iterable() function added in PHP 7.1.
+	 * @ignore
 	 *
 	 * Verify that the content of a variable is an array or an object
 	 * implementing the Traversable interface.
@@ -377,16 +379,17 @@ if ( ! function_exists( 'is_iterable' ) ) {
 
 if ( ! function_exists( 'str_starts_with' ) ) {
 	/**
-	 * Polyfill for array_key_last() function added in PHP 7.3.
-	 *
+	 * Polyfill for str_starts_with() function added in PHP 8.
 	 * Performs a case-sensitive check indicating if needle is contained in haystack.
 	 *
-	 * @param $haystack The string to search in.
-	 * @param $needle The substring to search for in the haystack to is it startswith it.
-	 *
-	 * @return Boolean true if needle is the haystack and starts with it.
+	 * @ticket 54377
+	 * @ignore
 	 * @since 5.9.0
 	 *
+	 * @param $haystack string The string to search in.
+	 * @param $needle string The substring to search for in the haystack to is it startswith it.
+	 *
+	 * @return Boolean true if needle is the haystack and starts with it.
 	 */
 	function str_starts_with( $haystack, $needle ) {
 		return 0 === strpos( $haystack, $needle );
@@ -394,16 +397,19 @@ if ( ! function_exists( 'str_starts_with' ) ) {
 }
 if ( ! function_exists( 'str_ends_with' ) ) {
 	/**
-	 * Polyfill for array_key_last() function added in PHP 7.3.
+	 * Polyfill for str_ends_with() function added in PHP 7.3.
 	 *
 	 * Performs a case-sensitive check indicating if needle is contained in haystack.
 	 *
-	 * @param $haystack The string to search in.
-	 * @param $needle The substring to search for in the haystack to is it ends with it.
-	 *
-	 * @return Boolean true if needle is in haystack and ends with it.
+	 * @ticket 54377
+	 * @ignore
 	 * @since 5.9.0
 	 *
+	 *
+	 * @param $haystack string The string to search in.
+	 * @param $needle string The substring to search for in the haystack to is it ends with it.
+	 *
+	 * @return Boolean true if needle is in haystack and ends with it.
 	 */
 	function str_ends_with( $haystack, $needle ) {
 		return 0 === substr_compare( $haystack, $needle, -strlen( $needle ), strlen( $needle ) );
