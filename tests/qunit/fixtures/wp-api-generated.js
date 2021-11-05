@@ -6709,7 +6709,7 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/themes"
             }
         },
-        "/wp/v2/themes/(?P<stylesheet>[\\w-]+)": {
+        "/wp/v2/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
