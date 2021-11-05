@@ -375,6 +375,40 @@ if ( ! function_exists( 'is_iterable' ) ) {
 	}
 }
 
+if ( ! function_exists( 'str_starts_with' ) ) {
+	/**
+	 * Polyfill for array_key_last() function added in PHP 7.3.
+	 *
+	 * Performs a case-sensitive check indicating if needle is contained in haystack.
+	 *
+	 * @param $haystack The string to search in.
+	 * @param $needle The substring to search for in the haystack to is it startswith it.
+	 *
+	 * @return Boolean true if needle is the haystack and starts with it.
+	 * @since 5.9.0
+	 *
+	 */
+	function str_starts_with( $haystack, $needle ) {
+		return 0 === strpos( $haystack, $needle );
+	}
+}
+if ( ! function_exists( 'str_ends_with' ) ) {
+	/**
+	 * Polyfill for array_key_last() function added in PHP 7.3.
+	 *
+	 * Performs a case-sensitive check indicating if needle is contained in haystack.
+	 *
+	 * @param $haystack The string to search in.
+	 * @param $needle The substring to search for in the haystack to is it ends with it.
+	 *
+	 * @return Boolean true if needle is in haystack and ends with it.
+	 * @since 5.9.0
+	 *
+	 */
+	function str_ends_with( $haystack, $needle ) {
+		return 0 === substr_compare( $haystack, $needle, -strlen( $needle ), strlen( $needle ) );
+	}
+}
 // IMAGETYPE_WEBP constant is only defined in PHP 7.1 or later.
 if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
 	define( 'IMAGETYPE_WEBP', 18 );
