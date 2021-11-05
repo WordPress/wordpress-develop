@@ -31,7 +31,7 @@ $tabs = array(
 $tabs = apply_filters( 'site_health_navigation_tabs', $tabs );
 
 $wrapper_classes = array(
-	'admin-page-tabs-wrapper',
+	'wp-core-ui-tabs-wrapper',
 	'hide-if-no-js',
 	'tab-count-' . count( $tabs ),
 );
@@ -79,8 +79,8 @@ $health_check_site_status->check_wp_version_check_exists();
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
-<div class="admin-page-header">
-	<div class="admin-page-title-section">
+<div class="wp-core-ui-header">
+	<div class="wp-core-ui-title-section">
 		<h1>
 			<?php _e( 'Site Health' ); ?>
 		</h1>
@@ -100,14 +100,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	}
 	?>
 
-	<div class="admin-page-title-section admin-page-progress-wrapper loading hide-if-no-js">
-		<div class="admin-page-progress">
+	<div class="wp-core-ui-title-section wp-core-ui-progress-wrapper loading hide-if-no-js">
+		<div class="wp-core-ui-progress">
 			<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
 				<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 				<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 			</svg>
 		</div>
-		<div class="admin-page-progress-label">
+		<div class="wp-core-ui-progress-label">
 			<?php _e( 'Results are still loading&hellip;' ); ?>
 		</div>
 	</div>
@@ -126,7 +126,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		foreach ( $tabs_slice as $slug => $label ) {
 			printf(
-				'<a href="%s" class="admin-page-tab %s">%s</a>',
+				'<a href="%s" class="wp-core-ui-tab %s">%s</a>',
 				esc_url(
 					add_query_arg(
 						array(
@@ -142,17 +142,17 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
 
 		<?php if ( count( $tabs ) > 4 ) : ?>
-			<button type="button" class="admin-page-tab admin-page-offscreen-nav-wrapper" aria-haspopup="true">
+			<button type="button" class="wp-core-ui-tab wp-core-ui-offscreen-nav-wrapper" aria-haspopup="true">
 				<span class="dashicons dashicons-ellipsis"></span>
 				<span class="screen-reader-text"><?php _e( 'Toggle extra menu items' ); ?></span>
 
-				<div class="admin-page-offscreen-nav">
+				<div class="wp-core-ui-offscreen-nav">
 					<?php
 					// Remove the first few entries from the array as being already output.
 					$tabs_slice = array_slice( $tabs, 3 );
 					foreach ( $tabs_slice as $slug => $label ) {
 						printf(
-							'<a href="%s" class="admin-page-tab %s">%s</a>',
+							'<a href="%s" class="wp-core-ui-tab %s">%s</a>',
 							esc_url(
 								add_query_arg(
 									array(
@@ -197,7 +197,7 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	<p><?php _e( 'The Site Health check requires JavaScript.' ); ?></p>
 </div>
 
-<div class="admin-page-body admin-page-status-tab hide-if-no-js">
+<div class="wp-core-ui-body wp-core-ui-status-tab hide-if-no-js">
 	<div class="site-status-all-clear hide">
 		<p class="icon">
 			<span class="dashicons dashicons-yes"></span>
@@ -219,51 +219,51 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 
 		<p><?php _e( 'The site health check shows critical information about your WordPress configuration and items that require your attention.' ); ?></p>
 
-		<div class="admin-page-issues-wrapper" id="admin-page-issues-critical">
-			<h3 class="admin-page-issue-count-title">
+		<div class="wp-core-ui-issues-wrapper" id="wp-core-ui-issues-critical">
+			<h3 class="wp-core-ui-issue-count-title">
 				<?php
 					/* translators: %s: Number of critical issues found. */
 					printf( _n( '%s critical issue', '%s critical issues', 0 ), '<span class="issue-count">0</span>' );
 				?>
 			</h3>
 
-			<div id="admin-page-site-status-critical" class="admin-page-accordion issues"></div>
+			<div id="wp-core-ui-site-status-critical" class="wp-core-ui-accordion issues"></div>
 		</div>
 
-		<div class="admin-page-issues-wrapper" id="admin-page-issues-recommended">
-			<h3 class="admin-page-issue-count-title">
+		<div class="wp-core-ui-issues-wrapper" id="wp-core-ui-issues-recommended">
+			<h3 class="wp-core-ui-issue-count-title">
 				<?php
 					/* translators: %s: Number of recommended improvements. */
 					printf( _n( '%s recommended improvement', '%s recommended improvements', 0 ), '<span class="issue-count">0</span>' );
 				?>
 			</h3>
 
-			<div id="admin-page-site-status-recommended" class="admin-page-accordion issues"></div>
+			<div id="wp-core-ui-site-status-recommended" class="wp-core-ui-accordion issues"></div>
 		</div>
 	</div>
 
-	<div class="admin-page-view-more">
-		<button type="button" class="button admin-page-view-passed" aria-expanded="false" aria-controls="admin-page-issues-good">
+	<div class="wp-core-ui-view-more">
+		<button type="button" class="button wp-core-ui-view-passed" aria-expanded="false" aria-controls="wp-core-ui-issues-good">
 			<?php _e( 'Passed tests' ); ?>
 			<span class="icon"></span>
 		</button>
 	</div>
 
-	<div class="admin-page-issues-wrapper hidden" id="admin-page-issues-good">
-		<h3 class="admin-page-issue-count-title">
+	<div class="wp-core-ui-issues-wrapper hidden" id="wp-core-ui-issues-good">
+		<h3 class="wp-core-ui-issue-count-title">
 			<?php
 				/* translators: %s: Number of items with no issues. */
 				printf( _n( '%s item with no issues detected', '%s items with no issues detected', 0 ), '<span class="issue-count">0</span>' );
 			?>
 		</h3>
 
-		<div id="admin-page-site-status-good" class="admin-page-accordion issues"></div>
+		<div id="wp-core-ui-site-status-good" class="wp-core-ui-accordion issues"></div>
 	</div>
 </div>
 
 <script id="tmpl-health-check-issue" type="text/template">
-	<h4 class="admin-page-accordion-heading">
-		<button aria-expanded="false" class="admin-page-accordion-trigger" aria-controls="admin-page-accordion-block-{{ data.test }}" type="button">
+	<h4 class="wp-core-ui-accordion-heading">
+		<button aria-expanded="false" class="wp-core-ui-accordion-trigger" aria-controls="wp-core-ui-accordion-block-{{ data.test }}" type="button">
 			<span class="title">{{ data.label }}</span>
 			<# if ( data.badge ) { #>
 				<span class="badge {{ data.badge.color }}">{{ data.badge.label }}</span>
@@ -271,7 +271,7 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 			<span class="icon"></span>
 		</button>
 	</h4>
-	<div id="admin-page-accordion-block-{{ data.test }}" class="admin-page-accordion-panel" hidden="hidden">
+	<div id="wp-core-ui-accordion-block-{{ data.test }}" class="wp-core-ui-accordion-panel" hidden="hidden">
 		{{{ data.description }}}
 		<# if ( data.actions ) { #>
 			<div class="actions">

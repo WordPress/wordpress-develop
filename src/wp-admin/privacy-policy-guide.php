@@ -20,7 +20,7 @@ if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
 add_filter(
 	'admin_body_class',
 	static function( $body_class ) {
-		$body_class .= ' admin-page ';
+		$body_class .= ' wp-core-ui ';
 
 		return $body_class;
 	}
@@ -31,22 +31,22 @@ wp_enqueue_script( 'privacy-tools' );
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
-<div class="admin-page-header">
-	<div class="admin-page-title-section">
+<div class="wp-core-ui-header">
+	<div class="wp-core-ui-title-section">
 		<h1>
 			<?php _e( 'Privacy' ); ?>
 		</h1>
 	</div>
 
-	<nav class="admin-page-tabs-wrapper hide-if-no-js" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
-		<a href="<?php echo esc_url( admin_url( 'options-privacy.php' ) ); ?>" class="admin-page-tab">
+	<nav class="wp-core-ui-tabs-wrapper hide-if-no-js" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
+		<a href="<?php echo esc_url( admin_url( 'options-privacy.php' ) ); ?>" class="wp-core-ui-tab">
 			<?php
 			/* translators: Tab heading for Site Health Status page. */
 			_ex( 'Settings', 'Privacy Settings' );
 			?>
 		</a>
 
-		<a href="<?php echo esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) ); ?>" class="admin-page-tab active" aria-current="true">
+		<a href="<?php echo esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) ); ?>" class="wp-core-ui-tab active" aria-current="true">
 			<?php
 			/* translators: Tab heading for Site Health Status page. */
 			_ex( 'Policy Guide', 'Privacy Settings' );
@@ -61,21 +61,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<p><?php _e( 'The Privacy Settings require JavaScript.' ); ?></p>
 </div>
 
-<div class="admin-page-body hide-if-no-js">
+<div class="wp-core-ui-body hide-if-no-js">
 	<h2><?php _e( 'Privacy Policy Guide' ); ?></h2>
 	<h3 class="section-title"><?php _e( 'Introduction' ); ?></h3>
 	<p><?php _e( 'This text template will help you to create your web site&#8217;s privacy policy.' ); ?></p>
 	<p><?php _e( 'We have suggested the sections you will need. Under each section heading you will find a short summary of what information you should provide, which will help you to get started. Some sections include suggested policy content, others will have to be completed with information from your theme and plugins.' ); ?></p>
 	<p><?php _e( 'Please edit your privacy policy content, making sure to delete the summaries, and adding any information from your theme and plugins. Once you publish your policy page, remember to add it to your navigation menu.' ); ?></p>
 	<p><?php _e( 'It is your responsibility to write a comprehensive privacy policy, to make sure it reflects all national and international legal requirements on privacy, and to keep your policy current and accurate.' ); ?></p>
-	<div class="admin-page-accordion">
-		<h4 class="admin-page-accordion-heading">
-			<button aria-expanded="false" class="admin-page-accordion-trigger" aria-controls="admin-page-accordion-block-privacy-policy-guide" type="button">
+	<div class="wp-core-ui-accordion">
+		<h4 class="wp-core-ui-accordion-heading">
+			<button aria-expanded="false" class="wp-core-ui-accordion-trigger" aria-controls="wp-core-ui-accordion-block-privacy-policy-guide" type="button">
 				<span class="title"><?php _e( 'Privacy Policy Guide' ); ?></span>
 				<span class="icon"></span>
 			</button>
 		</h4>
-		<div id="admin-page-accordion-block-privacy-policy-guide" class="admin-page-accordion-panel" hidden="hidden">
+		<div id="wp-core-ui-accordion-block-privacy-policy-guide" class="wp-core-ui-accordion-panel" hidden="hidden">
 			<?php
 			$content = WP_Privacy_Policy_Content::get_default_content( true, false );
 			echo $content;
@@ -84,7 +84,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	</div>
 	<hr class="hr-separator">
 	<h3 class="section-title"><?php _e( 'Policies' ); ?></h3>
-	<div class="admin-page-accordion wp-privacy-policy-guide">
+	<div class="wp-core-ui-accordion wp-privacy-policy-guide">
 		<?php WP_Privacy_Policy_Content::privacy_policy_guide(); ?>
 	</div>
 </div>

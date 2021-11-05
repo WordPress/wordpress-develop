@@ -707,13 +707,13 @@ form#tags-filter {
 */
 
 /* General */
-.admin-page #wpcontent,
-.admin-page.auto-fold #wpcontent {
+.wp-core-ui #wpcontent,
+.wp-core-ui.auto-fold #wpcontent {
 	padding-left: 0;
 }
 
 /* Emulates .wrap h1 styling */
-.admin-page-header h1 {
+.wp-core-ui-header h1 {
 	display: inline-block;
 	font-weight: 600;
 	margin: 0 0.8rem 1rem;
@@ -724,14 +724,14 @@ form#tags-filter {
 
 
 /* Header */
-.admin-page-header {
+.wp-core-ui-header {
 	text-align: center;
 	margin: 0 0 1rem;
 	background: #fff;
 	border-bottom: 1px solid #dcdcde;
 }
 
-.admin-page-title-section {
+.wp-core-ui-title-section {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -739,7 +739,7 @@ form#tags-filter {
 	padding-top: 8px;
 }
 
-.admin-page-tabs-wrapper {
+.wp-core-ui-tabs-wrapper {
 	/* IE 11 */
 	display: -ms-inline-grid;
 	-ms-grid-columns: 1fr 1fr;
@@ -749,7 +749,7 @@ form#tags-filter {
 	grid-template-columns: 1fr 1fr;
 }
 
-.admin-page-tab {
+.wp-core-ui-tab {
 	display: block; /* IE 11 */
 	text-decoration: none;
 	color: inherit;
@@ -758,27 +758,27 @@ form#tags-filter {
 	transition: box-shadow 0.5s ease-in-out;
 }
 
-.admin-page-tab:nth-child(1) {
+.wp-core-ui-tab:nth-child(1) {
 	-ms-grid-column: 1; /* IE 11 */
 }
 
-.admin-page-tab:nth-child(2) {
+.wp-core-ui-tab:nth-child(2) {
 	-ms-grid-column: 2; /* IE 11 */
 }
 
-.admin-page-tab:focus {
+.wp-core-ui-tab:focus {
 	color: #1d2327;
 	outline: 1px solid #787c82;
 	box-shadow: none;
 }
 
-.admin-page-tab.active {
+.wp-core-ui-tab.active {
 	box-shadow: inset 0 -3px #3582c4;
 	font-weight: 600;
 }
 
 /* Body */
-.admin-page-body {
+.wp-core-ui-body {
 	max-width: 800px;
 	margin: 0 auto;
 }
@@ -793,11 +793,11 @@ form#tags-filter {
 }
 
 /* Accordions */
-.admin-page-accordion {
+.wp-core-ui-accordion {
 	border: 1px solid #c3c4c7;
 }
 
-.admin-page-accordion-heading {
+.wp-core-ui-accordion-heading {
 	margin: 0;
 	border-top: 1px solid #c3c4c7;
 	font-size: inherit;
@@ -806,11 +806,11 @@ form#tags-filter {
 	color: inherit;
 }
 
-.admin-page-accordion-heading:first-child {
+.wp-core-ui-accordion-heading:first-child {
 	border-top: none;
 }
 
-.admin-page-accordion-trigger {
+.wp-core-ui-accordion-trigger {
 	background: #fff;
 	border: 0;
 	color: #2c3338;
@@ -829,12 +829,12 @@ form#tags-filter {
 	user-select: auto;
 }
 
-.admin-page-accordion-trigger:hover,
-.admin-page-accordion-trigger:active {
+.wp-core-ui-accordion-trigger:hover,
+.wp-core-ui-accordion-trigger:active {
 	background: #f6f7f7;
 }
 
-.admin-page-accordion-trigger:focus {
+.wp-core-ui-accordion-trigger:focus {
 	color: #1d2327;
 	border: none;
 	box-shadow: none;
@@ -843,14 +843,14 @@ form#tags-filter {
 	background-color: #f6f7f7;
 }
 
-.admin-page-accordion-trigger .title {
+.wp-core-ui-accordion-trigger .title {
 	pointer-events: none;
 	font-weight: 600;
 	flex-grow: 1;
 }
 
-.admin-page-accordion-trigger .icon,
-.admin-page-view-passed .icon {
+.wp-core-ui-accordion-trigger .icon,
+.wp-core-ui-view-passed .icon {
 	border: solid #50575e;
 	border-width: 0 2px 2px 0;
 	height: 0.5rem;
@@ -862,96 +862,96 @@ form#tags-filter {
 	width: 0.5rem;
 }
 
-.admin-page-accordion-trigger .badge {
+.wp-core-ui-accordion-trigger .badge {
 	padding: 0.1rem 0.5rem 0.15rem;
 	color: #2c3338;
 	font-weight: 600;
 }
 
-.admin-page-accordion-trigger .badge {
+.wp-core-ui-accordion-trigger .badge {
 	margin-left: 0.5rem;
 }
 
-.admin-page-accordion-trigger .badge.blue {
+.wp-core-ui-accordion-trigger .badge.blue {
 	border: 1px solid #72aee6;
 }
 
-.admin-page-accordion-trigger .badge.orange {
+.wp-core-ui-accordion-trigger .badge.orange {
 	border: 1px solid #dba617;
 }
 
-.admin-page-accordion-trigger .badge.red {
+.wp-core-ui-accordion-trigger .badge.red {
 	border: 1px solid #e65054;
 }
 
-.admin-page-accordion-trigger .badge.green {
+.wp-core-ui-accordion-trigger .badge.green {
 	border: 1px solid #00ba37;
 }
 
-.admin-page-accordion-trigger .badge.purple {
+.wp-core-ui-accordion-trigger .badge.purple {
 	border: 1px solid #2271b1;
 }
 
-.admin-page-accordion-trigger .badge.gray {
+.wp-core-ui-accordion-trigger .badge.gray {
 	border: 1px solid #c3c4c7;
 }
 
-.admin-page-accordion-trigger[aria-expanded="true"] .icon,
-.admin-page-view-passed[aria-expanded="true"] .icon {
+.wp-core-ui-accordion-trigger[aria-expanded="true"] .icon,
+.wp-core-ui-view-passed[aria-expanded="true"] .icon {
 	transform: translateY(-30%) rotate(-135deg)
 }
 
-.admin-page-accordion-panel {
+.wp-core-ui-accordion-panel {
 	margin: 0;
 	padding: 1em 1.5em;
 	background: #fff;
 }
 
-.admin-page-accordion-panel[hidden] {
+.wp-core-ui-accordion-panel[hidden] {
 	display: none;
 }
 
-.admin-page-accordion-panel a .dashicons {
+.wp-core-ui-accordion-panel a .dashicons {
 	text-decoration: none;
 }
 
-.admin-page-accordion-actions {
+.wp-core-ui-accordion-actions {
 	text-align: right;
 	display: block;
 }
 
-.admin-page-accordion-actions .success {
+.wp-core-ui-accordion-actions .success {
 	display: none;
 	color: #008a20;
 	padding-right: 1em;
 	padding-top: 6px;
 }
 
-.admin-page-accordion-actions .success.visible {
+.wp-core-ui-accordion-actions .success.visible {
 	display: inline-block;
 }
 
 /* Suggested text for privacy policy */
-.admin-page-accordion-panel.hide-privacy-policy-tutorial .wp-policy-help, /* For back-compat, see #49282 */
-.admin-page-accordion-panel.hide-privacy-policy-tutorial .privacy-policy-tutorial,
-.admin-page-accordion-panel.hide-privacy-policy-tutorial .admin-page-text-copy {
+.wp-core-ui-accordion-panel.hide-privacy-policy-tutorial .wp-policy-help, /* For back-compat, see #49282 */
+.wp-core-ui-accordion-panel.hide-privacy-policy-tutorial .privacy-policy-tutorial,
+.wp-core-ui-accordion-panel.hide-privacy-policy-tutorial .wp-core-ui-text-copy {
 	display: none;
 }
 
-.admin-page-accordion-panel strong.wp-policy-help, /* For back-compat, see #49282 */
-.admin-page-accordion-panel strong.privacy-policy-tutorial {
+.wp-core-ui-accordion-panel strong.wp-policy-help, /* For back-compat, see #49282 */
+.wp-core-ui-accordion-panel strong.privacy-policy-tutorial {
 	display: block;
 	margin: 0 0 1em;
 }
 
-.admin-page-text-copy span {
+.wp-core-ui-text-copy span {
 	pointer-events: none;
 }
 
-.admin-page-accordion-panel .wp-suggested-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.admin-page-text-copy):not(span.success):not(.notice p),
-.admin-page-accordion-panel .wp-suggested-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.admin-page-text-copy):not(span.success):not(.notice p),
-.admin-page-accordion-panel > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.admin-page-text-copy):not(span.success):not(.notice p),
-.admin-page-accordion-panel div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.admin-page-text-copy):not(span.success):not(.notice p) {
+.wp-core-ui-accordion-panel .wp-suggested-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.wp-core-ui-text-copy):not(span.success):not(.notice p),
+.wp-core-ui-accordion-panel .wp-suggested-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.wp-core-ui-text-copy):not(span.success):not(.notice p),
+.wp-core-ui-accordion-panel > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.wp-core-ui-text-copy):not(span.success):not(.notice p),
+.wp-core-ui-accordion-panel div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.wp-core-ui-text-copy):not(span.success):not(.notice p) {
 	margin: 0;
 	padding: 1em;
 	border-left: 2px solid #787c82;
@@ -960,16 +960,16 @@ form#tags-filter {
 /* Media queries */
 @media screen and (max-width: 782px) {
 
-	.admin-page-body {
+	.wp-core-ui-body {
 		margin: 0 12px;
 		width: auto;
 	}
 
-	.admin-page .notice {
+	.wp-core-ui .notice {
 		margin: 5px 10px 15px;
 	}
 
-	.admin-page .update-nag {
+	.wp-core-ui .update-nag {
 		margin-right: 10px;
 		margin-left: 10px;
 	}
@@ -978,7 +978,7 @@ form#tags-filter {
 		margin-top: 10px;
 	}
 
-	.wp-core-ui button.admin-page-text-copy {
+	.wp-core-ui button.wp-core-ui-text-copy {
 		white-space: normal;
 		line-height: 1.8;
 	}
@@ -986,7 +986,7 @@ form#tags-filter {
 
 @media only screen and (max-width: 1004px) {
 
-	.admin-page-body {
+	.wp-core-ui-body {
 		margin: 0 22px;
 		width: auto;
 	}

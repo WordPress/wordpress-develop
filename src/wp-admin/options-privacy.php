@@ -21,7 +21,7 @@ if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
 add_filter(
 	'admin_body_class',
 	static function( $body_class ) {
-		$body_class .= ' admin-page ';
+		$body_class .= ' wp-core-ui ';
 
 		return $body_class;
 	}
@@ -133,22 +133,22 @@ wp_enqueue_script( 'privacy-tools' );
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
-<div class="admin-page-header">
-	<div class="admin-page-title-section">
+<div class="wp-core-ui-header">
+	<div class="wp-core-ui-title-section">
 		<h1>
 			<?php _e( 'Privacy' ); ?>
 		</h1>
 	</div>
 
-	<nav class="admin-page-tabs-wrapper hide-if-no-js" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
-		<a href="<?php echo esc_url( admin_url( 'options-privacy.php' ) ); ?>" class="admin-page-tab active" aria-current="true">
+	<nav class="wp-core-ui-tabs-wrapper hide-if-no-js" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
+		<a href="<?php echo esc_url( admin_url( 'options-privacy.php' ) ); ?>" class="wp-core-ui-tab active" aria-current="true">
 			<?php
 			/* translators: Tab heading for Site Health Status page. */
 			_ex( 'Settings', 'Privacy Settings' );
 			?>
 		</a>
 
-		<a href="<?php echo esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) ); ?>" class="admin-page-tab">
+		<a href="<?php echo esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) ); ?>" class="wp-core-ui-tab">
 			<?php
 			/* translators: Tab heading for Site Health Status page. */
 			_ex( 'Policy Guide', 'Privacy Settings' );
@@ -163,7 +163,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<p><?php _e( 'The Privacy Settings require JavaScript.' ); ?></p>
 </div>
 
-<div class="admin-page-body hide-if-no-js">
+<div class="wp-core-ui-body hide-if-no-js">
 	<h2><?php _e( 'Privacy Settings' ); ?></h2>
 	<p>
 		<?php _e( 'As a website owner, you may need to follow national or international privacy laws. For example, you may need to create and display a Privacy Policy.' ); ?>

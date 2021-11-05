@@ -281,8 +281,8 @@ jQuery( function( $ ) {
 
 		clearTimeout( copiedNoticeTimeout );
 
-		if ( $target.is( 'button.admin-page-text-copy' ) ) {
-			$parent = $target.closest( '.admin-page-accordion-panel' );
+		if ( $target.is( 'button.wp-core-ui-text-copy' ) ) {
+			$parent = $target.closest( '.wp-core-ui-accordion-panel' );
 
 			if ( $parent.length ) {
 				try {
@@ -332,7 +332,7 @@ jQuery( function( $ ) {
 	} );
 
 	// Accordion handling in various new Privacy settings pages.
-	$( '.admin-page-accordion' ).on( 'click', '.admin-page-accordion-trigger', function() {
+	$( '.wp-core-ui-accordion' ).on( 'click', '.wp-core-ui-accordion-trigger', function() {
 		var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
 
 		if ( isExpanded ) {

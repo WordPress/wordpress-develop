@@ -2,24 +2,24 @@
 duplicate styling from the Privacy settings screen
 are styled in the Privacy section of edit.css */
 
-.admin-page-body h2 {
+.wp-core-ui-body h2 {
 	line-height: 1.4;
 }
 
-.admin-page-body h3 {
+.wp-core-ui-body h3 {
 	padding: 0;
 	font-weight: 400;
 }
 
-.admin-page-widget-title-section {
+.wp-core-ui-widget-title-section {
 	text-align: center;
 }
 
-.admin-page-progress-wrapper {
+.wp-core-ui-progress-wrapper {
 	margin-bottom: 1rem;
 }
 
-.admin-page-progress {
+.wp-core-ui-progress {
 	display: inline-block;
 	height: 20px;
 	width: 20px;
@@ -30,7 +30,7 @@ are styled in the Privacy section of edit.css */
 	font-size: 0.4rem;
 }
 
-.admin-page-progress-count {
+.wp-core-ui-progress-count {
 	position: absolute;
 	display: block;
 	height: 80px;
@@ -44,39 +44,39 @@ are styled in the Privacy section of edit.css */
 	font-size: 2em;
 }
 
-.loading .admin-page-progress svg #bar {
+.loading .wp-core-ui-progress svg #bar {
 	stroke-dashoffset: 0;
 	stroke: #c3c4c7;
 	animation: loadingPulse 3s infinite ease-in-out;
 }
 
-.admin-page-progress svg circle {
+.wp-core-ui-progress svg circle {
 	stroke-dashoffset: 0;
 	transition: stroke-dashoffset 1s linear;
 	stroke: #c3c4c7;
 	stroke-width: 2em;
 }
 
-.admin-page-progress svg #bar {
+.wp-core-ui-progress svg #bar {
 	stroke-dashoffset: 565;
 	stroke: #d63638;
 }
 
-.green .admin-page-progress #bar {
+.green .wp-core-ui-progress #bar {
 	stroke: #00a32a;
 }
-.green .admin-page-progress .admin-page-progress-label {
+.green .wp-core-ui-progress .wp-core-ui-progress-label {
 	color: #00a32a;
 }
 
-.orange .admin-page-progress #bar {
+.orange .wp-core-ui-progress #bar {
 	stroke: #dba617;
 }
-.orange .admin-page-progress .admin-page-progress-label {
+.orange .wp-core-ui-progress .wp-core-ui-progress-label {
 	color: #dba617;
 }
 
-.admin-page-progress-label {
+.wp-core-ui-progress-label {
 	font-weight: 600;
 	line-height: 20px;
 	margin-left: 0.3rem;
@@ -94,7 +94,7 @@ are styled in the Privacy section of edit.css */
 	}
 }
 
-.admin-page-tabs-wrapper {
+.wp-core-ui-tabs-wrapper {
 	/* IE 11 */
 	display: -ms-inline-grid;
 	-ms-grid-columns: 1fr 1fr 1fr 1fr;
@@ -104,17 +104,17 @@ are styled in the Privacy section of edit.css */
 	grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
-.admin-page-tabs-wrapper.tab-count-1 {
+.wp-core-ui-tabs-wrapper.tab-count-1 {
 	grid-template-columns: 1fr;
 }
-.admin-page-tabs-wrapper.tab-count-2 {
+.wp-core-ui-tabs-wrapper.tab-count-2 {
 	grid-template-columns: 1fr 1fr;
 }
-.admin-page-tabs-wrapper.tab-count-3 {
+.wp-core-ui-tabs-wrapper.tab-count-3 {
 	grid-template-columns: 1fr 1fr 1fr;
 }
 
-.admin-page-tab {
+.wp-core-ui-tab {
 	display: block; /* IE 11 */
 	text-decoration: none;
 	color: inherit;
@@ -123,16 +123,16 @@ are styled in the Privacy section of edit.css */
 	transition: box-shadow 0.5s ease-in-out;
 }
 
-.admin-page-offscreen-nav-wrapper {
+.wp-core-ui-offscreen-nav-wrapper {
 	position: relative;
 	background: transparent;
 	border: none;
 }
-.admin-page-offscreen-nav-wrapper:focus .admin-page-offscreen-nav {
+.wp-core-ui-offscreen-nav-wrapper:focus .wp-core-ui-offscreen-nav {
 	left: initial;
 }
 
-.admin-page-offscreen-nav {
+.wp-core-ui-offscreen-nav {
 	display: none;
 	position: absolute;
 	padding-top: 10px;
@@ -140,10 +140,10 @@ are styled in the Privacy section of edit.css */
 	top: 100%;
 	width: 13rem;
 }
-.admin-page-offscreen-nav-wrapper.visible .admin-page-offscreen-nav {
+.wp-core-ui-offscreen-nav-wrapper.visible .wp-core-ui-offscreen-nav {
 	display: inline-block;
 }
-.admin-page-offscreen-nav:before {
+.wp-core-ui-offscreen-nav:before {
 	position: absolute;
 	content: "";
 	width: 0;
@@ -155,71 +155,71 @@ are styled in the Privacy section of edit.css */
 	top: 5px;
 }
 
-.admin-page-offscreen-nav .admin-page-tab {
+.wp-core-ui-offscreen-nav .wp-core-ui-tab {
 	background: #fff;
 	box-shadow: 0 2px 5px 0 rgba( 0, 0, 0, 0.75 );
 }
 
-.admin-page-offscreen-nav .admin-page-tab.active {
+.wp-core-ui-offscreen-nav .wp-core-ui-tab.active {
 	box-shadow: inset 3px 0 #3582c4;
 	font-weight: 600;
 }
 
-.admin-page-body {
+.wp-core-ui-body {
 	max-width: 800px;
 	margin: 0 auto;
 }
 
-.admin-page-table td:first-child {
+.wp-core-ui-table td:first-child {
 	width: 30%;
 }
 
-.admin-page-table td {
+.wp-core-ui-table td {
 	width: 70%;
 }
 
-.admin-page-table ul,
-.admin-page-table ol {
+.wp-core-ui-table ul,
+.wp-core-ui-table ol {
 	margin: 0;
 }
 
-.admin-page-body li {
+.wp-core-ui-body li {
 	line-height: 1.5;
 }
 
-.admin-page-body .pass::before,
-.admin-page-body .good::before {
+.wp-core-ui-body .pass::before,
+.wp-core-ui-body .good::before {
 	content: "\f147";
 	color: #00a32a;
 }
 
-.admin-page-body .warning::before {
+.wp-core-ui-body .warning::before {
 	content: "\f460";
 	color: #dba617;
 }
 
-.admin-page-body .info::before {
+.wp-core-ui-body .info::before {
 	content: "\f348";
 	color: #72aee6;
 }
 
-.admin-page-body .fail::before,
-.admin-page-body .error::before {
+.wp-core-ui-body .fail::before,
+.wp-core-ui-body .error::before {
 	content: "\f335";
 	color: #d63638;
 }
 
-.admin-page-copy-buttons {
+.wp-core-ui-copy-buttons {
 	margin: 1rem 0;
 }
 
-.admin-page-copy-buttons .copy-button-wrapper {
+.wp-core-ui-copy-buttons .copy-button-wrapper {
 	display: inline-flex;
 	align-items: center;
 	margin: 0.5rem 0 1rem;
 }
 
-.admin-page-copy-buttons .success {
+.wp-core-ui-copy-buttons .success {
 	color: #008a20;
 	margin-left: 0.5rem;
 }
@@ -228,15 +228,15 @@ are styled in the Privacy section of edit.css */
 	display: none;
 }
 
-.admin-page-view-more {
+.wp-core-ui-view-more {
 	text-align: center;
 }
 
-.admin-page-issues-wrapper:first-of-type {
+.wp-core-ui-issues-wrapper:first-of-type {
 	margin-top: 3rem;
 }
 
-.admin-page-issues-wrapper {
+.wp-core-ui-issues-wrapper {
 	margin-bottom: 3rem;
 	margin-top: 2rem;
 }
@@ -277,7 +277,7 @@ are styled in the Privacy section of edit.css */
 	margin: 0;
 }
 
-.wp-core-ui .button.admin-page-view-passed {
+.wp-core-ui .button.wp-core-ui-view-passed {
 	position: relative;
 	padding-right: 40px;
 	padding-left: 20px;
@@ -285,16 +285,16 @@ are styled in the Privacy section of edit.css */
 
 
 /* Better position for the WordPress admin notices and update nag. */
-.admin-page .notice {
+.wp-core-ui .notice {
 	margin: 5px 20px 15px 22px;
 }
 
-.admin-page .update-nag {
+.wp-core-ui .update-nag {
 	margin-bottom: 20px;
 	margin-left: 22px;
 }
 
-.admin-page-wp-paths-sizes.spinner {
+.wp-core-ui-wp-paths-sizes.spinner {
 	visibility: visible;
 	float: none;
 	margin: 0 4px;
@@ -302,56 +302,56 @@ are styled in the Privacy section of edit.css */
 }
 
 /* Styling unique to the dashboard widget. */
-#dashboard_site_health .admin-page-details {
+#dashboard_site_health .wp-core-ui-details {
 	padding-left: 16px;
 }
 
-#dashboard_site_health .admin-page-widget {
+#dashboard_site_health .wp-core-ui-widget {
 	display: grid;
 	grid-template-columns: 1fr 2fr;
 	grid-auto-rows: minmax(64px, auto);
 	column-gap: 16px;
 	align-items: center;
 }
-#dashboard_site_health .admin-page-progress-label {
+#dashboard_site_health .wp-core-ui-progress-label {
 	margin-left: 0;
 }
 
 @media screen and (max-width: 480px) {
-	#dashboard_site_health .admin-page-widget {
+	#dashboard_site_health .wp-core-ui-widget {
 		grid-template-columns: 100%;
 	}
 }
 
 @media screen and (max-width: 782px) {
 
-	.admin-page-issues-wrapper .admin-page-accordion-trigger {
+	.wp-core-ui-issues-wrapper .wp-core-ui-accordion-trigger {
 		flex-direction: column;
 		align-items: flex-start;
 	}
 
-	.admin-page-accordion-trigger .badge {
+	.wp-core-ui-accordion-trigger .badge {
 		margin: 1em 0 0;
 	}
 
-	.admin-page-table {
+	.wp-core-ui-table {
 		table-layout: fixed;
 	}
 
-	.admin-page-table td {
+	.wp-core-ui-table td {
 		box-sizing: border-box;
 		display: block;
 		width: 100%;
 		word-wrap: break-word;
 	}
 
-	.admin-page-table td:first-child {
+	.wp-core-ui-table td:first-child {
 		width: 100%;
 		padding-bottom: 0;
 		font-weight: 600;
 	}
 
-	.wp-core-ui .admin-page-copy-buttons .copy-button {
+	.wp-core-ui .wp-core-ui-copy-buttons .copy-button {
 		margin-bottom: 0;
 	}
 }

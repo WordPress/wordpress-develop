@@ -24,7 +24,7 @@ $health_check_site_status = WP_Site_Health::get_instance();
 	<p><?php _e( 'The Site Health check requires JavaScript.' ); ?></p>
 </div>
 
-<div class="admin-page-body admin-page-debug-tab hide-if-no-js">
+<div class="wp-core-ui-body wp-core-ui-debug-tab hide-if-no-js">
 	<?php
 
 	WP_Debug_Data::check_for_updates();
@@ -47,7 +47,7 @@ $health_check_site_status = WP_Site_Health::get_instance();
 		<?php _e( 'If you want to export a handy list of all the information on this page, you can use the button below to copy it to the clipboard. You can then paste it in a text file and save it to your device, or paste it in an email exchange with a support engineer or theme/plugin developer for example.' ); ?>
 	</p>
 
-	<div class="admin-page-copy-buttons">
+	<div class="wp-core-ui-copy-buttons">
 		<div class="copy-button-wrapper">
 			<button type="button" class="button copy-button" data-clipboard-text="<?php echo esc_attr( WP_Debug_Data::format( $info, 'debug' ) ); ?>">
 				<?php _e( 'Copy site info to clipboard' ); ?>
@@ -56,7 +56,7 @@ $health_check_site_status = WP_Site_Health::get_instance();
 		</div>
 	</div>
 
-	<div id="admin-page-debug" class="admin-page-accordion">
+	<div id="wp-core-ui-debug" class="wp-core-ui-accordion">
 
 		<?php
 
@@ -68,8 +68,8 @@ $health_check_site_status = WP_Site_Health::get_instance();
 			}
 
 			?>
-			<h3 class="admin-page-accordion-heading">
-				<button aria-expanded="false" class="admin-page-accordion-trigger" aria-controls="admin-page-accordion-block-<?php echo esc_attr( $section ); ?>" type="button">
+			<h3 class="wp-core-ui-accordion-heading">
+				<button aria-expanded="false" class="wp-core-ui-accordion-trigger" aria-controls="wp-core-ui-accordion-block-<?php echo esc_attr( $section ); ?>" type="button">
 					<span class="title">
 						<?php echo esc_html( $details['label'] ); ?>
 						<?php
@@ -84,7 +84,7 @@ $health_check_site_status = WP_Site_Health::get_instance();
 
 					if ( 'wp-paths-sizes' === $section ) {
 						?>
-						<span class="admin-page-wp-paths-sizes spinner"></span>
+						<span class="wp-core-ui-wp-paths-sizes spinner"></span>
 						<?php
 					}
 
@@ -93,7 +93,7 @@ $health_check_site_status = WP_Site_Health::get_instance();
 				</button>
 			</h3>
 
-			<div id="admin-page-accordion-block-<?php echo esc_attr( $section ); ?>" class="admin-page-accordion-panel" hidden="hidden">
+			<div id="wp-core-ui-accordion-block-<?php echo esc_attr( $section ); ?>" class="wp-core-ui-accordion-panel" hidden="hidden">
 				<?php
 
 				if ( isset( $details['description'] ) && ! empty( $details['description'] ) ) {
@@ -101,7 +101,7 @@ $health_check_site_status = WP_Site_Health::get_instance();
 				}
 
 				?>
-				<table class="widefat striped admin-page-table" role="presentation">
+				<table class="widefat striped wp-core-ui-table" role="presentation">
 					<tbody>
 					<?php
 
