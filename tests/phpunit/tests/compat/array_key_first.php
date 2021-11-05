@@ -11,11 +11,7 @@ class Tests_Compat_array_key_first extends WP_UnitTestCase {
 	 * Test that array_key_first() is always available (either from PHP or WP).
 	 */
 	public function test_array_key_first_availability() {
-		if ( ! function_exists( 'array_key_first' ) ) {
-			$this->markTestSkipped( 'array_key_first() is not available.' );
-		} else {
-			$this->assertTrue( function_exists( 'array_key_first' ) );
-		}
+		$this->assertTrue( function_exists( 'array_key_first' ) );
 	}
 
 	/**
