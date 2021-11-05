@@ -13,12 +13,9 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 	 * @ticket 43619
 	 */
 	public function test_is_iterable_availability() {
-		if ( ! function_exists( 'str_contains' ) ) {
-			$this->markTestSkipped( 'str_contains() is not available.' );
-		} else {
 			$this->assertTrue( function_exists( 'str_contains' ) );
-		}
 	}
+
 	/**
 	 * @dataProvider str_contains_provider
 	 */
