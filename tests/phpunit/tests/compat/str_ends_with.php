@@ -13,11 +13,7 @@ class Tests_Compat_str_ends_with extends WP_UnitTestCase {
 	 * @ticket 43619
 	 */
 	public function test_is_iterable_availability() {
-		if ( ! function_exists( 'str_ends_with' ) ) {
-			$this->markTestSkipped( 'str_ends_with() is not available.' );
-		} else {
-			$this->assertTrue( function_exists( 'str_ends_with' ) );
-		}
+		$this->assertTrue( function_exists( 'str_ends_with' ) );
 	}
 	/**
 	 * @dataProvider str_ends_with_provider
