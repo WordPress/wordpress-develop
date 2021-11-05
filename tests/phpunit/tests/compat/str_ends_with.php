@@ -67,7 +67,7 @@ class Tests_Compat_str_ends_with extends WP_UnitTestCase {
 				'string'   => 'This is a test extra',
 				'needle'   => 'test',
 			),
-			'extra_space'                => array(
+			'extra_space'            => array(
 				'expected' => false,
 				'string'   => 'This is a test ',
 				'needle'   => 'test',
