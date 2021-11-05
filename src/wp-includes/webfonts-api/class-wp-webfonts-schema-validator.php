@@ -126,7 +126,6 @@ class WP_Webfonts_Schema_Validator {
 	 * @return bool True if valid. False if invalid.
 	 */
 	private function is_valid_provider( array $webfont ) {
-
 		if (
 			empty( $webfont['provider'] ) ||
 			! is_string( $webfont['provider'] )
