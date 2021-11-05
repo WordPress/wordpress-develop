@@ -221,9 +221,8 @@ class WP_Webfonts_Controller {
 				if ( $relation !== $relation_type ) {
 					continue;
 				}
-				foreach ( $relation_hints as $hint ) {
-					$urls[] = $hint;
-				}
+				// Append this provider's resource hints to the end of the given `$urls` array.
+				array_push( $urls, ...$relation_hints );
 			}
 		}
 

@@ -24,7 +24,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Webfonts_Registry::get_all_registered
 	 */
-	public function get_all_registered() {
+	public function test_get_all_registered() {
 		$expected = array(
 			'open-sans.normal.400' => array(
 				'provider'     => 'google',
@@ -46,7 +46,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 		 * Set the registry property.
 		 * This is set in WP_Webfonts_Registry::register(), which not part of this test.
 		 */
-		$property = new ReflectionProperty( $this->registry, 'registry' );
+		$property = new ReflectionProperty( $this->registry, 'registered' );
 		$property->setAccessible( true );
 		$property->setValue( $this->registry, $expected );
 
@@ -54,7 +54,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers       WP_Webfonts_Registry::register
+	 * @covers WP_Webfonts_Registry::register
 	 *
 	 * @dataProvider data_register_with_invalid_schema
 	 *

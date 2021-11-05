@@ -8,7 +8,19 @@
  */
 
 /**
- * Webfonts API provider for Google Fonts.
+ * A core bundled provider for making remote requests to the
+ * Google Fonts API service and generating `@font-face` styles.
+ *
+ * This provider builds optimized request URL(s) for its webfonts,
+ * makes a remote request to the Google Fonts API service, and
+ * then generates the `@font-face` styles.
+ *
+ * When enqueued styles are rendered, the Controller passes its
+ * 'google' webfonts via the `set_webfonts()` method and then triggers
+ * the processing via the `get_css()` method.
+ *
+ * All know-how (business logic) for how to interact with and
+ * generate styles from Google Fonts API is contained in this provider.
  *
  * @since 5.9.0
  */
@@ -48,11 +60,17 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	);
 
 	/**
-	 * Get the CSS for a collection of fonts.
+	 * Gets the `@font-face` CSS styles for Google Fonts.
 	 *
-	 * @access public
-	 * @since  5.9.0
-	 * @return string
+	 * This method does the following processing tasks:
+	 *    1. Orchestrates an optimized Google Fonts API URL for each font-family.
+	 *    2. Caches each URL, if not already cached.
+	 *    3. Does a remote request to the Google Fonts API service to fetch the styles.
+	 *    4. Generates the `@font-face` for all its webfonts.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return string The `@font-face` CSS.
 	 */
 	public function get_css() {
 		$css  = '';
@@ -66,35 +84,49 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Build the API URL for a collection of fonts.
+	 * Builds the Google Fonts URL for a collection of webfonts.
+	 *
+	 * For example, if given the following webfonts:
+	 * ```
+	 * array(
+	 *      array(
+	 *          'font-family' => 'Source Serif Pro',
+	 *          'font-style'  => 'normal',
+	 *          'font-weight' => '200 400',
+	 *      ),
+	 *      array(
+	 *          'font-family' => 'Source Serif Pro',
+	 *          'font-style'  => 'italic',
+	 *          'font-weight' => '400 600',
+	 *      ),
+	 * )
+	 * ```
+	 * then the returned collection would be:
+	 * ```
+	 * array(
+	 *      'https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,200;0,300;0,400;1,400;1,500;1,600&display=fallback'
+	 * )
+	 * ```
 	 *
 	 * @since 5.9.0
 	 *
 	 * @return array Collection of font-family urls.
 	 */
-	protected function build_collection_api_urls() {
+	private function build_collection_api_urls() {
 		$font_families_urls = array();
 
-		// Iterate over each font-family group and build the API URL partial for that font-family.
+		/*
+		 * Iterate over each font-family group to build the Google Fonts API URL
+		 * for that specific family. Each is added to the collection of URLs to be
+		 * returned to the `get_css()` method for making the remote request.
+		 */
 		foreach ( $this->organize_webfonts() as $font_display => $font_families ) {
-			$font_display_url_parts = array();
+			$url_parts = array();
 			foreach ( $font_families as $font_family => $webfonts ) {
-				$normal_weights = array();
-				$italic_weights = array();
-				$url_part       = urlencode( $font_family );
+				list( $normal_weights, $italic_weights ) = $this->collect_font_weights( $webfonts );
 
-				// Build an array of font-weights for italics and default styles.
-				foreach ( $webfonts as $font ) {
-					if ( 'italic' === $font['font-style'] ) {
-						$italic_weights = array_merge( $italic_weights, $this->get_font_weights( $font['font-weight'] ) );
-					} else {
-						$normal_weights = array_merge( $normal_weights, $this->get_font_weights( $font['font-weight'] ) );
-					}
-				}
-
-				$normal_weights = array_unique( $normal_weights );
-				$italic_weights = array_unique( $italic_weights );
-
+				// Build the font-style with its font-weights.
+				$url_part = urlencode( $font_family );
 				if ( empty( $italic_weights ) && ! empty( $normal_weights ) ) {
 					$url_part .= ':wght@' . implode( ';', $normal_weights );
 				} elseif ( ! empty( $italic_weights ) && empty( $normal_weights ) ) {
@@ -103,21 +135,61 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 					$url_part .= ':ital,wght@0,' . implode( ';0,', $normal_weights ) . ';1,' . implode( ';1,', $italic_weights );
 				}
 
-				$font_display_url_parts[] = $url_part;
+				// Add it to the collection.
+				$url_parts[] = $url_part;
 			}
 
-			$font_families_urls[] = $this->root_url . '?family=' . implode( '&family=', $font_display_url_parts ) . '&display=' . $font_display;
+			// Build the URL for this font-family and add it to the collection.
+			$font_families_urls[] = $this->root_url . '?family=' . implode( '&family=', $url_parts ) . '&display=' . $font_display;
 		}
 
 		return $font_families_urls;
 	}
 
 	/**
-	 * Organizes the webfonts by font-display.
+	 * Organizes the webfonts by font-display and then font-family.
 	 *
-	 * @since 5.8.0
+	 * To optimizing building the URL for the Google Fonts API request,
+	 * this method organizes the webfonts first by font-display and then
+	 * by font-family.
 	 *
-	 * @return array Sorted by font-display.
+	 * For example, if given the following webfonts:
+	 * ```
+	 * array(
+	 *      array(
+	 *          'font-family' => 'Source Serif Pro',
+	 *          'font-style'  => 'normal',
+	 *          'font-weight' => '200 400',
+	 *      ),
+	 *      array(
+	 *          'font-family' => 'Source Serif Pro',
+	 *          'font-style'  => 'italic',
+	 *          'font-weight' => '400 600',
+	 *      ),
+	 * )
+	 * ```
+	 * then the returned collection would be:
+	 * ```
+	 * array(
+	 *      'fallback' => array(
+	 *          'Source Serif Pro' => array(
+	 *              array(
+	 *                  'font-family' => 'Source Serif Pro',
+	 *                  'font-style'  => 'normal',
+	 *                  'font-weight' => '200 400',
+	 *              ),
+	 *              array(
+	 *                  'font-family' => 'Source Serif Pro',
+	 *                  'font-style'  => 'italic',
+	 *                  'font-weight' => '400 600',
+	 *              ),
+	 *         ),
+	 *      ),
+	 * )
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array[][] Webfonts organized by font-display and then font-family.
 	 */
 	private function organize_webfonts() {
 		$font_display_groups = array();
@@ -159,17 +231,87 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Get an array of font-weights from the given font-weights if using a space delimited string.
+	 * Collects all font-weights grouped by 'normal' and 'italic' font-style.
+	 *
+	 * For example, if given the following webfonts:
+	 * ```
+	 * array(
+	 *      array(
+	 *          'font-family' => 'Source Serif Pro',
+	 *          'font-style'  => 'normal',
+	 *          'font-weight' => '200 400',
+	 *      ),
+	 *      array(
+	 *          'font-family' => 'Source Serif Pro',
+	 *          'font-style'  => 'italic',
+	 *          'font-weight' => '400 600',
+	 *      ),
+	 * )
+	 * ```
+	 * Then the returned collection would be:
+	 * ```
+	 * array(
+	 *      array( 200, 300, 400 ),
+	 *      array( 400, 500, 600 ),
+	 * )
+	 * ```
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $webfonts Webfonts to process.
+	 * @return array[] {
+	 *    The font-weights grouped by font-style.
+	 *
+	 *    @type array $normal_weights  Individual font-weight values for 'normal' font-style.
+	 *    @type array $italic_weights  Individual font-weight values for 'italic' font-style.
+	 * }
+	 */
+	private function collect_font_weights( array $webfonts ) {
+		$normal_weights = array();
+		$italic_weights = array();
+
+		foreach ( $webfonts as $webfont ) {
+			$font_weights = $this->get_font_weights( $webfont['font-weight'] );
+			// Skip this webfont if it does not have a font-weight defined.
+			if ( empty( $font_weights ) ) {
+				continue;
+			}
+
+			// Add the individual font-weights to the end of font-style array.
+			if ( 'italic' === $webfont['font-style'] ) {
+				array_push( $italic_weights, ...$font_weights );
+			} else {
+				array_push( $normal_weights, ...$font_weights );
+			}
+		}
+
+		// Remove duplicates.
+		$normal_weights = array_unique( $normal_weights );
+		$italic_weights = array_unique( $italic_weights );
+
+		return array( $normal_weights, $italic_weights );
+	}
+
+	/**
+	 * Converts the given string of font-weight into an array of individual weight values.
+	 *
+	 * When given a single font-weight, the value is wrapped into an array.
+	 *
+	 * A range of font-weights is specified as '400 600' with the lightest value first,
+	 * a space, and then the heaviest value last.
+	 *
+	 * When given a range of font-weight values, the range is converted into individual
+	 * font-weight values. For example, a range of '400 600' is converted into
+	 * `array( 400, 500, 600 )`.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param string $font_weights The font-weights string.
-	 *
 	 * @return array The font-weights array.
 	 */
-	protected function get_font_weights( $font_weights ) {
+	private function get_font_weights( $font_weights ) {
 		if ( false === strpos( $font_weights, ' ' ) ) {
-			return (array) $font_weights;
+			return array( $font_weights );
 		}
 
 		$font_weights = explode( ' ', $font_weights );

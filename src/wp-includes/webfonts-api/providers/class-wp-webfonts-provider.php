@@ -77,17 +77,6 @@ abstract class WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Get the root URL for the provider.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return string
-	 */
-	public function get_root_url() {
-		return $this->root_url;
-	}
-
-	/**
 	 * Sets this provider's webfonts property.
 	 *
 	 * The API's Controller passes this provider's webfonts
@@ -102,34 +91,40 @@ abstract class WP_Webfonts_Provider {
 	}
 
 	/**
-	 * Get the CSS for the font.
+	 * Gets the `@font-face` CSS for the provider's webfonts.
+	 *
+	 * This method is where the provider does it processing to build the
+	 * needed `@font-face` CSS for all of its webfonts. Specifics of how
+	 * this processing is done is contained in each provider.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return string Webfonts CSS.
+	 * @return string The `@font-face` CSS.
 	 */
 	abstract public function get_css();
 
 	/**
-	 * Get cached styles from a remote URL.
+	 * Gets cached styles from a remote URL.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string $id               An ID used to cache the styles.
-	 * @param string $url              The URL to fetch.
-	 * @param array  $args             The arguments to pass to wp_remote_get().
-	 * @param array  $additional_props Additional properties to add to the @font-face styles.
+	 * @param string $id   An ID used to cache the styles.
+	 * @param string $url  The URL to fetch.
+	 * @param array  $args Optional. The arguments to pass to `wp_remote_get()`.
+	 *                     Default empty array.
 	 * @return string The styles.
 	 */
-	public function get_cached_remote_styles( $id, $url, array $args = array(), array $additional_props = array() ) {
+	protected function get_cached_remote_styles( $id, $url, array $args = array() ) {
 		$css = get_site_transient( $id );
 
 		// Get remote response and cache the CSS if it hasn't been cached already.
 		if ( false === $css ) {
 			$css = $this->get_remote_styles( $url, $args );
 
-			// Early return if the request failed.
-			// Cache an empty string for 60 seconds to avoid bottlenecks.
+			/*
+			 * Early return if the request failed.
+			 * Cache an empty string for 60 seconds to avoid bottlenecks.
+			 */
 			if ( empty( $css ) ) {
 				set_site_transient( $id, '', MINUTE_IN_SECONDS );
 				return '';
@@ -139,28 +134,20 @@ abstract class WP_Webfonts_Provider {
 			set_site_transient( $id, $css, MONTH_IN_SECONDS );
 		}
 
-		// If there are additional props not included in the CSS provided by the API, add them to the final CSS.
-		foreach ( $additional_props as $prop ) {
-			$css = str_replace(
-				'@font-face {',
-				'@font-face {' . $prop . ':' . $this->params[ $prop ] . ';',
-				$css
-			);
-		}
-
 		return $css;
 	}
 
 	/**
-	 * Get styles from a remote URL.
+	 * Gets styles from the remote font service via the given URL.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param string $url  The URL to fetch.
-	 * @param array  $args The arguments to pass to wp_remote_get().
+	 * @param array  $args Optional. The arguments to pass to `wp_remote_get()`.
+	 *                     Default empty array.
 	 * @return string The styles on success. Empty string on failure.
 	 */
-	public function get_remote_styles( $url, array $args = array() ) {
+	protected function get_remote_styles( $url, array $args = array() ) {
 		// Use a modern user-agent, to get woff2 files.
 		$args['user-agent'] = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0';
 
