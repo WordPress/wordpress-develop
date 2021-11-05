@@ -298,7 +298,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->setup_sidebar(
 			'sidebar-1',
 			array(
-				'name'         => 'Test sidebar',
+				'name'         => 'Test sidebar 1',
 				'show_in_rest' => true,
 			),
 			array( 'text-1', 'testwidget' )
@@ -306,7 +306,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->setup_sidebar(
 			'sidebar-2',
 			array(
-				'name'         => 'Test sidebar',
+				'name'         => 'Test sidebar 2',
 				'show_in_rest' => false,
 			),
 			array( 'text-1', 'testwidget' )

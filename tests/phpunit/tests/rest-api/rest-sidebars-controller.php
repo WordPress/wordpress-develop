@@ -206,21 +206,21 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->setup_sidebar(
 			'sidebar-1',
 			array(
-				'name'         => 'Test sidebar',
+				'name'         => 'Test sidebar 1',
 				'show_in_rest' => true,
 			)
 		);
 		$this->setup_sidebar(
 			'sidebar-2',
 			array(
-				'name'         => 'Test sidebar',
+				'name'         => 'Test sidebar 2',
 				'show_in_rest' => false,
 			)
 		);
 		$this->setup_sidebar(
 			'sidebar-3',
 			array(
-				'name'         => 'Test sidebar',
+				'name'         => 'Test sidebar 3',
 				'show_in_rest' => true,
 			)
 		);
@@ -233,7 +233,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 			array(
 				array(
 					'id'            => 'sidebar-1',
-					'name'          => 'Test sidebar',
+					'name'          => 'Test sidebar 1',
 					'description'   => '',
 					'class'         => '',
 					'before_widget' => '',
@@ -245,7 +245,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 				),
 				array(
 					'id'            => 'sidebar-3',
-					'name'          => 'Test sidebar',
+					'name'          => 'Test sidebar 3',
 					'description'   => '',
 					'class'         => '',
 					'before_widget' => '',

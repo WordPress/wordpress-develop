@@ -17,6 +17,9 @@
 class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 	/**
+	 * Tracks whether {@see retrieve_widgets()} has been called in the current request.
+	 *
+	 * @since 5.9.0
 	 * @var bool
 	 */
 	protected $widgets_retrieved = false;
@@ -173,18 +176,15 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Checks if a sidebar can be read.
+	 * Checks if a sidebar can be read publicly.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param int $sidebar Sidebar id.
-	 * @return bool Whether the side can be read.
+	 * @param string $sidebar_id The sidebar id.
+	 * @return bool Whether the sidebar can be read.
 	 */
-	public function check_read_sidebar_permission( $sidebar_id ) {
+	protected function check_read_sidebar_permission( $sidebar_id ) {
 		$sidebar = wp_get_sidebar( $sidebar_id );
-		if ( is_null( $sidebar ) ) {
-			return false;
-		}
 
 		return ! empty( $sidebar['show_in_rest'] );
 	}
@@ -485,18 +485,17 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Look for "lost" widgets.
+	 * Looks for "lost" widgets once per request.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @see retrieve_widgets
+	 * @see retrieve_widgets()
 	 */
 	protected function retrieve_widgets() {
-		if ( $this->widgets_retrieved ) {
-			return;
+		if ( ! $this->widgets_retrieved ) {
+			retrieve_widgets();
+			$this->widgets_retrieved = true;
 		}
-		retrieve_widgets();
-		$this->widgets_retrieved = true;
 	}
 
 	/**
