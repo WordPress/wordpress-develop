@@ -2,6 +2,7 @@
 
 /**
  * @group compat
+ * @ticket 49652
  *
  * @covers ::str_contains
  */
@@ -12,7 +13,7 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 	 *
 	 * @ticket 43619
 	 */
-	public function test_is_iterable_availability() {
+	public function test_is_str_contains_availability() {
 			$this->assertTrue( function_exists( 'str_contains' ) );
 	}
 
