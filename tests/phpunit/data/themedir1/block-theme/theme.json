@@ -14,7 +14,32 @@
 					"color": "#000"
 				}
 			],
-			"custom": false
+			"gradients": [
+				{
+					"name": "Custom gradient",
+					"gradient": "linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)",
+					"slug": "custom-gradient"
+				}
+			],
+			"custom": false,
+			"customGradient": false
+		},
+		"typography": {
+			"fontSizes": [
+				{
+					"name": "Custom",
+					"slug": "custom",
+					"size": "100px"
+				}
+			],
+			"customFontSize": false,
+			"customLineHeight": true
+		},
+		"spacing": {
+			"units": [
+				"rem"
+			],
+			"customPadding": true
 		},
 		"blocks": {
 			"core/paragraph": {
