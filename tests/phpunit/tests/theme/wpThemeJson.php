@@ -1764,14 +1764,13 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public function test_get_editor_settings_custom_units_can_be_disabled() {
 		add_theme_support( 'custom-units', array() );
-		$input = get_default_block_editor_settings();
+		$actual = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
+		remove_theme_support( 'custom-units' );
 
 		$expected = array(
 			'units'   => array( array() ),
 			'padding' => false,
 		);
-
-		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
 		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
@@ -1782,14 +1781,13 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public function test_get_editor_settings_custom_units_can_be_enabled() {
 		add_theme_support( 'custom-units' );
-		$input = get_default_block_editor_settings();
+		$actual = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
+		remove_theme_support( 'custom-units' );
 
 		$expected = array(
 			'units'   => array( 'px', 'em', 'rem', 'vh', 'vw', '%' ),
 			'padding' => false,
 		);
-
-		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
 		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
@@ -1800,15 +1798,13 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public function test_get_editor_settings_custom_units_can_be_filtered() {
 		add_theme_support( 'custom-units', 'rem', 'em' );
-		$input = get_default_block_editor_settings();
+		$actual = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
+		remove_theme_support( 'custom-units' );
 
 		$expected = array(
 			'units'   => array( 'rem', 'em' ),
 			'padding' => false,
 		);
-
-		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
-
 		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
