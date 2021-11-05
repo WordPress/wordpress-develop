@@ -40,12 +40,7 @@ function wp_webfonts() {
  *                        This contains ar array of webfonts to be registered. Each webfont is an array.
  *                        See {@see WP_Webfonts_Registry::register()} for a list of supported arguments for each webfont.
  */
-function wp_register_webfonts( array $webfonts ) {
-	// Bail out if the webfonts collection is empty.
-	if ( empty( $webfonts ) ) {
-		return;
-	}
-
+function wp_register_webfonts( array $webfonts = array() ) {
 	foreach ( $webfonts as $webfont ) {
 		wp_webfonts()->webfonts()->register( $webfont );
 	}
