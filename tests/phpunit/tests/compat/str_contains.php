@@ -31,6 +31,11 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * Data provider for test_str_contains.
+	 *
+	 * @return array[]
+	 */
 	public function str_contains_provider() {
 		return array(
 			'lowercase'              => array(
