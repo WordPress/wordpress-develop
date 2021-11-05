@@ -208,6 +208,15 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'color'      => array(
 					'custom'         => false,
 					'customGradient' => false,
+					'gradients' => array(
+						'theme' => array(
+							array(
+								'name'     => 'Custom gradient',
+								'gradient' => 'linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)',
+								'slug'     => 'custom-gradient',
+							),
+						),
+					),
 					'palette'        => array(
 						'theme' => array(
 							array(
@@ -224,15 +233,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 								'slug'  => 'dark',
 								'name'  => 'Dark',
 								'color' => '#111827',
-							),
-						),
-					),
-					'gradients' => array(
-						'theme' => array(
-							array(
-								'name'     => 'Custom gradient',
-								'gradient' => 'linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)',
-								'slug'     => 'custom-gradient',
 							),
 						),
 					),
