@@ -55,7 +55,7 @@ class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_option
 	 */
-	function test_update_option_blog_charset() {
+	public function test_update_option_blog_charset() {
 		$orig_blog_charset = get_option( 'blog_charset' );
 
 		update_option( 'blog_charset', 'utf8' );
