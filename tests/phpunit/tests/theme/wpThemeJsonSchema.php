@@ -10,7 +10,7 @@
  *
  * @group themes
  */
-class WP_Theme_JSON_Schema_Test extends WP_UnitTestCase {
+class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 	/**
 	 * The current theme.json schema version.
 	 */
