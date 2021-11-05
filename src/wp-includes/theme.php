@@ -2050,24 +2050,41 @@ function wp_update_custom_css_post( $css, $args = array() ) {
  * Since version 3.4 the TinyMCE body has .rtl CSS class.
  * It is a better option to use that class and add any RTL styles to the main stylesheet.
  *
+ * @param array|string $stylesheet Optional. Stylesheet name or array thereof, relative to theme root.
+ *                                 Defaults to 'editor-style.css'
+ *
+ * @param string $rtl_mode Optional. Whether if the site in RTL mode. Should the RTL style replace the default sheet or be added as well'.
+ *                         Set to 'replace' to replace the sheet.
+ *                         Defaults to 'add'. @sine 5.9.0
+ *
+ * @return void
+ *
+ *
  * @since 3.0.0
  *
  * @global array $editor_styles
  *
- * @param array|string $stylesheet Optional. Stylesheet name or array thereof, relative to theme root.
- *                                 Defaults to 'editor-style.css'
  */
-function add_editor_style( $stylesheet = 'editor-style.css' ) {
+function add_editor_style( $stylesheet = 'editor-style.css', $rtl_mode = 'add' ) {
 	global $editor_styles;
 
 	add_theme_support( 'editor-style' );
+
+	if ( empty( $stylesheet ) ) {
+		$stylesheet = 'editor-style.css';
+	}
 
 	$editor_styles = (array) $editor_styles;
 	$stylesheet    = (array) $stylesheet;
 
 	if ( is_rtl() ) {
 		$rtl_stylesheet = str_replace( '.css', '-rtl.css', $stylesheet[0] );
-		$stylesheet[]   = $rtl_stylesheet;
+
+		if ( 'replace' === strtolower( trim( $rtl_mode ) ) ) {
+			$stylesheet[0] = $rtl_stylesheet;
+		} else {
+			$stylesheet[] = $rtl_stylesheet;
+		}
 	}
 
 	$editor_styles = array_merge( $editor_styles, $stylesheet );
