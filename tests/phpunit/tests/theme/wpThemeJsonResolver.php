@@ -63,7 +63,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			array(
 				'color'      => array(
 					'custom'         => false,
-					'customGradient' => true,
+					'customGradient' => false,
 					'palette'        => array(
 						'theme' => array(
 							array(
@@ -78,14 +78,32 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 							),
 						),
 					),
+					'gradients' => array(
+						'theme' => array(
+							array(
+								'name'     => 'Custom gradient',
+								'gradient' => 'linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)',
+								'slug'     => 'custom-gradient',
+							),
+						),
+					),
 				),
 				'typography' => array(
-					'customFontSize' => true,
-					'lineHeight'     => false,
+					'customFontSize' => false,
+					'lineHeight'     => true,
+					"fontSizes"      => array(
+						'theme' => array(
+							array(
+								"name" => "Custom",
+								"slug" => "custom",
+								"size" => "100px",
+							),
+						),
+					),
 				),
 				'spacing'    => array(
-					'units'   => false,
-					'padding' => false,
+					'units'   => array( 'rem' ),
+					'padding' => true,
 				),
 				'blocks'     => array(
 					'core/paragraph' => array(
