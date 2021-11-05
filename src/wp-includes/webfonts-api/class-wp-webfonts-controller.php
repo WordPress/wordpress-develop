@@ -115,6 +115,11 @@ class WP_Webfonts_Controller {
 		// Generate the styles.
 		$styles = $this->generate_styles();
 
+		// Bail out if there are no styles to enqueue.
+		if ( '' === $styles ) {
+			return;
+		}
+
 		// Enqueue the stylesheet.
 		wp_register_style( $this->stylesheet_handle, '' );
 		wp_enqueue_style( $this->stylesheet_handle );
@@ -129,11 +134,24 @@ class WP_Webfonts_Controller {
 	 * @since 5.9.0
 	 */
 	public function generate_and_enqueue_editor_styles() {
-		wp_add_inline_style( 'wp-block-library', $this->generate_styles() );
+		// Generate the styles.
+		$styles = $this->generate_styles();
+
+		// Bail out if there are no styles to enqueue.
+		if ( '' === $styles ) {
+			return;
+		}
+
+		wp_add_inline_style( 'wp-block-library', $styles );
 	}
 
 	/**
 	 * Generate styles for webfonts.
+	 *
+	 * By default (due to privacy concerns), this API will not do remote requests to
+	 * external webfont services nor generate `@font-face` styles for these remote
+	 * providers. The filter `'has_remote_webfonts_request_permission'` is provided
+	 * to grant permission to do the remote request.
 	 *
 	 * @since 5.9.0
 	 *
@@ -160,25 +178,28 @@ class WP_Webfonts_Controller {
 			}
 
 			/*
-			 * If the provider is external (fetches from an external font service),
-			 * remove any registered webfonts that are not marked as "okay to fetch"
-			 * from the external service.
+			 * Skip fetching from a remote fonts service if the user has not
+			 * consented to the remote request.
 			 */
-			if ( $provider->is_external() ) {
-				$registered_webfonts = array_filter(
-					$registered_webfonts,
-					static function( $webfont ) {
-						return ( isset( $webfont['is-external'] ) && true === $webfont['is-external'] );
-					}
-				);
-
-				/*
-				 * After checking if each registered webfont is okay to fetch from external service,
-				 * if there are no remaining webfonts to process, skip this provider.
+			if (
+				'local' !== $provider_id &&
+				/**
+				 * Allows permission to be set for doing remote requests
+				 * to a webfont service provider.
+				 *
+				 * By default, the Webfonts API will not make remote requests
+				 * due to privacy concerns.
+				 *
+				 * @since 5.9.0
+				 *
+				 * @param bool  $has_permission Permission to do the remote request.
+				 *                              Default false.
+				 * @param string $provider_id   Provider's ID, e.g. 'google', to identify
+				 *                              the remote webfonts service provider.
 				 */
-				if ( empty( $registered_webfonts ) ) {
-					continue;
-				}
+				true !== apply_filters( 'has_remote_webfonts_request_permission', false, $provider_id )
+			) {
+				continue;
 			}
 
 			/*

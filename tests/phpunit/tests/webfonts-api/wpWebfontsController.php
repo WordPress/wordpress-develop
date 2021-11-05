@@ -78,6 +78,46 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * By default, the Webfonts API should not request webfonts from
+	 * a remote provider. Test the permissions logic works as expected.
+	 *
+	 * @covers WP_Webfonts_Controller::generate_and_enqueue_styles
+	 *
+	 * @dataProvider data_generate_and_enqueue_editor_styles
+	 *
+	 * @param string $stylestyle_handle Handle for the registered stylesheet.
+	 */
+	public function test_generate_and_enqueue_styles_default( $stylesheet_handle ) {
+		/*
+		 * Set the stylesheet_handle property.
+		 * This is set in WP_Webfonts_Controller::init(); however, init is not part
+		 * of this test (as it has its own test).
+		 */
+		$property = new ReflectionProperty( $this->controller, 'stylesheet_handle' );
+		$property->setAccessible( true );
+		$property->setValue( $this->controller, $stylesheet_handle );
+
+		// Set up the provider mock.
+		$provider  = $this->getMockBuilder( 'WP_Webfonts_Google_Provider' )->getMock();
+		$providers = array(
+			'google' => $provider,
+		);
+		$this->provider_registry_mock
+			->expects( $this->once() )
+			->method( 'get_all_registered' )
+			->willReturn( $providers );
+		// The Google Fonts provider should never be called.
+		$provider
+			->expects( $this->never() )
+			->method( 'set_webfonts' );
+
+		// Fire the method being tested.
+		$this->controller->generate_and_enqueue_styles();
+		$this->expectOutputString( '' );
+		wp_print_styles( $stylesheet_handle );
+	}
+
+	/**
 	 * @covers WP_Webfonts_Controller::generate_and_enqueue_styles
 	 * @covers WP_Webfonts_Controller::generate_and_enqueue_editor_styles
 	 *
@@ -85,7 +125,9 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	 *
 	 * @param string $stylestyle_handle Handle for the registered stylesheet.
 	 */
-	public function test_generate_and_enqueue_editor_styles( $stylesheet_handle ) {
+	public function test_generate_and_enqueue_styles_with_permission( $stylesheet_handle ) {
+		add_filter( 'has_remote_webfonts_request_permission', '__return_true' );
+
 		/*
 		 * Set the stylesheet_handle property.
 		 * This is set in WP_Webfonts_Controller::init(); however, init is not part
@@ -112,14 +154,12 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 				'font-family' => 'Source Serif Pro',
 				'font-style'  => 'normal',
 				'font-weight' => '200 900',
-				'is-external' => true,
 			),
 			'source-serif-pro.italic.200 900' => array(
 				'provider'    => 'my-custom-provider',
 				'font-family' => 'Source Serif Pro',
 				'font-style'  => 'italic',
 				'font-weight' => '200 900',
-				'is-external' => true,
 			),
 		);
 		$this->webfont_registry_mock

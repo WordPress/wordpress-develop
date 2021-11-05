@@ -57,15 +57,6 @@ abstract class WP_Webfonts_Provider {
 	protected $resource_hints = array();
 
 	/**
-	 * Whether the provider fetches external resources or not.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @var bool
-	 */
-	protected $is_external = true;
-
-	/**
 	 * Get the provider's unique ID.
 	 *
 	 * @since 5.9.0
@@ -172,16 +163,5 @@ abstract class WP_Webfonts_Provider {
 	 */
 	public function get_resource_hints() {
 		return $this->resource_hints;
-	}
-
-	/**
-	 * Whether the provider fetches external resources or not.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return bool
-	 */
-	public function is_external() {
-		return $this->is_external;
 	}
 }

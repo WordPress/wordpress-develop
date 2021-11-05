@@ -14,10 +14,6 @@ class My_Custom_Webfonts_Provider_Mock extends WP_Webfonts_Provider {
 		),
 	);
 
-	public function set_webfonts( array $webfonts ) {
-		// do nothing.
-	}
-
 	public function get_css() {
 		return "
 		@font-face{

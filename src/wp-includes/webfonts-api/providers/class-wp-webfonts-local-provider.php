@@ -24,15 +24,6 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 	protected $id = 'local';
 
 	/**
-	 * Whether the provider fetches external resources or not.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @var bool
-	 */
-	protected $is_external = false;
-
-	/**
 	 * Get the CSS for a collection of webfonts.
 	 *
 	 * @since 5.9.0
@@ -149,7 +140,7 @@ class WP_Webfonts_Local_Provider extends WP_Webfonts_Provider {
 		foreach ( $webfont as $key => $value ) {
 
 			// Skip "provider".
-			if ( 'provider' === $key || 'is-external' === $key ) {
+			if ( 'provider' === $key ) {
 				continue;
 			}
 

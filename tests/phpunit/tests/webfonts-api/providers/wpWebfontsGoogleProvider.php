@@ -89,7 +89,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '400',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 				),
 				'expected' => array(
@@ -104,7 +103,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '400',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 					'open-sans.italic.700' => array(
 						'provider'     => 'google',
@@ -112,7 +110,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'italic',
 						'font-weight'  => '700',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 				),
 				'expected' => array(
@@ -127,7 +124,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '400',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 					'open-sans.italic.700' => array(
 						'provider'     => 'google',
@@ -135,7 +131,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'italic',
 						'font-weight'  => '700',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 					'roboto.normal.900'    => array(
 						'provider'     => 'google',
@@ -143,7 +138,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '900',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 				),
 				'expected' => array(
@@ -158,7 +152,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '400 900',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 					'open-sans.normal.100 400' => array(
 						'provider'     => 'google',
@@ -166,7 +159,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '100 400',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 				),
 				'expected' => array(
@@ -181,7 +173,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '400 600',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 					'open-sans.normal.400'     => array(
 						'provider'     => 'google',
@@ -189,7 +180,6 @@ class Tests_Webfonts_API_wpWebfontsGoogleProvider extends WP_UnitTestCase {
 						'font-style'   => 'normal',
 						'font-weight'  => '400',
 						'font-display' => 'fallback',
-						'is-external'  => true,
 					),
 				),
 				'expected' => array(
