@@ -385,13 +385,14 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 * Polyfill for array_key_last() function added in PHP 7.3.
 	 *
 	 * Performs a case-sensitive check indicating if needle is contained in haystack.
+	 * @ticket 54377
+	 * @ignore
+	 * @since 5.9.0
 	 *
 	 * @param $haystack The string to search in.
 	 * @param $needle The substring to search for in the haystack.
 	 *
 	 * @return Boolean true if needle is in haystack.
-	 * @since 5.9.0
-	 *
 	 */
 	function str_contains( $haystack, $needle ) {
 		return '' === $needle || false !== strpos( $haystack, $needle );
