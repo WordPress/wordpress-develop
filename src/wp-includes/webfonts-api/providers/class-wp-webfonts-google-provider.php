@@ -199,10 +199,6 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 		 * Each font-display will need to be a separate request.
 		 */
 		foreach ( $this->webfonts as $webfont ) {
-			if ( ! isset( $webfont['font-display'] ) ) {
-				$webfont['font-display'] = 'fallback';
-			}
-
 			if ( ! isset( $font_display_groups[ $webfont['font-display'] ] ) ) {
 				$font_display_groups[ $webfont['font-display'] ] = array();
 			}
@@ -310,10 +306,14 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	 * @return array The font-weights array.
 	 */
 	private function get_font_weights( $font_weights ) {
+		$font_weights = trim( $font_weights );
+
+		// A single font-weight.
 		if ( false === strpos( $font_weights, ' ' ) ) {
 			return array( $font_weights );
 		}
 
+		// Process a range of font-weight values that are delimited by ' '.
 		$font_weights = explode( ' ', $font_weights );
 
 		// If there are 2 values, treat them as a range.

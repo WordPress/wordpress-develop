@@ -232,10 +232,6 @@ class WP_Webfonts_Registry {
 	 * @return string Font-family as a key.
 	 */
 	private function convert_font_family_into_key( $font_family ) {
-		if ( ! is_string( $font_family ) || '' === $font_family ) {
-			return '';
-		}
-
 		return sanitize_title( $font_family );
 	}
 }
