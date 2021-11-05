@@ -707,12 +707,18 @@ form#tags-filter {
 */
 
 /* General */
+.privacy-settings #wpcontent,
+.privacy-settings.auto-fold #wpcontent,
+.site-health #wpcontent,
+.site-health.auto-fold #wpcontent,
 .wp-core-ui #wpcontent,
 .wp-core-ui.auto-fold #wpcontent {
 	padding-left: 0;
 }
 
 /* Emulates .wrap h1 styling */
+.privacy-settings-header h1,
+.health-check-header h1,
 .wp-core-ui-header h1 {
 	display: inline-block;
 	font-weight: 600;
@@ -724,6 +730,8 @@ form#tags-filter {
 
 
 /* Header */
+.privacy-settings-header,
+.health-check-header,
 .wp-core-ui-header {
 	text-align: center;
 	margin: 0 0 1rem;
@@ -731,6 +739,8 @@ form#tags-filter {
 	border-bottom: 1px solid #dcdcde;
 }
 
+.privacy-settings-title-section,
+.health-check-title-section,
 .wp-core-ui-title-section {
 	display: flex;
 	align-items: center;
@@ -739,6 +749,7 @@ form#tags-filter {
 	padding-top: 8px;
 }
 
+.privacy-settings-tabs-wrapper,
 .wp-core-ui-tabs-wrapper {
 	/* IE 11 */
 	display: -ms-inline-grid;
@@ -749,6 +760,7 @@ form#tags-filter {
 	grid-template-columns: 1fr 1fr;
 }
 
+.privacy-settings-tab,
 .wp-core-ui-tab {
 	display: block; /* IE 11 */
 	text-decoration: none;
@@ -758,26 +770,36 @@ form#tags-filter {
 	transition: box-shadow 0.5s ease-in-out;
 }
 
+.privacy-settings-tab:nth-child(1),
+.health-check-tab:nth-child(1),
 .wp-core-ui-tab:nth-child(1) {
 	-ms-grid-column: 1; /* IE 11 */
 }
 
+.privacy-settings-tab:nth-child(2),
+.health-check-tab:nth-child(2),
 .wp-core-ui-tab:nth-child(2) {
 	-ms-grid-column: 2; /* IE 11 */
 }
 
+.privacy-settings-tab:focus,
+.health-check-tab:focus,
 .wp-core-ui-tab:focus {
 	color: #1d2327;
 	outline: 1px solid #787c82;
 	box-shadow: none;
 }
 
+.privacy-settings-tab.active,
+.health-check-tab.active,
 .wp-core-ui-tab.active {
 	box-shadow: inset 0 -3px #3582c4;
 	font-weight: 600;
 }
 
 /* Body */
+.privacy-settings-body,
+.health-check-body,
 .wp-core-ui-body {
 	max-width: 800px;
 	margin: 0 auto;
@@ -793,10 +815,14 @@ form#tags-filter {
 }
 
 /* Accordions */
+.privacy-settings-accordion,
+.health-check-accordion,
 .wp-core-ui-accordion {
 	border: 1px solid #c3c4c7;
 }
 
+.privacy-settings-accordion-heading,
+.health-check-accordion-heading,
 .wp-core-ui-accordion-heading {
 	margin: 0;
 	border-top: 1px solid #c3c4c7;
@@ -806,10 +832,14 @@ form#tags-filter {
 	color: inherit;
 }
 
+.privacy-settings-accordion-heading:first-child,
+.health-check-accordion-heading:first-child,
 .wp-core-ui-accordion-heading:first-child {
 	border-top: none;
 }
 
+.privacy-settings-accordion-trigger,
+.health-check-accordion-trigger,
 .wp-core-ui-accordion-trigger {
 	background: #fff;
 	border: 0;
@@ -829,11 +859,17 @@ form#tags-filter {
 	user-select: auto;
 }
 
+.privacy-settings-accordion-trigger:hover,
+.privacy-settings-accordion-trigger:active,
+.health-check-accordion-trigger:hover,
+.health-check-accordion-trigger:active,
 .wp-core-ui-accordion-trigger:hover,
 .wp-core-ui-accordion-trigger:active {
 	background: #f6f7f7;
 }
 
+.privacy-settings-accordion-trigger:focus,
+.health-check-accordion-trigger:focus,
 .wp-core-ui-accordion-trigger:focus {
 	color: #1d2327;
 	border: none;
@@ -843,12 +879,18 @@ form#tags-filter {
 	background-color: #f6f7f7;
 }
 
+.privacy-settings-accordion-trigger .title,
+.health-check-accordion-trigger .title,
 .wp-core-ui-accordion-trigger .title {
 	pointer-events: none;
 	font-weight: 600;
 	flex-grow: 1;
 }
 
+.privacy-settings-accordion-trigger .icon,
+.privacy-settings-view-read .icon,
+.health-check-accordion-trigger .icon,
+.site-health-view-passed .icon,
 .wp-core-ui-accordion-trigger .icon,
 .wp-core-ui-view-passed .icon {
 	border: solid #50575e;
@@ -862,64 +904,91 @@ form#tags-filter {
 	width: 0.5rem;
 }
 
+.privacy-settings-accordion-trigger .badge,
+.health-check-accordion-trigger .badge,
 .wp-core-ui-accordion-trigger .badge {
 	padding: 0.1rem 0.5rem 0.15rem;
 	color: #2c3338;
 	font-weight: 600;
 }
 
+.privacy-settings-accordion-trigger .badge,
 .wp-core-ui-accordion-trigger .badge {
 	margin-left: 0.5rem;
 }
 
+.privacy-settings-accordion-trigger .badge.blue,
+.health-check-accordion-trigger .badge.blue,
 .wp-core-ui-accordion-trigger .badge.blue {
 	border: 1px solid #72aee6;
 }
 
+.privacy-settings-accordion-trigger .badge.orange,
+.health-check-accordion-trigger .badge.orange,
 .wp-core-ui-accordion-trigger .badge.orange {
 	border: 1px solid #dba617;
 }
 
+.privacy-settings-accordion-trigger .badge.red,
+.health-check-accordion-trigger .badge.red,
 .wp-core-ui-accordion-trigger .badge.red {
 	border: 1px solid #e65054;
 }
 
+.privacy-settings-accordion-trigger .badge.green,
+.health-check-accordion-trigger .badge.green,
 .wp-core-ui-accordion-trigger .badge.green {
 	border: 1px solid #00ba37;
 }
 
+.privacy-settings-accordion-trigger .badge.purple,
+.health-check-accordion-trigger .badge.purple,
 .wp-core-ui-accordion-trigger .badge.purple {
 	border: 1px solid #2271b1;
 }
 
+.privacy-settings-accordion-trigger .badge.gray,
+.health-check-accordion-trigger .badge.gray,
 .wp-core-ui-accordion-trigger .badge.gray {
 	border: 1px solid #c3c4c7;
 }
 
+.privacy-settings-accordion-trigger[aria-expanded="true"] .icon,
+.privacy-settings-view-passed[aria-expanded="true"] .icon,
+.health-check-accordion-trigger[aria-expanded="true"] .icon,
+.site-health-view-passed[aria-expanded="true"] .icon,
 .wp-core-ui-accordion-trigger[aria-expanded="true"] .icon,
 .wp-core-ui-view-passed[aria-expanded="true"] .icon {
 	transform: translateY(-30%) rotate(-135deg)
 }
 
+.privacy-settings-accordion-panel,
+.health-check-accordion-panel,
 .wp-core-ui-accordion-panel {
 	margin: 0;
 	padding: 1em 1.5em;
 	background: #fff;
 }
 
+.privacy-settings-accordion-panel[hidden],
+.health-check-accordion-panel[hidden],
 .wp-core-ui-accordion-panel[hidden] {
 	display: none;
 }
 
+.privacy-settings-accordion-panel a .dashicons,
+.health-check-accordion-panel a .dashicons,
 .wp-core-ui-accordion-panel a .dashicons {
 	text-decoration: none;
 }
 
+.privacy-settings-accordion-actions,
 .wp-core-ui-accordion-actions {
 	text-align: right;
 	display: block;
 }
 
+.privacy-settings-accordion-actions .success,
 .wp-core-ui-accordion-actions .success {
 	display: none;
 	color: #008a20;
@@ -927,27 +996,38 @@ form#tags-filter {
 	padding-top: 6px;
 }
 
+.privacy-settings-accordion-actions .success.visible,
 .wp-core-ui-accordion-actions .success.visible {
 	display: inline-block;
 }
 
 /* Suggested text for privacy policy */
+.privacy-settings-accordion-panel.hide-privacy-policy-tutorial .wp-policy-help, /* For back-compat, see #49282 */
+.privacy-settings-accordion-panel.hide-privacy-policy-tutorial .privacy-policy-tutorial,
+.privacy-settings-accordion-panel.hide-privacy-policy-tutorial .privacy-text-copy,
 .wp-core-ui-accordion-panel.hide-privacy-policy-tutorial .wp-policy-help, /* For back-compat, see #49282 */
 .wp-core-ui-accordion-panel.hide-privacy-policy-tutorial .privacy-policy-tutorial,
 .wp-core-ui-accordion-panel.hide-privacy-policy-tutorial .wp-core-ui-text-copy {
 	display: none;
 }
 
+.privacy-settings-accordion-panel strong.wp-policy-help, /* For back-compat, see #49282 */
+.privacy-settings-accordion-panel strong.privacy-policy-tutorial,
 .wp-core-ui-accordion-panel strong.wp-policy-help, /* For back-compat, see #49282 */
 .wp-core-ui-accordion-panel strong.privacy-policy-tutorial {
 	display: block;
 	margin: 0 0 1em;
 }
 
+.privacy-text-copy span,
 .wp-core-ui-text-copy span {
 	pointer-events: none;
 }
 
+.privacy-settings-accordion-panel .wp-suggested-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
+.privacy-settings-accordion-panel .wp-suggested-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
+.privacy-settings-accordion-panel > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
+.privacy-settings-accordion-panel div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
 .wp-core-ui-accordion-panel .wp-suggested-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.wp-core-ui-text-copy):not(span.success):not(.notice p),
 .wp-core-ui-accordion-panel .wp-suggested-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.wp-core-ui-text-copy):not(span.success):not(.notice p),
 .wp-core-ui-accordion-panel > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.wp-core-ui-text-copy):not(span.success):not(.notice p),
@@ -960,15 +1040,21 @@ form#tags-filter {
 /* Media queries */
 @media screen and (max-width: 782px) {
 
+	.privacy-settings-body,
+	.health-check-body,
 	.wp-core-ui-body {
 		margin: 0 12px;
 		width: auto;
 	}
 
+	.privacy-settings .notice,
+	.site-health .notice,
 	.wp-core-ui .notice {
 		margin: 5px 10px 15px;
 	}
 
+	.privacy-settings .update-nag,
+	.site-health .update-nag,
 	.wp-core-ui .update-nag {
 		margin-right: 10px;
 		margin-left: 10px;
