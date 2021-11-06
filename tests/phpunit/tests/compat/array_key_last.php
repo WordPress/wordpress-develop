@@ -2,7 +2,6 @@
 
 /**
  * @group compat
- * @ticket 45055
  *
  * @covers ::array_key_last
  */
@@ -10,6 +9,7 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 
 	/**
 	 * Test that array_key_last() is always available (either from PHP or WP).
+	 * @ticket 45055
 	 */
 	public function test_array_key_last_availability() {
 		$this->assertTrue( function_exists( 'array_key_last' ) );
@@ -18,6 +18,7 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider array_key_last_provider
+	 * @ticket 45055
 	 */
 	public function test_array_key_last( $expected, $array ) {
 		if ( ! function_exists( 'array_key_last' ) ) {

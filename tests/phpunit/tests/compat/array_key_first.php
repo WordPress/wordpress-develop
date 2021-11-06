@@ -2,7 +2,6 @@
 
 /**
  * @group compat
- * @ticket 45055
  *
  * @covers ::array_key_first
  */
@@ -10,6 +9,7 @@ class Tests_Compat_array_key_first extends WP_UnitTestCase {
 
 	/**
 	 * Test that array_key_first() is always available (either from PHP or WP).
+	 * @ticket 45055
 	 */
 	public function test_array_key_first_availability() {
 		$this->assertTrue( function_exists( 'array_key_first' ) );
@@ -17,6 +17,7 @@ class Tests_Compat_array_key_first extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider array_key_first_provider
+	 * @ticket 45055
 	 */
 	public function test_array_key_first( $expected, $array ) {
 		if ( ! function_exists( 'array_key_first' ) ) {
