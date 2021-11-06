@@ -385,6 +385,32 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54386
+	 */
+	public function test_passes_enum_to_render_callback() {
+		$this->registry->register(
+			'core/example',
+			array(
+				'attributes'      => array(
+					'value'    => array(
+						'enum' => [ 'ok', false ],
+					),
+				),
+				'render_callback' => static function( $block_attributes ) {
+					return $block_attributes['value'];
+				},
+			)
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"value": "ok"} /-->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->assertSame( 'ok', $block->render() );
+	}
+
+	/**
 	 * @ticket 49927
 	 */
 	public function test_passes_content_to_render_callback() {
