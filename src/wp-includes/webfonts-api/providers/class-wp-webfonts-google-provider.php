@@ -44,11 +44,12 @@ class WP_Webfonts_Google_Provider extends WP_Webfonts_Provider {
 	protected $root_url = 'https://fonts.googleapis.com/css2';
 
 	/**
-	 * Array of resources hints.
+	 * Array of resources hints, used to render the resource `<link>` in the `<head>`.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @var array
+	 * @var string[] See {@see WP_Webfonts_Provider::$resource_hints} for
+	 *               the list of resource hints.
 	 */
 	protected $resource_hints = array(
 		'preconnect' => array(

@@ -8,15 +8,19 @@
  */
 
 /**
- * Provider Registry.
+ * The Providers Registry handles the registration
+ * of core providers, registration of custom providers,
+ * instantiation of each provider, and in-memory storage
+ * of the registered providers. Each provider is stored
+ * in the registry by its unique ID, such as 'local', along
+ * with an instance of the provider (object).
  *
- * This registry exists to handle all providers.
+ * Each provider contains the business logic for how to
+ * process its specific font service (i.e. local or remote)
+ * and how to generate the `@font-face` styles for its service.
  *
- * It handles the following within the API:
- *  - loads the bundled provider files into memory;
- *  - registers each provider with the API by:
- *       1. creating an instance (object);
- *       2. storing it in-memory (by its unique provider ID) for use with the API;
+ * This registry is for collecting those providers for
+ * use within the API.
  *
  * @since 5.9.0
  */
@@ -39,9 +43,15 @@ class WP_Webfonts_Provider_Registry {
 	/**
 	 * Gets all registered providers.
 	 *
+	 * Return an array of providers, each keyed by their unique
+	 * ID (i.e. the `$id` property in the provider's object) with
+	 * an instance of the provider (object):
+	 *     ID => provider instance
+	 *
 	 * @since 5.9.0
 	 *
-	 * @return WP_Webfonts_Provider[] All registered providers each keyed by their unique provider ID.
+	 * @return WP_Webfonts_Provider[] All registered providers,
+	 *                                each keyed by their unique ID.
 	 */
 	public function get_all_registered() {
 		return $this->registered;
@@ -78,18 +88,34 @@ class WP_Webfonts_Provider_Registry {
 	}
 
 	/**
-	 * Registers the given provider.
+	 * Registers a webfont provider.
+	 *
+	 * The provider will be registered by its unique ID
+	 * (via `WP_Webfonts_Provider::get_id()`) and instance of
+	 * the provider (object):
+	 *     ID => provider instance
+	 *
+	 * Once registered, provider is ready for use within the API.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param string $classname The provider's class name.
 	 *                          The class should be a child of `WP_Webfonts_Provider`.
 	 *                          See {@see WP_Webfonts_Provider}.
+	 *
 	 * @return bool True when registered. False when provider does not exist.
 	 */
 	public function register( $classname ) {
-		// If the class does not exist in memory, or is not a subclass of WP_Webfonts_Provider, bail out.
-		if ( ! class_exists( $classname ) || ! is_subclass_of( $classname, 'WP_Webfonts_Provider' ) ) {
+		/*
+		 * Bail out if the class does not exist in memory (its file
+		 * has to be loaded into memory before registration) or the
+		 * `class` itself is not a child that extends `WP_Webfonts_Provider`
+		 * (the parent class of a provider).
+		 */
+		if (
+			! class_exists( $classname ) ||
+			! is_subclass_of( $classname, 'WP_Webfonts_Provider' )
+		) {
 			return false;
 		}
 

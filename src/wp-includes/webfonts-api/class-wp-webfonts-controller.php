@@ -8,9 +8,26 @@
  */
 
 /**
- * Webfonts Controller.
+ * Webfonts Controller exposes the public entry point into this API
+ * and coordinates the interactions between the webfonts registry,
+ * providers registry, and the Dependencies API.
  *
- * Receives the incoming requests and handles the processing.
+ *                   event
+ *                    ↕
+ *                Controller
+ *         ⤢                    ⤡
+ *  Webfonts Registry     Providers Registry
+ *       ↕                ⤢           ⤡         .. [custom providers]
+ *  Validator         Local        Google Fonts
+ *                    Provider     Provider
+ *                      ↕             ↕
+ *                    Filesystem   Remote Font API Service
+ *
+ * The Controller receives an event such as a request to register
+ * a webfont or provider, print `@font-face` styles in the `<head>`
+ * (e.g. `'wp_enqueue_scripts'`), or print the resource `<link>`
+ * (`'wp_resource_hints'` ). Then it interacts with the components
+ * in this API to process the event.
  *
  * @since 5.9.0
  */
@@ -87,6 +104,9 @@ class WP_Webfonts_Controller {
 	/**
 	 * Gets the instance of the webfonts' registry.
 	 *
+	 * The Webfonts Registry handles the registration
+	 * and in-memory storage of webfonts.
+	 *
 	 * @since 5.9.0
 	 *
 	 * @return WP_Webfonts_Registry
@@ -97,6 +117,9 @@ class WP_Webfonts_Controller {
 
 	/**
 	 * Gets the instance of the providers' registry.
+	 *
+	 * @see WP_Webfonts_Provider_Registry for more information
+	 * on the available methods for use.
 	 *
 	 * @since 5.9.0
 	 *
@@ -158,12 +181,8 @@ class WP_Webfonts_Controller {
 	 * @return string $styles Generated styles.
 	 */
 	private function generate_styles() {
+		$styles    = '';
 		$providers = $this->providers_registry->get_all_registered();
-		if ( empty( $providers ) ) {
-			return '';
-		}
-
-		$styles = '';
 
 		/*
 		 * Loop through each of the providers to get the CSS for their respective webfonts
@@ -215,6 +234,11 @@ class WP_Webfonts_Controller {
 
 	/**
 	 * Gets the resource hints.
+	 *
+	 * Callback hooked to the filter `'wp_resource_hints'`. Generation
+	 * and rendering of the resource `<link>` is handled where that filter
+	 * fires. This method adds the resource link attributes to pass back
+	 * to that handler.
 	 *
 	 * @since 5.9.0
 	 *

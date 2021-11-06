@@ -234,7 +234,7 @@ class Tests_Webfonts_API_wpWebfontsRegistry extends WP_UnitTestCase {
 	 * @param string $provider_id Provider ID to query.
 	 * @param array  $expected    Expected return value.
 	 */
-	public function test_get_by_provider_integrated( array $webfonts, $provider_id, $expected ) {
+	public function test_get_by_provider_integrated( array $webfonts, $provider_id, array $expected ) {
 		$registry = new WP_Webfonts_Registry( new WP_Webfonts_Schema_Validator() );
 
 		foreach ( $webfonts as $webfont ) {

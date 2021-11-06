@@ -85,7 +85,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_generate_and_enqueue_editor_styles
 	 *
-	 * @param string $stylestyle_handle Handle for the registered stylesheet.
+	 * @param string $stylesheet_handle Handle for the registered stylesheet.
 	 */
 	public function test_generate_and_enqueue_styles_default( $stylesheet_handle ) {
 		/*
@@ -123,7 +123,7 @@ class Tests_Webfonts_API_wpWebfontsController extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_generate_and_enqueue_editor_styles
 	 *
-	 * @param string $stylestyle_handle Handle for the registered stylesheet.
+	 * @param string $stylesheet_handle Handle for the registered stylesheet.
 	 */
 	public function test_generate_and_enqueue_styles_with_permission( $stylesheet_handle ) {
 		add_filter( 'has_remote_webfonts_request_permission', '__return_true' );

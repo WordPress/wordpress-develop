@@ -2,7 +2,7 @@
 
 /**
  * @group  webfonts
- * @covers WP_Webfonts_Google_Provider
+ * @covers WP_WebfontsLocal_Provider
  */
 class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 	private $provider;

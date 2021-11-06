@@ -166,7 +166,7 @@ class WP_Webfonts_Schema_Validator {
 	 * @param array $webfont Webfont to validate.
 	 * @return bool True if valid. False if invalid.
 	 */
-	private function is_src_valid( $webfont ) {
+	private function is_src_valid( array $webfont ) {
 		if (
 			empty( $webfont['src'] ) ||
 			(
