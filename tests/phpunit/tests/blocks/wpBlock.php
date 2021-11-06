@@ -393,7 +393,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 			array(
 				'attributes'      => array(
 					'value'    => array(
-						'enum' => [ 'ok', false ],
+						'enum' => array( 'ok', false ),
 					),
 				),
 				'render_callback' => static function( $block_attributes ) {
