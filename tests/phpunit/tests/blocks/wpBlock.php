@@ -392,7 +392,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 			'core/example',
 			array(
 				'attributes'      => array(
-					'value'    => array(
+					'value' => array(
 						'enum' => array( 'ok', false ),
 					),
 				),
