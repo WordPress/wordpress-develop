@@ -6709,7 +6709,7 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/themes"
             }
         },
-        "/wp/v2/themes/(?P<stylesheet>[\\w-]+)": {
+        "/wp/v2/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -7135,27 +7135,21 @@ mockedApiResponse.Schema = {
                                     "description": "Base64 encoded representation of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "hash": {
                                     "description": "Cryptographic hash of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "raw": {
                                     "description": "Unencoded instance settings, if supported.",
                                     "type": "object",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 }
                             },
@@ -7235,27 +7229,21 @@ mockedApiResponse.Schema = {
                                     "description": "Base64 encoded representation of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "hash": {
                                     "description": "Cryptographic hash of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "raw": {
                                     "description": "Unencoded instance settings, if supported.",
                                     "type": "object",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 }
                             },

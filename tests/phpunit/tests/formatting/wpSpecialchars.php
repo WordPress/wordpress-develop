@@ -4,7 +4,7 @@
  * @group formatting
  */
 class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
-	function test_wp_specialchars_basics() {
+	public function test_wp_specialchars_basics() {
 		$html = '&amp;&lt;hello world&gt;';
 		$this->assertSame( $html, _wp_specialchars( $html ) );
 
@@ -12,7 +12,7 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 		$this->assertSame( $double, _wp_specialchars( $html, ENT_NOQUOTES, false, true ) );
 	}
 
-	function test_allowed_entity_names() {
+	public function test_allowed_entity_names() {
 		global $allowedentitynames;
 
 		// Allowed entities should be unchanged.
@@ -26,7 +26,7 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 		}
 	}
 
-	function test_not_allowed_entity_names() {
+	public function test_not_allowed_entity_names() {
 		$ents = array( 'iacut', 'aposs', 'pos', 'apo', 'apo?', 'apo.*', '.*apo.*', 'apos ', ' apos', ' apos ' );
 
 		foreach ( $ents as $ent ) {
@@ -36,7 +36,7 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 		}
 	}
 
-	function test_optionally_escapes_quotes() {
+	public function test_optionally_escapes_quotes() {
 		$source = "\"'hello!'\"";
 		$this->assertSame( '"&#039;hello!&#039;"', _wp_specialchars( $source, 'single' ) );
 		$this->assertSame( "&quot;'hello!'&quot;", _wp_specialchars( $source, 'double' ) );
@@ -50,11 +50,11 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 	 * @ticket 17780
 	 * @dataProvider data_double_encoding
 	 */
-	function test_double_encoding( $input, $output ) {
+	public function test_double_encoding( $input, $output ) {
 		return $this->assertSame( $output, _wp_specialchars( $input, ENT_NOQUOTES, false, true ) );
 	}
 
-	function data_double_encoding() {
+	public function data_double_encoding() {
 		return array(
 			array(
 				'This & that, this &amp; that, &#8212; &quot; &QUOT; &Uacute; &nbsp; &#34; &#034; &#0034; &#x00022; &#x22; &dollar; &times;',
@@ -77,11 +77,11 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 	 * @ticket 17780
 	 * @dataProvider data_no_double_encoding
 	 */
-	function test_no_double_encoding( $input, $output ) {
+	public function test_no_double_encoding( $input, $output ) {
 		return $this->assertSame( $output, _wp_specialchars( $input, ENT_NOQUOTES, false, false ) );
 	}
 
-	function data_no_double_encoding() {
+	public function data_no_double_encoding() {
 		return array(
 			array(
 				'This & that, this &amp; that, &#8212; &quot; &QUOT; &Uacute; &nbsp; &#34; &#034; &#0034; &#x00022; &#x22; &dollar; &times;',
