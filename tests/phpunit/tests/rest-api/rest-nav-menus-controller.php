@@ -371,38 +371,7 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 40878
 	 * @covers ::create_item
 	 */
-	public function test_create_item_with_location_permission_incorrect() {
-		wp_set_current_user( self::$editor_id );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/menus' );
-		$request->set_param( 'name', 'My Awesome Term' );
-		$request->set_param( 'slug', 'so-awesome' );
-		$request->set_param( 'locations', 'primary' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( rest_authorization_required_code(), $response->get_status() );
-		$this->assertErrorResponse( 'rest_cannot_assign_location', $response, rest_authorization_required_code() );
-	}
-
-	/**
-	 * @ticket 40878
-	 * @covers ::create_item
-	 * @covers ::handle_auto_add
-	 */
-	public function test_create_item_with_auto_add_permission_incorrect() {
-		wp_set_current_user( self::$editor_id );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/menus' );
-		$request->set_param( 'name', 'My Awesome Term' );
-		$request->set_param( 'slug', 'so-awesome' );
-		$request->set_param( 'auto_add', true );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( rest_authorization_required_code(), $response->get_status() );
-		$this->assertErrorResponse( 'rest_cannot_set_auto_add', $response, rest_authorization_required_code() );
-	}
-
-	/**
-	 * @ticket 40878
-	 * @covers ::create_item
-	 */
-	public function test_create_item_with_location_permission_no_location() {
+	public function test_create_item_with_invalid_location() {
 		wp_set_current_user( self::$admin_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/menus' );
 		$request->set_param( 'name', 'My Awesome Term' );
@@ -410,7 +379,7 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'locations', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 400, $response->get_status() );
-		$this->assertErrorResponse( 'rest_menu_location_invalid', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_menu_location', $response, 400 );
 	}
 
 	/**

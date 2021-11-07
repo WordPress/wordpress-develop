@@ -119,6 +119,12 @@ function create_initial_taxonomies() {
 			'show_ui'               => false,
 			'_builtin'              => true,
 			'show_in_nav_menus'     => false,
+			'capabilities'          => array(
+				'manage_terms' => 'edit_theme_options',
+				'edit_terms'   => 'edit_theme_options',
+				'delete_terms' => 'edit_theme_options',
+				'assign_terms' => 'edit_theme_options',
+			),
 			'show_in_rest'          => true,
 			'rest_base'             => 'menus',
 			'rest_controller_class' => 'WP_REST_Menus_Controller',

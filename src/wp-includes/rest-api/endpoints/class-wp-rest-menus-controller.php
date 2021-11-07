@@ -86,30 +86,22 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		);
 	}
 
-
 	/**
-	 * Checks if a request has access to read terms in the specified taxonomy.
+	 * Checks if a request has access to read menus.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return bool|WP_Error True if the request has read access, otherwise false or WP_Error object.
 	 */
 	public function get_items_permissions_check( $request ) {
-		$tax_obj = get_taxonomy( $this->taxonomy );
-		if ( ! $tax_obj || ! $this->check_is_taxonomy_allowed( $this->taxonomy ) ) {
-			return false;
-		}
-		if ( ! current_user_can( $tax_obj->cap->edit_terms ) ) {
-			if ( 'edit' === $request['context'] ) {
-				return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit terms in this taxonomy.' ), array( 'status' => rest_authorization_required_code() ) );
-			}
+		$has_permission = parent::get_items_permissions_check( $request );
 
-			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you cannot view these menus, unless you have access to permission edit them.' ), array( 'status' => rest_authorization_required_code() ) );
+		if ( true !== $has_permission ) {
+			return $has_permission;
 		}
 
-		return true;
+		return $this->check_has_read_only_access( $request );
 	}
 
 	/**
@@ -118,23 +110,16 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return bool|WP_Error True if the request has read access for the item, otherwise false or WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
-		$term = $this->get_term( $request['id'] );
-		if ( is_wp_error( $term ) ) {
-			return $term;
-		}
-		if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
-			if ( 'edit' === $request['context'] ) {
-				return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit this term.' ), array( 'status' => rest_authorization_required_code() ) );
-			}
+		$has_permission = parent::get_item_permissions_check( $request );
 
-			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you cannot view this menu, unless you have access to permission edit it. ' ), array( 'status' => rest_authorization_required_code() ) );
+		if ( true !== $has_permission ) {
+			return $has_permission;
 		}
 
-		return true;
+		return $this->check_has_read_only_access( $request );
 	}
 
 	/**
@@ -160,103 +145,35 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	}
 
 	/**
-	 * Checks if a request has access to create a term.
-	 * Also check if request can assign menu locations.
+	 * Checks whether the current user has read permission for the endpoint.
+	 *
+	 * This allows for any user that can `edit_theme_options` or edit any REST API available post type.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return bool|WP_Error True if the request has access to create items, false or WP_Error object otherwise.
+	 * @return bool|WP_Error Whether the current user has permission.
 	 */
-	public function create_item_permissions_check( $request ) {
-		$check = $this->check_assign_locations_permission( $request );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
-		$check = $this->check_set_auto_add_permission( $request );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
-
-		return parent::create_item_permissions_check( $request );
-	}
-
-	/**
-	 * Checks if a request has access to update the specified term.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return bool|WP_Error True if the request has access to update the item, false or WP_Error object otherwise.
-	 */
-	public function update_item_permissions_check( $request ) {
-		$check = $this->check_assign_locations_permission( $request );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
-		$check = $this->check_set_auto_add_permission( $request );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
-
-		return parent::update_item_permissions_check( $request );
-	}
-
-	/**
-	 * Checks whether current user can assign all locations sent with the current request.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_REST_Request $request The request object with post and locations data.
-	 *
-	 * @return bool|WP_Error Whether the current user can assign the provided terms.
-	 */
-	protected function check_assign_locations_permission( $request ) {
-		if ( ! isset( $request['locations'] ) ) {
+	protected function check_has_read_only_access( $request ) {
+		if ( current_user_can( 'edit_theme_options' ) ) {
 			return true;
 		}
 
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error( 'rest_cannot_assign_location', __( 'Sorry, you are not allowed to assign the provided locations.' ), array( 'status' => rest_authorization_required_code() ) );
+		if ( current_user_can( 'edit_posts' ) ) {
+			return true;
 		}
 
-		foreach ( $request['locations'] as $location ) {
-			if ( ! array_key_exists( $location, get_registered_nav_menus() ) ) {
-				return new WP_Error(
-					'rest_menu_location_invalid',
-					__( 'Invalid menu location.' ),
-					array(
-						'status'   => 400,
-						'location' => $location,
-					)
-				);
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				return true;
 			}
 		}
 
-		return true;
-	}
-
-	/**
-	 * Checks whether current user can set auto add pages.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_REST_Request $request The request object with post and locations data.
-	 *
-	 * @return true|WP_Error Whether the current user can assign the provided terms.
-	 */
-	protected function check_set_auto_add_permission( $request ) {
-		if ( ! isset( $request['auto_add'] ) ) {
-			return true;
-		}
-
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error( 'rest_cannot_set_auto_add', __( 'Sorry, you are not allowed to set auto add pages.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		return true;
+		return new WP_Error(
+			'rest_cannot_view',
+			__( 'Sorry, you are not allowed to view menus.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
 	}
 
 	/**
@@ -651,7 +568,14 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		$new_locations  = array();
 		foreach ( $request['locations'] as $location ) {
 			if ( ! in_array( $location, $menu_locations, true ) ) {
-				return new WP_Error( 'invalid_menu_location', __( 'Menu location does not exist.' ), array( 'status' => 400 ) );
+				return new WP_Error(
+					'rest_invalid_menu_location',
+					__( 'Invalid menu location.' ),
+					array(
+						'status'   => 400,
+						'location' => $location,
+					)
+				);
 			}
 			$new_locations[ $location ] = $menu_id;
 		}
@@ -681,12 +605,36 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		unset( $schema['properties']['taxonomy'] );
 
 		$schema['properties']['locations'] = array(
-			'description' => __( 'The locations assigned to the menu.' ),
-			'type'        => 'array',
-			'items'       => array(
+			'description'       => __( 'The locations assigned to the menu.' ),
+			'type'              => 'array',
+			'items'             => array(
 				'type' => 'string',
 			),
-			'context'     => array( 'view', 'edit' ),
+			'context'           => array( 'view', 'edit' ),
+			'validate_callback' => function ( $locations, $request, $param ) {
+				$valid = rest_validate_request_arg( $locations, $request, $param );
+
+				if ( true !== $valid ) {
+					return $valid;
+				}
+
+				$locations = rest_sanitize_request_arg( $locations, $request, $param );
+
+				foreach ( $locations as $location ) {
+					if ( ! array_key_exists( $location, get_registered_nav_menus() ) ) {
+						return new WP_Error(
+							'rest_invalid_menu_location',
+							__( 'Invalid menu location.' ),
+							array(
+								'status'   => 400,
+								'location' => $location,
+							)
+						);
+					}
+				}
+
+				return true;
+			},
 		);
 
 		$schema['properties']['auto_add'] = array(

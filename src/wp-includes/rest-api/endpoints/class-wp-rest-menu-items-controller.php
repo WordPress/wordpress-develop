@@ -125,6 +125,24 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Checks if a given request has access to read menu items.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+	 */
+	public function get_items_permissions_check( $request ) {
+		$has_permission = parent::get_items_permissions_check( $request );
+
+		if ( true !== $has_permission ) {
+			return $has_permission;
+		}
+
+		return $this->check_has_read_only_access( $request );
+	}
+
+	/**
 	 * Checks if a given request has access to read a menu item if they have access to edit them.
 	 *
 	 * @since 5.9.0
@@ -133,34 +151,45 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		$post = $this->get_post( $request['id'] );
-		if ( is_wp_error( $post ) ) {
-			return $post;
-		}
-		if ( $post && ! $this->check_update_permission( $post ) ) {
-			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you cannot view this menu item, unless you have access to permission edit it. ' ), array( 'status' => rest_authorization_required_code() ) );
+		$permission_check = parent::get_item_permissions_check( $request );
+
+		if ( true !== $permission_check ) {
+			return $permission_check;
 		}
 
-		return parent::get_item_permissions_check( $request );
+		return $this->check_has_read_only_access( $request );
 	}
 
 	/**
-	 * Checks if a given request has access to read menu items if they have access to edit them.
+	 * Checks whether the current user has read permission for the endpoint.
+	 *
+	 * This allows for any user that can `edit_theme_options` or edit any REST API available post type.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+	 * @return bool|WP_Error Whether the current user has permission.
 	 */
-	public function get_items_permissions_check( $request ) {
-		$post_type = get_post_type_object( $this->post_type );
-		if ( ! current_user_can( $post_type->cap->edit_posts ) ) {
-			if ( 'edit' === $request['context'] ) {
-				return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit posts in this post type.' ), array( 'status' => rest_authorization_required_code() ) );
-			}
-			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you cannot view these menu items, unless you have access to permission edit them. ' ), array( 'status' => rest_authorization_required_code() ) );
+	protected function check_has_read_only_access( $request ) {
+		if ( current_user_can( 'edit_theme_options' ) ) {
+			return true;
 		}
-		return true;
+
+		if ( current_user_can( 'edit_posts' ) ) {
+			return true;
+		}
+
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				return true;
+			}
+		}
+
+		return new WP_Error(
+			'rest_cannot_view',
+			__( 'Sorry, you are not allowed to view menu items.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
 	}
 
 	/**
@@ -1100,43 +1129,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $query_args;
-	}
-
-	/**
-	 * Checks whether current user can assign all terms sent with the current request.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_REST_Request $request The request object with post and terms data.
-	 *
-	 * @return bool Whether the current user can assign the provided terms.
-	 */
-	protected function check_assign_terms_permission( $request ) {
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-		foreach ( $taxonomies as $taxonomy ) {
-			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-
-			if ( ! isset( $request[ $base ] ) ) {
-				continue;
-			}
-
-			foreach ( (array) $request[ $base ] as $term_id ) {
-				if ( ! $term_id ) {
-					continue;
-				}
-
-				// Invalid terms will be rejected later.
-				if ( ! get_term( $term_id, $taxonomy->name ) ) {
-					continue;
-				}
-
-				if ( ! current_user_can( 'assign_term', (int) $term_id ) ) {
-					return false;
-				}
-			}
-		}
-
-		return true;
 	}
 
 	/**
