@@ -44,52 +44,52 @@ class Tests_Compat_str_starts_with extends WP_UnitTestCase {
 		return array(
 			'lowercase'              => array(
 				'expected' => true,
-				'haystack'   => 'this is a test',
+				'haystack' => 'this is a test',
 				'needle'   => 'this',
 			),
 			'uppercase'              => array(
 				'expected' => true,
-				'haystack'   => 'THIS is a TEST',
+				'haystack' => 'THIS is a TEST',
 				'needle'   => 'THIS',
 			),
 			'first_leter_upprercase' => array(
 				'expected' => true,
-				'haystack'   => 'This is a Test',
+				'haystack' => 'This is a Test',
 				'needle'   => 'This',
 			),
 			'cammelCase'             => array(
 				'expected' => true,
-				'haystack'   => 'cammelCase is the start',
+				'haystack' => 'cammelCase is the start',
 				'needle'   => 'cammelCase',
 			),
 			'null'                   => array(
 				'expected' => true,
-				'haystack'   => 'This\x00is a null test ',
+				'haystack' => 'This\x00is a null test ',
 				'needle'   => 'This\x00is',
 			),
 			'trademark'              => array(
 				'expected' => true,
-				'haystack'   => 'trademark\x2122 is a null test ',
+				'haystack' => 'trademark\x2122 is a null test ',
 				'needle'   => 'trademark\x2122',
 			),
 			'not_cammelCase'         => array(
 				'expected' => false,
-				'haystack'   => ' cammelcase is the start',
+				'haystack' => ' cammelcase is the start',
 				'needle'   => 'cammelCase',
 			),
 			'missing'                => array(
 				'expected' => false,
-				'haystack'   => 'This is a test',
+				'haystack' => 'This is a test',
 				'needle'   => 'cammelCase',
 			),
 			'not end'                => array(
 				'expected' => false,
-				'haystack'   => 'This is a test extra',
+				'haystack' => 'This is a test extra',
 				'needle'   => 'test',
 			),
 			'extra_space'            => array(
 				'expected' => false,
-				'haystack'   => ' This is a test',
+				'haystack' => ' This is a test',
 				'needle'   => 'This',
 			),
 		);
