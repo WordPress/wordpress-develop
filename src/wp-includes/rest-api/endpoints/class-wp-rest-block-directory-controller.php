@@ -119,6 +119,8 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 		// Restores the more descriptive, specific name for use within this method.
 		$plugin = $item;
 
+		$fields = $this->get_fields_for_response( $request );
+
 		// There might be multiple blocks in a plugin. Only the first block is mapped.
 		$block_data = reset( $plugin['blocks'] );
 
