@@ -51,25 +51,25 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 				'string'   => 'This is a TEST',
 				'needle'   => 'TEST',
 			),
-			'cammelcase'             => array(
+			'camelcase'             => array(
 				'expected' => true,
-				'string'   => 'This is a Test',
+				'haystack' => 'This is a Test',
 				'needle'   => 'Test',
 			),
-			'first_leter_upprercase' => array(
+			'first_letter_uppercase' => array(
 				'expected' => true,
-				'string'   => 'This is a Test',
+				'haystack' => 'This is a Test',
 				'needle'   => 'Test',
 			),
-			'not_cammelCase'         => array(
+			'not_camelCase'         => array(
 				'expected' => false,
-				'string'   => 'This is a cammelcase',
-				'needle'   => 'cammelCase',
+				'haystack' => 'This is a camelcase',
+				'needle'   => 'camelCase',
 			),
 			'missing'                => array(
 				'expected' => false,
-				'string'   => 'This is a cammelcase',
-				'needle'   => 'cammelCase',
+				'haystack' => 'This is a camelcase',
+				'needle'   => 'camelCase',
 			),
 		);
 	}
