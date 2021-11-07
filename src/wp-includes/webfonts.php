@@ -38,7 +38,7 @@ function wp_webfonts() {
  * and font-style of normal and italic:
  *
  * If the font files are contained within the theme:
- * ```
+ * <code>
  * wp_register_webfonts(
  *      array(
  *          array(
@@ -57,10 +57,10 @@ function wp_webfonts() {
  *          ),
  *      )
  * );
- * ```
+ * </code>
  *
  * When requesting from the remote Google Fonts API service provider:
- * ```
+ * <code>
  * wp_register_webfonts(
  *      array(
  *          array(
@@ -77,7 +77,7 @@ function wp_webfonts() {
  *          ),
  *      )
  * );
- * ```
+ * </code>
  *
  * @since 5.9.0
  *

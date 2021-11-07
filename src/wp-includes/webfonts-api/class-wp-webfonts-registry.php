@@ -8,15 +8,23 @@
  */
 
 /**
- * Webfonts Registry.
+ * The Webfonts Registry handles the registration of webfonts and in-memory storage
+ * of the validated registered webfonts.
  *
- * This registry exists to handle all webfonts.
+ * Each webfont is stored in the registry by a unique key composed of its
+ * font-family.font-style.font-weight.
  *
- * It handles the following within the API:
- *  - loads the bundled provider files into memory;
- *  - registers each provider with the API by:
- *       1. creating an instance (object);
- *       2. storing it in-memory (by its unique provider ID) for use with the API;
+ * To optimize querying by provider ID {@see WP_Webfonts_Registry::get_by_provider()},
+ * each webfont is also associated to its provider in an in-memory lookup map.
+ *
+ * During registration {@see WP_Webfonts_Registry::register()}, the following tasks
+ * occur:
+ *    * snake_case properties are converted into
+ *      kebab-case (i.e. valid CSS properties).
+ *    * require properties are validated
+ *      {@see WP_Webfonts_Schema_Validator::is_valid_schema()}.
+ *    * optional properties are set if missing, else checked and, if invalid, set to a
+ *      default value {@see WP_Webfonts_Schema_Validator::set_valid_properties()}.
  *
  * @since 5.9.0
  */

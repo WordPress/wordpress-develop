@@ -16,8 +16,9 @@
  * then generates the `@font-face` styles.
  *
  * When enqueued styles are rendered, the Controller passes its
- * 'google' webfonts via the `set_webfonts()` method and then triggers
- * the processing via the `get_css()` method.
+ * 'google' webfonts {@see WP_Webfonts_Provider::set_setfonts()}
+ * and then triggers {@see WP_Webfonts_Google_Provider::get_css()}
+ * the processing to transform them into `@font-face` styles.
  *
  * All know-how (business logic) for how to interact with and
  * generate styles from Google Fonts API is contained in this provider.

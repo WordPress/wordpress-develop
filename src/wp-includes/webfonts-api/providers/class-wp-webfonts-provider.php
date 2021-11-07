@@ -12,6 +12,20 @@
 /**
  * Abstract class for Webfonts API providers.
  *
+ * The starting point to building a webfont service provider.
+ *
+ * What is a Provider?
+ *
+ * A provider contains the know-how (business logic) for how to
+ * process its specific font service (i.e. local or remote)
+ * and how to generate the `@font-face` styles for its service.
+ *
+ * It receives a collection of webfonts from the Controller
+ * {@see WP_Webfonts_Provider::set_setfonts()}, and when requested
+ * {@see WP_Webfonts_Provider::get_css()}, it transforms them
+ * into styles (in a performant way for the provider service
+ * it manages).
+ *
  * @since 5.9.0
  */
 abstract class WP_Webfonts_Provider {

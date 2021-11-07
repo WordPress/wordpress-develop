@@ -103,39 +103,60 @@ class Tests_Webfonts_API_wpWebfontsLocalProvider extends WP_UnitTestCase {
 	 */
 	public function data_get_css() {
 		return array(
-			'URL to root assets dir' => array(
+			'truetype format' => array(
 				'webfonts' => array(
-					'open-sans.italic.400 900' => array(
-						'provider'     => 'local',
-						'font-family'  => '"Open Sans"',
-						'font-style'   => 'italic',
-						'font-weight'  => '400 900',
-						'font-stretch' => 'normal',
-						'src'          => 'http://example.org/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf',
-					),
-					'open-sans.normal.400 900' => array(
-						'provider'     => 'local',
-						'font-family'  => '"Open Sans"',
-						'font-style'   => 'normal',
-						'font-weight'  => '400 900',
-						'font-stretch' => 'normal',
-						'src'          => 'http://example.org/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf',
+					'open-sans.italic.bold' => array(
+						'provider'    => 'local',
+						'font-family' => 'Open Sans',
+						'font-style'  => 'italic',
+						'font-weight' => 'bold',
+						'src'         => 'http://example.org/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf',
 					),
 				),
 				'expected' => <<<CSS
 @font-face{
 	font-family:"Open Sans";
 	font-style:italic;
-	font-weight:400 900;
-	font-stretch:normal;
+	font-weight:bold;
 	src:local("Open Sans"), url('/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf') format('truetype');
 }
+
+CSS
+			,
+			),
+			'woff2 format'    => array(
+				'webfonts' => array(
+					'source-serif-pro.normal.200 900' => array(
+						'provider'     => 'local',
+						'font-family'  => 'Source Serif Pro',
+						'font-style'   => 'normal',
+						'font-weight'  => '200 900',
+						'font-stretch' => 'normal',
+						'src'          => 'http://example.org/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+					),
+					'source-serif-pro.italic.400 900' => array(
+						'provider'     => 'local',
+						'font-family'  => 'Source Serif Pro',
+						'font-style'   => 'italic',
+						'font-weight'  => '200 900',
+						'font-stretch' => 'normal',
+						'src'          => 'http://example.org/assets/fonts/source-serif-pro/SourceSerif4Variable-Italic.ttf.woff2',
+					),
+				),
+				'expected' => <<<CSS
 @font-face{
-	font-family:"Open Sans";
+	font-family:"Source Serif Pro";
 	font-style:normal;
-	font-weight:400 900;
+	font-weight:200 900;
 	font-stretch:normal;
-	src:local("Open Sans"), url('/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
+	src:local("Source Serif Pro"), url('/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2') format('woff2');
+}
+@font-face{
+	font-family:"Source Serif Pro";
+	font-style:italic;
+	font-weight:200 900;
+	font-stretch:normal;
+	src:local("Source Serif Pro"), url('/assets/fonts/source-serif-pro/SourceSerif4Variable-Italic.ttf.woff2') format('woff2');
 }
 
 CSS

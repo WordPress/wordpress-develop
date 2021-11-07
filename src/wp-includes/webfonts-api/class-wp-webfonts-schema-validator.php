@@ -8,9 +8,16 @@
  */
 
 /**
- * Webfonts Schema Validator.
+ * The validator checks ensures a given webfont is ready for processing
+ * in the API. After processing, the API can trust each webfont schema,
+ * meaning no additional validation is needed within the API.
  *
- * Validates the webfont schema.
+ * Required webfont properties are validated {@see WP_Webfonts_Schema_Validator::is_valid_schema()}
+ * and optional webfont properties are set if missing, else checked and, if invalid, set to a
+ * default value {@see WP_Webfonts_Schema_Validator::set_valid_properties()}.
+ *
+ * The validator is a dependency to the `WP_Webfonts_Registry` which
+ * interacts with this validator before registering a webfont.
  *
  * @since 5.9.0
  */
