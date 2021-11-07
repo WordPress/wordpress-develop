@@ -51,7 +51,7 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 				'string'   => 'This is a TEST',
 				'needle'   => 'TEST',
 			),
-			'camelcase'             => array(
+			'camelcase'              => array(
 				'expected' => true,
 				'haystack' => 'This is a Test',
 				'needle'   => 'Test',
@@ -61,7 +61,7 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 				'haystack' => 'This is a Test',
 				'needle'   => 'Test',
 			),
-			'not_camelCase'         => array(
+			'not_camelCase'          => array(
 				'expected' => false,
 				'haystack' => 'This is a camelcase',
 				'needle'   => 'camelCase',
