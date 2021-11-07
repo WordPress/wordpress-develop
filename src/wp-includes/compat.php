@@ -384,11 +384,11 @@ if ( ! function_exists( 'array_key_first' ) ) {
 	 * @ignore
 	 * @since 5.9.0
 	 *
-	 * @param array $array An array.
+	 * @param array $arr An array.
 	 * @return string|int|null The first key of array if the array is not empty. NULL otherwise.
 	 */
-	function array_key_first( array $array ) {
-		foreach ( $array as $key => $value ) {
+	function array_key_first( $arr ) {
+		foreach ( $arr as $key => $value ) {
 				return $key;
 		}
 	}
@@ -400,16 +400,14 @@ if ( ! function_exists( 'array_key_last' ) ) {
 	 *
 	 * Get the last key of the given array without affecting the internal array pointer.
 	 *
-	 * @ticket 45055
-	 * @ignore
 	 * @since 5.9.0
 	 *
-	 * @param array $array An array.
+	 * @param array $arr An array.
 	 * @return string|int|null The first key of array if the array is not empty. NULL otherwise.
 	 */
-	function array_key_last( array $array ) {
-			end( $array );
-			return key( $array );
+	function array_key_last( $arr ) {
+			end( $arr );
+			return key( $arr );
 	}
 }
 // IMAGETYPE_WEBP constant is only defined in PHP 7.1 or later.

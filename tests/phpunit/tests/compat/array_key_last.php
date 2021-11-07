@@ -17,16 +17,18 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 
 
 	/**
-	 * @dataProvider array_key_last_provider
 	 * @ticket 45055
+	 * @dataProvider data_array_key_last
+	 * @param bool $expected the value of the key extracted to extracted from given array.
+	 * @param array $arr The array to get last key from.
 	 */
-	public function test_array_key_last( $expected, $array ) {
+	public function test_array_key_last( $expected, $arr ) {
 		if ( ! function_exists( 'array_key_last' ) ) {
 			$this->markTestSkipped( 'array_key_last() is not available.' );
 		} else {
 			$this->assertSame(
 				$expected,
-				array_key_last( $array )
+				array_key_last( $arr )
 			);
 		}
 
@@ -35,38 +37,38 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_array_key_last().
 	 *
-	 * @return array[]
+	 * @return array
 	 */
-	public function array_key_last_provider() {
+	public function data_array_key_last() {
 		return array(
 			'string_key'  => array(
 				'expected' => 'key2',
-				'array'    => array(
+				'arr'      => array(
 					'key1' => 'val1',
 					'key2' => 'val2',
 				),
 			),
 			'int_key'     => array(
 				'expected' => 1,
-				'array'    => array(
+				'arr'      => array(
 					99 => 'val1',
 					1  => 'val2',
 				),
 			),
 			'no_key'      => array(
 				'expected' => 1,
-				'array'    => array( 'val1', 'val2' ),
+				'arr'      => array( 'val1', 'val2' ),
 			),
 			'multi_array' => array(
 				'expected' => 1,
-				'array'    => array(
+				'arr'      => array(
 					99 => array( 22 => 'val1' ),
 					1  => 'val2',
 				),
 			),
 			'empty_array' => array(
 				'expected' => null,
-				'array'    => array(),
+				'arr'      => array(),
 			),
 		);
 	}
