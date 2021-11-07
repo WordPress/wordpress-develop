@@ -9,20 +9,20 @@ class Tests_Compat_ArrayKeyLast extends WP_UnitTestCase {
 
 	/**
 	 * Test that array_key_last() is always available (either from PHP or WP).
+	 *
 	 * @ticket 45055
 	 */
 	public function test_array_key_last_availability() {
 		$this->assertTrue( function_exists( 'array_key_last' ) );
 	}
 
-
 	/**
 	 * @dataProvider data_array_key_last
 	 *
 	 * @ticket 45055
 	 *
-	 * @param bool $expected The value of the key extracted to extracted from given array.
-	 * @param array $arr     The array to get last key from.
+	 * @param bool  $expected The value of the key extracted to extracted from given array.
+	 * @param array $arr      The array to get last key from.
 	 */
 	public function test_array_key_last( $expected, $arr ) {
 		if ( ! function_exists( 'array_key_last' ) ) {
@@ -66,7 +66,11 @@ class Tests_Compat_ArrayKeyLast extends WP_UnitTestCase {
 			),
 			'mixed keys'  => array(
 				'expected' => 1,
-				'arr'      => array( 'val1', 'key2' => 'val2', 'val3' ),
+				'arr'      => array(
+					'val1',
+					'key2' => 'val2',
+					'val3',
+				),
 			),
 			'empty array' => array(
 				'expected' => null,
