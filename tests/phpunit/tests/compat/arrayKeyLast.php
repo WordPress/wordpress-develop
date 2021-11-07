@@ -66,7 +66,7 @@ class Tests_Compat_ArrayKeyLast extends WP_UnitTestCase {
 			),
 			'mixed keys'  => array(
 				'expected' => 1,
-				'arr'      => array( 'val1', 'key2' => val2', 'val3' ),
+				'arr'      => array( 'val1', 'key2' => 'val2', 'val3' ),
 			),
 			'empty array' => array(
 				'expected' => null,
