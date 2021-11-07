@@ -2,16 +2,17 @@
 
 /**
  * @group xmlrpc
+ * @requires function imagejpeg
  */
 class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 
-	public function tearDown() {
+	public function tear_down() {
 		$this->remove_added_uploads();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
-	function test_valid_attachment() {
+	public function test_valid_attachment() {
 		$this->make_user_by_role( 'editor' );
 
 		// Create attachment.
@@ -27,10 +28,10 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result['id'] );
+		$this->assertIsString( $result['id'] );
 		$this->assertStringMatchesFormat( '%d', $result['id'] );
-		$this->assertInternalType( 'string', $result['file'] );
-		$this->assertInternalType( 'string', $result['url'] );
-		$this->assertInternalType( 'string', $result['type'] );
+		$this->assertIsString( $result['file'] );
+		$this->assertIsString( $result['url'] );
+		$this->assertIsString( $result['type'] );
 	}
 }

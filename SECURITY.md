@@ -9,6 +9,7 @@ currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 5.8.x   | :white_check_mark: |
 | 5.7.x   | :white_check_mark: |
 | 5.6.x   | :white_check_mark: |
 | 5.5.x   | :white_check_mark: |
