@@ -1,4 +1,4 @@
-wp_is_numeric_array<?php
+<?php
 
 /**
  * @group formatting
