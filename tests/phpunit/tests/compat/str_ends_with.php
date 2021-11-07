@@ -3,30 +3,32 @@
 /**
  * @group compat
  *
- * @ticket 54377
  *
  * @covers ::str_ends_with
  */
 class Tests_Compat_str_ends_with extends WP_UnitTestCase {
 
 	/**
-	 * Test that is_iterable() is always available (either from PHP or WP).
-	 *
-	 * @ticket 43619
+	 * Test that str_ends_with() is always available (either from PHP or WP).
+	 * @ticket 54377
 	 */
 	public function test_str_ends_with_availability() {
 		$this->assertTrue( function_exists( 'str_ends_with' ) );
 	}
 	/**
-	 * @dataProvider str_ends_with_provider
+	 * @ticket 54377
+	 * @dataProvider data_str_ends_with
+	 * @param bool $expected Whether or not `$haystack` is expected to end with `$needle`.
+	 * @param string $haystack The string to search in.
+	 * @param string $needle The substring to search for at the end of `$haystack`.
 	 */
-	public function test_str_ends_with( $expected, $string, $needle ) {
+	public function test_str_ends_with( $expected, $haystack, $needle ) {
 		if ( ! function_exists( 'str_ends_with' ) ) {
 			$this->markTestSkipped( 'str_ends_with() is not available.' );
 		} else {
 			$this->assertSame(
 				$expected,
-				str_ends_with( $string, $needle )
+				str_ends_with( $haystack, $needle )
 			);
 		}
 
@@ -37,56 +39,56 @@ class Tests_Compat_str_ends_with extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function str_ends_with_provider() {
+	public function data_str_ends_with() {
 		return array(
 			'lowercase'              => array(
 				'expected' => true,
-				'string'   => 'This is a test',
+				'haystack' => 'This is a test',
 				'needle'   => 'test',
 			),
 			'uppercase'              => array(
 				'expected' => true,
-				'string'   => 'This is a TEST',
+				'haystack' => 'This is a TEST',
 				'needle'   => 'TEST',
 			),
 			'first_leter_upprercase' => array(
 				'expected' => true,
-				'string'   => 'This is a Test',
+				'haystack' => 'This is a Test',
 				'needle'   => 'Test',
 			),
 			'cammelCase'             => array(
 				'expected' => true,
-				'string'   => 'This is a cammelCase',
+				'haystack' => 'This is a cammelCase',
 				'needle'   => 'cammelCase',
 			),
 			'null'                   => array(
 				'expected' => true,
-				'string'   => 'This is a null \x00test',
+				'haystack' => 'This is a null \x00test',
 				'needle'   => '\x00test',
 			),
 			'trademark'              => array(
 				'expected' => true,
-				'string'   => 'This is a trademark\x2122',
+				'haystack' => 'This is a trademark\x2122',
 				'needle'   => 'trademark\x2122',
 			),
 			'not_cammelCase'         => array(
 				'expected' => false,
-				'string'   => 'This is a cammelcase',
+				'haystack' => 'This is a cammelcase',
 				'needle'   => 'cammelCase',
 			),
 			'missing'                => array(
 				'expected' => false,
-				'string'   => 'This is a cammelcase',
+				'haystack' => 'This is a cammelcase',
 				'needle'   => 'cammelCase',
 			),
 			'not end'                => array(
 				'expected' => false,
-				'string'   => 'This is a test extra',
+				'haystack' => 'This is a test extra',
 				'needle'   => 'test',
 			),
 			'extra_space'            => array(
 				'expected' => false,
-				'string'   => 'This is a test ',
+				'haystack' => 'This is a test ',
 				'needle'   => 'test',
 			),
 

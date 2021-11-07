@@ -382,14 +382,12 @@ if ( ! function_exists( 'str_starts_with' ) ) {
 	 * Polyfill for str_starts_with() function added in PHP 8.
 	 * Performs a case-sensitive check indicating if needle is contained in haystack.
 	 *
-	 * @ticket 54377
-	 * @ignore
 	 * @since 5.9.0
 	 *
-	 * @param $haystack string The string to search in.
-	 * @param $needle string The substring to search for in the haystack to is it startswith it.
+	 * @param string $haystack The string to search in.
+	 * @param string $needle The substring to search for at the start of `$haystack`.
 	 *
-	 * @return Boolean true if needle is the haystack and starts with it.
+	 * @return bool True if `$haystack` starts with `$needle`, otherwise false.
 	 */
 	function str_starts_with( $haystack, $needle ) {
 		return 0 === strpos( $haystack, $needle );
@@ -401,15 +399,12 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	 *
 	 * Performs a case-sensitive check indicating if needle is contained in haystack.
 	 *
-	 * @ticket 54377
-	 * @ignore
 	 * @since 5.9.0
 	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle The substring to search for at the end of `$haystack`.
 	 *
-	 * @param $haystack string The string to search in.
-	 * @param $needle string The substring to search for in the haystack to is it ends with it.
-	 *
-	 * @return Boolean true if needle is in haystack and ends with it.
+	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
 	 */
 	function str_ends_with( $haystack, $needle ) {
 		return 0 === substr_compare( $haystack, $needle, -strlen( $needle ), strlen( $needle ) );
