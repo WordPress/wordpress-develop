@@ -5,7 +5,7 @@
  *
  * @covers ::array_key_last
  */
-class Tests_Compat_array_key_last extends WP_UnitTestCase {
+class Tests_Compat_ArrayKeyLast extends WP_UnitTestCase {
 
 	/**
 	 * Test that array_key_last() is always available (either from PHP or WP).
@@ -17,10 +17,12 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 
 
 	/**
-	 * @ticket 45055
 	 * @dataProvider data_array_key_last
-	 * @param bool $expected the value of the key extracted to extracted from given array.
-	 * @param array $arr The array to get last key from.
+	 *
+	 * @ticket 45055
+	 *
+	 * @param bool $expected The value of the key extracted to extracted from given array.
+	 * @param array $arr     The array to get last key from.
 	 */
 	public function test_array_key_last( $expected, $arr ) {
 		if ( ! function_exists( 'array_key_last' ) ) {
@@ -41,32 +43,36 @@ class Tests_Compat_array_key_last extends WP_UnitTestCase {
 	 */
 	public function data_array_key_last() {
 		return array(
-			'string_key'  => array(
+			'string key'  => array(
 				'expected' => 'key2',
 				'arr'      => array(
 					'key1' => 'val1',
 					'key2' => 'val2',
 				),
 			),
-			'int_key'     => array(
+			'int key'     => array(
 				'expected' => 1,
 				'arr'      => array(
 					99 => 'val1',
 					1  => 'val2',
 				),
 			),
-			'no_key'      => array(
+			'no key'      => array(
 				'expected' => 1,
 				'arr'      => array( 'val1', 'val2' ),
 			),
-			'multi_array' => array(
+			'multi array' => array(
 				'expected' => 1,
 				'arr'      => array(
 					99 => array( 22 => 'val1' ),
 					1  => 'val2',
 				),
 			),
-			'empty_array' => array(
+			'mixed keys'  => array(
+				'expected' => 1,
+				'arr'      => array( 'val1', 'key2' => val2', 'val3' ),
+			),
+			'empty array' => array(
 				'expected' => null,
 				'arr'      => array(),
 			),
