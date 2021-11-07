@@ -17,15 +17,18 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider str_contains_provider
+	 * @dataProvider data_str_contains
+	 * @param bool $expected Whether or not `$haystack` is expected to contain `$needle`.
+	 * @param string $haystack The string to search in.
+	 * @param string $needle The substring to search for in `$haystack`.
 	 */
-	public function test_str_contains( $expected, $string, $needle ) {
+	public function test_str_contains( $expected, $haystack, $needle ) {
 		if ( ! function_exists( 'str_contains' ) ) {
 			$this->markTestSkipped( 'str_contains() is not available.' );
 		} else {
 			$this->assertSame(
 				$expected,
-				str_contains( $string, $needle )
+				str_contains( $haystack, $needle )
 			);
 		}
 
@@ -34,9 +37,9 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_str_contains.
 	 *
-	 * @return array[]
+	 * @return array
 	 */
-	public function str_contains_provider() {
+	public function data_str_contains() {
 		return array(
 			'lowercase'              => array(
 				'expected' => true,
