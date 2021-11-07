@@ -5,7 +5,7 @@
  *
  * @covers ::str_contains
  */
-class Tests_Compat_str_contains extends WP_UnitTestCase {
+class Tests_Compat_strContains extends WP_UnitTestCase {
 
 	/**
 	 * Test that str_contains() is always available (either from PHP or WP).
@@ -13,14 +13,17 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 	 * @ticket 49652
 	 */
 	public function test_is_str_contains_availability() {
-			$this->assertTrue( function_exists( 'str_contains' ) );
+		$this->assertTrue( function_exists( 'str_contains' ) );
 	}
 
 	/**
 	 * @dataProvider data_str_contains
-	 * @param bool $expected Whether or not `$haystack` is expected to contain `$needle`.
+	 *
+	 * @ticket 49652
+	 *
+	 * @param bool   $expected Whether or not `$haystack` is expected to contain `$needle`.
 	 * @param string $haystack The string to search in.
-	 * @param string $needle The substring to search for in `$haystack`.
+	 * @param string $needle   The substring to search for in `$haystack`.
 	 */
 	public function test_str_contains( $expected, $haystack, $needle ) {
 		if ( ! function_exists( 'str_contains' ) ) {
@@ -35,38 +38,48 @@ class Tests_Compat_str_contains extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_str_contains.
+	 * Data provider.
 	 *
 	 * @return array
 	 */
 	public function data_str_contains() {
 		return array(
-			'lowercase'              => array(
+			'start of string'  => array(
+				'expected' => true,
+				'haystack' => 'This is a Test',
+				'needle'   => 'This',
+			),
+			'middle of string' => array(
+				'expected' => true,
+				'haystack' => 'The needle in middle of string.',
+				'needle'   => 'middle',
+			),
+			'end of string'    => array(
+				'expected' => true,
+				'string'   => 'The needle is at end.',
+				'needle'   => 'end',
+			),
+			'lowercase'        => array(
 				'expected' => true,
 				'string'   => 'This is a test',
 				'needle'   => 'test',
 			),
-			'uppercase'              => array(
+			'uppercase'        => array(
 				'expected' => true,
 				'string'   => 'This is a TEST',
 				'needle'   => 'TEST',
 			),
-			'camelcase'              => array(
+			'camelCase'        => array(
 				'expected' => true,
-				'haystack' => 'This is a Test',
-				'needle'   => 'Test',
-			),
-			'first_letter_uppercase' => array(
-				'expected' => true,
-				'haystack' => 'This is a Test',
-				'needle'   => 'Test',
-			),
-			'not_camelCase'          => array(
-				'expected' => false,
-				'haystack' => 'This is a camelcase',
+				'string'   => 'String contains camelCase.',
 				'needle'   => 'camelCase',
 			),
-			'missing'                => array(
+			'with hyphen'      => array(
+				'expected' => true,
+				'string'   => 'String contains foo-bar needle.',
+				'needle'   => 'foo-bar',
+			),
+			'missing'          => array(
 				'expected' => false,
 				'haystack' => 'This is a camelcase',
 				'needle'   => 'camelCase',
