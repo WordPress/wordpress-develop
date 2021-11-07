@@ -5,8 +5,9 @@ declare( strict_types=1 );
 require_once dirname( __DIR__, 2 ) . '/src/wp-load.php';
 
 /**
- * @Revs(10000)
+ * @Revs(1000)
  * @Iterations(5)
+ * @RetryThreshold(10.0)
  * @BeforeClassMethods("setUpBeforeClass")
  */
 class RestPrepareLinksBench {
