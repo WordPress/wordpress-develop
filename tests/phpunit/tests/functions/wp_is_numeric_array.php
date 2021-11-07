@@ -8,24 +8,21 @@ wp_is_numeric_array<?php
 class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 53971
-	 *
 	 * @dataProvider data_wp_is_numeric_array
 	 *
-	 * @param array $test_array Test value.
-	 * @param array $expected   Expected return value.
+	 * @ticket 53971
+	 *
+	 * @param mixed $input    Input to test.
+	 * @param array $expected Expected result.
 	 */
-	function test_wp_is_numeric_array( $test_array, $expected ) {
-		$this->assertSame( $expected, wp_is_numeric_array( $test_array ) );
+	function test_wp_is_numeric_array( $input, $expected ) {
+		$this->assertSame( $expected, wp_is_numeric_array( $input ) );
 	}
 
 	/**
-	 * Data provider for test_add_magic_quotes.
+	 * Data provider.
 	 *
-	 * @return array[] Test parameters {
-	 *     @type array $test_array Test value.
-	 *     @type array $expected   Expected return value.
-	 * }
+	 * @return array[]
 	 */
 	public function data_wp_is_numeric_array() {
 		return array(
@@ -68,7 +65,7 @@ class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
 			'not an array'         => array(
 				'test_array' => null,
 				'expected'   => false,
-			),			
+			),
 		);
 	}
 }
