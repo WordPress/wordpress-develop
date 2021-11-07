@@ -406,8 +406,8 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 /**
  * Save the properties of a menu item or create a new one.
  *
- * The menu-item-title, menu-item-description, and menu-item-attr-title are expected
- * to be pre-slashed since they are passed directly into `wp_insert_post()`.
+ * The menu-item-title, menu-item-description, menu-item-attr-title, and menu-item-content are expected
+ * to be pre-slashed since they are passed directly to APIs that expect slashed data.
  *
  * @since 3.0.0
  *
@@ -573,7 +573,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	update_post_meta( $menu_item_db_id, '_menu_item_classes', $args['menu-item-classes'] );
 	update_post_meta( $menu_item_db_id, '_menu_item_xfn', $args['menu-item-xfn'] );
 	update_post_meta( $menu_item_db_id, '_menu_item_url', esc_url_raw( $args['menu-item-url'] ) );
-	update_post_meta( $menu_item_db_id, '_menu_item_content', wp_slash( $args['menu-item-content'] ) );
+	update_post_meta( $menu_item_db_id, '_menu_item_content', $args['menu-item-content'] );
 
 	if ( 0 == $menu_id ) {
 		update_post_meta( $menu_item_db_id, '_menu_item_orphaned', (string) time() );
