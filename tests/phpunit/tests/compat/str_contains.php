@@ -8,9 +8,9 @@
 class Tests_Compat_str_contains extends WP_UnitTestCase {
 
 	/**
-	 * Test that is_iterable() is always available (either from PHP or WP).
+	 * Test that str_contains() is always available (either from PHP or WP).
 	 *
-	 * @ticket 43619
+	 * @ticket 49652
 	 */
 	public function test_is_str_contains_availability() {
 			$this->assertTrue( function_exists( 'str_contains' ) );
