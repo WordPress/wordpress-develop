@@ -382,7 +382,7 @@ if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
 
 if ( ! function_exists( 'str_contains' ) ) {
 	/**
-	 * Polyfill for array_key_last() function added in PHP 7.3.
+	 * Polyfill for str_contains() function added in PHP 8.
 	 *
 	 * Performs a case-sensitive check indicating if needle is contained in haystack.
 	 *
@@ -390,10 +390,10 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 * @ignore
 	 * @since 5.9.0
 	 *
-	 * @param $haystack The string to search in.
-	 * @param $needle The substring to search for in the haystack.
+	 * @param string $haystack The string to search in.
+	 * @param string $needle The substring to search for in the haystack.
 	 *
-	 * @return Boolean true if needle is in haystack.
+	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
 	 */
 	function str_contains( $haystack, $needle ) {
 		return '' === $needle || false !== strpos( $haystack, $needle );
