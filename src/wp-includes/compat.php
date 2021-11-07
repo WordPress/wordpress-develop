@@ -386,8 +386,6 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 *
 	 * Performs a case-sensitive check indicating if needle is contained in haystack.
 	 *
-	 * @ticket 49652
-	 * @ignore
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
