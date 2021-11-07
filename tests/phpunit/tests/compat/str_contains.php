@@ -2,7 +2,6 @@
 
 /**
  * @group compat
- * @ticket 49652
  *
  * @covers ::str_contains
  */
