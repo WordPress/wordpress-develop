@@ -65,6 +65,10 @@ class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
 				),
 				'expected'   => true,
 			),
+			'not an array'         => array(
+				'test_array' => null,
+				'expected'   => false,
+			),			
 		);
 	}
 }
