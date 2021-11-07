@@ -5,7 +5,7 @@
  * @group functions.php
  * @covers ::wp_is_numeric_array
  */
-class Tests_Functions_wp_is_numeric_array extends WP_UnitTestCase {
+class Tests_Functions_WpIsNumericArray extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_wp_is_numeric_array
