@@ -412,7 +412,8 @@ if ( ! function_exists( 'array_key_last' ) ) {
 		if ( empty( $arr ) ) {
 			return null;
 		}
-		return key( array_slice( $arr, -1, 1, true ) );
+		end( $arr );
+		return key( $arr );
 	}
 }
 
