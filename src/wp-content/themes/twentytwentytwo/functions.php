@@ -44,7 +44,7 @@ if ( ! function_exists( 'twentytwentytwo_styles' ) ) :
 			'twentytwentytwo-style',
 			get_template_directory_uri() . '/style.css',
 			array(),
-			wp_get_theme()->get( 'Version' ),
+			wp_get_theme()->get( 'Version' )
 		);
 
 		// Add styles inline.
