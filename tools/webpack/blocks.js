@@ -53,6 +53,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'site-title',
 		'social-link',
 		'tag-cloud',
+		'template-part',
 	];
 	const blockFolders = [
 		'audio',
