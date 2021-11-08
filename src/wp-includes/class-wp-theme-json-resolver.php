@@ -207,7 +207,7 @@ class WP_Theme_JSON_Resolver {
 	private static function get_user_data_from_custom_post_type( $should_create_cpt = false, $post_status_filter = array( 'publish' ) ) {
 		$user_cpt         = array();
 		$post_type_filter = 'wp_global_styles';
-		$recent_posts     = wp_get_recent_posts(
+		$query            = new WP_Query(
 			array(
 				'posts_per_page' => 1,
 				'orderby'        => 'date',
@@ -224,8 +224,8 @@ class WP_Theme_JSON_Resolver {
 			)
 		);
 
-		if ( is_array( $recent_posts ) && ( count( $recent_posts ) === 1 ) ) {
-			$user_cpt = $recent_posts[0];
+		if ( is_array( $query->posts ) && ( $query->post_count === 1 ) ) {
+			$user_cpt = $query->posts[0];
 		} elseif ( $should_create_cpt ) {
 			$cpt_post_id = wp_insert_post(
 				array(
