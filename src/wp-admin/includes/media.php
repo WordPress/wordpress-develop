@@ -3238,6 +3238,7 @@ function edit_form_image_editor( $post ) {
 			)
 		);
 
+
 		?>
 		</p>
 	<?php endif; ?>
