@@ -106,11 +106,8 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 		$target = $bookmark->link_target;
 		if ( '' !== $target ) {
 			if ( is_string( $rel ) && '' !== $rel ) {
-				$rels   = explode( ' ', $rel );
-
-				if ( in_array( 'noopener', $rels, true ) ) {
-					$rels[] = 'noopener';
-					$rel     = implode( ' ', $rels );
+				if ( ! str_contains( $rels, 'noopener' ) ) {
+					$rel = trim( $rel ) . ' noopener';
 				}
 			} else {
 				$rel = 'noopener';
