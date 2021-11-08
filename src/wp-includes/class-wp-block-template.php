@@ -104,7 +104,8 @@ class WP_Block_Template {
 	/**
 	 * Whether a template is a custom template.
 	 *
-	 * @since 5.8.0
+	 * @since 5.9.0
+	 *
 	 * @var boolean
 	 */
 	public $is_custom = true;
