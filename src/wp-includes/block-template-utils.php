@@ -826,8 +826,6 @@ function block_header_area() {
  * Print the footer template-part.
  *
  * @since 5.9.0
- *
- * @return void
  */
 function block_footer_area() {
 	block_template_part( 'footer' );
