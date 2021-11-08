@@ -156,7 +156,7 @@ class WP_Theme_JSON_Resolver {
 	 */
 	public static function get_theme_data( $deprecated = array() ) {
 		if ( ! empty( $deprecated ) ) {
-			_deprecated_argument( __FUNCTION__, '5.9' );
+			_deprecated_argument( __METHOD__, '5.9' );
 		}
 		if ( null === self::$theme ) {
 			$theme_json_data = self::read_json_file( self::get_file_path_from_theme( 'theme.json' ) );
