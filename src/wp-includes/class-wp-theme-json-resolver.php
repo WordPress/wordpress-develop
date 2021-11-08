@@ -224,7 +224,7 @@ class WP_Theme_JSON_Resolver {
 			)
 		);
 
-		if ( is_array( $query->posts ) && ( $query->post_count === 1 ) ) {
+		if ( is_array( $query->posts ) && ( 1 === $query->post_count ) ) {
 			$user_cpt = $query->posts[0];
 		} elseif ( $should_create_cpt ) {
 			$cpt_post_id = wp_insert_post(
