@@ -2,8 +2,6 @@
 /**
  * @group user
  *
- * @ticket 15145
- *
  * @covers ::wp_list_users
  */
 class Tests_Functions_wpListUsers extends WP_UnitTestCase {
@@ -73,8 +71,10 @@ class Tests_Functions_wpListUsers extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_should_create_a_user_list
 	 *
-	 * @param array  $args     The arguments to create a list of users.
-	 * @param string $expected The expected result.
+	 * @ticket 15145
+	 *
+	 * @param array|string $args     The arguments to create a list of users.
+	 * @param string       $expected The expected result.
 	 */
 	public function test_should_create_a_user_list( $args, $expected ) {
 		$actual = wp_list_users( $args );
@@ -100,7 +100,7 @@ class Tests_Functions_wpListUsers extends WP_UnitTestCase {
 	public function data_should_create_a_user_list() {
 		return array(
 			'defaults when no args are supplied' => array(
-				'args'     => array(),
+				'args'     => '',
 				'expected' => '<li>jane</li><li>michelle</li><li>paul</li><li>zack</li>',
 			),
 			'the admin account included'         => array(
@@ -170,7 +170,9 @@ class Tests_Functions_wpListUsers extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_should_not_create_a_user_list
 	 *
-	 * @param array  $args The arguments to create a list of users.
+	 * @ticket 15145
+	 *
+	 * @param array|string $args The arguments to create a list of users.
 	 */
 	public function test_should_not_create_a_user_list( $args ) {
 		$actual = wp_list_users( $args );
