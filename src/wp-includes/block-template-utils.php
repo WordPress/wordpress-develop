@@ -177,8 +177,12 @@ function _filter_block_template_part_area( $type ) {
 		return $type;
 	}
 
-	/* translators: %1$s: Template area type, %2$s: the uncategorized template area value. */
-	$warning_message = sprintf( __( '"%1$s" is not a supported wp_template_part area value and has been added as "%2$s".' ), $type, WP_TEMPLATE_PART_AREA_UNCATEGORIZED );
+	$warning_message = sprintf(
+		/* translators: %1$s: Template area type, %2$s: the uncategorized template area value. */
+		__( '"%1$s" is not a supported wp_template_part area value and has been added as "%2$s".' ),
+		$type,
+		WP_TEMPLATE_PART_AREA_UNCATEGORIZED
+	);
 	trigger_error( $warning_message, E_USER_NOTICE );
 	return WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
 }
