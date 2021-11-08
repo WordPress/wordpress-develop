@@ -33,7 +33,7 @@ $current_screen->is_block_editor( true );
 
 $block_editor_context = new WP_Block_Editor_Context();
 
-$active_global_styles_id = 0; // TODO: WP_Theme_JSON_Resolver::get_user_custom_post_type_id();
+$active_global_styles_id = WP_Theme_JSON_Resolver::get_user_custom_post_type_id();
 $active_theme            = wp_get_theme()->get_stylesheet();
 $preload_paths           = array(
 	array( '/wp/v2/media', 'OPTIONS' ),
@@ -58,8 +58,8 @@ $editor_settings = get_block_editor_settings(
 	array(
 		'siteUrl'                              => site_url(),
 		'postsPerPage'                         => get_option( 'posts_per_page' ),
-		'styles'                               => array(), // TODO: gutenberg_get_editor_styles(),
-		'defaultTemplateTypes'                 => array(), // TODO: gutenberg_get_indexed_default_template_types(),
+		'styles'                               => get_block_editor_theme_styles(),
+		'defaultTemplateTypes'                 => get_default_block_template_types(),
 		'defaultTemplatePartAreas'             => get_allowed_block_template_part_areas(),
 		'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
 		'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
