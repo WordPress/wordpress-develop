@@ -2276,7 +2276,7 @@ function wp_common_block_scripts_and_styles() {
 			$files  = glob( __DIR__ . "/blocks/**/theme.$suffix" );
 			foreach ( $files as $path ) {
 				$block_name = basename( dirname( $path ) );
-				if ( is_rtl() && file_exists( __DIR__ . "/blocks/$block_name/theme-rtl.$suffix")) {
+				if ( is_rtl() && file_exists( __DIR__ . "/blocks/$block_name/theme-rtl.$suffix" ) ) {
 					$path = __DIR__ . "/blocks/$block_name/theme-rtl.$suffix";
 				}
 				wp_add_inline_style( "wp-block-{$block_name}", file_get_contents( $path ) );
