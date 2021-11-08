@@ -7,8 +7,8 @@ class WP_Block_Supports_Spacing_Test extends WP_UnitTestCase {
 	private $test_gap_block_value = array();
 	private $test_gap_block_args  = array();
 
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 
 		$this->test_gap_block_value = array(
 			'blockName' => 'test/test-block',
