@@ -76,12 +76,17 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			$style .= "$selector > * + * { margin-top: var( --wp--style--block-gap ); margin-bottom: 0; }";
 		}
 	} elseif ( 'flex' === $layout_type ) {
+		$layout_orientation = isset( $layout['orientation'] ) ? $layout['orientation'] : 'horizontal';
+
 		$justify_content_options = array(
-			'left'          => 'flex-start',
-			'right'         => 'flex-end',
-			'center'        => 'center',
-			'space-between' => 'space-between',
+			'left'   => 'flex-start',
+			'right'  => 'flex-end',
+			'center' => 'center',
 		);
+
+		if ( 'horizontal' === $layout_orientation ) {
+			$justify_content_options += array( 'space-between' => 'space-between' );
+		}
 
 		$flex_wrap_options = array( 'wrap', 'nowrap' );
 		$flex_wrap         = ! empty( $layout['flexWrap'] ) && in_array( $layout['flexWrap'], $flex_wrap_options, true ) ?
@@ -97,13 +102,24 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		}
 		$style .= "flex-wrap: $flex_wrap;";
 		$style .= 'align-items: center;';
-		/**
-		 * Add this style only if is not empty for backwards compatibility,
-		 * since we intend to convert blocks that had flex layout implemented
-		 * by custom css.
-		 */
-		if ( ! empty( $layout['justifyContent'] ) && array_key_exists( $layout['justifyContent'], $justify_content_options ) ) {
-			$style .= "justify-content: {$justify_content_options[ $layout['justifyContent'] ]};";
+		if ( 'horizontal' === $layout_orientation ) {
+			$style .= 'align-items: center;';
+			/**
+			 * Add this style only if is not empty for backwards compatibility,
+			 * since we intend to convert blocks that had flex layout implemented
+			 * by custom css.
+			 */
+			if ( ! empty( $layout['justifyContent'] ) && array_key_exists( $layout['justifyContent'], $justify_content_options ) ) {
+				$style .= "justify-content: {$justify_content_options[ $layout['justifyContent'] ]};";
+				// --justification-setting allows children to inherit the value regardless or row or column direction.
+				$style .= "--justification-setting: {$justify_content_options[ $layout['justifyContent'] ]};";
+			}
+		} else {
+			$style .= 'flex-direction: column;';
+			if ( ! empty( $layout['justifyContent'] ) && array_key_exists( $layout['justifyContent'], $justify_content_options ) ) {
+				$style .= "align-items: {$justify_content_options[ $layout['justifyContent'] ]};";
+				$style .= "--justification-setting: {$justify_content_options[ $layout['justifyContent'] ]};";
+			}
 		}
 		$style .= '}';
 
