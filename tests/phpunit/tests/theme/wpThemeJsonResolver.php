@@ -200,91 +200,94 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	function test_merges_child_theme_json_into_parent_theme_json() {
 		switch_theme( 'block-theme-child' );
 
-		$actual = WP_Theme_JSON_Resolver::get_theme_data();
-
-		// Should merge settings.
-		$this->assertSame(
-			array(
-				'color'      => array(
-					'custom'         => false,
-					'customGradient' => false,
-					'gradients'      => array(
-						'theme' => array(
-							array(
-								'name'     => 'Custom gradient',
-								'gradient' => 'linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)',
-								'slug'     => 'custom-gradient',
-							),
-						),
-					),
-					'palette'        => array(
-						'theme' => array(
-							array(
-								'slug'  => 'light',
-								'name'  => 'Light',
-								'color' => '#f3f4f6',
-							),
-							array(
-								'slug'  => 'primary',
-								'name'  => 'Primary',
-								'color' => '#3858e9',
-							),
-							array(
-								'slug'  => 'dark',
-								'name'  => 'Dark',
-								'color' => '#111827',
-							),
-						),
-					),
-					'link'           => true,
-				),
-				'typography' => array(
-					'customFontSize' => false,
-					'lineHeight'     => true,
-					'fontSizes'      => array(
-						'theme' => array(
-							array(
-								'name' => 'Custom',
-								'slug' => 'custom',
-								'size' => '100px',
-							),
+		$actual = WP_Theme_JSON_Resolver::get_theme_data() ->get_settings();
+		$expected = array(
+			'color'      => array(
+				'custom'         => false,
+				'customGradient' => false,
+				'gradients'      => array(
+					'theme' => array(
+						array(
+							'name'     => 'Custom gradient',
+							'gradient' => 'linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)',
+							'slug'     => 'custom-gradient',
 						),
 					),
 				),
-				'spacing'    => array(
-					'units'   => array( 'rem' ),
-					'padding' => true,
+				'palette'        => array(
+					'theme' => array(
+						array(
+							'slug'  => 'light',
+							'name'  => 'Light',
+							'color' => '#f3f4f6',
+						),
+						array(
+							'slug'  => 'primary',
+							'name'  => 'Primary',
+							'color' => '#3858e9',
+						),
+						array(
+							'slug'  => 'dark',
+							'name'  => 'Dark',
+							'color' => '#111827',
+						),
+					),
 				),
-				'blocks'     => array(
-					'core/paragraph'  => array(
-						'color' => array(
-							'palette' => array(
-								'theme' => array(
-									array(
-										'slug'  => 'light',
-										'name'  => 'Light',
-										'color' => '#f5f7f9',
-									),
+				'link'           => true,
+			),
+			'typography' => array(
+				'customFontSize' => false,
+				'lineHeight'     => true,
+				'fontSizes'      => array(
+					'theme' => array(
+						array(
+							'name' => 'Custom',
+							'slug' => 'custom',
+							'size' => '100px',
+						),
+					),
+				),
+			),
+			'spacing'    => array(
+				'units'   => array( 'rem' ),
+				'padding' => true,
+			),
+			'blocks'     => array(
+				'core/paragraph'  => array(
+					'color' => array(
+						'palette' => array(
+							'theme' => array(
+								array(
+									'slug'  => 'light',
+									'name'  => 'Light',
+									'color' => '#f5f7f9',
 								),
 							),
 						),
 					),
-					'core/post-title' => array(
-						'color' => array(
-							'palette' => array(
-								'theme' => array(
-									array(
-										'slug'  => 'light',
-										'name'  => 'Light',
-										'color' => '#f3f4f6',
-									),
+				),
+				'core/post-title' => array(
+					'color' => array(
+						'palette' => array(
+							'theme' => array(
+								array(
+									'slug'  => 'light',
+									'name'  => 'Light',
+									'color' => '#f3f4f6',
 								),
 							),
 						),
 					),
 				),
 			),
-			$actual->get_settings()
+		);
+		ksort( $actual );
+		ksort( $expected );
+
+		// Should merge settings.
+		$this->assertSame(
+			$expected,
+			$actual
 		);
 
 		$this->assertSame(
