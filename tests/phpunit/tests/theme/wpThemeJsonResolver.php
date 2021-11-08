@@ -200,7 +200,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	private static function recursive_ksort( &$array ) {
 		foreach ( $array as &$value ) {
 			if ( is_array( $value ) ) {
-				recursive_ksort( $value );
+				self::recursive_ksort( $value );
 			}
 		}
 		ksort( $array );
