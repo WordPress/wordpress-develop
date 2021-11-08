@@ -35,37 +35,37 @@
 	"settings": {
 		"color": {
 			"duotone": [
-                {
-                    "colors": [ "#000000", "#ffffff" ],
-                    "slug": "foreground-and-background",
-                    "name": "Foreground and background"
-                },
 				{
-                    "colors": [ "#000000", "#ffe2c7" ],
-                    "slug": "foreground-and-secondary",
-                    "name": "Foreground and secondary"
-                },
+					"colors": [ "#000000", "#ffffff" ],
+					"slug": "foreground-and-background",
+					"name": "Foreground and background"
+				},
 				{
-                    "colors": [ "#000000", "#f6f6f6" ],
-                    "slug": "foreground-and-tertiary",
-                    "name": "Foreground and tertiary"
-                },
+					"colors": [ "#000000", "#ffe2c7" ],
+					"slug": "foreground-and-secondary",
+					"name": "Foreground and secondary"
+				},
 				{
-                    "colors": [ "#1a4548", "#ffffff" ],
-                    "slug": "primary-and-background",
-                    "name": "Primary and background"
-                },
+					"colors": [ "#000000", "#f6f6f6" ],
+					"slug": "foreground-and-tertiary",
+					"name": "Foreground and tertiary"
+				},
 				{
-                    "colors": [ "#1a4548", "#ffe2c7" ],
-                    "slug": "primary-and-secondary",
-                    "name": "Primary and secondary"
-                },
+					"colors": [ "#1a4548", "#ffffff" ],
+					"slug": "primary-and-background",
+					"name": "Primary and background"
+				},
 				{
-                    "colors": [ "#1a4548", "#f6f6f6" ],
-                    "slug": "primary-and-tertiary",
-                    "name": "Primary and tertiary"
-                }
-            ],
+					"colors": [ "#1a4548", "#ffe2c7" ],
+					"slug": "primary-and-secondary",
+					"name": "Primary and secondary"
+				},
+				{
+					"colors": [ "#1a4548", "#f6f6f6" ],
+					"slug": "primary-and-tertiary",
+					"name": "Primary and tertiary"
+				}
+			],
 			"gradients": [
 				{
 					"slug": "vertical-secondary-to-tertiary",
