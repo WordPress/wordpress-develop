@@ -319,6 +319,10 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON
 	 */
 	public static function get_merged_data( $origin = 'user' ) {
+		if ( is_array( $origin ) ) {
+			_deprecated_argument( __FUNCTION__, '5.9' );
+		}
+
 		$result = new WP_Theme_JSON();
 		$result->merge( self::get_core_data() );
 		$result->merge( self::get_theme_data() );
