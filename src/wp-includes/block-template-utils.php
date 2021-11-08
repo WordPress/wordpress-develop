@@ -789,11 +789,11 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	/**
 	 * Filters the array of queried block templates array after they've been fetched.
 	 *
-	 * @since 5.9
+	 * @since 5.9.0
 	 *
-	 * @param null|WP_Block_Template $block_template The found block template.
-	 * @param string $id Template unique identifier (example: theme_slug//template_slug).
-	 * @param array  $template_type wp_template or wp_template_part.
+	 * @param WP_Block_Template $block_template The found block template.
+	 * @param string            $id             Template unique identifier (example: theme_slug//template_slug).
+	 * @param array             $template_type  Template type: `'wp_template'` or '`wp_template_part'`.
 	 */
 	return apply_filters( 'get_block_file_template', $block_template, $id, $template_type );
 }
