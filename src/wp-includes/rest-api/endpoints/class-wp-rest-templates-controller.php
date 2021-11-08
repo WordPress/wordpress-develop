@@ -524,6 +524,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Retrieves the query params for the posts collection.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Added `'area'` and `'post_type'`.
 	 *
 	 * @return array Collection parameters.
 	 */
