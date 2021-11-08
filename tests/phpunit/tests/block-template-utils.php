@@ -76,7 +76,7 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 	}
 
 	public function test_build_template_result_from_post() {
-		$template = _build_template_result_from_post(
+		$template = _build_block_template_result_from_post(
 			self::$post,
 			'wp_template'
 		);
