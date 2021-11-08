@@ -31,10 +31,10 @@ class WP_Block_Supports_Spacing_Test extends WP_UnitTestCase {
 		);
 	}
 
-	function tearDown() {
+	function tear_down() {
 		unregister_block_type( 'test/test-block' );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function test_spacing_gap_block_support_renders_block_inline_style() {
