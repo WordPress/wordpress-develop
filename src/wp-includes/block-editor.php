@@ -187,10 +187,16 @@ function get_default_block_editor_settings() {
 		}
 	}
 
+	// These styles are used if the "no theme styles" options is triggered or on
+	// themes without their own editor styles.
+	$default_editor_styles_file = ABSPATH . WPINC . '/css/dist/block-editor/default-editor-styles.css';
+	$default_editor_styles_css  = file_get_contents( $default_editor_styles_file );
+
 	$editor_settings = array(
 		'alignWide'              => get_theme_support( 'align-wide' ),
 		'allowedBlockTypes'      => true,
 		'allowedMimeTypes'       => get_allowed_mime_types(),
+		'defaultEditorStyles'    => array( array( 'css' => $default_editor_styles_css ) ),
 		'blockCategories'        => get_default_block_categories(),
 		'disableCustomColors'    => get_theme_support( 'disable-custom-colors' ),
 		'disableCustomFontSizes' => get_theme_support( 'disable-custom-font-sizes' ),
@@ -464,22 +470,12 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
  *
  * @global array $editor_styles
  *
- * @return array An array of theme styles for the block editor. Includes default font family
- *               style and theme stylesheets.
+ * @return array An array of theme styles for the block editor.
  */
 function get_block_editor_theme_styles() {
 	global $editor_styles;
 
-	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$styles = array(
-			array(
-				'css'            => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
-				'__unstableType' => 'core',
-			),
-		);
-	} else {
-		$styles = array();
-	}
+	$styles = array();
 
 	if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 		foreach ( $editor_styles as $style ) {
