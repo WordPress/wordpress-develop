@@ -753,12 +753,13 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	 *
 	 * Return a non-null value to bypass the WordPress queries.
 	 *
-	 * @since 5.9
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param WP_Block_Template|null $block_template Return block template object to short-circuit the default query,
-	 *                                               or null to allow WP to run it's normal queries.
-	 * @param string $id Template unique identifier (example: theme_slug//template_slug).
-	 * @param array  $template_type wp_template or wp_template_part.
+	 *                                               or null to allow WP to run its normal queries.
+	 * @param string $id                             Template unique identifier (example: theme_slug//template_slug).
+	 * @param array  $template_type                  Template type: `'wp_template'` or '`wp_template_part'`.
 	 */
 	$block_template = apply_filters( 'pre_get_block_file_template', null, $id, $template_type );
 	if ( ! is_null( $block_template ) ) {
