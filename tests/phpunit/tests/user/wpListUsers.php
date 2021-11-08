@@ -120,9 +120,9 @@ class Tests_Functions_wpListUsers extends WP_UnitTestCase {
 					'feed' => 'User feed',
 				),
 				'expected' => '<li>jane (<a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_jane">User feed</a>)</li>' .
-							'<li>michelle (<a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_michelle">User feed</a>)</li>' .
-							'<li>paul (<a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_paul">User feed</a>)</li>' .
-							'<li>zack (<a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_zack">User feed</a>)</li>',
+						'<li>michelle (<a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_michelle">User feed</a>)</li>' .
+						'<li>paul (<a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_paul">User feed</a>)</li>' .
+						'<li>zack (<a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_zack">User feed</a>)</li>',
 			),
 			'the feed of each user and an image' => array(
 				'args'     => array(
@@ -130,9 +130,9 @@ class Tests_Functions_wpListUsers extends WP_UnitTestCase {
 					'feed_image' => 'http://example.org/image.jpg',
 				),
 				'expected' => '<li>jane <a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_jane"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>' .
-							'<li>michelle <a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_michelle"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>' .
-							'<li>paul <a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_paul"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>' .
-							'<li>zack <a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_zack"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>',
+						'<li>michelle <a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_michelle"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>' .
+						'<li>paul <a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_paul"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>' .
+						'<li>zack <a href="http://example.org/?feed=rss2&amp;author=AUTHOR_ID_zack"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>',
 			),
 			'a feed of the specified type'       => array(
 				'args'     => array(
@@ -140,9 +140,9 @@ class Tests_Functions_wpListUsers extends WP_UnitTestCase {
 					'feed_type' => 'atom',
 				),
 				'expected' => '<li>jane (<a href="http://example.org/?feed=atom&amp;author=AUTHOR_ID_jane">User feed as atom</a>)</li>' .
-							'<li>michelle (<a href="http://example.org/?feed=atom&amp;author=AUTHOR_ID_michelle">User feed as atom</a>)</li>' .
-							'<li>paul (<a href="http://example.org/?feed=atom&amp;author=AUTHOR_ID_paul">User feed as atom</a>)</li>' .
-							'<li>zack (<a href="http://example.org/?feed=atom&amp;author=AUTHOR_ID_zack">User feed as atom</a>)</li>',
+						'<li>michelle (<a href="http://example.org/?feed=atom&amp;author=AUTHOR_ID_michelle">User feed as atom</a>)</li>' .
+						'<li>paul (<a href="http://example.org/?feed=atom&amp;author=AUTHOR_ID_paul">User feed as atom</a>)</li>' .
+						'<li>zack (<a href="http://example.org/?feed=atom&amp;author=AUTHOR_ID_zack">User feed as atom</a>)</li>',
 			),
 			'no output via echo'                 => array(
 				'args'     => array(
