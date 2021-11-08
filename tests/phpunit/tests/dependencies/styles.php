@@ -192,9 +192,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	/**
 	 * Test normalizing relative links in CSS.
 	 *
-	 * @ticket 54243
-	 */
-	/**
 	 * @dataProvider data_normalize_relative_css_links
 	 *
 	 * @ticket 54243
