@@ -76,11 +76,12 @@ function wp_tinycolor_bound01( $n, $max ) {
  * @see https://github.com/bgrins/TinyColor
  *
  * @since 5.9.0
+ * @access private
  *
  * @param  mixed $n   Number of unknown type.
  * @return float      Value in the range [0,1].
  */
-function wp_tinycolor_bound_alpha( $n ) {
+function _wp_tinycolor_bound_alpha( $n ) {
 	if ( is_numeric( $n ) ) {
 		$n = (float) $n;
 		if ( $n >= 0 && $n <= 1 ) {
@@ -243,7 +244,7 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
 			)
 		);
 
-		$rgb['a'] = wp_tinycolor_bound_alpha( $match[4] );
+		$rgb['a'] = _wp_tinycolor_bound_alpha( $match[4] );
 
 		return $rgb;
 	}
@@ -273,7 +274,7 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
 			)
 		);
 
-		$rgb['a'] = wp_tinycolor_bound_alpha( $match[4] );
+		$rgb['a'] = _wp_tinycolor_bound_alpha( $match[4] );
 
 		return $rgb;
 	}
