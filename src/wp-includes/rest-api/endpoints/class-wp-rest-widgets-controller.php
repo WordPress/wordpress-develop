@@ -25,7 +25,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	protected $widgets_retrieved = false;
 
 	/**
-	 * Weather, the rest controller supports batching.
+	 * Whether, the rest controller supports batching.
 	 *
 	 * @since 5.9.0
 	 * @var array
