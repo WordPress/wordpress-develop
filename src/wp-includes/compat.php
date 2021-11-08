@@ -388,6 +388,9 @@ if ( ! function_exists( 'str_starts_with' ) ) {
 	 * @return bool True if `$haystack` starts with `$needle`, otherwise false.
 	 */
 	function str_starts_with( $haystack, $needle ) {
+		if ( '' === $needle ) {
+			return true;
+		}
 		return 0 === strpos( $haystack, $needle );
 	}
 }
