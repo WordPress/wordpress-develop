@@ -317,8 +317,9 @@ function wp_register_duotone_support( $block_type ) {
  * Renders the duotone filter SVG and returns the CSS filter property to
  * reference the rendered SVG.
  *
- * @param array $preset Duotone preset value as seen in theme.json.
+ * @since 5.9.0
  *
+ * @param array $preset Duotone preset value as seen in theme.json.
  * @return string Duotone CSS filter property.
  */
 function wp_render_duotone_filter_preset( $preset ) {
