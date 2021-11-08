@@ -44,6 +44,13 @@ class WP_Plugin_Dependencies {
 	protected $requires_plugins;
 
 	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		$this->requires_plugins = array();
+	}
+
+	/**
 	 * Initialize, load filters, and get started.
 	 *
 	 * @return void
