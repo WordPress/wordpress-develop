@@ -58,7 +58,7 @@ class Tests_Compat_StrStartsWith extends WP_UnitTestCase {
 				'expected' => false,
 				'haystack' => '',
 				'needle'   => 'test',
-			),			
+			),
 			'lowercase'                 => array(
 				'expected' => true,
 				'haystack' => 'this is a test',
