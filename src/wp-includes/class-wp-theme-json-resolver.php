@@ -225,7 +225,7 @@ class WP_Theme_JSON_Resolver {
 		);
 
 		if ( is_array( $query->posts ) && ( 1 === $query->post_count ) ) {
-			$user_cpt = $query->posts[0];
+			$user_cpt = $query->posts[0]->to_array();
 		} elseif ( $should_create_cpt ) {
 			$cpt_post_id = wp_insert_post(
 				array(
