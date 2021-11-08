@@ -1229,6 +1229,7 @@ class WP_REST_Server {
 		$response->add_link( 'help', 'https://developer.wordpress.org/rest-api/' );
 		$this->add_active_theme_link_to_index( $response );
 		$this->add_site_logo_to_index( $response );
+		$this->add_site_icon_to_index( $response );
 
 		/**
 		 * Filters the REST API root index data.
@@ -1289,6 +1290,29 @@ class WP_REST_Server {
 			$response->add_link(
 				'https://api.w.org/featuredmedia',
 				rest_url( rest_get_route_for_post( $site_logo_id ) ),
+				array(
+					'embeddable' => true,
+				)
+			);
+		}
+	}
+
+	/**
+	 * Exposes the site icon through the WordPress REST API.
+	 * This is used for fetching this information when user has no rights
+	 * to update settings.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_REST_Response $response REST API response.
+	 */
+	protected function add_site_icon_to_index( WP_REST_Response $response ) {
+		$site_icon_id                = get_option( 'site_icon' );
+		$response->data['site_icon'] = $site_icon_id;
+		if ( $site_icon_id ) {
+			$response->add_link(
+				'https://api.w.org/featuredmedia',
+				rest_url( rest_get_route_for_post( $site_icon_id ) ),
 				array(
 					'embeddable' => true,
 				)
