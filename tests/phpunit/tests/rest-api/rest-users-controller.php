@@ -207,6 +207,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				'search',
 				'slug',
 				'who',
+				'has_published_posts',
 			),
 			$keys
 		);
