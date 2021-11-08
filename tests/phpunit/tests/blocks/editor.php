@@ -170,7 +170,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 16, $settings );
+		$this->assertCount( 17, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
