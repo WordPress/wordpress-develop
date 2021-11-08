@@ -281,7 +281,7 @@ class WP_Webfonts_Schema_Validator {
 		) {
 			trigger_error( __( 'Webfont font style must be a non-empty string.' ) );
 
-		} elseif ( // Bail out if the font-weight is a valid value.
+		} elseif ( // Bail out if the font-style is a valid value.
 			in_array( $this->webfont['font-style'], self::VALID_FONT_STYLE, true ) ||
 			preg_match( '/^oblique\s+(\d+)%/', $this->webfont['font-style'] )
 		) {
