@@ -102,13 +102,27 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 			$title = ' title="' . $title . '"';
 		}
 		$rel = $bookmark->link_rel;
+
+		$target = $bookmark->link_target;
+		if ( '' !== $target ) {
+			if ( ! empty( $rel ) ) {
+				$rels   = explode( ' ', $rel );
+
+				if ( false === in_array( 'noopener', $rels, true ) ) {
+					$rels[] = 'noopener';
+				}
+				$rel    = implode( ' ', $rels );
+			} else {
+				$rel = 'noopener';
+			}
+
+			$target = ' target="' . $target . '"';
+		}
+
 		if ( '' !== $rel ) {
 			$rel = ' rel="' . esc_attr( $rel ) . '"';
 		}
-		$target = $bookmark->link_target;
-		if ( '' !== $target ) {
-			$target = ' target="' . $target . '"';
-		}
+
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target . '>';
 
 		$output .= $parsed_args['link_before'];
