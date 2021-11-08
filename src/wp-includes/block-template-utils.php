@@ -148,9 +148,9 @@ function get_default_block_template_types() {
 	/**
 	 * Filters the list of template types.
 	 *
-	 * @param array $default_template_types An array of template types, formatted as [ slug => [ title, description ] ].
+	 * @since 5.9.0
 	 *
-	 * @since 5.x.x
+	 * @param array $default_template_types An array of template types, formatted as [ slug => [ title, description ] ].
 	 */
 	return apply_filters( 'default_template_types', $default_template_types );
 }
