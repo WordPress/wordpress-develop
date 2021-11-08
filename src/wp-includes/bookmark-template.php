@@ -105,7 +105,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 
 		$target = $bookmark->link_target;
 		if ( '' !== $target ) {
-			if ( ! empty( $rel ) ) {
+			if ( is_string( $rel ) && '' !== $rel ) {
 				$rels   = explode( ' ', $rel );
 
 				if ( false === in_array( 'noopener', $rels, true ) ) {
