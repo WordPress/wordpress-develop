@@ -393,7 +393,7 @@ function wp_render_duotone_filter_preset( $preset ) {
 		// and SVG filters won't render in the head of a document,
 		// so the next best place to put the SVG is in the footer.
 		is_admin() ? 'admin_footer' : 'wp_footer',
-		function () use ( $svg ) {
+		static function () use ( $svg ) {
 			echo $svg;
 		}
 	);
