@@ -6560,6 +6560,101 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/global-styles/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "stylesheet": {
+                            "description": "The theme identifier",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/global-styles/(?P<id>[\\/\\w-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "styles": {
+                            "description": "Global styles.",
+                            "type": [
+                                "object"
+                            ],
+                            "required": false
+                        },
+                        "settings": {
+                            "description": "Global settings.",
+                            "type": [
+                                "object"
+                            ],
+                            "required": false
+                        },
+                        "title": {
+                            "description": "Title of the global styles variation.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the global styles variation, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/settings": {
             "namespace": "wp/v2",
             "methods": [
