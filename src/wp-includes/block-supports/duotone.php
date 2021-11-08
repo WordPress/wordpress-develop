@@ -70,6 +70,27 @@ function wp_tinycolor_bound01( $n, $max ) {
 }
 
 /**
+ * Direct port of tinycolor's boundAlpha function to maintain consistency with
+ * how tinycolor works.
+ *
+ * @see https://github.com/bgrins/TinyColor
+ *
+ * @since 5.9.0
+ *
+ * @param  mixed $n   Number of unknown type.
+ * @return float      Value in the range [0,1].
+ */
+function wp_tinycolor_bound_alpha( $n ) {
+	if ( is_numeric( $n ) ) {
+		$n = (float) $n;
+		if ( $n >= 0 && $n <= 1 ) {
+			return $n;
+		}
+	}
+	return 1;
+}
+
+/**
  * Round and convert values of an RGB object.
  *
  * Direct port of TinyColor's function, lightly simplified to maintain
@@ -170,8 +191,7 @@ function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
 
 /**
  * Parses hex, hsl, and rgb CSS strings using the same regex as TinyColor v1.4.2
- * used in the JavaScript. Only colors output from react-color are implemented
- * and the alpha value is ignored as it is not used in duotone.
+ * used in the JavaScript. Only colors output from react-color are implemented.
  *
  * Direct port of TinyColor's function, lightly simplified to maintain
  * consistency with TinyColor.
@@ -180,6 +200,7 @@ function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
  * @see https://github.com/casesandberg/react-color/
  *
  * @since 5.8.0
+ * @since 5.9.0 Added alpha processing.
  * @access private
  *
  * @param string $color_str CSS color string.
@@ -199,35 +220,47 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
 
 	$rgb_regexp = '/^rgb' . $permissive_match3 . '$/';
 	if ( preg_match( $rgb_regexp, $color_str, $match ) ) {
-		return wp_tinycolor_rgb_to_rgb(
+		$rgb = wp_tinycolor_rgb_to_rgb(
 			array(
 				'r' => $match[1],
 				'g' => $match[2],
 				'b' => $match[3],
 			)
 		);
+
+		$rgb['a'] = 1;
+
+		return $rgb;
 	}
 
 	$rgba_regexp = '/^rgba' . $permissive_match4 . '$/';
 	if ( preg_match( $rgba_regexp, $color_str, $match ) ) {
-		return wp_tinycolor_rgb_to_rgb(
+		$rgb = wp_tinycolor_rgb_to_rgb(
 			array(
 				'r' => $match[1],
 				'g' => $match[2],
 				'b' => $match[3],
 			)
 		);
+
+		$rgb['a'] = wp_tinycolor_bound_alpha( $match[4] );
+
+		return $rgb;
 	}
 
 	$hsl_regexp = '/^hsl' . $permissive_match3 . '$/';
 	if ( preg_match( $hsl_regexp, $color_str, $match ) ) {
-		return wp_tinycolor_hsl_to_rgb(
+		$rgb = wp_tinycolor_hsl_to_rgb(
 			array(
 				'h' => $match[1],
 				's' => $match[2],
 				'l' => $match[3],
 			)
 		);
+
+		$rgb['a'] = 1;
+
+		return $rgb;
 	}
 
 	$hsla_regexp = '/^hsla' . $permissive_match4 . '$/';
@@ -239,49 +272,86 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
 				'l' => $match[3],
 			)
 		);
+
+		$rgb['a'] = wp_tinycolor_bound_alpha( $match[4] );
+
+		return $rgb;
 	}
 
 	$hex8_regexp = '/^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/';
 	if ( preg_match( $hex8_regexp, $color_str, $match ) ) {
-		return wp_tinycolor_rgb_to_rgb(
+		$rgb = wp_tinycolor_rgb_to_rgb(
 			array(
 				'r' => base_convert( $match[1], 16, 10 ),
 				'g' => base_convert( $match[2], 16, 10 ),
 				'b' => base_convert( $match[3], 16, 10 ),
 			)
 		);
+
+		$rgb['a'] = gutenberg_tinycolor_bound_alpha(
+			base_convert( $match[4], 16, 10 ) / 255
+		);
+
+		return $rgb;
 	}
 
 	$hex6_regexp = '/^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/';
 	if ( preg_match( $hex6_regexp, $color_str, $match ) ) {
-		return wp_tinycolor_rgb_to_rgb(
+		$rgb = wp_tinycolor_rgb_to_rgb(
 			array(
 				'r' => base_convert( $match[1], 16, 10 ),
 				'g' => base_convert( $match[2], 16, 10 ),
 				'b' => base_convert( $match[3], 16, 10 ),
 			)
 		);
+
+		$rgb['a'] = 1;
+
+		return $rgb;
 	}
 
 	$hex4_regexp = '/^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/';
 	if ( preg_match( $hex4_regexp, $color_str, $match ) ) {
-		return wp_tinycolor_rgb_to_rgb(
+		$rgb = wp_tinycolor_rgb_to_rgb(
 			array(
 				'r' => base_convert( $match[1] . $match[1], 16, 10 ),
 				'g' => base_convert( $match[2] . $match[2], 16, 10 ),
 				'b' => base_convert( $match[3] . $match[3], 16, 10 ),
 			)
 		);
+
+		$rgb['a'] = gutenberg_tinycolor_bound_alpha(
+			base_convert( $match[4] . $match[4], 16, 10 ) / 255
+		);
+
+		return $rgb;
 	}
 
 	$hex3_regexp = '/^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/';
 	if ( preg_match( $hex3_regexp, $color_str, $match ) ) {
-		return wp_tinycolor_rgb_to_rgb(
+		$rgb = wp_tinycolor_rgb_to_rgb(
 			array(
 				'r' => base_convert( $match[1] . $match[1], 16, 10 ),
 				'g' => base_convert( $match[2] . $match[2], 16, 10 ),
 				'b' => base_convert( $match[3] . $match[3], 16, 10 ),
 			)
+		);
+
+		$rgb['a'] = 1;
+
+		return $rgb;
+	}
+
+	/*
+	 * The JS color picker considers the string "transparent" to be a hex value,
+	 * so we need to handle it here as a special case.
+	 */
+	if ( 'transparent' === $color_str ) {
+		return array(
+			'r' => 0,
+			'g' => 0,
+			'b' => 0,
+			'a' => 0,
 		);
 	}
 }
