@@ -162,6 +162,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'camelCase',
 			'REST Theme',
 			'Block Theme',
+			'Block Theme Child Theme',
 		);
 
 		sort( $theme_names );
