@@ -3,25 +3,27 @@
 /**
  * @group compat
  *
- * @ticket 54377
- *
  * @covers ::str_starts_with
  */
-class Tests_Compat_str_starts_with extends WP_UnitTestCase {
+class Tests_Compat_StrStartsWith extends WP_UnitTestCase {
 
 	/**
 	 * Test that str_starts_with() is always available (either from PHP or WP).
+	 *
 	 * @ticket 54377
 	 */
 	public function test_str_starts_with_availability() {
 		$this->assertTrue( function_exists( 'str_starts_with' ) );
 	}
+
 	/**
-	 * @ticket 54377
 	 * @dataProvider data_str_starts_with
-	 * @param bool $expected Whether or not `$haystack` is expected to start with `$needle`.
+	 *
+	 * @ticket 54377
+	 *
+	 * @param bool   $expected Whether or not `$haystack` is expected to start with `$needle`.
 	 * @param string $haystack The string to search in.
-	 * @param string $needle The substring to search for at the start of `$haystack`.
+	 * @param string $needle   The substring to search for at the start of `$haystack`.
 	 */
 	public function test_str_starts_with( $expected, $haystack, $needle ) {
 		if ( ! function_exists( 'str_starts_with' ) ) {
@@ -36,58 +38,78 @@ class Tests_Compat_str_starts_with extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_str_starts_with.
+	 * Data provider.
 	 *
 	 * @return array[]
 	 */
 	public function data_str_starts_with() {
 		return array(
-			'lowercase'              => array(
+			'empty needle'              => array(
+				'expected' => true,
+				'haystack' => 'This is a test',
+				'needle'   => '',
+			),
+			'empty haystack and needle' => array(
+				'expected' => true,
+				'haystack' => '',
+				'needle'   => '',
+			),
+			'empty haystack'            => array(
+				'expected' => false,
+				'haystack' => '',
+				'needle'   => 'test',
+			),			
+			'lowercase'                 => array(
 				'expected' => true,
 				'haystack' => 'this is a test',
 				'needle'   => 'this',
 			),
-			'uppercase'              => array(
+			'uppercase'                 => array(
 				'expected' => true,
 				'haystack' => 'THIS is a TEST',
 				'needle'   => 'THIS',
 			),
-			'first_leter_upprercase' => array(
+			'first letter uppercase'    => array(
 				'expected' => true,
 				'haystack' => 'This is a Test',
 				'needle'   => 'This',
 			),
-			'cammelCase'             => array(
-				'expected' => true,
-				'haystack' => 'cammelCase is the start',
-				'needle'   => 'cammelCase',
+			'case mismatch'             => array(
+				'expected' => false,
+				'haystack' => 'This is a test',
+				'needle'   => 'this',
 			),
-			'null'                   => array(
+			'camelCase'                 => array(
+				'expected' => true,
+				'haystack' => 'camelCase is the start',
+				'needle'   => 'camelCase',
+			),
+			'null'                      => array(
 				'expected' => true,
 				'haystack' => 'This\x00is a null test ',
 				'needle'   => 'This\x00is',
 			),
-			'trademark'              => array(
+			'trademark'                 => array(
 				'expected' => true,
 				'haystack' => 'trademark\x2122 is a null test ',
 				'needle'   => 'trademark\x2122',
 			),
-			'not_cammelCase'         => array(
+			'not camelCase'             => array(
 				'expected' => false,
 				'haystack' => ' cammelcase is the start',
 				'needle'   => 'cammelCase',
 			),
-			'missing'                => array(
+			'missing'                   => array(
 				'expected' => false,
 				'haystack' => 'This is a test',
-				'needle'   => 'cammelCase',
+				'needle'   => 'camelCase',
 			),
-			'not end'                => array(
+			'not start'                 => array(
 				'expected' => false,
 				'haystack' => 'This is a test extra',
 				'needle'   => 'test',
 			),
-			'extra_space'            => array(
+			'extra_space'               => array(
 				'expected' => false,
 				'haystack' => ' This is a test',
 				'needle'   => 'This',
