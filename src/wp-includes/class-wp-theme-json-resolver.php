@@ -391,7 +391,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.9.0 Adapt to work with child themes.
 	 *
 	 * @param string $file_name Name of the file.
-	 * @param bool   $template  Use template theme directroy. Default: false.
+	 * @param bool   $template  Optional. Use template theme directory. Default false.
 	 * @return string The whole file path or empty if the file doesn't exist.
 	 */
 	private static function get_file_path_from_theme( $file_name, $template = false ) {
