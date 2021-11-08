@@ -200,7 +200,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	function test_merges_child_theme_json_into_parent_theme_json() {
 		switch_theme( 'block-theme-child' );
 
-		$actual = WP_Theme_JSON_Resolver::get_theme_data() ->get_settings();
+		$actual   = WP_Theme_JSON_Resolver::get_theme_data()->get_settings();
 		$expected = array(
 			'color'      => array(
 				'custom'         => false,

@@ -564,7 +564,7 @@ class WP_Theme_JSON {
 			_deprecated_argument( __FUNCTION__, '5.9' );
 			if ( 'block_styles' === $types ) {
 				$types = array( 'styles', 'presets' );
-			} elseif ( 'css_variables' === $types ){ 
+			} elseif ( 'css_variables' === $types ) {
 				$types = array( 'variables' );
 			} else {
 				$types = array( 'variables', 'styles', 'presets' );
