@@ -168,7 +168,7 @@ function get_default_block_template_types() {
  */
 function _filter_block_template_part_area( $type ) {
 	$allowed_areas = array_map(
-		function ( $item ) {
+		static function ( $item ) {
 			return $item['area'];
 		},
 		get_allowed_block_template_part_areas()
