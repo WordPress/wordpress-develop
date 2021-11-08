@@ -6715,6 +6715,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6738,6 +6739,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6750,6 +6752,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
