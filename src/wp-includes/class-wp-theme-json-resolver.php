@@ -190,10 +190,10 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param bool  $should_create_cpt Whether a new CPT should be created if no one was found.
-	 *                                 False by default.
-	 * @param array $post_status_filter Filter CPT by post status.
-	 *                                  ['publish'] by default, so it only fetches published posts.
+	 * @param bool  $should_create_cpt  Optional. Whether a new CPT should be created if no one was found.
+	 *                                  False by default.
+	 * @param array $post_status_filter Filter Optional. CPT by post status.
+	 *                                   ['publish'] by default, so it only fetches published posts.
 	 *
 	 * @return array Custom Post Type for the user's origin config.
 	 */
