@@ -641,30 +641,6 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Returns the template part data of current theme.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return array
-	 */
-	public function get_template_parts() {
-		$template_parts = array();
-		if ( ! isset( $this->theme_json['templateParts'] ) ) {
-			return $template_parts;
-		}
-
-		foreach ( $this->theme_json['templateParts'] as $item ) {
-			if ( isset( $item['name'] ) ) {
-				$template_parts[ $item['name'] ] = array(
-					'title' => isset( $item['title'] ) ? $item['title'] : '',
-					'area'  => isset( $item['area'] ) ? $item['area'] : '',
-				);
-			}
-		}
-		return $template_parts;
-	}
-
-	/**
 	 * Converts each style section into a list of rulesets
 	 * containing the block styles to be appended to the stylesheet.
 	 *
