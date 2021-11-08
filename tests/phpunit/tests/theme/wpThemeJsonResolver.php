@@ -195,6 +195,18 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Recursively applies ksort to an array.
+	 */
+	private static function recursive_ksort( &$array ) {
+		foreach ( $array as &$value ) {
+			if ( is_array( $value ) ) {
+				recursive_ksort( $value );
+			}
+		}
+		ksort( $array );
+	 }
+
+	/**
 	 * @ticket 54336
 	 */
 	function test_merges_child_theme_json_into_parent_theme_json() {
@@ -281,8 +293,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				),
 			),
 		);
-		ksort( $actual );
-		ksort( $expected );
+		self::recursive_ksort( $actual );
+		self::recursive_ksort( $expected );
 
 		// Should merge settings.
 		$this->assertSame(
