@@ -297,7 +297,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 * @since 5.9.0 Add user data and change the arguments.
 	 *
-	 * @param string $origin To what level should we merge data.
+	 * @param string $origin Optional. To what level should we merge data.
 	 *                       Valid values are 'theme' or 'user'.
 	 *                       Default is 'user'.
 	 * @return WP_Theme_JSON
