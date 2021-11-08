@@ -804,8 +804,6 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
  * @since 5.9.0
  *
  * @param string $part The template-part to print. Use "header" or "footer".
- *
- * @return void
  */
 function block_template_part( $part ) {
 	$template_part = get_block_template( get_stylesheet() . '//' . $part, 'wp_template_part' );
