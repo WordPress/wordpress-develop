@@ -108,10 +108,10 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 			if ( is_string( $rel ) && '' !== $rel ) {
 				$rels   = explode( ' ', $rel );
 
-				if ( false === in_array( 'noopener', $rels, true ) ) {
+				if ( in_array( 'noopener', $rels, true ) ) {
 					$rels[] = 'noopener';
+					$rel     = implode( ' ', $rels );
 				}
-				$rel    = implode( ' ', $rels );
 			} else {
 				$rel = 'noopener';
 			}
