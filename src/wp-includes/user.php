@@ -792,10 +792,9 @@ function get_users( $args = array() ) {
  *     @type string $exclude       An array, comma-, or space-separated list of user IDs to exclude. Default empty.
  *     @type string $include       An array, comma-, or space-separated list of user IDs to include. Default empty.
  * }
- * @return null|string The output, if echo is set to false. Otherwise null.
+ * @return string|null The output if echo is false. Otherwise null.
  */
 function wp_list_users( $args = array() ) {
-
 	$defaults = array(
 		'orderby'       => 'name',
 		'order'         => 'ASC',
@@ -827,7 +826,7 @@ function wp_list_users( $args = array() ) {
 			continue;
 		}
 
-		if ( $args['show_fullname'] && $user->first_name && $user->last_name ) {
+		if ( $args['show_fullname'] && '' !== $user->first_name && '' !== $user->last_name ) {
 			$name = "$user->first_name $user->last_name";
 		} else {
 			$name = $user->display_name;
