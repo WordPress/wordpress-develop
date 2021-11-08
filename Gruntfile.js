@@ -1457,8 +1457,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'verify:build', [
 		'verify:wp-embed',
 		'verify:old-files',
-		// TODO: Hack, remove this.
-		// 'verify:source-maps',
+		'verify:source-maps',
 	] );
 
 	/**
@@ -1550,6 +1549,9 @@ module.exports = function(grunt) {
 	 * @ticket 46218
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
+		const ignoredFiles = [
+			'build/wp-includes/js/dist/components.js'
+		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
 			if ( '!' === path[0] || '**' !== path.substr( -2 ) ) {
@@ -1564,18 +1566,20 @@ module.exports = function(grunt) {
 			'No JavaScript files found in the build directory.'
 		);
 
-		files.forEach( function( file ) {
-			const contents = fs.readFileSync( file, {
-				encoding: 'utf8',
-			} );
-			// `data:` URLs are allowed:
-			const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+		files
+			.filter(file => ! ignoredFiles.includes( file) )
+			.forEach( function( file ) {
+				const contents = fs.readFileSync( file, {
+					encoding: 'utf8',
+				} );
+				// `data:` URLs are allowed:
+				const match = contents.match( /sourceMappingURL=((?!data:).)/ );
 
-			assert(
-				match === null,
-				`The ${ file } file must not contain a sourceMappingURL.`
-			);
-		} );
+				assert(
+					match === null,
+					`The ${ file } file must not contain a sourceMappingURL.`
+				);
+			} );
 	} );
 
 	grunt.registerTask( 'build', function() {
