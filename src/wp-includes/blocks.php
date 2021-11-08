@@ -1254,10 +1254,5 @@ function _wp_multiple_block_styles( $metadata ) {
 add_filter( 'block_type_metadata', '_wp_multiple_block_styles' );
 
 // TODO: Stub, remove this.
-function get_allowed_block_template_part_areas() {
-	return array();
-}
-
-// TODO: Stub, remove this.
 function wp_get_global_settings() {
 }
