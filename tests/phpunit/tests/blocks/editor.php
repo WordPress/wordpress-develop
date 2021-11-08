@@ -170,7 +170,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 16, $settings );
+		$this->assertCount( 17, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
@@ -492,20 +492,5 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'wp.apiFetch.createPreloadingMiddleware', $after );
 		$this->assertStringContainsString( '"\/wp\/v2\/blocks"', $after );
 		$this->assertStringContainsString( '"\/wp\/v2\/types"', $after );
-	}
-
-	/**
-	 * @ticket 53344
-	 */
-	public function test_get_block_editor_theme_styles() {
-		$theme_styles = get_block_editor_theme_styles();
-		$this->assertCount( 1, $theme_styles );
-		$this->assertSameSets(
-			array(
-				'css'            => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
-				'__unstableType' => 'core',
-			),
-			$theme_styles[0]
-		);
 	}
 }
