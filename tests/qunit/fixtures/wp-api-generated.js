@@ -27,6 +27,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -49,6 +50,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -122,6 +124,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -148,6 +151,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -180,6 +184,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -231,6 +236,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -258,6 +264,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -599,6 +608,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST"
                     ],
@@ -837,6 +849,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -865,6 +880,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST",
                         "PUT",
@@ -1095,6 +1113,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "DELETE"
                     ],
@@ -1121,6 +1142,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -1220,6 +1242,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -1248,6 +1271,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -1280,6 +1304,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -1303,6 +1328,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -1539,6 +1565,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -1576,6 +1603,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -1763,6 +1793,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST"
                     ],
@@ -1973,6 +2006,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -2001,6 +2037,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST",
                         "PUT",
@@ -2203,6 +2242,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "DELETE"
                     ],
@@ -2229,6 +2271,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -2328,6 +2371,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -2356,6 +2400,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -2388,6 +2433,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -2411,6 +2457,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -2614,6 +2661,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -2651,6 +2699,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -2841,6 +2890,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -3013,6 +3063,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -3036,6 +3087,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
@@ -3200,6 +3252,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -3226,6 +3279,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -3253,6 +3307,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -3393,6 +3448,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -3538,6 +3596,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST"
                     ],
@@ -3653,6 +3714,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -3681,6 +3745,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST",
                         "PUT",
@@ -3788,6 +3855,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "DELETE"
                     ],
@@ -3814,6 +3884,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -3913,6 +3984,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -3941,6 +4013,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -3973,6 +4046,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -3996,6 +4070,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -4109,6 +4184,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4146,6 +4222,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4168,6 +4245,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -4236,6 +4314,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4248,6 +4327,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
@@ -4295,6 +4375,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -4316,6 +4397,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4415,6 +4497,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4443,6 +4526,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -4475,6 +4559,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4498,6 +4583,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -4556,6 +4642,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4592,6 +4679,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4621,6 +4709,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4652,6 +4741,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4681,6 +4771,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4712,6 +4803,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4746,6 +4838,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -4778,6 +4871,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -4885,6 +4981,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST"
                     ],
@@ -4933,6 +5032,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -4956,6 +5058,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST",
                         "PUT",
@@ -4996,6 +5101,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "DELETE"
                     ],
@@ -5023,6 +5131,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -5130,6 +5241,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST"
                     ],
@@ -5173,6 +5287,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -5196,6 +5313,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST",
                         "PUT",
@@ -5231,6 +5351,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "DELETE"
                     ],
@@ -5258,6 +5381,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -5377,6 +5501,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -5478,6 +5603,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -5501,6 +5627,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
@@ -5594,6 +5721,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -5629,6 +5757,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -5647,6 +5776,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
@@ -5735,6 +5865,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -5766,6 +5897,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -5784,6 +5916,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -5804,6 +5937,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -5818,6 +5952,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -5848,6 +5983,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -5866,6 +6002,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
@@ -5888,6 +6025,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -5903,6 +6041,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6068,6 +6207,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -6182,6 +6322,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6210,6 +6351,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
@@ -6314,6 +6456,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -6345,6 +6488,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6421,6 +6565,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET",
                         "POST"
@@ -6462,6 +6607,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6500,6 +6646,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6531,6 +6678,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6570,12 +6718,14 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
                     "args": []
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
@@ -6686,6 +6836,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6716,6 +6867,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6737,6 +6889,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6772,6 +6925,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -6814,6 +6968,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6837,6 +6992,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
@@ -6871,6 +7027,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "DELETE"
                     ],
@@ -6902,6 +7059,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6938,6 +7096,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -6961,6 +7120,7 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST",
                         "PUT",
@@ -6989,6 +7149,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7022,6 +7183,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7053,6 +7215,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "POST"
                     ],
@@ -7084,6 +7247,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -7107,6 +7273,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST"
                     ],
@@ -7182,6 +7351,9 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "GET"
                     ],
@@ -7200,6 +7372,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "POST",
                         "PUT",
@@ -7257,6 +7432,9 @@ mockedApiResponse.Schema = {
                     }
                 },
                 {
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "methods": [
                         "DELETE"
                     ],
@@ -7277,6 +7455,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7329,6 +7508,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7379,6 +7559,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7409,6 +7590,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7430,6 +7612,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7451,6 +7634,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7472,6 +7656,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7493,6 +7678,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7514,6 +7700,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7535,6 +7722,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7565,6 +7753,7 @@ mockedApiResponse.Schema = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7600,6 +7789,7 @@ mockedApiResponse.oembed = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7626,6 +7816,7 @@ mockedApiResponse.oembed = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
@@ -7658,6 +7849,7 @@ mockedApiResponse.oembed = {
             ],
             "endpoints": [
                 {
+                    "allow_batch": false,
                     "methods": [
                         "GET"
                     ],
