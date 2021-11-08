@@ -25,7 +25,7 @@ function wp_set_unique_slug_on_create_template_part( $post_id ) {
 	}
 
 	$terms = get_the_terms( $post_id, 'wp_theme' );
-	if ( ! $terms || ! count( $terms ) ) {
+	if ( ! is_array( $terms ) || ! count( $terms ) ) {
 		wp_set_post_terms( $post_id, wp_get_theme()->get_stylesheet(), 'wp_theme' );
 	}
 }
