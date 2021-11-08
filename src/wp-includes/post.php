@@ -368,9 +368,10 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_global_styles',
 		array(
-			'label'        => __( 'Global Styles', 'gutenberg' ),
-			'description'  => 'CPT to store user design tokens',
+			'label'        => _x( 'Global Styles', 'post type general name' ),
+			'description'  => __( 'Custom post type to include global styles in themes.' ),
 			'public'       => false,
+			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
 			'show_ui'      => false,
 			'show_in_rest' => false,
 			'rewrite'      => false,
