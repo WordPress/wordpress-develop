@@ -669,8 +669,9 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
  *
  * @since 5.8.0
  *
- * @param string $id Template unique identifier (example: theme_slug//template_slug).
- * @param array  $template_type wp_template or wp_template_part.
+ * @param string $id            Template unique identifier (example: theme_slug//template_slug).
+ * @param array  $template_type Optional. Template type: `'wp_template'` or '`wp_template_part'`.
+ *                              Default `'wp_template'`.
  *
  * @return WP_Block_Template|null Template.
  */
