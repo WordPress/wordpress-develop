@@ -209,12 +209,12 @@ class WP_Theme_JSON_Resolver {
 		$post_type_filter = 'wp_global_styles';
 		$recent_posts     = wp_get_recent_posts(
 			array(
-				'numberposts' => 1,
-				'orderby'     => 'date',
-				'order'       => 'desc',
-				'post_type'   => $post_type_filter,
-				'post_status' => $post_status_filter,
-				'tax_query'   => array(
+				'posts_per_page' => 1,
+				'orderby'        => 'date',
+				'order'          => 'desc',
+				'post_type'      => $post_type_filter,
+				'post_status'    => $post_status_filter,
+				'tax_query'      => array(
 					array(
 						'taxonomy' => 'wp_theme',
 						'field'    => 'name',
