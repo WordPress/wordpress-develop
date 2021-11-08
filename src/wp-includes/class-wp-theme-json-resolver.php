@@ -202,7 +202,7 @@ class WP_Theme_JSON_Resolver {
 	 * @param array $post_status_filter Filter Optional. CPT by post status.
 	 *                                   ['publish'] by default, so it only fetches published posts.
 	 *
-	 * @return array Custom Post Type for the user's origin config.
+	 * @return WP_Error|array Custom Post Type for the user's origin config.
 	 */
 	private static function get_user_data_from_custom_post_type( $should_create_cpt = false, $post_status_filter = array( 'publish' ) ) {
 		$user_cpt         = array();
@@ -240,7 +240,12 @@ class WP_Theme_JSON_Resolver {
 				),
 				true
 			);
-			$user_cpt    = get_post( $cpt_post_id, ARRAY_A );
+
+			if ( is_wp_error( $cpt_post_id ) ) {
+				$user_cpt = $cpt_post_id;
+			} else {
+				$user_cpt = get_post( $cpt_post_id, ARRAY_A );
+			}
 		}
 
 		return $user_cpt;
@@ -260,6 +265,10 @@ class WP_Theme_JSON_Resolver {
 
 		$config   = array();
 		$user_cpt = self::get_user_data_from_custom_post_type();
+		if ( is_wp_error( $user_cpt ) ) {
+			return new WP_Theme_JSON( $config, 'user' );
+		}
+
 		if ( array_key_exists( 'post_content', $user_cpt ) ) {
 			$decoded_data = json_decode( $user_cpt['post_content'], true );
 
@@ -327,7 +336,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return integer
+	 * @return integer|null
 	 */
 	public static function get_user_custom_post_type_id() {
 		if ( null !== self::$user_custom_post_type_id ) {
@@ -335,6 +344,10 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$user_cpt = self::get_user_data_from_custom_post_type( true );
+		if ( is_wp_error( $user_cpt ) ) {
+			return null;
+		}
+
 		if ( array_key_exists( 'ID', $user_cpt ) ) {
 			self::$user_custom_post_type_id = $user_cpt['ID'];
 		}
