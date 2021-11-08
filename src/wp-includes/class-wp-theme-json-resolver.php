@@ -315,37 +315,6 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Registers a Custom Post Type to store the user's origin config.
-	 *
-	 * @since 5.9.0
-	 */
-	public static function register_user_custom_post_type() {
-		$args = array(
-			'label'        => __( 'Global Styles', 'gutenberg' ),
-			'description'  => 'CPT to store user design tokens',
-			'public'       => false,
-			'show_ui'      => false,
-			'show_in_rest' => false,
-			'capabilities' => array(
-				'read'                   => 'edit_theme_options',
-				'create_posts'           => 'edit_theme_options',
-				'edit_posts'             => 'edit_theme_options',
-				'edit_published_posts'   => 'edit_theme_options',
-				'delete_published_posts' => 'edit_theme_options',
-				'edit_others_posts'      => 'edit_theme_options',
-				'delete_others_posts'    => 'edit_theme_options',
-			),
-			'map_meta_cap' => true,
-			'supports'     => array(
-				'title',
-				'editor',
-				'revisions',
-			),
-		);
-		register_post_type( 'wp_global_styles', $args );
-	}
-
-	/**
 	 * Returns the ID of the custom post type
 	 * that stores user data.
 	 *
