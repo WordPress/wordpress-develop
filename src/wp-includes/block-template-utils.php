@@ -817,8 +817,6 @@ function block_template_part( $part ) {
  * Print the header template-part.
  *
  * @since 5.9.0
- *
- * @return void
  */
 function block_header_area() {
 	block_template_part( 'header' );
