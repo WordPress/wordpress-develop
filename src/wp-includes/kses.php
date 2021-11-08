@@ -2258,6 +2258,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'border-right-width',
 			'border-bottom',
 			'border-bottom-color',
+			'border-bottom-left-radius',
+			'border-bottom-right-radius',
 			'border-bottom-style',
 			'border-bottom-width',
 			'border-left',
@@ -2266,6 +2268,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'border-left-width',
 			'border-top',
 			'border-top-color',
+			'border-top-left-radius',
+			'border-top-right-radius',
 			'border-top-style',
 			'border-top-width',
 
