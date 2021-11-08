@@ -1,11 +1,10 @@
 <?php
 
 /**
- * @group formatting
  * @group functions.php
  * @covers ::wp_is_numeric_array
  */
-class Tests_Functions_WpIsNumericArray extends WP_UnitTestCase {
+class Tests_Functions_wpIsNumericArray extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_wp_is_numeric_array
@@ -15,7 +14,7 @@ class Tests_Functions_WpIsNumericArray extends WP_UnitTestCase {
 	 * @param mixed $input    Input to test.
 	 * @param array $expected Expected result.
 	 */
-	function test_wp_is_numeric_array( $input, $expected ) {
+	public function test_wp_is_numeric_array( $input, $expected ) {
 		$this->assertSame( $expected, wp_is_numeric_array( $input ) );
 	}
 
