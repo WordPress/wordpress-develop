@@ -61,6 +61,8 @@ function get_allowed_block_template_part_areas() {
 	/**
 	 * Filters the list of allowed template part area values.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param array $default_areas An array of supported area objects.
 	 */
 	return apply_filters( 'default_wp_template_part_areas', $default_area_definitions );
