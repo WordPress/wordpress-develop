@@ -365,6 +365,33 @@ function create_initial_post_types() {
 		)
 	);
 
+	register_post_type(
+		'wp_global_styles',
+		array(
+			'label'        => __( 'Global Styles', 'gutenberg' ),
+			'description'  => 'CPT to store user design tokens',
+			'public'       => false,
+			'show_ui'      => false,
+			'show_in_rest' => false,
+			'rewrite'      => false,
+			'capabilities' => array(
+				'read'                   => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+			),
+			'map_meta_cap' => true,
+			'supports'     => array(
+				'title',
+				'editor',
+				'revisions',
+			),
+		)
+	);
+
 	register_post_status(
 		'publish',
 		array(
@@ -2086,6 +2113,7 @@ function set_post_type( $post_id = 0, $post_type = 'post' ) {
  * @since 4.4.0
  * @since 4.5.0 Added the ability to pass a post type name in addition to object.
  * @since 4.6.0 Converted the `$post_type` parameter to accept a `WP_Post_Type` object.
+ * @since 5.9.0 Added `is_post_type_viewable` hook to filter the result.
  *
  * @param string|WP_Post_Type $post_type Post type name or object.
  * @return bool Whether the post type should be considered viewable.
@@ -2102,7 +2130,23 @@ function is_post_type_viewable( $post_type ) {
 		return false;
 	}
 
-	return $post_type->publicly_queryable || ( $post_type->_builtin && $post_type->public );
+	$is_viewable = $post_type->publicly_queryable || ( $post_type->_builtin && $post_type->public );
+
+	/**
+	 * Filters whether a post type is considered "viewable".
+	 *
+	 * The returned filtered value must be a boolean type to ensure
+	 * `is_post_type_viewable()` only returns a boolean. This strictness
+	 * is by design to maintain backwards-compatibility and guard against
+	 * potential type errors in PHP 8.1+. Non-boolean values (even falsey
+	 * and truthy values) will result in the function returning false.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param bool         $is_viewable Whether the post type is "viewable" (strict type).
+	 * @param WP_Post_Type $post_type   Post type object.
+	 */
+	return true === apply_filters( 'is_post_type_viewable', $is_viewable, $post_type );
 }
 
 /**
@@ -2112,6 +2156,7 @@ function is_post_type_viewable( $post_type ) {
  * For all others, the 'publicly_queryable' value will be used.
  *
  * @since 5.7.0
+ * @since 5.9.0 Added `is_post_status_viewable` hook to filter the result.
  *
  * @param string|stdClass $post_status Post status name or object.
  * @return bool Whether the post status should be considered viewable.
@@ -2132,7 +2177,23 @@ function is_post_status_viewable( $post_status ) {
 		return false;
 	}
 
-	return $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
+	$is_viewable = $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
+
+	/**
+	 * Filters whether a post status is considered "viewable".
+	 *
+	 * The returned filtered value must be a boolean type to ensure
+	 * `is_post_status_viewable()` only returns a boolean. This strictness
+	 * is by design to maintain backwards-compatibility and guard against
+	 * potential type errors in PHP 8.1+. Non-boolean values (even falsey
+	 * and truthy values) will result in the function returning false.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param bool     $is_viewable Whether the post status is "viewable" (strict type).
+	 * @param stdClass $post_status Post status object.
+	 */
+	return true === apply_filters( 'is_post_status_viewable', $is_viewable, $post_status );
 }
 
 /**

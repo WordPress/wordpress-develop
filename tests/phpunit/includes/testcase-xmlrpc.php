@@ -4,6 +4,9 @@ require_once ABSPATH . WPINC . '/class-IXR.php';
 require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
 
 abstract class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
+	/**
+	 * @var wp_xmlrpc_server
+	 */
 	protected $myxmlrpcserver;
 
 	public function set_up() {
