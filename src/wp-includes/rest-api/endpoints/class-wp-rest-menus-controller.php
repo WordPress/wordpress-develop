@@ -2,9 +2,9 @@
 /**
  * REST API: WP_REST_Menus_Controller class
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST_API
- * @since      5.9.0
+ * @since 5.9.0
  */
 
 /**
@@ -123,12 +123,11 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	}
 
 	/**
-	 * Get the term, if the ID is valid.
+	 * Gets the term, if the ID is valid.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param int $id Supplied ID.
-	 *
 	 * @return WP_Term|WP_Error Term object if ID is valid, WP_Error otherwise.
 	 */
 	protected function get_term( $id ) {
@@ -181,10 +180,9 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param WP_Term $term Term object.
+	 * @param WP_Term         $term    Term object.
 	 * @param WP_REST_Request $request Request object.
-	 *
-	 * @return WP_REST_Response $response Response object.
+	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $term, $request ) {
 		$nav_menu = wp_get_nav_menu_object( $term );
@@ -198,8 +196,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		}
 
 		if ( rest_is_field_included( 'auto_add', $fields ) ) {
-			$auto_add         = $this->get_menu_auto_add( $nav_menu->term_id );
-			$data['auto_add'] = $auto_add;
+			$data['auto_add'] = $this->get_menu_auto_add( $nav_menu->term_id );
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -219,7 +216,6 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_Term $term Term object.
-	 *
 	 * @return array Links for the given term.
 	 */
 	protected function prepare_links( $term ) {
@@ -244,16 +240,15 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 *
-	 * @return array $prepared_term Term object.
+	 * @return object Prepared term data.
 	 */
 	public function prepare_item_for_database( $request ) {
 		$prepared_term = parent::prepare_item_for_database( $request );
 
-		$prepared_term = (array) $prepared_term;
-		$schema        = $this->get_item_schema();
+		$schema = $this->get_item_schema();
+
 		if ( isset( $request['name'] ) && ! empty( $schema['properties']['name'] ) ) {
-			$prepared_term['menu-name'] = $request['name'];
+			$prepared_term->{'menu-name'} = $request['name'];
 		}
 
 		return $prepared_term;
@@ -265,7 +260,6 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
@@ -292,7 +286,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			 */
 
 			if ( in_array( 'menu_exists', $term->get_error_codes(), true ) ) {
-				$existing_term = get_term_by( 'name', $prepared_term['menu-name'], $this->taxonomy );
+				$existing_term = get_term_by( 'name', $prepared_term->{'menu-name'}, $this->taxonomy );
 				$term->add_data( $existing_term->term_id, 'menu_exists' );
 				$term->add_data(
 					array(
@@ -355,7 +349,6 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function update_item( $request ) {
@@ -378,8 +371,13 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 
 		$prepared_term = $this->prepare_item_for_database( $request );
 
-		// Only update the term if we haz something to update.
+		// Only update the term if we have something to update.
 		if ( ! empty( $prepared_term ) ) {
+			if ( ! isset( $prepared_term->{'menu-name'} ) ) {
+				// wp_update_nav_menu_object() requires that the menu-name is always passed.
+				$prepared_term->{'menu-name'} = $term->name;
+			}
+
 			$update = wp_update_nav_menu_object( $term->term_id, wp_slash( (array) $prepared_term ) );
 
 			if ( is_wp_error( $update ) ) {
@@ -431,7 +429,6 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
@@ -440,22 +437,20 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			return $term;
 		}
 
-		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
-
 		// We don't support trashing for terms.
-		if ( ! $force ) {
+		if ( ! $request['force'] ) {
 			/* translators: %s: force=true */
-			return new WP_Error( 'rest_trash_not_supported', sprintf( __( "Terms do not support trashing. Set '%s' to delete." ), 'force=true' ), array( 'status' => 501 ) );
+			return new WP_Error( 'rest_trash_not_supported', sprintf( __( "Menus do not support trashing. Set '%s' to delete." ), 'force=true' ), array( 'status' => 501 ) );
 		}
 
 		$request->set_param( 'context', 'view' );
 
 		$previous = $this->prepare_item_for_response( $term, $request );
 
-		$retval = wp_delete_nav_menu( $term );
+		$result = wp_delete_nav_menu( $term );
 
-		if ( ! $retval || is_wp_error( $retval ) ) {
-			return new WP_Error( 'rest_cannot_delete', __( 'The term cannot be deleted.' ), array( 'status' => 500 ) );
+		if ( ! $result || is_wp_error( $result ) ) {
+			return new WP_Error( 'rest_cannot_delete', __( 'The menu cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
 		$response = new WP_REST_Response();
@@ -473,15 +468,14 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	}
 
 	/**
-	 * Returns the value of a menu's auto_add
+	 * Returns the value of a menu's auto_add setting.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param int $menu_id The menu id to update the location form.
-	 *
+	 * @param int $menu_id The menu id to query.
 	 * @return bool The value of auto_add.
 	 */
-	function get_menu_auto_add( $menu_id ) {
+	protected function get_menu_auto_add( $menu_id ) {
 		$nav_menu_option = (array) get_option( 'nav_menu_options', array( 'auto_add' => array() ) );
 
 		return in_array( $menu_id, $nav_menu_option['auto_add'], true );
@@ -492,12 +486,11 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param int $menu_id The menu id to update the location form.
-	 * @param WP_REST_Request $request The request object with menu and locations data.
-	 *
-	 * @return bool True if the auto update was successfully updated.
+	 * @param int             $menu_id The menu id to update.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return bool True if the auto add setting was successfully updated.
 	 */
-	function handle_auto_add( $menu_id, $request ) {
+	protected function handle_auto_add( $menu_id, $request ) {
 		if ( ! isset( $request['auto_add'] ) ) {
 			return true;
 		}
@@ -527,13 +520,12 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	}
 
 	/**
-	 * Returns names of the locations assigned to the menu.
+	 * Returns the names of the locations assigned to the menu.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param int $menu_id The menu id.
-	 *
-	 * @return string[] $menu_locations The locations assigned to the menu.
+	 * @return string[] The locations assigned to the menu.
 	 */
 	protected function get_menu_locations( $menu_id ) {
 		$locations      = get_nav_menu_locations();
@@ -553,10 +545,9 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param int $menu_id The menu id to update the location form.
-	 * @param WP_REST_Request $request The request object with menu and locations data.
-	 *
-	 * @return true|WP_Error WP_Error on an error assigning any of the locations, otherwise null.
+	 * @param int             $menu_id The menu id to update.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True on success, a WP_Error on an error updating any of the locations.
 	 */
 	protected function handle_locations( $menu_id, $request ) {
 		if ( ! isset( $request['locations'] ) ) {
@@ -600,41 +591,40 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 */
 	public function get_item_schema() {
 		$schema = parent::get_item_schema();
-		unset( $schema['properties']['count'] );
-		unset( $schema['properties']['link'] );
-		unset( $schema['properties']['taxonomy'] );
+		unset( $schema['properties']['count'], $schema['properties']['link'], $schema['properties']['taxonomy'] );
 
 		$schema['properties']['locations'] = array(
-			'description'       => __( 'The locations assigned to the menu.' ),
-			'type'              => 'array',
-			'items'             => array(
+			'description' => __( 'The locations assigned to the menu.' ),
+			'type'        => 'array',
+			'items'       => array(
 				'type' => 'string',
 			),
-			'context'           => array( 'view', 'edit' ),
-			'validate_callback' => function ( $locations, $request, $param ) {
-				$valid = rest_validate_request_arg( $locations, $request, $param );
+			'context'     => array( 'view', 'edit' ),
+			'arg_options' => array(
+				'validate_callback' => function ( $locations, $request, $param ) {
+					$valid = rest_validate_request_arg( $locations, $request, $param );
 
-				if ( true !== $valid ) {
-					return $valid;
-				}
-
-				$locations = rest_sanitize_request_arg( $locations, $request, $param );
-
-				foreach ( $locations as $location ) {
-					if ( ! array_key_exists( $location, get_registered_nav_menus() ) ) {
-						return new WP_Error(
-							'rest_invalid_menu_location',
-							__( 'Invalid menu location.' ),
-							array(
-								'status'   => 400,
-								'location' => $location,
-							)
-						);
+					if ( true !== $valid ) {
+						return $valid;
 					}
-				}
 
-				return true;
-			},
+					$locations = rest_sanitize_request_arg( $locations, $request, $param );
+
+					foreach ( $locations as $location ) {
+						if ( ! array_key_exists( $location, get_registered_nav_menus() ) ) {
+							return new WP_Error(
+								'rest_invalid_menu_location',
+								__( 'Invalid menu location.' ),
+								array(
+									'location' => $location,
+								)
+							);
+						}
+					}
+
+					return true;
+				},
+			),
 		);
 
 		$schema['properties']['auto_add'] = array(

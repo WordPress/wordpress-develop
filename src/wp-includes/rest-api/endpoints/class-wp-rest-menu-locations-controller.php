@@ -2,9 +2,9 @@
 /**
  * REST API: WP_REST_Menu_Locations_Controller class
  *
+ * @package WordPress
  * @subpackage REST_API
- * @package    WordPress
- * @since      5.9.0
+ * @since 5.9.0
  */
 
 /**
@@ -12,12 +12,14 @@
  *
  * @since 5.9.0
  *
- * @see   WP_REST_Controller
+ * @see WP_REST_Controller
  */
 class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 
 	/**
-	 * Constructor.
+	 * Menu Locations Constructor.
+	 *
+	 * @since 5.9.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp/v2';
@@ -29,7 +31,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @see   register_rest_route()
+	 * @see register_rest_route()
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -79,7 +81,11 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you are not allowed to view menu locations.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error(
+				'rest_cannot_view',
+				__( 'Sorry, you are not allowed to view menu locations.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
 
 		return true;
@@ -118,7 +124,11 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 */
 	public function get_item_permissions_check( $request ) {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you are not allowed to view menu locations.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error(
+				'rest_cannot_view',
+				__( 'Sorry, you are not allowed to view menu locations.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
 
 		return true;
@@ -130,7 +140,6 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
@@ -153,14 +162,15 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param stdClass        $location Post status data.
-	 * @param WP_REST_Request $request  Full details about the request.
-	 *
-	 * @return WP_REST_Response Post status data.
+	 * @param stdClass        $item    Post status data.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response Menu location data.
 	 */
-	public function prepare_item_for_response( $location, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$location  = $item;
 		$locations = get_nav_menu_locations();
-		$menu      = ( isset( $locations[ $location->name ] ) ) ? $locations[ $location->name ] : 0;
+		$menu      = isset( $locations[ $location->name ] ) ? $locations[ $location->name ] : 0;
 
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
@@ -186,13 +196,12 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 		$response->add_links( $this->prepare_links( $location ) );
 
 		/**
-		 * Filters a menu location returned from the REST API.
+		 * Filters menu location data returned from the REST API.
 		 *
-		 * Allows modification of the menu location data right before it is
-		 * returned.
+		 * @since 5.9.0
 		 *
 		 * @param WP_REST_Response $response The response object.
-		 * @param object           $location The original status object.
+		 * @param object           $location The original location object.
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_menu_location', $response, $location, $request );
@@ -206,7 +215,11 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
-		$schema = array(
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
+		$this->schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'menu-location',
 			'type'       => 'object',
@@ -232,7 +245,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 			),
 		);
 
-		return $this->add_additional_fields_schema( $schema );
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
@@ -254,7 +267,6 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param stdClass $location Menu location.
-	 *
 	 * @return array Links for the given menu location.
 	 */
 	protected function prepare_links( $location ) {
@@ -271,7 +283,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 		);
 
 		$locations = get_nav_menu_locations();
-		$menu      = ( isset( $locations[ $location->name ] ) ) ? $locations[ $location->name ] : 0;
+		$menu      = isset( $locations[ $location->name ] ) ? $locations[ $location->name ] : 0;
 		if ( $menu ) {
 			$path = rest_get_route_for_term( $menu );
 			if ( $path ) {

@@ -410,6 +410,7 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
  * to be pre-slashed since they are passed directly to APIs that expect slashed data.
  *
  * @since 3.0.0
+ * @since 5.9.0 Added the menu-item-content parameter.
  *
  * @param int   $menu_id         The ID of the menu. Required. If "0", makes the menu item a draft orphan.
  * @param int   $menu_item_db_id The ID of the menu item. If "0", creates a new menu item.
@@ -527,7 +528,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	if ( ! $update ) {
 		$post['ID']          = 0;
 		$post['post_status'] = 'publish' === $args['menu-item-status'] ? 'publish' : 'draft';
-		$menu_item_db_id     = wp_insert_post( $post );
+		$menu_item_db_id     = wp_insert_post( $post, true );
 		if ( ! $menu_item_db_id || is_wp_error( $menu_item_db_id ) ) {
 			return $menu_item_db_id;
 		}
@@ -586,7 +587,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		$post['ID']          = $menu_item_db_id;
 		$post['post_status'] = ( 'draft' === $args['menu-item-status'] ) ? 'draft' : 'publish';
 
-		$update_post = wp_update_post( $post );
+		$update_post = wp_update_post( $post, true );
 		if ( is_wp_error( $update_post ) ) {
 			return $update_post;
 		}

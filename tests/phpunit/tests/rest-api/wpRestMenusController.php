@@ -1,9 +1,10 @@
 <?php
 /**
- * REST API: REST_Nav_Menus_Controller_Test class
+ * WP_REST_Menus_Controller tests
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST_API
+ * @since 5.9.0
  */
 
 /**
@@ -13,7 +14,7 @@
  *
  * @coversDefaultClass WP_REST_Menus_Controller
  */
-class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @var int
 	 */
@@ -128,15 +129,15 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/menus' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$tag1     = $this->factory->tag->create( array( 'name' => 'Season 5' ) );
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/menus/' . $tag1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -149,7 +150,7 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'context',
 				'exclude',
@@ -220,13 +221,13 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'name', 'My Awesome menus' );
 		$request->set_param( 'description', 'This menu is so awesome.' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$headers = $response->get_headers();
 		$data    = $response->get_data();
 		$this->assertStringContainsString( '/wp/v2/menus/' . $data['id'], $headers['Location'] );
-		$this->assertEquals( 'My Awesome menus', $data['name'] );
-		$this->assertEquals( 'This menu is so awesome.', $data['description'] );
-		$this->assertEquals( 'my-awesome-menus', $data['slug'] );
+		$this->assertSame( 'My Awesome menus', $data['name'] );
+		$this->assertSame( 'This menu is so awesome.', $data['description'] );
+		$this->assertSame( 'my-awesome-menus', $data['slug'] );
 	}
 
 	/**
@@ -271,13 +272,13 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'New Name', $data['name'] );
-		$this->assertEquals( 'New Description', $data['description'] );
-		$this->assertEquals( true, $data['auto_add'] );
-		$this->assertEquals( 'new-name', $data['slug'] );
-		$this->assertEquals( 'just meta', $data['meta']['test_single_menu'] );
+		$this->assertSame( 'New Name', $data['name'] );
+		$this->assertSame( 'New Description', $data['description'] );
+		$this->assertSame( true, $data['auto_add'] );
+		$this->assertSame( 'new-name', $data['slug'] );
+		$this->assertSame( 'just meta', $data['meta']['test_single_menu'] );
 		$this->assertFalse( isset( $data['meta']['test_cat_meta'] ) );
 	}
 
@@ -301,10 +302,10 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/menus/' . $term->term_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertTrue( $data['deleted'] );
-		$this->assertEquals( 'Deleted Menu', $data['previous']['name'] );
+		$this->assertSame( 'Deleted Menu', $data['previous']['name'] );
 	}
 
 	/**
@@ -339,7 +340,7 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 7, count( $properties ) );
+		$this->assertSame( 7, count( $properties ) );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'meta', $properties );
@@ -360,11 +361,11 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'slug', 'so-awesome' );
 		$request->set_param( 'locations', 'primary' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$data      = $response->get_data();
 		$term_id   = $data['id'];
 		$locations = get_nav_menu_locations();
-		$this->assertEquals( $locations['primary'], $term_id );
+		$this->assertSame( $locations['primary'], $term_id );
 	}
 
 	/**
@@ -378,8 +379,10 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'slug', 'so-awesome' );
 		$request->set_param( 'locations', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
-		$this->assertErrorResponse( 'rest_invalid_menu_location', $response, 400 );
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertArrayHasKey( 'locations', $response->get_data()['data']['details'] );
+		$this->assertSame( 'rest_invalid_menu_location', $response->get_data()['data']['details']['locations']['code'] );
 	}
 
 	/**
@@ -396,7 +399,7 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'slug', 'new-slug' );
 		$request->set_param( 'locations', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	/**
@@ -412,9 +415,9 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'slug', 'new-slug' );
 		$request->set_param( 'locations', 'primary' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$locations = get_nav_menu_locations();
-		$this->assertEquals( $locations['primary'], $this->menu_id );
+		$this->assertSame( $locations['primary'], $this->menu_id );
 	}
 
 	/**
@@ -430,7 +433,7 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'slug', 'new-slug' );
 		$request->set_param( 'locations', 'primary' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( rest_authorization_required_code(), $response->get_status() );
+		$this->assertSame( rest_authorization_required_code(), $response->get_status() );
 	}
 
 	/**
@@ -459,7 +462,7 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'https://api.w.org/menu-location', $links );
 
 		$location_url = rest_url( '/wp/v2/menu-locations/foo' );
-		$this->assertEquals( $location_url, $links['https://api.w.org/menu-location'][0]['href'] );
+		$this->assertSame( $location_url, $links['https://api.w.org/menu-location'][0]['href'] );
 	}
 
 	/**
@@ -493,12 +496,12 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		);
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$locations = get_nav_menu_locations();
 		$this->assertArrayNotHasKey( 'primary', $locations );
 		$this->assertArrayHasKey( 'secondary', $locations );
-		$this->assertEquals( $this->menu_id, $locations['secondary'] );
+		$this->assertSame( $this->menu_id, $locations['secondary'] );
 	}
 
 	/**
@@ -566,17 +569,17 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @param WP_REST_Response $response Response Class.
 	 */
 	protected function check_get_taxonomy_terms_response( $response ) {
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$args = array(
 			'hide_empty' => false,
 		);
 		$tags = get_terms( self::TAXONOMY, $args );
-		$this->assertEquals( count( $tags ), count( $data ) );
-		$this->assertEquals( $tags[0]->term_id, $data[0]['id'] );
-		$this->assertEquals( $tags[0]->name, $data[0]['name'] );
-		$this->assertEquals( $tags[0]->slug, $data[0]['slug'] );
-		$this->assertEquals( $tags[0]->description, $data[0]['description'] );
+		$this->assertSame( count( $tags ), count( $data ) );
+		$this->assertSame( $tags[0]->term_id, $data[0]['id'] );
+		$this->assertSame( $tags[0]->name, $data[0]['name'] );
+		$this->assertSame( $tags[0]->slug, $data[0]['slug'] );
+		$this->assertSame( $tags[0]->description, $data[0]['description'] );
 	}
 
 	/**
@@ -584,7 +587,7 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @param int              $id Term ID.
 	 */
 	protected function check_get_taxonomy_term_response( $response, $id ) {
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$menu = get_term( $id, self::TAXONOMY );
@@ -597,10 +600,10 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @param array   $links Array of links.
 	 */
 	protected function check_taxonomy_term( $term, $data, $links ) {
-		$this->assertEquals( $term->term_id, $data['id'] );
-		$this->assertEquals( $term->name, $data['name'] );
-		$this->assertEquals( $term->slug, $data['slug'] );
-		$this->assertEquals( $term->description, $data['description'] );
+		$this->assertSame( $term->term_id, $data['id'] );
+		$this->assertSame( $term->name, $data['name'] );
+		$this->assertSame( $term->slug, $data['slug'] );
+		$this->assertSame( $term->description, $data['description'] );
 		$this->assertFalse( isset( $data['parent'] ) );
 
 		$locations = get_nav_menu_locations();
@@ -630,8 +633,8 @@ class REST_Nav_Menus_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			$relations[] = 'https://api.w.org/menu-location';
 		}
 
-		$this->assertEqualSets( $relations, array_keys( $links ) );
+		$this->assertSameSets( $relations, array_keys( $links ) );
 		$this->assertStringContainsString( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
-		$this->assertEquals( add_query_arg( 'menus', $term->term_id, rest_url( 'wp/v2/menu-items' ) ), $links['https://api.w.org/post_type'][0]['href'] );
+		$this->assertSame( add_query_arg( 'menus', $term->term_id, rest_url( 'wp/v2/menu-items' ) ), $links['https://api.w.org/post_type'][0]['href'] );
 	}
 }

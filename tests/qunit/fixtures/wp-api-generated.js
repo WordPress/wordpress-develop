@@ -3666,7 +3666,10 @@ mockedApiResponse.Schema = {
                     "args": {
                         "title": {
                             "description": "The title for the object.",
-                            "type": "object",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Title for the object, as it exists in the database.",
@@ -3753,14 +3756,17 @@ mockedApiResponse.Schema = {
                         },
                         "object_id": {
                             "default": 0,
-                            "description": "The DB ID of the original object this menu item represents, e . g . ID for posts and term_id for categories.",
+                            "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
                             "type": "integer",
                             "minimum": 0,
                             "required": false
                         },
                         "content": {
                             "description": "HTML content to display for this block menu item.",
-                            "type": "object",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "HTML content, as it exists in the database.",
@@ -3881,7 +3887,10 @@ mockedApiResponse.Schema = {
                         },
                         "title": {
                             "description": "The title for the object.",
-                            "type": "object",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Title for the object, as it exists in the database.",
@@ -3963,14 +3972,17 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object_id": {
-                            "description": "The DB ID of the original object this menu item represents, e . g . ID for posts and term_id for categories.",
+                            "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
                             "type": "integer",
                             "minimum": 0,
                             "required": false
                         },
                         "content": {
                             "description": "HTML content to display for this block menu item.",
-                            "type": "object",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "HTML content, as it exists in the database.",
@@ -4098,7 +4110,10 @@ mockedApiResponse.Schema = {
                         },
                         "title": {
                             "description": "The title for the object.",
-                            "type": "object",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Title for the object, as it exists in the database.",
@@ -4174,14 +4189,17 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object_id": {
-                            "description": "The DB ID of the original object this menu item represents, e . g . ID for posts and term_id for categories.",
+                            "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
                             "type": "integer",
                             "minimum": 0,
                             "required": false
                         },
                         "content": {
                             "description": "HTML content to display for this block menu item.",
-                            "type": "object",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "HTML content, as it exists in the database.",

@@ -1,9 +1,10 @@
 <?php
 /**
- * REST API: REST_Nav_Menu_Locations_Test class
+ * WP_REST_Menu_Locations_Controller tests.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST_API
+ * @since 5.9.0
  */
 
 /**
@@ -13,7 +14,7 @@
  *
  * @coversDefaultClass WP_REST_Menu_Locations_Controller
  */
-class REST_Nav_Menu_Locations_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @var int
@@ -77,15 +78,15 @@ class REST_Nav_Menu_Locations_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/menu-locations' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		$menu = 'primary';
 		$this->register_nav_menu_locations( array( $menu ) );
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/menu-locations/' . $menu );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -103,9 +104,9 @@ class REST_Nav_Menu_Locations_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertCount( 2, $data );
 		$names        = wp_list_pluck( $data, 'name' );
 		$descriptions = wp_list_pluck( $data, 'description' );
-		$this->assertEquals( $menus, $names );
+		$this->assertSame( $menus, $names );
 		$menu_descriptions = array_map( 'ucfirst', $names );
-		$this->assertEquals( $menu_descriptions, $descriptions );
+		$this->assertSame( $menu_descriptions, $descriptions );
 	}
 
 	/**
@@ -120,7 +121,7 @@ class REST_Nav_Menu_Locations_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/menu-locations/' . $menu );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( $menu, $data['name'] );
+		$this->assertSame( $menu, $data['name'] );
 	}
 
 	/**
@@ -168,7 +169,7 @@ class REST_Nav_Menu_Locations_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 3, count( $properties ) );
+		$this->assertSame( 3, count( $properties ) );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'menu', $properties );
