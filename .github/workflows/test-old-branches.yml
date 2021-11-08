@@ -4,7 +4,6 @@ on:
   # Verify the workflow is successful when this file is updated.
   push:
     branches:
-      - master
       - trunk
     paths:
       - '.github/workflows/test-old-branches.yml'
@@ -72,7 +71,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ dispatch-workflows-for-old-branches ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
