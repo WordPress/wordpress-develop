@@ -53,7 +53,7 @@ function render_block_core_template_part( $attributes ) {
 		} else {
 			// Else, if the template part was provided by the active theme,
 			// render the corresponding file content.
-			$template_part_file_path = get_stylesheet_directory() . '/block-template-parts/' . $attributes['slug'] . '.html';
+			$template_part_file_path = get_theme_file_path( '/block-template-parts/' . $attributes['slug'] . '.html' );
 			if ( 0 === validate_file( $attributes['slug'] ) && file_exists( $template_part_file_path ) ) {
 				$content = _inject_theme_attribute_in_block_template_content( file_get_contents( $template_part_file_path ) );
 			}
@@ -91,12 +91,12 @@ function render_block_core_template_part( $attributes ) {
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
 	$content = shortcode_unautop( $content );
-	if ( function_exists( 'wp_filter_content_tags' ) ) {
-		$content = wp_filter_content_tags( $content );
-	} else {
-		$content = wp_make_content_images_responsive( $content );
-	}
+	$content = wp_filter_content_tags( $content );
 	$content = do_shortcode( $content );
+
+	// Handle embeds for block template parts.
+	global $wp_embed;
+	$content = $wp_embed->autoembed( $content );
 
 	if ( empty( $attributes['tagName'] ) ) {
 		$defined_areas = get_allowed_block_template_part_areas();
