@@ -204,7 +204,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			}
 		}
 		ksort( $array );
-	 }
+	}
 
 	/**
 	 * @ticket 54336
