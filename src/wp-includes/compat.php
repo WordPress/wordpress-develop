@@ -405,7 +405,11 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
 	 */
 	function str_ends_with( $haystack, $needle ) {
-		return 0 === substr_compare( $haystack, $needle, -strlen( $needle ), strlen( $needle ) );
+		if ( '' === $haystack && '' !== $needle ) {
+			return false;
+		}
+		$len = strlen( $needle );
+		return 0 === substr_compare( $haystack, $needle, -$len, $len );
 	}
 }
 
