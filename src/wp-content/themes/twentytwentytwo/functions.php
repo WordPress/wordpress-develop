@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_Two
- * @since 1.0.0
+ * @since Twenty Twenty-Two 1.0
  */
 
 
@@ -17,6 +17,8 @@ if ( ! function_exists( 'twentytwentytwo_support' ) ) :
 	 * Styles load in both the editor and the front end.
 	 *
 	 * @link https://developer.wordpress.org/block-editor/how-to-guides/themes/theme-support/#default-block-styles
+	 *
+	 * @since Twenty Twenty-Two 1.0
 	 *
 	 * @return void
 	 */
@@ -34,6 +36,8 @@ if ( ! function_exists( 'twentytwentytwo_styles' ) ) :
 
 	/**
 	 * Enqueue styles.
+	 *
+	 * @since Twenty Twenty-Two 1.0
 	 *
 	 * @return void
 	 */
@@ -64,6 +68,8 @@ if ( ! function_exists( 'twentytwentytwo_editor_styles' ) ) :
 	/**
 	 * Enqueue editor styles.
 	 *
+	 * @since Twenty Twenty-Two 1.0
+	 *
 	 * @return void
 	 */
 	function twentytwentytwo_editor_styles() {
@@ -82,6 +88,8 @@ if ( ! function_exists( 'twentytwentytwo_get_font_face_styles' ) ) :
 	/**
 	 * Get font face styles.
 	 * Called by functions twentytwentytwo_styles() and twentytwentytwo_editor_styles() above.
+	 *
+	 * @since Twenty Twenty-Two 1.0
 	 *
 	 * @return string
 	 */
