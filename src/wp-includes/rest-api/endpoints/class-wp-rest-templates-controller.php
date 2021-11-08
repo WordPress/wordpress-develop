@@ -550,6 +550,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Retrieves the block type' schema, conforming to JSON Schema.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Added `'area'`.
 	 *
 	 * @return array Item schema data.
 	 */
