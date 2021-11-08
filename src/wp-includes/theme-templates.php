@@ -2,10 +2,12 @@
 
 /**
  * Sets a custom slug when creating auto-draft template parts.
+ *
  * This is only needed for auto-drafts created by the regular WP editor.
  * If this page is to be removed, this won't be necessary.
  *
- * @param int $post_id Post ID.
+ * @since 5.9.0
+ *
  */
 function wp_set_unique_slug_on_create_template_part( $post_id ) {
 	$post = get_post( $post_id );
