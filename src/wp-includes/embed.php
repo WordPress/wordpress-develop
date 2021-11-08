@@ -380,27 +380,9 @@ function wp_prepend_oembed_host_inline_script_tag( $html ) {
 		return $html;
 	}
 
-	$script  = "<script type='text/javascript'>\n";
-	$script .= "<!--//--><![CDATA[//><!--\n";
-	if ( SCRIPT_DEBUG ) {
-		$script .= file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' );
-	} else {
-		/*
-		 * If you're looking at a src version of this file, you'll see an "include"
-		 * statement below. This is used by the `npm run build` process to directly
-		 * include a minified version of wp-embed.js, instead of using the
-		 * file_get_contents() method from above.
-		 *
-		 * If you're looking at a build version of this file, you'll see a string of
-		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
-		 * and edit wp-embed.js directly.
-		 */
-		$script .= <<<JS
-		include "js/wp-embed.min.js"
-JS;
-	}
-	$script .= "\n//--><!]]>";
-	$script .= "\n</script>";
+	$script = wp_get_inline_script_tag(
+		file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' ) )
+	);
 
 	return $script . $html;
 }
