@@ -340,7 +340,6 @@ if ( ! function_exists( 'sodium_crypto_box' ) ) {
 if ( ! function_exists( 'is_countable' ) ) {
 	/**
 	 * Polyfill for is_countable() function added in PHP 7.3.
-	 * @ignore
 	 *
 	 * Verify that the content of a variable is an array or an object
 	 * implementing the Countable interface.
@@ -362,7 +361,6 @@ if ( ! function_exists( 'is_countable' ) ) {
 if ( ! function_exists( 'is_iterable' ) ) {
 	/**
 	 * Polyfill for is_iterable() function added in PHP 7.1.
-	 * @ignore
 	 *
 	 * Verify that the content of a variable is an array or an object
 	 * implementing the Traversable interface.
@@ -379,37 +377,38 @@ if ( ! function_exists( 'is_iterable' ) ) {
 
 if ( ! function_exists( 'str_starts_with' ) ) {
 	/**
-	 * Polyfill for str_starts_with() function added in PHP 8.
+	 * Polyfill for str_starts_with() function added in PHP 8.0.
+	 *
 	 * Performs a case-sensitive check indicating if needle is contained in haystack.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
-	 * @param string $needle The substring to search for at the start of `$haystack`.
-	 *
+	 * @param string $needle   The substring to search for in the `$haystack`.
 	 * @return bool True if `$haystack` starts with `$needle`, otherwise false.
 	 */
 	function str_starts_with( $haystack, $needle ) {
 		return 0 === strpos( $haystack, $needle );
 	}
 }
+
 if ( ! function_exists( 'str_ends_with' ) ) {
 	/**
-	 * Polyfill for str_ends_with() function added in PHP 7.3.
+	 * Polyfill for str_ends_with() function added in PHP 8.0.
 	 *
 	 * Performs a case-sensitive check indicating if needle is contained in haystack.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
-	 * @param string $needle The substring to search for at the end of `$haystack`.
-	 *
+	 * @param string $needle   The substring to search for in the `$haystack`.
 	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
 	 */
 	function str_ends_with( $haystack, $needle ) {
 		return 0 === substr_compare( $haystack, $needle, -strlen( $needle ), strlen( $needle ) );
 	}
 }
+
 // IMAGETYPE_WEBP constant is only defined in PHP 7.1 or later.
 if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
 	define( 'IMAGETYPE_WEBP', 18 );
