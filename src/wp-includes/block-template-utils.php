@@ -731,8 +731,8 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 	 * @since 5.9
 	 *
 	 * @param WP_Block_Template $block_template The found block template.
-	 * @param string $id Template unique identifier (example: theme_slug//template_slug).
-	 * @param array  $template_type wp_template or wp_template_part.
+	 * @param string            $id             Template unique identifier (example: theme_slug//template_slug).
+	 * @param array             $template_type  Template type: `'wp_template'` or '`wp_template_part'`.
 	 */
 	return apply_filters( 'get_block_template', $block_template, $id, $template_type );
 }
