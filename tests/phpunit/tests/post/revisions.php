@@ -539,6 +539,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$revisions = wp_get_post_revisions( $post['ID'] );
 
+		array_unshift( $revision_ids, reset( $revisions )->ID );
+
 		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
 
@@ -573,6 +575,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		rsort( $revision_ids );
 
 		$revisions = wp_get_post_revisions( $post['ID'] );
+
+		array_unshift( $revision_ids, reset( $revisions )->ID );
 
 		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
