@@ -1445,7 +1445,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			if ( 'user_name' === $error['code'] ) {
 				$this->assertSame( 'Sorry, that username already exists!', $error['message'] );
 			} else {
-				$this->assertSame( 'Sorry, that email address is already used!', $error['message'] );
+				$expected = '<strong>Error:</strong> This email address is already registered. ' .
+							'<a href="http://rest.wordpress.org/wp-login.php">Log in</a> with ' .
+							'this address or choose another one.';
+				$this->assertSame( $expected, $error['message'] );
 			}
 		}
 	}
