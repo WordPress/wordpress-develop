@@ -6,6 +6,8 @@
  * @subpackage Option
  */
 
+include_once ('conditional-options-preload.php');
+
 /**
  * Retrieves an option value based on an option name.
  *
@@ -129,6 +131,13 @@ function get_option( $option, $default = false ) {
 	 *                           Default false.
 	 */
 	$pre = apply_filters( "pre_option_{$option}", false, $option, $default );
+
+	if ( false === $pre && function_exists( 'conditional_get_options' ) ) {
+
+		if ( ! conditional_get_options_runing() ) {
+			$pre = conditional_get_options( $option, $default );
+		}
+	}
 
 	if ( false !== $pre ) {
 		return $pre;
@@ -275,11 +284,14 @@ function form_option( $option ) {
  */
 function wp_load_alloptions( $force_cache = false ) {
 	global $wpdb;
-
-	if ( ! wp_installing() || ! is_multisite() ) {
-		$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
+	if ( ! wp_installing() && function_exists( 'conditional_options_preload' ) && ! conditional_get_options_runing() ) {
+			$alloptions = conditional_options_preload( $force_cache );
 	} else {
-		$alloptions = false;
+		if ( ! wp_installing() || ! is_multisite() ) {
+			$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
+		} else {
+			$alloptions = false;
+		}
 	}
 
 	if ( ! $alloptions ) {
