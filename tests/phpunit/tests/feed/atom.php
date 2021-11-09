@@ -12,6 +12,8 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	public static $user_id;
 	public static $posts;
 	public static $category;
+	public static $post_id;
+	public static $comment_ids = array();
 
 	/**
 	 * Setup a new user and attribute some posts.
@@ -51,6 +53,17 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
 
+		self::$post_id = $factory->post->create();
+
+		// Create a comment
+		self::$comment_ids[] = $factory->comment->create(
+			array(
+				'comment_author'   => 1,
+				'comment_date'     => '2014-05-06 12:00:00',
+				'comment_date_gmt' => '2014-05-06 07:00:00',
+				'comment_post_ID'  => self::$post_id,
+			)
+		);
 	}
 
 	/**
@@ -124,6 +137,34 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 		// Verify the <feed> element is present and contains a <link rel="href"> child element.
 		$this->assertSame( 'self', $link[1]['attributes']['rel'] );
 		$this->assertSame( home_url( '/?feed=atom' ), $link[1]['attributes']['href'] );
+	}
+
+	/**
+	 * Test the <feed> element to make sure its present and populated
+	 * with the modified version of the title.
+	 *
+	 * @ticket 13867
+	 */
+	function test_feed_title() {
+		add_filter( 'comments_feed_title', array( $this, 'apply_comments_feed_title' ), 10, 2 );
+		$this->go_to( '?feed=comments-atom' );
+		$feed = $this->do_rss2_comments();
+		$xml  = xml_to_array( $feed );
+
+		// Get the <feed> child element of <xml>.
+		$rss = xml_find( $xml, 'feed' );
+		error_log( print_r( $rss, true) );
+		$this->assertEquals( 'Filtered Title', $rss[0]['child'][0]['child'][0]['content'] );
+	}
+
+	/**
+	 * Apply the comments feed title filter.
+	 *
+	 * @ticket 13867
+	 */
+	function apply_comments_feed_title( $item_title, $the_title_rss ) {
+		$item_title = 'Filtered Title';
+		return $item_title;
 	}
 
 	/**
