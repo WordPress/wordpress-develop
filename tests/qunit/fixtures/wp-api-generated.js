@@ -9122,8 +9122,8 @@ mockedApiResponse.Schema = {
             }
         }
     },
-    "site_logo": false,
-    "site_icon": "0"
+    "site_logo": 0,
+    "site_icon": 0
 };
 
 mockedApiResponse.oembed = {

@@ -1284,17 +1284,9 @@ class WP_REST_Server {
 	 * @param WP_REST_Response $response REST API response.
 	 */
 	protected function add_site_logo_to_index( WP_REST_Response $response ) {
-		$site_logo_id                = get_theme_mod( 'custom_logo' );
-		$response->data['site_logo'] = $site_logo_id;
-		if ( $site_logo_id ) {
-			$response->add_link(
-				'https://api.w.org/featuredmedia',
-				rest_url( rest_get_route_for_post( $site_logo_id ) ),
-				array(
-					'embeddable' => true,
-				)
-			);
-		}
+		$site_logo_id = get_theme_mod( 'custom_logo', 0 );
+
+		$this->add_image_to_index( $response, $site_logo_id, 'site_logo' );
 	}
 
 	/**
@@ -1307,14 +1299,31 @@ class WP_REST_Server {
 	 * @param WP_REST_Response $response REST API response.
 	 */
 	protected function add_site_icon_to_index( WP_REST_Response $response ) {
-		$site_icon_id                = get_option( 'site_icon' );
-		$response->data['site_icon'] = $site_icon_id;
-		if ( $site_icon_id ) {
+		$site_icon_id = get_option( 'site_icon', 0 );
+
+		$this->add_image_to_index( $response, $site_icon_id, 'site_icon' );
+	}
+
+	/**
+	 * Exposes an image through the WordPress REST API.
+	 * This is used for fetching this information when user has no rights
+	 * to update settings.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_REST_Response $response REST API response.
+	 * @param int              $image_id Image attachment ID.
+	 * @param string           $type     Type of Image.
+	 */
+	protected function add_image_to_index( WP_REST_Response $response, $image_id, $type ) {
+		$response->data[ $type ] = (int) $image_id;
+		if ( $image_id ) {
 			$response->add_link(
 				'https://api.w.org/featuredmedia',
-				rest_url( rest_get_route_for_post( $site_icon_id ) ),
+				rest_url( rest_get_route_for_post( $image_id ) ),
 				array(
 					'embeddable' => true,
+					'type'       => $type,
 				)
 			);
 		}
