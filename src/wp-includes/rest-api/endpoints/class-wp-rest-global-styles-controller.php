@@ -402,9 +402,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$theme    = WP_Theme_JSON_Resolver::get_merged_data( 'theme' );
-		$styles   = $theme->get_raw_data()['styles'];
-		$settings = $theme->get_settings();
+		$styles   = wp_get_global_styles( array(), '', 'theme' );
+		$settings = wp_get_global_settings( array(), '', 'theme' );
 		$result   = array(
 			'settings' => $settings,
 			'styles'   => $styles,
