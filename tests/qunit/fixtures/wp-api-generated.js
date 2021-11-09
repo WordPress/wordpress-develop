@@ -10369,7 +10369,8 @@ mockedApiResponse.Schema = {
             ]
         }
     },
-    "site_logo": false
+    "site_logo": 0,
+    "site_icon": 0
 };
 
 mockedApiResponse.oembed = {
