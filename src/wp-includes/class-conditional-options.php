@@ -16,6 +16,11 @@ class conditional_options {
 	 */
 	private static $options;
 	/*
+	 * holds the list option that have updated
+	 * @var array
+	 */
+	private static $stale_list;
+	/*
 	 * do we have a cache miss?
 	 * @var bool
 	 */
@@ -27,6 +32,7 @@ class conditional_options {
 	public function __construct() {
 		add_action( 'init', array( __CLASS__, 'set_context' ) );
 		add_action( 'shutdown', array( __CLASS__, 'save_options_cache' ) );
+		add_action( 'update_option', array( __CLASS__, 'update_option' ) );
 	}
 
 
@@ -35,7 +41,8 @@ class conditional_options {
 	 */
 	public static function get_context() {
 		if ( ! self::$context ) {
-			self::$context = self::set_context();
+			self::$context    = self::set_context();
+			self::$stale_list = get_option( 'conditional_options_stale_list', array() );
 		}
 
 		return self::$context;
@@ -68,7 +75,7 @@ class conditional_options {
 	public static function get_option( $option_name, $default = false ) {
 		self::$running = true;
 		$context       = self::get_context();
-		if ( is_array( self::$options ) && array_key_exists( $option_name, self::$options ) ) {
+		if ( is_array( self::$options ) && array_key_exists( $option_name, self::$options ) && ! in_array( $option_name, self::$stale_list, true ) ) {
 			self::$running = false;
 			return self::$options[ $option_name ];
 		}
@@ -77,12 +84,12 @@ class conditional_options {
 
 		$alloptions = ( false !== $cache ) ? $cache : get_option( 'conditional_options_' . $context );
 
-		if ( is_array( $alloptions ) && array_key_exists( $option_name, $alloptions ) ) {
+		if ( is_array( $alloptions ) && array_key_exists( $option_name, $alloptions ) && ! in_array( $option_name, self::$stale_list, true ) ) {
 			return $alloptions[ $option_name ];
 		} else {
 			$option_value                  = get_option( $option_name, $default );
 			self::$options[ $option_name ] = $option_value;
-			self::$has_miss               = true;
+			self::$has_miss                = true;
 
 			return $option_value;
 		}
@@ -99,14 +106,26 @@ class conditional_options {
 	 * @return void
 	 */
 	public static function save_options_cache() {
+		var_dump( self::$has_miss );
 		if ( self::$has_miss ) {
 			$context = self::get_context();
-			wp_cache_set( $context, 'conditional_options' );
+			wp_cache_set( $context, self::$options, 'conditional_options', HOUR_IN_SECONDS );
 			update_option( 'conditional_options_' . $context, self::$options, false );
 		}
 
-	}
+		wp_cache_set( 'stale_list', self::$stale_list, 'conditional_options', HOUR_IN_SECONDS );
+		update_option( 'conditional_options_stale_list', self::$stale_list, false );
 
+	}
+	/**
+	 * @return void
+	 */
+	public static function update_option( $option_name ) {
+		if ( ! in_array( $option_name, self::$stale_list, true ) ) {
+			self::$stale_list[] = $option_name;
+		}
+
+	}
 
 	/**
 	 * lets work out the context
