@@ -95,6 +95,24 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	}
 
 	/**
+	 * This is a bit of a hack used to buffer feed content.
+	 */
+	private function do_atom_comments() {
+		ob_start();
+		// Nasty hack! In the future it would better to leverage do_feed( 'atom' ).
+		global $post;
+		try {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@require ABSPATH . 'wp-includes/feed-atom-comments.php';
+			$out = ob_get_clean();
+		} catch ( Exception $e ) {
+			$out = ob_get_clean();
+			throw( $e );
+		}
+		return $out;
+	}
+
+	/**
 	 * Test the <feed> element to make sure its present and populated
 	 * with the expected child elements and attributes.
 	 */
@@ -148,7 +166,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	function test_feed_title() {
 		add_filter( 'comments_feed_title', array( $this, 'apply_comments_feed_title' ), 10, 2 );
 		$this->go_to( '?feed=comments-atom' );
-		$feed = $this->do_rss2_comments();
+		$feed = $this->do_atom_comments();
 		$xml  = xml_to_array( $feed );
 
 		// Get the <feed> child element of <xml>.
