@@ -163,7 +163,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Get the <rss> child element of <xml>.
 		$rss = xml_find( $xml, 'rss' );
-		error_log( print_r( $rss, true) );
+		error_log( print_r( $rss, true ) );
 		$this->assertEquals( 'Filtered Title', $rss[0]['child'][0]['child'][0]['content'] );
 	}
 

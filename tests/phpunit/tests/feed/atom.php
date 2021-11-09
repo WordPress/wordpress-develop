@@ -153,7 +153,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 
 		// Get the <feed> child element of <xml>.
 		$rss = xml_find( $xml, 'feed' );
-		error_log( print_r( $rss, true) );
+		error_log( print_r( $rss, true ) );
 		$this->assertEquals( 'Filtered Title', $rss[0]['child'][0]['child'][0]['content'] );
 	}
 
