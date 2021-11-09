@@ -647,7 +647,8 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
  * @since 2.5.0
  *
  * @param string $str
- * @return int|float
+ * @return float|string Returns the fraction float, or the original string when
+ * 	                    the fraction can't be converted to a float.
  */
 function wp_exif_frac2dec( $str ) {
 	if ( false === strpos( $str, '/' ) ) {
@@ -841,7 +842,6 @@ function wp_read_image_metadata( $file ) {
 			$meta['copyright'] = trim( $exif['Copyright'] );
 		}
 		if ( ! empty( $exif['FNumber'] ) ) {
-			$meta['aperture'] = round( wp_exif_frac2dec( $exif['FNumber'] ), 2 );
 			$meta['aperture'] = round( (float) wp_exif_frac2dec( $exif['FNumber'] ), 2 );
 		}
 		if ( ! empty( $exif['Model'] ) ) {
