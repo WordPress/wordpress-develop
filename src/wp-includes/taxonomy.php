@@ -18,6 +18,7 @@
  * avoid registering rewrite rules before the {@see 'init'} action.
  *
  * @since 2.8.0
+ * @since 5.9.0 Added `'wp_template_part_area'` taxonomy.
  *
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
@@ -107,17 +108,26 @@ function create_initial_taxonomies() {
 		'nav_menu',
 		'nav_menu_item',
 		array(
-			'public'            => false,
-			'hierarchical'      => false,
-			'labels'            => array(
+			'public'                => false,
+			'hierarchical'          => false,
+			'labels'                => array(
 				'name'          => __( 'Navigation Menus' ),
 				'singular_name' => __( 'Navigation Menu' ),
 			),
-			'query_var'         => false,
-			'rewrite'           => false,
-			'show_ui'           => false,
-			'_builtin'          => true,
-			'show_in_nav_menus' => false,
+			'query_var'             => false,
+			'rewrite'               => false,
+			'show_ui'               => false,
+			'_builtin'              => true,
+			'show_in_nav_menus'     => false,
+			'capabilities'          => array(
+				'manage_terms' => 'edit_theme_options',
+				'edit_terms'   => 'edit_theme_options',
+				'delete_terms' => 'edit_theme_options',
+				'assign_terms' => 'edit_theme_options',
+			),
+			'show_in_rest'          => true,
+			'rest_base'             => 'menus',
+			'rest_controller_class' => 'WP_REST_Menus_Controller',
 		)
 	);
 
@@ -175,13 +185,32 @@ function create_initial_taxonomies() {
 
 	register_taxonomy(
 		'wp_theme',
-		array( 'wp_template', 'wp_global_styles' ),
+		array( 'wp_template', 'wp_template_part', 'wp_global_styles' ),
 		array(
 			'public'            => false,
 			'hierarchical'      => false,
 			'labels'            => array(
 				'name'          => __( 'Themes' ),
 				'singular_name' => __( 'Theme' ),
+			),
+			'query_var'         => false,
+			'rewrite'           => false,
+			'show_ui'           => false,
+			'_builtin'          => true,
+			'show_in_nav_menus' => false,
+			'show_in_rest'      => false,
+		)
+	);
+
+	register_taxonomy(
+		'wp_template_part_area',
+		array( 'wp_template_part' ),
+		array(
+			'public'            => false,
+			'hierarchical'      => false,
+			'labels'            => array(
+				'name'          => __( 'Template Part Areas' ),
+				'singular_name' => __( 'Template Part Area' ),
 			),
 			'query_var'         => false,
 			'rewrite'           => false,

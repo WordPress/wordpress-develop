@@ -262,6 +262,9 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-revisions-controlle
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-autosaves-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-taxonomies-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-terms-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-menu-items-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-menus-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-menu-locations-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-users-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-comments-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-search-controller.php';
@@ -317,6 +320,7 @@ require ABSPATH . WPINC . '/block-supports/align.php';
 require ABSPATH . WPINC . '/block-supports/border.php';
 require ABSPATH . WPINC . '/block-supports/colors.php';
 require ABSPATH . WPINC . '/block-supports/custom-classname.php';
+require ABSPATH . WPINC . '/block-supports/dimensions.php';
 require ABSPATH . WPINC . '/block-supports/duotone.php';
 require ABSPATH . WPINC . '/block-supports/elements.php';
 require ABSPATH . WPINC . '/block-supports/generated-classname.php';

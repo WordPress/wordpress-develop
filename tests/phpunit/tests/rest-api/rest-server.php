@@ -370,6 +370,38 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( $sent_headers['Allow'], 'POST' );
 	}
 
+	/**
+	 * @ticket 53063
+	 */
+	public function test_batched_options() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				array(
+					'methods'             => array( 'GET' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
+				),
+				array(
+					'methods'             => array( 'POST' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_null',
+					'allow_batch'         => false,
+				),
+				'allow_batch' => array( 'v1' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/test-ns/test' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$data = $response->get_data();
+
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
+		$this->assertArrayNotHasKey( 'allow_batch', $data['endpoints'][1] );
+	}
+
 	public function test_allow_header_sent_on_options_request() {
 		register_rest_route(
 			'test-ns',

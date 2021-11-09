@@ -68,7 +68,9 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'context', 'edit' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
-		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
+		$taxonomies = get_taxonomies( '', 'objects' );
+		unset( $taxonomies['nav_menu'] ); // Menus are not editable by contributors.
+		$taxonomies = $this->get_public_taxonomies( $taxonomies );
 		$this->assertSame( count( $taxonomies ), count( $data ) );
 		$this->assertSame( 'Categories', $data['category']['name'] );
 		$this->assertSame( 'category', $data['category']['slug'] );
