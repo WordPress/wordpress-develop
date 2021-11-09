@@ -1276,6 +1276,7 @@ class WP_REST_Server {
 
 	/**
 	 * Exposes the site logo through the WordPress REST API.
+	 *
 	 * This is used for fetching this information when user has no rights
 	 * to update settings.
 	 *
@@ -1291,6 +1292,7 @@ class WP_REST_Server {
 
 	/**
 	 * Exposes the site icon through the WordPress REST API.
+	 *
 	 * This is used for fetching this information when user has no rights
 	 * to update settings.
 	 *
