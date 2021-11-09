@@ -5115,6 +5115,814 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/navigation": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "after": {
+                            "description": "Limit response to posts published after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "before": {
+                            "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by post attribute.",
+                            "type": "string",
+                            "default": "date",
+                            "enum": [
+                                "author",
+                                "date",
+                                "id",
+                                "include",
+                                "modified",
+                                "parent",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title"
+                            ],
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "Limit result set to posts with one or more specific slugs.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "status": {
+                            "default": "publish",
+                            "description": "Limit result set to posts assigned one or more statuses.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "publish",
+                                    "future",
+                                    "draft",
+                                    "pending",
+                                    "private",
+                                    "trash",
+                                    "auto-draft",
+                                    "inherit",
+                                    "request-pending",
+                                    "request-confirmed",
+                                    "request-failed",
+                                    "request-completed",
+                                    "any"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "date": {
+                            "description": "The date the post was published, in the site's timezone.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "date_gmt": {
+                            "description": "The date the post was published, as GMT.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "An alphanumeric identifier for the post unique to its type.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "status": {
+                            "description": "A named status for the post.",
+                            "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "password": {
+                            "description": "A password to protect access to the content and excerpt.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "content": {
+                            "description": "The content for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the post.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "protected": {
+                                    "description": "Whether the content is protected with a password.",
+                                    "type": "boolean",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "template": {
+                            "description": "The theme file to use to display the post.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/navigation"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/navigation/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "password": {
+                            "description": "The password for the post if it is password protected.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "date": {
+                            "description": "The date the post was published, in the site's timezone.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "date_gmt": {
+                            "description": "The date the post was published, as GMT.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "An alphanumeric identifier for the post unique to its type.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "status": {
+                            "description": "A named status for the post.",
+                            "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "password": {
+                            "description": "A password to protect access to the content and excerpt.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "content": {
+                            "description": "The content for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the post.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "protected": {
+                                    "description": "Whether the content is protected with a password.",
+                                    "type": "boolean",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "template": {
+                            "description": "The theme file to use to display the post.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Whether to bypass Trash and force deletion.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/navigation/(?P<parent>[\\d]+)/revisions": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by object attribute.",
+                            "type": "string",
+                            "default": "date",
+                            "enum": [
+                                "date",
+                                "id",
+                                "include",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title"
+                            ],
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/navigation/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "id": {
+                            "description": "Unique identifier for the revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "id": {
+                            "description": "Unique identifier for the revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Required to be true, as revisions do not support trashing.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/navigation/(?P<id>[\\d]+)/autosaves": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the autosave.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the autosave.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "date": {
+                            "description": "The date the post was published, in the site's timezone.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "date_gmt": {
+                            "description": "The date the post was published, as GMT.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "An alphanumeric identifier for the post unique to its type.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "status": {
+                            "description": "A named status for the post.",
+                            "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "password": {
+                            "description": "A password to protect access to the content and excerpt.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "content": {
+                            "description": "The content for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the post.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "protected": {
+                                    "description": "Whether the content is protected with a password.",
+                                    "type": "boolean",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "template": {
+                            "description": "The theme file to use to display the post.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/navigation/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the autosave.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "id": {
+                            "description": "The ID for the autosave.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/types": {
             "namespace": "wp/v2",
             "methods": [
@@ -5929,6 +6737,26 @@ mockedApiResponse.Schema = {
                             "enum": [
                                 "authors"
                             ],
+                            "required": false
+                        },
+                        "has_published_posts": {
+                            "description": "Limit result set to users who have published posts.",
+                            "type": [
+                                "boolean",
+                                "array"
+                            ],
+                            "items": {
+                                "type": "string",
+                                "enum": {
+                                    "post": "post",
+                                    "page": "page",
+                                    "attachment": "attachment",
+                                    "wp_block": "wp_block",
+                                    "wp_template": "wp_template",
+                                    "wp_template_part": "wp_template_part",
+                                    "wp_navigation": "wp_navigation"
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -7728,6 +8556,31 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/render": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The widget type id.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "instance": {
+                            "description": "Current instance settings of the widget.",
+                            "type": "object",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/widgets": {
             "namespace": "wp/v2",
             "methods": [
@@ -9200,6 +10053,34 @@ mockedApiResponse.TypesCollection = {
             "wp:items": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/template-parts"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
+                }
+            ]
+        }
+    },
+    "wp_navigation": {
+        "description": "Navigation menus.",
+        "hierarchical": false,
+        "name": "Navigation Menus",
+        "slug": "wp_navigation",
+        "taxonomies": [],
+        "rest_base": "navigation",
+        "rest_namespace": "wp/v2",
+        "_links": {
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types"
+                }
+            ],
+            "wp:items": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/navigation"
                 }
             ],
             "curies": [
