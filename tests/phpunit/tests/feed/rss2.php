@@ -161,10 +161,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$feed = $this->do_rss2_comments();
 		$xml  = xml_to_array( $feed );
 
-		// Get the <rss> child element of <xml>.
-		$rss = xml_find( $xml, 'rss' );
-		error_log( print_r( $rss, true ) );
-		$this->assertEquals( 'Filtered Title', $rss[0]['child'][0]['child'][0]['content'] );
+		// Get the feed title.
+		$title = xml_find( $xml, 'rss', 'channel', 'title' );
+		$this->assertEquals( 'Filtered Title', $title );
 	}
 
 	/**
