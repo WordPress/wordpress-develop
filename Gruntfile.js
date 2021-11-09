@@ -1457,8 +1457,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'verify:build', [
 		'verify:wp-embed',
 		'verify:old-files',
-		// TODO: Hack, remove this.
-		// 'verify:source-maps',
+		'verify:source-maps',
 	] );
 
 	/**
