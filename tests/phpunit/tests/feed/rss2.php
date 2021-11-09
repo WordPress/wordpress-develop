@@ -345,7 +345,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			if ( $i === $count ) {
 				break;
 			}
-			
+
 			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
 			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
