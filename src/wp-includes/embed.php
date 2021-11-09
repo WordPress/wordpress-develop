@@ -368,7 +368,7 @@ function wp_oembed_add_host_js() {
  * In order to only enqueue the wp-embed script on pages that actually contain post embeds, this function checks if the
  * provided HTML contains post embed markup and if so enqueues the script so that it will get printed in the footer.
  *
- * @since 5.9
+ * @since 5.9.0
  *
  * @param string $html Embed markup.
  * @return string Embed markup (without modifications).
