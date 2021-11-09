@@ -1,8 +1,8 @@
 <?php
 /**
- * @group link
+ * @group themes
  */
-class Tests_Link_ThemeFile extends WP_UnitTestCase {
+class Tests_Theme_ThemeFile extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$themes = array(
