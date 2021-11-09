@@ -6,6 +6,11 @@
  */
 
 if ( ! function_exists( 'twentytwentytwo_register_block_patterns' ) ) :
+	/**
+	 * Registers block patterns and categories.
+	 *
+	 * @since Twenty Twenty-Two 1.0
+	 */
 	function twentytwentytwo_register_block_patterns() {
 
 		register_block_pattern_category(
