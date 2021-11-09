@@ -17,7 +17,7 @@
 class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
-	 * Whether, the rest controller supports batching.
+	 * Whether the controller supports batching.
 	 *
 	 * @since 5.9.0
 	 * @var false

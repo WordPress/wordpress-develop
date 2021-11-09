@@ -40,7 +40,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected $password_check_passed = array();
 
 	/**
-	 * Whether, the rest controller supports batching.
+	 * Whether the controller supports batching.
 	 *
 	 * @since 5.9.0
 	 * @var array

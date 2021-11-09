@@ -49,7 +49,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	protected $total_terms;
 
 	/**
-	 * Whether, the rest controller supports batching.
+	 * Whether the controller supports batching.
 	 *
 	 * @since 5.9.0
 	 * @var array
