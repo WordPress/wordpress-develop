@@ -76,7 +76,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 */
 	public function test_full_sentences_with_unmatched_single_quotes() {
 		$this->assertSame(
-			'That means every moment you are working on something without it being in the public it&#8217;s actually dying.',
+			'That means every moment you&#8217;re working on something without it being in the public it&#8217;s actually dying.',
 			wptexturize( "That means every moment you're working on something without it being in the public it's actually dying." )
 		);
 	}

@@ -98,7 +98,7 @@ Graf by itself:
 
   [paragraph foo="bar"]another graf with whitespace[/paragraph]
 
-An [paragraph]inline graf[/paragraph], this doesn't make much sense.
+An [paragraph]inline graf[/paragraph], this does not make much sense.
 
 A graf with a single EOL first:
 [paragraph]blah[/paragraph]
