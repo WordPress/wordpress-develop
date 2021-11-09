@@ -659,23 +659,29 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @ticket 30854
 	 */
 	function test_wp_first_revision_is_not_lost() {
-		$post = self::factory()->post->create_and_get( array(
-			'post_title' => 'some-post',
-			'post_type' => 'post',
-			'post_content' => 'Initial Content',
-		) );
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title'   => 'some-post',
+				'post_type'    => 'post',
+				'post_content' => 'Initial Content',
+			)
+		);
 
-		wp_update_post( array(
-			'ID' => $post->ID,
-			'post_content' => 'Update #1',
-		) );
+		wp_update_post(
+			array(
+				'ID'           => $post->ID,
+				'post_content' => 'Update #1',
+			)
+		);
 
-		wp_update_post( array(
-			'ID' => $post->ID,
-			'post_content' => 'Update #2',
-		) );
+		wp_update_post(
+			array(
+				'ID'           => $post->ID,
+				'post_content' => 'Update #2',
+			)
+		);
 
-		$revisions = wp_get_post_revisions( $post->ID );
+		$revisions         = wp_get_post_revisions( $post->ID );
 		$earliest_revision = end( $revisions );
 
 		$this->assertEquals( 'Initial Content', $earliest_revision->post_content );
