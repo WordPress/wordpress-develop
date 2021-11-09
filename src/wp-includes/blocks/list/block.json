@@ -39,23 +39,13 @@
 		"className": false,
 		"typography": {
 			"fontSize": true,
-			"__experimentalFontFamily": true,
-			"lineHeight": true,
-			"__experimentalFontStyle": true,
-			"__experimentalFontWeight": true,
-			"__experimentalLetterSpacing": true,
-			"__experimentalTextTransform": true,
-			"__experimentalDefaultControls": {
-				"fontSize": true
-			}
+			"__experimentalFontFamily": true
 		},
 		"color": {
-			"gradients": true,
-			"link": true
+			"gradients": true
 		},
 		"__unstablePasteTextInline": true,
-		"__experimentalSelector": "ol,ul",
-		"__experimentalSlashInserter": true
+		"__experimentalSelector": "ol,ul"
 	},
 	"editorStyle": "wp-block-list-editor",
 	"style": "wp-block-list"

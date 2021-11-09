@@ -3,15 +3,11 @@
 	"name": "core/columns",
 	"title": "Columns",
 	"category": "design",
-	"description": "Display content in multiple columns, with blocks added to each column.",
+	"description": "Add a block that displays content in multiple columns, then add whatever content blocks you’d like.",
 	"textdomain": "default",
 	"attributes": {
 		"verticalAlignment": {
 			"type": "string"
-		},
-		"isStackedOnMobile": {
-			"type": "boolean",
-			"default": true
 		}
 	},
 	"supports": {
@@ -21,14 +17,6 @@
 		"color": {
 			"gradients": true,
 			"link": true
-		},
-		"spacing": {
-			"blockGap": true,
-			"margin": [ "top", "bottom" ],
-			"padding": true,
-			"__experimentalDefaultControls": {
-				"blockGap": true
-			}
 		}
 	},
 	"editorStyle": "wp-block-columns-editor",

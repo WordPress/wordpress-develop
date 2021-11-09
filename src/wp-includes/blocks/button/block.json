@@ -63,19 +63,9 @@
 		},
 		"typography": {
 			"fontSize": true,
-			"__experimentalFontFamily": true,
-			"__experimentalDefaultControls": {
-				"fontSize": true
-			}
+			"__experimentalFontFamily": true
 		},
 		"reusable": false,
-		"spacing": {
-			"__experimentalSkipSerialization": true,
-			"padding": [ "horizontal", "vertical" ],
-			"__experimentalDefaultControls": {
-				"padding": true
-			}
-		},
 		"__experimentalBorder": {
 			"radius": true,
 			"__experimentalSkipSerialization": true

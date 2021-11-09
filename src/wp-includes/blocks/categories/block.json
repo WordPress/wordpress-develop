@@ -17,10 +17,6 @@
 		"showPostCounts": {
 			"type": "boolean",
 			"default": false
-		},
-		"showOnlyTopLevel": {
-			"type": "boolean",
-			"default": false
 		}
 	},
 	"supports": {

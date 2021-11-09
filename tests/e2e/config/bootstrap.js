@@ -129,9 +129,6 @@ beforeAll( async () => {
 	capturePageEventsForTearDown();
 	enablePageDialogAccept();
 	observeConsoleLogging();
-	await page.emulateMediaFeatures( [
-		{ name: 'prefers-reduced-motion', value: 'reduce' },
-	] );
 	await setBrowserViewport( 'large' );
 } );
 

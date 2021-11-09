@@ -40,29 +40,7 @@
 	},
 	"supports": {
 		"align": [ "left", "center", "right" ],
-		"anchor": true,
-		"__experimentalExposeControlsToChildren": true,
-		"__experimentalLayout": {
-			"allowSwitching": false,
-			"allowInheriting": false,
-			"default": {
-				"type": "flex"
-			}
-		},
-		"spacing": {
-			"blockGap": true,
-			"margin": [ "top", "bottom" ],
-			"units": [
-				"px",
-				"em",
-				"rem",
-				"vh",
-				"vw"
-			],
-			"__experimentalDefaultControls": {
-				"blockGap": true
-			}
-		}
+		"anchor": true
 	},
 	"styles": [
 		{ "name": "default", "label": "Default", "isDefault": true },

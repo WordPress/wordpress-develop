@@ -20,13 +20,9 @@ function render_block_core_query_pagination_next( $attributes, $content, $block 
 	$max_page = isset( $block->context['query']['pages'] ) ? (int) $block->context['query']['pages'] : 0;
 
 	$wrapper_attributes = get_block_wrapper_attributes();
-	$default_label      = __( 'Next Page' );
+	$default_label      = __( 'Next Page &raquo;' );
 	$label              = isset( $attributes['label'] ) && ! empty( $attributes['label'] ) ? $attributes['label'] : $default_label;
-	$pagination_arrow   = get_query_pagination_arrow( $block, true );
-	if ( $pagination_arrow ) {
-		$label .= $pagination_arrow;
-	}
-	$content = '';
+	$content            = '';
 
 	// Check if the pagination is for Query that inherits the global context.
 	if ( isset( $block->context['query']['inherit'] ) && $block->context['query']['inherit'] ) {

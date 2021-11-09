@@ -27,20 +27,7 @@
 		}
 	},
 	"supports": {
-		"anchor": true,
-		"__experimentalSlashInserter": true,
-		"typography": {
-			"fontSize": true,
-			"lineHeight": true,
-			"__experimentalFontStyle": true,
-			"__experimentalFontWeight": true,
-			"__experimentalLetterSpacing": true,
-			"__experimentalTextTransform": true,
-			"__experimentalDefaultControls": {
-				"fontSize": true,
-				"fontAppearance": true
-			}
-		}
+		"anchor": true
 	},
 	"styles": [
 		{
@@ -48,7 +35,6 @@
 			"label": "Default",
 			"isDefault": true
 		},
-		{ "name": "plain", "label": "Plain" },
 		{ "name": "large", "label": "Large" }
 	],
 	"editorStyle": "wp-block-quote-editor",

@@ -16,10 +16,7 @@
 	"supports": {
 		"reusable": false,
 		"html": false,
-		"align": true,
-		"__experimentalLayout": {
-			"allowEditing": false
-		}
+		"align": true
 	},
 	"style": "wp-block-post-template",
 	"editorStyle": "wp-block-post-template-editor"

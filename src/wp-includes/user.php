@@ -3044,13 +3044,6 @@ function register_new_user( $user_login, $user_email ) {
 
 	update_user_meta( $user_id, 'default_password_nag', true ); // Set up the password change nag.
 
-	if ( ! empty( $_COOKIE['wp_lang'] ) ) {
-		$wp_lang = sanitize_text_field( $_COOKIE['wp_lang'] );
-		if ( in_array( $wp_lang, get_available_languages(), true ) ) {
-			update_user_meta( $user_id, 'locale', $wp_lang ); // Set user locale if defined on registration.
-		}
-	}
-
 	/**
 	 * Fires after a new user registration has been recorded.
 	 *
@@ -4343,7 +4336,7 @@ function wp_send_user_request( $request_id ) {
 
 A request has been made to perform the following action on your account:
 
-	 ###DESCRIPTION###
+     ###DESCRIPTION###
 
 To confirm this, please click on the following link:
 ###CONFIRM_URL###
