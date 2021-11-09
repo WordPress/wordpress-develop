@@ -582,7 +582,7 @@ switch ( $wp_list_table->current_action() ) {
 					$messages[] = '<div id="message" class="updated notice is-dismissible fade"><p>' . __( 'User removed from this site.' ) . '</p></div>';
 					break;
 				case 'err_admin_remove':
-					$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . __( "You can not remove the current user." ) . '</p></div>';
+					$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . __( 'You can not remove the current user.' ) . '</p></div>';
 					$messages[] = '<div id="message" class="updated notice is-dismissible fade"><p>' . __( 'Other users have been removed.' ) . '</p></div>';
 					break;
 			}

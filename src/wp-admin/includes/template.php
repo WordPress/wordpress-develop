@@ -1140,9 +1140,9 @@ function do_block_editor_incompatible_meta_box( $object, $box ) {
 	echo '<p>';
 	if ( $plugin ) {
 		/* translators: %s: The name of the plugin that generated this meta box. */
-		printf( __( "This meta box, from the %s plugin, is not compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
+		printf( __( 'This meta box, from the %s plugin, is not compatible with the block editor.' ), "<strong>{$plugin['Name']}</strong>" );
 	} else {
-		_e( "This meta box is not compatible with the block editor." );
+		_e( 'This meta box is not compatible with the block editor.' );
 	}
 	echo '</p>';
 
@@ -1384,7 +1384,7 @@ function do_meta_boxes( $screen, $context, $object ) {
 								<p>
 									<?php
 										/* translators: %s: The name of the plugin that generated this meta box. */
-										printf( __( "This meta box, from the %s plugin, is not compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
+										printf( __( 'This meta box, from the %s plugin, is not compatible with the block editor.' ), "<strong>{$plugin['Name']}</strong>" );
 									?>
 								</p>
 							</div>
