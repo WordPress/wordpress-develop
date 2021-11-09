@@ -131,6 +131,7 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 		$data     = $response->get_data();
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSameSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 		// Single.
 		$tag1     = $this->factory->tag->create( array( 'name' => 'Season 5' ) );
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/menus/' . $tag1 );
@@ -138,6 +139,7 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 		$data     = $response->get_data();
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSameSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 	}
 
 	/**

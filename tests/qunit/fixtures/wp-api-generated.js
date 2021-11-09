@@ -3426,6 +3426,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "context": {
                             "description": "Scope under which the request is made; determines fields present in response.",
@@ -3663,6 +3666,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "POST"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "title": {
                             "description": "The title for the object.",
@@ -3854,9 +3860,12 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
-                            "description": "Unique identifier for the object.",
+                            "description": "Unique identifier for the post.",
                             "type": "integer",
                             "required": false
                         },
@@ -3879,9 +3888,12 @@ mockedApiResponse.Schema = {
                         "PUT",
                         "PATCH"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
-                            "description": "Unique identifier for the object.",
+                            "description": "Unique identifier for the post.",
                             "type": "integer",
                             "required": false
                         },
@@ -4051,9 +4063,12 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "DELETE"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
-                            "description": "Unique identifier for the object.",
+                            "description": "Unique identifier for the post.",
                             "type": "integer",
                             "required": false
                         },
@@ -7018,6 +7033,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "context": {
                             "description": "Scope under which the request is made; determines fields present in response.",
@@ -7125,6 +7143,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "POST"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "description": {
                             "description": "HTML description of the term.",
@@ -7173,6 +7194,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
                             "description": "Unique identifier for the term.",
@@ -7198,6 +7222,9 @@ mockedApiResponse.Schema = {
                         "PUT",
                         "PATCH"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
                             "description": "Unique identifier for the term.",
@@ -7236,6 +7263,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "DELETE"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
                             "description": "Unique identifier for the term.",
@@ -7918,6 +7948,7 @@ mockedApiResponse.Schema = {
                                     "post": "post",
                                     "page": "page",
                                     "attachment": "attachment",
+                                    "nav_menu_item": "nav_menu_item",
                                     "wp_block": "wp_block",
                                     "wp_template": "wp_template",
                                     "wp_template_part": "wp_template_part",
