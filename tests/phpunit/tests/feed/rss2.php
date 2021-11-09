@@ -70,6 +70,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 				'comment_date'     => '2014-05-06 12:00:00',
 				'comment_date_gmt' => '2014-05-06 07:00:00',
 				'comment_post_ID'  => self::$post_id,
+				'comment_content'  => 'A comment',
 			)
 		);
 	}
@@ -335,12 +336,20 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// Get all the rss -> channel -> item elements.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
 
+		// Exclude the post that contains a comment.
+		$count = get_option( 'posts_per_rss' ) + 2;
+		$i = 1;
+
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
+			if ( $i === $count ) {
+				break;
+			}
+			
 			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
 			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$post = get_post( $matches[1] );			
 
 			// Comment link.
 			$comments_link = xml_find( $items[ $key ]['child'], 'comments' );
@@ -349,6 +358,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			// Comment RSS.
 			$comment_rss = xml_find( $items[ $key ]['child'], 'wfw:commentRss' );
 			$this->assertEmpty( $comment_rss );
+
+			$i++;
 		}
 
 		remove_filter( 'comments_open', '__return_false' );
