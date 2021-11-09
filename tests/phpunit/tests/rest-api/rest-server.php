@@ -398,8 +398,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$data = $response->get_data();
 
-		$this->assertSameSets( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
-		$this->assertFalse( $data['endpoints'][1]['allow_batch'] );
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
+		$this->assertArrayNotHasKey( 'allow_batch', $data['endpoints'][1] );
 	}
 
 	public function test_allow_header_sent_on_options_request() {

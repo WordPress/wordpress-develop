@@ -1431,9 +1431,14 @@ class WP_REST_Server {
 
 			$data['methods'] = array_merge( $data['methods'], array_keys( $callback['methods'] ) );
 			$endpoint_data   = array(
-				'allow_batch' => isset( $callback['allow_batch'] ) ? $callback['allow_batch'] : $allow_batch,
-				'methods'     => array_keys( $callback['methods'] ),
+				'methods' => array_keys( $callback['methods'] ),
 			);
+
+			$callback_batch = isset( $callback['allow_batch'] ) ? $callback['allow_batch'] : $allow_batch;
+
+			if ( $callback_batch ) {
+				$endpoint_data['allow_batch'] = $callback_batch;
+			}
 
 			if ( isset( $callback['args'] ) ) {
 				$endpoint_data['args'] = array();
