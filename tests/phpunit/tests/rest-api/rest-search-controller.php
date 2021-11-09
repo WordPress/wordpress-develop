@@ -175,7 +175,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 3, count( $response->get_data() ) );
+		$this->assertCount( 3, $response->get_data() );
 	}
 
 	/**

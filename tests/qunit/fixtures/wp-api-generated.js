@@ -15,7 +15,8 @@ mockedApiResponse.Schema = {
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
-        "wp-site-health/v1"
+        "wp-site-health/v1",
+        "wp-block-editor/v1"
     ],
     "authentication": [],
     "routes": {
@@ -5357,6 +5358,14 @@ mockedApiResponse.Schema = {
                             },
                             "required": false
                         },
+                        "capabilities": {
+                            "description": "Limit result set to users matching at least one specific capability provided. Accepts csv list or single capability.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "who": {
                             "description": "Limit result set to users who are considered authors.",
                             "type": "string",
@@ -5780,7 +5789,7 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "app_id": {
-                            "description": "A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
+                            "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
                             "format": "uuid",
                             "required": false
@@ -5864,7 +5873,7 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "app_id": {
-                            "description": "A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
+                            "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
                             "format": "uuid",
                             "required": false
@@ -6657,6 +6666,11 @@ mockedApiResponse.Schema = {
                                 "closed"
                             ],
                             "required": false
+                        },
+                        "site_logo": {
+                            "description": "Site logo.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -6695,7 +6709,7 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/themes"
             }
         },
-        "/wp/v2/themes/(?P<stylesheet>[\\w-]+)": {
+        "/wp/v2/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -7121,27 +7135,21 @@ mockedApiResponse.Schema = {
                                     "description": "Base64 encoded representation of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "hash": {
                                     "description": "Cryptographic hash of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "raw": {
                                     "description": "Unencoded instance settings, if supported.",
                                     "type": "object",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 }
                             },
@@ -7221,27 +7229,21 @@ mockedApiResponse.Schema = {
                                     "description": "Base64 encoded representation of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "hash": {
                                     "description": "Cryptographic hash of the instance settings.",
                                     "type": "string",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 },
                                 "raw": {
                                     "description": "Unencoded instance settings, if supported.",
                                     "type": "object",
                                     "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
+                                        "edit"
                                     ]
                                 }
                             },
@@ -7525,8 +7527,67 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/wp-block-editor/v1": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "default": "wp-block-editor/v1",
+                            "required": false
+                        },
+                        "context": {
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1"
+                    }
+                ]
+            }
+        },
+        "/wp-block-editor/v1/url-details": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "url": {
+                            "description": "The URL to process.",
+                            "type": "string",
+                            "format": "uri",
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1/url-details"
+                    }
+                ]
+            }
         }
-    }
+    },
+    "site_logo": false
 };
 
 mockedApiResponse.oembed = {
@@ -8322,6 +8383,7 @@ mockedApiResponse.TypesCollection = {
             "post_tag"
         ],
         "rest_base": "posts",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8349,6 +8411,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "page",
         "taxonomies": [],
         "rest_base": "pages",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8376,6 +8439,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "attachment",
         "taxonomies": [],
         "rest_base": "media",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8403,6 +8467,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "wp_block",
         "taxonomies": [],
         "rest_base": "blocks",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8430,6 +8495,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "wp_template",
         "taxonomies": [],
         "rest_base": "templates",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8461,7 +8527,8 @@ mockedApiResponse.TypeModel = {
         "category",
         "post_tag"
     ],
-    "rest_base": "posts"
+    "rest_base": "posts",
+    "rest_namespace": "wp/v2"
 };
 
 mockedApiResponse.StatusesCollection = {
@@ -8569,6 +8636,7 @@ mockedApiResponse.TaxonomiesCollection = {
         ],
         "hierarchical": true,
         "rest_base": "categories",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8598,6 +8666,7 @@ mockedApiResponse.TaxonomiesCollection = {
         ],
         "hierarchical": false,
         "rest_base": "tags",
+        "rest_namespace": "wp/v2",
         "_links": {
             "collection": [
                 {
@@ -8628,7 +8697,8 @@ mockedApiResponse.TaxonomyModel = {
         "post"
     ],
     "hierarchical": true,
-    "rest_base": "categories"
+    "rest_base": "categories",
+    "rest_namespace": "wp/v2"
 };
 
 mockedApiResponse.CategoriesCollection = [
@@ -8940,5 +9010,6 @@ mockedApiResponse.settings = {
     "default_post_format": "0",
     "posts_per_page": 10,
     "default_ping_status": "open",
-    "default_comment_status": "open"
+    "default_comment_status": "open",
+    "site_logo": null
 };

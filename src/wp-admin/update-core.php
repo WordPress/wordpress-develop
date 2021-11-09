@@ -154,7 +154,7 @@ function list_core_update( $update ) {
 	echo $message;
 	echo '</p>';
 
-	echo '<form method="post" action="' . $form_action . '" name="upgrade" class="upgrade">';
+	echo '<form method="post" action="' . esc_url( $form_action ) . '" name="upgrade" class="upgrade">';
 	wp_nonce_field( 'upgrade-core' );
 
 	echo '<p>';
@@ -421,6 +421,14 @@ function core_auto_updates_settings() {
 	 * Fires after the major core auto-update settings.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @param array $auto_update_settings {
+	 *     Array of core auto-update settings.
+	 *
+	 *     @type bool $dev   Whether to enable automatic updates for development versions.
+	 *     @type bool $minor Whether to enable minor automatic core updates.
+	 *     @type bool $major Whether to enable major automatic core updates.
+	 * }
 	 */
 	do_action( 'after_core_auto_updates_settings', $auto_update_settings );
 }
@@ -1128,6 +1136,7 @@ if ( 'upgrade-core' === $action ) {
 	$url = 'update.php?action=update-selected&plugins=' . urlencode( implode( ',', $plugins ) );
 	$url = wp_nonce_url( $url, 'bulk-update-plugins' );
 
+	// Used in the HTML title tag.
 	$title = __( 'Update Plugins' );
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -1168,6 +1177,7 @@ if ( 'upgrade-core' === $action ) {
 	$url = 'update.php?action=update-selected-themes&themes=' . urlencode( implode( ',', $themes ) );
 	$url = wp_nonce_url( $url, 'bulk-update-themes' );
 
+	// Used in the HTML title tag.
 	$title = __( 'Update Themes' );
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';

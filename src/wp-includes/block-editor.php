@@ -10,7 +10,7 @@
 /**
  * Returns the list of default categories for block types.
  *
- * @since 5.8.0.
+ * @since 5.8.0
  *
  * @return array[] Array of categories for block types.
  */
@@ -90,7 +90,7 @@ function get_block_categories( $post_or_block_editor_context ) {
 		 * Filters the default array of categories for block types.
 		 *
 		 * @since 5.0.0
-		 * @deprecated 5.8.0 The hook transitioned to support also screens that don't contain the $post instance.
+		 * @deprecated 5.8.0 Use the {@see 'block_categories_all'} filter instead.
 		 *
 		 * @param array[] $block_categories Array of categories for block types.
 		 * @param WP_Post $post             Post being loaded.
@@ -114,14 +114,12 @@ function get_allowed_block_types( $block_editor_context ) {
 	$allowed_block_types = true;
 
 	/**
-	 * Filters the allowed block types for all editor types, defaulting to `true`
-	 * (all registered block types supported).
-	 *
+	 * Filters the allowed block types for all editor types.
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param bool|array              $allowed_block_types  Array of block type slugs, or
-	 *                                                      boolean to enable/disable all.
+	 * @param bool|array              $allowed_block_types  Array of block type slugs, or boolean to enable/disable all.
+	 *                                                      Default true (all registered block types supported).
 	 * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
 	 */
 	$allowed_block_types = apply_filters( 'allowed_block_types_all', $allowed_block_types, $block_editor_context );
@@ -129,14 +127,13 @@ function get_allowed_block_types( $block_editor_context ) {
 		$post = $block_editor_context->post;
 
 		/**
-		 * Filters the allowed block types for the editor, defaulting to true (all
-		 * block types supported).
+		 * Filters the allowed block types for the editor.
 		 *
 		 * @since 5.0.0
-		 * @deprecated 5.8.0 The hook transitioned to support also screens that don't contain $post instance.
+		 * @deprecated 5.8.0 Use the {@see 'allowed_block_types_all'} filter instead.
 		 *
-		 * @param bool|array $allowed_block_types Array of block type slugs, or
-		 *                                        boolean to enable/disable all.
+		 * @param bool|array $allowed_block_types Array of block type slugs, or boolean to enable/disable all.
+		 *                                        Default true (all registered block types supported)
 		 * @param WP_Post    $post                The post resource data.
 		 */
 		$allowed_block_types = apply_filters_deprecated( 'allowed_block_types', array( $allowed_block_types, $post ), '5.8.0', 'allowed_block_types_all' );
@@ -225,6 +222,20 @@ function get_default_block_editor_settings() {
 		$editor_settings['gradients'] = $gradient_presets;
 	}
 
+	return $editor_settings;
+}
+
+/**
+ * Returns the block editor settings needed to use the Legacy Widget block which
+ * is not registered by default.
+ *
+ * @since 5.8.0
+ *
+ * @return array Settings to be used with get_block_editor_settings().
+ */
+function get_legacy_widget_block_editor_settings() {
+	$editor_settings = array();
+
 	/**
 	 * Filters the list of widget-type IDs that should **not** be offered by the
 	 * Legacy Widget block.
@@ -233,7 +244,7 @@ function get_default_block_editor_settings() {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param array $widgets An array of excluded widget-type IDs.
+	 * @param string[] $widgets An array of excluded widget-type IDs.
 	 */
 	$editor_settings['widgetTypesToHideFromLegacyWidgetBlock'] = apply_filters(
 		'widget_types_to_hide_from_legacy_widget_block',
@@ -261,7 +272,7 @@ function get_default_block_editor_settings() {
 }
 
 /**
- * Returns the contextualized block editor settings settings for a selected editor context.
+ * Returns the contextualized block editor settings for a selected editor context.
  *
  * @since 5.8.0
  *
@@ -283,22 +294,45 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	$theme_json = WP_Theme_JSON_Resolver::get_merged_data( $editor_settings );
 
 	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$editor_settings['styles'][] = array( 'css' => $theme_json->get_stylesheet( 'block_styles' ) );
+		$editor_settings['styles'][] = array(
+			'css'            => $theme_json->get_stylesheet( 'block_styles' ),
+			'__unstableType' => 'globalStyles',
+		);
 		$editor_settings['styles'][] = array(
 			'css'                     => $theme_json->get_stylesheet( 'css_variables' ),
 			'__experimentalNoWrapper' => true,
+			'__unstableType'          => 'globalStyles',
 		);
 	}
 
 	$editor_settings['__experimentalFeatures'] = $theme_json->get_settings();
 	// These settings may need to be updated based on data coming from theme.json sources.
 	if ( isset( $editor_settings['__experimentalFeatures']['color']['palette'] ) ) {
-		$editor_settings['colors'] = $editor_settings['__experimentalFeatures']['color']['palette'];
-		unset( $editor_settings['__experimentalFeatures']['color']['palette'] );
+		$colors_by_origin          = $editor_settings['__experimentalFeatures']['color']['palette'];
+		$editor_settings['colors'] = isset( $colors_by_origin['user'] ) ?
+			$colors_by_origin['user'] : (
+				isset( $colors_by_origin['theme'] ) ?
+					$colors_by_origin['theme'] :
+					$colors_by_origin['core']
+			);
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['color']['gradients'] ) ) {
-		$editor_settings['gradients'] = $editor_settings['__experimentalFeatures']['color']['gradients'];
-		unset( $editor_settings['__experimentalFeatures']['color']['gradients'] );
+		$gradients_by_origin          = $editor_settings['__experimentalFeatures']['color']['gradients'];
+		$editor_settings['gradients'] = isset( $gradients_by_origin['user'] ) ?
+			$gradients_by_origin['user'] : (
+				isset( $gradients_by_origin['theme'] ) ?
+					$gradients_by_origin['theme'] :
+					$gradients_by_origin['core']
+			);
+	}
+	if ( isset( $editor_settings['__experimentalFeatures']['typography']['fontSizes'] ) ) {
+		$font_sizes_by_origin         = $editor_settings['__experimentalFeatures']['typography']['fontSizes'];
+		$editor_settings['fontSizes'] = isset( $font_sizes_by_origin['user'] ) ?
+			$font_sizes_by_origin['user'] : (
+				isset( $font_sizes_by_origin['theme'] ) ?
+					$font_sizes_by_origin['theme'] :
+					$font_sizes_by_origin['core']
+			);
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['color']['custom'] ) ) {
 		$editor_settings['disableCustomColors'] = ! $editor_settings['__experimentalFeatures']['color']['custom'];
@@ -307,10 +341,6 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	if ( isset( $editor_settings['__experimentalFeatures']['color']['customGradient'] ) ) {
 		$editor_settings['disableCustomGradients'] = ! $editor_settings['__experimentalFeatures']['color']['customGradient'];
 		unset( $editor_settings['__experimentalFeatures']['color']['customGradient'] );
-	}
-	if ( isset( $editor_settings['__experimentalFeatures']['typography']['fontSizes'] ) ) {
-		$editor_settings['fontSizes'] = $editor_settings['__experimentalFeatures']['typography']['fontSizes'];
-		unset( $editor_settings['__experimentalFeatures']['typography']['fontSizes'] );
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['typography']['customFontSize'] ) ) {
 		$editor_settings['disableCustomFontSizes'] = ! $editor_settings['__experimentalFeatures']['typography']['customFontSize'];
@@ -321,11 +351,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		unset( $editor_settings['__experimentalFeatures']['typography']['customLineHeight'] );
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['units'] ) ) {
-		if ( ! is_array( $editor_settings['__experimentalFeatures']['spacing']['units'] ) ) {
-			$editor_settings['enableCustomUnits'] = false;
-		} else {
-			$editor_settings['enableCustomUnits'] = count( $editor_settings['__experimentalFeatures']['spacing']['units'] ) > 0;
-		}
+		$editor_settings['enableCustomUnits'] = $editor_settings['__experimentalFeatures']['spacing']['units'];
 		unset( $editor_settings['__experimentalFeatures']['spacing']['units'] );
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['customPadding'] ) ) {
@@ -349,7 +375,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		 * Filters the settings to pass to the block editor.
 		 *
 		 * @since 5.0.0
-		 * @deprecated 5.8.0 The hook transitioned to support also screens that don't contain $post instance.
+		 * @deprecated 5.8.0 Use the {@see 'block_editor_settings_all'} filter instead.
 		 *
 		 * @param array   $editor_settings Default editor settings.
 		 * @param WP_Post $post            Post being edited.
@@ -368,7 +394,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
  *
  * @global WP_Post $post Global post object.
  *
- * @param array                   $preload_paths        List of paths to preload.
+ * @param string[]                $preload_paths        List of paths to preload.
  * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
  *
  * @return void
@@ -377,8 +403,7 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 	global $post;
 
 	/**
-	 * Filters the array of REST API paths that will be used to preloaded common data
-	 * to use with the block editor.
+	 * Filters the array of REST API paths that will be used to preloaded common data for the block editor.
 	 *
 	 * @since 5.8.0
 	 *
@@ -389,12 +414,12 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 		$selected_post = $block_editor_context->post;
 
 		/**
-		 * Preload common data by specifying an array of REST API paths that will be preloaded.
-		 *
 		 * Filters the array of paths that will be preloaded.
 		 *
+		 * Preload common data by specifying an array of REST API paths that will be preloaded.
+		 *
 		 * @since 5.0.0
-		 * @deprecated 5.8.0 The hook transitioned to support also screens that don't contain $post instance.
+		 * @deprecated 5.8.0 Use the {@see 'block_editor_rest_api_preload_paths'} filter instead.
 		 *
 		 * @param string[] $preload_paths Array of paths to preload.
 		 * @param WP_Post  $selected_post Post being edited.
@@ -430,4 +455,54 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 		),
 		'after'
 	);
+}
+
+/**
+ * Creates an array of theme styles to load into the block editor.
+ *
+ * @since 5.8.0
+ *
+ * @global array $editor_styles
+ *
+ * @return array An array of theme styles for the block editor. Includes default font family
+ *               style and theme stylesheets.
+ */
+function get_block_editor_theme_styles() {
+	global $editor_styles;
+
+	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+		$styles = array(
+			array(
+				'css'            => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
+				'__unstableType' => 'core',
+			),
+		);
+	} else {
+		$styles = array();
+	}
+
+	if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
+		foreach ( $editor_styles as $style ) {
+			if ( preg_match( '~^(https?:)?//~', $style ) ) {
+				$response = wp_remote_get( $style );
+				if ( ! is_wp_error( $response ) ) {
+					$styles[] = array(
+						'css'            => wp_remote_retrieve_body( $response ),
+						'__unstableType' => 'theme',
+					);
+				}
+			} else {
+				$file = get_theme_file_path( $style );
+				if ( is_file( $file ) ) {
+					$styles[] = array(
+						'css'            => file_get_contents( $file ),
+						'baseURL'        => get_theme_file_uri( $style ),
+						'__unstableType' => 'theme',
+					);
+				}
+			}
+		}
+	}
+
+	return $styles;
 }

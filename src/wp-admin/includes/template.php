@@ -972,7 +972,7 @@ function wp_import_upload_form( $action ) {
 		?>
 		<div class="error"><p><?php _e( 'Before you can upload your import file, you will need to fix the following error:' ); ?></p>
 		<p><strong><?php echo $upload_dir['error']; ?></strong></p></div>
-								<?php
+		<?php
 	else :
 		?>
 <form enctype="multipart/form-data" id="import-upload-form" method="post" class="wp-upload-form" action="<?php echo esc_url( wp_nonce_url( $action, 'import-upload' ) ); ?>">
@@ -2145,12 +2145,15 @@ function _post_states( $post, $echo = true ) {
 
 	if ( ! empty( $post_states ) ) {
 		$state_count = count( $post_states );
-		$i           = 0;
+
+		$i = 0;
 
 		$post_states_string .= ' &mdash; ';
 
 		foreach ( $post_states as $state ) {
-			$sep = ( ++$i === $state_count ) ? '' : ', ';
+			++$i;
+
+			$sep = ( $i < $state_count ) ? ', ' : '';
 
 			$post_states_string .= "<span class='post-state'>$state$sep</span>";
 		}
@@ -2255,12 +2258,15 @@ function _media_states( $post, $echo = true ) {
 
 	if ( ! empty( $media_states ) ) {
 		$state_count = count( $media_states );
-		$i           = 0;
+
+		$i = 0;
 
 		$media_states_string .= ' &mdash; ';
 
 		foreach ( $media_states as $state ) {
-			$sep = ( ++$i === $state_count ) ? '' : ', ';
+			++$i;
+
+			$sep = ( $i < $state_count ) ? ', ' : '';
 
 			$media_states_string .= "<span class='post-state'>$state$sep</span>";
 		}
@@ -2666,11 +2672,31 @@ function wp_star_rating( $args = array() ) {
 }
 
 /**
- * Output a notice when editing the page for posts (internal use only).
+ * Outputs a notice when editing the page for posts (internal use only).
  *
  * @ignore
  * @since 4.2.0
  */
 function _wp_posts_page_notice() {
-	echo '<div class="notice notice-warning inline"><p>' . __( 'You are currently editing the page that shows your latest posts.' ) . '</p></div>';
+	printf(
+		'<div class="notice notice-warning inline"><p>%s</p></div>',
+		__( 'You are currently editing the page that shows your latest posts.' )
+	);
+}
+
+/**
+ * Outputs a notice when editing the page for posts in the block editor (internal use only).
+ *
+ * @ignore
+ * @since 5.8.0
+ */
+function _wp_block_editor_posts_page_notice() {
+	wp_add_inline_script(
+		'wp-notices',
+		sprintf(
+			'wp.data.dispatch( "core/notices" ).createWarningNotice( "%s", { isDismissible: false } )',
+			__( 'You are currently editing the page that shows your latest posts.' )
+		),
+		'after'
+	);
 }

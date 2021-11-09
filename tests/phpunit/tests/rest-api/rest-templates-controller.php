@@ -80,19 +80,19 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id'             => 'default//my_template',
 				'theme'          => 'default',
 				'slug'           => 'my_template',
+				'source'         => 'custom',
+				'type'           => 'wp_template',
+				'description'    => 'Description of my template.',
 				'title'          => array(
 					'raw'      => 'My Template',
 					'rendered' => 'My Template',
 				),
-				'description'    => 'Description of my template.',
 				'status'         => 'publish',
-				'source'         => 'custom',
-				'type'           => 'wp_template',
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
 			),
@@ -108,19 +108,19 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 		unset( $data['content'] );
 		unset( $data['_links'] );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id'             => 'default//my_template',
 				'theme'          => 'default',
 				'slug'           => 'my_template',
+				'source'         => 'custom',
+				'type'           => 'wp_template',
+				'description'    => 'Description of my template.',
 				'title'          => array(
 					'raw'      => 'My Template',
 					'rendered' => 'My Template',
 				),
-				'description'    => 'Description of my template.',
 				'status'         => 'publish',
-				'source'         => 'custom',
-				'type'           => 'wp_template',
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
 			),
@@ -134,8 +134,8 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 		$request->set_body_params(
 			array(
 				'slug'        => 'my_custom_template',
-				'title'       => 'My Template',
 				'description' => 'Just a description',
+				'title'       => 'My Template',
 				'content'     => 'Content',
 			)
 		);
@@ -144,22 +144,22 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id'             => 'default//my_custom_template',
 				'theme'          => 'default',
+				'content'        => array(
+					'raw' => 'Content',
+				),
 				'slug'           => 'my_custom_template',
+				'source'         => 'custom',
+				'type'           => 'wp_template',
+				'description'    => 'Just a description',
 				'title'          => array(
 					'raw'      => 'My Template',
 					'rendered' => 'My Template',
 				),
-				'description'    => 'Just a description',
 				'status'         => 'publish',
-				'source'         => 'custom',
-				'type'           => 'wp_template',
-				'content'        => array(
-					'raw' => 'Content',
-				),
 				'has_theme_file' => false,
 			),
 			$data
@@ -176,8 +176,8 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'My new Index Title', $data['title']['raw'] );
-		$this->assertEquals( 'custom', $data['source'] );
+		$this->assertSame( 'My new Index Title', $data['title']['raw'] );
+		$this->assertSame( 'custom', $data['source'] );
 	}
 
 	public function test_delete_item() {

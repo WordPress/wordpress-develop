@@ -89,6 +89,10 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		this.updateContent();
 
+		if ( ! infiniteScrolling ) {
+			this.updateLoadMoreView();
+		}
+
 		if ( ! this.options.sidebar || 'errors' === this.options.sidebar ) {
 			this.$el.addClass( 'hide-sidebar' );
 
@@ -635,11 +639,10 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		});
 
 		view.loadMoreSpinner.show();
-
-		this.collection.more().done( function() {
-			// Within done(), `this` is the returned collection.
+		this.collection.once( 'attachments:received', function() {
 			view.loadMoreSpinner.hide();
 		} );
+		this.collection.more();
 	},
 
 	/**

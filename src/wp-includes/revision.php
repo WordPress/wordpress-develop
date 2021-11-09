@@ -331,7 +331,7 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 	$post = _wp_post_revision_data( $post, $autosave );
 	$post = wp_slash( $post ); // Since data is from DB.
 
-	$revision_id = wp_insert_post( $post );
+	$revision_id = wp_insert_post( $post, true );
 	if ( is_wp_error( $revision_id ) ) {
 		return $revision_id;
 	}
@@ -573,6 +573,11 @@ function wp_revisions_to_keep( $post ) {
 	 *
 	 * The dynamic portion of the hook name, `$post->post_type`, refers to
 	 * the post type slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `wp_post_revisions_to_keep`
+	 *  - `wp_page_revisions_to_keep`
 	 *
 	 * @since 5.8.0
 	 *
