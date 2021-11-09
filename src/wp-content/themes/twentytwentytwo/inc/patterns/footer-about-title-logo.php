@@ -9,8 +9,8 @@ return array(
 	'content'    => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"8rem","bottom":"6rem"}}},"backgroundColor":"secondary","layout":{"inherit":true}} -->
 					<div class="wp-block-group alignfull has-secondary-background-color has-background" style="padding-top:8rem;padding-bottom:6rem"><!-- wp:columns {"align":"wide"} -->
 					<div class="wp-block-columns alignwide"><!-- wp:column {"width":"33%"} -->
-					<div class="wp-block-column" style="flex-basis:33%"><!-- wp:paragraph -->
-					<p>' . esc_html__( 'ABOUT US', 'twentytwentytwo' ) . '</p>
+					<div class="wp-block-column" style="flex-basis:33%"><!-- wp:paragraph {"style":{"typography":{"textTransform":"uppercase"}}} -->
+					<p style="text-transform:uppercase">' . esc_html__( 'About us', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
 
 					<!-- wp:paragraph {"style":{"fontSize":"small"} -->

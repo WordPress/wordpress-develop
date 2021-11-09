@@ -9,8 +9,8 @@ return array(
 	'content'    => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"8rem","bottom":"8rem"}}},"layout":{"inherit":true}} -->
 					<div class="wp-block-group alignfull" style="padding-top:8rem;padding-bottom:8rem"><!-- wp:columns -->
 					<div class="wp-block-columns"><!-- wp:column -->
-					<div class="wp-block-column"><!-- wp:paragraph -->
-					<p>' . esc_html__( 'ABOUT US', 'twentytwentytwo' ) . '</p>
+					<div class="wp-block-column"><!-- wp:paragraph {"style":{"typography":{"textTransform":"uppercase"}}} -->
+					<p style="text-transform:uppercase">' . esc_html__( 'About us', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
 
 					<!-- wp:paragraph -->
@@ -19,16 +19,16 @@ return array(
 					<!-- /wp:column -->
 
 					<!-- wp:column -->
-					<div class="wp-block-column"><!-- wp:paragraph -->
-					<p>' . esc_html__( 'LATEST POSTS', 'twentytwentytwo' ) . '</p>
+					<div class="wp-block-column"><!-- wp:paragraph {"style":{"typography":{"textTransform":"uppercase"}}} -->
+					<p style="text-transform:uppercase">' . esc_html__( 'Latest posts', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
 
 					<!-- wp:latest-posts /--></div>
 					<!-- /wp:column -->
 
 					<!-- wp:column -->
-					<div class="wp-block-column"><!-- wp:paragraph -->
-					<p>' . esc_html__( 'CATEGORIES', 'twentytwentytwo' ) . '</p>
+					<div class="wp-block-column"><!-- wp:paragraph {"style":{"typography":{"textTransform":"uppercase"}}} -->
+					<p style="text-transform:uppercase">' . esc_html__( 'Categories', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
 
 					<!-- wp:categories /--></div>
