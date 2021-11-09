@@ -1216,7 +1216,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
 	 *
 	 * @return string
 	 */
-	$callback = function( $content ) use ( $args ) {
+	$callback = static function( $content ) use ( $args ) {
 		// Register the stylesheet.
 		if ( ! empty( $args['src'] ) ) {
 			wp_register_style( $args['handle'], $args['src'], $args['deps'], $args['ver'], $args['media'] );
@@ -1250,7 +1250,15 @@ function wp_enqueue_block_style( $block_name, $args ) {
 		$hook = "render_block_$block_name";
 	}
 
-	// Enqueue assets in the frontend.
+	/*
+	 * The filter's callback here is an anonymous function because
+	 * using a named function in this case is not possible.
+	 *
+	 * The function cannot be unhooked, however, users are still able
+	 * to dequeue the stylesheets registered/enqueued by the callback
+	 * which is why in this case, using an anonymous function
+	 * was deemed acceptable.
+	 */
 	add_filter( $hook, $callback );
 
 	// Enqueue assets in the editor.
