@@ -338,7 +338,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Exclude the post that contains a comment.
 		$count = get_option( 'posts_per_rss' ) + 1;
-		$i = 1;
+		$i     = 1;
 
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
@@ -349,7 +349,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
 			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );			
+			$post = get_post( $matches[1] );
 
 			// Comment link.
 			$comments_link = xml_find( $items[ $key ]['child'], 'comments' );
