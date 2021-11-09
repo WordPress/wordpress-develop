@@ -229,7 +229,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
 		foreach ( $revisions as $revision ) {
@@ -262,7 +262,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
 		}
@@ -300,7 +300,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		// Diff checks if you can read both left and right revisions.
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 2, $revisions );
+		$this->assertCount( 3, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
@@ -340,7 +340,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
 		foreach ( $revisions as $revision ) {
@@ -387,7 +387,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
 		}
@@ -495,7 +495,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		// Diff checks if you can read both left and right revisions.
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 2, $revisions );
+		$this->assertCount( 3, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
