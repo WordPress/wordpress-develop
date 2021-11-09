@@ -9122,7 +9122,8 @@ mockedApiResponse.Schema = {
             }
         }
     },
-    "site_logo": false
+    "site_logo": false,
+    "site_icon": "0"
 };
 
 mockedApiResponse.oembed = {
