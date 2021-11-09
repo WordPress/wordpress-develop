@@ -342,7 +342,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
-			if ( $i === $count ) {
+			if ( $i > $count ) {
 				break;
 			}
 
