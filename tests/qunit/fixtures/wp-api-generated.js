@@ -3415,6 +3415,908 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/menu-items": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 100,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "after": {
+                            "description": "Limit response to posts published after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "before": {
+                            "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "asc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by object attribute.",
+                            "type": "string",
+                            "default": "menu_order",
+                            "enum": [
+                                "author",
+                                "date",
+                                "id",
+                                "include",
+                                "modified",
+                                "parent",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title",
+                                "menu_order"
+                            ],
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "Limit result set to posts with one or more specific slugs.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "status": {
+                            "default": "publish",
+                            "description": "Limit result set to posts assigned one or more statuses.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "publish",
+                                    "future",
+                                    "draft",
+                                    "pending",
+                                    "private",
+                                    "trash",
+                                    "auto-draft",
+                                    "inherit",
+                                    "request-pending",
+                                    "request-confirmed",
+                                    "request-failed",
+                                    "request-completed",
+                                    "any"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "tax_relation": {
+                            "description": "Limit result set based on relationship between multiple taxonomies.",
+                            "type": "string",
+                            "enum": [
+                                "AND",
+                                "OR"
+                            ],
+                            "required": false
+                        },
+                        "menus": {
+                            "description": "Limit result set to items with specific terms assigned in the menus taxonomy.",
+                            "type": [
+                                "object",
+                                "array"
+                            ],
+                            "oneOf": [
+                                {
+                                    "title": "Term ID List",
+                                    "description": "Match terms with the listed IDs.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                },
+                                {
+                                    "title": "Term ID Taxonomy Query",
+                                    "description": "Perform an advanced term query.",
+                                    "type": "object",
+                                    "properties": {
+                                        "terms": {
+                                            "description": "Term IDs.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            },
+                                            "default": []
+                                        },
+                                        "operator": {
+                                            "description": "Whether items must be assigned all or any of the specified terms.",
+                                            "type": "string",
+                                            "enum": [
+                                                "AND",
+                                                "OR"
+                                            ],
+                                            "default": "OR"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
+                            "required": false
+                        },
+                        "menus_exclude": {
+                            "description": "Limit result set to items except those with specific terms assigned in the menus taxonomy.",
+                            "type": [
+                                "object",
+                                "array"
+                            ],
+                            "oneOf": [
+                                {
+                                    "title": "Term ID List",
+                                    "description": "Match terms with the listed IDs.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                },
+                                {
+                                    "title": "Term ID Taxonomy Query",
+                                    "description": "Perform an advanced term query.",
+                                    "type": "object",
+                                    "properties": {
+                                        "terms": {
+                                            "description": "Term IDs.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            },
+                                            "default": []
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
+                            "required": false
+                        },
+                        "menu_order": {
+                            "description": "Limit result set to posts with a specific menu_order value.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "title": {
+                            "description": "The title for the object.",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the object, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the object, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "type": {
+                            "default": "custom",
+                            "description": "The family of objects originally represented, such as \"post_type\" or \"taxonomy\".",
+                            "type": "string",
+                            "enum": [
+                                "taxonomy",
+                                "post_type",
+                                "post_type_archive",
+                                "custom",
+                                "block"
+                            ],
+                            "required": false
+                        },
+                        "status": {
+                            "default": "publish",
+                            "description": "A named status for the object.",
+                            "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "parent": {
+                            "default": 0,
+                            "description": "The ID for the parent of the object.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "required": false
+                        },
+                        "attr_title": {
+                            "description": "Text for the title attribute of the link element for this menu item.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "classes": {
+                            "description": "Class names for the link element of this menu item.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "description": "The description of this menu item.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "menu_order": {
+                            "default": 1,
+                            "description": "The DB ID of the nav_menu_item that is this item's menu parent, if any, otherwise 0.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "object": {
+                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "type": "string",
+                            "required": false
+                        },
+                        "object_id": {
+                            "default": 0,
+                            "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "required": false
+                        },
+                        "content": {
+                            "description": "HTML content to display for this block menu item.",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "HTML content, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the block format used in the HTML content.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "target": {
+                            "description": "The target attribute of the link element for this menu item.",
+                            "type": "string",
+                            "enum": [
+                                "_blank",
+                                ""
+                            ],
+                            "required": false
+                        },
+                        "url": {
+                            "description": "The URL to which this menu item points.",
+                            "type": "string",
+                            "format": "uri",
+                            "required": false
+                        },
+                        "xfn": {
+                            "description": "The XFN relationship expressed in the link of this menu item.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "menus": {
+                            "description": "The terms assigned to the object in the nav_menu taxonomy.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/menu-items"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/menu-items/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the object.",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the object, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the object, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "type": {
+                            "description": "The family of objects originally represented, such as \"post_type\" or \"taxonomy\".",
+                            "type": "string",
+                            "enum": [
+                                "taxonomy",
+                                "post_type",
+                                "post_type_archive",
+                                "custom",
+                                "block"
+                            ],
+                            "required": false
+                        },
+                        "status": {
+                            "description": "A named status for the object.",
+                            "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "parent": {
+                            "description": "The ID for the parent of the object.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "required": false
+                        },
+                        "attr_title": {
+                            "description": "Text for the title attribute of the link element for this menu item.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "classes": {
+                            "description": "Class names for the link element of this menu item.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "description": "The description of this menu item.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "menu_order": {
+                            "description": "The DB ID of the nav_menu_item that is this item's menu parent, if any, otherwise 0.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "object": {
+                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "type": "string",
+                            "required": false
+                        },
+                        "object_id": {
+                            "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "required": false
+                        },
+                        "content": {
+                            "description": "HTML content to display for this block menu item.",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "HTML content, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the block format used in the HTML content.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "target": {
+                            "description": "The target attribute of the link element for this menu item.",
+                            "type": "string",
+                            "enum": [
+                                "_blank",
+                                ""
+                            ],
+                            "required": false
+                        },
+                        "url": {
+                            "description": "The URL to which this menu item points.",
+                            "type": "string",
+                            "format": "uri",
+                            "required": false
+                        },
+                        "xfn": {
+                            "description": "The XFN relationship expressed in the link of this menu item.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "menus": {
+                            "description": "The terms assigned to the object in the nav_menu taxonomy.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Whether to bypass Trash and force deletion.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/menu-items/(?P<id>[\\d]+)/autosaves": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the autosave.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the object.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the object.",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the object, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the object, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "type": {
+                            "description": "The family of objects originally represented, such as \"post_type\" or \"taxonomy\".",
+                            "type": "string",
+                            "enum": [
+                                "taxonomy",
+                                "post_type",
+                                "post_type_archive",
+                                "custom",
+                                "block"
+                            ],
+                            "required": false
+                        },
+                        "status": {
+                            "description": "A named status for the object.",
+                            "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "attr_title": {
+                            "description": "Text for the title attribute of the link element for this menu item.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "classes": {
+                            "description": "Class names for the link element of this menu item.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "description": "The description of this menu item.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "menu_order": {
+                            "description": "The DB ID of the nav_menu_item that is this item's menu parent, if any, otherwise 0.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "object": {
+                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "type": "string",
+                            "required": false
+                        },
+                        "object_id": {
+                            "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "required": false
+                        },
+                        "content": {
+                            "description": "HTML content to display for this block menu item.",
+                            "type": [
+                                "string",
+                                "object"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "HTML content, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the block format used in the HTML content.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "target": {
+                            "description": "The target attribute of the link element for this menu item.",
+                            "type": "string",
+                            "enum": [
+                                "_blank",
+                                ""
+                            ],
+                            "required": false
+                        },
+                        "url": {
+                            "description": "The URL to which this menu item points.",
+                            "type": "string",
+                            "format": "uri",
+                            "required": false
+                        },
+                        "xfn": {
+                            "description": "The XFN relationship expressed in the link of this menu item.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "menus": {
+                            "description": "The terms assigned to the object in the nav_menu taxonomy.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/menu-items/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the autosave.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "id": {
+                            "description": "The ID for the autosave.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/blocks": {
             "namespace": "wp/v2",
             "methods": [
@@ -6630,6 +7532,286 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/menus": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "asc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by term attribute.",
+                            "type": "string",
+                            "default": "name",
+                            "enum": [
+                                "id",
+                                "include",
+                                "name",
+                                "slug",
+                                "include_slugs",
+                                "term_group",
+                                "description",
+                                "count"
+                            ],
+                            "required": false
+                        },
+                        "hide_empty": {
+                            "description": "Whether to hide terms not assigned to any posts.",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
+                        },
+                        "post": {
+                            "description": "Limit result set to terms assigned to a specific post.",
+                            "type": "integer",
+                            "default": null,
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "Limit result set to terms with one or more specific slugs.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "description": {
+                            "description": "HTML description of the term.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "name": {
+                            "description": "HTML title for the term.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "slug": {
+                            "description": "An alphanumeric identifier for the term unique to its type.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        },
+                        "locations": {
+                            "description": "The locations assigned to the menu.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "auto_add": {
+                            "description": "Whether to automatically add top level pages to this menu.",
+                            "type": "boolean",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/menus"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/menus/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the term.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the term.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "description": {
+                            "description": "HTML description of the term.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "name": {
+                            "description": "HTML title for the term.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "An alphanumeric identifier for the term unique to its type.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        },
+                        "locations": {
+                            "description": "The locations assigned to the menu.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "auto_add": {
+                            "description": "Whether to automatically add top level pages to this menu.",
+                            "type": "boolean",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the term.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Required to be true, as terms do not support trashing.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/users": {
             "namespace": "wp/v2",
             "methods": [
@@ -6766,6 +7948,7 @@ mockedApiResponse.Schema = {
                                     "post": "post",
                                     "page": "page",
                                     "attachment": "attachment",
+                                    "nav_menu_item": "nav_menu_item",
                                     "wp_block": "wp_block",
                                     "wp_template": "wp_template",
                                     "wp_template_part": "wp_template_part",
@@ -9120,6 +10303,70 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/wp/v2/menu-locations": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/menu-locations"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/menu-locations/(?P<location>[\\w-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "location": {
+                            "description": "An alphanumeric identifier for the menu location.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
         }
     },
     "site_logo": false
@@ -9995,6 +11242,36 @@ mockedApiResponse.TypesCollection = {
             ]
         }
     },
+    "nav_menu_item": {
+        "description": "",
+        "hierarchical": false,
+        "name": "Navigation Menu Items",
+        "slug": "nav_menu_item",
+        "taxonomies": [
+            "nav_menu"
+        ],
+        "rest_base": "menu-items",
+        "rest_namespace": "wp/v2",
+        "_links": {
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types"
+                }
+            ],
+            "wp:items": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/menu-items"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
+                }
+            ]
+        }
+    },
     "wp_block": {
         "description": "",
         "hierarchical": false,
@@ -10267,6 +11544,36 @@ mockedApiResponse.TaxonomiesCollection = {
             "wp:items": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/tags"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
+                }
+            ]
+        }
+    },
+    "nav_menu": {
+        "name": "Navigation Menus",
+        "slug": "nav_menu",
+        "description": "",
+        "types": [
+            "nav_menu_item"
+        ],
+        "hierarchical": false,
+        "rest_base": "menus",
+        "rest_namespace": "wp/v2",
+        "_links": {
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies"
+                }
+            ],
+            "wp:items": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/menus"
                 }
             ],
             "curies": [
