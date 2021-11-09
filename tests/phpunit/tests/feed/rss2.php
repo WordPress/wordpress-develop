@@ -336,7 +336,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// Get all the rss -> channel -> item elements.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
 
-		// Exclude the post that contains a comment.
+		// Exclude the last post as it contains a comment.
 		$count = get_option( 'posts_per_rss' ) + 1;
 		$i     = 1;
 
