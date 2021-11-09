@@ -359,32 +359,25 @@ function wp_oembed_add_discovery_links() {
  * @since 4.4.0
  */
 function wp_oembed_add_host_js() {
-	add_filter( 'embed_oembed_html', 'wp_prepend_oembed_host_inline_script_tag' );
+	add_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' );
 }
 
 /**
- * Inline oEmbed host script before post embeds.
+ * Enqueue the wp-embed script if the provided oEmbed HTML contains a post embed.
  *
- * The wp-embed script is printed before to ensure that the `message` event listener is added before the iframe'd post
- * embed is able to be loaded. Additionally, it is inlined to prevent the external script from blocking the page from
- * continuing to render. The wp-embed script is printed before each post embed and not just before the first instance
- * because it is possible that the filters may apply on content that is not initially printed.
+ * In order to only enqueue the wp-embed script on pages that actually contain post embeds, this function checks if the
+ * provided HTML contains post embed markup and if so enqueues the script so that it will get printed in the footer.
  *
- * @since 5.8.2
+ * @since 5.9
  *
  * @param string $html Embed markup.
- * @return string Embed markup with oEmbed host JS prepended.
+ * @return string Embed markup (without modifications).
  */
-function wp_prepend_oembed_host_inline_script_tag( $html ) {
-	if ( ! preg_match( '/<blockquote\s[^>]*wp-embedded-content/', $html ) ) {
-		return $html;
+function wp_maybe_enqueue_oembed_host_js( $html ) {
+	if ( preg_match( '/<blockquote\s[^>]*wp-embedded-content/', $html ) ) {
+		wp_enqueue_script( 'wp-embed' );
 	}
-
-	$script = wp_get_inline_script_tag(
-		file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' ) )
-	);
-
-	return $script . $html;
+	return $html;
 }
 
 /**
@@ -478,7 +471,11 @@ function get_post_embed_html( $width, $height, $post = null ) {
 	$secret     = wp_generate_password( 10, false );
 	$embed_url .= "#?secret={$secret}";
 
-	$output = sprintf(
+	$output = wp_get_inline_script_tag(
+		file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' ) )
+	);
+
+	$output .= sprintf(
 		'<blockquote class="wp-embedded-content" data-secret="%1$s"><a href="%2$s">%3$s</a></blockquote>',
 		esc_attr( $secret ),
 		esc_url( get_permalink( $post ) ),
