@@ -7,6 +7,7 @@ import {
 
 /**
  * Get all installed themes
+ * @returns {Promise<Array>} Array of installed themes
  */
 async function getInstalledThemes() {
 	const themes = await rest({
@@ -18,6 +19,9 @@ async function getInstalledThemes() {
 
 /**
  * Check if a theme is installed
+ * @param {string} themeSlug The slug of the theme to check
+ * @returns {Promise<Object>} Object with a boolean property indicating
+ * if the theme is installed and the the theme status
  */
 async function checkThemeStatus(themeSlug) {
 	const themes = await getInstalledThemes();
