@@ -1378,10 +1378,9 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 		$my_year  = substr( $m, 0, 4 );
 		$my_month = substr( $m, 4, 2 );
 		$my_day   = (int) substr( $m, 6, 2 );
-		$title    =
-				$my_year .
-				( '' !== $my_month ? $t_sep . $wp_locale->get_month( $my_month ) : '' ) .
-				( $my_day ? $t_sep . $my_day : '' );
+		$title    = $my_year .
+			( '' !== $my_month ? $t_sep . $wp_locale->get_month( $my_month ) : '' ) .
+			( $my_day ? $t_sep . $my_day : '' );
 	}
 
 	// If there's a year.
