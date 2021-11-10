@@ -11358,7 +11358,7 @@ mockedApiResponse.TypesCollection = {
         }
     },
     "wp_navigation": {
-        "description": "Navigation menus.",
+        "description": "",
         "hierarchical": false,
         "name": "Navigation Menus",
         "slug": "wp_navigation",
