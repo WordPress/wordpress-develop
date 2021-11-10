@@ -52,7 +52,7 @@ class WP_Test_REST_Block_Navigation_Areas_Controller extends WP_Test_REST_Contro
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
-		$navigation_areas = gutenberg_get_navigation_areas();
+		$navigation_areas = get_navigation_areas();
 		foreach ( $navigation_areas as $name => $navigation_area ) {
 			$this->assertArrayHasKey( $name, $data );
 		}
@@ -75,7 +75,7 @@ class WP_Test_REST_Block_Navigation_Areas_Controller extends WP_Test_REST_Contro
 	}
 
 	public function test_get_item() {
-		$navigation_area = array_rand( gutenberg_get_navigation_areas(), 1 );
+		$navigation_area = array_rand( get_navigation_areas(), 1 );
 
 		$this->assertIsString( $navigation_area );
 		$this->assertNotEmpty( $navigation_area );
@@ -97,7 +97,7 @@ class WP_Test_REST_Block_Navigation_Areas_Controller extends WP_Test_REST_Contro
 	}
 
 	public function test_update_item() {
-		$navigation_area = array_rand( gutenberg_get_navigation_areas(), 1 );
+		$navigation_area = array_rand( get_navigation_areas(), 1 );
 		$route           = sprintf( '/wp/v2/block-navigation-areas/%s', urlencode( $navigation_area ) );
 		$request         = new WP_REST_Request( Requests::POST, $route );
 
