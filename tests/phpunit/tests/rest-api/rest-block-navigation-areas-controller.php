@@ -30,22 +30,14 @@ class WP_Test_REST_Block_Navigation_Areas_Controller extends WP_Test_REST_Contro
 		static::$old_mapping = get_option( static::OPTION, array() );
 	}
 
-	public function setUp() {
-		parent::setUp();
-		wp_set_current_user( static::$admin_id );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
-		update_option( static::OPTION, static::$old_mapping );
-	}
-
 	public static function tearDownAfterClass() {
 		parent::tearDownAfterClass();
 		self::delete_user( self::$admin_id );
+		update_option( static::OPTION, static::$old_mapping );
 	}
 
 	public function test_get_items() {
+		wp_set_current_user( static::$admin_id );
 		$request = new WP_REST_Request( Requests::GET, '/wp/v2/block-navigation-areas' );
 
 		$response = rest_get_server()->dispatch( $request );
@@ -59,12 +51,14 @@ class WP_Test_REST_Block_Navigation_Areas_Controller extends WP_Test_REST_Contro
 	}
 
 	public function test_register_routes() {
+		wp_set_current_user( static::$admin_id );
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/block-navigation-areas', $routes );
 		$this->assertArrayHasKey( '/wp/v2/block-navigation-areas/(?P<area>[\\w-]+)', $routes );
 	}
 
 	public function test_context_param() {
+		wp_set_current_user( static::$admin_id );
 		$request  = new WP_REST_Request( Requests::OPTIONS, '/wp/v2/block-navigation-areas' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
@@ -75,6 +69,7 @@ class WP_Test_REST_Block_Navigation_Areas_Controller extends WP_Test_REST_Contro
 	}
 
 	public function test_get_item() {
+		wp_set_current_user( static::$admin_id );
 		$navigation_area = array_rand( get_navigation_areas(), 1 );
 
 		$this->assertIsString( $navigation_area );
@@ -97,6 +92,7 @@ class WP_Test_REST_Block_Navigation_Areas_Controller extends WP_Test_REST_Contro
 	}
 
 	public function test_update_item() {
+		wp_set_current_user( static::$admin_id );
 		$navigation_area = array_rand( get_navigation_areas(), 1 );
 		$route           = sprintf( '/wp/v2/block-navigation-areas/%s', urlencode( $navigation_area ) );
 		$request         = new WP_REST_Request( Requests::POST, $route );
