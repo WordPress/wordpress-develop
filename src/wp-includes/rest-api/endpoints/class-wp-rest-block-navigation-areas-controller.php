@@ -38,6 +38,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 					'args'                => $this->get_collection_params(),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => array( 'v1' => true ),
 			)
 		);
 
