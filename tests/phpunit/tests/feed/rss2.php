@@ -352,8 +352,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			// Comment RSS.
 			$comment_rss = xml_find( $items[ $key ]['child'], 'wfw:commentRss' );
 			$this->assertEmpty( $comment_rss );
-
-			$i++;
 		}
 
 		remove_filter( 'comments_open', '__return_false' );
