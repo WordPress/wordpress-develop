@@ -76,7 +76,7 @@ describe('Manage uploading new theme versions', () => {
 		const messages = await messageWrapper.evaluate(element => element.textContent);
 
 		expect(messages).toContain('Removing the old version of the theme');
-		expect(await checkThemeVersion(themeName)).toBe('2.0.0');
+		expect(await checkThemeVersion(themeName)).toBe(themeVersion);
 	});
 
 	it('should cancel and go back to the current theme version', async () => {
