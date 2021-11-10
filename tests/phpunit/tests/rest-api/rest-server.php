@@ -10,6 +10,13 @@
  * @group restapi
  */
 class Tests_REST_Server extends WP_Test_REST_TestCase {
+	protected static $icon_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		$filename      = DIR_TESTDATA . '/images/test-image-large.jpg';
+		self::$icon_id = $factory->attachment->create_upload_object( $filename );
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -1007,6 +1014,24 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertArrayHasKey( 'help', $index->get_links() );
 		$this->assertArrayNotHasKey( 'wp:active-theme', $index->get_links() );
+
+		// Check site icon.
+		$this->assertArrayHasKey( 'site_icon', $data );
+	}
+
+	/**
+	 * @ticket 52321
+	 */
+	public function test_get_index_with_site_icon() {
+		$server = new WP_REST_Server();
+		update_option( 'site_icon', self::$icon_id );
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertArrayHasKey( 'site_icon', $data );
+		$this->assertEquals( self::$icon_id, $data['site_icon'] );
 	}
 
 	public function test_get_namespace_index() {
