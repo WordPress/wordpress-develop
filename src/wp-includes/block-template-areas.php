@@ -36,6 +36,6 @@ register_navigation_areas(
  * @return array Registered navigation areas.
  */
 function get_navigation_areas() {
-	global $gutenberg_navigation_areas;
-	return $gutenberg_navigation_areas;
+	global $navigation_areas;
+	return $navigation_areas;
 }

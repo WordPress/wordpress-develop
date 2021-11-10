@@ -99,7 +99,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$data = array();
-		foreach ( gutenberg_get_navigation_areas() as $name => $description ) {
+		foreach ( get_navigation_areas() as $name => $description ) {
 			$area          = $this->get_navigation_area_object( $name );
 			$area          = $this->prepare_item_for_response( $area, $request );
 			$data[ $name ] = $this->prepare_response_for_collection( $area );
@@ -122,7 +122,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
-		if ( ! array_key_exists( $request['area'], gutenberg_get_navigation_areas() ) ) {
+		if ( ! array_key_exists( $request['area'], get_navigation_areas() ) ) {
 			return new WP_Error( 'rest_navigation_area_invalid', __( 'Invalid navigation area.', 'gutenberg' ), array( 'status' => 404 ) );
 		}
 
@@ -181,7 +181,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	 * @return stdClass An object representation of the navigation area.
 	 */
 	private function get_navigation_area_object( $name ) {
-		$available_areas   = gutenberg_get_navigation_areas();
+		$available_areas   = get_navigation_areas();
 		$mapping           = get_option( 'fse_navigation_areas', array() );
 		$area              = new stdClass();
 		$area->name        = $name;
@@ -199,7 +199,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Post status data.
 	 */
 	public function prepare_item_for_response( $area, $request ) {
-		$areas      = gutenberg_get_navigation_areas();
+		$areas      = get_navigation_areas();
 		$navigation = ( isset( $areas[ $area->name ] ) ) ? $area->navigation : 0;
 
 		$fields = $this->get_fields_for_response( $request );
