@@ -3,13 +3,11 @@ name: Test NPM
 on:
   push:
     branches:
-      - master
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
   pull_request:
     branches:
-      - master
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
@@ -157,7 +155,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ test-npm, test-npm-macos ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
