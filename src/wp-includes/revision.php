@@ -542,7 +542,7 @@ function wp_get_post_revisions_url( $post_id = 0 ) {
 
 	$revisions = wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 1 ) );
 
-	if ( 0 === sizeof( $revisions ) ) {
+	if ( 0 === count( $revisions ) ) {
 		return null;
 	}
 
