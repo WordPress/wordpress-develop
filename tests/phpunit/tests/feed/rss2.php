@@ -67,10 +67,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		self::$comment_ids[] = $factory->comment->create(
 			array(
 				'comment_author'   => 1,
-				'comment_date'     => '2014-05-06 12:00:00',
-				'comment_date_gmt' => '2014-05-06 07:00:00',
+				'comment_date'     => '2021-05-06 12:00:00',
+				'comment_date_gmt' => '2021-05-06 07:00:00',
 				'comment_post_ID'  => self::$post_id,
-				'comment_content'  => 'A comment',
 			)
 		);
 	}
@@ -337,15 +336,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
 
 		// Exclude the last post as it contains a comment.
-		$count = get_option( 'posts_per_rss' ) + 1;
-		$i     = 1;
+		array_shift( $items );
 
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
-			if ( $i > $count ) {
-				break;
-			}
-
 			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
 			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
