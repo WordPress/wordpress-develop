@@ -1920,7 +1920,9 @@ function remove_accents( $string ) {
 		// Used for locale-specific rules.
 		$locale = get_locale();
 
-		if ( in_array( $locale, array( 'de_DE', 'de_DE_formal', 'de_CH', 'de_CH_informal', 'de_AT' ), true ) ) {
+		// de has various locale (de_DE, de_CH, de_AT,...) which all can exist in formal/informal too
+		// there is no 3 letter locale, like "def" so checking for "de" instead of "de_" is safe (since "de" itself would be a valid locale too)
+		if ( substr( $locale, 0, 2 ) === 'de' ) {
 			$chars['Ä'] = 'Ae';
 			$chars['ä'] = 'ae';
 			$chars['Ö'] = 'Oe';
