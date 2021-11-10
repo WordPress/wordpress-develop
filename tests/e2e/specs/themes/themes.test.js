@@ -72,14 +72,10 @@ describe('Manage uploading new theme versions', () => {
 
 		await page.click('a.update-from-upload-overwrite');
 
-		await page.waitForSelector('.wrap');
-		const updatingParagraphs = await page.$$('.wrap p');
-		let mergedMessages = await Promise.all(
-			updatingParagraphs.map((message) => message.evaluate((element) => element.textContent))
-		);
-		mergedMessages = mergedMessages.join(' ');
+		const messageWrapper = await page.waitForSelector('.wrap');
+		const messages = await messageWrapper.evaluate(element => element.textContent);
 
-		expect(mergedMessages).toContain('Removing the old version of the theme');
+		expect(messages).toContain('Removing the old version of the theme');
 		expect(await checkThemeVersion(themeName)).toBe('2.0.0');
 	});
 
