@@ -163,7 +163,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Get the feed title.
 		$title = xml_find( $xml, 'rss', 'channel', 'title' );
-		$this->assertEquals( 'Filtered Title', $title[0]['content'] );
+		$this->assertSame( 'Filtered Title', $title[0]['content'] );
 	}
 
 	/**
