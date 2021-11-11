@@ -773,7 +773,7 @@ $imgs2_joined
 BLOB;
 		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
 		$srcs    = get_post_gallery_images( $post_id );
-		$this->assertSameSetsWithIndex( $srcs, array_slice( $ids_srcs, 0, 3 ) );
+		$this->assertSameSetsWithIndex( array_slice( $ids_srcs, 0, 3 ), $srcs );
 	}
 
 	/**
@@ -811,7 +811,7 @@ BLOB;
 BLOB;
 		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
 		$srcs    = get_post_gallery_images( $post_id );
-		$this->assertSameSetsWithIndex( $srcs, array_slice( $ids_srcs, 0, 3 ) );
+		$this->assertSameSetsWithIndex( array_slice( $ids_srcs, 0, 3 ), $srcs );
 	}
 
 	/**
@@ -854,7 +854,7 @@ $imgs2_joined
 BLOB;
 		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
 		$srcs    = get_post_gallery_images( $post_id );
-		$this->assertSameSetsWithIndex( $srcs, array_slice( $ids_srcs, 0, 3 ) );
+		$this->assertSameSetsWithIndex( array_slice( $ids_srcs, 0, 3 ), $srcs );
 	}
 
 	/**
@@ -898,7 +898,6 @@ BLOB;
 
 		$galleries = get_post_galleries( $post_id, false );
 		$this->assertSameSetsWithIndex(
-			$galleries,
 			array(
 				array(
 					'ids' => $ids1_joined,
@@ -908,7 +907,8 @@ BLOB;
 					'ids' => $ids2_joined,
 					'src' => array_slice( $ids_srcs, 3, 3 ),
 				),
-			)
+			),
+			$galleries
 		);
 
 	}
@@ -953,7 +953,6 @@ BLOB;
 
 		$galleries = get_post_galleries( $post_id, false );
 		$this->assertSameSetsWithIndex(
-			$galleries,
 			array(
 				array(
 					'ids'  => $ids1_joined,
@@ -967,7 +966,8 @@ BLOB;
 					// The block only passes ids, no other attributes
 					'src' => array_slice( $ids_srcs, 3, 3 ),
 				),
-			)
+			),
+			$galleries
 		);
 
 	}
@@ -1012,7 +1012,7 @@ $imgs_joined
 BLOB;
 		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
 		$srcs    = get_post_gallery_images( $post_id );
-		$this->assertSameSetsWithIndex( $srcs, $ids_srcs );
+		$this->assertSameSetsWithIndex( $ids_srcs, $srcs );
 	}
 
 	/**
@@ -1053,7 +1053,7 @@ $imgs_joined
 BLOB;
 		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
 		$srcs    = get_post_gallery_images( $post_id );
-		$this->assertSameSetsWithIndex( $srcs, $ids_srcs );
+		$this->assertSameSetsWithIndex( $ids_srcs, $srcs );
 	}
 
 	public function test_get_media_embedded_in_content() {
