@@ -6,9 +6,8 @@
  */
 class Tests_Link_EditTermLink extends WP_UnitTestCase {
 
-	public static $term_ids;
-
-	public static $user_ids;
+	private static $term_ids;
+	private static $user_ids;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::_register_taxonomy();
@@ -22,7 +21,7 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 		self::$user_ids['subscriber'] = $factory->user->create( array( 'role' => 'subscriber' ) );
 	}
 
-	public function setUp() {
+	public function set_up() {
 		parent::setUp();
 		self::_register_taxonomy();
 	}
@@ -37,6 +36,8 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_edit_term_link
 	 *
+	 * @ticket 50225
+	 *
 	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
 	 * @param string $expected Expected URL within admin of edit link.
 	 */
@@ -46,13 +47,16 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 
 		// Term IDs are not known by the data provider so need to be replaced.
 		$expected = str_replace( '%ID%', $term_id, $expected );
+		$expected = '"' . admin_url( $expected ) . '"';
 
-		$this->assertContains( '"' . admin_url( $expected ) . '"', edit_term_link( '', '', '', $term_id, false ) );
-		$this->assertContains( '"' . admin_url( $expected ) . '"', edit_term_link( '', '', '', get_term( $term_id, $taxonomy ), false ) );
+		$this->assertContains( $expected, edit_term_link( '', '', '', $term_id, false ) );
+		$this->assertContains( $expected, edit_term_link( '', '', '', get_term( $term_id, $taxonomy ), false ) );
 	}
 
 	/**
 	 * @dataProvider data_edit_term_link
+	 *
+	 * @ticket 50225
 	 *
 	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
 	 */
@@ -67,6 +71,8 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_edit_term_link
 	 *
+	 * @ticket 50225
+	 *
 	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
 	 */
 	public function test_edit_term_link_filter_is_int_by_term_id( $taxonomy ) {
@@ -75,7 +81,7 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 
 		add_filter(
 			'edit_term_link',
-			function( $location, $term ) {
+			static function( $location, $term ) {
 				$this->assertInternalType( 'int', $term );
 			},
 			10,
@@ -88,6 +94,8 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_edit_term_link
 	 *
+	 * @ticket 50225
+	 *
 	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
 	 */
 	public function test_edit_term_link_filter_is_int_by_term_object( $taxonomy ) {
@@ -96,7 +104,7 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 
 		add_filter(
 			'edit_term_link',
-			function( $location, $term ) {
+			static function( $location, $term ) {
 				$this->assertInternalType( 'int', $term );
 			},
 			10,
@@ -106,11 +114,25 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 		edit_term_link( '', '', '', get_term( $term_id, $taxonomy ), false );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
 	public function data_edit_term_link() {
 		return array(
-			array( 'category', 'term.php?taxonomy=category&tag_ID=%ID%&post_type=post' ),
-			array( 'post_tag', 'term.php?taxonomy=post_tag&tag_ID=%ID%&post_type=post' ),
-			array( 'custom_taxonomy', 'term.php?taxonomy=custom_taxonomy&tag_ID=%ID%&post_type=post' ),
+			'category'        => array(
+				'taxonomy' => 'category',
+				'expected' => 'term.php?taxonomy=category&tag_ID=%ID%&post_type=post',
+			),
+			'tag'             => array(
+				'taxonomy' => 'post_tag',
+				'expected' => 'term.php?taxonomy=post_tag&tag_ID=%ID%&post_type=post',
+			),
+			'custom taxonomy' => array(
+				'taxonomy' => 'custom_taxonomy',
+				'expected' => 'term.php?taxonomy=custom_taxonomy&tag_ID=%ID%&post_type=post',
+			),
 		);
 	}
 }
