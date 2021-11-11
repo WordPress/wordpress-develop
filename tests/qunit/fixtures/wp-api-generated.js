@@ -3705,8 +3705,7 @@ mockedApiResponse.Schema = {
                                 "taxonomy",
                                 "post_type",
                                 "post_type_archive",
-                                "custom",
-                                "block"
+                                "custom"
                             ],
                             "required": false
                         },
@@ -3765,40 +3764,6 @@ mockedApiResponse.Schema = {
                             "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
                             "type": "integer",
                             "minimum": 0,
-                            "required": false
-                        },
-                        "content": {
-                            "description": "HTML content to display for this block menu item.",
-                            "type": [
-                                "string",
-                                "object"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "HTML content, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the block format used in the HTML content.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
                             "required": false
                         },
                         "target": {
@@ -3931,8 +3896,7 @@ mockedApiResponse.Schema = {
                                 "taxonomy",
                                 "post_type",
                                 "post_type_archive",
-                                "custom",
-                                "block"
+                                "custom"
                             ],
                             "required": false
                         },
@@ -3987,40 +3951,6 @@ mockedApiResponse.Schema = {
                             "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
                             "type": "integer",
                             "minimum": 0,
-                            "required": false
-                        },
-                        "content": {
-                            "description": "HTML content to display for this block menu item.",
-                            "type": [
-                                "string",
-                                "object"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "HTML content, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the block format used in the HTML content.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
                             "required": false
                         },
                         "target": {
@@ -4157,8 +4087,7 @@ mockedApiResponse.Schema = {
                                 "taxonomy",
                                 "post_type",
                                 "post_type_archive",
-                                "custom",
-                                "block"
+                                "custom"
                             ],
                             "required": false
                         },
@@ -4207,40 +4136,6 @@ mockedApiResponse.Schema = {
                             "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
                             "type": "integer",
                             "minimum": 0,
-                            "required": false
-                        },
-                        "content": {
-                            "description": "HTML content to display for this block menu item.",
-                            "type": [
-                                "string",
-                                "object"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "HTML content, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the block format used in the HTML content.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
                             "required": false
                         },
                         "target": {
