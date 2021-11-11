@@ -30,8 +30,7 @@ class WP_Test_REST_Block_Navigation_Areas_Controller extends WP_Test_REST_Contro
 		static::$old_mapping = get_option( static::OPTION, array() );
 	}
 
-	public static function tearDownAfterClass() {
-		parent::tearDownAfterClass();
+	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
 		update_option( static::OPTION, static::$old_mapping );
 	}
