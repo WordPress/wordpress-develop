@@ -7,13 +7,13 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
-	function tear_down() {
+	public function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
 		parent::tear_down();
 	}
 
-	function test_insert_bogus_image() {
+	public function test_insert_bogus_image() {
 		$filename = rand_str() . '.jpg';
 		$contents = rand_str();
 
@@ -21,7 +21,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertEmpty( $upload['error'] );
 	}
 
-	function test_insert_image_no_thumb() {
+	public function test_insert_image_no_thumb() {
 
 		// This image is smaller than the thumbnail size so it won't have one.
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
@@ -57,7 +57,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	/**
 	 * @requires function imagejpeg
 	 */
-	function test_insert_image_thumb_only() {
+	public function test_insert_image_thumb_only() {
 		update_option( 'medium_size_w', 0 );
 		update_option( 'medium_size_h', 0 );
 
@@ -108,7 +108,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	/**
 	 * @requires function imagejpeg
 	 */
-	function test_insert_image_medium_sizes() {
+	public function test_insert_image_medium_sizes() {
 		update_option( 'medium_size_w', 400 );
 		update_option( 'medium_size_h', 0 );
 
@@ -165,7 +165,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	/**
 	 * @requires function imagejpeg
 	 */
-	function test_insert_image_delete() {
+	public function test_insert_image_delete() {
 		update_option( 'medium_size_w', 400 );
 		update_option( 'medium_size_h', 0 );
 
@@ -213,7 +213,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 18310
 	 * @ticket 21963
 	 */
-	function test_insert_image_without_guid() {
+	public function test_insert_image_without_guid() {
 		// This image is smaller than the thumbnail size so it won't have one.
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
 		$contents = file_get_contents( $filename );
@@ -231,7 +231,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	/**
 	 * @ticket 21963
 	 */
-	function test_update_attachment_fields() {
+	public function test_update_attachment_fields() {
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
 		$contents = file_get_contents( $filename );
 
@@ -257,7 +257,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	/**
 	 * @ticket 29646
 	 */
-	function test_update_orphan_attachment_parent() {
+	public function test_update_orphan_attachment_parent() {
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
 		$contents = file_get_contents( $filename );
 
