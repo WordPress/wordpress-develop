@@ -957,9 +957,10 @@ BLOB;
 			array(
 				array(
 					'ids'  => $ids1_joined,
-					'src'  => array_slice( $ids_srcs, 0, 3 ),
+					// The shortcode code passes arbitrary attributes
 					'type' => 'type',
-					'foo'  => 'bar', // The shortcode code passes arbitrary attributes
+					'foo'  => 'bar',
+					'src'  => array_slice( $ids_srcs, 0, 3 ),
 				),
 				array(
 					'ids' => $ids2_joined,
