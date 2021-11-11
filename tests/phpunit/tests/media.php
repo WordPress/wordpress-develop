@@ -964,8 +964,8 @@ BLOB;
 				),
 				array(
 					'ids' => $ids2_joined,
-					'src' => array_slice( $ids_srcs, 3, 3 ),
 					// The block only passes ids, no other attributes
+					'src' => array_slice( $ids_srcs, 3, 3 ),
 				),
 			)
 		);
