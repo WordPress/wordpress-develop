@@ -4,6 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST_API
+ * @group restapi
  * @since 5.9.0
  */
 class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Controller_Testcase {
@@ -44,9 +45,15 @@ class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Contr
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
 		$navigation_areas = get_navigation_areas();
+		$expected_data    = array();
 		foreach ( $navigation_areas as $name => $navigation_area ) {
-			$this->assertArrayHasKey( $name, $data );
+			$expected_data[] = array(
+				'name'        => $name,
+				'description' => $navigation_area,
+				'navigation'  => 0,
+			);
 		}
+		$this->assertSameSets( $expected_data, $data );
 	}
 
 	public function test_register_routes() {
@@ -87,7 +94,7 @@ class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Contr
 	public function test_create_item() {
 		// We cannot create new navigation areas using the current block navigation areas API,
 		// so the test should be marked as passed.
-		$this->markTestAsSkipped();
+		$this->markTestSkipped();
 	}
 
 	public function test_update_item() {
@@ -111,19 +118,19 @@ class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Contr
 	public function test_delete_item() {
 		// We cannot delete navigation areas using the current block navigation areas API,
 		// so the test should be marked as passed.
-		$this->markTestAsSkipped();
+		$this->markTestSkipped();
 	}
 
 	public function test_prepare_item() {
 		// The current block navigation areas API doesn't implement any custom prepare_item logic
 		// so there is nothing to test.
-		$this->markTestAsSkipped();
+		$this->markTestSkipped();
 	}
 
 	public function test_get_item_schema() {
 		// The current block navigation areas API doesn't implement any custom item schema
 		// so there is nothing to test.
-		$this->markTestAsSkipped();
+		$this->markTestSkipped();
 	}
 }
 
