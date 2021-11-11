@@ -53,7 +53,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 			array(
 				'args'        => array(
 					'area' => array(
-						'description' => __( 'An alphanumeric identifier for the navigation area.', 'gutenberg' ),
+						'description' => __( 'An alphanumeric identifier for the navigation area.' ),
 						'type'        => 'string',
 					),
 				),
@@ -90,7 +90,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_view',
-				__( 'Sorry, you are not allowed to view navigation areas.', 'gutenberg' ),
+				__( 'Sorry, you are not allowed to view navigation areas.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
@@ -130,12 +130,12 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_view',
-				__( 'Sorry, you are not allowed to view navigation areas.', 'gutenberg' ),
+				__( 'Sorry, you are not allowed to view navigation areas.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
 		if ( ! array_key_exists( $request['area'], get_navigation_areas() ) ) {
-			return new WP_Error( 'rest_navigation_area_invalid', __( 'Invalid navigation area.', 'gutenberg' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_navigation_area_invalid', __( 'Invalid navigation area.' ), array( 'status' => 404 ) );
 		}
 
 		return true;
@@ -274,19 +274,19 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'name'        => array(
-					'description' => __( 'The name of the navigation area.', 'gutenberg' ),
+					'description' => __( 'The name of the navigation area.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'description' => array(
-					'description' => __( 'The description of the navigation area.', 'gutenberg' ),
+					'description' => __( 'The description of the navigation area.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'navigation'  => array(
-					'description' => __( 'The ID of the assigned navigation.', 'gutenberg' ),
+					'description' => __( 'The ID of the assigned navigation.' ),
 					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
