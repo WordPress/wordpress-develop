@@ -69,6 +69,25 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
+		add_filter(
+			'pre_http_request',
+			static function() {
+				/*
+				 * Mocks the request to:
+				 * https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request%5Bblock%5D=foo&request%5Bper_page%5D=10&request%5Bpage%5D=1&request%5Blocale%5D=en_US&request%5Bwp_version%5D=5.9
+				 */
+				return array(
+					'headers'  => array(),
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'body'     => '{"info":{"page":1,"pages":0,"results":0},"plugins":[]}',
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			}
+		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
 		$request->set_query_params( array( 'term' => 'foo' ) );
