@@ -4769,71 +4769,91 @@ function get_post_galleries( $post, $html = true ) {
 
 	if ( has_block( 'gallery', $post->post_content ) ) {
 		$post_blocks = parse_blocks( $post->post_content );
-		// Use while/array_shift instead of foreach so we can modify the array from within the loop
-		while ( $block = array_shift( $post_blocks ) ) {
-			if ( 'core/gallery' === $block['blockName'] ) {
-				// If a Gallery block has innerBlocks it is the new format and needs to be handled separately to the old
-				// format with nested <img> tags.
-				if ( ! empty( $block['innerBlocks'] ) ) {
-					$gallery_srcs = array();
-					$ids          = array();
-					$block_html   = array();
-					foreach ( $block['innerBlocks'] as $image ) {
-						if ( $html ) {
-							$block_html[] = $image['innerHTML'];
-						} else {
-							$gallery_srcs[] = wp_get_attachment_url( $image ['attrs']['id'] );
-							$ids[]          = $image['attrs']['id'];
-						}
-					}
-					if ( $html ) {
-						$galleries[] = '<figure>' . implode( ' ', $block_html ) . '</figure>';
-					} else {
-						$galleries[] = array(
-							// array_filter will eliminate any empty entries that came from unknown or invalid IDs
-							'src' => array_values( array_filter( array_unique( $gallery_srcs ) ) ),
-							// Only explicitly include the ids attribute. In future this could be changed to include all attributes, similar to $shortcode_attrs above.
-							'ids' => implode( ',', $ids ),
-						);
-					}
-				} else {
-					// Now handle the v1 gallery block format.
-					if ( $html ) {
-						$galleries[] = $block['innerHTML'];
-					} elseif ( ! empty( $block['attrs']['ids'] ) ) {
-						// Use the image IDs from the json blob as canonical if present
-						$gallery_srcs = array();
-						foreach ( $block['attrs']['ids'] as $gallery_img_id ) {
-							$gallery_srcs[] = wp_get_attachment_url( $gallery_img_id );
-						}
-						$galleries[] = array(
-							// array_filter will eliminate any empty entries that came from unknown or invalid IDs
-							'src' => array_values( array_filter( array_unique( $gallery_srcs ) ) ),
-							// Only explicitly include the ids attribute. In future this could be changed to include all attributes, similar to $shortcode_attrs above.
-							'ids' => implode( ',', $block['attrs']['ids'] ),
-						);
-					} else {
-						// Otherwise extract srcs from the innerHTML
-						$srcs = array();
-						preg_match_all( '#src=([\'"])(.+?)\1#is', $block['innerHTML'], $src, PREG_SET_ORDER );
-						if ( ! empty( $src ) ) {
-							foreach ( $src as $s ) {
-								$srcs[] = $s[2];
-							}
-						}
 
-						$galleries[] = array(
-							// Note that unlike shortcodes, all we are returning here is the src list
-							'src' => array_values( array_unique( $srcs ) ),
-						);
+		foreach ( $post_blocks as &$block ) {
+			$has_inner_blocks = ! empty( $block['innerBlocks'] );
+
+			// Skip blocks with no blockName and no innerHTML.
+			if ( ! $block['blockName'] ) {
+				continue;
+			}
+
+			// All blocks nested inside non-Gallery blocks should be in the root array.
+			if ( $has_inner_blocks && 'core/gallery' !== $block['blockName'] ) {
+				array_push( $post_blocks, ...$block['innerBlocks'] );
+				$block['innerBlocks'] = array();
+				continue;
+			}
+
+			// New Gallery block format as HTML.
+			if ( $has_inner_blocks && $html ) {
+				$block_html  = wp_list_pluck( $block['innerBlocks'], 'innerHTML' );
+				$galleries[] = '<figure>' . implode( ' ', $block_html ) . '</figure>';
+				continue;
+			}
+
+			$srcs = array();
+
+			// New Gallery block format as an array.
+			if ( $has_inner_blocks ) {
+				$attrs = wp_list_pluck( $block['innerBlocks'], 'attrs' );
+				$ids   = wp_list_pluck( $attrs, 'id' );
+
+				foreach ( $ids as $id ) {
+					$url = wp_get_attachment_url( $id );
+
+					if ( $url && ! in_array( $url, $srcs, true ) ) {
+						$srcs[] = $url;
 					}
 				}
-			} elseif ( ! empty( $block['innerBlocks'] ) ) {
-				// If we have nested blocks then gradually flatten it by moving those onto the end of the root array for traversal
-				while ( $inner = array_pop( $block['innerBlocks'] ) ) {
-					array_push( $post_blocks, $inner );
+
+				$galleries[] = array(
+					'ids' => implode( ',', $ids ),
+					'src' => $srcs,
+				);
+
+				continue;
+			}
+
+			// Old Gallery block format as HTML.
+			if ( $html ) {
+				$galleries[] = $block['innerHTML'];
+				continue;
+			}
+
+			// Old Gallery block format as an array.
+			$ids = ! empty( $block['attrs']['ids'] ) ? $block['attrs']['ids'] : array();
+
+			// If present, use the image IDs from the JSON blob as canonical.
+			if ( ! empty( $ids ) ) {
+				foreach ( $ids as $id ) {
+					$url = wp_get_attachment_url( $id );
+
+					if ( $url && ! in_array( $url, $srcs, true ) ) {
+						$srcs[] = $url;
+					}
+				}
+
+				$galleries[] = array(
+					'ids' => implode( ',', $ids ),
+					'src' => $srcs,
+				);
+
+				continue;
+			}
+
+			// Otherwise, extract srcs from the innerHTML.
+			preg_match_all( '#src=([\'"])(.+?)\1#is', $block['innerHTML'], $src, PREG_SET_ORDER );
+
+			if ( ! empty( $src ) ) {
+				foreach ( $src as $s ) {
+					if ( isset( $s[2] ) && ! in_array( $s[2], $srcs, true ) ) {
+						$srcs[] = $s[2];
+					}
 				}
 			}
+
+			$galleries[] = array( 'src' => $srcs );
 		}
 	}
 
