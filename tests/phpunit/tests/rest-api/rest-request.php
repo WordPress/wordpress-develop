@@ -12,8 +12,8 @@
 class Tests_REST_Request extends WP_UnitTestCase {
 	public $request;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->request = new WP_REST_Request();
 	}
@@ -83,10 +83,10 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	/**
 	 * @dataProvider content_type_provider
 	 *
-	 * @param string $header Header value.
-	 * @param string $value Full type value.
-	 * @param string $type Main type (application, text, etc).
-	 * @param string $subtype Subtype (json, etc).
+	 * @param string $header     Header value.
+	 * @param string $value      Full type value.
+	 * @param string $type       Main type (application, text, etc).
+	 * @param string $subtype    Subtype (json, etc).
 	 * @param string $parameters Parameters (charset=utf-8, etc).
 	 */
 	public function test_content_type_parsing( $header, $value, $type, $subtype, $parameters ) {
@@ -193,9 +193,9 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 * @ticket 49404
 	 * @dataProvider alternate_json_content_type_provider
 	 *
-	 * @param string  $content_type The content-type
-	 * @param string  $source The source value.
-	 * @param boolean $accept_json The accept_json value.
+	 * @param string $content_type The content-type header.
+	 * @param string $source       The source value.
+	 * @param bool   $accept_json  The accept_json value.
 	 */
 	public function test_alternate_json_content_type( $content_type, $source, $accept_json ) {
 		$this->request_with_parameters();
@@ -224,8 +224,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 * @ticket 49404
 	 * @dataProvider is_json_content_type_provider
 	 *
-	 * @param string  $content_type The content-type
-	 * @param boolean $is_json The is_json value.
+	 * @param string $content_type The content-type header.
+	 * @param bool   $is_json      The is_json value.
 	 */
 	public function test_is_json_content_type( $content_type, $is_json ) {
 		$this->request_with_parameters();
@@ -475,7 +475,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'sanitize_callback' => function () {
+						'sanitize_callback' => static function () {
 							$error = new WP_Error( 'invalid', 'Invalid.' );
 							$error->add( 'invalid', 'Super Invalid.' );
 							$error->add( 'broken', 'Broken.' );
@@ -491,7 +491,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertWPError( $valid );
 		$data = $valid->get_error_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'params', $data );
 		$this->assertArrayHasKey( 'failparam', $data['params'] );
 		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
@@ -510,7 +510,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'sanitize_callback' => function () {
+						'sanitize_callback' => static function () {
 							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
 						},
 					),
@@ -616,8 +616,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$data = $valid->get_error_data( 'rest_missing_callback_param' );
 
-		$this->assertTrue( in_array( 'someinteger', $data['params'], true ) );
-		$this->assertTrue( in_array( 'someotherinteger', $data['params'], true ) );
+		$this->assertContains( 'someinteger', $data['params'] );
+		$this->assertContains( 'someotherinteger', $data['params'] );
 	}
 
 	public function test_has_valid_params_validate_callback() {
@@ -738,7 +738,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'validate_callback' => function () {
+						'validate_callback' => static function () {
 							$error = new WP_Error( 'invalid', 'Invalid.' );
 							$error->add( 'invalid', 'Super Invalid.' );
 							$error->add( 'broken', 'Broken.' );
@@ -754,7 +754,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertWPError( $valid );
 		$data = $valid->get_error_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'params', $data );
 		$this->assertArrayHasKey( 'failparam', $data['params'] );
 		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
@@ -773,7 +773,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'validate_callback' => function () {
+						'validate_callback' => static function () {
 							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
 						},
 					),

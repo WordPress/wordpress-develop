@@ -18,7 +18,7 @@ class Tests_Post_IsPostPubliclyViewable extends WP_UnitTestCase {
 			$date          = '';
 			$actual_status = $post_status;
 			if ( 'future' === $post_status ) {
-				$date = strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+				$date = date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 			} elseif ( in_array( $post_status, array( 'trash', 'delete' ), true ) ) {
 				$actual_status = 'publish';
 			}
@@ -51,7 +51,7 @@ class Tests_Post_IsPostPubliclyViewable extends WP_UnitTestCase {
 	public function test_is_post_publicly_viewable( $post_type, $post_status, $expected, $parent_key = '' ) {
 		$date = '';
 		if ( 'future' === $post_status ) {
-			$date = strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+			$date = date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 		}
 
 		$post_id = $this->factory()->post->create(

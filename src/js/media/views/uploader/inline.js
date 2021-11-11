@@ -134,7 +134,7 @@ UploaderInline = View.extend(/** @lends wp.media.view.UploaderInline.prototype *
 			this.controller.$uploaderToggler
 				.attr( 'aria-expanded', 'false' )
 				// Move focus back to the toggle button when closing the uploader.
-				.focus();
+				.trigger( 'focus' );
 		}
 	}
 

@@ -57,15 +57,15 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function __construct( $taxonomy ) {
 		$this->taxonomy  = $taxonomy;
-		$this->namespace = 'wp/v2';
 		$tax_obj         = get_taxonomy( $taxonomy );
 		$this->rest_base = ! empty( $tax_obj->rest_base ) ? $tax_obj->rest_base : $tax_obj->name;
+		$this->namespace = ! empty( $tax_obj->rest_namespace ) ? $tax_obj->rest_namespace : 'wp/v2';
 
 		$this->meta = new WP_REST_Term_Meta_Fields( $taxonomy );
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for terms.
 	 *
 	 * @since 4.7.0
 	 *
@@ -233,9 +233,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters get_terms() arguments when querying users via the REST API.
+		 * Filters get_terms() arguments when querying terms via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_category_query`
+		 *  - `rest_post_tag_query`
 		 *
 		 * Enables adding extra arguments or setting defaults for a terms
 		 * collection request.
@@ -244,8 +249,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * @link https://developer.wordpress.org/reference/functions/get_terms/
 		 *
-		 * @param array           $prepared_args Array of arguments to be
-		 *                                       passed to get_terms().
+		 * @param array           $prepared_args Array of arguments for get_terms().
 		 * @param WP_REST_Request $request       The REST API request.
 		 */
 		$prepared_args = apply_filters( "rest_{$this->taxonomy}_query", $prepared_args, $request );
@@ -475,6 +479,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
 		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_insert_category`
+		 *  - `rest_insert_post_tag`
+		 *
 		 * @since 4.7.0
 		 *
 		 * @param WP_Term         $term     Inserted or updated term object.
@@ -504,6 +513,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 * Fires after a single term is completely created or updated via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_after_insert_category`
+		 *  - `rest_after_insert_post_tag`
 		 *
 		 * @since 5.0.0
 		 *
@@ -702,6 +716,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
 		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_delete_category`
+		 *  - `rest_delete_post_tag`
+		 *
 		 * @since 4.7.0
 		 *
 		 * @param WP_Term          $term     The deleted term.
@@ -760,6 +779,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 * Filters term data before inserting term via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_pre_insert_category`
+		 *  - `rest_pre_insert_post_tag`
 		 *
 		 * @since 4.7.0
 		 *
@@ -832,7 +856,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
 		 *
-		 * Possible filter names include:
+		 * Possible hook names include:
 		 *
 		 *  - `rest_prepare_category`
 		 *  - `rest_prepare_post_tag`
@@ -890,15 +914,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$post_type_links = array();
 
 		foreach ( $taxonomy_obj->object_type as $type ) {
-			$post_type_object = get_post_type_object( $type );
+			$rest_path = rest_get_route_for_post_type_items( $type );
 
-			if ( empty( $post_type_object->show_in_rest ) ) {
+			if ( empty( $rest_path ) ) {
 				continue;
 			}
 
-			$rest_base         = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 			$post_type_links[] = array(
-				'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( sprintf( 'wp/v2/%s', $rest_base ) ) ),
+				'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( $rest_path ) ),
 			);
 		}
 

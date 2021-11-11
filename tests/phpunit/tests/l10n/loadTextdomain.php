@@ -4,7 +4,7 @@
  * @group l10n
  * @group i18n
  */
-class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
+class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 	protected $locale;
 	protected static $user_id;
 
@@ -17,20 +17,13 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->locale = '';
 
 		add_filter( 'plugin_locale', array( $this, 'store_locale' ) );
 		add_filter( 'theme_locale', array( $this, 'store_locale' ) );
-	}
-
-	public function tearDown() {
-		remove_filter( 'plugin_locale', array( $this, 'store_locale' ) );
-		remove_filter( 'theme_locale', array( $this, 'store_locale' ) );
-
-		parent::tearDown();
 	}
 
 	public function store_locale( $locale ) {
@@ -116,13 +109,13 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 	/**
 	 * @ticket 21319
 	 */
-	function test_is_textdomain_is_not_loaded_after_gettext_call_with_no_translations() {
+	public function test_is_textdomain_is_not_loaded_after_gettext_call_with_no_translations() {
 		$this->assertFalse( is_textdomain_loaded( 'wp-tests-domain' ) );
 		__( 'just some string', 'wp-tests-domain' );
 		$this->assertFalse( is_textdomain_loaded( 'wp-tests-domain' ) );
 	}
 
-	function test_override_load_textdomain_noop() {
+	public function test_override_load_textdomain_noop() {
 		add_filter( 'override_load_textdomain', '__return_true' );
 		$load_textdomain = load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/non-existent-file' );
 		remove_filter( 'override_load_textdomain', '__return_true' );
@@ -131,10 +124,10 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		$this->assertFalse( is_textdomain_loaded( 'wp-tests-domain' ) );
 	}
 
-	function test_override_load_textdomain_non_existent_mofile() {
-		add_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ), 10, 3 );
+	public function test_override_load_textdomain_non_existent_mofile() {
+		add_filter( 'override_load_textdomain', array( $this, 'override_load_textdomain_filter' ), 10, 3 );
 		$load_textdomain = load_textdomain( 'wp-tests-domain', WP_LANG_DIR . '/non-existent-file.mo' );
-		remove_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ) );
+		remove_filter( 'override_load_textdomain', array( $this, 'override_load_textdomain_filter' ) );
 
 		$is_textdomain_loaded = is_textdomain_loaded( 'wp-tests-domain' );
 		unload_textdomain( 'wp-tests-domain' );
@@ -145,10 +138,10 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		$this->assertFalse( $is_textdomain_loaded_after );
 	}
 
-	function test_override_load_textdomain_custom_mofile() {
-		add_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ), 10, 3 );
+	public function test_override_load_textdomain_custom_mofile() {
+		add_filter( 'override_load_textdomain', array( $this, 'override_load_textdomain_filter' ), 10, 3 );
 		$load_textdomain = load_textdomain( 'wp-tests-domain', WP_LANG_DIR . '/plugins/internationalized-plugin-de_DE.mo' );
-		remove_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ) );
+		remove_filter( 'override_load_textdomain', array( $this, 'override_load_textdomain_filter' ) );
 
 		$is_textdomain_loaded = is_textdomain_loaded( 'wp-tests-domain' );
 		unload_textdomain( 'wp-tests-domain' );
@@ -165,7 +158,7 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 	 * @param string $file     Path to the MO file.
 	 * @return bool
 	 */
-	function _override_load_textdomain_filter( $override, $domain, $file ) {
+	public function override_load_textdomain_filter( $override, $domain, $file ) {
 		global $l10n;
 
 		if ( ! is_readable( $file ) ) {
@@ -202,8 +195,6 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 
 		load_muplugin_textdomain( 'wp-tests-domain' );
 
-		set_current_screen( 'front' );
-
 		$this->assertSame( get_user_locale(), $this->locale );
 	}
 
@@ -222,8 +213,6 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 
 		load_plugin_textdomain( 'wp-tests-domain' );
 
-		set_current_screen( 'front' );
-
 		$this->assertSame( get_user_locale(), $this->locale );
 	}
 
@@ -241,8 +230,6 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		wp_set_current_user( self::$user_id );
 
 		load_theme_textdomain( 'wp-tests-domain' );
-
-		set_current_screen( 'front' );
 
 		$this->assertSame( get_user_locale(), $this->locale );
 	}

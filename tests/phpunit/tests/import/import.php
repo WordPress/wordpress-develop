@@ -6,8 +6,8 @@ require_once __DIR__ . '/base.php';
  * @group import
  */
 class Tests_Import_Import extends WP_Import_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		if ( ! defined( 'WP_IMPORTING' ) ) {
 			define( 'WP_IMPORTING', true );
@@ -33,13 +33,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		}
 	}
 
-	function tearDown() {
-		remove_filter( 'import_allow_create_users', '__return_true' );
-
-		parent::tearDown();
-	}
-
-	function test_small_import() {
+	public function test_small_import() {
 		global $wpdb;
 
 		$authors = array(
@@ -91,7 +85,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 				'orderby'     => 'ID',
 			)
 		);
-		$this->assertSame( 11, count( $posts ) );
+		$this->assertCount( 11, $posts );
 
 		$post = $posts[0];
 		$this->assertSame( 'Many Categories', $post->post_title );
@@ -101,7 +95,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID );
-		$this->assertSame( 27, count( $cats ) );
+		$this->assertCount( 27, $cats );
 
 		$post = $posts[1];
 		$this->assertSame( 'Non-standard post format', $post->post_title );
@@ -111,7 +105,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 		$this->assertTrue( has_post_format( 'aside', $post->ID ) );
 
 		$post = $posts[2];
@@ -122,7 +116,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID, array( 'fields' => 'all' ) );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 		$this->assertSame( 'foo', $cats[0]->slug );
 
 		$post = $posts[3];
@@ -133,7 +127,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID, array( 'fields' => 'all' ) );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 		$this->assertSame( 'foo-bar', $cats[0]->slug );
 
 		$post = $posts[4];
@@ -144,9 +138,9 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'private', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 		$tags = wp_get_post_tags( $post->ID );
-		$this->assertSame( 3, count( $tags ) );
+		$this->assertCount( 3, $tags );
 		$this->assertSame( 'tag1', $tags[0]->slug );
 		$this->assertSame( 'tag2', $tags[1]->slug );
 		$this->assertSame( 'tag3', $tags[2]->slug );
@@ -204,10 +198,10 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 	}
 
-	function test_double_import() {
+	public function test_double_import() {
 		$authors = array(
 			'admin'  => false,
 			'editor' => false,
@@ -248,7 +242,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 1, $comment_count->total_comments );
 	}
 
-	function test_ordering_of_importers() {
+	public function test_ordering_of_importers() {
 		global $wp_importers;
 		$_wp_importers = $wp_importers; // Preserve global state.
 		$wp_importers  = array(

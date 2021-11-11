@@ -25,8 +25,8 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$post_id = self::factory()->post->create();
 		self::factory()->comment->create_post_comments( $post_id, 5 );
 		$this->_comment_post = get_post( $post_id );
@@ -80,7 +80,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 33154
 	 */
-	function test_editor_can_edit_orphan_comments() {
+	public function test_editor_can_edit_orphan_comments() {
 		global $wpdb;
 
 		// Become an editor.

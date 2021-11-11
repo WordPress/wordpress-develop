@@ -10,9 +10,9 @@ require ABSPATH . WPINC . '/option.php';
 /**
  * Convert given MySQL date string into a different format.
  *
- * `$format` should be a PHP date format string.
- * 'U' and 'G' formats will return a sum of timestamp with timezone offset.
- * `$date` is expected to be local time in MySQL format (`Y-m-d H:i:s`).
+ *  - `$format` should be a PHP date format string.
+ *  - 'U' and 'G' formats will return an integer sum of timestamp with timezone offset.
+ *  - `$date` is expected to be local time in MySQL format (`Y-m-d H:i:s`).
  *
  * Historically UTC time could be passed to the function to produce Unix timestamp.
  *
@@ -24,7 +24,7 @@ require ABSPATH . WPINC . '/option.php';
  * @param string $format    Format of the date to return.
  * @param string $date      Date string to convert.
  * @param bool   $translate Whether the return date should be translated. Default true.
- * @return string|int|false Formatted date string or sum of Unix timestamp and timezone offset.
+ * @return string|int|false Integer if `$format` is 'U' or 'G', string otherwise.
  *                          False on failure.
  */
 function mysql2date( $format, $date, $translate = true ) {
@@ -53,20 +53,21 @@ function mysql2date( $format, $date, $translate = true ) {
 /**
  * Retrieves the current time based on specified type.
  *
- * The 'mysql' type will return the time in the format for MySQL DATETIME field.
- * The 'timestamp' type will return the current timestamp or a sum of timestamp
- * and timezone offset, depending on `$gmt`.
- * Other strings will be interpreted as PHP date formats (e.g. 'Y-m-d').
+ *  - The 'mysql' type will return the time in the format for MySQL DATETIME field.
+ *  - The 'timestamp' or 'U' types will return the current timestamp or a sum of timestamp
+ *    and timezone offset, depending on `$gmt`.
+ *  - Other strings will be interpreted as PHP date formats (e.g. 'Y-m-d').
  *
- * If $gmt is set to either '1' or 'true', then both types will use GMT time.
- * if $gmt is false, the output is adjusted with the GMT offset in the WordPress option.
+ * If `$gmt` is a truthy value then both types will use GMT time, otherwise the
+ * output is adjusted with the GMT offset for the site.
  *
  * @since 1.0.0
+ * @since 5.3.0 Now returns an integer if `$type` is 'U'. Previously a string was returned.
  *
- * @param string   $type Type of time to retrieve. Accepts 'mysql', 'timestamp',
+ * @param string   $type Type of time to retrieve. Accepts 'mysql', 'timestamp', 'U',
  *                       or PHP date format string (e.g. 'Y-m-d').
  * @param int|bool $gmt  Optional. Whether to use GMT timezone. Default false.
- * @return int|string Integer if $type is 'timestamp', string otherwise.
+ * @return int|string Integer if `$type` is 'timestamp' or 'U', string otherwise.
  */
 function current_time( $type, $gmt = 0 ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.
@@ -85,7 +86,7 @@ function current_time( $type, $gmt = 0 ) {
 }
 
 /**
- * Retrieves the current time as an object with the timezone from settings.
+ * Retrieves the current time as an object using the site's timezone.
  *
  * @since 5.3.0
  *
@@ -96,14 +97,23 @@ function current_datetime() {
 }
 
 /**
- * Retrieves the timezone from site settings as a string.
+ * Retrieves the timezone of the site as a string.
  *
- * Uses the `timezone_string` option to get a proper timezone if available,
- * otherwise falls back to an offset.
+ * Uses the `timezone_string` option to get a proper timezone name if available,
+ * otherwise falls back to a manual UTC ± offset.
+ *
+ * Example return values:
+ *
+ *  - 'Europe/Rome'
+ *  - 'America/North_Dakota/New_Salem'
+ *  - 'UTC'
+ *  - '-06:30'
+ *  - '+00:00'
+ *  - '+08:45'
  *
  * @since 5.3.0
  *
- * @return string PHP timezone string or a ±HH:MM offset.
+ * @return string PHP timezone name or a ±HH:MM offset.
  */
 function wp_timezone_string() {
 	$timezone_string = get_option( 'timezone_string' );
@@ -125,7 +135,7 @@ function wp_timezone_string() {
 }
 
 /**
- * Retrieves the timezone from site settings as a `DateTimeZone` object.
+ * Retrieves the timezone of the site as a `DateTimeZone` object.
  *
  * Timezone can be based on a PHP timezone string or a ±HH:MM offset.
  *
@@ -167,6 +177,7 @@ function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
 
 	// If timestamp is omitted it should be current time (summed with offset, unless `$gmt` is true).
 	if ( ! is_numeric( $timestamp ) ) {
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
 		$timestamp = current_time( 'timestamp', $gmt );
 	}
 
@@ -217,6 +228,8 @@ function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
  * with timezone offset.
  *
  * @since 5.3.0
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
  * @param string       $format    PHP date format.
  * @param int          $timestamp Optional. Unix timestamp. Defaults to current time.
@@ -552,7 +565,12 @@ function human_readable_duration( $duration = '' ) {
  *
  * @param string     $mysqlstring   Date or datetime field type from MySQL.
  * @param int|string $start_of_week Optional. Start of the week as an integer. Default empty string.
- * @return array Keys are 'start' and 'end'.
+ * @return int[] {
+ *     Week start and end dates as Unix timestamps.
+ *
+ *     @type int $start The week start date as a Unix timestamp.
+ *     @type int $end   The week end date as a Unix timestamp.
+ * }
  */
 function get_weekstartend( $mysqlstring, $start_of_week = '' ) {
 	// MySQL string year.
@@ -1530,7 +1548,7 @@ function get_num_queries() {
  * @since 1.0.0
  *
  * @param string $yn Character string containing either 'y' (yes) or 'n' (no).
- * @return bool True if yes, false on anything else.
+ * @return bool True if 'y', false on anything else.
  */
 function bool_from_yn( $yn ) {
 	return ( 'y' === strtolower( $yn ) );
@@ -1568,7 +1586,13 @@ function do_feed() {
 	 * Fires once the given feed is loaded.
 	 *
 	 * The dynamic portion of the hook name, `$feed`, refers to the feed template name.
-	 * Possible values include: 'rdf', 'rss', 'rss2', and 'atom'.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `do_feed_atom`
+	 *  - `do_feed_rdf`
+	 *  - `do_feed_rss`
+	 *  - `do_feed_rss2`
 	 *
 	 * @since 2.1.0
 	 * @since 4.4.0 The `$feed` parameter was added.
@@ -2479,6 +2503,10 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 	$filename = sanitize_file_name( $filename );
 	$ext2     = null;
 
+	// Initialize vars used in the wp_unique_filename filter.
+	$number        = '';
+	$alt_filenames = array();
+
 	// Separate the filename into a name and extension.
 	$ext  = pathinfo( $filename, PATHINFO_EXTENSION );
 	$name = pathinfo( $filename, PATHINFO_BASENAME );
@@ -2499,8 +2527,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 	if ( $unique_filename_callback && is_callable( $unique_filename_callback ) ) {
 		$filename = call_user_func( $unique_filename_callback, $dir, $name, $ext );
 	} else {
-		$number = '';
-		$fname  = pathinfo( $filename, PATHINFO_FILENAME );
+		$fname = pathinfo( $filename, PATHINFO_FILENAME );
 
 		// Always append a number to file names that can potentially match image sub-size file names.
 		if ( $fname && preg_match( '/-(?:\d+x\d+|scaled|rotated)$/', $fname ) ) {
@@ -2510,37 +2537,54 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 			$filename = str_replace( "{$fname}{$ext}", "{$fname}-{$number}{$ext}", $filename );
 		}
 
-		// Change '.ext' to lower case.
-		if ( $ext && strtolower( $ext ) != $ext ) {
-			$ext2      = strtolower( $ext );
-			$filename2 = preg_replace( '|' . preg_quote( $ext ) . '$|', $ext2, $filename );
+		// Get the mime type. Uploaded files were already checked with wp_check_filetype_and_ext()
+		// in _wp_handle_upload(). Using wp_check_filetype() would be sufficient here.
+		$file_type = wp_check_filetype( $filename );
+		$mime_type = $file_type['type'];
 
-			// Check for both lower and upper case extension or image sub-sizes may be overwritten.
-			while ( file_exists( $dir . "/{$filename}" ) || file_exists( $dir . "/{$filename2}" ) ) {
-				$new_number = (int) $number + 1;
-				$filename   = str_replace( array( "-{$number}{$ext}", "{$number}{$ext}" ), "-{$new_number}{$ext}", $filename );
-				$filename2  = str_replace( array( "-{$number}{$ext2}", "{$number}{$ext2}" ), "-{$new_number}{$ext2}", $filename2 );
-				$number     = $new_number;
+		$is_image    = ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) );
+		$upload_dir  = wp_get_upload_dir();
+		$lc_filename = null;
+
+		$lc_ext = strtolower( $ext );
+		$_dir   = trailingslashit( $dir );
+
+		// If the extension is uppercase add an alternate file name with lowercase extension. Both need to be tested
+		// for uniqueness as the extension will be changed to lowercase for better compatibility with different filesystems.
+		// Fixes an inconsistency in WP < 2.9 where uppercase extensions were allowed but image sub-sizes were created with
+		// lowercase extensions.
+		if ( $ext && $lc_ext !== $ext ) {
+			$lc_filename = preg_replace( '|' . preg_quote( $ext ) . '$|', $lc_ext, $filename );
+		}
+
+		// Increment the number added to the file name if there are any files in $dir whose names match one of the
+		// possible name variations.
+		while ( file_exists( $_dir . $filename ) || ( $lc_filename && file_exists( $_dir . $lc_filename ) ) ) {
+			$new_number = (int) $number + 1;
+
+			if ( $lc_filename ) {
+				$lc_filename = str_replace( array( "-{$number}{$lc_ext}", "{$number}{$lc_ext}" ), "-{$new_number}{$lc_ext}", $lc_filename );
 			}
 
-			$filename = $filename2;
-		} else {
-			while ( file_exists( $dir . "/{$filename}" ) ) {
-				$new_number = (int) $number + 1;
-
-				if ( '' === "{$number}{$ext}" ) {
-					$filename = "{$filename}-{$new_number}";
-				} else {
-					$filename = str_replace( array( "-{$number}{$ext}", "{$number}{$ext}" ), "-{$new_number}{$ext}", $filename );
-				}
-
-				$number = $new_number;
+			if ( '' === "{$number}{$ext}" ) {
+				$filename = "{$filename}-{$new_number}";
+			} else {
+				$filename = str_replace( array( "-{$number}{$ext}", "{$number}{$ext}" ), "-{$new_number}{$ext}", $filename );
 			}
+
+			$number = $new_number;
+		}
+
+		// Change the extension to lowercase if needed.
+		if ( $lc_filename ) {
+			$filename = $lc_filename;
 		}
 
 		// Prevent collisions with existing file names that contain dimension-like strings
 		// (whether they are subsizes or originals uploaded prior to #42437).
-		$upload_dir = wp_get_upload_dir();
+
+		$files = array();
+		$count = 10000;
 
 		// The (resized) image files would have name and extension, and will be in the uploads dir.
 		if ( $name && $ext && @is_dir( $dir ) && false !== strpos( $dir, $upload_dir['basedir'] ) ) {
@@ -2570,18 +2614,78 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 			}
 
 			if ( ! empty( $files ) ) {
-				// The extension case may have changed above.
-				$new_ext = ! empty( $ext2 ) ? $ext2 : $ext;
+				$count = count( $files );
 
 				// Ensure this never goes into infinite loop
 				// as it uses pathinfo() and regex in the check, but string replacement for the changes.
-				$count = count( $files );
-				$i     = 0;
+				$i = 0;
 
 				while ( $i <= $count && _wp_check_existing_file_names( $filename, $files ) ) {
 					$new_number = (int) $number + 1;
-					$filename   = str_replace( array( "-{$number}{$new_ext}", "{$number}{$new_ext}" ), "-{$new_number}{$new_ext}", $filename );
-					$number     = $new_number;
+
+					// If $ext is uppercase it was replaced with the lowercase version after the previous loop.
+					$filename = str_replace( array( "-{$number}{$lc_ext}", "{$number}{$lc_ext}" ), "-{$new_number}{$lc_ext}", $filename );
+
+					$number = $new_number;
+					$i++;
+				}
+			}
+		}
+
+		// Check if an image will be converted after uploading or some existing images sub-sizes file names may conflict
+		// when regenerated. If yes, ensure the new file name will be unique and will produce unique sub-sizes.
+		if ( $is_image ) {
+			/** This filter is documented in wp-includes/class-wp-image-editor.php */
+			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type );
+			$alt_types      = array();
+
+			if ( ! empty( $output_formats[ $mime_type ] ) ) {
+				// The image will be converted to this format/mime type.
+				$alt_mime_type = $output_formats[ $mime_type ];
+
+				// Other types of images whose names may conflict if their sub-sizes are regenerated.
+				$alt_types   = array_keys( array_intersect( $output_formats, array( $mime_type, $alt_mime_type ) ) );
+				$alt_types[] = $alt_mime_type;
+			} elseif ( ! empty( $output_formats ) ) {
+				$alt_types = array_keys( array_intersect( $output_formats, array( $mime_type ) ) );
+			}
+
+			// Remove duplicates and the original mime type. It will be added later if needed.
+			$alt_types = array_unique( array_diff( $alt_types, array( $mime_type ) ) );
+
+			foreach ( $alt_types as $alt_type ) {
+				$alt_ext = wp_get_default_extension_for_mime_type( $alt_type );
+
+				if ( ! $alt_ext ) {
+					continue;
+				}
+
+				$alt_ext      = ".{$alt_ext}";
+				$alt_filename = preg_replace( '|' . preg_quote( $lc_ext ) . '$|', $alt_ext, $filename );
+
+				$alt_filenames[ $alt_ext ] = $alt_filename;
+			}
+
+			if ( ! empty( $alt_filenames ) ) {
+				// Add the original filename. It needs to be checked again together with the alternate filenames
+				// when $number is incremented.
+				$alt_filenames[ $lc_ext ] = $filename;
+
+				// Ensure no infinite loop.
+				$i = 0;
+
+				while ( $i <= $count && _wp_check_alternate_file_names( $alt_filenames, $_dir, $files ) ) {
+					$new_number = (int) $number + 1;
+
+					foreach ( $alt_filenames as $alt_ext => $alt_filename ) {
+						$alt_filenames[ $alt_ext ] = str_replace( array( "-{$number}{$alt_ext}", "{$number}{$alt_ext}" ), "-{$new_number}{$alt_ext}", $alt_filename );
+					}
+
+					// Also update the $number in (the output) $filename.
+					// If the extension was uppercase it was already replaced with the lowercase version.
+					$filename = str_replace( array( "-{$number}{$lc_ext}", "{$number}{$lc_ext}" ), "-{$new_number}{$lc_ext}", $filename );
+
+					$number = $new_number;
 					$i++;
 				}
 			}
@@ -2592,13 +2696,42 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 	 * Filters the result when generating a unique file name.
 	 *
 	 * @since 4.5.0
+	 * @since 5.8.1 The `$alt_filenames` and `$number` parameters were added.
 	 *
 	 * @param string        $filename                 Unique file name.
 	 * @param string        $ext                      File extension, eg. ".png".
 	 * @param string        $dir                      Directory path.
 	 * @param callable|null $unique_filename_callback Callback function that generates the unique file name.
+	 * @param string[]      $alt_filenames            Array of alternate file names that were checked for collisions.
+	 * @param int|string    $number                   The highest number that was used to make the file name unique
+	 *                                                or an empty string if unused.
 	 */
-	return apply_filters( 'wp_unique_filename', $filename, $ext, $dir, $unique_filename_callback );
+	return apply_filters( 'wp_unique_filename', $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number );
+}
+
+/**
+ * Helper function to test if each of an array of file names could conflict with existing files.
+ *
+ * @since 5.8.1
+ * @access private
+ *
+ * @param string[] $filenames Array of file names to check.
+ * @param string   $dir       The directory containing the files.
+ * @param array    $files     An array of existing files in the directory. May be empty.
+ * @return bool True if the tested file name could match an existing file, false otherwise.
+ */
+function _wp_check_alternate_file_names( $filenames, $dir, $files ) {
+	foreach ( $filenames as $filename ) {
+		if ( file_exists( $dir . $filename ) ) {
+			return true;
+		}
+
+		if ( ! empty( $files ) && _wp_check_existing_file_names( $filename, $files ) ) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -2676,7 +2809,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 
 	$wp_filetype = wp_check_filetype( $name );
 	if ( ! $wp_filetype['ext'] && ! current_user_can( 'unfiltered_upload' ) ) {
-		return array( 'error' => __( 'Sorry, this file type is not permitted for security reasons.' ) );
+		return array( 'error' => __( 'Sorry, you are not allowed to upload this file type.' ) );
 	}
 
 	$upload = wp_upload_dir( $time );
@@ -2785,6 +2918,26 @@ function wp_ext2type( $ext ) {
 }
 
 /**
+ * Returns first matched extension for the mime-type,
+ * as mapped from wp_get_mime_types().
+ *
+ * @since 5.8.1
+ *
+ * @param string $mime_type
+ *
+ * @return string|false
+ */
+function wp_get_default_extension_for_mime_type( $mime_type ) {
+	$extensions = explode( '|', array_search( $mime_type, wp_get_mime_types(), true ) );
+
+	if ( empty( $extensions[0] ) ) {
+		return false;
+	}
+
+	return $extensions[0];
+}
+
+/**
  * Retrieve the file type from the file name.
  *
  * You can optionally define the mime array, if needed.
@@ -2880,6 +3033,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'image/gif'  => 'gif',
 					'image/bmp'  => 'bmp',
 					'image/tiff' => 'tif',
+					'image/webp' => 'webp',
 				)
 			);
 
@@ -3037,6 +3191,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
  * This depends on exif_imagetype() or getimagesize() to determine real mime types.
  *
  * @since 4.7.1
+ * @since 5.8.0 Added support for WebP images.
  *
  * @param string $file Full path to the file.
  * @return string|false The actual mime type or false if the type cannot be determined.
@@ -3052,11 +3207,52 @@ function wp_get_image_mime( $file ) {
 			$imagetype = exif_imagetype( $file );
 			$mime      = ( $imagetype ) ? image_type_to_mime_type( $imagetype ) : false;
 		} elseif ( function_exists( 'getimagesize' ) ) {
-			$imagesize = wp_getimagesize( $file );
-			$mime      = ( isset( $imagesize['mime'] ) ) ? $imagesize['mime'] : false;
+			// Don't silence errors when in debug mode, unless running unit tests.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG
+				&& ! defined( 'WP_RUN_CORE_TESTS' )
+			) {
+				// Not using wp_getimagesize() here to avoid an infinite loop.
+				$imagesize = getimagesize( $file );
+			} else {
+				// phpcs:ignore WordPress.PHP.NoSilencedErrors
+				$imagesize = @getimagesize( $file );
+			}
+
+			$mime = ( isset( $imagesize['mime'] ) ) ? $imagesize['mime'] : false;
 		} else {
 			$mime = false;
 		}
+
+		if ( false !== $mime ) {
+			return $mime;
+		}
+
+		$handle = fopen( $file, 'rb' );
+		if ( false === $handle ) {
+			return false;
+		}
+
+		$magic = fread( $handle, 12 );
+		if ( false === $magic ) {
+			return false;
+		}
+
+		/*
+		 * Add WebP fallback detection when image library doesn't support WebP.
+		 * Note: detection values come from LibWebP, see
+		 * https://github.com/webmproject/libwebp/blob/master/imageio/image_dec.c#L30
+		 */
+		$magic = bin2hex( $magic );
+		if (
+			// RIFF.
+			( 0 === strpos( $magic, '52494646' ) ) &&
+			// WEBP.
+			( 16 === strpos( $magic, '57454250' ) )
+		) {
+			$mime = 'image/webp';
+		}
+
+		fclose( $handle );
 	} catch ( Exception $e ) {
 		$mime = false;
 	}
@@ -3095,6 +3291,7 @@ function wp_get_mime_types() {
 			'png'                          => 'image/png',
 			'bmp'                          => 'image/bmp',
 			'tiff|tif'                     => 'image/tiff',
+			'webp'                         => 'image/webp',
 			'ico'                          => 'image/x-icon',
 			'heic'                         => 'image/heic',
 			// Video formats.
@@ -3216,7 +3413,7 @@ function wp_get_ext_types() {
 	return apply_filters(
 		'ext2type',
 		array(
-			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic' ),
+			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic', 'webp' ),
 			'audio'       => array( 'aac', 'ac3', 'aif', 'aiff', 'flac', 'm3a', 'm4a', 'm4b', 'mka', 'mp1', 'mp2', 'mp3', 'ogg', 'oga', 'ram', 'wav', 'wma' ),
 			'video'       => array( '3g2', '3gp', '3gpp', 'asf', 'avi', 'divx', 'dv', 'flv', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'mpv', 'ogm', 'ogv', 'qt', 'rm', 'vob', 'wmv' ),
 			'document'    => array( 'doc', 'docx', 'docm', 'dotm', 'odt', 'pages', 'pdf', 'xps', 'oxps', 'rtf', 'wp', 'wpd', 'psd', 'xcf' ),
@@ -3376,9 +3573,9 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $function Callback function name.
 		 */
 		$function = apply_filters( 'wp_die_json_handler', '_json_wp_die_handler' );
-	} elseif ( wp_is_jsonp_request() ) {
+	} elseif ( defined( 'REST_REQUEST' ) && REST_REQUEST && wp_is_jsonp_request() ) {
 		/**
-		 * Filters the callback for killing WordPress execution for JSONP requests.
+		 * Filters the callback for killing WordPress execution for JSONP REST requests.
 		 *
 		 * @since 5.2.0
 		 *
@@ -4215,6 +4412,54 @@ function wp_check_jsonp_callback( $callback ) {
 }
 
 /**
+ * Reads and decodes a JSON file.
+ *
+ * @since 5.9.0
+ *
+ * @param string $filename Path to the JSON file.
+ * @param array  $options  {
+ *     Optional. Options to be used with `json_decode()`.
+ *
+ *     @type bool associative Optional. When `true`, JSON objects will be returned as associative arrays.
+ *                            When `false`, JSON objects will be returned as objects.
+ * }
+ *
+ * @return mixed Returns the value encoded in JSON in appropriate PHP type.
+ *               `null` is returned if the file is not found, or its content can't be decoded.
+ */
+function wp_json_file_decode( $filename, $options = array() ) {
+	$result   = null;
+	$filename = wp_normalize_path( realpath( $filename ) );
+	if ( ! file_exists( $filename ) ) {
+		trigger_error(
+			sprintf(
+				/* translators: %s: Path to the JSON file. */
+				__( "File %s doesn't exist!" ),
+				$filename
+			)
+		);
+		return $result;
+	}
+
+	$options      = wp_parse_args( $options, array( 'associative' => false ) );
+	$decoded_file = json_decode( file_get_contents( $filename ), $options['associative'] );
+
+	if ( JSON_ERROR_NONE !== json_last_error() ) {
+		trigger_error(
+			sprintf(
+				/* translators: 1: Path to the JSON file, 2: Error message. */
+				__( 'Error when decoding a JSON file at path %1$s: %2$s' ),
+				$filename,
+				json_last_error_msg()
+			)
+		);
+		return $result;
+	}
+
+	return $decoded_file;
+}
+
+/**
  * Retrieve the WordPress home page URL.
  *
  * If the constant named 'WP_HOME' exists, then it will be used and returned
@@ -4483,6 +4728,7 @@ function wp_parse_list( $list ) {
  * Cleans up an array, comma- or space-separated list of IDs.
  *
  * @since 3.0.0
+ * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param array|string $list List of IDs.
  * @return int[] Sanitized array of IDs.
@@ -4497,6 +4743,7 @@ function wp_parse_id_list( $list ) {
  * Cleans up an array, comma- or space-separated list of slugs.
  *
  * @since 4.7.0
+ * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param array|string $list List of slugs.
  * @return string[] Sanitized array of slugs.
@@ -4543,7 +4790,7 @@ function wp_array_slice_assoc( $array, $keys ) {
  *             ),
  *         ),
  *     );
- *     _wp_array_get( $array, array( 'a', 'b', 'c' );
+ *     _wp_array_get( $array, array( 'a', 'b', 'c' ) );
  *
  * @internal
  *
@@ -4577,6 +4824,152 @@ function _wp_array_get( $array, $path, $default = null ) {
 }
 
 /**
+ * Sets an array in depth based on a path of keys.
+ *
+ * It is the PHP equivalent of JavaScript's `lodash.set()` and mirroring it may help other components
+ * retain some symmetry between client and server implementations.
+ *
+ * Example usage:
+ *
+ *     $array = array();
+ *     _wp_array_set( $array, array( 'a', 'b', 'c', 1 ) );
+ *
+ *     $array becomes:
+ *     array(
+ *         'a' => array(
+ *             'b' => array(
+ *                 'c' => 1,
+ *             ),
+ *         ),
+ *     );
+ *
+ * @internal
+ *
+ * @since 5.8.0
+ * @access private
+ *
+ * @param array $array An array that we want to mutate to include a specific value in a path.
+ * @param array $path  An array of keys describing the path that we want to mutate.
+ * @param mixed $value The value that will be set.
+ */
+function _wp_array_set( &$array, $path, $value = null ) {
+	// Confirm $array is valid.
+	if ( ! is_array( $array ) ) {
+		return;
+	}
+
+	// Confirm $path is valid.
+	if ( ! is_array( $path ) ) {
+		return;
+	}
+
+	$path_length = count( $path );
+
+	if ( 0 === $path_length ) {
+		return;
+	}
+
+	foreach ( $path as $path_element ) {
+		if (
+			! is_string( $path_element ) && ! is_integer( $path_element ) &&
+			! is_null( $path_element )
+		) {
+			return;
+		}
+	}
+
+	for ( $i = 0; $i < $path_length - 1; ++$i ) {
+		$path_element = $path[ $i ];
+		if (
+			! array_key_exists( $path_element, $array ) ||
+			! is_array( $array[ $path_element ] )
+		) {
+			$array[ $path_element ] = array();
+		}
+		$array = &$array[ $path_element ]; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.VariableRedeclaration
+	}
+
+	$array[ $path[ $i ] ] = $value;
+}
+
+/**
+ * This function is trying to replicate what
+ * lodash's kebabCase (JS library) does in the client.
+ *
+ * The reason we need this function is that we do some processing
+ * in both the client and the server (e.g.: we generate
+ * preset classes from preset slugs) that needs to
+ * create the same output.
+ *
+ * We can't remove or update the client's library due to backward compatibility
+ * (some of the output of lodash's kebabCase is saved in the post content).
+ * We have to make the server behave like the client.
+ *
+ * Changes to this function should follow updates in the client
+ * with the same logic.
+ *
+ * @link https://github.com/lodash/lodash/blob/4.17/dist/lodash.js#L14369
+ * @link https://github.com/lodash/lodash/blob/4.17/dist/lodash.js#L278
+ * @link https://github.com/lodash-php/lodash-php/blob/master/src/String/kebabCase.php
+ * @link https://github.com/lodash-php/lodash-php/blob/master/src/internal/unicodeWords.php
+ *
+ * @param string $string The string to kebab-case.
+ *
+ * @return string kebab-cased-string.
+ */
+function _wp_to_kebab_case( $string ) {
+	//phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+	// ignore the camelCase names for variables so the names are the same as lodash
+	// so comparing and porting new changes is easier.
+
+	/*
+	 * Some notable things we've removed compared to the lodash version are:
+	 *
+	 * - non-alphanumeric characters: rsAstralRange, rsEmoji, etc
+	 * - the groups that processed the apostrophe, as it's removed before passing the string to preg_match: rsApos, rsOptContrLower, and rsOptContrUpper
+	 *
+	 */
+
+	/** Used to compose unicode character classes. */
+	$rsLowerRange       = 'a-z\\xdf-\\xf6\\xf8-\\xff';
+	$rsNonCharRange     = '\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf';
+	$rsPunctuationRange = '\\x{2000}-\\x{206f}';
+	$rsSpaceRange       = ' \\t\\x0b\\f\\xa0\\x{feff}\\n\\r\\x{2028}\\x{2029}\\x{1680}\\x{180e}\\x{2000}\\x{2001}\\x{2002}\\x{2003}\\x{2004}\\x{2005}\\x{2006}\\x{2007}\\x{2008}\\x{2009}\\x{200a}\\x{202f}\\x{205f}\\x{3000}';
+	$rsUpperRange       = 'A-Z\\xc0-\\xd6\\xd8-\\xde';
+	$rsBreakRange       = $rsNonCharRange . $rsPunctuationRange . $rsSpaceRange;
+
+	/** Used to compose unicode capture groups. */
+	$rsBreak  = '[' . $rsBreakRange . ']';
+	$rsDigits = '\\d+'; // The last lodash version in GitHub uses a single digit here and expands it when in use.
+	$rsLower  = '[' . $rsLowerRange . ']';
+	$rsMisc   = '[^' . $rsBreakRange . $rsDigits . $rsLowerRange . $rsUpperRange . ']';
+	$rsUpper  = '[' . $rsUpperRange . ']';
+
+	/** Used to compose unicode regexes. */
+	$rsMiscLower = '(?:' . $rsLower . '|' . $rsMisc . ')';
+	$rsMiscUpper = '(?:' . $rsUpper . '|' . $rsMisc . ')';
+	$rsOrdLower  = '\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])';
+	$rsOrdUpper  = '\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])';
+
+	$regexp = '/' . implode(
+		'|',
+		array(
+			$rsUpper . '?' . $rsLower . '+' . '(?=' . implode( '|', array( $rsBreak, $rsUpper, '$' ) ) . ')',
+			$rsMiscUpper . '+' . '(?=' . implode( '|', array( $rsBreak, $rsUpper . $rsMiscLower, '$' ) ) . ')',
+			$rsUpper . '?' . $rsMiscLower . '+',
+			$rsUpper . '+',
+			$rsOrdUpper,
+			$rsOrdLower,
+			$rsDigits,
+		)
+	) . '/u';
+
+	preg_match_all( $regexp, str_replace( "'", '', $string ), $matches );
+	return strtolower( implode( '-', $matches[0] ) );
+	//phpcs:enable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+}
+
+/**
  * Determines if the variable is a numeric-indexed array.
  *
  * @since 4.4.0
@@ -4598,18 +4991,29 @@ function wp_is_numeric_array( $data ) {
 /**
  * Filters a list of objects, based on a set of key => value arguments.
  *
+ * Retrieves the objects from the list that match the given arguments.
+ * Key represents property name, and value represents property value.
+ *
+ * If an object has more properties than those specified in arguments,
+ * that will not disqualify it. When using the 'AND' operator,
+ * any missing properties will disqualify it.
+ *
+ * When using the `$field` argument, this function can also retrieve
+ * a particular field from all matching objects, whereas wp_list_filter()
+ * only does the filtering.
+ *
  * @since 3.0.0
  * @since 4.7.0 Uses `WP_List_Util` class.
  *
- * @param array       $list     An array of objects to filter
+ * @param array       $list     An array of objects to filter.
  * @param array       $args     Optional. An array of key => value arguments to match
  *                              against each object. Default empty array.
- * @param string      $operator Optional. The logical operation to perform. 'or' means
- *                              only one element from the array needs to match; 'and'
- *                              means all elements must match; 'not' means no elements may
- *                              match. Default 'and'.
- * @param bool|string $field    A field from the object to place instead of the entire object.
- *                              Default false.
+ * @param string      $operator Optional. The logical operation to perform. 'AND' means
+ *                              all elements from the array must match. 'OR' means only
+ *                              one element needs to match. 'NOT' means no elements may
+ *                              match. Default 'AND'.
+ * @param bool|string $field    Optional. A field from the object to place instead
+ *                              of the entire object. Default false.
  * @return array A list of objects or object fields.
  */
 function wp_filter_object_list( $list, $args = array(), $operator = 'and', $field = false ) {
@@ -4631,6 +5035,16 @@ function wp_filter_object_list( $list, $args = array(), $operator = 'and', $fiel
 /**
  * Filters a list of objects, based on a set of key => value arguments.
  *
+ * Retrieves the objects from the list that match the given arguments.
+ * Key represents property name, and value represents property value.
+ *
+ * If an object has more properties than those specified in arguments,
+ * that will not disqualify it. When using the 'AND' operator,
+ * any missing properties will disqualify it.
+ *
+ * If you want to retrieve a particular field from all matching objects,
+ * use wp_filter_object_list() instead.
+ *
  * @since 3.1.0
  * @since 4.7.0 Uses `WP_List_Util` class.
  *
@@ -4649,6 +5063,7 @@ function wp_list_filter( $list, $args = array(), $operator = 'AND' ) {
 	}
 
 	$util = new WP_List_Util( $list );
+
 	return $util->filter( $args, $operator );
 }
 
@@ -4662,8 +5077,8 @@ function wp_list_filter( $list, $args = array(), $operator = 'AND' ) {
  * @since 4.0.0 $index_key parameter added.
  * @since 4.7.0 Uses `WP_List_Util` class.
  *
- * @param array      $list      List of objects or arrays
- * @param int|string $field     Field from the object to place instead of the entire object
+ * @param array      $list      List of objects or arrays.
+ * @param int|string $field     Field from the object to place instead of the entire object.
  * @param int|string $index_key Optional. Field from the object to use as keys for the new array.
  *                              Default null.
  * @return array Array of found values. If `$index_key` is set, an array of found values with keys
@@ -4672,6 +5087,7 @@ function wp_list_filter( $list, $args = array(), $operator = 'AND' ) {
  */
 function wp_list_pluck( $list, $field, $index_key = null ) {
 	$util = new WP_List_Util( $list );
+
 	return $util->pluck( $field, $index_key );
 }
 
@@ -4694,6 +5110,7 @@ function wp_list_sort( $list, $orderby = array(), $order = 'ASC', $preserve_keys
 	}
 
 	$util = new WP_List_Util( $list );
+
 	return $util->sort( $orderby, $order, $preserve_keys );
 }
 
@@ -5436,6 +5853,10 @@ function iis7_supports_permalinks() {
  * @return int 0 means nothing is wrong, greater than 0 means something was wrong.
  */
 function validate_file( $file, $allowed_files = array() ) {
+	if ( ! is_scalar( $file ) || '' === $file ) {
+		return 0;
+	}
+
 	// `../` on its own is not allowed:
 	if ( '../' === $file ) {
 		return 1;
@@ -6142,7 +6563,7 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 	}
 
 	foreach ( $all_headers as $field => $regex ) {
-		if ( preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
+		if ( preg_match( '/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
 			$all_headers[ $field ] = _cleanup_header_comment( $match[1] );
 		} else {
 			$all_headers[ $field ] = '';
@@ -6743,7 +7164,13 @@ function mbstring_binary_safe_encoding( $reset = false ) {
 	static $overloaded = null;
 
 	if ( is_null( $overloaded ) ) {
-		$overloaded = function_exists( 'mb_internal_encoding' ) && ( ini_get( 'mbstring.func_overload' ) & 2 ); // phpcs:ignore PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated
+		if ( function_exists( 'mb_internal_encoding' )
+			&& ( (int) ini_get( 'mbstring.func_overload' ) & 2 ) // phpcs:ignore PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated
+		) {
+			$overloaded = true;
+		} else {
+			$overloaded = false;
+		}
 	}
 
 	if ( false === $overloaded ) {
@@ -7207,6 +7634,10 @@ All at ###SITENAME###
  * @return string  The anonymized IP address.
  */
 function wp_privacy_anonymize_ip( $ip_addr, $ipv6_fallback = false ) {
+	if ( empty( $ip_addr ) ) {
+		return '0.0.0.0';
+	}
+
 	// Detect what kind of IP address this is.
 	$ip_prefix = '';
 	$is_ipv6   = substr_count( $ip_addr, ':' ) > 1;
@@ -7705,8 +8136,9 @@ function get_dirsize( $directory, $max_execution_time = null ) {
  * @param string       $directory          Full path of a directory.
  * @param string|array $exclude            Optional. Full path of a subdirectory to exclude from the total,
  *                                         or array of paths. Expected without trailing slash(es).
- * @param int          $max_execution_time Maximum time to run before giving up. In seconds. The timeout is global
- *                                         and is measured from the moment WordPress started to load.
+ * @param int          $max_execution_time Optional. Maximum time to run before giving up. In seconds.
+ *                                         The timeout is global and is measured from the moment
+ *                                         WordPress started to load.
  * @param array        $directory_cache    Optional. Array of cached directory paths.
  *
  * @return int|false|null Size in bytes if a valid directory. False if not. Null if timeout.
@@ -7779,7 +8211,9 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 						}
 					}
 
-					if ( $max_execution_time > 0 && microtime( true ) - WP_START_TIMESTAMP > $max_execution_time ) {
+					if ( $max_execution_time > 0 &&
+						( microtime( true ) - WP_START_TIMESTAMP ) > $max_execution_time
+					) {
 						// Time exceeded. Give up instead of risking a fatal timeout.
 						$size = null;
 						break;
@@ -7788,6 +8222,10 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 			}
 			closedir( $handle );
 		}
+	}
+
+	if ( ! is_array( $directory_cache ) ) {
+		$directory_cache = array();
 	}
 
 	$directory_cache[ $directory ] = $size;
@@ -7806,21 +8244,50 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
  * Removes the current directory and all parent directories from the `dirsize_cache` transient.
  *
  * @since 5.6.0
+ * @since 5.9.0 Added input validation with a notice for invalid input.
  *
  * @param string $path Full path of a directory or file.
  */
 function clean_dirsize_cache( $path ) {
+	if ( ! is_string( $path ) || empty( $path ) ) {
+		trigger_error(
+			sprintf(
+				/* translators: 1: Function name, 2: A variable type, like "boolean" or "integer". */
+				__( '%1$s only accepts a non-empty path string, received %2$s.' ),
+				'<code>clean_dirsize_cache()</code>',
+				'<code>' . gettype( $path ) . '</code>'
+			)
+		);
+		return;
+	}
+
 	$directory_cache = get_transient( 'dirsize_cache' );
 
 	if ( empty( $directory_cache ) ) {
 		return;
 	}
 
-	$path = untrailingslashit( $path );
+	if (
+		strpos( $path, '/' ) === false &&
+		strpos( $path, '\\' ) === false
+	) {
+		unset( $directory_cache[ $path ] );
+		set_transient( 'dirsize_cache', $directory_cache );
+		return;
+	}
+
+	$last_path = null;
+	$path      = untrailingslashit( $path );
 	unset( $directory_cache[ $path ] );
 
-	while ( DIRECTORY_SEPARATOR !== $path && '.' !== $path && '..' !== $path ) {
-		$path = dirname( $path );
+	while (
+		$last_path !== $path &&
+		DIRECTORY_SEPARATOR !== $path &&
+		'.' !== $path &&
+		'..' !== $path
+	) {
+		$last_path = $path;
+		$path      = dirname( $path );
 		unset( $directory_cache[ $path ] );
 	}
 
@@ -7865,124 +8332,4 @@ function is_php_version_compatible( $required ) {
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
-}
-
-/**
- * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
- *
- * Automatically injects type attribute if needed.
- * Used by {@see wp_get_script_tag()} and {@see wp_get_inline_script_tag()}.
- *
- * @since 5.7.0
- *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
- * @return string String made of sanitized `<script>` tag attributes.
- */
-function wp_sanitize_script_attributes( $attributes ) {
-	$html5_script_support = ! is_admin() && ! current_theme_supports( 'html5', 'script' );
-	$attributes_string    = '';
-
-	// If HTML5 script tag is supported, only the attribute name is added
-	// to $attributes_string for entries with a boolean value, and that are true.
-	foreach ( $attributes as $attribute_name => $attribute_value ) {
-		if ( is_bool( $attribute_value ) ) {
-			if ( $attribute_value ) {
-				$attributes_string .= $html5_script_support ? sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_name ) ) : ' ' . $attribute_name;
-			}
-		} else {
-			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
-		}
-	}
-
-	return $attributes_string;
-}
-
-/**
- * Formats `<script>` loader tags.
- *
- * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_script_attributes'} filter.
- * Automatically injects type attribute if needed.
- *
- * @since 5.7.0
- *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
- * @return string String containing `<script>` opening and closing tags.
- */
-function wp_get_script_tag( $attributes ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
-	}
-	/**
-	 * Filters attributes to be added to a script tag.
-	 *
-	 * @since 5.7.0
-	 *
-	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
-	 *                          Only the attribute name is added to the `<script>` tag for
-	 *                          entries with a boolean value, and that are true.
-	 */
-	$attributes = apply_filters( 'wp_script_attributes', $attributes );
-
-	return sprintf( "<script%s></script>\n", wp_sanitize_script_attributes( $attributes ) );
-}
-
-/**
- * Prints formatted `<script>` loader tag.
- *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
- * Automatically injects type attribute if needed.
- *
- * @since 5.7.0
- *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
- */
-function wp_print_script_tag( $attributes ) {
-	echo wp_get_script_tag( $attributes );
-}
-
-/**
- * Wraps inline JavaScript in `<script>` tag.
- *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
- * Automatically injects type attribute if needed.
- *
- * @since 5.7.0
- *
- * @param string $javascript Inline JavaScript code.
- * @param array  $attributes  Optional. Key-value pairs representing `<script>` tag attributes.
- * @return string String containing inline JavaScript code wrapped around `<script>` tag.
- */
-function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
-	}
-	/**
-	 * Filters attributes to be added to a script tag.
-	 *
-	 * @since 5.7.0
-	 *
-	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
-	 *                          Only the attribute name is added to the `<script>` tag for
-	 *                          entries with a boolean value, and that are true.
-	 */
-	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
-
-	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
-
-	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $javascript );
-}
-
-/**
- * Prints inline JavaScript wrapped in `<script>` tag.
- *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
- * Automatically injects type attribute if needed.
- *
- * @since 5.7.0
- *
- * @param string $javascript Inline JavaScript code.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
- */
-function wp_print_inline_script_tag( $javascript, $attributes = array() ) {
-	echo wp_get_inline_script_tag( $javascript, $attributes );
 }
