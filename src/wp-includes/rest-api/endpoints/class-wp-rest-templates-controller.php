@@ -478,18 +478,15 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['id'] = $template->id;
 		}
 
-		if ( rest_is_field_included( 'title', $fields ) ) {
-			$data['title'] = array();
-		}
-		if ( rest_is_field_included( 'title.raw', $fields ) ) {
-			$data['title']['raw'] = $template->title;
-		}
-		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
-			$data['title']['rendered'] = $template->title;
-		}
-
 		if ( rest_is_field_included( 'theme', $fields ) ) {
 			$data['theme'] = $template->theme;
+		}
+
+		if ( rest_is_field_included( 'content', $fields ) ) {
+			$data['content'] = array();
+		}
+		if ( rest_is_field_included( 'content.raw', $fields ) ) {
+			$data['content']['raw'] = $template->content;
 		}
 
 		if ( rest_is_field_included( 'slug', $fields ) ) {
@@ -508,6 +505,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['description'] = $template->description;
 		}
 
+		if ( rest_is_field_included( 'title', $fields ) ) {
+			$data['title'] = array();
+		}
+		if ( rest_is_field_included( 'title.raw', $fields ) ) {
+			$data['title']['raw'] = $template->title;
+		}
+		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
+			$data['title']['rendered'] = $template->title;
+		}
+
 		if ( rest_is_field_included( 'status', $fields ) ) {
 			$data['status'] = $template->status;
 		}
@@ -518,13 +525,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		if ( rest_is_field_included( 'has_theme_file', $fields ) ) {
 			$data['has_theme_file'] = $template->has_theme_file;
-		}
-
-		if ( rest_is_field_included( 'content', $fields ) ) {
-			$data['content'] = array();
-		}
-		if ( rest_is_field_included( 'content.raw', $fields ) ) {
-			$data['content']['raw'] = $template->content;
 		}
 
 		if ( rest_is_field_included( 'area', $fields ) && 'wp_template_part' === $template->type ) {
@@ -661,6 +661,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'theme'          => array(
 					'description' => __( 'Theme identifier for the template.' ),
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'type'           => array(
+					'description' => __( 'Type of template.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),

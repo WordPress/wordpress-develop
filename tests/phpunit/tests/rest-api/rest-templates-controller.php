@@ -6,7 +6,15 @@
  * @subpackage REST API
  */
 
-class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase {
+/**
+ * Tests for REST API for templates.
+ *
+ * @see WP_Test_REST_Controller_Testcase
+ * @group restapi
+ *
+ * @covers WP_REST_Templates_Controller
+ */
+class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @var int
 	 */

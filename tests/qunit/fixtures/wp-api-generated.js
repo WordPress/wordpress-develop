@@ -5141,6 +5141,11 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "type": {
+                            "description": "Type of template.",
+                            "type": "string",
+                            "required": false
+                        },
                         "content": {
                             "description": "The content for the template.",
                             "type": "object",
@@ -5243,6 +5248,11 @@ mockedApiResponse.Schema = {
                         },
                         "theme": {
                             "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
                             "type": "string",
                             "required": false
                         },
@@ -5524,6 +5534,11 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "type": {
+                            "description": "Type of template.",
+                            "type": "string",
+                            "required": false
+                        },
                         "content": {
                             "description": "The content for the template.",
                             "type": "object",
@@ -5671,6 +5686,11 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "type": {
+                            "description": "Type of template.",
+                            "type": "string",
+                            "required": false
+                        },
                         "content": {
                             "description": "The content for the template.",
                             "type": "object",
@@ -5778,6 +5798,11 @@ mockedApiResponse.Schema = {
                         },
                         "theme": {
                             "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
                             "type": "string",
                             "required": false
                         },
@@ -6061,6 +6086,11 @@ mockedApiResponse.Schema = {
                         },
                         "theme": {
                             "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
                             "type": "string",
                             "required": false
                         },
