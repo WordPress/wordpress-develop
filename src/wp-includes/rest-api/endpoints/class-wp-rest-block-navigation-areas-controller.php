@@ -209,7 +209,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param stdClass        $area Post status data.
+	 * @param stdClass        $area    Post status data.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Post status data.
 	 */
@@ -247,8 +247,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 		 * returned.
 		 *
 		 * @param WP_REST_Response $response The response object.
-		 * @param object $area The original status object.
-		 * @param WP_REST_Request $request Request used to generate the response.
+		 * @param object           $area     The original status object.
+		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_navigation_area', $response, $area, $request );
 	}
