@@ -23,14 +23,21 @@ function register_navigation_areas( $new_areas ) {
 	$navigation_areas = $new_areas;
 }
 
-// Register the default navigation areas.
-register_navigation_areas(
-	array(
-		'primary'   => 'Primary',
-		'secondary' => 'Secondary',
-		'tertiary'  => 'Tertiary',
-	)
-);
+/**
+ * Register the default navigation areas.
+ *
+ * @since 5.9.0
+ * @access private
+ */
+function _register_default_navigation_areas() {
+	register_navigation_areas(
+		array(
+			'primary'   => 'Primary',
+			'secondary' => 'Secondary',
+			'tertiary'  => 'Tertiary',
+		)
+	);
+}
 
 /**
  * Returns the available navigation areas.
