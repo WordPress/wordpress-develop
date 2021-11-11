@@ -9,12 +9,16 @@
 /**
  * Core class used to access block navigation areas via the REST API.
  *
+ * @since 5.9.0
+ *
  * @see   WP_REST_Controller
  */
 class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructor.
+	 *
+	 * @since 5.9.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp/v2';
@@ -23,6 +27,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the routes for the objects of the controller.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @see   register_rest_route()
 	 */
@@ -74,6 +80,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a given request has permission to read navigation areas.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
 	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
@@ -93,6 +101,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves all navigation areas, depending on user context.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
 	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
@@ -109,6 +119,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 
 	/**
 	 * Checks if a given request has access to read a navigation area.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -132,6 +144,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a request has access to update the specified term.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
 	 * @return bool|WP_Error True if the request has access to update the item, false or WP_Error object otherwise.
@@ -142,6 +156,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves a specific navigation area.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -157,6 +173,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 
 	/**
 	 * Updates a specific navigation area.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -177,6 +195,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	/**
 	 * Converts navigation area name to a convenient object that this endpoint can reason about.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @param string $name Navigation area name.
 	 * @return stdClass An object representation of the navigation area.
 	 */
@@ -192,6 +212,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 
 	/**
 	 * Prepares a navigation area object for serialization.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @param stdClass        $area Post status data.
 	 * @param WP_REST_Request $request Full details about the request.
@@ -226,6 +248,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 		/**
 		 * Filters a navigation area returned from the REST API.
 		 *
+		 * @since 5.9.0
+		 *
 		 * Allows modification of the navigation area data right before it is
 		 * returned.
 		 *
@@ -238,6 +262,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the navigation area's schema, conforming to JSON Schema.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @return array Item schema data.
 	 */
@@ -273,6 +299,8 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the query params for collections.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @return array Collection parameters.
 	 */

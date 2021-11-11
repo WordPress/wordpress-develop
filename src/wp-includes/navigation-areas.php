@@ -14,6 +14,8 @@
  *     'tertiary'  => 'Tertiary',
  * )
  *
+ * @since 5.9.0
+ *
  * @param array $new_areas Supported navigation areas.
  */
 function register_navigation_areas( $new_areas ) {
@@ -32,6 +34,8 @@ register_navigation_areas(
 
 /**
  * Returns the available navigation areas.
+ *
+ * @since 5.9.0
  *
  * @return array Registered navigation areas.
  */
