@@ -231,7 +231,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
 			wp_delete_post( $template->wp_id, true );
-			return $this->prepare_item_for_response( get_block_file_template( $request['id'], $this->post_type ), $request );
+			$request->set_param( 'context', 'edit' );
+
+			$template = get_block_template( $request['id'], $this->post_type );
+			$response = $this->prepare_item_for_response( $template, $request );
+
+			return rest_ensure_response( $response );
 		}
 
 		$changes = $this->prepare_item_for_database( $request );
@@ -241,7 +246,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		} else {
 			$result = wp_insert_post( wp_slash( (array) $changes ), true );
 		}
+
 		if ( is_wp_error( $result ) ) {
+			if ( 'db_update_error' === $result->get_error_code() ) {
+				$result->add_data( array( 'status' => 500 ) );
+			} else {
+				$result->add_data( array( 'status' => 400 ) );
+			}
 			return $result;
 		}
 
@@ -251,10 +262,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $fields_update;
 		}
 
-		return $this->prepare_item_for_response(
-			get_block_template( $request['id'], $this->post_type ),
-			$request
-		);
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->prepare_item_for_response( $template, $request );
+
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -295,10 +307,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $fields_update;
 		}
 
-		return $this->prepare_item_for_response(
-			get_block_template( $id, $this->post_type ),
-			$request
-		);
+		$response = $this->prepare_item_for_response( $template, $request );
+		$response = rest_ensure_response( $response );
+
+		$response->set_status( 201 );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $id ) ) );
+
+		return $response;
 	}
 
 	/**
@@ -333,10 +348,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		$id    = $template->wp_id;
 		$force = (bool) $request['force'];
 
+		$request->set_param( 'context', 'edit' );
+
 		// If we're forcing, then delete permanently.
 		if ( $force ) {
 			$previous = $this->prepare_item_for_response( $template, $request );
-			wp_delete_post( $id, true );
+			$result   = wp_delete_post( $id, true );
 			$response = new WP_REST_Response();
 			$response->set_data(
 				array(
@@ -344,22 +361,32 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'previous' => $previous->get_data(),
 				)
 			);
+		} else {
+			// Otherwise, only trash if we haven't already.
+			if ( 'trash' === $template->status ) {
+				return new WP_Error(
+					'rest_template_already_trashed',
+					__( 'The template has already been deleted.' ),
+					array( 'status' => 410 )
+				);
+			}
 
-			return $response;
+			// (Note that internally this falls through to `wp_delete_post()`
+			// if the Trash is disabled.)
+			$result   = wp_trash_post( $id );
+			$template = get_block_template( $id );
+			$response = $this->prepare_item_for_response( $template, $request );
 		}
 
-		// Otherwise, only trash if we haven't already.
-		if ( 'trash' === $template->status ) {
+		if ( ! $result ) {
 			return new WP_Error(
-				'rest_template_already_trashed',
-				__( 'The template has already been deleted.' ),
-				array( 'status' => 410 )
+				'rest_cannot_delete',
+				__( 'The template cannot be deleted.' ),
+				array( 'status' => 500 )
 			);
 		}
 
-		wp_trash_post( $id );
-		$template->status = 'trash';
-		return $this->prepare_item_for_response( $template, $request );
+		return $response;
 	}
 
 	/**
@@ -392,12 +419,20 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_status = 'publish';
 		}
 		if ( isset( $request['content'] ) ) {
-			$changes->post_content = $request['content'];
+			if ( is_string( $request['content'] ) ) {
+				$changes->post_content = $request['content'];
+			} elseif ( isset( $request['content']['raw'] ) ) {
+				$changes->post_content = $request['content']['raw'];
+			}
 		} elseif ( null !== $template && 'custom' !== $template->source ) {
 			$changes->post_content = $template->content;
 		}
 		if ( isset( $request['title'] ) ) {
-			$changes->post_title = $request['title'];
+			if ( is_string( $request['title'] ) ) {
+				$changes->post_title = $request['title'];
+			} elseif ( ! empty( $request['title']['raw'] ) ) {
+				$changes->post_title = $request['title']['raw'];
+			}
 		} elseif ( null !== $template && 'custom' !== $template->source ) {
 			$changes->post_title = $template->title;
 		}
@@ -433,31 +468,77 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		// Restores the more descriptive, specific name for use within this method.
 		$template = $item;
-		$result   = array(
-			'id'             => $template->id,
-			'theme'          => $template->theme,
-			'content'        => array( 'raw' => $template->content ),
-			'slug'           => $template->slug,
-			'source'         => $template->source,
-			'type'           => $template->type,
-			'description'    => $template->description,
-			'title'          => array(
-				'raw'      => $template->title,
-				'rendered' => $template->title,
-			),
-			'status'         => $template->status,
-			'wp_id'          => $template->wp_id,
-			'has_theme_file' => $template->has_theme_file,
-		);
 
-		if ( 'wp_template_part' === $template->type ) {
-			$result['area'] = $template->area;
+		$fields = $this->get_fields_for_response( $request );
+
+		// Base fields for every post.
+		$data = array();
+
+		if ( rest_is_field_included( 'id', $fields ) ) {
+			$data['id'] = $template->id;
 		}
 
-		$result = $this->add_additional_fields_to_object( $result, $request );
+		if ( rest_is_field_included( 'title', $fields ) ) {
+			$data['title'] = array();
+		}
+		if ( rest_is_field_included( 'title.raw', $fields ) ) {
+			$data['title']['raw'] = $template->title;
+		}
+		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
+			$data['title']['rendered'] = $template->title;
+		}
 
-		$response = rest_ensure_response( $result );
-		$links    = $this->prepare_links( $template->id );
+		if ( rest_is_field_included( 'theme', $fields ) ) {
+			$data['theme'] = $template->theme;
+		}
+
+		if ( rest_is_field_included( 'slug', $fields ) ) {
+			$data['slug'] = $template->slug;
+		}
+
+		if ( rest_is_field_included( 'source', $fields ) ) {
+			$data['source'] = $template->source;
+		}
+
+		if ( rest_is_field_included( 'type', $fields ) ) {
+			$data['type'] = $template->type;
+		}
+
+		if ( rest_is_field_included( 'description', $fields ) ) {
+			$data['description'] = $template->description;
+		}
+
+		if ( rest_is_field_included( 'status', $fields ) ) {
+			$data['status'] = $template->status;
+		}
+
+		if ( rest_is_field_included( 'wp_id', $fields ) ) {
+			$data['wp_id'] = $template->wp_id;
+		}
+
+		if ( rest_is_field_included( 'has_theme_file', $fields ) ) {
+			$data['has_theme_file'] = $template->has_theme_file;
+		}
+
+		if ( rest_is_field_included( 'content', $fields ) ) {
+			$data['content'] = array();
+		}
+		if ( rest_is_field_included( 'content.raw', $fields ) ) {
+			$data['content']['raw'] = $template->content;
+		}
+
+		if ( rest_is_field_included( 'area', $fields ) && 'wp_template_part' === $template->type ) {
+			$data['area'] = $template->area;
+		}
+
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data    = $this->add_additional_fields_to_object( $data, $request );
+		$data    = $this->filter_response_by_context( $data, $context );
+
+		// Wrap the data in a response object.
+		$response = rest_ensure_response( $data );
+
+		$links = $this->prepare_links( $template->id );
 		$response->add_links( $links );
 		if ( ! empty( $links['self']['href'] ) ) {
 			$actions = $this->get_available_actions();
@@ -590,16 +671,46 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'content'        => array(
-					'description' => __( 'Content of template.' ),
-					'type'        => array( 'object', 'string' ),
-					'default'     => '',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'description' => __( 'The content for the template.' ),
+					'type'        => 'object',
+					'context'     => array( 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => null,
+						// Note: sanitization implemented in self::prepare_item_for_database().
+						'validate_callback' => null,
+						// Note: validation implemented in self::prepare_item_for_database().
+					),
+					'properties'  => array(
+						'raw' => array(
+							'description' => __( 'Content for the template, as it exists in the database.' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+						),
+					),
 				),
 				'title'          => array(
-					'description' => __( 'Title of template.' ),
-					'type'        => array( 'object', 'string' ),
-					'default'     => '',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'description' => __( 'The title for the post.' ),
+					'type'        => 'object',
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'arg_options' => array(
+						'sanitize_callback' => null,
+						// Note: sanitization implemented in self::prepare_item_for_database().
+						'validate_callback' => null,
+						// Note: validation implemented in self::prepare_item_for_database().
+					),
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'Title for the template, as it exists in the database.' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit', 'embed' ),
+						),
+						'rendered' => array(
+							'description' => __( 'HTML title for the template, transformed for display.' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit', 'embed' ),
+							'readonly'    => true,
+						),
+					),
 				),
 				'description'    => array(
 					'description' => __( 'Description of template.' ),

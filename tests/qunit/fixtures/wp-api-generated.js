@@ -5142,21 +5142,44 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "default": "",
-                            "description": "Content of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The content for the template.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                }
+                            },
                             "required": false
                         },
                         "title": {
-                            "default": "",
-                            "description": "Title of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5224,19 +5247,44 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "Content of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The content for the template.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                }
+                            },
                             "required": false
                         },
                         "title": {
-                            "description": "Title of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5477,19 +5525,44 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "Content of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The content for the template.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                }
+                            },
                             "required": false
                         },
                         "title": {
-                            "description": "Title of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5599,21 +5672,44 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "default": "",
-                            "description": "Content of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The content for the template.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                }
+                            },
                             "required": false
                         },
                         "title": {
-                            "default": "",
-                            "description": "Title of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5686,19 +5782,44 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "Content of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The content for the template.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                }
+                            },
                             "required": false
                         },
                         "title": {
-                            "description": "Title of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5944,19 +6065,44 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "Content of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The content for the template.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                }
+                            },
                             "required": false
                         },
                         "title": {
-                            "description": "Title of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
