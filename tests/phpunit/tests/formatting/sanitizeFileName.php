@@ -17,7 +17,7 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 			$string .= $char;
 		}
 		$string .= 'test';
-		$this->assertSame( 'testtest', sanitize_file_name( $string ) );
+		$this->assertSame( 'test-test', sanitize_file_name( $string ) );
 	}
 
 	/**
@@ -38,8 +38,8 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 		$urls = array(
 			'unencoded space.png'  => 'unencoded-space.png',
 			'encoded-space.jpg'    => 'encoded-space.jpg',
-			'plus+space.jpg'       => 'plusspace.jpg',
-			'multi %20 +space.png' => 'multi-20-space.png',
+			'plus+space.jpg'       => 'plus-space.jpg',
+			'multi %20 +space.png' => 'multi-space.png',
 		);
 
 		foreach ( $urls as $test => $expected ) {
