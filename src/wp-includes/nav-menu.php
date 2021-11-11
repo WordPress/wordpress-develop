@@ -36,6 +36,18 @@ function wp_get_nav_menu_object( $menu ) {
 
 	if ( ! $menu_obj || is_wp_error( $menu_obj ) ) {
 		$menu_obj = false;
+	} else {
+
+		/**
+		 * Filters the show_in_rest property of term retrieved for wp_get_nav_menu_object().
+		 *
+		 * @since 5.9.0
+		 *
+		 * @param bool $show_in_rest Show in reset, default to false.
+		 * @param WP_Term $menu_obj Term from nav_menu taxonomy, or false if nothing had been found.
+		 * @param int|string|WP_Term $menu The menu ID, slug, name, or object passed to wp_get_nav_menu_object().
+		 */
+		$menu_obj->show_in_rest = apply_filters( 'wp_get_nav_menu_show_in_rest', false, $menu_obj, $menu );
 	}
 
 	/**
