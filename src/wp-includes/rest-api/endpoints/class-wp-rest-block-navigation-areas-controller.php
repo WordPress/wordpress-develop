@@ -86,7 +86,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	 *
 	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
 	 */
-	public function get_items_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function get_items_permissions_check( $request ) {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_view',
