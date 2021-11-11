@@ -494,15 +494,15 @@ function create_initial_post_types() {
 				'archives'              => __( 'Navigation Menu archives' ),
 				'insert_into_item'      => __( 'Insert into Navigation Menu' ),
 				'uploaded_to_this_item' => __( 'Uploaded to this Navigation Menu' ),
-				// Some of these are a bit weird, what are they for?
 				'filter_items_list'     => __( 'Filter Navigation Menu list' ),
 				'items_list_navigation' => __( 'Navigation Menus list navigation' ),
 				'items_list'            => __( 'Navigation Menus list' ),
 			),
+			'description'           => __( 'Navigation menus that can be inserted into your site.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => false,
+			'show_ui'               => wp_is_block_template_theme(),
 			'show_in_menu'          => 'themes.php',
 			'show_in_admin_bar'     => false,
 			'show_in_rest'          => true,
@@ -2077,7 +2077,7 @@ function _add_post_type_submenus() {
 		if ( ! $ptype_obj->show_in_menu || true === $ptype_obj->show_in_menu ) {
 			continue;
 		}
-		add_submenu_page( $ptype_obj->show_in_menu, $ptype_obj->labels->name, $ptype_obj->labels->all_items, $ptype_obj->cap->edit_posts, "edit.php?post_type=$ptype" );
+		add_submenu_page( $ptype_obj->show_in_menu, $ptype_obj->labels->name, $ptype_obj->labels->menu_name, $ptype_obj->cap->edit_posts, "edit.php?post_type=$ptype" );
 	}
 }
 

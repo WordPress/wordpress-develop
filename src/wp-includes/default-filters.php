@@ -583,6 +583,10 @@ add_action( 'admin_footer-post.php', 'wp_add_iframed_editor_assets_html' );
 add_action( 'admin_footer-post-new.php', 'wp_add_iframed_editor_assets_html' );
 add_action( 'admin_footer-widgets.php', 'wp_add_iframed_editor_assets_html' );
 
+add_action( 'use_block_editor_for_post_type', '_disable_block_editor_for_navigation_post_type' );
+add_action( 'edit_form_after_title', '_disable_content_editor_for_navigation_post_type' );
+add_action( 'edit_form_after_editor', '_enable_content_editor_for_navigation_post_type' );
+
 // Taxonomy.
 add_action( 'init', 'create_initial_taxonomies', 0 ); // Highest priority.
 add_action( 'change_locale', 'create_initial_taxonomies' );
@@ -671,5 +675,6 @@ add_action( 'setup_theme', 'wp_enable_block_templates' );
 
 // Navigation areas.
 add_action( 'setup_theme', '_register_default_navigation_areas' );
+add_action( 'switch_theme', '_migrate_menu_to_navigation_post', 200, 3 );
 
 unset( $filter, $action );

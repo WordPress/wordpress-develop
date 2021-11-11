@@ -59,7 +59,17 @@ $preload_paths           = array(
 	'/wp/v2/global-styles/' . $active_global_styles_id . '?context=edit',
 	'/wp/v2/global-styles/' . $active_global_styles_id,
 	'/wp/v2/themes/' . $active_theme . '/global-styles',
+	'/__experimental/block-navigation-areas?context=edit',
 );
+
+$areas        = get_option( 'fse_navigation_areas', array() );
+$active_areas = array_intersect_key( $areas, get_navigation_areas() );
+foreach ( $active_areas as $post_id ) {
+	if ( $post_id ) {
+		$preload_paths[] = "/wp/v2/navigation/$post_id?context=edit";
+	}
+}
+
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
 
 $editor_settings = get_block_editor_settings(
