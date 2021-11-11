@@ -32,19 +32,41 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	/**
 	 * Test that spaces are correctly replaced with dashes.
 	 *
+	 * @dataProvider data_replaces_spaces
+	 *
 	 * @ticket 16330
+	 * @ticket 50855
+	 *
+	 * @param string $filename Filename to sanitize.
+	 * @param string $expected Expected result.
 	 */
-	public function test_replaces_spaces() {
-		$urls = array(
-			'unencoded space.png'  => 'unencoded-space.png',
-			'encoded-space.jpg'    => 'encoded-space.jpg',
-			'plus+space.jpg'       => 'plusspace.jpg',
-			'multi %20 +space.png' => 'multi-space.png',
-		);
+	public function test_replaces_spaces( $filename, $expected ) {
+		$this->assertSame( $expected, sanitize_file_name( $filename ) );
+	}
 
-		foreach ( $urls as $test => $expected ) {
-			$this->assertSame( $expected, sanitize_file_name( $test ) );
-		}
+	public function data_replaces_spaces() {
+		return array(
+			'unencoded space'  => array(
+				'filename' => 'unencoded space.png',
+				'expected' => 'unencoded-space.png',
+			),
+			'encoded-space'    => array(
+				'filename' => 'encoded-space.jpg',
+				'expected' => 'encoded-space.jpg',
+			),
+			'encoded-space'    => array(
+				'filename' => 'plus+space.jpg',
+				'expected' => 'plusspace.jpg',
+			),
+			'muliple %20'      => array(
+				'filename' => 'test%20test%20test%20.png',
+				'expected' => 'test-test-test-.png',
+			),
+			'multi %20 +space' => array(
+				'filename' => 'multi %20 +space.png',
+				'expected' => 'multi-space.png',
+			),
+		);
 	}
 
 	public function test_replaces_any_number_of_hyphens_with_one_hyphen() {
