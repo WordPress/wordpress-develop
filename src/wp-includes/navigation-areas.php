@@ -32,9 +32,9 @@ function register_navigation_areas( $new_areas ) {
 function _register_default_navigation_areas() {
 	register_navigation_areas(
 		array(
-			'primary'   => 'Primary',
-			'secondary' => 'Secondary',
-			'tertiary'  => 'Tertiary',
+			'primary'   => _x( 'Primary', 'navigation area' ),
+			'secondary' => _x( 'Secondary', 'navigation area' ),
+			'tertiary'  => _x( 'Tertiary', 'navigation area' ),
 		)
 	);
 }
