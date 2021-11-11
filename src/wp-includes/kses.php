@@ -271,6 +271,13 @@ if ( ! CUSTOM_TAGS ) {
 			'lang'     => true,
 			'xml:lang' => true,
 		),
+		'object'     => array(
+			'data' => true,
+			'type' => array(
+				'required' => true,
+				'values'   => array( 'application/pdf' ),
+			),
+		),
 		'p'          => array(
 			'align'    => true,
 			'dir'      => true,
@@ -1165,13 +1172,45 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 	// Split it.
 	$attrarr = wp_kses_hair( $attr, $allowed_protocols );
 
+	// Check if there are attributes that are required.
+	$required_attrs = array_filter(
+		$allowed_html[ $element_low ],
+		function( $required_attr_limits ) {
+			return isset( $required_attr_limits['required'] ) && true === $required_attr_limits['required'];
+		}
+	);
+
+	// If a required attribute check fails, we can return nothing for a self-closing tag,
+	// but for a non-self-closing tag the best option is to return the element with attributes,
+	// as KSES doesn't handle matching the relevant closing tag.
+	$stripped_tag = '';
+	if ( empty( $xhtml_slash ) ) {
+		$stripped_tag = "<$element>";
+	}
+
 	// Go through $attrarr, and save the allowed attributes for this element
 	// in $attr2.
 	$attr2 = '';
 	foreach ( $attrarr as $arreach ) {
+		// Check if this attribute is required.
+		$required = isset( $required_attrs[ strtolower( $arreach['name'] ) ] );
+
 		if ( wp_kses_attr_check( $arreach['name'], $arreach['value'], $arreach['whole'], $arreach['vless'], $element, $allowed_html ) ) {
 			$attr2 .= ' ' . $arreach['whole'];
+
+			// If this was a required attribute, we can mark it as found.
+			if ( $required ) {
+				unset( $required_attrs[ strtolower( $arreach['name'] ) ] );
+			}
+		} elseif ( $required ) {
+			// This attribute was required, but didn't pass the check. The entire tag is not allowed.
+			return $stripped_tag;
 		}
+	}
+
+	// If some required attributes weren't set, the entire tag is not allowed.
+	if ( ! empty( $required_attrs ) ) {
+		return $stripped_tag;
 	}
 
 	// Remove any "<" or ">" characters.
@@ -1597,6 +1636,17 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 			 */
 
 			if ( strtolower( $checkvalue ) != $vless ) {
+				$ok = false;
+			}
+			break;
+
+		case 'values':
+			/*
+			 * The values check is used when you want to make sure that the attribute
+			 * has one of the given values.
+			 */
+
+			if ( false === array_search( strtolower( $value ), $checkvalue, true ) ) {
 				$ok = false;
 			}
 			break;
@@ -2032,6 +2082,33 @@ function wp_filter_post_kses( $data ) {
 }
 
 /**
+ * Sanitizes global styles user content removing unsafe rules.
+ *
+ * @since 5.9.0
+ *
+ * @param string $data Post content to filter.
+ * @return string Filtered post content with unsafe rules removed.
+ */
+function wp_filter_global_styles_post( $data ) {
+	$decoded_data        = json_decode( wp_unslash( $data ), true );
+	$json_decoding_error = json_last_error();
+	if (
+		JSON_ERROR_NONE === $json_decoding_error &&
+		is_array( $decoded_data ) &&
+		isset( $decoded_data['isGlobalStylesUserThemeJSON'] ) &&
+		$decoded_data['isGlobalStylesUserThemeJSON']
+	) {
+		unset( $decoded_data['isGlobalStylesUserThemeJSON'] );
+
+		$data_to_encode = WP_Theme_JSON::remove_insecure_properties( $decoded_data );
+
+		$data_to_encode['isGlobalStylesUserThemeJSON'] = true;
+		return wp_slash( wp_json_encode( $data_to_encode ) );
+	}
+	return $data;
+}
+
+/**
  * Sanitizes content for allowed HTML tags for post content.
  *
  * Post content refers to the page contents of the 'post' type and not `$_POST`
@@ -2101,8 +2178,10 @@ function kses_init_filters() {
 
 	// Post filtering.
 	add_filter( 'content_save_pre', 'wp_filter_post_kses' );
+	add_filter( 'content_save_pre', 'wp_filter_global_styles_post' );
 	add_filter( 'excerpt_save_pre', 'wp_filter_post_kses' );
 	add_filter( 'content_filtered_save_pre', 'wp_filter_post_kses' );
+	add_filter( 'content_filtered_save_pre', 'wp_filter_global_styles_post' );
 }
 
 /**
@@ -2127,8 +2206,10 @@ function kses_remove_filters() {
 
 	// Post filtering.
 	remove_filter( 'content_save_pre', 'wp_filter_post_kses' );
+	remove_filter( 'content_save_pre', 'wp_filter_global_styles_post' );
 	remove_filter( 'excerpt_save_pre', 'wp_filter_post_kses' );
 	remove_filter( 'content_filtered_save_pre', 'wp_filter_post_kses' );
+	remove_filter( 'content_filtered_save_pre', 'wp_filter_global_styles_post' );
 }
 
 /**
@@ -2208,16 +2289,24 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'border-right-width',
 			'border-bottom',
 			'border-bottom-color',
+			'border-bottom-left-radius',
+			'border-bottom-right-radius',
 			'border-bottom-style',
 			'border-bottom-width',
+			'border-bottom-right-radius',
+			'border-bottom-left-radius',
 			'border-left',
 			'border-left-color',
 			'border-left-style',
 			'border-left-width',
 			'border-top',
 			'border-top-color',
+			'border-top-left-radius',
+			'border-top-right-radius',
 			'border-top-style',
 			'border-top-width',
+			'border-top-left-radius',
+			'border-top-right-radius',
 
 			'border-spacing',
 			'border-collapse',
@@ -2232,6 +2321,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'column-width',
 
 			'color',
+			'filter',
 			'font',
 			'font-family',
 			'font-size',

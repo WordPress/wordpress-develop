@@ -1739,7 +1739,7 @@ function get_edit_user_link( $user_id = null ) {
  * @param bool         $in_same_term   Optional. Whether post should be in a same taxonomy term. Default false.
  * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
  * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|string|WP_Post Post object if successful. Null if global $post is not set. Empty string if no
+ * @return WP_Post|null|string Post object if successful. Null if global $post is not set. Empty string if no
  *                             corresponding post exists.
  */
 function get_previous_post( $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
@@ -1754,7 +1754,7 @@ function get_previous_post( $in_same_term = false, $excluded_terms = '', $taxono
  * @param bool         $in_same_term   Optional. Whether post should be in a same taxonomy term. Default false.
  * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
  * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|string|WP_Post Post object if successful. Null if global $post is not set. Empty string if no
+ * @return WP_Post|null|string Post object if successful. Null if global $post is not set. Empty string if no
  *                             corresponding post exists.
  */
 function get_next_post( $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
@@ -1774,7 +1774,7 @@ function get_next_post( $in_same_term = false, $excluded_terms = '', $taxonomy =
  * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty string.
  * @param bool         $previous       Optional. Whether to retrieve previous post. Default true
  * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|string|WP_Post Post object if successful. Null if global $post is not set. Empty string if no
+ * @return WP_Post|null|string Post object if successful. Null if global $post is not set. Empty string if no
  *                             corresponding post exists.
  */
 function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previous = true, $taxonomy = 'category' ) {
@@ -2899,7 +2899,7 @@ function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader
 	}
 
 	$template = '
-	<nav class="navigation %1$s" role="navigation" aria-label="%4$s">
+	<nav class="navigation %1$s" aria-label="%4$s">
 		<h2 class="screen-reader-text">%2$s</h2>
 		<div class="nav-links">%3$s</div>
 	</nav>';
@@ -2911,7 +2911,7 @@ function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader
 	 * class (%1$s), the screen-reader-text value (%2$s), placement of the navigation
 	 * links (%3$s), and ARIA label text if screen-reader-text does not fit that (%4$s):
 	 *
-	 *     <nav class="navigation %1$s" role="navigation" aria-label="%4$s">
+	 *     <nav class="navigation %1$s" aria-label="%4$s">
 	 *         <h2 class="screen-reader-text">%2$s</h2>
 	 *         <div class="nav-links">%3$s</div>
 	 *     </nav>

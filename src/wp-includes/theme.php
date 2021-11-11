@@ -908,20 +908,6 @@ function validate_current_theme() {
 function validate_theme_requirements( $stylesheet ) {
 	$theme = wp_get_theme( $stylesheet );
 
-	// If the theme is a Full Site Editing theme, check for the presence of the Gutenberg plugin.
-	$theme_tags = $theme->get( 'Tags' );
-
-	if ( ! empty( $theme_tags ) && in_array( 'full-site-editing', $theme_tags, true ) && ! function_exists( 'gutenberg_is_fse_theme' ) ) {
-		return new WP_Error(
-			'theme_requires_gutenberg_plugin',
-			sprintf(
-					/* translators: %s: Theme name. */
-				_x( '<strong>Error:</strong> This theme (%s) uses Full Site Editing, which requires the Gutenberg plugin to be activated.', 'theme' ),
-				$theme->display( 'Name' )
-			)
-		);
-	}
-
 	$requirements = array(
 		'requires'     => ! empty( $theme->get( 'RequiresWP' ) ) ? $theme->get( 'RequiresWP' ) : '',
 		'requires_php' => ! empty( $theme->get( 'RequiresPHP' ) ) ? $theme->get( 'RequiresPHP' ) : '',
@@ -1233,6 +1219,16 @@ function get_header_image_tag( $attr = array() ) {
 			}
 		}
 	}
+
+	/**
+	 * Filters the list of header image attributes.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array  $attr   Array of the attributes for the image tag.
+	 * @param object $header The custom header object returned by 'get_custom_header()'.
+	 */
+	$attr = apply_filters( 'get_header_image_tag_attributes', $attr, $header );
 
 	$attr = array_map( 'esc_attr', $attr );
 	$html = '<img';
@@ -1917,7 +1913,7 @@ function wp_get_custom_css( $stylesheet = '' ) {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string $css        CSS pulled in from the Custom CSS CPT.
+	 * @param string $css        CSS pulled in from the Custom CSS post type.
 	 * @param string $stylesheet The theme stylesheet name.
 	 */
 	$css = apply_filters( 'wp_get_custom_css', $css, $stylesheet );
@@ -3073,7 +3069,7 @@ function require_if_theme_supports( $feature, $include ) {
  *     @type string     $type         The type of data associated with this feature.
  *                                    Valid values are 'string', 'boolean', 'integer',
  *                                    'number', 'array', and 'object'. Defaults to 'boolean'.
- *     @type boolean    $variadic     Does this feature utilize the variadic support
+ *     @type bool       $variadic     Does this feature utilize the variadic support
  *                                    of add_theme_support(), or are all arguments specified
  *                                    as the second parameter. Must be used with the "array" type.
  *     @type string     $description  A short description of the feature. Included in
@@ -4078,4 +4074,15 @@ function create_initial_theme_features() {
 			'show_in_rest' => true,
 		)
 	);
+}
+
+/**
+ * Returns whether the current theme is a block-based theme or not.
+ *
+ * @since 5.9.0
+ *
+ * @return boolean Whether the current theme is a block-based theme or not.
+ */
+function wp_is_block_template_theme() {
+	return is_readable( get_theme_file_path( '/block-templates/index.html' ) );
 }

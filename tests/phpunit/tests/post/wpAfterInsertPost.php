@@ -100,7 +100,7 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 * @param null|WP_Post $post_before Null for new posts, the WP_Post object prior
 	 *                                  to the update for updated posts.
 	 */
-	function action_wp_after_insert_post( $post_id, $post, $update, $post_before ) {
+	public function action_wp_after_insert_post( $post_id, $post, $update, $post_before ) {
 		self::$passed_post_title  = $post->post_title;
 		self::$passed_post_status = $post->post_status;
 

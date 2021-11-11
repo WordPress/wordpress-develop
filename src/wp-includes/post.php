@@ -126,16 +126,39 @@ function create_initial_post_types() {
 	register_post_type(
 		'nav_menu_item',
 		array(
-			'labels'           => array(
+			'labels'                => array(
 				'name'          => __( 'Navigation Menu Items' ),
 				'singular_name' => __( 'Navigation Menu Item' ),
 			),
-			'public'           => false,
-			'_builtin'         => true, /* internal use only. don't use this when registering your own post type. */
-			'hierarchical'     => false,
-			'rewrite'          => false,
-			'delete_with_user' => false,
-			'query_var'        => false,
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'          => false,
+			'rewrite'               => false,
+			'delete_with_user'      => false,
+			'query_var'             => false,
+			'map_meta_cap'          => true,
+			'capability_type'       => array( 'edit_theme_options', 'edit_theme_options' ),
+			'capabilities'          => array(
+				// Meta Capabilities.
+				'edit_post'              => 'edit_post',
+				'read_post'              => 'read_post',
+				'delete_post'            => 'delete_post',
+				// Primitive Capabilities.
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'read'                   => 'read',
+				'delete_private_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'edit_private_posts'     => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+			),
+			'show_in_rest'          => true,
+			'rest_base'             => 'menu-items',
+			'rest_controller_class' => 'WP_REST_Menu_Items_Controller',
 		)
 	);
 
@@ -359,6 +382,136 @@ function create_initial_post_types() {
 				'title',
 				'slug',
 				'excerpt',
+				'editor',
+				'revisions',
+			),
+		)
+	);
+
+	register_post_type(
+		'wp_template_part',
+		array(
+			'labels'                => array(
+				'name'                  => __( 'Template Parts' ),
+				'singular_name'         => __( 'Template Part' ),
+				'add_new'               => _x( 'Add New', 'Template Part' ),
+				'add_new_item'          => __( 'Add New Template Part' ),
+				'new_item'              => __( 'New Template Part' ),
+				'edit_item'             => __( 'Edit Template Part' ),
+				'view_item'             => __( 'View Template Part' ),
+				'all_items'             => __( 'All Template Parts' ),
+				'search_items'          => __( 'Search Template Parts' ),
+				'parent_item_colon'     => __( 'Parent Template Part:' ),
+				'not_found'             => __( 'No template parts found.' ),
+				'not_found_in_trash'    => __( 'No template parts found in Trash.' ),
+				'archives'              => __( 'Template part archives' ),
+				'insert_into_item'      => __( 'Insert into template part' ),
+				'uploaded_to_this_item' => __( 'Uploaded to this template part' ),
+				'filter_items_list'     => __( 'Filter template parts list' ),
+				'items_list_navigation' => __( 'Template parts list navigation' ),
+				'items_list'            => __( 'Template parts list' ),
+			),
+			'description'           => __( 'Template parts to include in your templates.' ),
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'has_archive'           => false,
+			'show_ui'               => false,
+			'show_in_menu'          => false,
+			'show_in_rest'          => true,
+			'rewrite'               => false,
+			'rest_base'             => 'template-parts',
+			'rest_controller_class' => 'WP_REST_Templates_Controller',
+			'map_meta_cap'          => true,
+			'capabilities'          => array(
+				'create_posts'           => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'delete_private_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'edit_private_posts'     => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'read'                   => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+			),
+			'supports'              => array(
+				'title',
+				'slug',
+				'excerpt',
+				'editor',
+				'revisions',
+			),
+		)
+	);
+
+	register_post_type(
+		'wp_global_styles',
+		array(
+			'label'        => _x( 'Global Styles', 'post type general name' ),
+			'description'  => __( 'Global styles to include in themes.' ),
+			'public'       => false,
+			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
+			'show_ui'      => false,
+			'show_in_rest' => false,
+			'rewrite'      => false,
+			'capabilities' => array(
+				'read'                   => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+			),
+			'map_meta_cap' => true,
+			'supports'     => array(
+				'title',
+				'editor',
+				'revisions',
+			),
+		)
+	);
+
+	register_post_type(
+		'wp_navigation',
+		array(
+			'labels'                => array(
+				'name'                  => __( 'Navigation Menus' ),
+				'singular_name'         => __( 'Navigation Menu' ),
+				'menu_name'             => _x( 'Navigation Menus', 'Admin Menu text' ),
+				'add_new'               => _x( 'Add New', 'Navigation Menu' ),
+				'add_new_item'          => __( 'Add New Navigation Menu' ),
+				'new_item'              => __( 'New Navigation Menu' ),
+				'edit_item'             => __( 'Edit Navigation Menu' ),
+				'view_item'             => __( 'View Navigation Menu' ),
+				'all_items'             => __( 'All Navigation Menus' ),
+				'search_items'          => __( 'Search Navigation Menus' ),
+				'parent_item_colon'     => __( 'Parent Navigation Menu:' ),
+				'not_found'             => __( 'No Navigation Menu found.' ),
+				'not_found_in_trash'    => __( 'No Navigation Menu found in Trash.' ),
+				'archives'              => __( 'Navigation Menu archives' ),
+				'insert_into_item'      => __( 'Insert into Navigation Menu' ),
+				'uploaded_to_this_item' => __( 'Uploaded to this Navigation Menu' ),
+				// Some of these are a bit weird, what are they for?
+				'filter_items_list'     => __( 'Filter Navigation Menu list' ),
+				'items_list_navigation' => __( 'Navigation Menus list navigation' ),
+				'items_list'            => __( 'Navigation Menus list' ),
+			),
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'has_archive'           => false,
+			'show_ui'               => false,
+			'show_in_menu'          => 'themes.php',
+			'show_in_admin_bar'     => false,
+			'show_in_rest'          => true,
+			'rewrite'               => false,
+			'map_meta_cap'          => true,
+			'rest_base'             => 'navigation',
+			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'supports'              => array(
+				'title',
 				'editor',
 				'revisions',
 			),
@@ -1371,6 +1524,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *              arguments to register the post type in REST API.
  * @since 5.0.0 The `template` and `template_lock` arguments were added.
  * @since 5.3.0 The `supports` argument will now accept an array of arguments for a feature.
+ * @since 5.9.0 The `rest_namespace` argument was added.
  *
  * @global array $wp_post_types List of post types.
  *
@@ -1418,6 +1572,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type bool         $show_in_rest          Whether to include the post type in the REST API. Set this to true
  *                                               for the post type to be available in the block editor.
  *     @type string       $rest_base             To change the base URL of REST API route. Default is $post_type.
+ *     @type string       $rest_namespace        To change the namespace URL of REST API route. Default is wp/v2.
  *     @type string       $rest_controller_class REST API controller class name. Default is 'WP_REST_Posts_Controller'.
  *     @type int          $menu_position         The position in the menu order the post type should appear. To work,
  *                                               $show_in_menu must be true. Default null (at the bottom).
@@ -2084,6 +2239,7 @@ function set_post_type( $post_id = 0, $post_type = 'post' ) {
  * @since 4.4.0
  * @since 4.5.0 Added the ability to pass a post type name in addition to object.
  * @since 4.6.0 Converted the `$post_type` parameter to accept a `WP_Post_Type` object.
+ * @since 5.9.0 Added `is_post_type_viewable` hook to filter the result.
  *
  * @param string|WP_Post_Type $post_type Post type name or object.
  * @return bool Whether the post type should be considered viewable.
@@ -2100,7 +2256,23 @@ function is_post_type_viewable( $post_type ) {
 		return false;
 	}
 
-	return $post_type->publicly_queryable || ( $post_type->_builtin && $post_type->public );
+	$is_viewable = $post_type->publicly_queryable || ( $post_type->_builtin && $post_type->public );
+
+	/**
+	 * Filters whether a post type is considered "viewable".
+	 *
+	 * The returned filtered value must be a boolean type to ensure
+	 * `is_post_type_viewable()` only returns a boolean. This strictness
+	 * is by design to maintain backwards-compatibility and guard against
+	 * potential type errors in PHP 8.1+. Non-boolean values (even falsey
+	 * and truthy values) will result in the function returning false.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param bool         $is_viewable Whether the post type is "viewable" (strict type).
+	 * @param WP_Post_Type $post_type   Post type object.
+	 */
+	return true === apply_filters( 'is_post_type_viewable', $is_viewable, $post_type );
 }
 
 /**
@@ -2110,6 +2282,7 @@ function is_post_type_viewable( $post_type ) {
  * For all others, the 'publicly_queryable' value will be used.
  *
  * @since 5.7.0
+ * @since 5.9.0 Added `is_post_status_viewable` hook to filter the result.
  *
  * @param string|stdClass $post_status Post status name or object.
  * @return bool Whether the post status should be considered viewable.
@@ -2130,7 +2303,23 @@ function is_post_status_viewable( $post_status ) {
 		return false;
 	}
 
-	return $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
+	$is_viewable = $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
+
+	/**
+	 * Filters whether a post status is considered "viewable".
+	 *
+	 * The returned filtered value must be a boolean type to ensure
+	 * `is_post_status_viewable()` only returns a boolean. This strictness
+	 * is by design to maintain backwards-compatibility and guard against
+	 * potential type errors in PHP 8.1+. Non-boolean values (even falsey
+	 * and truthy values) will result in the function returning false.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param bool     $is_viewable Whether the post status is "viewable" (strict type).
+	 * @param stdClass $post_status Post status object.
+	 */
+	return true === apply_filters( 'is_post_status_viewable', $is_viewable, $post_status );
 }
 
 /**
@@ -3234,7 +3423,7 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 
 	wp_defer_comment_counting( true );
 
-	$comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d", $postid ) );
+	$comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_ID DESC", $postid ) );
 	foreach ( $comment_ids as $comment_id ) {
 		wp_delete_comment( $comment_id, true );
 	}
@@ -5163,11 +5352,13 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 * transitioned to a status, use the {@see 'transition_post_status'} hook instead.
 	 *
 	 * @since 2.3.0
+	 * @since 5.9.0 Added `$old_status` parameter.
 	 *
-	 * @param int     $post_id Post ID.
-	 * @param WP_Post $post    Post object.
+	 * @param int     $post_id    Post ID.
+	 * @param WP_Post $post       Post object.
+	 * @param string  $old_status Old post status.
 	 */
-	do_action( "{$new_status}_{$post->post_type}", $post->ID, $post );
+	do_action( "{$new_status}_{$post->post_type}", $post->ID, $post, $old_status );
 }
 
 /**
@@ -6192,7 +6383,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 
 	wp_defer_comment_counting( true );
 
-	$comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
+	$comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_ID DESC", $post_id ) );
 	foreach ( $comment_ids as $comment_id ) {
 		wp_delete_comment( $comment_id, true );
 	}
