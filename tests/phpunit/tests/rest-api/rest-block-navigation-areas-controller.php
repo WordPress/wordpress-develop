@@ -37,7 +37,7 @@ class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Contr
 
 	public function test_get_items() {
 		wp_set_current_user( static::$admin_id );
-		$request = new WP_REST_Request( Requests::GET, '/wp/v2/block-navigation-areas' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/block-navigation-areas' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
@@ -75,7 +75,7 @@ class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Contr
 		$this->assertNotEmpty( $navigation_area );
 
 		$route    = sprintf( '/wp/v2/block-navigation-areas/%s', urlencode( $navigation_area ) );
-		$request  = new WP_REST_Request( Requests::GET, $route );
+		$request  = new WP_REST_Request( 'GET', $route );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
