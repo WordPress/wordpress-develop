@@ -194,7 +194,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	 * @param string $name Navigation area name.
 	 * @return stdClass An object representation of the navigation area.
 	 */
-	private function get_navigation_area_object( $name ) {
+	protected function get_navigation_area_object( $name ) {
 		$available_areas   = get_navigation_areas();
 		$mapping           = get_option( 'fse_navigation_areas', array() );
 		$area              = new stdClass();
