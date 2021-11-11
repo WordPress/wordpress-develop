@@ -78,7 +78,7 @@ jobs:
       - name: Cache PHP Compatibility cache
         uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
         with:
-          path: .phpcs-cache.json
+          path: .phpcompat-cache.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json') }}
 
       - name: Install Composer dependencies
