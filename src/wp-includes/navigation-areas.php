@@ -1,6 +1,6 @@
 <?php
 /**
- * Block template areas functions.
+ * Block navigation areas functions.
  *
  * @package WordPress
  */
