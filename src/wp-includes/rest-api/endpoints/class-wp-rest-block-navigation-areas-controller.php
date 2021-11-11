@@ -110,9 +110,9 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$data = array();
 		foreach ( get_navigation_areas() as $name => $description ) {
-			$area          = $this->get_navigation_area_object( $name );
-			$area          = $this->prepare_item_for_response( $area, $request );
-			$data[ $name ] = $this->prepare_response_for_collection( $area );
+			$area   = $this->get_navigation_area_object( $name );
+			$area   = $this->prepare_item_for_response( $area, $request );
+			$data[] = $this->prepare_response_for_collection( $area );
 		}
 		return rest_ensure_response( $data );
 	}
