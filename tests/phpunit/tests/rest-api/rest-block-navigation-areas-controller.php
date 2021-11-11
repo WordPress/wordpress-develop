@@ -87,7 +87,7 @@ class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Contr
 	public function test_create_item() {
 		// We cannot create new navigation areas using the current block navigation areas API,
 		// so the test should be marked as passed.
-		$this->addToAssertionCount( 1 );
+		$this->markTestAsSkipped();
 	}
 
 	public function test_update_item() {
@@ -111,19 +111,19 @@ class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Contr
 	public function test_delete_item() {
 		// We cannot delete navigation areas using the current block navigation areas API,
 		// so the test should be marked as passed.
-		$this->addToAssertionCount( 1 );
+		$this->markTestAsSkipped();
 	}
 
 	public function test_prepare_item() {
 		// The current block navigation areas API doesn't implement any custom prepare_item logic
 		// so there is nothing to test.
-		$this->addToAssertionCount( 1 );
+		$this->markTestAsSkipped();
 	}
 
 	public function test_get_item_schema() {
 		// The current block navigation areas API doesn't implement any custom item schema
 		// so there is nothing to test.
-		$this->addToAssertionCount( 1 );
+		$this->markTestAsSkipped();
 	}
 }
 
