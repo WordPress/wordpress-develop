@@ -3,7 +3,7 @@
  * REST API: WP_REST_Block_Navigation_Areas_Controller class
  *
  * @subpackage REST_API
- * @package    WordPress
+ * @package WordPress
  */
 
 /**
@@ -11,7 +11,7 @@
  *
  * @since 5.9.0
  *
- * @see   WP_REST_Controller
+ * @see WP_REST_Controller
  */
 class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 
@@ -30,7 +30,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @see   register_rest_route()
+	 * @see register_rest_route()
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -43,7 +43,7 @@ class WP_REST_Block_Navigation_Areas_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'get_items_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'schema'      => array( $this, 'get_public_item_schema' ),
 				'allow_batch' => array( 'v1' => true ),
 			)
 		);
