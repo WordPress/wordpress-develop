@@ -10,6 +10,8 @@ wp-tests-config.php
 /phpunit.xml
 /.phpcs.xml
 /phpcs.xml
+.phpcs-cache.json
+.phpcompat-cache.json
 /tests/phpunit/data/plugins/wordpress-importer
 /tests/phpunit/data/.trac-ticket-cache*
 /tests/qunit/compiled.html
