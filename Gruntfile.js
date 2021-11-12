@@ -1020,16 +1020,6 @@ module.exports = function(grunt) {
 				dest: SOURCE_DIR
 			}
 		},
-		includes: {
-			emoji: {
-				src: BUILD_DIR + 'wp-includes/formatting.php',
-				dest: '.'
-			},
-			embed: {
-				src: BUILD_DIR + 'wp-includes/embed.php',
-				dest: '.'
-			}
-		},
 		replace: {
 			'emoji-regex': {
 				options: {
@@ -1593,8 +1583,6 @@ module.exports = function(grunt) {
 				'build:files',
 				'build:js',
 				'build:css',
-				'includes:emoji',
-				'includes:embed',
 				'replace:emoji-banner-text',
 				'replace:source-maps',
 				'verify:build'

@@ -583,6 +583,17 @@ add_action( 'admin_footer-post.php', 'wp_add_iframed_editor_assets_html' );
 add_action( 'admin_footer-post-new.php', 'wp_add_iframed_editor_assets_html' );
 add_action( 'admin_footer-widgets.php', 'wp_add_iframed_editor_assets_html' );
 
+add_action( 'use_block_editor_for_post_type', '_disable_block_editor_for_navigation_post_type', 10, 2 );
+add_action( 'edit_form_after_title', '_disable_content_editor_for_navigation_post_type' );
+add_action( 'edit_form_after_editor', '_enable_content_editor_for_navigation_post_type' );
+
+/*
+ * Disable "Post Attributes" for wp_navigation post type. The attributes are
+ * also conditionally enabled when a site has custom templates. Block Theme
+ * templates can be available for every post type.
+ */
+add_filter( 'theme_wp_navigation_templates', '__return_empty_array' );
+
 // Taxonomy.
 add_action( 'init', 'create_initial_taxonomies', 0 ); // Highest priority.
 add_action( 'change_locale', 'create_initial_taxonomies' );
@@ -668,5 +679,9 @@ add_filter( 'pre_wp_unique_post_slug', 'wp_filter_wp_template_unique_post_slug',
 add_action( 'save_post_wp_template_part', 'wp_set_unique_slug_on_create_template_part' );
 add_action( 'wp_footer', 'the_block_template_skip_link' );
 add_action( 'setup_theme', 'wp_enable_block_templates' );
+
+// Navigation areas.
+add_action( 'setup_theme', '_wp_register_default_navigation_areas' );
+add_action( 'switch_theme', '_wp_migrate_menu_to_navigation_post', 99, 3 );
 
 unset( $filter, $action );

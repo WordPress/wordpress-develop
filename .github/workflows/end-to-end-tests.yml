@@ -4,7 +4,6 @@ on:
   # The end to end test suite was introduced in WordPress 5.3.
   push:
     branches:
-      - master
       - trunk
       - '5.[3-9]'
       - '[6-9].[0-9]'
@@ -13,7 +12,6 @@ on:
       - '[6-9].[0-9]*'
   pull_request:
     branches:
-      - master
       - trunk
       - '5.[3-9]'
       - '[6-9].[0-9]'
@@ -119,7 +117,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ e2e-tests ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
