@@ -59,7 +59,7 @@ $preload_paths           = array(
 	'/wp/v2/global-styles/' . $active_global_styles_id . '?context=edit',
 	'/wp/v2/global-styles/' . $active_global_styles_id,
 	'/wp/v2/themes/' . $active_theme . '/global-styles',
-	'/__experimental/block-navigation-areas?context=edit',
+	'/wp/v2/block-navigation-areas?context=edit',
 );
 
 $areas        = get_option( 'fse_navigation_areas', array() );
