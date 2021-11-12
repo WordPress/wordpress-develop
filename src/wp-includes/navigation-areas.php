@@ -93,15 +93,14 @@ function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP
 			continue;
 		}
 
-		$post_name   = 'classic_menu_' . $menu_id;
-		$post_status = 'publish';
+		$post_name = 'classic_menu_' . $menu_id;
 
 		// Get or create to avoid creating too many wp_navigation posts.
 		$query          = new WP_Query;
 		$matching_posts = $query->query(
 			array(
 				'name'           => $post_name,
-				'post_status'    => $post_status,
+				'post_status'    => 'publish',
 				'post_type'      => 'wp_navigation',
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
@@ -122,7 +121,7 @@ function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP
 				),
 				'post_name'    => $post_name,
 				'post_content' => serialize_blocks( $parsed_blocks ),
-				'post_status'  => $post_status,
+				'post_status'  => 'publish',
 			);
 			$navigation_post_id      = wp_insert_post( $post_data );
 		}
