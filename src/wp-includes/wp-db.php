@@ -2545,11 +2545,19 @@ class wpdb {
 				}
 			}
 
-			$this->last_error = sprintf(
-				/* translators: %s Database field that where the error occurred. */
-				__( 'WordPress database error: Processing the value for the following field failed: %s. The supplied value may be too long or contained invalid data.' ),
-				implode( ', ', $problem_fields )
-			);
+			if ( 1 === count( $problem_fields ) ) {
+				$this->last_error = sprintf(
+					/* translators: %s Database field where the error occurred. */
+					__( 'WordPress database error: Processing the value for the following field failed: %s. The supplied value may be too long or contained invalid data.' ),
+					reset( $problem_fields )
+				);
+			} else {
+				$this->last_error = sprintf(
+					/* translators: %s Database fields where the error occurred. */
+					__( 'WordPress database error: Processing the value for the following fields failed: %s. The supplied value may be too long or contained invalid data.' ),
+					implode( ', ', $problem_fields )
+				);
+			}
 
 			return false;
 		}
