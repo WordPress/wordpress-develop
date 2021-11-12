@@ -1,4 +1,4 @@
-/*global wpNavMenu */
+/*global wpNavMenu, menus, wp */
 ( function( QUnit, $ ) {
 	QUnit.module( 'nav-menu' );
 	var assert,
@@ -22,6 +22,21 @@
 		assert.expect( 3 );
 
 		var testString = '<div>Hello World</div>';
+
+		// Mock global menus.
+		if ( ! window.hasOwnProperty( 'menus' ) ) {
+			window.menus = {
+				'itemAdded': false,
+				'itemDeleted': false
+			};
+		}
+
+		// Mock global wp.a11y.
+		if ( ! window.wp.hasOwnProperty( 'a11y' ) ) {
+			window.wp.a11y = {
+				'speak': function() {}
+			};
+		}
 
 		// Mock the internal function calls so the don't fail.
 		$.fn.hideAdvancedMenuItemFields = function() {
