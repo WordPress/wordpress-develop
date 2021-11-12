@@ -2015,9 +2015,9 @@ class wpdb {
 			// to flush again, just to make sure everything is clear.
 			$this->flush();
 			if ( $stripped_query !== $query ) {
-				$this->insert_id = 0;
+				$this->insert_id  = 0;
 				$this->last_query = $query;
-				$this->last_error = __( 'WordPress Database Error: Could not perform query because it contains invalid data.' );
+				$this->last_error = __( 'WordPress database error: Could not perform query because it contains invalid data.' );
 				return false;
 			}
 		}
@@ -2545,13 +2545,11 @@ class wpdb {
 				}
 			}
 
-			if ( count( $problem_fields ) === 1 ) {
-				$message = __( 'WordPress Database Error: Processing the value for the following field failed, the supplied value may have been too long or contained invalid data: %s.' );
-			} else {
-				$message = __( 'WordPress Database Error: Processing the values for the following fields failed, the supplied values may have been too long or contained invalid data: %s.' );
-			}
-
-			$this->last_error = sprintf( $message, implode( ', ', $problem_fields ) );
+			$this->last_error = sprintf(
+				/* translators: %s Database field that where the error occurred. */
+				__( 'WordPress database error: Processing the value for the following field failed: %s. The supplied value may be too long or contained invalid data.' ),
+				implode( ', ', $problem_fields )
+			);
 
 			return false;
 		}
