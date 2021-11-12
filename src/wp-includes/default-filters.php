@@ -674,7 +674,7 @@ add_action( 'wp_footer', 'the_block_template_skip_link' );
 add_action( 'setup_theme', 'wp_enable_block_templates' );
 
 // Navigation areas.
-add_action( 'setup_theme', '_register_default_navigation_areas' );
-add_action( 'switch_theme', '_migrate_menu_to_navigation_post', 200, 3 );
+add_action( 'setup_theme', '_wp_register_default_navigation_areas' );
+add_action( 'switch_theme', '_wp_migrate_menu_to_navigation_post', 200, 3 );
 
 unset( $filter, $action );

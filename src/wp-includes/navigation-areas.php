@@ -29,7 +29,7 @@ function register_navigation_areas( $new_areas ) {
  * @since 5.9.0
  * @access private
  */
-function _register_default_navigation_areas() {
+function _wp_register_default_navigation_areas() {
 	register_navigation_areas(
 		array(
 			'primary'   => _x( 'Primary', 'navigation area' ),
@@ -62,7 +62,7 @@ function get_navigation_areas() {
  * @param WP_Theme $new_theme New theme.
  * @param WP_Theme $old_theme Old theme.
  */
-function _migrate_menu_to_navigation_post( $new_name, $new_theme, $old_theme ) {
+function _wp_migrate_menu_to_navigation_post( $new_name, $new_theme, $old_theme ) {
 	// Do nothing when switching to a theme that does not support site editor.
 	if ( ! wp_is_block_template_theme() ) {
 		return;
@@ -88,7 +88,7 @@ function _migrate_menu_to_navigation_post( $new_name, $new_theme, $old_theme ) {
 			continue;
 		}
 
-		$menu_items = _get_menu_items_at_location( $location_name );
+		$menu_items = _wp_get_menu_items_at_location( $location_name );
 		if ( empty( $menu_items ) ) {
 			continue;
 		}
@@ -110,8 +110,8 @@ function _migrate_menu_to_navigation_post( $new_name, $new_theme, $old_theme ) {
 		if ( count( $matching_posts ) ) {
 			$navigation_post_id = $matching_posts[0]->ID;
 		} else {
-			$menu_items_by_parent_id = _sort_menu_items_by_parent_id( $menu_items );
-			$parsed_blocks           = _parse_blocks_from_menu_items( $menu_items_by_parent_id[0], $menu_items_by_parent_id );
+			$menu_items_by_parent_id = _wp_sort_menu_items_by_parent_id( $menu_items );
+			$parsed_blocks           = _wp_parse_blocks_from_menu_items( $menu_items_by_parent_id[0], $menu_items_by_parent_id );
 			$post_data               = array(
 				'post_type'    => 'wp_navigation',
 				'post_title'   => sprintf(
@@ -142,7 +142,7 @@ function _migrate_menu_to_navigation_post( $new_name, $new_theme, $old_theme ) {
  * @param string $location The menu location.
  * @return array Menu items for the location.
  */
-function _menu_items_at_location( $location ) {
+function _wp_get_menu_items_at_location( $location ) {
 	if ( empty( $location ) ) {
 		return;
 	}
@@ -180,7 +180,7 @@ function _menu_items_at_location( $location ) {
  * @return array An array keyed by the id of the parent menu where each element
  *               is an array of menu items that belong to that parent.
  */
-function _sort_menu_items_by_parent_id( $menu_items ) {
+function _wp_sort_menu_items_by_parent_id( $menu_items ) {
 	$sorted_menu_items = array();
 	foreach ( (array) $menu_items as $menu_item ) {
 		$sorted_menu_items[ $menu_item->menu_order ] = $menu_item;
@@ -209,7 +209,7 @@ function _sort_menu_items_by_parent_id( $menu_items ) {
  *                                        that parent.
  * @return array An array of parsed block data.
  */
-function _parse_blocks_from_menu_items( $menu_items, $menu_items_by_parent_id ) {
+function _wp_parse_blocks_from_menu_items( $menu_items, $menu_items_by_parent_id ) {
 	if ( empty( $menu_items ) ) {
 		return array();
 	}
@@ -240,7 +240,7 @@ function _parse_blocks_from_menu_items( $menu_items, $menu_items_by_parent_id ) 
 		);
 
 		$block['innerBlocks']  = isset( $menu_items_by_parent_id[ $menu_item->ID ] )
-			? _parse_blocks_from_menu_items( $menu_items_by_parent_id[ $menu_item->ID ], $menu_items_by_parent_id )
+			? _wp_parse_blocks_from_menu_items( $menu_items_by_parent_id[ $menu_item->ID ], $menu_items_by_parent_id )
 			: array();
 		$block['innerContent'] = array_map( 'serialize_block', $block['innerBlocks'] );
 
