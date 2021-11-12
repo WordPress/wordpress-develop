@@ -480,13 +480,12 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                  => __( 'Navigation Menus' ),
 				'singular_name'         => __( 'Navigation Menu' ),
-				'menu_name'             => _x( 'Navigation Menus', 'Admin Menu text' ),
 				'add_new'               => _x( 'Add New', 'Navigation Menu' ),
 				'add_new_item'          => __( 'Add New Navigation Menu' ),
 				'new_item'              => __( 'New Navigation Menu' ),
 				'edit_item'             => __( 'Edit Navigation Menu' ),
 				'view_item'             => __( 'View Navigation Menu' ),
-				'all_items'             => __( 'All Navigation Menus' ),
+				'all_items'             => __( 'Navigation Menus' ),
 				'search_items'          => __( 'Search Navigation Menus' ),
 				'parent_item_colon'     => __( 'Parent Navigation Menu:' ),
 				'not_found'             => __( 'No Navigation Menu found.' ),
@@ -2077,7 +2076,7 @@ function _add_post_type_submenus() {
 		if ( ! $ptype_obj->show_in_menu || true === $ptype_obj->show_in_menu ) {
 			continue;
 		}
-		add_submenu_page( $ptype_obj->show_in_menu, $ptype_obj->labels->name, $ptype_obj->labels->menu_name, $ptype_obj->cap->edit_posts, "edit.php?post_type=$ptype" );
+		add_submenu_page( $ptype_obj->show_in_menu, $ptype_obj->labels->name, $ptype_obj->labels->all_items, $ptype_obj->cap->edit_posts, "edit.php?post_type=$ptype" );
 	}
 }
 
