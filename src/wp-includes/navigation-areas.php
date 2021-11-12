@@ -182,7 +182,7 @@ function _wp_get_menu_items_at_location( $location ) {
  */
 function _wp_sort_menu_items_by_parent_id( $menu_items ) {
 	$sorted_menu_items = array();
-	foreach ( (array) $menu_items as $menu_item ) {
+	foreach ( $menu_items as $menu_item ) {
 		$sorted_menu_items[ $menu_item->menu_order ] = $menu_item;
 	}
 	unset( $menu_items, $menu_item );
