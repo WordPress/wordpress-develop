@@ -17,6 +17,8 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39304
+	 *
+	 * @group shortcode
 	 */
 	public function test_post_galleries_images_without_global_post() {
 		// Set up an unattached image.
@@ -42,6 +44,8 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39304
+	 *
+	 * @group shortcode
 	 */
 	public function test_post_galleries_ignores_global_post() {
 		$global_post_id = $this->factory->post->create(
@@ -77,6 +81,8 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39304
+	 *
+	 * @group shortcode
 	 */
 	public function test_post_galleries_respects_id_attrs() {
 		$post_id     = $this->factory->post->create(
@@ -116,6 +122,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43826
+	 *
 	 * @group blocks
 	 */
 	public function test_block_post_galleries() {
@@ -143,7 +150,9 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43826
+	 *
 	 * @group blocks
+	 * @group shortcode
 	 */
 	public function test_mixed_post_galleries() {
 		// Test the get_post_galleries() function in $html=false mode, with both shortcode and block galleries
@@ -199,7 +208,9 @@ BLOB;
 
 	/**
 	 * @ticket 43826
+	 *
 	 * @group blocks
+	 * @group shortcode
 	 */
 	public function test_mixed_post_galleries_data() {
 		// Test attributes returned by get_post_galleries() function in $html=false mode, with both shortcode and block galleries
