@@ -1,4 +1,4 @@
-/*global wpNavMenu, menus, wp */
+/*global wpNavMenu */
 ( function( QUnit, $ ) {
 	QUnit.module( 'nav-menu' );
 	var assert,
@@ -32,11 +32,10 @@
 		}
 
 		// Mock global wp.a11y.
-		if ( ! window.wp.hasOwnProperty( 'a11y' ) ) {
-			window.wp.a11y = {
-				'speak': function() {}
-			};
-		}
+		window.wp = window.wp || {};
+		window.wp.a11y = {
+			'speak': function() {}
+		};
 
 		// Mock the internal function calls so the don't fail.
 		$.fn.hideAdvancedMenuItemFields = function() {
