@@ -472,7 +472,7 @@ function get_post_embed_html( $width, $height, $post = null ) {
 	$embed_url .= "#?secret={$secret}";
 
 	$output = wp_get_inline_script_tag(
-		file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' ) )
+		file_get_contents( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' )
 	);
 
 	$output .= sprintf(
@@ -1057,7 +1057,7 @@ function print_embed_styles() {
  */
 function print_embed_scripts() {
 	wp_print_inline_script_tag(
-		file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js' ) )
+		file_get_contents( ABSPATH . WPINC . '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js' )
 	);
 }
 
