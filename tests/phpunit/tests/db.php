@@ -33,6 +33,8 @@ class Tests_DB extends WP_UnitTestCase {
 		parent::set_up();
 		$this->_queries = array();
 		add_filter( 'query', array( $this, 'query_filter' ) );
+		self::$_wpdb->last_error = null;
+		$GLOBALS['wpdb']->last_error = null;
 	}
 
 	/**
@@ -1093,6 +1095,129 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 	public function filter_pre_get_col_charset( $charset, $table, $column ) {
 		return 'fake_col_charset';
+	}
+
+	/**
+	+	 * @ticket 32315
+	+	 *
+	+	 * @dataProvider data_process_fields_invalid_data
+	+	 */
+	function test_process_fields_value_too_long_for_field( $data ) {
+
+		global $wpdb;
+
+		$this->assertFalse( self::$_wpdb->process_fields( $wpdb->posts, $data, null ) );
+		$this->assertSame(
+			'WordPress Database Error: Processing the value for the following field failed, the supplied value may have been too long or contained invalid data: post_status.',
+			self::$_wpdb->last_error
+		);
+	}
+
+	function data_process_fields_invalid_data() {
+		return array(
+			'too_long'      => array( array( 'post_status' => str_repeat( 'a', 21 ) ) ),
+			'invalid_chars' => array( array( 'post_status' => "\xF5" ) ),
+		);
+	}
+
+	/**
+	 * @ticket 32315
+	 */
+	function test_process_fields_value_too_long_for_field_multiple() {
+
+		global $wpdb;
+
+		$data = array(
+			'post_status'  => str_repeat( 'a', 21 ),
+			'post_content' => "\xF5",
+		);
+
+		$this->assertFalse( self::$_wpdb->process_fields( $wpdb->posts, $data, null ) );
+		$this->assertSame(
+			'WordPress Database Error: Processing the values for the following fields failed, the supplied values may have been too long or contained invalid data: post_status, post_content.',
+			self::$_wpdb->last_error
+		);
+	}
+
+	/**
+	 * @ticket 32315
+	 *
+	 * @dataProvider data_process_fields_invalid_data
+	 */
+	function test_insert_value_too_long_for_field( $data ) {
+
+		global $wpdb;
+
+		$this->assertFalse( $wpdb->insert( $wpdb->posts, $data ) );
+		$this->assertSame(
+			'WordPress Database Error: Processing the value for the following field failed, the supplied value may have been too long or contained invalid data: post_status.',
+			$wpdb->last_error
+		);
+	}
+
+	/**
+	 * @ticket 32315
+	 *
+	 * @dataProvider data_process_fields_invalid_data
+	 */
+	function test_replace_value_too_long_for_field( $data ) {
+
+		global $wpdb;
+
+		$this->assertFalse( $wpdb->replace( $wpdb->posts, $data ) );
+		$this->assertSame(
+			'WordPress Database Error: Processing the value for the following field failed, the supplied value may have been too long or contained invalid data: post_status.',
+			$wpdb->last_error
+		);
+	}
+
+	/**
+	 * @ticket 32315
+	 *
+	 * @dataProvider data_process_fields_invalid_data
+	 */
+	function test_update_value_too_long_for_field( $data ) {
+
+		global $wpdb;
+
+		$this->assertFalse( $wpdb->update( $wpdb->posts, $data, array() ) );
+		$this->assertSame(
+			'WordPress Database Error: Processing the value for the following field failed, the supplied value may have been too long or contained invalid data: post_status.',
+			$wpdb->last_error
+		);
+	}
+
+	/**
+	 * @ticket 32315
+	 *
+	 * @dataProvider data_process_fields_invalid_data
+	 */
+	function test_delete_value_too_long_for_field( $data ) {
+
+		global $wpdb;
+
+		$this->assertFalse( $wpdb->delete( $wpdb->posts, $data, array() ) );
+		$this->assertSame(
+			'WordPress Database Error: Processing the value for the following field failed, the supplied value may have been too long or contained invalid data: post_status.',
+			$wpdb->last_error
+		);
+	}
+
+	/**
+	 * @ticket 32315
+	 */
+	function test_query_value_contains_invalid_chars() {
+
+		global $wpdb;
+
+		$this->assertFalse(
+			$wpdb->query( "INSERT INTO {$wpdb->posts} (post_status) VALUES ('\xF5')" )
+		);
+
+		$this->assertSame(
+			'WordPress Database Error: Could not perform query because it contains invalid data.',
+			$wpdb->last_error
+		);
 	}
 
 	/**

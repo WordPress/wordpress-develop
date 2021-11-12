@@ -2016,6 +2016,8 @@ class wpdb {
 			$this->flush();
 			if ( $stripped_query !== $query ) {
 				$this->insert_id = 0;
+				$this->last_query = $query;
+				$this->last_error = __( 'WordPress Database Error: Could not perform query because it contains invalid data.' );
 				return false;
 			}
 		}
@@ -2535,6 +2537,22 @@ class wpdb {
 		$converted_data = $this->strip_invalid_text( $data );
 
 		if ( $data !== $converted_data ) {
+
+			$problem_fields = array();
+			foreach ( $data as $field => $value ) {
+				if ( $value !== $converted_data[ $field ] ) {
+					$problem_fields[] = $field;
+				}
+			}
+
+			if ( count( $problem_fields ) === 1 ) {
+				$message = __( 'WordPress Database Error: Processing the value for the following field failed, the supplied value may have been too long or contained invalid data: %s.' );
+			} else {
+				$message = __( 'WordPress Database Error: Processing the values for the following fields failed, the supplied values may have been too long or contained invalid data: %s.' );
+			}
+
+			$this->last_error = sprintf( $message, implode( ', ', $problem_fields ) );
+
 			return false;
 		}
 
