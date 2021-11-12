@@ -104,6 +104,7 @@ function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP
 				'post_status'    => $post_status,
 				'post_type'      => 'wp_navigation',
 				'posts_per_page' => 1,
+				'fields'         => 'ids',
 			)
 		);
 
