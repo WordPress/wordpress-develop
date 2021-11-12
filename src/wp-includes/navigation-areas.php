@@ -62,7 +62,7 @@ function get_navigation_areas() {
  * @param WP_Theme $new_theme New theme.
  * @param WP_Theme $old_theme Old theme.
  */
-function _wp_migrate_menu_to_navigation_post( $new_name, $new_theme, $old_theme ) {
+function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP_Theme $old_theme ) {
 	// Do nothing when switching to a theme that does not support site editor.
 	if ( ! wp_is_block_template_theme() ) {
 		return;
