@@ -239,9 +239,15 @@ function _wp_parse_blocks_from_menu_items( $menu_items, $menu_items_by_parent_id
 			),
 		);
 
-		$block['innerBlocks']  = isset( $menu_items_by_parent_id[ $menu_item->ID ] )
-			? _wp_parse_blocks_from_menu_items( $menu_items_by_parent_id[ $menu_item->ID ], $menu_items_by_parent_id )
-			: array();
+		if ( isset( $menu_items_by_parent_id[ $menu_item->ID ] ) ) {
+			$block['innerBlocks'] = _wp_parse_blocks_from_menu_items(
+				$menu_items_by_parent_id[ $menu_item->ID ],
+				$menu_items_by_parent_id
+			);
+		} else {
+			$block['innerBlocks'] = array();
+		}
+
 		$block['innerContent'] = array_map( 'serialize_block', $block['innerBlocks'] );
 
 		$blocks[] = $block;
