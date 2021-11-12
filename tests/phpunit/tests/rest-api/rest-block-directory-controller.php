@@ -69,24 +69,10 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
-		add_filter(
-			'pre_http_request',
-			static function() {
-				/*
-				 * Mocks the request to:
-				 * https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request%5Bblock%5D=foo&request%5Bper_page%5D=10&request%5Bpage%5D=1&request%5Blocale%5D=en_US&request%5Bwp_version%5D=5.9
-				 */
-				return array(
-					'headers'  => array(),
-					'response' => array(
-						'code'    => 200,
-						'message' => 'OK',
-					),
-					'body'     => '{"info":{"page":1,"pages":0,"results":0},"plugins":[]}',
-					'cookies'  => array(),
-					'filename' => null,
-				);
-			}
+		$this->mock_remote_request(
+			array(
+				'body' => '{"info":{"page":1,"pages":0,"results":0},"plugins":[]}',
+			)
 		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
@@ -128,6 +114,11 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	 */
 	public function test_get_items_no_results() {
 		wp_set_current_user( self::$admin_id );
+		$this->mock_remote_request(
+			array(
+				'body' => '{"info":{"page":1,"pages":0,"results":0},"plugins":[]}',
+			)
+		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
 		$request->set_query_params( array( 'term' => '0c4549ee68f24eaaed46a49dc983ecde' ) );
@@ -304,6 +295,33 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 			),
 			'author_block_count'       => 1,
 			'author_block_rating'      => 0,
+		);
+	}
+
+	/**
+	 * Mocks the remote request via `'pre_http_request'` filter by
+	 * returning the expected response.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $expected Expected response, which is merged with the default response.
+	 */
+	private function mock_remote_request( array $expected ) {
+		add_filter(
+			'pre_http_request',
+			static function() use ( $expected ) {
+				$default = array(
+					'headers'  => array(),
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'body'     => '',
+					'cookies'  => array(),
+					'filename' => null,
+				);
+				return array_merge( $default, $expected );
+			}
 		);
 	}
 }
