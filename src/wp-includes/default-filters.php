@@ -587,6 +587,13 @@ add_action( 'use_block_editor_for_post_type', '_disable_block_editor_for_navigat
 add_action( 'edit_form_after_title', '_disable_content_editor_for_navigation_post_type' );
 add_action( 'edit_form_after_editor', '_enable_content_editor_for_navigation_post_type' );
 
+/*
+ * Disable "Post Attributes" for wp_navigation post type. The attributes are
+ * also conditionally enabled when a site has custom templates. Block Theme
+ * templates can be available for every post type.
+ */
+add_filter( 'theme_wp_navigation_templates', '__return_empty_array' );
+
 // Taxonomy.
 add_action( 'init', 'create_initial_taxonomies', 0 ); // Highest priority.
 add_action( 'change_locale', 'create_initial_taxonomies' );
