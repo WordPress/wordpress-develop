@@ -64,16 +64,16 @@ class MockAction {
 	/**
 	 * PHP5 constructor.
 	 */
-	function __construct( $debug = 0 ) {
+	public function __construct( $debug = 0 ) {
 		$this->reset();
 		$this->debug = $debug;
 	}
 
-	function reset() {
+	public function reset() {
 		$this->events = array();
 	}
 
-	function current_filter() {
+	public function current_filter() {
 		if ( is_callable( 'current_filter' ) ) {
 			return current_filter();
 		}
@@ -81,7 +81,7 @@ class MockAction {
 		return end( $wp_actions );
 	}
 
-	function action( $arg ) {
+	public function action( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -94,7 +94,7 @@ class MockAction {
 		return $arg;
 	}
 
-	function action2( $arg ) {
+	public function action2( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -108,7 +108,7 @@ class MockAction {
 		return $arg;
 	}
 
-	function filter( $arg ) {
+	public function filter( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -122,7 +122,7 @@ class MockAction {
 		return $arg;
 	}
 
-	function filter2( $arg ) {
+	public function filter2( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -136,7 +136,7 @@ class MockAction {
 		return $arg;
 	}
 
-	function filter_append( $arg ) {
+	public function filter_append( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -150,7 +150,7 @@ class MockAction {
 		return $arg . '_append';
 	}
 
-	function filterall( $tag, ...$args ) {
+	public function filterall( $tag, ...$args ) {
 		// This one doesn't return the result, so it's safe to use with the new 'all' filter.
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
@@ -164,12 +164,12 @@ class MockAction {
 	}
 
 	// Return a list of all the actions, tags and args.
-	function get_events() {
+	public function get_events() {
 		return $this->events;
 	}
 
 	// Return a count of the number of times the action was called since the last reset.
-	function get_call_count( $tag = '' ) {
+	public function get_call_count( $tag = '' ) {
 		if ( $tag ) {
 			$count = 0;
 			foreach ( $this->events as $e ) {
@@ -183,7 +183,7 @@ class MockAction {
 	}
 
 	// Return an array of the tags that triggered calls to this action.
-	function get_tags() {
+	public function get_tags() {
 		$out = array();
 		foreach ( $this->events as $e ) {
 			$out[] = $e['tag'];
@@ -192,7 +192,7 @@ class MockAction {
 	}
 
 	// Return an array of args passed in calls to this action.
-	function get_args() {
+	public function get_args() {
 		$out = array();
 		foreach ( $this->events as $e ) {
 			$out[] = $e['args'];
@@ -210,7 +210,7 @@ class TestXMLParser {
 	/**
 	 * PHP5 constructor.
 	 */
-	function __construct( $in ) {
+	public function __construct( $in ) {
 		$this->xml = xml_parser_create();
 		xml_set_object( $this->xml, $this );
 		xml_parser_set_option( $this->xml, XML_OPTION_CASE_FOLDING, 0 );
@@ -219,7 +219,7 @@ class TestXMLParser {
 		$this->parse( $in );
 	}
 
-	function parse( $in ) {
+	public function parse( $in ) {
 		$parse = xml_parse( $this->xml, $in, true );
 		if ( ! $parse ) {
 			trigger_error(
@@ -235,14 +235,14 @@ class TestXMLParser {
 		return true;
 	}
 
-	function start_handler( $parser, $name, $attributes ) {
+	public function start_handler( $parser, $name, $attributes ) {
 		$data['name'] = $name;
 		if ( $attributes ) {
 			$data['attributes'] = $attributes; }
 		$this->data[] = $data;
 	}
 
-	function data_handler( $parser, $data ) {
+	public function data_handler( $parser, $data ) {
 		$index = count( $this->data ) - 1;
 
 		if ( ! isset( $this->data[ $index ]['content'] ) ) {
@@ -251,7 +251,7 @@ class TestXMLParser {
 		$this->data[ $index ]['content'] .= $data;
 	}
 
-	function end_handler( $parser, $name ) {
+	public function end_handler( $parser, $name ) {
 		if ( count( $this->data ) > 1 ) {
 			$data                            = array_pop( $this->data );
 			$index                           = count( $this->data ) - 1;
@@ -378,7 +378,7 @@ function gen_tests_array( $name, $array ) {
 /**
  * Use to create objects by yourself
  */
-class MockClass {};
+class MockClass {}
 
 /**
  * Drops all tables from the WordPress database

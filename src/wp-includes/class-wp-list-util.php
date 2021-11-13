@@ -77,6 +77,13 @@ class WP_List_Util {
 	/**
 	 * Filters the list, based on a set of key => value arguments.
 	 *
+	 * Retrieves the objects from the list that match the given arguments.
+	 * Key represents property name, and value represents property value.
+	 *
+	 * If an object has more properties than those specified in arguments,
+	 * that will not disqualify it. When using the 'AND' operator,
+	 * any missing properties will disqualify it.
+	 *
 	 * @since 4.7.0
 	 *
 	 * @param array  $args     Optional. An array of key => value arguments to match
@@ -95,7 +102,8 @@ class WP_List_Util {
 		$operator = strtoupper( $operator );
 
 		if ( ! in_array( $operator, array( 'AND', 'OR', 'NOT' ), true ) ) {
-			return array();
+			$this->output = array();
+			return $this->output;
 		}
 
 		$count    = count( $args );

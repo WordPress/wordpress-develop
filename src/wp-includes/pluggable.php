@@ -91,16 +91,25 @@ if ( ! function_exists( 'get_user_by' ) ) :
 	 *
 	 * @since 2.8.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
+	 * @since 5.8.0 Returns the global `$current_user` if it's the user being fetched.
+	 *
+	 * @global WP_User $current_user The current user object which holds the user data.
 	 *
 	 * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
 	 * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
 	 * @return WP_User|false WP_User object on success, false on failure.
 	 */
 	function get_user_by( $field, $value ) {
+		global $current_user;
+
 		$userdata = WP_User::get_data_by( $field, $value );
 
 		if ( ! $userdata ) {
 			return false;
+		}
+
+		if ( $current_user instanceof WP_User && $current_user->ID === (int) $userdata->ID ) {
+			return $current_user;
 		}
 
 		$user = new WP_User;
@@ -158,6 +167,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * be set using the {@see 'wp_mail_charset'} filter.
 	 *
 	 * @since 1.2.1
+	 * @since 5.5.0 is_email() is used for email validation,
+	 *              instead of PHPMailer's default validator.
 	 *
 	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
@@ -526,13 +537,28 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 */
 		do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
 
+		$mail_data = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
+
 		// Send!
 		try {
-			return $phpmailer->send();
-		} catch ( PHPMailer\PHPMailer\Exception $e ) {
+			$send = $phpmailer->send();
 
-			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
-			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
+			/**
+			 * Fires after PHPMailer has successfully sent a mail.
+			 *
+			 * The firing of this action does not necessarily mean that the recipient received the
+			 * email successfully. It only means that the `send` method above was able to
+			 * process the request without any errors.
+			 *
+			 * @since 5.9.0
+			 *
+			 * @param array $mail_data An array containing the mail recipient, subject, message, headers, and attachments.
+			 */
+			do_action( 'wp_mail_succeeded', $mail_data );
+
+			return $send;
+		} catch ( PHPMailer\PHPMailer\Exception $e ) {
+			$mail_data['phpmailer_exception_code'] = $e->getCode();
 
 			/**
 			 * Fires after a PHPMailer\PHPMailer\Exception is caught.
@@ -542,7 +568,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			 * @param WP_Error $error A WP_Error object with the PHPMailer\PHPMailer\Exception message, and an array
 			 *                        containing the mail recipient, subject, message, headers, and attachments.
 			 */
-			do_action( 'wp_mail_failed', new WP_Error( 'wp_mail_failed', $e->getMessage(), $mail_error_data ) );
+			do_action( 'wp_mail_failed', new WP_Error( 'wp_mail_failed', $e->getMessage(), $mail_data ) );
 
 			return false;
 		}
@@ -1165,7 +1191,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 	 */
 	function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
 		if ( -1 === $action ) {
-			_doing_it_wrong( __FUNCTION__, __( 'You should specify a nonce action to be verified by using the first parameter.' ), '3.2.0' );
+			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '3.2.0' );
 		}
 
 		$adminurl = strtolower( admin_url() );
@@ -1210,7 +1236,7 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 	 */
 	function check_ajax_referer( $action = -1, $query_arg = false, $die = true ) {
 		if ( -1 == $action ) {
-			_doing_it_wrong( __FUNCTION__, __( 'You should specify a nonce action to be verified by using the first parameter.' ), '4.7' );
+			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '4.7.0' );
 		}
 
 		$nonce = '';
@@ -2667,7 +2693,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 		);
 
 		if ( wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
-			$defaults['loading'] = 'lazy';
+			$defaults['loading'] = wp_get_loading_attr_default( 'get_avatar' );
 		}
 
 		if ( empty( $args ) ) {
@@ -2774,8 +2800,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 		 * @param int    $size        Square avatar width and height in pixels to retrieve.
 		 * @param string $default     URL for the default image or a default type. Accepts '404', 'retro', 'monsterid',
 		 *                            'wavatar', 'indenticon', 'mystery', 'mm', 'mysteryman', 'blank', or 'gravatar_default'.
-		 *                            Default is the value of the 'avatar_default' option, with a fallback of 'mystery'.
-		 * @param string $alt         Alternative text to use in the avatar image tag. Default empty.
+		 * @param string $alt         Alternative text to use in the avatar image tag.
 		 * @param array  $args        Arguments passed to get_avatar_data(), after processing.
 		 */
 		return apply_filters( 'get_avatar', $avatar, $id_or_email, $args['size'], $args['default'], $args['alt'], $args );

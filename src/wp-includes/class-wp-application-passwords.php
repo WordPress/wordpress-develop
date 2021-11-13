@@ -43,7 +43,7 @@ class WP_Application_Passwords {
 	/**
 	 * Checks if Application Passwords are being used by the site.
 	 *
-	 * This returns true if at least one App Password has ever been created.
+	 * This returns true if at least one Application Password has ever been created.
 	 *
 	 * @since 5.6.0
 	 *
@@ -61,7 +61,12 @@ class WP_Application_Passwords {
 	 * @since 5.7.0 Returns WP_Error if application name already exists.
 	 *
 	 * @param int   $user_id  User ID.
-	 * @param array $args     Information about the application password.
+	 * @param array $args     {
+	 *     Arguments used to create the application password.
+	 *
+	 *     @type string $name   The name of the application password.
+	 *     @type string $app_id A UUID provided by the application to uniquely identify it.
+	 * }
 	 * @return array|WP_Error The first key in the array is the new password, the second is its detailed information.
 	 *                        A WP_Error instance is returned on error.
 	 */
@@ -110,9 +115,24 @@ class WP_Application_Passwords {
 		 * @since 5.6.0
 		 *
 		 * @param int    $user_id      The user ID.
-		 * @param array  $new_item     The details about the created password.
-		 * @param string $new_password The unhashed generated app password.
-		 * @param array  $args         Information used to create the application password.
+		 * @param array  $new_item     {
+		 *     The details about the created password.
+		 *
+		 *     @type string $uuid      The unique identifier for the application password.
+		 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+		 *     @type string $name      The name of the application password.
+		 *     @type string $password  A one-way hash of the password.
+		 *     @type int    $created   Unix timestamp of when the password was created.
+		 *     @type null   $last_used Null.
+		 *     @type null   $last_ip   Null.
+		 * }
+		 * @param string $new_password The unhashed generated application password.
+		 * @param array  $args         {
+		 *     Arguments used to create the application password.
+		 *
+		 *     @type string $name   The name of the application password.
+		 *     @type string $app_id A UUID provided by the application to uniquely identify it.
+		 * }
 		 */
 		do_action( 'wp_create_application_password', $user_id, $new_item, $new_password, $args );
 
@@ -125,7 +145,19 @@ class WP_Application_Passwords {
 	 * @since 5.6.0
 	 *
 	 * @param int $user_id User ID.
-	 * @return array The list of app passwords.
+	 * @return array {
+	 *     The list of app passwords.
+	 *
+	 *     @type array ...$0 {
+	 *         @type string      $uuid      The unique identifier for the application password.
+	 *         @type string      $app_id    A UUID provided by the application to uniquely identify it.
+	 *         @type string      $name      The name of the application password.
+	 *         @type string      $password  A one-way hash of the password.
+	 *         @type int         $created   Unix timestamp of when the password was created.
+	 *         @type int|null    $last_used The Unix timestamp of the GMT date the application password was last used.
+	 *         @type string|null $last_ip   The IP address the application password was last used by.
+	 *     }
+	 * }
 	 */
 	public static function get_user_application_passwords( $user_id ) {
 		$passwords = get_user_meta( $user_id, static::USERMETA_KEY_APPLICATION_PASSWORDS, true );
@@ -151,12 +183,12 @@ class WP_Application_Passwords {
 	}
 
 	/**
-	 * Gets a user's application password with the given uuid.
+	 * Gets a user's application password with the given UUID.
 	 *
 	 * @since 5.6.0
 	 *
 	 * @param int    $user_id User ID.
-	 * @param string $uuid    The password's uuid.
+	 * @param string $uuid    The password's UUID.
 	 * @return array|null The application password if found, null otherwise.
 	 */
 	public static function get_user_application_password( $user_id, $uuid ) {
@@ -172,13 +204,13 @@ class WP_Application_Passwords {
 	}
 
 	/**
-	 * Checks if application name exists for this user.
+	 * Checks if an application password with the given name exists for this user.
 	 *
 	 * @since 5.7.0
 	 *
 	 * @param int    $user_id User ID.
 	 * @param string $name    Application name.
-	 * @return bool Whether provided application name exists or not.
+	 * @return bool Whether the provided application name exists.
 	 */
 	public static function application_name_exists_for_user( $user_id, $name ) {
 		$passwords = static::get_user_application_passwords( $user_id );
@@ -198,7 +230,7 @@ class WP_Application_Passwords {
 	 * @since 5.6.0
 	 *
 	 * @param int    $user_id User ID.
-	 * @param string $uuid    The password's uuid.
+	 * @param string $uuid    The password's UUID.
 	 * @param array  $update  Information about the application password to update.
 	 * @return true|WP_Error True if successful, otherwise a WP_Error instance is returned on error.
 	 */
@@ -252,7 +284,7 @@ class WP_Application_Passwords {
 	 * @since 5.6.0
 	 *
 	 * @param int    $user_id User ID.
-	 * @param string $uuid    The password's uuid.
+	 * @param string $uuid    The password's UUID.
 	 * @return true|WP_Error True if the usage was recorded, a WP_Error if an error occurs.
 	 */
 	public static function record_application_password_usage( $user_id, $uuid ) {
@@ -290,7 +322,7 @@ class WP_Application_Passwords {
 	 * @since 5.6.0
 	 *
 	 * @param int    $user_id User ID.
-	 * @param string $uuid    The password's uuid.
+	 * @param string $uuid    The password's UUID.
 	 * @return true|WP_Error Whether the password was successfully found and deleted, a WP_Error otherwise.
 	 */
 	public static function delete_application_password( $user_id, $uuid ) {
@@ -352,7 +384,7 @@ class WP_Application_Passwords {
 	}
 
 	/**
-	 * Sets a users application passwords.
+	 * Sets a user's application passwords.
 	 *
 	 * @since 5.6.0
 	 *

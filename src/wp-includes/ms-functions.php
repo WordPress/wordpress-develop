@@ -538,7 +538,14 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 
 	// Check if the email address has been used already.
 	if ( email_exists( $user_email ) ) {
-		$errors->add( 'user_email', __( 'Sorry, that email address is already used!' ) );
+		$errors->add(
+			'user_email',
+			sprintf(
+				/* translators: %s: Link to the login page. */
+				__( '<strong>Error:</strong> This email address is already registered. <a href="%s">Log in</a> with this address or choose another one.' ),
+				wp_login_url()
+			)
+		);
 	}
 
 	// Has someone already signed up for this username?
@@ -981,7 +988,7 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 		apply_filters(
 			'wpmu_signup_blog_notification_email',
 			/* translators: New site notification email. 1: Activation URL, 2: New site URL. */
-			__( "To activate your blog, please click the following link:\n\n%1\$s\n\nAfter you activate, you will receive *another email* with your login.\n\nAfter you activate, you can visit your site here:\n\n%2\$s" ),
+			__( "To activate your site, please click the following link:\n\n%1\$s\n\nAfter you activate, you will receive *another email* with your login.\n\nAfter you activate, you can visit your site here:\n\n%2\$s" ),
 			$domain,
 			$path,
 			$title,

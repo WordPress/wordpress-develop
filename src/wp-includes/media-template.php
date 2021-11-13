@@ -28,7 +28,7 @@ function wp_underscore_audio_template() {
 	if ( ! _.isUndefined( data.model.<?php echo $attr; ?> ) && data.model.<?php echo $attr; ?> ) {
 		#> <?php echo $attr; ?><#
 	}
-	<?php endforeach ?>#>
+	<?php endforeach; ?>#>
 >
 	<# if ( ! _.isEmpty( data.model.src ) ) { #>
 	<source src="{{ data.model.src }}" type="{{ wp.media.view.settings.embedMimes[ data.model.src.split('.').pop() ] }}" />
@@ -123,7 +123,7 @@ function wp_underscore_video_template() {
 	if ( ! _.isUndefined( data.model.<?php echo $attr; ?> ) && data.model.<?php echo $attr; ?> ) {
 		#> <?php echo $attr; ?><#
 	}
-	<?php endforeach ?>#>
+	<?php endforeach; ?>#>
 >
 	<# if ( ! _.isEmpty( data.model.src ) ) {
 		if ( isYouTube ) { #>
@@ -158,7 +158,7 @@ function wp_print_media_templates() {
 
 	$alt_text_description = sprintf(
 		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
-		__( '<a href="%1$s" %2$s>Describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
+		__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 		esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
 		'target="_blank" rel="noopener"',
 		sprintf(
@@ -252,7 +252,10 @@ function wp_print_media_templates() {
 			<div class="upload-ui">
 				<h2 class="upload-instructions drop-instructions"><?php _e( 'Drop files to upload' ); ?></h2>
 				<p class="upload-instructions drop-instructions"><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files' ); ?></p>
-				<button type="button" class="browser button button-hero" aria-labelledby="post-upload-info"><?php _e( 'Select Files' ); ?></button>
+				<div class="browser-container">
+					<label class="button button-hero"><?php esc_html_e( 'Select Files' ); ?></label>
+					<input type="file" class="browser screen-reader-text" aria-describedby="post-upload-info">
+				</div>
 			</div>
 
 			<div class="upload-inline-status"></div>
@@ -1277,7 +1280,7 @@ function wp_print_media_templates() {
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove audio source' ); ?></button>
 				</span>
 				<# } #>
-				<?php endforeach ?>
+				<?php endforeach; ?>
 
 				<# if ( ! _.isEmpty( html5types ) ) { #>
 				<fieldset class="setting-group">
@@ -1367,7 +1370,7 @@ function wp_print_media_templates() {
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove video source' ); ?></button>
 				</span>
 				<# } #>
-				<?php endforeach ?>
+				<?php endforeach; ?>
 				</div>
 
 				<# if ( ! _.isEmpty( html5types ) ) { #>
@@ -1479,7 +1482,7 @@ function wp_print_media_templates() {
 
 	<?php // Template for the Crop area layout, used for example in the Customizer. ?>
 	<script type="text/html" id="tmpl-crop-content">
-		<img class="crop-image" src="{{ data.url }}" alt="<?php esc_attr_e( 'Image crop area preview. Requires mouse interaction.' ); ?>">
+		<img class="crop-image" src="{{ data.url }}" alt="<?php esc_attr_e( 'Image crop area preview. Requires mouse interaction.' ); ?>" />
 		<div class="upload-errors"></div>
 	</script>
 

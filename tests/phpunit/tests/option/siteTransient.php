@@ -5,15 +5,15 @@
  */
 class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'Not testable with an external object cache.' );
 		}
 	}
 
-	function test_the_basics() {
+	public function test_the_basics() {
 		$key    = 'key1';
 		$value  = 'value1';
 		$value2 = 'value2';
@@ -29,7 +29,7 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 		$this->assertFalse( delete_site_transient( $key ) );
 	}
 
-	function test_serialized_data() {
+	public function test_serialized_data() {
 		$key   = __FUNCTION__;
 		$value = array(
 			'foo' => true,
@@ -56,6 +56,6 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$options = wp_load_alloptions();
 
-		$this->assertFalse( isset( $options[ '_site_transient_' . $key ] ) );
+		$this->assertArrayNotHasKey( '_site_transient_' . $key, $options );
 	}
 }

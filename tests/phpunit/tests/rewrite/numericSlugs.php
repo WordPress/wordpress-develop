@@ -7,8 +7,8 @@
 class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 	private $old_current_user;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->author_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 
 		// Override the post/archive slug collision prevention in `wp_unique_post_slug()`.
