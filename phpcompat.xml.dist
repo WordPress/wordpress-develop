@@ -40,6 +40,15 @@
 	-->
 	<exclude-pattern>/vendor/*</exclude-pattern>
 
+	<!-- Must-Use plugins. -->
+	<exclude-pattern>/src/wp-content/mu-plugins/*</exclude-pattern>
+
+	<!-- Plugins. -->
+	<exclude-pattern>/src/wp-content/plugins/*</exclude-pattern>
+
+	<!-- Themes except the twenty* themes. -->
+	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
+
 	<!--
 		PHPCompatibilityParagonieSodiumCompat prevents false positives in `sodium_compat`.
 		However, because these files are included in a non-standard path, false positives are triggered in WordPress Core.
