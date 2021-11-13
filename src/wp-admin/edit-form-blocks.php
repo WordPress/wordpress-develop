@@ -176,7 +176,6 @@ $body_placeholder = apply_filters( 'write_your_story', __( 'Type / to choose a b
 
 $editor_settings = array(
 	'availableTemplates'                   => $available_templates,
-	'disableCustomGradients'               => get_theme_support( 'disable-custom-gradients' ),
 	'disablePostFormats'                   => ! current_theme_supports( 'post-formats' ),
 	/** This filter is documented in wp-admin/edit-form-advanced.php */
 	'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
