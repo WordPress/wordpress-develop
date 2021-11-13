@@ -78,7 +78,7 @@ function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP
 	add_filter( 'option_stylesheet', $get_old_theme_stylesheet );
 
 	$locations    = get_nav_menu_locations();
-	$area_mapping = get_option( 'fse_navigation_areas', array() );
+	$area_mapping = _wp_get_navigation_areas_menus();
 
 	foreach ( $locations as $location_name => $menu_id ) {
 		// Get the menu from the location, skipping if there is no
@@ -124,14 +124,37 @@ function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP
 				'post_status'  => 'publish',
 			);
 			$navigation_post_id      = wp_insert_post( $post_data );
+			// If wp_insert_post fails *at any time*, then bale out of the entire
+			// migration attempt returning the WP_Error object.
+			if ( is_wp_error( $navigation_post_id ) ) {
+				return $navigation_post_id;
+			}
 		}
 
 		$area_mapping[ $location_name ] = $navigation_post_id;
 	}
 	remove_filter( 'option_stylesheet', $get_old_theme_stylesheet );
 
-	update_option( 'fse_navigation_areas', $area_mapping );
+	update_option( 'wp_navigation_areas', $area_mapping );
 }
+
+/**
+ * Retrieves navigation areas.
+ *
+ * @return array Navigation areas.
+ */
+function _wp_get_navigation_areas_menus() {
+	$areas = get_option( 'wp_navigation_areas', array() );
+	if ( ! $areas ) {
+		// Original key used `fse` prefix but Core options should use `wp`.
+		// We fallback to the legacy option to catch sites with values in the
+		// original location.
+		$legacy_option_key = 'fse_navigation_areas';
+		$areas             = get_option( $legacy_option_key, array() );
+	}
+	return $areas;
+}
+
 
 /**
  * Returns the menu items for a WordPress menu location.
