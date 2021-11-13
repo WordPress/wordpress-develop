@@ -374,7 +374,7 @@ function wp_oembed_add_host_js() {
  * @return string Embed markup (without modifications).
  */
 function wp_maybe_enqueue_oembed_host_js( $html ) {
-	if ( preg_match( '/<blockquote\s[^>]*wp-embedded-content/', $html ) ) {
+	if ( preg_match( '/<blockquote\s[^>]*?wp-embedded-content/', $html ) ) {
 		wp_enqueue_script( 'wp-embed' );
 	}
 	return $html;
