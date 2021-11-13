@@ -300,7 +300,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$actual   = get_post_embed_html( 200, 200, $post_id );
 		$actual   = preg_replace( '/secret=("?)\w+\1/', 'secret=__SECRET__', $actual );
 
-		$this->assertStringEndsWith( $expected, $actual );
+		$this->assertStringStartsWith( '<blockquote class="wp-embedded-content" data-secret=__SECRET__>', $actual );
+		$this->assertStringContainsString( $expected, $actual );
+		$this->assertStringEndsWith( '</script>', trim( $actual ) );
 	}
 
 	/** @covers ::wp_oembed_add_host_js() */
