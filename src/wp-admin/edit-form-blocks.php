@@ -176,10 +176,6 @@ $body_placeholder = apply_filters( 'write_your_story', __( 'Type / to choose a b
 
 $editor_settings = array(
 	'availableTemplates'                   => $available_templates,
-	'allowedBlockTypes'                    => $allowed_block_types,
-	'allowedHtmlTags'                      => wp_kses_allowed_html(),
-	'disableCustomColors'                  => get_theme_support( 'disable-custom-colors' ),
-	'disableCustomFontSizes'               => get_theme_support( 'disable-custom-font-sizes' ),
 	'disableCustomGradients'               => get_theme_support( 'disable-custom-gradients' ),
 	'disablePostFormats'                   => ! current_theme_supports( 'post-formats' ),
 	/** This filter is documented in wp-admin/edit-form-advanced.php */
