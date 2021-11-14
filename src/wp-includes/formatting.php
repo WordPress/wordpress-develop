@@ -1580,9 +1580,10 @@ function utf8_uri_encode( $utf8_string, $length = 0 ) {
  * @since 5.7.0 Added locale support for `de_AT`.
  *
  * @param string $string Text that might have accent characters
+ * @param string $locale optionally pass a locale, since some accent removals depend on the locale used (e.g. "de")
  * @return string Filtered string with replaced "nice" characters.
  */
-function remove_accents( $string ) {
+function remove_accents( $string, $locale = '' ) {
 	if ( ! preg_match( '/[\x80-\xff]/', $string ) ) {
 		return $string;
 	}
@@ -1918,7 +1919,9 @@ function remove_accents( $string ) {
 		);
 
 		// Used for locale-specific rules.
-		$locale = get_locale();
+		if ( empty( $locale ) ) {
+			$locale = get_locale();
+		}
 
 		// de has various locale (de_DE, de_CH, de_AT,...) which all can exist in formal/informal too
 		// there is no 3 letter locale, like "def" so checking for "de" instead of "de_" is safe (since "de" itself would be a valid locale too)
