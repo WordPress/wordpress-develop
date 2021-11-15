@@ -1760,7 +1760,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 				)
 			) . '#' . $args['respond_id'],
 			$data_attribute_string,
-			esc_attr( sprintf( $args['reply_to_text'], get_comment_author( $comment->comment_ID ) ) ),
+			esc_attr( sprintf( $args['reply_to_text'], get_comment_author( $comment ) ) ),
 			$args['reply_text']
 		);
 	}
