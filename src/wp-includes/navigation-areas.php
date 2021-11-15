@@ -123,7 +123,12 @@ function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP
 				'post_content' => serialize_blocks( $parsed_blocks ),
 				'post_status'  => 'publish',
 			);
-			$navigation_post_id      = wp_insert_post( $post_data );
+			$navigation_post_id      = wp_insert_post( $post_data, true );
+			// If wp_insert_post fails *at any time*, then bail out of the
+			// entire migration attempt returning the WP_Error object.
+			if ( is_wp_error( $navigation_post_id ) ) {
+				return $navigation_post_id;
+			}
 		}
 
 		$area_mapping[ $location_name ] = $navigation_post_id;
