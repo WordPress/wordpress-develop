@@ -473,7 +473,7 @@
 		wp_more_alt: "More...",
 		wp_page_alt: "Next page...",
 		add_media: "Add Media",
-		add_image: "Add an Image",
+		add_image: "Add Image",
 		add_video: "Add Video",
 		add_audio: "Add Audio",
 		editgallery: "Edit Gallery",
