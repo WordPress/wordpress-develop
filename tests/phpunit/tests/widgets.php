@@ -625,7 +625,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		unregister_widget( $widget );
 
-		$this->assertContains( 'Test Title', $actual );
+		$this->assertStringContainsString( 'Test Title', $actual );
 	}
 
 	/**
