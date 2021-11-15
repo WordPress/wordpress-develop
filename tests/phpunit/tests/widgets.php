@@ -591,6 +591,44 @@ class Tests_Widgets extends WP_UnitTestCase {
 	// @todo Test WP_Widget::display_callback().
 
 	/**
+	 * @ticket 52728
+	 */
+	function test_widget_display_callback_handles_arrayobject() {
+		$widget = new WP_Widget_Text();
+
+		register_widget( $widget );
+
+		add_filter(
+			"pre_option_{$widget->option_name}",
+			function () {
+				return new ArrayObject(
+					array(
+						2              => array( 'title' => 'Test Title' ),
+						'_multiwidget' => 1,
+						'__i__'        => true,
+					)
+				);
+			}
+		);
+
+		ob_start();
+		$widget->display_callback(
+			array(
+				'before_widget' => '<section>',
+				'after_widget'  => "</section>\n",
+				'before_title'  => '<h2>',
+				'after_title'   => "</h2>\n",
+			),
+			2
+		);
+		$actual = ob_get_clean();
+
+		unregister_widget( $widget );
+
+		$this->assertContains( 'Test Title', $actual );
+	}
+
+	/**
 	 * @see WP_Widget::is_preview()
 	 */
 	public function test_wp_widget_is_preview() {
