@@ -20,7 +20,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	 *
 	 * @group shortcode
 	 */
-	public function test_post_galleries_images_without_global_post() {
+	public function test_get_post_galleries_with_shortcode() {
 		// Set up an unattached image.
 		$this->factory->attachment->create_object(
 			array(
@@ -47,7 +47,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	 *
 	 * @group shortcode
 	 */
-	public function test_post_galleries_ignores_global_post() {
+	public function test_get_post_galleries_respects_post_id() {
 		$global_post_id = $this->factory->post->create(
 			array(
 				'post_content' => 'Global Post',
@@ -91,7 +91,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	 *
 	 * @group shortcode
 	 */
-	public function test_post_galleries_respects_id_attrs() {
+	public function test_get_post_galleries_respects_shortcode_id_attribute() {
 		$post_id     = $this->factory->post->create(
 			array(
 				'post_content' => 'No gallery defined',
@@ -143,7 +143,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	 *
 	 * @group blocks
 	 */
-	public function test_block_post_galleries() {
+	public function test_get_post_galleries_with_block() {
 		// Set up an unattached image.
 		$this->factory->attachment->create_object(
 			array(
@@ -178,7 +178,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	 * @group blocks
 	 * @group shortcode
 	 */
-	public function test_mixed_post_galleries() {
+	public function test_get_post_galleries_respects_shortcode_and_block_id_attributes() {
 		// Test the get_post_galleries() function in $html=false mode, with both shortcode and block galleries
 		$ids      = array();
 		$imgs     = array();
@@ -236,7 +236,7 @@ BLOB;
 	 * @group blocks
 	 * @group shortcode
 	 */
-	public function test_mixed_post_galleries_data() {
+	public function test_get_post_galleries_respects_additional_shortcode_and_block_attributes() {
 		// Test attributes returned by get_post_galleries() function in $html=false mode, with both shortcode and block galleries
 		$ids      = array();
 		$imgs     = array();
