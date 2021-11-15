@@ -1,9 +1,7 @@
 <?php
 
 /**
- * Tests for wp_url_encode_ending_period()
- *
- * @ticket 42957
+ * Tests for wp_url_encode_ending_period().
  *
  * @group  functions.php
  * @covers ::wp_url_encode_ending_period
@@ -37,7 +35,7 @@ class Tests_Functions_WpUrlEncodeEndingPeriod extends WP_UnitTestCase {
 				'input'    => '.',
 				'expected' => '%2E',
 			),
-			'. with space after'   => array(
+			'. with space after'      => array(
 				'input'    => '. ',
 				'expected' => '%2E',
 			),
@@ -45,7 +43,7 @@ class Tests_Functions_WpUrlEncodeEndingPeriod extends WP_UnitTestCase {
 				'input'    => '..',
 				'expected' => '.%2E',
 			),
-			'. with space after'   => array(
+			'. with space after'      => array(
 				'input'    => '..  ',
 				'expected' => '.%2E',
 			),
