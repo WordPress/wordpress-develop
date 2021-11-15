@@ -1401,7 +1401,7 @@ function update_core( $from, $to ) {
 	// Deactivate the Gutenberg plugin if its version is 10.7 or lower.
 	_upgrade_580_force_deactivate_incompatible_plugins();
 
-	// Deactivate the Gutenberg plugin if its version is 11.8.2 or lower.
+	// Deactivate the Gutenberg plugin if its version is 11.8 or lower.
 	_upgrade_590_force_deactivate_incompatible_plugins();
 
 	// Upgrade DB with separate request.
