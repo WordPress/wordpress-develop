@@ -76,7 +76,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 		$galleries = get_post_galleries( $post_id, false );
 
 		$this->assertNotEmpty( $galleries[0]['src'] );
-		$this->assertSame( $galleries[0]['src'], $expected_srcs );
+		$this->assertSame( $expected_srcs, $galleries[0]['src'] );
 	}
 
 	/**
@@ -117,7 +117,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 		$this->assertSame( $galleries, $galleries_with_global_context );
 
 		$this->assertNotEmpty( $galleries[0]['src'] );
-		$this->assertSame( $galleries[0]['src'], $expected_srcs );
+		$this->assertSame( $expected_srcs, $galleries[0]['src'] );
 	}
 
 	/**
