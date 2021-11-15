@@ -267,7 +267,7 @@ switch ( $action ) {
 		<th scope="row"><?php _e( 'Visual Editor' ); ?></th>
 		<td>
 			<label for="rich_editing"><input name="rich_editing" type="checkbox" id="rich_editing" value="false" <?php checked( 'false', $profileuser->rich_editing ); ?> />
-				<?php _e( 'Disable the visual editor when writing' ); ?>
+				<?php _e( 'Disable the visual editor when writing.' ); ?>
 			</label>
 		</td>
 	</tr>
@@ -290,7 +290,7 @@ switch ( $action ) {
 		<th scope="row"><?php _e( 'Syntax Highlighting' ); ?></th>
 		<td>
 			<label for="syntax_highlighting"><input name="syntax_highlighting" type="checkbox" id="syntax_highlighting" value="false" <?php checked( 'false', $profileuser->syntax_highlighting ); ?> />
-				<?php _e( 'Disable syntax highlighting when editing code' ); ?>
+				<?php _e( 'Disable syntax highlighting when editing code.' ); ?>
 			</label>
 		</td>
 	</tr>
@@ -336,7 +336,7 @@ switch ( $action ) {
 		<td>
 			<label for="admin_bar_front">
 				<input name="admin_bar_front" type="checkbox" id="admin_bar_front" value="1"<?php checked( _get_admin_bar_pref( 'front', $profileuser->ID ) ); ?> />
-				<?php _e( 'Show Toolbar when viewing site' ); ?>
+				<?php _e( 'Show Toolbar when viewing site.' ); ?>
 			</label><br />
 		</td>
 	</tr>
