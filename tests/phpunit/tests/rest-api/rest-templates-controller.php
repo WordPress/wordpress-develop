@@ -12,7 +12,7 @@
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
  *
- * @covers WP_REST_Templates_Controller
+ * @coversDefaultClass WP_REST_Templates_Controller
  */
 class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
@@ -136,6 +136,10 @@ class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase
 		);
 	}
 
+	/**
+	 * @ticket 54422
+	 * @covers ::create_item
+	 */
 	public function test_create_item() {
 		wp_set_current_user( self::$admin_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
@@ -151,6 +155,7 @@ class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase
 		$data     = $response->get_data();
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
+		unset( $data['content']['rendered'] );
 
 		$this->assertSame(
 			array(
@@ -160,6 +165,53 @@ class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase
 					'raw' => 'Content',
 				),
 				'slug'           => 'my_custom_template',
+				'source'         => 'custom',
+				'type'           => 'wp_template',
+				'description'    => 'Just a description',
+				'title'          => array(
+					'raw'      => 'My Template',
+					'rendered' => 'My Template',
+				),
+				'status'         => 'publish',
+				'has_theme_file' => false,
+			),
+			$data
+		);
+	}
+
+	/**
+	 * @ticket 54422
+	 * @covers ::create_item
+	 */
+	public function test_create_item_raw() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
+		$request->set_body_params(
+			array(
+				'slug'        => 'my_custom_template_raw',
+				'description' => 'Just a description',
+				'title'       => array(
+					'raw' => 'My Template',
+				),
+				'content'     => array(
+					'raw' => 'Content',
+				)
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		unset( $data['_links'] );
+		unset( $data['wp_id'] );
+		unset( $data['content']['rendered'] );
+
+		$this->assertSame(
+			array(
+				'id'             => 'default//my_custom_template_raw',
+				'theme'          => 'default',
+				'content'        => array(
+					'raw' => 'Content',
+				),
+				'slug'           => 'my_custom_template_raw',
 				'source'         => 'custom',
 				'type'           => 'wp_template',
 				'description'    => 'Just a description',
@@ -199,7 +251,27 @@ class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase
 		// TODO: Implement test_prepare_item() method.
 	}
 
+	/**
+	 * @ticket 54422
+	 * @covers ::get_item_schema
+	 */
 	public function test_get_item_schema() {
-		// TODO: Implement test_get_item_schema() method.
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+		$this->assertCount( 11, $properties );
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'theme', $properties );
+		$this->assertArrayHasKey( 'type', $properties );
+		$this->assertArrayHasKey( 'source', $properties );
+		$this->assertArrayHasKey( 'content', $properties );
+		$this->assertArrayHasKey( 'title', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'status', $properties );
+		$this->assertArrayHasKey( 'wp_id', $properties );
+		$this->assertArrayHasKey( 'has_theme_file', $properties );
 	}
 }

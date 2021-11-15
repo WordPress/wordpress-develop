@@ -290,15 +290,21 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
-		$changes            = $this->prepare_item_for_database( $request );
-		$changes->post_name = $request['slug'];
-		$result             = wp_insert_post( wp_slash( (array) $changes ), true );
-		if ( is_wp_error( $result ) ) {
-			return $result;
+		$prepared_post            = $this->prepare_item_for_database( $request );
+		$prepared_post->post_name = $request['slug'];
+		$post_id                  = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
+		if ( is_wp_error( $post_id ) ) {
+			if ( 'db_insert_error' === $post_id->get_error_code() ) {
+				$post_id->add_data( array( 'status' => 500 ) );
+			} else {
+				$post_id->add_data( array( 'status' => 400 ) );
+			}
+
+			return $post_id;
 		}
-		$posts = get_block_templates( array( 'wp_id' => $result ), $this->post_type );
+		$posts = get_block_templates( array( 'wp_id' => $post_id ), $this->post_type );
 		if ( ! count( $posts ) ) {
-			return new WP_Error( 'rest_template_insert_error', __( 'No templates exist with that id.' ) );
+			return new WP_Error( 'rest_template_insert_error', __( 'No templates exist with that id.' ), array( 'status' => 400 ) );
 		}
 		$id            = $posts[0]->id;
 		$template      = get_block_template( $id, $this->post_type );
@@ -311,7 +317,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $response );
 
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $id ) ) );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $template->id ) ) );
 
 		return $response;
 	}
@@ -471,7 +477,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		$fields = $this->get_fields_for_response( $request );
 
-		// Base fields for every post.
+		// Base fields for every template.
 		$data = array();
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
@@ -487,6 +493,15 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 		if ( rest_is_field_included( 'content.raw', $fields ) ) {
 			$data['content']['raw'] = $template->content;
+		}
+
+		if ( rest_is_field_included( 'content.rendered', $fields ) ) {
+			/** This filter is documented in wp-includes/post-template.php */
+			$data['content']['rendered'] = apply_filters( 'the_content', $template->content );
+		}
+
+		if ( rest_is_field_included( 'content.block_version', $fields ) ) {
+			$data['content']['block_version'] = block_version( $template->content );
 		}
 
 		if ( rest_is_field_included( 'slug', $fields ) ) {
@@ -508,11 +523,18 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( rest_is_field_included( 'title', $fields ) ) {
 			$data['title'] = array();
 		}
+
 		if ( rest_is_field_included( 'title.raw', $fields ) ) {
 			$data['title']['raw'] = $template->title;
 		}
+
 		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
-			$data['title']['rendered'] = $template->title;
+			if ( $template->wp_id ) {
+				/** This filter is documented in wp-includes/post-template.php */
+				$data['title']['rendered'] = apply_filters( 'the_title', $template->title, $template->wp_id );
+			} else {
+				$data['title']['rendered'] = $template->title;
+			}
 		}
 
 		if ( rest_is_field_included( 'status', $fields ) ) {
@@ -520,11 +542,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'wp_id', $fields ) ) {
-			$data['wp_id'] = $template->wp_id;
+			$data['wp_id'] = (int) $template->wp_id;
 		}
 
 		if ( rest_is_field_included( 'has_theme_file', $fields ) ) {
-			$data['has_theme_file'] = $template->has_theme_file;
+			$data['has_theme_file'] = (bool) $template->has_theme_file;
 		}
 
 		if ( rest_is_field_included( 'area', $fields ) && 'wp_template_part' === $template->type ) {
@@ -677,19 +699,25 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'content'        => array(
 					'description' => __( 'The content for the template.' ),
-					'type'        => 'object',
+					'type'        => array( 'object', 'string' ),
 					'context'     => array( 'view', 'edit' ),
-					'arg_options' => array(
-						'sanitize_callback' => null,
-						// Note: sanitization implemented in self::prepare_item_for_database().
-						'validate_callback' => null,
-						// Note: validation implemented in self::prepare_item_for_database().
-					),
 					'properties'  => array(
-						'raw' => array(
+						'raw'           => array(
 							'description' => __( 'Content for the template, as it exists in the database.' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
+						),
+						'rendered'      => array(
+							'description' => __( 'HTML content for the template, transformed for display.' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+						),
+						'block_version' => array(
+							'description' => __( 'Version of the content block format used by the template.' ),
+							'type'        => 'integer',
+							'context'     => array( 'edit' ),
+							'readonly'    => true,
 						),
 					),
 				),

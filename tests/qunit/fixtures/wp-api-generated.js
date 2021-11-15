@@ -5148,7 +5148,10 @@ mockedApiResponse.Schema = {
                         },
                         "content": {
                             "description": "The content for the template.",
-                            "type": "object",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Content for the template, as it exists in the database.",
@@ -5157,6 +5160,23 @@ mockedApiResponse.Schema = {
                                         "view",
                                         "edit"
                                     ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
                                 }
                             },
                             "required": false
@@ -5258,7 +5278,10 @@ mockedApiResponse.Schema = {
                         },
                         "content": {
                             "description": "The content for the template.",
-                            "type": "object",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Content for the template, as it exists in the database.",
@@ -5267,6 +5290,23 @@ mockedApiResponse.Schema = {
                                         "view",
                                         "edit"
                                     ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
                                 }
                             },
                             "required": false
@@ -5541,7 +5581,10 @@ mockedApiResponse.Schema = {
                         },
                         "content": {
                             "description": "The content for the template.",
-                            "type": "object",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Content for the template, as it exists in the database.",
@@ -5550,6 +5593,23 @@ mockedApiResponse.Schema = {
                                         "view",
                                         "edit"
                                     ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
                                 }
                             },
                             "required": false
@@ -5693,7 +5753,10 @@ mockedApiResponse.Schema = {
                         },
                         "content": {
                             "description": "The content for the template.",
-                            "type": "object",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Content for the template, as it exists in the database.",
@@ -5702,6 +5765,23 @@ mockedApiResponse.Schema = {
                                         "view",
                                         "edit"
                                     ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
                                 }
                             },
                             "required": false
@@ -5808,7 +5888,10 @@ mockedApiResponse.Schema = {
                         },
                         "content": {
                             "description": "The content for the template.",
-                            "type": "object",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Content for the template, as it exists in the database.",
@@ -5817,6 +5900,23 @@ mockedApiResponse.Schema = {
                                         "view",
                                         "edit"
                                     ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
                                 }
                             },
                             "required": false
@@ -6096,7 +6196,10 @@ mockedApiResponse.Schema = {
                         },
                         "content": {
                             "description": "The content for the template.",
-                            "type": "object",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Content for the template, as it exists in the database.",
@@ -6105,6 +6208,23 @@ mockedApiResponse.Schema = {
                                         "view",
                                         "edit"
                                     ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
                                 }
                             },
                             "required": false
