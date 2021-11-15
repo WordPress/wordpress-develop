@@ -1191,7 +1191,7 @@ class Tests_DB extends WP_UnitTestCase {
 	private function get_db_error_value_too_long( $errored_fields ) {
 		return sprintf(
 			'WordPress database error: Processing the value for the following field%s failed: %s. ' .
-			'The supplied value may be too long or contained invalid data.',
+			'The supplied value may be too long or contains invalid data.',
 			str_contains( $errored_fields, ', ' ) ? 's' : '',
 			$errored_fields
 		);
