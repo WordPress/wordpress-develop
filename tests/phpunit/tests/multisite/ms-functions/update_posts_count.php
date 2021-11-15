@@ -29,17 +29,17 @@ if ( is_multisite() ) :
 
 			/**
 			 * checks the add_action( 'deleted_post', '_update_posts_count_on_delete' ); is called when a post is created.
-			 * and __update_posts_count_on_delete) is called on that filter which call update_posts_count to update the count.
+			 * and _update_posts_count_on_transition_post_status() is called on that filter which then calls update_posts_count to update the count.
 			 */
-			$this->assertEquals( $current_post_count + 1, (int) get_option( 'post_count' ) );
+			$this->assertEquals( $current_post_count + 1, (int) get_option( 'post_count' ), 'post added' );
 
 			wp_delete_post( $post_id );
 
 			/**
-			 * checks the add_action( 'transition_post_status', '_update_posts_count_on_transition_post_status', 10, 3 ); is called when a post is created.
-			 * and _update_posts_count_on_transition_post_status() is called on that filter which call update_posts_count to update the count.
+			 * checks the add_action( 'transition_post_status', '_update_posts_count_on_transition_post_status', 10, 3 ); is called when a post is deleted.
+			 * and __update_posts_count_on_delete() is called on that filter which then calls update_posts_count to update the count.
 			 */
-			$this->assertEquals( $current_post_count, (int) get_option( 'post_count' ) );
+			$this->assertEquals( $current_post_count, (int) get_option( 'post_count' ), 'post deleted' );
 
 		}
 	}
