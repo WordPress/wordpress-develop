@@ -7991,11 +7991,28 @@ function wp_get_direct_php_update_url() {
  *
  * @since 5.9.0
  *
- * @param string $url A provided URL.
+ * @param string $url The URL to encode.
  * @return string The new encoded URL.
  */
-function wp_half_baked_url_encode( $url ) {
-	return preg_replace( '/\.$/', '%2E', rawurlencode( $url ) );
+function wp_url_encode_ending_period( $url ) {
+	if ( ! is_string( $url ) ) {
+		return '';
+	}
+
+	$url = trim( $url );
+	if ( '' === $url ) {
+		return '';
+	}
+
+	$url = rawurlencode( $url );
+
+	// If the URL ends in a period, replace it with %2E.
+	if ( str_ends_with( $url, '.' ) ) {
+		$url  = rtrim( $url, '.' );
+		$url .= '%2E';
+	}
+
+	return $url;
 }
 
 /**
