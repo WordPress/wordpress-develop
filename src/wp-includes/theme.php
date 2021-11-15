@@ -1913,7 +1913,7 @@ function wp_get_custom_css( $stylesheet = '' ) {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string $css        CSS pulled in from the Custom CSS CPT.
+	 * @param string $css        CSS pulled in from the Custom CSS post type.
 	 * @param string $stylesheet The theme stylesheet name.
 	 */
 	$css = apply_filters( 'wp_get_custom_css', $css, $stylesheet );
@@ -4074,4 +4074,15 @@ function create_initial_theme_features() {
 			'show_in_rest' => true,
 		)
 	);
+}
+
+/**
+ * Returns whether the current theme is a block-based theme or not.
+ *
+ * @since 5.9.0
+ *
+ * @return boolean Whether the current theme is a block-based theme or not.
+ */
+function wp_is_block_template_theme() {
+	return is_readable( get_theme_file_path( '/block-templates/index.html' ) );
 }

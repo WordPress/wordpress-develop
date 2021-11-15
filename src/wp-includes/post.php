@@ -126,16 +126,39 @@ function create_initial_post_types() {
 	register_post_type(
 		'nav_menu_item',
 		array(
-			'labels'           => array(
+			'labels'                => array(
 				'name'          => __( 'Navigation Menu Items' ),
 				'singular_name' => __( 'Navigation Menu Item' ),
 			),
-			'public'           => false,
-			'_builtin'         => true, /* internal use only. don't use this when registering your own post type. */
-			'hierarchical'     => false,
-			'rewrite'          => false,
-			'delete_with_user' => false,
-			'query_var'        => false,
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'          => false,
+			'rewrite'               => false,
+			'delete_with_user'      => false,
+			'query_var'             => false,
+			'map_meta_cap'          => true,
+			'capability_type'       => array( 'edit_theme_options', 'edit_theme_options' ),
+			'capabilities'          => array(
+				// Meta Capabilities.
+				'edit_post'              => 'edit_post',
+				'read_post'              => 'read_post',
+				'delete_post'            => 'delete_post',
+				// Primitive Capabilities.
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'read'                   => 'read',
+				'delete_private_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'edit_private_posts'     => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+			),
+			'show_in_rest'          => true,
+			'rest_base'             => 'menu-items',
+			'rest_controller_class' => 'WP_REST_Menu_Items_Controller',
 		)
 	);
 
@@ -317,7 +340,7 @@ function create_initial_post_types() {
 				'new_item'              => __( 'New Template' ),
 				'edit_item'             => __( 'Edit Template' ),
 				'view_item'             => __( 'View Template' ),
-				'all_items'             => __( 'All Templates' ),
+				'all_items'             => __( 'Templates' ),
 				'search_items'          => __( 'Search Templates' ),
 				'parent_item_colon'     => __( 'Parent Template:' ),
 				'not_found'             => __( 'No templates found.' ),
@@ -333,8 +356,8 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => false,
-			'show_in_menu'          => false,
+			'show_ui'               => wp_is_block_template_theme(),
+			'show_in_menu'          => 'themes.php',
 			'show_in_rest'          => true,
 			'rewrite'               => false,
 			'rest_base'             => 'templates',
@@ -366,11 +389,70 @@ function create_initial_post_types() {
 	);
 
 	register_post_type(
+		'wp_template_part',
+		array(
+			'labels'                => array(
+				'name'                  => __( 'Template Parts' ),
+				'singular_name'         => __( 'Template Part' ),
+				'add_new'               => _x( 'Add New', 'Template Part' ),
+				'add_new_item'          => __( 'Add New Template Part' ),
+				'new_item'              => __( 'New Template Part' ),
+				'edit_item'             => __( 'Edit Template Part' ),
+				'view_item'             => __( 'View Template Part' ),
+				'all_items'             => __( 'Template Parts' ),
+				'search_items'          => __( 'Search Template Parts' ),
+				'parent_item_colon'     => __( 'Parent Template Part:' ),
+				'not_found'             => __( 'No template parts found.' ),
+				'not_found_in_trash'    => __( 'No template parts found in Trash.' ),
+				'archives'              => __( 'Template part archives' ),
+				'insert_into_item'      => __( 'Insert into template part' ),
+				'uploaded_to_this_item' => __( 'Uploaded to this template part' ),
+				'filter_items_list'     => __( 'Filter template parts list' ),
+				'items_list_navigation' => __( 'Template parts list navigation' ),
+				'items_list'            => __( 'Template parts list' ),
+			),
+			'description'           => __( 'Template parts to include in your templates.' ),
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'has_archive'           => false,
+			'show_ui'               => wp_is_block_template_theme(),
+			'show_in_menu'          => 'themes.php',
+			'show_in_rest'          => true,
+			'rewrite'               => false,
+			'rest_base'             => 'template-parts',
+			'rest_controller_class' => 'WP_REST_Templates_Controller',
+			'map_meta_cap'          => true,
+			'capabilities'          => array(
+				'create_posts'           => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'delete_private_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'edit_private_posts'     => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'read'                   => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+			),
+			'supports'              => array(
+				'title',
+				'slug',
+				'excerpt',
+				'editor',
+				'revisions',
+			),
+		)
+	);
+
+	register_post_type(
 		'wp_global_styles',
 		array(
-			'label'        => __( 'Global Styles', 'gutenberg' ),
-			'description'  => 'CPT to store user design tokens',
+			'label'        => _x( 'Global Styles', 'post type general name' ),
+			'description'  => __( 'Global styles to include in themes.' ),
 			'public'       => false,
+			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
 			'show_ui'      => false,
 			'show_in_rest' => false,
 			'rewrite'      => false,
@@ -385,6 +467,49 @@ function create_initial_post_types() {
 			),
 			'map_meta_cap' => true,
 			'supports'     => array(
+				'title',
+				'editor',
+				'revisions',
+			),
+		)
+	);
+
+	register_post_type(
+		'wp_navigation',
+		array(
+			'labels'                => array(
+				'name'                  => __( 'Navigation Menus' ),
+				'singular_name'         => __( 'Navigation Menu' ),
+				'add_new'               => _x( 'Add New', 'Navigation Menu' ),
+				'add_new_item'          => __( 'Add New Navigation Menu' ),
+				'new_item'              => __( 'New Navigation Menu' ),
+				'edit_item'             => __( 'Edit Navigation Menu' ),
+				'view_item'             => __( 'View Navigation Menu' ),
+				'all_items'             => __( 'Navigation Menus' ),
+				'search_items'          => __( 'Search Navigation Menus' ),
+				'parent_item_colon'     => __( 'Parent Navigation Menu:' ),
+				'not_found'             => __( 'No Navigation Menu found.' ),
+				'not_found_in_trash'    => __( 'No Navigation Menu found in Trash.' ),
+				'archives'              => __( 'Navigation Menu archives' ),
+				'insert_into_item'      => __( 'Insert into Navigation Menu' ),
+				'uploaded_to_this_item' => __( 'Uploaded to this Navigation Menu' ),
+				'filter_items_list'     => __( 'Filter Navigation Menu list' ),
+				'items_list_navigation' => __( 'Navigation Menus list navigation' ),
+				'items_list'            => __( 'Navigation Menus list' ),
+			),
+			'description'           => __( 'Navigation menus that can be inserted into your site.' ),
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'has_archive'           => false,
+			'show_ui'               => wp_is_block_template_theme(),
+			'show_in_menu'          => 'themes.php',
+			'show_in_admin_bar'     => false,
+			'show_in_rest'          => true,
+			'rewrite'               => false,
+			'map_meta_cap'          => true,
+			'rest_base'             => 'navigation',
+			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'supports'              => array(
 				'title',
 				'editor',
 				'revisions',
@@ -5226,11 +5351,13 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 * transitioned to a status, use the {@see 'transition_post_status'} hook instead.
 	 *
 	 * @since 2.3.0
+	 * @since 5.9.0 Added `$old_status` parameter.
 	 *
-	 * @param int     $post_id Post ID.
-	 * @param WP_Post $post    Post object.
+	 * @param int     $post_id    Post ID.
+	 * @param WP_Post $post       Post object.
+	 * @param string  $old_status Old post status.
 	 */
-	do_action( "{$new_status}_{$post->post_type}", $post->ID, $post );
+	do_action( "{$new_status}_{$post->post_type}", $post->ID, $post, $old_status );
 }
 
 /**
