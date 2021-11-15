@@ -7985,12 +7985,14 @@ function wp_get_direct_php_update_url() {
 }
 
 /**
- * Encode this url, like rawurlencode. If it ends in a period, replace that with %2E.
- * This is done because gmail doesn't interpret it right otherwise.
- * See https://core.trac.wordpress.org/ticket/42957 for background.
+ * Replaces periods with encoded entities in URLs.
  *
- * @param string  $url Any url.
- * @return string Encoded url.
+ * If the URL ends with a period, replace it with %2E to avoid misinterpretation from some email clients.
+ *
+ * @since 5.9.0
+ *
+ * @param string $url A provided URL.
+ * @return string The new encoded URL.
  */
 function wp_half_baked_url_encode( $url ) {
 	return preg_replace( '/\.$/', '%2E', rawurlencode( $url ) );
