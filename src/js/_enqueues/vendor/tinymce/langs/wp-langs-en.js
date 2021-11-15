@@ -511,6 +511,6 @@
 		s130: "130%",
 		img_title: "Title",
 		caption: "Caption",
-		alt: "Alternative Text"
+		alt: "Alt Text"
 	});
 }());
