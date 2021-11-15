@@ -25,7 +25,7 @@ if ( ! function_exists( 'twentytwentytwo_support' ) ) :
 		add_theme_support( 'wp-block-styles' );
 
 		// Enqueue editor styles.
-		add_editor_style( get_template_directory_uri() . '/style.css' );
+		add_editor_style( 'style.css' );
 
 	}
 

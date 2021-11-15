@@ -35,8 +35,8 @@ body {
  */
 
 a {
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.25ch;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.25ch;
 }
 
 a:hover,
@@ -46,4 +46,25 @@ a:focus {
 
 a:active {
 	text-decoration: none;
+}
+
+/*
+ * Search and File Block button styles.
+ * Necessary until the following issues are resolved in Gutenberg:
+ * https://github.com/WordPress/gutenberg/issues/36444
+ * https://github.com/WordPress/gutenberg/issues/27760
+ */
+
+.wp-block-search__button,
+.wp-block-file .wp-block-file__button {
+	background-color: var(--wp--preset--color--primary);
+	border-radius: 0;
+	border: none;
+	color: var(--wp--preset--color--background);
+	font-size: var(--wp--preset--typography--font-size--normal);
+	padding: calc(.667em + 2px) calc(1.333em + 2px);
+}
+
+.wp-block-file a.wp-block-file__button:hover {
+	opacity: 1;
 }
