@@ -78,7 +78,7 @@ function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP
 	add_filter( 'option_stylesheet', $get_old_theme_stylesheet );
 
 	$locations    = get_nav_menu_locations();
-	$area_mapping = get_option( 'fse_navigation_areas', array() );
+	$area_mapping = get_option( 'wp_navigation_areas', array() );
 
 	foreach ( $locations as $location_name => $menu_id ) {
 		// Get the menu from the location, skipping if there is no
@@ -108,7 +108,7 @@ function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP
 		);
 
 		if ( ! empty( $matching_posts ) ) {
-			$navigation_post_id = $matching_posts[0]->ID;
+			$navigation_post_id = $matching_posts[0];
 		} else {
 			$menu_items_by_parent_id = _wp_sort_menu_items_by_parent_id( $menu_items );
 			$parsed_blocks           = _wp_parse_blocks_from_menu_items( $menu_items_by_parent_id[0], $menu_items_by_parent_id );
@@ -123,14 +123,19 @@ function _wp_migrate_menu_to_navigation_post( $new_name, WP_Theme $new_theme, WP
 				'post_content' => serialize_blocks( $parsed_blocks ),
 				'post_status'  => 'publish',
 			);
-			$navigation_post_id      = wp_insert_post( $post_data );
+			$navigation_post_id      = wp_insert_post( $post_data, true );
+			// If wp_insert_post fails *at any time*, then bail out of the
+			// entire migration attempt returning the WP_Error object.
+			if ( is_wp_error( $navigation_post_id ) ) {
+				return $navigation_post_id;
+			}
 		}
 
 		$area_mapping[ $location_name ] = $navigation_post_id;
 	}
 	remove_filter( 'option_stylesheet', $get_old_theme_stylesheet );
 
-	update_option( 'fse_navigation_areas', $area_mapping );
+	update_option( 'wp_navigation_areas', $area_mapping );
 }
 
 /**
