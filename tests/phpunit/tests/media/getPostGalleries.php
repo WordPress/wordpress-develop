@@ -16,6 +16,8 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test with a shortcode gallery with no attached images.
+	 *
 	 * @ticket 39304
 	 *
 	 * @group shortcode
@@ -43,6 +45,9 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that the global post object does not override
+	 * a provided post ID.
+	 *
 	 * @ticket 39304
 	 *
 	 * @group shortcode
@@ -87,6 +92,9 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that the gallery only contains images specified in
+	 * the shortcode's id attribute.
+	 *
 	 * @ticket 39304
 	 *
 	 * @group shortcode
@@ -139,6 +147,8 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test with a block gallery with no attached images.
+	 *
 	 * @ticket 43826
 	 *
 	 * @group blocks
@@ -173,6 +183,9 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that galleries only contain images specified in the
+	 * id attribute of their respective shortcode and block.
+	 *
 	 * @ticket 43826
 	 *
 	 * @group blocks
@@ -231,6 +244,9 @@ BLOB;
 	}
 
 	/**
+	 * Test that galleries contain the additional attributes
+	 * specified for their respective shortcode and block.
+	 *
 	 * @ticket 43826
 	 *
 	 * @group blocks
