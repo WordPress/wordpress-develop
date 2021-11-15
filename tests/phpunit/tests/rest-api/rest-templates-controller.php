@@ -195,7 +195,7 @@ class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase
 				),
 				'content'     => array(
 					'raw' => 'Content',
-				)
+				),
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );

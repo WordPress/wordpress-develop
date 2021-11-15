@@ -5147,7 +5147,8 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "The content for the template.",
+                            "default": "",
+                            "description": "Content of template.",
                             "type": [
                                 "object",
                                 "string"
@@ -5182,8 +5183,11 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "title": {
-                            "description": "The title for the post.",
-                            "type": "object",
+                            "description": "Title of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Title for the template, as it exists in the database.",
@@ -5277,7 +5281,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "The content for the template.",
+                            "description": "Content of template.",
                             "type": [
                                 "object",
                                 "string"
@@ -5312,8 +5316,11 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "title": {
-                            "description": "The title for the post.",
-                            "type": "object",
+                            "description": "Title of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Title for the template, as it exists in the database.",
@@ -5580,7 +5587,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "The content for the template.",
+                            "description": "Content of template.",
                             "type": [
                                 "object",
                                 "string"
@@ -5615,8 +5622,11 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "title": {
-                            "description": "The title for the post.",
-                            "type": "object",
+                            "description": "Title of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Title for the template, as it exists in the database.",
@@ -5752,7 +5762,8 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "The content for the template.",
+                            "default": "",
+                            "description": "Content of template.",
                             "type": [
                                 "object",
                                 "string"
@@ -5787,8 +5798,11 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "title": {
-                            "description": "The title for the post.",
-                            "type": "object",
+                            "description": "Title of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Title for the template, as it exists in the database.",
@@ -5887,7 +5901,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "The content for the template.",
+                            "description": "Content of template.",
                             "type": [
                                 "object",
                                 "string"
@@ -5922,8 +5936,11 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "title": {
-                            "description": "The title for the post.",
-                            "type": "object",
+                            "description": "Title of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Title for the template, as it exists in the database.",
@@ -6195,7 +6212,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "content": {
-                            "description": "The content for the template.",
+                            "description": "Content of template.",
                             "type": [
                                 "object",
                                 "string"
@@ -6230,8 +6247,11 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "title": {
-                            "description": "The title for the post.",
-                            "type": "object",
+                            "description": "Title of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
                             "properties": {
                                 "raw": {
                                     "description": "Title for the template, as it exists in the database.",

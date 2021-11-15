@@ -698,9 +698,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'content'        => array(
-					'description' => __( 'The content for the template.' ),
+					'description' => __( 'Content of template.' ),
 					'type'        => array( 'object', 'string' ),
-					'context'     => array( 'view', 'edit' ),
+					'default'     => '',
+					'context'     => array( 'embed', 'view', 'edit' ),
 					'properties'  => array(
 						'raw'           => array(
 							'description' => __( 'Content for the template, as it exists in the database.' ),
@@ -722,15 +723,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					),
 				),
 				'title'          => array(
-					'description' => __( 'The title for the post.' ),
-					'type'        => 'object',
+					'description' => __( 'Title of template.' ),
+					'type'        => array( 'object', 'string' ),
 					'context'     => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'sanitize_callback' => null,
-						// Note: sanitization implemented in self::prepare_item_for_database().
-						'validate_callback' => null,
-						// Note: validation implemented in self::prepare_item_for_database().
-					),
 					'properties'  => array(
 						'raw'      => array(
 							'description' => __( 'Title for the template, as it exists in the database.' ),
