@@ -41,7 +41,24 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 		$galleries = get_post_galleries( $post_id, false );
 
-		$this->assertEmpty( $galleries[0]['src'] );
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
+		$this->assertEmpty(
+			$galleries[0]['src'],
+			'The src key is not empty.'
+		);
 	}
 
 	/**
@@ -80,10 +97,20 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 		$galleries = get_post_galleries( $post_id, false );
 
+		// The method can return an empty array.
 		$this->assertNotEmpty(
-			$galleries[0]['src'],
-			'The src key of the first gallery is empty.'
+			$galleries,
+			'The galleries array is empty.'
 		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
 		$this->assertSameSetsWithIndex(
 			$expected_srcs,
 			$galleries[0]['src'],
@@ -135,10 +162,27 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 			'The global post state affected the results.'
 		);
 
+		// The method can return an empty array.
 		$this->assertNotEmpty(
-			$galleries[0]['src'],
-			'The src key of the first gallery is empty.'
+			$galleries,
+			'The galleries array is empty.'
 		);
+
+		// The method can return an array of strings
+		// instead of an array of arrays.
+		$this->assertIsArray(
+			$galleries[0],
+			'The returned data does not contain an array.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
 		$this->assertSameSetsWithIndex(
 			$expected_srcs,
 			$galleries[0]['src'],
@@ -172,10 +216,27 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 		$galleries = get_post_galleries( $post_id, false );
 
-		$this->assertTrue(
-			is_array( $galleries ),
-			'$galleries is not an array.'
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
 		);
+
+		// The method can return an array of strings
+		// instead of an array of arrays.
+		$this->assertIsArray(
+			$galleries[0],
+			'The returned data does not contain an array.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
 		$this->assertEmpty(
 			$galleries[0]['src'],
 			'The src key of the first gallery is not empty.'
