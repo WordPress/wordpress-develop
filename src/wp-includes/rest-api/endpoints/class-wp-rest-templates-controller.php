@@ -292,7 +292,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	public function create_item( $request ) {
 		$prepared_post            = $this->prepare_item_for_database( $request );
 		$prepared_post->post_name = $request['slug'];
-		$post_id                  = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
+		$post_id                  = wp_insert_post( wp_slash( (array) $prepared_post ), true );
 		if ( is_wp_error( $post_id ) ) {
 			if ( 'db_insert_error' === $post_id->get_error_code() ) {
 				$post_id->add_data( array( 'status' => 500 ) );
@@ -750,6 +750,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'status'         => array(
 					'description' => __( 'Status of template.' ),
 					'type'        => 'string',
+					'enum'        => array_keys( get_post_stati( array( 'internal' => false ) ) ),
 					'default'     => 'publish',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),

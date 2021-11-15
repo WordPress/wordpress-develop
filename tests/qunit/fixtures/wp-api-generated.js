@@ -5222,6 +5222,13 @@ mockedApiResponse.Schema = {
                             "default": "publish",
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
                             "required": false
                         }
                     }
@@ -5353,6 +5360,13 @@ mockedApiResponse.Schema = {
                         "status": {
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
                             "required": false
                         }
                     }
@@ -5659,6 +5673,13 @@ mockedApiResponse.Schema = {
                         "status": {
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
                             "required": false
                         }
                     }
@@ -5838,6 +5859,13 @@ mockedApiResponse.Schema = {
                             "default": "publish",
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
                             "required": false
                         },
                         "area": {
@@ -5974,6 +6002,13 @@ mockedApiResponse.Schema = {
                         "status": {
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
                             "required": false
                         },
                         "area": {
@@ -6285,6 +6320,13 @@ mockedApiResponse.Schema = {
                         "status": {
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
                             "required": false
                         },
                         "area": {
