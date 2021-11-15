@@ -148,7 +148,7 @@
 		"polyfill-library": "3.105.0",
 		"react": "17.0.1",
 		"react-dom": "17.0.1",
-		"regenerator-runtime": "0.13.7",
+		"regenerator-runtime": "0.13.9",
 		"twemoji": "13.1.0",
 		"underscore": "1.13.1",
 		"whatwg-fetch": "3.6.2"
