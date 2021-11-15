@@ -324,6 +324,19 @@ select {
 	background-position: right 10px top 60%;
 }
 
+select:focus {
+	border: 3px solid #39414d;
+	border-radius: 0;
+	color: #28303d;
+	font-size: 1.125rem;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+	padding: 10px 30px 10px 10px;
+	background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2328303d'><polygon points='0,0 10,0 5,5'/></svg>") no-repeat;
+	background-position: right 10px top 60%;
+}
+
 /*
  * text-underline-offset doesn't work in Chrome at all 👎
  * But looks nice in Safari/Firefox, so let's keep it and
@@ -1914,6 +1927,16 @@ pre.wp-block-preformatted {
 	padding: 20px;
 }
 
+.wp-block-query.has-background {
+	padding: 20px;
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-query.has-background {
+		padding: 30px;
+	}
+}
+
 .wp-block-quote {
 	position: relative;
 	border-left: none;
@@ -3260,6 +3283,18 @@ a {
 	background-color: #fff;
 }
 
+.has-background:not(.has-text-color).has-black-background-color[class] {
+	color: #fff;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] {
+	color: #fff;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] {
+	color: #fff;
+}
+
 .has-background:not(.has-text-color).has-black-background-color[class] > [class*=__inner-container] {
 	color: #28303d;
 }
@@ -3269,6 +3304,34 @@ a {
 }
 
 .has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] {
 	color: #28303d;
 }
 

@@ -38,7 +38,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 
 		$data     = $response->get_data();
 		$statuses = get_post_stati( array( 'public' => true ), 'objects' );
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( 'publish', $data['publish']['slug'] );
 	}
 
@@ -50,7 +50,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertSame( 6, count( $data ) );
+		$this->assertCount( 6, $data );
 		$this->assertSameSets(
 			array(
 				'publish',
@@ -153,7 +153,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 8, count( $properties ) );
+		$this->assertCount( 8, $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'private', $properties );
 		$this->assertArrayHasKey( 'protected', $properties );

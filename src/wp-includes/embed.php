@@ -722,10 +722,10 @@ function wp_oembed_ensure_format( $format ) {
  * @access private
  * @since 4.4.0
  *
- * @param bool                      $served  Whether the request has already been served.
- * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_REST_Response.
- * @param WP_REST_Request           $request Request used to generate the response.
- * @param WP_REST_Server            $server  Server instance.
+ * @param bool             $served  Whether the request has already been served.
+ * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
+ * @param WP_REST_Request  $request Request used to generate the response.
+ * @param WP_REST_Server   $server  Server instance.
  * @return true
  */
 function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
@@ -1202,7 +1202,7 @@ function print_embed_sharing_dialog() {
  */
 function the_embed_site_title() {
 	$site_title = sprintf(
-		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon"/><span>%s</span></a>',
+		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon" /><span>%s</span></a>',
 		esc_url( home_url() ),
 		esc_url( get_site_icon_url( 32, includes_url( 'images/w-logo-blue.png' ) ) ),
 		esc_url( get_site_icon_url( 64, includes_url( 'images/w-logo-blue.png' ) ) ),

@@ -138,4 +138,17 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $link );
 	}
+
+	/**
+	 * @ticket 52814
+	 */
+	public function test_nonexistent_page() {
+		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+
+		// Use the largest integer to ensure the post does not exist.
+		$post_id = PHP_INT_MAX;
+		$link    = get_post_comments_feed_link( $post_id );
+
+		$this->assertEmpty( $link );
+	}
 }

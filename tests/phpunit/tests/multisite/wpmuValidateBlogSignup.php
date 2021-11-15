@@ -5,7 +5,7 @@ if ( is_multisite() ) :
 	/**
 	 * @group multisite
 	 */
-	class Tests_Multisite_WpmuValidateBlogSignup extends WP_UnitTestCase {
+	class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 		protected static $super_admin_id;
 
 		protected static $existing_user_login = 'existinguserfoo';
