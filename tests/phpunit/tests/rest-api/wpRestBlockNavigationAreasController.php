@@ -9,7 +9,7 @@
  */
 class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Controller_Testcase {
 
-	const OPTION = 'fse_navigation_areas';
+	const OPTION = 'wp_navigation_areas';
 
 	/**
 	 * @var int Administrator user ID

@@ -11621,7 +11621,7 @@ mockedApiResponse.TypesCollection = {
         }
     },
     "wp_navigation": {
-        "description": "",
+        "description": "Navigation menus that can be inserted into your site.",
         "hierarchical": false,
         "name": "Navigation Menus",
         "slug": "wp_navigation",
