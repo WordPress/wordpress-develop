@@ -1,6 +1,8 @@
 <?php
 /**
  * @group media
+ *
+ * @covers ::get_post_galleries
  */
 class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
