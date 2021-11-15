@@ -48,6 +48,7 @@ jobs:
   # - Checks out the repository.
   # - Sets up PHP.
   # - Logs debug information.
+  # - Configures caching for PHPCS scans.
   # - Installs Composer dependencies (use cache if possible).
   # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
@@ -81,7 +82,7 @@ jobs:
         id: get-date
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
 
-      - name: Cache PHPCS cache
+      - name: Cache PHPCS scan cache
         uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
         with:
           path: .cache/phpcs.json
