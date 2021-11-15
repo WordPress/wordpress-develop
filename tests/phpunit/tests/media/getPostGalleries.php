@@ -75,8 +75,15 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 		$galleries = get_post_galleries( $post_id, false );
 
-		$this->assertNotEmpty( $galleries[0]['src'] );
-		$this->assertSame( $expected_srcs, $galleries[0]['src'] );
+		$this->assertNotEmpty(
+			$galleries[0]['src'],
+			'The src key of the first gallery is empty.'
+		);
+		$this->assertSame(
+			$expected_srcs,
+			$galleries[0]['src'],
+			'The expected and actual srcs are not the same.'
+		);
 	}
 
 	/**
@@ -114,10 +121,21 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 		$galleries_with_global_context = get_post_galleries( $post_id_two, false );
 
 		// Check that the global post state doesn't affect the results.
-		$this->assertSame( $galleries, $galleries_with_global_context );
+		$this->assertSame(
+			$galleries,
+			$galleries_with_global_context,
+			'The global post state affected the results.'
+		);
 
-		$this->assertNotEmpty( $galleries[0]['src'] );
-		$this->assertSame( $expected_srcs, $galleries[0]['src'] );
+		$this->assertNotEmpty(
+			$galleries[0]['src'],
+			'The src key of the first gallery is empty.'
+		);
+		$this->assertSame(
+			$expected_srcs,
+			$galleries[0]['src'],
+			'The expected and actual srcs are not the same.'
+		);
 	}
 
 	/**
@@ -144,8 +162,14 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 
 		$galleries = get_post_galleries( $post_id, false );
 
-		$this->assertTrue( is_array( $galleries ) );
-		$this->assertEmpty( $galleries[0]['src'] );
+		$this->assertTrue(
+			is_array( $galleries ),
+			'$galleries is not an array.'
+		);
+		$this->assertEmpty(
+			$galleries[0]['src'],
+			'The src key of the first gallery is not empty.'
+		);
 	}
 
 	/**
