@@ -343,7 +343,7 @@
 		image_align_left: "Left",
 		image_align_right: "Right",
 		link_title: "Insert/edit link",
-		link_url: "Link URL",
+		link_url: "Link To",
 		link_target: "Target",
 		link_target_same: "Open link in the same window",
 		link_target_blank: "Open link in a new window",

@@ -1411,7 +1411,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
 			'input' => 'textarea',
 		),
 		'url'          => array(
-			'label' => __( 'Link URL' ),
+			'label' => __( 'Link To' ),
 			'input' => 'html',
 			'html'  => image_link_input_fields( $post, get_option( 'image_default_link_type' ) ),
 			'helps' => __( 'Enter a link URL or click above for presets.' ),
