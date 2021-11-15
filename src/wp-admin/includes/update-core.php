@@ -1704,7 +1704,7 @@ function _upgrade_580_force_deactivate_incompatible_plugins() {
  * @since 5.9.0
  */
 function _upgrade_590_force_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '11.8.2', '<=' ) ) {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '11.8', '<=' ) ) {
 		_deactivate_gutenberg_when_incompatible_with_wp( '11.9' );
 	}
 }
