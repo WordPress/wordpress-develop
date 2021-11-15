@@ -5183,6 +5183,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "title": {
+                            "default": "",
                             "description": "Title of template.",
                             "type": [
                                 "object",
@@ -5798,6 +5799,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "title": {
+                            "default": "",
                             "description": "Title of template.",
                             "type": [
                                 "object",

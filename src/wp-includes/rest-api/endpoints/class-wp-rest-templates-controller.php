@@ -725,7 +725,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'title'          => array(
 					'description' => __( 'Title of template.' ),
 					'type'        => array( 'object', 'string' ),
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'default'     => '',
+					'context'     => array( 'embed', 'view', 'edit' ),
 					'properties'  => array(
 						'raw'      => array(
 							'description' => __( 'Title for the template, as it exists in the database.' ),
