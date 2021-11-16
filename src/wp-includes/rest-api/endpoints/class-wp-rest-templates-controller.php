@@ -70,15 +70,18 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\/\w-]+)',
 			array(
+				'args'   => array(
+					'id' => array(
+						'description' => __( 'The id of a template' ),
+						'type'        => 'string',
+					),
+				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_item' ),
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => array(
-						'id' => array(
-							'description' => __( 'The id of a template' ),
-							'type'        => 'string',
-						),
+						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 					),
 				),
 				array(
@@ -379,9 +382,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 			// (Note that internally this falls through to `wp_delete_post()`
 			// if the Trash is disabled.)
-			$result   = wp_trash_post( $id );
-			$template = get_block_template( $id );
-			$response = $this->prepare_item_for_response( $template, $request );
+			$result           = wp_trash_post( $id );
+			$template->status = 'trash';
+			$response         = $this->prepare_item_for_response( $template, $request );
 		}
 
 		if ( ! $result ) {
@@ -633,7 +636,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		return array(
-			'context'   => $this->get_context_param(),
+			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
 			'wp_id'     => array(
 				'description' => __( 'Limit to the specified post id.' ),
 				'type'        => 'integer',
