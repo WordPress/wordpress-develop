@@ -1320,13 +1320,32 @@ function wp_dropdown_users( $args = '' ) {
 		'role'                    => '',
 		'role__in'                => array(),
 		'role__not_in'            => array(),
+		'capability'              => '',
+		'capability__in'          => array(),
+		'capability__not_in'      => array(),
 	);
 
 	$defaults['selected'] = is_author() ? get_query_var( 'author' ) : 0;
 
 	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$query_args = wp_array_slice_assoc( $parsed_args, array( 'blog_id', 'include', 'exclude', 'orderby', 'order', 'who', 'role', 'role__in', 'role__not_in' ) );
+	$query_args = wp_array_slice_assoc(
+		$parsed_args,
+		array(
+			'blog_id',
+			'include',
+			'exclude',
+			'orderby',
+			'order',
+			'who',
+			'role',
+			'role__in',
+			'role__not_in',
+			'capability',
+			'capability__in',
+			'capability__not_in',
+		)
+	);
 
 	$fields = array( 'ID', 'user_login' );
 
@@ -1711,9 +1730,10 @@ function validate_username( $username ) {
  * @since 2.0.0
  * @since 3.6.0 The `aim`, `jabber`, and `yim` fields were removed as default user contact
  *              methods for new installations. See wp_get_user_contact_methods().
- * @since 4.7.0 The user's locale can be passed to `$userdata`.
+ * @since 4.7.0 The `locale` field can be passed to `$userdata`.
  * @since 5.3.0 The `user_activation_key` field can be passed to `$userdata`.
  * @since 5.3.0 The `spam` field can be passed to `$userdata` (Multisite only).
+ * @since 5.9.0 The `meta_input` field can be passed to `$userdata` to allow addition of user meta data.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1749,7 +1769,7 @@ function validate_username( $username ) {
  *     @type string $admin_color          Admin color scheme for the user. Default 'fresh'.
  *     @type bool   $use_ssl              Whether the user should always access the admin over
  *                                        https. Default false.
- *     @type string $user_registered      Date the user registered. Format is 'Y-m-d H:i:s'.
+ *     @type string $user_registered      Date the user registered in UTC. Format is 'Y-m-d H:i:s'.
  *     @type string $user_activation_key  Password reset key. Default empty.
  *     @type bool   $spam                 Multisite only. Whether the user is marked as spam.
  *                                        Default false.
@@ -1758,6 +1778,8 @@ function validate_username( $username ) {
  *                                        as a string literal, not boolean. Default 'true'.
  *     @type string $role                 User's role.
  *     @type string $locale               User's locale. Default empty.
+ *     @type array  $meta_input           Array of custom user meta values keyed by meta key.
+ *                                        Default empty.
  * }
  * @return int|WP_Error The newly created user's ID or a WP_Error object if the user could not
  *                      be created.
@@ -1773,9 +1795,9 @@ function wp_insert_user( $userdata ) {
 
 	// Are we updating or creating?
 	if ( ! empty( $userdata['ID'] ) ) {
-		$ID            = (int) $userdata['ID'];
+		$user_id       = (int) $userdata['ID'];
 		$update        = true;
-		$old_user_data = get_userdata( $ID );
+		$old_user_data = get_userdata( $user_id );
 
 		if ( ! $old_user_data ) {
 			return new WP_Error( 'invalid_user_id', __( 'Invalid user ID.' ) );
@@ -2031,10 +2053,10 @@ function wp_insert_user( $userdata ) {
 	 *                                   the current UTC timestamp.
 	 * }
 	 * @param bool     $update   Whether the user is being updated rather than created.
-	 * @param int|null $id       ID of the user to be updated, or NULL if the user is being created.
+	 * @param int|null $user_id  ID of the user to be updated, or NULL if the user is being created.
 	 * @param array    $userdata The raw array of data passed to wp_insert_user().
 	 */
-	$data = apply_filters( 'wp_pre_insert_user_data', $data, $update, ( $update ? (int) $ID : null ), $userdata );
+	$data = apply_filters( 'wp_pre_insert_user_data', $data, $update, ( $update ? $user_id : null ), $userdata );
 
 	if ( empty( $data ) || ! is_array( $data ) ) {
 		return new WP_Error( 'empty_data', __( 'Not enough data to create this user.' ) );
@@ -2044,8 +2066,7 @@ function wp_insert_user( $userdata ) {
 		if ( $user_email !== $old_user_data->user_email || $user_pass !== $old_user_data->user_pass ) {
 			$data['user_activation_key'] = '';
 		}
-		$wpdb->update( $wpdb->users, $data, compact( 'ID' ) );
-		$user_id = (int) $ID;
+		$wpdb->update( $wpdb->users, $data, array( 'ID' => $user_id ) );
 	} else {
 		$wpdb->insert( $wpdb->users, $data );
 		$user_id = (int) $wpdb->insert_id;
@@ -2058,6 +2079,8 @@ function wp_insert_user( $userdata ) {
 	 * and before any user meta is inserted or updated.
 	 *
 	 * Does not include contact methods. These are added using `wp_get_user_contact_methods( $user )`.
+	 *
+	 * For custom meta fields, see the {@see 'insert_custom_user_meta'} filter.
 	 *
 	 * @since 4.4.0
 	 * @since 5.8.0 The $userdata parameter was added.
@@ -2084,6 +2107,28 @@ function wp_insert_user( $userdata ) {
 	 * @param array   $userdata The raw array of data passed to wp_insert_user().
 	 */
 	$meta = apply_filters( 'insert_user_meta', $meta, $user, $update, $userdata );
+
+	$custom_meta = array();
+	if ( array_key_exists( 'meta_input', $userdata ) && is_array( $userdata['meta_input'] ) && ! empty( $userdata['meta_input'] ) ) {
+		$custom_meta = $userdata['meta_input'];
+	}
+
+	/**
+	 * Filters a user's custom meta values and keys immediately after the user is created or updated
+	 * and before any user meta is inserted or updated.
+	 *
+	 * For non-custom meta fields, see the {@see 'insert_user_meta'} filter.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array   $custom_meta Array of custom user meta values keyed by meta key.
+	 * @param WP_User $user        User object.
+	 * @param bool    $update      Whether the user is being updated rather than created.
+	 * @param array   $userdata    The raw array of data passed to wp_insert_user().
+	 */
+	$custom_meta = apply_filters( 'insert_custom_user_meta', $custom_meta, $user, $update, $userdata );
+
+	$meta = array_merge( $meta, $custom_meta );
 
 	// Update user meta.
 	foreach ( $meta as $key => $value ) {
@@ -2177,13 +2222,13 @@ function wp_update_user( $userdata ) {
 		$userdata = $userdata->to_array();
 	}
 
-	$ID = isset( $userdata['ID'] ) ? (int) $userdata['ID'] : 0;
-	if ( ! $ID ) {
+	$user_id = isset( $userdata['ID'] ) ? (int) $userdata['ID'] : 0;
+	if ( ! $user_id ) {
 		return new WP_Error( 'invalid_user_id', __( 'Invalid user ID.' ) );
 	}
 
 	// First, get all of the original fields.
-	$user_obj = get_userdata( $ID );
+	$user_obj = get_userdata( $user_id );
 	if ( ! $user_obj ) {
 		return new WP_Error( 'invalid_user_id', __( 'Invalid user ID.' ) );
 	}
@@ -2192,7 +2237,7 @@ function wp_update_user( $userdata ) {
 
 	// Add additional custom fields.
 	foreach ( _get_additional_user_keys( $user_obj ) as $key ) {
-		$user[ $key ] = get_user_meta( $ID, $key, true );
+		$user[ $key ] = get_user_meta( $user_id, $key, true );
 	}
 
 	// Escape data pulled from DB.
@@ -2238,19 +2283,21 @@ function wp_update_user( $userdata ) {
 	$userdata = array_merge( $user, $userdata );
 	$user_id  = wp_insert_user( $userdata );
 
-	if ( ! is_wp_error( $user_id ) ) {
+	if ( is_wp_error( $user_id ) ) {
+		return $user_id;
+	}
 
-		$blog_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	$blog_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
-		$switched_locale = false;
-		if ( ! empty( $send_password_change_email ) || ! empty( $send_email_change_email ) ) {
-			$switched_locale = switch_to_locale( get_user_locale( $user_id ) );
-		}
+	$switched_locale = false;
+	if ( ! empty( $send_password_change_email ) || ! empty( $send_email_change_email ) ) {
+		$switched_locale = switch_to_locale( get_user_locale( $user_id ) );
+	}
 
-		if ( ! empty( $send_password_change_email ) ) {
-			/* translators: Do not translate USERNAME, ADMIN_EMAIL, EMAIL, SITENAME, SITEURL: those are placeholders. */
-			$pass_change_text = __(
-				'Hi ###USERNAME###,
+	if ( ! empty( $send_password_change_email ) ) {
+		/* translators: Do not translate USERNAME, ADMIN_EMAIL, EMAIL, SITENAME, SITEURL: those are placeholders. */
+		$pass_change_text = __(
+			'Hi ###USERNAME###,
 
 This notice confirms that your password was changed on ###SITENAME###.
 
@@ -2262,53 +2309,53 @@ This email has been sent to ###EMAIL###
 Regards,
 All at ###SITENAME###
 ###SITEURL###'
-			);
+		);
 
-			$pass_change_email = array(
-				'to'      => $user['user_email'],
-				/* translators: Password change notification email subject. %s: Site title. */
-				'subject' => __( '[%s] Password Changed' ),
-				'message' => $pass_change_text,
-				'headers' => '',
-			);
+		$pass_change_email = array(
+			'to'      => $user['user_email'],
+			/* translators: Password change notification email subject. %s: Site title. */
+			'subject' => __( '[%s] Password Changed' ),
+			'message' => $pass_change_text,
+			'headers' => '',
+		);
 
-			/**
-			 * Filters the contents of the email sent when the user's password is changed.
-			 *
-			 * @since 4.3.0
-			 *
-			 * @param array $pass_change_email {
-			 *     Used to build wp_mail().
-			 *
-			 *     @type string $to      The intended recipients. Add emails in a comma separated string.
-			 *     @type string $subject The subject of the email.
-			 *     @type string $message The content of the email.
-			 *         The following strings have a special meaning and will get replaced dynamically:
-			 *         - ###USERNAME###    The current user's username.
-			 *         - ###ADMIN_EMAIL### The admin email in case this was unexpected.
-			 *         - ###EMAIL###       The user's email address.
-			 *         - ###SITENAME###    The name of the site.
-			 *         - ###SITEURL###     The URL to the site.
-			 *     @type string $headers Headers. Add headers in a newline (\r\n) separated string.
-			 * }
-			 * @param array $user     The original user array.
-			 * @param array $userdata The updated user array.
-			 */
-			$pass_change_email = apply_filters( 'password_change_email', $pass_change_email, $user, $userdata );
+		/**
+		 * Filters the contents of the email sent when the user's password is changed.
+		 *
+		 * @since 4.3.0
+		 *
+		 * @param array $pass_change_email {
+		 *     Used to build wp_mail().
+		 *
+		 *     @type string $to      The intended recipients. Add emails in a comma separated string.
+		 *     @type string $subject The subject of the email.
+		 *     @type string $message The content of the email.
+		 *         The following strings have a special meaning and will get replaced dynamically:
+		 *         - ###USERNAME###    The current user's username.
+		 *         - ###ADMIN_EMAIL### The admin email in case this was unexpected.
+		 *         - ###EMAIL###       The user's email address.
+		 *         - ###SITENAME###    The name of the site.
+		 *         - ###SITEURL###     The URL to the site.
+		 *     @type string $headers Headers. Add headers in a newline (\r\n) separated string.
+		 * }
+		 * @param array $user     The original user array.
+		 * @param array $userdata The updated user array.
+		 */
+		$pass_change_email = apply_filters( 'password_change_email', $pass_change_email, $user, $userdata );
 
-			$pass_change_email['message'] = str_replace( '###USERNAME###', $user['user_login'], $pass_change_email['message'] );
-			$pass_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $pass_change_email['message'] );
-			$pass_change_email['message'] = str_replace( '###EMAIL###', $user['user_email'], $pass_change_email['message'] );
-			$pass_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $pass_change_email['message'] );
-			$pass_change_email['message'] = str_replace( '###SITEURL###', home_url(), $pass_change_email['message'] );
+		$pass_change_email['message'] = str_replace( '###USERNAME###', $user['user_login'], $pass_change_email['message'] );
+		$pass_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $pass_change_email['message'] );
+		$pass_change_email['message'] = str_replace( '###EMAIL###', $user['user_email'], $pass_change_email['message'] );
+		$pass_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $pass_change_email['message'] );
+		$pass_change_email['message'] = str_replace( '###SITEURL###', home_url(), $pass_change_email['message'] );
 
-			wp_mail( $pass_change_email['to'], sprintf( $pass_change_email['subject'], $blog_name ), $pass_change_email['message'], $pass_change_email['headers'] );
-		}
+		wp_mail( $pass_change_email['to'], sprintf( $pass_change_email['subject'], $blog_name ), $pass_change_email['message'], $pass_change_email['headers'] );
+	}
 
-		if ( ! empty( $send_email_change_email ) ) {
-			/* translators: Do not translate USERNAME, ADMIN_EMAIL, NEW_EMAIL, EMAIL, SITENAME, SITEURL: those are placeholders. */
-			$email_change_text = __(
-				'Hi ###USERNAME###,
+	if ( ! empty( $send_email_change_email ) ) {
+		/* translators: Do not translate USERNAME, ADMIN_EMAIL, NEW_EMAIL, EMAIL, SITENAME, SITEURL: those are placeholders. */
+		$email_change_text = __(
+			'Hi ###USERNAME###,
 
 This notice confirms that your email address on ###SITENAME### was changed to ###NEW_EMAIL###.
 
@@ -2320,59 +2367,58 @@ This email has been sent to ###EMAIL###
 Regards,
 All at ###SITENAME###
 ###SITEURL###'
-			);
+		);
 
-			$email_change_email = array(
-				'to'      => $user['user_email'],
-				/* translators: Email change notification email subject. %s: Site title. */
-				'subject' => __( '[%s] Email Changed' ),
-				'message' => $email_change_text,
-				'headers' => '',
-			);
+		$email_change_email = array(
+			'to'      => $user['user_email'],
+			/* translators: Email change notification email subject. %s: Site title. */
+			'subject' => __( '[%s] Email Changed' ),
+			'message' => $email_change_text,
+			'headers' => '',
+		);
 
-			/**
-			 * Filters the contents of the email sent when the user's email is changed.
-			 *
-			 * @since 4.3.0
-			 *
-			 * @param array $email_change_email {
-			 *     Used to build wp_mail().
-			 *
-			 *     @type string $to      The intended recipients.
-			 *     @type string $subject The subject of the email.
-			 *     @type string $message The content of the email.
-			 *         The following strings have a special meaning and will get replaced dynamically:
-			 *         - ###USERNAME###    The current user's username.
-			 *         - ###ADMIN_EMAIL### The admin email in case this was unexpected.
-			 *         - ###NEW_EMAIL###   The new email address.
-			 *         - ###EMAIL###       The old email address.
-			 *         - ###SITENAME###    The name of the site.
-			 *         - ###SITEURL###     The URL to the site.
-			 *     @type string $headers Headers.
-			 * }
-			 * @param array $user     The original user array.
-			 * @param array $userdata The updated user array.
-			 */
-			$email_change_email = apply_filters( 'email_change_email', $email_change_email, $user, $userdata );
+		/**
+		 * Filters the contents of the email sent when the user's email is changed.
+		 *
+		 * @since 4.3.0
+		 *
+		 * @param array $email_change_email {
+		 *     Used to build wp_mail().
+		 *
+		 *     @type string $to      The intended recipients.
+		 *     @type string $subject The subject of the email.
+		 *     @type string $message The content of the email.
+		 *         The following strings have a special meaning and will get replaced dynamically:
+		 *         - ###USERNAME###    The current user's username.
+		 *         - ###ADMIN_EMAIL### The admin email in case this was unexpected.
+		 *         - ###NEW_EMAIL###   The new email address.
+		 *         - ###EMAIL###       The old email address.
+		 *         - ###SITENAME###    The name of the site.
+		 *         - ###SITEURL###     The URL to the site.
+		 *     @type string $headers Headers.
+		 * }
+		 * @param array $user     The original user array.
+		 * @param array $userdata The updated user array.
+		 */
+		$email_change_email = apply_filters( 'email_change_email', $email_change_email, $user, $userdata );
 
-			$email_change_email['message'] = str_replace( '###USERNAME###', $user['user_login'], $email_change_email['message'] );
-			$email_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email_change_email['message'] );
-			$email_change_email['message'] = str_replace( '###NEW_EMAIL###', $userdata['user_email'], $email_change_email['message'] );
-			$email_change_email['message'] = str_replace( '###EMAIL###', $user['user_email'], $email_change_email['message'] );
-			$email_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $email_change_email['message'] );
-			$email_change_email['message'] = str_replace( '###SITEURL###', home_url(), $email_change_email['message'] );
+		$email_change_email['message'] = str_replace( '###USERNAME###', $user['user_login'], $email_change_email['message'] );
+		$email_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email_change_email['message'] );
+		$email_change_email['message'] = str_replace( '###NEW_EMAIL###', $userdata['user_email'], $email_change_email['message'] );
+		$email_change_email['message'] = str_replace( '###EMAIL###', $user['user_email'], $email_change_email['message'] );
+		$email_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $email_change_email['message'] );
+		$email_change_email['message'] = str_replace( '###SITEURL###', home_url(), $email_change_email['message'] );
 
-			wp_mail( $email_change_email['to'], sprintf( $email_change_email['subject'], $blog_name ), $email_change_email['message'], $email_change_email['headers'] );
-		}
+		wp_mail( $email_change_email['to'], sprintf( $email_change_email['subject'], $blog_name ), $email_change_email['message'], $email_change_email['headers'] );
+	}
 
-		if ( $switched_locale ) {
-			restore_previous_locale();
-		}
+	if ( $switched_locale ) {
+		restore_previous_locale();
 	}
 
 	// Update the cookies if the password changed.
 	$current_user = wp_get_current_user();
-	if ( $current_user->ID == $ID ) {
+	if ( $current_user->ID == $user_id ) {
 		if ( isset( $plaintext_pass ) ) {
 			wp_clear_auth_cookie();
 
@@ -2380,13 +2426,13 @@ All at ###SITENAME###
 			// If it's greater than this, then we know the user checked 'Remember Me' when they logged in.
 			$logged_in_cookie = wp_parse_auth_cookie( '', 'logged_in' );
 			/** This filter is documented in wp-includes/pluggable.php */
-			$default_cookie_life = apply_filters( 'auth_cookie_expiration', ( 2 * DAY_IN_SECONDS ), $ID, false );
+			$default_cookie_life = apply_filters( 'auth_cookie_expiration', ( 2 * DAY_IN_SECONDS ), $user_id, false );
 			$remember            = false;
 			if ( false !== $logged_in_cookie && ( $logged_in_cookie['expiration'] - time() ) > $default_cookie_life ) {
 				$remember = true;
 			}
 
-			wp_set_auth_cookie( $ID, $remember );
+			wp_set_auth_cookie( $user_id, $remember );
 		}
 	}
 
@@ -2442,7 +2488,7 @@ function _get_additional_user_keys( $user ) {
  *
  * @since 3.7.0
  *
- * @param WP_User $user Optional. WP_User object.
+ * @param WP_User|null $user Optional. WP_User object.
  * @return string[] Array of contact method labels keyed by contact method.
  */
 function wp_get_user_contact_methods( $user = null ) {
@@ -2460,8 +2506,8 @@ function wp_get_user_contact_methods( $user = null ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param string[] $methods Array of contact method labels keyed by contact method.
-	 * @param WP_User  $user    WP_User object.
+	 * @param string[]     $methods Array of contact method labels keyed by contact method.
+	 * @param WP_User|null $user    WP_User object or null if none was provided.
 	 */
 	return apply_filters( 'user_contactmethods', $methods, $user );
 }
@@ -2474,7 +2520,7 @@ function wp_get_user_contact_methods( $user = null ) {
  * @since 2.9.0
  * @access private
  *
- * @param WP_User $user Optional. WP_User object. Default null.
+ * @param WP_User|null $user Optional. WP_User object. Default null.
  * @return string[] Array of contact method labels keyed by contact method.
  */
 function _wp_get_user_contactmethods( $user = null ) {
@@ -2549,8 +2595,8 @@ function get_password_reset_key( $user ) {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param bool $allow Whether to allow the password to be reset. Default true.
-	 * @param int  $ID    The ID of the user attempting to reset a password.
+	 * @param bool $allow   Whether to allow the password to be reset. Default true.
+	 * @param int  $user_id The ID of the user attempting to reset a password.
 	 */
 	$allow = apply_filters( 'allow_password_reset', $allow, $user->ID );
 
@@ -3459,7 +3505,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 		// Remove items that use reserved names.
 		$extra_data = array_filter(
 			$_extra_data,
-			function( $item ) use ( $reserved_names ) {
+			static function( $item ) use ( $reserved_names ) {
 				return ! in_array( $item['name'], $reserved_names, true );
 			}
 		);
@@ -3676,8 +3722,7 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 
 	/* translators: Do not translate SITENAME, USER_EMAIL, DESCRIPTION, MANAGE_URL, SITEURL; those are placeholders. */
 	$content = __(
-// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
-'Howdy,
+		'Howdy,
 
 A user data privacy request has been confirmed on ###SITENAME###:
 
@@ -3696,9 +3741,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the body of the user request confirmation email.
 	 *
-	 * Use {@see 'user_request_confirmed_email_content'} instead.
-	 *
-	 * The email is sent to an administrator when an user request is confirmed.
+	 * The email is sent to an administrator when a user request is confirmed.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
 	 *
@@ -3708,11 +3751,10 @@ All at ###SITENAME###
 	 * ###MANAGE_URL###  The URL to manage requests.
 	 * ###SITEURL###     The URL to the site.
 	 *
-	 * For fulfillment email content use {@see 'user_erasure_fulfillment_email_content'} instead.
-	 *
 	 * @since 4.9.6
-	 *
-	 * @deprecated 5.8.0 Use {@see 'user_request_confirmed_email_content'} instead. For fulfillment email content use {@see 'user_erasure_fulfillment_email_content'} instead.
+	 * @deprecated 5.8.0 Use {@see 'user_request_confirmed_email_content'} instead.
+	 *                   For user erasure fulfillment email content
+	 *                   use {@see 'user_erasure_fulfillment_email_content'} instead.
 	 *
 	 * @param string $content    The email content.
 	 * @param array  $email_data {
@@ -3720,7 +3762,8 @@ All at ###SITENAME###
 	 *
 	 *     @type WP_User_Request $request     User request object.
 	 *     @type string          $user_email  The email address confirming a request
-	 *     @type string          $description Description of the action being performed so the user knows what the email is for.
+	 *     @type string          $description Description of the action being performed
+	 *                                        so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
 	 *     @type string          $sitename    The site name sending the mail.
 	 *     @type string          $siteurl     The site URL sending the mail.
@@ -3732,7 +3775,7 @@ All at ###SITENAME###
 		array( $content, $email_data ),
 		'5.8.0',
 		sprintf(
-			/* translators: 1 & 2: Deprecation replacement options */
+			/* translators: 1 & 2: Deprecation replacement options. */
 			__( '%1$s or %2$s' ),
 			'user_request_confirmed_email_content',
 			'user_erasure_fulfillment_email_content'
@@ -3742,7 +3785,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the body of the user request confirmation email.
 	 *
-	 * The email is sent to an administrator when an user request is confirmed.
+	 * The email is sent to an administrator when a user request is confirmed.
 	 * The following strings have a special meaning and will get replaced dynamically:
 	 *
 	 * ###SITENAME###    The name of the site.
@@ -3864,10 +3907,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	/**
 	 * Filters the subject of the email sent when an erasure request is completed.
 	 *
-	 * Use {@see 'user_erasure_fulfillment_email_subject'} instead.
-	 *
 	 * @since 4.9.8
-	 *
 	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_subject'} instead.
 	 *
 	 * @param string $subject    The email subject.
@@ -3884,7 +3924,12 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	 *     @type string          $siteurl            The site URL sending the mail.
 	 * }
 	 */
-	$subject = apply_filters_deprecated( 'user_erasure_complete_email_subject', array( $subject, $email_data['sitename'], $email_data ), '5.8.0', 'user_erasure_fulfillment_email_subject' );
+	$subject = apply_filters_deprecated(
+		'user_erasure_complete_email_subject',
+		array( $subject, $email_data['sitename'], $email_data ),
+		'5.8.0',
+		'user_erasure_fulfillment_email_subject'
+	);
 
 	/**
 	 * Filters the subject of the email sent when an erasure request is completed.
@@ -3909,8 +3954,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 
 	/* translators: Do not translate SITENAME, SITEURL; those are placeholders. */
 	$content = __(
-// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
-'Howdy,
+		'Howdy,
 
 Your request to erase your personal data on ###SITENAME### has been completed.
 
@@ -3924,8 +3968,7 @@ All at ###SITENAME###
 	if ( ! empty( $email_data['privacy_policy_url'] ) ) {
 		/* translators: Do not translate SITENAME, SITEURL, PRIVACY_POLICY_URL; those are placeholders. */
 		$content = __(
-// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
-'Howdy,
+			'Howdy,
 
 Your request to erase your personal data on ###SITENAME### has been completed.
 
@@ -3942,9 +3985,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the body of the data erasure fulfillment notification.
 	 *
-	 * Use {@see 'user_erasure_fulfillment_email_content'} instead.
-	 *
-	 * The email is sent to a user when a their data erasure request is fulfilled
+	 * The email is sent to a user when their data erasure request is fulfilled
 	 * by an administrator.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
@@ -3953,11 +3994,10 @@ All at ###SITENAME###
 	 * ###PRIVACY_POLICY_URL### Privacy policy page URL.
 	 * ###SITEURL###            The URL to the site.
 	 *
-	 * For user request confirmation email content use {@see 'user_request_confirmed_email_content'} instead.
-	 *
 	 * @since 4.9.6
-	 *
-	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_content'} instead. For user request confirmation email content use {@see 'user_request_confirmed_email_content'} instead.
+	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_content'} instead.
+	 *                   For user request confirmation email content
+	 *                   use {@see 'user_request_confirmed_email_content'} instead.
 	 *
 	 * @param string $content The email content.
 	 * @param array  $email_data {
@@ -3977,7 +4017,7 @@ All at ###SITENAME###
 		array( $content, $email_data ),
 		'5.8.0',
 		sprintf(
-			/* translators: 1 & 2: Deprecation replacement options */
+			/* translators: 1 & 2: Deprecation replacement options. */
 			__( '%1$s or %2$s' ),
 			'user_erasure_fulfillment_email_content',
 			'user_request_confirmed_email_content'
@@ -3987,7 +4027,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the body of the data erasure fulfillment notification.
 	 *
-	 * The email is sent to a user when a their data erasure request is fulfilled
+	 * The email is sent to a user when their data erasure request is fulfilled
 	 * by an administrator.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
@@ -4022,10 +4062,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the headers of the data erasure fulfillment notification.
 	 *
-	 * Use {@see 'user_erasure_fulfillment_email_headers'} instead.
-	 *
 	 * @since 5.4.0
-	 *
 	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_headers'} instead.
 	 *
 	 * @param string|array $headers    The email headers.
@@ -4044,12 +4081,17 @@ All at ###SITENAME###
 	 *     @type string          $siteurl            The site URL sending the mail.
 	 * }
 	 */
-	$headers = apply_filters_deprecated( 'user_erasure_complete_email_headers', array( $headers, $subject, $content, $request_id, $email_data ), '5.8.0', 'user_erasure_fulfillment_email_headers' );
+	$headers = apply_filters_deprecated(
+		'user_erasure_complete_email_headers',
+		array( $headers, $subject, $content, $request_id, $email_data ),
+		'5.8.0',
+		'user_erasure_fulfillment_email_headers'
+	);
 
 	/**
 	 * Filters the headers of the data erasure fulfillment notification.
 	 *
-	 * @since 5.7.0
+	 * @since 5.8.0
 	 *
 	 * @param string|array $headers    The email headers.
 	 * @param string       $subject    The email subject.
@@ -4290,8 +4332,7 @@ function wp_send_user_request( $request_id ) {
 
 	/* translators: Do not translate DESCRIPTION, CONFIRM_URL, SITENAME, SITEURL: those are placeholders. */
 	$content = __(
-// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
-'Howdy,
+		'Howdy,
 
 A request has been made to perform the following action on your account:
 

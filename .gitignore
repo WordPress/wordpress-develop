@@ -6,6 +6,7 @@ wp-tests-config.php
 .htaccess
 
 # Files and folders related to build/test tools
+.phpunit.result.cache
 /phpunit.xml
 /.phpcs.xml
 /phpcs.xml
@@ -19,6 +20,7 @@ wp-tests-config.php
 /tests/phpunit/build
 /wp-cli.local.yml
 /jsdoc
+/composer.lock
 /vendor
 /src/wp-admin/css/*.min.css
 /src/wp-admin/css/*-rtl.css
@@ -29,7 +31,10 @@ wp-tests-config.php
 /src/wp-includes/css/*.min.css
 /src/wp-includes/css/*-rtl.css
 /src/wp-includes/blocks/**/*.css
+/src/wp-includes/blocks/**/*.js
+/src/wp-includes/blocks/**/*.js.map
 /packagehash.txt
+/artifacts
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
@@ -85,3 +90,6 @@ wp-tests-config.php
 
 # Files for local environment config
 /docker-compose.override.yml
+
+# Visual regression test diffs
+tests/visual-regression/specs/__image_snapshots__

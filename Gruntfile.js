@@ -122,7 +122,9 @@ module.exports = function(grunt) {
 				WORKING_DIR + 'wp-includes/js/'
 			],
 			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/assets/'
+				WORKING_DIR + 'wp-includes/assets/*',
+				WORKING_DIR + 'wp-includes/css/dist/',
+				'!' + WORKING_DIR + 'wp-includes/assets/script-loader-packages.php'
 			],
 			dynamic: {
 				dot: true,
@@ -996,6 +998,7 @@ module.exports = function(grunt) {
 						WORKING_DIR + 'wp-{admin,includes}/**/*.js',
 						WORKING_DIR + 'wp-content/themes/twenty*/**/*.js',
 						'!' + WORKING_DIR + 'wp-content/themes/twenty*/node_modules/**/*.js',
+						'!' + WORKING_DIR + 'wp-includes/blocks/**/*.js',
 						'!' + WORKING_DIR + 'wp-includes/js/dist/**/*.js',
 					]
 				}

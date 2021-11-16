@@ -832,6 +832,10 @@ function upgrade_all() {
 		upgrade_560();
 	}
 
+	if ( $wp_current_db_version < 51917 ) {
+		upgrade_590();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -1874,7 +1878,6 @@ function upgrade_370() {
  *
  * @ignore
  * @since 3.7.2
- * @since 3.8.0
  *
  * @global int $wp_current_db_version The old (current) database version.
  */
@@ -2245,6 +2248,23 @@ function upgrade_560() {
 			$network_id = get_main_network_id();
 			update_network_option( $network_id, WP_Application_Passwords::OPTION_KEY_IN_USE, 1 );
 		}
+	}
+}
+
+/**
+ * Executes changes made in WordPress 5.9.0.
+ *
+ * @ignore
+ * @since 5.9.0
+ */
+function upgrade_590() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 51917 ) {
+		$crons = _get_cron_array();
+		// Remove errant `false` values, see #53950.
+		$crons = array_filter( $crons );
+		_set_cron_array( $crons );
 	}
 }
 

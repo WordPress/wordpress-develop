@@ -10,8 +10,8 @@ require_once __DIR__ . '/base.php';
 
 abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		add_filter( 'wp_image_editors', array( $this, 'wp_image_editors' ) );
 	}
@@ -20,7 +20,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		return array( $this->editor_engine );
 	}
 
-	function test_resize_jpg() {
+	public function test_resize_jpg() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 25, 25 );
 
 		$this->assertSame( 'test-image-25x25.jpg', wp_basename( $image ) );
@@ -32,7 +32,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
-	function test_resize_png() {
+	public function test_resize_png() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.png', 25, 25 );
 
 		if ( ! is_string( $image ) ) {  // WP_Error, stop GLib-GObject-CRITICAL assertion.
@@ -48,7 +48,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
-	function test_resize_gif() {
+	public function test_resize_gif() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.gif', 25, 25 );
 
 		if ( ! is_string( $image ) ) {  // WP_Error, stop GLib-GObject-CRITICAL assertion.
@@ -64,7 +64,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
-	function test_resize_webp() {
+	public function test_resize_webp() {
 		$file   = DIR_TESTDATA . '/images/test-image.webp';
 		$editor = wp_get_image_editor( $file );
 
@@ -82,7 +82,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
-	function test_resize_larger() {
+	public function test_resize_larger() {
 		// image_resize() should refuse to make an image larger.
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 100, 100 );
 
@@ -90,7 +90,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		$this->assertSame( 'error_getting_dimensions', $image->get_error_code() );
 	}
 
-	function test_resize_thumb_128x96() {
+	public function test_resize_thumb_128x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 96 );
 
 		$this->assertSame( '2007-06-17DSC_4173-64x96.jpg', wp_basename( $image ) );
@@ -102,7 +102,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
-	function test_resize_thumb_128x0() {
+	public function test_resize_thumb_128x0() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 0 );
 
 		$this->assertSame( '2007-06-17DSC_4173-128x193.jpg', wp_basename( $image ) );
@@ -114,7 +114,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
-	function test_resize_thumb_0x96() {
+	public function test_resize_thumb_0x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 0, 96 );
 
 		$this->assertSame( '2007-06-17DSC_4173-64x96.jpg', wp_basename( $image ) );
@@ -126,7 +126,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
-	function test_resize_thumb_150x150_crop() {
+	public function test_resize_thumb_150x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 150, 150, true );
 
 		$this->assertSame( '2007-06-17DSC_4173-150x150.jpg', wp_basename( $image ) );
@@ -138,7 +138,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
-	function test_resize_thumb_150x100_crop() {
+	public function test_resize_thumb_150x100_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 150, 100, true );
 
 		$this->assertSame( '2007-06-17DSC_4173-150x100.jpg', wp_basename( $image ) );
@@ -150,7 +150,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
-	function test_resize_thumb_50x150_crop() {
+	public function test_resize_thumb_50x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 50, 150, true );
 
 		$this->assertSame( '2007-06-17DSC_4173-50x150.jpg', wp_basename( $image ) );

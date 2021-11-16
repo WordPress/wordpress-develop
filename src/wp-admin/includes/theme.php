@@ -298,6 +298,7 @@ function get_theme_update_available( $theme ) {
  * @since 5.5.0 Added 'Block Editor Patterns', 'Block Editor Styles',
  *              and 'Full Site Editing' features.
  * @since 5.5.0 Added 'Wide Blocks' layout option.
+ * @since 5.8.1 Added 'Template Editing' feature.
  *
  * @param bool $api Optional. Whether try to fetch tags from the WordPress.org API. Defaults to true.
  * @return array Array of features keyed by category with translations keyed by slug.
@@ -334,6 +335,7 @@ function get_theme_feature_list( $api = true ) {
 			'full-width-template'   => __( 'Full Width Template' ),
 			'post-formats'          => __( 'Post Formats' ),
 			'sticky-post'           => __( 'Sticky Post' ),
+			'template-editing'      => __( 'Template Editing' ),
 			'theme-options'         => __( 'Theme Options' ),
 		),
 
@@ -600,15 +602,18 @@ function themes_api( $action, $args = array() ) {
 			}
 		}
 
-		// Back-compat for info/1.2 API, upgrade the theme objects in query_themes to objects.
-		if ( 'query_themes' === $action ) {
-			foreach ( $res->themes as $i => $theme ) {
-				$res->themes[ $i ] = (object) $theme;
+		if ( ! is_wp_error( $res ) ) {
+			// Back-compat for info/1.2 API, upgrade the theme objects in query_themes to objects.
+			if ( 'query_themes' === $action ) {
+				foreach ( $res->themes as $i => $theme ) {
+					$res->themes[ $i ] = (object) $theme;
+				}
 			}
-		}
-		// Back-compat for info/1.2 API, downgrade the feature_list result back to an array.
-		if ( 'feature_list' === $action ) {
-			$res = (array) $res;
+
+			// Back-compat for info/1.2 API, downgrade the feature_list result back to an array.
+			if ( 'feature_list' === $action ) {
+				$res = (array) $res;
+			}
 		}
 	}
 

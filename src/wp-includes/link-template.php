@@ -1872,7 +1872,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		 */
 		$private_states = get_post_stati( array( 'private' => true ) );
 		$where         .= " AND ( p.post_status = 'publish'";
-		foreach ( (array) $private_states as $state ) {
+		foreach ( $private_states as $state ) {
 			if ( current_user_can( $read_private_cap ) ) {
 				$where .= $wpdb->prepare( ' OR p.post_status = %s', $state );
 			} else {
@@ -2899,7 +2899,7 @@ function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader
 	}
 
 	$template = '
-	<nav class="navigation %1$s" role="navigation" aria-label="%4$s">
+	<nav class="navigation %1$s" aria-label="%4$s">
 		<h2 class="screen-reader-text">%2$s</h2>
 		<div class="nav-links">%3$s</div>
 	</nav>';
@@ -2911,7 +2911,7 @@ function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader
 	 * class (%1$s), the screen-reader-text value (%2$s), placement of the navigation
 	 * links (%3$s), and ARIA label text if screen-reader-text does not fit that (%4$s):
 	 *
-	 *     <nav class="navigation %1$s" role="navigation" aria-label="%4$s">
+	 *     <nav class="navigation %1$s" aria-label="%4$s">
 	 *         <h2 class="screen-reader-text">%2$s</h2>
 	 *         <div class="nav-links">%3$s</div>
 	 *     </nav>

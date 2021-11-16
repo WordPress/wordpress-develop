@@ -32,8 +32,10 @@ if ( wp_is_application_passwords_available_for_user( $user_id ) ) {
 }
 
 if ( IS_PROFILE_PAGE ) {
+	// Used in the HTML title tag.
 	$title = __( 'Profile' );
 } else {
+	// Used in the HTML title tag.
 	/* translators: %s: User's display name. */
 	$title = __( 'Edit User %s' );
 }
@@ -551,12 +553,12 @@ endif;
 			/**
 			 * Filters a user contactmethod label.
 			 *
-			 * The dynamic portion of the filter hook, `$name`, refers to
-			 * each of the keys in the contactmethods array.
+			 * The dynamic portion of the hook name, `$name`, refers to
+			 * each of the keys in the contact methods array.
 			 *
 			 * @since 2.9.0
 			 *
-			 * @param string $desc The translatable label for the contactmethod.
+			 * @param string $desc The translatable label for the contact method.
 			 */
 			echo apply_filters( "user_{$name}_label", $desc );
 			?>
@@ -731,11 +733,10 @@ endif;
 
 	</table>
 
-
-		<?php if ( wp_is_application_passwords_available_for_user( $user_id ) ) : ?>
 	<div class="application-passwords hide-if-no-js" id="application-passwords-section">
 		<h2><?php _e( 'Application Passwords' ); ?></h2>
 		<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
+		<?php if ( wp_is_application_passwords_available_for_user( $user_id ) ) : ?>
 			<?php
 			if ( is_multisite() ) {
 				$blogs       = get_blogs_of_user( $user_id, true );
@@ -765,7 +766,7 @@ endif;
 			<div class="create-application-password form-wrap">
 				<div class="form-field">
 					<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-					<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" />
+					<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" />
 					<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 				</div>
 
@@ -795,8 +796,19 @@ endif;
 			$application_passwords_list_table->display();
 			?>
 		</div>
+		<?php else : ?>
+			<p><?php _e( 'The application password feature requires HTTPS, which is not enabled on this site.' ); ?></p>
+			<p>
+				<?php
+				printf(
+					/* translators: %s: Documentation URL. */
+					__( 'If this is a development website you can <a href="%s" target="_blank">set the environment type accordingly</a> to enable application passwords.' ),
+					__( 'https://wordpress.org/support/article/editing-wp-config-php/#wp_environment_type' )
+				);
+				?>
+			</p>
+		<?php endif; ?>
 	</div>
-<?php endif; ?>
 
 		<?php
 		if ( IS_PROFILE_PAGE ) {

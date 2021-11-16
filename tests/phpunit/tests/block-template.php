@@ -35,7 +35,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 		wp_delete_post( self::$post->ID );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		global $_wp_current_template_content;
 		unset( $_wp_current_template_content );
 	}
@@ -43,7 +43,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 	/**
 	 * Regression: https://github.com/WordPress/gutenberg/issues/31399.
 	 */
-	function test_custom_page_php_template_takes_precedence_over_all_other_templates() {
+	public function test_custom_page_php_template_takes_precedence_over_all_other_templates() {
 		$custom_page_template      = 'templates/full-width.php';
 		$custom_page_template_path = get_stylesheet_directory() . '/' . $custom_page_template;
 		$type                      = 'page';
@@ -60,7 +60,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 	/**
 	 * Covers: https://github.com/WordPress/gutenberg/pull/30438.
 	 */
-	function test_custom_page_block_template_takes_precedence_over_all_other_templates() {
+	public function test_custom_page_block_template_takes_precedence_over_all_other_templates() {
 		global $_wp_current_template_content;
 
 		$custom_page_block_template = 'wp-custom-template-my-block-template';
@@ -80,7 +80,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 	/**
 	 * Regression: https://github.com/WordPress/gutenberg/issues/31652.
 	 */
-	function test_template_remains_unchanged_if_templates_array_is_empty() {
+	public function test_template_remains_unchanged_if_templates_array_is_empty() {
 		$resolved_template_path = locate_block_template( '', 'search', array() );
 		$this->assertSame( '', $resolved_template_path );
 	}

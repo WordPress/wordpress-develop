@@ -21,6 +21,8 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructs the controller.
+	 *
+	 * @since 5.8.0
 	 */
 	public function __construct() {
 		$this->namespace     = 'wp/v2';
@@ -29,6 +31,8 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the necessary REST API routes.
+	 *
+	 * @since 5.8.0
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -52,8 +56,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return WP_Error|bool True if the request has permission, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has permission, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
 		if ( current_user_can( 'edit_posts' ) ) {
@@ -79,11 +82,21 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$query_args  = array();
+		/*
+		 * Include an unmodified `$wp_version`, so the API can craft a response that's tailored to
+		 * it. Some plugins modify the version in a misguided attempt to improve security by
+		 * obscuring the version, which can cause invalid requests.
+		 */
+		require ABSPATH . WPINC . '/version.php';
+
+		$query_args = array(
+			'locale'     => get_user_locale(),
+			'wp-version' => $wp_version,
+		);
+
 		$category_id = $request['category'];
 		$keyword_id  = $request['keyword'];
 		$search_term = $request['search'];
@@ -100,38 +113,73 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			$query_args['search'] = $search_term;
 		}
 
-		$api_url = add_query_arg(
-			array_map( 'rawurlencode', $query_args ),
-			'http://api.wordpress.org/patterns/1.0/'
-		);
+		/*
+		 * Include a hash of the query args, so that different requests are stored in
+		 * separate caches.
+		 *
+		 * MD5 is chosen for its speed, low-collision rate, universal availability, and to stay
+		 * under the character limit for `_site_transient_timeout_{...}` keys.
+		 *
+		 * @link https://stackoverflow.com/questions/3665247/fastest-hash-for-non-cryptographic-uses
+		 */
+		$transient_key = 'wp_remote_block_patterns_' . md5( implode( '-', $query_args ) );
 
-		if ( wp_http_supports( array( 'ssl' ) ) ) {
-			$api_url = set_url_scheme( $api_url, 'https' );
-		}
+		/*
+		 * Use network-wide transient to improve performance. The locale is the only site
+		 * configuration that affects the response, and it's included in the transient key.
+		 */
+		$raw_patterns = get_site_transient( $transient_key );
 
-		$wporg_response = wp_remote_get( $api_url );
-		$raw_patterns   = json_decode( wp_remote_retrieve_body( $wporg_response ) );
-
-		if ( is_wp_error( $wporg_response ) ) {
-			$wporg_response->add_data( array( 'status' => 500 ) );
-
-			return $wporg_response;
-		}
-
-		// Make sure w.org returned valid data.
-		if ( ! is_array( $raw_patterns ) ) {
-			return new WP_Error(
-				'pattern_api_failed',
-				sprintf(
-				/* translators: %s: Support forums URL. */
-					__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
-					__( 'https://wordpress.org/support/forums/' )
-				),
-				array(
-					'status'   => 500,
-					'response' => wp_remote_retrieve_body( $wporg_response ),
-				)
+		if ( ! $raw_patterns ) {
+			$api_url = add_query_arg(
+				array_map( 'rawurlencode', $query_args ),
+				'http://api.wordpress.org/patterns/1.0/'
 			);
+
+			if ( wp_http_supports( array( 'ssl' ) ) ) {
+				$api_url = set_url_scheme( $api_url, 'https' );
+			}
+
+			/*
+			 * Default to a short TTL, to mitigate cache stampedes on high-traffic sites.
+			 * This assumes that most errors will be short-lived, e.g., packet loss that causes the
+			 * first request to fail, but a follow-up one will succeed. The value should be high
+			 * enough to avoid stampedes, but low enough to not interfere with users manually
+			 * re-trying a failed request.
+			 */
+			$cache_ttl      = 5;
+			$wporg_response = wp_remote_get( $api_url );
+			$raw_patterns   = json_decode( wp_remote_retrieve_body( $wporg_response ) );
+
+			if ( is_wp_error( $wporg_response ) ) {
+				$raw_patterns = $wporg_response;
+
+			} elseif ( ! is_array( $raw_patterns ) ) {
+				// HTTP request succeeded, but response data is invalid.
+				$raw_patterns = new WP_Error(
+					'pattern_api_failed',
+					sprintf(
+					/* translators: %s: Support forums URL. */
+						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+						__( 'https://wordpress.org/support/forums/' )
+					),
+					array(
+						'response' => wp_remote_retrieve_body( $wporg_response ),
+					)
+				);
+
+			} else {
+				// Response has valid data.
+				$cache_ttl = HOUR_IN_SECONDS;
+			}
+
+			set_site_transient( $transient_key, $raw_patterns, $cache_ttl );
+		}
+
+		if ( is_wp_error( $raw_patterns ) ) {
+			$raw_patterns->add_data( array( 'status' => 500 ) );
+
+			return $raw_patterns;
 		}
 
 		$response = array();
@@ -151,13 +199,15 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * Prepare a raw pattern before it's output in an API response.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Renamed `$raw_pattern` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param object          $raw_pattern A pattern from api.wordpress.org, before any changes.
-	 * @param WP_REST_Request $request     Request object.
-	 *
+	 * @param object          $item    Raw pattern from api.wordpress.org, before any changes.
+	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response
 	 */
-	public function prepare_item_for_response( $raw_pattern, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$raw_pattern      = $item;
 		$prepared_pattern = array(
 			'id'             => absint( $raw_pattern->id ),
 			'title'          => sanitize_text_field( $raw_pattern->title->rendered ),

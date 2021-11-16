@@ -7,15 +7,15 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 	public $q;
 	public static $post_type = 'page'; // Can be anything.
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		unset( $this->q );
 		$this->q = new WP_Query();
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		unset( $this->q );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
