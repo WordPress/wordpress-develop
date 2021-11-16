@@ -455,6 +455,190 @@ BLOB;
 	}
 
 	/**
+	 * Test that the global post object does not override
+	 * a provided post ID with a block gallery.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group block
+	 */
+	public function test_respects_post_id_with_block_gallery() {
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 3 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0,
+				array(
+					'post_mime_type' => 'image/jpeg',
+					'post_type'      => 'attachment',
+				)
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+
+		}
+
+		$ids_joined = join( ',', $ids );
+
+		$global_post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'Global Post',
+			)
+		);
+
+		$blob = <<< BLOB
+<!-- wp:gallery {"ids":[$ids_joined]} -->
+<!-- /wp:gallery -->
+BLOB;
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => $blob,
+			)
+		);
+		$this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => $post_id,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+		$expected_srcs = array(
+			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+		);
+
+		// Set the global $post context to the other post.
+		$GLOBALS['post'] = get_post( $global_post_id );
+
+		$galleries = get_post_galleries( $post_id, false );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
+		$this->assertSameSetsWithIndex(
+			array(
+				array(
+					'ids' => $ids_joined,
+					'src' => $ids_srcs,
+				),
+			),
+			$galleries,
+			'The expected and actual srcs are not the same.'
+		);
+	}
+
+	/**
+	 * Test that the global post object does not override
+	 * a provided post ID with a block gallery v2.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group block
+	 */
+	public function test_respects_post_id_with_block_gallery_v2() {
+		$attachment_id  = self::factory()->attachment->create_object(
+			'image1.jpg',
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+		$metadata       = array_merge( array( 'file' => 'image1.jpg' ), $this->img_meta );
+		$url            = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . 'image1.jpg';
+		$global_post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'Global Post',
+			)
+		);
+
+		wp_update_attachment_metadata( $attachment_id, $metadata );
+
+		$blob = <<< BLOB
+<!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
+<figure
+	class="wp-block-gallery has-nested-images columns-default is-cropped columns-2"
+>
+	<!-- wp:image {"id":$attachment_id,"sizeSlug":"large","linkDestination":"none"} -->
+	<figure class="wp-block-image size-large">
+		<img
+			src="$url"
+			alt="Image gallery image"
+			class="wp-image-$attachment_id"
+		/>
+	</figure>
+	<!-- /wp:image -->
+</figure>
+<!-- /wp:gallery -->
+BLOB;
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => $blob,
+			)
+		);
+		$this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => $post_id,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+		$expected_srcs = array(
+			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+		);
+
+		// Set the global $post context to the other post.
+		$GLOBALS['post'] = get_post( $global_post_id );
+
+		$galleries = get_post_galleries( $post_id, false );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
+		$this->assertSameSetsWithIndex(
+			array(
+				array(
+					'ids' => (string) $attachment_id,
+					'src' => array( $url ),
+				),
+			),
+			$galleries,
+			'The expected and actual srcs are not the same.'
+		);
+	}
+
+	/**
 	 * Test that the gallery only contains images specified in
 	 * the shortcode's id attribute.
 	 *
