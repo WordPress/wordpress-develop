@@ -270,6 +270,8 @@ add_action( 'wp_enqueue_scripts', 'twentynineteen_scripts' );
  * This does not enqueue the script because it is tiny and because it is only for IE11,
  * thus it does not warrant having an entire dedicated blocking script being loaded.
  *
+ * @deprecated IE11 global usage is at 0.5% so it is no longer warranted for all visitors.
+ *
  * @link https://git.io/vWdr2
  */
 function twentynineteen_skip_link_focus_fix() {
@@ -280,7 +282,6 @@ function twentynineteen_skip_link_focus_fix() {
 	</script>
 	<?php
 }
-add_action( 'wp_print_footer_scripts', 'twentynineteen_skip_link_focus_fix' );
 
 /**
  * Enqueue supplemental block editor styles.

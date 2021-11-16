@@ -42,6 +42,7 @@
 	 * Makes "skip to content" link work correctly in IE9 and Chrome for better
 	 * accessibility.
 	 *
+	 * @deprecated This is only relevant for IE11 whose global usage is at 0.5%.
 	 * @link http://www.nczonline.net/blog/2013/01/15/fixing-skip-to-content-links/
 	 */
 	_window.on( 'hashchange.twentyfourteen', function() {

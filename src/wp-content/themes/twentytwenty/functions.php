@@ -232,6 +232,7 @@ add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );
  * thus it does not warrant having an entire dedicated blocking script being loaded.
  *
  * @since Twenty Twenty 1.0
+ * @deprecated IE11 global usage is at 0.5% so it is no longer warranted for all visitors.
  *
  * @link https://git.io/vWdr2
  */
@@ -243,7 +244,6 @@ function twentytwenty_skip_link_focus_fix() {
 	</script>
 	<?php
 }
-add_action( 'wp_print_footer_scripts', 'twentytwenty_skip_link_focus_fix' );
 
 /**
  * Enqueue non-latin language styles.
