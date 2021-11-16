@@ -662,7 +662,7 @@ function wp_exif_frac2dec( $str ) {
 		return 0;
 	}
 
-	// The denominator must not be 0.
+	// The denominator must not be empty (or 0).
 	if ( empty( $denominator ) ) {
 		return 0;
 	}
