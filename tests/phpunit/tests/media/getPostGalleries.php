@@ -16,6 +16,211 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test with a post that does not exist.
+	 *
+	 * @ticket 43826
+	 */
+	public function test_get_post_galleries_with_non_existent_post() {
+		$galleries = get_post_galleries( 99999, false );
+		$this->assertEmpty( $galleries );
+	}
+
+	/**
+	 * Test with a post that has no gallery.
+	 *
+	 * @ticket 43826
+	 */
+	public function test_get_post_galleries_with_no_gallery() {
+		$post_id = $this->factory->post->create(
+		array(
+			'post_content' => '<p>A post with no gallery</p>',
+			)
+		);
+
+		$galleries = get_post_galleries( $post_id, false );
+		$this->assertEmpty( $galleries );
+	}
+
+	/**
+	 * Test returns HTML with a shortcode.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group shortcode
+	 */
+	public function test_get_post_galleries_returns_html_for_shortcode_gallery() {
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'I have no gallery',
+			)
+		);
+
+		$post_id_two = $this->factory->post->create(
+			array(
+				'post_content' => "[gallery id='$post_id']",
+			)
+		);
+
+		$this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => $post_id,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$expected  = 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg"';
+		$galleries = get_post_galleries( $post_id_two );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// The method can return an array of arrays
+		// instead of an array of strings.
+		$this->assertIsString(
+			$galleries[0],
+			'Did not return the data as a string.'
+		);
+
+		$this->assertStringContainsString(
+			$expected,
+			$galleries[0],
+			'The returned data did not contain a src attribute with the expected image URL.'
+		);
+	}
+
+/**
+	 * Test returns HTML for a block gallery.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group blocks
+	 */
+	public function test_get_post_galleries_returns_html_for_block_gallery() {
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'I have no gallery.',
+			)
+		);
+
+		// Set up an unattached image.
+		$image_id = $this->factory->attachment->create(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => $post_id,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+
+		$blob = <<< BLOB
+<!-- wp:gallery -->
+<figure><img src="$image_url" data-id="$image_id" /></figure>
+<!-- /wp:gallery -->
+BLOB;
+
+		$post_id_two = $this->factory->post->create(
+			array(
+				'post_content' => $blob,
+			)
+		);
+
+		$expected  = 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg"';
+		$galleries = get_post_galleries( $post_id_two );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// The method can return an array of arrays
+		// instead of an array of strings.
+		$this->assertIsString(
+			$galleries[0],
+			'Did not return the data as a string.'
+		);
+
+		$this->assertStringContainsString(
+			$expected,
+			$galleries[0],
+			'The returned data did not contain a src attribute with the expected image URL.'
+		);
+	}
+
+	/**
+	 * Test returns HTML for a block gallery v2.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group blocks
+	 */
+	public function test_get_post_galleries_returns_html_for_block_gallery_v2() {
+		$image_id = $this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => 0,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+
+		$blob = <<< BLOB
+<!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
+<figure
+	class="wp-block-gallery has-nested-images columns-default is-cropped columns-2"
+>
+	<!-- wp:image {"id":$image_id,"sizeSlug":"large","linkDestination":"none"} -->
+	<figure class="wp-block-image size-large">
+		<img
+			src="$image_url"
+			alt="Image gallery image"
+			class="wp-image-$image_id"
+		/>
+	</figure>
+	<!-- /wp:image -->
+</figure>
+<!-- /wp:gallery -->
+BLOB;
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => $blob,
+			)
+		);
+
+		$expected  = 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg"';
+		$galleries = get_post_galleries( $post_id );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// The method can return an array of arrays
+		// instead of an array of strings.
+		$this->assertIsString(
+			$galleries[0],
+			'Did not return the data as a string.'
+		);
+
+		$this->assertStringContainsString(
+			$expected,
+			$galleries[0],
+			'The returned data did not contain a src attribute with the expected image URL.'
+		);
+	}
+
+	/**
 	 * Test with a shortcode gallery with no attached images.
 	 *
 	 * @ticket 39304
@@ -240,6 +445,211 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 		$this->assertEmpty(
 			$galleries[0]['src'],
 			'The src key of the first gallery is not empty.'
+		);
+	}
+
+	/**
+	 * Test with a block gallery v2 with no attached images.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group blocks
+	 */
+	public function test_get_post_galleries_with_block_v2_no_attached_images() {
+		// Set up an unattached image.
+		$image_id = $this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => 0,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+
+		$blob = <<< BLOB
+<!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
+<figure
+	class="wp-block-gallery has-nested-images columns-default is-cropped columns-2"
+>
+	<!-- wp:image {"id":$image_id,"sizeSlug":"large","linkDestination":"none"} -->
+	<figure class="wp-block-image size-large">
+		<img
+			src="$image_url"
+			alt="Image gallery image"
+			class="wp-image-$image_id"
+		/>
+	</figure>
+	<!-- /wp:image -->
+</figure>
+<!-- /wp:gallery -->
+BLOB;
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => $blob,
+			)
+		);
+
+		$expected_srcs = array( $image_url );
+		$galleries = get_post_galleries( $post_id, false );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// The method can return an array of strings
+		// instead of an array of arrays.
+		$this->assertIsArray(
+			$galleries[0],
+			'The returned data does not contain an array.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
+		$this->assertSameSetsWithIndex(
+			$expected_srcs,
+			$galleries[0]['src'],
+			'The expected and actual srcs are not the same.'
+		);
+	}
+
+/**
+	 * Test with a block gallery v2 with no json blob.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group blocks
+	 */
+	public function test_get_post_galleries_with_block_with_no_json_blob() {
+		// Set up an unattached image.
+		$image_id = $this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => 0,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+
+		$blob = <<< BLOB
+<!-- wp:gallery -->
+<ul class="wp-block-gallery columns-2 is-cropped"><li class="blocks-gallery-item">
+<figure>
+<img src="$image_url" alt="title"/>
+</figure>
+</li>
+</ul>
+<!-- /wp:gallery -->
+BLOB;
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => $blob,
+			)
+		);
+
+		$expected_srcs = array( $image_url );
+		$galleries = get_post_galleries( $post_id, false );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// The method can return an array of strings
+		// instead of an array of arrays.
+		$this->assertIsArray(
+			$galleries[0],
+			'The returned data does not contain an array.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
+		$this->assertSameSetsWithIndex(
+			$expected_srcs,
+			$galleries[0]['src'],
+			'The expected and actual srcs are not the same.'
+		);
+	}
+
+	/**
+	 * Test that a nested block gallery is returned.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group blocks
+	 */
+	public function test_get_post_galleries_with_nested_block_gallery() {
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'I have no gallery.',
+			)
+		);
+		$image_id = $this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => $post_id,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$blob = <<<BLOB
+<!-- wp:columns -->
+<!-- wp:column -->
+<!-- wp:gallery {"ids":[$image_id]} -->
+<!-- /wp:gallery -->
+<!-- /wp:column -->
+<!-- /wp:columns -->
+BLOB;
+
+		$post_id_two = $this->factory->post->create( array( 'post_content' => $blob ) );
+
+		$galleries = get_post_galleries( $post_id_two, false );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// The method can return an array of strings
+		// instead of an array of arrays.
+		$this->assertIsArray(
+			$galleries[0],
+			'The returned data does not contain an array.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
+		$this->assertNotEmpty(
+			$galleries[0]['src'],
+			'The src key of the first gallery is empty.'
 		);
 	}
 
