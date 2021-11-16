@@ -18,9 +18,6 @@ class Tests_User_WpAuthenticateUsernamePassword extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 *  @ticket 46748
-	 */
 	public function test_returns_logged_in_user() {
 		$actual = wp_authenticate_username_password( $this->admin_user, 'admin', 'password' );
 		$this->assertInstanceOf( 'WP_User', $actual );
@@ -28,8 +25,6 @@ class Tests_User_WpAuthenticateUsernamePassword extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_returns_wp_error
-	 *
-	 * @ticket 46748
 	 *
 	 * @param WP_User|WP_Error|null $user      The user object, a WP Error or null. Default null.
 	 * @param string                $username  The username to try to authenticate.
@@ -104,7 +99,7 @@ class Tests_User_WpAuthenticateUsernamePassword extends WP_UnitTestCase {
 	/**
 	 * @ticket 46748
 	 */
-	public function test_applies_filter_wp_authenticate_user() {
+	public function test_filter_with_less_than_20_prohibits_logging_in() {
 		$callback = static function() {
 			return new WP_Error();
 		};
@@ -117,9 +112,6 @@ class Tests_User_WpAuthenticateUsernamePassword extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $actual );
 	}
 
-	/**
-	 * @ticket 46748
-	 */
 	public function test_returns_user_with_correct_username_and_password() {
 		$actual = wp_authenticate_username_password( null, 'admin1', 'password' );
 		$this->assertInstanceOf( 'WP_User', $actual );
