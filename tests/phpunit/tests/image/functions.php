@@ -783,6 +783,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'///',
 				0,
 			),
+			array(
+				'4/2',
+				2,
+			),
 		);
 	}
 
