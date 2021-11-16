@@ -4770,7 +4770,7 @@ function get_post_galleries( $post, $html = true ) {
 	if ( has_block( 'gallery', $post->post_content ) ) {
 		$post_blocks = parse_blocks( $post->post_content );
 
-		foreach ( $post_blocks as &$block ) {
+		while ( $block = array_shift( $post_blocks ) ) {
 			$has_inner_blocks = ! empty( $block['innerBlocks'] );
 
 			// Skip blocks with no blockName and no innerHTML.
