@@ -4801,7 +4801,7 @@ function get_post_galleries( $post, $html = true ) {
 				foreach ( $ids as $id ) {
 					$url = wp_get_attachment_url( $id );
 
-					if ( $url && ! in_array( $url, $srcs, true ) ) {
+					if ( is_string( $url ) && ! in_array( $url, $srcs, true ) ) {
 						$srcs[] = $url;
 					}
 				}
@@ -4828,7 +4828,7 @@ function get_post_galleries( $post, $html = true ) {
 				foreach ( $ids as $id ) {
 					$url = wp_get_attachment_url( $id );
 
-					if ( $url && ! in_array( $url, $srcs, true ) ) {
+					if ( is_string( $url ) && ! in_array( $url, $srcs, true ) ) {
 						$srcs[] = $url;
 					}
 				}
@@ -4844,10 +4844,7 @@ function get_post_galleries( $post, $html = true ) {
 			// Otherwise, extract srcs from the innerHTML.
 			preg_match_all( '#src=([\'"])(.+?)\1#is', $block['innerHTML'], $src, PREG_SET_ORDER );
 
-			if ( ! empty( $src ) ) {
-				foreach ( $src as $s ) {
-					if ( isset( $s[2] ) && ! in_array( $s[2], $srcs, true ) ) {
-						$srcs[] = $s[2];
+			if ( ! empty( $src[0] ) ) {
 					}
 				}
 			}
