@@ -8,39 +8,55 @@ import fs from 'fs';
  * WordPress dependencies
  */
 import {
-	visitAdminPage,
+    visitAdminPage,
 } from "@wordpress/e2e-test-utils";
 
+const TEMP_BACKUP_FOLDER = path.join(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    '..',
+    'src',
+    'wp-content',
+    'upgrade',
+    'temp-backup'
+);
 
 /**
-## A notice should be displayed in Site Health if the /wp-content/upgrade/temp-backup folder is not writable
-- Given that the /wp-content/upgrade/temp-backup folder exists and is not writable
-- When I go to the Site Health status page
-- Then I should see a critical security issue with the message "The temp-backup directory exists but is not writable"
+ * Create the temp backup folder if it doesn't exist
  */
+async function createTEMP_BACKUP_FOLDER() {
+    if (!fs.existsSync(TEMP_BACKUP_FOLDER)) {
+        fs.mkdirSync(TEMP_BACKUP_FOLDER);
+    }
+}
 
-async function checkTempBackupFolderStatus() {
-	const tempBackupFolder = path.join(
-		__dirname,
-		'..',
-		'..',
-		'..',
-		'..',
-		'build',
-		'wp-content',
-		'upgrade',
-		'temp-backup'
-	);
-	
-	if(!fs.existsSync(tempBackupFolder)) {
-		fs.mkdirSync(tempBackupFolder);
-	}
+/**
+ * Make the temp backup folder non-writable
+ * Checks if the folder is writable and if it is, make it non-writable
+ */
+async function makeTempBackupNotWritable() {
+    fs.access(TEMP_BACKUP_FOLDER, fs.constants.W_OK, (err) => {
+        if (!err) {
+            console.log('is writable');
 
-	console.log(fs.access(tempBackupFolder, fs.constants.W_OK));
+            // Make the folder 444
+            fs.chmodSync(TEMP_BACKUP_FOLDER, 0o444);
+        }
+    });
 }
 
 describe('Update failures tests', () => {
-	it('should display a notice in Site Health if the /wp-content/upgrade/temp-backup folder is not writable', async () => {
-		await checkTempBackupFolderStatus();
-	});
+    it('should display a notice in Site Health if the temp-backup folder is not writable', async() => {
+        await makeTempBackupNotWritable();
+
+        // Go to Site Health page
+        await visitAdminPage('site-health.php');
+
+        let criticalNotices = await page.waitForSelector('#health-check-site-status-critical');
+        expect(
+            await criticalNotices.evaluate((el) => el.textContent)
+        ).toContain('The temp-backup directory exists but is not writable');
+    });
 });
