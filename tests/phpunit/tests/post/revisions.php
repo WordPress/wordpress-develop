@@ -688,7 +688,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$revisions         = wp_get_post_revisions( $post->ID );
 		$earliest_revision = end( $revisions );
 
-		$this->assertEquals( 'Initial Content', $earliest_revision->post_content );
+		$this->assertSame( 'Initial Content', $earliest_revision->post_content );
 	}
 
 	/**
