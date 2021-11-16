@@ -624,19 +624,15 @@ BLOB;
 			);
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
-			$ids1[]      = $attachment_id;
-			$ids1_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
-			$ids[]       = $attachment_id;
-			$url         = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
-			$ids_srcs[]  = $url;
-			$imgs[]      = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
-
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 		}
 
-		foreach ( range( 4, 6 ) as $i ) {
-			$imgs1_joined = join( "\n", array_slice( $imgs, 0, 3 ) );
-			$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
-		}
+		$imgs1_joined = join( "\n", array_slice( $imgs, 0, 3 ) );
+		$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
+
 		$blob    = <<<BLOB
 <!-- wp:gallery -->
 $imgs1_joined
