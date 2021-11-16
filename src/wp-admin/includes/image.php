@@ -657,17 +657,17 @@ function wp_exif_frac2dec( $str ) {
 
 	list( $numerator, $denominator ) = explode( '/', $str );
 
-	// Ensure both the numerator and the denominator are numbers.
+	// Both the numerator and the denominator must be numbers.
 	if ( ! is_numeric( $numerator ) || ! is_numeric( $denominator ) ) {
 		return 0;
 	}
 
 	// The denominator must not be 0.
-	if ( ! empty( $denominator ) ) {
-		return $numerator / $denominator;
+	if ( empty( $denominator ) ) {
+		return 0;
 	}
 
-	return 0;
+	return $numerator / $denominator;
 }
 
 /**
