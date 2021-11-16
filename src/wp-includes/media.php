@@ -4781,7 +4781,6 @@ function get_post_galleries( $post, $html = true ) {
 			// All blocks nested inside non-Gallery blocks should be in the root array.
 			if ( $has_inner_blocks && 'core/gallery' !== $block['blockName'] ) {
 				array_push( $post_blocks, ...$block['innerBlocks'] );
-				$block['innerBlocks'] = array();
 				continue;
 			}
 
