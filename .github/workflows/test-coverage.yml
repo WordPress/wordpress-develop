@@ -4,7 +4,6 @@ on:
   # Verify
   push:
     branches:
-      - master
       - trunk
     paths:
       - '.github/workflows/test-coverage.yml'
@@ -171,7 +170,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ test-coverage-report ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:

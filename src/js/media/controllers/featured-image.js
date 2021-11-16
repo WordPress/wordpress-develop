@@ -87,7 +87,6 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 	 * @since 3.5.0
 	 */
 	activate: function() {
-		this.updateSelection();
 		this.frame.on( 'open', this.updateSelection, this );
 
 		Library.prototype.activate.apply( this, arguments );
@@ -107,6 +106,7 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 	 */
 	updateSelection: function() {
 		var selection = this.get('selection'),
+			library = this.get('library'),
 			id = wp.media.view.settings.post.featuredImageId,
 			attachment;
 
@@ -116,6 +116,10 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 		}
 
 		selection.reset( attachment ? [ attachment ] : [] );
+
+		if ( library.hasMore() ) {
+			library.more();
+		}
 	}
 });
 
