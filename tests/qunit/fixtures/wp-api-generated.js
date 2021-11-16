@@ -5105,6 +5105,7 @@ mockedApiResponse.Schema = {
                                 "embed",
                                 "edit"
                             ],
+                            "default": "view",
                             "required": false
                         },
                         "wp_id": {
@@ -5261,6 +5262,17 @@ mockedApiResponse.Schema = {
                             "description": "The id of a template",
                             "type": "string",
                             "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
                         }
                     }
                 },
@@ -5271,6 +5283,11 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
                         "slug": {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
@@ -5376,6 +5393,11 @@ mockedApiResponse.Schema = {
                         "DELETE"
                     ],
                     "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
                         "force": {
                             "type": "boolean",
                             "default": false,
@@ -5742,6 +5764,7 @@ mockedApiResponse.Schema = {
                                 "embed",
                                 "edit"
                             ],
+                            "default": "view",
                             "required": false
                         },
                         "wp_id": {
@@ -5903,6 +5926,17 @@ mockedApiResponse.Schema = {
                             "description": "The id of a template",
                             "type": "string",
                             "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
                         }
                     }
                 },
@@ -5913,6 +5947,11 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
                         "slug": {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
@@ -6023,6 +6062,11 @@ mockedApiResponse.Schema = {
                         "DELETE"
                     ],
                     "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
                         "force": {
                             "type": "boolean",
                             "default": false,
