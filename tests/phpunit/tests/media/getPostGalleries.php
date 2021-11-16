@@ -16,21 +16,21 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test with a post that does not exist.
+	 * Test that an empty array is returns for a post that does not exist.
 	 *
 	 * @ticket 43826
 	 */
-	public function test_get_post_galleries_with_non_existent_post() {
+	public function test_returns_empty_array_with_non_existent_post() {
 		$galleries = get_post_galleries( 99999, false );
 		$this->assertEmpty( $galleries );
 	}
 
 	/**
-	 * Test with a post that has no gallery.
+	 * Test that an empty array is returns for a post that has no gallery.
 	 *
 	 * @ticket 43826
 	 */
-	public function test_get_post_galleries_with_no_gallery() {
+	public function test_returns_empty_array_with_post_with_no_gallery() {
 		$post_id = $this->factory->post->create(
 		array(
 			'post_content' => '<p>A post with no gallery</p>',
@@ -42,13 +42,13 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test returns HTML with a shortcode.
+	 * Test that HTML is returned for a shortcode gallery.
 	 *
 	 * @ticket 43826
 	 *
 	 * @group shortcode
 	 */
-	public function test_get_post_galleries_returns_html_for_shortcode_gallery() {
+	public function test_returns_html_with_shortcode_gallery() {
 		$post_id = $this->factory->post->create(
 			array(
 				'post_content' => 'I have no gallery',
@@ -93,14 +93,14 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 		);
 	}
 
-/**
+	/**
 	 * Test returns HTML for a block gallery.
 	 *
 	 * @ticket 43826
 	 *
 	 * @group blocks
 	 */
-	public function test_get_post_galleries_returns_html_for_block_gallery() {
+	public function test_returns_html_with_block_gallery() {
 		$post_id = $this->factory->post->create(
 			array(
 				'post_content' => 'I have no gallery.',
@@ -161,7 +161,7 @@ BLOB;
 	 *
 	 * @group blocks
 	 */
-	public function test_get_post_galleries_returns_html_for_block_gallery_v2() {
+	public function test_returns_html_with_block_gallery_v2() {
 		$image_id = $this->factory->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
@@ -221,13 +221,14 @@ BLOB;
 	}
 
 	/**
-	 * Test with a shortcode gallery with no attached images.
+	 * Test that no srcs are returned for a shortcode gallery
+	 * in a post with no attached images.
 	 *
 	 * @ticket 39304
 	 *
 	 * @group shortcode
 	 */
-	public function test_get_post_galleries_with_shortcode() {
+	public function test_returns_no_srcs_with_shortcode_in_post_with_no_attached_images() {
 		// Set up an unattached image.
 		$this->factory->attachment->create_object(
 			array(
@@ -266,15 +267,145 @@ BLOB;
 		);
 	}
 
+/**
+	 * Test that no srcs are returned for a gallery block
+	 * in a post with no attached images.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group blocks
+	 */
+	public function test_returns_no_srcs_with_block_in_post_with_no_attached_images() {
+		// Set up an unattached image.
+		$this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => 0,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => '<!-- wp:gallery -->',
+			)
+		);
+
+		$galleries = get_post_galleries( $post_id, false );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// The method can return an array of strings
+		// instead of an array of arrays.
+		$this->assertIsArray(
+			$galleries[0],
+			'The returned data does not contain an array.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
+		$this->assertEmpty(
+			$galleries[0]['src'],
+			'The src key of the first gallery is not empty.'
+		);
+	}
+
+	/**
+	 * Test that no srcs are returned for a gallery block v2
+	 * in a post with no attached images.
+	 *
+	 * @ticket 43826
+	 *
+	 * @group blocks
+	 */
+	public function test_returns_no_srcs_with_block_v2_in_post_with_no_attached_images() {
+		// Set up an unattached image.
+		$image_id = $this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => 0,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+
+		$blob = <<< BLOB
+<!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
+<figure
+	class="wp-block-gallery has-nested-images columns-default is-cropped columns-2"
+>
+	<!-- wp:image {"id":$image_id,"sizeSlug":"large","linkDestination":"none"} -->
+	<figure class="wp-block-image size-large">
+		<img
+			src="$image_url"
+			alt="Image gallery image"
+			class="wp-image-$image_id"
+		/>
+	</figure>
+	<!-- /wp:image -->
+</figure>
+<!-- /wp:gallery -->
+BLOB;
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => $blob,
+			)
+		);
+
+		$expected_srcs = array( $image_url );
+		$galleries = get_post_galleries( $post_id, false );
+
+		// The method can return an empty array.
+		$this->assertNotEmpty(
+			$galleries,
+			'The galleries array is empty.'
+		);
+
+		// The method can return an array of strings
+		// instead of an array of arrays.
+		$this->assertIsArray(
+			$galleries[0],
+			'The returned data does not contain an array.'
+		);
+
+		// This prevents future changes from causing
+		// backwards compatibility breaks.
+		$this->assertArrayHasKey(
+			'src',
+			$galleries[0],
+			'A src key does not exist.'
+		);
+
+		$this->assertSameSetsWithIndex(
+			$expected_srcs,
+			$galleries[0]['src'],
+			'The expected and actual srcs are not the same.'
+		);
+	}
+
 	/**
 	 * Test that the global post object does not override
-	 * a provided post ID.
+	 * a provided post ID with a shortcode gallery.
 	 *
 	 * @ticket 39304
 	 *
 	 * @group shortcode
 	 */
-	public function test_get_post_galleries_respects_post_id() {
+	public function test_respects_post_id_with_shortcode_gallery() {
 		$global_post_id = $this->factory->post->create(
 			array(
 				'post_content' => 'Global Post',
@@ -331,7 +462,7 @@ BLOB;
 	 *
 	 * @group shortcode
 	 */
-	public function test_get_post_galleries_respects_shortcode_id_attribute() {
+	public function test_respects_shortcode_id_attribute() {
 		$post_id     = $this->factory->post->create(
 			array(
 				'post_content' => 'No gallery defined',
@@ -395,142 +526,16 @@ BLOB;
 		);
 	}
 
-	/**
-	 * Test with a block gallery with no attached images.
-	 *
-	 * @ticket 43826
-	 *
-	 * @group blocks
-	 */
-	public function test_get_post_galleries_with_block() {
-		// Set up an unattached image.
-		$this->factory->attachment->create_object(
-			array(
-				'file'           => 'test.jpg',
-				'post_parent'    => 0,
-				'post_mime_type' => 'image/jpeg',
-				'post_type'      => 'attachment',
-			)
-		);
-
-		$post_id = $this->factory->post->create(
-			array(
-				'post_content' => '<!-- wp:gallery -->',
-			)
-		);
-
-		$galleries = get_post_galleries( $post_id, false );
-
-		// The method can return an empty array.
-		$this->assertNotEmpty(
-			$galleries,
-			'The galleries array is empty.'
-		);
-
-		// The method can return an array of strings
-		// instead of an array of arrays.
-		$this->assertIsArray(
-			$galleries[0],
-			'The returned data does not contain an array.'
-		);
-
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
-		$this->assertArrayHasKey(
-			'src',
-			$galleries[0],
-			'A src key does not exist.'
-		);
-
-		$this->assertEmpty(
-			$galleries[0]['src'],
-			'The src key of the first gallery is not empty.'
-		);
-	}
 
 	/**
-	 * Test with a block gallery v2 with no attached images.
+	 * Test that srcs are retrieved from the HTML of a block gallery
+	 * that has no JSON blob.
 	 *
 	 * @ticket 43826
 	 *
 	 * @group blocks
 	 */
-	public function test_get_post_galleries_with_block_v2_no_attached_images() {
-		// Set up an unattached image.
-		$image_id = $this->factory->attachment->create_object(
-			array(
-				'file'           => 'test.jpg',
-				'post_parent'    => 0,
-				'post_mime_type' => 'image/jpeg',
-				'post_type'      => 'attachment',
-			)
-		);
-
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
-
-		$blob = <<< BLOB
-<!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
-<figure
-	class="wp-block-gallery has-nested-images columns-default is-cropped columns-2"
->
-	<!-- wp:image {"id":$image_id,"sizeSlug":"large","linkDestination":"none"} -->
-	<figure class="wp-block-image size-large">
-		<img
-			src="$image_url"
-			alt="Image gallery image"
-			class="wp-image-$image_id"
-		/>
-	</figure>
-	<!-- /wp:image -->
-</figure>
-<!-- /wp:gallery -->
-BLOB;
-
-		$post_id = $this->factory->post->create(
-			array(
-				'post_content' => $blob,
-			)
-		);
-
-		$expected_srcs = array( $image_url );
-		$galleries = get_post_galleries( $post_id, false );
-
-		// The method can return an empty array.
-		$this->assertNotEmpty(
-			$galleries,
-			'The galleries array is empty.'
-		);
-
-		// The method can return an array of strings
-		// instead of an array of arrays.
-		$this->assertIsArray(
-			$galleries[0],
-			'The returned data does not contain an array.'
-		);
-
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
-		$this->assertArrayHasKey(
-			'src',
-			$galleries[0],
-			'A src key does not exist.'
-		);
-
-		$this->assertSameSetsWithIndex(
-			$expected_srcs,
-			$galleries[0]['src'],
-			'The expected and actual srcs are not the same.'
-		);
-	}
-
-/**
-	 * Test with a block gallery v2 with no json blob.
-	 *
-	 * @ticket 43826
-	 *
-	 * @group blocks
-	 */
-	public function test_get_post_galleries_with_block_with_no_json_blob() {
+	public function test_returns_srcs_from_html_with_block_with_no_json_blob() {
 		// Set up an unattached image.
 		$image_id = $this->factory->attachment->create_object(
 			array(
@@ -592,13 +597,14 @@ BLOB;
 	}
 
 	/**
-	 * Test that a nested block gallery is returned.
+	 * Test that srcs are returned for a block gallery nested within
+	 * other blocks.
 	 *
 	 * @ticket 43826
 	 *
 	 * @group blocks
 	 */
-	public function test_get_post_galleries_with_nested_block_gallery() {
+	public function test_returns_srcs_with_nested_block_gallery() {
 		$post_id = $this->factory->post->create(
 			array(
 				'post_content' => 'I have no gallery.',
@@ -662,7 +668,7 @@ BLOB;
 	 * @group blocks
 	 * @group shortcode
 	 */
-	public function test_get_post_galleries_respects_shortcode_and_block_id_attributes() {
+	public function test_respects_shortcode_and_block_id_attributes() {
 		// Test the get_post_galleries() function in $html=false mode, with both shortcode and block galleries
 		$ids      = array();
 		$imgs     = array();
@@ -723,7 +729,7 @@ BLOB;
 	 * @group blocks
 	 * @group shortcode
 	 */
-	public function test_get_post_galleries_respects_additional_shortcode_and_block_attributes() {
+	public function test_respects_additional_shortcode_and_block_attributes() {
 		// Test attributes returned by get_post_galleries() function in $html=false mode, with both shortcode and block galleries
 		$ids      = array();
 		$imgs     = array();
