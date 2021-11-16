@@ -9,12 +9,11 @@
 /**
  * Tests for REST API for templates.
  *
- * @see WP_Test_REST_Controller_Testcase
- * @group restapi
+ * @covers WP_REST_Templates_Controller
  *
- * @coversDefaultClass WP_REST_Templates_Controller
+ * @group restapi
  */
-class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @var int
 	 */
@@ -138,7 +137,7 @@ class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase
 
 	/**
 	 * @ticket 54422
-	 * @covers ::create_item
+	 * @covers WP_REST_Templates_Controller::create_item
 	 */
 	public function test_create_item() {
 		wp_set_current_user( self::$admin_id );
@@ -181,7 +180,7 @@ class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase
 
 	/**
 	 * @ticket 54422
-	 * @covers ::create_item
+	 * @covers WP_REST_Templates_Controller::create_item
 	 */
 	public function test_create_item_raw() {
 		wp_set_current_user( self::$admin_id );
@@ -253,7 +252,7 @@ class WP_REST_Templates_Controller_Test extends WP_Test_REST_Controller_Testcase
 
 	/**
 	 * @ticket 54422
-	 * @covers ::get_item_schema
+	 * @covers WP_REST_Templates_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates' );
