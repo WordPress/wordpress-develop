@@ -2018,9 +2018,7 @@ class wpdb {
 				$this->insert_id  = 0;
 				$this->last_query = $query;
 
-				if ( ! function_exists( '__' ) ) {
-					wp_load_translations_early();
-				}
+				wp_load_translations_early();
 
 				$this->last_error = __( 'WordPress database error: Could not perform query because it contains invalid data.' );
 
@@ -2551,9 +2549,7 @@ class wpdb {
 				}
 			}
 
-			if ( ! function_exists( '__' ) ) {
-				wp_load_translations_early();
-			}
+			wp_load_translations_early();
 
 			if ( 1 === count( $problem_fields ) ) {
 				$this->last_error = sprintf(
