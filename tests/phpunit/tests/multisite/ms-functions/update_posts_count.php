@@ -17,6 +17,9 @@ if ( is_multisite() ) :
 		 */
 		public function test_update_posts_count_on_delete() {
 
+			$blog_id = self::factory()->blog->create();
+			switch_to_blog( $blog_id );
+
 			$current_post_count = (int) get_option( 'post_count' );
 
 			$post_id = self::factory()->post->create(
