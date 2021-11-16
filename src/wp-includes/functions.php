@@ -8008,7 +8008,7 @@ function wp_url_encode_ending_period( $url ) {
 
 	// If the URL ends in a period, replace it with %2E.
 	if ( str_ends_with( $url, '.' ) ) {
-		$url  = rtrim( $url, '.' );
+		$url  = substr( $url, 0, strlen( $url ) - 1 );
 		$url .= '%2E';
 	}
 
