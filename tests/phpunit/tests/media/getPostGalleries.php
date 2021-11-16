@@ -32,8 +32,8 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	 */
 	public function test_returns_empty_array_with_post_with_no_gallery() {
 		$post_id = $this->factory->post->create(
-		array(
-			'post_content' => '<p>A post with no gallery</p>',
+			array(
+				'post_content' => '<p>A post with no gallery</p>',
 			)
 		);
 
@@ -267,14 +267,14 @@ BLOB;
 		);
 	}
 
-/**
-	 * Test that no srcs are returned for a gallery block
-	 * in a post with no attached images.
-	 *
-	 * @ticket 43826
-	 *
-	 * @group blocks
-	 */
+	/**
+		 * Test that no srcs are returned for a gallery block
+		 * in a post with no attached images.
+		 *
+		 * @ticket 43826
+		 *
+		 * @group blocks
+		 */
 	public function test_returns_no_srcs_with_block_in_post_with_no_attached_images() {
 		// Set up an unattached image.
 		$this->factory->attachment->create_object(
@@ -367,7 +367,7 @@ BLOB;
 		);
 
 		$expected_srcs = array( $image_url );
-		$galleries = get_post_galleries( $post_id, false );
+		$galleries     = get_post_galleries( $post_id, false );
 
 		// The method can return an empty array.
 		$this->assertNotEmpty(
@@ -566,7 +566,7 @@ BLOB;
 		);
 
 		$expected_srcs = array( $image_url );
-		$galleries = get_post_galleries( $post_id, false );
+		$galleries     = get_post_galleries( $post_id, false );
 
 		// The method can return an empty array.
 		$this->assertNotEmpty(
@@ -605,7 +605,7 @@ BLOB;
 	 * @group blocks
 	 */
 	public function test_returns_srcs_with_nested_block_gallery() {
-		$post_id = $this->factory->post->create(
+		$post_id  = $this->factory->post->create(
 			array(
 				'post_content' => 'I have no gallery.',
 			)
