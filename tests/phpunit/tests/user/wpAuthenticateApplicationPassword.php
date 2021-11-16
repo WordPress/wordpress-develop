@@ -18,9 +18,6 @@ class Tests_User_WpAuthenticateApplicationPassword extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * @ticket 46748
-	 */
 	public function test_returns_logged_in_user() {
 		$actual = wp_authenticate_application_password( $this->admin_user, 'admin', 'password' );
 		$this->assertInstanceOf( 'WP_User', $actual );
@@ -28,8 +25,6 @@ class Tests_User_WpAuthenticateApplicationPassword extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_returns_wp_error
-	 *
-	 * @ticket 46748
 	 *
 	 * @param WP_User|WP_Error|null $user      The user object, a WP Error or null. Default null.
 	 * @param string                $username  The username to try to authenticate.
