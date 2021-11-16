@@ -126,11 +126,11 @@ function wp_authenticate_username_password( $user, $username, $password ) {
 		return $user;
 	}
 
-	if ( empty( $username ) || empty( $password ) ) {
-		if ( is_wp_error( $user ) ) {
-			return $user;
-		}
+	if ( is_wp_error( $user ) ) {
+		return $user;
+	}
 
+	if ( empty( $username ) || empty( $password ) ) {
 		$error = new WP_Error();
 
 		if ( empty( $username ) ) {
@@ -204,11 +204,11 @@ function wp_authenticate_email_password( $user, $email, $password ) {
 		return $user;
 	}
 
-	if ( empty( $email ) || empty( $password ) ) {
-		if ( is_wp_error( $user ) ) {
-			return $user;
-		}
+	if ( is_wp_error( $user ) && ! filter_var( $email, FILTER_VALIDATE_EMAIL ) ) {
+		return $user;
+	}
 
+	if ( empty( $email ) || empty( $password ) ) {
 		$error = new WP_Error();
 
 		if ( empty( $email ) ) {
@@ -277,6 +277,10 @@ function wp_authenticate_cookie( $user, $username, $password ) {
 		return $user;
 	}
 
+	if ( is_wp_error( $user ) ) {
+		return $user;
+	}
+
 	if ( empty( $username ) && empty( $password ) ) {
 		$user_id = wp_validate_auth_cookie();
 		if ( $user_id ) {
@@ -315,6 +319,10 @@ function wp_authenticate_cookie( $user, $username, $password ) {
  */
 function wp_authenticate_application_password( $input_user, $username, $password ) {
 	if ( $input_user instanceof WP_User ) {
+		return $input_user;
+	}
+
+	if ( is_wp_error( $input_user ) ) {
 		return $input_user;
 	}
 
