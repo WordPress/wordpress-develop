@@ -167,7 +167,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$data     = $response->get_data();
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
-		unset( $data['content']['rendered'] );
 
 		$this->assertSame(
 			array(
@@ -214,7 +213,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$data     = $response->get_data();
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
-		unset( $data['content']['rendered'] );
 
 		$this->assertSame(
 			array(

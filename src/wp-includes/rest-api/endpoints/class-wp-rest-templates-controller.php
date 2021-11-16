@@ -498,11 +498,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['content']['raw'] = $template->content;
 		}
 
-		if ( rest_is_field_included( 'content.rendered', $fields ) ) {
-			/** This filter is documented in wp-includes/post-template.php */
-			$data['content']['rendered'] = apply_filters( 'the_content', $template->content );
-		}
-
 		if ( rest_is_field_included( 'content.block_version', $fields ) ) {
 			$data['content']['block_version'] = block_version( $template->content );
 		}
@@ -710,12 +705,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 							'description' => __( 'Content for the template, as it exists in the database.' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
-						),
-						'rendered'      => array(
-							'description' => __( 'HTML content for the template, transformed for display.' ),
-							'type'        => 'string',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
 						),
 						'block_version' => array(
 							'description' => __( 'Version of the content block format used by the template.' ),

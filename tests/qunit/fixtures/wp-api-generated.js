@@ -5163,15 +5163,6 @@ mockedApiResponse.Schema = {
                                         "edit"
                                     ]
                                 },
-                                "rendered": {
-                                    "description": "HTML content for the template, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
                                 "block_version": {
                                     "description": "Version of the content block format used by the template.",
                                     "type": "integer",
@@ -5319,15 +5310,6 @@ mockedApiResponse.Schema = {
                                         "view",
                                         "edit"
                                     ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the template, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
                                 },
                                 "block_version": {
                                     "description": "Version of the content block format used by the template.",
@@ -5638,15 +5620,6 @@ mockedApiResponse.Schema = {
                                         "edit"
                                     ]
                                 },
-                                "rendered": {
-                                    "description": "HTML content for the template, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
                                 "block_version": {
                                     "description": "Version of the content block format used by the template.",
                                     "type": "integer",
@@ -5822,15 +5795,6 @@ mockedApiResponse.Schema = {
                                         "edit"
                                     ]
                                 },
-                                "rendered": {
-                                    "description": "HTML content for the template, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
                                 "block_version": {
                                     "description": "Version of the content block format used by the template.",
                                     "type": "integer",
@@ -5983,15 +5947,6 @@ mockedApiResponse.Schema = {
                                         "view",
                                         "edit"
                                     ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the template, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
                                 },
                                 "block_version": {
                                     "description": "Version of the content block format used by the template.",
@@ -6306,15 +6261,6 @@ mockedApiResponse.Schema = {
                                         "view",
                                         "edit"
                                     ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the template, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
                                 },
                                 "block_version": {
                                     "description": "Version of the content block format used by the template.",
