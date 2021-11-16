@@ -600,7 +600,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		add_filter(
 			"pre_option_{$widget->option_name}",
-			function () {
+			static function() {
 				return new ArrayObject(
 					array(
 						2              => array( 'title' => 'Test Title' ),
@@ -611,7 +611,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 			}
 		);
 
-		ob_start();
+		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
+		$this->expectOutputRegex( '`.`' );
+
 		$widget->display_callback(
 			array(
 				'before_widget' => '<section>',
@@ -621,7 +623,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 			),
 			2
 		);
-		$actual = ob_get_clean();
+
+		$actual = $this->getActualOutput();
 
 		unregister_widget( $widget );
 
