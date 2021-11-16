@@ -82,23 +82,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 * @covers WP_REST_Templates_Controller::get_items
 	 */
 	public function test_get_items() {
-		function find_and_normalize_template_by_id( $templates, $id ) {
-			foreach ( $templates as $template ) {
-				if ( $template['id'] === $id ) {
-					unset( $template['content'] );
-					unset( $template['_links'] );
-					return $template;
-				}
-			}
-
-			return null;
-		}
-
-		wp_set_current_user( 0 );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 401 );
-
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates' );
 		$response = rest_get_server()->dispatch( $request );
@@ -120,8 +103,18 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
 			),
-			find_and_normalize_template_by_id( $data, 'default//my_template' )
+			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
+	}
+
+	/**
+	 * @covers WP_REST_Templates_Controller::get_items
+	 */
+	public function test_get_items_no_permission() {
+		wp_set_current_user( 0 );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 401 );
 	}
 
 	/**
@@ -393,4 +386,17 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'wp_id', $properties );
 		$this->assertArrayHasKey( 'has_theme_file', $properties );
 	}
+
+	protected function find_and_normalize_template_by_id( $templates, $id ) {
+		foreach ( $templates as $template ) {
+			if ( $template['id'] === $id ) {
+				unset( $template['content'] );
+				unset( $template['_links'] );
+				return $template;
+			}
+		}
+
+		return null;
+	}
+
 }
