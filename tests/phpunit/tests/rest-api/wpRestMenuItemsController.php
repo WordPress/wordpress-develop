@@ -608,48 +608,6 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 	}
 
 	/**
-	 * Tests that a block menu item can be created.
-	 *
-	 * @ticket 40878
-	 * @covers ::create_item
-	 */
-	public function test_create_item_block() {
-		wp_set_current_user( self::$admin_id );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/menu-items' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
-		$params = $this->set_menu_item_data(
-			array(
-				'type'    => 'block',
-				'content' => '<!-- wp:paragraph --><p>Block content</p><!-- /wp:paragraph -->',
-			)
-		);
-		$request->set_body_params( $params );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->check_create_menu_item_response( $response );
-	}
-
-	/**
-	 * Tests that a block menu item can be created.
-	 *
-	 * @ticket 40878
-	 * @covers ::create_item
-	 */
-	public function test_create_item_invalid_block_content() {
-		wp_set_current_user( self::$admin_id );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/menu-items' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
-		$params = $this->set_menu_item_data(
-			array(
-				'type' => 'block',
-			)
-		);
-		$request->set_body_params( $params );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_content_required', $response, 400 );
-	}
-
-	/**
 	 * @ticket 40878
 	 * @covers ::update_item
 	 */
@@ -677,43 +635,6 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$this->assertSame( $params['title'], $menu_item->title );
 		$this->assertSame( $params['description'], $menu_item->description );
 		$this->assertSame( $params['xfn'], explode( ' ', $menu_item->xfn ) );
-	}
-
-	/**
-	 * @ticket 40878
-	 * @covers ::update_item
-	 */
-	public function test_update_item_preserves_type() {
-		wp_set_current_user( self::$admin_id );
-
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/menu-items/%d', $this->menu_item_id ) );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
-		$params = array(
-			'status'  => 'draft',
-			'type'    => 'block',
-			'title'   => 'TEST',
-			'content' => '<!-- wp:paragraph --><p>Block content</p><!-- /wp:paragraph -->',
-		);
-		$request->set_body_params( $params );
-		$response = rest_get_server()->dispatch( $request );
-		$this->check_update_menu_item_response( $response );
-		$new_data = $response->get_data();
-		$this->assertSame( 'block', $new_data['type'] );
-
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/menu-items/%d', $this->menu_item_id ) );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
-		$params = array(
-			'status'  => 'draft',
-			'title'   => 'TEST2',
-			'content' => '<!-- wp:paragraph --><p>Block content</p><!-- /wp:paragraph -->',
-		);
-		$request->set_body_params( $params );
-		$response = rest_get_server()->dispatch( $request );
-		$this->check_update_menu_item_response( $response );
-		$new_data = $response->get_data();
-
-		// The type shouldn't change just because it was missing from request args.
-		$this->assertSame( 'block', $new_data['type'] );
 	}
 
 	/**
@@ -825,12 +746,11 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 19, count( $properties ) );
+		$this->assertSame( 18, count( $properties ) );
 		$this->assertArrayHasKey( 'type_label', $properties );
 		$this->assertArrayHasKey( 'attr_title', $properties );
 		$this->assertArrayHasKey( 'classes', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
-		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'url', $properties );
 		$this->assertArrayHasKey( 'meta', $properties );
@@ -955,20 +875,6 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 			}
 		} else {
 			$this->assertFalse( isset( $data['title'] ) );
-		}
-
-		// Check content.
-		if ( 'block' === $data['type'] ) {
-			$menu_item_content = get_post_meta( $post->ID, '_menu_item_content', true );
-			$this->assertSame( apply_filters( 'the_content', $menu_item_content ), $data['content']['rendered'] );
-			if ( 'edit' === $context ) {
-				$this->assertSame( $menu_item_content, $data['content']['raw'] );
-			} else {
-				$this->assertFalse( isset( $data['title']['raw'] ) );
-			}
-			$this->assertSame( 1, $data['content']['block_version'] );
-		} else {
-			$this->assertEmpty( $data['content']['rendered'] );
 		}
 
 		// post_parent.
