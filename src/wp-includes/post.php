@@ -7643,7 +7643,7 @@ function _publish_post_hook( $post_id ) {
  *
  * @since 3.1.0
  *
- * @param int|WP_Post|null $post Optional. Post ID or post object.
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Default null.
  * @return int|false Post parent ID (which can be 0 if there is no parent),
  *                   or false if the post does not exist.
  */
