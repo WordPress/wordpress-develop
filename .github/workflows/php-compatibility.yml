@@ -20,7 +20,7 @@ on:
       - '**.php'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
-      # This file configures PHP Compatibility scanning. Changes could affect the outcome.
+      # This file configures PHP compatibility scanning. Changes could affect the outcome.
       - 'phpcompat.xml.dist'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/*.yml'
@@ -42,7 +42,8 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up PHP.
-  # - Logs debug information about the runner container.
+  # - Logs debug information.
+  # - Configures caching for PHP compatibility scans.
   # - Installs Composer dependencies (use cache if possible).
   # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
@@ -68,6 +69,18 @@ jobs:
         run: |
           php --version
           composer --version
+
+      # This date is used to ensure that the PHP compatibility cache is cleared at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+
+      - name: Cache PHP compatibility scan cache
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
+        with:
+          path: .cache/phpcompat.json
+          key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json') }}
 
       - name: Install Composer dependencies
         uses: ramsey/composer-install@92a7904348d4ad30236f3611e33b7f0c6f9edd70 # v1.1.0
