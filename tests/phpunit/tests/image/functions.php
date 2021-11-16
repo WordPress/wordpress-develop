@@ -700,4 +700,90 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			unlink( $temp_dir . $size['file'] );
 		}
 	}
+
+	/**
+	 * Test for wp_exif_frac2dec verified that it properly handles edge cases
+	 * and always returns an int or float, 0 for failures.
+	 *
+	 * @ticket 54385
+	 * @dataProvider data_test_wp_exif_frac2dec
+	 */
+	public function test_wp_exif_frac2dec( $fraction, $expect ) {
+		$this->assertSame( $expect, wp_exif_frac2dec( $fraction ) );
+	}
+
+
+	/**
+	 * Data provider for testing `wp_exif_frac2dec()`.
+	 *
+	 * @return array {
+	 *     Arguments for testing `wp_exif_frac2dec()`.
+	 *
+	 *     @type string|null        $fraction       The fraction string to run.
+	 *     @type int|float       $expected    The resulting expected value.
+	 *
+	 */
+	public function data_test_wp_exif_frac2dec() {
+		global $wpdb;
+
+		return array(
+			array(
+				'0/0',
+				0,
+			),
+			array(
+				'0/abc',
+				0,
+			),
+			array(
+				'0.0',
+				0,
+			),
+			array(
+				'010',
+				0,
+			),
+			array(
+				10.123,
+				0,
+			),
+			array(
+				'50/100',
+				0.5,
+			),
+			array(
+				'25/100',
+				.25,
+			),
+			array(
+				'0',
+				0,
+			),
+			array(
+				'100/0',
+				0,
+			),
+			array(
+				'path/to/file',
+				0,
+			),
+			array(
+				'123notafraction',
+				0,
+			),
+			array(
+				'/',
+				0,
+			),
+			array(
+				'1/2/3',
+				0,
+			),
+			array(
+				'///',
+				0,
+			),
+		);
+	}
+
 }
