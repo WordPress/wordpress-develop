@@ -18,24 +18,8 @@ class Tests_User_WpAuthenticateUsernamePassword extends WP_UnitTestCase {
 		);
 	}
 
-	public function tear_down() {
-		if ( $this->admin_user instanceof WP_User ) {
-			if ( is_multisite() ) {
-				wp_delete_user( $this->admin_user->data->ID );
-			} else {
-				wp_delete_user( $this->admin_user->ID );
-			}
-		}
-
-		remove_filter(
-			'wp_authenticate_user',
-			array( $this, 'callback_returns_wp_error' )
-		);
-	}
-
 	/**
-	 * Tests that a WP_User object is returned for a user
-	 * that is already logged in.
+	 *  @ticket 46748
 	 */
 	public function test_returns_logged_in_user() {
 		$actual = wp_authenticate_username_password( $this->admin_user, 'admin', 'password' );
@@ -43,9 +27,9 @@ class Tests_User_WpAuthenticateUsernamePassword extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_authenticate_username_password returns a WP_Error object.
-	 *
 	 * @dataProvider data_returns_wp_error
+	 *
+	 * @ticket 46748
 	 *
 	 * @param WP_User|WP_Error|null $user      The user object, a WP Error or null. Default null.
 	 * @param string                $username  The username to try to authenticate.
@@ -118,25 +102,23 @@ class Tests_User_WpAuthenticateUsernamePassword extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the wp_authenticate_user filter is applied.
+	 * @ticket 46748
 	 */
 	public function test_applies_filter_wp_authenticate_user() {
-		add_filter(
-			'wp_authenticate_user',
-			array( $this, 'callback_returns_wp_error' )
-		);
+		$callback = static function() {
+			return new WP_Error();
+		};
+		add_filter( 'wp_authenticate_user', $callback );
 
 		$actual = wp_authenticate_username_password( null, 'admin1', 'password' );
+
+		remove_filter( 'wp_authenticate_user', $callback );
+
 		$this->assertInstanceOf( 'WP_Error', $actual );
 	}
 
-	public function callback_returns_wp_error( $user ) {
-		return new WP_Error();
-	}
-
 	/**
-	 * Tests that a WP_User object is returned when the correct username and
-	 * password are supplied.
+	 * @ticket 46748
 	 */
 	public function test_returns_user_with_correct_username_and_password() {
 		$actual = wp_authenticate_username_password( null, 'admin1', 'password' );
