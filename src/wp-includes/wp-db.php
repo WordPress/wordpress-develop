@@ -2561,9 +2561,9 @@ class wpdb {
 			} else {
 				if ( function_exists( '__' ) ) {
 					/* translators: %s Database fields where the error occurred. */
-					$message = __( 'WordPress database error: Processing the value for the following fields failed: %s. The supplied value may be too long or contains invalid data.' );
+					$message = __( 'WordPress database error: Processing the values for the following fields failed: %s. The supplied values may be too long or contain invalid data.' );
 				} else {
-					$message = 'WordPress database error: Processing the value for the following fields failed: %s. The supplied value may be too long or contains invalid data.';
+					$message = 'WordPress database error: Processing the values for the following fields failed: %s. The supplied values may be too long or contain invalid data.';
 				}
 			}
 
