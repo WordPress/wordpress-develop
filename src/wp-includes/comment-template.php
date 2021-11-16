@@ -1736,7 +1736,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 			'postid'         => $post->ID,
 			'belowelement'   => $args['add_below'] . '-' . $comment->comment_ID,
 			'respondelement' => $args['respond_id'],
-			'replyto'        => sprintf( $args['reply_to_text'], $comment->comment_author ),
+			'replyto'        => sprintf( $args['reply_to_text'], get_comment_author( $comment ) ),
 		);
 
 		$data_attribute_string = '';
@@ -1760,7 +1760,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 				)
 			) . '#' . $args['respond_id'],
 			$data_attribute_string,
-			esc_attr( sprintf( $args['reply_to_text'], $comment->comment_author ) ),
+			esc_attr( sprintf( $args['reply_to_text'], get_comment_author( $comment ) ) ),
 			$args['reply_text']
 		);
 	}
@@ -2538,11 +2538,13 @@ function comment_form( $args = array(), $post_id = null ) {
 
 		comment_form_title( $args['title_reply'], $args['title_reply_to'] );
 
-		echo $args['cancel_reply_before'];
+		if ( get_option( 'thread_comments' ) ) {
+			echo $args['cancel_reply_before'];
 
-		cancel_comment_reply_link( $args['cancel_reply_link'] );
+			cancel_comment_reply_link( $args['cancel_reply_link'] );
 
-		echo $args['cancel_reply_after'];
+			echo $args['cancel_reply_after'];
+		}
 
 		echo $args['title_reply_after'];
 

@@ -187,10 +187,22 @@ function get_default_block_editor_settings() {
 		}
 	}
 
+	// These styles are used if the "no theme styles" options is triggered or on
+	// themes without their own editor styles.
+	$default_editor_styles_file = ABSPATH . WPINC . '/css/dist/block-editor/default-editor-styles.css';
+	if ( file_exists( $default_editor_styles_file ) ) {
+		$default_editor_styles = array(
+			array( 'css' => file_get_contents( $default_editor_styles_file ) ),
+		);
+	} else {
+		$default_editor_styles = array();
+	}
+
 	$editor_settings = array(
 		'alignWide'              => get_theme_support( 'align-wide' ),
 		'allowedBlockTypes'      => true,
 		'allowedMimeTypes'       => get_allowed_mime_types(),
+		'defaultEditorStyles'    => $default_editor_styles,
 		'blockCategories'        => get_default_block_categories(),
 		'disableCustomColors'    => get_theme_support( 'disable-custom-colors' ),
 		'disableCustomFontSizes' => get_theme_support( 'disable-custom-font-sizes' ),
@@ -291,21 +303,38 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$custom_settings
 	);
 
-	$theme_json = WP_Theme_JSON_Resolver::get_merged_data( $editor_settings );
-
-	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$editor_settings['styles'][] = array(
-			'css'            => $theme_json->get_stylesheet( 'block_styles' ),
-			'__unstableType' => 'globalStyles',
-		);
-		$editor_settings['styles'][] = array(
-			'css'                     => $theme_json->get_stylesheet( 'css_variables' ),
+	$presets = array(
+		array(
+			'css'                     => 'variables',
+			'__unstableType'          => 'presets',
 			'__experimentalNoWrapper' => true,
-			'__unstableType'          => 'globalStyles',
-		);
+		),
+		array(
+			'css'            => 'presets',
+			'__unstableType' => 'presets',
+		),
+	);
+	foreach ( $presets as $preset_style ) {
+		$actual_css = wp_get_global_stylesheet( array( $preset_style['css'] ) );
+		if ( '' !== $actual_css ) {
+			$preset_style['css']         = $actual_css;
+			$editor_settings['styles'][] = $preset_style;
+		}
 	}
 
-	$editor_settings['__experimentalFeatures'] = $theme_json->get_settings();
+	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
+		$block_classes = array(
+			'css'            => 'styles',
+			'__unstableType' => 'theme',
+		);
+		$actual_css    = wp_get_global_stylesheet( array( $block_classes['css'] ) );
+		if ( '' !== $actual_css ) {
+			$block_classes['css']        = $actual_css;
+			$editor_settings['styles'][] = $block_classes;
+		}
+	}
+
+	$editor_settings['__experimentalFeatures'] = wp_get_global_settings();
 	// These settings may need to be updated based on data coming from theme.json sources.
 	if ( isset( $editor_settings['__experimentalFeatures']['color']['palette'] ) ) {
 		$colors_by_origin          = $editor_settings['__experimentalFeatures']['color']['palette'];
@@ -346,17 +375,17 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$editor_settings['disableCustomFontSizes'] = ! $editor_settings['__experimentalFeatures']['typography']['customFontSize'];
 		unset( $editor_settings['__experimentalFeatures']['typography']['customFontSize'] );
 	}
-	if ( isset( $editor_settings['__experimentalFeatures']['typography']['customLineHeight'] ) ) {
-		$editor_settings['enableCustomLineHeight'] = $editor_settings['__experimentalFeatures']['typography']['customLineHeight'];
-		unset( $editor_settings['__experimentalFeatures']['typography']['customLineHeight'] );
+	if ( isset( $editor_settings['__experimentalFeatures']['typography']['lineHeight'] ) ) {
+		$editor_settings['enableCustomLineHeight'] = $editor_settings['__experimentalFeatures']['typography']['lineHeight'];
+		unset( $editor_settings['__experimentalFeatures']['typography']['lineHeight'] );
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['units'] ) ) {
 		$editor_settings['enableCustomUnits'] = $editor_settings['__experimentalFeatures']['spacing']['units'];
 		unset( $editor_settings['__experimentalFeatures']['spacing']['units'] );
 	}
-	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['customPadding'] ) ) {
-		$editor_settings['enableCustomSpacing'] = $editor_settings['__experimentalFeatures']['spacing']['customPadding'];
-		unset( $editor_settings['__experimentalFeatures']['spacing']['customPadding'] );
+	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['padding'] ) ) {
+		$editor_settings['enableCustomSpacing'] = $editor_settings['__experimentalFeatures']['spacing']['padding'];
+		unset( $editor_settings['__experimentalFeatures']['spacing']['padding'] );
 	}
 
 	/**
@@ -407,7 +436,8 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param string[] $preload_paths Array of paths to preload.
+	 * @param string[]                $preload_paths        Array of paths to preload.
+	 * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
 	 */
 	$preload_paths = apply_filters( 'block_editor_rest_api_preload_paths', $preload_paths, $block_editor_context );
 	if ( ! empty( $block_editor_context->post ) ) {
@@ -464,22 +494,12 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
  *
  * @global array $editor_styles
  *
- * @return array An array of theme styles for the block editor. Includes default font family
- *               style and theme stylesheets.
+ * @return array An array of theme styles for the block editor.
  */
 function get_block_editor_theme_styles() {
 	global $editor_styles;
 
-	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$styles = array(
-			array(
-				'css'            => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
-				'__unstableType' => 'core',
-			),
-		);
-	} else {
-		$styles = array();
-	}
+	$styles = array();
 
 	if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 		foreach ( $editor_styles as $style ) {

@@ -512,7 +512,7 @@ https://w.org</a>',
 	public function test_post_galleries_images() {
 		$ids1      = array();
 		$ids1_srcs = array();
-		foreach ( range( 1, 3 ) as $i ) {
+		foreach ( range( 1, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
 				0,
@@ -544,8 +544,8 @@ https://w.org</a>',
 			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 		}
 
-		$ids1_joined = implode( ',', $ids1 );
-		$ids2_joined = implode( ',', $ids2 );
+		$ids1_joined = join( ',', array_slice( $ids1, 0, 3 ) );
+		$ids2_joined = join( ',', array_slice( $ids2, 3, 3 ) );
 
 		$blob    = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -554,106 +554,7 @@ https://w.org</a>',
 BLOB;
 		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
 		$srcs    = get_post_galleries_images( $post_id );
-		$this->assertSame( $srcs, array( $ids1_srcs, $ids2_srcs ) );
-	}
-
-	/**
-	 * @ticket 39304
-	 */
-	public function test_post_galleries_images_without_global_post() {
-		// Set up an unattached image.
-		$this->factory->attachment->create_object(
-			array(
-				'file'           => 'test.jpg',
-				'post_parent'    => 0,
-				'post_mime_type' => 'image/jpeg',
-				'post_type'      => 'attachment',
-			)
-		);
-
-		$post_id = $this->factory->post->create(
-			array(
-				'post_content' => '[gallery]',
-			)
-		);
-
-		$galleries = get_post_galleries( $post_id, false );
-
-		$this->assertEmpty( $galleries[0]['src'] );
-	}
-
-	/**
-	 * @ticket 39304
-	 */
-	public function test_post_galleries_ignores_global_post() {
-		$global_post_id = $this->factory->post->create(
-			array(
-				'post_content' => 'Global Post',
-			)
-		);
-		$post_id        = $this->factory->post->create(
-			array(
-				'post_content' => '[gallery]',
-			)
-		);
-		$this->factory->attachment->create_object(
-			array(
-				'file'           => 'test.jpg',
-				'post_parent'    => $post_id,
-				'post_mime_type' => 'image/jpeg',
-				'post_type'      => 'attachment',
-			)
-		);
-		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
-		);
-
-		// Set the global $post context to the other post.
-		$GLOBALS['post'] = get_post( $global_post_id );
-
-		$galleries = get_post_galleries( $post_id, false );
-
-		$this->assertNotEmpty( $galleries[0]['src'] );
-		$this->assertSame( $galleries[0]['src'], $expected_srcs );
-	}
-
-	/**
-	 * @ticket 39304
-	 */
-	public function test_post_galleries_respects_id_attrs() {
-		$post_id     = $this->factory->post->create(
-			array(
-				'post_content' => 'No gallery defined',
-			)
-		);
-		$post_id_two = $this->factory->post->create(
-			array(
-				'post_content' => "[gallery id='$post_id']",
-			)
-		);
-		$this->factory->attachment->create_object(
-			array(
-				'file'           => 'test.jpg',
-				'post_parent'    => $post_id,
-				'post_mime_type' => 'image/jpeg',
-				'post_type'      => 'attachment',
-			)
-		);
-		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
-		);
-
-		$galleries = get_post_galleries( $post_id_two, false );
-
-		// Set the global $post context.
-		$GLOBALS['post']               = get_post( $post_id_two );
-		$galleries_with_global_context = get_post_galleries( $post_id_two, false );
-
-		// Check that the global post state doesn't affect the results.
-		$this->assertSame( $galleries, $galleries_with_global_context );
-
-		$this->assertNotEmpty( $galleries[0]['src'] );
-		$this->assertSame( $galleries[0]['src'], $expected_srcs );
+		$this->assertSameSetsWithIndex( $srcs, array( array_slice( $ids1_srcs, 0, 3 ), array_slice( $ids2_srcs, 3, 3 ) ) );
 	}
 
 	/**
@@ -705,6 +606,209 @@ BLOB;
 		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
 		$srcs    = get_post_gallery_images( $post_id );
 		$this->assertSame( $srcs, $ids1_srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_block_post_gallery_images() {
+		// Similar to test_post_gallery_images but with blocks instead of shortcodes
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 6 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+		}
+
+		$imgs1_joined = join( "\n", array_slice( $imgs, 0, 3 ) );
+		$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
+
+		$blob    = <<<BLOB
+<!-- wp:gallery -->
+$imgs1_joined
+<!-- /wp:gallery -->
+<!-- wp:gallery -->
+$imgs2_joined
+<!-- /wp:gallery -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( array_slice( $ids_srcs, 0, 3 ), $srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_block_post_gallery_images_json() {
+		// Similar to test_block_post_gallery_images, with IDs in the json blob
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 6 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+
+		}
+
+		$ids1_joined = join( ',', array_slice( $ids, 0, 3 ) );
+		$ids2_joined = join( ',', array_slice( $ids, 3, 3 ) );
+
+		$blob    = <<<BLOB
+<!-- wp:gallery {"ids":[$ids1_joined]} -->
+<!-- /wp:gallery -->
+
+<!-- wp:gallery {"ids":[$ids2_joined]} -->
+<!-- /wp:gallery -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( array_slice( $ids_srcs, 0, 3 ), $srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_mixed_post_gallery_images() {
+		// Similar to test_post_gallery_images but with a shortcode and a block in the same post
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 6 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0,
+				array(
+					'post_mime_type' => 'image/jpeg',
+					'post_type'      => 'attachment',
+				)
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+		}
+
+		$ids1_joined  = join( "\n", array_slice( $ids, 0, 3 ) );
+		$ids2_joined  = join( "\n", array_slice( $ids, 3, 3 ) );
+		$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
+
+		$blob    = <<<BLOB
+[gallery ids="$ids1_joined"]
+
+[gallery ids="$ids2_joined"]
+<!-- wp:gallery -->
+$imgs2_joined
+<!-- /wp:gallery -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( array_slice( $ids_srcs, 0, 3 ), $srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_block_inner_post_gallery_images() {
+		// Make sure get_post_gallery_images() works with gallery blocks that are nested inside something else
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 3 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0,
+				array(
+					'post_mime_type' => 'image/jpeg',
+					'post_type'      => 'attachment',
+				)
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+
+		}
+
+		$imgs_joined = join( "\n", $imgs );
+
+		$blob    = <<<BLOB
+<!-- wp:columns -->
+<!-- wp:column -->
+<!-- wp:gallery -->
+$imgs_joined
+<!-- /wp:gallery -->
+<!-- /wp:column -->
+<!-- /wp:columns -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( $ids_srcs, $srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_block_post_gallery_innerblock_images() {
+		// Make sure get_post_gallery_images() works with new version of gallery block with nested image blocks.
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 3 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0,
+				array(
+					'post_mime_type' => 'image/jpeg',
+					'post_type'      => 'attachment',
+				)
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<!-- wp:image {"id":' . $attachment_id . ',"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="' . $url . '" /></figure><!-- /wp:image -->';
+
+		}
+
+		$imgs_joined = join( "\n", $imgs );
+
+		$blob    = <<<BLOB
+<!-- wp:gallery -->
+<figure class="wp-block-gallery has-nested-images columns-default is-cropped">
+$imgs_joined
+</figure>
+<!-- /wp:gallery -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( $ids_srcs, $srcs );
 	}
 
 	public function test_get_media_embedded_in_content() {
@@ -3024,6 +3128,7 @@ EOF;
 	/**
 	 * @ticket 50425
 	 * @ticket 53463
+	 * @ticket 53675
 	 * @dataProvider data_wp_lazy_loading_enabled_context_defaults
 	 *
 	 * @param string $context  Function context.
@@ -3046,6 +3151,7 @@ EOF;
 			'widget_block_content => true'    => array( 'widget_block_content', true ),
 			'get_avatar => true'              => array( 'get_avatar', true ),
 			'arbitrary context => true'       => array( 'something_completely_arbitrary', true ),
+			'the_post_thumbnail => true'      => array( 'the_post_thumbnail', true ),
 		);
 	}
 
@@ -3185,6 +3291,178 @@ EOF;
 			array( 'auto-draft-attachment', '/?attachment_id=%ID%', true ),
 			array( 'trash-attachment', '/?attachment_id=%ID%', false ),
 		);
+	}
+
+	/**
+	 * @ticket 53675
+	 * @dataProvider data_wp_get_loading_attr_default
+	 *
+	 * @param string $context
+	 */
+	function test_wp_get_loading_attr_default( $context ) {
+		global $wp_query, $wp_the_query;
+
+		// Return 'lazy' by default.
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'test' ) );
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
+
+		// Return 'lazy' if not in the loop or the main query.
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+
+		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+
+		while ( have_posts() ) {
+			the_post();
+
+			// Return 'lazy' if in the loop but not in the main query.
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+
+			// Set as main query.
+			$wp_the_query = $wp_query;
+
+			// For contexts other than for the main content, still return 'lazy' even in the loop
+			// and in the main query, and do not increase the content media count.
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
+
+			// Return `false` if in the loop and in the main query and it is the first element.
+			$this->assertFalse( wp_get_loading_attr_default( $context ) );
+
+			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+
+			// Yes, for all subsequent elements.
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+		}
+	}
+
+	function data_wp_get_loading_attr_default() {
+		return array(
+			array( 'the_content' ),
+			array( 'the_post_thumbnail' ),
+		);
+	}
+
+	/**
+	 * @ticket 53675
+	 */
+	function test_wp_omit_loading_attr_threshold_filter() {
+		global $wp_query, $wp_the_query;
+
+		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$wp_the_query = $wp_query;
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+
+		// Use the filter to alter the threshold for not lazy-loading to the first three elements.
+		add_filter(
+			'wp_omit_loading_attr_threshold',
+			function() {
+				return 3;
+			}
+		);
+
+		while ( have_posts() ) {
+			the_post();
+
+			// Due to the filter, now the first three elements should not be lazy-loaded, i.e. return `false`.
+			for ( $i = 0; $i < 3; $i++ ) {
+				$this->assertFalse( wp_get_loading_attr_default( 'the_content' ) );
+			}
+
+			// For following elements, lazy-load them again.
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( 'the_content' ) );
+		}
+	}
+
+	/**
+	 * @ticket 53675
+	 */
+	function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
+		global $wp_query, $wp_the_query;
+
+		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$iframe1      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$img2         = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img3         = get_image_tag( self::$large_id, '', '', '', 'thumbnail' );
+		$iframe2      = '<iframe src="https://wordpress.org" width="640" height="360"></iframe>';
+		$lazy_img2    = wp_img_tag_add_loading_attr( $img2, 'the_content' );
+		$lazy_img3    = wp_img_tag_add_loading_attr( $img3, 'the_content' );
+		$lazy_iframe2 = wp_iframe_tag_add_loading_attr( $iframe2, 'the_content' );
+
+		// Use a threshold of 2.
+		add_filter(
+			'wp_omit_loading_attr_threshold',
+			function() {
+				return 2;
+			}
+		);
+
+		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
+		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
+		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
+
+		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$wp_the_query = $wp_query;
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+
+		while ( have_posts() ) {
+			the_post();
+
+			add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+			$content_filtered = wp_filter_content_tags( $content_unfiltered, 'the_content' );
+			remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		}
+
+		// After filtering, the first image should not be lazy-loaded while the other ones should be.
+		$this->assertSame( $content_expected, $content_filtered );
+	}
+
+	/**
+	 * @ticket 53675
+	 */
+	public function test_wp_omit_loading_attr_threshold() {
+		$this->reset_omit_loading_attr_filter();
+
+		// Apply filter, ensure default value of 1.
+		$omit_threshold = wp_omit_loading_attr_threshold();
+		$this->assertSame( 1, $omit_threshold );
+
+		// Add a filter that changes the value to 3. However, the filter is not applied a subsequent time in a single
+		// page load by default, so the value is still 1.
+		add_filter(
+			'wp_omit_loading_attr_threshold',
+			function() {
+				return 3;
+			}
+		);
+		$omit_threshold = wp_omit_loading_attr_threshold();
+		$this->assertSame( 1, $omit_threshold );
+
+		// Only by enforcing a fresh check, the filter gets re-applied.
+		$omit_threshold = wp_omit_loading_attr_threshold( true );
+		$this->assertSame( 3, $omit_threshold );
+	}
+
+	private function reset_content_media_count() {
+		// Get current value without increasing.
+		$content_media_count = wp_increase_content_media_count( 0 );
+
+		// Decrease it by its current value to "reset" it back to 0.
+		wp_increase_content_media_count( - $content_media_count );
+	}
+
+	private function reset_omit_loading_attr_filter() {
+		// Add filter to "reset" omit threshold back to null (unset).
+		add_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
+
+		// Force filter application to re-run.
+		wp_omit_loading_attr_threshold( true );
+
+		// Clean up the above filter.
+		remove_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
 	}
 }
 

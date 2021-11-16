@@ -635,4 +635,44 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$this->assertNull( wp_validate_application_password( null ) );
 	}
+
+	/**
+	 * @ticket 53386
+	 * @dataProvider data_application_passwords_can_use_capability_checks_to_determine_feature_availability
+	 */
+	public function test_application_passwords_can_use_capability_checks_to_determine_feature_availability( $role, $authenticated ) {
+		$user = self::factory()->user->create_and_get( array( 'role' => $role ) );
+
+		list( $password ) = WP_Application_Passwords::create_new_application_password( $user->ID, array( 'name' => 'phpunit' ) );
+
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+		add_filter(
+			'wp_is_application_passwords_available_for_user',
+			static function ( $available, WP_User $user ) {
+				return user_can( $user, 'edit_posts' );
+			},
+			10,
+			2
+		);
+
+		$_SERVER['PHP_AUTH_USER'] = $user->user_login;
+		$_SERVER['PHP_AUTH_PW']   = $password;
+
+		unset( $GLOBALS['current_user'] );
+		$current = get_current_user_id();
+
+		if ( $authenticated ) {
+			$this->assertSame( $user->ID, $current );
+		} else {
+			$this->assertSame( 0, $current );
+		}
+	}
+
+	public function data_application_passwords_can_use_capability_checks_to_determine_feature_availability() {
+		return array(
+			'allowed'     => array( 'editor', true ),
+			'not allowed' => array( 'subscriber', false ),
+		);
+	}
 }
