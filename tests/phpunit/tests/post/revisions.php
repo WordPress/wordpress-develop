@@ -705,7 +705,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	public function test_wp_get_post_revisions_url( $revisions ) {
 		wp_set_current_user( self::$admin_user_id );
 
-		$post_id            = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
+		$post_id            = self::factory()->post->create(
+			array(
+				'post_title'  => 'Some Post',
+				'post_status' => 'draft',
+			)
+		);
 		$latest_revision_id = null;
 
 		if ( 0 !== $revisions ) {
@@ -714,8 +719,9 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			for ( $i = 0; $i < $revisions; ++$i ) {
 				wp_update_post(
 					array(
-						'ID'         => $post_id,
-						'post_title' => 'Some Post ' . $i,
+						'ID'          => $post_id,
+						'post_title'  => 'Some Post ' . $i,
+						'post_status' => 'publish',
 					)
 				);
 
@@ -753,7 +759,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	public function test_wp_get_post_revisions_url_with_post_object( $revisions ) {
 		wp_set_current_user( self::$admin_user_id );
 
-		$post               = self::factory()->post->create_and_get( array( 'post_title' => 'Some Post' ) );
+		$post               = self::factory()->post->create_and_get(
+			array(
+				'post_title'  => 'Some Post',
+				'post_status' => 'draft',
+			)
+		);
 		$latest_revision_id = null;
 
 		if ( 0 !== $revisions ) {
@@ -762,8 +773,9 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			for ( $i = 0; $i < $revisions; ++$i ) {
 				wp_update_post(
 					array(
-						'ID'         => $post->ID,
-						'post_title' => 'Some Post ' . $i,
+						'ID'          => $post->ID,
+						'post_title'  => 'Some Post ' . $i,
+						'post_status' => 'publish',
 					)
 				);
 
@@ -820,7 +832,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_post_revisions_url_returns_null_with_no_revisions() {
 		wp_set_current_user( self::$admin_user_id );
-		$post_id = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Some Post',
+				'post_status' => 'draft',
+			)
+		);
 		$this->assertNull( wp_get_post_revisions_url( $post_id ) );
 	}
 
