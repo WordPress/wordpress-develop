@@ -4842,9 +4842,12 @@ function get_post_galleries( $post, $html = true ) {
 			}
 
 			// Otherwise, extract srcs from the innerHTML.
-			preg_match_all( '#src=([\'"])(.+?)\1#is', $block['innerHTML'], $src, PREG_SET_ORDER );
+			preg_match_all( '#src=([\'"])(.+?)\1#is', $block['innerHTML'], $found_srcs, PREG_SET_ORDER );
 
-			if ( ! empty( $src[0] ) ) {
+			if ( ! empty( $found_srcs[0] ) ) {
+				foreach ( $found_srcs as $src ) {
+					if ( isset( $src[2] ) && ! in_array( $src[2], $srcs, true ) ) {
+						$srcs[] = $src[2];
 					}
 				}
 			}
