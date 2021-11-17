@@ -1247,12 +1247,11 @@ class wpdb {
 			}
 		} else {
 			$class = get_class( $this );
-			if ( function_exists( '__' ) ) {
-				/* translators: %s: Database access abstraction class, usually wpdb or a class extending wpdb. */
-				_doing_it_wrong( $class, sprintf( __( '%s must set a database connection for use with escaping.' ), $class ), '3.6.0' );
-			} else {
-				_doing_it_wrong( $class, sprintf( '%s must set a database connection for use with escaping.', $class ), '3.6.0' );
-			}
+
+			wp_load_translations_early();
+			/* translators: %s: Database access abstraction class, usually wpdb or a class extending wpdb. */
+			_doing_it_wrong( $class, sprintf( __( '%s must set a database connection for use with escaping.' ), $class ), '3.6.0' );
+
 			$escaped = addslashes( $string );
 		}
 
@@ -2015,7 +2014,15 @@ class wpdb {
 			// to flush again, just to make sure everything is clear.
 			$this->flush();
 			if ( $stripped_query !== $query ) {
-				$this->insert_id = 0;
+				$this->insert_id  = 0;
+				$this->last_query = $query;
+
+				if ( function_exists( '__' ) ) {
+					$this->last_error = __( 'WordPress database error: Could not perform query because it contains invalid data.' );
+				} else {
+					$this->last_error = 'WordPress database error: Could not perform query because it contains invalid data.';
+				}
+
 				return false;
 			}
 		}
@@ -2535,6 +2542,32 @@ class wpdb {
 		$converted_data = $this->strip_invalid_text( $data );
 
 		if ( $data !== $converted_data ) {
+
+			$problem_fields = array();
+			foreach ( $data as $field => $value ) {
+				if ( $value !== $converted_data[ $field ] ) {
+					$problem_fields[] = $field;
+				}
+			}
+
+			if ( 1 === count( $problem_fields ) ) {
+				if ( function_exists( '__' ) ) {
+					/* translators: %s Database field where the error occurred. */
+					$message = __( 'WordPress database error: Processing the value for the following field failed: %s. The supplied value may be too long or contains invalid data.' );
+				} else {
+					$message = 'WordPress database error: Processing the value for the following field failed: %s. The supplied value may be too long or contains invalid data.';
+				}
+			} else {
+				if ( function_exists( '__' ) ) {
+					/* translators: %s Database fields where the error occurred. */
+					$message = __( 'WordPress database error: Processing the value for the following fields failed: %s. The supplied value may be too long or contains invalid data.' );
+				} else {
+					$message = 'WordPress database error: Processing the value for the following fields failed: %s. The supplied value may be too long or contains invalid data.';
+				}
+			}
+
+			$this->last_error = sprintf( $message, implode( ', ', $problem_fields ) );
+
 			return false;
 		}
 
