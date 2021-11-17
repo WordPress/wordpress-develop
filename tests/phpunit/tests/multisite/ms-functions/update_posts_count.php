@@ -27,6 +27,7 @@ if ( is_multisite() ) :
 					'post_type'   => 'post',
 					'post_author' => '1',
 					'post_date'   => '2012-10-23 19:34:42',
+					'post_status' => 'publish',
 				)
 			);
 
