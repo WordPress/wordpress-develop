@@ -2553,7 +2553,7 @@ class wpdb {
 
 			if ( 1 === count( $problem_fields ) ) {
 				$this->last_error = sprintf(
-					/* translators: %s Database field where the error occurred. */
+					/* translators: %s: Database field where the error occurred. */
 					__( 'WordPress database error: Processing the value for the following field failed: %s. The supplied value may be too long or contains invalid data.' ),
 					reset( $problem_fields )
 				);
