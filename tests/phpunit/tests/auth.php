@@ -669,10 +669,19 @@ class Tests_Auth extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_application_passwords_can_use_capability_checks_to_determine_feature_availability() {
-		return array(
-			'allowed'     => array( 'editor', true ),
-			'not allowed' => array( 'subscriber', false ),
-		);
+	/**
+	 * @ticket 46748
+	 */
+	public function test_authenticate_filter_with_low_priority_prohibits_login() {
+		$callback = static function() {
+			return new WP_Error();
+		};
+		add_filter( 'authenticate', $callback, 5 );
+
+		$actual = wp_authenticate( $this->user->user_login, 'password' );
+
+		remove_filter( 'authenticate', $callback, 5 );
+
+		$this->assertInstanceOf( 'WP_Error', $actual );
 	}
 }
