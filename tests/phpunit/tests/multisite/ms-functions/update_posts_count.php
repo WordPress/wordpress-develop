@@ -48,6 +48,8 @@ if ( is_multisite() ) :
 			 */
 			$this->assertEquals( $current_post_count, (int) get_option( 'post_count' ), 'post deleted' );
 
+			restore_current_blog();
+
 		}
 	}
 
