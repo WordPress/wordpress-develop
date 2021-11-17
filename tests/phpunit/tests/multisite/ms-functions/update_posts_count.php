@@ -20,10 +20,7 @@ if ( is_multisite() ) :
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
-			/*
-			 * Get the total number of posts, and take into account the "Hello World" blog post automatically created with the blog.
-			 */
-			$current_post_count = (int) get_option( 'post_count' ) + 1;
+			$current_post_count = (int) get_option( 'post_count' );
 
 			$post_id = self::factory()->post->create(
 				array(
