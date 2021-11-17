@@ -204,7 +204,7 @@ function wp_authenticate_email_password( $user, $email, $password ) {
 		return $user;
 	}
 
-	if ( is_wp_error( $user ) && ! filter_var( $email, FILTER_VALIDATE_EMAIL ) ) {
+	if ( is_wp_error( $user ) ) {
 		return $user;
 	}
 
