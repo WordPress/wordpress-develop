@@ -669,6 +669,13 @@ class Tests_Auth extends WP_UnitTestCase {
 		}
 	}
 
+	public function data_application_passwords_can_use_capability_checks_to_determine_feature_availability() {
+		return array(
+			'allowed'     => array( 'editor', true ),
+			'not allowed' => array( 'subscriber', false ),
+		);
+	}
+
 	/**
 	 * @ticket 46748
 	 */
