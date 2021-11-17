@@ -11,7 +11,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * Test callback for `wp_kses_normalize_entities()` regular expression.
 	 *
 	 * @dataProvider  data_wp_kses_xml_named_entities
-	 *
+	 * @covers ::wp_kses_xml_named_entities
 	 * @ticket 54060
 	 *
 	 * @param array  $input     Expected input.
