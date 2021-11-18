@@ -82,6 +82,12 @@ if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
 	$phpunit_polyfills_autoloader = dirname( dirname( dirname( __DIR__ ) ) ) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
 	$phpunit_polyfills_error      = false;
 
+	// Define WP_TESTS_PHPUNIT_POLYFILLS_PATH if set as environment variable.
+	$phpunit_polyfills_path = getenv( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' );
+	if ( $phpunit_polyfills_path ) {
+		define( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH', $phpunit_polyfills_path );
+	}
+
 	// Allow for a custom installation location to be provided for plugin/theme integration tests.
 	if ( defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
 		$phpunit_polyfills_path = WP_TESTS_PHPUNIT_POLYFILLS_PATH;
