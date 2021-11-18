@@ -647,24 +647,24 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
  * @since 2.5.0
  *
  * @param string $str
- * @return int|float Returns 0 on failure.
+ * @return int|float Returns originally passed string on failure.
  */
 function wp_exif_frac2dec( $str ) {
 	// Fractions must contain a single `/`.
 	if ( substr_count( $str, '/' ) !== 1 ) {
-		return 0;
+		return $str;
 	}
 
 	list( $numerator, $denominator ) = explode( '/', $str );
 
 	// Both the numerator and the denominator must be numbers.
 	if ( ! is_numeric( $numerator ) || ! is_numeric( $denominator ) ) {
-		return 0;
+		return $str;
 	}
 
-	// The denominator must not be empty (or 0).
-	if ( $denominator === 0 ) {
-		return 0;
+	// The denominator must not be zero.
+	if ( empty( $denominator ) ) {
+		return $str;
 	}
 
 	return $numerator / $denominator;
