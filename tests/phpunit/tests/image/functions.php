@@ -702,8 +702,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test for wp_exif_frac2dec verified that it properly handles edge cases
-	 * and always returns an int or float, 0 for failures.
+	 * Verify that `wp_exif_frac2dec()` functions correctly, properly handles edge cases
+	 * and always returns an int or float and returns 0 for failures.
 	 *
 	 * @ticket 54385
 	 * @dataProvider data_test_wp_exif_frac2dec
@@ -723,13 +723,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *     @type int|float       $expected    The resulting expected value.
 	 *
 	 */
-	public function data_test_wp_exif_frac2dec() {
+	public function data_wp_exif_frac2dec() {
 		global $wpdb;
 
 		return array(
-			array(
-				'0/0',
-				0,
+			'division by zero is prevented' => array(
+				'fraction' => '0/0',
+				'expect'   => 0, // Note: using `expect` here as the array key to exactly match the parameter name in the test method.
 			),
 			array(
 				'0/abc',
