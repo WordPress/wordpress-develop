@@ -651,7 +651,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
  */
 function wp_exif_frac2dec( $str ) {
 	// Fractions must contain a single `/`.
-	if ( false === strpos( $str, '/' ) || substr_count( $str, '/' ) > 1 ) {
+	if ( substr_count( $str, '/' ) !== 1 ) {
 		return 0;
 	}
 
