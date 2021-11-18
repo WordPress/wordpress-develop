@@ -584,9 +584,9 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		 *     @type string $package     Plugin update package URL.
 		 *     @type array  $icons       An array of icon URLs.
 		 *     @type array  $banners     An array of banner URLs.
-		 *     @type string $requires    Required WordPress version.
-		 *     @type string $tested      Higher WordPress version the plugin has been tested with.
-		 *     @type string $new_version New plugin version.
+		 *     @type string $requires    Specify the minimum required WordPress version.
+		 *     @type string $tested      Specify the latest version of WordPress that the plugin has been tested with.
+		 *     @type string $new_version Specify the new version of the plugin.
 		 * }
 		 */
 		do_action( "in_plugin_update_message-{$file}", $plugin_data, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
