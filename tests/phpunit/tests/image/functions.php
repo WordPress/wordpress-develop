@@ -702,11 +702,16 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verify that `wp_exif_frac2dec()` functions correctly, properly handles edge cases
-	 * and always returns an int or float and returns 0 for failures.
+	 * Test for wp_exif_frac2dec verified that it properly handles edge cases
+	 * and always returns an int or float, 0 for failures.
+	 *
+	 * @param string $fraction The fraction to convert.
+	 * @param string $expect  The expected result.
 	 *
 	 * @ticket 54385
 	 * @dataProvider data_test_wp_exif_frac2dec
+	 *
+	 * @covers ::wp_exif_frac2dec
 	 */
 	public function test_wp_exif_frac2dec( $fraction, $expect ) {
 		$this->assertSame( $expect, wp_exif_frac2dec( $fraction ) );
