@@ -723,7 +723,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *     @type int|float       $expected    The resulting expected value.
 	 *
 	 */
-	public function data_test_wp_exif_frac2dec() {
+	public function data_wp_exif_frac2dec() {
 		global $wpdb;
 
 		return array(
