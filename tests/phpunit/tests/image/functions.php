@@ -702,8 +702,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test for wp_exif_frac2dec verified that it properly handles edge cases
-	 * and always returns an int or float, 0 for failures.
+	 * Verify that `wp_exif_frac2dec()` functions correctly, properly handles edge cases
+	 * and always returns an int or float and returns 0 for failures.
 	 *
 	 * @ticket 54385
 	 * @dataProvider data_test_wp_exif_frac2dec
