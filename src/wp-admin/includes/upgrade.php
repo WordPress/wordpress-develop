@@ -249,6 +249,11 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 				'post_content_filtered' => '',
 			)
 		);
+
+		if ( is_multisite() ) {
+			update_posts_count();
+		}
+
 		$wpdb->insert(
 			$wpdb->term_relationships,
 			array(
