@@ -727,9 +727,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		global $wpdb;
 
 		return array(
-			array(
-				'0/0',
-				0,
+			'division by zero is prevented' => array(
+				'fraction' => '0/0',
+				'expect'   => 0, // Note: using `expect` here as the array key to exactly match the parameter name in the test method.
 			),
 			array(
 				'0/abc',
