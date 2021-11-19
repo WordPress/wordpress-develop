@@ -252,10 +252,7 @@ function wp_print_media_templates() {
 			<div class="upload-ui">
 				<h2 class="upload-instructions drop-instructions"><?php _e( 'Drop files to upload' ); ?></h2>
 				<p class="upload-instructions drop-instructions"><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files' ); ?></p>
-				<div class="browser-container">
-					<label class="button button-hero"><?php esc_html_e( 'Select Files' ); ?></label>
-					<input type="file" class="browser screen-reader-text" aria-describedby="post-upload-info">
-				</div>
+				<button type="button" class="browser button button-hero" aria-labelledby="post-upload-info"><?php _e( 'Select Files' ); ?></button>
 			</div>
 
 			<div class="upload-inline-status"></div>
@@ -323,7 +320,6 @@ function wp_print_media_templates() {
 	<?php // Template for the uploading status UI. ?>
 	<script type="text/html" id="tmpl-uploader-status">
 		<h2><?php _e( 'Uploading' ); ?></h2>
-		<button type="button" class="button-link upload-dismiss-errors"><span class="screen-reader-text"><?php _e( 'Dismiss Errors' ); ?></span></button>
 
 		<div class="media-progress-bar"><div></div></div>
 		<div class="upload-details">
@@ -334,6 +330,7 @@ function wp_print_media_templates() {
 			<span class="upload-filename"></span>
 		</div>
 		<div class="upload-errors"></div>
+		<button type="button" class="button upload-dismiss-errors"><?php _e( 'Dismiss errors' ); ?></button>
 	</script>
 
 	<?php // Template for the uploading status errors. ?>

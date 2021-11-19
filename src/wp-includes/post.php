@@ -1561,8 +1561,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type bool|string  $show_in_menu          Where to show the post type in the admin menu. To work, $show_ui
  *                                               must be true. If true, the post type is shown in its own top level
  *                                               menu. If false, no menu is shown. If a string of an existing top
- *                                               level menu (eg. 'tools.php' or 'edit.php?post_type=page'), the post
- *                                               type will be placed as a sub-menu of that.
+ *                                               level menu ('tools.php' or 'edit.php?post_type=page', for example), the
+ *                                               post type will be placed as a sub-menu of that.
  *                                               Default is value of $show_ui.
  *     @type bool         $show_in_nav_menus     Makes this post type available for selection in navigation menus.
  *                                               Default is value of $public.
@@ -7642,12 +7642,13 @@ function _publish_post_hook( $post_id ) {
  * Returns the ID of the post's parent.
  *
  * @since 3.1.0
+ * @since 5.9.0 The `$post` parameter was made optional.
  *
- * @param int|WP_Post $post Post ID or post object.
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
  * @return int|false Post parent ID (which can be 0 if there is no parent),
  *                   or false if the post does not exist.
  */
-function wp_get_post_parent_id( $post ) {
+function wp_get_post_parent_id( $post = null ) {
 	$post = get_post( $post );
 	if ( ! $post || is_wp_error( $post ) ) {
 		return false;

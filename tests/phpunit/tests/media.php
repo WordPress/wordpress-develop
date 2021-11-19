@@ -512,7 +512,7 @@ https://w.org</a>',
 	public function test_post_galleries_images() {
 		$ids1      = array();
 		$ids1_srcs = array();
-		foreach ( range( 1, 3 ) as $i ) {
+		foreach ( range( 1, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
 				0,
@@ -544,8 +544,8 @@ https://w.org</a>',
 			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 		}
 
-		$ids1_joined = implode( ',', $ids1 );
-		$ids2_joined = implode( ',', $ids2 );
+		$ids1_joined = join( ',', array_slice( $ids1, 0, 3 ) );
+		$ids2_joined = join( ',', array_slice( $ids2, 3, 3 ) );
 
 		$blob    = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -554,106 +554,7 @@ https://w.org</a>',
 BLOB;
 		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
 		$srcs    = get_post_galleries_images( $post_id );
-		$this->assertSame( $srcs, array( $ids1_srcs, $ids2_srcs ) );
-	}
-
-	/**
-	 * @ticket 39304
-	 */
-	public function test_post_galleries_images_without_global_post() {
-		// Set up an unattached image.
-		$this->factory->attachment->create_object(
-			array(
-				'file'           => 'test.jpg',
-				'post_parent'    => 0,
-				'post_mime_type' => 'image/jpeg',
-				'post_type'      => 'attachment',
-			)
-		);
-
-		$post_id = $this->factory->post->create(
-			array(
-				'post_content' => '[gallery]',
-			)
-		);
-
-		$galleries = get_post_galleries( $post_id, false );
-
-		$this->assertEmpty( $galleries[0]['src'] );
-	}
-
-	/**
-	 * @ticket 39304
-	 */
-	public function test_post_galleries_ignores_global_post() {
-		$global_post_id = $this->factory->post->create(
-			array(
-				'post_content' => 'Global Post',
-			)
-		);
-		$post_id        = $this->factory->post->create(
-			array(
-				'post_content' => '[gallery]',
-			)
-		);
-		$this->factory->attachment->create_object(
-			array(
-				'file'           => 'test.jpg',
-				'post_parent'    => $post_id,
-				'post_mime_type' => 'image/jpeg',
-				'post_type'      => 'attachment',
-			)
-		);
-		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
-		);
-
-		// Set the global $post context to the other post.
-		$GLOBALS['post'] = get_post( $global_post_id );
-
-		$galleries = get_post_galleries( $post_id, false );
-
-		$this->assertNotEmpty( $galleries[0]['src'] );
-		$this->assertSame( $galleries[0]['src'], $expected_srcs );
-	}
-
-	/**
-	 * @ticket 39304
-	 */
-	public function test_post_galleries_respects_id_attrs() {
-		$post_id     = $this->factory->post->create(
-			array(
-				'post_content' => 'No gallery defined',
-			)
-		);
-		$post_id_two = $this->factory->post->create(
-			array(
-				'post_content' => "[gallery id='$post_id']",
-			)
-		);
-		$this->factory->attachment->create_object(
-			array(
-				'file'           => 'test.jpg',
-				'post_parent'    => $post_id,
-				'post_mime_type' => 'image/jpeg',
-				'post_type'      => 'attachment',
-			)
-		);
-		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
-		);
-
-		$galleries = get_post_galleries( $post_id_two, false );
-
-		// Set the global $post context.
-		$GLOBALS['post']               = get_post( $post_id_two );
-		$galleries_with_global_context = get_post_galleries( $post_id_two, false );
-
-		// Check that the global post state doesn't affect the results.
-		$this->assertSame( $galleries, $galleries_with_global_context );
-
-		$this->assertNotEmpty( $galleries[0]['src'] );
-		$this->assertSame( $galleries[0]['src'], $expected_srcs );
+		$this->assertSameSetsWithIndex( $srcs, array( array_slice( $ids1_srcs, 0, 3 ), array_slice( $ids2_srcs, 3, 3 ) ) );
 	}
 
 	/**
@@ -705,6 +606,209 @@ BLOB;
 		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
 		$srcs    = get_post_gallery_images( $post_id );
 		$this->assertSame( $srcs, $ids1_srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_block_post_gallery_images() {
+		// Similar to test_post_gallery_images but with blocks instead of shortcodes
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 6 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+		}
+
+		$imgs1_joined = join( "\n", array_slice( $imgs, 0, 3 ) );
+		$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
+
+		$blob    = <<<BLOB
+<!-- wp:gallery -->
+$imgs1_joined
+<!-- /wp:gallery -->
+<!-- wp:gallery -->
+$imgs2_joined
+<!-- /wp:gallery -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( array_slice( $ids_srcs, 0, 3 ), $srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_block_post_gallery_images_json() {
+		// Similar to test_block_post_gallery_images, with IDs in the json blob
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 6 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+
+		}
+
+		$ids1_joined = join( ',', array_slice( $ids, 0, 3 ) );
+		$ids2_joined = join( ',', array_slice( $ids, 3, 3 ) );
+
+		$blob    = <<<BLOB
+<!-- wp:gallery {"ids":[$ids1_joined]} -->
+<!-- /wp:gallery -->
+
+<!-- wp:gallery {"ids":[$ids2_joined]} -->
+<!-- /wp:gallery -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( array_slice( $ids_srcs, 0, 3 ), $srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_mixed_post_gallery_images() {
+		// Similar to test_post_gallery_images but with a shortcode and a block in the same post
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 6 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0,
+				array(
+					'post_mime_type' => 'image/jpeg',
+					'post_type'      => 'attachment',
+				)
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+		}
+
+		$ids1_joined  = join( "\n", array_slice( $ids, 0, 3 ) );
+		$ids2_joined  = join( "\n", array_slice( $ids, 3, 3 ) );
+		$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
+
+		$blob    = <<<BLOB
+[gallery ids="$ids1_joined"]
+
+[gallery ids="$ids2_joined"]
+<!-- wp:gallery -->
+$imgs2_joined
+<!-- /wp:gallery -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( array_slice( $ids_srcs, 0, 3 ), $srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_block_inner_post_gallery_images() {
+		// Make sure get_post_gallery_images() works with gallery blocks that are nested inside something else
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 3 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0,
+				array(
+					'post_mime_type' => 'image/jpeg',
+					'post_type'      => 'attachment',
+				)
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+
+		}
+
+		$imgs_joined = join( "\n", $imgs );
+
+		$blob    = <<<BLOB
+<!-- wp:columns -->
+<!-- wp:column -->
+<!-- wp:gallery -->
+$imgs_joined
+<!-- /wp:gallery -->
+<!-- /wp:column -->
+<!-- /wp:columns -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( $ids_srcs, $srcs );
+	}
+
+	/**
+	 * @ticket 43826
+	 * @group blocks
+	 */
+	public function test_block_post_gallery_innerblock_images() {
+		// Make sure get_post_gallery_images() works with new version of gallery block with nested image blocks.
+		$ids      = array();
+		$imgs     = array();
+		$ids_srcs = array();
+		foreach ( range( 1, 3 ) as $i ) {
+			$attachment_id = self::factory()->attachment->create_object(
+				"image$i.jpg",
+				0,
+				array(
+					'post_mime_type' => 'image/jpeg',
+					'post_type'      => 'attachment',
+				)
+			);
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			$ids[]      = $attachment_id;
+			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$ids_srcs[] = $url;
+			$imgs[]     = '<!-- wp:image {"id":' . $attachment_id . ',"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="' . $url . '" /></figure><!-- /wp:image -->';
+
+		}
+
+		$imgs_joined = join( "\n", $imgs );
+
+		$blob    = <<<BLOB
+<!-- wp:gallery -->
+<figure class="wp-block-gallery has-nested-images columns-default is-cropped">
+$imgs_joined
+</figure>
+<!-- /wp:gallery -->
+BLOB;
+		$post_id = self::factory()->post->create( array( 'post_content' => $blob ) );
+		$srcs    = get_post_gallery_images( $post_id );
+		$this->assertSameSetsWithIndex( $ids_srcs, $srcs );
 	}
 
 	public function test_get_media_embedded_in_content() {
