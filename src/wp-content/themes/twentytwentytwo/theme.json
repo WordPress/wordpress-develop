@@ -356,7 +356,12 @@
 		},
 		{
 			"name": "header-large-dark",
-			"title": "Header — Dark",
+			"title": "Header (Dark, large)",
+			"area": "header"
+		},
+		{
+			"name": "header-small-dark",
+			"title": "Header (Dark, small)",
 			"area": "header"
 		},
 		{
