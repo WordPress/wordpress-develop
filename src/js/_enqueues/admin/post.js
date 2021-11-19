@@ -972,7 +972,7 @@ jQuery( function($) {
 	 * @return {void}
 	 */
 	function editPermalink() {
-		var i, slug_value,
+		var i, slug_value, slug_label,
 			$el, revert_e,
 			c = 0,
 			real_slug = $('#post_name'),
