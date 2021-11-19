@@ -21,7 +21,7 @@ if ( is_multisite() ) :
 			WP_Theme::get_allowed( $blog_id );
 			remove_filter( 'network_allowed_themes', array( $this, 'filter_network_allowed_themes' ) );
 
-			$this->assertSame( 2, count( $this->filter_network_allowed_themes_args ) );
+			$this->assertCount( 2, $this->filter_network_allowed_themes_args );
 			$this->assertSame( $blog_id, $this->filter_network_allowed_themes_args[1] );
 		}
 

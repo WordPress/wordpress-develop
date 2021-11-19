@@ -18,7 +18,7 @@ $current_screen->is_block_editor( true );
 $block_editor_context = new WP_Block_Editor_Context();
 
 $preload_paths = array(
-	array( '/wp/v2/media', 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
 	'/wp/v2/sidebars?context=edit&per_page=-1',
 	'/wp/v2/widgets?context=edit&per_page=-1&_embed=about',
 );
@@ -52,7 +52,7 @@ wp_add_inline_script(
 
 wp_add_inline_script(
 	'wp-blocks',
-	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( 'widgets-editor' ) ) ),
+	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( $block_editor_context ) ) ),
 	'after'
 );
 

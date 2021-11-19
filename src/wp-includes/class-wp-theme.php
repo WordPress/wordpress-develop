@@ -44,6 +44,16 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Default themes.
 	 *
+	 * @since 3.4.0
+	 * @since 3.5.0 Added the Twenty Twelve theme.
+	 * @since 3.6.0 Added the Twenty Thirteen theme.
+	 * @since 3.8.0 Added the Twenty Fourteen theme.
+	 * @since 4.1.0 Added the Twenty Fifteen theme.
+	 * @since 4.4.0 Added the Twenty Sixteen theme.
+	 * @since 4.7.0 Added the Twenty Seventeen theme.
+	 * @since 5.0.0 Added the Twenty Nineteen theme.
+	 * @since 5.3.0 Added the Twenty Twenty theme.
+	 * @since 5.6.0 Added the Twenty Twenty-One theme.
 	 * @var array
 	 */
 	private static $default_themes = array(
@@ -60,11 +70,13 @@ final class WP_Theme implements ArrayAccess {
 		'twentynineteen'  => 'Twenty Nineteen',
 		'twentytwenty'    => 'Twenty Twenty',
 		'twentytwentyone' => 'Twenty Twenty-One',
+		'twentytwentytwo' => 'Twenty Twenty-Two',
 	);
 
 	/**
 	 * Renamed theme tags.
 	 *
+	 * @since 3.8.0
 	 * @var array
 	 */
 	private static $tag_map = array(
@@ -75,6 +87,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Absolute path to the theme root, usually wp-content/themes
 	 *
+	 * @since 3.4.0
 	 * @var string
 	 */
 	private $theme_root;
@@ -82,6 +95,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Header data from the theme's style.css file.
 	 *
+	 * @since 3.4.0
 	 * @var array
 	 */
 	private $headers = array();
@@ -89,6 +103,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Header data from the theme's style.css file after being sanitized.
 	 *
+	 * @since 3.4.0
 	 * @var array
 	 */
 	private $headers_sanitized;
@@ -98,6 +113,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * Cached due to sorting functions running over the translated name.
 	 *
+	 * @since 3.4.0
 	 * @var string
 	 */
 	private $name_translated;
@@ -105,6 +121,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Errors encountered when initializing the theme.
 	 *
+	 * @since 3.4.0
 	 * @var WP_Error
 	 */
 	private $errors;
@@ -115,6 +132,7 @@ final class WP_Theme implements ArrayAccess {
 	 * In the case of a child theme, this is directory name of the child theme.
 	 * Otherwise, 'stylesheet' is the same as 'template'.
 	 *
+	 * @since 3.4.0
 	 * @var string
 	 */
 	private $stylesheet;
@@ -125,6 +143,7 @@ final class WP_Theme implements ArrayAccess {
 	 * In the case of a child theme, this is the directory name of the parent theme.
 	 * Otherwise, 'template' is the same as 'stylesheet'.
 	 *
+	 * @since 3.4.0
 	 * @var string
 	 */
 	private $template;
@@ -132,6 +151,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * A reference to the parent theme, in the case of a child theme.
 	 *
+	 * @since 3.4.0
 	 * @var WP_Theme
 	 */
 	private $parent;
@@ -139,6 +159,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * URL to the theme root, usually an absolute URL to wp-content/themes
 	 *
+	 * @since 3.4.0
 	 * @var string
 	 */
 	private $theme_root_uri;
@@ -146,6 +167,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Flag for whether the theme's textdomain is loaded.
 	 *
+	 * @since 3.4.0
 	 * @var bool
 	 */
 	private $textdomain_loaded;
@@ -153,6 +175,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Stores an md5 hash of the theme root, to function as the cache key.
 	 *
+	 * @since 3.4.0
 	 * @var string
 	 */
 	private $cache_hash;
@@ -162,6 +185,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * Default is false. Can be set with the {@see 'wp_cache_themes_persistently'} filter.
 	 *
+	 * @since 3.4.0
 	 * @var bool
 	 */
 	private static $persistently_cache;
@@ -171,6 +195,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * By default the bucket is not cached, so this value is useless.
 	 *
+	 * @since 3.4.0
 	 * @var bool
 	 */
 	private static $cache_expiration = 1800;
@@ -532,6 +557,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @param mixed $offset
 	 * @param mixed $value
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {}
 
 	/**
@@ -541,6 +567,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param mixed $offset
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {}
 
 	/**
@@ -551,6 +578,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @param mixed $offset
 	 * @return bool
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetExists( $offset ) {
 		static $keys = array(
 			'Name',
@@ -592,6 +620,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @param mixed $offset
 	 * @return mixed
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
 		switch ( $offset ) {
 			case 'Name':
@@ -1184,8 +1213,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 4.7.0
 	 * @since 5.8.0 Include block templates.
 	 *
-	 * @return string[] Array of page templates, keyed by filename and post type,
-	 *                  with the value of the translated header name.
+	 * @return array[] Array of page template arrays, keyed by post type and filename,
+	 *                 with the value of the translated header name.
 	 */
 	public function get_post_templates() {
 		// If you screw up your current theme and we invalidate your parent, most things still work. Let it slide.

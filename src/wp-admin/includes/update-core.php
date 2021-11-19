@@ -804,6 +804,12 @@ $_old_files = array(
 	// 5.7
 	'wp-includes/blocks/classic/block.json',
 	// 5.8
+	'wp-admin/images/freedoms.png',
+	'wp-admin/images/privacy.png',
+	'wp-admin/images/about-badge.svg',
+	'wp-admin/images/about-color-palette.svg',
+	'wp-admin/images/about-color-palette-vert.svg',
+	'wp-admin/images/about-header-brushes.svg',
 	'wp-includes/block-patterns/large-header.php',
 	'wp-includes/block-patterns/heading-paragraph.php',
 	'wp-includes/block-patterns/quote.php',
@@ -816,6 +822,10 @@ $_old_files = array(
 	'wp-includes/block-patterns/large-header-button.php',
 	'wp-includes/blocks/subhead/block.json',
 	'wp-includes/blocks/subhead',
+	'wp-includes/css/dist/editor/editor-styles.css',
+	'wp-includes/css/dist/editor/editor-styles.min.css',
+	'wp-includes/css/dist/editor/editor-styles-rtl.css',
+	'wp-includes/css/dist/editor/editor-styles-rtl.min.css',
 );
 
 /**
@@ -854,6 +864,7 @@ $_new_bundled_files = array(
 	'themes/twentynineteen/'  => '5.0',
 	'themes/twentytwenty/'    => '5.3',
 	'themes/twentytwentyone/' => '5.6',
+	'themes/twentytwentytwo/' => '5.9',
 );
 
 /**
@@ -1387,8 +1398,8 @@ function update_core( $from, $to ) {
 	// Deactivate the REST API plugin if its version is 2.0 Beta 4 or lower.
 	_upgrade_440_force_deactivate_incompatible_plugins();
 
-	// Deactivate the Gutenberg plugin if its version is 10.7 or lower.
-	_upgrade_580_force_deactivate_incompatible_plugins();
+	// Deactivate the Gutenberg plugin if its version is 11.8 or lower.
+	_upgrade_590_force_deactivate_incompatible_plugins();
 
 	// Upgrade DB with separate request.
 	/** This filter is documented in wp-admin/includes/update-core.php */
@@ -1646,6 +1657,13 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	}
 
 	$dirs = glob( $directory . '*', GLOB_ONLYDIR );
+	$dirs = array_filter(
+		$dirs,
+		static function( $dir ) {
+			// Skip any node_modules directories.
+			return false === strpos( $dir, 'node_modules' );
+		}
+	);
 
 	if ( $dirs ) {
 		foreach ( $dirs as $dir ) {
@@ -1667,11 +1685,26 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
 }
 
 /**
+ * @access private
  * @ignore
- * @since 5.8.0
+ * @since 5.9.0
  */
-function _upgrade_580_force_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '10.7', '<=' ) ) {
+function _upgrade_590_force_deactivate_incompatible_plugins() {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '11.9', '<' ) ) {
+		$deactivated_gutenberg['gutenberg'] = array(
+			'plugin_name'         => 'Gutenberg',
+			'version_deactivated' => GUTENBERG_VERSION,
+			'version_compatible'  => '11.9',
+		);
+		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
+			$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );
+			$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
+			update_site_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
+		} else {
+			$deactivated_plugins = get_option( 'wp_force_deactivated_plugins', array() );
+			$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
+			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
+		}
 		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 	}
 }

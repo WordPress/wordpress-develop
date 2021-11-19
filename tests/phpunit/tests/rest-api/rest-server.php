@@ -10,8 +10,15 @@
  * @group restapi
  */
 class Tests_REST_Server extends WP_Test_REST_TestCase {
-	public function setUp() {
-		parent::setUp();
+	protected static $icon_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		$filename      = DIR_TESTDATA . '/images/test-image-large.jpg';
+		self::$icon_id = $factory->attachment->create_upload_object( $filename );
+	}
+
+	public function set_up() {
+		parent::set_up();
 
 		// Reset REST server to ensure only our routes are registered.
 		$GLOBALS['wp_rest_server'] = null;
@@ -20,12 +27,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		// Remove our temporary spy server.
 		$GLOBALS['wp_rest_server'] = null;
 		unset( $_REQUEST['_wpnonce'] );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function test_envelope() {
@@ -370,6 +377,38 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( $sent_headers['Allow'], 'POST' );
 	}
 
+	/**
+	 * @ticket 53063
+	 */
+	public function test_batched_options() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				array(
+					'methods'             => array( 'GET' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
+				),
+				array(
+					'methods'             => array( 'POST' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_null',
+					'allow_batch'         => false,
+				),
+				'allow_batch' => array( 'v1' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/test-ns/test' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$data = $response->get_data();
+
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
+		$this->assertArrayNotHasKey( 'allow_batch', $data['endpoints'][1] );
+	}
+
 	public function test_allow_header_sent_on_options_request() {
 		register_rest_route(
 			'test-ns',
@@ -545,7 +584,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertCount( 2, $alternate );
 		$this->assertEmpty( $alternate[0] );
 
-		$this->assertInternalType( 'array', $alternate[1] );
+		$this->assertIsArray( $alternate[1] );
 		$this->assertArrayNotHasKey( 'code', $alternate[1] );
 		$this->assertTrue( $alternate[1]['hello'] );
 
@@ -975,6 +1014,24 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertArrayHasKey( 'help', $index->get_links() );
 		$this->assertArrayNotHasKey( 'wp:active-theme', $index->get_links() );
+
+		// Check site icon.
+		$this->assertArrayHasKey( 'site_icon', $data );
+	}
+
+	/**
+	 * @ticket 52321
+	 */
+	public function test_get_index_with_site_icon() {
+		$server = new WP_REST_Server();
+		update_option( 'site_icon', self::$icon_id );
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertArrayHasKey( 'site_icon', $data );
+		$this->assertEquals( self::$icon_id, $data['site_icon'] );
 	}
 
 	public function test_get_namespace_index() {
@@ -1118,12 +1175,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 				continue;
 			}
 
-			$this->assertTrue( isset( $headers[ $header ] ), sprintf( 'Header %s is not present in the response.', $header ) );
+			$this->assertArrayHasKey( $header, $headers, sprintf( 'Header %s is not present in the response.', $header ) );
 			$this->assertSame( $value, $headers[ $header ] );
 		}
 
 		// Last-Modified should be unset as per #WP23021.
-		$this->assertFalse( isset( $headers['Last-Modified'] ), 'Last-Modified should not be sent.' );
+		$this->assertArrayNotHasKey( 'Last-Modified', $headers, 'Last-Modified should not be sent.' );
 	}
 
 	public function test_no_nocache_headers_on_unauthenticated_requests() {
@@ -1392,7 +1449,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function () {
+				'callback'            => static function () {
 					return new WP_REST_Response();
 				},
 				'permission_callback' => '__return_true',
@@ -1414,7 +1471,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function () {
+				'callback'            => static function () {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1505,7 +1562,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function() {
+				'callback'            => static function() {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1516,7 +1573,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => function() {
+				'callback'            => static function() {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1571,7 +1628,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 50244
-	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_callbacks_are_not_executed_if_request_validation_fails() {
 		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
@@ -1929,7 +1985,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test/(?P<id>[\d+])',
 			array(
 				'methods'             => array( 'POST', 'DELETE' ),
-				'callback'            => function ( WP_REST_Request $request ) {
+				'callback'            => static function ( WP_REST_Request $request ) {
 					return new WP_REST_Response( 'test' );
 				},
 				'permission_callback' => '__return_true',
@@ -2021,6 +2077,28 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$index = rest_do_request( '/' );
 		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
+	}
+
+	/**
+	 * @ticket 53056
+	 */
+	public function test_json_encode_error_results_in_500_status_code() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => function() {
+						return new \WP_REST_Response( INF );
+					},
+					'permission_callback' => '__return_true',
+					'args'                => array(),
+				),
+			)
+		);
+		rest_get_server()->serve_request( '/test-ns/v1/test' );
+		$this->assertSame( 500, rest_get_server()->status );
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {

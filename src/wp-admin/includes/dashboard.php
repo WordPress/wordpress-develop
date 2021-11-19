@@ -242,7 +242,7 @@ function _wp_dashboard_control_callback( $dashboard, $meta_box ) {
 	wp_dashboard_trigger_widget_control( $meta_box['id'] );
 	wp_nonce_field( 'edit-dashboard-widget_' . $meta_box['id'], 'dashboard-widget-nonce' );
 	echo '<input type="hidden" name="widget_id" value="' . esc_attr( $meta_box['id'] ) . '" />';
-	submit_button( __( 'Submit' ) );
+	submit_button( __( 'Save Changes' ) );
 	echo '</form>';
 }
 
@@ -1350,8 +1350,9 @@ function wp_print_community_events_markup() {
 			<p>
 				<span id="community-events-location-message"></span>
 
-				<button class="button-link community-events-toggle-location" aria-label="<?php esc_attr_e( 'Edit city' ); ?>" aria-expanded="false">
-					<span class="dashicons dashicons-edit"></span>
+				<button class="button-link community-events-toggle-location" aria-expanded="false">
+					<span class="dashicons dashicons-location" aria-hidden="true"></span>
+					<span class="community-events-location-edit"><?php _e( 'Select location' ); ?></span>
 				</button>
 			</p>
 
@@ -1658,10 +1659,9 @@ function wp_dashboard_quota() {
  * Displays the browser update nag.
  *
  * @since 3.2.0
- * @since 5.8.0 Display special message for Internet Explorer users.
+ * @since 5.8.0 Added a special message for Internet Explorer users.
  *
  * @global bool $is_IE
- *
  */
 function wp_dashboard_browser_nag() {
 	global $is_IE;
@@ -1727,8 +1727,9 @@ function wp_dashboard_browser_nag() {
 	 *
 	 * @since 3.2.0
 	 *
-	 * @param string $notice   The notice content.
-	 * @param array  $response An array containing web browser information. See `wp_check_browser_version()`.
+	 * @param string      $notice   The notice content.
+	 * @param array|false $response An array containing web browser information, or
+	 *                              false on failure. See `wp_check_browser_version()`.
 	 */
 	echo apply_filters( 'browse-happy-notice', $notice, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
@@ -1909,65 +1910,67 @@ function wp_dashboard_site_health() {
 
 	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
 	?>
-	<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
-		<div class="site-health-progress">
-			<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
-				<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
-				<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
-			</svg>
+	<div class="health-check-widget">
+		<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
+			<div class="site-health-progress">
+				<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+					<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+					<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+				</svg>
+			</div>
+			<div class="site-health-progress-label">
+				<?php if ( false === $get_issues ) : ?>
+					<?php _e( 'No information yet&hellip;' ); ?>
+				<?php else : ?>
+					<?php _e( 'Results are still loading&hellip;' ); ?>
+				<?php endif; ?>
+			</div>
 		</div>
-		<div class="site-health-progress-label">
+
+		<div class="site-health-details">
 			<?php if ( false === $get_issues ) : ?>
-				<?php _e( 'No information yet&hellip;' ); ?>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: URL to Site Health screen. */
+						__( 'Site health checks will automatically run periodically to gather information about your site. You can also <a href="%s">visit the Site Health screen</a> to gather information about your site now.' ),
+						esc_url( admin_url( 'site-health.php' ) )
+					);
+					?>
+				</p>
 			<?php else : ?>
-				<?php _e( 'Results are still loading&hellip;' ); ?>
+				<p>
+					<?php if ( $issues_total <= 0 ) : ?>
+						<?php _e( 'Great job! Your site currently passes all site health checks.' ); ?>
+					<?php elseif ( 1 === (int) $issue_counts['critical'] ) : ?>
+						<?php _e( 'Your site has a critical issue that should be addressed as soon as possible to improve its performance and security.' ); ?>
+					<?php elseif ( $issue_counts['critical'] > 1 ) : ?>
+						<?php _e( 'Your site has critical issues that should be addressed as soon as possible to improve its performance and security.' ); ?>
+					<?php elseif ( 1 === (int) $issue_counts['recommended'] ) : ?>
+						<?php _e( 'Your site&#8217;s health is looking good, but there is still one thing you can do to improve its performance and security.' ); ?>
+					<?php else : ?>
+						<?php _e( 'Your site&#8217;s health is looking good, but there are still some things you can do to improve its performance and security.' ); ?>
+					<?php endif; ?>
+				</p>
+			<?php endif; ?>
+
+			<?php if ( $issues_total > 0 && false !== $get_issues ) : ?>
+				<p>
+					<?php
+					printf(
+						/* translators: 1: Number of issues. 2: URL to Site Health screen. */
+						_n(
+							'Take a look at the <strong>%1$d item</strong> on the <a href="%2$s">Site Health screen</a>.',
+							'Take a look at the <strong>%1$d items</strong> on the <a href="%2$s">Site Health screen</a>.',
+							$issues_total
+						),
+						$issues_total,
+						esc_url( admin_url( 'site-health.php' ) )
+					);
+					?>
+				</p>
 			<?php endif; ?>
 		</div>
-	</div>
-
-	<div class="site-health-details">
-		<?php if ( false === $get_issues ) : ?>
-			<p>
-				<?php
-				printf(
-					/* translators: %s: URL to Site Health screen. */
-					__( 'Site health checks will automatically run periodically to gather information about your site. You can also <a href="%s">visit the Site Health screen</a> to gather information about your site now.' ),
-					esc_url( admin_url( 'site-health.php' ) )
-				);
-				?>
-			</p>
-		<?php else : ?>
-			<p>
-				<?php if ( $issues_total <= 0 ) : ?>
-					<?php _e( 'Great job! Your site currently passes all site health checks.' ); ?>
-				<?php elseif ( 1 === (int) $issue_counts['critical'] ) : ?>
-					<?php _e( 'Your site has a critical issue that should be addressed as soon as possible to improve its performance and security.' ); ?>
-				<?php elseif ( $issue_counts['critical'] > 1 ) : ?>
-					<?php _e( 'Your site has critical issues that should be addressed as soon as possible to improve its performance and security.' ); ?>
-				<?php elseif ( 1 === (int) $issue_counts['recommended'] ) : ?>
-					<?php _e( 'Your site&#8217;s health is looking good, but there is still one thing you can do to improve its performance and security.' ); ?>
-				<?php else : ?>
-					<?php _e( 'Your site&#8217;s health is looking good, but there are still some things you can do to improve its performance and security.' ); ?>
-				<?php endif; ?>
-			</p>
-		<?php endif; ?>
-
-		<?php if ( $issues_total > 0 && false !== $get_issues ) : ?>
-			<p>
-				<?php
-				printf(
-					/* translators: 1: Number of issues. 2: URL to Site Health screen. */
-					_n(
-						'Take a look at the <strong>%1$d item</strong> on the <a href="%2$s">Site Health screen</a>.',
-						'Take a look at the <strong>%1$d items</strong> on the <a href="%2$s">Site Health screen</a>.',
-						$issues_total
-					),
-					$issues_total,
-					esc_url( admin_url( 'site-health.php' ) )
-				);
-				?>
-			</p>
-		<?php endif; ?>
 	</div>
 
 	<?php

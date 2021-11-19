@@ -42,12 +42,16 @@ function generate_block_asset_handle( $block_name, $field_name ) {
 		if ( 0 === strpos( $field_name, 'editor' ) ) {
 			$asset_handle .= '-editor';
 		}
+		if ( 0 === strpos( $field_name, 'view' ) ) {
+			$asset_handle .= '-view';
+		}
 		return $asset_handle;
 	}
 
 	$field_mappings = array(
 		'editorScript' => 'editor-script',
 		'script'       => 'script',
+		'viewScript'   => 'view-script',
 		'editorStyle'  => 'editor-style',
 		'style'        => 'style',
 	);
@@ -96,18 +100,23 @@ function register_block_script_handle( $metadata, $field_name ) {
 		);
 		return false;
 	}
-	$script_asset = require $script_asset_path;
-	$result       = wp_register_script(
+	$is_core_block       = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
+	$script_uri          = $is_core_block ?
+		includes_url( str_replace( ABSPATH . WPINC, '', realpath( dirname( $metadata['file'] ) . '/' . $script_path ) ) ) :
+		plugins_url( $script_path, $metadata['file'] );
+	$script_asset        = require $script_asset_path;
+	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
+	$result              = wp_register_script(
 		$script_handle,
-		plugins_url( $script_path, $metadata['file'] ),
-		$script_asset['dependencies'],
-		$script_asset['version']
+		$script_uri,
+		$script_dependencies,
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false
 	);
 	if ( ! $result ) {
 		return false;
 	}
 
-	if ( ! empty( $metadata['textdomain'] ) ) {
+	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $script_dependencies, true ) ) {
 		wp_set_script_translations( $script_handle, $metadata['textdomain'] );
 	}
 
@@ -151,11 +160,13 @@ function register_block_style_handle( $metadata, $field_name ) {
 		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
 	}
 
-	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
-	$block_dir    = dirname( $metadata['file'] );
-	$style_file   = realpath( "$block_dir/$style_path" );
-	$version      = file_exists( $style_file ) ? filemtime( $style_file ) : false;
-	$result       = wp_register_style(
+	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
+	$block_dir      = dirname( $metadata['file'] );
+	$style_file     = realpath( "$block_dir/$style_path" );
+	$has_style_file = false !== $style_file;
+	$version        = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$style_uri      = $has_style_file ? $style_uri : false;
+	$result         = wp_register_style(
 		$style_handle,
 		$style_uri,
 		array(),
@@ -164,7 +175,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
 	}
-	if ( file_exists( $style_file ) ) {
+	if ( $has_style_file ) {
 		wp_style_add_data( $style_handle, 'path', $style_file );
 	}
 
@@ -177,12 +188,32 @@ function register_block_style_handle( $metadata, $field_name ) {
 }
 
 /**
+ * Gets i18n schema for block's metadata read from `block.json` file.
+ *
+ * @since 5.9.0
+ *
+ * @return array The schema for block's metadata.
+ */
+function get_block_metadata_i18n_schema() {
+	static $i18n_block_schema;
+
+	if ( ! isset( $i18n_block_schema ) ) {
+		$i18n_block_schema = wp_json_file_decode( __DIR__ . '/block-i18n.json' );
+	}
+
+	return $i18n_block_schema;
+}
+
+/**
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
+ * @since 5.7.0 Added support for `textdomain` field and i18n handling for all translatable fields.
+ * @since 5.9.0 Added support for `variations` and `viewScript` fields.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
+ *                               If providing the path to a JSON file, the filename must end with `block.json`.
  * @param array  $args           Optional. Array of block type arguments. Accepts any public property
  *                               of `WP_Block_Type`. See WP_Block_Type::__construct() for information
  *                               on accepted arguments. Default empty array.
@@ -197,7 +228,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		return false;
 	}
 
-	$metadata = json_decode( file_get_contents( $metadata_file ), true );
+	$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
 		return false;
 	}
@@ -212,22 +243,21 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 */
 	$metadata = apply_filters( 'block_type_metadata', $metadata );
 
-	/**
-	 * Add `style` and `editor_style` for core blocks if missing.
-	 */
+	// Add `style` and `editor_style` for core blocks if missing.
 	if ( ! empty( $metadata['name'] ) && 0 === strpos( $metadata['name'], 'core/' ) ) {
 		$block_name = str_replace( 'core/', '', $metadata['name'] );
 
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
 		}
-		if ( ! isset( $metadata['editor_style'] ) ) {
-			$metadata['editor_style'] = "wp-block-$block_name-editor";
+		if ( ! isset( $metadata['editorStyle'] ) ) {
+			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
 		}
 	}
 
 	$settings          = array();
 	$property_mappings = array(
+		'apiVersion'      => 'api_version',
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
@@ -239,53 +269,17 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'usesContext'     => 'uses_context',
 		'supports'        => 'supports',
 		'styles'          => 'styles',
+		'variations'      => 'variations',
 		'example'         => 'example',
-		'apiVersion'      => 'api_version',
 	);
+	$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
+	$i18n_schema       = get_block_metadata_i18n_schema();
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
-			$value = $metadata[ $key ];
-			if ( empty( $metadata['textdomain'] ) ) {
-				$settings[ $mapped_key ] = $value;
-				continue;
-			}
-			$textdomain = $metadata['textdomain'];
-			switch ( $key ) {
-				case 'title':
-				case 'description':
-					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain
-					$settings[ $mapped_key ] = translate_with_gettext_context( $value, sprintf( 'block %s', $key ), $textdomain );
-					break;
-				case 'keywords':
-					$settings[ $mapped_key ] = array();
-					if ( ! is_array( $value ) ) {
-						continue 2;
-					}
-
-					foreach ( $value as $keyword ) {
-						// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-						$settings[ $mapped_key ][] = translate_with_gettext_context( $keyword, 'block keyword', $textdomain );
-					}
-
-					break;
-				case 'styles':
-					$settings[ $mapped_key ] = array();
-					if ( ! is_array( $value ) ) {
-						continue 2;
-					}
-
-					foreach ( $value as $style ) {
-						if ( ! empty( $style['label'] ) ) {
-							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-							$style['label'] = translate_with_gettext_context( $style['label'], 'block style label', $textdomain );
-						}
-						$settings[ $mapped_key ][] = $style;
-					}
-
-					break;
-				default:
-					$settings[ $mapped_key ] = $value;
+			$settings[ $mapped_key ] = $metadata[ $key ];
+			if ( $textdomain && isset( $i18n_schema->$key ) ) {
+				$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
 			}
 		}
 	}
@@ -301,6 +295,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$settings['script'] = register_block_script_handle(
 			$metadata,
 			'script'
+		);
+	}
+
+	if ( ! empty( $metadata['viewScript'] ) ) {
+		$settings['view_script'] = register_block_script_handle(
+			$metadata,
+			'viewScript'
 		);
 	}
 
@@ -346,7 +347,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
  * the metadata stored in the `block.json` file.
  *
  * @since 5.0.0
- * @since 5.8.0 First param accepts a path to the `block.json` file.
+ * @since 5.8.0 First parameter now accepts a path to the `block.json` file.
  *
  * @param string|WP_Block_Type $block_type Block type name including namespace, or alternatively
  *                                         a path to the JSON file with metadata definition for the block,
@@ -488,13 +489,17 @@ function get_dynamic_block_names() {
  * substitution for characters which might otherwise interfere with embedding
  * the result in an HTML comment.
  *
+ * This function must produce output that remains in sync with the output of
+ * the serializeAttributes JavaScript function in the block editor in order
+ * to ensure consistent operation between PHP and JavaScript.
+ *
  * @since 5.3.1
  *
  * @param array $block_attributes Attributes object.
  * @return string Serialized attributes.
  */
 function serialize_block_attributes( $block_attributes ) {
-	$encoded_attributes = json_encode( $block_attributes );
+	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	$encoded_attributes = preg_replace( '/--/', '\\u002d\\u002d', $encoded_attributes );
 	$encoded_attributes = preg_replace( '/</', '\\u003c', $encoded_attributes );
 	$encoded_attributes = preg_replace( '/>/', '\\u003e', $encoded_attributes );
@@ -710,7 +715,23 @@ function excerpt_remove_blocks( $content ) {
 		'core/verse',
 	);
 
-	$allowed_blocks = array_merge( $allowed_inner_blocks, array( 'core/columns' ) );
+	$allowed_wrapper_blocks = array(
+		'core/columns',
+		'core/column',
+		'core/group',
+	);
+
+	/**
+	 * Filters the list of blocks that can be used as wrapper blocks, allowing
+	 * excerpts to be generated from the `innerBlocks` of these wrappers.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string[] $allowed_wrapper_blocks The list of names of allowed wrapper blocks.
+	 */
+	$allowed_wrapper_blocks = apply_filters( 'excerpt_allowed_wrapper_blocks', $allowed_wrapper_blocks );
+
+	$allowed_blocks = array_merge( $allowed_inner_blocks, $allowed_wrapper_blocks );
 
 	/**
 	 * Filters the list of blocks that can contribute to the excerpt.
@@ -720,7 +741,7 @@ function excerpt_remove_blocks( $content ) {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param array $allowed_blocks The list of allowed blocks.
+	 * @param string[] $allowed_blocks The list of names of allowed blocks.
 	 */
 	$allowed_blocks = apply_filters( 'excerpt_allowed_blocks', $allowed_blocks );
 	$blocks         = parse_blocks( $content );
@@ -729,8 +750,8 @@ function excerpt_remove_blocks( $content ) {
 	foreach ( $blocks as $block ) {
 		if ( in_array( $block['blockName'], $allowed_blocks, true ) ) {
 			if ( ! empty( $block['innerBlocks'] ) ) {
-				if ( 'core/columns' === $block['blockName'] ) {
-					$output .= _excerpt_render_inner_columns_blocks( $block, $allowed_inner_blocks );
+				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
+					$output .= _excerpt_render_inner_blocks( $block, $allowed_blocks );
 					continue;
 				}
 
@@ -753,23 +774,28 @@ function excerpt_remove_blocks( $content ) {
 }
 
 /**
- * Render inner blocks from the `core/columns` block for generating an excerpt.
+ * Render inner blocks from the allowed wrapper blocks
+ * for generating an excerpt.
  *
- * @since 5.2.0
+ * @since 5.8.0
  * @access private
  *
- * @param array $columns        The parsed columns block.
+ * @param array $parsed_block   The parsed block.
  * @param array $allowed_blocks The list of allowed inner blocks.
  * @return string The rendered inner blocks.
  */
-function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
+function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 	$output = '';
 
-	foreach ( $columns['innerBlocks'] as $column ) {
-		foreach ( $column['innerBlocks'] as $inner_block ) {
-			if ( in_array( $inner_block['blockName'], $allowed_blocks, true ) && empty( $inner_block['innerBlocks'] ) ) {
-				$output .= render_block( $inner_block );
-			}
+	foreach ( $parsed_block['innerBlocks'] as $inner_block ) {
+		if ( ! in_array( $inner_block['blockName'], $allowed_blocks, true ) ) {
+			continue;
+		}
+
+		if ( empty( $inner_block['innerBlocks'] ) ) {
+			$output .= render_block( $inner_block );
+		} else {
+			$output .= _excerpt_render_inner_blocks( $inner_block, $allowed_blocks );
 		}
 	}
 
@@ -788,16 +814,19 @@ function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
  */
 function render_block( $parsed_block ) {
 	global $post;
+	$parent_block = null;
 
 	/**
 	 * Allows render_block() to be short-circuited, by returning a non-null value.
 	 *
 	 * @since 5.1.0
+	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param string|null $pre_render   The pre-rendered content. Default null.
-	 * @param array       $parsed_block The block being rendered.
+	 * @param string|null   $pre_render   The pre-rendered content. Default null.
+	 * @param array         $parsed_block The block being rendered.
+	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
-	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block );
+	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block, $parent_block );
 	if ( ! is_null( $pre_render ) ) {
 		return $pre_render;
 	}
@@ -808,11 +837,13 @@ function render_block( $parsed_block ) {
 	 * Filters the block being rendered in render_block(), before it's processed.
 	 *
 	 * @since 5.1.0
+	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param array $parsed_block The block being rendered.
-	 * @param array $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+	 * @param array         $parsed_block The block being rendered.
+	 * @param array         $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
-	$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block );
+	$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block, $parent_block );
 
 	$context = array();
 
@@ -832,11 +863,13 @@ function render_block( $parsed_block ) {
 	 * Filters the default context provided to a rendered block.
 	 *
 	 * @since 5.5.0
+	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param array $context      Default context.
-	 * @param array $parsed_block Block being rendered, filtered by `render_block_data`.
+	 * @param array         $context      Default context.
+	 * @param array         $parsed_block Block being rendered, filtered by `render_block_data`.
+	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
-	$context = apply_filters( 'render_block_context', $context, $parsed_block );
+	$context = apply_filters( 'render_block_context', $context, $parsed_block, $parent_block );
 
 	$block = new WP_Block( $parsed_block, $context );
 
@@ -960,9 +993,8 @@ function unregister_block_style( $block_name, $block_style_name ) {
  *
  * @param WP_Block_Type $block_type Block type to check for support.
  * @param string        $feature    Name of the feature to check support for.
- * @param mixed         $default    Fallback value for feature support, defaults to false.
- *
- * @return boolean                  Whether or not the feature is supported.
+ * @param mixed         $default    Optional. Fallback value for feature support. Default false.
+ * @return bool Whether the feature is supported.
  */
 function block_has_support( $block_type, $feature, $default = false ) {
 	$block_support = $default;
@@ -1047,8 +1079,11 @@ function build_query_vars_from_query_block( $block, $page ) {
 	);
 
 	if ( isset( $block->context['query'] ) ) {
-		if ( isset( $block->context['query']['postType'] ) ) {
-			$query['post_type'] = $block->context['query']['postType'];
+		if ( ! empty( $block->context['query']['postType'] ) ) {
+			$post_type_param = $block->context['query']['postType'];
+			if ( is_post_type_viewable( $post_type_param ) ) {
+				$query['post_type'] = $post_type_param;
+			}
 		}
 		if ( isset( $block->context['query']['sticky'] ) && ! empty( $block->context['query']['sticky'] ) ) {
 			$sticky = get_option( 'sticky_posts' );
@@ -1058,31 +1093,206 @@ function build_query_vars_from_query_block( $block, $page ) {
 				$query['post__not_in'] = array_merge( $query['post__not_in'], $sticky );
 			}
 		}
-		if ( isset( $block->context['query']['exclude'] ) ) {
-			$query['post__not_in'] = array_merge( $query['post__not_in'], $block->context['query']['exclude'] );
+		if ( ! empty( $block->context['query']['exclude'] ) ) {
+			$excluded_post_ids     = array_map( 'intval', $block->context['query']['exclude'] );
+			$excluded_post_ids     = array_filter( $excluded_post_ids );
+			$query['post__not_in'] = array_merge( $query['post__not_in'], $excluded_post_ids );
 		}
-		if ( isset( $block->context['query']['perPage'] ) ) {
-			$query['offset']         = ( $block->context['query']['perPage'] * ( $page - 1 ) ) + $block->context['query']['offset'];
-			$query['posts_per_page'] = $block->context['query']['perPage'];
+		if (
+			isset( $block->context['query']['perPage'] ) &&
+			is_numeric( $block->context['query']['perPage'] )
+		) {
+			$per_page = absint( $block->context['query']['perPage'] );
+			$offset   = 0;
+
+			if (
+				isset( $block->context['query']['offset'] ) &&
+				is_numeric( $block->context['query']['offset'] )
+			) {
+				$offset = absint( $block->context['query']['offset'] );
+			}
+
+			$query['offset']         = ( $per_page * ( $page - 1 ) ) + $offset;
+			$query['posts_per_page'] = $per_page;
 		}
-		if ( isset( $block->context['query']['categoryIds'] ) ) {
-			$query['category__in'] = $block->context['query']['categoryIds'];
+		if ( ! empty( $block->context['query']['categoryIds'] ) ) {
+			$term_ids              = array_map( 'intval', $block->context['query']['categoryIds'] );
+			$term_ids              = array_filter( $term_ids );
+			$query['category__in'] = $term_ids;
 		}
-		if ( isset( $block->context['query']['tagIds'] ) ) {
-			$query['tag__in'] = $block->context['query']['tagIds'];
+		if ( ! empty( $block->context['query']['tagIds'] ) ) {
+			$term_ids         = array_map( 'intval', $block->context['query']['tagIds'] );
+			$term_ids         = array_filter( $term_ids );
+			$query['tag__in'] = $term_ids;
 		}
-		if ( isset( $block->context['query']['order'] ) ) {
+		if (
+			isset( $block->context['query']['order'] ) &&
+				in_array( strtoupper( $block->context['query']['order'] ), array( 'ASC', 'DESC' ), true )
+		) {
 			$query['order'] = strtoupper( $block->context['query']['order'] );
 		}
 		if ( isset( $block->context['query']['orderBy'] ) ) {
 			$query['orderby'] = $block->context['query']['orderBy'];
 		}
-		if ( isset( $block->context['query']['author'] ) ) {
-			$query['author'] = $block->context['query']['author'];
+		if (
+			isset( $block->context['query']['author'] ) &&
+			(int) $block->context['query']['author'] > 0
+		) {
+			$query['author'] = (int) $block->context['query']['author'];
 		}
-		if ( isset( $block->context['query']['search'] ) ) {
+		if ( ! empty( $block->context['query']['search'] ) ) {
 			$query['s'] = $block->context['query']['search'];
 		}
 	}
 	return $query;
 }
+
+/**
+ * Helper function that returns the proper pagination arrow html for
+ * `QueryPaginationNext` and `QueryPaginationPrevious` blocks based
+ * on the provided `paginationArrow` from `QueryPagination` context.
+ *
+ * It's used in QueryPaginationNext and QueryPaginationPrevious blocks.
+ *
+ * @since 5.9.0
+ *
+ * @param WP_Block $block   Block instance.
+ * @param boolean  $is_next Flag for hanlding `next/previous` blocks.
+ *
+ * @return string|null Returns the constructed WP_Query arguments.
+ */
+function get_query_pagination_arrow( $block, $is_next ) {
+	$arrow_map = array(
+		'none'    => '',
+		'arrow'   => array(
+			'next'     => '→',
+			'previous' => '←',
+		),
+		'chevron' => array(
+			'next'     => '»',
+			'previous' => '«',
+		),
+	);
+	if ( ! empty( $block->context['paginationArrow'] ) && array_key_exists( $block->context['paginationArrow'], $arrow_map ) && ! empty( $arrow_map[ $block->context['paginationArrow'] ] ) ) {
+		$pagination_type = $is_next ? 'next' : 'previous';
+		$arrow_attribute = $block->context['paginationArrow'];
+		$arrow           = $arrow_map[ $block->context['paginationArrow'] ][ $pagination_type ];
+		$arrow_classes   = "wp-block-query-pagination-$pagination_type-arrow is-arrow-$arrow_attribute";
+		return "<span class='$arrow_classes'>$arrow</span>";
+	}
+	return null;
+}
+
+/**
+ * Enqueue a stylesheet for a specific block.
+ *
+ * If the theme has opted-in to separate-styles loading,
+ * then the stylesheet will be enqueued on-render,
+ * otherwise when the block inits.
+ *
+ * @param string $block_name The block-name, including namespace.
+ * @param array  $args       An array of arguments [handle,src,deps,ver,media].
+ *
+ * @return void
+ */
+function wp_enqueue_block_style( $block_name, $args ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'handle' => '',
+			'src'    => '',
+			'deps'   => array(),
+			'ver'    => false,
+			'media'  => 'all',
+		)
+	);
+
+	/**
+	 * Callback function to register and enqueue styles.
+	 *
+	 * @param string $content When the callback is used for the render_block filter,
+	 *                        the content needs to be returned so the function parameter
+	 *                        is to ensure the content exists.
+	 *
+	 * @return string
+	 */
+	$callback = static function( $content ) use ( $args ) {
+		// Register the stylesheet.
+		if ( ! empty( $args['src'] ) ) {
+			wp_register_style( $args['handle'], $args['src'], $args['deps'], $args['ver'], $args['media'] );
+		}
+
+		// Add `path` data if provided.
+		if ( isset( $args['path'] ) ) {
+			wp_style_add_data( $args['handle'], 'path', $args['path'] );
+
+			// Get the RTL file path.
+			$rtl_file_path = str_replace( '.css', '-rtl.css', $args['path'] );
+
+			// Add RTL stylesheet.
+			if ( file_exists( $rtl_file_path ) ) {
+				wp_style_add_data( $args['hanle'], 'rtl', 'replace' );
+
+				if ( is_rtl() ) {
+					wp_style_add_data( $args['handle'], 'path', $rtl_file_path );
+				}
+			}
+		}
+
+		// Enqueue the stylesheet.
+		wp_enqueue_style( $args['handle'] );
+
+		return $content;
+	};
+
+	$hook = did_action( 'wp_enqueue_scripts' ) ? 'wp_footer' : 'wp_enqueue_scripts';
+	if ( wp_should_load_separate_core_block_assets() ) {
+		$hook = "render_block_$block_name";
+	}
+
+	/*
+	 * The filter's callback here is an anonymous function because
+	 * using a named function in this case is not possible.
+	 *
+	 * The function cannot be unhooked, however, users are still able
+	 * to dequeue the stylesheets registered/enqueued by the callback
+	 * which is why in this case, using an anonymous function
+	 * was deemed acceptable.
+	 */
+	add_filter( $hook, $callback );
+
+	// Enqueue assets in the editor.
+	add_action( 'enqueue_block_assets', $callback );
+}
+
+/**
+ * Allow multiple block styles.
+ *
+ * @param array $metadata Metadata for registering a block type.
+ *
+ * @return array
+ */
+function _wp_multiple_block_styles( $metadata ) {
+	foreach ( array( 'style', 'editorStyle' ) as $key ) {
+		if ( ! empty( $metadata[ $key ] ) && is_array( $metadata[ $key ] ) ) {
+			$default_style = array_shift( $metadata[ $key ] );
+			foreach ( $metadata[ $key ] as $handle ) {
+				$args = array( 'handle' => $handle );
+				if ( 0 === strpos( $handle, 'file:' ) && isset( $metadata['file'] ) ) {
+					$style_path = remove_block_asset_path_prefix( $handle );
+					$args       = array(
+						'handle' => sanitize_key( "{$metadata['name']}-{$style_path}" ),
+						'src'    => plugins_url( $style_path, $metadata['file'] ),
+					);
+				}
+
+				wp_enqueue_block_style( $metadata['name'], $args );
+			}
+
+			// Only return the 1st item in the array.
+			$metadata[ $key ] = $default_style;
+		}
+	}
+	return $metadata;
+}
+add_filter( 'block_type_metadata', '_wp_multiple_block_styles' );

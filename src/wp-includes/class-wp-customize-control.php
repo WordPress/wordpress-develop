@@ -397,7 +397,7 @@ class WP_Customize_Control {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Control $this WP_Customize_Control instance.
+		 * @param WP_Customize_Control $control WP_Customize_Control instance.
 		 */
 		do_action( 'customize_render_control', $this );
 
@@ -409,7 +409,7 @@ class WP_Customize_Control {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Control $this WP_Customize_Control instance.
+		 * @param WP_Customize_Control $control WP_Customize_Control instance.
 		 */
 		do_action( "customize_render_control_{$this->id}", $this );
 
@@ -632,8 +632,8 @@ class WP_Customize_Control {
 						?>
 					</button>
 					<div class="new-content-item">
-						<label for="create-input-<?php echo $this->id; ?>"><span class="screen-reader-text"><?php _e( 'New page title' ); ?></span></label>
-						<input type="text" id="create-input-<?php echo $this->id; ?>" class="create-item-input" placeholder="<?php esc_attr_e( 'New page title&hellip;' ); ?>">
+						<label for="create-input-<?php echo esc_attr( $this->id ); ?>"><span class="screen-reader-text"><?php _e( 'New page title' ); ?></span></label>
+						<input type="text" id="create-input-<?php echo esc_attr( $this->id ); ?>" class="create-item-input" placeholder="<?php esc_attr_e( 'New page title&hellip;' ); ?>">
 						<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
 					</div>
 				<?php endif; ?>
@@ -675,7 +675,7 @@ class WP_Customize_Control {
 	 */
 	final public function print_template() {
 		?>
-		<script type="text/html" id="tmpl-customize-control-<?php echo $this->type; ?>-content">
+		<script type="text/html" id="tmpl-customize-control-<?php echo esc_attr( $this->type ); ?>-content">
 			<?php $this->content_template(); ?>
 		</script>
 		<?php

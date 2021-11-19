@@ -9,8 +9,8 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 	/**
 	 * Set up the environment
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Hook a fake HTTP request response.
 		add_filter( 'pre_http_request', array( $this, 'fake_http_request' ), 10, 3 );

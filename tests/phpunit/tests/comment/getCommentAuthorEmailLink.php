@@ -5,8 +5,8 @@
 class Tests_Comment_GetCommentAuthorEmailLink extends WP_UnitTestCase {
 	public static $comment;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Fake the 'comment' global.
 		$GLOBALS['comment'] = self::$comment;
@@ -15,9 +15,9 @@ class Tests_Comment_GetCommentAuthorEmailLink extends WP_UnitTestCase {
 		remove_filter( 'comment_email', 'antispambot' );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		unset( $GLOBALS['comment'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {

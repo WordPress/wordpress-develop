@@ -13,7 +13,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 5.2.0
 	 */
-	static function check_for_updates() {
+	public static function check_for_updates() {
 		wp_version_check();
 		wp_update_plugins();
 		wp_update_themes();
@@ -32,7 +32,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array The debug data for the site.
 	 */
-	static function debug_data() {
+	public static function debug_data() {
 		global $wpdb;
 
 		// Save few function calls.
@@ -234,13 +234,11 @@ class WP_Debug_Data {
 			$compress_css_debug = 'undefined';
 		}
 
-		// Check WP_LOCAL_DEV.
-		if ( defined( 'WP_LOCAL_DEV' ) ) {
-			$wp_local_dev       = WP_LOCAL_DEV ? __( 'Enabled' ) : __( 'Disabled' );
-			$wp_local_dev_debug = WP_LOCAL_DEV ? 'true' : 'false';
+		// Check WP_ENVIRONMENT_TYPE.
+		if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+			$wp_environment_type = WP_ENVIRONMENT_TYPE;
 		} else {
-			$wp_local_dev       = __( 'Undefined' );
-			$wp_local_dev_debug = 'undefined';
+			$wp_environment_type = __( 'Undefined' );
 		}
 
 		$info['wp-constants'] = array(
@@ -318,10 +316,10 @@ class WP_Debug_Data {
 					'value' => $compress_css,
 					'debug' => $compress_css_debug,
 				),
-				'WP_LOCAL_DEV'        => array(
-					'label' => 'WP_LOCAL_DEV',
-					'value' => $wp_local_dev,
-					'debug' => $wp_local_dev_debug,
+				'WP_ENVIRONMENT_TYPE' => array(
+					'label' => 'WP_ENVIRONMENT_TYPE',
+					'value' => $wp_environment_type,
+					'debug' => $wp_environment_type,
 				),
 				'DB_CHARSET'          => array(
 					'label' => 'DB_CHARSET',
@@ -925,6 +923,16 @@ class WP_Debug_Data {
 			'private' => true,
 		);
 
+		$info['wp-database']['fields']['max_allowed_packet'] = array(
+			'label' => __( 'Max allowed packet size' ),
+			'value' => self::get_mysql_var( 'max_allowed_packet' ),
+		);
+
+		$info['wp-database']['fields']['max_connections'] = array(
+			'label' => __( 'Max connections number' ),
+			'value' => self::get_mysql_var( 'max_connections' ),
+		);
+
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();
 
@@ -1398,50 +1406,93 @@ class WP_Debug_Data {
 		}
 
 		/**
-		 * Add or modify the debug information.
+		 * Add to or modify the debug information shown on the Tools -> Site Health -> Info screen.
 		 *
-		 * Plugin or themes may wish to introduce their own debug information without creating additional admin pages
-		 * they can utilize this filter to introduce their own sections or add more data to existing sections.
+		 * Plugin or themes may wish to introduce their own debug information without creating
+		 * additional admin pages. They can utilize this filter to introduce their own sections
+		 * or add more data to existing sections.
 		 *
-		 * Array keys for sections added by core are all prefixed with `wp-`, plugins and themes should use their own slug as
-		 * a prefix, both for consistency as well as avoiding key collisions. Note that the array keys are used as labels
-		 * for the copied data.
+		 * Array keys for sections added by core are all prefixed with `wp-`. Plugins and themes
+		 * should use their own slug as a prefix, both for consistency as well as avoiding
+		 * key collisions. Note that the array keys are used as labels for the copied data.
 		 *
-		 * All strings are expected to be plain text except $description that can contain inline HTML tags (see below).
+		 * All strings are expected to be plain text except `$description` that can contain
+		 * inline HTML tags (see below).
 		 *
 		 * @since 5.2.0
 		 *
 		 * @param array $args {
 		 *     The debug information to be added to the core information page.
 		 *
-		 *     This is an associative multi-dimensional array, up to three levels deep. The topmost array holds the sections.
-		 *     Each section has a `$fields` associative array (see below), and each `$value` in `$fields` can be
-		 *     another associative array of name/value pairs when there is more structured data to display.
+		 *     This is an associative multi-dimensional array, up to three levels deep.
+		 *     The topmost array holds the sections, keyed by section ID.
 		 *
-		 *     @type string  $label        The title for this section of the debug output.
-		 *     @type string  $description  Optional. A description for your information section which may contain basic HTML
-		 *                                 markup, inline tags only as it is outputted in a paragraph.
-		 *     @type boolean $show_count   Optional. If set to `true` the amount of fields will be included in the title for
-		 *                                 this section.
-		 *     @type boolean $private      Optional. If set to `true` the section and all associated fields will be excluded
-		 *                                 from the copied data.
-		 *     @type array   $fields {
-		 *         An associative array containing the data to be displayed.
+		 *     @type array ...$0 {
+		 *         Each section has a `$fields` associative array (see below), and each `$value` in `$fields`
+		 *         can be another associative array of name/value pairs when there is more structured data
+		 *         to display.
 		 *
-		 *         @type string  $label    The label for this piece of information.
-		 *         @type string  $value    The output that is displayed for this field. Text should be translated. Can be
-		 *                                 an associative array that is displayed as name/value pairs.
-		 *         @type string  $debug    Optional. The output that is used for this field when the user copies the data.
-		 *                                 It should be more concise and not translated. If not set, the content of `$value` is used.
-		 *                                 Note that the array keys are used as labels for the copied data.
-		 *         @type boolean $private  Optional. If set to `true` the field will not be included in the copied data
-		 *                                 allowing you to show, for example, API keys here.
+		 *         @type string $label       Required. The title for this section of the debug output.
+		 *         @type string $description Optional. A description for your information section which
+		 *                                   may contain basic HTML markup, inline tags only as it is
+		 *                                   outputted in a paragraph.
+		 *         @type bool   $show_count  Optional. If set to `true`, the amount of fields will be included
+		 *                                   in the title for this section. Default false.
+		 *         @type bool   $private     Optional. If set to `true`, the section and all associated fields
+		 *                                   will be excluded from the copied data. Default false.
+		 *         @type array  $fields {
+		 *             Required. An associative array containing the fields to be displayed in the section,
+		 *             keyed by field ID.
+		 *
+		 *             @type array ...$0 {
+		 *                 An associative array containing the data to be displayed for the field.
+		 *
+		 *                 @type string $label    Required. The label for this piece of information.
+		 *                 @type mixed  $value    Required. The output that is displayed for this field.
+		 *                                        Text should be translated. Can be an associative array
+		 *                                        that is displayed as name/value pairs.
+		 *                                        Accepted types: `string|int|float|(string|int|float)[]`.
+		 *                 @type string $debug    Optional. The output that is used for this field when
+		 *                                        the user copies the data. It should be more concise and
+		 *                                        not translated. If not set, the content of `$value`
+		 *                                        is used. Note that the array keys are used as labels
+		 *                                        for the copied data.
+		 *                 @type bool   $private  Optional. If set to `true`, the field will be excluded
+		 *                                        from the copied data, allowing you to show, for example,
+		 *                                        API keys here. Default false.
+		 *             }
+		 *         }
 		 *     }
 		 * }
 		 */
 		$info = apply_filters( 'debug_information', $info );
 
 		return $info;
+	}
+
+	/**
+	 * Returns the value of a MySQL variable.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $var Name of the MySQL variable.
+	 * @return string|null The variable value on success. Null if the variable does not exist.
+	 */
+	public static function get_mysql_var( $var ) {
+		global $wpdb;
+
+		$result = $wpdb->get_row(
+			$wpdb->prepare( 'SHOW VARIABLES LIKE %s', $var ),
+			ARRAY_A
+		);
+
+		if ( ! empty( $result ) && array_key_exists( 'Value', $result ) ) {
+			return $result['Value'];
+		}
+
+		return null;
 	}
 
 	/**

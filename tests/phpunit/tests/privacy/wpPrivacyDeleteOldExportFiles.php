@@ -63,8 +63,8 @@ class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	/**
 	 * Perform setup operations that are shared across all tests.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		touch( self::$index_path, time() - 30 * WEEK_IN_SECONDS );
 		touch( self::$expired_export_file, time() - 5 * DAY_IN_SECONDS );

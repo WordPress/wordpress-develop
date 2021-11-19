@@ -21,6 +21,8 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructs the controller.
+	 *
+	 * @since 5.8.0
 	 */
 	public function __construct() {
 		$this->namespace     = 'wp/v2';
@@ -29,6 +31,8 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the necessary REST API routes.
+	 *
+	 * @since 5.8.0
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -52,8 +56,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return WP_Error|bool True if the request has permission, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has permission, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
 		if ( current_user_can( 'edit_posts' ) ) {
@@ -79,8 +82,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
 		/*
@@ -197,13 +199,15 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * Prepare a raw pattern before it's output in an API response.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Renamed `$raw_pattern` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param object          $raw_pattern A pattern from api.wordpress.org, before any changes.
-	 * @param WP_REST_Request $request     Request object.
-	 *
+	 * @param object          $item    Raw pattern from api.wordpress.org, before any changes.
+	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response
 	 */
-	public function prepare_item_for_response( $raw_pattern, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$raw_pattern      = $item;
 		$prepared_pattern = array(
 			'id'             => absint( $raw_pattern->id ),
 			'title'          => sanitize_text_field( $raw_pattern->title->rendered ),

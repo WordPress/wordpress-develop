@@ -16,6 +16,8 @@
  */
 class WP_REST_Themes_Controller extends WP_REST_Controller {
 
+	const PATTERN = '[^.\/]+(?:\/[^.\/]+)?';
+
 	/**
 	 * Constructor.
 	 *
@@ -50,7 +52,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<stylesheet>[\w-]+)',
+			sprintf( '/%s/(?P<stylesheet>%s)', $this->rest_base, self::PATTERN ),
 			array(
 				'args'   => array(
 					'stylesheet' => array(
@@ -204,12 +206,15 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * Prepares a single theme output for response.
 	 *
 	 * @since 5.0.0
+	 * @since 5.9.0 Renamed `$theme` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Theme        $theme   Theme object.
+	 * @param WP_Theme        $item    Theme object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $theme, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$theme  = $item;
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
@@ -311,6 +316,35 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		$response->add_links( $this->prepare_links( $theme ) );
 
+		if ( $theme->get_stylesheet() === wp_get_theme()->get_stylesheet() ) {
+			// This creates a record for the current theme if not existent.
+			$id = WP_Theme_JSON_Resolver::get_user_custom_post_type_id();
+		} else {
+			$wp_query_args       = array(
+				'post_status'    => 'publish',
+				'post_type'      => 'wp_global_styles',
+				'posts_per_page' => 1,
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+				'tax_query'      => array(
+					array(
+						'taxonomy' => 'wp_theme',
+						'field'    => 'name',
+						'terms'    => $theme->get_stylesheet(),
+					),
+				),
+			);
+			$global_styles_query = new WP_Query( $wp_query_args );
+			$id                  = ! empty( $global_styles_query->posts ) ? array_shift( $global_styles_query->posts ) : null;
+		}
+
+		if ( $id ) {
+			$response->add_link(
+				'https://api.w.org/user-global-styles',
+				rest_url( 'wp/v2/global-styles/' . $id )
+			);
+		}
+
 		/**
 		 * Filters theme data returned from the REST API.
 		 *
@@ -349,7 +383,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Theme $theme_a First theme to compare.
 	 * @param WP_Theme $theme_b Second theme to compare.
-	 *
 	 * @return bool
 	 */
 	protected function is_same_theme( $theme_a, $theme_b ) {
