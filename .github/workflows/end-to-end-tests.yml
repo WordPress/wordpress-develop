@@ -100,11 +100,11 @@ jobs:
         run: |
           docker -v
           docker-compose -v
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
+          docker-compose run mysql mysql --version
+          docker-compose run php php --version
+          docker-compose run php php -m
+          docker-compose run php php -i
+          docker-compose run php locale -a
 
       - name: Install WordPress
         run: npm run env:install

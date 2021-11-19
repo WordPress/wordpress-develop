@@ -140,13 +140,13 @@ jobs:
 
       - name: Install Composer dependencies
         run: |
-          docker-compose run --rm php composer --version
+          docker-compose run php composer --version
 
           # Install using `composer update` as there is no `composer.lock` file.
           if [ ${{ env.LOCAL_PHP }} == '8.1-fpm' ]; then
-            docker-compose run --rm php composer update --ignore-platform-reqs
+            docker-compose run php composer update --ignore-platform-reqs
           else
-            docker-compose run --rm php composer update
+            docker-compose run php composer update
           fi
 
       - name: Docker debug information
@@ -178,11 +178,11 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
+          docker-compose run mysql mysql --version
+          docker-compose run php php --version
+          docker-compose run php php -m
+          docker-compose run php php -i
+          docker-compose run php locale -a
 
       - name: Install WordPress
         run: npm run env:install
@@ -239,7 +239,7 @@ jobs:
         if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && matrix.report }}
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
-        run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+        run: docker-compose run -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
 
   slack-notifications:
     name: Slack Notifications

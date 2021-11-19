@@ -104,10 +104,10 @@ jobs:
 
       - name: Install Composer dependencies
         run: |
-          docker-compose run --rm php composer --version
+          docker-compose run php composer --version
 
           # Install using `composer update` as there is no `composer.lock` file.
-          docker-compose run --rm php composer update
+          docker-compose run php composer update
 
       - name: Docker debug information
         run: |
@@ -131,11 +131,11 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
+          docker-compose run mysql mysql --version
+          docker-compose run php php --version
+          docker-compose run php php -m
+          docker-compose run php php -i
+          docker-compose run php locale -a
 
       - name: Install WordPress
         run: npm run env:install
