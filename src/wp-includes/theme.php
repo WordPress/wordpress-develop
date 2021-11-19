@@ -908,20 +908,6 @@ function validate_current_theme() {
 function validate_theme_requirements( $stylesheet ) {
 	$theme = wp_get_theme( $stylesheet );
 
-	// If the theme is a Full Site Editing theme, check for the presence of the Gutenberg plugin.
-	$theme_tags = $theme->get( 'Tags' );
-
-	if ( ! empty( $theme_tags ) && in_array( 'full-site-editing', $theme_tags, true ) && ! function_exists( 'gutenberg_is_fse_theme' ) ) {
-		return new WP_Error(
-			'theme_requires_fse',
-			sprintf(
-					/* translators: %s: Theme name. */
-				_x( '<strong>Error:</strong> This theme (%s) uses Full Site Editing, which requires the Gutenberg plugin to be activated.', 'theme' ),
-				$theme->display( 'Name' )
-			)
-		);
-	}
-
 	$requirements = array(
 		'requires'     => ! empty( $theme->get( 'RequiresWP' ) ) ? $theme->get( 'RequiresWP' ) : '',
 		'requires_php' => ! empty( $theme->get( 'RequiresPHP' ) ) ? $theme->get( 'RequiresPHP' ) : '',
@@ -966,38 +952,46 @@ function validate_theme_requirements( $stylesheet ) {
  * Retrieves all theme modifications.
  *
  * @since 3.1.0
+ * @since 5.9.0 The return value is always an array.
  *
- * @return array|void Theme modifications.
+ * @return array Theme modifications.
  */
 function get_theme_mods() {
 	$theme_slug = get_option( 'stylesheet' );
 	$mods       = get_option( "theme_mods_$theme_slug" );
+
 	if ( false === $mods ) {
 		$theme_name = get_option( 'current_theme' );
 		if ( false === $theme_name ) {
 			$theme_name = wp_get_theme()->get( 'Name' );
 		}
+
 		$mods = get_option( "mods_$theme_name" ); // Deprecated location.
 		if ( is_admin() && false !== $mods ) {
 			update_option( "theme_mods_$theme_slug", $mods );
 			delete_option( "mods_$theme_name" );
 		}
 	}
+
+	if ( ! is_array( $mods ) ) {
+		$mods = array();
+	}
+
 	return $mods;
 }
 
 /**
  * Retrieves theme modification value for the current theme.
  *
- * If the modification name does not exist, then the $default will be passed
- * through {@link https://www.php.net/sprintf sprintf()} PHP function with
- * the template directory URI as the first string and the stylesheet directory URI
- * as the second string.
+ * If the modification name does not exist and `$default` is a string, then the
+ * default will be passed through the {@link https://www.php.net/sprintf sprintf()}
+ * PHP function with the template directory URI as the first value and the
+ * stylesheet directory URI as the second value.
  *
  * @since 2.1.0
  *
- * @param string       $name    Theme modification name.
- * @param string|false $default Optional. Theme modification default value. Default false.
+ * @param string $name    Theme modification name.
+ * @param mixed  $default Optional. Theme modification default value. Default false.
  * @return mixed Theme modification value.
  */
 function get_theme_mod( $name, $default = false ) {
@@ -1013,7 +1007,7 @@ function get_theme_mod( $name, $default = false ) {
 		 *
 		 * @since 2.2.0
 		 *
-		 * @param string $current_mod The value of the current theme modification.
+		 * @param mixed $current_mod The value of the current theme modification.
 		 */
 		return apply_filters( "theme_mod_{$name}", $mods[ $name ] );
 	}
@@ -1054,8 +1048,8 @@ function set_theme_mod( $name, $value ) {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param string $value     The new value of the theme modification.
-	 * @param string $old_value The current value of the theme modification.
+	 * @param mixed $value     The new value of the theme modification.
+	 * @param mixed $old_value The current value of the theme modification.
 	 */
 	$mods[ $name ] = apply_filters( "pre_set_theme_mod_{$name}", $value, $old_value );
 
@@ -1225,6 +1219,16 @@ function get_header_image_tag( $attr = array() ) {
 			}
 		}
 	}
+
+	/**
+	 * Filters the list of header image attributes.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array  $attr   Array of the attributes for the image tag.
+	 * @param object $header The custom header object returned by 'get_custom_header()'.
+	 */
+	$attr = apply_filters( 'get_header_image_tag_attributes', $attr, $header );
 
 	$attr = array_map( 'esc_attr', $attr );
 	$html = '<img';
@@ -1909,7 +1913,7 @@ function wp_get_custom_css( $stylesheet = '' ) {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string $css        CSS pulled in from the Custom CSS CPT.
+	 * @param string $css        CSS pulled in from the Custom CSS post type.
 	 * @param string $stylesheet The theme stylesheet name.
 	 */
 	$css = apply_filters( 'wp_get_custom_css', $css, $stylesheet );
@@ -3065,7 +3069,7 @@ function require_if_theme_supports( $feature, $include ) {
  *     @type string     $type         The type of data associated with this feature.
  *                                    Valid values are 'string', 'boolean', 'integer',
  *                                    'number', 'array', and 'object'. Defaults to 'boolean'.
- *     @type boolean    $variadic     Does this feature utilize the variadic support
+ *     @type bool       $variadic     Does this feature utilize the variadic support
  *                                    of add_theme_support(), or are all arguments specified
  *                                    as the second parameter. Must be used with the "array" type.
  *     @type string     $description  A short description of the feature. Included in
@@ -4070,4 +4074,15 @@ function create_initial_theme_features() {
 			'show_in_rest' => true,
 		)
 	);
+}
+
+/**
+ * Returns whether the current theme is a block-based theme or not.
+ *
+ * @since 5.9.0
+ *
+ * @return boolean Whether the current theme is a block-based theme or not.
+ */
+function wp_is_block_template_theme() {
+	return is_readable( get_theme_file_path( '/block-templates/index.html' ) );
 }

@@ -1102,9 +1102,19 @@ function wp_ajax_add_tag() {
 	$wp_list_table->single_row( $tag );
 	$parents = ob_get_clean();
 
+	require ABSPATH . 'wp-admin/includes/edit-tag-messages.php';
+
+	$message = '';
+	if ( isset( $messages[ $tax->name ][1] ) ) {
+		$message = $messages[ $tax->name ][1];
+	} elseif ( isset( $messages['_item'][1] ) ) {
+		$message = $messages['_item'][1];
+	}
+
 	$x->add(
 		array(
 			'what'         => 'taxonomy',
+			'data'         => $message,
 			'supplemental' => compact( 'parents', 'noparents' ),
 		)
 	);
@@ -3003,7 +3013,9 @@ function wp_ajax_query_attachments() {
 		$total_posts = $count_query->found_posts;
 	}
 
-	$max_pages = ceil( $total_posts / (int) $attachments_query->query['posts_per_page'] );
+	$posts_per_page = (int) $attachments_query->get( 'posts_per_page' );
+
+	$max_pages = $posts_per_page ? ceil( $total_posts / $posts_per_page ) : 0;
 
 	header( 'X-WP-Total: ' . (int) $total_posts );
 	header( 'X-WP-TotalPages: ' . (int) $max_pages );

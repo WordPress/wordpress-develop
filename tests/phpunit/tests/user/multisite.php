@@ -10,21 +10,8 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_User extends WP_UnitTestCase {
-		protected $suppress = false;
 
-		function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tearDown() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
-		}
-
-		function test_remove_user_from_blog() {
+		public function test_remove_user_from_blog() {
 			$user1 = self::factory()->user->create_and_get();
 			$user2 = self::factory()->user->create_and_get();
 
@@ -41,7 +28,7 @@ if ( is_multisite() ) :
 		/**
 		 * Test the returned data from get_blogs_of_user()
 		 */
-		function test_get_blogs_of_user() {
+		public function test_get_blogs_of_user() {
 			$user1_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
 			// Maintain a list of 6 total sites and include the primary network site.
@@ -72,15 +59,15 @@ if ( is_multisite() ) :
 			// Each site retrieved should match the expected structure.
 			foreach ( $blogs_of_user as $blog_id => $blog ) {
 				$this->assertSame( $blog_id, $blog->userblog_id );
-				$this->assertTrue( isset( $blog->userblog_id ) );
-				$this->assertTrue( isset( $blog->blogname ) );
-				$this->assertTrue( isset( $blog->domain ) );
-				$this->assertTrue( isset( $blog->path ) );
-				$this->assertTrue( isset( $blog->site_id ) );
-				$this->assertTrue( isset( $blog->siteurl ) );
-				$this->assertTrue( isset( $blog->archived ) );
-				$this->assertTrue( isset( $blog->spam ) );
-				$this->assertTrue( isset( $blog->deleted ) );
+				$this->assertObjectHasAttribute( 'userblog_id', $blog );
+				$this->assertObjectHasAttribute( 'blogname', $blog );
+				$this->assertObjectHasAttribute( 'domain', $blog );
+				$this->assertObjectHasAttribute( 'path', $blog );
+				$this->assertObjectHasAttribute( 'site_id', $blog );
+				$this->assertObjectHasAttribute( 'siteurl', $blog );
+				$this->assertObjectHasAttribute( 'archived', $blog );
+				$this->assertObjectHasAttribute( 'spam', $blog );
+				$this->assertObjectHasAttribute( 'deleted', $blog );
 			}
 
 			// Mark each remaining site as spam, archived, and deleted.
@@ -111,7 +98,7 @@ if ( is_multisite() ) :
 		/**
 		 * @expectedDeprecated is_blog_user
 		 */
-		function test_is_blog_user() {
+		public function test_is_blog_user() {
 			global $wpdb;
 
 			$user1_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -124,7 +111,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create( array( 'user_id' => get_current_user_id() ) );
 
-			$this->assertInternalType( 'int', $blog_id );
+			$this->assertIsInt( $blog_id );
 			$this->assertTrue( is_blog_user( $blog_id ) );
 			$this->assertTrue( remove_user_from_blog( $user1_id, $blog_id ) );
 			$this->assertFalse( is_blog_user( $blog_id ) );
@@ -132,7 +119,7 @@ if ( is_multisite() ) :
 			wp_set_current_user( $old_current );
 		}
 
-		function test_is_user_member_of_blog() {
+		public function test_is_user_member_of_blog() {
 			global $wpdb;
 
 			$user1_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -156,7 +143,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create( array( 'user_id' => get_current_user_id() ) );
 
-			$this->assertInternalType( 'int', $blog_id );
+			$this->assertIsInt( $blog_id );
 
 			// Current user gets added to new blogs.
 			$this->assertTrue( is_user_member_of_blog( $user1_id, $blog_id ) );
@@ -193,7 +180,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 23192
 		 */
-		function test_is_user_spammy() {
+		public function test_is_user_spammy() {
 			$user_id = self::factory()->user->create(
 				array(
 					'role'       => 'author',
@@ -222,7 +209,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 20601
 		 */
-		function test_user_member_of_blog() {
+		public function test_user_member_of_blog() {
 			global $wp_rewrite;
 
 			self::factory()->blog->create();
@@ -261,7 +248,7 @@ if ( is_multisite() ) :
 			$this->assertQueryTrue( 'is_author', 'is_archive' );
 		}
 
-		function test_revoked_super_admin_can_be_deleted() {
+		public function test_revoked_super_admin_can_be_deleted() {
 			if ( isset( $GLOBALS['super_admins'] ) ) {
 				$old_global = $GLOBALS['super_admins'];
 				unset( $GLOBALS['super_admins'] );
@@ -278,7 +265,7 @@ if ( is_multisite() ) :
 			}
 		}
 
-		function test_revoked_super_admin_is_deleted() {
+		public function test_revoked_super_admin_is_deleted() {
 			if ( isset( $GLOBALS['super_admins'] ) ) {
 				$old_global = $GLOBALS['super_admins'];
 				unset( $GLOBALS['super_admins'] );
@@ -297,7 +284,7 @@ if ( is_multisite() ) :
 			}
 		}
 
-		function test_super_admin_cannot_be_deleted() {
+		public function test_super_admin_cannot_be_deleted() {
 			if ( isset( $GLOBALS['super_admins'] ) ) {
 				$old_global = $GLOBALS['super_admins'];
 				unset( $GLOBALS['super_admins'] );
@@ -316,7 +303,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 27205
 		 */
-		function test_granting_super_admins() {
+		public function test_granting_super_admins() {
 			if ( isset( $GLOBALS['super_admins'] ) ) {
 				$old_global = $GLOBALS['super_admins'];
 				unset( $GLOBALS['super_admins'] );
@@ -395,9 +382,13 @@ if ( is_multisite() ) :
 		 * @ticket 38356
 		 */
 		public function test_add_user_to_blog_invalid_user() {
+			global $wpdb;
+
 			$site_id = self::factory()->blog->create();
 
-			$result = add_user_to_blog( 73622, $site_id, 'subscriber' );
+			$suppress = $wpdb->suppress_errors();
+			$result   = add_user_to_blog( 73622, $site_id, 'subscriber' );
+			$wpdb->suppress_errors( $suppress );
 
 			wp_delete_site( $site_id );
 

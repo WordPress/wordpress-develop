@@ -25,7 +25,7 @@ function add_user() {
  * @since 2.0.0
  *
  * @param int $user_id Optional. User ID.
- * @return int|WP_Error User ID of the updated user.
+ * @return int|WP_Error User ID of the updated user or WP_Error on failure.
  */
 function edit_user( $user_id = 0 ) {
 	$wp_roles = wp_roles();
@@ -234,9 +234,9 @@ function edit_user( $user_id = 0 ) {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param int    $user_id ID of the newly created user.
-		 * @param string $notify  Type of notification that should happen. See wp_send_new_user_notifications()
-		 *                        for more information on possible values.
+		 * @param int|WP_Error $user_id ID of the newly created user or WP_Error on failure.
+		 * @param string       $notify  Type of notification that should happen. See
+		 *                              wp_send_new_user_notifications() for more information.
 		 */
 		do_action( 'edit_user_created_user', $user_id, $notify );
 	}
@@ -604,9 +604,9 @@ Please click the following link to activate your user account:
  *     The array of request data. All arguments are optional and may be empty.
  *
  *     @type string $app_name    The suggested name of the application.
- *     @type string $app_id      A uuid provided by the application to uniquely identify it.
- *     @type string $success_url The url the user will be redirected to after approving the application.
- *     @type string $reject_url  The url the user will be redirected to after rejecting the application.
+ *     @type string $app_id      A UUID provided by the application to uniquely identify it.
+ *     @type string $success_url The URL the user will be redirected to after approving the application.
+ *     @type string $reject_url  The URL the user will be redirected to after rejecting the application.
  * }
  * @param WP_User $user The user authorizing the application.
  * @return true|WP_Error True if the request is valid, a WP_Error object contains errors if not.
@@ -620,7 +620,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 		if ( 'http' === $scheme ) {
 			$error->add(
 				'invalid_redirect_scheme',
-				__( 'The success url must be served over a secure connection.' )
+				__( 'The success URL must be served over a secure connection.' )
 			);
 		}
 	}
@@ -631,7 +631,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 		if ( 'http' === $scheme ) {
 			$error->add(
 				'invalid_redirect_scheme',
-				__( 'The rejection url must be served over a secure connection.' )
+				__( 'The rejection URL must be served over a secure connection.' )
 			);
 		}
 	}
@@ -639,7 +639,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 	if ( ! empty( $request['app_id'] ) && ! wp_is_uuid( $request['app_id'] ) ) {
 		$error->add(
 			'invalid_app_id',
-			__( 'The app id must be a uuid.' )
+			__( 'The application ID must be a UUID.' )
 		);
 	}
 

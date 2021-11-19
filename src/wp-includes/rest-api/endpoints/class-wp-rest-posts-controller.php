@@ -40,6 +40,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected $password_check_passed = array();
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var array
+	 */
+	protected $allow_batch = array( 'v1' => true );
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -48,9 +56,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function __construct( $post_type ) {
 		$this->post_type = $post_type;
-		$this->namespace = 'wp/v2';
 		$obj             = get_post_type_object( $post_type );
 		$this->rest_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
+		$this->namespace = ! empty( $obj->rest_namespace ) ? $obj->rest_namespace : 'wp/v2';
 
 		$this->meta = new WP_REST_Post_Meta_Fields( $this->post_type );
 	}
@@ -80,7 +88,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -98,7 +107,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
-				'args'   => array(
+				'args'        => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the post.' ),
 						'type'        => 'integer',
@@ -128,7 +137,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 	}
@@ -326,7 +336,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_type'] = $this->post_type;
 
 		/**
-		 * Filters WP_Query arguments when querying users via the REST API.
+		 * Filters WP_Query arguments when querying posts via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
 		 *
@@ -343,7 +353,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *
 		 * @link https://developer.wordpress.org/reference/classes/wp_query/
 		 *
-		 * @param array           $args    Array of arguments to be passed to WP_Query.
+		 * @param array           $args    Array of arguments for WP_Query.
 		 * @param WP_REST_Request $request The REST API request.
 		 */
 		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
@@ -1024,6 +1034,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *
 		 * They dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
 		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_delete_post`
+		 *  - `rest_delete_page`
+		 *  - `rest_delete_attachment`
+		 *
 		 * @since 4.7.0
 		 *
 		 * @param WP_Post          $post     The deleted or trashed post.
@@ -1535,7 +1551,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				continue;
 			}
 
-			foreach ( $request[ $base ] as $term_id ) {
+			foreach ( (array) $request[ $base ] as $term_id ) {
 				// Invalid terms will be rejected later.
 				if ( ! get_term( $term_id, $taxonomy->name ) ) {
 					continue;
@@ -1673,12 +1689,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Prepares a single post output for response.
 	 *
 	 * @since 4.7.0
+	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post         $post    Post object.
+	 * @param WP_Post         $item    Post object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$post            = $item;
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
@@ -2028,7 +2047,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// If we have a featured media, add that.
 		$featured_media = get_post_thumbnail_id( $post->ID );
 		if ( $featured_media ) {
-			$image_url = rest_url( 'wp/v2/media/' . $featured_media );
+			$image_url = rest_url( rest_get_route_for_post( $featured_media ) );
 
 			$links['https://api.w.org/featuredmedia'] = array(
 				'href'       => $image_url,
@@ -2037,7 +2056,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ), true ) ) {
-			$attachments_url = rest_url( 'wp/v2/media' );
+			$attachments_url = rest_url( rest_get_route_for_post_type_items( 'attachment' ) );
 			$attachments_url = add_query_arg( 'parent', $post->ID, $attachments_url );
 
 			$links['https://api.w.org/attachment'] = array(
@@ -2051,19 +2070,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$links['https://api.w.org/term'] = array();
 
 			foreach ( $taxonomies as $tax ) {
-				$taxonomy_obj = get_taxonomy( $tax );
+				$taxonomy_route = rest_get_route_for_taxonomy_items( $tax );
 
 				// Skip taxonomies that are not public.
-				if ( empty( $taxonomy_obj->show_in_rest ) ) {
+				if ( empty( $taxonomy_route ) ) {
 					continue;
 				}
-
-				$tax_base = ! empty( $taxonomy_obj->rest_base ) ? $taxonomy_obj->rest_base : $tax;
-
 				$terms_url = add_query_arg(
 					'post',
 					$post->ID,
-					rest_url( 'wp/v2/' . $tax_base )
+					rest_url( $taxonomy_route )
 				);
 
 				$links['https://api.w.org/term'][] = array(
@@ -2533,6 +2549,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *
 		 * The dynamic portion of the filter, `$this->post_type`, refers to the
 		 * post type slug for the controller.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_post_item_schema`
+		 *  - `rest_page_item_schema`
+		 *  - `rest_attachment_item_schema`
 		 *
 		 * @since 5.4.0
 		 *

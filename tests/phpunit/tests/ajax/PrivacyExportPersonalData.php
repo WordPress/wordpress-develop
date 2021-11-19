@@ -140,8 +140,8 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @since 5.2.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->key_to_unset       = '';
 		$this->new_callback_value = '';
@@ -163,13 +163,13 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	/**
 	 * Clean up after each test method.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		remove_filter( 'wp_privacy_personal_data_exporters', array( $this, 'filter_register_custom_personal_data_exporter' ) );
 
 		if ( is_multisite() ) {
 			revoke_super_admin( get_current_user_id() );
 		}
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

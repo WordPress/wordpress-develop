@@ -6,7 +6,7 @@
 	<arg name="extensions" value="php"/>
 
 	<!-- Whenever possible, cache the scan results and re-use those for unchanged files on the next scan. -->
-	<arg name="cache"/>
+	<arg name="cache" value=".cache/phpcs.json"/>
 
 	<!-- Set the memory limit to 256M.
 		 For most standard PHP configurations, this means the memory limit will temporarily be raised.
@@ -134,9 +134,6 @@
 	<exclude-pattern>/src/wp-includes/sodium_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
 
-	<exclude-pattern>/tests/phpunit/includes/phpunit7/MockObject/*</exclude-pattern>
-	<exclude-pattern>/tests/phpunit/includes/speed-trap-listener\.php</exclude-pattern>
-
 	<!-- Test data and fixtures. -->
 	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
 	<exclude-pattern>/tests/phpunit/data/*</exclude-pattern>
@@ -234,22 +231,18 @@
 	<rule ref="WordPress.Files.FileName">
 		<properties>
 			<property name="custom_test_class_whitelist" type="array">
-				<!-- Test case parent classes. -->
-				<element value="WP_UnitTestCase"/>
-				<element value="WP_Ajax_UnitTestCase"/>
-				<element value="WP_Canonical_UnitTestCase"/>
-				<element value="WP_Test_REST_TestCase"/>
-				<element value="WP_Test_REST_Controller_Testcase"/>
-				<element value="WP_Test_REST_Post_Type_Controller_Testcase"/>
-				<element value="WP_XMLRPC_UnitTestCase"/>
-				<element value="WP_Filesystem_UnitTestCase"/>
-				<element value="WP_Image_UnitTestCase"/>
-				<element value="WP_HTTP_UnitTestCase"/>
-				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
-				<element value="WP_Import_UnitTestCase"/>
-				<element value="Tests_Query_Conditionals"/>
+				<!-- Test case parent classes in the "includes" folder, not yet accounted for in WPCS. -->
+				<element value="PHPUnit_Adapter_TestCase"/>
 				<element value="WP_Test_XML_TestCase"/>
+
+				<!-- Test case parent classes outside of the "includes" folder. -->
+				<element value="Tests_Query_Conditionals"/>
+				<element value="WP_Filesystem_UnitTestCase"/>
+				<element value="WP_HTTP_UnitTestCase"/>
+				<element value="WP_Image_UnitTestCase"/>
+				<element value="WP_Import_UnitTestCase"/>
 				<element value="WP_Test_Adjacent_Image_Link_TestCase"/>
+				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
 
 				<!-- Mock classes. -->
 				<element value="Spy_REST_Server"/>
@@ -265,8 +258,8 @@
 				<element value="WP_PHPUnit_Util_Getopt"/>
 				<element value="PHPUnit_Util_Test"/>
 				<element value="WPProfiler"/>
-				<element value="SpeedTrapListener"/>
 				<element value="PHPUnit_Framework_Exception"/>
+				<element value="Polyfill_TestCase"/>
 			</property>
 		</properties>
 	</rule>
@@ -288,6 +281,7 @@
 				<element value="gzinflate"/>
 				<element value="gzuncompress"/>
 				<element value="gzdecode"/>
+				<element value="imagecreatefromwebp"/>
 			</property>
 		</properties>
 	</rule>

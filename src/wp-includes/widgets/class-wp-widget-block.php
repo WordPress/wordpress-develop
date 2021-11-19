@@ -43,6 +43,7 @@ class WP_Widget_Block extends WP_Widget {
 			'height' => 350,
 		);
 		parent::__construct( 'block', __( 'Block' ), $widget_ops, $control_ops );
+
 		add_filter( 'is_wide_widget_in_customizer', array( $this, 'set_is_wide_widget_in_customizer' ), 10, 2 );
 	}
 
@@ -54,8 +55,6 @@ class WP_Widget_Block extends WP_Widget {
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Block widget instance.
-	 *
-	 * @global WP_Post $post Global post object.
 	 */
 	public function widget( $args, $instance ) {
 		$instance = wp_parse_args( $instance, $this->default_instance );
@@ -88,7 +87,7 @@ class WP_Widget_Block extends WP_Widget {
 	/**
 	 * Calculates the classname to use in the block widget's container HTML.
 	 *
-	 * Usually this is set to $this->widget_options['classname'] by
+	 * Usually this is set to `$this->widget_options['classname']` by
 	 * dynamic_sidebar(). In this case, however, we want to set the classname
 	 * dynamically depending on the block contained by this block widget.
 	 *
@@ -99,7 +98,6 @@ class WP_Widget_Block extends WP_Widget {
 	 * @since 5.8.0
 	 *
 	 * @param string $content The HTML content of the current block widget.
-	 *
 	 * @return string The classname to use in the block widget's container HTML.
 	 */
 	private function get_dynamic_classname( $content ) {
@@ -157,13 +155,14 @@ class WP_Widget_Block extends WP_Widget {
 		/**
 		 * The classname used in the block widget's container HTML.
 		 *
-		 * This can be set according to the name of the block contained by the
-		 * block widget.
+		 * This can be set according to the name of the block contained by the block widget.
 		 *
 		 * @since 5.8.0
 		 *
-		 * @param string $classname The classname to be used in the block widget's container HTML, e.g. 'widget_block widget_text'.
-		 * @param string $block_name The name of the block contained by the block widget, e.g. 'core/paragraph'.
+		 * @param string $classname  The classname to be used in the block widget's container HTML,
+		 *                           e.g. 'widget_block widget_text'.
+		 * @param string $block_name The name of the block contained by the block widget,
+		 *                           e.g. 'core/paragraph'.
 		 */
 		return apply_filters( 'widget_block_dynamic_classname', $classname, $block_name );
 	}
@@ -176,12 +175,16 @@ class WP_Widget_Block extends WP_Widget {
 	 * @param array $new_instance New settings for this instance as input by the user via
 	 *                            WP_Widget::form().
 	 * @param array $old_instance Old settings for this instance.
-	 *
 	 * @return array Settings to save or bool false to cancel saving.
 	 */
 	public function update( $new_instance, $old_instance ) {
-		$instance            = array_merge( $this->default_instance, $old_instance );
-		$instance['content'] = $new_instance['content'];
+		$instance = array_merge( $this->default_instance, $old_instance );
+
+		if ( current_user_can( 'unfiltered_html' ) ) {
+			$instance['content'] = $new_instance['content'];
+		} else {
+			$instance['content'] = wp_kses_post( $new_instance['content'] );
+		}
 
 		return $instance;
 	}
@@ -199,21 +202,25 @@ class WP_Widget_Block extends WP_Widget {
 		$instance = wp_parse_args( (array) $instance, $this->default_instance );
 		?>
 		<p>
-			<label for="<?php echo $this->get_field_id( 'content' ); ?>"><?php echo __( 'Block HTML:' ); ?></label>
+			<label for="<?php echo $this->get_field_id( 'content' ); ?>">
+				<?php
+				/* translators: HTML code of the block, not an option that blocks HTML. */
+				_e( 'Block HTML:' );
+				?>
+			</label>
 			<textarea id="<?php echo $this->get_field_id( 'content' ); ?>" name="<?php echo $this->get_field_name( 'content' ); ?>" rows="6" cols="50" class="widefat code"><?php echo esc_textarea( $instance['content'] ); ?></textarea>
 		</p>
 		<?php
 	}
 
 	/**
-	 * Make sure no block widget is considered to be wide.
+	 * Makes sure no block widget is considered to be wide.
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param boolean $is_wide Is regarded wide.
-	 * @param string  $widget_id Widget ID.
-	 *
-	 * @return bool Updated is_wide value.
+	 * @param bool   $is_wide   Whether the widget is considered wide.
+	 * @param string $widget_id Widget ID.
+	 * @return bool Updated `is_wide` value.
 	 */
 	public function set_is_wide_widget_in_customizer( $is_wide, $widget_id ) {
 		if ( strpos( $widget_id, 'block-' ) === 0 ) {

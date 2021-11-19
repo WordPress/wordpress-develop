@@ -862,7 +862,7 @@ final class WP_Customize_Widgets {
 
 			wp_add_inline_script(
 				'wp-blocks',
-				sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( 'widgets-customizer' ) ) ),
+				sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( $block_editor_context ) ) ),
 				'after'
 			);
 
@@ -1419,6 +1419,15 @@ final class WP_Customize_Widgets {
 		if ( isset( $value['raw_instance'] ) && $id_base && wp_use_widgets_block_editor() ) {
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 			if ( ! empty( $widget_object->widget_options['show_instance_in_rest'] ) ) {
+				if ( 'block' === $id_base && ! current_user_can( 'unfiltered_html' ) ) {
+					/*
+					 * The content of the 'block' widget is not filtered on the
+					 * fly while editing. Filter the content here to prevent
+					 * vulnerabilities.
+					 */
+					$value['raw_instance']['content'] = wp_kses_post( $value['raw_instance']['content'] );
+				}
+
 				return $value['raw_instance'];
 			}
 		}

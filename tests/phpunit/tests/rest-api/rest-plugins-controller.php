@@ -82,7 +82,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$admin );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		if ( file_exists( WP_PLUGIN_DIR . '/test-plugin/test-plugin.php' ) ) {
 			$this->rmdir( WP_PLUGIN_DIR . '/test-plugin' );
 		}
@@ -90,7 +90,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			unlink( DIR_TESTDATA . '/link-manager.zip' );
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -536,7 +536,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 		$this->prevent_requests_to_host( 'api.wordpress.org' );
 
-		$this->expectException( 'PHPUnit_Framework_Error_Warning' );
+		$this->expectWarning();
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'plugins_api_failed', $response, 500 );
 	}
@@ -546,8 +546,26 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_create_item_unknown_plugin() {
 		wp_set_current_user( self::$super_admin );
+		add_filter(
+			'pre_http_request',
+			static function() {
+				/*
+				 * Mocks the request to:
+				 * https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request%5Bslug%5D=alex-says-this-block-definitely-doesnt-exist&request%5Bfields%5D%5Bsections%5D=0&request%5Bfields%5D%5Blanguage_packs%5D=1&request%5Blocale%5D=en_US&request%5Bwp_version%5D=5.9
+				 */
+				return array(
+					'headers'  => array(),
+					'response' => array(
+						'code'    => 404,
+						'message' => 'Not Found',
+					),
+					'body'     => '{"error":"Plugin not found."}',
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			}
+		);
 
-		// This will hit the live API.
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params( array( 'slug' => 'alex-says-this-block-definitely-doesnt-exist' ) );
 		$response = rest_do_request( $request );
@@ -844,7 +862,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( $response->get_data()['deleted'] );
 		$this->assertSame( self::PLUGIN, $response->get_data()['previous']['plugin'] );
-		$this->assertFileNotExists( WP_PLUGIN_DIR . '/' . self::PLUGIN_FILE );
+		$this->assertFileDoesNotExist( WP_PLUGIN_DIR . '/' . self::PLUGIN_FILE );
 	}
 
 	/**

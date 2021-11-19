@@ -5,19 +5,19 @@
  */
 class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
-	function test_get_term_by_slug() {
+	public function test_get_term_by_slug() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'slug', 'foo', 'category' );
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 
-	function test_get_term_by_name() {
+	public function test_get_term_by_name() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'name', 'Foo', 'category' );
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 
-	function test_get_term_by_id() {
+	public function test_get_term_by_id() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'id', $term1['term_id'], 'category' );
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
@@ -26,7 +26,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	/**
 	 * 'term_id' is an alias of 'id'.
 	 */
-	function test_get_term_by_term_id() {
+	public function test_get_term_by_term_id() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'term_id', $term1['term_id'], 'category' );
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
@@ -35,7 +35,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	/**
 	 * @ticket 45163
 	 */
-	function test_get_term_by_uppercase_id() {
+	public function test_get_term_by_uppercase_id() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'ID', $term1['term_id'], 'category' );
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
@@ -44,13 +44,13 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	/**
 	 * @ticket 21651
 	 */
-	function test_get_term_by_tt_id() {
+	public function test_get_term_by_tt_id() {
 		$term1 = wp_insert_term( 'Foo', 'category' );
 		$term2 = get_term_by( 'term_taxonomy_id', $term1['term_taxonomy_id'], 'category' );
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 
-	function test_get_term_by_unknown() {
+	public function test_get_term_by_unknown() {
 		wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'unknown', 'foo', 'category' );
 		$this->assertFalse( $term2 );
@@ -59,7 +59,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	/**
 	 * @ticket 33281
 	 */
-	function test_get_term_by_with_nonexistent_id_should_return_false() {
+	public function test_get_term_by_with_nonexistent_id_should_return_false() {
 		$term = get_term_by( 'id', 123456, 'category' );
 		$this->assertFalse( $term );
 	}
@@ -202,7 +202,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		);
 		$found   = get_term_by( 'name', 'burrito', 'post_tag' );
 		$this->assertSame( $term_id, $found->term_id );
-		$this->assertNotContains( 'ORDER BY', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query );
 	}
 
 	/**
@@ -219,7 +219,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		);
 		$found   = get_term_by( 'name', 'burrito', 'post_tag' );
 		$this->assertSame( $term_id, $found->term_id );
-		$this->assertContains( 'LIMIT 1', $wpdb->last_query );
+		$this->assertStringContainsString( 'LIMIT 1', $wpdb->last_query );
 	}
 
 	/**

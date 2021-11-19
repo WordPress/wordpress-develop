@@ -2,6 +2,7 @@
 
 /**
  * @group xmlrpc
+ * @requires function imagejpeg
  */
 class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 	protected static $post_id;
@@ -13,8 +14,8 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		add_theme_support( 'post-thumbnails' );
 
@@ -28,21 +29,21 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		set_post_thumbnail( self::$post_id, $this->attachment_id );
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		remove_theme_support( 'post-thumbnails' );
 
 		$this->remove_added_uploads();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getMediaItem( array( 1, 'username', 'password', 0 ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_valid_media_item() {
+	public function test_valid_media_item() {
 		$this->make_user_by_role( 'author' );
 
 		$fields = array( 'post' );
@@ -50,15 +51,15 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result['attachment_id'] );
-		$this->assertInternalType( 'int', $result['parent'] );
-		$this->assertInternalType( 'string', $result['title'] );
+		$this->assertIsString( $result['attachment_id'] );
+		$this->assertIsInt( $result['parent'] );
+		$this->assertIsString( $result['title'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['date_created_gmt'] );
-		$this->assertInternalType( 'string', $result['caption'] );
-		$this->assertInternalType( 'string', $result['description'] );
-		$this->assertInternalType( 'string', $result['link'] );
-		$this->assertInternalType( 'string', $result['thumbnail'] );
-		$this->assertInternalType( 'array', $result['metadata'] );
+		$this->assertIsString( $result['caption'] );
+		$this->assertIsString( $result['description'] );
+		$this->assertIsString( $result['link'] );
+		$this->assertIsString( $result['thumbnail'] );
+		$this->assertIsArray( $result['metadata'] );
 
 		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['attachment_id'] );

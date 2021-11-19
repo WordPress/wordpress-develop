@@ -10,8 +10,8 @@ class Tests_Locale extends WP_UnitTestCase {
 	 */
 	protected $locale;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->locale = new WP_Locale();
 	}
 
@@ -27,9 +27,9 @@ class Tests_Locale extends WP_UnitTestCase {
 
 	public function test_get_weekday_undefined_index() {
 		if ( PHP_VERSION_ID >= 80000 ) {
-			$this->expectException( 'PHPUnit_Framework_Error_Warning' );
+			$this->expectWarning();
 		} else {
-			$this->expectException( 'PHPUnit_Framework_Error_Notice' );
+			$this->expectNotice();
 		}
 
 		$this->locale->get_weekday( 7 );

@@ -85,7 +85,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 					'form_data' => array(
 						'description'       => __( 'Serialized widget form data to encode into instance settings.' ),
 						'type'              => 'string',
-						'sanitize_callback' => function( $string ) {
+						'sanitize_callback' => static function( $string ) {
 							$array = array();
 							wp_parse_str( $string, $array );
 							return $array;
@@ -99,6 +99,29 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 				),
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<id>[a-zA-Z0-9_-]+)/render',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+					'callback'            => array( $this, 'render' ),
+					'args'                => array(
+						'id'       => array(
+							'description' => __( 'The widget type id.', 'default' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+						'instance' => array(
+							'description' => __( 'Current instance settings of the widget.', 'default' ),
+							'type'        => 'object',
+						),
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -107,7 +130,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
 		return $this->check_read_permission();
@@ -119,7 +142,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
 		$data = array();
@@ -137,7 +160,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$check = $this->check_read_permission();
@@ -158,7 +181,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @return WP_Error|bool True if the widget type is visible, WP_Error otherwise.
+	 * @return true|WP_Error True if the widget type is visible, WP_Error otherwise.
 	 */
 	protected function check_read_permission() {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
@@ -197,7 +220,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @global array $wp_registered_widgets The list of registered widgets.
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global array             $wp_registered_widgets The list of registered widgets.
 	 *
 	 * @return array Array of widgets.
 	 */
@@ -236,6 +260,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			$widgets[ $widget['id'] ] = $widget;
 		}
 
+		ksort( $widgets );
+
 		return $widgets;
 	}
 
@@ -245,7 +271,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
 		$widget_id   = $request['id'];
@@ -262,14 +288,17 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * Prepares a widget type object for serialization.
 	 *
 	 * @since 5.8.0
+	 * @since 5.9.0 Renamed `$widget_type` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param array           $widget_type Widget type data.
-	 * @param WP_REST_Request $request    Full details about the request.
+	 * @param array           $item    Widget type data.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Widget type data.
 	 */
-	public function prepare_item_for_response( $widget_type, $request ) {
-		$fields = $this->get_fields_for_response( $request );
-		$data   = array(
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$widget_type = $item;
+		$fields      = $this->get_fields_for_response( $request );
+		$data        = array(
 			'id' => $widget_type['id'],
 		);
 
@@ -412,6 +441,10 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * - form:     The widget's admin form after updating the widget with the
 	 *             given form data.
 	 *
+	 * @since 5.8.0
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
@@ -504,6 +537,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * Returns the output of WP_Widget::widget() when called with the provided
 	 * instance. Used by encode_form_data() to preview a widget.
 
+	 * @since 5.8.0
+	 *
 	 * @param string    $widget   The widget's PHP class name (see class-wp-widget.php).
 	 * @param array     $instance Widget instance settings.
 	 * @return string
@@ -517,6 +552,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	/**
 	 * Returns the output of WP_Widget::form() when called with the provided
 	 * instance. Used by encode_form_data() to preview a widget's form.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param WP_Widget $widget_object Widget object to call widget() on.
 	 * @param array     $instance Widget instance settings.
@@ -542,6 +579,78 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			);
 		}
 
+		return ob_get_clean();
+	}
+
+	/**
+	 * Renders a single Legacy Widget and wraps it in a JSON-encodable array.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return array An array with rendered Legacy Widget HTML.
+	 */
+	public function render( $request ) {
+		return array(
+			'preview' => $this->render_legacy_widget_preview_iframe(
+				$request['id'],
+				isset( $request['instance'] ) ? $request['instance'] : null
+			),
+		);
+	}
+
+	/**
+	 * Renders a page containing a preview of the requested Legacy Widget block.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $id_base The id base of the requested widget.
+	 * @param array  $instance The widget instance attributes.
+	 *
+	 * @return string Rendered Legacy Widget block preview.
+	 */
+	private function render_legacy_widget_preview_iframe( $id_base, $instance ) {
+		if ( ! defined( 'IFRAME_REQUEST' ) ) {
+			define( 'IFRAME_REQUEST', true );
+		}
+
+		ob_start();
+		?>
+		<!doctype html>
+		<html <?php language_attributes(); ?>>
+		<head>
+			<meta charset="<?php bloginfo( 'charset' ); ?>" />
+			<meta name="viewport" content="width=device-width, initial-scale=1" />
+			<link rel="profile" href="https://gmpg.org/xfn/11" />
+			<?php wp_head(); ?>
+			<style>
+				/* Reset theme styles */
+				html, body, #page, #content {
+					padding: 0 !important;
+					margin: 0 !important;
+				}
+			</style>
+		</head>
+		<body <?php body_class(); ?>>
+		<div id="page" class="site">
+			<div id="content" class="site-content">
+				<?php
+				$registry = WP_Block_Type_Registry::get_instance();
+				$block    = $registry->get_registered( 'core/legacy-widget' );
+				echo $block->render(
+					array(
+						'idBase'   => $id_base,
+						'instance' => $instance,
+					)
+				);
+				?>
+			</div><!-- #content -->
+		</div><!-- #page -->
+		<?php wp_footer(); ?>
+		</body>
+		</html>
+		<?php
 		return ob_get_clean();
 	}
 

@@ -17,6 +17,7 @@ if ( ! current_user_can( 'manage_sites' ) ) {
 $wp_list_table = _get_list_table( 'WP_MS_Sites_List_Table' );
 $pagenum       = $wp_list_table->get_pagenum();
 
+// Used in the HTML title tag.
 $title       = __( 'Sites' );
 $parent_file = 'sites.php';
 
@@ -260,7 +261,7 @@ if ( isset( $_GET['action'] ) ) {
 			 *
 			 * @since MU (3.0.0)
 			 *
-			 * @param string $id The ID of the activated site.
+			 * @param int $id The ID of the activated site.
 			 */
 			do_action( 'activate_blog', $id );
 			break;
@@ -271,7 +272,7 @@ if ( isset( $_GET['action'] ) ) {
 			 *
 			 * @since MU (3.0.0)
 			 *
-			 * @param string $id The ID of the site being deactivated.
+			 * @param int $id The ID of the site being deactivated.
 			 */
 			do_action( 'deactivate_blog', $id );
 
