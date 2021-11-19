@@ -14,6 +14,8 @@ class Block_Template_Test extends WP_UnitTestCase {
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
 
 	public static function wpSetUpBeforeClass() {
+		switch_theme( 'block-theme' );
+
 		// Set up custom template post.
 		$args       = array(
 			'post_type'    => 'wp_template',
