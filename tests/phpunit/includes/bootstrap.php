@@ -71,8 +71,8 @@ if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
  *   - Add a `yoast/phpunit-polyfills` (dev) requirement to the plugin/theme's own `composer.json` file.
  *   - And then:
  *     - Either load the PHPUnit Polyfills autoload file prior to running the WP core bootstrap file.
- *     - Or declare a `WP_TESTS_PHPUNIT_POLYFILLS_PATH` constant containing the absolute path to the
- *       root directory of the PHPUnit Polyfills installation.
+ *     - Or declare a `WP_TESTS_PHPUNIT_POLYFILLS_PATH` constant or set `WP_TESTS_PHPUNIT_POLYFILLS_PATH` environment variable
+ *       containing the absolute path to the root directory of the PHPUnit Polyfills installation.
  *       If the constant is used, it is strongly recommended to declare this constant in the plugin/theme's
  *       own test bootstrap file.
  *       The constant MUST be declared prior to calling this file.
@@ -83,9 +83,9 @@ if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
 	$phpunit_polyfills_error      = false;
 
 	// Define WP_TESTS_PHPUNIT_POLYFILLS_PATH if set as environment variable.
-	$phpunit_polyfills_path = getenv( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' );
-	if ( $phpunit_polyfills_path ) {
-		define( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH', $phpunit_polyfills_path );
+	$phpunit_polyfills_path_env = getenv( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' );
+	if ( $phpunit_polyfills_path_env ) {
+		define( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH', $phpunit_polyfills_path_env );
 	}
 
 	// Allow for a custom installation location to be provided for plugin/theme integration tests.
