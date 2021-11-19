@@ -17,7 +17,7 @@ const TEMP_BACKUP_FOLDER = path.join(
     '..',
     '..',
     '..',
-    'src',
+    'build',
     'wp-content',
     'upgrade',
     'temp-backup'
@@ -26,7 +26,7 @@ const TEMP_BACKUP_FOLDER = path.join(
 /**
  * Create the temp backup folder if it doesn't exist
  */
-async function createTEMP_BACKUP_FOLDER() {
+async function createTempBackupFolder() {
     if (!fs.existsSync(TEMP_BACKUP_FOLDER)) {
         fs.mkdirSync(TEMP_BACKUP_FOLDER);
     }
@@ -49,6 +49,7 @@ async function makeTempBackupNotWritable() {
 
 describe('Update failures tests', () => {
     it('should display a notice in Site Health if the temp-backup folder is not writable', async() => {
+        await createTempBackupFolder();
         await makeTempBackupNotWritable();
 
         // Go to Site Health page
