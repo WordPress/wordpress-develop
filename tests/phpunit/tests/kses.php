@@ -11,12 +11,13 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * Test callback for `wp_kses_normalize_entities()` regular expression.
 	 *
 	 * @dataProvider  data_wp_kses_xml_named_entities
-	 * @covers ::wp_kses_xml_named_entities
+	 *
 	 * @ticket 54060
 	 *
-	 * @param array  $input     Expected input.
-	 * @param string $expected  Expected output.
-	 * @return void
+	 * @covers ::wp_kses_xml_named_entities
+	 *
+	 * @param array  $input     The input to wp_kses_xml_named_entities.
+	 * @param string $expected  The expected output.
 	 */
 	public function test_wp_kses_xml_named_entities( $input, $expected ) {
 		$this->assertSame( $expected, wp_kses_xml_named_entities( $input ) );
@@ -31,24 +32,86 @@ class Tests_Kses extends WP_UnitTestCase {
 		return array(
 
 			// null value testing.
-			'null'       => array( '', '' ),
+			'null'       => array(
+				'input'    => '',
+				'expected' => '',
+			),
 
 			// null array value testing.
-			'null array' => array( array( '', '' ), '' ),
+			'null array' => array(
+				'input'    => array( '', '' ),
+				'expected' => '',
+			),
 
 			// $allowedxmlnamedentities values testing.
-			'amp'        => array( array( '', 'amp' ), '&amp;' ),
-			'lt'         => array( array( '', 'lt' ), '&lt;' ),
-			'gt'         => array( array( '', 'gt' ), '&gt;' ),
+			'amp'        => array(
+				'input'    => array( '', 'amp' ),
+				'expected' => '&amp;',
+			),
+			'lt'         => array(
+				'input'    => array( '', 'lt' ),
+				'expected' => '&lt;',
+			),
+			'gt'         => array(
+				'input'    => array( '', 'gt' ),
+				'expected' => '&gt;',
+			),
 
 			// $allowedentitynames values testing.
-			'nbsp'       => array( array( '', 'nbsp' ), html_entity_decode( '&nbsp;', ENT_HTML5 ) ),
-			'iexcl'      => array( array( '', 'iexcl' ), html_entity_decode( '&iexcl;', ENT_HTML5 ) ),
-			'cent'       => array( array( '', 'cent' ), html_entity_decode( '&cent;', ENT_HTML5 ) ),
+			'nbsp'       => array(
+				'input'    => array( '', 'nbsp' ),
+				'expected' => utf8_encode( chr( 160 ) ),
+			),
+			'iexcl'      => array(
+				'input'    => array( '', 'iexcl' ),
+				'expected' => '¡',
+			),
+			'cent'       => array(
+				'input'    => array( '', 'cent' ),
+				'expected' => '¢',
+			),
 
 			// some other value testing.
-			'test'       => array( array( '', 'test' ), '&amp;test;' ),
+			'test'       => array(
+				'input'    => array( '', 'test' ),
+				'expected' => '&amp;test;',
+			),
 
+		);
+	}
+
+	/**
+	 * Tests that a kses global is defined.
+	 *
+	 * @dataProvider data_kses_global_is_defined
+	 *
+	 * @ticket 54060
+	 *
+	 * @param string $global  The name of the global variable.
+	 */
+	public function test_kses_global_is_defined( $global ) {
+		$this->assertArrayHasKey( $global, $GLOBALS );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_kses_global_is_defined() {
+		return array(
+			'allowedposttags'         => array(
+				'global' => 'allowedposttags',
+			),
+			'allowedtags'             => array(
+				'global' => 'allowedtags',
+			),
+			'allowedentitynames'      => array(
+				'global' => 'allowedentitynames',
+			),
+			'allowedxmlnamedentities' => array(
+				'global' => 'allowedxmlnamedentities',
+			),
 		);
 	}
 
