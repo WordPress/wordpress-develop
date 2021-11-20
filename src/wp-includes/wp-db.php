@@ -1028,29 +1028,28 @@ class wpdb {
 
 		$this->prefix = $this->get_blog_prefix();
 
-		$key_cache=$this->blogid.'~'.$this->siteid;
-		if (!array_key_exists($key_cache,$this->tables_names_blog_cache)) {
+		$key_cache = $this->blogid . '~' . $this->siteid;
+		if ( ! array_key_exists( $key_cache, $this->tables_names_blog_cache ) ) {
 
-		  $c = array();
+			$c = array();
 
-		  foreach ( $this->tables( 'blog' ) as $table => $prefixed_table ) {
-			  $c[$table] = $prefixed_table;
-			  $this->$table = $prefixed_table;
-		  }
+			foreach ( $this->tables( 'blog' ) as $table => $prefixed_table ) {
+				$c[ $table ]  = $prefixed_table;
+				$this->$table = $prefixed_table;
+			}
 
-		  foreach ( $this->tables( 'old' ) as $table => $prefixed_table ) {
-			  $c[$table] = $prefixed_table;
-			  $this->$table = $prefixed_table;
-		  }
+			foreach ( $this->tables( 'old' ) as $table => $prefixed_table ) {
+				$c[ $table ]  = $prefixed_table;
+				$this->$table = $prefixed_table;
+			}
 
-		  $this->tables_names_blog_cache[$key_cache] = $c;
+			$this->tables_names_blog_cache[ $key_cache ] = $c;
 
 		} else {
 
-		  foreach ($this->tables_names_blog_cache[$key_cache] as $table => $prefixed_table) {
-		    $this->$table = $prefixed_table;
-		  }
-
+			foreach ( $this->tables_names_blog_cache[ $key_cache ] as $table => $prefixed_table ) {
+				$this->$table = $prefixed_table;
+			}
 		}
 
 		return $old_blog_id;
