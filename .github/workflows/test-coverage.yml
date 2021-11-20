@@ -47,6 +47,7 @@ jobs:
   test-coverage-report:
     name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
