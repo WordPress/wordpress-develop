@@ -1367,7 +1367,7 @@ switch ( $action ) {
 
 		$rememberme = ! empty( $_POST['rememberme'] );
 
-		if ( $errors->has_errors() && !empty( $_GET['loggedout'] ) == false ) {
+		if ( $errors->has_errors() && ! empty( $_GET['loggedout'] ) == false ) {
 			$aria_describedby_error = ' aria-describedby="login_error"';
 		} else {
 			$aria_describedby_error = '';
