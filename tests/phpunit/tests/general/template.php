@@ -421,8 +421,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	private function remove_custom_logo() {
 		remove_theme_mod( 'custom_logo' );
-		// For FSE themes.
-		delete_option( 'site_logo' );
 	}
 
 	/**
