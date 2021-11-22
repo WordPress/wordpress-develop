@@ -51,7 +51,7 @@ class WP_Theme_JSON {
 	 * @var string[]
 	 */
 	const VALID_ORIGINS = array(
-		'core',
+		'default',
 		'theme',
 		'user',
 	);
@@ -220,15 +220,17 @@ class WP_Theme_JSON {
 			'width'  => null,
 		),
 		'color'      => array(
-			'background'     => null,
-			'custom'         => null,
-			'customDuotone'  => null,
-			'customGradient' => null,
-			'duotone'        => null,
-			'gradients'      => null,
-			'link'           => null,
-			'palette'        => null,
-			'text'           => null,
+			'background'       => null,
+			'custom'           => null,
+			'customDuotone'    => null,
+			'customGradient'   => null,
+			'defaultGradients' => null,
+			'defaultPalette'   => null,
+			'duotone'          => null,
+			'gradients'        => null,
+			'link'             => null,
+			'palette'          => null,
+			'text'             => null,
 		),
 		'custom'     => null,
 		'layout'     => array(
@@ -324,7 +326,7 @@ class WP_Theme_JSON {
 	 *
 	 * @param array $theme_json A structure that follows the theme.json schema.
 	 * @param string $origin    Optional. What source of data this object represents.
-	 *                          One of 'core', 'theme', or 'user'. Default 'theme'.
+	 *                          One of 'default', 'theme', or 'user'. Default 'theme'.
 	 */
 	public function __construct( $theme_json = array(), $origin = 'theme' ) {
 		if ( ! in_array( $origin, self::VALID_ORIGINS, true ) ) {
