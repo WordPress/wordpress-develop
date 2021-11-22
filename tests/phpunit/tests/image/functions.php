@@ -732,6 +732,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'fraction' => '0/0',
 				'expect'   => '0/0',
 			),
+			'division by zero is prevented 2'       => array(
+				'fraction' => '100/0',
+				'expect'   => '100/0',
+			),
 			'typical fnumber'                     => array(
 				'fraction' => '4.8',
 				'expect'   => '4.8',
@@ -752,11 +756,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'fraction' => '0.0',
 				'expect'   => '0.0',
 			),
-			'non fraction returns original value' => array(
+			'non fraction returns original value 2' => array(
 				'fraction' => '010',
 				'expect'   => '010',
 			),
-			'non fraction returns original value' => array(
+			'non fraction returns original value 3' => array(
 				'fraction' => 10.123,
 				'expect'   => 10.123,
 			),
@@ -776,15 +780,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'fraction' => '0',
 				'expect'   => '0',
 			),
-			'division by zero is prevented'       => array(
-				'fraction' => '100/0',
-				'expect'   => '100/0',
-			),
 			'text is prevented'                   => array(
 				'fraction' => 'path/to/file',
 				'expect'   => 'path/to/file',
 			),
-			'text is prevented'                   => array(
+			'text is prevented 2'                   => array(
 				'fraction' => '123notafraction',
 				'expect'   => '123notafraction',
 			),
@@ -799,6 +799,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'invalid input prevented 3'           => array(
 				'fraction' => '///',
 				'expect'   => '///',
+			),
+			'null value'           => array(
+				'fraction' => null,
+				'expect'   => null,
+			),
+			'empty array value'           => array(
+				'fraction' => array(),
+				'expect'   => array(),
 			),
 		);
 	}
