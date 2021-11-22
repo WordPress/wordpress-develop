@@ -212,19 +212,13 @@ if ( wp_is_block_template_theme() ) {
 		'edit_theme_options',
 		'site-editor.php',
 	);
-
-	$submenu['themes.php'][7] = array(
-		__( 'Styles' ),
-		'edit_theme_options',
-		'site-editor.php?styles=open',
-	);
 }
 
 // Hide Customize link on block themes unless a plugin or theme is using
 // customize_register to add a setting.
 if ( ! wp_is_block_template_theme() || has_action( 'customize_register' ) ) {
 	$customize_url = add_query_arg( 'return', urlencode( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ), 'customize.php' );
-	$position      = wp_is_block_template_theme() ? 8 : 6;
+	$position      = wp_is_block_template_theme() ? 7 : 6;
 
 	$submenu['themes.php'][ $position ] = array( __( 'Customize' ), 'customize', esc_url( $customize_url ), '', 'hide-if-no-customize' );
 }
