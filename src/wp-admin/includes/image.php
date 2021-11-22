@@ -646,8 +646,8 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
  *
  * @since 2.5.0
  *
- * @param string $str
- * @return int|float Returns originally passed string on failure.
+ * @param string $str Fraction string.
+ * @return string|int|float Returns calculated fraction or originally passed string on failure.
  */
 function wp_exif_frac2dec( $str ) {
 	// Fractions must contain a single `/`.
