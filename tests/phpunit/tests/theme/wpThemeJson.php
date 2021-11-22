@@ -76,7 +76,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 53397
 	 */
 	public function test_get_settings_presets_are_keyed_by_origin() {
-		$core_origin = new WP_Theme_JSON(
+		$default_origin = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
@@ -103,9 +103,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 			),
-			'core'
+			'default'
 		);
-		$no_origin   = new WP_Theme_JSON(
+		$no_origin      = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
@@ -134,15 +134,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$actual_core      = $core_origin->get_raw_data();
+		$actual_default   = $default_origin->get_raw_data();
 		$actual_no_origin = $no_origin->get_raw_data();
 
-		$expected_core      = array(
+		$expected_default   = array(
 			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 			'settings' => array(
 				'color'  => array(
 					'palette' => array(
-						'core' => array(
+						'default' => array(
 							array(
 								'slug'  => 'white',
 								'color' => 'white',
@@ -154,7 +154,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'core/group' => array(
 						'color' => array(
 							'palette' => array(
-								'core' => array(
+								'default' => array(
 									array(
 										'slug'  => 'white',
 										'color' => 'white',
@@ -196,7 +196,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSetsWithIndex( $expected_core, $actual_core );
+		$this->assertEqualSetsWithIndex( $expected_default, $actual_default );
 		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
 	}
 
@@ -593,7 +593,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 			),
-			'core'
+			'default'
 		);
 
 		$this->assertEquals(
