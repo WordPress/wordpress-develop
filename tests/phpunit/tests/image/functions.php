@@ -726,7 +726,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function data_wp_exif_frac2dec() {
 		return array(
-			'division by zero is prevented'       => array(
+			'division by zero is prevented'         => array(
 				'fraction' => '0/0',
 				'expect'   => '0/0',
 			),
@@ -734,23 +734,23 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'fraction' => '100/0',
 				'expect'   => '100/0',
 			),
-			'typical fnumber'                     => array(
+			'typical fnumber'                       => array(
 				'fraction' => '4.8',
 				'expect'   => '4.8',
 			),
-			'typical focal length'                => array(
+			'typical focal length'                  => array(
 				'fraction' => '37 mm',
 				'expect'   => '37 mm',
 			),
-			'typical exposure time'               => array(
+			'typical exposure time'                 => array(
 				'fraction' => '1/350',
 				'expect'   => 0.002857142857142857,
 			),
-			'division by text prevented'          => array(
+			'division by text prevented'            => array(
 				'fraction' => '0/abc',
 				'expect'   => '0/abc',
 			),
-			'non fraction returns original value' => array(
+			'non fraction returns original value'   => array(
 				'fraction' => '0.0',
 				'expect'   => '0.0',
 			),
@@ -762,23 +762,23 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'fraction' => 10.123,
 				'expect'   => 10.123,
 			),
-			'valid fraction'                      => array(
+			'valid fraction'                        => array(
 				'fraction' => '50/100',
 				'expect'   => 0.5,
 			),
-			'valid fraction 2'                    => array(
+			'valid fraction 2'                      => array(
 				'fraction' => '25/100',
 				'expect'   => .25,
 			),
-			'valid fraction 3'                    => array(
+			'valid fraction 3'                      => array(
 				'fraction' => '4/2',
 				'expect'   => 2,
 			),
-			'non fraction returns original value' => array(
+			'non fraction returns original value'   => array(
 				'fraction' => '0',
 				'expect'   => '0',
 			),
-			'text is prevented'                   => array(
+			'text is prevented'                     => array(
 				'fraction' => 'path/to/file',
 				'expect'   => 'path/to/file',
 			),
@@ -786,23 +786,23 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'fraction' => '123notafraction',
 				'expect'   => '123notafraction',
 			),
-			'invalid input prevented'             => array(
+			'invalid input prevented'               => array(
 				'fraction' => '/',
 				'expect'   => '/',
 			),
-			'invalid input prevented 2'           => array(
+			'invalid input prevented 2'             => array(
 				'fraction' => '1/2/3',
 				'expect'   => '1/2/3',
 			),
-			'invalid input prevented 3'           => array(
+			'invalid input prevented 3'             => array(
 				'fraction' => '///',
 				'expect'   => '///',
 			),
-			'null value'           => array(
+			'null value'                            => array(
 				'fraction' => null,
 				'expect'   => null,
 			),
-			'empty array value'           => array(
+			'empty array value'                     => array(
 				'fraction' => array(),
 				'expect'   => array(),
 			),
