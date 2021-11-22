@@ -17,7 +17,7 @@ const TEMP_BACKUP_FOLDER = path.join(
     '..',
     '..',
     '..',
-    'build',
+    'src',
     'wp-content',
     'upgrade',
     'temp-backup'
@@ -52,7 +52,6 @@ describe('Update failures tests', () => {
         await createTempBackupFolder();
         await makeTempBackupNotWritable();
 
-        // Go to Site Health page
         await visitAdminPage('site-health.php');
 
         let criticalNotices = await page.waitForSelector('#health-check-site-status-critical');
