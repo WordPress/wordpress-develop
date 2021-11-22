@@ -11,9 +11,13 @@
 class Block_Template_Test extends WP_UnitTestCase {
 	private static $post;
 
+	private static $previous_theme;
+
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
 
 	public static function wpSetUpBeforeClass() {
+		self::$previous_theme = get_stylesheet();
+
 		switch_theme( 'block-theme' );
 
 		// Set up custom template post.
@@ -35,6 +39,8 @@ class Block_Template_Test extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		wp_delete_post( self::$post->ID );
+
+		switch_theme( self::$previous_theme );
 	}
 
 	public function tear_down() {
