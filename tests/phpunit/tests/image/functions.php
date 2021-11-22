@@ -725,8 +725,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *     Arguments for testing `wp_exif_frac2dec()`.
 	 */
 	public function data_wp_exif_frac2dec() {
-		global $wpdb;
-
 		return array(
 			'division by zero is prevented'       => array(
 				'fraction' => '0/0',
