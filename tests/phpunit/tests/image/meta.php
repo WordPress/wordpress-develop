@@ -243,7 +243,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	 * @ticket 54385
 	 */
 	public function test_exif_unexpected_data() {
-		// Unexpected Exif data in this image.
+		// Unexpected Exif data: FNumber is "0/0", aperture should be 0.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/sugarloaf-mountain.jpg' );
 
 		$this->assertEquals( 0, $out['aperture'], 'Aperture value not equivalent' );
