@@ -4,7 +4,7 @@
  * @group functions.php
  * @covers ::wp_get_nocache_headers
  */
-class Tests_Functions_wp_get_nocache_headers extends WP_UnitTestCase {
+class Tests_Functions_wpGetNocacheHeaders extends WP_UnitTestCase {
 
 	public function test_wp_get_nocache_headers() {
 		$headers = wp_get_nocache_headers();
