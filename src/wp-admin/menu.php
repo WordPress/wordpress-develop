@@ -243,17 +243,24 @@ unset( $appearance_cap );
 
 // Add 'Theme Editor' to the bottom of the Appearance menu.
 if ( ! is_multisite() ) {
+	// Must use API on the admin_menu hook, direct modification is only possible on/before the _admin_menu hook.
 	add_action( 'admin_menu', '_add_themes_utility_last', 101 );
 }
 /**
- * Adds the 'Theme Editor' link to the bottom of the Appearance menu.
+ * Adds the 'Theme Editor' link to the bottom of the Appearance or Tools menu.
  *
  * @access private
  * @since 3.0.0
+ * @since 5.9.0 'Theme Editor' link has moved to the Tools menu when a block theme is active.
  */
 function _add_themes_utility_last() {
-	// Must use API on the admin_menu hook, direct modification is only possible on/before the _admin_menu hook.
-	add_submenu_page( 'themes.php', __( 'Theme Editor' ), __( 'Theme Editor' ), 'edit_themes', 'theme-editor.php' );
+	add_submenu_page(
+		wp_is_block_template_theme() ? 'tools.php' : 'themes.php',
+		__( 'Theme Editor' ),
+		__( 'Theme Editor' ),
+		'edit_themes',
+		'theme-editor.php'
+	);
 }
 
 $count = '';
