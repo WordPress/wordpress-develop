@@ -42,7 +42,7 @@ function get_comment_author( $comment_ID = 0 ) {
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
 	 * @param string     $author     The comment author's username.
-	 * @param int        $comment_ID The comment ID.
+	 * @param string     $comment_ID The comment ID as a numeric string.
 	 * @param WP_Comment $comment    The comment object.
 	 */
 	return apply_filters( 'get_comment_author', $author, $comment->comment_ID, $comment );
@@ -68,7 +68,7 @@ function comment_author( $comment_ID = 0 ) {
 	 * @since 4.1.0 The `$comment_ID` parameter was added.
 	 *
 	 * @param string $author     The comment author's username.
-	 * @param int    $comment_ID The comment ID.
+	 * @param string $comment_ID The comment ID as a numeric string.
 	 */
 	echo apply_filters( 'comment_author', $author, $comment->comment_ID );
 }
@@ -93,7 +93,7 @@ function get_comment_author_email( $comment_ID = 0 ) {
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
 	 * @param string     $comment_author_email The comment author's email address.
-	 * @param int        $comment_ID           The comment ID.
+	 * @param string     $comment_ID           The comment ID as a numeric string.
 	 * @param WP_Comment $comment              The comment object.
 	 */
 	return apply_filters( 'get_comment_author_email', $comment->comment_author_email, $comment->comment_ID, $comment );
@@ -125,7 +125,7 @@ function comment_author_email( $comment_ID = 0 ) {
 	 * @since 4.1.0 The `$comment_ID` parameter was added.
 	 *
 	 * @param string $author_email The comment author's email address.
-	 * @param int    $comment_ID   The comment ID.
+	 * @param string $comment_ID   The comment ID as a numeric string.
 	 */
 	echo apply_filters( 'author_email', $author_email, $comment->comment_ID );
 }
@@ -236,7 +236,7 @@ function get_comment_author_link( $comment_ID = 0 ) {
 	 * @param string $return     The HTML-formatted comment author link.
 	 *                           Empty for an invalid URL.
 	 * @param string $author     The comment author's username.
-	 * @param int    $comment_ID The comment ID.
+	 * @param string $comment_ID The comment ID as a numeric string.
 	 */
 	return apply_filters( 'get_comment_author_link', $return, $author, $comment->comment_ID );
 }
@@ -274,7 +274,7 @@ function get_comment_author_IP( $comment_ID = 0 ) { // phpcs:ignore WordPress.Na
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
 	 * @param string     $comment_author_IP The comment author's IP address, or an empty string if it's not available.
-	 * @param int        $comment_ID        The comment ID.
+	 * @param string     $comment_ID        The comment ID as a numeric string.
 	 * @param WP_Comment $comment           The comment object.
 	 */
 	return apply_filters( 'get_comment_author_IP', $comment->comment_author_IP, $comment->comment_ID, $comment );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
@@ -320,9 +320,9 @@ function get_comment_author_url( $comment_ID = 0 ) {
 	 * @since 1.5.0
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
-	 * @param string     $url        The comment author's URL.
-	 * @param int        $comment_ID The comment ID.
-	 * @param WP_Comment $comment    The comment object.
+	 * @param string          $url        The comment author's URL, or an empty string.
+	 * @param string|int      $comment_ID The comment ID as a numeric string, or 0 if not found.
+	 * @param WP_Comment|null $comment    The comment object, or null if not found.
 	 */
 	return apply_filters( 'get_comment_author_url', $url, $id, $comment );
 }
@@ -347,7 +347,7 @@ function comment_author_url( $comment_ID = 0 ) {
 	 * @since 4.1.0 The `$comment_ID` parameter was added.
 	 *
 	 * @param string $author_url The comment author's URL.
-	 * @param int    $comment_ID The comment ID.
+	 * @param string $comment_ID The comment ID as a numeric string.
 	 */
 	echo apply_filters( 'comment_url', $author_url, $comment->comment_ID );
 }
@@ -531,7 +531,7 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
 	 *
 	 * @param string[]    $classes    An array of comment classes.
 	 * @param string[]    $class      An array of additional classes added to the list.
-	 * @param int         $comment_id The comment ID.
+	 * @param string      $comment_id The comment ID as a numeric string.
 	 * @param WP_Comment  $comment    The comment object.
 	 * @param int|WP_Post $post_id    The post ID or WP_Post object.
 	 */
@@ -624,7 +624,7 @@ function get_comment_excerpt( $comment_ID = 0 ) {
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
 	 * @param string     $excerpt    The comment excerpt text.
-	 * @param int        $comment_ID The comment ID.
+	 * @param string     $comment_ID The comment ID as a numeric string.
 	 * @param WP_Comment $comment    The comment object.
 	 */
 	return apply_filters( 'get_comment_excerpt', $excerpt, $comment->comment_ID, $comment );
@@ -650,7 +650,7 @@ function comment_excerpt( $comment_ID = 0 ) {
 	 * @since 4.1.0 The `$comment_ID` parameter was added.
 	 *
 	 * @param string $comment_excerpt The comment excerpt text.
-	 * @param int    $comment_ID      The comment ID.
+	 * @param string $comment_ID      The comment ID as a numeric string.
 	 */
 	echo apply_filters( 'comment_excerpt', $comment_excerpt, $comment->comment_ID );
 }
@@ -660,7 +660,7 @@ function comment_excerpt( $comment_ID = 0 ) {
  *
  * @since 1.5.0
  *
- * @return int The comment ID.
+ * @return string The comment ID as a numeric string.
  */
 function get_comment_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$comment = get_comment();
@@ -669,9 +669,9 @@ function get_comment_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFun
 	 * Filters the returned comment ID.
 	 *
 	 * @since 1.5.0
-	 * @since 4.1.0 The `$comment_ID` parameter was added.
+	 * @since 4.1.0 The `$comment` parameter was added.
 	 *
-	 * @param int        $comment_ID The current comment ID.
+	 * @param string     $comment_ID The current comment ID as a numeric string.
 	 * @param WP_Comment $comment    The comment object.
 	 */
 	return apply_filters( 'get_comment_ID', $comment->comment_ID, $comment );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
@@ -1097,7 +1097,7 @@ function get_comment_type( $comment_ID = 0 ) {
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
 	 * @param string     $comment_type The type of comment, such as 'comment', 'pingback', or 'trackback'.
-	 * @param int        $comment_ID   The comment ID.
+	 * @param string     $comment_ID   The comment ID as a numeric string.
 	 * @param WP_Comment $comment      The comment object.
 	 */
 	return apply_filters( 'get_comment_type', $comment->comment_type, $comment->comment_ID, $comment );
@@ -1241,7 +1241,7 @@ function comments_open( $post_id = null ) {
 	$_post = get_post( $post_id );
 
 	$post_id = $_post ? $_post->ID : 0;
-	$open    = ( 'open' === $_post->comment_status );
+	$open    = ( $_post && ( 'open' === $_post->comment_status ) );
 
 	/**
 	 * Filters whether the current post is open for comments.
@@ -1271,7 +1271,7 @@ function pings_open( $post_id = null ) {
 	$_post = get_post( $post_id );
 
 	$post_id = $_post ? $_post->ID : 0;
-	$open    = ( 'open' === $_post->ping_status );
+	$open    = ( $_post && ( 'open' === $_post->ping_status ) );
 
 	/**
 	 * Filters whether the current post is open for pings.
@@ -1736,7 +1736,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 			'postid'         => $post->ID,
 			'belowelement'   => $args['add_below'] . '-' . $comment->comment_ID,
 			'respondelement' => $args['respond_id'],
-			'replyto'        => sprintf( $args['reply_to_text'], $comment->comment_author ),
+			'replyto'        => sprintf( $args['reply_to_text'], get_comment_author( $comment ) ),
 		);
 
 		$data_attribute_string = '';
@@ -1760,7 +1760,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 				)
 			) . '#' . $args['respond_id'],
 			$data_attribute_string,
-			esc_attr( sprintf( $args['reply_to_text'], $comment->comment_author ) ),
+			esc_attr( sprintf( $args['reply_to_text'], get_comment_author( $comment ) ) ),
 			$args['reply_text']
 		);
 	}
@@ -2425,7 +2425,7 @@ function comment_form( $args = array(), $post_id = null ) {
 
 	$required_text = sprintf(
 		/* translators: %s: Asterisk symbol (*). */
-		' <span class="comment-required-message" aria-hidden="true">' . __( 'Required fields are marked %s' ) . '</span>',
+		' <span class="required-field-message" aria-hidden="true">' . __( 'Required fields are marked %s' ) . '</span>',
 		trim( $required_indicator )
 	);
 
@@ -2538,11 +2538,13 @@ function comment_form( $args = array(), $post_id = null ) {
 
 		comment_form_title( $args['title_reply'], $args['title_reply_to'] );
 
-		echo $args['cancel_reply_before'];
+		if ( get_option( 'thread_comments' ) ) {
+			echo $args['cancel_reply_before'];
 
-		cancel_comment_reply_link( $args['cancel_reply_link'] );
+			cancel_comment_reply_link( $args['cancel_reply_link'] );
 
-		echo $args['cancel_reply_after'];
+			echo $args['cancel_reply_after'];
+		}
 
 		echo $args['title_reply_after'];
 

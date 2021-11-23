@@ -294,11 +294,15 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 	// Block Renderer.
-	$controller = new WP_REST_Block_Renderer_Controller;
+	$controller = new WP_REST_Block_Renderer_Controller();
 	$controller->register_routes();
 
 	// Block Types.
 	$controller = new WP_REST_Block_Types_Controller();
+	$controller->register_routes();
+
+	// Global Styles.
+	$controller = new WP_REST_Global_Styles_Controller;
 	$controller->register_routes();
 
 	// Settings.
@@ -340,6 +344,14 @@ function create_initial_rest_routes() {
 
 	// URL Details.
 	$controller = new WP_REST_URL_Details_Controller();
+	$controller->register_routes();
+
+	// Menu Locations.
+	$controller = new WP_REST_Menu_Locations_Controller();
+	$controller->register_routes();
+
+	// Block Navigation Areas
+	$controller = new WP_REST_Block_Navigation_Areas_Controller();
 	$controller->register_routes();
 }
 
