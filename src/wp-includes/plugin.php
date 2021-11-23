@@ -247,8 +247,10 @@ function apply_filters_ref_array( $hook_name, $args ) {
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
- * @param string         $hook_name The name of the filter hook.
- * @param callable|false $callback  Optional. The callback to check for. Default false.
+ * @param string                      $hook_name The name of the filter hook.
+ * @param callable|string|array|false $callback  Optional. The callback to check for.
+ *                                               This function can be called unconditionally to speculatively check
+ *                                               a callback that may or may not exist. Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
@@ -532,8 +534,10 @@ function do_action_ref_array( $hook_name, $args ) {
  *
  * @see has_filter() has_action() is an alias of has_filter().
  *
- * @param string         $hook_name The name of the action hook.
- * @param callable|false $callback  Optional. The callback to check for. Default false.
+ * @param string                      $hook_name The name of the action hook.
+ * @param callable|string|array|false $callback  Optional. The callback to check for.
+ *                                               This function can be called unconditionally to speculatively check
+ *                                               a callback that may or may not exist. Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
@@ -928,12 +932,14 @@ function _wp_call_all_hook( $args ) {
  * @since 5.3.0 Removed workarounds for spl_object_hash().
  *              `$hook_name` and `$priority` are no longer used,
  *              and the function always returns a string.
+ *
  * @access private
  *
- * @param string   $hook_name Unused. The name of the filter to build ID for.
- * @param callable $callback  The function to generate ID for.
- * @param int      $priority  Unused. The order in which the functions
- *                            associated with a particular action are executed.
+ * @param string                $hook_name Unused. The name of the filter to build ID for.
+ * @param callable|string|array $callback  The callback to generate ID for. The callback may
+ *                                         or may not exist.
+ * @param int                   $priority  Unused. The order in which the functions
+ *                                         associated with a particular action are executed.
  * @return string Unique function ID for usage as array key.
  */
 function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
