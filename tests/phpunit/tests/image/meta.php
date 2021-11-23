@@ -238,4 +238,23 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 54385
+	 */
+	public function test_exif_unexpected_data() {
+		// Unexpected Exif data in this image.
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/sugarloaf-mountain.jpg' );
+
+		$this->assertEquals( 0, $out['aperture'], 'Aperture value not equivalent' );
+		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
+		$this->assertSame( 'X-T1', $out['camera'], 'Camera value not the same' );
+		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
+		$this->assertEquals( 0, $out['created_timestamp'], 'Timestamp value not equivalent' );
+		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
+		$this->assertEquals( 50, $out['focal_length'], 'Focal length value not equivalent' );
+		$this->assertEquals( 200, $out['iso'], 'Iso value not equivalent' );
+		$this->assertEquals( 2, $out['shutter_speed'], 'Shutter speed value not equivalent' );
+		$this->assertSame( 'Sugarloaf Panorama', $out['title'], 'Title value not the same' );
+	}
 }
