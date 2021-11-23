@@ -703,7 +703,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * Test for wp_exif_frac2dec verified that it properly handles edge cases
-	 * and always returns an int or float, or original value for failures.
+	 * and always returns an int or float, or 0 for failures.
 	 *
 	 * @param mixed     $fraction The fraction to convert.
 	 * @param int|float $expect   The expected result.
