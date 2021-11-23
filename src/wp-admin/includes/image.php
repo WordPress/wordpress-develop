@@ -873,10 +873,7 @@ function wp_read_image_metadata( $file ) {
 		if ( ! empty( $exif['FocalLength'] ) ) {
 			$meta['focal_length'] = (string) $exif['FocalLength'];
 			if ( is_scalar( $exif['FocalLength'] ) ) {
-				$focal_length = wp_exif_frac2dec( $exif['FocalLength'] );
-				if ( $focal_length ) {
-					$meta['focal_length'] = (string) $focal_length;
-				}
+				$meta['focal_length'] = (string) wp_exif_frac2dec( $exif['FocalLength'] );
 			}
 		}
 		if ( ! empty( $exif['ISOSpeedRatings'] ) ) {
@@ -886,10 +883,7 @@ function wp_read_image_metadata( $file ) {
 		if ( ! empty( $exif['ExposureTime'] ) ) {
 			$meta['shutter_speed'] = (string) $exif['ExposureTime'];
 			if ( is_scalar( $exif['ExposureTime'] ) ) {
-				$exposure_time = wp_exif_frac2dec( $exif['ExposureTime'] );
-				if ( $exposure_time ) {
-					$meta['shutter_speed'] = (string) $exposure_time;
-				}
+				$meta['shutter_speed'] = (string) wp_exif_frac2dec( $exif['ExposureTime'] );
 			}
 		}
 		if ( ! empty( $exif['Orientation'] ) ) {
