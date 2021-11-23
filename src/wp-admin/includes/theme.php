@@ -775,6 +775,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 					? wp_nonce_url( admin_url( 'themes.php?action=' . $auto_update_action . '&amp;stylesheet=' . $encoded_slug ), 'updates' )
 					: null,
 			),
+			'isBlockBased'   => $theme->is_block_based(),
 		);
 	}
 
