@@ -10,7 +10,7 @@ class Tests_Functions_getNumQueries extends WP_UnitTestCase {
 		global $wpdb;
 
 		$current_count = get_num_queries();
-		$this->assertIsInt( $current_count );
+		$this->assertIsInt( $current_count, 'get_num_queries() did not return an integer.' );
 
 		// do a single db query
 		$wpdb->query( "select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='tableName'" );
