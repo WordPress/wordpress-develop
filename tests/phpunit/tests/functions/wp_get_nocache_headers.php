@@ -6,26 +6,38 @@
  */
 class Tests_Functions_wpGetNocacheHeaders extends WP_UnitTestCase {
 
+	/**
+	 * @ticket 54490
+	 */
 	public function test_wp_get_nocache_headers() {
-		$headers = wp_get_nocache_headers();
+		$this->assertSameSetsWithIndex(
+			array(
+				'Expires'       => 'Wed, 11 Jan 1984 05:00:00 GMT',
+				'Cache-Control' => 'no-cache, must-revalidate, max-age=0',
+				'Last-Modified' => false,
+			),
+			wp_get_nocache_headers()
+		);
+	}
 
-		$this->assertIsArray( $headers, 'array returned' );
-		$this->assertContains( 'no-cache, must-revalidate, max-age=0', $headers, 'has no cache header' );
-		$this->assertArrayHasKey( 'Expires', $headers, 'has Expires key' );
-		$this->assertArrayHasKey( 'Cache-Control', $headers, 'has Expires key' );
-		$this->assertArrayHasKey( 'Last-Modified', $headers, 'has Last-Modified key' );
-		$this->assertFalse( $headers['Last-Modified'], 'Last-Modified key is false' );
-
+	/**
+	 * @ticket 54490
+	 */
+	public function test_filter_nocache_headers() {
 		add_filter(
 			'nocache_headers',
-			function () {
-
+			static function() {
 				return array( 'filter_name' => 'nocache_headers' );
 			}
 		);
 
-		$headers = wp_get_nocache_headers();
-		$this->assertEquals( 'nocache_headers', $headers['filter_name'], 'filter was applied' );
+		$this->assertSameSetsWithIndex(
+			array(
+				'filter_name'   => 'nocache_headers',
+				'Last-Modified' => false,
+			),
+			wp_get_nocache_headers()
+		);
 	}
 
 }
