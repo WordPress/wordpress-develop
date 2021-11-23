@@ -196,7 +196,20 @@ if ( $file_description !== $file_show ) {
 	</div>
 <?php endif; ?>
 
-<?php if ( preg_match( '/\.css$/', $file ) ) : ?>
+<?php
+$customize_url          = null;
+$can_edit_theme_options = current_user_can( 'edit_theme_options' );
+$can_customize          = current_user_can( 'customize' );
+$is_block_based_theme   = wp_is_block_template_theme();
+
+if ( $is_block_based_theme && $can_edit_theme_options ) {
+	$customize_url = esc_url( admin_url( 'site-editor.php' ) );
+} elseif ( ! $is_block_based_theme && $can_customize ) {
+	$customize_url = esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) );
+}
+?>
+
+<?php if ( $customize_url && preg_match( '/\.css$/', $file ) ) : ?>
 	<div id="message" class="notice-info notice">
 		<p><strong><?php _e( 'Did you know?' ); ?></strong></p>
 		<p>
@@ -204,7 +217,7 @@ if ( $file_description !== $file_show ) {
 			printf(
 				/* translators: %s: Link to Custom CSS section in the Customizer. */
 				__( 'There&#8217;s no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
-				esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
+				$customize_url
 			);
 			?>
 		</p>
