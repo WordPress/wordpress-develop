@@ -16,6 +16,6 @@ class Tests_Functions_getNumQueries extends WP_UnitTestCase {
 		$wpdb->query( "select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='tableName'" );
 
 		// check the count updated by 1
-		$this->assertEquals( $current_count + 1, get_num_queries() );
+		$this->assertSame( $current_count + 1, get_num_queries(), 'The number of queries did not increase by 1.' );
 	}
 }
