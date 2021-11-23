@@ -1298,20 +1298,22 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'color'   => array(
 						'custom'  => true,
 						'palette' => array(
-							array(
-								'name'  => 'Red',
-								'slug'  => 'red',
-								'color' => '#ff0000',
-							),
-							array(
-								'name'  => 'Green',
-								'slug'  => 'green',
-								'color' => '#00ff00',
-							),
-							array(
-								'name'  => 'Blue',
-								'slug'  => 'blue',
-								'color' => '#0000ff',
+							'user' => array(
+								array(
+									'name'  => 'Red',
+									'slug'  => 'red',
+									'color' => '#ff0000',
+								),
+								array(
+									'name'  => 'Green',
+									'slug'  => 'green',
+									'color' => '#00ff00',
+								),
+								array(
+									'name'  => 'Blue',
+									'slug'  => 'blue',
+									'color' => '#0000ff',
+								),
 							),
 						),
 					),
@@ -1323,20 +1325,22 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							'color'   => array(
 								'custom'  => true,
 								'palette' => array(
-									array(
-										'name'  => 'Yellow',
-										'slug'  => 'yellow',
-										'color' => '#ff0000',
-									),
-									array(
-										'name'  => 'Pink',
-										'slug'  => 'pink',
-										'color' => '#00ff00',
-									),
-									array(
-										'name'  => 'Orange',
-										'slug'  => 'orange',
-										'color' => '#0000ff',
+									'user' => array(
+										array(
+											'name'  => 'Yellow',
+											'slug'  => 'yellow',
+											'color' => '#ff0000',
+										),
+										array(
+											'name'  => 'Pink',
+											'slug'  => 'pink',
+											'color' => '#00ff00',
+										),
+										array(
+											'name'  => 'Orange',
+											'slug'  => 'orange',
+											'color' => '#0000ff',
+										),
 									),
 								),
 							),
@@ -1354,20 +1358,22 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'settings' => array(
 				'color'  => array(
 					'palette' => array(
-						array(
-							'name'  => 'Red',
-							'slug'  => 'red',
-							'color' => '#ff0000',
-						),
-						array(
-							'name'  => 'Green',
-							'slug'  => 'green',
-							'color' => '#00ff00',
-						),
-						array(
-							'name'  => 'Blue',
-							'slug'  => 'blue',
-							'color' => '#0000ff',
+						'user' => array(
+							array(
+								'name'  => 'Red',
+								'slug'  => 'red',
+								'color' => '#ff0000',
+							),
+							array(
+								'name'  => 'Green',
+								'slug'  => 'green',
+								'color' => '#00ff00',
+							),
+							array(
+								'name'  => 'Blue',
+								'slug'  => 'blue',
+								'color' => '#0000ff',
+							),
 						),
 					),
 				),
@@ -1375,20 +1381,22 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'core/group' => array(
 						'color' => array(
 							'palette' => array(
-								array(
-									'name'  => 'Yellow',
-									'slug'  => 'yellow',
-									'color' => '#ff0000',
-								),
-								array(
-									'name'  => 'Pink',
-									'slug'  => 'pink',
-									'color' => '#00ff00',
-								),
-								array(
-									'name'  => 'Orange',
-									'slug'  => 'orange',
-									'color' => '#0000ff',
+								'user' => array(
+									array(
+										'name'  => 'Yellow',
+										'slug'  => 'yellow',
+										'color' => '#ff0000',
+									),
+									array(
+										'name'  => 'Pink',
+										'slug'  => 'pink',
+										'color' => '#00ff00',
+									),
+									array(
+										'name'  => 'Orange',
+										'slug'  => 'orange',
+										'color' => '#0000ff',
+									),
 								),
 							),
 						),
@@ -1409,49 +1417,53 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'settings' => array(
 					'color'      => array(
 						'palette' => array(
-							array(
-								'name'  => 'Red/><b>ok</ok>',
-								'slug'  => 'red',
-								'color' => '#ff0000',
-							),
-							array(
-								'name'  => 'Green',
-								'slug'  => 'a" attr',
-								'color' => '#00ff00',
-							),
-							array(
-								'name'  => 'Blue',
-								'slug'  => 'blue',
-								'color' => 'var(--color, var(--unsafe-fallback))',
-							),
-							array(
-								'name'  => 'Pink',
-								'slug'  => 'pink',
-								'color' => '#FFC0CB',
+							'user' => array(
+								array(
+									'name'  => 'Red/><b>ok</ok>',
+									'slug'  => 'red',
+									'color' => '#ff0000',
+								),
+								array(
+									'name'  => 'Green',
+									'slug'  => 'a" attr',
+									'color' => '#00ff00',
+								),
+								array(
+									'name'  => 'Blue',
+									'slug'  => 'blue',
+									'color' => 'var(--color, var(--unsafe-fallback))',
+								),
+								array(
+									'name'  => 'Pink',
+									'slug'  => 'pink',
+									'color' => '#FFC0CB',
+								),
 							),
 						),
 					),
 					'typography' => array(
 						'fontFamilies' => array(
-							array(
-								'name'       => 'Helvetica Arial/><b>test</b>',
-								'slug'       => 'helvetica-arial',
-								'fontFamily' => 'Helvetica Neue, Helvetica, Arial, sans-serif',
-							),
-							array(
-								'name'       => 'Geneva',
-								'slug'       => 'geneva#asa',
-								'fontFamily' => 'Geneva, Tahoma, Verdana, sans-serif',
-							),
-							array(
-								'name'       => 'Cambria',
-								'slug'       => 'cambria',
-								'fontFamily' => 'Cambria, Georgia, serif',
-							),
-							array(
-								'name'       => 'Helvetica Arial',
-								'slug'       => 'helvetica-arial',
-								'fontFamily' => 'var(--fontFamily, var(--unsafe-fallback))',
+							'user' => array(
+								array(
+									'name'       => 'Helvetica Arial/><b>test</b>',
+									'slug'       => 'helvetica-arial',
+									'fontFamily' => 'Helvetica Neue, Helvetica, Arial, sans-serif',
+								),
+								array(
+									'name'       => 'Geneva',
+									'slug'       => 'geneva#asa',
+									'fontFamily' => 'Geneva, Tahoma, Verdana, sans-serif',
+								),
+								array(
+									'name'       => 'Cambria',
+									'slug'       => 'cambria',
+									'fontFamily' => 'Cambria, Georgia, serif',
+								),
+								array(
+									'name'       => 'Helvetica Arial',
+									'slug'       => 'helvetica-arial',
+									'fontFamily' => 'var(--fontFamily, var(--unsafe-fallback))',
+								),
 							),
 						),
 					),
@@ -1459,25 +1471,27 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'core/group' => array(
 							'color' => array(
 								'palette' => array(
-									array(
-										'name'  => 'Red/><b>ok</ok>',
-										'slug'  => 'red',
-										'color' => '#ff0000',
-									),
-									array(
-										'name'  => 'Green',
-										'slug'  => 'a" attr',
-										'color' => '#00ff00',
-									),
-									array(
-										'name'  => 'Blue',
-										'slug'  => 'blue',
-										'color' => 'var(--color, var(--unsafe--fallback))',
-									),
-									array(
-										'name'  => 'Pink',
-										'slug'  => 'pink',
-										'color' => '#FFC0CB',
+									'user' => array(
+										array(
+											'name'  => 'Red/><b>ok</ok>',
+											'slug'  => 'red',
+											'color' => '#ff0000',
+										),
+										array(
+											'name'  => 'Green',
+											'slug'  => 'a" attr',
+											'color' => '#00ff00',
+										),
+										array(
+											'name'  => 'Blue',
+											'slug'  => 'blue',
+											'color' => 'var(--color, var(--unsafe--fallback))',
+										),
+										array(
+											'name'  => 'Pink',
+											'slug'  => 'pink',
+											'color' => '#FFC0CB',
+										),
 									),
 								),
 							),
@@ -1492,19 +1506,23 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'settings' => array(
 				'color'      => array(
 					'palette' => array(
-						array(
-							'name'  => 'Pink',
-							'slug'  => 'pink',
-							'color' => '#FFC0CB',
+						'user' => array(
+							array(
+								'name'  => 'Pink',
+								'slug'  => 'pink',
+								'color' => '#FFC0CB',
+							),
 						),
 					),
 				),
 				'typography' => array(
 					'fontFamilies' => array(
-						array(
-							'name'       => 'Cambria',
-							'slug'       => 'cambria',
-							'fontFamily' => 'Cambria, Georgia, serif',
+						'user' => array(
+							array(
+								'name'       => 'Cambria',
+								'slug'       => 'cambria',
+								'fontFamily' => 'Cambria, Georgia, serif',
+							),
 						),
 					),
 				),
@@ -1512,10 +1530,12 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'core/group' => array(
 						'color' => array(
 							'palette' => array(
-								array(
-									'name'  => 'Pink',
-									'slug'  => 'pink',
-									'color' => '#FFC0CB',
+								'user' => array(
+									array(
+										'name'  => 'Pink',
+										'slug'  => 'pink',
+										'color' => '#FFC0CB',
+									),
 								),
 							),
 						),
