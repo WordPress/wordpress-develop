@@ -160,6 +160,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$this->assertArrayNotHasKey( 'allow_batch', $data['endpoints'][0] );
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
@@ -174,6 +175,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request       = new WP_REST_Request( 'OPTIONS', '/wp/v2/media/' . $attachment_id );
 		$response      = rest_get_server()->dispatch( $request );
 		$data          = $response->get_data();
+		$this->assertArrayNotHasKey( 'allow_batch', $data['endpoints'][0] );
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}

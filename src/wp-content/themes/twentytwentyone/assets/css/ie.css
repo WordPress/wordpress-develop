@@ -7,7 +7,7 @@ Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Twenty-One is a blank canvas for your ideas and it makes the block editor your best brush. With new block patterns, which allow you to create a beautiful layout in a matter of seconds, this theme’s soft colors and eye-catching — yet timeless — design will let your work shine. Take it for a spin! See how Twenty Twenty-One elevates your portfolio, business website, or personal blog.
 Requires at least: 5.3
-Tested up to: 5.8
+Tested up to: 5.9
 Requires PHP: 5.6
 Version: 1.4
 License: GNU General Public License v2 or later
@@ -5573,6 +5573,10 @@ table.wp-calendar-table caption {
 	font-size: 1.5rem;
 }
 
+.site-footer > .site-info .privacy-policy {
+	margin-top: 15px;
+}
+
 .site-footer > .site-info .powered-by {
 	margin-top: 15px;
 }
@@ -5583,9 +5587,18 @@ table.wp-calendar-table caption {
 		align-items: center;
 	}
 
+	.site-footer > .site-info .site-name {
+		margin-right: 15px;
+	}
+
+	.site-footer > .site-info .privacy-policy,
 	.site-footer > .site-info .powered-by {
 		margin-top: initial;
 		margin-left: auto;
+	}
+
+	.site-footer > .site-info .privacy-policy + .powered-by {
+		margin-left: 15px;
 	}
 }
 

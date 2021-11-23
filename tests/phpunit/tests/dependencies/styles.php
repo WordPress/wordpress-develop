@@ -190,6 +190,51 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test normalizing relative links in CSS.
+	 *
+	 * @dataProvider data_normalize_relative_css_links
+	 *
+	 * @ticket 54243
+	 *
+	 * @covers ::_wp_normalize_relative_css_links
+	 *
+	 * @param string $css      Given CSS to test.
+	 * @param string $expected Expected result.
+	 */
+	public function test_normalize_relative_css_links( $css, $expected ) {
+		$this->assertSame(
+			$expected,
+			_wp_normalize_relative_css_links( $css, site_url( 'wp-content/themes/test/style.css' ) )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_normalize_relative_css_links() {
+		return array(
+			'Double quotes, same path'                     => array(
+				'css'      => 'p {background:url( "image0.svg" );}',
+				'expected' => 'p {background:url( "/wp-content/themes/test/image0.svg" );}',
+			),
+			'Single quotes, same path, prefixed with "./"' => array(
+				'css'      => 'p {background-image: url(\'./image2.png\');}',
+				'expected' => 'p {background-image: url(\'/wp-content/themes/test/image2.png\');}',
+			),
+			'Single quotes, one level up, prefixed with "../"' => array(
+				'css'      => 'p {background-image: url(\'../image1.jpg\');}',
+				'expected' => 'p {background-image: url(\'/wp-content/themes/test/../image1.jpg\');}',
+			),
+			'External URLs, shouldn\'t change'             => array(
+				'css'      => 'p {background-image: url(\'http://foo.com/image2.png\');}',
+				'expected' => 'p {background-image: url(\'http://foo.com/image2.png\');}',
+			),
+		);
+	}
+
+	/**
 	 * Test if multiple inline styles work
 	 *
 	 * @ticket 24813
