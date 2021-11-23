@@ -647,24 +647,36 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
  * @since 2.5.0
  *
  * @param string $str Fraction string.
- * @return string|int|float Returns calculated fraction or originally passed string on failure.
+ * @return int|float Returns calculated fraction or integer 0 on invalid input.
  */
 function wp_exif_frac2dec( $str ) {
-	// Fractions must contain a single `/`.
-	if ( ! is_scalar( $str ) || substr_count( $str, '/' ) !== 1 ) {
-		return $str;
+	if ( ! is_scalar( $str ) || is_bool( $str ) ) {
+		return 0;
+	}
+
+	if ( ! is_string( $str ) ) {
+		return $str; // This can only be an integer or float, so this is fine.
+	}
+
+	// Fractions passed as a string must contain a single `/`.
+	if ( substr_count( $str, '/' ) !== 1 ) {
+		if ( is_numeric( $str ) ) {
+			return (float) $str;
+		}
+
+		return 0;
 	}
 
 	list( $numerator, $denominator ) = explode( '/', $str );
 
 	// Both the numerator and the denominator must be numbers.
 	if ( ! is_numeric( $numerator ) || ! is_numeric( $denominator ) ) {
-		return $str;
+		return 0;
 	}
 
 	// The denominator must not be zero.
-	if ( '0' === $denominator ) {
-		return $str;
+	if ( 0 == $denominator ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- Deliberate loose comparison.
+		return 0;
 	}
 
 	return $numerator / $denominator;
@@ -849,8 +861,8 @@ function wp_read_image_metadata( $file ) {
 		if ( empty( $meta['copyright'] ) && ! empty( $exif['Copyright'] ) ) {
 			$meta['copyright'] = trim( $exif['Copyright'] );
 		}
-		if ( ! empty( $exif['FNumber'] ) ) {
-			$meta['aperture'] = round( (float) wp_exif_frac2dec( $exif['FNumber'] ), 2 );
+		if ( ! empty( $exif['FNumber'] ) && is_scalar( $exif['FNumber'] ) ) {
+			$meta['aperture'] = round( wp_exif_frac2dec( $exif['FNumber'] ), 2 );
 		}
 		if ( ! empty( $exif['Model'] ) ) {
 			$meta['camera'] = trim( $exif['Model'] );
@@ -859,14 +871,26 @@ function wp_read_image_metadata( $file ) {
 			$meta['created_timestamp'] = wp_exif_date2ts( $exif['DateTimeDigitized'] );
 		}
 		if ( ! empty( $exif['FocalLength'] ) ) {
-			$meta['focal_length'] = (string) wp_exif_frac2dec( $exif['FocalLength'] );
+			$meta['focal_length'] = (string) $exif['FocalLength'];
+			if ( is_scalar( $exif['FocalLength'] ) ) {
+				$focal_length = wp_exif_frac2dec( $exif['FocalLength'] );
+				if ( $focal_length ) {
+					$meta['focal_length'] = (string) $focal_length;
+				}
+			}
 		}
 		if ( ! empty( $exif['ISOSpeedRatings'] ) ) {
 			$meta['iso'] = is_array( $exif['ISOSpeedRatings'] ) ? reset( $exif['ISOSpeedRatings'] ) : $exif['ISOSpeedRatings'];
 			$meta['iso'] = trim( $meta['iso'] );
 		}
 		if ( ! empty( $exif['ExposureTime'] ) ) {
-			$meta['shutter_speed'] = (string) wp_exif_frac2dec( $exif['ExposureTime'] );
+			$meta['shutter_speed'] = (string) $exif['ExposureTime'];
+			if ( is_scalar( $exif['ExposureTime'] ) ) {
+				$exposure_time = wp_exif_frac2dec( $exif['ExposureTime'] );
+				if ( $exposure_time ) {
+					$meta['shutter_speed'] = (string) $exposure_time;
+				}
+			}
 		}
 		if ( ! empty( $exif['Orientation'] ) ) {
 			$meta['orientation'] = $exif['Orientation'];
