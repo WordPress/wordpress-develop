@@ -35,6 +35,16 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * Called before setting up all tests.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Require files that need to load once.
+		require_once DIR_TESTROOT . '/includes/mock-invokable.php';
+	}
+
 	public function test_envelope() {
 		$data    = array(
 			'amount of arbitrary data' => 'alot',
@@ -1630,9 +1640,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 50244
 	 */
 	public function test_callbacks_are_not_executed_if_request_validation_fails() {
-		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$callback->expects( self::never() )->method( '__invoke' );
-		$permission_callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$permission_callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$permission_callback->expects( self::never() )->method( '__invoke' );
 
 		register_rest_route(
