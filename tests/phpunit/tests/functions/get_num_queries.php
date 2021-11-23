@@ -4,7 +4,7 @@
  * @group functions.php
  * @covers ::get_num_queries
  */
-class Tests_Functions_get_num_queries extends WP_UnitTestCase {
+class Tests_Functions_getNumQueries extends WP_UnitTestCase {
 
 	public function test_wp_get_num_queries() {
 		global $wpdb;
