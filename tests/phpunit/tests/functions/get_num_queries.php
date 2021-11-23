@@ -5,7 +5,9 @@
  * @covers ::get_num_queries
  */
 class Tests_Functions_getNumQueries extends WP_UnitTestCase {
-
+	/**
+	 * @ticket 54490
+	 */
 	public function test_wp_get_num_queries() {
 		global $wpdb;
 
