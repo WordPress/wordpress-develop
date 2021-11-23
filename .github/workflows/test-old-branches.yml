@@ -16,6 +16,7 @@ jobs:
   dispatch-workflows-for-old-branches:
     name: ${{ matrix.workflow }} for ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
