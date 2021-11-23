@@ -717,7 +717,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expect, wp_exif_frac2dec( $fraction ) );
 	}
 
-
 	/**
 	 * Data provider for testing `wp_exif_frac2dec()`.
 	 *

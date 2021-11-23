@@ -850,7 +850,7 @@ function wp_read_image_metadata( $file ) {
 			$meta['copyright'] = trim( $exif['Copyright'] );
 		}
 		if ( ! empty( $exif['FNumber'] ) ) {
-			$meta['aperture'] = round( wp_exif_frac2dec( $exif['FNumber'] ), 2 );
+			$meta['aperture'] = round( (float) wp_exif_frac2dec( $exif['FNumber'] ), 2 );
 		}
 		if ( ! empty( $exif['Model'] ) ) {
 			$meta['camera'] = trim( $exif['Model'] );
