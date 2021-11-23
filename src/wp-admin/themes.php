@@ -884,18 +884,16 @@ function wp_theme_auto_update_setting_template() {
 			<h2 class="theme-name" id="{{ data.id }}-name">{{{ data.name }}}</h2>
 		<# } #>
 
-		<# if ( data.active ) { #>
-			<# if ( data.actions.customize && !data.isBlockBased ) { #>
-				<div class="theme-actions">
+		<div class="theme-actions">
+			<# if ( data.active ) { #>
+				<# if ( data.actions.customize ) { #>
 					<?php
 					/* translators: %s: Theme name. */
 					$customize_aria_label = sprintf( _x( 'Customize %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a aria-label="<?php echo esc_attr( $customize_aria_label ); ?>" class="button button-primary customize load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Customize' ); ?></a>
-				</div>
-			<# } #>
-		<# } else { #>
-			<div class="theme-actions">
+				<# } #>
+			<# } else { #>
 				<# if ( data.compatibleWP && data.compatiblePHP ) { #>
 					<?php
 					/* translators: %s: Theme name. */
@@ -915,8 +913,8 @@ function wp_theme_auto_update_setting_template() {
 					<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 					<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
 				<# } #>
-			</div>
-		<# } #>
+			<# } #>
+		</div>
 	</div>
 </script>
 
