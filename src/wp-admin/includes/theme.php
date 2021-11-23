@@ -703,21 +703,20 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		$customize_action = null;
 
 		$can_edit_theme_options = current_user_can( 'edit_theme_options' );
-		$can_customize = current_user_can( 'customize' );
+		$can_customize          = current_user_can( 'customize' );
+		$is_block_based_theme = $theme->is_block_based();
 
-		if ( $can_edit_theme_options ) {
-			if ( $theme->is_block_based() ) {
-				$customize_action = admin_url( 'site-editor.php' );
-			} elseif ( $can_customize ) {
-				$customize_action = esc_url(
-					add_query_arg(
-						array(
-							'return' => urlencode( esc_url_raw( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
-						),
-						wp_customize_url( $slug )
-					)
-				);
-			}
+		if ( $is_block_based_theme && $can_edit_theme_options ) {
+			$customize_action = admin_url( 'site-editor.php' );
+		} elseif ( ! $is_block_based_theme && $can_customize && $can_edit_theme_options ) {
+			$customize_action = esc_url(
+				add_query_arg(
+					array(
+						'return' => urlencode( esc_url_raw( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+					),
+					wp_customize_url( $slug )
+				)
+			);
 		}
 
 		$update_requires_wp  = isset( $updates[ $slug ]['requires'] ) ? $updates[ $slug ]['requires'] : null;

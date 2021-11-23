@@ -1463,11 +1463,13 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Returns whether this theme is a block-based theme or not.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @return bool
 	 */
 	public function is_block_based() {
 		$path_to_block_template = '/block-templates/index.html';
-		$paths = array(
+		$paths                  = array(
 			$this->get_stylesheet_directory() . $path_to_block_template,
 			$this->get_template_directory() . $path_to_block_template,
 		);
