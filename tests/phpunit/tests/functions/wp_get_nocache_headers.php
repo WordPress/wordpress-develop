@@ -16,7 +16,9 @@ class Tests_Functions_wp_get_nocache_headers extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'Last-Modified', $headers, 'has Last-Modified key' );
 		$this->assertFalse( $headers['Last-Modified'], 'Last-Modified key is false' );
 
-		add_filter(	'nocache_headers', function () {
+		add_filter(
+			'nocache_headers',
+			function () {
 
 				return array( 'filter_name' => 'nocache_headers' );
 			}
