@@ -168,9 +168,11 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string   $hook_name The filter hook to which the function to be removed is hooked.
+	 * @param string                $hook_name The filter hook to which the function to be removed is hooked.
 	 * @param callable|string|array $callback  The callback to be removed from running when the filter is applied.
-	 * @param int      $priority  The exact priority used when adding the original filter callback.
+	 *                                         This method can be called unconditionally to speculatively remove
+	 *                                         a callback that may or may not exist.
+	 * @param int                   $priority  The exact priority used when adding the original filter callback.
 	 * @return bool Whether the callback existed before it was removed.
 	 */
 	public function remove_filter( $hook_name, $callback, $priority ) {

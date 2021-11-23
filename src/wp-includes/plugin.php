@@ -277,10 +277,12 @@ function has_filter( $hook_name, $callback = false ) {
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
- * @param string   $hook_name The filter hook to which the function to be removed is hooked.
- * @param callable|string|array $callback  The name of the function which should be removed.
- * @param int      $priority  Optional. The exact priority used when adding the original
- *                            filter callback. Default 10.
+ * @param string                $hook_name The filter hook to which the function to be removed is hooked.
+ * @param callable|string|array $callback  The callback to be removed from running when the filter is applied.
+ *                                         This function can be called unconditionally to speculatively remove
+ *                                         a callback that may or may not exist.
+ * @param int                   $priority  Optional. The exact priority used when adding the original
+ *                                         filter callback. Default 10.
  * @return bool Whether the function existed before it was removed.
  */
 function remove_filter( $hook_name, $callback, $priority = 10 ) {
@@ -552,10 +554,12 @@ function has_action( $hook_name, $callback = false ) {
  *
  * @since 1.2.0
  *
- * @param string   $hook_name The action hook to which the function to be removed is hooked.
+ * @param string                $hook_name The action hook to which the function to be removed is hooked.
  * @param callable|string|array $callback  The name of the function which should be removed.
- * @param int      $priority  Optional. The exact priority used when adding the original
- *                            action callback. Default 10.
+ *                                         This function can be called unconditionally to speculatively remove
+ *                                         a callback that may or may not exist.
+ * @param int                   $priority  Optional. The exact priority used when adding the original
+ *                                         action callback. Default 10.
  * @return bool Whether the function is removed.
  */
 function remove_action( $hook_name, $callback, $priority = 10 ) {
