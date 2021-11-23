@@ -46,6 +46,7 @@ jobs:
   test-npm:
     name: Test NPM on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       matrix:
@@ -92,6 +93,7 @@ jobs:
   test-npm-macos:
     name: Test NPM on MacOS
     runs-on: macos-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     steps:
       - name: Checkout repository
