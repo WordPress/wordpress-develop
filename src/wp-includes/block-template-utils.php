@@ -298,7 +298,7 @@ function _get_block_templates_files( $template_type ) {
 		return null;
 	}
 
-	$themes              = array(
+	$themes         = array(
 		get_stylesheet() => get_stylesheet_directory(),
 		get_template()   => get_template_directory(),
 	);
