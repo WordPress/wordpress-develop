@@ -461,6 +461,24 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			}
 		}
 
+		if ( ! empty( $request['author'] ) ) {
+			$post_author = (int) $request['author'];
+
+			if ( get_current_user_id() !== $post_author ) {
+				$user_obj = get_userdata( $post_author );
+
+				if ( ! $user_obj ) {
+					return new WP_Error(
+						'rest_invalid_author',
+						__( 'Invalid author ID.' ),
+						array( 'status' => 400 )
+					);
+				}
+			}
+
+			$changes->post_author = $post_author;
+		}
+
 		return $changes;
 	}
 
@@ -545,6 +563,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		if ( rest_is_field_included( 'has_theme_file', $fields ) ) {
 			$data['has_theme_file'] = (bool) $template->has_theme_file;
+		}
+
+		if ( rest_is_field_included( 'author', $fields ) ) {
+			$data['author'] = (int) $template->post_author;
 		}
 
 		if ( rest_is_field_included( 'area', $fields ) && 'wp_template_part' === $template->type ) {
@@ -757,6 +779,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'type'        => 'bool',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
+				),
+				'author' => array (
+					'description' => __( 'The ID for the author of the template.' ),
+					'type'        => 'integer',
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
