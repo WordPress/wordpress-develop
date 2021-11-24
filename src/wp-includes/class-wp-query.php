@@ -1874,7 +1874,7 @@ class WP_Query {
 			$q['showposts']      = (int) $q['showposts'];
 			$q['posts_per_page'] = $q['showposts'];
 		}
-		if ( ( isset( $q['posts_per_archive_page'] ) && 0 != $q['posts_per_archive_page'] ) && ( $this->is_archive || $this->is_search ) ) {
+		if ( ( isset( $q['posts_per_archive_page'] ) && 0 !== (int) $q['posts_per_archive_page'] ) && ( $this->is_archive || $this->is_search ) ) {
 			$q['posts_per_page'] = $q['posts_per_archive_page'];
 		}
 		if ( ! isset( $q['nopaging'] ) ) {
@@ -1897,11 +1897,11 @@ class WP_Query {
 		$q['posts_per_page'] = (int) $q['posts_per_page'];
 		if ( $q['posts_per_page'] < -1 ) {
 			$q['posts_per_page'] = abs( $q['posts_per_page'] );
-		} elseif ( 0 == $q['posts_per_page'] ) {
+		} elseif ( 0 === $q['posts_per_page'] ) {
 			$q['posts_per_page'] = 1;
 		}
 
-		if ( ! isset( $q['comments_per_page'] ) || 0 == $q['comments_per_page'] ) {
+		if ( ! isset( $q['comments_per_page'] ) || 0 === (int) $q['comments_per_page'] ) {
 			$q['comments_per_page'] = get_option( 'comments_per_page' );
 		}
 
