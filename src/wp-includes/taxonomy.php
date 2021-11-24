@@ -18,6 +18,7 @@
  * avoid registering rewrite rules before the {@see 'init'} action.
  *
  * @since 2.8.0
+ * @since 5.9.0 Added `'wp_template_part_area'` taxonomy.
  *
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
@@ -107,17 +108,26 @@ function create_initial_taxonomies() {
 		'nav_menu',
 		'nav_menu_item',
 		array(
-			'public'            => false,
-			'hierarchical'      => false,
-			'labels'            => array(
+			'public'                => false,
+			'hierarchical'          => false,
+			'labels'                => array(
 				'name'          => __( 'Navigation Menus' ),
 				'singular_name' => __( 'Navigation Menu' ),
 			),
-			'query_var'         => false,
-			'rewrite'           => false,
-			'show_ui'           => false,
-			'_builtin'          => true,
-			'show_in_nav_menus' => false,
+			'query_var'             => false,
+			'rewrite'               => false,
+			'show_ui'               => false,
+			'_builtin'              => true,
+			'show_in_nav_menus'     => false,
+			'capabilities'          => array(
+				'manage_terms' => 'edit_theme_options',
+				'edit_terms'   => 'edit_theme_options',
+				'delete_terms' => 'edit_theme_options',
+				'assign_terms' => 'edit_theme_options',
+			),
+			'show_in_rest'          => true,
+			'rest_base'             => 'menus',
+			'rest_controller_class' => 'WP_REST_Menus_Controller',
 		)
 	);
 
@@ -175,13 +185,32 @@ function create_initial_taxonomies() {
 
 	register_taxonomy(
 		'wp_theme',
-		array( 'wp_template' ),
+		array( 'wp_template', 'wp_template_part', 'wp_global_styles' ),
 		array(
 			'public'            => false,
 			'hierarchical'      => false,
 			'labels'            => array(
 				'name'          => __( 'Themes' ),
 				'singular_name' => __( 'Theme' ),
+			),
+			'query_var'         => false,
+			'rewrite'           => false,
+			'show_ui'           => false,
+			'_builtin'          => true,
+			'show_in_nav_menus' => false,
+			'show_in_rest'      => false,
+		)
+	);
+
+	register_taxonomy(
+		'wp_template_part_area',
+		array( 'wp_template_part' ),
+		array(
+			'public'            => false,
+			'hierarchical'      => false,
+			'labels'            => array(
+				'name'          => __( 'Template Part Areas' ),
+				'singular_name' => __( 'Template Part Area' ),
 			),
 			'query_var'         => false,
 			'rewrite'           => false,
@@ -560,6 +589,8 @@ function unregister_taxonomy( $taxonomy ) {
  * @since 4.9.0 Added the `most_used` and `back_to_items` labels.
  * @since 5.7.0 Added the `filter_by_item` label.
  * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
+ * @since 5.9.0 Added the `name_field_description`, `slug_field_description`,
+ *              `parent_field_description`, and `desc_field_description` labels.
  *
  * @param WP_Taxonomy $tax Taxonomy object.
  * @return object {
@@ -576,6 +607,19 @@ function unregister_taxonomy( $taxonomy ) {
  *     @type string $parent_item                This label is only used for hierarchical taxonomies. Default
  *                                              'Parent Category'.
  *     @type string $parent_item_colon          The same as `parent_item`, but with colon `:` in the end.
+ *     @type string $name_field_description     Description for the Name field on Edit Tags screen.
+ *                                              Default 'The name is how it appears on your site'.
+ *     @type string $slug_field_description     Description for the Slug field on Edit Tags screen.
+ *                                              Default 'The &#8220;slug&#8221; is the URL-friendly version
+ *                                              of the name. It is usually all lowercase and contains
+ *                                              only letters, numbers, and hyphens'.
+ *     @type string $parent_field_description   Description for the Parent field on Edit Tags screen.
+ *                                              Default 'Assign a parent term to create a hierarchy.
+ *                                              The term Jazz, for example, would be the parent
+ *                                              of Bebop and Big Band'.
+ *     @type string $desc_field_description     Description for the Description field on Edit Tags screen.
+ *                                              Default 'The description is not prominent by default;
+ *                                              however, some themes may show it'.
  *     @type string $edit_item                  Default 'Edit Tag'/'Edit Category'.
  *     @type string $view_item                  Default 'View Tag'/'View Category'.
  *     @type string $update_item                Default 'Update Tag'/'Update Category'.
@@ -615,6 +659,11 @@ function get_taxonomy_labels( $tax ) {
 		$tax->labels['not_found'] = $tax->no_tagcloud;
 	}
 
+	$name_field_description   = __( 'The name is how it appears on your site.' );
+	$slug_field_description   = __( 'The &#8220;slug&#8221; is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.' );
+	$parent_field_description = __( 'Assign a parent term to create a hierarchy. The term Jazz, for example, would be the parent of Bebop and Big Band.' );
+	$desc_field_description   = __( 'The description is not prominent by default; however, some themes may show it.' );
+
 	$nohier_vs_hier_defaults = array(
 		'name'                       => array( _x( 'Tags', 'taxonomy general name' ), _x( 'Categories', 'taxonomy general name' ) ),
 		'singular_name'              => array( _x( 'Tag', 'taxonomy singular name' ), _x( 'Category', 'taxonomy singular name' ) ),
@@ -623,6 +672,10 @@ function get_taxonomy_labels( $tax ) {
 		'all_items'                  => array( __( 'All Tags' ), __( 'All Categories' ) ),
 		'parent_item'                => array( null, __( 'Parent Category' ) ),
 		'parent_item_colon'          => array( null, __( 'Parent Category:' ) ),
+		'name_field_description'     => array( $name_field_description, $name_field_description ),
+		'slug_field_description'     => array( $slug_field_description, $slug_field_description ),
+		'parent_field_description'   => array( null, $parent_field_description ),
+		'desc_field_description'     => array( $desc_field_description, $desc_field_description ),
 		'edit_item'                  => array( __( 'Edit Tag' ), __( 'Edit Category' ) ),
 		'view_item'                  => array( __( 'View Tag' ), __( 'View Category' ) ),
 		'update_item'                => array( __( 'Update Tag' ), __( 'Update Category' ) ),
@@ -1297,7 +1350,7 @@ function get_terms( $args = array(), $deprecated = '' ) {
 	 * @since 4.6.0 Added the `$term_query` parameter.
 	 *
 	 * @param array         $terms      Array of found terms.
-	 * @param array         $taxonomies An array of taxonomies.
+	 * @param array|null    $taxonomies An array of taxonomies if known.
 	 * @param array         $args       An array of get_terms() arguments.
 	 * @param WP_Term_Query $term_query The WP_Term_Query object.
 	 */
@@ -2839,7 +2892,7 @@ function wp_add_object_terms( $object_id, $terms, $taxonomy ) {
  *
  * @param int              $object_id The ID of the object from which the terms will be removed.
  * @param string|int|array $terms     The slug(s) or ID(s) of the term(s) to remove.
- * @param array|string     $taxonomy  Taxonomy name.
+ * @param string           $taxonomy  Taxonomy name.
  * @return bool|WP_Error True on success, false or WP_Error on failure.
  */
 function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {

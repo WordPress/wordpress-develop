@@ -4,7 +4,6 @@ on:
   # Verify the workflow is successful when this file is updated.
   push:
     branches:
-      - master
       - trunk
     paths:
       - '.github/workflows/test-old-branches.yml'
@@ -17,6 +16,7 @@ jobs:
   dispatch-workflows-for-old-branches:
     name: ${{ matrix.workflow }} for ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
@@ -58,12 +58,12 @@ jobs:
     # Run all branches monthly, but only the currently supported one twice per month.
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # v3.1.0
+        uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
         if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == '5.7' }}
         with:
           github-token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
           script: |
-            github.actions.createWorkflowDispatch({
+            github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: '${{ matrix.workflow }}',
@@ -72,7 +72,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ dispatch-workflows-for-old-branches ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:

@@ -2514,9 +2514,9 @@ function force_balance_tags( $text ) {
 	$tagqueue  = '';
 	$newtext   = '';
 	// Known single-entity/self-closing tags.
-	$single_tags = array( 'area', 'base', 'basefont', 'br', 'col', 'command', 'embed', 'frame', 'hr', 'img', 'input', 'isindex', 'link', 'meta', 'param', 'source' );
+	$single_tags = array( 'area', 'base', 'basefont', 'br', 'col', 'command', 'embed', 'frame', 'hr', 'img', 'input', 'isindex', 'link', 'meta', 'param', 'source', 'track', 'wbr' );
 	// Tags that can be immediately nested within themselves.
-	$nestable_tags = array( 'blockquote', 'div', 'object', 'q', 'span' );
+	$nestable_tags = array( 'article', 'aside', 'blockquote', 'details', 'div', 'figure', 'object', 'q', 'section', 'span' );
 
 	// WP bug fix for comments - in case you REALLY meant to type '< !--'.
 	$text = str_replace( '< !--', '<    !--', $text );
@@ -5756,8 +5756,7 @@ function _print_emoji_detection_script() {
 		'svgExt'  => apply_filters( 'emoji_svg_ext', '.svg' ),
 	);
 
-	$version   = 'ver=' . get_bloginfo( 'version' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/javascript"';
+	$version = 'ver=' . get_bloginfo( 'version' );
 
 	if ( SCRIPT_DEBUG ) {
 		$settings['source'] = array(
@@ -5766,36 +5765,17 @@ function _print_emoji_detection_script() {
 			/** This filter is documented in wp-includes/class.wp-scripts.php */
 			'twemoji' => apply_filters( 'script_loader_src', includes_url( "js/twemoji.js?$version" ), 'twemoji' ),
 		);
-
-		?>
-		<script<?php echo $type_attr; ?>>
-			window._wpemojiSettings = <?php echo wp_json_encode( $settings ); ?>;
-			<?php readfile( ABSPATH . WPINC . '/js/wp-emoji-loader.js' ); ?>
-		</script>
-		<?php
 	} else {
 		$settings['source'] = array(
 			/** This filter is documented in wp-includes/class.wp-scripts.php */
 			'concatemoji' => apply_filters( 'script_loader_src', includes_url( "js/wp-emoji-release.min.js?$version" ), 'concatemoji' ),
 		);
-
-		/*
-		 * If you're looking at a src version of this file, you'll see an "include"
-		 * statement below. This is used by the `npm run build` process to directly
-		 * include a minified version of wp-emoji-loader.js, instead of using the
-		 * readfile() method from above.
-		 *
-		 * If you're looking at a build version of this file, you'll see a string of
-		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
-		 * and edit wp-emoji-loader.js directly.
-		 */
-		?>
-		<script<?php echo $type_attr; ?>>
-			window._wpemojiSettings = <?php echo wp_json_encode( $settings ); ?>;
-			include "js/wp-emoji-loader.min.js"
-		</script>
-		<?php
 	}
+
+	wp_print_inline_script_tag(
+		sprintf( 'window._wpemojiSettings = %s;', wp_json_encode( $settings ) ) .
+			file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js' ) )
+	);
 }
 
 /**

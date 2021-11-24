@@ -538,7 +538,14 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 
 	// Check if the email address has been used already.
 	if ( email_exists( $user_email ) ) {
-		$errors->add( 'user_email', __( 'Sorry, that email address is already used!' ) );
+		$errors->add(
+			'user_email',
+			sprintf(
+				/* translators: %s: Link to the login page. */
+				__( '<strong>Error:</strong> This email address is already registered. <a href="%s">Log in</a> with this address or choose another one.' ),
+				wp_login_url()
+			)
+		);
 	}
 
 	// Has someone already signed up for this username?
@@ -1264,7 +1271,7 @@ function wpmu_activate_signup( $key ) {
 	 *
 	 * @param int    $blog_id       Blog ID.
 	 * @param int    $user_id       User ID.
-	 * @param int    $password      User password.
+	 * @param string $password      User password.
 	 * @param string $signup_title  Site title.
 	 * @param array  $meta          Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
@@ -1462,8 +1469,8 @@ Disable these notifications: %4$s'
 	 * @since MU (3.0.0)
 	 * @since 5.4.0 The `$blog_id` parameter was added.
 	 *
-	 * @param string $msg     Email body.
-	 * @param int    $blog_id The new site's ID.
+	 * @param string     $msg     Email body.
+	 * @param int|string $blog_id The new site's ID as an integer or numeric string.
 	 */
 	$msg = apply_filters( 'newblog_notify_siteadmin', $msg, $blog_id );
 
