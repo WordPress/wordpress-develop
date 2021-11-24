@@ -69,6 +69,7 @@ class WP_Block_Template {
 	 */
 	public $description = '';
 
+
 	/**
 	 * Source of the content. `theme` and `custom` is used for now.
 	 *
@@ -109,4 +110,12 @@ class WP_Block_Template {
 	 * @var bool
 	 */
 	public $is_custom = true;
+
+	/**
+	 * Author.
+	 *
+	 * @since 5.9.0
+	 * @var int
+	 */
+	public $post_author = 0;
 }
