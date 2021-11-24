@@ -342,7 +342,7 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 
 		// Open ZIP file and make sure the directories exist.
 		$zip = new ZipArchive();
-		$zip->open( $filename, ZipArchive::RDONLY );
+		$zip->open( $filename );
 		$has_theme_dir                = $zip->locateName( 'theme/' ) !== false;
 		$has_block_templates_dir      = $zip->locateName( 'theme/block-templates/' ) !== false;
 		$has_block_template_parts_dir = $zip->locateName( 'theme/block-template-parts/' ) !== false;
