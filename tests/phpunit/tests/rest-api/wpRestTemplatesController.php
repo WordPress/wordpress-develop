@@ -103,6 +103,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
 				'is_custom'      => false,
+				'author'         => 0,
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
@@ -145,6 +146,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
 				'is_custom'      => false,
+				'author'         => 0,
 			),
 			$data
 		);
@@ -226,6 +228,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'description' => 'Just a description',
 				'title'       => 'My Template',
 				'content'     => 'Content',
+				'author'      => self::$admin_id,
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -251,6 +254,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'status'         => 'publish',
 				'has_theme_file' => false,
 				'is_custom'      => true,
+				'author'         => self::$admin_id,
 			),
 			$data
 		);
@@ -273,6 +277,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'content'     => array(
 					'raw' => 'Content',
 				),
+				'author'      => self::$admin_id,
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -297,9 +302,26 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 				'status'         => 'publish',
 				'has_theme_file' => false,
+				'author'         => self::$admin_id,
 			),
 			$data
 		);
+	}
+
+	public function test_create_item_invalid_author() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
+		$request->set_body_params(
+			array(
+				'slug'        => 'my_custom_template_invalid_author',
+				'description' => 'Just a description',
+				'title'       => 'My Template',
+				'content'     => 'Content',
+				'author'      => -999,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_author', $response, 400 );
 	}
 
 	/**
@@ -436,7 +458,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 11, $properties );
+		$this->assertCount( 12, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
@@ -449,6 +471,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'wp_id', $properties );
 		$this->assertArrayHasKey( 'has_theme_file', $properties );
+		$this->assertArrayHasKey( 'author', $properties );
 	}
 
 	protected function find_and_normalize_template_by_id( $templates, $id ) {
