@@ -388,7 +388,7 @@ add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen
  * @return array URLs to print for resource hints.
  */
 function twentyfourteen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentyfourteen-lato', 'queue' ) && 'preconnect' === $relation_type ) {
+	if ( wp_style_is( 'twentyfourteen-lato', 'queue' ) && ( 'preconnect' === $relation_type || 'dns-prefetch' === $relation_type ) ) {
 		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
 			$urls[] = array(
 				'href' => 'https://fonts.gstatic.com',
