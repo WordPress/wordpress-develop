@@ -14,6 +14,16 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	 * @covers wp_xmlrpc_server::mw_newPost
 	 */
 	public function test_date_new_post() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$timezone = 'Europe/Kiev';
 		update_option( 'timezone_string', $timezone );
 
@@ -202,7 +212,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @covers wp_xmlrpc_server::wp_editComment
 	 */
-	function test_date_edit_comment() {
+	public function test_date_edit_comment() {
 		$timezone = 'Europe/Kiev';
 		update_option( 'timezone_string', $timezone );
 
