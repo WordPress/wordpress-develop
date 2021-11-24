@@ -11,7 +11,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
-define( 'WPINC', 'wp-includes' );
+if ( ! defined( 'WPINC' ) ) {
+	define( 'WPINC', 'wp-includes' );
+}
+
+if ( ! defined( 'WP_CONTENT_DIR' ) ) {
+	define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
+}
 
 if ( file_exists( ABSPATH . WPINC . '/js/dist/edit-post.js' ) ) {
 	require_once ABSPATH . '_index.php';
@@ -24,7 +30,6 @@ require_once ABSPATH . WPINC . '/load.php';
 wp_fix_server_vars();
 
 require_once ABSPATH . WPINC . '/functions.php';
-define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
 require_once ABSPATH . WPINC . '/version.php';
 
 wp_check_php_mysql_versions();
