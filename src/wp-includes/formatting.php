@@ -5349,13 +5349,19 @@ function normalize_whitespace( $str ) {
  * will return 'something'. wp_strip_all_tags will return ''
  *
  * @since 2.9.0
+ * @since 5.9.0 Remove scripts and styles recursively.
  *
  * @param string $string        String containing HTML tags
  * @param bool   $remove_breaks Optional. Whether to remove left over line breaks and white space chars
  * @return string The processed string.
  */
 function wp_strip_all_tags( $string, $remove_breaks = false ) {
-	$string = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $string );
+	$count = 1;
+
+	while ( $count ) {
+		$string = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $string, -1, $count );
+	}
+
 	$string = strip_tags( $string );
 
 	if ( $remove_breaks ) {
