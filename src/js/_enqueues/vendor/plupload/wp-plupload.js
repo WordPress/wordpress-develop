@@ -246,9 +246,64 @@ window.wp = window.wp || {};
 				file.attachment.unset( key );
 			} );
 
-			file.attachment.set( _.extend( response.data, { uploading: false } ) );
+			 // Convert new-style object to old-style.
+	     mimeType = response.mime_type.indexOf('/') >= 0 ? response.mime_type.split('/') : [ response.mime_type, '' ];
+	     attachmentData = {
+	             id          : response.id,
+	             title       : response.title.raw,
+	             filename    : response.media_details.file.split('/').slice().pop(),
+	             url         : response.source_url,
+	             link        : response.link,
+	             alt         : response.alt_text,
+	             author      : response.author,
+	             authorName  : '', // $author->display_name,
+	             description : response.description.raw,
+	             caption     : response.caption.raw,
+	             name        : response.slug,
+	             status      : response.status,
+	             uploadedTo  : response.parent,
+	             date        : wp.api.utils.parseISO8601( response.date_gmt ),
+	             modified    : wp.api.utils.parseISO8601( response.modified_gmt ),
+	             menuOrder   : 0, //$attachment->menu_order,
+	             mime        : response.mime_type,
+	             type        : mimeType[0],
+	             subtype     : mimeType[1],
+	             icon        : '',//wp_mime_type_icon( $attachment->ID ),
+	             dateFormatted: response.post_date, // mysql2date( __( 'F j, Y' ), $attachment->post_date ),
+	             nonces      : {
+	                     update : this.getOption( 'multipart_params' )._wpnonce, // wp_create_nonce( 'update-post_' . $attachment->ID )
+	                     delete : this.getOption( 'multipart_params' )._wpnonce,
+	                     edit   : this.getOption( 'multipart_params' )._wpnonce, // wp_create_nonce( 'image_editor-' . $attachment->ID )
+	             },
+	             editLink   : false, // get_edit_post_link( $attachment->ID, 'raw' )
+	             meta       : false,
+	     };
+	     if ( response.media_details.sizes ) {
+	             attachmentData.sizes = {};
+	             for (size in response.media_details.sizes) {
+	                     if (response.media_details.sizes.hasOwnProperty(size)) {
+	                             sizeData = response.media_details[ size ];
+	                             attachmentData.sizes[ size ] = {
+	                                     height: sizeData.height,
+	                                     width: sizeData.width,
+	                                     url: sizeData.source_url,
+	                                     orientation: sizeData.height > sizeData.width ? 'portrait' : 'landscape',
+	                             };
+	                     }
+	             }
+	     }
+	     if ( response.media_details.height ) {
+	             attachmentData.height = response.media_details.height;
+	     }
+	     if ( response.media_details.width ) {
+	             attachmentData.width = response.media_details.width;
+	     }
+	     if ( response.media_details.image_meta ) {
+	             attachmentData.meta = response.media_details.image_meta;
+	     }
 
-			wp.media.model.Attachment.get( response.data.id, file.attachment );
+	     file.attachment.set( _.extend( attachmentData, { uploading: false }) );
+	     wp.media.model.Attachment.get( attachmentData.id, file.attachment );
 
 			complete = Uploader.queue.all( function( attachment ) {
 				return ! attachment.get( 'uploading' );
@@ -420,10 +475,10 @@ window.wp = window.wp || {};
 				return error( pluploadL10n.default_error, e, file );
 			}
 
-			if ( ! _.isObject( response ) || _.isUndefined( response.success ) ) {
+			if ( ! _.isObject( response ) || _.isUndefined( response.id ) ) {
 				return error( pluploadL10n.default_error, null, file );
-			} else if ( ! response.success ) {
-				return error( response.data && response.data.message, response.data, file );
+			} else if ( response.status !== 201 ) {
+				return error( response.message, response, file );
 			}
 
 			// Success. Update the UI with the new attachment.

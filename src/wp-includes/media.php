@@ -3840,8 +3840,8 @@ function wp_plupload_default_settings() {
 	 * and the `flash_swf_url` and `silverlight_xap_url` are not used.
 	 */
 	$defaults = array(
-		'file_data_name' => 'async-upload', // Key passed to $_FILE.
-		'url'            => admin_url( 'async-upload.php', 'relative' ),
+		'file_data_name' => 'file', // Key passed to $_FILE.
+		'url'            => rest_url( '/wp/v2/media' ),
 		'filters'        => array(
 			'max_file_size' => $max_upload_size . 'b',
 			'mime_types'    => array( array( 'extensions' => implode( ',', $extensions ) ) ),
@@ -3886,7 +3886,7 @@ function wp_plupload_default_settings() {
 	 */
 	$params = apply_filters( 'plupload_default_params', $params );
 
-	$params['_wpnonce'] = wp_create_nonce( 'media-form' );
+	$params['_wpnonce'] = wp_create_nonce( 'wp_rest' );
 
 	$defaults['multipart_params'] = $params;
 

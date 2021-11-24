@@ -2103,7 +2103,6 @@ function media_upload_form( $errors = null ) {
 		return;
 	}
 
-	$upload_action_url = admin_url( 'async-upload.php' );
 	$post_id           = isset( $_REQUEST['post_id'] ) ? (int) $_REQUEST['post_id'] : 0;
 	$_type             = isset( $type ) ? $type : '';
 	$_tab              = isset( $tab ) ? $tab : '';
@@ -2153,7 +2152,7 @@ function media_upload_form( $errors = null ) {
 
 	$post_params = array(
 		'post_id'  => $post_id,
-		'_wpnonce' => wp_create_nonce( 'media-form' ),
+		'_wpnonce' => wp_create_nonce( 'wp_rest' ),
 		'type'     => $_type,
 		'tab'      => $_tab,
 		'short'    => '1',
@@ -2177,8 +2176,8 @@ function media_upload_form( $errors = null ) {
 		'browse_button'    => 'plupload-browse-button',
 		'container'        => 'plupload-upload-ui',
 		'drop_element'     => 'drag-drop-area',
-		'file_data_name'   => 'async-upload',
-		'url'              => $upload_action_url,
+		'file_data_name'   => 'file',
+		'url'              => rest_url( '/wp/v2/media' ),
 		'filters'          => array( 'max_file_size' => $max_upload_size . 'b' ),
 		'multipart_params' => $post_params,
 	);
