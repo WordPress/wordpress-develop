@@ -353,6 +353,10 @@ function create_initial_rest_routes() {
 	// Block Navigation Areas
 	$controller = new WP_REST_Block_Navigation_Areas_Controller();
 	$controller->register_routes();
+
+	// Site Editor Export.
+	$controller = new WP_REST_Edit_Site_Export_Controller();
+	$controller->register_routes();
 }
 
 /**
