@@ -623,6 +623,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$response->add_link( 'parent', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->parent_base, $data['parent'] ) ) );
 		}
 
+		wp_reset_postdata();
+
 		/**
 		 * Filters a revision returned from the REST API.
 		 *
