@@ -126,7 +126,12 @@ function wp_delete_link( $link_id ) {
  */
 function wp_get_link_cats( $link_id = 0 ) {
 	$cats = wp_get_object_terms( $link_id, 'link_category', array( 'fields' => 'ids' ) );
-	return array_unique( $cats );
+
+	if ( is_array( $cats ) ) {
+		return array_unique( $cats );
+	}
+
+	return array();
 }
 
 /**
@@ -307,16 +312,17 @@ function wp_update_link( $linkdata ) {
 	$link = wp_slash( $link );
 
 	// Passed link category list overwrites existing category list if not empty.
-	if ( isset( $linkdata['link_category'] ) && is_array( $linkdata['link_category'] )
-		&& count( $linkdata['link_category'] ) > 0
-	) {
+	$link_cats = null;
+	if ( ! empty( $linkdata['link_category'] ) && is_array( $linkdata['link_category'] ) ) {
 		$link_cats = $linkdata['link_category'];
-	} else {
+	} elseif ( ! empty( $link['link_category'] )  && is_array( $link['link_category'] ) ) {
 		$link_cats = $link['link_category'];
 	}
 
 	// Merge old and new fields with new fields overwriting old ones.
-	$linkdata                  = array_merge( $link, $linkdata );
+	if ( ! empty( $link ) && is_array( $link ) ) {
+		$linkdata = array_merge( $link, $linkdata );
+	}
 	$linkdata['link_category'] = $link_cats;
 
 	return wp_insert_link( $linkdata );
