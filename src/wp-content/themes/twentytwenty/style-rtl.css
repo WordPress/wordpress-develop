@@ -1242,6 +1242,7 @@ button.toggle {
 	}
 }
 
+body .wp-block-image,
 .wp-block-image.is-resized {
 	margin-right: auto;
 	margin-left: auto;
