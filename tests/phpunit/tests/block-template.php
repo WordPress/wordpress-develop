@@ -131,8 +131,6 @@ class Block_Template_Test extends WP_UnitTestCase {
 		);
 		$resolved_template_path  = locate_block_template( $page_slug_template_path, $type, $templates );
 		$this->assertEquals( $page_slug_template_path, $resolved_template_path );
-
-		switch_theme( 'block-theme' );
 	}
 
 	function test_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
@@ -151,8 +149,6 @@ class Block_Template_Test extends WP_UnitTestCase {
 		$resolved_template_path          = locate_block_template( $parent_theme_page_template_path, $type, $templates );
 		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/block-templates/page-1.html', $_wp_current_template_content );
-
-		switch_theme( 'block-theme' );
 	}
 
 	/**
