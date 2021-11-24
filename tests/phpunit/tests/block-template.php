@@ -14,8 +14,6 @@ class Block_Template_Test extends WP_UnitTestCase {
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
 
 	public static function wpSetUpBeforeClass() {
-		switch_theme( 'block-theme' );
-
 		// Set up custom template post.
 		$args       = array(
 			'post_type'    => 'wp_template',
@@ -33,15 +31,20 @@ class Block_Template_Test extends WP_UnitTestCase {
 		wp_set_post_terms( self::$post->ID, get_stylesheet(), 'wp_theme' );
 	}
 
-	public static function wpTearDownAfterClass() {
-		wp_delete_post( self::$post->ID );
-
-		switch_theme( WP_DEFAULT_THEME );
-	}
+	public function set_up() {
+		parent::set_up();
+		switch_theme( 'block-theme' );
+    }
 
 	public function tear_down() {
 		global $_wp_current_template_content;
 		unset( $_wp_current_template_content );
+
+		parent::tear_down();
+	}
+
+	public static function wpTearDownAfterClass() {
+		wp_delete_post( self::$post->ID );
 	}
 
 	function test_page_home_block_template_takes_precedence_over_less_specific_block_templates() {
