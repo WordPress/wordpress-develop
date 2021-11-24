@@ -580,6 +580,24 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 52963
+	 */
+	public function test_does_plugin_auto_updates() {
+		$plugin = 'hello.php';
+		// Get auto updated plugins list.
+		$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
+
+		// Auto update hello dolly.
+		$auto_updates[] = $plugin;
+		$auto_updates   = array_unique( $auto_updates );
+
+		update_site_option( 'auto_update_plugins', $auto_updates );
+
+		// Set auto update on "Hello Dolly" plugin
+		$this->assertTrue( does_plugin_auto_updates( 'hello.php' ) );
+	}
+
+	/**
 	 * Generate a plugin.
 	 *
 	 * This creates a single-file plugin.
