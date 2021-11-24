@@ -54,13 +54,21 @@ ms_subdomain_constants();
 // have not been populated in the global scope through something like `sunrise.php`.
 if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 
-	$domain = strtolower( stripslashes( $_SERVER['HTTP_HOST'] ) );
-	if ( ':80' === substr( $domain, -3 ) ) {
-		$domain               = substr( $domain, 0, -3 );
-		$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -3 );
-	} elseif ( ':443' === substr( $domain, -4 ) ) {
-		$domain               = substr( $domain, 0, -4 );
-		$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -4 );
+	$domain = 'notdefined';
+
+	if ( isset( $_SERVER['SERVER_NAME'] ) && ! empty( $_SERVER['SERVER_NAME'] ) ) {
+		$domain = $_SERVER['SERVER_NAME'];
+	}
+
+	if ( isset( $_SERVER['HTTP_HOST'] ) ) {
+		$domain = strtolower( stripslashes( $_SERVER['HTTP_HOST'] ) );
+		if ( ':80' === substr( $domain, -3 ) ) {
+			$domain               = substr( $domain, 0, -3 );
+			$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -3 );
+		} elseif ( ':443' === substr( $domain, -4 ) ) {
+			$domain               = substr( $domain, 0, -4 );
+			$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -4 );
+		}
 	}
 
 	$path = stripslashes( $_SERVER['REQUEST_URI'] );
