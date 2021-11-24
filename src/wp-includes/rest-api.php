@@ -1596,7 +1596,7 @@ function rest_handle_multi_type_schema( $value, $args, $param = '' ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			/* translators: 1: Parameter, 2: List of allowed types. */
-			wp_sprintf( __( 'The "type" schema keyword for %1$s can only contain the built-in types: %2$l.' ), $param, $allowed_types ),
+			wp_sprintf( __( 'The type schema keyword for %1$s can only contain the built-in types: %2$l.' ), $param, $allowed_types ),
 			'5.5.0'
 		);
 	}
@@ -2077,7 +2077,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 	if ( ! isset( $args['type'] ) ) {
 		/* translators: %s: Parameter. */
-		_doing_it_wrong( __FUNCTION__, sprintf( __( 'The "type" schema keyword for %s is required.' ), $param ), '5.5.0' );
+		_doing_it_wrong( __FUNCTION__, sprintf( __( 'The type schema keyword for %s is required.' ), $param ), '5.5.0' );
 	}
 
 	if ( is_array( $args['type'] ) ) {
@@ -2099,7 +2099,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			/* translators: 1: Parameter, 2: The list of allowed types. */
-			wp_sprintf( __( 'The "type" schema keyword for %1$s can only be one of the built-in types: %2$l.' ), $param, $allowed_types ),
+			wp_sprintf( __( 'The type schema keyword for %1$s can only be one of the built-in types: %2$l.' ), $param, $allowed_types ),
 			'5.5.0'
 		);
 	}
@@ -2677,7 +2677,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 
 	if ( ! isset( $args['type'] ) ) {
 		/* translators: %s: Parameter. */
-		_doing_it_wrong( __FUNCTION__, sprintf( __( 'The "type" schema keyword for %s is required.' ), $param ), '5.5.0' );
+		_doing_it_wrong( __FUNCTION__, sprintf( __( 'The type schema keyword for %s is required.' ), $param ), '5.5.0' );
 	}
 
 	if ( is_array( $args['type'] ) ) {
@@ -2694,7 +2694,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			/* translators: 1: Parameter, 2: The list of allowed types. */
-			wp_sprintf( __( 'The "type" schema keyword for %1$s can only be one of the built-in types: %2$l.' ), $param, $allowed_types ),
+			wp_sprintf( __( 'The type schema keyword for %1$s can only be one of the built-in types: %2$l.' ), $param, $allowed_types ),
 			'5.5.0'
 		);
 	}

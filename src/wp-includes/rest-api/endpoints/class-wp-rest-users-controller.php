@@ -1307,7 +1307,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'rest_user_invalid_password',
 				sprintf(
 					/* translators: %s: The '\' character. */
-					__( 'Passwords cannot contain the "%s" character.' ),
+					__( 'Passwords cannot contain the %s character.' ),
 					'\\'
 				),
 				array( 'status' => 400 )

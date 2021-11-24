@@ -67,7 +67,7 @@ final class WP_Block_Pattern_Categories_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Block pattern name. */
-				sprintf( __( 'Block pattern category "%s" not found.' ), $category_name ),
+				sprintf( __( 'Block pattern category %s not found.' ), $category_name ),
 				'5.5.0'
 			);
 			return false;

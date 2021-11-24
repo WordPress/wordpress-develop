@@ -83,7 +83,7 @@ final class WP_Block_Type_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Block name. */
-				sprintf( __( 'Block type "%s" is already registered.' ), $name ),
+				sprintf( __( 'Block type %s is already registered.' ), $name ),
 				'5.0.0'
 			);
 			return false;
@@ -116,7 +116,7 @@ final class WP_Block_Type_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Block name. */
-				sprintf( __( 'Block type "%s" is not registered.' ), $name ),
+				sprintf( __( 'Block type %s is not registered.' ), $name ),
 				'5.0.0'
 			);
 			return false;

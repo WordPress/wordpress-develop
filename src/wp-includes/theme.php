@@ -716,7 +716,7 @@ function locale_stylesheet() {
 	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 
 	printf(
-		'<link rel="stylesheet" href="%s"%s media="screen" />',
+		'<link rel="stylesheet" href="%s" %s media="screen" />',
 		$stylesheet,
 		$type_attr
 	);
@@ -3138,14 +3138,14 @@ function register_theme_feature( $feature, $args = array() ) {
 	if ( ! in_array( $args['type'], array( 'string', 'boolean', 'integer', 'number', 'array', 'object' ), true ) ) {
 		return new WP_Error(
 			'invalid_type',
-			__( 'The feature "type" is not valid JSON Schema type.' )
+			__( 'The feature type is not valid JSON Schema type.' )
 		);
 	}
 
 	if ( true === $args['variadic'] && 'array' !== $args['type'] ) {
 		return new WP_Error(
 			'variadic_must_be_array',
-			__( 'When registering a "variadic" theme feature, the "type" must be an "array".' )
+			__( 'When registering a variadic theme feature, the type must be an array.' )
 		);
 	}
 
@@ -3153,21 +3153,21 @@ function register_theme_feature( $feature, $args = array() ) {
 		if ( ! is_array( $args['show_in_rest'] ) || empty( $args['show_in_rest']['schema'] ) ) {
 			return new WP_Error(
 				'missing_schema',
-				__( 'When registering an "array" or "object" feature to show in the REST API, the feature\'s schema must also be defined.' )
+				__( 'When registering an array or object feature to show in the REST API, the feature\'s schema must also be defined.' )
 			);
 		}
 
 		if ( 'array' === $args['type'] && ! isset( $args['show_in_rest']['schema']['items'] ) ) {
 			return new WP_Error(
 				'missing_schema_items',
-				__( 'When registering an "array" feature, the feature\'s schema must include the "items" keyword.' )
+				__( 'When registering an array feature, the feature\'s schema must include the items keyword.' )
 			);
 		}
 
 		if ( 'object' === $args['type'] && ! isset( $args['show_in_rest']['schema']['properties'] ) ) {
 			return new WP_Error(
 				'missing_schema_properties',
-				__( 'When registering an "object" feature, the feature\'s schema must include the "properties" keyword.' )
+				__( 'When registering an object feature, the feature\'s schema must include the properties keyword.' )
 			);
 		}
 	}
@@ -3178,7 +3178,7 @@ function register_theme_feature( $feature, $args = array() ) {
 				'invalid_rest_prepare_callback',
 				sprintf(
 					/* translators: %s: prepare_callback */
-					__( 'The "%s" must be a callable function.' ),
+					__( 'The %s must be a callable function.' ),
 					'prepare_callback'
 				)
 			);
