@@ -1182,7 +1182,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			isset( $request['status'] ) &&
 			( ! $current_status || $current_status !== $request['status'] )
 		) {
-			$status = $this->handle_status_param( $request['status'], $post_type );
+			$status = $this->handle_status_param( $request['status'], $post_type, $request['id'] ? $request['id'] : 0 );
 
 			if ( is_wp_error( $status ) ) {
 				return $status;
@@ -1370,38 +1370,75 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param string       $post_status Post status.
 	 * @param WP_Post_Type $post_type   Post type.
+	 * @param int          $post_id     Post ID
 	 * @return string|WP_Error Post status or WP_Error if lacking the proper permission.
 	 */
-	protected function handle_status_param( $post_status, $post_type ) {
+	protected function handle_status_param( $post_status, $post_type, $post_id = 0 ) {
 
-		switch ( $post_status ) {
-			case 'draft':
-			case 'pending':
-				break;
-			case 'private':
-				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error(
-						'rest_cannot_publish',
-						__( 'Sorry, you are not allowed to create private posts in this post type.' ),
-						array( 'status' => rest_authorization_required_code() )
-					);
-				}
-				break;
-			case 'publish':
-			case 'future':
-				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error(
-						'rest_cannot_publish',
-						__( 'Sorry, you are not allowed to publish posts in this post type.' ),
-						array( 'status' => rest_authorization_required_code() )
-					);
-				}
-				break;
-			default:
-				if ( ! get_post_status_object( $post_status ) ) {
-					$post_status = 'draft';
-				}
-				break;
+		if ( 0 !== $post_id ) {
+			$existing_post = $this->get_post( $post_id );
+
+			switch ( $post_status ) {
+				case 'draft':
+				case 'pending':
+				case 'private':
+					if ( ! current_user_can( 'edit_post', $post_id ) ) {
+						return new WP_Error(
+							'rest_cannot_publish',
+							__( 'Sorry, you are not allowed to create private posts in this post type.' ),
+							array( 'status' => rest_authorization_required_code() )
+						);
+					}
+					break;
+				case 'publish':
+				case 'future':
+					if (
+						! ( in_array( $existing_post->post_status, array( 'publish', 'future' ), true ) && current_user_can( 'edit_post', $post_id ) )
+						&& ! current_user_can( 'publish_post', $post_id )
+					) {
+						return new WP_Error(
+							'rest_cannot_publish',
+							__( 'Sorry, you are not allowed to publish posts in this post type.' ),
+							array( 'status' => rest_authorization_required_code() )
+						);
+					}
+					break;
+				default:
+					if ( ! get_post_status_object( $post_status ) ) {
+						$post_status = 'draft';
+					}
+					break;
+			}
+		} else {
+			switch ( $post_status ) {
+				case 'draft':
+				case 'pending':
+					break;
+				case 'private':
+					if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
+						return new WP_Error(
+							'rest_cannot_publish',
+							__( 'Sorry, you are not allowed to create private posts in this post type.' ),
+							array( 'status' => rest_authorization_required_code() )
+						);
+					}
+					break;
+				case 'publish':
+				case 'future':
+					if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
+						return new WP_Error(
+							'rest_cannot_publish',
+							__( 'Sorry, you are not allowed to publish posts in this post type.' ),
+							array( 'status' => rest_authorization_required_code() )
+						);
+					}
+					break;
+				default:
+					if ( ! get_post_status_object( $post_status ) ) {
+						$post_status = 'draft';
+					}
+					break;
+			}
 		}
 
 		return $post_status;
@@ -2102,7 +2139,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post_type = get_post_type_object( $post->post_type );
 
-		if ( 'attachment' !== $this->post_type && current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( 'attachment' !== $this->post_type
+			&& (
+				( in_array( $post->post_status, array( 'publish', 'future' ), true ) && current_user_can( 'edit_post', $post->ID ) )
+				|| current_user_can( $post_type->cap->publish_posts ) )
+		) {
 			$rels[] = 'https://api.w.org/action-publish';
 		}
 

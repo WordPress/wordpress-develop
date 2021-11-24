@@ -3752,6 +3752,50 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 47443
+	 */
+	public function test_update_published_post_without_publish_posts_capability() {
+		wp_set_current_user( self::$editor_id );
+		$user = wp_get_current_user();
+		$user->add_cap( 'publish_posts', false );
+		$user->add_cap( 'edit_published_posts', true );
+
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$params = $this->set_post_data(
+			array(
+				'title'   => 'Hello World',
+				'content' => 'Hello, world.',
+				'excerpt' => 'Hello',
+				'name'    => 'test',
+				'status'  => 'publish',
+				'author'  => get_current_user_id(),
+				'type'    => 'post',
+			)
+		);
+
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_update_post_response( $response );
+		$new_data = $response->get_data();
+
+		$this->assertEquals( self::$post_id, $new_data['id'] );
+		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
+		$this->assertEquals( $params['content'], $new_data['content']['raw'] );
+		$this->assertEquals( $params['excerpt'], $new_data['excerpt']['raw'] );
+		$this->assertEquals( $params['status'], $new_data['status'] );
+		$post = get_post( self::$post_id );
+		$this->assertEquals( 'Hello World', $post->post_title );
+		$this->assertEquals( 'Hello, world.', $post->post_content );
+		$this->assertEquals( 'Hello', $post->post_excerpt );
+		$this->assertEquals( 'publish', $post->post_status );
+	}
+
+	/**
 	 * @ticket 38698
 	 */
 	public function test_update_item_with_template() {
@@ -4610,6 +4654,28 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$links    = $response->get_links();
 
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-publish', $links );
+	}
+
+	/**
+	 * @ticket 47443
+	 */
+	public function test_publish_action_link_exists_for_user_without_publish_post_capability() {
+		wp_set_current_user( self::$editor_id );
+		$user = wp_get_current_user();
+		$user->add_cap( 'publish_posts', false );
+		$user->add_cap( 'edit_published_posts', true );
+
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-publish', $links );
 	}
 
 	public function test_sticky_action_exists_for_editor() {
