@@ -34,7 +34,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		switch_theme( 'block-theme' );
-    }
+	}
 
 	public function tear_down() {
 		global $_wp_current_template_content;
