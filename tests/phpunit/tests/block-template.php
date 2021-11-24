@@ -13,24 +13,6 @@ class Block_Template_Test extends WP_UnitTestCase {
 
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
 
-	public static function wpSetUpBeforeClass() {
-		// Set up custom template post.
-		$args       = array(
-			'post_type'    => 'wp_template',
-			'post_name'    => 'wp-custom-template-my-block-template',
-			'post_title'   => 'My Custom Block Template',
-			'post_content' => 'Content',
-			'post_excerpt' => 'Description of my block template',
-			'tax_input'    => array(
-				'wp_theme' => array(
-					get_stylesheet(),
-				),
-			),
-		);
-		self::$post = self::factory()->post->create_and_get( $args );
-		wp_set_post_terms( self::$post->ID, get_stylesheet(), 'wp_theme' );
-	}
-
 	public function set_up() {
 		parent::set_up();
 		switch_theme( 'block-theme' );
@@ -41,10 +23,6 @@ class Block_Template_Test extends WP_UnitTestCase {
 		unset( $_wp_current_template_content );
 
 		parent::tear_down();
-	}
-
-	public static function wpTearDownAfterClass() {
-		wp_delete_post( self::$post->ID );
 	}
 
 	function test_page_home_block_template_takes_precedence_over_less_specific_block_templates() {
@@ -174,6 +152,22 @@ class Block_Template_Test extends WP_UnitTestCase {
 	public function test_custom_page_block_template_takes_precedence_over_all_other_templates() {
 		global $_wp_current_template_content;
 
+		// Set up custom template post.
+		$args = array(
+			'post_type'    => 'wp_template',
+			'post_name'    => 'wp-custom-template-my-block-template',
+			'post_title'   => 'My Custom Block Template',
+			'post_content' => 'Content',
+			'post_excerpt' => 'Description of my block template',
+			'tax_input'    => array(
+				'wp_theme' => array(
+					get_stylesheet(),
+				),
+			),
+		);
+		$post = self::factory()->post->create_and_get( $args );
+		wp_set_post_terms( $post->ID, get_stylesheet(), 'wp_theme' );
+
 		$custom_page_block_template = 'wp-custom-template-my-block-template';
 		$page_template_path         = get_stylesheet_directory() . '/' . 'page.php';
 		$type                       = 'page';
@@ -185,7 +179,9 @@ class Block_Template_Test extends WP_UnitTestCase {
 		);
 		$resolved_template_path     = locate_block_template( $page_template_path, $type, $templates );
 		$this->assertSame( self::$template_canvas_path, $resolved_template_path );
-		$this->assertSame( self::$post->post_content, $_wp_current_template_content );
+		$this->assertSame( $post->post_content, $_wp_current_template_content );
+
+		wp_delete_post( $post->ID );
 	}
 
 	/**
