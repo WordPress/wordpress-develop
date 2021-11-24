@@ -321,6 +321,11 @@ require ABSPATH . WPINC . '/block-supports/layout.php';
 require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
 
+// Loading IndexNow specific files.
+require ABSPATH . WPINC . '/indexnow.php';
+require ABSPATH . WPINC . '/indexnow/class-wp-indexnow.php';
+require ABSPATH . WPINC . '/indexnow/class-wp-indexnow-provider.php';
+
 $GLOBALS['wp_embed'] = new WP_Embed();
 
 // Load multisite-specific files.
@@ -589,6 +594,23 @@ if ( is_multisite() ) {
 }
 
 /**
+ * Adding IndexNow complaint search engine endpoints if enabled.
+ */
+
+if ( defined( 'WP_INDEXNOW' ) && true == WP_INDEXNOW ) {
+	define(
+		'WP_INDEXNOW_PROVIDERS',
+		serialize(
+			array(
+				'bing'   => 'https://www.bing.com',
+				'yandex' => 'https://yandex.com',
+			)
+		)
+	);
+	$wp_indexnow->init_search_engines();
+}
+
+/**
  * This hook is fired once WP, all plugins, and the theme are fully loaded and instantiated.
  *
  * Ajax requests should use wp-admin/admin-ajax.php. admin-ajax.php can handle requests for
@@ -599,3 +621,4 @@ if ( is_multisite() ) {
  * @since 3.0.0
  */
 do_action( 'wp_loaded' );
+
