@@ -75,7 +75,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 		$this->assertLessThan( $mysql_eol, time(), "readme.html's Recommended MySQL version is too old. Remember to update the WordPress.org Requirements page, too." );
 
 		/* Check MariaDB version */
-		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
+		preg_match( '#Recommendations.*OR.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
 		$mariadb_version = str_replace( '.', '', $matches[1] );
 
 		$response = wp_remote_get( "https://mariadb.com/kb/en/changes-improvements-in-mariadb-{$mariadb_version}/" );
