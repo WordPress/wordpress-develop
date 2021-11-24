@@ -2,7 +2,7 @@
  * External dependencies
  */
 import path from 'path';
-import fs from 'fs';
+const fs = require('fs');
 
 /**
  * WordPress dependencies
