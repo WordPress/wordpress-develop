@@ -7,6 +7,8 @@
 
 /**
  * Tests for the block template loading algorithm.
+ *
+ * @group block-templates
  */
 class Block_Template_Test extends WP_UnitTestCase {
 	private static $post;
