@@ -2842,7 +2842,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					// phpcs:enable
 
 					// Uppercase the index type and normalize space characters.
-					$index_type = strtoupper( preg_replace( '/\s+/', ' ', trim( $index_matches['index_type'] ) ) );
+					$index_type = strtoupper( (string) preg_replace( '/\s+/', ' ', trim( $index_matches['index_type'] ) ) );
 
 					// 'INDEX' is a synonym for 'KEY', standardize on 'KEY'.
 					$index_type = str_replace( 'INDEX', 'KEY', $index_type );
@@ -3132,7 +3132,12 @@ function make_site_theme_from_oldschool( $theme_name, $template ) {
 
 		// Check to make sure it's not a new index.
 		if ( 'index.php' === $oldfile ) {
-			$index = implode( '', file( "$oldpath/$oldfile" ) );
+			$oldfile_content = file( "$oldpath/$oldfile" );
+			if ( false === $oldfile_content ) {
+				return false;
+			}
+
+			$index = implode( '', $oldfile_content );
 			if ( strpos( $index, 'WP_USE_THEMES' ) !== false ) {
 				if ( ! copy( WP_CONTENT_DIR . '/themes/' . WP_DEFAULT_THEME . '/index.php', "$site_dir/$newfile" ) ) {
 					return false;
@@ -3149,10 +3154,18 @@ function make_site_theme_from_oldschool( $theme_name, $template ) {
 
 		chmod( "$site_dir/$newfile", 0777 );
 
+		$newfile_content = file( "$site_dir/$newfile" );
+		if ( false === $newfile_content ) {
+			return false;
+		}
+
 		// Update the blog header include in each file.
-		$lines = explode( "\n", implode( '', file( "$site_dir/$newfile" ) ) );
+		$lines = explode( "\n", implode( '', $newfile_content ) );
 		if ( $lines ) {
 			$f = fopen( "$site_dir/$newfile", 'w' );
+			if ( false === $f ) {
+				return false;
+			}
 
 			foreach ( $lines as $line ) {
 				if ( preg_match( '/require.*wp-blog-header/', $line ) ) {
@@ -3177,6 +3190,9 @@ function make_site_theme_from_oldschool( $theme_name, $template ) {
 	$stylelines = file_get_contents( "$site_dir/style.css" );
 	if ( $stylelines ) {
 		$f = fopen( "$site_dir/style.css", 'w' );
+		if ( false === $f ) {
+			return false;
+		}
 
 		fwrite( $f, $header );
 		fwrite( $f, $stylelines );
@@ -3219,10 +3235,18 @@ function make_site_theme_from_default( $theme_name, $template ) {
 		closedir( $theme_dir );
 	}
 
+	$theme_content = file( "$site_dir/style.css" );
+	if ( false === $theme_content ) {
+		return false;
+	}
+
 	// Rewrite the theme header.
-	$stylelines = explode( "\n", implode( '', file( "$site_dir/style.css" ) ) );
+	$stylelines = explode( "\n", implode( '', $theme_content ) );
 	if ( $stylelines ) {
 		$f = fopen( "$site_dir/style.css", 'w' );
+		if ( false === $f ) {
+			return false;
+		}
 
 		foreach ( $stylelines as $line ) {
 			if ( strpos( $line, 'Theme Name:' ) !== false ) {
@@ -3365,11 +3389,11 @@ function wp_check_mysql_version() {
  * @since 2.2.0
  */
 function maybe_disable_automattic_widgets() {
-	$plugins = __get_option( 'active_plugins' );
+	$plugins = array_values( (array) __get_option( 'active_plugins' ) );
 
-	foreach ( (array) $plugins as $plugin ) {
+	foreach ( $plugins as $plugin ) {
 		if ( 'widgets.php' === basename( $plugin ) ) {
-			array_splice( $plugins, array_search( $plugin, $plugins, true ), 1 );
+			array_splice( $plugins, (int) array_search( $plugin, $plugins, true ), 1 );
 			update_option( 'active_plugins', $plugins );
 			break;
 		}
