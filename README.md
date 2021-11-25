@@ -25,6 +25,8 @@ You will also need [Docker](https://www.docker.com/products/docker-desktop) inst
 
 Ensure [Docker](https://www.docker.com/products/docker-desktop) is running before using these commands.
 
+Ensure **Docker Composer V2** is not active (settings -> experimental features) if using docker desktop.
+
 #### To start the development environment for the first time
 
 Clone the current repository using `git clone https://github.com/WordPress/wordpress-develop.git`. Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
