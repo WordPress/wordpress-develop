@@ -246,4 +246,28 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
 		$this->assertSameSetsWithIndex( $allowed_themes, $new_allowed_themes );
 	}
+
+	/**
+	 * @ticket 54460
+	 */
+	public function test_is_block_based_method_returns_true_for_block_themes() {
+		$theme = wp_get_theme( 'block-theme', $this->theme_root );
+		$this->assertTrue( $theme->is_block_based() );
+	}
+
+	/**
+	 * @ticket 54460
+	 */
+	public function test_is_block_based_method_returns_true_for_child_block_themes() {
+		$theme = wp_get_theme( 'block-theme-child', $this->theme_root );
+		$this->assertTrue( $theme->is_block_based() );
+	}
+
+	/**
+	 * @ticket 54460
+	 */
+	public function test_is_block_based_method_returns_false_for_non_block_themes() {
+		$theme = wp_get_theme( 'default', $this->theme_root );
+		$this->assertFalse( $theme->is_block_based() );
+	}
 }
