@@ -266,6 +266,27 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_get_term_link
+	 *
+	 * @ticket 50225
+	 *
+	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
+	 */
+	public function test_get_term_feed_link_backward_compatibility( $taxonomy, $use_id ) {
+		if ( $use_id ) {
+			$term = $this->get_term( $taxonomy, $use_id );
+
+			$term_feed_link = get_term_feed_link( $term, $taxonomy );
+			$this->assertIsString( $term_feed_link );
+
+			$term_feed_link = get_term_feed_link( $term, '' );
+			$this->assertIsString( $term_feed_link );
+		} else {
+			$this->markTestSkipped( 'This test requires to pass an id to get_term_feed_link()' );
+		}
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
