@@ -297,7 +297,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		}
 
 		$file_data = wp_get_webp_info( $file );
-		$this->assertSame( $file_data, $expected );
+		$this->assertSame( $expected, $file_data );
 	}
 
 	/**
