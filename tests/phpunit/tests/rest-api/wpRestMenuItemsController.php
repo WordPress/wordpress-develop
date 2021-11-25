@@ -392,7 +392,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 			$expected[] = $i;
 			$actual[]   = $data['menu_order'];
 		}
-		$this->assertSame( $actual, $expected );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
