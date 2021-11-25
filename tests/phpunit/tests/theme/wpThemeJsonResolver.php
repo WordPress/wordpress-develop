@@ -147,8 +147,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 52991
 	 */
 	public function test_switching_themes_recalculates_data() {
-		// By default, the theme for unit tests is "default",
-		// which doesn't have theme.json support.
+		// The "default" theme doesn't have theme.json support.
+		switch_theme( 'default' );
 		$default = WP_Theme_JSON_Resolver::theme_has_support();
 
 		// Switch to a theme that does have support.
