@@ -251,7 +251,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 54460
 	 */
 	public function test_is_block_based_method_returns_true_for_block_themes() {
-		$theme = wp_get_theme( 'block-theme', $this->theme_root );
+		$theme = wp_get_theme( 'test-block-theme', $this->theme_root );
 		$this->assertTrue( $theme->is_block_based() );
 	}
 
@@ -259,7 +259,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 54460
 	 */
 	public function test_is_block_based_method_returns_true_for_child_block_themes() {
-		$theme = wp_get_theme( 'block-theme-child', $this->theme_root );
+		$theme = wp_get_theme( 'test-block-child-theme', $this->theme_root );
 		$this->assertTrue( $theme->is_block_based() );
 	}
 
