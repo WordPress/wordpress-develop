@@ -53,7 +53,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		wp_delete_post( self::$post->ID );
 	}
 
-
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/templates', $routes );
@@ -93,6 +92,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'theme'          => 'default',
 				'slug'           => 'my_template',
 				'source'         => 'custom',
+				'origin'         => null,
 				'type'           => 'wp_template',
 				'description'    => 'Description of my template.',
 				'title'          => array(
@@ -135,6 +135,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'theme'          => 'default',
 				'slug'           => 'my_template',
 				'source'         => 'custom',
+				'origin'         => null,
 				'type'           => 'wp_template',
 				'description'    => 'Description of my template.',
 				'title'          => array(
@@ -180,6 +181,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 				'slug'           => 'my_custom_template',
 				'source'         => 'custom',
+				'origin'         => null,
 				'type'           => 'wp_template',
 				'description'    => 'Just a description',
 				'title'          => array(
@@ -228,6 +230,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 				'slug'           => 'my_custom_template_raw',
 				'source'         => 'custom',
+				'origin'         => null,
 				'type'           => 'wp_template',
 				'description'    => 'Just a description',
 				'title'          => array(
@@ -251,7 +254,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'description' => 'Just a description',
 				'title'       => 'My Template',
 				'content'     => 'Content',
-				'author'      => -999,
+				'author'      => 99999,
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -392,13 +395,14 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 12, $properties );
+		$this->assertCount( 13, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'theme', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'source', $properties );
+		$this->assertArrayHasKey( 'origin', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
