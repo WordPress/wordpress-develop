@@ -362,4 +362,21 @@ EXPECTED;
 		$page_2_url = home_url() . '?foo=2';
 		$this->assertContains( "<a class=\"page-numbers\" href=\"$page_2_url\">2</a>", $links );
 	}
+
+	/**
+	 * @ticket 53868
+	 */
+	function test_paginate_links_format_all_pages() {
+		$links = paginate_links(
+			array(
+				'current'          => 2,
+				'total'            => 5,
+				'prev_next'        => false,
+				'format_all_pages' => true,
+				'type'             => 'array',
+			)
+		);
+
+		$this->assertStringContainsString( '?paged=1', $links[0] );
+	}
 }
