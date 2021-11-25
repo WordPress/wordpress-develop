@@ -13,6 +13,10 @@
  * @since 3.1.0
  *
  * @see WP_User_Query::prepare_query() for information on accepted arguments.
+ *
+ * @property array $results
+ * @property int   $total_users
+ * @property array $compat_fields
  */
 class WP_User_Query {
 

@@ -2096,8 +2096,8 @@ function wp_insert_user( $userdata ) {
 	 *     @type string   $syntax_highlighting  Whether to enable the rich code editor for the user. Default 'true'.
 	 *     @type string   $comment_shortcuts    Whether to enable keyboard shortcuts for the user. Default 'false'.
 	 *     @type string   $admin_color          The color scheme for a user's admin screen. Default 'fresh'.
-	 *     @type int|bool $use_ssl              Whether to force SSL on the user's admin area. 0|false if SSL
-	 *                                          is not forced.
+	 *     @type int|true $use_ssl              Whether to force SSL on the user's admin area. Integer 0 if SSL
+	 *                                          is not forced, boolean true if it is.
 	 *     @type string   $show_admin_bar_front Whether to show the admin bar on the front end for the user.
 	 *                                          Default 'true'.
 	 *     @type string   $locale               User's locale. Default empty.

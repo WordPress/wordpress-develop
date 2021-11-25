@@ -1,0 +1,86 @@
+parameters:
+  level: 1
+  paths:
+    - src
+  scanFiles:
+    - wp-config.php
+    - src/wp-admin/includes/ms.php
+  scanDirectories:
+    - src/wp-includes
+    - src/wp-admin
+  excludePaths:
+    analyseAndScan:
+      - src/wp-admin/includes/deprecated.php
+      - src/wp-admin/includes/ms-deprecated.php
+      - src/wp-admin/includes/noop.php
+      - src/wp-content
+      - src/wp-includes/deprecated.php
+      - src/wp-includes/ms-deprecated.php
+      - src/wp-includes/pluggable-deprecated.php
+    analyse:
+      - src/wp-admin/includes/class-ftp-pure.php
+      - src/wp-admin/includes/class-ftp-sockets.php
+      - src/wp-admin/includes/class-ftp.php
+      - src/wp-admin/includes/class-pclzip.php
+      - src/wp-includes/atomlib.php
+      - src/wp-includes/class-json.php
+      - src/wp-includes/class-phpmailer.php
+      - src/wp-includes/class-requests.php
+      - src/wp-includes/class-simplepie.php
+      - src/wp-includes/class-smtp.php
+      - src/wp-includes/class-snoopy.php
+      - src/wp-includes/class-wp-feed-cache.php
+      - src/wp-includes/class-wp-http-ixr-client.php
+      - src/wp-includes/class-wp-http-requests-hooks.php
+      - src/wp-includes/class-wp-http-requests-response.php
+      - src/wp-includes/class-wp-simplepie-file.php
+      - src/wp-includes/class-wp-simplepie-sanitize-kses.php
+      - src/wp-includes/class-wp-text-diff-renderer-inline.php
+      - src/wp-includes/class-wp-text-diff-renderer-table.php
+      - src/wp-includes/ID3
+      - src/wp-includes/PHPMailer
+      - src/wp-includes/pomo
+      - src/wp-includes/random_compat
+      - src/wp-includes/Requests
+      - src/wp-includes/rss.php
+      - src/wp-includes/SimplePie
+      - src/wp-includes/sodium_compat
+      - src/wp-includes/Text
+  bootstrapFiles:
+    - tests/phpstan/bootstrap.php
+  ignoreErrors:
+    # These are imported by including wp-includes/version.php:
+    - '#(wp_version|required_php_version|required_mysql_version|wp_local_package)#'
+    # Inner functions aren't supported:
+    - '#Inner named functions are not supported by PHPStan#'
+    # mysql_* functions are used within appropriate compat checks:
+    - '#Function mysql_[a-z_]+ not found#'
+    # Inner functions within the importer:
+    - '#Function wxr_[a-z_]+ not found#'
+    # Only defined by an object cache dropin:
+    - '#Function wp_cache_postload not found#'
+    # Classes in external files:
+    - '#(WP_Press_This_Plugin)#'
+    # Gutenberg compat functions:
+    - '#(gutenberg_get_widget_key|gutenberg_get_widget_object)#'
+    # `$s` is extracted in `load_template()`:
+    -
+      message: '#Variable \$s in isset\(\) is never defined#'
+      path: src/wp-includes/template.php
+      count: 1
+    -
+      message: '#Undefined variable: \$s#'
+      path: src/wp-includes/template.php
+      count: 1
+    # Uses func_get_args():
+    - '#Function apply_filters invoked with [0-9] parameters, 2 required#'
+    # Not much we can do about undocumented objects:
+    - '#Access to an undefined property object::#'
+    # Not worried about unused parameters for now:
+    - '# unused parameter #'
+    # Constants that use `@var`:
+    - '#PHPDoc tag @var does not specify variable name#'
+    # These are too noisy at the moment:
+    - '#Variable \$[a-zA-Z0-9_]+ might not be defined.#'
+    - '#Call to function compact\(\) contains possibly undefined variable#'
+    - '#Variable \$[a-zA-Z0-9_]+ in isset\(\) always exists#'

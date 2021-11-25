@@ -2516,6 +2516,11 @@ function is_sticky( $post_id = 0 ) {
  *
  * @see sanitize_post_field()
  *
+ * @phpstan-template T
+ * @phpstan-param T $post
+ * @phpstan-param string $context
+ * @phpstan-return T
+ *
  * @param object|WP_Post|array $post    The post object or array
  * @param string               $context Optional. How to sanitize post fields.
  *                                      Accepts 'raw', 'edit', 'db', 'display',

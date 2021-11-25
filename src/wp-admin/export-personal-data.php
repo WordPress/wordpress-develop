@@ -84,6 +84,7 @@ $_list_table_args = array(
 	'singular' => 'privacy_request',
 );
 
+/** @var WP_Privacy_Data_Export_Requests_List_Table $requests_table */
 $requests_table = _get_list_table( 'WP_Privacy_Data_Export_Requests_List_Table', $_list_table_args );
 
 $requests_table->screen->set_screen_reader_content(

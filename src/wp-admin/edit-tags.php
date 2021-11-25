@@ -38,6 +38,7 @@ if ( ! current_user_can( $tax->cap->manage_terms ) ) {
  */
 global $post_type;
 
+/** @var WP_Terms_List_Table $wp_list_table */
 $wp_list_table = _get_list_table( 'WP_Terms_List_Table' );
 $pagenum       = $wp_list_table->get_pagenum();
 

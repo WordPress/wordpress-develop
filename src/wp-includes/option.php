@@ -1094,7 +1094,7 @@ function wp_user_settings() {
 		}
 
 		$last_saved = (int) get_user_option( 'user-settings-time', $user_id );
-		$current    = isset( $_COOKIE[ 'wp-settings-time-' . $user_id ] ) ? preg_replace( '/[^0-9]/', '', $_COOKIE[ 'wp-settings-time-' . $user_id ] ) : 0;
+		$current    = isset( $_COOKIE[ 'wp-settings-time-' . $user_id ] ) ? (int) preg_replace( '/[^0-9]/', '', $_COOKIE[ 'wp-settings-time-' . $user_id ] ) : 0;
 
 		// The cookie is newer than the saved value. Update the user_option and leave the cookie as-is.
 		if ( $current > $last_saved ) {

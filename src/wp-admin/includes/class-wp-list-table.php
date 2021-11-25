@@ -12,6 +12,12 @@
  *
  * @since 3.1.0
  * @access private
+ *
+ * @property array $_args
+ * @property array $_pagination_args
+ * @property WP_Screen $screen
+ * @property array $_actions
+ * @property string $_pagination
  */
 class WP_List_Table {
 

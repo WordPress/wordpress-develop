@@ -2194,6 +2194,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 
 	// Taxonomies registered without an 'args' param are handled here.
 	if ( ! empty( $taxonomies ) ) {
+		/** @var WP_Term[] $terms_from_remaining_taxonomies */
 		$terms_from_remaining_taxonomies = get_terms( $args );
 
 		// Array keys should be preserved for values of $fields that use term_id for keys.
@@ -3672,6 +3673,7 @@ function update_object_term_cache( $object_ids, $object_type ) {
 
 	$non_cached_ids = array_unique( $non_cached_ids );
 
+	/** @var WP_Term[] $terms */
 	$terms = wp_get_object_terms(
 		$non_cached_ids,
 		$taxonomies,
@@ -3808,6 +3810,7 @@ function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array() 
 	foreach ( (array) $terms as $term ) {
 		$use_id = false;
 		if ( ! is_object( $term ) ) {
+			/** @var WP_Term|WP_Error $term */
 			$term = get_term( $term, $taxonomy );
 			if ( is_wp_error( $term ) ) {
 				return $term;
