@@ -244,6 +244,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		$changes = $this->prepare_item_for_database( $request );
 
+		if ( is_wp_error( $changes ) ) {
+			return $changes;
+		}
+
 		if ( 'custom' === $template->source ) {
 			$result = wp_update_post( wp_slash( (array) $changes ), true );
 		} else {
@@ -294,6 +298,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 */
 	public function create_item( $request ) {
 		$prepared_post            = $this->prepare_item_for_database( $request );
+
+		if ( is_wp_error( $prepared_post ) ) {
+			return $prepared_post;
+		}
+
 		$prepared_post->post_name = $request['slug'];
 		$post_id                  = wp_insert_post( wp_slash( (array) $prepared_post ), true );
 		if ( is_wp_error( $post_id ) ) {
