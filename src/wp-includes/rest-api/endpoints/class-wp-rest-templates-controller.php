@@ -780,7 +780,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'author' => array (
+				'author' => array(
 					'description' => __( 'The ID for the author of the template.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
