@@ -432,7 +432,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'wp_theme' => $template->theme,
 			);
 			$changes->meta_input  = array(
-				'origin' => $template->source
+				'origin' => $template->source,
 			);
 		} else {
 			$changes->post_name   = $template->slug;
