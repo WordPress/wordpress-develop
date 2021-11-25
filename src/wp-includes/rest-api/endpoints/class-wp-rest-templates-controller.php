@@ -582,7 +582,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'author', $fields ) ) {
-			$data['author'] = (int) $template->post_author;
+			$data['author'] = (int) $template->author;
 		}
 
 		if ( rest_is_field_included( 'area', $fields ) && 'wp_template_part' === $template->type ) {

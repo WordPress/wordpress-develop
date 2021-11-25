@@ -254,7 +254,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'description' => 'Just a description',
 				'title'       => 'My Template',
 				'content'     => 'Content',
-				'author'      => 99999,
+				'author'      => -1,
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
