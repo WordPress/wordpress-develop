@@ -271,6 +271,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 * @ticket 50225
 	 *
 	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
+	 * @param bool   $use_id   When true, pass term ID. Else, skip the test.
 	 */
 	public function test_get_term_feed_link_backward_compatibility( $taxonomy, $use_id ) {
 		if ( $use_id ) {
