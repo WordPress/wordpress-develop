@@ -503,6 +503,9 @@ function _build_block_template_result_from_post( $post ) {
 	$has_theme_file = wp_get_theme()->get_stylesheet() === $theme &&
 		null !== _get_block_template_file( $post->post_type, $post->post_name );
 
+
+	$origin = get_post_meta( $post->ID, 'origin', true );
+
 	$template                 = new WP_Block_Template();
 	$template->wp_id          = $post->ID;
 	$template->id             = $theme . '//' . $post->post_name;
@@ -510,6 +513,7 @@ function _build_block_template_result_from_post( $post ) {
 	$template->content        = $post->post_content;
 	$template->slug           = $post->post_name;
 	$template->source         = 'custom';
+	$template->origin         = ! empty( $origin ) ? $origin : null;
 	$template->type           = $post->post_type;
 	$template->description    = $post->post_excerpt;
 	$template->title          = $post->post_title;

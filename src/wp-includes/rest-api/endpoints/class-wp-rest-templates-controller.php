@@ -422,6 +422,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->tax_input   = array(
 				'wp_theme' => $template->theme,
 			);
+			$changes->meta_input  = array(
+				'origin' => $template->source
+			);
 		} else {
 			$changes->post_name   = $template->slug;
 			$changes->ID          = $template->wp_id;
@@ -526,6 +529,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		if ( rest_is_field_included( 'source', $fields ) ) {
 			$data['source'] = $template->source;
+		}
+
+		if ( rest_is_field_included( 'origin', $fields ) ) {
+			$data['origin'] = $template->origin;
 		}
 
 		if ( rest_is_field_included( 'type', $fields ) ) {
@@ -713,6 +720,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'source'         => array(
 					'description' => __( 'Source of template' ),
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'origin'         => array(
+					'description' => __( 'Source of a customized template' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
