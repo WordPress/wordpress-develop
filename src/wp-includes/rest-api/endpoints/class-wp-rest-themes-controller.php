@@ -318,7 +318,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		if ( $theme->get_stylesheet() === wp_get_theme()->get_stylesheet() ) {
 			// This creates a record for the current theme if not existent.
-			$id = WP_Theme_JSON_Resolver::get_user_custom_post_type_id();
+			$id = WP_Theme_JSON_Resolver::get_global_styles_post_id();
 		} else {
 			$wp_query_args       = array(
 				'post_status'    => 'publish',

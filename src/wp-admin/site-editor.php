@@ -81,7 +81,7 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 
 } else {
 
-	$active_global_styles_id = WP_Theme_JSON_Resolver::get_user_custom_post_type_id();
+	$active_global_styles_id = WP_Theme_JSON_Resolver::get_global_styles_post_id();
 	$active_theme            = wp_get_theme()->get_stylesheet();
 	$preload_paths           = array(
 		array( '/wp/v2/media', 'OPTIONS' ),

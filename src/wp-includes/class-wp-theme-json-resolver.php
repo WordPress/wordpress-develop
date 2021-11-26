@@ -215,22 +215,22 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Returns the custom post type that contains the user's origin config
+	 * Returns an array that contains global styles
 	 * for the current theme or a void array if none are found.
 	 *
-	 * This can also create and return a new draft custom post type.
+	 * This can also create and return a new draft post.
 	 *
-	 * @since 5.9.0
-	 *
-	 * @param bool  $should_create_cpt  Optional. Whether a new custom post type should be created if none are found.
+	 * @param bool  $create_post        Optional. Whether a new post should be created if none are found.
 	 *                                  False by default.
-	 * @param array $post_status_filter Filter Optional. custom post type by post status.
+	 * @param array $post_status_filter Optional. Filters posts by post status.
 	 *                                   ['publish'] by default, so it only fetches published posts.
 	 *
 	 * @return array Custom Post Type for the user's origin config.
+	 *@since 5.9.0
+	 *
 	 */
-	private static function get_user_data_from_custom_post_type( $should_create_cpt = false, $post_status_filter = array( 'publish' ) ) {
-		$user_cpt         = array();
+	private static function get_global_styles_from_post( $create_post = false, $post_status_filter = array( 'publish' ) ) {
+		$post             = array();
 		$post_type_filter = 'wp_global_styles';
 		$query            = new WP_Query(
 			array(
@@ -250,8 +250,8 @@ class WP_Theme_JSON_Resolver {
 		);
 
 		if ( is_array( $query->posts ) && ( 1 === $query->post_count ) ) {
-			$user_cpt = $query->posts[0]->to_array();
-		} elseif ( $should_create_cpt ) {
+			$post = $query->posts[0]->to_array();
+		} elseif ( $create_post ) {
 			$cpt_post_id = wp_insert_post(
 				array(
 					'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
@@ -267,13 +267,13 @@ class WP_Theme_JSON_Resolver {
 			);
 
 			if ( is_wp_error( $cpt_post_id ) ) {
-				$user_cpt = array();
+				$post = array();
 			} else {
-				$user_cpt = get_post( $cpt_post_id, ARRAY_A );
+				$post = get_post( $cpt_post_id, ARRAY_A );
 			}
 		}
 
-		return $user_cpt;
+		return $post;
 	}
 
 	/**
@@ -281,15 +281,15 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return WP_Theme_JSON Entity that holds user data.
+	 * @return WP_Theme_JSON Entity that holds styles for the current theme.
 	 */
-	public static function get_user_data() {
+	public static function get_global_styles() {
 		if ( null !== self::$user ) {
 			return self::$user;
 		}
 
 		$config   = array();
-		$user_cpt = self::get_user_data_from_custom_post_type();
+		$user_cpt = self::get_global_styles_from_post();
 
 		if ( array_key_exists( 'post_content', $user_cpt ) ) {
 			$decoded_data = json_decode( $user_cpt['post_content'], true );
@@ -322,7 +322,7 @@ class WP_Theme_JSON_Resolver {
 	 * than the theme's, and the theme's higher than core's.
 	 *
 	 * Unlike the getters {@link get_core_data},
-	 * {@link get_theme_data}, and {@link get_user_data},
+	 * {@link get_theme_data}, and {@link get_global_styles},
 	 * this method returns data after it has been merged
 	 * with the previous origins. This means that if the same piece of data
 	 * is declared in different origins (user, theme, and core),
@@ -350,7 +350,7 @@ class WP_Theme_JSON_Resolver {
 		$result->merge( self::get_theme_data() );
 
 		if ( 'user' === $origin ) {
-			$result->merge( self::get_user_data() );
+			$result->merge( self::get_global_styles() );
 		}
 
 		return $result;
@@ -364,12 +364,12 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @return integer|null
 	 */
-	public static function get_user_custom_post_type_id() {
+	public static function get_global_styles_post_id() {
 		if ( null !== self::$user_custom_post_type_id ) {
 			return self::$user_custom_post_type_id;
 		}
 
-		$user_cpt = self::get_user_data_from_custom_post_type( true );
+		$user_cpt = self::get_global_styles_from_post( true );
 
 		if ( array_key_exists( 'ID', $user_cpt ) ) {
 			self::$user_custom_post_type_id = $user_cpt['ID'];
