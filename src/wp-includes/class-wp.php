@@ -183,7 +183,7 @@ class WP {
 			 * For path info requests, this leaves us with the requesting filename, if any.
 			 * For 404 requests, this leaves us with the requested permalink.
 			 */
-			$req_uri  = str_replace( $pathinfo, '', $req_uri );
+			$req_uri  = prepare_path_info();
 			$req_uri  = trim( $req_uri, '/' );
 			$pathinfo = trim( $pathinfo, '/' );
 			$self     = trim( $self, '/' );
@@ -206,7 +206,7 @@ class WP {
 					$req_uri = '';
 				}
 			}
-			$requested_path = ltrim( prepare_path_info(), '/' );
+			$requested_path = $req_uri;
 			$requested_file = $req_uri;
 
 			$this->request = $requested_path;
