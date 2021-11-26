@@ -11,6 +11,15 @@
  * Base Global Styles REST API Controller.
  */
 class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
+
+	/**
+	 * Post type.
+	 *
+	 * @since 5.9.0
+	 * @var string
+	 */
+	protected $post_type;
+
 	/**
 	 * Constructor.
 	 * @since 5.9.0
@@ -18,6 +27,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'global-styles';
+		$this->post_type = 'wp_global_styles';
 	}
 
 	/**
@@ -104,7 +114,48 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		$post = $this->get_post( $request['id'] );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
+			return new WP_Error(
+				'rest_forbidden_context',
+				__( 'Sorry, you are not allowed to edit this global style.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		if ( $post ) {
+			return $this->check_read_permission( $post );
+		}
+
+		return $this->permissions_check();
+	}
+
+	/**
+	 * Checks if a global style can be read.
+	 *
+	 * Correctly handles posts with the inherit status.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return bool Whether the post can be read.
+	 */
+	public function check_read_permission( $post ) {
+		// Is the post readable?
+		if ( 'publish' === $post->post_status || current_user_can( 'read_post', $post->ID ) ) {
+			return true;
+		}
+
+		$post_status_obj = get_post_status_object( $post->post_status );
+		if ( $post_status_obj && $post_status_obj->public ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -117,9 +168,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_item( $request ) {
-		$post = get_post( $request['id'] );
-		if ( ! $post || 'wp_global_styles' !== $post->post_type ) {
-			return new WP_Error( 'rest_global_styles_not_found', __( 'No global styles config exist with that id.' ), array( 'status' => 404 ) );
+		$post = $this->get_post( $request['id'] );
+		if ( is_wp_error( $post ) ) {
+			return $post;
 		}
 
 		return $this->prepare_item_for_response( $post, $request );
@@ -134,7 +185,32 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has write access for the item, WP_Error object otherwise.
 	 */
 	public function update_item_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		$post = $this->get_post( $request['id'] );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		if ( $post && ! $this->check_update_permission( $post ) ) {
+			return new WP_Error(
+				'rest_cannot_edit',
+				__( 'Sorry, you are not allowed to edit this global style.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return $this->permissions_check();
+	}
+
+	/**
+	 * Checks if a global style can be edited.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return bool Whether the post can be edited.
+	 */
+	protected function check_update_permission( $post ) {
+		return current_user_can( 'edit_post', $post->ID );
 	}
 
 	/**
@@ -146,9 +222,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function update_item( $request ) {
-		$post = get_post( $request['id'] );
-		if ( ! $post || 'wp_global_styles' !== $post->post_type ) {
-			return new WP_Error( 'rest_global_styles_not_found', __( 'No global styles config exist with that id.' ), array( 'status' => 404 ) );
+		$post = $this->get_post( $request['id'] );
+		if ( is_wp_error( $post ) ) {
+			return $post;
 		}
 
 		$changes = $this->prepare_item_for_database( $request );
@@ -283,6 +359,33 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Get the post, if the ID is valid.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param int $id Supplied ID.
+	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
+	 */
+	protected function get_post( $id ) {
+		$error = new WP_Error(
+			'rest_global_styles_not_found',
+			__( 'No global styles config exist with that id.' ),
+			array( 'status' => 404 )
+		);
+
+		if ( (int) $id <= 0 ) {
+			return $error;
+		}
+
+		$post = get_post( (int) $id );
+		if ( empty( $post ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
+			return $error;
+		}
+
+		return $post;
 	}
 
 
