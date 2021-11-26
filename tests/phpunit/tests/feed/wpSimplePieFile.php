@@ -85,7 +85,7 @@ class Tests_Feed_wpSimplePieFile extends WP_UnitTestCase {
 		);
 
 		return array(
-			'headers'  => new Requests_Utility_CaseInsensitiveDictionary( $single_value_headers ),
+			'headers'  => new WpOrg\Requests\Utility\CaseInsensitiveDictionary( $single_value_headers ),
 			'body'     => file_get_contents( DIR_TESTDATA . '/feed/wordpress-org-news.xml' ),
 			'response' => array(
 				'code'    => 200,
@@ -114,7 +114,7 @@ class Tests_Feed_wpSimplePieFile extends WP_UnitTestCase {
 			),
 		);
 
-		$response['headers'] = new Requests_Utility_CaseInsensitiveDictionary( $multiple_value_headers );
+		$response['headers'] = new WpOrg\Requests\Utility\CaseInsensitiveDictionary( $multiple_value_headers );
 
 		return $response;
 	}

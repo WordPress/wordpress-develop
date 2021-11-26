@@ -65,7 +65,7 @@ class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Contr
 
 	public function test_context_param() {
 		wp_set_current_user( static::$admin_id );
-		$request  = new WP_REST_Request( Requests::OPTIONS, '/wp/v2/block-navigation-areas' );
+		$request  = new WP_REST_Request( WpOrg\Requests\Requests::OPTIONS, '/wp/v2/block-navigation-areas' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -101,7 +101,7 @@ class Tests_REST_WpRestBlockNavigationAreasController extends WP_Test_REST_Contr
 		wp_set_current_user( static::$admin_id );
 		$navigation_area = array_rand( get_navigation_areas(), 1 );
 		$route           = sprintf( '/wp/v2/block-navigation-areas/%s', urlencode( $navigation_area ) );
-		$request         = new WP_REST_Request( Requests::POST, $route );
+		$request         = new WP_REST_Request( WpOrg\Requests\Requests::POST, $route );
 
 		$updated_navigation_area = array(
 			'name'        => $navigation_area,

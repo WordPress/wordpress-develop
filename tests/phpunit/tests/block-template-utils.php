@@ -7,6 +7,8 @@
 
 /**
  * Tests for the Block Templates abstraction layer.
+ *
+ * @group block-templates
  */
 class Block_Template_Utils_Test extends WP_UnitTestCase {
 	private static $post;
