@@ -892,7 +892,7 @@ function prepare_request_uri() {
  * @return mixed|null
  */
 function get_urlencoded_prefix( $string, $prefix ) {
-	if ( ! str_starts_with( rawurldecode( $string ), $prefix ) ) {
+	if ( ! str_starts_with( rawurldecode( $string ), $prefix ? $prefix . '' : '' ) ) {
 		return null;
 	}
 
