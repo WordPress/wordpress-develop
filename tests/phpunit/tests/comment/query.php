@@ -1354,7 +1354,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_comments
 	 */
-	function test_get_comments_for_post() {
+	public function test_get_comments_for_post() {
 		$limit = 5;
 
 		$post_id = self::factory()->post->create();
@@ -1416,7 +1416,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comments
 	 */
-	function test_orderby_meta() {
+	public function test_orderby_meta() {
 		$comment_id  = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 		$comment_id2 = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 		$comment_id3 = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
@@ -1682,7 +1682,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comments
 	 */
-	function test_get_comments_by_user() {
+	public function test_get_comments_by_user() {
 		$users = self::factory()->user->create_many( 2 );
 		self::factory()->comment->create(
 			array(
@@ -1779,7 +1779,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comments
 	 */
-	function test_fields_ids_query() {
+	public function test_fields_ids_query() {
 		$comment_1 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
@@ -1817,7 +1817,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comments
 	 */
-	function test_fields_comment__in() {
+	public function test_fields_comment__in() {
 		$comment_1 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
@@ -1855,7 +1855,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comments
 	 */
-	function test_fields_comment__not_in() {
+	public function test_fields_comment__not_in() {
 		$comment_1 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
@@ -1893,7 +1893,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comments
 	 */
-	function test_fields_post__in() {
+	public function test_fields_post__in() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
 		$p3 = self::factory()->post->create();
@@ -1935,7 +1935,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comments
 	 */
-	function test_fields_post__not_in() {
+	public function test_fields_post__not_in() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
 		$p3 = self::factory()->post->create();
@@ -1977,7 +1977,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comments
 	 */
-	function test_fields_post_author__in() {
+	public function test_fields_post_author__in() {
 		$author_id1 = 105;
 		$author_id2 = 106;
 
@@ -2022,7 +2022,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comments
 	 */
-	function test_fields_post_author__not_in() {
+	public function test_fields_post_author__not_in() {
 		$author_id1 = 111;
 		$author_id2 = 112;
 
@@ -2067,7 +2067,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		 *
 		 * @covers ::get_comments
 		 */
-	function test_fields_author__in() {
+	public function test_fields_author__in() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
 		$p3 = self::factory()->post->create();
@@ -2117,7 +2117,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		 *
 		 * @covers ::get_comments
 		 */
-	function test_fields_author__not_in() {
+	public function test_fields_author__not_in() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
 		$p3 = self::factory()->post->create();

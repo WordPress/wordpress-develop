@@ -15,7 +15,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
 	}
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->post_type = rand_str( 20 );
 	}
@@ -28,7 +28,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_restore_post_revision
 	 */
-	function test_revision_restore_updates_edit_last_post_meta() {
+	public function test_revision_restore_updates_edit_last_post_meta() {
 		// Create a post as Author.
 		wp_set_current_user( self::$author_user_id );
 		$post    = get_default_post_to_edit( 'post', true );
@@ -73,7 +73,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_update_post
 	 */
-	function test_revision_dont_save_revision_if_unchanged() {
+	public function test_revision_dont_save_revision_if_unchanged() {
 		$post    = get_default_post_to_edit( 'post', true );
 		$post_id = $post->ID;
 
@@ -145,7 +145,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_update_post
 	 */
-	function test_revision_force_save_revision_even_if_unchanged() {
+	public function test_revision_force_save_revision_even_if_unchanged() {
 		add_filter( 'wp_save_post_revision_check_for_changes', '__return_false' );
 
 		$post    = get_default_post_to_edit( 'post', true );
@@ -222,7 +222,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::user_can
 	 */
-	function test_revision_view_caps_post() {
+	public function test_revision_view_caps_post() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'post',
@@ -257,7 +257,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::user_can
 	 */
-	function test_revision_restore_caps_post() {
+	public function test_revision_restore_caps_post() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'post',
@@ -290,7 +290,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::user_can
 	 */
-	function test_revision_diff_caps_post() {
+	public function test_revision_diff_caps_post() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'post',
@@ -330,7 +330,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::user_can
 	 */
-	function test_revision_view_caps_cpt() {
+	public function test_revision_view_caps_cpt() {
 		register_post_type(
 			$this->post_type,
 			array(
@@ -374,7 +374,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::user_can
 	 */
-	function test_revision_restore_caps_cpt() {
+	public function test_revision_restore_caps_cpt() {
 		register_post_type(
 			$this->post_type,
 			array(
@@ -422,7 +422,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::user_can
 	 */
-	function test_revision_restore_caps_before_publish() {
+	public function test_revision_restore_caps_before_publish() {
 		register_post_type(
 			$this->post_type,
 			array(
@@ -484,7 +484,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::user_can
 	 */
-	function test_revision_diff_caps_cpt() {
+	public function test_revision_diff_caps_cpt() {
 		register_post_type(
 			$this->post_type,
 			array(
@@ -531,7 +531,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_post_revisions
 	 */
-	function test_wp_get_post_revisions_should_order_by_post_date() {
+	public function test_wp_get_post_revisions_should_order_by_post_date() {
 		global $wpdb;
 
 		$post = self::factory()->post->create_and_get(
@@ -569,7 +569,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_post_revisions
 	 */
-	function test_wp_get_post_revisions_should_order_by_ID_when_post_date_matches() {
+	public function test_wp_get_post_revisions_should_order_by_ID_when_post_date_matches() {
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_title'   => 'some-post',
@@ -683,5 +683,164 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$revision = _wp_put_post_revision( $post );
 
 		$this->assertWPError( $revision );
+	}
+
+	/**
+	 * Tests that wp_get_post_revisions_url() returns the revisions URL.
+	 *
+	 * @ticket 39062
+	 *
+	 * @dataProvider data_wp_get_post_revisions_url
+	 *
+	 * @covers ::wp_get_post_revisions_url
+	 *
+	 * @param int $revisions The number of revisions to create.
+	 */
+	public function test_wp_get_post_revisions_url( $revisions ) {
+		wp_set_current_user( self::$admin_user_id );
+
+		$post_id            = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
+		$latest_revision_id = null;
+
+		if ( 0 !== $revisions ) {
+			$latest_revision_id = $post_id;
+
+			for ( $i = 0; $i < $revisions; ++$i ) {
+				wp_update_post(
+					array(
+						'ID'         => $post_id,
+						'post_title' => 'Some Post ' . $i,
+					)
+				);
+
+				$latest_revision_id++;
+			}
+		}
+
+		$expected = admin_url( 'revision.php?revision=' . $latest_revision_id );
+
+		$this->assertSame(
+			$expected,
+			wp_get_post_revisions_url( $post_id ),
+			'Failed when passed the Post ID'
+		);
+
+		$this->assertSame(
+			$expected,
+			wp_get_post_revisions_url( $latest_revision_id ),
+			'Failed when passed the latest revision ID'
+		);
+	}
+
+	/**
+	 * Tests that wp_get_post_revisions_url() returns the revisions URL
+	 * when passed a WP_Post object.
+	 *
+	 * @ticket 39062
+	 *
+	 * @dataProvider data_wp_get_post_revisions_url
+	 *
+	 * @covers ::wp_get_post_revisions_url
+	 *
+	 * @param int $revisions The number of revisions to create.
+	 */
+	public function test_wp_get_post_revisions_url_with_post_object( $revisions ) {
+		wp_set_current_user( self::$admin_user_id );
+
+		$post               = self::factory()->post->create_and_get( array( 'post_title' => 'Some Post' ) );
+		$latest_revision_id = null;
+
+		if ( 0 !== $revisions ) {
+			$latest_revision_id = $post->ID;
+
+			for ( $i = 0; $i < $revisions; ++$i ) {
+				wp_update_post(
+					array(
+						'ID'         => $post->ID,
+						'post_title' => 'Some Post ' . $i,
+					)
+				);
+
+				$latest_revision_id++;
+			}
+		}
+
+		$expected = admin_url( 'revision.php?revision=' . $latest_revision_id );
+
+		$this->assertSame(
+			$expected,
+			wp_get_post_revisions_url( $post ),
+			'Failed when passed the Post Object'
+		);
+
+		$this->assertSame(
+			$expected,
+			wp_get_post_revisions_url( $latest_revision_id ),
+			'Failed when passed the latest revision ID'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_get_post_revisions_url() {
+		return array(
+			'one revision'       => array( 'revisions' => 1 ),
+			'multiple revisions' => array( 'revisions' => 2 ),
+		);
+	}
+
+	/**
+	 * Tests that wp_get_post_revisions_url() returns NULL when a post does not exist.
+	 *
+	 * @ticket 39062
+	 *
+	 * @covers ::wp_get_post_revisions_url
+	 */
+	public function test_wp_get_post_revisions_url_returns_null_when_post_does_not_exist() {
+		wp_set_current_user( self::$admin_user_id );
+		$post_id = 99999;
+		$this->assertNull( wp_get_post_revisions_url( $post_id ) );
+	}
+
+	/**
+	 * Tests that wp_get_post_revisions_url() returns NULL when there are no revisions.
+	 *
+	 * @ticket 39062
+	 *
+	 * @covers ::wp_get_post_revisions_url
+	 */
+	public function test_wp_get_post_revisions_url_returns_null_with_no_revisions() {
+		wp_set_current_user( self::$admin_user_id );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
+		$this->assertNull( wp_get_post_revisions_url( $post_id ) );
+	}
+
+	/**
+	 * Tests that wp_get_post_revisions_url() returns NULL when revisions are disabled.
+	 *
+	 * @ticket 39062
+	 *
+	 * @covers ::wp_get_post_revisions_url
+	 */
+	public function test_wp_get_post_revisions_url_returns_null_with_revisions_disabled() {
+		wp_set_current_user( self::$admin_user_id );
+
+		remove_post_type_support( 'post', 'revisions' );
+
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
+
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Some Post 2',
+			)
+		);
+
+		$this->assertNull( wp_get_post_revisions_url( $post_id ) );
+
+		add_post_type_support( 'post', 'revisions' );
 	}
 }

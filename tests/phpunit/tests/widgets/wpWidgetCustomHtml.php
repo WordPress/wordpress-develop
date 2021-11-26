@@ -310,7 +310,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Custom_HTML::widget
 	 */
-	function test_render_links_with_target() {
+	public function test_render_links_with_target() {
 		$widget = new WP_Widget_Custom_HTML();
 
 		$content = 'Test content with an external <a href="https://example.org" target="_blank">link</a>.';
@@ -338,7 +338,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Custom_HTML::widget
 	 */
-	function test_render_links_without_target() {
+	public function test_render_links_without_target() {
 		$widget = new WP_Widget_Custom_HTML();
 
 		$content = 'Test content with an internal <a href="/">link</a>.';

@@ -29,7 +29,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	/**
 	 * Set up the test fixture.
 	 */
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
@@ -46,7 +46,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Selective_Refresh::__construct
 	 */
-	function test_construct() {
+	public function test_construct() {
 		$this->assertSame( $this->selective_refresh, $this->wp_customize->selective_refresh );
 	}
 
@@ -57,7 +57,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Scripts::__construct
 	 */
-	function test_register_scripts() {
+	public function test_register_scripts() {
 		$scripts = new WP_Scripts();
 		$handles = array(
 			'customize-selective-refresh',
@@ -76,7 +76,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Selective_Refresh::partials
 	 */
-	function test_partials() {
+	public function test_partials() {
 		$this->assertIsArray( $this->selective_refresh->partials() );
 	}
 
@@ -91,7 +91,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * @covers WP_Customize_Selective_Refresh::add_partial
 	 * @covers WP_Customize_Selective_Refresh::remove_partial
 	 */
-	function test_crud_partial() {
+	public function test_crud_partial() {
 		$partial = $this->selective_refresh->add_partial( 'foo' );
 		$this->assertSame( $this->selective_refresh, $partial->component );
 		$this->assertInstanceOf( 'WP_Customize_Partial', $partial );
@@ -122,7 +122,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Selective_Refresh::init_preview
 	 */
-	function test_init_preview() {
+	public function test_init_preview() {
 		$this->selective_refresh->init_preview();
 		$this->assertSame( 10, has_action( 'template_redirect', array( $this->selective_refresh, 'handle_render_partials_request' ) ) );
 		$this->assertSame( 10, has_action( 'wp_enqueue_scripts', array( $this->selective_refresh, 'enqueue_preview_scripts' ) ) );
@@ -135,7 +135,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Selective_Refresh::enqueue_preview_scripts
 	 */
-	function test_enqueue_preview_scripts() {
+	public function test_enqueue_preview_scripts() {
 		$scripts = wp_scripts();
 		$this->assertNotContains( 'customize-selective-refresh', $scripts->queue );
 		$this->selective_refresh->enqueue_preview_scripts();
@@ -150,7 +150,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Selective_Refresh::export_preview_data
 	 */
-	function test_export_preview_data() {
+	public function test_export_preview_data() {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 		$user = new WP_User( $user_id );
@@ -196,7 +196,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Selective_Refresh::add_dynamic_partials
 	 */
-	function test_add_dynamic_partials() {
+	public function test_add_dynamic_partials() {
 		$partial_ids = array( 'recognized', 'recognized-class', 'unrecognized', 'already-added' );
 
 		$partials = $this->selective_refresh->add_dynamic_partials( $partial_ids );
@@ -224,7 +224,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * @param string      $partial_id   ID for dynamic partial.
 	 * @return false|array Dynamic partial args.
 	 */
-	function filter_customize_dynamic_partial_args( $partial_args, $partial_id ) {
+	public function filter_customize_dynamic_partial_args( $partial_args, $partial_id ) {
 		$this->assertTrue( false === $partial_args || is_array( $partial_args ) );
 		$this->assertIsString( $partial_id );
 
@@ -247,7 +247,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * @param array  $partial_args  The arguments to the WP_Customize_Partial constructor.
 	 * @return string
 	 */
-	function filter_customize_dynamic_partial_class( $partial_class, $partial_id, $partial_args ) {
+	public function filter_customize_dynamic_partial_class( $partial_class, $partial_id, $partial_args ) {
 		$this->assertIsArray( $partial_args );
 		$this->assertIsString( $partial_id );
 		$this->assertIsString( $partial_class );
@@ -266,7 +266,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Selective_Refresh::is_render_partials_request
 	 */
-	function test_is_render_partials_request() {
+	public function test_is_render_partials_request() {
 		$this->assertFalse( $this->selective_refresh->is_render_partials_request() );
 		$_POST[ WP_Customize_Selective_Refresh::RENDER_QUERY_VAR ] = '1';
 		$this->assertTrue( $this->selective_refresh->is_render_partials_request() );
@@ -275,7 +275,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	/**
 	 * Tear down.
 	 */
-	function tear_down() {
+	public function tear_down() {
 		$this->wp_customize = null;
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );

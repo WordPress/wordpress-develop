@@ -15,7 +15,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * setUp options
 	 */
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->option_page_comments = get_option( 'page_comments' );
 		$this->comments_per_page = get_option( 'comments_per_page' );
@@ -28,7 +28,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * tearDown options
 	 */
-	function tear_down() {
+	public function tear_down() {
 		update_option( 'page_comments', $this->option_page_comments );
 		update_option( 'comments_per_page', $this->option_comments_per_page );
 		update_option( 'thread_comments', $this->option_thread_comments );
@@ -39,7 +39,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * Validate get_comments_pages_count for empty comments
 	 */
-	function test_empty() {
+	public function test_empty() {
 		// Setup post and comments.
 		$post_id = self::factory()->post->create(
 			array(
@@ -66,7 +66,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * Validate get_comments_pages_count for treaded comments
 	 */
-	function test_threaded_comments() {
+	public function test_threaded_comments() {
 		// Setup post and comments.
 		$post     = self::factory()->post->create_and_get(
 			array(
@@ -86,7 +86,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * Validate get_comments_pages_count for option tread_comments
 	 */
-	function test_option_thread_comments() {
+	public function test_option_thread_comments() {
 
 		// Setup post and comments.
 		$post     = self::factory()->post->create_and_get(
@@ -117,7 +117,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * Validate $wp_query logic of get_comment_pages_count
 	 */
-	function test_wp_query_comments_per_page() {
+	public function test_wp_query_comments_per_page() {
 		global $wp_query;
 
 		update_option( 'posts_per_rss', 100 );
@@ -166,7 +166,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * Validate max_num_comment_pages logic of get_comment_pages_count
 	 */
-	function test_max_num_comment_pages() {
+	public function test_max_num_comment_pages() {
 		global $wp_query;
 		$wp_query = new WP_Query();
 

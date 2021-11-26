@@ -7,7 +7,7 @@
  */
 class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPosts( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
@@ -16,7 +16,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 20991
 	 */
-	function test_incapable_user() {
+	public function test_incapable_user() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->wp_getPosts( array( 1, 'subscriber', 'subscriber' ) );
@@ -29,14 +29,14 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 401, $result->code );
 	}
 
-	function test_capable_user() {
+	public function test_capable_user() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor' ) );
 		$this->assertNotIXRError( $result );
 	}
 
-	function test_invalid_post_type() {
+	public function test_invalid_post_type() {
 		$this->make_user_by_role( 'editor' );
 
 		$filter = array( 'post_type' => 'invalid_post_type_name' );
@@ -44,7 +44,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 	}
 
-	function test_filters() {
+	public function test_filters() {
 		$this->make_user_by_role( 'editor' );
 
 		$cpt_name = 'test_wp_getposts_cpt';
@@ -125,7 +125,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		_unregister_post_type( $cpt_name );
 	}
 
-	function test_fields() {
+	public function test_fields() {
 		$this->make_user_by_role( 'editor' );
 		self::factory()->post->create();
 
@@ -151,7 +151,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 21623
 	 */
-	function test_search() {
+	public function test_search() {
 		$this->make_user_by_role( 'editor' );
 
 		$post_ids[] = self::factory()->post->create( array( 'post_title' => 'First: Hello, World!' ) );

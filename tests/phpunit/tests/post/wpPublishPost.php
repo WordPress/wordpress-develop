@@ -28,7 +28,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_publish_post
 	 */
-	function test_wp_publish_post_respects_current_categories() {
+	public function test_wp_publish_post_respects_current_categories() {
 		$post_id     = self::$auto_draft_id;
 		$category_id = $this->factory->term->create( array( 'taxonomy' => 'category' ) );
 		wp_set_post_categories( $post_id, $category_id );
@@ -49,7 +49,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_publish_post
 	 */
-	function test_wp_publish_post_adds_default_category() {
+	public function test_wp_publish_post_adds_default_category() {
 		$post_id = self::$auto_draft_id;
 
 		wp_publish_post( $post_id );
@@ -69,7 +69,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_publish_post
 	 */
-	function test_wp_publish_post_adds_default_category_when_tagged() {
+	public function test_wp_publish_post_adds_default_category_when_tagged() {
 		$post_id = self::$auto_draft_id;
 		$tag_id  = $this->factory->term->create( array( 'taxonomy' => 'post_tag' ) );
 		wp_set_post_tags( $post_id, array( $tag_id ) );
@@ -90,7 +90,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_publish_post
 	 */
-	function test_wp_publish_post_respects_current_terms() {
+	public function test_wp_publish_post_respects_current_terms() {
 		// Create custom taxonomy to test with.
 		register_taxonomy(
 			'tax_51292',
@@ -125,7 +125,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_publish_post
 	 */
-	function test_wp_publish_post_adds_default_term() {
+	public function test_wp_publish_post_adds_default_term() {
 		// Create custom taxonomy to test with.
 		register_taxonomy(
 			'tax_51292',

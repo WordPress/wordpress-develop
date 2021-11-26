@@ -16,7 +16,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Site_Health::get_test_scheduled_events
 	 */
-	function test_cron_health_checks_critical() {
+	public function test_cron_health_checks_critical() {
 		$wp_site_health = new WP_Site_Health();
 
 		// Clear the cron array.
@@ -38,7 +38,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Site_Health::get_test_scheduled_events
 	 */
-	function test_cron_health_checks( $times, $expected_status, $expected_label, $expected_late, $expected_missed ) {
+	public function test_cron_health_checks( $times, $expected_status, $expected_label, $expected_late, $expected_missed ) {
 		$wp_site_health = new WP_Site_Health();
 
 		/*
@@ -76,7 +76,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 * 4. bool         Expected outcome has_late_cron()
 	 * 5. bool         Expected outcome has_missed_cron()
 	 */
-	function data_cron_health_checks() {
+	public function data_cron_health_checks() {
 		return array(
 			array(
 				'+5 minutes',

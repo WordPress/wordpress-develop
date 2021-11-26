@@ -90,7 +90,7 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 	 *
 	 * @covers ::the_date
 	 */
-	function test_the_date() {
+	public function test_the_date() {
 		ob_start();
 		the_date();
 		$actual = ob_get_clean();
@@ -132,7 +132,7 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 	 *
 	 * @covers ::the_weekday_date
 	 */
-	function test_the_weekday_date() {
+	public function test_the_weekday_date() {
 		ob_start();
 		the_weekday_date();
 		$actual = ob_get_clean();

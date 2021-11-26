@@ -64,7 +64,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$keys     = array_keys( $data['endpoints'][0]['args'] );
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
+		$keys = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertSame(
 			array(

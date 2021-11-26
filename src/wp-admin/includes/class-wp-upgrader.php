@@ -150,8 +150,9 @@ class WP_Upgrader {
 	 * @since 5.9.0
 	 */
 	protected function schedule_temp_backup_cleanup() {
-		wp_schedule_event( time(), 'weekly', 'delete_temp_updater_backups' );
-		add_action( 'delete_temp_updater_backups', array( $this, 'delete_all_temp_backups' ) );
+		if ( false === wp_next_scheduled( 'wp_delete_temp_updater_backups' ) ) {
+			wp_schedule_event( time(), 'weekly', 'wp_delete_temp_updater_backups' );
+		}
 	}
 
 	/**
@@ -404,7 +405,7 @@ class WP_Upgrader {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param string $remote_destination The location on the remote filesystem to be cleared.
-	 * @return bool|WP_Error True upon success, WP_Error on failure.
+	 * @return true|WP_Error True upon success, WP_Error on failure.
 	 */
 	public function clear_destination( $remote_destination ) {
 		global $wp_filesystem;
@@ -623,8 +624,8 @@ class WP_Upgrader {
 			}
 		}
 
-		// Copy new version of item into place.
-		$result = copy_dir( $source, $remote_destination );
+		// Move new version of item into place.
+		$result = move_dir( $source, $remote_destination );
 		if ( is_wp_error( $result ) ) {
 			if ( $args['clear_working'] ) {
 				$wp_filesystem->delete( $remote_source, true );
@@ -843,7 +844,18 @@ class WP_Upgrader {
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
 			if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
-				$this->restore_temp_backup( $options['hook_extra']['temp_backup'] );
+				/*
+				 * Restore the backup on shutdown.
+				 * Actions running on `shutdown` are immune to PHP timeouts,
+				 * so in case the failure was due to a PHP timeout,
+				 * we'll still be able to properly restore the previous version.
+				 */
+				add_action(
+					'shutdown',
+					function() use ( $options ) {
+						$this->restore_temp_backup( $options['hook_extra']['temp_backup'] );
+					}
+				);
 			}
 			$this->skin->error( $result );
 
@@ -859,7 +871,13 @@ class WP_Upgrader {
 
 		// Clean up the backup kept in the temp-backup directory.
 		if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
-			$this->delete_temp_backup( $options['hook_extra']['temp_backup'] );
+			// Delete the backup on `shutdown` to avoid a PHP timeout.
+			add_action(
+				'shutdown',
+				function() use ( $options ) {
+					$this->delete_temp_backup( $options['hook_extra']['temp_backup'] );
+				}
+			);
 		}
 
 		if ( ! $options['is_multi'] ) {
@@ -1088,51 +1106,6 @@ class WP_Upgrader {
 		return $wp_filesystem->delete(
 			$wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}",
 			true
-		);
-	}
-
-	/**
-	 * Deletes all contents of the temp-backup directory.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
-	 */
-	public function delete_all_temp_backups() {
-		/*
-		 * Check if there's a lock, or if currently performing an Ajax request,
-		 * in which case there's a chance we're doing an update.
-		 * Reschedule for an hour from now and exit early.
-		 */
-		if ( get_option( 'core_updater.lock' ) || get_option( 'auto_updater.lock' ) || wp_doing_ajax() ) {
-			wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'delete_temp_updater_backups' );
-			return;
-		}
-
-		add_action(
-			'shutdown',
-			/*
-			 * This action runs on shutdown to make sure there's no plugin updates currently running.
-			 * Using a closure in this case is OK since the action can be removed by removing the parent hook.
-			 */
-			function() {
-				global $wp_filesystem;
-
-				if ( ! $wp_filesystem ) {
-					include_once ABSPATH . '/wp-admin/includes/file.php';
-					WP_Filesystem();
-				}
-
-				$dirlist = $wp_filesystem->dirlist( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' );
-
-				foreach ( array_keys( $dirlist ) as $dir ) {
-					if ( '.' === $dir || '..' === $dir ) {
-						continue;
-					}
-
-					$wp_filesystem->delete( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $dir, true );
-				}
-			}
 		);
 	}
 }

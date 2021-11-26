@@ -17,16 +17,16 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public $custom_logo_id;
 	public $custom_logo_url;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->wp_site_icon = new WP_Site_Icon();
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		global $wp_customize;
-		$this->_remove_custom_logo();
-		$this->_remove_site_icon();
+		$this->remove_custom_logo();
+		$this->remove_site_icon();
 		$wp_customize = null;
 
 		parent::tear_down();
@@ -38,13 +38,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_site_icon_url
 	 * @requires function imagejpeg
 	 */
-	function test_get_site_icon_url() {
+	public function test_get_site_icon_url() {
 		$this->assertEmpty( get_site_icon_url() );
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$this->assertSame( $this->site_icon_url, get_site_icon_url() );
 
-		$this->_remove_site_icon();
+		$this->remove_site_icon();
 		$this->assertEmpty( get_site_icon_url() );
 	}
 
@@ -54,11 +54,11 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::site_icon_url
 	 * @requires function imagejpeg
 	 */
-	function test_site_icon_url() {
+	public function test_site_icon_url() {
 		$this->expectOutputString( '' );
 		site_icon_url();
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$this->expectOutputString( $this->site_icon_url );
 		site_icon_url();
 	}
@@ -69,13 +69,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_site_icon
 	 * @requires function imagejpeg
 	 */
-	function test_has_site_icon() {
+	public function test_has_site_icon() {
 		$this->assertFalse( has_site_icon() );
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$this->assertTrue( has_site_icon() );
 
-		$this->_remove_site_icon();
+		$this->remove_site_icon();
 		$this->assertFalse( has_site_icon() );
 	}
 
@@ -86,10 +86,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::has_site_icon
 	 */
-	function test_has_site_icon_returns_true_when_called_for_other_site_with_site_icon_set() {
+	public function test_has_site_icon_returns_true_when_called_for_other_site_with_site_icon_set() {
 		$blog_id = $this->factory->blog->create();
 		switch_to_blog( $blog_id );
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		restore_current_blog();
 
 		$this->assertTrue( has_site_icon( $blog_id ) );
@@ -102,7 +102,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::has_site_icon
 	 */
-	function test_has_site_icon_returns_false_when_called_for_other_site_without_site_icon_set() {
+	public function test_has_site_icon_returns_false_when_called_for_other_site_without_site_icon_set() {
 		$blog_id = $this->factory->blog->create();
 
 		$this->assertFalse( has_site_icon( $blog_id ) );
@@ -114,11 +114,11 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::wp_site_icon
 	 * @requires function imagejpeg
 	 */
-	function test_wp_site_icon() {
+	public function test_wp_site_icon() {
 		$this->expectOutputString( '' );
 		wp_site_icon();
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$output = array(
 			sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( get_site_icon_url( 32 ) ) ),
 			sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( get_site_icon_url( 192 ) ) ),
@@ -138,11 +138,11 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::wp_site_icon
 	 * @requires function imagejpeg
 	 */
-	function test_wp_site_icon_with_filter() {
+	public function test_wp_site_icon_with_filter() {
 		$this->expectOutputString( '' );
 		wp_site_icon();
 
-		$this->_set_site_icon();
+		$this->set_site_icon();
 		$output = array(
 			sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( get_site_icon_url( 32 ) ) ),
 			sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( get_site_icon_url( 192 ) ) ),
@@ -154,9 +154,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$output = implode( "\n", $output );
 
 		$this->expectOutputString( $output );
-		add_filter( 'site_icon_meta_tags', array( $this, '_custom_site_icon_meta_tag' ) );
+		add_filter( 'site_icon_meta_tags', array( $this, 'custom_site_icon_meta_tag' ) );
 		wp_site_icon();
-		remove_filter( 'site_icon_meta_tags', array( $this, '_custom_site_icon_meta_tag' ) );
+		remove_filter( 'site_icon_meta_tags', array( $this, 'custom_site_icon_meta_tag' ) );
 	}
 
 	/**
@@ -165,7 +165,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_site_icon
 	 */
-	function test_customize_preview_wp_site_icon_empty() {
+	public function test_customize_preview_wp_site_icon_empty() {
 		global $wp_customize;
 		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
 
@@ -184,7 +184,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_site_icon
 	 */
-	function test_customize_preview_wp_site_icon_dirty() {
+	public function test_customize_preview_wp_site_icon_dirty() {
 		global $wp_customize;
 		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
 
@@ -193,7 +193,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$wp_customize->register_controls();
 		$wp_customize->start_previewing_theme();
 
-		$attachment_id = $this->_insert_attachment();
+		$attachment_id = $this->insert_attachment();
 		$wp_customize->set_post_value( 'site_icon', $attachment_id );
 		$wp_customize->get_setting( 'site_icon' )->preview();
 		$output = array(
@@ -216,7 +216,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @param $meta_tags
 	 * @return array
 	 */
-	function _custom_site_icon_meta_tag( $meta_tags ) {
+	public function custom_site_icon_meta_tag( $meta_tags ) {
 		$meta_tags[] = sprintf( '<link rel="apple-touch-icon" sizes="150x150" href="%s" />', esc_url( get_site_icon_url( 150 ) ) );
 
 		return $meta_tags;
@@ -227,10 +227,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.3.0
 	 */
-	function _set_site_icon() {
+	private function set_site_icon() {
 		if ( ! $this->site_icon_id ) {
 			add_filter( 'intermediate_image_sizes_advanced', array( $this->wp_site_icon, 'additional_sizes' ) );
-			$this->_insert_attachment();
+			$this->insert_attachment();
 			remove_filter( 'intermediate_image_sizes_advanced', array( $this->wp_site_icon, 'additional_sizes' ) );
 		}
 
@@ -242,7 +242,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.3.0
 	 */
-	function _remove_site_icon() {
+	private function remove_site_icon() {
 		delete_option( 'site_icon' );
 	}
 
@@ -251,7 +251,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.3.0
 	 */
-	function _insert_attachment() {
+	private function insert_attachment() {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
 
@@ -269,13 +269,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	function test_has_custom_logo() {
+	public function test_has_custom_logo() {
 		$this->assertFalse( has_custom_logo() );
 
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 		$this->assertTrue( has_custom_logo() );
 
-		$this->_remove_custom_logo();
+		$this->remove_custom_logo();
 		$this->assertFalse( has_custom_logo() );
 	}
 
@@ -286,10 +286,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::has_custom_logo
 	 */
-	function test_has_custom_logo_returns_true_when_called_for_other_site_with_custom_logo_set() {
+	public function test_has_custom_logo_returns_true_when_called_for_other_site_with_custom_logo_set() {
 		$blog_id = $this->factory->blog->create();
 		switch_to_blog( $blog_id );
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 		restore_current_blog();
 
 		$this->assertTrue( has_custom_logo( $blog_id ) );
@@ -302,7 +302,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::has_custom_logo
 	 */
-	function test_has_custom_logo_returns_false_when_called_for_other_site_without_custom_logo_set() {
+	public function test_has_custom_logo_returns_false_when_called_for_other_site_without_custom_logo_set() {
 		$blog_id = $this->factory->blog->create();
 
 		$this->assertFalse( has_custom_logo( $blog_id ) );
@@ -315,15 +315,15 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_custom_logo
 	 */
-	function test_get_custom_logo() {
+	public function test_get_custom_logo() {
 		$this->assertEmpty( get_custom_logo() );
 
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 		$custom_logo = get_custom_logo();
 		$this->assertNotEmpty( $custom_logo );
 		$this->assertIsString( $custom_logo );
 
-		$this->_remove_custom_logo();
+		$this->remove_custom_logo();
 		$this->assertEmpty( get_custom_logo() );
 	}
 
@@ -334,11 +334,11 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_custom_logo
 	 */
-	function test_get_custom_logo_returns_logo_when_called_for_other_site_with_custom_logo_set() {
+	public function test_get_custom_logo_returns_logo_when_called_for_other_site_with_custom_logo_set() {
 		$blog_id = $this->factory->blog->create();
 		switch_to_blog( $blog_id );
 
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 
 		$custom_logo_attr = array(
 			'class'   => 'custom-logo',
@@ -366,11 +366,11 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::the_custom_logo
 	 */
-	function test_the_custom_logo() {
+	public function test_the_custom_logo() {
 		$this->expectOutputString( '' );
 		the_custom_logo();
 
-		$this->_set_custom_logo();
+		$this->set_custom_logo();
 
 		$custom_logo_attr = array(
 			'class'   => 'custom-logo',
@@ -395,8 +395,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::the_custom_logo
 	 */
-	function test_the_custom_logo_with_alt() {
-		$this->_set_custom_logo();
+	public function test_the_custom_logo_with_alt() {
+		$this->set_custom_logo();
 
 		$image_alt = 'My alt attribute';
 
@@ -421,9 +421,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	function _set_custom_logo() {
+	private function set_custom_logo() {
 		if ( ! $this->custom_logo_id ) {
-			$this->_insert_custom_logo();
+			$this->insert_custom_logo();
 		}
 
 		set_theme_mod( 'custom_logo', $this->custom_logo_id );
@@ -434,7 +434,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	function _remove_custom_logo() {
+	private function remove_custom_logo() {
 		remove_theme_mod( 'custom_logo' );
 	}
 
@@ -443,7 +443,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	function _insert_custom_logo() {
+	private function insert_custom_logo() {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
 		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
@@ -460,7 +460,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_site_icon_url
 	 */
-	function test_get_site_icon_url_preserves_switched_state() {
+	public function test_get_site_icon_url_preserves_switched_state() {
 		$blog_id = $this->factory->blog->create();
 		switch_to_blog( $blog_id );
 
@@ -481,7 +481,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::has_custom_logo
 	 */
-	function test_has_custom_logo_preserves_switched_state() {
+	public function test_has_custom_logo_preserves_switched_state() {
 		$blog_id = $this->factory->blog->create();
 		switch_to_blog( $blog_id );
 
@@ -502,7 +502,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_custom_logo
 	 */
-	function test_get_custom_logo_preserves_switched_state() {
+	public function test_get_custom_logo_preserves_switched_state() {
 		$blog_id = $this->factory->blog->create();
 		switch_to_blog( $blog_id );
 
@@ -522,7 +522,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_header
 	 */
-	function test_get_header_returns_nothing_on_success() {
+	public function test_get_header_returns_nothing_on_success() {
 		$this->expectOutputRegex( '/Header/' );
 
 		// The `get_header()` function must not return anything
@@ -535,7 +535,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_footer
 	 */
-	function test_get_footer_returns_nothing_on_success() {
+	public function test_get_footer_returns_nothing_on_success() {
 		$this->expectOutputRegex( '/Footer/' );
 
 		// The `get_footer()` function must not return anything
@@ -548,7 +548,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_sidebar
 	 */
-	function test_get_sidebar_returns_nothing_on_success() {
+	public function test_get_sidebar_returns_nothing_on_success() {
 		$this->expectOutputRegex( '/Sidebar/' );
 
 		// The `get_sidebar()` function must not return anything
@@ -561,7 +561,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_template_part
 	 */
-	function test_get_template_part_returns_nothing_on_success() {
+	public function test_get_template_part_returns_nothing_on_success() {
 		$this->expectOutputRegex( '/Template Part/' );
 
 		// The `get_template_part()` function must not return anything
@@ -574,7 +574,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_template_part
 	 */
-	function test_get_template_part_returns_false_on_failure() {
+	public function test_get_template_part_returns_false_on_failure() {
 		$this->assertFalse( get_template_part( 'non-existing-template' ) );
 	}
 
@@ -583,7 +583,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_template_part
 	 */
-	function test_get_template_part_passes_arguments_to_template() {
+	public function test_get_template_part_passes_arguments_to_template() {
 		$this->expectOutputRegex( '/{"foo":"baz"}/' );
 
 		get_template_part( 'template', 'part', array( 'foo' => 'baz' ) );
@@ -594,7 +594,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_the_archive_title
 	 */
-	function test_get_the_archive_title_is_correct_for_author_queries() {
+	public function test_get_the_archive_title_is_correct_for_author_queries() {
 		$user_with_posts    = $this->factory()->user->create_and_get(
 			array(
 				'role' => 'author',

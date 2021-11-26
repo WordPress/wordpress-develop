@@ -4,12 +4,12 @@
  * @group mail
  */
 class Tests_Mail extends WP_UnitTestCase {
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		reset_phpmailer_instance();
 		parent::tear_down();
 	}
@@ -24,7 +24,7 @@ class Tests_Mail extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_mail
 	 */
-	function test_wp_mail_break_it() {
+	public function test_wp_mail_break_it() {
 		$content = str_repeat( 'A', 1000 );
 		$this->assertTrue( wp_mail( WP_TESTS_EMAIL, 'Looong line testing', $content ) );
 	}
@@ -32,7 +32,7 @@ class Tests_Mail extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_mail
 	 */
-	function test_wp_mail_custom_boundaries() {
+	public function test_wp_mail_custom_boundaries() {
 		$to       = 'user@example.com';
 		$subject  = 'Test email with custom boundaries';
 		$headers  = '' . "\n";
@@ -95,7 +95,7 @@ class Tests_Mail extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_mail
 	 */
-	function test_wp_mail_rfc2822_addresses() {
+	public function test_wp_mail_rfc2822_addresses() {
 		$to        = 'Name <address@tld.com>';
 		$from      = 'Another Name <another_address@different-tld.com>';
 		$cc        = 'The Carbon Guy <cc@cc.com>';
@@ -127,7 +127,7 @@ class Tests_Mail extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_mail
 	 */
-	function test_wp_mail_multiple_rfc2822_to_addresses() {
+	public function test_wp_mail_multiple_rfc2822_to_addresses() {
 		$to      = 'Name <address@tld.com>, Another Name <another_address@different-tld.com>';
 		$subject = 'RFC2822 Testing';
 		$message = 'My RFC822 Test Message';
@@ -147,7 +147,7 @@ class Tests_Mail extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_mail
 	 */
-	function test_wp_mail_multiple_to_addresses() {
+	public function test_wp_mail_multiple_to_addresses() {
 		$to      = 'address@tld.com, another_address@different-tld.com';
 		$subject = 'RFC2822 Testing';
 		$message = 'My RFC822 Test Message';
@@ -165,7 +165,7 @@ class Tests_Mail extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_mail
 	 */
-	function test_wp_mail_to_address_no_name() {
+	public function test_wp_mail_to_address_no_name() {
 		$to      = '<address@tld.com>';
 		$subject = 'RFC2822 Testing';
 		$message = 'My RFC822 Test Message';
@@ -182,7 +182,7 @@ class Tests_Mail extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_mail
 	 */
-	function test_wp_mail_return_value() {
+	public function test_wp_mail_return_value() {
 		// No errors.
 		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body' ) );
 
@@ -319,11 +319,11 @@ class Tests_Mail extends WP_UnitTestCase {
 		$this->assertSame( 1, substr_count( $mailer->get_sent()->header, $expected ) );
 	}
 
-	function wp_mail_quoted_printable( $mailer ) {
+	public function wp_mail_quoted_printable( $mailer ) {
 		$mailer->Encoding = 'quoted-printable';
 	}
 
-	function wp_mail_set_text_message( $mailer ) {
+	public function wp_mail_set_text_message( $mailer ) {
 		$mailer->AltBody = 'Wörld';
 	}
 
@@ -341,7 +341,7 @@ class Tests_Mail extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_mail
 	 */
-	function test_wp_mail_content_transfer_encoding_in_quoted_printable_multipart() {
+	public function test_wp_mail_content_transfer_encoding_in_quoted_printable_multipart() {
 		add_action( 'phpmailer_init', array( $this, 'wp_mail_quoted_printable' ) );
 		add_action( 'phpmailer_init', array( $this, 'wp_mail_set_text_message' ) );
 
@@ -451,7 +451,7 @@ class Tests_Mail extends WP_UnitTestCase {
 	 *
 	 * @coversNothing
 	 */
-	function test_phpmailer_validator() {
+	public function test_phpmailer_validator() {
 		$phpmailer = $GLOBALS['phpmailer'];
 		$this->assertTrue( $phpmailer->validateAddress( 'foo@192.168.1.1' ), 'Assert PHPMailer accepts IP address email addresses' );
 	}

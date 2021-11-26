@@ -4,27 +4,27 @@
  */
 class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->theme_root = DIR_TESTDATA . '/themedir1';
 
 		$this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
 
-		add_filter( 'theme_root', array( $this, '_theme_root' ) );
-		add_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
-		add_filter( 'template_root', array( $this, '_theme_root' ) );
+		add_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
-		remove_filter( 'theme_root', array( $this, '_theme_root' ) );
-		remove_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
-		remove_filter( 'template_root', array( $this, '_theme_root' ) );
+		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -32,7 +32,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	}
 
 	// Replace the normal theme root directory with our premade test directory.
-	function _theme_root( $dir ) {
+	public function filter_theme_root( $dir ) {
 		return $this->theme_root;
 	}
 
@@ -46,7 +46,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 * @covers ::wp_get_theme
 	 * @covers ::get_page_templates
 	 */
-	function test_page_templates() {
+	public function test_page_templates() {
 		$theme = get_theme( 'Page Template Theme' );
 		$this->assertNotEmpty( $theme );
 
@@ -82,7 +82,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 * @covers ::wp_get_theme
 	 * @covers ::get_page_templates
 	 */
-	function test_page_templates_different_post_types() {
+	public function test_page_templates_different_post_types() {
 		$theme = wp_get_theme( 'page-templates' );
 		$this->assertNotEmpty( $theme );
 
@@ -111,7 +111,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 * @covers ::wp_get_theme
 	 * @covers ::get_page_templates
 	 */
-	function test_page_templates_for_post_types_with_trailing_periods() {
+	public function test_page_templates_for_post_types_with_trailing_periods() {
 		$theme = wp_get_theme( 'page-templates' );
 		$this->assertNotEmpty( $theme );
 
@@ -146,7 +146,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 * @covers ::wp_get_theme
 	 * @covers ::get_page_templates
 	 */
-	function test_page_templates_child_theme() {
+	public function test_page_templates_child_theme() {
 		$theme = wp_get_theme( 'page-templates-child' );
 		$this->assertNotEmpty( $theme );
 
@@ -234,7 +234,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_theme_feature_list
 	 */
-	function test_get_theme_featured_list_api() {
+	public function test_get_theme_featured_list_api() {
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		$featured_list_api = get_theme_feature_list( true );
 		$this->assertNonEmptyMultidimensionalArray( $featured_list_api );
@@ -250,7 +250,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_theme_feature_list
 	 */
-	function test_get_theme_featured_list_hardcoded() {
+	public function test_get_theme_featured_list_hardcoded() {
 		$featured_list_hardcoded = get_theme_feature_list( false );
 		$this->assertNonEmptyMultidimensionalArray( $featured_list_hardcoded );
 	}

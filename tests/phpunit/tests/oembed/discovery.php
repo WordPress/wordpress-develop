@@ -10,11 +10,11 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 	/**
 	 * @ticket 34971
 	 */
-	function test_add_oembed_discovery_links_non_singular() {
+	public function test_add_oembed_discovery_links_non_singular() {
 		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
-	function test_add_oembed_discovery_links_front_page() {
+	public function test_add_oembed_discovery_links_front_page() {
 		$this->go_to( home_url() );
 		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ) );
 		$this->assertSame( 0, url_to_postid( home_url() ) );
@@ -23,7 +23,7 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 	/**
 	 * @ticket 34971
 	 */
-	function test_add_oembed_discovery_links_static_front_page() {
+	public function test_add_oembed_discovery_links_static_front_page() {
 		update_option( 'show_on_front', 'page' );
 		update_option(
 			'page_on_front',
@@ -46,7 +46,7 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		update_option( 'show_on_front', 'posts' );
 	}
 
-	function test_add_oembed_discovery_links_to_post() {
+	public function test_add_oembed_discovery_links_to_post() {
 		$post_id = self::factory()->post->create();
 		$this->go_to( get_permalink( $post_id ) );
 		$this->assertQueryTrue( 'is_single', 'is_singular' );
@@ -57,7 +57,7 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
-	function test_add_oembed_discovery_links_to_page() {
+	public function test_add_oembed_discovery_links_to_page() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
@@ -72,7 +72,7 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
-	function test_add_oembed_discovery_links_to_attachment() {
+	public function test_add_oembed_discovery_links_to_attachment() {
 		$post_id       = self::factory()->post->create();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(

@@ -29,7 +29,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$role->add_cap( 'publish_unmapped_meta_caps' );
 	}
 
-	static function tear_down_after_class() {
+	public static function tear_down_after_class() {
 		$role = get_role( 'administrator' );
 		$role->remove_cap( 'publish_mapped_meta_caps' );
 		$role->remove_cap( 'publish_unmapped_meta_caps' );
@@ -37,7 +37,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		parent::tear_down_after_class();
 	}
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		register_post_type(
@@ -70,7 +70,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_trash_post
 	 */
-	function test_trashing_a_post_should_add_trashed_suffix_to_post_name() {
+	public function test_trashing_a_post_should_add_trashed_suffix_to_post_name() {
 		$trashed_about_page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
@@ -105,7 +105,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_untrash_post
 	 */
-	function test_trashed_posts_original_post_name_should_be_reassigned_after_untrashing() {
+	public function test_trashed_posts_original_post_name_should_be_reassigned_after_untrashing() {
 		$about_page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
@@ -124,7 +124,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_insert_post
 	 */
-	function test_creating_a_new_post_should_add_trashed_suffix_to_post_name_of_trashed_posts_with_the_desired_slug() {
+	public function test_creating_a_new_post_should_add_trashed_suffix_to_post_name_of_trashed_posts_with_the_desired_slug() {
 		$trashed_about_page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
@@ -150,7 +150,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_untrash_post
 	 */
-	function test_untrashing_a_post_with_a_stored_desired_post_name_should_get_its_post_name_suffixed_if_another_post_has_taken_the_desired_post_name() {
+	public function test_untrashing_a_post_with_a_stored_desired_post_name_should_get_its_post_name_suffixed_if_another_post_has_taken_the_desired_post_name() {
 		$about_page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
@@ -186,7 +186,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_untrash_post
 	 */
-	function test_untrashing_a_post_should_always_restore_it_to_draft_status( $post_status ) {
+	public function test_untrashing_a_post_should_always_restore_it_to_draft_status( $post_status ) {
 		$page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
@@ -206,7 +206,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_untrash_post
 	 */
-	function test_wp_untrash_post_status_filter_restores_post_to_correct_status( $post_status ) {
+	public function test_wp_untrash_post_status_filter_restores_post_to_correct_status( $post_status ) {
 		add_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
 
 		$page_id = self::factory()->post->create(
@@ -229,7 +229,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @return array Array of test arguments.
 	 */
-	function data_various_post_types() {
+	public function data_various_post_types() {
 		return array(
 			array(
 				'mapped_meta_caps',
@@ -248,7 +248,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @return array Array of test arguments.
 	 */
-	function data_various_post_statuses() {
+	public function data_various_post_statuses() {
 		return array(
 			array(
 				'draft',
@@ -274,7 +274,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @covers ::wp_insert_post
 	 * @covers ::wp_update_post
 	 */
-	function test_contributor_cannot_set_post_slug( $post_type ) {
+	public function test_contributor_cannot_set_post_slug( $post_type ) {
 		wp_set_current_user( self::$user_ids['contributor'] );
 
 		$post_id = $this->factory()->post->create(
@@ -316,7 +316,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @covers ::wp_insert_post
 	 * @covers ::wp_update_post
 	 */
-	function test_administrator_can_set_post_slug( $post_type ) {
+	public function test_administrator_can_set_post_slug( $post_type ) {
 		wp_set_current_user( self::$user_ids['administrator'] );
 
 		$post_id = $this->factory()->post->create(
@@ -360,7 +360,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @covers ::wp_insert_post
 	 * @covers ::wp_update_post
 	 */
-	function test_administrator_cannot_set_post_slug_on_post_type_they_cannot_publish() {
+	public function test_administrator_cannot_set_post_slug_on_post_type_they_cannot_publish() {
 		wp_set_current_user( self::$user_ids['administrator'] );
 
 		$post_id = $this->factory()->post->create(
@@ -398,7 +398,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_insert_post
 	 */
-	function test_scheduled_post_with_a_past_date_should_be_published() {
+	public function test_scheduled_post_with_a_past_date_should_be_published() {
 
 		$now = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
 

@@ -47,7 +47,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @covers ::add_post_meta
 	 */
-	function test_unique_postmeta() {
+	public function test_unique_postmeta() {
 		// Add a unique post meta item.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'unique', 'value', true ) );
 
@@ -73,7 +73,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @covers ::add_post_meta
 	 */
-	function test_nonunique_postmeta() {
+	public function test_nonunique_postmeta() {
 		// Add two non-unique post meta items.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'nonunique', 'value' ) );
 		$this->assertIsInt( add_post_meta( self::$post_id, 'nonunique', 'another value' ) );
@@ -113,7 +113,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @covers ::update_post_meta
 	 */
-	function test_update_post_meta() {
+	public function test_update_post_meta() {
 		// Add a unique post meta item.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'unique_update', 'value', true ) );
 
@@ -143,7 +143,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @covers ::delete_post_meta
 	 */
-	function test_delete_post_meta() {
+	public function test_delete_post_meta() {
 		// Add two unique post meta items.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'unique_delete', 'value', true ) );
 		$this->assertIsInt( add_post_meta( self::$post_id_2, 'unique_delete', 'value', true ) );
@@ -163,7 +163,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @covers ::delete_post_meta
 	 */
-	function test_delete_post_meta_by_key() {
+	public function test_delete_post_meta_by_key() {
 		// Add two unique post meta items.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'unique_delete_by_key', 'value', true ) );
 		$this->assertIsInt( add_post_meta( self::$post_id_2, 'unique_delete_by_key', 'value', true ) );
@@ -183,7 +183,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_meta_by_id
 	 */
-	function test_get_post_meta_by_id() {
+	public function test_get_post_meta_by_id() {
 		$mid = add_post_meta( self::$post_id, 'get_post_meta_by_key', 'get_post_meta_by_key_value', true );
 		$this->assertIsInt( $mid );
 
@@ -206,7 +206,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @covers ::delete_meta
 	 */
-	function test_delete_meta() {
+	public function test_delete_meta() {
 		$mid = add_post_meta( self::$post_id, 'delete_meta', 'delete_meta_value', true );
 		$this->assertIsInt( $mid );
 
@@ -219,7 +219,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @covers ::update_meta
 	 */
-	function test_update_meta() {
+	public function test_update_meta() {
 		// Add a unique post meta item.
 		$mid1 = add_post_meta( self::$post_id, 'unique_update', 'value', true );
 		$this->assertIsInt( $mid1 );
@@ -259,7 +259,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	 *
 	 * @covers ::add_post_meta
 	 */
-	function test_funky_post_meta() {
+	public function test_funky_post_meta() {
 		$classy          = new StdClass();
 		$classy->ID      = 1;
 		$classy->stringy = 'I love slashes\\\\';

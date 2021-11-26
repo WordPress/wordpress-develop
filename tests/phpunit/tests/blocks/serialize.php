@@ -21,7 +21,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 *
 	 * @covers ::serialize_blocks
 	 */
-	function test_serialize_identity_from_parsed( $original ) {
+	public function test_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
 
 		$actual   = serialize_blocks( $blocks );
@@ -30,7 +30,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	function data_serialize_identity_from_parsed() {
+	public function data_serialize_identity_from_parsed() {
 		return array(
 			// Void block.
 			array( '<!-- wp:void /-->' ),
@@ -58,7 +58,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	/*
 	 * @covers ::strip_core_block_namespace
 	 */
-	function test_serialized_block_name() {
+	public function test_serialized_block_name() {
 		$this->assertNull( strip_core_block_namespace( null ) );
 		$this->assertSame( 'example', strip_core_block_namespace( 'example' ) );
 		$this->assertSame( 'example', strip_core_block_namespace( 'core/example' ) );

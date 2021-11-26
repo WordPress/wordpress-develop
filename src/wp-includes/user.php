@@ -766,6 +766,126 @@ function get_users( $args = array() ) {
 }
 
 /**
+ * List all the users of the site, with several options available.
+ *
+ * @since 5.9.0
+ *
+ * @param string|array $args {
+ *     Optional. Array or string of default arguments.
+ *
+ *     @type string $orderby       How to sort the users. Accepts 'nicename', 'email', 'url', 'registered',
+ *                                 'user_nicename', 'user_email', 'user_url', 'user_registered', 'name',
+ *                                 'display_name', 'post_count', 'ID', 'meta_value', 'user_login'. Default 'name'.
+ *     @type string $order         Sorting direction for $orderby. Accepts 'ASC', 'DESC'. Default 'ASC'.
+ *     @type int    $number        Maximum users to return or display. Default empty (all users).
+ *     @type bool   $exclude_admin Whether to exclude the 'admin' account, if it exists. Default false.
+ *     @type bool   $show_fullname Whether to show the user's full name. Default false.
+ *     @type string $feed          If not empty, show a link to the user's feed and use this text as the alt
+ *                                 parameter of the link. Default empty.
+ *     @type string $feed_image    If not empty, show a link to the user's feed and use this image URL as
+ *                                 clickable anchor. Default empty.
+ *     @type string $feed_type     The feed type to link to, such as 'rss2'. Defaults to default feed type.
+ *     @type bool   $echo          Whether to output the result or instead return it. Default true.
+ *     @type string $style         If 'list', each user is wrapped in an `<li>` element, otherwise the users
+ *                                 will be separated by commas.
+ *     @type bool   $html          Whether to list the items in HTML form or plaintext. Default true.
+ *     @type string $exclude       An array, comma-, or space-separated list of user IDs to exclude. Default empty.
+ *     @type string $include       An array, comma-, or space-separated list of user IDs to include. Default empty.
+ * }
+ * @return string|null The output if echo is false. Otherwise null.
+ */
+function wp_list_users( $args = array() ) {
+	$defaults = array(
+		'orderby'       => 'name',
+		'order'         => 'ASC',
+		'number'        => '',
+		'exclude_admin' => true,
+		'show_fullname' => false,
+		'feed'          => '',
+		'feed_image'    => '',
+		'feed_type'     => '',
+		'echo'          => true,
+		'style'         => 'list',
+		'html'          => true,
+		'exclude'       => '',
+		'include'       => '',
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	$return = '';
+
+	$query_args           = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
+	$query_args['fields'] = 'ids';
+	$users                = get_users( $query_args );
+
+	foreach ( $users as $user_id ) {
+		$user = get_userdata( $user_id );
+
+		if ( $args['exclude_admin'] && 'admin' === $user->display_name ) {
+			continue;
+		}
+
+		if ( $args['show_fullname'] && '' !== $user->first_name && '' !== $user->last_name ) {
+			$name = "$user->first_name $user->last_name";
+		} else {
+			$name = $user->display_name;
+		}
+
+		if ( ! $args['html'] ) {
+			$return .= $name . ', ';
+
+			continue; // No need to go further to process HTML.
+		}
+
+		if ( 'list' === $args['style'] ) {
+			$return .= '<li>';
+		}
+
+		$row = $name;
+
+		if ( ! empty( $args['feed_image'] ) || ! empty( $args['feed'] ) ) {
+			$row .= ' ';
+			if ( empty( $args['feed_image'] ) ) {
+				$row .= '(';
+			}
+
+			$row .= '<a href="' . get_author_feed_link( $user->ID, $args['feed_type'] ) . '"';
+
+			$alt = '';
+			if ( ! empty( $args['feed'] ) ) {
+				$alt  = ' alt="' . esc_attr( $args['feed'] ) . '"';
+				$name = $args['feed'];
+			}
+
+			$row .= '>';
+
+			if ( ! empty( $args['feed_image'] ) ) {
+				$row .= '<img src="' . esc_url( $args['feed_image'] ) . '" style="border: none;"' . $alt . ' />';
+			} else {
+				$row .= $name;
+			}
+
+			$row .= '</a>';
+
+			if ( empty( $args['feed_image'] ) ) {
+				$row .= ')';
+			}
+		}
+
+		$return .= $row;
+		$return .= ( 'list' === $args['style'] ) ? '</li>' : ', ';
+	}
+
+	$return = rtrim( $return, ', ' );
+
+	if ( ! $args['echo'] ) {
+		return $return;
+	}
+	echo $return;
+}
+
+/**
  * Get the sites a user belongs to.
  *
  * @since 3.0.0
@@ -1320,13 +1440,32 @@ function wp_dropdown_users( $args = '' ) {
 		'role'                    => '',
 		'role__in'                => array(),
 		'role__not_in'            => array(),
+		'capability'              => '',
+		'capability__in'          => array(),
+		'capability__not_in'      => array(),
 	);
 
 	$defaults['selected'] = is_author() ? get_query_var( 'author' ) : 0;
 
 	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$query_args = wp_array_slice_assoc( $parsed_args, array( 'blog_id', 'include', 'exclude', 'orderby', 'order', 'who', 'role', 'role__in', 'role__not_in' ) );
+	$query_args = wp_array_slice_assoc(
+		$parsed_args,
+		array(
+			'blog_id',
+			'include',
+			'exclude',
+			'orderby',
+			'order',
+			'who',
+			'role',
+			'role__in',
+			'role__not_in',
+			'capability',
+			'capability__in',
+			'capability__not_in',
+		)
+	);
 
 	$fields = array( 'ID', 'user_login' );
 
@@ -2971,7 +3110,14 @@ function register_new_user( $user_login, $user_email ) {
 		$errors->add( 'invalid_email', __( '<strong>Error</strong>: The email address isn&#8217;t correct.' ) );
 		$user_email = '';
 	} elseif ( email_exists( $user_email ) ) {
-		$errors->add( 'email_exists', __( '<strong>Error</strong>: This email is already registered. Please choose another one.' ) );
+		$errors->add(
+			'email_exists',
+			sprintf(
+				/* translators: %s: Link to the login page. */
+				__( '<strong>Error:</strong> This email address is already registered. <a href="%s">Log in</a> with this address or choose another one.' ),
+				wp_login_url()
+			)
+		);
 	}
 
 	/**
@@ -3024,6 +3170,13 @@ function register_new_user( $user_login, $user_email ) {
 	}
 
 	update_user_meta( $user_id, 'default_password_nag', true ); // Set up the password change nag.
+
+	if ( ! empty( $_COOKIE['wp_lang'] ) ) {
+		$wp_lang = sanitize_text_field( $_COOKIE['wp_lang'] );
+		if ( in_array( $wp_lang, get_available_languages(), true ) ) {
+			update_user_meta( $user_id, 'locale', $wp_lang ); // Set user locale if defined on registration.
+		}
+	}
 
 	/**
 	 * Fires after a new user registration has been recorded.

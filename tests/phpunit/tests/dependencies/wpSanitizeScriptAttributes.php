@@ -10,7 +10,7 @@
  */
 class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 
-	function test_sanitize_script_attributes_type_set() {
+	public function test_sanitize_script_attributes_type_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -40,7 +40,7 @@ class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 		);
 	}
 
-	function test_sanitize_script_attributes_type_not_set() {
+	public function test_sanitize_script_attributes_type_not_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -69,7 +69,7 @@ class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 	}
 
 
-	function test_sanitize_script_attributes_no_attributes() {
+	public function test_sanitize_script_attributes_no_attributes() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -80,7 +80,7 @@ class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 		remove_theme_support( 'html5' );
 	}
 
-	function test_sanitize_script_attributes_relative_src() {
+	public function test_sanitize_script_attributes_relative_src() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -98,7 +98,7 @@ class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 	}
 
 
-	function test_sanitize_script_attributes_only_false_boolean_attributes() {
+	public function test_sanitize_script_attributes_only_false_boolean_attributes() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -114,7 +114,7 @@ class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 		remove_theme_support( 'html5' );
 	}
 
-	function test_sanitize_script_attributes_only_true_boolean_attributes() {
+	public function test_sanitize_script_attributes_only_true_boolean_attributes() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(

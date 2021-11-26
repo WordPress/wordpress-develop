@@ -51,7 +51,7 @@ http://wordpress.org/
 	/**
 	 * @covers PO::prepend_each_line
 	 */
-	function test_prepend_each_line() {
+	public function test_prepend_each_line() {
 		$po = new PO();
 		$this->assertSame( 'baba_', $po->prepend_each_line( '', 'baba_' ) );
 		$this->assertSame( 'baba_dyado', $po->prepend_each_line( 'dyado', 'baba_' ) );
@@ -61,7 +61,7 @@ http://wordpress.org/
 	/**
 	 * @covers PO::poify
 	 */
-	function test_poify() {
+	public function test_poify() {
 		$po = new PO();
 		// Simple.
 		$this->assertSame( '"baba"', $po->poify( 'baba' ) );
@@ -83,7 +83,7 @@ http://wordpress.org/
 	/**
 	 * @covers PO::unpoify
 	 */
-	function test_unpoify() {
+	public function test_unpoify() {
 		$po = new PO();
 		$this->assertSame( 'baba', $po->unpoify( '"baba"' ) );
 		$this->assertSame( "baba\ngugu", $po->unpoify( '"baba\n"' . "\t\t\t\n" . '"gugu"' ) );
@@ -97,7 +97,7 @@ http://wordpress.org/
 	/**
 	 * @covers PO::export_entry
 	 */
-	function test_export_entry() {
+	public function test_export_entry() {
 		$po    = new PO();
 		$entry = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$this->assertSame( "msgid \"baba\"\nmsgstr \"\"", $po->export_entry( $entry ) );
@@ -225,7 +225,7 @@ msgstr[2] "бабаяга"',
 	/**
 	 * @covers PO::export_entries
 	 */
-	function test_export_entries() {
+	public function test_export_entries() {
 		$entry  = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$entry2 = new Translation_Entry( array( 'singular' => 'dyado' ) );
 		$po     = new PO();
@@ -237,7 +237,7 @@ msgstr[2] "бабаяга"',
 	/**
 	 * @covers PO::export_headers
 	 */
-	function test_export_headers() {
+	public function test_export_headers() {
 		$po = new PO();
 		$po->set_header( 'Project-Id-Version', 'WordPress 2.6-bleeding' );
 		$po->set_header( 'POT-Creation-Date', '2008-04-08 18:00+0000' );
@@ -247,7 +247,7 @@ msgstr[2] "бабаяга"',
 	/**
 	 * @covers PO::export
 	 */
-	function test_export() {
+	public function test_export() {
 		$po     = new PO();
 		$entry  = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$entry2 = new Translation_Entry( array( 'singular' => 'dyado' ) );
@@ -263,7 +263,7 @@ msgstr[2] "бабаяга"',
 	/**
 	 * @covers PO::export_to_file
 	 */
-	function test_export_to_file() {
+	public function test_export_to_file() {
 		$po     = new PO();
 		$entry  = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$entry2 = new Translation_Entry( array( 'singular' => 'dyado' ) );
@@ -284,7 +284,7 @@ msgstr[2] "бабаяга"',
 	/**
 	 * @covers PO::import_from_file
 	 */
-	function test_import_from_file() {
+	public function test_import_from_file() {
 		$po  = new PO();
 		$res = $po->import_from_file( DIR_TESTDATA . '/pomo/simple.po' );
 		$this->assertTrue( $res );
@@ -346,7 +346,7 @@ msgstr[2] "бабаяга"',
 	/**
 	 * @covers PO::import_from_file
 	 */
-	function test_import_from_entry_file_should_give_false() {
+	public function test_import_from_entry_file_should_give_false() {
 		$po = new PO();
 		$this->assertFalse( $po->import_from_file( DIR_TESTDATA . '/pomo/empty.po' ) );
 	}
@@ -354,7 +354,7 @@ msgstr[2] "бабаяга"',
 	/**
 	 * @covers PO::import_from_file
 	 */
-	function test_import_from_file_with_windows_line_endings_should_work_as_with_unix_line_endings() {
+	public function test_import_from_file_with_windows_line_endings_should_work_as_with_unix_line_endings() {
 		$po = new PO();
 		$this->assertTrue( $po->import_from_file( DIR_TESTDATA . '/pomo/windows-line-endings.po' ) );
 		$this->assertCount( 1, $po->entries );

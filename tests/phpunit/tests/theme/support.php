@@ -9,7 +9,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @covers ::add_theme_support
 	 * @covers ::current_theme_supports
 	 */
-	function test_the_basics() {
+	public function test_the_basics() {
 		add_theme_support( 'automatic-feed-links' );
 		$this->assertTrue( current_theme_supports( 'automatic-feed-links' ) );
 		remove_theme_support( 'automatic-feed-links' );
@@ -22,7 +22,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @covers ::add_theme_support
 	 * @covers ::current_theme_supports
 	 */
-	function test_admin_bar() {
+	public function test_admin_bar() {
 		add_theme_support( 'admin-bar' );
 		$this->assertTrue( current_theme_supports( 'admin-bar' ) );
 		remove_theme_support( 'admin-bar' );
@@ -103,7 +103,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @covers ::remove_theme_support
 	 * @covers ::current_theme_supports
 	 */
-	function test_supports_html5() {
+	public function test_supports_html5() {
 		remove_theme_support( 'html5' );
 		$this->assertFalse( current_theme_supports( 'html5' ) );
 		$this->assertFalse( current_theme_supports( 'html5', 'comment-form' ) );
@@ -124,7 +124,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @covers ::remove_theme_support
 	 * @covers ::current_theme_supports
 	 */
-	function test_supports_html5_subset() {
+	public function test_supports_html5_subset() {
 		remove_theme_support( 'html5' );
 		$this->assertFalse( current_theme_supports( 'html5' ) );
 		$this->assertFalse( current_theme_supports( 'html5', 'comment-form' ) );
@@ -158,7 +158,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @covers ::remove_theme_support
 	 * @covers ::current_theme_supports
 	 */
-	function test_supports_html5_invalid() {
+	public function test_supports_html5_invalid() {
 		remove_theme_support( 'html5' );
 		$this->assertFalse( add_theme_support( 'html5', 'comment-form' ) );
 		$this->assertFalse( current_theme_supports( 'html5', 'comment-form' ) );
@@ -172,12 +172,12 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 *
 	 * @covers ::add_theme_support
 	 */
-	function test_supports_post_formats_doing_it_wrong() {
+	public function test_supports_post_formats_doing_it_wrong() {
 		// The second parameter should be an array.
 		$this->assertFalse( add_theme_support( 'post-formats' ) );
 	}
 
-	function supports_foobar( $yesno, $args, $feature ) {
+	public function supports_foobar( $yesno, $args, $feature ) {
 		if ( $args[0] === $feature[0] ) {
 			return true;
 		}
@@ -187,7 +187,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	/**
 	 * @covers ::current_theme_supports
 	 */
-	function test_plugin_hook() {
+	public function test_plugin_hook() {
 		$this->assertFalse( current_theme_supports( 'foobar' ) );
 		add_theme_support( 'foobar' );
 		$this->assertTrue( current_theme_supports( 'foobar' ) );
@@ -207,7 +207,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 *
 	 * @covers ::current_theme_supports
 	 */
-	function test_supports_menus() {
+	public function test_supports_menus() {
 		// Start fresh.
 		foreach ( get_registered_nav_menus() as $location => $desc ) {
 			unregister_nav_menu( $location );
@@ -241,7 +241,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @covers ::remove_theme_support
 	 * @covers ::current_theme_supports
 	 */
-	function test_responsive_embeds() {
+	public function test_responsive_embeds() {
 		add_theme_support( 'responsive-embeds' );
 		$this->assertTrue( current_theme_supports( 'responsive-embeds' ) );
 		remove_theme_support( 'responsive-embeds' );

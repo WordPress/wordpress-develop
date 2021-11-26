@@ -18,7 +18,7 @@ if ( is_multisite() ) :
 		 * @covers ::update_blog_option
 		 * @covers ::delete_blog_option
 		 */
-		function test_from_same_site() {
+		public function test_from_same_site() {
 			$key    = __FUNCTION__ . '_1';
 			$key2   = __FUNCTION__ . '_2';
 			$value  = __FUNCTION__ . '_val1';
@@ -62,7 +62,7 @@ if ( is_multisite() ) :
 		 * @covers ::update_blog_option
 		 * @covers ::delete_blog_option
 		 */
-		function test_from_same_site_with_null_blog_id() {
+		public function test_from_same_site_with_null_blog_id() {
 			$key    = __FUNCTION__ . '_1';
 			$key2   = __FUNCTION__ . '_2';
 			$value  = __FUNCTION__ . '_val1';
@@ -105,7 +105,7 @@ if ( is_multisite() ) :
 		 * @covers ::update_blog_option
 		 * @covers ::delete_blog_option
 		 */
-		function test_with_another_site() {
+		public function test_with_another_site() {
 			$user_id = self::factory()->user->create();
 			$this->assertIsInt( $user_id );
 
@@ -157,7 +157,7 @@ if ( is_multisite() ) :
 		 *
 		 * @covers ::get_site_option
 		 */
-		function test_site_notoptions() {
+		public function test_site_notoptions() {
 			$network_id     = get_current_network_id();
 			$notoptions_key = "{$network_id}:notoptions";
 
@@ -178,7 +178,7 @@ if ( is_multisite() ) :
 		 * @covers ::users_can_register_signup_filter
 		 * @covers ::get_site_option
 		 */
-		function test_users_can_register_signup_filter() {
+		public function test_users_can_register_signup_filter() {
 
 			$registration = get_site_option( 'registration' );
 			$this->assertFalse( users_can_register_signup_filter() );
@@ -199,12 +199,12 @@ if ( is_multisite() ) :
 		 * @covers ::update_site_option
 		 * @covers ::get_site_option
 		 */
-		function test_sanitize_network_option_illegal_names( $option_value, $sanitized_option_value ) {
+		public function test_sanitize_network_option_illegal_names( $option_value, $sanitized_option_value ) {
 			update_site_option( 'illegal_names', $option_value );
 			$this->assertSame( $sanitized_option_value, get_site_option( 'illegal_names' ) );
 		}
 
-		function data_illegal_names() {
+		public function data_illegal_names() {
 			return array(
 				array( array( '', 'Woo', '' ), array( 'Woo' ) ),
 				array( 'foo bar', array( 'foo', 'bar' ) ),
@@ -221,7 +221,7 @@ if ( is_multisite() ) :
 		 * @covers ::update_site_option
 		 * @covers ::get_site_option
 		 */
-		function test_sanitize_network_option_limited_email_domains( $option_value, $sanitized_option_value ) {
+		public function test_sanitize_network_option_limited_email_domains( $option_value, $sanitized_option_value ) {
 			update_site_option( 'limited_email_domains', $option_value );
 			$this->assertSame( $sanitized_option_value, get_site_option( 'limited_email_domains' ) );
 		}
@@ -235,12 +235,12 @@ if ( is_multisite() ) :
 		 * @covers ::update_site_option
 		 * @covers ::get_site_option
 		 */
-		function test_sanitize_network_option_banned_email_domains( $option_value, $sanitized_option_value ) {
+		public function test_sanitize_network_option_banned_email_domains( $option_value, $sanitized_option_value ) {
 			update_site_option( 'banned_email_domains', $option_value );
 			$this->assertSame( $sanitized_option_value, get_site_option( 'banned_email_domains' ) );
 		}
 
-		function data_email_domains() {
+		public function data_email_domains() {
 			return array(
 				array( array( 'woo', '', 'boo.com', 'foo.net.biz..' ), array( 'woo', 'boo.com' ) ),
 				array( "foo\nbar", array( 'foo', 'bar' ) ),

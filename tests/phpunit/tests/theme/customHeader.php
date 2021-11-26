@@ -19,7 +19,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		self::$header_video_id = $factory->attachment->create_upload_object( $file );
 	}
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
@@ -29,7 +29,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		wp_dequeue_script( 'wp-custom-header' );
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		$this->customize_manager = null;
 		unset( $GLOBALS['wp_customize'] );
 
@@ -45,7 +45,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::remove_theme_support
 	 */
-	function test_add_and_remove_theme_support() {
+	public function test_add_and_remove_theme_support() {
 		$this->_add_theme_support();
 		$this->assertTrue( current_theme_supports( 'custom-header' ) );
 		remove_theme_support( 'custom-header' );
@@ -55,7 +55,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_header_image
 	 */
-	function test_get_header_image_without_registered_default() {
+	public function test_get_header_image_without_registered_default() {
 		$this->_add_theme_support();
 		$image = get_header_image();
 		$this->assertFalse( has_header_image() );
@@ -65,9 +65,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_header_image
 	 */
-	function test_get_header_image_with_registered_default() {
+	public function test_get_header_image_with_registered_default() {
 		$default = 'http://localhost/default-header.jpg';
-		$this->_add_theme_support( array( 'default-image' => $default ) );
+		$this->add_theme_support( array( 'default-image' => $default ) );
 
 		$image = get_header_image();
 		$this->assertTrue( has_header_image() );
@@ -78,10 +78,10 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::set_theme_mod
 	 * @covers ::get_header_image
 	 */
-	function test_get_header_image_from_theme_mod() {
+	public function test_get_header_image_from_theme_mod() {
 		$default = 'http://localhost/default-header.jpg';
 		$custom  = 'http://localhost/custom-header.jpg';
-		$this->_add_theme_support( array( 'default-image' => $default ) );
+		$this->add_theme_support( array( 'default-image' => $default ) );
 
 		set_theme_mod( 'header_image', $custom );
 		$image = get_header_image();
@@ -97,7 +97,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_header_image_tag
 	 */
-	function test_get_header_image_tag_without_registered_default_image() {
+	public function test_get_header_image_tag_without_registered_default_image() {
 		$this->_add_theme_support();
 		$html = get_header_image_tag();
 		$this->assertEmpty( $html );
@@ -106,9 +106,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_header_image_tag
 	 */
-	function test_get_header_image_tag_with_registered_default_image() {
+	public function test_get_header_image_tag_with_registered_default_image() {
 		$default = 'http://localhost/default-header.jpg';
-		$this->_add_theme_support( array( 'default-image' => $default ) );
+		$this->add_theme_support( array( 'default-image' => $default ) );
 
 		$html = get_header_image_tag();
 		$this->assertStringStartsWith( '<img ', $html );
@@ -121,9 +121,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::set_theme_mod
 	 * @covers ::get_header_image_tag
 	 */
-	function test_get_header_image_tag_with_registered_default_image_and_remove_header_theme_mod() {
+	public function test_get_header_image_tag_with_registered_default_image_and_remove_header_theme_mod() {
 		$default = 'http://localhost/default-header.jpg';
-		$this->_add_theme_support( array( 'default-image' => $default ) );
+		$this->add_theme_support( array( 'default-image' => $default ) );
 
 		set_theme_mod( 'header_image', 'remove-header' );
 		$html = get_header_image_tag();
@@ -134,10 +134,10 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::set_theme_mod
 	 * @covers ::get_header_image_tag
 	 */
-	function test_get_header_image_tag_with_registered_default_image_and_custom_theme_mod() {
+	public function test_get_header_image_tag_with_registered_default_image_and_custom_theme_mod() {
 		$default = 'http://localhost/default-header.jpg';
 		$custom  = 'http://localhost/custom-header.jpg';
-		$this->_add_theme_support( array( 'default-image' => $default ) );
+		$this->add_theme_support( array( 'default-image' => $default ) );
 
 		set_theme_mod( 'header_image', $custom );
 		$html = get_header_image_tag();
@@ -149,7 +149,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::get_custom_header_markup
 	 * @covers ::has_custom_header
 	 */
-	function test_get_custom_header_markup_without_registered_default_image() {
+	public function test_get_custom_header_markup_without_registered_default_image() {
 		$this->_add_theme_support();
 
 		$html = get_custom_header_markup();
@@ -157,7 +157,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		$this->assertEmpty( $html );
 
 		// The container should always be returned in the Customizer preview.
-		$this->_set_customize_previewing( true );
+		$this->set_customize_previewing( true );
 		$html = get_custom_header_markup();
 		$this->assertSame( '<div id="wp-custom-header" class="wp-custom-header"></div>', $html );
 	}
@@ -166,9 +166,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::get_custom_header_markup
 	 * @covers ::has_custom_header
 	 */
-	function test_get_custom_header_markup_with_registered_default_image() {
+	public function test_get_custom_header_markup_with_registered_default_image() {
 		$default = 'http://localhost/default-header.jpg';
-		$this->_add_theme_support( array( 'default-image' => $default ) );
+		$this->add_theme_support( array( 'default-image' => $default ) );
 		$html = get_custom_header_markup();
 		$this->assertTrue( has_custom_header() );
 		$this->assertStringStartsWith( '<div id="wp-custom-header" class="wp-custom-header">', $html );
@@ -180,7 +180,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::set_theme_mod
 	 * @covers ::get_header_video_url
 	 */
-	function test_get_header_video_url() {
+	public function test_get_header_video_url() {
 		$this->_add_theme_support( array( 'video' => true ) );
 
 		$this->assertFalse( has_header_video() );
@@ -194,9 +194,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::set_theme_mod
 	 * @covers ::get_header_video_url
 	 */
-	function test_get_external_header_video_url() {
+	public function test_get_external_header_video_url() {
 		$external = 'http://example.com/custom-video.mp4';
-		$this->_add_theme_support( array( 'video' => true ) );
+		$this->add_theme_support( array( 'video' => true ) );
 
 		$this->assertFalse( has_header_video() );
 		set_theme_mod( 'external_header_video', $external );
@@ -207,9 +207,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_header_video_url
 	 */
-	function test_get_header_video_url_prefers_local_video() {
+	public function test_get_header_video_url_prefers_local_video() {
 		$external = 'http://example.com/custom-video.mp4';
-		$this->_add_theme_support( array( 'video' => true ) );
+		$this->add_theme_support( array( 'video' => true ) );
 
 		set_theme_mod( 'header_video', self::$header_video_id );
 		set_theme_mod( 'external_header_video', $external );
@@ -221,9 +221,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::has_header_video
 	 * @covers ::has_custom_header
 	 */
-	function test_get_custom_header_markup_with_video_and_without_an_image() {
+	public function test_get_custom_header_markup_with_video_and_without_an_image() {
 		$custom = 'http://localhost/custom-video.mp4';
-		$this->_add_theme_support(
+		$this->add_theme_support(
 			array(
 				'video'                 => true,
 				'video-active-callback' => '__return_true',
@@ -240,7 +240,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::the_custom_header_markup
 	 */
-	function test_header_script_is_not_enqueued_by_the_custom_header_markup_without_video() {
+	public function test_header_script_is_not_enqueued_by_the_custom_header_markup_without_video() {
 		$this->_add_theme_support(
 			array(
 				'video'                 => true,
@@ -264,7 +264,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::the_custom_header_markup
 	 */
-	function test_header_script_is_not_enqueued_by_the_custom_header_markup_when_active_callback_is_false() {
+	public function test_header_script_is_not_enqueued_by_the_custom_header_markup_when_active_callback_is_false() {
 		$this->_add_theme_support(
 			array(
 				'video'                 => true,
@@ -282,14 +282,14 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::the_custom_header_markup
 	 */
-	function test_header_script_is_enqueued_by_the_custom_header_markup_without_video_when_previewing_in_customizer() {
+	public function test_header_script_is_enqueued_by_the_custom_header_markup_without_video_when_previewing_in_customizer() {
 		$this->_add_theme_support(
 			array(
 				'video'                 => true,
 				'video-active-callback' => '__return_true',
 			)
 		);
-		$this->_set_customize_previewing( true );
+		$this->set_customize_previewing( true );
 
 		ob_start();
 		the_custom_header_markup();
@@ -300,7 +300,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	/**
 	 * @covers ::the_custom_header_markup
 	 */
-	function test_header_script_is_enqueued_by_the_custom_header_markup_with_video() {
+	public function test_header_script_is_enqueued_by_the_custom_header_markup_with_video() {
 		$this->_add_theme_support(
 			array(
 				'video'                 => true,
@@ -320,8 +320,8 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_header_video_active
 	 */
-	function test_video_header_callback_front_page_from_front_page() {
-		$this->_add_theme_support(
+	public function test_video_header_callback_front_page_from_front_page() {
+		$this->add_theme_support(
 			array(
 				'video' => true,
 			)
@@ -339,8 +339,8 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_header_video_active
 	 */
-	function test_video_header_callback_front_page_from_elsewhere() {
-		$this->_add_theme_support(
+	public function test_video_header_callback_front_page_from_elsewhere() {
+		$this->add_theme_support(
 			array(
 				'video' => true,
 			)
@@ -358,8 +358,8 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_header_video_active
 	 */
-	function test_video_header_callback_globally_from_front_page() {
-		$this->_add_theme_support(
+	public function test_video_header_callback_globally_from_front_page() {
+		$this->add_theme_support(
 			array(
 				'video'                 => true,
 				'video-active-callback' => '__return_true',
@@ -378,8 +378,8 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_header_video_active
 	 */
-	function test_video_header_callback_globally_from_elsewhere() {
-		$this->_add_theme_support(
+	public function test_video_header_callback_globally_from_elsewhere() {
+		$this->add_theme_support(
 			array(
 				'video'                 => true,
 				'video-active-callback' => '__return_true',
@@ -398,8 +398,8 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_header_video_active
 	 */
-	function test_video_header_callback_globally_with_negative_filter() {
-		$this->_add_theme_support(
+	public function test_video_header_callback_globally_with_negative_filter() {
+		$this->add_theme_support(
 			array(
 				'video'                 => true,
 				'video-active-callback' => '__return_true',
@@ -420,7 +420,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * add_theme_support( 'custom-header' ) will poison subsequent tests since
 	 * it defines constants.
 	 */
-	function _add_theme_support( $args = array() ) {
+	private function add_theme_support( $args = array() ) {
 		global $_wp_theme_features;
 
 		$_wp_theme_features['custom-header'][0] = wp_parse_args(
@@ -444,7 +444,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		);
 	}
 
-	function _set_customize_previewing( $value ) {
+	private function set_customize_previewing( $value ) {
 		$class    = new ReflectionClass( 'WP_Customize_Manager' );
 		$property = $class->getProperty( 'previewing' );
 		$property->setAccessible( true );

@@ -7,14 +7,14 @@
  */
 class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$post   = array();
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'username', 'password', $post ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_incapable_user() {
+	public function test_incapable_user() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$post   = array();
@@ -23,7 +23,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 401, $result->code );
 	}
 
-	function test_no_content() {
+	public function test_no_content() {
 		$this->make_user_by_role( 'author' );
 
 		$post   = array();
@@ -33,7 +33,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 'Content, title, and excerpt are empty.', $result->message );
 	}
 
-	function test_basic_content() {
+	public function test_basic_content() {
 		$this->make_user_by_role( 'author' );
 
 		$post   = array( 'title' => 'Test' );
@@ -42,7 +42,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result );
 	}
 
-	function test_ignore_id() {
+	public function test_ignore_id() {
 		$this->make_user_by_role( 'author' );
 
 		$post   = array(
@@ -54,7 +54,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotEquals( '103948', $result );
 	}
 
-	function test_capable_publish() {
+	public function test_capable_publish() {
 		$this->make_user_by_role( 'author' );
 
 		$post   = array(
@@ -65,7 +65,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 	}
 
-	function test_incapable_publish() {
+	public function test_incapable_publish() {
 		$this->make_user_by_role( 'contributor' );
 
 		$post   = array(
@@ -77,7 +77,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 401, $result->code );
 	}
 
-	function test_capable_other_author() {
+	public function test_capable_other_author() {
 		$this->make_user_by_role( 'editor' );
 		$other_author_id = $this->make_user_by_role( 'author' );
 
@@ -89,7 +89,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 	}
 
-	function test_incapable_other_author() {
+	public function test_incapable_other_author() {
 		$this->make_user_by_role( 'contributor' );
 		$other_author_id = $this->make_user_by_role( 'author' );
 
@@ -105,7 +105,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 20356
 	 */
-	function test_invalid_author() {
+	public function test_invalid_author() {
 		$this->make_user_by_role( 'editor' );
 
 		$post   = array(
@@ -117,7 +117,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 404, $result->code );
 	}
 
-	function test_empty_author() {
+	public function test_empty_author() {
 		$my_author_id = $this->make_user_by_role( 'author' );
 
 		$post   = array( 'title' => 'Test' );
@@ -133,7 +133,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @requires function imagejpeg
 	 */
-	function test_post_thumbnail() {
+	public function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 
 		$this->make_user_by_role( 'author' );
@@ -153,7 +153,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		remove_theme_support( 'post-thumbnails' );
 	}
 
-	function test_incapable_set_post_type_as_page() {
+	public function test_incapable_set_post_type_as_page() {
 		$this->make_user_by_role( 'author' );
 
 		$post   = array(
@@ -165,7 +165,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 401, $result->code );
 	}
 
-	function test_capable_set_post_type_as_page() {
+	public function test_capable_set_post_type_as_page() {
 		$this->make_user_by_role( 'editor' );
 
 		$post   = array(
@@ -185,7 +185,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 16985
 	 */
-	function test_draft_post_date() {
+	public function test_draft_post_date() {
 		$this->make_user_by_role( 'editor' );
 
 		$post   = array(

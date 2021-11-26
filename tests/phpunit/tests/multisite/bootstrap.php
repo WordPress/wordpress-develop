@@ -125,7 +125,7 @@ if ( is_multisite() ) :
 		 *
 		 * @covers ::get_network_by_path
 		 */
-		function test_get_network_by_path( $expected_key, $domain, $path, $message ) {
+		public function test_get_network_by_path( $expected_key, $domain, $path, $message ) {
 			$network = get_network_by_path( $domain, $path );
 			$this->assertSame( self::$network_ids[ $expected_key ], $network->id, $message );
 		}
@@ -265,7 +265,7 @@ if ( is_multisite() ) :
 		 *
 		 * @covers ::ms_load_current_site_and_network
 		 */
-		function test_multisite_bootstrap( $site_key, $network_key, $domain, $path ) {
+		public function test_multisite_bootstrap( $site_key, $network_key, $domain, $path ) {
 			global $current_blog;
 
 			$expected = array(

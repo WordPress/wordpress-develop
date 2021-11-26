@@ -903,12 +903,14 @@ function post_slug_meta_box( $post ) {
  */
 function post_author_meta_box( $post ) {
 	global $user_ID;
+
+	$post_type_object = get_post_type_object( $post->post_type );
 	?>
 <label class="screen-reader-text" for="post_author_override"><?php _e( 'Author' ); ?></label>
 	<?php
 	wp_dropdown_users(
 		array(
-			'who'              => 'authors',
+			'capability'       => array( $post_type_object->cap->edit_posts ),
 			'name'             => 'post_author_override',
 			'selected'         => empty( $post->ID ) ? $user_ID : $post->post_author,
 			'include_selected' => true,
@@ -982,8 +984,8 @@ function page_attributes_meta_box( $post ) {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param string  $template The template used for the current post.
-		 * @param WP_Post $post     The current post.
+		 * @param string|false $template The template used for the current post.
+		 * @param WP_Post      $post     The current post.
 		 */
 		do_action( 'page_attributes_meta_box_template', $template, $post );
 		?>

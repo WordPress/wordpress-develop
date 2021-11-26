@@ -12,7 +12,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 */
 	protected $manager;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
@@ -20,7 +20,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		$this->undefined         = new stdClass();
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		parent::tear_down();
@@ -31,7 +31,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Panel::__construct
 	 */
-	function test_construct_default_args() {
+	public function test_construct_default_args() {
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
 		$this->assertIsInt( $panel->instance_number );
 		$this->assertSame( $this->manager, $panel->manager );
@@ -51,7 +51,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Panel::__construct
 	 */
-	function test_construct_custom_args() {
+	public function test_construct_custom_args() {
 		$args = array(
 			'priority'        => 200,
 			'capability'      => 'edit_posts',
@@ -73,7 +73,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Panel::__construct
 	 */
-	function test_construct_custom_type() {
+	public function test_construct_custom_type() {
 		$panel = new Custom_Panel_Test( $this->manager, 'foo' );
 		$this->assertSame( 'titleless', $panel->type );
 	}
@@ -85,7 +85,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 * @covers WP_Customize_Panel::active
 	 * @covers WP_Customize_Panel::active_callback
 	 */
-	function test_active() {
+	public function test_active() {
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
 		$this->assertTrue( $panel->active() );
 
@@ -106,7 +106,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 * @param WP_Customize_Panel $panel
 	 * @return bool
 	 */
-	function filter_active_test( $active, $panel ) {
+	public function filter_active_test( $active, $panel ) {
 		$this->assertFalse( $active );
 		$this->assertInstanceOf( 'WP_Customize_Panel', $panel );
 		$active = true;
@@ -118,7 +118,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Panel::json
 	 */
-	function test_json() {
+	public function test_json() {
 		$args  = array(
 			'priority'        => 200,
 			'capability'      => 'edit_posts',
@@ -144,7 +144,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Panel::check_capabilities
 	 */
-	function test_check_capabilities() {
+	public function test_check_capabilities() {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
@@ -164,7 +164,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Panel::get_content
 	 */
-	function test_get_content() {
+	public function test_get_content() {
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
 		$this->assertEmpty( $panel->get_content() );
 	}
@@ -174,7 +174,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Panel::maybe_render
 	 */
-	function test_maybe_render() {
+	public function test_maybe_render() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$panel                        = new WP_Customize_Panel( $this->manager, 'bar' );
 		$customize_render_panel_count = did_action( 'customize_render_panel' );
@@ -192,7 +192,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 * @see WP_Customize_Panel::maybe_render()
 	 * @param WP_Customize_Panel $panel
 	 */
-	function action_customize_render_panel_test( $panel ) {
+	public function action_customize_render_panel_test( $panel ) {
 		$this->assertInstanceOf( 'WP_Customize_Panel', $panel );
 	}
 
@@ -201,7 +201,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Panel::print_template
 	 */
-	function test_print_templates_standard() {
+	public function test_print_templates_standard() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$panel = new WP_Customize_Panel( $this->manager, 'baz' );
@@ -221,7 +221,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Panel::print_template
 	 */
-	function test_print_templates_custom() {
+	public function test_print_templates_custom() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$panel = new Custom_Panel_Test( $this->manager, 'baz' );

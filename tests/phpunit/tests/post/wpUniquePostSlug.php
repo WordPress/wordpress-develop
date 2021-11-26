@@ -100,7 +100,7 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_unique_post_slug
 	 */
-	function test_wp_unique_post_slug_with_hierarchy_and_attachments() {
+	public function test_wp_unique_post_slug_with_hierarchy_and_attachments() {
 		register_post_type( 'post-type-1', array( 'hierarchical' => true ) );
 
 		$args = array(

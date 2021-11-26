@@ -12,7 +12,7 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 		self::$author_id = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		wp_set_current_user( self::$author_id );
@@ -33,7 +33,7 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_insert_attachment
 	 */
-	function test_wp_insert_attachment() {
+	public function test_wp_insert_attachment() {
 		$post_id = wp_insert_attachment(
 			array(
 				'post_status'           => 'publish',

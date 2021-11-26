@@ -6,7 +6,7 @@ require_once __DIR__ . '/base.php';
  * @group import
  */
 class Tests_Import_Parser extends WP_Import_UnitTestCase {
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		if ( ! defined( 'WP_IMPORTING' ) ) {
@@ -28,7 +28,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	 * @covers WXR_Parser_SimpleXML::parse
 	 * @covers WXR_Parser_XML::parse
 	 */
-	function test_malformed_wxr() {
+	public function test_malformed_wxr() {
 		$file = DIR_TESTDATA . '/export/malformed.xml';
 
 		// Regex based parser cannot detect malformed XML.
@@ -45,7 +45,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	 * @covers WXR_Parser_XML::parse
 	 * @covers WXR_Parser_Regex::parse
 	 */
-	function test_invalid_wxr() {
+	public function test_invalid_wxr() {
 		$f1 = DIR_TESTDATA . '/export/missing-version-tag.xml';
 		$f2 = DIR_TESTDATA . '/export/invalid-version-tag.xml';
 
@@ -64,7 +64,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	 * @covers WXR_Parser_XML::parse
 	 * @covers WXR_Parser_Regex::parse
 	 */
-	function test_wxr_version_1_1() {
+	public function test_wxr_version_1_1() {
 		$file = DIR_TESTDATA . '/export/valid-wxr-1.1.xml';
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
@@ -162,7 +162,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	 * @covers WXR_Parser_XML::parse
 	 * @covers WXR_Parser_Regex::parse
 	 */
-	function test_wxr_version_1_0() {
+	public function test_wxr_version_1_0() {
 		$file = DIR_TESTDATA . '/export/valid-wxr-1.0.xml';
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
@@ -260,7 +260,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	 * @covers WXR_Parser_XML::parse
 	 * @covers WXR_Parser_Regex::parse
 	 */
-	function test_escaped_cdata_closing_sequence() {
+	public function test_escaped_cdata_closing_sequence() {
 		$file = DIR_TESTDATA . '/export/crazy-cdata-escaped.xml';
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
@@ -295,7 +295,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	 *
 	 * @covers WXR_Parser_Regex::parse
 	 */
-	function test_unescaped_cdata_closing_sequence() {
+	public function test_unescaped_cdata_closing_sequence() {
 		$file = DIR_TESTDATA . '/export/crazy-cdata.xml';
 
 		$parser = new WXR_Parser_Regex;

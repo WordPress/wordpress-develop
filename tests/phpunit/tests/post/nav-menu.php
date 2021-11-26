@@ -9,7 +9,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public $menu_id;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->menu_id = wp_create_nav_menu( rand_str() );
@@ -48,7 +48,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_get_associated_nav_menu_items
 	 */
-	function test_wp_get_associated_nav_menu_items() {
+	public function test_wp_get_associated_nav_menu_items() {
 		$tag_id    = self::factory()->tag->create();
 		$cat_id    = self::factory()->category->create();
 		$post_id   = self::factory()->post->create();
@@ -147,7 +147,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_items
 	 */
-	function test_orphan_nav_menu_item() {
+	public function test_orphan_nav_menu_item() {
 
 		// Create an orphan nav menu item.
 		$custom_item_id = wp_update_nav_menu_item(
@@ -217,7 +217,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_name
 	 */
-	function test_wp_get_nav_menu_name() {
+	public function test_wp_get_nav_menu_name() {
 		// Register a nav menu location.
 		register_nav_menu( 'primary', 'Primary Navigation' );
 
@@ -238,7 +238,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menus
 	 */
-	function test_orderby_name_by_default() {
+	public function test_orderby_name_by_default() {
 		// We are going to create a random number of menus (min 2, max 10).
 		$menus_no = rand( 2, 10 );
 
@@ -269,7 +269,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_setup_nav_menu_item
 	 */
-	function test_wp_setup_nav_menu_item_for_post_type_archive() {
+	public function test_wp_setup_nav_menu_item_for_post_type_archive() {
 
 		$post_type_slug        = rand_str( 12 );
 		$post_type_description = rand_str();
@@ -304,7 +304,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_setup_nav_menu_item
 	 */
-	function test_wp_setup_nav_menu_item_for_post_type_archive_no_description() {
+	public function test_wp_setup_nav_menu_item_for_post_type_archive_no_description() {
 
 		$post_type_slug        = rand_str( 12 );
 		$post_type_description = '';
@@ -337,7 +337,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_setup_nav_menu_item
 	 */
-	function test_wp_setup_nav_menu_item_for_post_type_archive_custom_description() {
+	public function test_wp_setup_nav_menu_item_for_post_type_archive_custom_description() {
 
 		$post_type_slug        = rand_str( 12 );
 		$post_type_description = rand_str();
@@ -374,7 +374,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_setup_nav_menu_item
 	 */
-	function test_wp_setup_nav_menu_item_for_unknown_post_type_archive_no_description() {
+	public function test_wp_setup_nav_menu_item_for_unknown_post_type_archive_no_description() {
 
 		$post_type_slug = rand_str( 12 );
 
@@ -397,7 +397,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_setup_nav_menu_item
 	 */
-	function test_wp_setup_nav_menu_item_for_trashed_post() {
+	public function test_wp_setup_nav_menu_item_for_trashed_post() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_status' => 'trash',
@@ -425,7 +425,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_nav_menu
 	 */
-	function test_wp_nav_menu_whitespace_options() {
+	public function test_wp_nav_menu_whitespace_options() {
 		$post_id1 = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
 		$post_id3 = self::factory()->post->create();
@@ -514,7 +514,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_nav_menu
 	 */
-	function test_wp_nav_menu_filters_are_passed_args_object() {
+	public function test_wp_nav_menu_filters_are_passed_args_object() {
 		$tag_id = self::factory()->tag->create();
 
 		$tag_insert = wp_update_nav_menu_item(
@@ -533,19 +533,19 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		 * arguments are an object.
 		 */
 		// In function.
-		add_filter( 'pre_wp_nav_menu', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
-		add_filter( 'wp_nav_menu_objects', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
-		add_filter( 'wp_nav_menu_items', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
+		add_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		add_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		add_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
 
 		// In walker.
-		add_filter( 'nav_menu_item_args', array( $this, '_confirm_nav_menu_item_args_object' ) );
+		add_filter( 'nav_menu_item_args', array( $this, 'confirm_nav_menu_item_args_object' ) );
 
-		add_filter( 'nav_menu_css_class', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		add_filter( 'nav_menu_item_id', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		add_filter( 'nav_menu_link_attributes', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		add_filter( 'nav_menu_item_title', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
+		add_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		add_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		add_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		add_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
 
-		add_filter( 'walker_nav_menu_start_el', array( $this, '_confirm_forth_param_args_object' ), 10, 4 );
+		add_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
 
 		wp_nav_menu(
 			array(
@@ -559,41 +559,41 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		 * Remove test filters.
 		 */
 		// In function.
-		remove_filter( 'pre_wp_nav_menu', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_objects', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_items', array( $this, '_confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
 
 		// In walker.
-		remove_filter( 'nav_menu_item_args', array( $this, '_confirm_nav_menu_item_args_object' ) );
+		remove_filter( 'nav_menu_item_args', array( $this, 'confirm_nav_menu_item_args_object' ) );
 
-		remove_filter( 'nav_menu_css_class', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_id', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_link_attributes', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_title', array( $this, '_confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
 
-		remove_filter( 'walker_nav_menu_start_el', array( $this, '_confirm_forth_param_args_object' ), 10, 4 );
+		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
 
 	}
 
 	/**
 	 * Run tests required to confrim Walker_Nav_Menu receives an $args object.
 	 */
-	function _confirm_nav_menu_item_args_object( $args ) {
+	public function confirm_nav_menu_item_args_object( $args ) {
 		$this->assertIsObject( $args );
 		return $args;
 	}
 
-	function _confirm_second_param_args_object( $ignored_1, $args ) {
+	public function confirm_second_param_args_object( $ignored_1, $args ) {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
-	function _confirm_third_param_args_object( $ignored_1, $ignored_2, $args ) {
+	public function confirm_third_param_args_object( $ignored_1, $ignored_2, $args ) {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
-	function _confirm_forth_param_args_object( $ignored_1, $ignored_2, $ignored_3, $args ) {
+	public function confirm_forth_param_args_object( $ignored_1, $ignored_2, $ignored_3, $args ) {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
@@ -604,7 +604,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_items
 	 */
-	function test_no_front_page_class_applied() {
+	public function test_no_front_page_class_applied() {
 		$page_id = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -637,7 +637,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_items
 	 */
-	function test_class_applied_to_front_page_item() {
+	public function test_class_applied_to_front_page_item() {
 		$page_id = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -672,7 +672,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_items
 	 */
-	function test_class_not_applied_to_taxonomies_with_same_id_as_front_page_item() {
+	public function test_class_not_applied_to_taxonomies_with_same_id_as_front_page_item() {
 		global $wpdb;
 
 		$new_id = 35272;
@@ -715,7 +715,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::_wp_delete_customize_changeset_dependent_auto_drafts
 	 */
-	function test_wp_delete_customize_changeset_dependent_auto_drafts() {
+	public function test_wp_delete_customize_changeset_dependent_auto_drafts() {
 		$auto_draft_post_id = $this->factory()->post->create(
 			array(
 				'post_status' => 'auto-draft',
@@ -771,7 +771,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_items
 	 */
-	function test_parent_ancestor_for_post_archive() {
+	public function test_parent_ancestor_for_post_archive() {
 
 		register_post_type(
 			'books',
@@ -857,7 +857,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Provides IRI matching data for _wp_menu_item_classes_by_context() test.
 	 */
-	function get_iri_current_menu_items() {
+	public function get_iri_current_menu_items() {
 		return array(
 			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) ),
 			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ) ),
@@ -874,7 +874,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_items
 	 */
-	function test_iri_current_menu_item( $custom_link, $current = true ) {
+	public function test_iri_current_menu_item( $custom_link, $current = true ) {
 		wp_update_nav_menu_item(
 			$this->menu_id,
 			0,
@@ -905,7 +905,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_items
 	 */
-	function test_no_privacy_policy_class_applied() {
+	public function test_no_privacy_policy_class_applied() {
 		$page_id = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -938,7 +938,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_items
 	 */
-	function test_class_applied_to_privacy_policy_page_item() {
+	public function test_class_applied_to_privacy_policy_page_item() {
 		$page_id = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -974,7 +974,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_nav_menu_items
 	 */
-	function test_trim_url_for_custom_item( $custom_url, $correct_url ) {
+	public function test_trim_url_for_custom_item( $custom_url, $correct_url ) {
 		$custom_item_id = wp_update_nav_menu_item(
 			$this->menu_id,
 			0,
@@ -993,7 +993,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Provides data for test_trim_url_for_custom_item().
 	 */
-	function data_trim_url_for_custom_item() {
+	public function data_trim_url_for_custom_item() {
 		return array(
 			array( 'https://wordpress.org ', 'https://wordpress.org' ),
 			array( ' https://wordpress.org', 'https://wordpress.org' ),
@@ -1010,7 +1010,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_update_nav_menu_item
 	 */
-	function test_wp_update_nav_menu_item_with_special_characters_in_category_name() {
+	public function test_wp_update_nav_menu_item_with_special_characters_in_category_name() {
 		$category_name = 'Test Cat - \"Pre-Slashed\" Cat Name & >';
 
 		$category = self::factory()->category->create_and_get(
@@ -1049,7 +1049,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_update_nav_menu_item
 	 */
-	function test_wp_update_nav_menu_item_with_post_date() {
+	public function test_wp_update_nav_menu_item_with_post_date() {
 		$post_date     = '2020-12-28 11:26:35';
 		$post_date_gmt = '2020-12-29 10:11:45';
 		$invalid_date  = '2020-12-41 14:15:27';

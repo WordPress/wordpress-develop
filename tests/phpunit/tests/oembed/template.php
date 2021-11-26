@@ -5,10 +5,25 @@
  */
 class Tests_Embed_Template extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+
+		global $wp_scripts;
+		$wp_scripts = null;
+	}
+
+	public function tear_down() {
+		parent::tear_down();
+
+		global $wp_scripts;
+		$wp_scripts = null;
+	}
+
+
 	/**
 	 * @covers ::get_post_embed_url
 	 */
-	function test_oembed_output_post() {
+	public function test_oembed_output_post() {
 		$user = self::factory()->user->create_and_get(
 			array(
 				'display_name' => 'John Doe',
@@ -43,7 +58,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_embed_url
 	 */
-	function test_oembed_output_post_with_thumbnail() {
+	public function test_oembed_output_post_with_thumbnail() {
 		$post_id       = self::factory()->post->create(
 			array(
 				'post_title'   => 'Hello World',
@@ -79,7 +94,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_embed_url
 	 */
-	function test_oembed_output_404() {
+	public function test_oembed_output_404() {
 		$this->go_to( home_url( '/?p=123&embed=true' ) );
 		$GLOBALS['wp_query']->query_vars['embed'] = true;
 
@@ -97,7 +112,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_embed_url
 	 */
-	function test_oembed_output_attachment() {
+	public function test_oembed_output_attachment() {
 		$post          = self::factory()->post->create_and_get();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
@@ -129,7 +144,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_embed_url
 	 */
-	function test_oembed_output_draft_post() {
+	public function test_oembed_output_draft_post() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'Hello World',
@@ -155,7 +170,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_embed_url
 	 */
-	function test_oembed_output_scheduled_post() {
+	public function test_oembed_output_scheduled_post() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'Hello World',
@@ -182,7 +197,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_embed_url
 	 */
-	function test_oembed_output_private_post() {
+	public function test_oembed_output_private_post() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'Hello World',
@@ -208,7 +223,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_embed_url
 	 */
-	function test_oembed_output_private_post_with_permissions() {
+	public function test_oembed_output_private_post_with_permissions() {
 		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $user_id );
 
@@ -239,7 +254,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_embed_excerpt_more
 	 */
-	function test_wp_embed_excerpt_more_no_embed() {
+	public function test_wp_embed_excerpt_more_no_embed() {
 		$GLOBALS['wp_query'] = new WP_Query();
 
 		$this->assertSame( 'foo bar', wp_embed_excerpt_more( 'foo bar' ) );
@@ -249,7 +264,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * @covers ::wp_embed_excerpt_more
 	 * @covers ::get_post_embed_url
 	 */
-	function test_wp_embed_excerpt_more() {
+	public function test_wp_embed_excerpt_more() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'Foo Bar',
@@ -275,7 +290,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * @covers ::is_embed
 	 * @covers ::get_post_embed_url
 	 */
-	function test_is_embed_post() {
+	public function test_is_embed_post() {
 		$this->assertFalse( is_embed() );
 
 		$post_id = self::factory()->post->create();
@@ -287,7 +302,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * @covers ::is_embed
 	 * @covers ::get_post_embed_url
 	 */
-	function test_is_embed_attachment() {
+	public function test_is_embed_attachment() {
 		$post_id       = self::factory()->post->create();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
@@ -305,7 +320,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * @uses ::home_url
 	 * @covers ::is_embed
 	 */
-	function test_is_embed_404() {
+	public function test_is_embed_404() {
 		$this->go_to( home_url( '/?p=12345&embed=true' ) );
 		$this->assertTrue( is_embed() );
 	}
@@ -313,7 +328,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_embed_html
 	 */
-	function test_get_post_embed_html_non_existent_post() {
+	public function test_get_post_embed_html_non_existent_post() {
 		$this->assertFalse( get_post_embed_html( 200, 200, 0 ) );
 		$this->assertFalse( get_post_embed_html( 200, 200 ) );
 	}
@@ -322,7 +337,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * @covers ::get_post_embed_url
 	 * @covers ::get_post_embed_html
 	 */
-	function test_get_post_embed_html() {
+	public function test_get_post_embed_html() {
 		$post_id = self::factory()->post->create();
 		$title   = esc_attr(
 			sprintf(
@@ -332,18 +347,40 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = '<iframe sandbox="allow-scripts" security="restricted" src="' . esc_url( get_post_embed_url( $post_id ) ) . '" width="200" height="200" title="' . $title . '" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>';
+		$expected = '<iframe sandbox="allow-scripts" security="restricted" src="' . esc_url( get_post_embed_url( $post_id ) ) . '#?secret=__SECRET__" width="200" height="200" title="' . $title . '" data-secret=__SECRET__ frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>';
+		$actual   = get_post_embed_html( 200, 200, $post_id );
+		$actual   = preg_replace( '/secret=("?)\w+\1/', 'secret=__SECRET__', $actual );
 
-		$this->assertStringEndsWith( $expected, get_post_embed_html( 200, 200, $post_id ) );
+		$this->assertStringStartsWith( '<blockquote class="wp-embedded-content" data-secret=__SECRET__>', $actual );
+		$this->assertStringContainsString( $expected, $actual );
+		$this->assertStringEndsWith( '</script>', trim( $actual ) );
 	}
 
-	/**
-	 * @covers ::wp_oembed_add_host_js
+	/** 
+	 * @covers ::wp_oembed_add_host_js() 
 	 */
-	function test_add_host_js() {
+	public function test_add_host_js() {
+		remove_all_filters( 'embed_oembed_html' );
+
 		wp_oembed_add_host_js();
 
-		$this->assertTrue( wp_script_is( 'wp-embed' ) );
+		$this->assertEquals( 10, has_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' ) );
+	}
+
+	/** @covers ::wp_maybe_enqueue_oembed_host_js() */
+	function test_wp_maybe_enqueue_oembed_host_js() {
+		$scripts = wp_scripts();
+
+		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
+
+		$post_embed     = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
+		$non_post_embed = '<iframe title="Zoo Cares For 23 Tiny Pond Turtles" width="750" height="422" src="https://www.youtube.com/embed/6ZXHqUjL6f8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+
+		wp_maybe_enqueue_oembed_host_js( $non_post_embed );
+		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
+
+		wp_maybe_enqueue_oembed_host_js( $post_embed );
+		$this->assertTrue( $scripts->query( 'wp-embed', 'enqueued' ) );
 	}
 
 	/**
@@ -353,7 +390,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 *
 	 * @ticket 34698
 	 */
-	function test_js_no_ampersands() {
+	public function test_js_no_ampersands() {
 		$this->assertStringNotContainsString( '&', file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' ) );
 	}
 }

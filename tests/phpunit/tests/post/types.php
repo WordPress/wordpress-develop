@@ -18,7 +18,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->post_type = rand_str( 20 );
@@ -27,7 +27,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type() {
+	public function test_register_post_type() {
 		$this->assertNull( get_post_type_object( 'foo' ) );
 		register_post_type( 'foo' );
 
@@ -47,7 +47,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type_return_value() {
+	public function test_register_post_type_return_value() {
 		$this->assertInstanceOf( 'WP_Post_Type', register_post_type( 'foo' ) );
 	}
 
@@ -58,7 +58,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type_with_too_long_name() {
+	public function test_register_post_type_with_too_long_name() {
 		// Post type too long.
 		$this->assertInstanceOf( 'WP_Error', register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789' ) );
 	}
@@ -70,7 +70,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type_with_empty_name() {
+	public function test_register_post_type_with_empty_name() {
 		// Post type too short.
 		$this->assertInstanceOf( 'WP_Error', register_post_type( '' ) );
 	}
@@ -80,7 +80,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type_exclude_from_search_should_default_to_opposite_value_of_public() {
+	public function test_register_post_type_exclude_from_search_should_default_to_opposite_value_of_public() {
 		/*
 		 * 'public'              Default is false
 		 * 'exclude_from_search' Default is null (opposite 'public')
@@ -95,7 +95,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type_publicly_queryable_should_default_to_value_of_public() {
+	public function test_register_post_type_publicly_queryable_should_default_to_value_of_public() {
 		/*
 		 * 'public'             Default is false
 		 * 'publicly_queryable' Default is null ('public')
@@ -110,7 +110,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type_show_ui_should_default_to_value_of_public() {
+	public function test_register_post_type_show_ui_should_default_to_value_of_public() {
 		/*
 		 * 'public'  Default is false
 		 * 'show_ui' Default is null ('public')
@@ -125,7 +125,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type_show_in_menu_should_default_to_value_of_show_ui() {
+	public function test_register_post_type_show_in_menu_should_default_to_value_of_show_ui() {
 		/*
 		 * 'public'      Default is false
 		 * 'show_ui'     Default is null ('public')
@@ -145,7 +145,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type_show_in_nav_menus_should_default_to_value_of_public() {
+	public function test_register_post_type_show_in_nav_menus_should_default_to_value_of_public() {
 		/*
 		 * 'public'            Default is false
 		 * 'show_in_nav_menus' Default is null ('public')
@@ -160,7 +160,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_register_post_type_show_in_admin_bar_should_default_to_value_of_show_in_menu() {
+	public function test_register_post_type_show_in_admin_bar_should_default_to_value_of_show_in_menu() {
 		/*
 		 * 'public'            Default is false
 		 * 'show_in_menu'      Default is null ('show_ui' > 'public')
@@ -181,7 +181,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @covers ::register_taxonomy_for_object_type
 	 */
-	function test_register_taxonomy_for_object_type() {
+	public function test_register_taxonomy_for_object_type() {
 		global $wp_taxonomies;
 
 		register_post_type( 'bar' );
@@ -206,7 +206,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @covers ::post_type_exists
 	 */
-	function test_post_type_exists() {
+	public function test_post_type_exists() {
 		$this->assertFalse( post_type_exists( 'notaposttype' ) );
 		$this->assertTrue( post_type_exists( 'post' ) );
 	}
@@ -214,7 +214,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @covers ::post_type_supports
 	 */
-	function test_post_type_supports() {
+	public function test_post_type_supports() {
 		$this->assertTrue( post_type_supports( 'post', 'post-formats' ) );
 		$this->assertFalse( post_type_supports( 'page', 'post-formats' ) );
 		$this->assertFalse( post_type_supports( 'notaposttype', 'post-formats' ) );
@@ -227,7 +227,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::post_type_supports
 	 */
-	function test_post_type_with_no_support() {
+	public function test_post_type_with_no_support() {
 		register_post_type( 'foo', array( 'supports' => array() ) );
 		$this->assertTrue( post_type_supports( 'foo', 'editor' ) );
 		$this->assertTrue( post_type_supports( 'foo', 'title' ) );
@@ -244,7 +244,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_post_type
 	 */
-	function test_post_type_with_no_feed() {
+	public function test_post_type_with_no_feed() {
 		global $wp_rewrite;
 		$old_permastruct = get_option( 'permalink_structure' );
 		update_option( 'permalink_structure', '%postname%' );

@@ -15,7 +15,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 		self::$post_id   = $factory->post->create();
 	}
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		wp_set_current_user( self::$author_id );
@@ -36,7 +36,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_new_comment
 	 */
-	function test_wp_new_comment() {
+	public function test_wp_new_comment() {
 		$post_id = self::$post_id;
 
 		// Not testing comment_author_email or comment_author_url
@@ -77,7 +77,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 	 *
 	 * @covers ::edit_comment
 	 */
-	function test_edit_comment() {
+	public function test_edit_comment() {
 		$post_id    = self::$post_id;
 		$comment_id = self::factory()->comment->create(
 			array(
@@ -125,7 +125,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_insert_comment
 	 */
-	function test_wp_insert_comment() {
+	public function test_wp_insert_comment() {
 		$post_id = self::$post_id;
 
 		$comment_id = wp_insert_comment(
@@ -158,7 +158,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_update_comment
 	 */
-	function test_wp_update_comment() {
+	public function test_wp_update_comment() {
 		$post_id    = self::$post_id;
 		$comment_id = self::factory()->comment->create(
 			array(

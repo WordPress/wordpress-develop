@@ -189,7 +189,7 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	$templates[] = "{$slug}.php";
 
 	/**
-	 * Fires before a template part is loaded.
+	 * Fires before an attempt is made to locate and load a template part.
 	 *
 	 * @since 5.2.0
 	 * @since 5.5.0 The `$args` parameter was added.
@@ -576,25 +576,50 @@ function wp_login_form( $args = array() ) {
 	 */
 	$login_form_bottom = apply_filters( 'login_form_bottom', '', $args );
 
-	$form = '
-		<form name="' . $args['form_id'] . '" id="' . $args['form_id'] . '" action="' . esc_url( site_url( 'wp-login.php', 'login_post' ) ) . '" method="post">
-			' . $login_form_top . '
-			<p class="login-username">
-				<label for="' . esc_attr( $args['id_username'] ) . '">' . esc_html( $args['label_username'] ) . '</label>
-				<input type="text" name="log" id="' . esc_attr( $args['id_username'] ) . '" class="input" value="' . esc_attr( $args['value_username'] ) . '" size="20" />
-			</p>
-			<p class="login-password">
-				<label for="' . esc_attr( $args['id_password'] ) . '">' . esc_html( $args['label_password'] ) . '</label>
-				<input type="password" name="pwd" id="' . esc_attr( $args['id_password'] ) . '" class="input" value="" size="20" />
-			</p>
-			' . $login_form_middle . '
-			' . ( $args['remember'] ? '<p class="login-remember"><label><input name="rememberme" type="checkbox" id="' . esc_attr( $args['id_remember'] ) . '" value="forever"' . ( $args['value_remember'] ? ' checked="checked"' : '' ) . ' /> ' . esc_html( $args['label_remember'] ) . '</label></p>' : '' ) . '
-			<p class="login-submit">
-				<input type="submit" name="wp-submit" id="' . esc_attr( $args['id_submit'] ) . '" class="button button-primary" value="' . esc_attr( $args['label_log_in'] ) . '" />
-				<input type="hidden" name="redirect_to" value="' . esc_url( $args['redirect'] ) . '" />
-			</p>
-			' . $login_form_bottom . '
-		</form>';
+	$form =
+		sprintf(
+			'<form name="%1$s" id="%1$s" action="%2$s" method="post">',
+			esc_attr( $args['form_id'] ),
+			esc_url( site_url( 'wp-login.php', 'login_post' ) )
+		) .
+		$login_form_top .
+		sprintf(
+			'<p class="login-username">
+				<label for="%1$s">%2$s</label>
+				<input type="text" name="log" id="%1$s" class="input" value="%3$s" size="20" />
+			</p>',
+			esc_attr( $args['id_username'] ),
+			esc_html( $args['label_username'] ),
+			esc_attr( $args['value_username'] )
+		) .
+		sprintf(
+			'<p class="login-password">
+				<label for="%1$s">%2$s</label>
+				<input type="password" name="pwd" id="%1$s" class="input" value="" size="20" />
+			</p>',
+			esc_attr( $args['id_password'] ),
+			esc_html( $args['label_password'] )
+		) .
+		$login_form_middle .
+		( $args['remember'] ?
+			sprintf(
+				'<p class="login-remember"><label><input name="rememberme" type="checkbox" id="%1$s" value="forever"%2$s /> %3$s</label></p>',
+				esc_attr( $args['id_remember'] ),
+				( $args['value_remember'] ? ' checked="checked"' : '' ),
+				esc_html( $args['label_remember'] )
+			) : ''
+		) .
+		sprintf(
+			'<p class="login-submit">
+				<input type="submit" name="wp-submit" id="%1$s" class="button button-primary" value="%2$s" />
+				<input type="hidden" name="redirect_to" value="%3$s" />
+			</p>',
+			esc_attr( $args['id_submit'] ),
+			esc_attr( $args['label_log_in'] ),
+			esc_url( $args['redirect'] )
+		) .
+		$login_form_bottom .
+		'</form>';
 
 	if ( $args['echo'] ) {
 		echo $form;
@@ -1351,9 +1376,11 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	// If there's a month.
 	if ( is_archive() && ! empty( $m ) ) {
 		$my_year  = substr( $m, 0, 4 );
-		$my_month = $wp_locale->get_month( substr( $m, 4, 2 ) );
+		$my_month = substr( $m, 4, 2 );
 		$my_day   = (int) substr( $m, 6, 2 );
-		$title    = $my_year . ( $my_month ? $t_sep . $my_month : '' ) . ( $my_day ? $t_sep . $my_day : '' );
+		$title    = $my_year .
+			( $my_month ? $t_sep . $wp_locale->get_month( $my_month ) : '' ) .
+			( $my_day ? $t_sep . $my_day : '' );
 	}
 
 	// If there's a year.

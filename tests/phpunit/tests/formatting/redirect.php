@@ -6,12 +6,12 @@
  * @group redirect
  */
 class Tests_Formatting_Redirect extends WP_UnitTestCase {
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		add_filter( 'home_url', array( $this, 'home_url' ) );
 	}
 
-	function home_url() {
+	public function home_url() {
 		return 'http://example.com/';
 	}
 
@@ -46,7 +46,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_sanitize_redirect
 	 */
-	function test_wp_sanitize_redirect() {
+	public function test_wp_sanitize_redirect() {
 		$this->assertSame( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0Ago' ) );
 		$this->assertSame( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0ago' ) );
 		$this->assertSame( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0Dgo' ) );
@@ -67,7 +67,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_sanitize_redirect
 	 */
-	function test_wp_sanitize_redirect_should_encode_spaces() {
+	public function test_wp_sanitize_redirect_should_encode_spaces() {
 		$this->assertSame( 'http://example.com/test%20spaces', wp_sanitize_redirect( 'http://example.com/test%20spaces' ) );
 		$this->assertSame( 'http://example.com/test%20spaces%20in%20url', wp_sanitize_redirect( 'http://example.com/test spaces in url' ) );
 	}
@@ -77,7 +77,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_validate_redirect
 	 */
-	function test_wp_validate_redirect_valid_url( $url, $expected ) {
+	public function test_wp_validate_redirect_valid_url( $url, $expected ) {
 		$this->assertSame( $expected, wp_validate_redirect( $url ) );
 	}
 
@@ -86,11 +86,11 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_validate_redirect
 	 */
-	function test_wp_validate_redirect_invalid_url( $url ) {
+	public function test_wp_validate_redirect_invalid_url( $url ) {
 		$this->assertEquals( false, wp_validate_redirect( $url, false ) );
 	}
 
-	function valid_url_provider() {
+	public function valid_url_provider() {
 		return array(
 			array( 'http://example.com', 'http://example.com' ),
 			array( 'http://example.com/', 'http://example.com/' ),
@@ -106,7 +106,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		);
 	}
 
-	function invalid_url_provider() {
+	public function invalid_url_provider() {
 		return array(
 			// parse_url() fails.
 			array( '' ),
@@ -180,7 +180,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_validate_redirect
 	 */
-	function test_wp_validate_redirect_relative_url( $current_uri, $url, $expected ) {
+	public function test_wp_validate_redirect_relative_url( $current_uri, $url, $expected ) {
 		// Backup the global.
 		$unset = false;
 		if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
@@ -211,7 +211,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 *      string Expected destination.
 	 * }
 	 */
-	function relative_url_provider() {
+	public function relative_url_provider() {
 		return array(
 			array(
 				'/',

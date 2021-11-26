@@ -8,7 +8,7 @@ require_once ABSPATH . 'wp-admin/includes/class-custom-image-header.php';
 class Tests_Image_Header extends WP_UnitTestCase {
 	public $custom_image_header;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->custom_image_header = new Custom_Image_Header( '__return_null' );
 	}
@@ -16,7 +16,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 	/**
 	 * @covers Custom_Image_Header::get_header_dimensions
 	 */
-	function test_header_image_has_correct_dimensions_with_max_width() {
+	public function test_header_image_has_correct_dimensions_with_max_width() {
 		global $_wp_theme_features;
 
 		$_wp_theme_features['custom-header'][0]['max-width']   = 1600;
@@ -39,7 +39,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 	/**
 	 * @covers Custom_Image_Header::get_header_dimensions
 	 */
-	function test_header_image_has_correct_dimensions_with_fixed() {
+	public function test_header_image_has_correct_dimensions_with_fixed() {
 		global $_wp_theme_features;
 
 		unset( $_wp_theme_features['custom-header'][0]['max-width'] );
@@ -62,7 +62,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 	/**
 	 * @covers Custom_Image_Header::get_header_dimensions
 	 */
-	function test_header_image_has_correct_dimensions_with_flex_height() {
+	public function test_header_image_has_correct_dimensions_with_flex_height() {
 		global $_wp_theme_features;
 
 		unset( $_wp_theme_features['custom-header'][0]['max-width'] );
@@ -85,7 +85,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 	/**
 	 * @covers Custom_Image_Header::get_header_dimensions
 	 */
-	function test_header_image_has_correct_dimensions_with_flex_width() {
+	public function test_header_image_has_correct_dimensions_with_flex_width() {
 		global $_wp_theme_features;
 
 		unset( $_wp_theme_features['custom-header'][0]['max-width'] );
@@ -108,7 +108,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 	/**
 	 * @covers Custom_Image_Header::get_header_dimensions
 	 */
-	function test_header_image_has_correct_dimensions_with_flex_width_and_height() {
+	public function test_header_image_has_correct_dimensions_with_flex_width_and_height() {
 		global $_wp_theme_features;
 
 		$_wp_theme_features['custom-header'][0]['max-width']   = 1800;
@@ -131,7 +131,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 	/**
 	 * @covers Custom_Image_Header::create_attachment_object
 	 */
-	function test_create_attachment_object() {
+	public function test_create_attachment_object() {
 		$id = wp_insert_attachment(
 			array(
 				'post_status' => 'publish',
@@ -154,7 +154,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 	 * @covers Custom_Image_Header::create_attachment_object
 	 * @covers Custom_Image_Header::insert_attachment
 	 */
-	function test_insert_cropped_attachment() {
+	public function test_insert_cropped_attachment() {
 		$id = wp_insert_attachment(
 			array(
 				'post_status' => 'publish',
@@ -180,7 +180,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 	 * @covers Custom_Image_Header::get_previous_crop
 	 * @covers Custom_Image_Header::insert_attachment
 	 */
-	function test_check_get_previous_crop() {
+	public function test_check_get_previous_crop() {
 		$id = wp_insert_attachment(
 			array(
 				'post_status' => 'publish',

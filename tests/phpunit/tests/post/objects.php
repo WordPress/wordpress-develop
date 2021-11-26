@@ -8,7 +8,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post
 	 */
-	function test_get_post() {
+	public function test_get_post() {
 		$id = self::factory()->post->create();
 
 		$post = get_post( $id );
@@ -72,7 +72,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_ancestors
 	 */
-	function test_get_post_ancestors() {
+	public function test_get_post_ancestors() {
 		$parent_id     = self::factory()->post->create();
 		$child_id      = self::factory()->post->create();
 		$grandchild_id = self::factory()->post->create();
@@ -109,7 +109,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_post_ancestors
 	 */
-	function test_get_post_ancestors_with_falsey_values() {
+	public function test_get_post_ancestors_with_falsey_values() {
 		foreach ( array( null, 0, false, '0', '' ) as $post_id ) {
 			$this->assertIsArray( get_post_ancestors( $post_id ) );
 			$this->assertSame( array(), get_post_ancestors( $post_id ) );
@@ -119,7 +119,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post
 	 */
-	function test_get_post_category_property() {
+	public function test_get_post_category_property() {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
 
@@ -141,7 +141,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post
 	 */
-	function test_get_tags_input_property() {
+	public function test_get_tags_input_property() {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
 
@@ -161,7 +161,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post_meta
 	 */
-	function test_get_page_template_property() {
+	public function test_get_page_template_property() {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
 
@@ -177,7 +177,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post
 	 */
-	function test_get_post_filter() {
+	public function test_get_post_filter() {
 		$post = get_post(
 			self::factory()->post->create(
 				array(
@@ -225,7 +225,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post
 	 */
-	function test_get_post_identity() {
+	public function test_get_post_identity() {
 		$post = get_post( self::factory()->post->create() );
 
 		$post->foo = 'bar';
@@ -237,7 +237,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_post
 	 */
-	function test_get_post_array() {
+	public function test_get_post_array() {
 		$id = self::factory()->post->create();
 
 		$post = get_post( $id, ARRAY_A );
@@ -252,7 +252,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_post
 	 */
-	function test_get_post_cache() {
+	public function test_get_post_cache() {
 		global $wpdb;
 
 		$id = self::factory()->post->create();

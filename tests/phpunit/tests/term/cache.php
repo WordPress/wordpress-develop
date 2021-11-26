@@ -4,7 +4,7 @@
  * @group taxonomy
  */
 class Tests_Term_Cache extends WP_UnitTestCase {
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		wp_cache_delete( 'last_changed', 'terms' );
@@ -15,7 +15,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 *
 	 * @covers ::_get_term_hierarchy
 	 */
-	function test_category_children_cache() {
+	public function test_category_children_cache() {
 		// Test with only one Parent => Child.
 		$term_id1       = self::factory()->category->create();
 		$term_id1_child = self::factory()->category->create( array( 'parent' => $term_id1 ) );
@@ -42,7 +42,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_update_term
 	 */
-	function test_category_name_change() {
+	public function test_category_name_change() {
 		$term    = self::factory()->category->create_and_get( array( 'name' => 'Foo' ) );
 		$post_id = self::factory()->post->create();
 		wp_set_post_categories( $post_id, $term->term_id );
@@ -61,7 +61,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_insert_term
 	 */
-	function test_hierachy_invalidation() {
+	public function test_hierachy_invalidation() {
 		$tax = 'burrito';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$this->assertTrue( get_taxonomy( $tax )->hierarchical );
@@ -262,7 +262,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_term_by
 	 */
-	function test_get_term_by_slug_cache() {
+	public function test_get_term_by_slug_cache() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(
@@ -295,7 +295,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_term_by
 	 */
-	function test_get_term_by_slug_cache_update() {
+	public function test_get_term_by_slug_cache_update() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(
@@ -335,7 +335,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_term_by
 	 */
-	function test_get_term_by_name_cache() {
+	public function test_get_term_by_name_cache() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(
@@ -366,7 +366,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_term_by
 	 */
-	function test_get_term_by_name_cache_update() {
+	public function test_get_term_by_name_cache_update() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(
@@ -403,7 +403,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_term_by
 	 */
-	function test_invalidating_term_caches_should_fail_when_invalidation_is_suspended() {
+	public function test_invalidating_term_caches_should_fail_when_invalidation_is_suspended() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(

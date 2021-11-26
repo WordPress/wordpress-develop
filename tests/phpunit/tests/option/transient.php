@@ -18,7 +18,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::set_transient
 	 * @covers ::delete_transient
 	 */
-	function test_the_basics() {
+	public function test_the_basics() {
 		$key    = 'key1';
 		$value  = 'value1';
 		$value2 = 'value2';
@@ -39,7 +39,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::set_transient
 	 * @covers ::delete_transient
 	 */
-	function test_serialized_data() {
+	public function test_serialized_data() {
 		$key   = rand_str();
 		$value = array(
 			'foo' => true,
@@ -62,7 +62,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::set_transient
 	 * @covers ::update_option
 	 */
-	function test_transient_data_with_timeout() {
+	public function test_transient_data_with_timeout() {
 		$key   = rand_str();
 		$value = rand_str();
 
@@ -88,7 +88,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::get_option
 	 * @covers ::update_option
 	 */
-	function test_transient_add_timeout() {
+	public function test_transient_add_timeout() {
 		$key    = rand_str();
 		$value  = rand_str();
 		$value2 = rand_str();
@@ -114,7 +114,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::set_transient
 	 * @covers ::get_transient
 	 */
-	function test_nonexistent_key_dont_delete_if_false() {
+	public function test_nonexistent_key_dont_delete_if_false() {
 		// Create a bogus a transient.
 		$key = 'test_transient';
 		set_transient( $key, 'test', 60 * 10 );
@@ -145,7 +145,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::set_transient
 	 * @covers ::get_transient
 	 */
-	function test_nonexistent_key_old_timeout() {
+	public function test_nonexistent_key_old_timeout() {
 		// Create a transient.
 		$key = 'test_transient';
 		set_transient( $key, 'test', 60 * 10 );

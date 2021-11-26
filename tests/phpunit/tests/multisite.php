@@ -12,7 +12,7 @@ if ( is_multisite() ) :
 		/**
 		 * @covers ::wpmu_log_new_registrations
 		 */
-		function test_wpmu_log_new_registrations() {
+		public function test_wpmu_log_new_registrations() {
 			global $wpdb;
 
 			$user = new WP_User( 1 );
@@ -30,7 +30,7 @@ if ( is_multisite() ) :
 		 *
 		 * @covers ::wp_count_sites
 		 */
-		function test_wp_count_sites() {
+		public function test_wp_count_sites() {
 			// Create a random number of sites with each status.
 			$site_ids = array(
 				'public'   => self::factory()->blog->create_many(

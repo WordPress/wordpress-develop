@@ -18,7 +18,7 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 	 * @covers ::set_site_transient
 	 * @covers ::delete_site_transient
 	 */
-	function test_the_basics() {
+	public function test_the_basics() {
 		$key    = 'key1';
 		$value  = 'value1';
 		$value2 = 'value2';
@@ -39,7 +39,7 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 	 * @covers ::set_site_transient
 	 * @covers ::delete_site_transient
 	 */
-	function test_serialized_data() {
+	public function test_serialized_data() {
 		$key   = __FUNCTION__;
 		$value = array(
 			'foo' => true,

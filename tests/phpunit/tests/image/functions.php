@@ -48,7 +48,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @covers ::file_is_valid_image
 	 */
-	function test_is_image_positive() {
+	public function test_is_image_positive() {
 		// These are all image files recognized by PHP.
 		$files = array(
 			'test-image-cmyk.jpg',
@@ -81,7 +81,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @covers ::file_is_valid_image
 	 */
-	function test_is_image_negative() {
+	public function test_is_image_negative() {
 		// These are actually image files but aren't recognized or usable by PHP.
 		$files = array(
 			'test-image.pct',
@@ -97,7 +97,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @covers ::file_is_displayable_image
 	 */
-	function test_is_displayable_image_positive() {
+	public function test_is_displayable_image_positive() {
 		// These are all usable in typical web browsers.
 		$files = array(
 			'test-image.gif',
@@ -134,7 +134,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @covers ::file_is_displayable_image
 	 */
-	function test_is_displayable_image_negative() {
+	public function test_is_displayable_image_negative() {
 		// These are image files but aren't suitable for web pages because of compatibility or size issues.
 		$files = array(
 			// 'test-image-cmyk.jpg',      Allowed in r9727.
@@ -161,7 +161,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_gd_image
 	 */
-	function test_is_gd_image_invalid_types() {
+	public function test_is_gd_image_invalid_types() {
 		$this->assertFalse( is_gd_image( new stdClass() ) );
 		$this->assertFalse( is_gd_image( array() ) );
 		$this->assertFalse( is_gd_image( null ) );
@@ -177,7 +177,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_gd_image
 	 */
-	function test_is_gd_image_valid_types() {
+	public function test_is_gd_image_valid_types() {
 		$this->assertTrue( is_gd_image( imagecreate( 5, 5 ) ) );
 	}
 
@@ -462,7 +462,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
-	function mock_image_editor( $editors ) {
+	public function mock_image_editor( $editors ) {
 		return array( 'WP_Image_Editor_Mock' );
 	}
 
@@ -682,7 +682,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
-	function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {
+	public function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {
 		// Add the 'test-size' to the list of fallback sizes.
 		$fallback_sizes[] = 'test-size';
 

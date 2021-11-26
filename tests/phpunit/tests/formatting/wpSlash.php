@@ -56,7 +56,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 	/**
 	 * @ticket 24106
 	 */
-	function test_adds_slashes() {
+	public function test_adds_slashes() {
 		$old = "I can't see, isn't that it?";
 		$new = "I can\'t see, isn\'t that it?";
 		$this->assertSame( $new, wp_slash( $old ) );
@@ -68,7 +68,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 	/**
 	 * @ticket 24106
 	 */
-	function test_preserves_original_datatype() {
+	public function test_preserves_original_datatype() {
 
 		$this->assertTrue( wp_slash( true ) );
 		$this->assertFalse( wp_slash( false ) );
@@ -94,7 +94,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 	/**
 	 * @ticket 24106
 	 */
-	function test_add_even_more_slashes() {
+	public function test_add_even_more_slashes() {
 		$old = 'single\\slash double\\\\slash triple\\\\\\slash';
 		$new = 'single\\\\slash double\\\\\\\\slash triple\\\\\\\\\\\\slash';
 		$this->assertSame( $new, wp_slash( $old ) );

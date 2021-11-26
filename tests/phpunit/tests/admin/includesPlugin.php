@@ -15,7 +15,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	/**
 	 * @covers ::get_plugin_data
 	 */
-	function test_get_plugin_data() {
+	public function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
 		$default_headers = array(
@@ -41,7 +41,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	/**
 	 * @covers ::menu_page_url
 	 */
-	function test_menu_page_url() {
+	public function test_menu_page_url() {
 		$current_user = get_current_user_id();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		update_option( 'siteurl', 'http://example.com' );
@@ -83,7 +83,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_submenu_position
 	 */
-	function test_submenu_position( $position, $expected_position ) {
+	public function test_submenu_position( $position, $expected_position ) {
 		global $submenu;
 		global $menu;
 		$current_user = get_current_user_id();
@@ -131,7 +131,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_submenu_position
 	 */
-	function test_submenu_helpers_position( $position, $expected_position ) {
+	
+	public function test_submenu_helpers_position( $position, $expected_position ) {
 		global $submenu;
 		global $menu;
 
@@ -233,7 +234,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function submenus_to_add() {
+	
+	private function submenus_to_add() {
 		return array(
 			array( 'Submenu Position', 'Submenu Position', 'manage_options', 'sub-page', '' ),
 			array( 'Submenu Position 2', 'Submenu Position 2', 'manage_options', 'sub-page2', '' ),
@@ -255,7 +257,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function data_submenu_position() {
+
+	public function data_submenu_position() {
 		$menu_count = count( $this->submenus_to_add() );
 		return array(
 			array( null, $menu_count ),        // Insert at the end of the menu if null is passed. Default behavior.
@@ -276,7 +279,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *
 	 * @covers ::add_submenu_page
 	 */
-	function test_position_when_parent_slug_child_slug_are_the_same() {
+	public function test_position_when_parent_slug_child_slug_are_the_same() {
 		global $submenu, $menu;
 
 		// Reset menus.
@@ -310,7 +313,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *
 	 * @covers ::add_submenu_page
 	 */
-	function test_passing_string_as_position_fires_doing_it_wrong() {
+	public function test_passing_string_as_position_fires_doing_it_wrong() {
 		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
 		global $submenu, $menu;
 
@@ -337,7 +340,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	/**
 	 * @covers ::is_plugin_active
 	 */
-	function test_is_plugin_active_true() {
+	public function test_is_plugin_active_true() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
 		$this->assertTrue( $test );
@@ -348,7 +351,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	/**
 	 * @covers ::is_plugin_active
 	 */
-	function test_is_plugin_active_false() {
+	public function test_is_plugin_active_false() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
 		$this->assertFalse( $test );
@@ -357,7 +360,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	/**
 	 * @covers ::is_plugin_inactive
 	 */
-	function test_is_plugin_inactive_true() {
+	public function test_is_plugin_inactive_true() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );
 		$this->assertTrue( $test );
@@ -366,7 +369,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	/**
 	 * @covers ::is_plugin_inactive
 	 */
-	function test_is_plugin_inactive_false() {
+	public function test_is_plugin_inactive_false() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );
 		$this->assertFalse( $test );

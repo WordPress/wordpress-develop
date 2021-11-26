@@ -4,7 +4,7 @@
  */
 class Tests_Link extends WP_UnitTestCase {
 
-	function _get_pagenum_link_cb( $url ) {
+	public function get_pagenum_link_cb( $url ) {
 		return $url . '/WooHoo';
 	}
 
@@ -13,16 +13,16 @@ class Tests_Link extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_pagenum_link
 	 */
-	function test_get_pagenum_link_case_insensitivity() {
+	public function test_get_pagenum_link_case_insensitivity() {
 		$old_req_uri = $_SERVER['REQUEST_URI'];
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
-		add_filter( 'home_url', array( $this, '_get_pagenum_link_cb' ) );
+		add_filter( 'home_url', array( $this, 'get_pagenum_link_cb' ) );
 		$_SERVER['REQUEST_URI'] = '/woohoo';
 		$paged                  = get_pagenum_link( 2 );
 
-		remove_filter( 'home_url', array( $this, '_get_pagenum_link_cb' ) );
+		remove_filter( 'home_url', array( $this, 'get_pagenum_link_cb' ) );
 		$this->assertSame( $paged, home_url( '/WooHoo/page/2/' ) );
 
 		$_SERVER['REQUEST_URI'] = $old_req_uri;
@@ -31,7 +31,7 @@ class Tests_Link extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_get_shortlink
 	 */
-	function test_wp_get_shortlink() {
+	public function test_wp_get_shortlink() {
 		$post_id  = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
 
@@ -78,7 +78,7 @@ class Tests_Link extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_get_shortlink
 	 */
-	function test_wp_get_shortlink_with_page() {
+	public function test_wp_get_shortlink_with_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		// Basic case.
@@ -95,7 +95,7 @@ class Tests_Link extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_shortlink
 	 */
-	function test_wp_get_shortlink_with_home_page() {
+	public function test_wp_get_shortlink_with_home_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $post_id );

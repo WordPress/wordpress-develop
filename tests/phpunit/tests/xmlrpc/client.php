@@ -12,7 +12,7 @@ class Tests_XMLRPC_Client extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @covers  IXR_Client::__construct
 	 */
-	function test_ixr_client_allows_query_strings() {
+	public function test_ixr_client_allows_query_strings() {
 		$client = new IXR_Client( 'http://example.com/server.php?this-is-needed=true#not-this' );
 		$this->assertSame( 'example.com', $client->server );
 		$this->assertSame( 80, $client->port );
@@ -24,7 +24,7 @@ class Tests_XMLRPC_Client extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @covers  WP_HTTP_IXR_Client::__construct
 	 */
-	function test_wp_ixr_client_allows_query_strings() {
+	public function test_wp_ixr_client_allows_query_strings() {
 		$client = new WP_HTTP_IXR_Client( 'http://example.com/server.php?this-is-needed=true#not-this' );
 		$this->assertSame( 'example.com', $client->server );
 		$this->assertFalse( $client->port );

@@ -11,7 +11,7 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 	/**
 	 * WP_Filesystem_MockFS::find_folder
 	 */
-	function test_ftp_has_root_access() {
+	public function test_ftp_has_root_access() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
 		$fs->init(
@@ -33,7 +33,7 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 	/**
 	 * WP_Filesystem_MockFS::find_folder
 	 */
-	function test_sibling_wordpress_in_subdir() {
+	public function test_sibling_wordpress_in_subdir() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
 		$fs->init(
@@ -65,7 +65,7 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 	 *
 	 * @covers WP_Filesystem_MockFS::abspath
 	 */
-	function test_subdir_of_another() {
+	public function test_subdir_of_another() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
 		$fs->init(
@@ -94,7 +94,7 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 	 *
 	 * @covers WP_Filesystem_MockFS::abspath
 	 */
-	function test_multiple_tokens_in_path1() {
+	public function test_multiple_tokens_in_path1() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
 		$fs->init(

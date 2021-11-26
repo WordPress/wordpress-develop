@@ -7,7 +7,7 @@
  */
 class Tests_URL extends WP_UnitTestCase {
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$GLOBALS['pagenow'] = '';
 	}
@@ -17,14 +17,14 @@ class Tests_URL extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_ssl
 	 */
-	function test_is_ssl( $value, $expected ) {
+	public function test_is_ssl( $value, $expected ) {
 		$_SERVER['HTTPS'] = $value;
 
 		$is_ssl = is_ssl();
 		$this->assertSame( $expected, $is_ssl );
 	}
 
-	function data_is_ssl() {
+	public function data_is_ssl() {
 		return array(
 			array(
 				'on',
@@ -52,7 +52,7 @@ class Tests_URL extends WP_UnitTestCase {
 	/**
 	 * @covers ::is_ssl
 	 */
-	function test_is_ssl_by_port() {
+	public function test_is_ssl_by_port() {
 		unset( $_SERVER['HTTPS'] );
 		$_SERVER['SERVER_PORT'] = '443';
 
@@ -63,7 +63,7 @@ class Tests_URL extends WP_UnitTestCase {
 	/**
 	 * @covers ::is_ssl
 	 */
-	function test_is_ssl_with_no_value() {
+	public function test_is_ssl_with_no_value() {
 		unset( $_SERVER['HTTPS'] );
 
 		$is_ssl = is_ssl();
@@ -78,7 +78,7 @@ class Tests_URL extends WP_UnitTestCase {
 	 *
 	 * @covers ::admin_url
 	 */
-	function test_admin_url( $url, $expected ) {
+	public function test_admin_url( $url, $expected ) {
 		$siteurl_http   = get_option( 'siteurl' );
 		$admin_url_http = admin_url( $url );
 
@@ -91,7 +91,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $siteurl_https . $expected, $admin_url_https );
 	}
 
-	function data_admin_urls() {
+	public function data_admin_urls() {
 		return array(
 			array(
 				null,
@@ -148,7 +148,7 @@ class Tests_URL extends WP_UnitTestCase {
 	 *
 	 * @covers ::home_url
 	 */
-	function test_home_url( $url, $expected ) {
+	public function test_home_url( $url, $expected ) {
 		$homeurl_http  = get_option( 'home' );
 		$home_url_http = home_url( $url );
 
@@ -161,7 +161,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $homeurl_https . $expected, $home_url_https );
 	}
 
-	function data_home_urls() {
+	public function data_home_urls() {
 		return array(
 			array(
 				null,
@@ -213,7 +213,7 @@ class Tests_URL extends WP_UnitTestCase {
 	/**
 	 * @covers ::home_url
 	 */
-	function test_home_url_from_admin() {
+	public function test_home_url_from_admin() {
 		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
 		$home       = get_option( 'home' );
@@ -261,7 +261,7 @@ class Tests_URL extends WP_UnitTestCase {
 	/**
 	 * @covers ::network_home_url
 	 */
-	function test_network_home_url_from_admin() {
+	public function test_network_home_url_from_admin() {
 		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
 		$home       = network_home_url();
@@ -285,7 +285,7 @@ class Tests_URL extends WP_UnitTestCase {
 	/**
 	 * @covers ::set_url_scheme
 	 */
-	function test_set_url_scheme() {
+	public function test_set_url_scheme() {
 		$links = array(
 			'http://wordpress.org/',
 			'https://wordpress.org/',

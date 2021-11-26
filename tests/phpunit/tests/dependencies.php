@@ -8,7 +8,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Dependencies::add
 	 */
-	function test_add() {
+	public function test_add() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -24,7 +24,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Dependencies::remove
 	 */
-	function test_remove() {
+	public function test_remove() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -40,7 +40,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Dependencies::enqueue
 	 */
-	function test_enqueue() {
+	public function test_enqueue() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -59,7 +59,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Dependencies::dequeue
 	 */
-	function test_dequeue() {
+	public function test_dequeue() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -82,7 +82,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Dependencies::enqueue
 	 */
-	function test_enqueue_args() {
+	public function test_enqueue_args() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -103,7 +103,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Dependencies::dequeue
 	 */
-	function test_dequeue_args() {
+	public function test_dequeue_args() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -132,7 +132,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Dependencies::query
 	 */
-	function test_query_and_registered_enqueued() {
+	public function test_query_and_registered_enqueued() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );

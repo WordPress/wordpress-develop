@@ -17,7 +17,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @covers ::add_site_option
 	 */
-	function test_add_network_option_not_available_on_other_network() {
+	public function test_add_network_option_not_available_on_other_network() {
 		$id     = self::factory()->network->create();
 		$option = __FUNCTION__;
 		$value  = __FUNCTION__;
@@ -31,7 +31,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @covers ::add_network_option
 	 */
-	function test_add_network_option_available_on_same_network() {
+	public function test_add_network_option_available_on_same_network() {
 		$id     = self::factory()->network->create();
 		$option = __FUNCTION__;
 		$value  = __FUNCTION__;
@@ -45,7 +45,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @covers ::delete_site_option
 	 */
-	function test_delete_network_option_on_only_one_network() {
+	public function test_delete_network_option_on_only_one_network() {
 		$id     = self::factory()->network->create();
 		$option = __FUNCTION__;
 		$value  = __FUNCTION__;
@@ -96,7 +96,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @covers ::add_network_option
 	 */
-	function test_add_network_option_network_id_parameter( $network_id, $expected_response ) {
+	public function test_add_network_option_network_id_parameter( $network_id, $expected_response ) {
 		$option = rand_str();
 		$value  = rand_str();
 
@@ -111,13 +111,13 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_network_option
 	 */
-	function test_get_network_option_network_id_parameter( $network_id, $expected_response ) {
+	public function test_get_network_option_network_id_parameter( $network_id, $expected_response ) {
 		$option = rand_str();
 
 		$this->assertSame( $expected_response, get_network_option( $network_id, $option, true ) );
 	}
 
-	function data_network_id_parameter() {
+	public function data_network_id_parameter() {
 		return array(
 			// Numeric values should always be accepted.
 			array( 1, true ),
