@@ -104,6 +104,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
+		return current_user_can( 'read_post', $request['id'] );
 		return $this->permissions_check( $request );
 	}
 
@@ -134,6 +135,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has write access for the item, WP_Error object otherwise.
 	 */
 	public function update_item_permissions_check( $request ) {
+		return current_user_can( 'edit_post', $request['id'] );
 		return $this->permissions_check( $request );
 	}
 
