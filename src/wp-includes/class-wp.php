@@ -200,14 +200,13 @@ class WP {
 			// The requested permalink is in $pathinfo for path info requests and
 			// $req_uri for other requests.
 			if ( ! empty( $pathinfo ) && ! preg_match( '|^.*' . $wp_rewrite->index . '$|', $pathinfo ) ) {
-				$requested_path = $pathinfo;
 			} else {
 				// If the request uri is the index, blank it out so that we don't try to match it against a rule.
 				if ( $req_uri == $wp_rewrite->index ) {
 					$req_uri = '';
 				}
-				$requested_path = $req_uri;
 			}
+			$requested_path = ltrim( prepare_path_info(), '/' );
 			$requested_file = $req_uri;
 
 			$this->request = $requested_path;
@@ -770,4 +769,212 @@ class WP {
 		 */
 		do_action_ref_array( 'wp', array( &$this ) );
 	}
+}
+
+
+/**
+ * Lorem ipsum linter happy.
+ *
+ * @return false|mixed|string|null
+ */
+function prepare_path_info() {
+	$request_uri = prepare_request_uri();
+	if ( null === $request_uri ) {
+		return '/';
+	}
+
+	// Remove the query string from REQUEST_URI.
+	$pos = strpos( $request_uri, '?' );
+	if ( false !== $pos ) {
+		$request_uri = substr( $request_uri, 0, $pos );
+	}
+	if ( '' !== $request_uri && '/' !== $request_uri[0] ) {
+		$request_uri = '/' . $request_uri;
+	}
+
+	$base_url = prepare_base_url();
+	if ( null === $base_url ) {
+		return $request_uri;
+	}
+
+	$path_info = substr( $request_uri, \strlen( $base_url ) );
+	if ( false === $path_info || '' === $path_info ) {
+		// If substr() returns false then PATH_INFO is set to an empty string.
+		return '/';
+	}
+
+	return (string) $path_info;
+}
+
+/**
+ * Lorem ipsum linter happy.
+ *
+ * @param string $key Key.
+ *
+ * @return mixed|null
+ */
+function server_get( $key ) {
+	if ( array_key_exists( $key, $_SERVER ) ) {
+		return $_SERVER[ $key ];
+	}
+
+	return null;
+}
+
+if ( ! function_exists( 'str_starts_with' ) ) {
+	/**
+	 * Lorem ipsum linter happy.
+	 *
+	 * @param string $str   String.
+	 * @param int    $start Start.
+	 *
+	 * @return bool Does $str start with $start?
+	 */
+	function str_starts_with( $str, $start ) {
+		return substr_compare( $str, $start, 0, strlen( $start ) ) === 0;
+	}
+}
+
+/**
+ * Lorem ipsum linter happy.
+ *
+ * @return false|mixed|string|null
+ */
+function prepare_request_uri() {
+	$request_uri = '';
+
+	if ( '1' === server_get( 'IIS_WasUrlRewritten' ) && '' !== server_get( 'UNENCODED_URL' ) ) {
+		// IIS7 with URL Rewrite: make sure we get the unencoded URL (double slash problem).
+		$request_uri = server_get( 'UNENCODED_URL' );
+		unset( $_SERVER['UNENCODED_URL'] );
+		unset( $_SERVER['IIS_WasUrlRewritten'] );
+	} elseif ( array_key_exists( 'REQUEST_URI', $_SERVER ) ) {
+		$request_uri = server_get( 'REQUEST_URI' );
+
+		if ( '' !== $request_uri && '/' === $request_uri[0] ) {
+			// To only use path and query remove the fragment.
+			$pos = strpos( $request_uri, '#' );
+			if ( false !== $pos ) {
+				$request_uri = substr( $request_uri, 0, $pos );
+			}
+		} else {
+			// HTTP proxy reqs setup request URI with scheme and host [and port] + the URL path,
+			// only use URL path.
+			$uri_components = parse_url( $request_uri );
+
+			if ( isset( $uri_components['path'] ) ) {
+				$request_uri = $uri_components['path'];
+			}
+
+			if ( isset( $uri_components['query'] ) ) {
+				$request_uri .= '?' . $uri_components['query'];
+			}
+		}
+	} elseif ( array_key_exists( 'ORIG_PATH_INFO', $_SERVER ) ) {
+		// IIS 5.0, PHP as CGI.
+		$request_uri = server_get( 'ORIG_PATH_INFO' );
+		if ( '' !== server_get( 'QUERY_STRING' ) ) {
+			$request_uri .= '?' . server_get( 'QUERY_STRING' );
+		}
+		unset( $_SERVER['ORIG_PATH_INFO'] );
+	}
+
+	return $request_uri;
+}
+
+/**
+ * Returns the prefix as encoded in the string when the string starts with
+ * the given prefix, null otherwise.
+ *
+ * @param string $string Lorem.
+ * @param string $prefix Lorem.
+ *
+ * @return mixed|null
+ */
+function get_urlencoded_prefix( $string, $prefix ) {
+	if ( ! str_starts_with( rawurldecode( $string ), $prefix ) ) {
+		return null;
+	}
+
+	$len = \strlen( $prefix );
+
+	if ( preg_match( sprintf( '#^(%%[[:xdigit:]]{2}|.){%d}#', $len ), $string, $match ) ) {
+		return $match[0];
+	}
+
+	return null;
+}
+
+/**
+ * Lorem ipsum linter happy.
+ *
+ * @return mixed|string|null
+ */
+function prepare_base_url() {
+	$filename = basename( server_get( 'SCRIPT_FILENAME', '' ) );
+
+	if ( basename( server_get( 'SCRIPT_NAME', '' ) ) === $filename ) {
+		$base_url = server_get( 'SCRIPT_NAME' );
+	} elseif ( basename( server_get( 'PHP_SELF', '' ) ) === $filename ) {
+		$base_url = server_get( 'PHP_SELF' );
+	} elseif ( basename( server_get( 'ORIG_SCRIPT_NAME', '' ) ) === $filename ) {
+		$base_url = server_get( 'ORIG_SCRIPT_NAME' ); // 1and1 shared hosting compatibility
+	} else {
+		// Backtrack up the script_filename to find the portion matching
+		// php_self.
+		$path     = server_get( 'PHP_SELF', '' );
+		$file     = server_get( 'SCRIPT_FILENAME', '' );
+		$segs     = explode( '/', trim( $file, '/' ) );
+		$segs     = array_reverse( $segs );
+		$index    = 0;
+		$last     = \count( $segs );
+		$base_url = '';
+		do {
+			$seg      = $segs[ $index ];
+			$base_url = '/' . $seg . $base_url;
+			++ $index;
+			$pos = strpos( $path, $base_url );
+		} while ( $last > $index && ( false !== $pos ) && 0 !== $pos );
+	}
+
+	// Does the baseUrl have anything in common with the request_uri?
+	$request_uri = prepare_request_uri();
+	if ( '' !== $request_uri && '/' !== $request_uri[0] ) {
+		$request_uri = '/' . $request_uri;
+	}
+
+	$prefix = get_urlencoded_prefix( $request_uri, $base_url );
+	if ( $base_url && null !== $prefix ) {
+		// full $baseUrl matches.
+		return $prefix;
+	}
+
+	$prefix = get_urlencoded_prefix( $request_uri, rtrim( \dirname( $base_url ), '/' . \DIRECTORY_SEPARATOR ) . '/' );
+	if ( $base_url && null !== $prefix ) {
+		// directory portion of $baseUrl matches.
+		return rtrim( $prefix, '/' . \DIRECTORY_SEPARATOR );
+	}
+
+	$truncated_request_uri = $request_uri;
+
+	$pos = strpos( $request_uri, '?' );
+	if ( false !== $pos ) {
+		$truncated_request_uri = substr( $request_uri, 0, $pos );
+	}
+
+	$basename = basename( $base_url ? $base_url : '' );
+	if ( empty( $basename ) || ! strpos( rawurldecode( $truncated_request_uri ), $basename ) ) {
+		// no match whatsoever; set it blank.
+		return '';
+	}
+
+	// If using mod_rewrite or ISAPI_Rewrite strip the script filename
+	// out of baseUrl. $pos !== 0 makes sure it is not matching a value
+	// from PATH_INFO or QUERY_STRING.
+	$pos = strpos( $request_uri, $base_url );
+	if ( \strlen( $request_uri ) >= \strlen( $base_url ) && ( false !== $pos ) && 0 !== $pos ) {
+		$base_url = substr( $request_uri, 0, $pos + \strlen( $base_url ) );
+	}
+
+	return rtrim( $base_url, '/' . \DIRECTORY_SEPARATOR );
 }
