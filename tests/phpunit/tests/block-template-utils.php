@@ -344,11 +344,11 @@ class Block_Template_Utils_Test extends WP_UnitTestCase {
 		$zip = new ZipArchive();
 		$zip->open( $filename );
 		$has_theme_dir                = $zip->locateName( 'theme/' ) !== false;
-		$has_block_templates_dir      = $zip->locateName( 'theme/block-templates/' ) !== false;
-		$has_block_template_parts_dir = $zip->locateName( 'theme/block-template-parts/' ) !== false;
+		$has_block_templates_dir      = $zip->locateName( 'theme/templates/' ) !== false;
+		$has_block_template_parts_dir = $zip->locateName( 'theme/parts/' ) !== false;
 		$this->assertTrue( $has_theme_dir, 'theme directory exists' );
-		$this->assertTrue( $has_block_templates_dir, 'theme/block-templates directory exists' );
-		$this->assertTrue( $has_block_template_parts_dir, 'theme/block-template-parts directory exists' );
+		$this->assertTrue( $has_block_templates_dir, 'theme/templates directory exists' );
+		$this->assertTrue( $has_block_template_parts_dir, 'theme/parts directory exists' );
 
 		// ZIP file contains at least one HTML file.
 		$has_html_files = false;
