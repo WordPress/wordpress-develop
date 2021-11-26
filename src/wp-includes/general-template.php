@@ -4167,6 +4167,8 @@ function language_attributes( $doctype = 'html' ) {
  *
  * @since 2.1.0
  * @since 4.9.0 Added the `aria_current` argument.
+ * @since 5.8.2 Added the `merge_query_vars` argument.
+ * @since 5.8.2 Added the 'data' value for `type` argument.
  *
  * @global WP_Query   $wp_query   WordPress Query object.
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
@@ -4188,12 +4190,13 @@ function language_attributes( $doctype = 'html' ) {
  *     @type bool   $prev_next          Whether to include the previous and next links in the list. Default true.
  *     @type bool   $prev_text          The previous page text. Default '&laquo; Previous'.
  *     @type bool   $next_text          The next page text. Default 'Next &raquo;'.
- *     @type string $type               Controls format of the returned value. Possible values are 'plain',
+ *     @type string $type               Controls format of the returned value. Possible values are 'data', 'plain',
  *                                      'array' and 'list'. Default is 'plain'.
  *     @type array  $add_args           An array of query args to add. Default false.
  *     @type string $add_fragment       A string to append to each link. Default empty.
  *     @type string $before_page_number A string to appear before the page number. Default empty.
  *     @type string $after_page_number  A string to append after the page number. Default empty.
+ *     @type bool   $merge_query_vars   Whether to merge additional query vars found in the original URL into 'add_args' array. Default true.
  * }
  * @return string|array|void String of page links or array of page links, depending on 'type' argument.
  *                           Void if total number of pages is less than 2.
@@ -4201,24 +4204,13 @@ function language_attributes( $doctype = 'html' ) {
 function paginate_links( $args = '' ) {
 	global $wp_query, $wp_rewrite;
 
-	// Setting up default values based on the current URL.
-	$pagenum_link = html_entity_decode( get_pagenum_link() );
-	$url_parts    = explode( '?', $pagenum_link );
-
 	// Get max pages and current page out of the current query, if available.
 	$total   = isset( $wp_query->max_num_pages ) ? $wp_query->max_num_pages : 1;
-	$current = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
-
-	// Append the format placeholder to the base URL.
-	$pagenum_link = trailingslashit( $url_parts[0] ) . '%_%';
-
-	// URL base depends on permalink settings.
-	$format  = $wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '';
-	$format .= $wp_rewrite->using_permalinks() ? user_trailingslashit( $wp_rewrite->pagination_base . '/%#%', 'paged' ) : '?paged=%#%';
+	$current = max( (int) get_query_var( 'paged' ), 1 );
 
 	$defaults = array(
-		'base'               => $pagenum_link, // http://example.com/all_posts.php%_% : %_% is replaced by format (below).
-		'format'             => $format, // ?page=%#% : %#% is replaced by the page number.
+		'base'               => '', // http://example.com/all_posts.php%_% : %_% is replaced by format (below).
+		'format'             => '', // ?page=%#% : %#% is replaced by the page number.
 		'total'              => $total,
 		'current'            => $current,
 		'aria_current'       => 'page',
@@ -4233,16 +4225,40 @@ function paginate_links( $args = '' ) {
 		'add_fragment'       => '',
 		'before_page_number' => '',
 		'after_page_number'  => '',
+		'merge_query_vars'   => true,
 	);
 
 	$args = wp_parse_args( $args, $defaults );
+
+	if ( ! $args['base'] || ! $args['format'] ) {
+
+		// Setting up default values based on the current URL.
+		$pagenum_link = html_entity_decode( get_pagenum_link() );
+		$url_parts    = explode( '?', $pagenum_link );
+
+		// Append the format placeholder to the base URL.
+		$pagenum_link = trailingslashit( $url_parts[0] ) . '%_%';
+
+		// URL base depends on permalink settings.
+		$format = $wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '';
+		$format .= $wp_rewrite->using_permalinks() ? user_trailingslashit( $wp_rewrite->pagination_base . '/%#%', 'paged' ) : '?paged=%#%';
+
+		if ( ! $args['base'] ) {
+			$args['base'] = $pagenum_link;
+		}
+
+		if ( ! $args['format'] ) {
+			$args['format'] = $format;
+		}
+	}
 
 	if ( ! is_array( $args['add_args'] ) ) {
 		$args['add_args'] = array();
 	}
 
 	// Merge additional query vars found in the original URL into 'add_args' array.
-	if ( isset( $url_parts[1] ) ) {
+	if ( $args['merge_query_vars'] && isset( $url_parts[1] ) ) {
+
 		// Find the format argument.
 		$format       = explode( '?', str_replace( '%_%', $args['format'], $args['base'] ) );
 		$format_query = isset( $format[1] ) ? $format[1] : '';
@@ -4264,105 +4280,149 @@ function paginate_links( $args = '' ) {
 	if ( $total < 2 ) {
 		return;
 	}
+
 	$current  = (int) $args['current'];
 	$end_size = (int) $args['end_size']; // Out of bounds? Make it the default.
 	if ( $end_size < 1 ) {
 		$end_size = 1;
 	}
+
 	$mid_size = (int) $args['mid_size'];
 	if ( $mid_size < 0 ) {
 		$mid_size = 2;
 	}
 
 	$add_args   = $args['add_args'];
-	$r          = '';
+	$result     = '';
 	$page_links = array();
 	$dots       = false;
 
-	if ( $args['prev_next'] && $current && 1 < $current ) :
-		$link = str_replace( '%_%', 2 == $current ? '' : $args['format'], $args['base'] );
+	if ( $args['prev_next'] && $current && 1 < $current ) {
+
+		$link = str_replace( '%_%', 2 === $current ? '' : $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current - 1, $link );
+
 		if ( $add_args ) {
 			$link = add_query_arg( $add_args, $link );
 		}
+
 		$link .= $args['add_fragment'];
 
-		$page_links[] = sprintf(
-			'<a class="prev page-numbers" href="%s">%s</a>',
-			/**
-			 * Filters the paginated links for the given archive pages.
-			 *
-			 * @since 3.0.0
-			 *
-			 * @param string $link The paginated link URL.
-			 */
-			esc_url( apply_filters( 'paginate_links', $link ) ),
-			$args['prev_text']
-		);
-	endif;
+		/**
+		 * Filters the paginated links for the given archive pages.
+		 *
+		 * @param string $link The paginated link URL.
+		 *
+		 * @since 3.0.0
+		 *
+		 */
+		$link = apply_filters( 'paginate_links', $link );
 
-	for ( $n = 1; $n <= $total; $n++ ) :
-		if ( $n == $current ) :
-			$page_links[] = sprintf(
-				'<span aria-current="%s" class="page-numbers current">%s</span>',
-				esc_attr( $args['aria_current'] ),
-				$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
+		$page_links[] = array(
+			'type' => 'prev_text',
+			'url'  => $link,
+			'text' => $args['prev_text'],
+			'html' => sprintf( '<a class="prev page-numbers" href="%s">%s</a>', esc_url( $link ), $args['prev_text'] ),
+		);
+	}
+
+	for ( $n = 1; $n <= $total; $n ++ ) {
+
+		if ( $n === $current ) {
+
+			$text = $args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number'];
+
+			$page_links[] = array(
+				'type' => 'current',
+				'url'  => '',
+				'text' => $text,
+				'html' => sprintf( '<span aria-current="%s" class="page-numbers current">%s</span>', esc_attr( $args['aria_current'] ), $text ),
 			);
 
 			$dots = true;
-		else :
-			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) :
-				$link = str_replace( '%_%', 1 == $n ? '' : $args['format'], $args['base'] );
+		} else {
+
+			if (
+				$args['show_all'] ||
+				(
+					$n <= $end_size ||
+					( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) ||
+					$n > $total - $end_size
+				)
+			) {
+				$link = str_replace( '%_%', 1 === $n ? '' : $args['format'], $args['base'] );
 				$link = str_replace( '%#%', $n, $link );
+
 				if ( $add_args ) {
 					$link = add_query_arg( $add_args, $link );
 				}
 				$link .= $args['add_fragment'];
 
-				$page_links[] = sprintf(
-					'<a class="page-numbers" href="%s">%s</a>',
-					/** This filter is documented in wp-includes/general-template.php */
-					esc_url( apply_filters( 'paginate_links', $link ) ),
-					$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
+				/** This filter is documented in wp-includes/general-template.php */
+				$link = apply_filters( 'paginate_links', $link );
+				$text = $args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number'];
+
+				$page_links[] = array(
+					'type' => 'link',
+					'url'  => $link,
+					'text' => $text,
+					'html' => sprintf( '<a class="page-numbers" href="%s">%s</a>', esc_url( $link ), $text ),
 				);
 
 				$dots = true;
-			elseif ( $dots && ! $args['show_all'] ) :
-				$page_links[] = '<span class="page-numbers dots">' . __( '&hellip;' ) . '</span>';
+			} elseif ( $dots && ! $args['show_all'] ) {
+
+				$page_links[] = array(
+					'type' => 'dots',
+					'url'  => '',
+					'text' => __( '&hellip;' ),
+					'html' => '<span class="page-numbers dots">' . __( '&hellip;' ) . '</span>',
+				);
 
 				$dots = false;
-			endif;
-		endif;
-	endfor;
+			}
+		}
+	}
 
-	if ( $args['prev_next'] && $current && $current < $total ) :
+	if ( $args['prev_next'] && $current && $current < $total ) {
+
 		$link = str_replace( '%_%', $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current + 1, $link );
+
 		if ( $add_args ) {
 			$link = add_query_arg( $add_args, $link );
 		}
+
 		$link .= $args['add_fragment'];
 
-		$page_links[] = sprintf(
-			'<a class="next page-numbers" href="%s">%s</a>',
-			/** This filter is documented in wp-includes/general-template.php */
-			esc_url( apply_filters( 'paginate_links', $link ) ),
-			$args['next_text']
+		/** This filter is documented in wp-includes/general-template.php */
+		$link = apply_filters( 'paginate_links', $link );
+
+		$page_links[] = array(
+			'type' => 'next_text',
+			'url'  => $link,
+			'text' => $args['next_text'],
+			'html' => sprintf( '<a class="next page-numbers" href="%s">%s</a>', esc_url( $link ), $args['next_text'] ),
 		);
-	endif;
+
+	}
 
 	switch ( $args['type'] ) {
-		case 'array':
+
+		case 'data':
 			return $page_links;
 
+		case 'array':
+			return wp_list_pluck( $page_links, 'html' );
+
 		case 'list':
-			$r .= "<ul class='page-numbers'>\n\t<li>";
-			$r .= implode( "</li>\n\t<li>", $page_links );
-			$r .= "</li>\n</ul>\n";
+			$result .= "<ul class='page-numbers'>\n\t<li>";
+			$result .= implode( "</li>\n\t<li>", wp_list_pluck( $page_links, 'html' ) );
+			$result .= "</li>\n</ul>\n";
 			break;
 
 		default:
-			$r = implode( "\n", $page_links );
+			$result = implode( "\n", wp_list_pluck( $page_links, 'html' ) );
 			break;
 	}
 
@@ -4371,13 +4431,13 @@ function paginate_links( $args = '' ) {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @param string $r    HTML output.
-	 * @param array  $args An array of arguments. See paginate_links()
-	 *                     for information on accepted arguments.
+	 * @param string $result HTML output.
+	 * @param array  $args   An array of arguments. See paginate_links()
+	 *                       for information on accepted arguments.
 	 */
-	$r = apply_filters( 'paginate_links_output', $r, $args );
+	$result = apply_filters( 'paginate_links_output', $result, $args );
 
-	return $r;
+	return $result;
 }
 
 /**
