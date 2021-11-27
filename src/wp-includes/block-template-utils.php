@@ -673,8 +673,6 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 				array_column( $query_result, 'id' ),
 				true
 			);
-			$fits_slug_query =
-				! isset( $query['slug__in'] ) || in_array( $template_file['slug'], $query['slug__in'], true );
 			$fits_area_query =
 				! isset( $query['area'] ) || $template_file['area'] === $query['area'];
 			$should_include  = $is_not_custom && $fits_slug_query && $fits_area_query;
