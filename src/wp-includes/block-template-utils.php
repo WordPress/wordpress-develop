@@ -686,7 +686,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 			);
 			$fits_area_query =
 				! isset( $query['area'] ) || $template_file['area'] === $query['area'];
-			$should_include  = $is_not_custom && $fits_slug_query && $fits_area_query;
+			$should_include  = $is_not_custom && $fits_area_query;
 			if ( $should_include ) {
 				$query_result[] = $template;
 			}
