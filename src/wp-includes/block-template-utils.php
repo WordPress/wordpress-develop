@@ -289,11 +289,12 @@ function _get_block_template_file( $template_type, $slug ) {
  * @access private
  * @since 5.9.0
  *
- * @param string $template_type wp_template or wp_template_part.
+ * @param string $template_type   wp_template or wp_template_part.
+ * @param array  $candidate_slugs If specified, only consider files that match slugs in this array.
  *
  * @return array Template.
  */
-function _get_block_templates_files( $template_type ) {
+function _get_block_templates_files( $template_type, $candidate_slugs ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
 		return null;
 	}
@@ -315,6 +316,11 @@ function _get_block_templates_files( $template_type ) {
 				// Subtract ending '.html'.
 				-5
 			);
+
+			if ( ! empty( $candidate_slugs ) && ! in_array( $template_slug, $candidate_slugs, true ) ) {
+				continue;
+			}
+
 			$new_template_item = array(
 				'slug'  => $template_slug,
 				'path'  => $template_file,
@@ -646,7 +652,8 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	}
 
 	if ( ! isset( $query['wp_id'] ) ) {
-		$template_files = _get_block_templates_files( $template_type );
+		$slug__in = isset( $query['slug__in'] ) ? $query['slug__in'] : null;
+		$template_files = _get_block_templates_files( $template_type, $slug__in );
 		foreach ( $template_files as $template_file ) {
 			$template = _build_block_template_result_from_file( $template_file, $template_type );
 
