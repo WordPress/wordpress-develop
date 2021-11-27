@@ -289,7 +289,7 @@ function comment_guid( $comment_id = null ) {
 function get_comment_guid( $comment_id = null ) {
 	$comment = get_comment( $comment_id );
 
-	if ( ! is_object( $comment ) ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return false;
 	}
 

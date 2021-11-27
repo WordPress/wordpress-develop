@@ -439,12 +439,12 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 		$comment_status = '';
 		$comment_link   = '';
 
-		if ( $comment ) {
+		if ( $comment instanceof WP_Comment ) {
 			$comment_status = $comment->comment_approved;
-		}
 
-		if ( 1 === (int) $comment_status ) {
-			$comment_link = get_comment_link( $comment );
+			if ( 1 === (int) $comment_status ) {
+				$comment_link = get_comment_link( $comment );
+			}
 		}
 
 		$counts = wp_count_comments();
@@ -456,7 +456,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 				'id'           => $comment_id,
 				'supplemental' => array(
 					'status'               => $comment_status,
-					'postId'               => $comment ? $comment->comment_post_ID : '',
+					'postId'               => $comment instanceof WP_Comment ? $comment->comment_post_ID : '',
 					'time'                 => $time,
 					'in_moderation'        => $counts->moderated,
 					'i18n_comments_text'   => sprintf(
@@ -526,8 +526,8 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 			'what'         => 'comment',
 			'id'           => $comment_id,
 			'supplemental' => array(
-				'status'               => $comment ? $comment->comment_approved : '',
-				'postId'               => $comment ? $comment->comment_post_ID : '',
+				'status'               => $comment instanceof WP_Comment ? $comment->comment_approved : '',
+				'postId'               => $comment instanceof WP_Comment ? $comment->comment_post_ID : '',
 				/* translators: %s: Number of comments. */
 				'total_items_i18n'     => sprintf( _n( '%s item', '%s items', $total ), number_format_i18n( $total ) ),
 				'total_pages'          => ceil( $total / $per_page ),
@@ -690,7 +690,7 @@ function wp_ajax_delete_comment() {
 
 	$comment = get_comment( $id );
 
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		wp_die( time() );
 	}
 
@@ -949,7 +949,7 @@ function wp_ajax_dim_comment() {
 	$id      = isset( $_POST['id'] ) ? (int) $_POST['id'] : 0;
 	$comment = get_comment( $id );
 
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		$x = new WP_Ajax_Response(
 			array(
 				'what' => 'comment',
@@ -1317,7 +1317,7 @@ function wp_ajax_replyto_comment( $action ) {
 	if ( ! empty( $_POST['approve_parent'] ) ) {
 		$parent = get_comment( $comment_parent );
 
-		if ( $parent && '0' === $parent->comment_approved && $parent->comment_post_ID == $comment_post_ID ) {
+		if ( $parent instanceof WP_Comment && '0' === $parent->comment_approved && $parent->comment_post_ID == $comment_post_ID ) {
 			if ( ! current_user_can( 'edit_comment', $parent->comment_ID ) ) {
 				wp_die( -1 );
 			}
@@ -1336,7 +1336,7 @@ function wp_ajax_replyto_comment( $action ) {
 
 	$comment = get_comment( $comment_id );
 
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		wp_die( 1 );
 	}
 
@@ -1421,7 +1421,7 @@ function wp_ajax_edit_comment() {
 
 	$comment = get_comment( $comment_id );
 
-	if ( empty( $comment->comment_ID ) ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		wp_die( -1 );
 	}
 

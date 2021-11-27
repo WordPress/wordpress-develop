@@ -308,7 +308,7 @@ function get_comment_author_url( $comment_ID = 0 ) {
 	$url     = '';
 	$id      = 0;
 
-	if ( ! empty( $comment ) ) {
+	if ( $comment instanceof WP_Comment ) {
 		$author_url = ( 'http://' === $comment->comment_author_url ) ? '' : $comment->comment_author_url;
 		$url        = esc_url( $author_url, array( 'http', 'https' ) );
 		$id         = $comment->comment_ID;
@@ -462,7 +462,7 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
 	$classes = array();
 
 	$comment = get_comment( $comment_id );
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return $classes;
 	}
 
@@ -972,7 +972,7 @@ function get_comment_text( $comment_ID = 0, $args = array() ) {
 
 	if ( is_comment_feed() && $comment->comment_parent ) {
 		$parent = get_comment( $comment->comment_parent );
-		if ( $parent ) {
+		if ( $parent instanceof WP_Comment ) {
 			$parent_link = esc_url( get_comment_link( $parent ) );
 			$name        = get_comment_author( $parent );
 
@@ -1692,7 +1692,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 
 	$comment = get_comment( $comment );
 
-	if ( empty( $comment ) ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return;
 	}
 

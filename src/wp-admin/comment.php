@@ -41,7 +41,7 @@ if ( isset( $_REQUEST['c'] ) ) {
 	$comment    = get_comment( $comment_id );
 
 	// Prevent actions on a comment associated with a trashed post.
-	if ( $comment && 'trash' === get_post_status( $comment->comment_post_ID ) ) {
+	if ( $comment instanceof WP_Comment && 'trash' === get_post_status( $comment->comment_post_ID ) ) {
 		wp_die(
 			__( 'You can&#8217;t edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
 		);
@@ -75,7 +75,7 @@ switch ( $action ) {
 		wp_enqueue_script( 'comment' );
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
-		if ( ! $comment ) {
+		if ( ! $comment instanceof WP_Comment ) {
 			comment_footer_die( __( 'Invalid comment ID.' ) . sprintf( ' <a href="%s">' . __( 'Go back' ) . '</a>.', 'javascript:history.go(-1)' ) );
 		}
 
@@ -100,7 +100,7 @@ switch ( $action ) {
 		// Used in the HTML title tag.
 		$title = __( 'Moderate Comment' );
 
-		if ( ! $comment ) {
+		if ( ! $comment instanceof WP_Comment ) {
 			wp_redirect( admin_url( 'edit-comments.php?error=1' ) );
 			die();
 		}
@@ -199,13 +199,16 @@ switch ( $action ) {
 
 		if ( $comment->comment_parent ) {
 			$parent      = get_comment( $comment->comment_parent );
-			$parent_link = esc_url( get_comment_link( $parent ) );
-			$name        = get_comment_author( $parent );
-			printf(
-				/* translators: %s: Comment link. */
-				' | ' . __( 'In reply to %s.' ),
-				'<a href="' . $parent_link . '">' . $name . '</a>'
-			);
+
+			if ( $parent instanceof WP_Comment ) {
+				$parent_link = esc_url( get_comment_link( $parent ) );
+				$name        = get_comment_author( $parent );
+				printf(
+					/* translators: %s: Comment link. */
+					' | ' . __( 'In reply to %s.' ),
+					'<a href="' . $parent_link . '">' . $name . '</a>'
+				);
+			}
 		}
 		?>
 	</td>
@@ -275,7 +278,7 @@ switch ( $action ) {
 		$noredir = isset( $_REQUEST['noredir'] );
 
 		$comment = get_comment( $comment_id );
-		if ( ! $comment ) {
+		if ( ! $comment instanceof WP_Comment ) {
 			comment_footer_die( __( 'Invalid comment ID.' ) . sprintf( ' <a href="%s">' . __( 'Go back' ) . '</a>.', 'edit-comments.php' ) );
 		}
 		if ( ! current_user_can( 'edit_comment', $comment->comment_ID ) ) {

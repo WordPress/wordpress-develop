@@ -4308,7 +4308,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	$user       = false;
 	$email      = false;
 
-	if ( is_object( $id_or_email ) && isset( $id_or_email->comment_ID ) ) {
+	if ( $id_or_email instanceof WP_Comment ) {
 		$id_or_email = get_comment( $id_or_email );
 	}
 

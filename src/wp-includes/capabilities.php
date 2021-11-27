@@ -393,7 +393,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			break;
 		case 'edit_comment':
 			$comment = get_comment( $args[0] );
-			if ( ! $comment ) {
+			if ( ! $comment instanceof WP_Comment ) {
 				$caps[] = 'do_not_allow';
 				break;
 			}

@@ -473,7 +473,7 @@ class WP_Comment_Query {
 		$_comments = array();
 		foreach ( $comment_ids as $comment_id ) {
 			$_comment = get_comment( $comment_id );
-			if ( $_comment ) {
+			if ( $_comment instanceof WP_Comment ) {
 				$_comments[] = $_comment;
 			}
 		}

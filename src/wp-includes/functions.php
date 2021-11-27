@@ -6498,7 +6498,7 @@ function wp_scheduled_delete() {
 
 		$del_comment = get_comment( $comment_id );
 
-		if ( ! $del_comment || 'trash' !== $del_comment->comment_approved ) {
+		if ( ! $del_comment instanceof WP_Comment || 'trash' !== $del_comment->comment_approved ) {
 			delete_comment_meta( $comment_id, '_wp_trash_meta_time' );
 			delete_comment_meta( $comment_id, '_wp_trash_meta_status' );
 		} else {

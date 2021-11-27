@@ -348,7 +348,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$id      = (int) $id;
 		$comment = get_comment( $id );
-		if ( empty( $comment ) ) {
+		if ( ! $comment instanceof WP_Comment ) {
 			return $error;
 		}
 

@@ -1547,7 +1547,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		}
 
 		$comment = get_comment( $comment_id );
-		if ( empty( $comment ) || empty( $comment->comment_post_ID ) ) {
+		if ( ! $comment instanceof WP_Comment || empty( $comment->comment_post_ID ) ) {
 			return false;
 		}
 
@@ -2698,7 +2698,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			$args['width'] = $args['size'];
 		}
 
-		if ( is_object( $id_or_email ) && isset( $id_or_email->comment_ID ) ) {
+		if ( $id_or_email instanceof WP_Comment ) {
 			$id_or_email = get_comment( $id_or_email );
 		}
 

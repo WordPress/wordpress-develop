@@ -1754,7 +1754,7 @@ function get_object_subtype( $object_type, $object_id ) {
 
 		case 'comment':
 			$comment = get_comment( $object_id );
-			if ( ! $comment ) {
+			if ( ! $comment instanceof WP_Comment ) {
 				break;
 			}
 

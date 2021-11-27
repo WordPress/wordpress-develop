@@ -1087,7 +1087,7 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 	$page = null;
 
 	$comment = get_comment( $comment_ID );
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return;
 	}
 
@@ -1474,7 +1474,7 @@ function wp_count_comments( $post_id = 0 ) {
 function wp_delete_comment( $comment_id, $force_delete = false ) {
 	global $wpdb;
 	$comment = get_comment( $comment_id );
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return false;
 	}
 
@@ -1552,7 +1552,7 @@ function wp_trash_comment( $comment_id ) {
 	}
 
 	$comment = get_comment( $comment_id );
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return false;
 	}
 
@@ -1600,7 +1600,7 @@ function wp_trash_comment( $comment_id ) {
  */
 function wp_untrash_comment( $comment_id ) {
 	$comment = get_comment( $comment_id );
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return false;
 	}
 
@@ -1651,7 +1651,7 @@ function wp_untrash_comment( $comment_id ) {
  */
 function wp_spam_comment( $comment_id ) {
 	$comment = get_comment( $comment_id );
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return false;
 	}
 
@@ -1699,7 +1699,7 @@ function wp_spam_comment( $comment_id ) {
  */
 function wp_unspam_comment( $comment_id ) {
 	$comment = get_comment( $comment_id );
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return false;
 	}
 
@@ -1750,7 +1750,7 @@ function wp_unspam_comment( $comment_id ) {
  */
 function wp_get_comment_status( $comment_id ) {
 	$comment = get_comment( $comment_id );
-	if ( ! $comment ) {
+	if ( ! $comment instanceof WP_Comment ) {
 		return false;
 	}
 
@@ -1959,7 +1959,7 @@ function wp_get_unapproved_comment_author_email() {
 		$comment_id = (int) $_GET['unapproved'];
 		$comment    = get_comment( $comment_id );
 
-		if ( $comment && hash_equals( $_GET['moderation-hash'], wp_hash( $comment->comment_date_gmt ) ) ) {
+		if ( $comment instanceof WP_Comment && hash_equals( $_GET['moderation-hash'], wp_hash( $comment->comment_date_gmt ) ) ) {
 			// The comment will only be viewable by the comment author for 10 minutes.
 			$comment_preview_expires = strtotime( $comment->comment_date_gmt . '+10 minutes' );
 
@@ -2469,7 +2469,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 
 	// First, get all of the original fields.
 	$comment = get_comment( $commentarr['comment_ID'], ARRAY_A );
-	if ( empty( $comment ) ) {
+	if ( ! is_array( $comment ) || empty( array_filter( $comment ) ) ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'invalid_comment_id', __( 'Invalid comment ID.' ) );
 		} else {
