@@ -92,13 +92,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 */
 	function test_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
-		/**
-		 * @todo This test is currently marked as skipped, since it wouldn't pass. Turns out that in Gutenberg,
-		 * it only passed due to a erroneous test setup.
-		 * For details, see https://github.com/WordPress/wordpress-develop/pull/1920#issuecomment-975929818.
-		 */
-		$this->markTestSkipped( 'The block template resolution algorithm needs fixing in order for this test to pass.' );
-
 		switch_theme( 'block-theme-child' );
 
 		$page_slug_template      = 'page-home.php';
