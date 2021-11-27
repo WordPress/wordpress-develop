@@ -655,7 +655,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 			array( get_stylesheet(), get_template() )
 		);
 
-		$slug__in       = isset( $query['slug__in'] ) ? $query['slug__in'] : null;
+		$slug__in = isset( $query['slug__in'] ) ? $query['slug__in'] : null;
 
 		$template_files = array();
 		foreach ( $themes as $theme ) {
