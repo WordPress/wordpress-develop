@@ -190,7 +190,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		add_metadata( 'site', $network_id, $option, 'monday', true );
 		add_metadata( 'site', $network_id, $option, 'tuesday', true );
 		add_metadata( 'site', $network_id, $option, 'wednesday', true );
-		$this->assertEquals( 'monday', get_network_option( $network_id, $option, true ) );
+		$this->assertSame( 'monday', get_network_option( $network_id, $option, true ) );
 	}
 
 	/**

@@ -92,8 +92,7 @@ class Tests_Term extends WP_UnitTestCase {
 		// Legacy usage should not trigger deprecated notice.
 		$count        = wp_count_terms( array( 'taxonomy' => 'post_tag' ) );
 		$legacy_count = wp_count_terms( 'post_tag' );
-		$this->assertEquals( 5, $count );
-		$this->assertEquals( $count, $legacy_count );
+		$this->assertSame( $count, $legacy_count );
 	}
 
 	/**
@@ -169,7 +168,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertTrue( wp_delete_category( $t ) );
 		$this->assertNull( term_exists( $term ) );
 		$this->assertNull( term_exists( $t ) );
-		$this->assertEquals( $initial_count, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertSame( $initial_count, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 	}
 
 	/**

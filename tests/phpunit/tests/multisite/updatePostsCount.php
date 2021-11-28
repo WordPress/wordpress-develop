@@ -36,7 +36,7 @@ if ( is_multisite() ) :
 			 * Check that _update_posts_count_on_transition_post_status() is called on that filter which then calls
 			 * update_posts_count to update the count.
 			 */
-			$this->assertEquals( $current_post_count + 1, (int) get_option( 'post_count' ), 'post added' );
+			$this->assertSame( $current_post_count + 1, (int) get_option( 'post_count' ), 'post added' );
 
 			wp_delete_post( $post_id );
 
@@ -46,7 +46,7 @@ if ( is_multisite() ) :
 			 * Check that _update_posts_count_on_delete() is called on that filter which then calls update_posts_count
 			 * to update the count.
 			 */
-			$this->assertEquals( $current_post_count, (int) get_option( 'post_count' ), 'post deleted' );
+			$this->assertSame( $current_post_count, (int) get_option( 'post_count' ), 'post deleted' );
 
 			restore_current_blog();
 

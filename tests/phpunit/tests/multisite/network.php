@@ -171,7 +171,7 @@ if ( is_multisite() ) :
 			}
 			wp_update_network_counts();
 
-			$this->assertEquals( $site_count_start, $actual );
+			$this->assertSame( $site_count_start, $actual );
 		}
 
 		/**
@@ -191,7 +191,7 @@ if ( is_multisite() ) :
 			}
 			wp_update_network_counts();
 
-			$this->assertEquals( $site_count_start + 1, $actual );
+			$this->assertSame( $site_count_start + 1, $actual );
 		}
 
 		/**

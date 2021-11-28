@@ -61,7 +61,7 @@ if ( is_multisite() ) :
 			}
 
 			$site = get_blog_details( 'foo' );
-			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
+			$this->assertSame( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
 		}
 
 		public function test_get_blog_details_with_invalid_site_name_string() {
