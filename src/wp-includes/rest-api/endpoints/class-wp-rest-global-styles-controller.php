@@ -152,7 +152,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		$changes = $this->prepare_item_for_database( $request );
-		$result  = wp_update_post( wp_slash( (array) $changes ), true );
+		$result  = wp_update_post( wp_slash( (array) $changes ), true, false );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
