@@ -270,4 +270,32 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$theme = wp_get_theme( 'default', $this->theme_root );
 		$this->assertFalse( $theme->is_block_based() );
 	}
+
+	/**
+	 * @ticket 54460
+	 */
+	public function test_get_file_path_method_returns_correct_value_for_parent_themes() {
+		$theme = wp_get_theme( 'test-block-theme', $this->theme_root );
+		$path  = $theme->get_file_path( '/templates/page.html' );
+		$this->assertStringEndsWith( '/test-block-theme/templates/page.html', $path );
+
+		$path = $theme->get_file_path();
+		$this->assertStringEndsWith( '/test-block-theme', $path );
+	}
+
+	/**
+	 * @ticket 54460
+	 */
+	public function test_get_file_path_method_returns_correct_value_for_child_themes() {
+		$theme = wp_get_theme( 'test-block-child-theme', $this->theme_root );
+
+		$path = $theme->get_file_path( '/templates/page.html' );
+		$this->assertStringEndsWith( '/test-block-theme/templates/page.html', $path );
+
+		$path = $theme->get_file_path();
+		$this->assertStringEndsWith( '/test-block-child-theme', $path );
+
+		$path = $theme->get_file_path( '/templates/page-1.html' );
+		$this->assertStringEndsWith( '/test-block-child-theme/templates/page-1.html', $path );
+	}
 }
