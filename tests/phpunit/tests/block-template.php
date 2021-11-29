@@ -1,6 +1,6 @@
 <?php
 /**
- * Block_Template_Test class
+ * Tests_Block_Template class
  *
  * @package WordPress
  */
@@ -36,7 +36,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 			'page.php',
 		);
 		$resolved_template_path = locate_block_template( get_stylesheet_directory() . '/page-home.php', $type, $templates );
-		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
+		$this->assertSame( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page-home.html', $_wp_current_template_content );
 	}
 
@@ -49,7 +49,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 			'page.php',
 		);
 		$resolved_template_path = locate_block_template( get_stylesheet_directory() . '/page.php', $type, $templates );
-		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
+		$this->assertSame( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page.html', $_wp_current_template_content );
 	}
 
@@ -60,7 +60,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 			'index.php',
 		);
 		$resolved_template_path = locate_block_template( get_stylesheet_directory() . '/index.php', $type, $templates );
-		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
+		$this->assertSame( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/index.html', $_wp_current_template_content );
 	}
 
@@ -80,7 +80,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 			'page.php',
 		);
 		$resolved_template_path = locate_block_template( $page_id_template_path, $type, $templates );
-		$this->assertEquals( $page_id_template_path, $resolved_template_path );
+		$this->assertSame( $page_id_template_path, $resolved_template_path );
 	}
 
 	/**
@@ -110,7 +110,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 			'page.php',
 		);
 		$resolved_template_path  = locate_block_template( $page_slug_template_path, $type, $templates );
-		$this->assertEquals( $page_slug_template_path, $resolved_template_path );
+		$this->assertSame( $page_slug_template_path, $resolved_template_path );
 	}
 
 	function test_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
@@ -127,7 +127,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 			'page.php',
 		);
 		$resolved_template_path          = locate_block_template( $parent_theme_page_template_path, $type, $templates );
-		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
+		$this->assertSame( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page-1.html', $_wp_current_template_content );
 	}
 

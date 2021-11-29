@@ -1,8 +1,8 @@
 <?php
 /**
- * Block_Template_Utils_Test class
+ * Tests_Block_Template_Utils class
  *
- * @package    WordPress
+ * @package WordPress
  */
 
 /**
@@ -84,14 +84,14 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 
 		$this->assertNotWPError( $template );
-		$this->assertEquals( get_stylesheet() . '//my_template', $template->id );
-		$this->assertEquals( get_stylesheet(), $template->theme );
-		$this->assertEquals( 'my_template', $template->slug );
-		$this->assertEquals( 'publish', $template->status );
-		$this->assertEquals( 'custom', $template->source );
-		$this->assertEquals( 'My Template', $template->title );
-		$this->assertEquals( 'Description of my template', $template->description );
-		$this->assertEquals( 'wp_template', $template->type );
+		$this->assertSame( get_stylesheet() . '//my_template', $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'my_template', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'custom', $template->source );
+		$this->assertSame( 'My Template', $template->title );
+		$this->assertSame( 'Description of my template', $template->description );
+		$this->assertSame( 'wp_template', $template->type );
 
 		// Test template parts.
 		$template_part = _build_block_template_result_from_post(
@@ -99,15 +99,15 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'wp_template_part'
 		);
 		$this->assertNotWPError( $template_part );
-		$this->assertEquals( get_stylesheet() . '//my_template_part', $template_part->id );
-		$this->assertEquals( get_stylesheet(), $template_part->theme );
-		$this->assertEquals( 'my_template_part', $template_part->slug );
-		$this->assertEquals( 'publish', $template_part->status );
-		$this->assertEquals( 'custom', $template_part->source );
-		$this->assertEquals( 'My Template Part', $template_part->title );
-		$this->assertEquals( 'Description of my template part', $template_part->description );
-		$this->assertEquals( 'wp_template_part', $template_part->type );
-		$this->assertEquals( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
+		$this->assertSame( get_stylesheet() . '//my_template_part', $template_part->id );
+		$this->assertSame( get_stylesheet(), $template_part->theme );
+		$this->assertSame( 'my_template_part', $template_part->slug );
+		$this->assertSame( 'publish', $template_part->status );
+		$this->assertSame( 'custom', $template_part->source );
+		$this->assertSame( 'My Template Part', $template_part->title );
+		$this->assertSame( 'Description of my template part', $template_part->description );
+		$this->assertSame( 'wp_template_part', $template_part->type );
+		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
 	}
 
 	function test_build_block_template_result_from_file() {
@@ -119,14 +119,14 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'wp_template'
 		);
 
-		$this->assertEquals( get_stylesheet() . '//single', $template->id );
-		$this->assertEquals( get_stylesheet(), $template->theme );
-		$this->assertEquals( 'single', $template->slug );
-		$this->assertEquals( 'publish', $template->status );
-		$this->assertEquals( 'theme', $template->source );
-		$this->assertEquals( 'Single Post', $template->title );
-		$this->assertEquals( 'Template used to display a single blog post.', $template->description );
-		$this->assertEquals( 'wp_template', $template->type );
+		$this->assertSame( get_stylesheet() . '//single', $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'single', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'theme', $template->source );
+		$this->assertSame( 'Single Post', $template->title );
+		$this->assertSame( 'Template used to display a single blog post.', $template->description );
+		$this->assertSame( 'wp_template', $template->type );
 
 		// Test template parts.
 		$template_part = _build_block_template_result_from_file(
@@ -137,15 +137,15 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			),
 			'wp_template_part'
 		);
-		$this->assertEquals( get_stylesheet() . '//header', $template_part->id );
-		$this->assertEquals( get_stylesheet(), $template_part->theme );
-		$this->assertEquals( 'header', $template_part->slug );
-		$this->assertEquals( 'publish', $template_part->status );
-		$this->assertEquals( 'theme', $template_part->source );
-		$this->assertEquals( 'header', $template_part->title );
-		$this->assertEquals( '', $template_part->description );
-		$this->assertEquals( 'wp_template_part', $template_part->type );
-		$this->assertEquals( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
+		$this->assertSame( get_stylesheet() . '//header', $template_part->id );
+		$this->assertSame( get_stylesheet(), $template_part->theme );
+		$this->assertSame( 'header', $template_part->slug );
+		$this->assertSame( 'publish', $template_part->status );
+		$this->assertSame( 'theme', $template_part->source );
+		$this->assertSame( 'header', $template_part->title );
+		$this->assertSame( '', $template_part->description );
+		$this->assertSame( 'wp_template_part', $template_part->type );
+		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
 	}
 
 	function test_inject_theme_attribute_in_block_template_content() {
@@ -159,7 +159,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
 			get_stylesheet()
 		);
-		$this->assertEquals( $expected, $template_content );
+		$this->assertSame( $expected, $template_content );
 
 		$content_without_theme_attribute_nested = '<!-- wp:group --><!-- wp:template-part {"slug":"header","align":"full", "tagName":"header","className":"site-header"} /--><!-- /wp:group -->';
 		$template_content                       = _inject_theme_attribute_in_block_template_content(
@@ -170,7 +170,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'<!-- wp:group --><!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /--><!-- /wp:group -->',
 			get_stylesheet()
 		);
-		$this->assertEquals( $expected, $template_content );
+		$this->assertSame( $expected, $template_content );
 
 		// Does not inject theme when there is an existing theme attribute.
 		$content_with_existing_theme_attribute = '<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full", "tagName":"header","className":"site-header"} /-->';
@@ -178,7 +178,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			$content_with_existing_theme_attribute,
 			$theme
 		);
-		$this->assertEquals( $content_with_existing_theme_attribute, $template_content );
+		$this->assertSame( $content_with_existing_theme_attribute, $template_content );
 
 		// Does not inject theme when there is no template part.
 		$content_with_no_template_part = '<!-- wp:post-content /-->';
@@ -186,7 +186,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			$content_with_no_template_part,
 			$theme
 		);
-		$this->assertEquals( $content_with_no_template_part, $template_content );
+		$this->assertSame( $content_with_no_template_part, $template_content );
 	}
 
 	/**
@@ -197,23 +197,23 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		// Requires switching to a block theme.
 		/* $id       = get_stylesheet() . '//' . 'index';
 		$template = get_block_template( $id, 'wp_template' );
-		$this->assertEquals( $id, $template->id );
-		$this->assertEquals( get_stylesheet(), $template->theme );
-		$this->assertEquals( 'index', $template->slug );
-		$this->assertEquals( 'publish', $template->status );
-		$this->assertEquals( 'theme', $template->source );
-		$this->assertEquals( 'wp_template', $template->type );
+		$this->assertSame( $id, $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'index', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'theme', $template->source );
+		$this->assertSame( 'wp_template', $template->type );
 
 		// Test template parts.
 		$id       = get_stylesheet() . '//' . 'header';
 		$template = get_block_template( $id, 'wp_template_part' );
-		$this->assertEquals( $id, $template->id );
-		$this->assertEquals( get_stylesheet(), $template->theme );
-		$this->assertEquals( 'header', $template->slug );
-		$this->assertEquals( 'publish', $template->status );
-		$this->assertEquals( 'theme', $template->source );
-		$this->assertEquals( 'wp_template_part', $template->type );
-		$this->assertEquals( WP_TEMPLATE_PART_AREA_HEADER, $template->area );
+		$this->assertSame( $id, $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'header', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'theme', $template->source );
+		$this->assertSame( 'wp_template_part', $template->type );
+		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template->area );
 		*/
 	}
 
@@ -223,23 +223,23 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function test_get_block_template_from_post() {
 		$id       = get_stylesheet() . '//' . 'my_template';
 		$template = get_block_template( $id, 'wp_template' );
-		$this->assertEquals( $id, $template->id );
-		$this->assertEquals( get_stylesheet(), $template->theme );
-		$this->assertEquals( 'my_template', $template->slug );
-		$this->assertEquals( 'publish', $template->status );
-		$this->assertEquals( 'custom', $template->source );
-		$this->assertEquals( 'wp_template', $template->type );
+		$this->assertSame( $id, $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'my_template', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'custom', $template->source );
+		$this->assertSame( 'wp_template', $template->type );
 
 		// Test template parts.
 		$id       = get_stylesheet() . '//' . 'my_template_part';
 		$template = get_block_template( $id, 'wp_template_part' );
-		$this->assertEquals( $id, $template->id );
-		$this->assertEquals( get_stylesheet(), $template->theme );
-		$this->assertEquals( 'my_template_part', $template->slug );
-		$this->assertEquals( 'publish', $template->status );
-		$this->assertEquals( 'custom', $template->source );
-		$this->assertEquals( 'wp_template_part', $template->type );
-		$this->assertEquals( WP_TEMPLATE_PART_AREA_HEADER, $template->area );
+		$this->assertSame( $id, $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'my_template_part', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'custom', $template->source );
+		$this->assertSame( 'wp_template_part', $template->type );
+		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template->area );
 	}
 
 	/**
@@ -268,18 +268,18 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		// Filter by slug.
 		$templates    = get_block_templates( array( 'slug__in' => array( 'my_template' ) ), 'wp_template' );
 		$template_ids = get_template_ids( $templates );
-		$this->assertEquals( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
+		$this->assertSame( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
 
 		// Filter by CPT ID.
 		$templates    = get_block_templates( array( 'wp_id' => self::$post->ID ), 'wp_template' );
 		$template_ids = get_template_ids( $templates );
-		$this->assertEquals( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
+		$this->assertSame( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
 
 		// Filter template part by area.
 		// Requires a block theme.
 		/*$templates    = get_block_templates( array( 'area' => WP_TEMPLATE_PART_AREA_HEADER ), 'wp_template_part' );
 		$template_ids = get_template_ids( $templates );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				get_stylesheet() . '//' . 'my_template_part',
 				get_stylesheet() . '//' . 'header',
@@ -297,18 +297,18 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$blocks                             = parse_blocks( $content_template_part_inside_group );
 		$actual                             = _flatten_blocks( $blocks );
 		$expected                           = array( $blocks[0], $blocks[0]['innerBlocks'][0] );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 
 		$content_template_part_inside_group_inside_group = '<!-- wp:group --><!-- wp:group --><!-- wp:template-part {"slug":"header"} /--><!-- /wp:group --><!-- /wp:group -->';
 		$blocks   = parse_blocks( $content_template_part_inside_group_inside_group );
 		$actual   = _flatten_blocks( $blocks );
 		$expected = array( $blocks[0], $blocks[0]['innerBlocks'][0], $blocks[0]['innerBlocks'][0]['innerBlocks'][0] );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 
 		$content_without_inner_blocks = '<!-- wp:group /-->';
 		$blocks                       = parse_blocks( $content_without_inner_blocks );
 		$actual                       = _flatten_blocks( $blocks );
 		$expected                     = array( $blocks[0] );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 }
