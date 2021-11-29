@@ -2,7 +2,7 @@
 /**
  * @group block-supports
  */
-class WP_Block_Supports_Spacing_Test extends WP_UnitTestCase {
+class Tests_Block_Supports_Spacing extends WP_UnitTestCase {
 	private $sample_block_content = '<div class="wp-block-test-block">Test</div>';
 	private $test_gap_block_value = array();
 	private $test_gap_block_args  = array();

@@ -1790,4 +1790,110 @@ HTML;
 
 		return $return_data;
 	}
+
+	/**
+	 * Test that XML named entities are encoded correctly.
+	 *
+	 * @dataProvider data_wp_kses_xml_named_entities
+	 *
+	 * @ticket 54060
+	 * @covers ::wp_kses_xml_named_entities
+	 *
+	 * @param array  $input    The input to wp_kses_xml_named_entities().
+	 * @param string $expected The expected output.
+	 */
+	public function test_wp_kses_xml_named_entities( $input, $expected ) {
+		$this->assertSame( $expected, wp_kses_xml_named_entities( $input ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_xml_named_entities().
+	 *
+	 * @return array Nested array of input, expected pairs.
+	 */
+	public function data_wp_kses_xml_named_entities() {
+		return array(
+			// Empty string value testing.
+			'empty string'       => array(
+				'input'    => '',
+				'expected' => '',
+			),
+
+			// Empty string array value testing.
+			'empty string array' => array(
+				'input'    => array( '', '' ),
+				'expected' => '',
+			),
+
+			// $allowedxmlentitynames values testing.
+			'amp'                => array(
+				'input'    => array( '', 'amp' ),
+				'expected' => '&amp;',
+			),
+			'lt'                 => array(
+				'input'    => array( '', 'lt' ),
+				'expected' => '&lt;',
+			),
+			'gt'                 => array(
+				'input'    => array( '', 'gt' ),
+				'expected' => '&gt;',
+			),
+
+			// $allowedentitynames values testing.
+			'nbsp'               => array(
+				'input'    => array( '', 'nbsp' ),
+				'expected' => utf8_encode( chr( 160 ) ),
+			),
+			'iexcl'              => array(
+				'input'    => array( '', 'iexcl' ),
+				'expected' => '¡',
+			),
+			'cent'               => array(
+				'input'    => array( '', 'cent' ),
+				'expected' => '¢',
+			),
+
+			// Some other value testing.
+			'test'               => array(
+				'input'    => array( '', 'test' ),
+				'expected' => '&amp;test;',
+			),
+
+		);
+	}
+
+	/**
+	 * Test that KSES globals are defined.
+	 *
+	 * @dataProvider data_kses_globals_are_defined
+	 *
+	 * @ticket 54060
+	 *
+	 * @param string $global The name of the global variable.
+	 */
+	public function test_kses_globals_are_defined( $global ) {
+		$this->assertArrayHasKey( $global, $GLOBALS );
+	}
+
+	/**
+	 * Data provider for test_kses_globals_are_defined().
+	 *
+	 * @return array
+	 */
+	public function data_kses_globals_are_defined() {
+		return array(
+			'allowedposttags'       => array(
+				'global' => 'allowedposttags',
+			),
+			'allowedtags'           => array(
+				'global' => 'allowedtags',
+			),
+			'allowedentitynames'    => array(
+				'global' => 'allowedentitynames',
+			),
+			'allowedxmlentitynames' => array(
+				'global' => 'allowedxmlentitynames',
+			),
+		);
+	}
 }

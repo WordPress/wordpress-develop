@@ -132,7 +132,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'attachment_id' => 1,
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment ID.
 		$result = $widget->update(
@@ -148,7 +148,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'url' => 'https://example.org',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment url.
 		$result = $widget->update(
@@ -165,7 +165,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'title' => 'What a title',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment title.
 		$result = $widget->update(
@@ -181,7 +181,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'size' => 'thumbnail',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid image size.
 		$result = $widget->update(
@@ -197,7 +197,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'width' => 300,
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid image width.
 		$result = $widget->update(
@@ -213,7 +213,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'height' => 200,
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid image height.
 		$result = $widget->update(
@@ -229,7 +229,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'caption' => 'A caption with <a href="#">link</a>',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid image caption.
 		$result = $widget->update(
@@ -250,7 +250,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'alt' => 'A water tower',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid alt text.
 		$result = $widget->update(
@@ -271,7 +271,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'link_type' => 'file',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid link type.
 		$result = $widget->update(
@@ -287,7 +287,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'link_url' => 'https://example.org',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid link url.
 		$result = $widget->update(
@@ -304,7 +304,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'image_classes' => 'A water tower',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid image classes.
 		$result = $widget->update(
@@ -325,7 +325,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'link_classes' => 'A water tower',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid link classes.
 		$result = $widget->update(
@@ -346,7 +346,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'link_rel' => 'previous',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid rel text.
 		$result = $widget->update(
@@ -367,7 +367,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'link_target_blank' => false,
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid  link target.
 		$result = $widget->update(
@@ -383,7 +383,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			'image_title' => 'What a title',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid image title.
 		$result = $widget->update(

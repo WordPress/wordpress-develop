@@ -626,7 +626,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 		$this->assertArrayHasKey( 'test-size', $metadata['sizes'], 'The `test-size` was not added to the metadata.' );
-		$this->assertSame( $metadata['sizes']['test-size'], $expected );
+		$this->assertSame( $expected, $metadata['sizes']['test-size'] );
 
 		remove_image_size( 'test-size' );
 		remove_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10 );

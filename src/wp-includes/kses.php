@@ -459,7 +459,7 @@ if ( ! CUSTOM_TAGS ) {
 	);
 
 	/**
-	 * @var string[] $allowedentitynames Array of KSES allowed HTML entitity names.
+	 * @var string[] $allowedentitynames Array of KSES allowed HTML entity names.
 	 * @since 1.0.0
 	 */
 	$allowedentitynames = array(
@@ -719,10 +719,10 @@ if ( ! CUSTOM_TAGS ) {
 	);
 
 	/**
-	 * @var string[] $allowedxmlentitynames Array of KSES allowed XML entitity names.
+	 * @var string[] $allowedxmlentitynames Array of KSES allowed XML entity names.
 	 * @since 5.5.0
 	 */
-	$allowedxmlnamedentities = array(
+	$allowedxmlentitynames = array(
 		'amp',
 		'lt',
 		'gt',
@@ -1142,7 +1142,17 @@ function wp_kses_split2( $string, $allowed_html, $allowed_protocols ) {
  * is to check if the tag has a closing XHTML slash, and if it does, it puts one
  * in the returned code as well.
  *
+ * An array of allowed values can be defined for attributes. If the attribute value
+ * doesn't fall into the list, the attribute will be removed from the tag.
+ *
+ * Attributes can be marked as required. If a required attribute is not present,
+ * KSES will remove all attributes from the tag. As KSES doesn't match opening and
+ * closing tags, it's not possible to safely remove the tag itself, the safest
+ * fallback is to strip all attributes from the tag, instead.
+ *
  * @since 1.0.0
+ * @since 5.9.0 Added support for an array of allowed values for attributes.
+ *              Added support for required attributes.
  *
  * @param string         $element           HTML element/tag.
  * @param string         $attr              HTML attributes from HTML element to closing HTML element tag.
@@ -1180,16 +1190,17 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 		}
 	);
 
-	// If a required attribute check fails, we can return nothing for a self-closing tag,
-	// but for a non-self-closing tag the best option is to return the element with attributes,
-	// as KSES doesn't handle matching the relevant closing tag.
+	/*
+	 * If a required attribute check fails, we can return nothing for a self-closing tag,
+	 * but for a non-self-closing tag the best option is to return the element with attributes,
+	 * as KSES doesn't handle matching the relevant closing tag.
+	 */
 	$stripped_tag = '';
 	if ( empty( $xhtml_slash ) ) {
 		$stripped_tag = "<$element>";
 	}
 
-	// Go through $attrarr, and save the allowed attributes for this element
-	// in $attr2.
+	// Go through $attrarr, and save the allowed attributes for this element in $attr2.
 	$attr2 = '';
 	foreach ( $attrarr as $arreach ) {
 		// Check if this attribute is required.
@@ -1906,7 +1917,7 @@ function wp_kses_named_entities( $matches ) {
  * @return string Correctly encoded entity.
  */
 function wp_kses_xml_named_entities( $matches ) {
-	global $allowedentitynames, $allowedxmlnamedentities;
+	global $allowedentitynames, $allowedxmlentitynames;
 
 	if ( empty( $matches[1] ) ) {
 		return '';
@@ -1914,7 +1925,7 @@ function wp_kses_xml_named_entities( $matches ) {
 
 	$i = $matches[1];
 
-	if ( in_array( $i, $allowedxmlnamedentities, true ) ) {
+	if ( in_array( $i, $allowedxmlentitynames, true ) ) {
 		return "&$i;";
 	} elseif ( in_array( $i, $allowedentitynames, true ) ) {
 		return html_entity_decode( "&$i;", ENT_HTML5 );

@@ -2,7 +2,7 @@
 /**
  * @group block-supports
  */
-class WP_Block_Supports_Typography_Test extends WP_UnitTestCase {
+class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 
 	function test_font_size_slug_with_numbers_is_kebab_cased_properly() {
 		register_block_type(
