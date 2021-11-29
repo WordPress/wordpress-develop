@@ -102,6 +102,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'status'         => 'publish',
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
+				'is_custom'      => false,
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
@@ -143,8 +144,72 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'status'         => 'publish',
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
+				'is_custom'      => false,
 			),
 			$data
+		);
+	}
+
+	/**
+	 * @ticket 54507
+	 * @dataProvider get_template_endpoint_urls
+	 */
+	public function test_get_item_works_with_a_single_slash( $endpoint_url ) {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', $endpoint_url );
+		$response = rest_get_server()->dispatch( $request );
+
+		$data = $response->get_data();
+		unset( $data['content'] );
+		unset( $data['_links'] );
+
+		$this->assertEquals(
+			array(
+				'id'             => 'tt1-blocks//index',
+				'theme'          => 'tt1-blocks',
+				'slug'           => 'index',
+				'title'          => array(
+					'raw'      => 'Index',
+					'rendered' => 'Index',
+				),
+				'description'    => 'The default template used when no other template is available. This is a required template in WordPress.',
+				'status'         => 'publish',
+				'source'         => 'theme',
+				'type'           => 'wp_template',
+				'wp_id'          => null,
+				'has_theme_file' => true,
+				'is_custom'      => false,
+			),
+			$data
+		);
+	}
+
+	public function get_template_endpoint_urls() {
+		return array(
+			array( '/wp/v2/templates/tt1-blocks/index' ),
+			array( '/wp/v2/templates/tt1-blocks//index' ),
+		);
+	}
+
+	/**
+	 * @ticket 54507
+	 * @dataProvider get_template_ids_to_sanitize
+	 */
+	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
+		$endpoint = new Gutenberg_REST_Templates_Controller( 'wp_template' );
+		$this->assertEquals(
+			$sanitized_id,
+			$endpoint->_sanitize_template_id( $input_id )
+		);
+	}
+
+	public function get_template_ids_to_sanitize() {
+		return array(
+			array( 'tt1-blocks/index', 'tt1-blocks//index' ),
+			array( 'tt1-blocks//index', 'tt1-blocks//index' ),
+
+			array( 'theme-experiments/tt1-blocks/index', 'theme-experiments/tt1-blocks//index' ),
+			array( 'theme-experiments/tt1-blocks//index', 'theme-experiments/tt1-blocks//index' ),
 		);
 	}
 
@@ -185,6 +250,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 				'status'         => 'publish',
 				'has_theme_file' => false,
+				'is_custom'      => true,
 			),
 			$data
 		);
