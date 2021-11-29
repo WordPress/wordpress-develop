@@ -83,7 +83,7 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 
 	$active_global_styles_id = WP_Theme_JSON_Resolver::get_user_custom_post_type_id();
 	$active_theme            = wp_get_theme()->get_stylesheet();
-	$preload_paths = array(
+	$preload_paths           = array(
 		array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
 		'/',
 		'/wp/v2/types?context=edit',
