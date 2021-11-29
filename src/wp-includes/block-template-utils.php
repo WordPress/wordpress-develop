@@ -600,6 +600,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	}
 
 	$post_type     = isset( $query['post_type'] ) ? $query['post_type'] : '';
+	$theme         = isset( $query['theme'] ) ? $query['theme'] : wp_get_theme()->get_stylesheet();
 	$wp_query_args = array(
 		'post_status'    => array( 'auto-draft', 'draft', 'publish' ),
 		'post_type'      => $template_type,
@@ -609,7 +610,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 			array(
 				'taxonomy' => 'wp_theme',
 				'field'    => 'name',
-				'terms'    => wp_get_theme()->get_stylesheet(),
+				'terms'    => $theme,
 			),
 		),
 	);
@@ -651,17 +652,20 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	}
 
 	if ( ! isset( $query['wp_id'] ) ) {
+		$parent_theme  = wp_get_theme( $theme )->get_template();
+		$parent_theme  = isset( $parent_theme ) ? $parent_theme : $theme;
+
 		$themes = array_unique(
-			array( get_stylesheet(), get_template() )
+			array( $theme, $parent_theme )
 		);
 
 		$slug__in = isset( $query['slug__in'] ) ? $query['slug__in'] : null;
 
 		$template_files = array();
-		foreach ( $themes as $theme ) {
+		foreach ( $themes as $theme_slug ) {
 			$template_files = array_merge(
 				$template_files,
-				_get_block_templates_files( $template_type, $theme, $slug__in )
+				_get_block_templates_files( $template_type, $theme_slug, $slug__in )
 			);
 		}
 
