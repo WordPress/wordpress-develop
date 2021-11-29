@@ -884,7 +884,7 @@ function block_footer_area() {
  */
 function wp_generate_block_templates_export_file() {
 	if ( ! class_exists( 'ZipArchive' ) ) {
-		return new WP_Error( __( 'Zip Export not supported.', 'gutenberg' ) );
+		return new WP_Error( __( 'Zip Export not supported.' ) );
 	}
 
 	$obscura  = wp_generate_password( 12, false, false );
