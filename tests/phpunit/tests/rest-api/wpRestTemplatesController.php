@@ -194,7 +194,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			array( '/wp/v2/templates/default/my_template' ),
 			array( '/wp/v2/templates/default//my_template' ),
 		);
-	} ```
+	}
 
 	/**
 	 * @ticket 54507
