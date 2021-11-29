@@ -570,6 +570,7 @@ function _build_block_template_result_from_post( $post ) {
  *     @type int    $wp_id     Post ID of customized template.
  *     @type string $area      A 'wp_template_part_area' taxonomy value to filter by (for wp_template_part template type only).
  *     @type string $post_type Post type to get the templates for.
+ *     @type string $theme     Theme in which to look for template files.
  * }
  * @param array $template_type wp_template or wp_template_part.
  *
