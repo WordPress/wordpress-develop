@@ -317,7 +317,7 @@ function _get_block_templates_files( $template_type, $theme, $candidate_slugs ) 
 			-5
 		);
 
-		if ( ! empty( $candidate_slugs ) && ! in_array( $template_slug, $candidate_slugs, true ) ) {
+		if ( isset( $candidate_slugs ) && ! in_array( $template_slug, $candidate_slugs, true ) ) {
 			continue;
 		}
 
