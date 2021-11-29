@@ -199,7 +199,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 * @dataProvider get_template_ids_to_sanitize
 	 */
 	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
-		$endpoint = new Gutenberg_REST_Templates_Controller( 'wp_template' );
+		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
 		$this->assertEquals(
 			$sanitized_id,
 			$endpoint->_sanitize_template_id( $input_id )
