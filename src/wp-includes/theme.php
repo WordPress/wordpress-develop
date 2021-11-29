@@ -1194,13 +1194,20 @@ function get_header_image_tag( $attr = array() ) {
 	$width  = absint( $header->width );
 	$height = absint( $header->height );
 
+	// Use alternative text assigned to the image, if available. Otherwise, leave it empty.
+	if ( ! empty( $header->attachment_id ) && is_string( get_post_meta( $header->attachment_id, '_wp_attachment_image_alt', true ) ) ) {
+		$alt = get_post_meta( $header->attachment_id, '_wp_attachment_image_alt', true );
+	} else {
+		$alt = '';
+	}
+
 	$attr = wp_parse_args(
 		$attr,
 		array(
 			'src'    => $header->url,
 			'width'  => $width,
 			'height' => $height,
-			'alt'    => get_bloginfo( 'name' ),
+			'alt'    => $alt,
 		)
 	);
 
@@ -4084,5 +4091,6 @@ function create_initial_theme_features() {
  * @return boolean Whether the current theme is a block-based theme or not.
  */
 function wp_is_block_template_theme() {
-	return is_readable( get_theme_file_path( '/block-templates/index.html' ) );
+	return is_readable( get_theme_file_path( '/block-templates/index.html' ) ) ||
+		is_readable( get_theme_file_path( '/templates/index.html' ) );
 }
