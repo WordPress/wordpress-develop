@@ -54,6 +54,15 @@ define( 'ARRAY_N', 'ARRAY_N' );
 class wpdb {
 
 	/**
+	 * Version number, to check what features are available.
+	 *
+	 * @since 6.0.0 - V2: wbdb::prepare() supports Identifiers via 'SELECT * FROM %i', and Variadics via 'IN (%...d)'
+	 *
+	 * @var int
+	 */
+	public $version = 2;
+
+	/**
 	 * Whether to show SQL/DB errors.
 	 *
 	 * Default is to show errors if both WP_DEBUG and WP_DEBUG_DISPLAY evaluate to true.
