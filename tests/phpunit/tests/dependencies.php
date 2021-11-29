@@ -144,10 +144,10 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 		$dep->enqueue( 'one' );
 
-		$this->assertArrayNotHasKey( 'one', $dep->queue );
+		$this->assertNotContains( 'one', $dep->queue );
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
 
-		$this->assertArrayHasKey( 'one', $dep->queue );
+		$this->assertContains( 'one', $dep->queue );
 	}
 }
