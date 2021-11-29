@@ -140,14 +140,14 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	function test_enqueue_before_register() {
 		$dep = new WP_Dependencies;
 
-		$this->assertArrayNotHasKey( $dep->registered, 'one' );
+		$this->assertArrayNotHasKey( 'one', $dep->registered );
 
 		$dep->enqueue( 'one' );
 
-		$this->assertArrayNotHasKey( $dep->queue, 'one' );
+		$this->assertArrayNotHasKey( 'one', $dep->queue );
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
 
-		$this->assertArrayHasKey( $dep->queue, 'one' );
+		$this->assertArrayHasKey( 'one', $dep->queue );
 	}
 }
