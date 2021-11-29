@@ -344,7 +344,8 @@ class WP_Theme_JSON {
 		$this->theme_json    = WP_Theme_JSON_Schema::migrate( $theme_json );
 		$valid_block_names   = array_keys( self::get_blocks_metadata() );
 		$valid_element_names = array_keys( self::ELEMENTS );
-		$this->theme_json    = self::sanitize( $this->theme_json, $valid_block_names, $valid_element_names );
+		$theme_json          = self::sanitize( $this->theme_json, $valid_block_names, $valid_element_names );
+		$this->theme_json    = self::maybe_opt_in_into_settings( $theme_json );
 
 		// Internally, presets are keyed by origin.
 		$nodes = self::get_setting_nodes( $this->theme_json );
@@ -1591,7 +1592,6 @@ class WP_Theme_JSON {
 		$valid_block_names   = array_keys( self::get_blocks_metadata() );
 		$valid_element_names = array_keys( self::ELEMENTS );
 		$theme_json          = self::sanitize( $theme_json, $valid_block_names, $valid_element_names );
-		$this->theme_json    = self::maybe_opt_in_into_settings( $theme_json );
 
 		$blocks_metadata = self::get_blocks_metadata();
 		$style_nodes     = self::get_style_nodes( $theme_json, $blocks_metadata );
