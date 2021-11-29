@@ -10,7 +10,7 @@
  *
  * @group block-templates
  */
-class Block_Template_Test extends WP_UnitTestCase {
+class Tests_Block_Template extends WP_UnitTestCase {
 	private static $post;
 
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
