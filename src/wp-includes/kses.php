@@ -2408,6 +2408,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 		}
 
+		// Allow CSS calc().
+		$css_test_string = preg_replace( '/calc\(((?:\([^()]*\)?|[^()])*)\)/', '', $css_test_string );
+		// Allow CSS var().
+		$css_test_string = preg_replace( '/\(?var\(--[a-zA-Z0-9_-]*\)/', '', $css_test_string );
+
 		if ( $found && $url_attr ) {
 			// Simplified: matches the sequence `url(*)`.
 			preg_match_all( '/url\([^)]+\)/', $parts[1], $url_matches );
