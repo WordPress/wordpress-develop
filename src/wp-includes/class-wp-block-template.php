@@ -69,7 +69,6 @@ class WP_Block_Template {
 	 */
 	public $description = '';
 
-
 	/**
 	 * Source of the content. `theme` and `custom` is used for now.
 	 *
@@ -77,7 +76,6 @@ class WP_Block_Template {
 	 * @var string
 	 */
 	public $source = 'theme';
-
 
 	/**
 	 * Origin of the content when the content has been customized.
