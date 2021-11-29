@@ -1,6 +1,7 @@
 {
 	"version": 2,
 	"settings": {
+		"appearanceTools": false,
 		"border": {
 			"color": false,
 			"radius": false,
