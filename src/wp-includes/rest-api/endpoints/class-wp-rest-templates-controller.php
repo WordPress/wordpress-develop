@@ -250,9 +250,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$update = true;
 			$result = wp_update_post( wp_slash( (array) $changes ), false );
 		} else {
-			$update = false;
+			$update      = false;
 			$post_before = null;
-			$result = wp_insert_post( wp_slash( (array) $changes ), false );
+			$result      = wp_insert_post( wp_slash( (array) $changes ), false );
 		}
 
 		if ( is_wp_error( $result ) ) {
@@ -269,7 +269,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
 		}
-		
+
 		$request->set_param( 'context', 'edit' );
 
 		$post = get_post( $template->wp_id );
