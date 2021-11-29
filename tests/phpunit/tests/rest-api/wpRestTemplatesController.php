@@ -153,6 +153,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
+	/**
 	 * @ticket 54507
 	 * @dataProvider get_template_endpoint_urls
 	 */
