@@ -892,7 +892,7 @@ function wp_generate_block_templates_export_file() {
 
 	$zip = new ZipArchive();
 	if ( true !== $zip->open( $filename, ZipArchive::CREATE ) ) {
-		return new WP_Error( __( 'Unable to open export file (archive) for writing.', 'gutenberg' ) );
+		return new WP_Error( __( 'Unable to open export file (archive) for writing.' ) );
 	}
 
 	$zip->addEmptyDir( 'theme' );
