@@ -269,11 +269,14 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
 		}
+		
+		$request->set_param( 'context', 'edit' );
 
 		$post = get_post( $template->wp_id );
-		wp_after_insert_post( $post, $update, $post_before );
+		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+		do_action( "rest_after_insert_{$this->post_type}", $post, $request, false );
 
-		$request->set_param( 'context', 'edit' );
+		wp_after_insert_post( $post, $update, $post_before );
 
 		$response = $this->prepare_item_for_response( $template, $request );
 
@@ -324,6 +327,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
 		}
+
+		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+		do_action( "rest_after_insert_{$this->post_type}", $post, $request, true );
 
 		wp_after_insert_post( $post, false, null );
 
