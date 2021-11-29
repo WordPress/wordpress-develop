@@ -101,7 +101,7 @@ class WP_Dependencies {
 	 *
 	 * @var array
 	 */
-	private $queued_before_register = [];
+	private $queued_before_register = array();
 
 	/**
 	 * Processes the items and dependencies.
