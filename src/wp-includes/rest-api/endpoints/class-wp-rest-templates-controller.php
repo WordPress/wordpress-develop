@@ -72,8 +72,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'id' => array(
-						'description' => __( 'The id of a template' ),
-						'type'        => 'string',
+						'description'       => __( 'The id of a template' ),
+						'type'              => 'string',
+						'sanitize_callback' => array( $this, '_sanitize_template_id' ),
 					),
 				),
 				array(
@@ -129,6 +130,39 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Requesting this endpoint for a template like 'twentytwentytwo//home'
+	 * requires using a path like /wp/v2/templates/twentytwentytwo//home. There
+	 * are special cases when WordPress routing corrects the name to contain
+	 * only a single slash like 'twentytwentytwo/home'.
+	 *
+	 * This method doubles the last slash if it's not already doubled. It relies
+	 * on the template ID format {theme_name}//{template_slug} and the fact that
+	 * slugs cannot contain slashes.
+	 *
+	 * @since 5.9.0
+	 * @see https://core.trac.wordpress.org/ticket/54507
+	 *
+	 * @param string $id Template ID.
+	 * @return string Sanitized template ID.
+	 */
+	public function _sanitize_template_id( $id ) {
+		$last_slash_pos = strrpos( $id, '/' );
+		if ( false === $last_slash_pos ) {
+			return $id;
+		}
+
+		$is_double_slashed = substr( $id, $last_slash_pos - 1, 1 ) === '/';
+		if ( $is_double_slashed ) {
+			return $id;
+		}
+		return (
+			substr( $id, 0, $last_slash_pos )
+			. '/'
+			. substr( $id, $last_slash_pos )
+		);
 	}
 
 	/**
@@ -555,6 +589,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['has_theme_file'] = (bool) $template->has_theme_file;
 		}
 
+		if ( rest_is_field_included( 'is_custom', $fields ) && 'wp_template' === $template->type ) {
+			$data['is_custom'] = $template->is_custom;
+		}
+
 		if ( rest_is_field_included( 'area', $fields ) && 'wp_template_part' === $template->type ) {
 			$data['area'] = $template->area;
 		}
@@ -768,6 +806,15 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 			),
 		);
+
+		if ( 'wp_template' === $this->post_type ) {
+			$schema['properties']['is_custom'] = array(
+				'description' => __( 'Whether a template is a custom template.' ),
+				'type'        => 'bool',
+				'context'     => array( 'embed', 'view', 'edit' ),
+				'readonly'    => true,
+			);
+		}
 
 		if ( 'wp_template_part' === $this->post_type ) {
 			$schema['properties']['area'] = array(
