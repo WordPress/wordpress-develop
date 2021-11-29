@@ -230,7 +230,6 @@ class WP_Theme_JSON_Resolver {
 	 * @param array    $post_status_filter Filter Optional. custom post type by
 	 *                                     post status.  ['publish'] by default,
 	 *                                     so it only fetches published posts.
-	 *
 	 * @return array Custom Post Type for the user's origin config.
 	 */
 	public static function get_user_data_from_custom_post_type( $theme, $should_create_cpt = false, $post_status_filter = array( 'publish' ) ) {
@@ -333,8 +332,8 @@ class WP_Theme_JSON_Resolver {
 
 	/**
 	 * There are three sources of data (origins) for a site:
-	 * default, theme, and user. The user's has higher priority
-	 * than the theme's, and the theme's higher than core's.
+	 * default, theme, and custom. The custom's has higher priority
+	 * than the theme's, and the theme's higher than default's.
 	 *
 	 * Unlike the getters {@link get_core_data},
 	 * {@link get_theme_data}, and {@link get_user_data},
