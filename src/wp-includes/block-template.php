@@ -45,7 +45,7 @@ function locate_block_template( $template, $type, array $templates ) {
 		$templates = array_slice( $templates, 0, $index + 1 );
 	}
 
-	$block_template = resolve_block_template( $type, $templates );
+	$block_template = resolve_block_template( $type, $templates, $template );
 
 	if ( $block_template ) {
 		if ( empty( $block_template->content ) && is_user_logged_in() ) {
@@ -97,7 +97,7 @@ function locate_block_template( $template, $type, array $templates ) {
  * @param string[] $template_hierarchy The current template hierarchy, ordered by priority.
  * @return WP_Block_Template|null template A template object, or null if none could be found.
  */
-function resolve_block_template( $template_type, $template_hierarchy ) {
+function resolve_block_template( $template_type, $template_hierarchy, $fallback_template ) {
 	if ( ! $template_type ) {
 		return null;
 	}
@@ -116,7 +116,7 @@ function resolve_block_template( $template_type, $template_hierarchy ) {
 		'theme'    => wp_get_theme()->get_stylesheet(),
 		'slug__in' => $slugs,
 	);
-	$templates = get_block_templates( $query );
+	$templates = get_block_templates( $query, 'wp_template', $fallback_template );
 
 	// Order these templates per slug priority.
 	// Build map of template slugs to their priority in the current hierarchy.

@@ -576,7 +576,7 @@ function _build_block_template_result_from_post( $post ) {
  *
  * @return array Templates.
  */
-function get_block_templates( $query = array(), $template_type = 'wp_template' ) {
+function get_block_templates( $query = array(), $template_type = 'wp_template', $child_theme_fallback_php_template = null ) {
 	/**
 	 * Filters the block templates array before the query takes place.
 	 *
@@ -654,8 +654,8 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	}
 
 	if ( ! isset( $query['wp_id'] ) ) {
-		$parent_theme  = wp_get_theme( $theme )->get_template();
-		$parent_theme  = isset( $parent_theme ) ? $parent_theme : $theme;
+		$parent_theme = wp_get_theme( $theme )->get_template();
+		$parent_theme = isset( $parent_theme ) ? $parent_theme : $theme;
 
 		$themes = array_unique(
 			array( $theme, $parent_theme )
@@ -669,6 +669,24 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 				$template_files,
 				_get_block_templates_files( $template_type, $theme_slug, $slug__in )
 			);
+			if ( $child_theme_fallback_php_template && isset( $slug__in ) ) {
+				$theme_base_path            = wp_get_theme( $theme )->get_stylesheet_directory();
+				$fallback_php_template_slug = substr(
+					$child_theme_fallback_php_template,
+					// Starting position of slug.
+					strpos( $child_theme_fallback_php_template, $theme_base_path . DIRECTORY_SEPARATOR ) + 1 + strlen( $theme_base_path ),
+					// Remove '.php' suffix.
+					-4
+				);
+
+				// Locate the index of the fallback template's slug (without the theme directory path) in $slug__in.
+				$index = array_search( $fallback_php_template_slug, $slug__in, true );
+
+				// If the template hierarchy algorithm has successfully located a PHP template file
+				// in the child theme, we will only consider block templates with higher specificity
+				// from the parent theme.
+				$slug__in = array_slice( $slug__in, 0, $index );
+			}
 		}
 
 		foreach ( $template_files as $template_file ) {
