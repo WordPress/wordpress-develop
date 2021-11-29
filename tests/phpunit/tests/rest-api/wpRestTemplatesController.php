@@ -102,7 +102,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'status'         => 'publish',
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
-				'is_custom'      => false,
+				'is_custom'      => true,
 				'author'         => 0,
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
@@ -146,7 +146,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'status'         => 'publish',
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
-				'is_custom'      => false,
+				'is_custom'      => true,
 				'author'         => 0,
 			),
 			$data
@@ -305,6 +305,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 				'status'         => 'publish',
 				'has_theme_file' => false,
+				'is_custom'      => true,
 				'author'         => self::$admin_id,
 			),
 			$data
@@ -461,7 +462,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 13, $properties );
+		$this->assertCount( 14, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
@@ -475,6 +476,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'wp_id', $properties );
 		$this->assertArrayHasKey( 'has_theme_file', $properties );
+		$this->assertArrayHasKey( 'is_custom', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 	}
 
