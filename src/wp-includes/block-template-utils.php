@@ -592,6 +592,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	 *     @type array  $slug__in List of slugs to include.
 	 *     @type int    $wp_id Post ID of customized template.
 	 *     @type string $post_type Post type to get the templates for.
+	 *     @type string $theme Theme in which to look for template files.
 	 * }
 	 * @param array $template_type wp_template or wp_template_part.
 	 */
