@@ -8,11 +8,13 @@
 			"width": false
 		},
 		"color": {
+			"background": true,
 			"custom": true,
 			"customDuotone": true,
  			"customGradient": true,
+			"defaultPalette": true,
+			"defaultGradients": true,
  			"link": false,
-			"background": true,
 			"text": true,
 			"duotone": [
 				{
