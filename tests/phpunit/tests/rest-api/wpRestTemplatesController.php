@@ -153,7 +153,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
-	/**
 	 * @ticket 54507
 	 * @dataProvider get_template_endpoint_urls
 	 */
@@ -166,22 +165,24 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		unset( $data['content'] );
 		unset( $data['_links'] );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
-				'id'             => 'tt1-blocks//index',
-				'theme'          => 'tt1-blocks',
-				'slug'           => 'index',
-				'title'          => array(
-					'raw'      => 'Index',
-					'rendered' => 'Index',
-				),
-				'description'    => 'The default template used when no other template is available. This is a required template in WordPress.',
-				'status'         => 'publish',
-				'source'         => 'theme',
+				'id'             => 'default//my_template',
+				'theme'          => 'default',
+				'slug'           => 'my_template',
+				'source'         => 'custom',
+				'origin'         => null,
 				'type'           => 'wp_template',
-				'wp_id'          => null,
-				'has_theme_file' => true,
-				'is_custom'      => false,
+				'description'    => 'Description of my template.',
+				'title'          => array(
+					'raw'      => 'My Template',
+					'rendered' => 'My Template',
+				),
+				'status'         => 'publish',
+				'wp_id'          => self::$post->ID,
+				'has_theme_file' => false,
+				'is_custom'      => true,
+				'author'         => 0,
 			),
 			$data
 		);
@@ -189,10 +190,10 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	public function get_template_endpoint_urls() {
 		return array(
-			array( '/wp/v2/templates/tt1-blocks/index' ),
-			array( '/wp/v2/templates/tt1-blocks//index' ),
+			array( '/wp/v2/templates/default/my_template' ),
+			array( '/wp/v2/templates/default//my_template' ),
 		);
-	}
+	} ```
 
 	/**
 	 * @ticket 54507
