@@ -5117,6 +5117,11 @@ mockedApiResponse.Schema = {
                                 "private"
                             ],
                             "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -5261,6 +5266,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -5571,6 +5581,11 @@ mockedApiResponse.Schema = {
                                 "private"
                             ],
                             "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -5750,6 +5765,11 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
+                        },
                         "area": {
                             "description": "Where the template part is intended for use (header, footer, etc.)",
                             "type": "string",
@@ -5898,6 +5918,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         },
                         "area": {
@@ -6212,6 +6237,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         },
                         "area": {

@@ -278,6 +278,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		$changes = $this->prepare_item_for_database( $request );
 
+		if ( is_wp_error( $changes ) ) {
+			return $changes;
+		}
+
 		if ( 'custom' === $template->source ) {
 			$result = wp_update_post( wp_slash( (array) $changes ), true );
 		} else {
@@ -327,7 +331,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
-		$prepared_post            = $this->prepare_item_for_database( $request );
+		$prepared_post = $this->prepare_item_for_database( $request );
+
+		if ( is_wp_error( $prepared_post ) ) {
+			return $prepared_post;
+		}
+
 		$prepared_post->post_name = $request['slug'];
 		$post_id                  = wp_insert_post( wp_slash( (array) $prepared_post ), true );
 		if ( is_wp_error( $post_id ) ) {
@@ -456,6 +465,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->tax_input   = array(
 				'wp_theme' => $template->theme,
 			);
+			$changes->meta_input  = array(
+				'origin' => $template->source,
+			);
 		} else {
 			$changes->post_name   = $template->slug;
 			$changes->ID          = $template->wp_id;
@@ -493,6 +505,24 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			} elseif ( ! $template->area ) {
 				$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
 			}
+		}
+
+		if ( ! empty( $request['author'] ) ) {
+			$post_author = (int) $request['author'];
+
+			if ( get_current_user_id() !== $post_author ) {
+				$user_obj = get_userdata( $post_author );
+
+				if ( ! $user_obj ) {
+					return new WP_Error(
+						'rest_invalid_author',
+						__( 'Invalid author ID.' ),
+						array( 'status' => 400 )
+					);
+				}
+			}
+
+			$changes->post_author = $post_author;
 		}
 
 		return $changes;
@@ -544,6 +574,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['source'] = $template->source;
 		}
 
+		if ( rest_is_field_included( 'origin', $fields ) ) {
+			$data['origin'] = $template->origin;
+		}
+
 		if ( rest_is_field_included( 'type', $fields ) ) {
 			$data['type'] = $template->type;
 		}
@@ -583,6 +617,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		if ( rest_is_field_included( 'is_custom', $fields ) && 'wp_template' === $template->type ) {
 			$data['is_custom'] = $template->is_custom;
+		}
+
+		if ( rest_is_field_included( 'author', $fields ) ) {
+			$data['author'] = (int) $template->author;
 		}
 
 		if ( rest_is_field_included( 'area', $fields ) && 'wp_template_part' === $template->type ) {
@@ -733,6 +771,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
+				'origin'         => array(
+					'description' => __( 'Source of a customized template' ),
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
 				'content'        => array(
 					'description' => __( 'Content of template.' ),
 					'type'        => array( 'object', 'string' ),
@@ -795,6 +839,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'type'        => 'bool',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
+				),
+				'author'         => array(
+					'description' => __( 'The ID for the author of the template.' ),
+					'type'        => 'integer',
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
