@@ -327,7 +327,30 @@ class WP_Automatic_Updater {
 		}
 
 		// Determine whether we can and should perform this update.
-		if ( ! $this->should_update( $type, $item, $context ) ) {
+		$should_update = false;
+		if ( ! empty( $item->autoupdate ) && is_array( $item->autoupdate ) ) {
+			$autoupdates = $item->autoupdate;
+			unset( $item->autoupdate );
+
+			// Check if the full update should be used first.
+			if ( $this->should_update( $type, $item, $context ) ) {
+				$should_update = true;
+			} else {
+				// Try the autoupdates.
+				foreach ( $autoupdates as $autoupdate_item ) {
+					$autoupdate_item = (object) array_merge( (array) $item, (array) $autoupdate_item, array( 'autoupdate' => true ) );
+					if ( $this->should_update( $type, $autoupdate_item, $context ) ) {
+						$item          = $autoupdate_item;
+						$should_update = true;
+						break;
+					}
+				}
+			}
+		} else {
+			$should_update = $this->should_update( $type, $item, $context );
+		}
+
+		if ( ! $should_update ) {
 			return false;
 		}
 
