@@ -1944,7 +1944,7 @@ function get_cancel_comment_reply_link( $text = '', $post_id = 0 ) {
 
 	$reply_to_id = _get_comment_reply_id( $post_id );
 
-	$style = ! empty( $reply_to_id ) ? '' : ' style="display:none;"';
+	$style = 0 !== $reply_to_id ? '' : ' style="display:none;"';
 	$link  = esc_html( remove_query_arg( array( 'replytocom', 'unapproved', 'moderation-hash' ) ) ) . '#respond';
 
 	$formatted_link = '<a rel="nofollow" id="cancel-comment-reply-link" href="' . $link . '"' . $style . '>' . $text . '</a>';
