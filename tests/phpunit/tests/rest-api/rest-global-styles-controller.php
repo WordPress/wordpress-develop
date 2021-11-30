@@ -53,7 +53,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			array(
 				'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
 				'post_status'  => 'publish',
-				'post_title'   => __( 'Custom Styles', 'default' ),
+				'post_title'   => 'Custom Styles',
 				'post_type'    => 'wp_global_styles',
 				'post_name'    => 'wp-global-styles-tt1-blocks',
 				'tax_input'    => array(
