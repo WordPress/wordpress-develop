@@ -5117,6 +5117,11 @@ mockedApiResponse.Schema = {
                                 "private"
                             ],
                             "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -5261,6 +5266,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -5571,6 +5581,11 @@ mockedApiResponse.Schema = {
                                 "private"
                             ],
                             "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -5750,6 +5765,11 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
+                        },
                         "area": {
                             "description": "Where the template part is intended for use (header, footer, etc.)",
                             "type": "string",
@@ -5898,6 +5918,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         },
                         "area": {
@@ -6212,6 +6237,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         },
                         "area": {
@@ -10607,93 +10637,6 @@ mockedApiResponse.Schema = {
                                 "edit"
                             ],
                             "default": "view",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
-        "/wp/v2/block-navigation-areas": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
-                            "required": false
-                        }
-                    }
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp/v2/block-navigation-areas"
-                    }
-                ]
-            }
-        },
-        "/wp/v2/block-navigation-areas/(?P<area>[\\w-]+)": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "allow_batch": {
-                        "v1": true
-                    },
-                    "args": {
-                        "area": {
-                            "description": "An alphanumeric identifier for the navigation area.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
-                            "required": false
-                        }
-                    }
-                },
-                {
-                    "methods": [
-                        "POST",
-                        "PUT",
-                        "PATCH"
-                    ],
-                    "allow_batch": {
-                        "v1": true
-                    },
-                    "args": {
-                        "area": {
-                            "description": "An alphanumeric identifier for the navigation area.",
-                            "type": "string",
                             "required": false
                         }
                     }

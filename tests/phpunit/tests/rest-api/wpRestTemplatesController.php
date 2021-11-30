@@ -53,7 +53,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		wp_delete_post( self::$post->ID );
 	}
 
-
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/templates', $routes );
@@ -93,6 +92,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'theme'          => 'default',
 				'slug'           => 'my_template',
 				'source'         => 'custom',
+				'origin'         => null,
 				'type'           => 'wp_template',
 				'description'    => 'Description of my template.',
 				'title'          => array(
@@ -102,6 +102,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'status'         => 'publish',
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
+				'is_custom'      => true,
+				'author'         => 0,
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
@@ -134,6 +136,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'theme'          => 'default',
 				'slug'           => 'my_template',
 				'source'         => 'custom',
+				'origin'         => null,
 				'type'           => 'wp_template',
 				'description'    => 'Description of my template.',
 				'title'          => array(
@@ -143,8 +146,75 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'status'         => 'publish',
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
+				'is_custom'      => true,
+				'author'         => 0,
 			),
 			$data
+		);
+	}
+
+	/**
+	 * @ticket 54507
+	 * @dataProvider get_template_endpoint_urls
+	 */
+	public function test_get_item_works_with_a_single_slash( $endpoint_url ) {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', $endpoint_url );
+		$response = rest_get_server()->dispatch( $request );
+
+		$data = $response->get_data();
+		unset( $data['content'] );
+		unset( $data['_links'] );
+
+		$this->assertSame(
+			array(
+				'id'             => 'default//my_template',
+				'theme'          => 'default',
+				'slug'           => 'my_template',
+				'source'         => 'custom',
+				'origin'         => null,
+				'type'           => 'wp_template',
+				'description'    => 'Description of my template.',
+				'title'          => array(
+					'raw'      => 'My Template',
+					'rendered' => 'My Template',
+				),
+				'status'         => 'publish',
+				'wp_id'          => self::$post->ID,
+				'has_theme_file' => false,
+				'is_custom'      => true,
+				'author'         => 0,
+			),
+			$data
+		);
+	}
+
+	public function get_template_endpoint_urls() {
+		return array(
+			array( '/wp/v2/templates/default/my_template' ),
+			array( '/wp/v2/templates/default//my_template' ),
+		);
+	}
+
+	/**
+	 * @ticket 54507
+	 * @dataProvider get_template_ids_to_sanitize
+	 */
+	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
+		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
+		$this->assertEquals(
+			$sanitized_id,
+			$endpoint->_sanitize_template_id( $input_id )
+		);
+	}
+
+	public function get_template_ids_to_sanitize() {
+		return array(
+			array( 'tt1-blocks/index', 'tt1-blocks//index' ),
+			array( 'tt1-blocks//index', 'tt1-blocks//index' ),
+
+			array( 'theme-experiments/tt1-blocks/index', 'theme-experiments/tt1-blocks//index' ),
+			array( 'theme-experiments/tt1-blocks//index', 'theme-experiments/tt1-blocks//index' ),
 		);
 	}
 
@@ -161,6 +231,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'description' => 'Just a description',
 				'title'       => 'My Template',
 				'content'     => 'Content',
+				'author'      => self::$admin_id,
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -177,6 +248,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 				'slug'           => 'my_custom_template',
 				'source'         => 'custom',
+				'origin'         => null,
 				'type'           => 'wp_template',
 				'description'    => 'Just a description',
 				'title'          => array(
@@ -185,6 +257,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 				'status'         => 'publish',
 				'has_theme_file' => false,
+				'is_custom'      => true,
+				'author'         => self::$admin_id,
 			),
 			$data
 		);
@@ -207,6 +281,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'content'     => array(
 					'raw' => 'Content',
 				),
+				'author'      => self::$admin_id,
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -223,6 +298,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 				'slug'           => 'my_custom_template_raw',
 				'source'         => 'custom',
+				'origin'         => null,
 				'type'           => 'wp_template',
 				'description'    => 'Just a description',
 				'title'          => array(
@@ -231,9 +307,27 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 				'status'         => 'publish',
 				'has_theme_file' => false,
+				'is_custom'      => true,
+				'author'         => self::$admin_id,
 			),
 			$data
 		);
+	}
+
+	public function test_create_item_invalid_author() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
+		$request->set_body_params(
+			array(
+				'slug'        => 'my_custom_template_invalid_author',
+				'description' => 'Just a description',
+				'title'       => 'My Template',
+				'content'     => 'Content',
+				'author'      => -1,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_author', $response, 400 );
 	}
 
 	/**
@@ -370,19 +464,22 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 11, $properties );
+		$this->assertCount( 14, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'theme', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'source', $properties );
+		$this->assertArrayHasKey( 'origin', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'wp_id', $properties );
 		$this->assertArrayHasKey( 'has_theme_file', $properties );
+		$this->assertArrayHasKey( 'is_custom', $properties );
+		$this->assertArrayHasKey( 'author', $properties );
 	}
 
 	protected function find_and_normalize_template_by_id( $templates, $id ) {

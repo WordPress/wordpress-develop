@@ -171,8 +171,6 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/navigation/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/navigation/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/navigation/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
-			'/wp/v2/block-navigation-areas',
-			'/wp/v2/block-navigation-areas/(?P<area>[\w-]+)',
 			'/wp-site-health/v1',
 			'/wp-site-health/v1/tests/background-updates',
 			'/wp-site-health/v1/tests/loopback-requests',
