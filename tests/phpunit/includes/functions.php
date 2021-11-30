@@ -312,7 +312,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_legacy_widget' );
 	remove_action( 'init', 'register_block_core_loginout' );
 	remove_action( 'init', 'register_block_core_navigation' );
-	remove_action( 'init', 'register_block_core_navigation_area' );
 	remove_action( 'init', 'register_block_core_navigation_link' );
 	remove_action( 'init', 'register_block_core_navigation_submenu' );
 	remove_action( 'init', 'register_block_core_page_list' );
