@@ -17,7 +17,9 @@
 class WP_REST_Edit_Site_Export_Controller extends WP_REST_Controller {
 
 	/**
-	 * Constructs the controller.
+	 * Constructor.
+	 *
+	 * @since 5.9.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp-block-editor/v1';
@@ -25,7 +27,9 @@ class WP_REST_Edit_Site_Export_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the necessary REST API routes.
+	 * Registers the site export route.
+	 *
+	 * @since 5.9.0
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -44,23 +48,27 @@ class WP_REST_Edit_Site_Export_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a given request has permission to export.
 	 *
-	 * @return WP_Error|bool True if the request has access, or WP_Error object.
+	 * @since 5.9.0
+	 *
+	 * @return WP_Error|true True if the request has access, or WP_Error object.
 	 */
 	public function permissions_check() {
-		if ( current_user_can( 'edit_theme_options' ) ) {
-			return true;
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			new WP_Error(
+				'rest_cannot_view_url_details',
+				__( 'Sorry, you are not allowed to export templates and template parts.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
 
-		return new WP_Error(
-			'rest_cannot_view_url_details',
-			__( 'Sorry, you are not allowed to export templates and template parts.' ),
-			array( 'status' => rest_authorization_required_code() )
-		);
+		return true;
 	}
 
 	/**
 	 * Output a ZIP file with an export of the current templates
 	 * and template parts from the site editor, and close the connection.
+	 *
+	 * @since 5.9.0
 	 *
 	 * @return WP_Error|void
 	 */
@@ -69,6 +77,8 @@ class WP_REST_Edit_Site_Export_Controller extends WP_REST_Controller {
 		$filename = wp_generate_block_templates_export_file();
 
 		if ( is_wp_error( $filename ) ) {
+			$filename->add_data( array( 'status' => 500 ) );
+
 			return $filename;
 		}
 

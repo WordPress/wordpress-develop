@@ -346,6 +346,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * Should generate block templates export file.
+	 *
+	 * @ticket 54448
 	 */
 	function test_wp_generate_block_templates_export_file() {
 		$filename = wp_generate_block_templates_export_file();
