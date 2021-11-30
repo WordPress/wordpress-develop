@@ -146,7 +146,9 @@ body.post-new-php .submitbox .submitdelete {
 	margin-top: 3px;
 }
 
-body.post-type-wp_navigation div#minor-publishing {
+body.post-type-wp_navigation div#minor-publishing,
+body.post-type-wp_navigation .inline-edit-status
+{
 	display: none;
 }
 
