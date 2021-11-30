@@ -189,6 +189,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( $content_with_no_template_part, $template_content );
 	}
 
+	/**
+	 * @ticket 54448
+	 */
 	function test_remove_theme_attribute_in_block_template_content() {
 		$content_with_existing_theme_attribute = '<!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /-->';
 		$template_content                      = _remove_theme_attribute_in_block_template_content( $content_with_existing_theme_attribute );
