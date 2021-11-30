@@ -117,7 +117,7 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 
 		selection.reset( attachment ? [ attachment ] : [] );
 
-		if ( library.hasMore() ) {
+		if ( ! infinite_scrolling && library.hasMore() ) {
 			library.more();
 		}
 	}
