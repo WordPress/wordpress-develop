@@ -21,6 +21,35 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
 }
 
 /**
+ * For backward compatibility reasons,
+ * block themes might be using block-templates or block-template-parts,
+ * this function ensures we fallback to these folders properly.
+ *
+ * @since 5.9.0
+ *
+ * @param string $theme_stylesheet The stylesheet. Default is to leverage the main theme root.
+ *
+ * @return array Folder names used by block themes.
+ */
+function get_block_theme_folders( $theme_stylesheet = null ) {
+	$theme_name = null === $theme_stylesheet ? get_stylesheet() : $theme_stylesheet;
+	$root_dir   = get_theme_root( $theme_name );
+	$theme_dir  = "$root_dir/$theme_name";
+
+	if ( is_readable( $theme_dir . '/block-templates/index.html' ) ) {
+		return array(
+			'wp_template'      => 'block-templates',
+			'wp_template_part' => 'block-template-parts',
+		);
+	}
+
+	return array(
+		'wp_template'      => 'templates',
+		'wp_template_part' => 'parts',
+	);
+}
+
+/**
  * Returns a filtered list of allowed area values for template parts.
  *
  * @since 5.9.0
@@ -224,16 +253,13 @@ function _get_block_template_file( $template_type, $slug ) {
 		return null;
 	}
 
-	$template_base_paths = array(
-		'wp_template'      => 'block-templates',
-		'wp_template_part' => 'block-template-parts',
-	);
-	$themes              = array(
+	$themes = array(
 		get_stylesheet() => get_stylesheet_directory(),
 		get_template()   => get_template_directory(),
 	);
 	foreach ( $themes as $theme_slug => $theme_dir ) {
-		$file_path = $theme_dir . '/' . $template_base_paths[ $template_type ] . '/' . $slug . '.html';
+		$template_base_paths = get_block_theme_folders( $theme_slug );
+		$file_path           = $theme_dir . '/' . $template_base_paths[ $template_type ] . '/' . $slug . '.html';
 		if ( file_exists( $file_path ) ) {
 			$new_template_item = array(
 				'slug'  => $slug,
@@ -272,17 +298,13 @@ function _get_block_templates_files( $template_type ) {
 		return null;
 	}
 
-	$template_base_paths = array(
-		'wp_template'      => 'block-templates',
-		'wp_template_part' => 'block-template-parts',
-	);
-	$themes              = array(
+	$themes         = array(
 		get_stylesheet() => get_stylesheet_directory(),
 		get_template()   => get_template_directory(),
 	);
-
 	$template_files = array();
 	foreach ( $themes as $theme_slug => $theme_dir ) {
+		$template_base_paths  = get_block_theme_folders( $theme_slug );
 		$theme_template_files = _get_block_templates_paths( $theme_dir . '/' . $template_base_paths[ $template_type ] );
 		foreach ( $theme_template_files as $template_file ) {
 			$template_base_path = $template_base_paths[ $template_type ];
@@ -538,6 +560,8 @@ function _build_block_template_result_from_post( $post ) {
 	$has_theme_file = wp_get_theme()->get_stylesheet() === $theme &&
 		null !== _get_block_template_file( $post->post_type, $post->post_name );
 
+	$origin = get_post_meta( $post->ID, 'origin', true );
+
 	$template                 = new WP_Block_Template();
 	$template->wp_id          = $post->ID;
 	$template->id             = $theme . '//' . $post->post_name;
@@ -545,12 +569,14 @@ function _build_block_template_result_from_post( $post ) {
 	$template->content        = $post->post_content;
 	$template->slug           = $post->post_name;
 	$template->source         = 'custom';
+	$template->origin         = ! empty( $origin ) ? $origin : null;
 	$template->type           = $post->post_type;
 	$template->description    = $post->post_excerpt;
 	$template->title          = $post->post_title;
 	$template->status         = $post->post_status;
 	$template->has_theme_file = $has_theme_file;
 	$template->is_custom      = true;
+	$template->author         = $post->post_author;
 
 	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
 		$template->is_custom = false;

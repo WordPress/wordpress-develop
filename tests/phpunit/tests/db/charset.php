@@ -767,10 +767,10 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		self::$_wpdb->query( $create );
 
 		$charset = self::$_wpdb->get_table_charset( $table );
-		$this->assertSame( $charset, $expected_charset );
+		$this->assertSame( $expected_charset, $charset );
 
 		$charset = self::$_wpdb->get_table_charset( strtoupper( $table ) );
-		$this->assertSame( $charset, $expected_charset );
+		$this->assertSame( $expected_charset, $charset );
 
 		self::$_wpdb->query( $drop );
 	}

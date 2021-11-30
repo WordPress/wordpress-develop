@@ -247,7 +247,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		// And this is what we got when calling wp_get_nav_menus().
 		$nav_menus_names = wp_list_pluck( wp_get_nav_menus(), 'name' );
 
-		$this->assertSame( $nav_menus_names, $expected_nav_menus_names );
+		$this->assertSame( $expected_nav_menus_names, $nav_menus_names );
 	}
 
 	/**

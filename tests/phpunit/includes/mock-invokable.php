@@ -9,7 +9,7 @@
 /**
  * Class Mock_Invokable.
  *
- * This class is using to mock a class that has __invoke method.
+ * This class is used to mock a class that has an `__invoke` method.
  */
 class Mock_Invokable {
 
