@@ -476,15 +476,15 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 		}
 	}
 
-	if ( $has_updated_content ) {
-		foreach ( $template_blocks as $block ) {
-			$new_content .= serialize_block( $block );
-		}
-
-		return $new_content;
+	if ( ! $has_updated_content ) {
+		return $template_content;
 	}
 
-	return $template_content;
+	foreach ( $template_blocks as $block ) {
+		$new_content .= serialize_block( $block );
+	}
+
+	return $new_content;
 }
 
 /**
