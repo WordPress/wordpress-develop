@@ -2081,7 +2081,7 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
  * @since 5.9.0
  * @access private
  *
- * @param int $post_id Post ID.
+ * @param int|WP_Post $post_id Post ID or WP_Post object. Default current post.
  * @return int Comment's reply to ID.
  */
 function _get_comment_reply_id( $post_id ) {
@@ -2090,6 +2090,10 @@ function _get_comment_reply_id( $post_id ) {
 	}
 
 	$reply_to_id = (int) $_GET['replytocom'];
+
+	if ( $post_id instanceof WP_Post ) {
+		$post_id = $post_id->ID;
+	}
 
 	/*
 	 * Validate the comment.
