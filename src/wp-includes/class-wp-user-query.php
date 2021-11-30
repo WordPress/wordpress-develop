@@ -261,7 +261,8 @@ class WP_User_Query {
 		} elseif ( 'all' === $qv['fields'] ) {
 			$this->query_fields = "$wpdb->users.*";
 		} else {
-			$this->query_fields = "$wpdb->users.ID";
+			$field              = 'ID' === $qv['fields'] ? 'ID' : sanitize_key( $qv['fields'] );
+			$this->query_fields = "$wpdb->users.$field";
 		}
 
 		if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
