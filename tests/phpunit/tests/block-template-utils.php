@@ -191,27 +191,34 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54448
+	 *
+	 * @dataProvider data_remove_theme_attribute_in_block_template_content
 	 */
-	function test_remove_theme_attribute_in_block_template_content() {
-		$content_with_existing_theme_attribute = '<!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /-->';
-		$template_content                      = _remove_theme_attribute_in_block_template_content( $content_with_existing_theme_attribute );
-		$expected                              = '<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->';
-		$this->assertEquals( $expected, $template_content );
+	function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
+		$this->assertEquals( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
+	}
 
-		$content_with_existing_theme_attribute_nested = '<!-- wp:group --><!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /--><!-- /wp:group -->';
-		$template_content                             = _remove_theme_attribute_in_block_template_content( $content_with_existing_theme_attribute_nested );
-		$expected                                     = '<!-- wp:group --><!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /--><!-- /wp:group -->';
-		$this->assertEquals( $expected, $template_content );
-
-		// Does not modify content when there is no existing theme attribute.
-		$content_without_theme_attribute = '<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->';
-		$template_content                = _remove_theme_attribute_in_block_template_content( $content_without_theme_attribute );
-		$this->assertEquals( $content_without_theme_attribute, $template_content );
-
-		// Does not remove theme when there is no template part.
-		$content_with_no_template_part = '<!-- wp:post-content /-->';
-		$template_content              = _remove_theme_attribute_in_block_template_content( $content_with_no_template_part );
-		$this->assertEquals( $content_with_no_template_part, $template_content );
+	function data_remove_theme_attribute_in_block_template_content() {
+		return array(
+			array(
+				'<!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /-->',
+				'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+			),
+			array(
+				'<!-- wp:group --><!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /--><!-- /wp:group -->',
+				'<!-- wp:group --><!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /--><!-- /wp:group -->',
+			),
+			// Does not modify content when there is no existing theme attribute.
+			array(
+				'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+				'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+			),
+			// Does not remove theme when there is no template part.
+			array(
+				'<!-- wp:post-content /-->',
+				'<!-- wp:post-content /-->',
+			),
+		);
 	}
 
 	/**
