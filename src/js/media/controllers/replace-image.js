@@ -100,11 +100,12 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 	updateSelection: function() {
 		var selection = this.get('selection'),
 			library = this.get('library'),
-			attachment = this.image.attachment;
+			attachment = this.image.attachment,
+			infiniteScrolling = wp.media.view.settings.infiniteScrolling;
 
 		selection.reset( attachment ? [ attachment ] : [] );
 
-		if ( ! infinite_scrolling && library.getTotalAttachments() == 0 && library.hasMore() ) {
+		if ( ! infiniteScrolling && library.getTotalAttachments() === 0 && library.hasMore() ) {
 			library.more();
 		}
 	}
