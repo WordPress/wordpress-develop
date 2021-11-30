@@ -455,15 +455,13 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 }
 
 /**
- * Parses wp_template content and removes the theme attribute from
- * each wp_template_part
+ * Parses a block template and removes the theme attribute from each template part.
  *
  * @access private
  * @since 5.9.0
  *
- * @param string $template_content serialized wp_template content.
- *
- * @return string Updated wp_template content.
+ * @param string $template_content Serialized block template content.
+ * @return string Updated block template content.
  */
 function _remove_theme_attribute_in_block_template_content( $template_content ) {
 	$has_updated_content = false;
