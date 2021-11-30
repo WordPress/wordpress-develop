@@ -147,8 +147,7 @@ body.post-new-php .submitbox .submitdelete {
 }
 
 body.post-type-wp_navigation div#minor-publishing,
-body.post-type-wp_navigation .inline-edit-status
-{
+body.post-type-wp_navigation .inline-edit-status {
 	display: none;
 }
 
