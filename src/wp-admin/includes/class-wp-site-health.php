@@ -1231,7 +1231,7 @@ class WP_Site_Health {
 					sprintf(
 						/* translators: 1: The name of the drop-in. 2: The name of the database engine. */
 						__( 'You are using a %1$s drop-in which might mean that a %2$s database is not being used.' ),
-						'<code>wp-content/db.php</code>',
+						'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/db.php</code>',
 						( $this->is_mariadb ? 'MariaDB' : 'MySQL' )
 					),
 					array(
@@ -1953,7 +1953,7 @@ class WP_Site_Health {
 			'description' => sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup */
 				'<p>' . __( 'The %s directory used to improve the stability of plugin and theme updates is writable.' ),
-				'<code>wp-content/upgrade/temp-backup</code>'
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/upgrade/temp-backup</code>'
 			),
 			'actions'     => '',
 			'test'        => 'update_temp_backup_writable',
@@ -1987,8 +1987,8 @@ class WP_Site_Health {
 			$result['description'] = sprintf(
 				/* translators: 1: wp-content/upgrade/temp-backup/plugins, 2: wp-content/upgrade/temp-backup/themes. */
 				'<p>' . __( 'The %1$s and %2$s directories exist but are not writable. These directories are used to improve the stability of plugin updates. Please make sure the server has write permissions to these directories.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup/plugins</code>',
-				'<code>wp-content/upgrade/temp-backup/themes</code>'
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/upgrade/temp-backup/plugins</code>',
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/upgrade/temp-backup/themes</code>'
 			);
 			return $result;
 		}
@@ -2003,7 +2003,7 @@ class WP_Site_Health {
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup/plugins */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of plugin updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup/plugins</code>'
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/upgrade/temp-backup/plugins</code>'
 			);
 			return $result;
 		}
@@ -2018,7 +2018,7 @@ class WP_Site_Health {
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup/themes */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup/themes</code>'
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/upgrade/temp-backup/themes</code>'
 			);
 			return $result;
 		}
@@ -2033,7 +2033,7 @@ class WP_Site_Health {
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of plugin and theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup</code>'
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/upgrade/temp-backup</code>'
 			);
 			return $result;
 		}
@@ -2048,7 +2048,7 @@ class WP_Site_Health {
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used for plugin and theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade</code>'
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/upgrade</code>'
 			);
 			return $result;
 		}
@@ -2063,8 +2063,8 @@ class WP_Site_Health {
 			$result['description'] = sprintf(
 				/* translators: 1: wp-content/upgrade, 2: wp-content. */
 				'<p>' . __( 'The %1$s directory does not exist, and the server does not have write permissions in %2$s to create it. This directory is used for plugin and theme updates. Please make sure the server has write permissions in %2$s.' ) . '</p>',
-				'<code>wp-content/upgrade</code>',
-				'<code>wp-content</code>'
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/upgrade</code>',
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '</code>'
 			);
 			return $result;
 		}

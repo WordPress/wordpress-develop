@@ -112,7 +112,7 @@ $help_overview =
 	'<p>' . sprintf(
 		/* translators: %s: /wp-content/themes */
 		__( 'You can Upload a theme manually if you have already downloaded its ZIP archive onto your computer (make sure it is from a trusted and original source). You can also do it the old-fashioned way and copy a downloaded theme&#8217;s folder via FTP into your %s directory.' ),
-		'<code>/wp-content/themes</code>'
+		'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/themes</code>'
 	) . '</p>';
 
 get_current_screen()->add_help_tab(

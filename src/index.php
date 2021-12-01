@@ -11,19 +11,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
-if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
+if ( ! defined( 'WPINC' ) ) {
+	define( 'WPINC', 'wp-includes' );
+}
+
+if ( ! defined( 'WP_CONTENT_DIR' ) ) {
+	define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
+}
+
+if ( file_exists( ABSPATH . WPINC . '/js/dist/edit-post.js' ) ) {
 	require_once ABSPATH . '_index.php';
 	return;
 }
 
-define( 'WPINC', 'wp-includes' );
 require_once ABSPATH . WPINC . '/load.php';
 
 // Standardize $_SERVER variables across setups.
 wp_fix_server_vars();
 
 require_once ABSPATH . WPINC . '/functions.php';
-define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
 require_once ABSPATH . WPINC . '/version.php';
 
 wp_check_php_mysql_versions();

@@ -55,10 +55,10 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 	require_once dirname( ABSPATH ) . '/wp-config.php';
 
 } else {
-
 	// A config file doesn't exist.
-
-	define( 'WPINC', 'wp-includes' );
+	if ( ! defined( 'WPINC' ) ) {
+		define( 'WPINC', 'wp-includes' );
+	}
 	require_once ABSPATH . WPINC . '/load.php';
 
 	// Standardize $_SERVER variables across setups.
