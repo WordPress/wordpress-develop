@@ -13,10 +13,9 @@
 class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	private static $post;
 	private static $template_part_post;
+	private static $test_theme = 'block-theme';
 
 	public static function wpSetUpBeforeClass() {
-		switch_theme( 'block-theme' );
-
 		// Set up a template post corresponding to a different theme.
 		// We do this to ensure resolution and slug creation works as expected,
 		// even with another post of that same name present for another theme.
@@ -44,12 +43,12 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'post_excerpt' => 'Description of my template',
 			'tax_input'    => array(
 				'wp_theme' => array(
-					get_stylesheet(),
+					self::$test_theme,
 				),
 			),
 		);
 		self::$post = self::factory()->post->create_and_get( $args );
-		wp_set_post_terms( self::$post->ID, get_stylesheet(), 'wp_theme' );
+		wp_set_post_terms( self::$post->ID, self::$test_theme, 'wp_theme' );
 
 		// Set up template part post.
 		$template_part_args       = array(
@@ -60,7 +59,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'post_excerpt' => 'Description of my template part',
 			'tax_input'    => array(
 				'wp_theme'              => array(
-					get_stylesheet(),
+					self::$test_theme,
 				),
 				'wp_template_part_area' => array(
 					WP_TEMPLATE_PART_AREA_HEADER,
@@ -69,7 +68,12 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 		self::$template_part_post = self::factory()->post->create_and_get( $template_part_args );
 		wp_set_post_terms( self::$template_part_post->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
-		wp_set_post_terms( self::$template_part_post->ID, get_stylesheet(), 'wp_theme' );
+		wp_set_post_terms( self::$template_part_post->ID, self::$test_theme, 'wp_theme' );
+	}
+
+	public function set_up() {
+		parent::set_up();
+		switch_theme( self::$test_theme );
 	}
 
 	public static function wpTearDownAfterClass() {
