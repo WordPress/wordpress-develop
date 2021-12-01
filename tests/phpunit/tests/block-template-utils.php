@@ -15,8 +15,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	private static $template_part_post;
 
 	public static function wpSetUpBeforeClass() {
-		// We may need a block theme.
-		// switch_theme( 'tt1-blocks' );
+		switch_theme( 'block-theme' );
 
 		// Set up a template post corresponding to a different theme.
 		// We do this to ensure resolution and slug creation works as expected,
@@ -225,9 +224,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Should retrieve the template from the theme files.
 	 */
 	function test_get_block_template_from_file() {
-		$this->markTestIncomplete();
-		// Requires switching to a block theme.
-		/* $id       = get_stylesheet() . '//' . 'index';
+		$id       = get_stylesheet() . '//' . 'index';
 		$template = get_block_template( $id, 'wp_template' );
 		$this->assertSame( $id, $template->id );
 		$this->assertSame( get_stylesheet(), $template->theme );
@@ -237,16 +234,15 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'wp_template', $template->type );
 
 		// Test template parts.
-		$id       = get_stylesheet() . '//' . 'header';
+		$id       = get_stylesheet() . '//' . 'small-header';
 		$template = get_block_template( $id, 'wp_template_part' );
 		$this->assertSame( $id, $template->id );
 		$this->assertSame( get_stylesheet(), $template->theme );
-		$this->assertSame( 'header', $template->slug );
+		$this->assertSame( 'small-header', $template->slug );
 		$this->assertSame( 'publish', $template->status );
 		$this->assertSame( 'theme', $template->source );
 		$this->assertSame( 'wp_template_part', $template->type );
 		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template->area );
-		*/
 	}
 
 	/**
