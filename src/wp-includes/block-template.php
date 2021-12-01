@@ -160,7 +160,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 			// -- not its parent -- once we edit it and store it to the DB as a wp_template CPT.)
 			// Instead, we use _get_block_template_file() to locate the block template file.
 			$template_file = _get_block_template_file( 'wp_template', $fallback_template_slug );
-			if ( get_template() === $template_file['theme'] ) {
+			if ( $template_file && get_template() === $template_file['theme'] ) {
 				// The block template is part of the parent theme, so we
 				// have to give precedence to the child theme's PHP template.
 				array_shift( $templates );
