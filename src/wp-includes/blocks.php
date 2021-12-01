@@ -66,13 +66,15 @@ function generate_block_asset_handle( $block_name, $field_name ) {
  * generated handle name. It returns unprocessed script handle otherwise.
  *
  * @since 5.5.0
+ * @since 5.9.0 Added `$enqueue_in_footer` parameter.
  *
- * @param array  $metadata   Block metadata.
- * @param string $field_name Field name to pick from metadata.
+ * @param array  $metadata          Block metadata.
+ * @param string $field_name        Field name to pick from metadata.
+ * @param bool   $enqueue_in_footer Whether to enqueue the script in footer or not.
  * @return string|false Script handle provided directly or created through
  *                      script's registration, or false on failure.
  */
-function register_block_script_handle( $metadata, $field_name ) {
+function register_block_script_handle( $metadata, $field_name, $enqueue_in_footer = false ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
@@ -110,7 +112,8 @@ function register_block_script_handle( $metadata, $field_name ) {
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false,
+		$enqueue_in_footer
 	);
 	if ( ! $result ) {
 		return false;
@@ -209,7 +212,8 @@ function get_block_metadata_i18n_schema() {
  *
  * @since 5.5.0
  * @since 5.7.0 Added support for `textdomain` field and i18n handling for all translatable fields.
- * @since 5.9.0 Added support for `variations` and `viewScript` fields.
+ * @since 5.9.0 Added support for `variations`, `viewScript`, 'enqueueEditorFooter' and 'enqueueScriptFooter'
+ *              fields.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -287,14 +291,16 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	if ( ! empty( $metadata['editorScript'] ) ) {
 		$settings['editor_script'] = register_block_script_handle(
 			$metadata,
-			'editorScript'
+			'editorScript',
+			isset( $metadata['enqueueEditorFooter'] ) ? boolval( $metadata['enqueueEditorFooter'] ) : false
 		);
 	}
 
 	if ( ! empty( $metadata['script'] ) ) {
 		$settings['script'] = register_block_script_handle(
 			$metadata,
-			'script'
+			'script',
+			isset( $metadata['enqueueScriptFooter'] ) ? boolval( $metadata['enqueueScriptFooter'] ) : false
 		);
 	}
 
