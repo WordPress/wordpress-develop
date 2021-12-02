@@ -1600,7 +1600,7 @@ EOF;
 	}
 
 	/**
-	 * Test that uploaded object tags with port numbers in the URL.
+	 * Test that object tags are allowed when there is a port number in the URL.
 	 *
 	 * @ticket 54261
 	 *
