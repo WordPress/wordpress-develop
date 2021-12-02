@@ -1600,15 +1600,48 @@ EOF;
 				'<object type="application/pdf" data="/cat/foo.pdf" />',
 				'',
 			),
-			'url with port number'                    => array(
+		);
+	}
+
+	/**
+	 * Test that uploaded object tags with port numbers in the URL.
+	 *
+	 * @ticket 54261
+	 *
+	 * @dataProvider data_wp_kses_object_data_url_with_port_number_allowed
+	 *
+	 * @param string $html     A string of HTML to test.
+	 * @param string $expected The expected result from KSES.
+	 */
+	function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
+		add_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+		remove_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_object_data_url_with_port_number_allowed().
+	 */
+	function data_wp_kses_object_data_url_with_port_number_allowed() {
+		return array(
+			'url with port number'                   => array(
 				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
 				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
 			),
-			'url with port number-like path'          => array(
+			'url with port number and http protocol' => array(
+				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
+				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
+			),
+			'url with port number-like path'         => array(
 				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
 				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
 			),
 		);
+	}
+
+	public function wp_kses_upload_dir_filter( $param ) {
+		$param['port'] = 8888;
+		return $param;
 	}
 
 	/**
