@@ -276,6 +276,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// Get all the rss -> channel -> item elements.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
 
+		$this->assertNotEmpty( $items );
+
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
 			// Get post for comparison.

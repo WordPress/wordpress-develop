@@ -278,6 +278,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 
 		$post = $result['posts'][0];
 		$this->assertSame( 'Content with nested <![CDATA[ tags ]]> :)', $post['post_content'] );
+
+		$this->assertNotEmpty( $post['postmeta'] );
+
 		foreach ( $post['postmeta'] as $meta ) {
 			switch ( $meta['key'] ) {
 				case 'Plain string':

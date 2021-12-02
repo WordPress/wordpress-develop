@@ -807,6 +807,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		self::$_wpdb->query( $create );
 
+		$this->assertNotEmpty( $expected_charset );
+
 		foreach ( $expected_charset as $column => $charset ) {
 			$this->assertSame( $charset, self::$_wpdb->get_col_charset( $table, $column ) );
 			$this->assertSame( $charset, self::$_wpdb->get_col_charset( strtoupper( $table ), strtoupper( $column ) ) );
@@ -831,6 +833,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		self::$_wpdb->is_mysql = false;
 
 		self::$_wpdb->query( $create );
+
+		$this->assertNotEmpty( $columns );
 
 		$columns = array_keys( $columns );
 		foreach ( $columns as $column => $charset ) {
@@ -858,6 +862,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		unset( self::$_wpdb->is_mysql );
 
 		self::$_wpdb->query( $create );
+
+		$this->assertNotEmpty( $columns );
 
 		$columns = array_keys( $columns );
 		foreach ( $columns as $column => $charset ) {
@@ -1041,6 +1047,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		$return = self::$_wpdb->check_safe_collation( $query );
 		$this->assertSame( $expected, $return );
+
+		$this->assertNotEmpty( $always_true );
 
 		foreach ( $always_true as $true_query ) {
 			$return = self::$_wpdb->check_safe_collation( $true_query );

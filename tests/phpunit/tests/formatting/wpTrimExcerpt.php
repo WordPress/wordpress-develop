@@ -28,6 +28,9 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 				'post__in' => array( $post2 ),
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -59,6 +62,9 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 				'post__in' => array( $post2 ),
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();

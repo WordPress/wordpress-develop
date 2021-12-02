@@ -767,6 +767,9 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertStringContainsString( $expected, $template );
 
 		$post_types = get_post_types( array( 'show_in_nav_menus' => true ), 'object' );
+
+		$this->assertNotEmpty( $post_types );
+
 		if ( $post_types ) {
 			foreach ( $post_types as $type ) {
 				$this->assertStringContainsString( 'available-menu-items-post_type-' . esc_attr( $type->name ), $template );
@@ -778,6 +781,9 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		}
 
 		$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'object' );
+
+		$this->assertNotEmpty( $taxonomies );
+
 		if ( $taxonomies ) {
 			foreach ( $taxonomies as $tax ) {
 				$this->assertStringContainsString( 'available-menu-items-taxonomy-' . esc_attr( $tax->name ), $template );
