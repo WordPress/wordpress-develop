@@ -1517,59 +1517,83 @@ EOF;
 	function data_wp_kses_object_tag_allowed() {
 		return array(
 			'valid value for type'                    => array(
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'invalid value for type'                  => array(
-				'<object type="application/exe" data="https://wordpress.org/foo.exe" />',
+				'<object type="application/exe" data="https://example.org/foo.exe" />',
 				'',
 			),
 			'multiple type attributes, last invalid'  => array(
-				'<object type="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" type="application/exe" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'multiple type attributes, first uppercase, last invalid' => array(
-				'<object TYPE="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
-				'<object TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object TYPE="application/pdf" type="application/exe" data="https://example.org/foo.pdf" />',
+				'<object TYPE="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'multiple type attributes, last upper case and invalid' => array(
-				'<object type="application/pdf" TYPE="application/exe" data="https://wordpress.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" TYPE="application/exe" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'multiple type attributes, first invalid' => array(
-				'<object type="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/exe" type="application/pdf" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'multiple type attributes, first upper case and invalid' => array(
-				'<object TYPE="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object TYPE="application/exe" type="application/pdf" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'multiple type attributes, first invalid, last uppercase' => array(
-				'<object type="application/exe" TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/exe" TYPE="application/pdf" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'multiple object tags, last invalid'      => array(
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" /><object type="application/exe" data="https://wordpress.org/foo.exe" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" /><object type="application/exe" data="https://example.org/foo.exe" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'multiple object tags, first invalid'     => array(
-				'<object type="application/exe" data="https://wordpress.org/foo.exe" /><object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/exe" data="https://example.org/foo.exe" /><object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'type attribute with partially incorrect value' => array(
-				'<object type="application/pdfa" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdfa" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'type attribute with empty value'         => array(
-				'<object type="" data="https://wordpress.org/foo.pdf" />',
+				'<object type="" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'type attribute with no value'            => array(
-				'<object type data="https://wordpress.org/foo.pdf" />',
+				'<object type data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'no type attribute'                       => array(
-				'<object data="https://wordpress.org/foo.pdf" />',
+				'<object data="https://example.org/foo.pdf" />',
+				'',
+			),
+			'different protocol in url'               => array(
+				'<object type="application/pdf" data="http://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="http://example.org/foo.pdf" />',
+			),
+			'query string on url'                     => array(
+				'<object type="application/pdf" data="https://example.org/foo.pdf?lol=.pdf" />',
+				'',
+			),
+			'fragment on url'                         => array(
+				'<object type="application/pdf" data="https://example.org/foo.pdf#lol.pdf" />',
+				'',
+			),
+			'wrong extension'                         => array(
+				'<object type="application/pdf" data="https://example.org/foo.php" />',
+				'',
+			),
+			'protocol relative url'                   => array(
+				'<object type="application/pdf" data="//example.org/foo.pdf" />',
+				'',
+			),
+			'relative url'                            => array(
+				'<object type="application/pdf" data="/cat/foo.pdf" />',
 				'',
 			),
 		);

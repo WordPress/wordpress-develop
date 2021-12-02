@@ -350,8 +350,8 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Menu_Locations_Controller();
 	$controller->register_routes();
 
-	// Block Navigation Areas
-	$controller = new WP_REST_Block_Navigation_Areas_Controller();
+	// Site Editor Export.
+	$controller = new WP_REST_Edit_Site_Export_Controller();
 	$controller->register_routes();
 }
 

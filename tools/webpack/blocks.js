@@ -32,7 +32,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'latest-posts',
 		'loginout',
 		'navigation',
-		'navigation-area',
 		'navigation-link',
 		'navigation-submenu',
 		'page-list',

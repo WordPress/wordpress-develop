@@ -190,6 +190,38 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54448
+	 *
+	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 */
+	function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
+		$this->assertEquals( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
+	}
+
+	function data_remove_theme_attribute_in_block_template_content() {
+		return array(
+			array(
+				'<!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /-->',
+				'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+			),
+			array(
+				'<!-- wp:group --><!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /--><!-- /wp:group -->',
+				'<!-- wp:group --><!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /--><!-- /wp:group -->',
+			),
+			// Does not modify content when there is no existing theme attribute.
+			array(
+				'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+				'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+			),
+			// Does not remove theme when there is no template part.
+			array(
+				'<!-- wp:post-content /-->',
+				'<!-- wp:post-content /-->',
+			),
+		);
+	}
+
+	/**
 	 * Should retrieve the template from the theme files.
 	 */
 	function test_get_block_template_from_file() {
@@ -310,5 +342,38 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$actual                       = _flatten_blocks( $blocks );
 		$expected                     = array( $blocks[0] );
 		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Should generate block templates export file.
+	 *
+	 * @ticket 54448
+	 */
+	function test_wp_generate_block_templates_export_file() {
+		$filename = wp_generate_block_templates_export_file();
+		$this->assertFileExists( $filename, 'zip file is created at the specified path' );
+		$this->assertTrue( filesize( $filename ) > 0, 'zip file is larger than 0 bytes' );
+
+		// Open ZIP file and make sure the directories exist.
+		$zip = new ZipArchive();
+		$zip->open( $filename );
+		$has_theme_dir                = $zip->locateName( 'theme/' ) !== false;
+		$has_block_templates_dir      = $zip->locateName( 'theme/templates/' ) !== false;
+		$has_block_template_parts_dir = $zip->locateName( 'theme/parts/' ) !== false;
+		$this->assertTrue( $has_theme_dir, 'theme directory exists' );
+		$this->assertTrue( $has_block_templates_dir, 'theme/templates directory exists' );
+		$this->assertTrue( $has_block_template_parts_dir, 'theme/parts directory exists' );
+
+		// ZIP file contains at least one HTML file.
+		$has_html_files = false;
+		$num_files      = $zip->numFiles;
+		for ( $i = 0; $i < $num_files; $i++ ) {
+			$filename = $zip->getNameIndex( $i );
+			if ( '.html' === substr( $filename, -5 ) ) {
+				$has_html_files = true;
+				break;
+			}
+		}
+		$this->assertTrue( $has_html_files, 'contains at least one html file' );
 	}
 }

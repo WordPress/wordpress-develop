@@ -24,6 +24,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		add_filter( 'theme_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
+		$this->queries = array();
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -42,6 +43,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	public function filter_set_locale_to_polish() {
 		return 'pl_PL';
+	}
+
+	function filter_db_query( $query ) {
+		if ( preg_match( '#post_type = \'wp_global_styles\'#', $query ) ) {
+			$this->queries[] = $query;
+		}
+		return $query;
 	}
 
 	/**
@@ -311,5 +319,31 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				),
 			)
 		);
+	}
+
+	function test_get_user_data_from_custom_post_type_does_not_use_uncached_queries() {
+		add_filter( 'query', array( $this, 'filter_db_query' ) );
+		$query_count = count( $this->queries );
+		for ( $i = 0; $i < 3; $i++ ) {
+			WP_Theme_JSON_Resolver::get_user_data_from_custom_post_type( wp_get_theme() );
+			WP_Theme_JSON_Resolver::clean_cached_data();
+		}
+		$query_count = count( $this->queries ) - $query_count;
+		$this->assertEquals( 1, $query_count, 'Only one SQL query should be peformed for multiple invocations of WP_Theme_JSON_Resolver::get_user_data_from_custom_post_type()' );
+
+		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_custom_post_type( wp_get_theme() );
+		$this->assertEmpty( $user_cpt );
+
+		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_custom_post_type( wp_get_theme(), true );
+		$this->assertNotEmpty( $user_cpt );
+
+		$query_count = count( $this->queries );
+		for ( $i = 0; $i < 3; $i++ ) {
+			WP_Theme_JSON_Resolver::get_user_data_from_custom_post_type( wp_get_theme() );
+			WP_Theme_JSON_Resolver::clean_cached_data();
+		}
+		$query_count = count( $this->queries ) - $query_count;
+		$this->assertEquals( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
+		remove_filter( 'query', array( $this, 'filter_db_query' ) );
 	}
 }

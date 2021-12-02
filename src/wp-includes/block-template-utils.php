@@ -455,6 +455,39 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 }
 
 /**
+ * Parses a block template and removes the theme attribute from each template part.
+ *
+ * @access private
+ * @since 5.9.0
+ *
+ * @param string $template_content Serialized block template content.
+ * @return string Updated block template content.
+ */
+function _remove_theme_attribute_in_block_template_content( $template_content ) {
+	$has_updated_content = false;
+	$new_content         = '';
+	$template_blocks     = parse_blocks( $template_content );
+
+	$blocks = _flatten_blocks( $template_blocks );
+	foreach ( $blocks as $key => $block ) {
+		if ( 'core/template-part' === $block['blockName'] && isset( $block['attrs']['theme'] ) ) {
+			unset( $blocks[ $key ]['attrs']['theme'] );
+			$has_updated_content = true;
+		}
+	}
+
+	if ( ! $has_updated_content ) {
+		return $template_content;
+	}
+
+	foreach ( $template_blocks as $block ) {
+		$new_content .= serialize_block( $block );
+	}
+
+	return $new_content;
+}
+
+/**
  * Build a unified template object based on a theme file.
  *
  * @access private
@@ -525,6 +558,8 @@ function _build_block_template_result_from_post( $post ) {
 	$has_theme_file = wp_get_theme()->get_stylesheet() === $theme &&
 		null !== _get_block_template_file( $post->post_type, $post->post_name );
 
+	$origin = get_post_meta( $post->ID, 'origin', true );
+
 	$template                 = new WP_Block_Template();
 	$template->wp_id          = $post->ID;
 	$template->id             = $theme . '//' . $post->post_name;
@@ -532,12 +567,14 @@ function _build_block_template_result_from_post( $post ) {
 	$template->content        = $post->post_content;
 	$template->slug           = $post->post_name;
 	$template->source         = 'custom';
+	$template->origin         = ! empty( $origin ) ? $origin : null;
 	$template->type           = $post->post_type;
 	$template->description    = $post->post_excerpt;
 	$template->title          = $post->post_title;
 	$template->status         = $post->post_status;
 	$template->has_theme_file = $has_theme_file;
 	$template->is_custom      = true;
+	$template->author         = $post->post_author;
 
 	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
 		$template->is_custom = false;
@@ -858,4 +895,56 @@ function block_header_area() {
  */
 function block_footer_area() {
 	block_template_part( 'footer' );
+}
+
+/**
+ * Creates an export of the current templates and
+ * template parts from the site editor at the
+ * specified path in a ZIP file.
+ *
+ * @since 5.9.0
+ *
+ * @return WP_Error|string Path of the ZIP file or error on failure.
+ */
+function wp_generate_block_templates_export_file() {
+	if ( ! class_exists( 'ZipArchive' ) ) {
+		return new WP_Error( __( 'Zip Export not supported.' ) );
+	}
+
+	$obscura  = wp_generate_password( 12, false, false );
+	$filename = get_temp_dir() . 'edit-site-export-' . $obscura . '.zip';
+
+	$zip = new ZipArchive();
+	if ( true !== $zip->open( $filename, ZipArchive::CREATE ) ) {
+		return new WP_Error( __( 'Unable to open export file (archive) for writing.' ) );
+	}
+
+	$zip->addEmptyDir( 'theme' );
+	$zip->addEmptyDir( 'theme/templates' );
+	$zip->addEmptyDir( 'theme/parts' );
+
+	// Load templates into the zip file.
+	$templates = get_block_templates();
+	foreach ( $templates as $template ) {
+		$template->content = _remove_theme_attribute_in_block_template_content( $template->content );
+
+		$zip->addFromString(
+			'theme/templates/' . $template->slug . '.html',
+			$template->content
+		);
+	}
+
+	// Load template parts into the zip file.
+	$template_parts = get_block_templates( array(), 'wp_template_part' );
+	foreach ( $template_parts as $template_part ) {
+		$zip->addFromString(
+			'theme/parts/' . $template_part->slug . '.html',
+			$template_part->content
+		);
+	}
+
+	// Save changes to the zip file.
+	$zip->close();
+
+	return $filename;
 }
