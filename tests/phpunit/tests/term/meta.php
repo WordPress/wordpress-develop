@@ -210,6 +210,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();

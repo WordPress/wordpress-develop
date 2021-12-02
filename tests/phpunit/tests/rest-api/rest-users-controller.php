@@ -269,6 +269,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$rest_post_types = array_values( get_post_types( array( 'show_in_rest' => true ), 'names' ) );
 
+		$this->assertNotEmpty( $users );
+
 		foreach ( $users as $user ) {
 			$this->assertNotEmpty( count_user_posts( $user['id'], $rest_post_types ) );
 
@@ -3098,9 +3100,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertSame( $user->user_login, $data['username'] );
 			$this->assertSame( $user->roles, $data['roles'] );
 			$this->assertSame( get_user_locale( $user ), $data['locale'] );
-		}
-
-		if ( 'edit' !== $context ) {
+		} else {
 			$this->assertArrayNotHasKey( 'roles', $data );
 			$this->assertArrayNotHasKey( 'capabilities', $data );
 			$this->assertArrayNotHasKey( 'registered_date', $data );
