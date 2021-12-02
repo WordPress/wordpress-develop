@@ -108,6 +108,8 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
+		$this->assertTrue( have_posts() );
+
 		if ( have_posts() ) {
 			while ( have_posts() ) {
 				the_post();

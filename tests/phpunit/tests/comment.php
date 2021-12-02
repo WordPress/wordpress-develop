@@ -927,6 +927,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$lengths = wp_get_comment_fields_max_lengths();
 
+		$this->assertNotEmpty( $lengths );
+
 		foreach ( $lengths as $field => $length ) {
 			$this->assertSame( $expected[ $field ], $length );
 		}

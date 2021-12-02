@@ -38,6 +38,8 @@ class Tests_File extends WP_UnitTestCase {
 			'AuthorURI'   => 'http://binarybonsai.com/',
 		);
 
+		$this->assertNotEmpty( $actual );
+
 		foreach ( $actual as $header => $value ) {
 			$this->assertSame( $expected[ $header ], $value, $header );
 		}
@@ -62,6 +64,8 @@ class Tests_File extends WP_UnitTestCase {
 			'Author'      => 'A Very Old Mac',
 		);
 
+		$this->assertNotEmpty( $actual );
+
 		foreach ( $actual as $header => $value ) {
 			$this->assertSame( $expected[ $header ], $value, $header );
 		}
@@ -81,6 +85,8 @@ class Tests_File extends WP_UnitTestCase {
 		$expected = array(
 			'TemplateName' => 'Something',
 		);
+
+		$this->assertNotEmpty( $actual );
 
 		foreach ( $actual as $header => $value ) {
 			$this->assertSame( $expected[ $header ], $value, $header );

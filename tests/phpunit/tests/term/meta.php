@@ -137,6 +137,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $p ) );
 		remove_action( 'pre_get_posts', array( $this, 'set_cache_results' ) );
 
+		$this->assertTrue( have_posts() );
+
 		if ( have_posts() ) {
 			while ( have_posts() ) {
 				the_post();

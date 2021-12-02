@@ -1756,6 +1756,8 @@ EOF;
 		// Calculate a srcset array.
 		$sizes = explode( ', ', wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 
+		$this->assertNotEmpty( $sizes );
+
 		// Test to confirm all sources in the array include the same edit hash.
 		foreach ( $sizes as $size ) {
 			$this->assertStringContainsString( $hash, $size );
@@ -3313,6 +3315,8 @@ EOF;
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 
+		$this->assertTrue( have_posts() );
+
 		while ( have_posts() ) {
 			the_post();
 
@@ -3362,6 +3366,8 @@ EOF;
 				return 3;
 			}
 		);
+
+		$this->assertTrue( have_posts() );
 
 		while ( have_posts() ) {
 			the_post();
