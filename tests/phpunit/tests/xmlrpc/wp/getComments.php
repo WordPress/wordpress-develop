@@ -28,6 +28,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->wp_getComments( array( 1, 'editor', 'editor', array() ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$comment = get_comment( $result['comment_id'], ARRAY_A );
@@ -52,6 +53,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$this->assertEquals( $this->post_id, $result['post_id'] );
