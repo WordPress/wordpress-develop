@@ -209,8 +209,8 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
  *
  * @since 5.0.1
  *
- * @param array|null $post_data Optional. The array of post data to process.
- *                              Defaults to the `$_POST` superglobal.
+ * @param array|WP_Error|null $post_data The array of post data to process, or an error object.
+ *                                       Defaults to the `$_POST` superglobal.
  * @return array|WP_Error Array of post data on success, WP_Error on failure.
  */
 function _wp_get_allowed_postdata( $post_data = null ) {
@@ -2465,8 +2465,7 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
  *
  * @param bool   $value Whether the CPT supports block editor or not.
  * @param string $post_type Post type.
- *
- * @return bool
+ * @return bool Whether the block editor should be disabled or not.
  */
 function _disable_block_editor_for_navigation_post_type( $value, $post_type ) {
 	if ( 'wp_navigation' === $post_type ) {
