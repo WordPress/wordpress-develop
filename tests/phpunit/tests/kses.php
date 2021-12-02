@@ -1600,11 +1600,11 @@ EOF;
 				'<object type="application/pdf" data="/cat/foo.pdf" />',
 				'',
 			),
-			'url with port number'                     => array(
+			'url with port number'                    => array(
 				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
 				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
 			),
-			'url with port number-like path'           => array(
+			'url with port number-like path'          => array(
 				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
 				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
 			),
