@@ -191,6 +191,7 @@ class WP_Upgrader {
 		$this->strings['temp_backup_move_failed']    = sprintf( __( 'Could not move old version to the %s directory.' ), 'temp-backup' );
 		$this->strings['temp_backup_restore_failed'] = __( 'Could not restore original version.' );
 
+		$this->strings['no_package'] = '';
 	}
 
 	/**
@@ -935,6 +936,10 @@ class WP_Upgrader {
 	 * @param bool $enable True to enable maintenance mode, false to disable.
 	 */
 	public function maintenance_mode( $enable = false ) {
+		if ( ! is_bool( $enable ) ) {
+			return;
+		}
+
 		global $wp_filesystem;
 		$file = $wp_filesystem->abspath() . '.maintenance';
 		if ( $enable ) {
@@ -943,7 +948,9 @@ class WP_Upgrader {
 			$maintenance_string = '<?php $upgrading = ' . time() . '; ?>';
 			$wp_filesystem->delete( $file );
 			$wp_filesystem->put_contents( $file, $maintenance_string, FS_CHMOD_FILE );
-		} elseif ( ! $enable && $wp_filesystem->exists( $file ) ) {
+		}
+
+		if ( ! $enable && $wp_filesystem->exists( $file ) ) {
 			$this->skin->feedback( 'maintenance_end' );
 			$wp_filesystem->delete( $file );
 		}
@@ -1071,6 +1078,10 @@ class WP_Upgrader {
 			return false;
 		}
 
+		if ( ! is_string( $args['slug'] ) || ! is_string( $args['src'] ) || ! is_string( $args['dir'] ) ) {
+			return false;
+		}
+
 		$src  = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $args['dir'] . '/' . $args['slug'];
 		$dest = trailingslashit( $args['src'] ) . $args['slug'];
 
@@ -1103,6 +1114,10 @@ class WP_Upgrader {
 		global $wp_filesystem;
 
 		if ( empty( $args['slug'] ) || empty( $args['dir'] ) ) {
+			return false;
+		}
+
+		if ( ! is_string( $args['slug'] ) || ! is_string( $args['dir'] ) ) {
 			return false;
 		}
 
