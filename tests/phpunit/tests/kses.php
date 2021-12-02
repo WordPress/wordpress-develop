@@ -1596,10 +1596,6 @@ EOF;
 				'<object type="application/pdf" data="/cat/foo.pdf" />',
 				'',
 			),
-			'relative url'                            => array(
-				'<object type="application/pdf" data="/cat/foo.pdf" />',
-				'',
-			),
 		);
 	}
 
