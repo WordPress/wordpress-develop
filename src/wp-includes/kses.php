@@ -2605,7 +2605,7 @@ function _wp_kses_allow_pdf_objects( $url ) {
 	// If the URL host matches the current site's media URL, it's safe.
 	$upload_info = wp_upload_dir( null, false );
 	$parsed_url  = wp_parse_url( $upload_info['url'] );
-	$upload_host = $parsed_url['host'];
+	$upload_host = isset( $parsed_url['host'] ) ? $parsed_url['host'] : '';
 	$upload_port = isset( $parsed_url['port'] ) ? ':' . $parsed_url['port'] : '';
 	if ( 0 === strpos( $url, "http://$upload_host$upload_port/" ) || 0 === strpos( $url, "https://$upload_host$upload_port/" ) ) {
 		return true;
