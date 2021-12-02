@@ -185,6 +185,20 @@ function get_default_block_template_types() {
 }
 
 /**
+ * Return a list of all overrideable default template type slugs.
+ *
+ * @see get_query_template
+ *
+ * @access private
+ * @since 5.9.0
+ *
+ * @return string[] List of all overrideable default template type slugs.
+ */
+function _get_template_type_slugs() {
+	return array_keys( get_default_block_template_types() );
+}
+
+/**
  * Checks whether the input 'area' is a supported value.
  * Returns the input if supported, otherwise returns the 'uncategorized' value.
  *

@@ -6,6 +6,31 @@
  */
 
 /**
+ * Adds necessary filters to use 'wp_template' posts instead of theme template files.
+ *
+ * @since 5.9.0
+ */
+function add_template_loader_filters() {
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return;
+	}
+
+	foreach ( _get_template_type_slugs() as $template_type ) {
+		if ( 'embed' === $template_type ) { // Skip 'embed' for now because it is not a regular template type.
+			continue;
+		}
+		add_filter( str_replace( '-', '', $template_type ) . '_template', 'locate_block_template', 20, 3 );
+	}
+
+	// Request to resolve a template.
+	if ( isset( $_GET['_wp-find-template'] ) ) {
+		add_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
+	}
+}
+
+add_action( 'wp_loaded', 'add_template_loader_filters' );
+
+/**
  * Find a block template with equal or higher specificity than a given PHP template file.
  *
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
@@ -226,4 +251,36 @@ function _block_template_render_without_post_block_context( $context ) {
 	}
 
 	return $context;
+}
+
+/**
+ * Sets the current WP_Query to return auto-draft posts.
+ *
+ * The auto-draft status indicates a new post, so allow the the WP_Query instance to
+ * return an auto-draft post for template resolution when editing a new post.
+ *
+ * @since 5.9.0
+ *
+ * @param WP_Query $wp_query Current WP_Query instance, passed by reference.
+ * @return void
+ */
+function _resolve_template_for_new_post( $wp_query ) {
+	remove_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
+
+	// Pages.
+	$page_id = isset( $wp_query->query['page_id'] ) ? $wp_query->query['page_id'] : null;
+
+	// Posts, including custom post types.
+	$p = isset( $wp_query->query['p'] ) ? $wp_query->query['p'] : null;
+
+	$post_id = $page_id ? $page_id : $p;
+	$post    = get_post( $post_id );
+
+	if (
+		$post &&
+		'auto-draft' === $post->post_status &&
+		current_user_can( 'edit_post', $post->ID )
+	) {
+		$wp_query->set( 'post_status', 'auto-draft' );
+	}
 }
