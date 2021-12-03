@@ -8,9 +8,10 @@
 /**
  * Adds necessary filters to use 'wp_template' posts instead of theme template files.
  *
- * @since 5.9.0
+  * @access private
+  * @since 5.9.0
  */
-function add_template_loader_filters() {
+function _add_template_loader_filters() {
 	if ( ! current_theme_supports( 'block-templates' ) ) {
 		return;
 	}
@@ -28,7 +29,7 @@ function add_template_loader_filters() {
 	}
 }
 
-add_action( 'wp_loaded', 'add_template_loader_filters' );
+add_action( 'wp_loaded', '_add_template_loader_filters' );
 
 /**
  * Find a block template with equal or higher specificity than a given PHP template file.
@@ -259,10 +260,10 @@ function _block_template_render_without_post_block_context( $context ) {
  * The auto-draft status indicates a new post, so allow the the WP_Query instance to
  * return an auto-draft post for template resolution when editing a new post.
  *
+ * @access private
  * @since 5.9.0
  *
  * @param WP_Query $wp_query Current WP_Query instance, passed by reference.
- * @return void
  */
 function _resolve_template_for_new_post( $wp_query ) {
 	remove_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
