@@ -1631,11 +1631,11 @@ EOF;
 				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
 				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
 			),
-			'url with wrong protocol'                => array(
+			'url with wrong port number'             => array(
 				'<object type="application/pdf" data="http://example.org:3333/cat/foo.pdf" />',
 				'',
 			),
-			'url without protocol'                   => array(
+			'url without port number'                => array(
 				'<object type="application/pdf" data="http://example.org/cat/foo.pdf" />',
 				'',
 			),
