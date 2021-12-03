@@ -1636,9 +1636,13 @@ EOF;
 
 	/**
 	 * Filter upload directory for tests using port number.
+	 *
+	 * @param  array $param See wp_upload_dir()
+	 * @return array        $param with a modified `url`.
 	 */
 	public function wp_kses_upload_dir_filter( $param ) {
-		$param['port'] = 8888;
+		$url_with_port_number = is_string( $param['url'] ) ? str_replace( 'example.org', 'example.org:8888', $param['url'] ) : $param['url'];
+		$param['url'] = $url_with_port_number;
 		return $param;
 	}
 
