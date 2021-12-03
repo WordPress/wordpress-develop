@@ -1634,6 +1634,9 @@ EOF;
 		);
 	}
 
+	/**
+	 * Filter upload directory for tests using port number.
+	 */
 	public function wp_kses_upload_dir_filter( $param ) {
 		$param['port'] = 8888;
 		return $param;
