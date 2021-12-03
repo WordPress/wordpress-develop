@@ -1642,7 +1642,7 @@ EOF;
 	 */
 	public function wp_kses_upload_dir_filter( $param ) {
 		$url_with_port_number = is_string( $param['url'] ) ? str_replace( 'example.org', 'example.org:8888', $param['url'] ) : $param['url'];
-		$param['url'] = $url_with_port_number;
+		$param['url']         = $url_with_port_number;
 		return $param;
 	}
 
