@@ -516,11 +516,11 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 */
 	public function data_block_editor_rest_api_preload_adds_missing_leading_slash() {
 		return array(
-			'a string without a slash' => array(
+			'a string without a slash'               => array(
 				'preload_paths' => array( 'wp/v2/blocks' ),
 				'expected'      => '\/wp\/v2\/blocks',
 			),
-			'a string with a slash' => array(
+			'a string with a slash'                  => array(
 				'preload_paths' => array( '/wp/v2/blocks' ),
 				'expected'      => '\/wp\/v2\/blocks',
 			),
@@ -532,7 +532,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				'preload_paths' => array( array( 'wp/v2/blocks', 'OPTIONS' ) ),
 				'expected'      => '\/wp\/v2\/blocks',
 			),
-			'an array with a string with a slash' => array(
+			'an array with a string with a slash'    => array(
 				'preload_paths' => array( array( '/wp/v2/blocks', 'OPTIONS' ) ),
 				'expected'      => '\/wp\/v2\/blocks',
 			),
