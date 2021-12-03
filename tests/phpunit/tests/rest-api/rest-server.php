@@ -2090,6 +2090,15 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 53516
+	 */
+	public function test_index_includes_site_logo_to_index() {
+		$index = rest_do_request( '/' );
+
+		$this->assertArrayHasKey( 'site_logo', $index->get_data() );
+	}
+
+	/**
 	 * @ticket 53056
 	 */
 	public function test_json_encode_error_results_in_500_status_code() {
