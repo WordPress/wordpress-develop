@@ -1635,7 +1635,7 @@ EOF;
 				'<object type="application/pdf" data="http://example.org:3333/cat/foo.pdf" />',
 				'',
 			),
-			'url with without protocol'              => array(
+			'url without protocol'                   => array(
 				'<object type="application/pdf" data="http://example.org/cat/foo.pdf" />',
 				'',
 			),
