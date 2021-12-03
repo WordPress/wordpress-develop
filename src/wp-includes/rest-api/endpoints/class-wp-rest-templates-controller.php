@@ -342,7 +342,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
-		$prepared_post            = $this->prepare_item_for_database( $request );
+		$prepared_post = $this->prepare_item_for_database( $request );
 
 		if ( is_wp_error( $prepared_post ) ) {
 			return $prepared_post;
@@ -651,7 +651,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $template->id );
+		$links = $this->prepare_links( $template );
 		$response->add_links( $links );
 		if ( ! empty( $links['self']['href'] ) ) {
 			$actions = $this->get_available_actions();
@@ -664,7 +664,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		return $response;
 	}
 
-
 	/**
 	 * Prepares links for the request.
 	 *
@@ -673,12 +672,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param integer $id ID.
 	 * @return array Links for the given post.
 	 */
-	protected function prepare_links( $id ) {
+	protected function prepare_links( $template ) {
 		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
 
 		$links = array(
 			'self'       => array(
-				'href' => rest_url( trailingslashit( $base ) . $id ),
+				'href' => rest_url( trailingslashit( $base ) . $template->id ),
 			),
 			'collection' => array(
 				'href' => rest_url( $base ),
@@ -687,6 +686,20 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'href' => rest_url( 'wp/v2/types/' . $this->post_type ),
 			),
 		);
+
+		if ( post_type_supports( $this->post_type, 'author' ) && ! empty( $template->author ) ) {
+			$links['author'] = array(
+				'href'       => rest_url( 'wp/v2/users/' . $template->author ),
+				'embeddable' => true,
+			);
+		}
+
+		if ( 'theme' === $template->source || 'theme' === $template->origin ) {
+			$links['theme'] = array(
+				'href'       => rest_url( 'wp/v2/themes/' . $template->theme ),
+				'embeddable' => true,
+			);
+		}
 
 		return $links;
 	}
@@ -857,7 +870,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'author' => array(
+				'author'         => array(
 					'description' => __( 'The ID for the author of the template.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
