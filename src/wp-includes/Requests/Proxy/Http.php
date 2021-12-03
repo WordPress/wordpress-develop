@@ -92,10 +92,6 @@ final class Http implements Proxy {
 	 * Register the necessary callbacks
 	 *
 	 * @since 1.6
-	 * @see \WpOrg\Requests\Proxy\Http::curl_before_send()
-	 * @see \WpOrg\Requests\Proxy\Http::fsockopen_remote_socket()
-	 * @see \WpOrg\Requests\Proxy\Http::fsockopen_remote_host_path()
-	 * @see \WpOrg\Requests\Proxy\Http::fsockopen_header()
 	 * @param \WpOrg\Requests\Hooks $hooks Hook system
 	 */
 	public function register(Hooks $hooks) {
