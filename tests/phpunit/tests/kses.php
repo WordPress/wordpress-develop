@@ -1612,7 +1612,6 @@ EOF;
 	function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
 		add_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
 		$this->assertSame( $expected, wp_kses_post( $html ) );
-		remove_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
 	}
 
 	/**
