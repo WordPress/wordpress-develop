@@ -185,6 +185,30 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 39678
+	 */
+	public function test_wp_update_term_slug_set_slug_as_0_string() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$found = wp_update_term(
+			$t,
+			'wptests_tax',
+			array(
+				'slug' => '0',
+			)
+		);
+
+		$term = get_term( $t, 'wptests_tax' );
+		$this->assertSame( '0', $term->slug );
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
 	 * @ticket 5809
 	 */
 	public function test_wp_update_term_should_not_create_duplicate_slugs_within_the_same_taxonomy() {

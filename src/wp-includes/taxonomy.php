@@ -2331,6 +2331,9 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	// Coerce null description to strings, to avoid database errors.
 	$args['description'] = (string) $args['description'];
 
+	// Store a slug of '0' before sanitizing
+	$slug_is_0_string = '0' === $args['slug'];
+
 	$args = sanitize_term( $args, $taxonomy, 'db' );
 
 	// expected_slashed ($name)
@@ -2338,7 +2341,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$description = wp_unslash( $args['description'] );
 	$parent      = (int) $args['parent'];
 
-	$slug_provided = ! empty( $args['slug'] );
+	$slug_provided = ! empty( $args['slug'] ) || $slug_is_0_string;
 	if ( ! $slug_provided ) {
 		$slug = sanitize_title( $name );
 	} else {
@@ -3109,7 +3112,7 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	}
 
 	$empty_slug = false;
-	if ( empty( $args['slug'] ) ) {
+	if ( empty( $args['slug'] ) && '0' !== $args['slug'] ) {
 		$empty_slug = true;
 		$slug       = sanitize_title( $name );
 	} else {
@@ -3205,7 +3208,7 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 
 	$wpdb->update( $wpdb->terms, $data, compact( 'term_id' ) );
 
-	if ( empty( $slug ) ) {
+	if ( empty( $slug ) && '0' !== $slug ) {
 		$slug = sanitize_title( $name, $term_id );
 		$wpdb->update( $wpdb->terms, compact( 'slug' ), compact( 'term_id' ) );
 	}
