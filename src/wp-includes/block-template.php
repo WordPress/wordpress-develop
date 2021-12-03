@@ -16,7 +16,8 @@ function _add_template_loader_filters() {
 		return;
 	}
 
-	foreach ( _get_template_type_slugs() as $template_type ) {
+	$template_types = array_keys( get_default_block_template_types() );
+	foreach ( $template_types as $template_type ) {
 		if ( 'embed' === $template_type ) { // Skip 'embed' for now because it is not a regular template type.
 			continue;
 		}
