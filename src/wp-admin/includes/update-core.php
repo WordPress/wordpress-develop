@@ -18,6 +18,8 @@
  */
 global $_old_files;
 
+require_once ABSPATH . 'wp-includes/Requests/Exception.php';
+
 $_old_files = array(
 	// 2.0
 	'wp-admin/import-b2.php',
