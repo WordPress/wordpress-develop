@@ -714,4 +714,36 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertSame( 'no_autosave_revision_to_delete', $this->_last_response_parsed['data'] );
 	}
+
+	/**
+	 * Test request for retrieving installed themes.
+	 *
+	 * @ticket 54549
+	 * @covers WP_Customize_Manager::handle_load_themes_request
+	 */
+	public function test_wp_ajax_customize_load_themes_action() {
+		$arguments = array(
+			'changeset_uuid'     => false,
+			'settings_previewed' => true,
+			'branching'          => false,
+		);
+		new WP_Customize_Manager( $arguments );
+		wp_set_current_user( self::$admin_user_id );
+		$nonce                 = wp_create_nonce( 'switch_themes' );
+		$_POST['nonce']        = $nonce;
+		$_GET['nonce']         = $nonce;
+		$_REQUEST['nonce']     = $nonce;
+		$_POST['theme_action'] = 'installed';
+		$this->make_ajax_call( 'customize_load_themes' );
+		$response = $this->_last_response_parsed;
+		$this->assertTrue( $response['success'] );
+		$this->assertIsArray( $response['data']['themes'] );
+		$this->assertIsArray( $response['data']['themes'] );
+		foreach ( $response['data']['themes'] as $theme ) {
+			$this->assertNotEmpty( $theme['id'] );
+			$this->assertNotEmpty( $theme['name'] );
+			// It must only return non-block themes
+			$this->assertNotTrue( $theme['block_based'] );
+		}
+	}
 }
