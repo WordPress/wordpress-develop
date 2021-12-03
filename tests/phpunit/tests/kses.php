@@ -1631,6 +1631,14 @@ EOF;
 				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
 				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
 			),
+			'url with wrong protocol'                => array(
+				'<object type="application/pdf" data="http://example.org:3333/cat/foo.pdf" />',
+				'',
+			),
+			'url with without protocol'              => array(
+				'<object type="application/pdf" data="http://example.org/cat/foo.pdf" />',
+				'',
+			),
 		);
 	}
 
