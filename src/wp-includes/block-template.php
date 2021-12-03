@@ -29,8 +29,6 @@ function _add_template_loader_filters() {
 	}
 }
 
-add_action( 'wp_loaded', '_add_template_loader_filters' );
-
 /**
  * Find a block template with equal or higher specificity than a given PHP template file.
  *
