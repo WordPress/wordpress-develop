@@ -1596,7 +1596,62 @@ EOF;
 				'<object type="application/pdf" data="/cat/foo.pdf" />',
 				'',
 			),
+			'url with port number-like path'          => array(
+				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
+			),
 		);
+	}
+
+	/**
+	 * Test that object tags are allowed when there is a port number in the URL.
+	 *
+	 * @ticket 54261
+	 *
+	 * @dataProvider data_wp_kses_object_data_url_with_port_number_allowed
+	 *
+	 * @param string $html     A string of HTML to test.
+	 * @param string $expected The expected result from KSES.
+	 */
+	function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
+		add_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_object_data_url_with_port_number_allowed().
+	 */
+	function data_wp_kses_object_data_url_with_port_number_allowed() {
+		return array(
+			'url with port number'                   => array(
+				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
+			),
+			'url with port number and http protocol' => array(
+				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
+				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
+			),
+			'url with wrong port number'             => array(
+				'<object type="application/pdf" data="http://example.org:3333/cat/foo.pdf" />',
+				'',
+			),
+			'url without port number'                => array(
+				'<object type="application/pdf" data="http://example.org/cat/foo.pdf" />',
+				'',
+			),
+		);
+	}
+
+	/**
+	 * Filter upload directory for tests using port number.
+	 *
+	 * @param  array $param See wp_upload_dir()
+	 * @return array        $param with a modified `url`.
+	 */
+	public function wp_kses_upload_dir_filter( $param ) {
+		$url_with_port_number = is_string( $param['url'] ) ? str_replace( 'example.org', 'example.org:8888', $param['url'] ) : $param['url'];
+		$param['url']         = $url_with_port_number;
+		return $param;
 	}
 
 	/**
