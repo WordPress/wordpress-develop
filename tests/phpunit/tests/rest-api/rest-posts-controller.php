@@ -1848,7 +1848,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( rest_url( '/wp/v2/users/' . self::$author_id ), $links['author'][0]['href'] );
 	}
 
-	public function test_get_post_draft_status_not_authenicated() {
+	public function test_get_post_draft_status_not_authenticated() {
 		$draft_id = $this->factory->post->create(
 			array(
 				'post_status' => 'draft',
