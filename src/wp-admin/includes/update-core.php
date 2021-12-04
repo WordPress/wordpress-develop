@@ -16,9 +16,22 @@
  * @var array
  * @name $_old_files
  */
-global $_old_files;
-
+/**
+ * Preload files from the current version into memory that may be
+ * needed during the update process, and may not be available
+ * after files from the updated version have been installed.
+ *
+ * Why? Requests 2.0.0 (introduced in WordPress 5.9.0) introduced
+ * namespaces. If a class is needed after its file is upgraded but
+ * the class is not already available in memory, a fatal error is
+ * thrown because the fully-qualified name of the needed class
+ * is no longer available in the filesystem.
+ *
+ * @since 5.9.0
+ */
 require_once ABSPATH . 'wp-includes/Requests/Exception.php';
+
+global $_old_files;
 
 $_old_files = array(
 	// 2.0
