@@ -8,15 +8,6 @@
  */
 
 /**
- * Stores files to be deleted.
- *
- * @since 2.7.0
- *
- * @global array $_old_files
- * @var array
- * @name $_old_files
- */
-/**
  * Preload files from the current version into memory that may be
  * needed during the update process, and may not be available
  * after files from the updated version have been installed.
@@ -31,6 +22,15 @@
  */
 require_once ABSPATH . 'wp-includes/Requests/Exception.php';
 
+/**
+ * Stores files to be deleted.
+ *
+ * @since 2.7.0
+ *
+ * @global array $_old_files
+ * @var array
+ * @name $_old_files
+ */
 global $_old_files;
 
 $_old_files = array(
