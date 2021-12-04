@@ -8,6 +8,41 @@
  */
 
 /**
+ * Stores paths to be preloaded.
+ * A file or directory can be provided.
+ *
+ * @since 6.0.0
+ *
+ * @global array $preload_paths
+ * @var array
+ * @name $preload_paths
+ */
+global $preload_paths;
+
+$preload_paths = array(
+	'wp-includes/Requests', // Directory
+);
+
+/**
+ * Stores paths to skip when preloading.
+ *
+ * @since 6.0.0
+ *
+ * @global array $skip_preload_paths {
+ *      @type string $path     The file path to skip, relative to the site root directory.
+ *      @type string $version  Optional. The version number used in a version check.
+ *      @type string $operator Optional. The comparison operator for a version check.
+ * }
+ * @var array
+ * @name $skip_preload_paths
+ */
+global $skip_preload_paths;
+
+$skip_preload_paths = array(
+	array( 'wp-includes/Requests/Autoload.php', '5.9', '<' ),
+);
+
+/**
  * Stores files to be deleted.
  *
  * @since 2.7.0
@@ -910,6 +945,8 @@ $_new_bundled_files = array(
  * @since 2.7.0
  *
  * @global WP_Filesystem_Base $wp_filesystem          WordPress filesystem subclass.
+ * @global array              $preload_paths          An array of paths to preload, relative to $from.
+ * @global array              $skip_preload_paths     An array of paths to skip when preloading, relative to $from.
  * @global array              $_old_files
  * @global array              $_new_bundled_files
  * @global wpdb               $wpdb                   WordPress database abstraction object.
@@ -922,7 +959,12 @@ $_new_bundled_files = array(
  * @return string|WP_Error New WordPress version on success, WP_Error on failure.
  */
 function update_core( $from, $to ) {
-	global $wp_filesystem, $_old_files, $_new_bundled_files, $wpdb;
+	global $wp_filesystem, $preload_paths, $skip_preload_paths, $_old_files, $_new_bundled_files, $wpdb;
+
+	$preload_result = preload_outgoing_version_files( $to, $preload_paths, $skip_preload_paths );
+	if ( is_wp_error( $preload_result ) ) {
+		return $preload_result;
+	}
 
 	set_time_limit( 300 );
 
@@ -1707,4 +1749,98 @@ function _upgrade_590_force_deactivate_incompatible_plugins() {
 		}
 		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 	}
+}
+
+/**
+ * The upgrader uses the classes in the outgoing version of WordPress.
+ *
+ * If a class is renamed in the incoming version, the upgrader will no longer
+ * be able to find the outgoing class when it is needed.
+ *
+ * This will cause a fatal error. To prevent this, we can preload the
+ * outgoing classes that we need for the upgrade into memory.
+ *
+ * This MUST be done at the beginning of `update_core()`.
+ *
+ * @since 6.0.0
+ *
+ * @global WP_Filesystem_Base $wp_filesystem  WordPress filesystem subclass.
+ * @global string             $wp_version     The current WordPress version.
+ *
+ * @param string $wp_base                     Base path of the WordPress installation.
+ * @param array  $preload_paths               An array of paths to preload, relative to $wp_base.
+ * @param array  $skip_paths                  An array of paths to skip when preloading, relative to $wp_base.
+ * @return true|WP_Error True on success, or WP_Error on failure.
+ */
+function preload_outgoing_version_files( $wp_base, array $preload_paths, $skip_paths = array() ) {
+	global $wp_filesystem, $wp_version;
+
+	if ( ! $wp_filesystem || ! is_object( $wp_filesystem ) ) {
+		return new WP_Error( 'fs_unavailable', __( 'Could not access filesystem.' ) );
+	}
+
+	if ( empty( $preload_paths ) ) {
+		return new WP_Error( 'empty_paths', __( 'The preload paths list is empty.' ) );
+	}
+
+	$errors = new WP_Error();
+
+	// Preload files.
+	foreach ( $preload_paths as $path ) {
+		$fullpath = trailingslashit( $wp_base ) . $path;
+
+		if ( ! $wp_filesystem->exists( $fullpath ) ) {
+			/* translators: %s: The path to the file or directory. */
+			$errors->add( 'path_does_not_exist', sprintf( __( '%s does not exist.' ), $fullpath ) );
+			continue;
+		}
+
+		// Skip paths.
+		if ( ! empty( $skip_paths ) ) {
+			foreach ( $skip_paths as $skip_path ) {
+				if ( $path === $skip_path[0] ) {
+					// No version check is needed. Skip immediately.
+					if ( ! isset( $skip_path[1], $skip_path[2] ) ) {
+						continue 2;
+					}
+
+					// Run the version check. Skip on true.
+					if ( version_compare( $wp_version, $skip_path[1], $skip_path[2] ) ) {
+						continue 2;
+					}
+				}
+			}
+		}
+
+		// This is a directory. Recurse.
+		if ( $wp_filesystem->is_dir( $fullpath ) ) {
+			// Get the file or subdirectory names.
+			$contents = array_keys( $wp_filesystem->dirlist( $fullpath, false, false ) );
+
+			foreach ( $contents as $file_or_directory ) {
+				// Make the path relative to $wp_base.
+				$base     = str_replace( $wp_base . '/', '', $fullpath );
+				$dir_path = trailingslashit( $base ) . $file_or_directory;
+
+				// Recurse.
+				$result = preload_outgoing_version_files( $wp_base, array( $dir_path ), $skip_paths );
+
+				// Add errors to the overall list.
+				if ( is_wp_error( $result ) ) {
+					$errors->errors = array_merge( $errors->errors, $result->errors );
+				}
+			}
+			continue;
+		}
+
+		if ( ! str_ends_with( $fullpath, '.php' ) ) {
+			/* translators: %s: The path to the file. */
+			$errors->add( 'bad_file', sprintf( __( '%s is not a PHP file.' ), $path ) );
+			continue;
+		}
+
+		require_once $fullpath;
+	}
+
+	return $errors->has_errors() ? $errors : true;
 }
