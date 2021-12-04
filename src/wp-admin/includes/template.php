@@ -922,7 +922,7 @@ function parent_dropdown( $default = 0, $parent = 0, $level = 0, $post = null ) 
 	}
 }
 
-/** 
+/**
 * Displays or retrieves the HTML dropdown list of roles.
 *
 * @since 2.1.0
@@ -937,13 +937,14 @@ function parent_dropdown( $default = 0, $parent = 0, $level = 0, $post = null ) 
 * @return string HTML dropdown list of roles.
 */
 function wp_dropdown_roles( $args = '' ) {
-	$r = '';
+	$r        = '';
 	$defaults = array(
 		'echo'     => 1,
 		'selected' => '',
 	);
+
 	$defaults['selected'] = ( is_string( $args ) ) ? $args : '';
-	
+
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$editable_roles = array_reverse( get_editable_roles() );
@@ -961,7 +962,7 @@ function wp_dropdown_roles( $args = '' ) {
 	if ( $parsed_args['echo'] ) {
 		echo $r;
 	}
-	
+
 	return $r;
 }
 
