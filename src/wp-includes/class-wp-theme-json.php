@@ -773,7 +773,7 @@ class WP_Theme_JSON {
 			 * @link https://github.com/WordPress/gutenberg/issues/36147.
 			 */
 			if ( self::ROOT_BLOCK_SELECTOR === $selector ) {
-				$block_rules .= "body { margin: 0; }";
+				$block_rules .= 'body { margin: 0; }';
 			}
 
 			// 2. Generate the rules that use the general selector.
