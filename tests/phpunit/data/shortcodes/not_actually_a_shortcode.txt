@@ -1,0 +1,1 @@
+[footag This is not a shortcode because there is no closing bracket.

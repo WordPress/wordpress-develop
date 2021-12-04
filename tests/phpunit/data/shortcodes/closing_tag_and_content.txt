@@ -1,0 +1,1 @@
+[footag foo="this is the foo attribute"]this is the content[/footag]

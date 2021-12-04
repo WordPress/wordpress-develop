@@ -223,6 +223,7 @@ require ABSPATH . WPINC . '/class-wp-term-query.php';
 require ABSPATH . WPINC . '/class-wp-tax-query.php';
 require ABSPATH . WPINC . '/update.php';
 require ABSPATH . WPINC . '/canonical.php';
+require ABSPATH . WPINC . '/class-wp-shortcode-parser.php';
 require ABSPATH . WPINC . '/shortcodes.php';
 require ABSPATH . WPINC . '/embed.php';
 require ABSPATH . WPINC . '/class-wp-embed.php';

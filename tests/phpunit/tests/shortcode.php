@@ -989,4 +989,189 @@ EOF;
 		);
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
+
+	function test_bracket_in_shortcode_attribute() {
+		do_shortcode( '[test-shortcode-tag subject="[This is my subject]" /]' );
+		$expected_attrs = array(
+			'subject' => '[This is my subject]',
+		);
+		$this->assertEquals( $expected_attrs, $this->atts );
+	}
+
+	function test_self_closing_shortcode_with_quoted_end_tag() {
+		$out = do_shortcode( '[test-shortcode-tag]Test 123[footag foo="[/test-shortcode-tag]"/] [baztag]bazcontent[/baztag]' );
+
+		$this->assertEquals( 'Test 123foo = [/test-shortcode-tag] content = bazcontent', $out );
+	}
+
+	function test_nested_shortcodes() {
+		do_shortcode( '[test-shortcode-tag]Some content [footag foo="foo content"/] some other content[/test-shortcode-tag]' );
+
+		$this->assertEquals( 'Some content foo = foo content some other content', $this->content );
+
+		$out = do_shortcode( '[footag foo="1"][footag foo="2"][footag foo="3"][footag foo="4"][/footag][footag foo="4a"][/footag][/footag][/footag][/footag]' );
+
+		$this->assertEquals( 'foo = 1', $out );
+
+		$out = do_shortcode( '[footag foo="1"] abc [bartag foo="2"] def [/footag] something else [test-shortcode-tag attr="[/footag]" attr2="[/bartag]"][/test-shortcode-tag]' );
+
+		$this->assertEquals( 'foo = 1something else ', $out );
+	}
+
+	/**
+	 * @ticket 49955
+	 */
+	function test_escaping_correctly_handled_when_followed_by_enclosing_shortcode() {
+		add_shortcode(
+			'ucase',
+			function( $atts, $content ) {
+				return strtoupper( $content );
+			}
+		);
+
+		$out = do_shortcode( 'This [[ucase]] shortcode [ucase]demonstrates[/ucase] the usage of enclosing shortcodes.' );
+
+		$this->assertEquals( 'This [ucase] shortcode DEMONSTRATES the usage of enclosing shortcodes.', $out );
+	}
+
+	/**
+	 * @ticket 43725
+	 */
+	public function test_same_tag_multiple_formats_open_closed_one() {
+		$in = <<<EOT
+This post uses URL multiple times.
+
+[url]Now this is wrapped[/url]
+
+[url] This one is standalone
+
+[url]Now this is wrapped too[/url]
+EOT;
+
+		$expected = <<<EOT
+This post uses URL multiple times.
+
+http://www.wordpress.org/
+
+http://www.wordpress.org/ This one is standalone
+
+http://www.wordpress.org/
+EOT;
+
+		$out = do_shortcode( $in );
+		$this->assertEquals( strip_ws( $expected ), strip_ws( $out ) );
+	}
+
+	/**
+	 * @ticket 43725
+	 */
+	public function test_same_tag_multiple_formats_open_closed_two() {
+		$in = <<<EOT
+This post uses URL multiple times.
+
+[url]Now this is wrapped[/url]
+
+[url/] This one is standalone
+
+[url]Now this is wrapped too[/url]
+EOT;
+
+		$expected = <<<EOT
+This post uses URL multiple times.
+
+http://www.wordpress.org/
+
+http://www.wordpress.org/ This one is standalone
+
+http://www.wordpress.org/
+EOT;
+
+		$out = do_shortcode( $in );
+		$this->assertEquals( strip_ws( $expected ), strip_ws( $out ) );
+	}
+
+	/**
+	 * Not really a test suite, but the easiest way I could find to test the speed of shortcode parsing.
+	 *
+	 * @dataProvider dataSpeedCounts
+	 */
+	public function test_speed( $index ) {
+		$total_times = array();
+
+		// Load a list of example shortcodes.
+		$example_shortcodes = glob( './tests/phpunit/data/shortcodes/*.txt' );
+
+		$alphabet = "`1234567890-=qwertyuiop\asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?          \n\n\n\n\n\n\n\n\t\t\t\t\t\t\t\t";
+
+		// Add random strings to all of the example shortcodes.
+		// This lets us test speed on content that is different lengths, and it also
+		// works as a fuzzer, letting us find any situation where parsing fails because of the content.
+
+		$short_content  = '';
+		$medium_content = '';
+		$long_content   = '';
+
+		for ( $i = 0; $i < 100; $i++ ) {
+			$short_content .= $alphabet[ rand( 0, strlen( $alphabet ) - 1 ) ];
+		}
+
+		for ( $i = 0; $i < 50000; $i++ ) {
+			$medium_content .= $alphabet[ rand( 0, strlen( $alphabet ) - 1 ) ];
+		}
+
+		for ( $i = 0; $i < 100000; $i++ ) {
+			$long_content .= $alphabet[ rand( 0, strlen( $alphabet ) - 1 ) ];
+		}
+
+		foreach ( $example_shortcodes as $example_shortcode ) {
+			$shortcode = file_get_contents( $example_shortcode );
+
+			$variations = array(
+				'shortcode only'                   => $shortcode,
+				'short content suffix'             => $short_content . $shortcode,
+				'medium content suffix'            => $medium_content . $shortcode,
+				'long content suffix'              => $long_content . $shortcode,
+				'short content prefix'             => $shortcode . $short_content,
+				'medium content prefix'            => $shortcode . $medium_content,
+				'long content prefix'              => $shortcode . $long_content,
+				'short content prefix and suffix'  => $shortcode . $short_content . $shortcode,
+				'medium content prefix and suffix' => $shortcode . $medium_content . $shortcode,
+				'long content prefix and suffix'   => $shortcode . $long_content . $shortcode,
+				'short content inner'              => mb_substr( $short_content, 0, round( mb_strlen( $short_content ) ) ) . $shortcode . mb_substr( $short_content, round( mb_strlen( $short_content ) / 2 ) ),
+				'medium content inner'             => mb_substr( $medium_content, 0, round( mb_strlen( $medium_content ) ) ) . $shortcode . mb_substr( $medium_content, round( mb_strlen( $medium_content ) / 2 ) ),
+				'long content inner'               => mb_substr( $long_content, 0, round( mb_strlen( $long_content ) ) ) . $shortcode . mb_substr( $long_content, round( mb_strlen( $long_content ) / 2 ) ),
+				'short content shortcodes x20'     => str_repeat( $short_content . $shortcode, 20 ),
+				'medium content shortcodes x10'    => str_repeat( $medium_content . $shortcode, 10 ),
+				'long content shortcodes x5'       => str_repeat( $medium_content . $shortcode, 5 ),
+			);
+
+			foreach ( $variations as $variation => $content ) {
+				$variation_key = basename( $example_shortcode ) . ':' . $variation;
+
+				$start = microtime( true );
+
+				do_shortcode( $content );
+
+				$end = microtime( true );
+
+				$total_times[ $variation_key ] = ( $end - $start );
+			}
+		}
+
+		arsort( $total_times );
+
+		var_dump( round( array_sum( $total_times ), 4 ) );
+	}
+
+	public function dataSpeedCounts() {
+		$return = array();
+
+		foreach ( range( 1, 20 ) as $index ) {
+			$return[] = array(
+				$index,
+			);
+		}
+
+		return $return;
+	}
 }
