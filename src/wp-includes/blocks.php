@@ -221,7 +221,7 @@ function get_block_metadata_i18n_schema() {
  */
 function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	$filename      = 'block.json';
-	$metadata_file = ( substr( $file_or_folder, -strlen( $filename ) ) !== $filename ) ?
+	$metadata_file = ( is_dir( $file_or_folder ) ) ?
 		trailingslashit( $file_or_folder ) . $filename :
 		$file_or_folder;
 	if ( ! file_exists( $metadata_file ) ) {
