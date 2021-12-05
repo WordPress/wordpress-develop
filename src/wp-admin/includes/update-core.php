@@ -14,7 +14,10 @@
  *
  * @since 5.9.0
  */
-require_once ABSPATH . 'wp-includes/Requests/Exception.php';
+global $wp_version;
+if ( version_compare( $wp_version, '4.6', '>=' ) ) {
+	require_once ABSPATH . WPINC . '/Requests/Exception.php';
+}
 
 /**
  * Stores files to be deleted.
