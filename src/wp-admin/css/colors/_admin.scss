@@ -3,7 +3,7 @@
 @import 'mixins';
 
 @function url-friendly-colour( $color ) {
-	@return '%23' + str-slice( '#{ $color }', 2, -1 );
+	@return '%23' + str-slice( %23{ $color }, 2, -1 );
 }
 
 body {
