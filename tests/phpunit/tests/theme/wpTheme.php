@@ -257,14 +257,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @param bool   $expected  Expected result.
 	 */
 	public function test_is_block_theme( $theme_dir, $expected ) {
-		$theme  = new WP_Theme( $theme_dir, $this->theme_root );
-		$actual = $theme->is_block_theme();
-
-		if ( $expected ) {
-			$this->assertTrue( $actual );
-		} else {
-			$this->assertFalse( $actual );
-		}
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+		$this->assertSame( $expected, $theme->is_block_theme() );
 	}
 
 	/**
