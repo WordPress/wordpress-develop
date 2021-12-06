@@ -1588,8 +1588,12 @@ EOF;
 				'<object type="application/pdf" data="https://example.org/foo.php" />',
 				'',
 			),
-			'protocol relative url'                   => array(
+			'protocol-relative url'                   => array(
 				'<object type="application/pdf" data="//example.org/foo.pdf" />',
+				'',
+			),
+			'unsupported protocol'                    => array(
+				'<object type="application/pdf" data="ftp://example.org/foo.pdf" />',
 				'',
 			),
 			'relative url'                            => array(
