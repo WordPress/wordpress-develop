@@ -216,7 +216,7 @@ if ( wp_is_block_theme() ) {
 
 // Hide Customize link on block themes unless a plugin or theme is using
 // customize_register to add a setting.
-if ( !  wp_is_block_theme() || has_action( 'customize_register' ) ) {
+if ( ! wp_is_block_theme() || has_action( 'customize_register' ) ) {
 	$customize_url = add_query_arg( 'return', urlencode( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ), 'customize.php' );
 	$position      = wp_is_block_theme() ? 7 : 6;
 
