@@ -1993,7 +1993,7 @@ function wp_welcome_panel() {
 	$customize_url          = null;
 	$can_edit_theme_options = current_user_can( 'edit_theme_options' );
 	$can_customize          = current_user_can( 'customize' );
-	$is_block_based_theme   = wp_is_block_template_theme();
+	$is_block_based_theme   = wp_is_block_theme();
 
 	if ( $is_block_based_theme && $can_edit_theme_options ) {
 		$customize_url = esc_url( admin_url( 'site-editor.php' ) );
