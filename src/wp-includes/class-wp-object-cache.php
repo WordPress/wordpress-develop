@@ -324,6 +324,67 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Delete multiple values from the cache in one call.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array  $keys  Array of keys to be delete.
+	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
+	 * @return array Array of return values organized into groups.
+	 */
+	public function delete_multiple( $keys, $group = '' ) {
+		$values = array();
+
+		foreach ( $keys as $key ) {
+			$values[ $key ] = $this->delete( $key, $group );
+		}
+
+		return $values;
+	}
+
+	/**
+	 * Add multiple values from the cache in one call.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array  $data  Array of key and value to be added.
+	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
+	 * @param int    $expire Optional. When to expire the cache contents, in seconds.
+	 *                           Default 0 (no expiration).
+	 * @return array Array of return values organized into groups.
+	 */
+	public function add_multiple( $keys, $group = '', $expire = 0 ) {
+		$values = array();
+
+		foreach ( $data as $key => $value ) {
+			$values[ $key ] = $this->add( $key, $value, $group, $expire );
+		}
+
+		return $values;
+	}
+
+	/**
+	 * Set multiple values from the cache in one call.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array  $data  Array of key and value to be set.
+	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
+	 * @param int    $expire Optional. When to expire the cache contents, in seconds.
+	 *                           Default 0 (no expiration).
+	 * @return array Array of return values organized into groups.
+	 */
+	public function set_multiple( $keys, $group = '', $expire = 0 ) {
+		$values = array();
+
+		foreach ( $data as $key => $value ) {
+			$values[ $key ] = $this->set( $key, $value, $group, $expire );
+		}
+
+		return $values;
+	}
+
+	/**
 	 * Increments numeric cache item's value.
 	 *
 	 * @since 3.3.0
