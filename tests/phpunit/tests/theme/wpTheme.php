@@ -248,17 +248,17 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_is_block_based
+	 * @dataProvider data_is_block_theme
 	 * @ticket 54460
 	 *
-	 * @covers WP_Theme::is_block_based
+	 * @covers WP_Theme::is_block_theme
 	 *
 	 * @param string $theme_dir Directory of the theme to test.
 	 * @param bool   $expected  Expected result.
 	 */
-	public function test_is_block_based( $theme_dir, $expected ) {
+	public function test_is_block_theme( $theme_dir, $expected ) {
 		$theme  = new WP_Theme( $theme_dir, $this->theme_root );
-		$actual = $theme->is_block_based();
+		$actual = $theme->is_block_theme();
 
 		if ( $expected ) {
 			$this->assertTrue( $actual );
@@ -272,7 +272,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_block_based() {
+	public function data_is_block_theme() {
 		return array(
 			'default - non-block theme' => array(
 				'theme_dir' => 'default',
