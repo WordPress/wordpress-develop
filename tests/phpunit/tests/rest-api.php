@@ -399,7 +399,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_rest_filter_response_fields_no_request_filter() {
 		$response = new WP_REST_Response();
 		$response->set_data( array( 'a' => true ) );
-		$request = array();
+		$request = new WP_REST_Request();
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame( array( 'a' => true ), $response->get_data() );
@@ -417,12 +417,216 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'c' => 2,
 			)
 		);
-		$request = array(
-			'_fields' => 'b',
-		);
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame( array( 'b' => 1 ), $response->get_data() );
+	}
+
+	/**
+	 * Ensure that result fields are allowed if request['_embed'] is present and request['_links'] is not present.
+	 *
+	 * @ticket 49985
+	 */
+	public function test_rest_filter_response_fields_has_embed_no_links() {
+		$response = new WP_REST_Response();
+		$response->set_data(
+			array(
+				'a'      => 0,
+				'b'      => 1,
+				'c'      => 2,
+				'_links' => array(
+					'self'   => array(
+						array(
+							'href' => 'd_link',
+						),
+					),
+					'author' => array(
+						array(
+							'embeddable' => true,
+							'href'       => 'author_link',
+						),
+					),
+				),
+			)
+		);
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b' );
+		$request->set_param( '_embed', 'author' );
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$expected = array(
+			'b'      => 1,
+			'_links' => array(
+				'author' => array(
+					array(
+						'embeddable' => true,
+						'href'       => 'author_link',
+					),
+				),
+			),
+		);
+		$this->assertSame( $expected, $response->get_data() );
+	}
+
+	/**
+	 * Ensure that result fields are allowed if request['_embed'] is present and request['_links'] is not present.
+	 *
+	 * @ticket 49985
+	 */
+	public function test_rest_filter_response_fields_has_all_embeds() {
+		$response = new WP_REST_Response();
+		$response->set_data(
+			array(
+				'a'      => 0,
+				'b'      => 1,
+				'c'      => 2,
+				'_links' => array(
+					'self'   => array(
+						array(
+							'href' => 'd_link',
+						),
+					),
+					'author' => array(
+						array(
+							'embeddable' => true,
+							'href'       => 'author_link',
+						),
+					),
+				),
+			)
+		);
+		$response->add_links(
+			array(
+				'self'   => array(
+					array(
+						'href' => 'd_link',
+					),
+				),
+				'author' => array(
+					array(
+						'embeddable' => true,
+						'href'       => 'author_link',
+					),
+				),
+			)
+		);
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b' );
+		$request->set_param( '_embed', '1' );
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$expected = array(
+			'b'      => 1,
+			'_links' => array(
+				'author' => array(
+					array(
+						'embeddable' => true,
+						'href'       => 'author_link',
+					),
+				),
+			),
+		);
+		$this->assertSame( $expected, $response->get_data() );
+	}
+
+	/**
+	 * Ensure that result fields are allowed if request['_embed'] is present and _links are inside each item.
+	 *
+	 * @ticket 49985
+	 */
+	public function test_rest_filter_response_fields_has_all_embeds_links_inside_each_item() {
+		$response = new WP_REST_Response();
+		$response->set_data(
+			array(
+				array(
+					'id'     => 1,
+					'author' => 1,
+					'_links' => array(
+						'self'   => array(
+							array(
+								'href' => 'd_link',
+							),
+						),
+						'author' => array(
+							array(
+								'embeddable' => true,
+								'href'       => 'author_link',
+							),
+						),
+					),
+				),
+				array(
+					'id'     => 1,
+					'author' => 1,
+					'_links' => array(
+						'self'    => array(
+							array(
+								'href' => 'd_link',
+							),
+						),
+						'author'  => array(
+							array(
+								'embeddable' => true,
+								'href'       => 'author_link',
+							),
+						),
+						'about'   => array(
+							array(
+								'href' => 'about_link',
+							),
+						),
+						'replies' => array(
+							array(
+								'embeddable' => true,
+								'href'       => 'replies_link',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'id,author' );
+		$request->set_param( '_embed', '1' );
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$expected = array(
+			array(
+				'id'     => 1,
+				'author' => 1,
+				'_links' => array(
+					'author' => array(
+						array(
+							'embeddable' => true,
+							'href'       => 'author_link',
+						),
+					),
+				),
+			),
+			array(
+				'id'     => 1,
+				'author' => 1,
+				'_links' => array(
+					'author'  => array(
+						array(
+							'embeddable' => true,
+							'href'       => 'author_link',
+						),
+					),
+					'replies' => array(
+						array(
+							'embeddable' => true,
+							'href'       => 'replies_link',
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertSame( $expected, $response->get_data() );
 	}
 
 	/**
@@ -440,9 +644,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'f' => 5,
 			)
 		);
-		$request = array(
-			'_fields' => 'b,c,e',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b,c,e' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -472,9 +676,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'f' => 5,
 			)
 		);
-		$request = array(
-			'_fields' => array( 'b', 'c', 'e' ),
-		);
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', array( 'b', 'c', 'e' ) );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -511,9 +714,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'b,c',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b,c' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -557,9 +760,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'b.1,c,d.5',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b.1,c,d.5' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -598,9 +801,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'field.a.i,field.b.iv',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'field.a.i,field.b.iv' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -634,9 +837,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'meta',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'meta' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -666,9 +869,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'meta,meta.key1',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'meta,meta.key1' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -698,9 +901,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'meta.key1,meta.key2',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'meta.key1,meta.key2' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
