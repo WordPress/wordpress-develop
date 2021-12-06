@@ -76,7 +76,7 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_cannot_view_url_details', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_export_templates', $response, 401 );
 	}
 
 	/**
@@ -90,37 +90,15 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_cannot_view_url_details', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_export_templates', $response, 403 );
 	}
 
-	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not use context_param.' );
-	}
-
-	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not have get_item route.' );
-	}
-	public function test_get_items() {
-		$this->markTestSkipped( 'Controller does not have get_items route.' );
-	}
-
-	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not have create_item route.' );
-	}
-
-	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not have update_item route.' );
-	}
-
-	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not have delete_item route.' );
-	}
-
-	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not have prepare_item route.' );
-	}
-
-	public function test_get_item_schema() {
-		$this->markTestSkipped( 'Controller does not have get_item_schema route.' );
-	}
+	public function test_context_param() {}
+	public function test_get_item() {}
+	public function test_get_items() {}
+	public function test_create_item() {}
+	public function test_update_item() {}
+	public function test_delete_item() {}
+	public function test_prepare_item() {}
+	public function test_get_item_schema() {}
 }
