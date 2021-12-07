@@ -93,12 +93,35 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 		$this->assertErrorResponse( 'rest_cannot_export_templates', $response, 403 );
 	}
 
-	public function test_context_param() {}
-	public function test_get_item() {}
-	public function test_get_items() {}
-	public function test_create_item() {}
-	public function test_update_item() {}
-	public function test_delete_item() {}
-	public function test_prepare_item() {}
-	public function test_get_item_schema() {}
+	public function test_context_param() {
+		$this->markTestSkipped( 'Controller does not implement context_param().' );
+	}
+
+	public function test_get_item() {
+		$this->markTestSkipped( 'Controller does not implement get_item().' );
+	}
+
+	public function test_get_items() {
+		$this->markTestSkipped( 'Controller does not implement get_items().' );
+	}
+
+	public function test_create_item() {
+		$this->markTestSkipped( 'Controller does not implement create_item().' );
+	}
+
+	public function test_update_item() {
+		$this->markTestSkipped( 'Controller does not implement update_item().' );
+	}
+
+	public function test_delete_item() {
+		$this->markTestSkipped( 'Controller does not implement delete_item().' );
+	}
+
+	public function test_prepare_item() {
+		$this->markTestSkipped( 'Controller does not implement prepare_item().' );	
+	}
+
+	public function test_get_item_schema() {
+		$this->markTestSkipped( 'Controller does not implement get_item_schema().' );
+	}
 }
