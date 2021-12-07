@@ -103,10 +103,12 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_context_param() {
-		// TODO: Implement test_context_param() method.
+		$this->markTestSkipped( 'Controller does not implement context_param().' );
 	}
 
-	public function test_get_items() {}
+	public function test_get_items() {
+		$this->markTestSkipped( 'Controller does not implement get_items().' );
+	}
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_item
@@ -189,7 +191,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		);
 	}
 
-	public function test_create_item() {}
+	public function test_create_item() {
+		$this->markTestSkipped( 'Controller does not implement create_item().' );
+	}
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::update_item
@@ -242,10 +246,12 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
-	public function test_delete_item() {}
+	public function test_delete_item() {
+		$this->markTestSkipped( 'Controller does not implement delete_item().' );
+	}
 
 	public function test_prepare_item() {
-		// TODO: Implement test_prepare_item() method.
+		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
 	}
 
 	/**
