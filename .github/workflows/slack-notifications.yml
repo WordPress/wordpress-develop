@@ -61,6 +61,7 @@ jobs:
   prepare:
     name: Prepare notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
       previous_conclusion: ${{ steps.previous-conclusion.outputs.previous_conclusion }}
@@ -129,12 +130,13 @@ jobs:
   failure:
     name: Failure notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' || inputs.calling_status == 'failure' || failure() }}
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@d5d276d7ae0f38f29322b80da9baf985cc80f8b1 # v1.15.0
+        uses: slackapi/slack-github-action@410ae57cff5c6b682b106440be0e6c7eb8c98c9d # v1.16.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -144,12 +146,13 @@ jobs:
   fixed:
     name: Fixed notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ needs.prepare.outputs.previous_conclusion == 'failure' && ( github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || inputs.calling_status == 'success' ) && success() }}
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@d5d276d7ae0f38f29322b80da9baf985cc80f8b1 # v1.15.0
+        uses: slackapi/slack-github-action@410ae57cff5c6b682b106440be0e6c7eb8c98c9d # v1.16.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -159,12 +162,13 @@ jobs:
   success:
     name: Success notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || inputs.calling_status == 'success' && success() }}
 
     steps:
       - name: Post success notifications to Slack
-        uses: slackapi/slack-github-action@d5d276d7ae0f38f29322b80da9baf985cc80f8b1 # v1.15.0
+        uses: slackapi/slack-github-action@410ae57cff5c6b682b106440be0e6c7eb8c98c9d # v1.16.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -174,12 +178,13 @@ jobs:
   cancelled:
     name: Cancelled notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'cancelled' || inputs.calling_status == 'cancelled' || cancelled() }}
 
     steps:
       - name: Post cancelled notifications to Slack
-        uses: slackapi/slack-github-action@d5d276d7ae0f38f29322b80da9baf985cc80f8b1 # v1.15.0
+        uses: slackapi/slack-github-action@410ae57cff5c6b682b106440be0e6c7eb8c98c9d # v1.16.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:

@@ -622,10 +622,10 @@ function themes_api( $action, $args = array() ) {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param array|object|WP_Error $res    WordPress.org Themes API response.
-	 * @param string                $action Requested action. Likely values are 'theme_information',
-	 *                                      'feature_list', or 'query_themes'.
-	 * @param object                $args   Arguments used to query for installer pages from the WordPress.org Themes API.
+	 * @param array|stdClass|WP_Error $res    WordPress.org Themes API response.
+	 * @param string                  $action Requested action. Likely values are 'theme_information',
+	 *                                        'feature_list', or 'query_themes'.
+	 * @param stdClass                $args   Arguments used to query for installer pages from the WordPress.org Themes API.
 	 */
 	return apply_filters( 'themes_api_result', $res, $action, $args );
 }
@@ -701,7 +701,14 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		}
 
 		$customize_action = null;
-		if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
+
+		$can_edit_theme_options = current_user_can( 'edit_theme_options' );
+		$can_customize          = current_user_can( 'customize' );
+		$is_block_theme         = $theme->is_block_theme();
+
+		if ( $is_block_theme && $can_edit_theme_options ) {
+			$customize_action = esc_url( admin_url( 'site-editor.php' ) );
+		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
 			$customize_action = esc_url(
 				add_query_arg(
 					array(

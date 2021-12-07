@@ -408,11 +408,11 @@ class Tests_L10n extends WP_UnitTestCase {
 		$this->factory()->post->create( $args );
 
 		$expect = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do&hellip;';
+		$this->expectOutputRegex( '/' . $expect . '/' );
+
 		wp_dashboard_recent_drafts();
 
 		restore_previous_locale();
-
-		$this->expectOutputRegex( '/' . $expect . '/' );
 	}
 
 	/**
@@ -432,11 +432,11 @@ class Tests_L10n extends WP_UnitTestCase {
 		$post = $this->factory()->post->create( $args );
 
 		$expect = 'Lorem ipsum dolor sit amet, consectetur &hellip;';
+		$this->expectOutputRegex( '/' . $expect . '/' );
+
 		wp_dashboard_recent_drafts();
 
 		restore_previous_locale();
-
-		$this->expectOutputRegex( '/' . $expect . '/' );
 	}
 
 	/**
@@ -456,11 +456,11 @@ class Tests_L10n extends WP_UnitTestCase {
 		$this->factory()->post->create( $args );
 
 		$expect = str_repeat( 'あ', 40 ) . '&hellip;';
+		$this->expectOutputRegex( '/' . $expect . '/' );
+
 		wp_dashboard_recent_drafts();
 
 		restore_previous_locale();
-
-		$this->expectOutputRegex( '/' . $expect . '/' );
 	}
 
 	/**

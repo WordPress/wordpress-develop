@@ -1194,8 +1194,10 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			$tmpfname_disposition = '';
 		}
 
-		// Potential file name must be valid string
-		if ( $tmpfname_disposition && is_string( $tmpfname_disposition ) && ( 0 === validate_file( $tmpfname_disposition ) ) ) {
+		// Potential file name must be valid string.
+		if ( $tmpfname_disposition && is_string( $tmpfname_disposition )
+			&& ( 0 === validate_file( $tmpfname_disposition ) )
+		) {
 			if ( rename( $tmpfname, $tmpfname_disposition ) ) {
 				$tmpfname = $tmpfname_disposition;
 			}
@@ -1951,20 +1953,39 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $from Source directory.
- * @param string $to   Destination directory.
+ * @param string $from        Source directory.
+ * @param string $to          Destination directory.
+ * @param string $working_dir Optional. Remote file source directory.
+ *                            Default empty string.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
-function move_dir( $from, $to ) {
+function move_dir( $from, $to, $working_dir = '' ) {
 	global $wp_filesystem;
 
-	$wp_filesystem->rmdir( $to );
-	if ( @rename( $from, $to ) ) {
-		return true;
+	if ( 'direct' === $wp_filesystem->method ) {
+		$wp_filesystem->rmdir( $to );
+		if ( @rename( $from, $to ) ) {
+			return true;
+		}
 	}
 
-	$wp_filesystem->mkdir( $to );
+	if ( ! $wp_filesystem->is_dir( $to ) ) {
+		if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
+
+			// Clear the working directory?
+			if ( ! empty( $working_dir ) ) {
+				$wp_filesystem->delete( $working_dir, true );
+			}
+
+			return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
+		}
+	}
 	$result = copy_dir( $from, $to );
+
+	// Clear the working directory?
+	if ( ! empty( $working_dir ) ) {
+		$wp_filesystem->delete( $working_dir, true );
+	}
 
 	return $result;
 }

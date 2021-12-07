@@ -88,7 +88,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 *
 	 * @covers ::download_url
 	 *
-	 * @param $filter  A callback containing a fake Content-Disposition header.
+	 * @param $filter A callback containing a fake Content-Disposition header.
 	 */
 	public function test_download_url_should_respect_filename_from_content_disposition_header( $filter ) {
 		add_filter( 'pre_http_request', array( $this, $filter ), 10, 3 );
@@ -174,7 +174,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 *
 	 * @covers ::download_url
 	 *
-	 * @param $filter  A callback containing a fake Content-Disposition header.
+	 * @param $filter A callback containing a fake Content-Disposition header.
 	 */
 	public function test_download_url_should_reject_filename_from_invalid_content_disposition_header( $filter ) {
 		add_filter( 'pre_http_request', array( $this, $filter ), 10, 3 );

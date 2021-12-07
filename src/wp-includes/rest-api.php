@@ -294,11 +294,15 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 	// Block Renderer.
-	$controller = new WP_REST_Block_Renderer_Controller;
+	$controller = new WP_REST_Block_Renderer_Controller();
 	$controller->register_routes();
 
 	// Block Types.
 	$controller = new WP_REST_Block_Types_Controller();
+	$controller->register_routes();
+
+	// Global Styles.
+	$controller = new WP_REST_Global_Styles_Controller;
 	$controller->register_routes();
 
 	// Settings.
@@ -340,6 +344,14 @@ function create_initial_rest_routes() {
 
 	// URL Details.
 	$controller = new WP_REST_URL_Details_Controller();
+	$controller->register_routes();
+
+	// Menu Locations.
+	$controller = new WP_REST_Menu_Locations_Controller();
+	$controller->register_routes();
+
+	// Site Editor Export.
+	$controller = new WP_REST_Edit_Site_Export_Controller();
 	$controller->register_routes();
 }
 
@@ -3044,7 +3056,8 @@ function rest_default_additional_properties_to_false( $schema ) {
  * @since 5.5.0
  *
  * @param int|WP_Post $post Post ID or post object.
- * @return string The route path with a leading slash for the given post, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given post,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_post( $post ) {
 	$post = get_post( $post );
@@ -3077,7 +3090,8 @@ function rest_get_route_for_post( $post ) {
  * @since 5.9.0
  *
  * @param string $post_type The name of a registered post type.
- * @return string The route path with a leading slash for the given post type, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given post type,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_post_type_items( $post_type ) {
 	$post_type = get_post_type_object( $post_type );
@@ -3110,7 +3124,8 @@ function rest_get_route_for_post_type_items( $post_type ) {
  * @since 5.5.0
  *
  * @param int|WP_Term $term Term ID or term object.
- * @return string The route path with a leading slash for the given term, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given term,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_term( $term ) {
 	$term = get_term( $term );

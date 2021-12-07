@@ -58,7 +58,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param array $shake_error_codes Error codes that shake the login form.
+	 * @param string[] $shake_error_codes Error codes that shake the login form.
 	 */
 	$shake_error_codes = apply_filters( 'shake_error_codes', $shake_error_codes );
 
@@ -185,8 +185,8 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array  $classes An array of body classes.
-	 * @param string $action  The action that brought the visitor to the login page.
+	 * @param string[] $classes An array of body classes.
+	 * @param string   $action  The action that brought the visitor to the login page.
 	 */
 	$classes = apply_filters( 'login_body_class', $classes, $action );
 
@@ -312,6 +312,59 @@ function login_footer( $input_id = '' ) {
 	</div><?php // End of <div id="login">. ?>
 
 	<?php
+	$languages = get_available_languages();
+
+	if ( ! empty( $languages ) && ! $interim_login ) {
+		?>
+
+		<div class="language-switcher">
+			<form id="language-switcher" action="" method="get">
+
+				<label for="language-switcher-locales">
+					<span class="dashicons dashicons-translation" aria-hidden="true"></span>
+					<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
+				</label>
+
+				<?php
+				$args = array(
+					'id'                          => 'language-switcher-locales',
+					'name'                        => 'wp_lang',
+					'selected'                    => determine_locale(),
+					'show_available_translations' => false,
+					'explicit_option_en_us'       => true,
+					'languages'                   => $languages,
+				);
+
+				/**
+				 * Filters default arguments for the Languages select input on the login screen.
+				 *
+				 * @since 5.9.0
+				 *
+				 * @param array $args Arguments for the Languages select input on the login screen.
+				 */
+				wp_dropdown_languages( apply_filters( 'wp_login_language_switcher_args', $args ) );
+				?>
+
+				<?php if ( $interim_login ) { ?>
+					<input type="hidden" name="interim-login" value="1" />
+				<?php } ?>
+
+				<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
+					<input type="hidden" name="redirect_to" value="<?php echo esc_url_raw( $_GET['redirect_to'] ); ?>" />
+				<?php } ?>
+
+				<?php if ( isset( $_GET['action'] ) && '' !== $_GET['action'] ) { ?>
+					<input type="hidden" name="action" value="<?php echo esc_attr( $_GET['action'] ); ?>" />
+				<?php } ?>
+
+					<input type="submit" class="button button-primary" value="<?php esc_attr_e( 'Change' ); ?>">
+
+				</form>
+			</div>
+
+<?php } ?>
+
+	<?php
 
 	if ( ! empty( $input_id ) ) {
 		?>
@@ -417,6 +470,10 @@ setcookie( TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure
 
 if ( SITECOOKIEPATH !== COOKIEPATH ) {
 	setcookie( TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure );
+}
+
+if ( isset( $_GET['wp_lang'] ) ) {
+	setcookie( 'wp_lang', sanitize_text_field( $_GET['wp_lang'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure );
 }
 
 /**
@@ -935,7 +992,7 @@ switch ( $action ) {
 		</p>
 		<?php
 
-		login_footer( 'user_pass' );
+		login_footer( 'pass1' );
 		break;
 
 	case 'register':
@@ -983,10 +1040,13 @@ switch ( $action ) {
 		 * Filters the registration redirect URL.
 		 *
 		 * @since 3.0.0
+		 * @since 5.9.0 Added the `$errors` parameter.
 		 *
-		 * @param string $registration_redirect The redirect destination URL.
+		 * @param string       $registration_redirect The redirect destination URL.
+		 * @param int|WP_Error $errors                User id if registration was successful,
+		 *                                            WP_Error object otherwise.
 		 */
-		$redirect_to = apply_filters( 'registration_redirect', $registration_redirect );
+		$redirect_to = apply_filters( 'registration_redirect', $registration_redirect, $errors );
 
 		login_header( __( 'Registration Form' ), '<p class="message register">' . __( 'Register For This Site' ) . '</p>', $errors );
 

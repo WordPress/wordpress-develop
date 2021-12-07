@@ -99,9 +99,15 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 	 */
 	updateSelection: function() {
 		var selection = this.get('selection'),
-			attachment = this.image.attachment;
+			library = this.get('library'),
+			attachment = this.image.attachment,
+			infiniteScrolling = wp.media.view.settings.infiniteScrolling;
 
 		selection.reset( attachment ? [ attachment ] : [] );
+
+		if ( ! infiniteScrolling && library.getTotalAttachments() === 0 && library.hasMore() ) {
+			library.more();
+		}
 	}
 });
 

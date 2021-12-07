@@ -57,7 +57,7 @@ function wp_embed_unregister_handler( $id, $priority = 10 ) {
  * @global int $content_width
  *
  * @param string $url Optional. The URL that should be embedded. Default empty.
- * @return array {
+ * @return int[] {
  *     Indexed array of the embed width and height in pixels.
  *
  *     @type int $0 The embed width.
@@ -359,7 +359,25 @@ function wp_oembed_add_discovery_links() {
  * @since 4.4.0
  */
 function wp_oembed_add_host_js() {
-	wp_enqueue_script( 'wp-embed' );
+	add_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' );
+}
+
+/**
+ * Enqueue the wp-embed script if the provided oEmbed HTML contains a post embed.
+ *
+ * In order to only enqueue the wp-embed script on pages that actually contain post embeds, this function checks if the
+ * provided HTML contains post embed markup and if so enqueues the script so that it will get printed in the footer.
+ *
+ * @since 5.9.0
+ *
+ * @param string $html Embed markup.
+ * @return string Embed markup (without modifications).
+ */
+function wp_maybe_enqueue_oembed_host_js( $html ) {
+	if ( preg_match( '/<blockquote\s[^>]*?wp-embedded-content/', $html ) ) {
+		wp_enqueue_script( 'wp-embed' );
+	}
+	return $html;
 }
 
 /**
@@ -450,32 +468,18 @@ function get_post_embed_html( $width, $height, $post = null ) {
 
 	$embed_url = get_post_embed_url( $post );
 
-	$output = '<blockquote class="wp-embedded-content"><a href="' . esc_url( get_permalink( $post ) ) . '">' . get_the_title( $post ) . "</a></blockquote>\n";
+	$secret     = wp_generate_password( 10, false );
+	$embed_url .= "#?secret={$secret}";
 
-	$output .= "<script type='text/javascript'>\n";
-	$output .= "<!--//--><![CDATA[//><!--\n";
-	if ( SCRIPT_DEBUG ) {
-		$output .= file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' );
-	} else {
-		/*
-		 * If you're looking at a src version of this file, you'll see an "include"
-		 * statement below. This is used by the `npm run build` process to directly
-		 * include a minified version of wp-embed.js, instead of using the
-		 * file_get_contents() method from above.
-		 *
-		 * If you're looking at a build version of this file, you'll see a string of
-		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
-		 * and edit wp-embed.js directly.
-		 */
-		$output .= <<<JS
-		include "js/wp-embed.min.js"
-JS;
-	}
-	$output .= "\n//--><!]]>";
-	$output .= "\n</script>";
+	$output = sprintf(
+		'<blockquote class="wp-embedded-content" data-secret="%1$s"><a href="%2$s">%3$s</a></blockquote>',
+		esc_attr( $secret ),
+		esc_url( get_permalink( $post ) ),
+		get_the_title( $post )
+	);
 
 	$output .= sprintf(
-		'<iframe sandbox="allow-scripts" security="restricted" src="%1$s" width="%2$d" height="%3$d" title="%4$s" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>',
+		'<iframe sandbox="allow-scripts" security="restricted" src="%1$s" width="%2$d" height="%3$d" title="%4$s" data-secret="%5$s" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>',
 		esc_url( $embed_url ),
 		absint( $width ),
 		absint( $height ),
@@ -486,7 +490,17 @@ JS;
 				get_the_title( $post ),
 				get_bloginfo( 'name' )
 			)
-		)
+		),
+		esc_attr( $secret )
+	);
+
+	// Note that the script must be placed after the <blockquote> and <iframe> due to a regexp parsing issue in
+	// `wp_filter_oembed_result()`. Because of the regex pattern starts with `|(<blockquote>.*?</blockquote>)?.*|`
+	// wherein the <blockquote> is marked as being optional, if it is not at the beginning of the string then the group
+	// will fail to match and everything will be matched by `.*` and not included in the group. This regex issue goes
+	// back to WordPress 4.4, so in order to not break older installs this script must come at the end.
+	$output .= wp_get_inline_script_tag(
+		file_get_contents( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' )
 	);
 
 	/**
@@ -1033,27 +1047,10 @@ function enqueue_embed_scripts() {
  */
 function print_embed_styles() {
 	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	$suffix    = SCRIPT_DEBUG ? '' : '.min';
 	?>
 	<style<?php echo $type_attr; ?>>
-	<?php
-	if ( SCRIPT_DEBUG ) {
-		readfile( ABSPATH . WPINC . '/css/wp-embed-template.css' );
-	} else {
-		/*
-		 * If you're looking at a src version of this file, you'll see an "include"
-		 * statement below. This is used by the `npm run build` process to directly
-		 * include a minified version of wp-oembed-embed.css, instead of using the
-		 * readfile() method from above.
-		 *
-		 * If you're looking at a build version of this file, you'll see a string of
-		 * minified CSS. If you need to debug it, please turn on SCRIPT_DEBUG
-		 * and edit wp-embed-template.css directly.
-		 */
-		?>
-			include "css/wp-embed-template.min.css"
-		<?php
-	}
-	?>
+		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
 	</style>
 	<?php
 }
@@ -1064,30 +1061,9 @@ function print_embed_styles() {
  * @since 4.4.0
  */
 function print_embed_scripts() {
-	$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
-	?>
-	<script<?php echo $type_attr; ?>>
-	<?php
-	if ( SCRIPT_DEBUG ) {
-		readfile( ABSPATH . WPINC . '/js/wp-embed-template.js' );
-	} else {
-		/*
-		 * If you're looking at a src version of this file, you'll see an "include"
-		 * statement below. This is used by the `npm run build` process to directly
-		 * include a minified version of wp-embed-template.js, instead of using the
-		 * readfile() method from above.
-		 *
-		 * If you're looking at a build version of this file, you'll see a string of
-		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
-		 * and edit wp-embed-template.js directly.
-		 */
-		?>
-			include "js/wp-embed-template.min.js"
-		<?php
-	}
-	?>
-	</script>
-	<?php
+	wp_print_inline_script_tag(
+		file_get_contents( ABSPATH . WPINC . '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js' )
+	);
 }
 
 /**
