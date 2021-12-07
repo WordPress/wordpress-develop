@@ -104,12 +104,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 
 	public function test_context_param() {
 		// TODO: Implement test_context_param() method.
-		$this->markTestIncomplete();
 	}
 
-	public function test_get_items() {
-		$this->markTestIncomplete();
-	}
+	public function test_get_items() {}
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_item
@@ -192,9 +189,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		);
 	}
 
-	public function test_create_item() {
-		$this->markTestIncomplete();
-	}
+	public function test_create_item() {}
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::update_item
@@ -247,13 +242,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
-	public function test_delete_item() {
-		$this->markTestIncomplete();
-	}
+	public function test_delete_item() {}
 
 	public function test_prepare_item() {
 		// TODO: Implement test_prepare_item() method.
-		$this->markTestIncomplete();
 	}
 
 	/**
