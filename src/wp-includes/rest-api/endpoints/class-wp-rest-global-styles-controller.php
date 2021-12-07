@@ -85,12 +85,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Checks if a given request has access to read a single global styles config.
+	 * Checks if a given request has access to read a single global style.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$post = $this->get_post( $request['id'] );
@@ -117,6 +117,17 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		return true;
 	}
 
+	/**
+	 * Checks if a global style can be read.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return bool Whether the post can be read.
+	 */
+	protected function check_read_permission( $post ) {
+		return current_user_can( 'read_post', $post->ID );
+	}
 
 	/**
 	 * Returns the given global styles config.
@@ -159,18 +170,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Checks if a global style can be read.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_Post $post Post object.
-	 * @return bool Whether the post can be read.
-	 */
-	protected function check_read_permission( $post ) {
-		return current_user_can( 'read_post', $post->ID );
 	}
 
 	/**
