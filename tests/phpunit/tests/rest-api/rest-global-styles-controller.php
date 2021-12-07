@@ -7,6 +7,7 @@
  */
 
 /**
+ * @covers WP_REST_Global_Styles_Controller
  * @group restapi-global-styles
  * @group restapi
  */
@@ -19,7 +20,17 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	/**
 	 * @var int
 	 */
+	protected static $subscriber_id;
+
+	/**
+	 * @var int
+	 */
 	protected static $global_styles_id;
+
+	/**
+	 * @var int
+	 */
+	protected static $post_id;
 
 	private function find_and_normalize_global_styles_by_id( $global_styles, $id ) {
 		foreach ( $global_styles as $style ) {
@@ -48,8 +59,15 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				'role' => 'administrator',
 			)
 		);
+
+		self::$subscriber_id = $factory->user->create(
+			array(
+				'role' => 'subscriber',
+			)
+		);
+
 		// This creates the global styles for the current theme.
-		self::$global_styles_id = wp_insert_post(
+		self::$global_styles_id = $factory->post->create(
 			array(
 				'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
 				'post_status'  => 'publish',
@@ -59,14 +77,29 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				'tax_input'    => array(
 					'wp_theme' => 'tt1-blocks',
 				),
-			),
-			true
+			)
 		);
+
+		self::$post_id = $factory->post->create();
 	}
 
+	/**
+	 *
+	 */
+	public static function wpTearDownAfterClass() {
+		self::delete_user( self::$admin_id );
+		self::delete_user( self::$subscriber_id );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::register_routes
+	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/global-styles/(?P<id>[\/\w-]+)', $routes );
+		$this->assertCount( 2, $routes['/wp/v2/global-styles/(?P<id>[\/\w-]+)'] );
+		$this->assertArrayHasKey( '/wp/v2/global-styles/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)', $routes );
+		$this->assertCount( 1, $routes['/wp/v2/global-styles/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)'] );
 	}
 
 	public function test_context_param() {
@@ -78,6 +111,66 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->markTestIncomplete();
 	}
 
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_item
+	 * @ticket 54516
+	 */
+	public function test_get_item_no_user() {
+		wp_set_current_user( 0 );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_item
+	 * @ticket 54516
+	 */
+	public function test_get_item_invalid_post() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_global_styles_not_found', $response, 404 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_item
+	 * @ticket 54516
+	 */
+	public function test_get_item_permission_check() {
+		wp_set_current_user( self::$subscriber_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_item
+	 * @ticket 54516
+	 */
+	public function test_get_item_no_user_edit() {
+		wp_set_current_user( 0 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_item
+	 * @ticket 54516
+	 */
+	public function test_get_item_permission_check_edit() {
+		wp_set_current_user( self::$subscriber_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_item
+	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
@@ -103,6 +196,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->markTestIncomplete();
 	}
 
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 54516
+	 */
 	public function test_update_item() {
 		wp_set_current_user( self::$admin_id );
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
@@ -116,6 +213,40 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertEquals( 'My new global styles title', $data['title']['raw'] );
 	}
 
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 54516
+	 */
+	public function test_update_item_no_user() {
+		wp_set_current_user( 0 );
+		$request  = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 54516
+	 */
+	public function test_update_item_invalid_post() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_global_styles_not_found', $response, 404 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 54516
+	 */
+	public function test_update_item_permission_check() {
+		wp_set_current_user( self::$subscriber_id );
+		$request  = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
 	public function test_delete_item() {
 		$this->markTestIncomplete();
 	}
@@ -125,8 +256,19 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->markTestIncomplete();
 	}
 
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_item_schema
+	 * @ticket 54516
+	 */
 	public function test_get_item_schema() {
-		// TODO: Implement test_get_item_schema() method.
-		$this->markTestIncomplete();
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+		$this->assertCount( 4, $properties );
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertArrayHasKey( 'styles', $properties );
+		$this->assertArrayHasKey( 'settings', $properties );
+		$this->assertArrayHasKey( 'title', $properties );
 	}
 }
