@@ -128,7 +128,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'publish', $template->status );
 		$this->assertSame( 'theme', $template->source );
 		$this->assertSame( 'Single Post', $template->title );
-		$this->assertSame( 'Template used to display a single blog post.', $template->description );
+		$this->assertSame( 'Displays a single post.', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
 
 		// Test template parts.
