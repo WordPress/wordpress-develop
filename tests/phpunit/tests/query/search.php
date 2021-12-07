@@ -10,7 +10,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->post_type = rand_str( 12 );
+		$this->post_type = 'foo1';
 		register_post_type( $this->post_type );
 
 		$this->q = new WP_Query();
@@ -36,7 +36,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		foreach ( range( 1, 7 ) as $i ) {
 			self::factory()->post->create(
 				array(
-					'post_content' => $i . rand_str() . ' about',
+					'post_content' => "{$i} about",
 					'post_type'    => $this->post_type,
 				)
 			);

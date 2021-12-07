@@ -299,7 +299,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				// get_query_template()
 
 				// Template file that doesn't exist.
-				$this->assertSame( '', get_query_template( rand_str() ) );
+				$this->assertSame( '', get_query_template( 'nonexistant' ) );
 
 				// Template files that do exist.
 				/*
@@ -333,8 +333,8 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	public function test_switch_theme_bogus() {
 		// Try switching to a theme that doesn't exist.
-		$template = rand_str();
-		$style    = rand_str();
+		$template = 'some_template';
+		$style    = 'some_style';
 		update_option( 'template', $template );
 		update_option( 'stylesheet', $style );
 

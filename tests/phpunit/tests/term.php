@@ -51,7 +51,7 @@ class Tests_Term extends WP_UnitTestCase {
 	 */
 	public function test_is_term_type() {
 		// Insert a term.
-		$term = rand_str();
+		$term = 'term_new';
 		$t    = wp_insert_term( $term, $this->taxonomy );
 		$this->assertIsArray( $t );
 		$term_obj = get_term_by( 'name', $term, $this->taxonomy );

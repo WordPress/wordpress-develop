@@ -595,7 +595,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 */
 	private function _create_plugin( $data = "<?php\n/*\nPlugin Name: Test\n*/", $filename = false, $dir_path = false ) {
 		if ( false === $filename ) {
-			$filename = rand_str() . '.php';
+			$filename = __FUNCTION__ . '.php';
 		}
 
 		if ( false === $dir_path ) {

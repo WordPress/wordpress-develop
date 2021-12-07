@@ -181,23 +181,23 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_sizes_by_array_zero_height() {
-		// Generate random width.
-		$random_w = rand( 300, 400 );
+		// Use this width.
+		$width = 300;
 
 		// Only one dimention match shouldn't return false positive (see: #17626).
-		add_image_size( 'test-size', $random_w, 0, false );
-		add_image_size( 'false-height', $random_w, 100, true );
+		add_image_size( 'test-size', $width, 0, false );
+		add_image_size( 'false-height', $width, 100, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );
 
 		$original = wp_get_attachment_metadata( $id );
-		$image_w  = $random_w;
+		$image_w  = $width;
 		$image_h  = round( ( $image_w / $original['width'] ) * $original['height'] );
 
 		// Look for a size by array that exists.
 		// Note: Staying larger than 300px to miss default medium crop.
-		$image = image_get_intermediate_size( $id, array( $random_w, 0 ) );
+		$image = image_get_intermediate_size( $id, array( $width, 0 ) );
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
