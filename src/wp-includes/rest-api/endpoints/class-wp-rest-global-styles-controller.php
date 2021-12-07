@@ -535,14 +535,33 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$theme    = WP_Theme_JSON_Resolver::get_merged_data( 'theme' );
-		$styles   = $theme->get_raw_data()['styles'];
-		$settings = $theme->get_settings();
-		$result   = array(
-			'settings' => $settings,
-			'styles'   => $styles,
+		$theme  = WP_Theme_JSON_Resolver::get_merged_data( 'theme' );
+		$data   = array();
+		$fields = $this->get_fields_for_response( $request );
+
+		if ( rest_is_field_included( 'settings', $fields ) ) {
+			$settings         = $theme->get_settings();
+			$data['settings'] = $settings;
+		}
+
+		if ( rest_is_field_included( 'styles', $fields ) ) {
+			$styles         = $theme->get_raw_data()['styles'];
+			$data['styles'] = $styles;
+		}
+
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data    = $this->add_additional_fields_to_object( $data, $request );
+		$data    = $this->filter_response_by_context( $data, $context );
+
+		$response = rest_ensure_response( $data );
+
+		$links = array(
+			'self' => array(
+				'href' => rest_url( sprintf( '%s/%s/themes/%s', $this->namespace, $this->rest_base, $request['stylesheet'] ) ),
+			),
 		);
-		$response = rest_ensure_response( $result );
+
+		$response->add_links( $links );
 
 		return $response;
 	}
