@@ -104,7 +104,15 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return current_user_can( 'read_post', $post->ID );
+		if ( ! $this->check_read_permission( $post ) ) {
+			return new WP_Error(
+				'rest_cannot_view',
+				__( 'Sorry, you are not allowed to view this global style.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 
@@ -149,6 +157,18 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Checks if a global style can be read.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return bool Whether the post can be read.
+	 */
+	protected function check_read_permission( $post ) {
+		return current_user_can( 'read_post', $post->ID );
 	}
 
 	/**
