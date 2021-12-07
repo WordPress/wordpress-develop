@@ -843,7 +843,7 @@ function wp_read_image_metadata( $file ) {
 		}
 		if ( empty( $meta['created_timestamp'] ) && ! empty( $exif['DateTimeDigitized'] ) ) {
 			$timezone = null;
-			if ( ! empty( $exif'UndefinedTag:0x9012'] ) ) {
+			if ( ! empty( $exif['UndefinedTag:0x9012'] ) ) {
                                 $timezone = $exif['UndefinedTag:0x9012'];
 			}
 
