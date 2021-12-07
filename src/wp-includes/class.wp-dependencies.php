@@ -97,7 +97,7 @@ class WP_Dependencies {
 	/**
 	 * List of assets enqueued before details were registered.
 	 *
-	 * @since 9.9.9
+	 * @since 5.9.9
 	 *
 	 * @var array
 	 */
