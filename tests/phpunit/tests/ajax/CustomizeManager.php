@@ -736,13 +736,13 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$_POST['theme_action'] = 'installed';
 		$this->make_ajax_call( 'customize_load_themes' );
 		$response = $this->_last_response_parsed;
-		$this->assertTrue( $response['success'] );
-		$this->assertIsArray( $response['data']['themes'] );
+		$this->assertTrue( $response['success'], 'Response was not "success"' );
+		$this->assertIsArray( $response['data']['themes'], 'Themes data is not an array' );
 		foreach ( $response['data']['themes'] as $theme ) {
-			$this->assertNotEmpty( $theme['id'] );
-			$this->assertNotEmpty( $theme['name'] );
+			$this->assertNotEmpty( $theme['id'], 'Theme id cannot be empty' );
+			$this->assertNotEmpty( $theme['name'], 'Theme name cannot be empty' );
 			// It must only return non-block themes
-			$this->assertNotTrue( $theme['block_theme'] );
+			$this->assertNotTrue( $theme['block_theme'], 'Themes data should not include block theme' );
 		}
 	}
 }
