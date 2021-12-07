@@ -264,9 +264,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 		$this->assertCount( 4, $properties, 'Schema properties array does not have exactly 4 elements' );
-		$this->assertArrayHasKey( 'id', $properties, 'Schema properties array does not have "id" key'  );
-		$this->assertArrayHasKey( 'styles', $properties, 'Schema properties array does not have "styles" key'  );
-		$this->assertArrayHasKey( 'settings', $properties, 'Schema properties array does not have "settings" key'  );
-		$this->assertArrayHasKey( 'title', $properties, 'Schema properties array does not have "title" key'  );
+		$this->assertArrayHasKey( 'id', $properties, 'Schema properties array does not have "id" key' );
+		$this->assertArrayHasKey( 'styles', $properties, 'Schema properties array does not have "styles" key' );
+		$this->assertArrayHasKey( 'settings', $properties, 'Schema properties array does not have "settings" key' );
+		$this->assertArrayHasKey( 'title', $properties, 'Schema properties array does not have "title" key' );
 	}
 }
