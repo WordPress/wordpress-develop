@@ -5811,7 +5811,7 @@ final class WP_Customize_Manager {
 			$themes = array( 'themes' => array() );
 			foreach ( wp_prepare_themes_for_js() as $theme ) {
 				// Block-based themes should not be edited with Customizer.
-				if ( ! empty( $theme['block_based'] ) ) {
+				if ( ! empty( $theme['block_theme'] ) ) {
 					continue;
 				}
 				$theme['type']      = 'installed';

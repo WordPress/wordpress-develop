@@ -743,7 +743,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 			$this->assertNotEmpty( $theme['id'] );
 			$this->assertNotEmpty( $theme['name'] );
 			// It must only return non-block themes
-			$this->assertNotTrue( $theme['block_based'] );
+			$this->assertNotTrue( $theme['block_theme'] );
 		}
 	}
 }
