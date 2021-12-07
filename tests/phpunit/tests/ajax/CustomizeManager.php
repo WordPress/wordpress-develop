@@ -738,7 +738,6 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$response = $this->_last_response_parsed;
 		$this->assertTrue( $response['success'] );
 		$this->assertIsArray( $response['data']['themes'] );
-		$this->assertIsArray( $response['data']['themes'] );
 		foreach ( $response['data']['themes'] as $theme ) {
 			$this->assertNotEmpty( $theme['id'] );
 			$this->assertNotEmpty( $theme['name'] );
