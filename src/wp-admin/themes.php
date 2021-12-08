@@ -307,9 +307,17 @@ if ( $current_theme->errors() && ( ! is_multisite() || current_user_can( 'manage
 $current_theme_actions = array();
 
 if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
+	$forbidden_paths = array(
+		'themes.php',
+		'theme-editor.php',
+		'site-editor.php',
+		'edit.php?post_type=wp_navigation',
+	);
+
 	foreach ( (array) $submenu['themes.php'] as $item ) {
 		$class = '';
-		if ( 'themes.php' === $item[2] || 'theme-editor.php' === $item[2] || 0 === strpos( $item[2], 'customize.php' ) ) {
+
+		if ( in_array( $item[2], $forbidden_paths, true ) || 0 === strpos( $item[2], 'customize.php' ) ) {
 			continue;
 		}
 		// 0 = name, 1 = capability, 2 = file.
