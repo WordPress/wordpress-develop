@@ -22,6 +22,7 @@
  * @property string $user_login
  * @property string $user_pass
  * @property string $user_nicename
+ * @property string $user_pronouns
  * @property string $user_email
  * @property string $user_url
  * @property string $user_registered

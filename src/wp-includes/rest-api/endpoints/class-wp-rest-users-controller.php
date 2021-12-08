@@ -1005,6 +1005,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$data['last_name'] = $user->last_name;
 		}
 
+		if ( in_array( 'pronouns', $fields, true ) ) {
+			$data['pronouns'] = $user->pronouns;
+		}
+
 		if ( in_array( 'email', $fields, true ) ) {
 			$data['email'] = $user->user_email;
 		}
@@ -1142,6 +1146,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		if ( isset( $request['last_name'] ) && ! empty( $schema['properties']['last_name'] ) ) {
 			$prepared_user->last_name = $request['last_name'];
+		}
+
+		if ( isset( $request['pronouns'] ) && ! empty( $schema['properties']['pronouns'] ) ) {
+			$prepared_user->pronouns = $request['pronouns'];
 		}
 
 		if ( isset( $request['nickname'] ) && ! empty( $schema['properties']['nickname'] ) ) {
@@ -1367,6 +1375,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				),
 				'last_name'          => array(
 					'description' => __( 'Last name for the user.' ),
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+				'pronouns'          => array(
+					'description' => __( 'Pronouns for the user.' ),
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
 					'arg_options' => array(

@@ -88,7 +88,7 @@ window.wp = window.wp || {};
 			var i, userInputFieldsLength, rawValuesLength, currentField,
 				rawValues       = [],
 				disallowedList  = [],
-				userInputFields = [ 'user_login', 'first_name', 'last_name', 'nickname', 'display_name', 'email', 'url', 'description', 'weblog_title', 'admin_email' ];
+				userInputFields = [ 'user_login', 'first_name', 'last_name', 'nickname', 'pronouns', 'display_name', 'email', 'url', 'description', 'weblog_title', 'admin_email' ];
 
 			// Collect all the strings we want to disallow.
 			rawValues.push( document.title );

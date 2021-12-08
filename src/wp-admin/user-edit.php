@@ -461,6 +461,11 @@ endif;
 	<td><input type="text" name="nickname" id="nickname" value="<?php echo esc_attr( $profileuser->nickname ); ?>" class="regular-text" /></td>
 </tr>
 
+<tr class="user-pronouns-wrap">
+	<th><label for="pronouns"><?php _e( 'Pronouns' ); ?></label></th>
+	<td><input type="text" name="pronouns" id="pronouns" value="<?php echo esc_attr( $profileuser->pronouns ); ?>" class="regular-text" /></td>
+</tr>
+
 <tr class="user-display-name-wrap">
 	<th><label for="display_name"><?php _e( 'Display name publicly as' ); ?></label></th>
 	<td>
@@ -481,6 +486,19 @@ endif;
 		if ( ! empty( $profileuser->first_name ) && ! empty( $profileuser->last_name ) ) {
 			$public_display['display_firstlast'] = $profileuser->first_name . ' ' . $profileuser->last_name;
 			$public_display['display_lastfirst'] = $profileuser->last_name . ' ' . $profileuser->first_name;
+		}
+
+		if ( ! empty( $profileuser->first_name ) && ! empty( $profileuser->last_name ) && ! empty( $profileuser->pronouns ) ) {
+			$public_display['display_firstlastpronouns'] = $profileuser->first_name . ' ' . $profileuser->last_name . ' (' . $profileuser->pronouns . ')';
+			$public_display['display_lastfirstpronouns'] = $profileuser->last_name . ' ' . $profileuser->first_name . ' (' . $profileuser->pronouns . ')';
+		}
+
+		if ( ! empty( $profileuser->first_name ) && ! empty( $profileuser->pronouns ) ) {
+			$public_display['display_firstpronouns'] = $profileuser->first_name . ' (' . $profileuser->pronouns . ')';
+		}
+
+		if ( ! empty( $profileuser->last_name ) && ! empty( $profileuser->pronouns ) ) {
+			$public_display['display_lastpronouns'] = $profileuser->last_name . ' (' . $profileuser->pronouns . ')';
 		}
 
 		if ( ! in_array( $profileuser->display_name, $public_display, true ) ) { // Only add this if it isn't duplicated elsewhere.

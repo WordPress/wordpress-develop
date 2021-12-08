@@ -544,10 +544,16 @@ class WP_Users_List_Table extends WP_List_Table {
 						$r .= "$avatar $edit";
 						break;
 					case 'name':
-						if ( $user_object->first_name && $user_object->last_name ) {
+						if ( $user_object->first_name && $user_object->last_name && $user_object->pronouns ) {
+							$r .= "$user_object->first_name $user_object->last_name ($user_object->pronouns)";
+						} elseif ( $user_object->first_name && $user_object->last_name ) {
 							$r .= "$user_object->first_name $user_object->last_name";
+						} elseif ( $user_object->first_name && $user_object->pronouns ) {
+							$r .= "$user_object->first_name ($user_object->pronouns)";
 						} elseif ( $user_object->first_name ) {
 							$r .= $user_object->first_name;
+						} elseif ( $user_object->last_name && $user_object->pronouns ) {
+							$r .= "$user_object->last_name ($user_object->pronouns)";
 						} elseif ( $user_object->last_name ) {
 							$r .= $user_object->last_name;
 						} else {

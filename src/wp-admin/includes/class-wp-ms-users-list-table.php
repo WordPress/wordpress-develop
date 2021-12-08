@@ -301,10 +301,16 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 * @param WP_User $user The current WP_User object.
 	 */
 	public function column_name( $user ) {
-		if ( $user->first_name && $user->last_name ) {
+		if ( $user->first_name && $user->last_name && $user->pronouns ) {
+			echo "$user->first_name $user->last_name ($user->pronouns)";
+		} elseif ( $user->first_name && $user->last_name ) {
 			echo "$user->first_name $user->last_name";
+		} elseif ( $user->first_name && $user->pronouns ) {
+			echo "$user->first_name ($user->pronouns)";
 		} elseif ( $user->first_name ) {
 			echo $user->first_name;
+		} elseif ( $user->last_name && $user->pronouns ) {
+			echo "$user->last_name ($user->pronouns)";
 		} elseif ( $user->last_name ) {
 			echo $user->last_name;
 		} else {

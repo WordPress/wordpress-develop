@@ -1230,6 +1230,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'bio'          => $user->user_description,
 			'email'        => $user->user_email,
 			'nickname'     => $user->nickname,
+			'pronouns'     => $user->user_pronouns,
 			'nicename'     => $user->user_nicename,
 			'url'          => $user->user_url,
 			'display_name' => $user->display_name,
@@ -2656,6 +2657,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *  - 'email'
 	 *  - 'nickname'
 	 *  - 'nicename'
+	 *  - 'pronouns'
 	 *  - 'url'
 	 *  - 'display_name'
 	 *  - 'roles'
@@ -2863,6 +2865,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *      - 'display_name'
 	 *      - 'nickname'
 	 *      - 'nicename'
+	 *      - 'pronouns'
 	 *      - 'bio'
 	 * }
 	 * @return true|IXR_Error True, on success.
@@ -2917,6 +2920,10 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		if ( isset( $content_struct['nicename'] ) ) {
 			$user_data['user_nicename'] = $content_struct['nicename'];
+		}
+
+		if ( isset( $content_struct['pronouns'] ) ) {
+			$user_data['user_pronouns'] = $content_struct['pronouns'];
 		}
 
 		if ( isset( $content_struct['bio'] ) ) {
@@ -4909,6 +4916,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'url'       => $user->user_url,
 			'lastname'  => $user->last_name,
 			'firstname' => $user->first_name,
+			'pronouns'  => $user->pronouns,
 		);
 
 		return $struct;

@@ -5401,6 +5401,11 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "pronouns": {
+                            "description": "Pronouns for the user.",
+                            "type": "string",
+                            "required": false
+                        },
                         "email": {
                             "description": "The email address for the user.",
                             "type": "string",
@@ -5529,6 +5534,11 @@ mockedApiResponse.Schema = {
                         },
                         "last_name": {
                             "description": "Last name for the user.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "pronouns": {
+                            "description": "Pronouns for the user.",
                             "type": "string",
                             "required": false
                         },
@@ -5670,6 +5680,11 @@ mockedApiResponse.Schema = {
                         },
                         "last_name": {
                             "description": "Last name for the user.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "pronouns": {
+                            "description": "Pronouns for the user.",
                             "type": "string",
                             "required": false
                         },

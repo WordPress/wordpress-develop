@@ -1751,11 +1751,15 @@ function validate_username( $username ) {
  *     @type string $nickname             The user's nickname.
  *                                        Default is the user's username.
  *     @type string $first_name           The user's first name. For new users, will be used
- *                                        to build the first part of the user's display name
+ *                                        to build part of the user's display name
  *                                        if `$display_name` is not specified.
  *     @type string $last_name            The user's last name. For new users, will be used
- *                                        to build the second part of the user's display name
+ *                                        to build part of the user's display name
  *                                        if `$display_name` is not specified.
+ *     @type string $pronouns             The user's pronouns. For new users, will be used
+ *                                        to build part of the user's display name
+ *                                        if `$display_name` is not specified.
+
  *     @type string $description          The user's biographical description.
  *     @type string $rich_editing         Whether to enable the rich-editor for the user.
  *                                        Accepts 'true' or 'false' as a string literal,
@@ -1969,14 +1973,34 @@ function wp_insert_user( $userdata ) {
 	 */
 	$meta['last_name'] = apply_filters( 'pre_user_last_name', $last_name );
 
+	$pronouns = empty( $userdata['pronouns'] ) ? '' : $userdata['pronouns'];
+
+	/**
+	 * Filters a user's pronouns before the user is created or updated.
+	 *
+	 * @since ?
+	 *
+	 * @param string $pronouns The user's pronouns.
+	 */
+	$meta['pronouns'] = apply_filters( 'pre_user_pronouns', $pronouns );
+
 	if ( empty( $userdata['display_name'] ) ) {
 		if ( $update ) {
 			$display_name = $user_login;
+		} elseif ( $meta['first_name'] && $meta['last_name'] && $meta['pronouns'] ) {
+			/* translators: 1: User's first name, 2: Last name, 3: Pronouns. */
+			$display_name = sprintf( _x( '%1$s %2$s (%3$s)', 'Display name based on first name, last name, and pronouns' ), $meta['first_name'], $meta['last_name'], $meta['pronouns'] );
 		} elseif ( $meta['first_name'] && $meta['last_name'] ) {
 			/* translators: 1: User's first name, 2: Last name. */
 			$display_name = sprintf( _x( '%1$s %2$s', 'Display name based on first name and last name' ), $meta['first_name'], $meta['last_name'] );
+		} elseif ( $meta['first_name'] && $meta['pronouns'] ) {
+			/* translators: 1: User's first name, 2: Pronouns. */
+			$display_name = sprintf( _x( '%1$s (%2$s)', 'Display name based on first name and pronouns' ), $meta['first_name'], $meta['pronouns'] );
 		} elseif ( $meta['first_name'] ) {
 			$display_name = $meta['first_name'];
+		} elseif ( $meta['last_name'] && $meta['pronouns'] ) {
+			/* translators: 1: User's last name, 2: Pronouns. */
+			$display_name = sprintf( _x( '%1$s (%2$s)', 'Display name based on last name and pronouns' ), $meta['last_name'], $meta['pronouns'] );
 		} elseif ( $meta['last_name'] ) {
 			$display_name = $meta['last_name'];
 		} else {
@@ -2091,6 +2115,7 @@ function wp_insert_user( $userdata ) {
 	 *     @type string   $nickname             The user's nickname. Default is the user's username.
 	 *     @type string   $first_name           The user's first name.
 	 *     @type string   $last_name            The user's last name.
+	 *     @type string   $pronouns            The user's pronouns.
 	 *     @type string   $description          The user's description.
 	 *     @type string   $rich_editing         Whether to enable the rich-editor for the user. Default 'true'.
 	 *     @type string   $syntax_highlighting  Whether to enable the rich code editor for the user. Default 'true'.
@@ -2477,7 +2502,7 @@ function wp_create_user( $username, $password, $email = '' ) {
  * @return string[] List of user keys to be populated in wp_update_user().
  */
 function _get_additional_user_keys( $user ) {
-	$keys = array( 'first_name', 'last_name', 'nickname', 'description', 'rich_editing', 'syntax_highlighting', 'comment_shortcuts', 'admin_color', 'use_ssl', 'show_admin_bar_front', 'locale' );
+	$keys = array( 'first_name', 'last_name', 'pronouns', 'nickname', 'description', 'rich_editing', 'syntax_highlighting', 'comment_shortcuts', 'admin_color', 'use_ssl', 'show_admin_bar_front', 'locale' );
 	return array_merge( $keys, array_keys( wp_get_user_contact_methods( $user ) ) );
 }
 
@@ -3447,6 +3472,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 		'nickname'        => __( 'User Nickname' ),
 		'first_name'      => __( 'User First Name' ),
 		'last_name'       => __( 'User Last Name' ),
+		'pronouns'        => __( 'User Pronouns' ),
 		'description'     => __( 'User Description' ),
 	);
 
@@ -3468,6 +3494,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 			case 'nickname':
 			case 'first_name':
 			case 'last_name':
+			case 'pronouns':
 			case 'description':
 				$value = $user_meta[ $key ][0];
 				break;

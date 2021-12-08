@@ -98,6 +98,9 @@ function edit_user( $user_id = 0 ) {
 	if ( isset( $_POST['nickname'] ) ) {
 		$user->nickname = sanitize_text_field( $_POST['nickname'] );
 	}
+	if ( isset( $_POST['pronouns'] ) ) {
+		$user->pronouns = sanitize_text_field( $_POST['pronouns'] );
+	}
 	if ( isset( $_POST['display_name'] ) ) {
 		$user->display_name = sanitize_text_field( $_POST['display_name'] );
 	}
