@@ -41,7 +41,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		// List themes global styles.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)',
+			'/' . $this->rest_base . '/themes/(?P<stylesheet>[\/\w\.-]+)',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -60,7 +60,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		// Lists/updates a single gloval style variation based on the given id.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\w-]+)',
+			'/' . $this->rest_base . '/(?P<id>[\/\w\.-]+)',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
