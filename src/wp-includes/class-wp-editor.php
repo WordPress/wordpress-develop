@@ -216,25 +216,36 @@ final class _WP_Editors {
 		if ( ! empty( $buttons ) || $set['media_buttons'] ) {
 			echo '<div id="wp-' . $editor_id_attr . '-editor-tools" class="wp-editor-tools hide-if-no-js">';
 
+			echo '<div id="wp-' . $editor_id_attr . '-media-buttons" class="wp-media-buttons">';
+
+			if ( ! function_exists( 'media_buttons' ) ) {
+				require ABSPATH . 'wp-admin/includes/media.php';
+			}
+
 			if ( $set['media_buttons'] ) {
 				self::$has_medialib = true;
 
-				if ( ! function_exists( 'media_buttons' ) ) {
-					require ABSPATH . 'wp-admin/includes/media.php';
-				}
-
-				echo '<div id="wp-' . $editor_id_attr . '-media-buttons" class="wp-media-buttons">';
-
 				/**
-				 * Fires after the default media button(s) are displayed.
+				 * Fires when the default media button(s) are displayed as long as
+				 * the $set['media_buttons'] argument is true.
 				 *
 				 * @since 2.5.0
 				 *
 				 * @param string $editor_id Unique editor identifier, e.g. 'content'.
 				 */
 				do_action( 'media_buttons', $editor_id );
-				echo "</div>\n";
 			}
+
+			/**
+			 * Fires directly after the media buttons are displayed.
+			 *
+			 * @since 5.8.0
+			 *
+			 * @param string $editor_id Unique editor identifier, e.g. 'content'.
+			 */
+			do_action( 'after_media_buttons', $editor_id );
+
+			echo "</div>\n";
 
 			echo '<div class="wp-editor-tabs">' . $buttons . "</div>\n";
 			echo "</div>\n";
