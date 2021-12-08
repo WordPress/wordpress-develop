@@ -249,4 +249,49 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
 		$this->assertSame( $expected, $actual->autoload );
 	}
+
+	/**
+	 * @ticket 52798
+	 */
+	function test_delete_option_with_cache_handling() {
+		// Setup sample_option
+		$this->assertFalse( get_option( 'sample_option', false ) );
+		$this->assertTrue( update_option( 'sample_option', 'sample_value', false ) );
+		$this->assertEquals( 'sample_value', get_option( 'sample_option', false ) );
+		// Test the cache
+		$this->assertEquals( 'sample_value', wp_cache_get( 'sample_option', 'options' ) );
+
+		// Delete the option directly.
+		global $wpdb;
+		$delete = $wpdb->delete( $wpdb->options, array( 'option_name' => 'sample_option' ) );
+		$this->assertEquals( 1, $delete );
+
+		$this->assertFalse( delete_option( 'sample_option' ) );
+		$this->assertFalse( get_option( 'sample_option', false ) );
+		$this->assertFalse( wp_cache_get( 'sample_option', 'options' ) );
+	}
+
+	/**
+	 * @ticket 52798
+	 */
+	function test_delete_option_autoload_with_cache_handling() {
+		// Setup sample_option
+		$this->assertFalse( get_option( 'sample_option', false ) );
+		$this->assertTrue( update_option( 'sample_option', 'sample_value', true ) );
+		$this->assertEquals( 'sample_value', get_option( 'sample_option', false ) );
+		// Test the cache
+		$alloptions = wp_load_alloptions( true );
+		$this->assertTrue( array_key_exists( 'sample_option', $alloptions ) );
+		$this->assertEquals( 'sample_value', $alloptions['sample_option'] );
+
+		// Delete the option directly.
+		global $wpdb;
+		$delete = $wpdb->delete( $wpdb->options, array( 'option_name' => 'sample_option' ) );
+		$this->assertEquals( 1, $delete );
+
+		$this->assertFalse( delete_option( 'sample_option' ) );
+		$new_alloptions = wp_load_alloptions( true );
+		$this->assertFalse( array_key_exists( 'sample_option', $new_alloptions ) );
+		$this->assertFalse( get_option( 'sample_option', false ) );
+	}
 }

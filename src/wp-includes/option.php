@@ -706,6 +706,17 @@ function delete_option( $option ) {
 
 	wp_protect_special_option( $option );
 
+	// Delete the option in cache.
+	if ( ! wp_installing() ) {
+		$alloptions = wp_load_alloptions( true );
+		if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
+			unset( $alloptions[ $option ] );
+			wp_cache_set( 'alloptions', $alloptions, 'options' );
+		} else {
+			wp_cache_delete( $option, 'options' );
+		}
+	}
+
 	// Get the ID, if no ID then return.
 	$row = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) );
 	if ( is_null( $row ) ) {
@@ -722,18 +733,6 @@ function delete_option( $option ) {
 	do_action( 'delete_option', $option );
 
 	$result = $wpdb->delete( $wpdb->options, array( 'option_name' => $option ) );
-
-	if ( ! wp_installing() ) {
-		if ( 'yes' === $row->autoload ) {
-			$alloptions = wp_load_alloptions( true );
-			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
-				unset( $alloptions[ $option ] );
-				wp_cache_set( 'alloptions', $alloptions, 'options' );
-			}
-		} else {
-			wp_cache_delete( $option, 'options' );
-		}
-	}
 
 	if ( $result ) {
 
