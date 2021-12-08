@@ -19,7 +19,7 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 	);
 }
 
-if ( ! wp_is_block_template_theme() ) {
+if ( ! wp_is_block_theme() ) {
 	wp_die( __( 'The theme you are currently using is not compatible with Full Site Editing.' ) );
 }
 
@@ -37,12 +37,18 @@ add_filter(
 	}
 );
 
+$indexed_template_types = array();
+foreach ( get_default_block_template_types() as $slug => $template_type ) {
+	$template_type['slug']    = (string) $slug;
+	$indexed_template_types[] = $template_type;
+}
+
 $block_editor_context = new WP_Block_Editor_Context();
 $custom_settings      = array(
 	'siteUrl'                              => site_url(),
 	'postsPerPage'                         => get_option( 'posts_per_page' ),
 	'styles'                               => get_block_editor_theme_styles(),
-	'defaultTemplateTypes'                 => get_default_block_template_types(),
+	'defaultTemplateTypes'                 => $indexed_template_types,
 	'defaultTemplatePartAreas'             => get_allowed_block_template_part_areas(),
 	'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
 	'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
@@ -64,7 +70,7 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 		'/',
 		'/wp/v2/types/' . $post_type->name . '?context=edit',
 		'/wp/v2/types?context=edit',
-		add_query_arg( 'context', 'edit', rest_get_route_for_post_type_items( $post_type ) ),
+		add_query_arg( 'context', 'edit', rest_get_route_for_post_type_items( $post_type->name ) ),
 	);
 
 	block_editor_rest_api_preload( $preload_paths, $block_editor_context );

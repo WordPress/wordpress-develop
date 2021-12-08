@@ -1250,8 +1250,8 @@ final class WP_Theme implements ArrayAccess {
 			}
 
 			if ( current_theme_supports( 'block-templates' ) ) {
-				$block_templates = get_block_templates( array(), 'wp_template' );
 				foreach ( get_post_types( array( 'public' => true ) ) as $type ) {
+					$block_templates = get_block_templates( array( 'post_type' => $type ), 'wp_template' );
 					foreach ( $block_templates as $block_template ) {
 						$post_templates[ $type ][ $block_template->slug ] = $block_template->title;
 					}
@@ -1467,7 +1467,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @return bool
 	 */
-	public function is_block_based() {
+	public function is_block_theme() {
 		$paths_to_index_block_template = array(
 			$this->get_file_path( '/block-templates/index.html' ),
 			$this->get_file_path( '/templates/index.html' ),
