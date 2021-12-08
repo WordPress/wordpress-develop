@@ -13,7 +13,7 @@ Version: 1.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentytwentyone
-Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, block-patterns, rtl-language-support, sticky-post, threaded-comments, translation-ready
+Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, block-patterns, rtl-language-support, sticky-post, template-editing, threaded-comments, translation-ready
 
 Twenty Twenty-One WordPress Theme, (C) 2020 WordPress.org
 Twenty Twenty-One is distributed under the terms of the GNU GPL.
@@ -66,6 +66,7 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
  * Quote................Specific styles for the quote block.
  * Search...............Specific styles for the search block.
  * Separator............Specific styles for the separator block.
+ * Site title...........Specific styles for the site title block.
  * Spacer...............Specific styles for the spacer block.
  * Table................Specific styles for the table block.
  * Verse................Specific styles for the verse block.
@@ -763,7 +764,9 @@ template {
 .post-thumbnail,
 .entry-content .wp-audio-shortcode,
 .entry-content > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce),
+.wp-site-blocks > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce),
 *[class*=inner-container] > *:not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce),
+.wp-block-group > *:not([class*=inner-container]):not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce),
 .default-max-width {
 	max-width: var(--responsive--aligndefault-width);
 	margin-right: auto;
@@ -914,6 +917,7 @@ template {
 .site-main > .not-found > *,
 .entry-content > *,
 [class*=inner-container] > *,
+.wp-site-blocks *,
 .wp-block-template-part > *,
 .wp-block-post-template :where(li > *) {
 	margin-top: calc(0.666 * var(--global--spacing-vertical));
@@ -925,6 +929,7 @@ template {
 	.site-main > .not-found > *,
 	.entry-content > *,
 	[class*=inner-container] > *,
+	.wp-site-blocks *,
 	.wp-block-template-part > *,
 	.wp-block-post-template :where(li > *) {
 		margin-top: var(--global--spacing-vertical);
@@ -936,6 +941,7 @@ template {
 .site-main > .not-found > *:first-child,
 .entry-content > *:first-child,
 [class*=inner-container] > *:first-child,
+.wp-site-blocks *:first-child,
 .wp-block-template-part > *:first-child,
 .wp-block-post-template :where(li > *):first-child {
 	margin-top: 0;
@@ -945,6 +951,7 @@ template {
 .site-main > .not-found > *:last-child,
 .entry-content > *:last-child,
 [class*=inner-container] > *:last-child,
+.wp-site-blocks *:last-child,
 .wp-block-template-part > *:last-child,
 .wp-block-post-template :where(li > *):last-child {
 	margin-bottom: 0;
@@ -2894,6 +2901,17 @@ p.has-text-color a {
 	color: var(--wp--style--color--link, var(--global--color-primary));
 }
 
+.wp-block-post-title {
+	line-height: var(--heading--line-height-h1);
+	font-weight: var(--heading--font-weight-page-title);
+	font-size: var(--global--font-size-page-title);
+	margin-bottom: calc(2 * var(--global--spacing-vertical));
+}
+
+.wp-block-post-title.entry-title {
+	margin-bottom: calc(2 * var(--global--spacing-vertical));
+}
+
 pre.wp-block-preformatted {
 	overflow-x: auto;
 	white-space: pre;
@@ -3395,6 +3413,7 @@ hr.wp-block-separator {
 }
 
 hr.wp-block-separator:not(.is-style-dots):not(.alignwide) {
+	width: 100%;
 	max-width: var(--responsive--aligndefault-width);
 }
 
@@ -3432,6 +3451,49 @@ hr.wp-block-separator.is-style-dots:before {
 [style*=background-color] hr.wp-block-separator,
 .wp-block-cover[style*=background-image] hr.wp-block-separator {
 	border-color: currentColor;
+}
+
+header .wp-block-site-tagline {
+	margin-top: 0;
+}
+
+.wp-block-site-title {
+	color: var(--branding--color-link);
+	font-family: var(--branding--title--font-family);
+	font-size: var(--branding--title--font-size-mobile);
+	letter-spacing: normal;
+	text-transform: var(--branding--title--text-transform);
+	line-height: var(--global--line-height-heading);
+}
+
+.wp-block-site-title a {
+	color: currentColor;
+	font-weight: var(--branding--title--font-weight);
+}
+
+.wp-block-site-title a:link,
+.wp-block-site-title a:visited,
+.wp-block-site-title a:active {
+	color: currentColor;
+}
+
+.wp-block-site-title a:hover,
+.wp-block-site-title a:focus {
+	color: var(--branding--color-link-hover);
+}
+
+.wp-block-site-title > a {
+	text-decoration-color: var(--global--color-secondary);
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-site-title {
+		font-size: var(--branding--title--font-size);
+	}
+}
+
+header .wp-block-site-title {
+	margin-bottom: calc(var(--global--spacing-vertical) / 10);
 }
 
 .wp-block-social-links a:focus {
@@ -3644,7 +3706,7 @@ table.wp-calendar-table caption {
 /* Block Alignments */
 
 /**
- * These selectors set the default max width for content appearing inside a post or page.
+ * These selectors set the default max width for content appearing inside a post, page, or group.
  */
 
 /**
@@ -3834,6 +3896,10 @@ table.wp-calendar-table caption {
 .site-title a:focus {
 	color: var(--branding--color-link-hover);
 }
+
+.site-title > a {
+	text-decoration-color: var(--global--color-secondary);
+}
 @media only screen and (min-width: 482px) {
 
 	.site-title {
@@ -3846,10 +3912,6 @@ table.wp-calendar-table caption {
 	font-family: var(--branding--description--font-family);
 	font-size: var(--branding--description--font-size);
 	line-height: 1.4;
-}
-
-.site-title > a {
-	text-decoration-color: var(--global--color-secondary);
 }
 
 .site-logo {

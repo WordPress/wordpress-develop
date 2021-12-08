@@ -22,6 +22,9 @@ class Twenty_Twenty_One_Custom_Colors {
 		// Enqueue color variables for customizer & frontend.
 		add_action( 'wp_enqueue_scripts', array( $this, 'custom_color_variables' ) );
 
+		// Add color variables to the template-editor.
+		add_action( 'block_editor_settings_all', array( $this, 'template_editor_custom_color_variables' ) );
+
 		// Enqueue color variables for editor.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'editor_custom_color_variables' ) );
 
@@ -109,6 +112,36 @@ class Twenty_Twenty_One_Custom_Colors {
 			wp_add_inline_style( 'twenty-twenty-one-custom-color-overrides', $this->generate_custom_color_variables( 'editor' ) );
 		}
 	}
+
+	/**
+	 * Template editor custom color variables.
+	 *
+	 * @since Twenty Twenty-One 1.5
+	 *
+	 * @return array $settings Block editor settings.
+	 */
+	public function template_editor_custom_color_variables( $settings ) {
+		$background_color = get_theme_mod( 'background_color', 'D1E4DD' );
+
+		if ( 'd1e4dd' !== strtolower( $background_color ) ) {
+
+			$settings['styles'][] = array( 'css' =>
+				'body{ --global--color-background: #' . $background_color . ';
+				--global--color-primary: ' . $this->custom_get_readable_color( $background_color ) . ';
+				--global--color-secondary: ' . $this->custom_get_readable_color( $background_color ) . ';
+				--button--color-background: ' . $this->custom_get_readable_color( $background_color ) . ';
+				--button--color-text-hover: ' . $this->custom_get_readable_color( $background_color ) . ';
+				}'
+			);
+
+			if ( '#fff' === $this->custom_get_readable_color( $background_color ) ) {
+				$settings['styles'][] = array( 'css' => 'body{ --table--stripes-border-color: rgba(240, 240, 240, 0.15); --table--stripes-background-color: rgba(240, 240, 240, 0.15);}' );
+			}
+		}
+
+		return $settings;
+	}
+
 
 	/**
 	 * Get luminance from a HEX color.

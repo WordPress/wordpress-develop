@@ -13,7 +13,7 @@ Version: 1.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentytwentyone
-Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, block-patterns, rtl-language-support, sticky-post, threaded-comments, translation-ready
+Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, block-patterns, rtl-language-support, sticky-post, template-editing, threaded-comments, translation-ready
 
 Twenty Twenty-One WordPress Theme, (C) 2020 WordPress.org
 Twenty Twenty-One is distributed under the terms of the GNU GPL.
@@ -66,6 +66,7 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
  * Quote................Specific styles for the quote block.
  * Search...............Specific styles for the search block.
  * Separator............Specific styles for the separator block.
+ * Site title...........Specific styles for the site title block.
  * Spacer...............Specific styles for the spacer block.
  * Table................Specific styles for the table block.
  * Verse................Specific styles for the verse block.
@@ -595,6 +596,24 @@ template {
 	}
 }
 
+.wp-site-blocks > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+	max-width: calc(100vw - 30px);
+	margin-left: auto;
+	margin-right: auto;
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-site-blocks > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+		max-width: min(calc(100vw - 100px), 610px);
+	}
+}
+@media only screen and (min-width: 822px) {
+
+	.wp-site-blocks > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+		max-width: min(calc(100vw - 200px), 610px);
+	}
+}
+
 *[class*=inner-container] > *:not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
 	max-width: calc(100vw - 30px);
 	margin-left: auto;
@@ -609,6 +628,24 @@ template {
 @media only screen and (min-width: 822px) {
 
 	*[class*=inner-container] > *:not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+		max-width: min(calc(100vw - 200px), 610px);
+	}
+}
+
+.wp-block-group > *:not([class*=inner-container]):not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+	max-width: calc(100vw - 30px);
+	margin-left: auto;
+	margin-right: auto;
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-group > *:not([class*=inner-container]):not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+		max-width: min(calc(100vw - 100px), 610px);
+	}
+}
+@media only screen and (min-width: 822px) {
+
+	.wp-block-group > *:not([class*=inner-container]):not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
 		max-width: min(calc(100vw - 200px), 610px);
 	}
 }
@@ -1090,6 +1127,11 @@ template {
 	margin-bottom: 20px;
 }
 
+.wp-site-blocks * {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
 .wp-block-template-part > * {
 	margin-top: 20px;
 	margin-bottom: 20px;
@@ -1121,6 +1163,11 @@ template {
 		margin-bottom: 30px;
 	}
 
+	.wp-site-blocks * {
+		margin-top: 30px;
+		margin-bottom: 30px;
+	}
+
 	.wp-block-template-part > * {
 		margin-top: 30px;
 		margin-bottom: 30px;
@@ -1136,6 +1183,7 @@ template {
 .site-main > .not-found > *:first-child,
 .entry-content > *:first-child,
 [class*=inner-container] > *:first-child,
+.wp-site-blocks *:first-child,
 .wp-block-template-part > *:first-child,
 .wp-block-post-template :where(li > *):first-child {
 	margin-top: 0;
@@ -1145,6 +1193,7 @@ template {
 .site-main > .not-found > *:last-child,
 .entry-content > *:last-child,
 [class*=inner-container] > *:last-child,
+.wp-site-blocks *:last-child,
 .wp-block-template-part > *:last-child,
 .wp-block-post-template :where(li > *):last-child {
 	margin-bottom: 0;
@@ -4059,6 +4108,24 @@ p.has-text-color a {
 	color: #28303d;
 }
 
+.wp-block-post-title {
+	line-height: 1.1;
+	font-weight: 300;
+	font-size: 4rem;
+	margin-bottom: 60px;
+}
+
+@media only screen and (min-width: 652px) {
+
+	.wp-block-post-title {
+		font-size: 6rem;
+	}
+}
+
+.wp-block-post-title.entry-title {
+	margin-bottom: 60px;
+}
+
 pre.wp-block-preformatted {
 	overflow-x: auto;
 	white-space: pre;
@@ -4740,6 +4807,7 @@ hr.wp-block-separator {
 }
 
 hr.wp-block-separator:not(.is-style-dots):not(.alignwide) {
+	width: 100%;
 	max-width: calc(100vw - 30px);
 }
 @media only screen and (min-width: 482px) {
@@ -4807,6 +4875,52 @@ hr.wp-block-separator.is-style-dots:before {
 [style*=background-color] hr.wp-block-separator,
 .wp-block-cover[style*=background-image] hr.wp-block-separator {
 	border-color: currentColor;
+}
+
+header .wp-block-site-tagline {
+	margin-top: 0;
+}
+
+.wp-block-site-title {
+	color: #28303d;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 1.5rem;
+	letter-spacing: normal;
+	text-transform: uppercase;
+	line-height: 1.3;
+}
+
+.wp-block-site-title a {
+	color: currentColor;
+	font-weight: normal;
+}
+
+.wp-block-site-title a:link,
+.wp-block-site-title a:visited,
+.wp-block-site-title a:active {
+	color: currentColor;
+}
+
+.wp-block-site-title a:hover {
+	color: #39414d;
+}
+
+.wp-block-site-title a:focus {
+	color: #39414d;
+}
+
+.wp-block-site-title > a {
+	text-decoration-color: #39414d;
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-site-title {
+		font-size: 1.5rem;
+	}
+}
+
+header .wp-block-site-title {
+	margin-bottom: 3px;
 }
 
 .wp-block-social-links a:focus {
@@ -5166,7 +5280,7 @@ table.wp-calendar-table caption {
 /* Block Alignments */
 
 /**
- * These selectors set the default max width for content appearing inside a post or page.
+ * These selectors set the default max width for content appearing inside a post, page, or group.
  */
 
 /**
@@ -5432,6 +5546,10 @@ table.wp-calendar-table caption {
 .site-title a:focus {
 	color: #39414d;
 }
+
+.site-title > a {
+	text-decoration-color: #39414d;
+}
 @media only screen and (min-width: 482px) {
 
 	.site-title {
@@ -5444,10 +5562,6 @@ table.wp-calendar-table caption {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.125rem;
 	line-height: 1.4;
-}
-
-.site-title > a {
-	text-decoration-color: #39414d;
 }
 
 .site-logo {

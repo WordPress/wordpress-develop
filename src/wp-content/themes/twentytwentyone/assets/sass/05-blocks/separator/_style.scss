@@ -10,6 +10,7 @@ hr {
 		opacity: 1;
 
 		&:not(.is-style-dots):not(.alignwide) {
+			width: 100%;
 			max-width: var(--responsive--aligndefault-width);
 		}
 

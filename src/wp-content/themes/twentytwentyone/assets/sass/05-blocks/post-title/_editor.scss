@@ -1,0 +1,10 @@
+.wp-block-post-title {
+	line-height: var(--heading--line-height-h1);
+	font-weight: var(--heading--font-weight-page-title);
+	font-size: var(--global--font-size-page-title);
+
+	// Add extra bottom margin when used in the default template.
+	&.entry-title {
+		margin-bottom: calc(2 * var(--global--spacing-vertical));
+	}
+}
