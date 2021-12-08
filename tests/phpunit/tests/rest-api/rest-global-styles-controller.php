@@ -93,13 +93,30 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::register_routes
+	 * @ticket 54596
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
-		$this->assertArrayHasKey( '/wp/v2/global-styles/(?P<id>[\/\w-]+)', $routes );
-		$this->assertCount( 2, $routes['/wp/v2/global-styles/(?P<id>[\/\w-]+)'] );
-		$this->assertArrayHasKey( '/wp/v2/global-styles/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)', $routes );
-		$this->assertCount( 1, $routes['/wp/v2/global-styles/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)'] );
+		$this->assertArrayHasKey(
+			'/wp/v2/global-styles/(?P<id>[\/\w\.-]+)',
+			$routes,
+			'Single global style based on the given ID route does not exist'
+		);
+		$this->assertCount(
+			2,
+			$routes['/wp/v2/global-styles/(?P<id>[\/\w\.-]+)'],
+			'Single global style based on the given ID route does not have exactly two elements'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[\/\w\.-]+)',
+			$routes,
+			'Theme global styles route does not exist'
+		);
+		$this->assertCount(
+			1,
+			$routes['/wp/v2/global-styles/themes/(?P<stylesheet>[\/\w\.-]+)'],
+			'Theme global styles route does not have exactly one element'
+		);
 	}
 
 	public function test_context_param() {
