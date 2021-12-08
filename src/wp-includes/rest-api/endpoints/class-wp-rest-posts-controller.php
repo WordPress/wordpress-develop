@@ -2526,6 +2526,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$schema_links = $this->get_schema_links();
+		$schema_links = apply_filters( "rest_{$this->post_type}_item_schema_links", $schema_links );
 
 		if ( $schema_links ) {
 			$schema['links'] = $schema_links;
