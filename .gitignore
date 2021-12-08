@@ -1,3 +1,8 @@
+# JR3 gitignore
+.svn-backup/
+*.code-workspace
+
+
 # gitignore file for WordPress Core
 
 # Configuration files with possibly sensitive information
