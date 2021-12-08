@@ -541,7 +541,7 @@ foreach ( $themes as $theme ) :
 			?>
 			<a class="button activate" href="<?php echo $theme['actions']['activate']; ?>" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
 			<?php
-			if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
+			if ( ! $theme['blockTheme'] && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
 				/* translators: %s: Theme name. */
 				$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 				?>
@@ -553,7 +553,7 @@ foreach ( $themes as $theme ) :
 			$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
 			?>
 			<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
-			<?php if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) { ?>
+			<?php if ( ! $theme['blockTheme'] && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) { ?>
 				<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
 			<?php } ?>
 		<?php } ?>
@@ -913,7 +913,9 @@ function wp_theme_auto_update_setting_template() {
 					$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
-					<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
+					<# if ( ! data.blockTheme ) { #>
+						<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
+					<# } #>
 				<# } #>
 			<# } #>
 		</div>
@@ -1121,7 +1123,9 @@ function wp_theme_auto_update_setting_template() {
 					<# if ( data.actions.activate ) { #>
 						<a href="{{{ data.actions.activate }}}" class="button activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
 					<# } #>
-					<a href="{{{ data.actions.customize }}}" class="button button-primary load-customize hide-if-no-customize"><?php _e( 'Live Preview' ); ?></a>
+					<# if ( ! data.blockTheme ) { #>
+						<a href="{{{ data.actions.customize }}}" class="button button-primary load-customize hide-if-no-customize"><?php _e( 'Live Preview' ); ?></a>
+					<# } #>
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
@@ -1130,7 +1134,9 @@ function wp_theme_auto_update_setting_template() {
 					<# if ( data.actions.activate ) { #>
 						<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 					<# } #>
-					<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
+					<# if ( ! data.blockTheme ) { #>
+						<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
+					<# } #>
 				<# } #>
 			</div>
 
