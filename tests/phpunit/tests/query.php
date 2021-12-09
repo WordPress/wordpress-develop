@@ -696,4 +696,44 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
 	}
+
+	/**
+	 * @ticket 17019
+	 */
+	public function test_fields_count() {
+		$this->factory->post->create_many( 3 );
+
+		$q = new WP_Query( array( 'fields' => 'count' ) );
+		$this->assertNotEquals( 3, $q->posts );
+		$this->assertEquals( 3, $q->post_count );
+
+		$p = get_posts( array( 'fields' => 'count' ) );
+		$this->assertEquals( 3, $p );
+	}
+
+	public function test_query_context() {
+		$this->factory->post->create_many( 5 );
+
+		$q = new WP_Query( array( 'post_type' => 'post' ) );
+		$this->assertEquals( 5, $q->post_count );
+
+		add_action( 'pre_get_posts', array( $this, 'filter_pre_get_posts' ) );
+
+		$q = new WP_Query( array( 'query_context' => 'burrito' ) );
+		$this->assertEquals( 3, $q->post_count );
+
+		$q = new WP_Query( array( 'query_context' => 'taco' ) );
+		$this->assertEquals( 5, $q->post_count );
+
+		remove_action( 'pre_get_posts', array( $this, 'filter_pre_get_posts' ) );
+
+		$q = new WP_Query( array( 'query_context' => 'burrito' ) );
+		$this->assertEquals( 5, $q->post_count );
+	}
+
+	public function filter_pre_get_posts( &$query ) {
+		if ( 'burrito' === $query->get( 'query_context' ) ) {
+			$query->set( 'posts_per_page', 3 );
+		}
+	}
 }
