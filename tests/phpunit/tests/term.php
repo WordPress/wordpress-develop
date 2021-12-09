@@ -55,10 +55,13 @@ class Tests_Term extends WP_UnitTestCase {
 		$t    = wp_insert_term( $term, $this->taxonomy );
 		$this->assertIsArray( $t );
 		$term_obj = get_term_by( 'name', $term, $this->taxonomy );
-		$this->assertEquals( $t['term_id'], term_exists( $term_obj->slug ) );
 
+		$exists = term_exists( $term_obj->slug );
 		// Clean up.
-		$this->assertTrue( wp_delete_term( $t['term_id'], $this->taxonomy ) );
+		$deleted = wp_delete_term( $t['term_id'], $this->taxonomy );
+
+		$this->assertEquals( $t['term_id'], $exists );
+		$this->assertTrue( $deleted );
 	}
 
 	/**
