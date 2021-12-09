@@ -208,7 +208,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( '%d' )
 		);
 
-		$menu_id       = wp_create_nav_menu( 'bar' );
+		$menu_id       = wp_create_nav_menu( 'Nav Menu Bar' );
 		$cat_menu_item = wp_update_nav_menu_item(
 			$menu_id,
 			0,

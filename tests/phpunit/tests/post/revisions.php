@@ -17,7 +17,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->post_type = 'foo';
+		$this->post_type = 'test-revision';
 	}
 
 	/**

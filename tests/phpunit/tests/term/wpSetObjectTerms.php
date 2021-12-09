@@ -164,7 +164,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 	public function test_set_object_terms_invalid() {
 		// Bogus taxonomy.
-		$result = wp_set_object_terms( self::$post_ids[0], array( 'foo' ), 'bar' );
+		$result = wp_set_object_terms( self::$post_ids[0], array( 'foo' ), 'invalid-taxonomy' );
 		$this->assertWPError( $result );
 	}
 
