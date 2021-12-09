@@ -2010,8 +2010,8 @@ function wp_welcome_panel() {
 		<h3><?php _e( 'Author rich content with blocks and patterns' ); ?></h3>
 		<p><?php _e( 'Use a block pattern to create new pages in a flash, or add some pizazz to your next post.' ); ?></p>
 		<div class="welcome-panel-button-row">
-			<?php printf( '<a href="%s" class="button button-secondary">' . __( 'New post' ) . '</a>', admin_url( 'post-new.php' ) ); ?>
-			<?php printf( '<a href="%s" class="button button-secondary">' . __( 'New page' ) . '</a>', admin_url( 'post-new.php?post_type=page' ) ); ?>
+			<a href="<?php echo esc_url( admin_url( 'post-new.php' ) ); ?>" class="button button-secondary"><?php _e( 'New post' ); ?></a>
+			<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=page' ) ); ?>" class="button button-secondary"><?php _e( 'New page' ); ?></a>
 		</div>
 	</div>
 	<div class="welcome-panel-column is-welcome-panel-site-editor">
