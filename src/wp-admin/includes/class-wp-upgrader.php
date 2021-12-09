@@ -141,10 +141,7 @@ class WP_Upgrader {
 	public function init() {
 		$this->skin->set_upgrader( $this );
 		$this->generic_strings();
-
-		if ( ! wp_installing() ) {
-			$this->schedule_temp_backup_cleanup();
-		}
+		$this->schedule_temp_backup_cleanup();
 	}
 
 	/**
