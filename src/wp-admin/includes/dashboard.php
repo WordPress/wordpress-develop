@@ -2027,7 +2027,7 @@ function wp_welcome_panel() {
 		<div class="welcome-panel-image"></div>
 		<h3><?php _e( 'Get creative with Styles' ); ?></h3>
 		<p><?php _e( 'Tweak your site’s colors, fonts, and more with the new Styles tool.' ); ?></p>
-		<a href="#" class="button button-secondary"><?php _e( 'Edit styles' ); ?></a>
+		<a href="<?php echo esc_url( admin_url( 'site-editor.php?styles=open' ) ); ?>" class="button button-secondary"><?php _e( 'Edit styles' ); ?></a>
 	</div>
 	</div>
 	</div>
