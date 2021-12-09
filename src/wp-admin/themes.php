@@ -317,7 +317,7 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 	foreach ( (array) $submenu['themes.php'] as $item ) {
 		$class = '';
 
-		if ( in_array( $item[2], $forbidden_paths, true ) || 0 === strpos( $item[2], 'customize.php' ) ) {
+		if ( in_array( $item[2], $forbidden_paths, true ) || str_starts_with( $item[2], 'customize.php' ) ) {
 			continue;
 		}
 		// 0 = name, 1 = capability, 2 = file.
