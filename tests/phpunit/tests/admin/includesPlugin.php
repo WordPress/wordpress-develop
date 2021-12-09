@@ -607,7 +607,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 			$dir_path = WP_PLUGIN_DIR;
 		}
 
-		$full_name = $dir_path . '/' . wp_unique_filename( $dir_path, $filename );
+		$filename  = wp_unique_filename( $dir_path, $filename );
+		$full_name = $dir_path . '/' . $filename;
 
 		$file = fopen( $full_name, 'w' );
 		fwrite( $file, $data );
