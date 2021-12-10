@@ -233,7 +233,7 @@ class WP_Theme_JSON_Resolver {
 	 *                                     so it only fetches published posts.
 	 * @return array Custom Post Type for the user's origin config.
 	 */
-	public static function get_global_styles_from_post( $theme, $create_post = false, $post_status_filter = array( 'publish' ) ) {
+	public static function get_user_data_from_wp_global_styles( $theme, $create_post = false, $post_status_filter = array( 'publish' ) ) {
 		if ( ! $theme instanceof WP_Theme ) {
 			$theme = wp_get_theme();
 		}
@@ -304,7 +304,7 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$config   = array();
-		$user_cpt = self::get_global_styles_from_post( wp_get_theme() );
+		$user_cpt = self::get_user_data_from_wp_global_styles( wp_get_theme() );
 
 		if ( array_key_exists( 'post_content', $user_cpt ) ) {
 			$decoded_data = json_decode( $user_cpt['post_content'], true );
@@ -386,7 +386,7 @@ class WP_Theme_JSON_Resolver {
 			return self::$user_custom_post_type_id;
 		}
 
-		$user_cpt = self::get_global_styles_from_post( wp_get_theme(), true );
+		$user_cpt = self::get_user_data_from_wp_global_styles( wp_get_theme(), true );
 
 		if ( array_key_exists( 'ID', $user_cpt ) ) {
 			self::$user_custom_post_type_id = $user_cpt['ID'];
