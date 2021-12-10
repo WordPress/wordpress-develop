@@ -104,7 +104,7 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 
 		selection.reset( attachment ? [ attachment ] : [] );
 
-		if ( ! infinite_scrolling && library.getTotalAttachments() == 0 && library.hasMore() ) {
+		if ( library.hasMore() ) {
 			library.more();
 		}
 	}
