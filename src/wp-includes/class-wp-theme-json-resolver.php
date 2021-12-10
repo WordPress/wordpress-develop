@@ -262,7 +262,7 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		// Special case: '-1' is a results not found.
-		if ( -1 === $post_id && ! $should_create_cpt ) {
+		if ( -1 === $post_id && ! $create_post ) {
 			return $post;
 		}
 

@@ -320,7 +320,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			// This creates a record for the current theme if not existent.
 			$id = WP_Theme_JSON_Resolver::get_global_styles_post_id();
 		} else {
-			$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_custom_post_type( $theme );
+			$user_cpt = WP_Theme_JSON_Resolver::get_global_styles_from_post( $theme );
 			$id       = isset( $user_cpt['ID'] ) ? $user_cpt['ID'] : null;
 		}
 
