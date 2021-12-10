@@ -701,7 +701,14 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		}
 
 		$customize_action = null;
-		if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
+
+		$can_edit_theme_options = current_user_can( 'edit_theme_options' );
+		$can_customize          = current_user_can( 'customize' );
+		$is_block_theme         = $theme->is_block_theme();
+
+		if ( $is_block_theme && $can_edit_theme_options ) {
+			$customize_action = esc_url( admin_url( 'site-editor.php' ) );
+		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
 			$customize_action = esc_url(
 				add_query_arg(
 					array(
@@ -775,6 +782,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 					? wp_nonce_url( admin_url( 'themes.php?action=' . $auto_update_action . '&amp;stylesheet=' . $encoded_slug ), 'updates' )
 					: null,
 			),
+			'blockTheme'     => $theme->is_block_theme(),
 		);
 	}
 

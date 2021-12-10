@@ -224,7 +224,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
+	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
 	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
 	 */
 	public function test_get_term_link_filter_is_object_by_term_id( $taxonomy, $use_id ) {
@@ -247,7 +247,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
+	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
 	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
 	 */
 	public function test_get_term_link_filter_is_object_by_term_object( $taxonomy, $use_id ) {
@@ -270,7 +270,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
+	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
 	 * @param bool   $use_id   When true, pass term ID. Else, skip the test.
 	 */
 	public function test_get_term_feed_link_backward_compatibility( $taxonomy, $use_id ) {
@@ -283,7 +283,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 			$term_feed_link = get_term_feed_link( $term, '' );
 			$this->assertIsString( $term_feed_link );
 		} else {
-			$this->markTestSkipped( 'This test requires to pass an id to get_term_feed_link()' );
+			$this->markTestSkipped( 'This test requires to pass an ID to get_term_feed_link()' );
 		}
 	}
 
@@ -336,7 +336,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
+	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
 	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
 	 * @return WP_Term|int If $use_id is true, term ID is returned; else instance of WP_Term.
 	 */

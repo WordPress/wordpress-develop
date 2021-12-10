@@ -680,9 +680,6 @@ add_filter( 'pre_wp_unique_post_slug', 'wp_filter_wp_template_unique_post_slug',
 add_action( 'save_post_wp_template_part', 'wp_set_unique_slug_on_create_template_part' );
 add_action( 'wp_footer', 'the_block_template_skip_link' );
 add_action( 'setup_theme', 'wp_enable_block_templates' );
-
-// Navigation areas.
-add_action( 'setup_theme', '_wp_register_default_navigation_areas' );
-add_action( 'switch_theme', '_wp_migrate_menu_to_navigation_post', 99, 3 );
+add_action( 'wp_loaded', '_add_template_loader_filters' );
 
 unset( $filter, $action );
