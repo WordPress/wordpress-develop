@@ -216,10 +216,10 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Returns an array that contains global styles
+	 * Returns the custom post type that contains the user's origin config
 	 * for the current theme or a void array if none are found.
 	 *
-	 * This can also create and return a new draft post.
+	 * This can also create and return a new draft custom post type.
 	 *
 	 * @since 5.9.0
 	 *
@@ -296,9 +296,9 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return WP_Theme_JSON Entity that holds styles for the current theme.
+	 * @return WP_Theme_JSON Entity that holds styles for user data.
 	 */
-	public static function get_global_styles() {
+	public static function get_user_data() {
 		if ( null !== self::$user ) {
 			return self::$user;
 		}
@@ -339,7 +339,7 @@ class WP_Theme_JSON_Resolver {
 	 * than the theme's, and the theme's higher than default's.
 	 *
 	 * Unlike the getters {@link get_core_data},
-	 * {@link get_theme_data}, and {@link get_global_styles},
+	 * {@link get_theme_data}, and {@link get_user_data},
 	 * this method returns data after it has been merged
 	 * with the previous origins. This means that if the same piece of data
 	 * is declared in different origins (user, theme, and core),
@@ -367,7 +367,7 @@ class WP_Theme_JSON_Resolver {
 		$result->merge( self::get_theme_data() );
 
 		if ( 'custom' === $origin ) {
-			$result->merge( self::get_global_styles() );
+			$result->merge( self::get_user_data() );
 		}
 
 		return $result;
