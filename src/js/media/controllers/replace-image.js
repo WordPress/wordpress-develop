@@ -99,14 +99,9 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 	 */
 	updateSelection: function() {
 		var selection = this.get('selection'),
-			library = this.get('library'),
 			attachment = this.image.attachment;
 
 		selection.reset( attachment ? [ attachment ] : [] );
-
-		if ( library.hasMore() ) {
-			library.more();
-		}
 	}
 });
 
