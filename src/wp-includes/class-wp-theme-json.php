@@ -165,37 +165,47 @@ class WP_Theme_JSON {
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
-		'background'                 => array( 'color', 'gradient' ),
-		'background-color'           => array( 'color', 'background' ),
-		'border-radius'              => array( 'border', 'radius' ),
-		'border-top-left-radius'     => array( 'border', 'radius', 'topLeft' ),
-		'border-top-right-radius'    => array( 'border', 'radius', 'topRight' ),
-		'border-bottom-left-radius'  => array( 'border', 'radius', 'bottomLeft' ),
-		'border-bottom-right-radius' => array( 'border', 'radius', 'bottomRight' ),
-		'border-color'               => array( 'border', 'color' ),
-		'border-width'               => array( 'border', 'width' ),
-		'border-style'               => array( 'border', 'style' ),
-		'color'                      => array( 'color', 'text' ),
-		'font-family'                => array( 'typography', 'fontFamily' ),
-		'font-size'                  => array( 'typography', 'fontSize' ),
-		'font-style'                 => array( 'typography', 'fontStyle' ),
-		'font-weight'                => array( 'typography', 'fontWeight' ),
-		'letter-spacing'             => array( 'typography', 'letterSpacing' ),
-		'line-height'                => array( 'typography', 'lineHeight' ),
-		'margin'                     => array( 'spacing', 'margin' ),
-		'margin-top'                 => array( 'spacing', 'margin', 'top' ),
-		'margin-right'               => array( 'spacing', 'margin', 'right' ),
-		'margin-bottom'              => array( 'spacing', 'margin', 'bottom' ),
-		'margin-left'                => array( 'spacing', 'margin', 'left' ),
-		'padding'                    => array( 'spacing', 'padding' ),
-		'padding-top'                => array( 'spacing', 'padding', 'top' ),
-		'padding-right'              => array( 'spacing', 'padding', 'right' ),
-		'padding-bottom'             => array( 'spacing', 'padding', 'bottom' ),
-		'padding-left'               => array( 'spacing', 'padding', 'left' ),
-		'--wp--style--block-gap'     => array( 'spacing', 'blockGap' ),
-		'text-decoration'            => array( 'typography', 'textDecoration' ),
-		'text-transform'             => array( 'typography', 'textTransform' ),
-		'filter'                     => array( 'filter', 'duotone' ),
+		'background'                    => array( 'color', 'gradient' ),
+		'background-color'              => array( 'color', 'background' ),
+		'border-radius'                 => array( 'border', 'radius' ),
+		'border-top-left-radius'        => array( 'border', 'radius', 'topLeft' ),
+		'border-top-right-radius'       => array( 'border', 'radius', 'topRight' ),
+		'border-bottom-left-radius'     => array( 'border', 'radius', 'bottomLeft' ),
+		'border-bottom-right-radius'    => array( 'border', 'radius', 'bottomRight' ),
+		'border-color'                  => array( 'border', 'color' ),
+		'border-width'                  => array( 'border', 'width' ),
+		'border-style'                  => array( 'border', 'style' ),
+		'color'                         => array( 'color', 'text' ),
+		'font-family'                   => array( 'typography', 'fontFamily' ),
+		'font-size'                     => array( 'typography', 'fontSize' ),
+		'font-style'                    => array( 'typography', 'fontStyle' ),
+		'font-weight'                   => array( 'typography', 'fontWeight' ),
+		'letter-spacing'                => array( 'typography', 'letterSpacing' ),
+		'line-height'                   => array( 'typography', 'lineHeight' ),
+		'margin'                        => array( 'spacing', 'margin' ),
+		'margin-top'                    => array( 'spacing', 'margin', 'top' ),
+		'margin-right'                  => array( 'spacing', 'margin', 'right' ),
+		'margin-bottom'                 => array( 'spacing', 'margin', 'bottom' ),
+		'margin-left'                   => array( 'spacing', 'margin', 'left' ),
+		'padding'                       => array( 'spacing', 'padding' ),
+		'padding-top'                   => array( 'spacing', 'padding', 'top' ),
+		'padding-right'                 => array( 'spacing', 'padding', 'right' ),
+		'padding-bottom'                => array( 'spacing', 'padding', 'bottom' ),
+		'padding-left'                  => array( 'spacing', 'padding', 'left' ),
+		'--wp--style--block-gap'        => array( 'spacing', 'blockGap' ),
+		'--wp--style--block-gap-row'    => array( 'spacing', 'blockGap', 'row' ),
+		'--wp--style--block-gap-column' => array( 'spacing', 'blockGap', 'column' ),
+		'text-decoration'               => array( 'typography', 'textDecoration' ),
+		'text-transform'                => array( 'typography', 'textTransform' ),
+		'filter'                        => array( 'filter', 'duotone' ),
+	);
+
+	/**
+	 * Presets are a set of values that serve
+	 * to bootstrap some top-level styles: spacing, etc.
+	 */
+	const STYLE_DECLARATION_TRANSFORMS = array(
+		'--wp--style--block-gap' => array(),
 	);
 
 	/**
@@ -766,13 +776,45 @@ class WP_Theme_JSON {
 			$settings     = _wp_array_get( $this->theme_json, array( 'settings' ) );
 			$declarations = self::compute_style_properties( $node, $settings );
 
-			// 1. Separate the ones who use the general selector
-			// and the ones who use the duotone selector.
-			$declarations_duotone = array();
+			// Filter the style $declarations.
+			$declarations_duotone   = array();
+			$declarations_block_gap = array();
 			foreach ( $declarations as $index => $declaration ) {
+				// 1. Separate the ones who use the general selector
+				// and the ones who use the duotone selector.
 				if ( 'filter' === $declaration['name'] ) {
 					unset( $declarations[ $index ] );
 					$declarations_duotone[] = $declaration;
+				}
+				// 2. Save the block gap row and column CSS vars
+				if ( str_starts_with( $declaration['name'], '--wp--style--block' ) ) {
+					$declarations_block_gap[ $declaration['name'] ] = $declaration;
+					unset( $declarations[ $index ] );
+				}
+			}
+
+			if ( ! empty( $declarations_block_gap ) ) {
+				if ( isset( $declarations_block_gap['--wp--style--block-gap'] ) ) {
+					$declarations[] = array(
+						'name'  => '--wp--style--block-gap',
+						'value' => $declarations_block_gap['--wp--style--block-gap']['value'],
+					);
+					$gap_values = explode( ' ', $declarations_block_gap['--wp--style--block-gap']['value'] );
+					$declarations[] = array(
+						'name'  => '--wp--style--block-gap-row',
+						'value' => $gap_values[0],
+					);
+					$declarations[] = array(
+						'name'  => '--wp--style--block-gap-column',
+						'value' => isset( $gap_values[1] ) ? $gap_values[1] : $gap_values[0],
+					);
+				}
+
+				if ( isset( $declarations_block_gap['--wp--style--block-gap-row'] ) && isset( $declarations_block_gap['--wp--style--block-gap-column'] ) ) {
+					$declarations[] = array(
+						'name'  => '--wp--style--block-gap',
+						'value' => $declarations_block_gap['--wp--style--block-gap-row']['value'] . ' ' . $declarations_block_gap['--wp--style--block-gap-column']['value'],
+					);
 				}
 			}
 
@@ -1290,6 +1332,9 @@ class WP_Theme_JSON {
 			if ( $has_missing_value || is_array( $value ) ) {
 				continue;
 			}
+
+			// @TODO we could use the $css_property as a key and update $declarations accordingly
+
 
 			$declarations[] = array(
 				'name'  => $css_property,
