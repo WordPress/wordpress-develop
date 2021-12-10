@@ -2132,11 +2132,15 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @since 3.0.0
  *
- * @param int|float|string $key String key
+ * @param string $key String key
  * @return string Sanitized key
  */
 function sanitize_key( $key ) {
 	$raw_key = $key;
+
+	if ( ! is_string( $key ) ) {
+		_deprecated_argument( __FUNCTION__, '5.9', 'The `sanitize_key` function supports only the `string` type for the `$key` argument.' );
+	}
 
 	if ( is_array( $key ) || is_object( $key ) ) {
 		$key = '';
