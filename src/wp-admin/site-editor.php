@@ -91,7 +91,7 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	// Used in the HTML title tag.
 	$title = __( 'Editor (beta)' );
 
-	$active_global_styles_id = WP_Theme_JSON_Resolver::get_global_styles_post_id();
+	$active_global_styles_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 	$active_theme            = wp_get_theme()->get_stylesheet();
 	$preload_paths           = array(
 		array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
