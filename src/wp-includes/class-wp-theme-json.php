@@ -201,14 +201,6 @@ class WP_Theme_JSON {
 	);
 
 	/**
-	 * Presets are a set of values that serve
-	 * to bootstrap some top-level styles: spacing, etc.
-	 */
-	const STYLE_DECLARATION_TRANSFORMS = array(
-		'--wp--style--block-gap' => array(),
-	);
-
-	/**
 	 * Protected style properties.
 	 *
 	 * These style properties are only rendered if a setting enables it
@@ -799,14 +791,17 @@ class WP_Theme_JSON {
 						'name'  => '--wp--style--block-gap',
 						'value' => $declarations_block_gap['--wp--style--block-gap']['value'],
 					);
-					$gap_values = explode( ' ', $declarations_block_gap['--wp--style--block-gap']['value'] );
+					// @TODO what if the shorthand value is something like "calc(100% - 20px)"
+					// Do we need to regex the values?
+					// I don't think we should care about short hand here, and assume that theme.json users will split according to row and column.
+					//$gap_values = explode( ' ', $declarations_block_gap['--wp--style--block-gap']['value'] );
 					$declarations[] = array(
 						'name'  => '--wp--style--block-gap-row',
-						'value' => $gap_values[0],
+						'value' => $declarations_block_gap['--wp--style--block-gap']['value'],
 					);
 					$declarations[] = array(
 						'name'  => '--wp--style--block-gap-column',
-						'value' => isset( $gap_values[1] ) ? $gap_values[1] : $gap_values[0],
+						'value' => $declarations_block_gap['--wp--style--block-gap']['value'],
 					);
 				}
 
@@ -1332,9 +1327,6 @@ class WP_Theme_JSON {
 			if ( $has_missing_value || is_array( $value ) ) {
 				continue;
 			}
-
-			// @TODO we could use the $css_property as a key and update $declarations accordingly
-
 
 			$declarations[] = array(
 				'name'  => $css_property,
