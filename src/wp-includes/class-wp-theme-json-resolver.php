@@ -237,7 +237,7 @@ class WP_Theme_JSON_Resolver {
 		if ( ! $theme instanceof WP_Theme ) {
 			$theme = wp_get_theme();
 		}
-		$post             = array();
+		$user_cpt         = array();
 		$post_type_filter = 'wp_global_styles';
 		$args             = array(
 			'numberposts' => 1,
@@ -263,12 +263,12 @@ class WP_Theme_JSON_Resolver {
 
 		// Special case: '-1' is a results not found.
 		if ( -1 === $post_id && ! $create_post ) {
-			return $post;
+			return $user_cpt;
 		}
 
 		$recent_posts = wp_get_recent_posts( $args );
 		if ( is_array( $recent_posts ) && ( count( $recent_posts ) === 1 ) ) {
-			$post = $recent_posts[0];
+			$user_cpt = $recent_posts[0];
 		} elseif ( $create_post ) {
 			$cpt_post_id = wp_insert_post(
 				array(
@@ -283,12 +283,12 @@ class WP_Theme_JSON_Resolver {
 				),
 				true
 			);
-			$post        = get_post( $cpt_post_id, ARRAY_A );
+			$user_cpt    = get_post( $cpt_post_id, ARRAY_A );
 		}
-		$cache_expiration = $post ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
-		wp_cache_set( $cache_key, $post ? $post['ID'] : -1, '', $cache_expiration );
+		$cache_expiration = $user_cpt ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
+		wp_cache_set( $cache_key, $user_cpt ? $user_cpt['ID'] : -1, '', $cache_expiration );
 
-		return $post;
+		return $user_cpt;
 	}
 
 	/**
