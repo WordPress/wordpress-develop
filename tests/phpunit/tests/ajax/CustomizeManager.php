@@ -741,8 +741,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		foreach ( $response['data']['themes'] as $theme ) {
 			$this->assertNotEmpty( $theme['id'], 'Theme id cannot be empty' );
 			$this->assertNotEmpty( $theme['name'], 'Theme name cannot be empty' );
-			// It must only return non-block themes
-			$this->assertNotTrue( $theme['block_theme'], 'Themes data should not include block theme' );
+			$this->assertArrayHasKey( 'blockTheme', $theme, 'Themes data must include information about blocks support' );
 		}
 	}
 }
