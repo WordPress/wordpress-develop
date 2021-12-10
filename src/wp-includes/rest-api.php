@@ -118,8 +118,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  * @global array $wp_rest_additional_fields Holds registered fields, organized
  *                                          by object type.
  *
- * @param string|array $object_type Object(s) the field is being registered
- *                                  to, "post"|"term"|"comment" etc.
+ * @param string|array $object_type Object(s) the field is being registered to,
+ *                                  "post"|"term"|"comment" etc.
  * @param string       $attribute   The attribute name.
  * @param array        $args {
  *     Optional. An array of arguments used to handle the registered field.
@@ -135,6 +135,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  * }
  */
 function register_rest_field( $object_type, $attribute, $args = array() ) {
+	global $wp_rest_additional_fields;
+
 	$defaults = array(
 		'get_callback'    => null,
 		'update_callback' => null,
@@ -142,8 +144,6 @@ function register_rest_field( $object_type, $attribute, $args = array() ) {
 	);
 
 	$args = wp_parse_args( $args, $defaults );
-
-	global $wp_rest_additional_fields;
 
 	$object_types = (array) $object_type;
 
@@ -313,13 +313,33 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Plugins_Controller();
 	$controller->register_routes();
 
+	// Sidebars.
+	$controller = new WP_REST_Sidebars_Controller();
+	$controller->register_routes();
+
+	// Widget Types.
+	$controller = new WP_REST_Widget_Types_Controller();
+	$controller->register_routes();
+
+	// Widgets.
+	$controller = new WP_REST_Widgets_Controller();
+	$controller->register_routes();
+
 	// Block Directory.
 	$controller = new WP_REST_Block_Directory_Controller();
+	$controller->register_routes();
+
+	// Pattern Directory.
+	$controller = new WP_REST_Pattern_Directory_Controller();
 	$controller->register_routes();
 
 	// Site Health.
 	$site_health = WP_Site_Health::get_instance();
 	$controller  = new WP_REST_Site_Health_Controller( $site_health );
+	$controller->register_routes();
+
+	// URL Details.
+	$controller = new WP_REST_URL_Details_Controller();
 	$controller->register_routes();
 }
 
@@ -1012,7 +1032,7 @@ function rest_cookie_check_errors( $result ) {
 	$result = wp_verify_nonce( $nonce, 'wp_rest' );
 
 	if ( ! $result ) {
-		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
+		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie check failed' ), array( 'status' => 403 ) );
 	}
 
 	// Send a refreshed nonce in header.
@@ -1075,7 +1095,7 @@ function rest_application_password_collect_status( $user_or_error, $app_password
  *
  * @global string|null $wp_rest_application_password_uuid
  *
- * @return string|null The App Password UUID, or null if Application Passwords was not used.
+ * @return string|null The Application Password UUID, or null if Application Passwords was not used.
  */
 function rest_get_authenticated_app_password() {
 	global $wp_rest_application_password_uuid;
@@ -1926,6 +1946,12 @@ function rest_are_values_equal( $value1, $value2 ) {
 		return true;
 	}
 
+	if ( is_int( $value1 ) && is_float( $value2 )
+		|| is_float( $value1 ) && is_int( $value2 )
+	) {
+		return (float) $value1 === (float) $value2;
+	}
+
 	return $value1 === $value2;
 }
 
@@ -2284,8 +2310,8 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
 		return new WP_Error(
 			'rest_too_few_properties',
-			/* translators: 1: Parameter, 2: Number. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at least %2$s property.',
 					'%1$s must contain at least %2$s properties.',
@@ -2300,8 +2326,8 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
 		return new WP_Error(
 			'rest_too_many_properties',
-			/* translators: 1: Parameter, 2: Number. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at most %2$s property.',
 					'%1$s must contain at most %2$s properties.',
@@ -2350,8 +2376,8 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
 		return new WP_Error(
 			'rest_too_few_items',
-			/* translators: 1: Parameter, 2: Number. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at least %2$s item.',
 					'%1$s must contain at least %2$s items.',
@@ -2366,8 +2392,8 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
 		return new WP_Error(
 			'rest_too_many_items',
-			/* translators: 1: Parameter, 2: Number. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at most %2$s item.',
 					'%1$s must contain at most %2$s items.',
@@ -2456,8 +2482,8 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 			if ( $value >= $args['maximum'] || $value <= $args['minimum'] ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2471,8 +2497,8 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 			if ( $value > $args['maximum'] || $value <= $args['minimum'] ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2486,8 +2512,8 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 			if ( $value >= $args['maximum'] || $value < $args['minimum'] ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2501,8 +2527,8 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 			if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2539,8 +2565,8 @@ function rest_validate_string_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['minLength'] ) && mb_strlen( $value ) < $args['minLength'] ) {
 		return new WP_Error(
 			'rest_too_short',
-			/* translators: 1: Parameter, 2: Number of characters. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number of characters. */
 				_n(
 					'%1$s must be at least %2$s character long.',
 					'%1$s must be at least %2$s characters long.',
@@ -2555,8 +2581,8 @@ function rest_validate_string_value_from_schema( $value, $args, $param ) {
 	if ( isset( $args['maxLength'] ) && mb_strlen( $value ) > $args['maxLength'] ) {
 		return new WP_Error(
 			'rest_too_long',
-			/* translators: 1: Parameter, 2: Number of characters. */
 			sprintf(
+				/* translators: 1: Parameter, 2: Number of characters. */
 				_n(
 					'%1$s must be at most %2$s character long.',
 					'%1$s must be at most %2$s characters long.',
@@ -2613,6 +2639,7 @@ function rest_validate_integer_value_from_schema( $value, $args, $param ) {
  * @since 4.7.0
  * @since 5.5.0 Added the `$param` parameter.
  * @since 5.6.0 Support the "anyOf" and "oneOf" keywords.
+ * @since 5.9.0 Added `text-field` and `textarea-field` formats.
  *
  * @param mixed  $value The value to sanitize.
  * @param array  $args  Schema array to use for sanitization.
@@ -2755,6 +2782,12 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 
 			case 'uuid':
 				return sanitize_text_field( $value );
+
+			case 'text-field':
+				return sanitize_text_field( $value );
+
+			case 'textarea-field':
+				return sanitize_textarea_field( $value );
 		}
 	}
 
@@ -2794,6 +2827,11 @@ function rest_preload_api_request( $memo, $path ) {
 		if ( ! in_array( $method, array( 'GET', 'OPTIONS' ), true ) ) {
 			$method = 'GET';
 		}
+	}
+
+	$path = untrailingslashit( $path );
+	if ( empty( $path ) ) {
+		$path = '/';
 	}
 
 	$path_parts = parse_url( $path );
@@ -3015,24 +3053,12 @@ function rest_get_route_for_post( $post ) {
 		return '';
 	}
 
-	$post_type = get_post_type_object( $post->post_type );
-	if ( ! $post_type ) {
+	$post_type_route = rest_get_route_for_post_type_items( $post->post_type );
+	if ( ! $post_type_route ) {
 		return '';
 	}
 
-	$controller = $post_type->get_rest_controller();
-	if ( ! $controller ) {
-		return '';
-	}
-
-	$route = '';
-
-	// The only two controllers that we can detect are the Attachments and Posts controllers.
-	if ( in_array( get_class( $controller ), array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
-		$namespace = 'wp/v2';
-		$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
-		$route     = sprintf( '/%s/%s/%d', $namespace, $rest_base, $post->ID );
-	}
+	$route = sprintf( '%s/%d', $post_type_route, $post->ID );
 
 	/**
 	 * Filters the REST API route for a post.
@@ -3043,6 +3069,39 @@ function rest_get_route_for_post( $post ) {
 	 * @param WP_Post $post  The post object.
 	 */
 	return apply_filters( 'rest_route_for_post', $route, $post );
+}
+
+/**
+ * Gets the REST API route for a post type.
+ *
+ * @since 5.9.0
+ *
+ * @param string $post_type The name of a registered post type.
+ * @return string The route path with a leading slash for the given post type, or an empty string if there is not a route.
+ */
+function rest_get_route_for_post_type_items( $post_type ) {
+	$post_type = get_post_type_object( $post_type );
+	if ( ! $post_type ) {
+		return '';
+	}
+
+	if ( ! $post_type->show_in_rest ) {
+		return '';
+	}
+
+	$namespace = ! empty( $post_type->rest_namespace ) ? $post_type->rest_namespace : 'wp/v2';
+	$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
+	$route     = sprintf( '/%s/%s', $namespace, $rest_base );
+
+	/**
+	 * Filters the REST API route for a post type.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string       $route      The route path.
+	 * @param WP_Post_Type $post_type  The post type object.
+	 */
+	return apply_filters( 'rest_route_for_post_type_items', $route, $post_type );
 }
 
 /**
@@ -3060,24 +3119,12 @@ function rest_get_route_for_term( $term ) {
 		return '';
 	}
 
-	$taxonomy = get_taxonomy( $term->taxonomy );
-	if ( ! $taxonomy ) {
+	$taxonomy_route = rest_get_route_for_taxonomy_items( $term->taxonomy );
+	if ( ! $taxonomy_route ) {
 		return '';
 	}
 
-	$controller = $taxonomy->get_rest_controller();
-	if ( ! $controller ) {
-		return '';
-	}
-
-	$route = '';
-
-	// The only controller that works is the Terms controller.
-	if ( $controller instanceof WP_REST_Terms_Controller ) {
-		$namespace = 'wp/v2';
-		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-		$route     = sprintf( '/%s/%s/%d', $namespace, $rest_base, $term->term_id );
-	}
+	$route = sprintf( '%s/%d', $taxonomy_route, $term->term_id );
 
 	/**
 	 * Filters the REST API route for a term.
@@ -3088,6 +3135,39 @@ function rest_get_route_for_term( $term ) {
 	 * @param WP_Term $term  The term object.
 	 */
 	return apply_filters( 'rest_route_for_term', $route, $term );
+}
+
+/**
+ * Gets the REST API route for a taxonomy.
+ *
+ * @since 5.9.0
+ *
+ * @param string $taxonomy Name of taxonomy.
+ * @return string The route path with a leading slash for the given taxonomy.
+ */
+function rest_get_route_for_taxonomy_items( $taxonomy ) {
+	$taxonomy = get_taxonomy( $taxonomy );
+	if ( ! $taxonomy ) {
+		return '';
+	}
+
+	if ( ! $taxonomy->show_in_rest ) {
+		return '';
+	}
+
+	$namespace = ! empty( $taxonomy->rest_namespace ) ? $taxonomy->rest_namespace : 'wp/v2';
+	$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+	$route     = sprintf( '/%s/%s', $namespace, $rest_base );
+
+	/**
+	 * Filters the REST API route for a taxonomy.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string      $route    The route path.
+	 * @param WP_Taxonomy $taxonomy The taxonomy object.
+	 */
+	return apply_filters( 'rest_route_for_taxonomy_items', $route, $taxonomy );
 }
 
 /**
@@ -3200,7 +3280,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 function rest_convert_error_to_response( $error ) {
 	$status = array_reduce(
 		$error->get_all_error_data(),
-		function ( $status, $error_data ) {
+		static function ( $status, $error_data ) {
 			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
 		},
 		500

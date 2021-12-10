@@ -1,9 +1,12 @@
 <?php
+/**
+ * @group 123456
+ */
 class Tests_User_Settings extends WP_UnitTestCase {
 	protected $user_id;
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->user_id = self::factory()->user->create(
 			array(
@@ -14,13 +17,13 @@ class Tests_User_Settings extends WP_UnitTestCase {
 		wp_set_current_user( $this->user_id );
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		unset( $GLOBALS['_updated_user_settings'] );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
-	function test_set_user_setting() {
+	public function test_set_user_setting() {
 		$foo = get_user_setting( 'foo' );
 
 		$this->assertEmpty( $foo );
@@ -30,7 +33,7 @@ class Tests_User_Settings extends WP_UnitTestCase {
 		$this->assertSame( 'bar', get_user_setting( 'foo' ) );
 	}
 
-	function test_set_user_setting_dashes() {
+	public function test_set_user_setting_dashes() {
 		$foo = get_user_setting( 'foo' );
 
 		$this->assertEmpty( $foo );
@@ -40,7 +43,7 @@ class Tests_User_Settings extends WP_UnitTestCase {
 		$this->assertSame( 'foo-bar-baz', get_user_setting( 'foo' ) );
 	}
 
-	function test_set_user_setting_strip_asterisks() {
+	public function test_set_user_setting_strip_asterisks() {
 		$foo = get_user_setting( 'foo' );
 
 		$this->assertEmpty( $foo );
@@ -51,7 +54,7 @@ class Tests_User_Settings extends WP_UnitTestCase {
 	}
 
 	// set_user_setting() bails if `headers_sent()` is true.
-	function set_user_setting( $name, $value ) {
+	private function set_user_setting( $name, $value ) {
 		$all_user_settings          = get_all_user_settings();
 		$all_user_settings[ $name ] = $value;
 

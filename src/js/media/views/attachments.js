@@ -1,6 +1,7 @@
 var View = wp.media.View,
 	$ = jQuery,
-	Attachments;
+	Attachments,
+	infiniteScrolling = wp.media.view.settings.infiniteScrolling;
 
 Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	tagName:   'ul',
@@ -35,6 +36,10 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		this.el.id = _.uniqueId('__attachments-view-');
 
 		/**
+		 * @since 5.8.0 Added the `infiniteScrolling` parameter.
+		 *
+		 * @param infiniteScrolling  Whether to enable infinite scrolling or use
+		 *                           the default "load more" button.
 		 * @param refreshSensitivity The time in milliseconds to throttle the scroll
 		 *                           handler.
 		 * @param refreshThreshold   The amount of pixels that should be scrolled before
@@ -49,6 +54,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		 *                           calculating the total number of columns.
 		 */
 		_.defaults( this.options, {
+			infiniteScrolling:  infiniteScrolling || false,
 			refreshSensitivity: wp.media.isTouchDevice ? 300 : 200,
 			refreshThreshold:   3,
 			AttachmentView:     wp.media.view.Attachment,
@@ -84,11 +90,13 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 
 		this.controller.on( 'library:selection:add', this.attachmentFocus, this );
 
-		// Throttle the scroll handler and bind this.
-		this.scroll = _.chain( this.scroll ).bind( this ).throttle( this.options.refreshSensitivity ).value();
+		if ( this.options.infiniteScrolling ) {
+			// Throttle the scroll handler and bind this.
+			this.scroll = _.chain( this.scroll ).bind( this ).throttle( this.options.refreshSensitivity ).value();
 
-		this.options.scrollElement = this.options.scrollElement || this.el;
-		$( this.options.scrollElement ).on( 'scroll', this.scroll );
+			this.options.scrollElement = this.options.scrollElement || this.el;
+			$( this.options.scrollElement ).on( 'scroll', this.scroll );
+		}
 
 		this.initSortable();
 
@@ -387,7 +395,9 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			this.views.set( this.collection.map( this.createAttachmentView, this ) );
 		} else {
 			this.views.unset();
-			this.collection.more().done( this.scroll );
+			if ( this.options.infiniteScrolling ) {
+				this.collection.more().done( this.scroll );
+			}
 		}
 	},
 
@@ -400,7 +410,9 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 * @return {void}
 	 */
 	ready: function() {
-		this.scroll();
+		if ( this.options.infiniteScrolling ) {
+			this.scroll();
+		}
 	},
 
 	/**
