@@ -7,36 +7,25 @@
 class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 54160
+	 * @ticket       54160
 	 * @dataProvider data_sanitize_key
 	 *
-	 * @param mixed $key       The key to sanitize.
-	 * @param mixed $expected  The expected value.
+	 * @param string $key      The key to sanitize.
+	 * @param string $expected The expected value.
 	 */
 	public function test_sanitize_key( $key, $expected ) {
 		$this->assertSame( $expected, sanitize_key( $key ) );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
 	public function data_sanitize_key() {
 		return array(
 			'an empty string key'            => array(
 				'key'      => '',
-				'expected' => '',
-			),
-			'a null key'                     => array(
-				'key'      => null,
-				'expected' => '',
-			),
-			'an int 0 key'                   => array(
-				'key'      => 0,
-				'expected' => '',
-			),
-			'a true key'                     => array(
-				'key'      => true,
-				'expected' => '',
-			),
-			'an array key'                   => array(
-				'key'      => array( 'Howdy, admin!' ),
 				'expected' => '',
 			),
 			'a lowercase key with commas'    => array(
@@ -71,6 +60,76 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket       54160
+	 * @dataProvider data_sanitize_key_nonstring_scalar
+	 *
+	 * @param mixed  $key      The key to sanitize.
+	 * @param string $expected The expected value.
+	 */
+	public function test_sanitize_key_nonstring_scalar( $key, $expected ) {
+		$this->assertSame( $expected, sanitize_key( $key ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_sanitize_key_nonstring_scalar() {
+		return array(
+			'integer type'  => array(
+				'key'      => 0,
+				'expected' => '0',
+			),
+			'boolean true'  => array(
+				'key'      => true,
+				'expected' => '1',
+			),
+			'boolean false' => array(
+				'key'      => false,
+				'expected' => '',
+			),
+			'float type'    => array(
+				'key'      => 0.123,
+				'expected' => '0123',
+			),
+		);
+	}
+
+	/**
+	 * @ticket       54160
+	 * @dataProvider data_sanitize_key_with_non_scalars
+	 *
+	 * @param mixed $key      The key to sanitize.
+	 * @param mixed $expected The expected value.
+	 */
+	public function test_sanitize_key_with_non_scalars( $key, $expected ) {
+		$this->assertSame( $expected, sanitize_key( $key ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_sanitize_key_with_non_scalars() {
+		return array(
+			'array type' => array(
+				'key'      => array( 'key' ),
+				'expected' => '',
+			),
+			'null'       => array(
+				'key'      => null,
+				'expected' => '',
+			),
+			'object'     => array(
+				'key'      => new stdClass(),
+				'expected' => '',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 54160
 	 *
 	 * @covers WP_Hook::sanitize_key
@@ -80,7 +139,7 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 
 		add_filter(
 			'sanitize_key',
-			static function( $key ) {
+			static function ( $key ) {
 				return 'Howdy, admin!';
 			}
 		);

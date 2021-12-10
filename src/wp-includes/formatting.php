@@ -2132,19 +2132,17 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @since 3.0.0
  *
- * @param string $key String key
- * @return string Sanitized key
+ * @param string $key String key.
+ * @return string Sanitized key.
  */
 function sanitize_key( $key ) {
 	$raw_key = $key;
 
-	if ( ! is_string( $key ) ) {
-		$key = '';
-	}
-
-	if ( '' !== $key ) {
+	if ( is_scalar( $key ) ) {
 		$key = strtolower( $key );
 		$key = preg_replace( '/[^a-z0-9_\-]/', '', $key );
+	} else {
+		$key = '';
 	}
 
 	/**
