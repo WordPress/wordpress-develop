@@ -41,7 +41,7 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 			),
 			'a true key'                     => array(
 				'key'      => true,
-				'expected' => '',
+				'expected' => '1',
 			),
 			'an array key'                   => array(
 				'key'      => array( 'Howdy, admin!' ),
