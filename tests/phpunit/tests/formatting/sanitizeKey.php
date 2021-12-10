@@ -29,7 +29,15 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 			),
 			'an int 0 key'                   => array(
 				'key'      => 0,
-				'expected' => '',
+				'expected' => '0',
+			),
+			'an int 345 key'                 => array(
+				'key'      => 345,
+				'expected' => '345',
+			),
+			'a float 1.345 key'              => array(
+				'key'      => 1.345,
+				'expected' => '1345',
 			),
 			'a true key'                     => array(
 				'key'      => true,
