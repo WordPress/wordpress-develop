@@ -108,7 +108,6 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 		var selection = this.get('selection'),
 			library = this.get('library'),
 			id = wp.media.view.settings.post.featuredImageId,
-			infiniteScrolling = wp.media.view.settings.infiniteScrolling,
 			attachment;
 
 		if ( '' !== id && -1 !== id ) {
@@ -118,7 +117,7 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 
 		selection.reset( attachment ? [ attachment ] : [] );
 
-		if ( ! infiniteScrolling && library.hasMore() ) {
+		if ( ! infinite_scrolling && library.hasMore() ) {
 			library.more();
 		}
 	}
