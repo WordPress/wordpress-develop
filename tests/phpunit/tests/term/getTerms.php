@@ -255,7 +255,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'id=>parent',
 			)
 		);
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				$term_id1 => 0,
 				$term_id2 => $term_id1,

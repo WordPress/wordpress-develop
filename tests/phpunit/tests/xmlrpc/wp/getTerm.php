@@ -73,10 +73,18 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$term                  = get_term( self::$term_id, 'category', ARRAY_A );
 		$term['custom_fields'] = array();
 
+		// Cast ints to string for strict comparison.
+		foreach ( $term as $k => &$part ) {
+			if ( 'count' !== $k && is_int( $part ) ) {
+				$part = (string) $part;
+			}
+		}
+		unset( $part );
+
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', 'category', self::$term_id ) );
 
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $result, $term );
+		$this->assertSameSetsWithIndex( $term, $result );
 
 		// Check data types.
 		$this->assertIsString( $result['name'] );

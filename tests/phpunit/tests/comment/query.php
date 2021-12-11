@@ -1494,7 +1494,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'orderby'    => array( 'key' ),
 			)
 		);
-		$this->assertEquals( array( $comment_id3, $comment_id ), wp_list_pluck( $comments, 'comment_ID' ) );
+		$this->assertSameSetsWithIndex( array( (string) $comment_id3, (string) $comment_id ), wp_list_pluck( $comments, 'comment_ID' ) );
 
 		$comments = get_comments(
 			array(
@@ -1502,7 +1502,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'orderby'    => array( 'meta_value' ),
 			)
 		);
-		$this->assertEquals( array( $comment_id3, $comment_id ), wp_list_pluck( $comments, 'comment_ID' ) );
+		$this->assertSameSetsWithIndex( array( (string) $comment_id3, (string) $comment_id ), wp_list_pluck( $comments, 'comment_ID' ) );
 
 		// 'value1' is present on two different keys for $comment_id,
 		// yet we should get only one instance of that comment in the results.
@@ -3021,8 +3021,10 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
+		$comments = array_map( 'strval', $comments );
+
 		// $comments is ASC by default.
-		$this->assertEquals( $comments, wp_list_pluck( $found, 'comment_ID' ) );
+		$this->assertSameSetsWithIndex( $comments, wp_list_pluck( $found, 'comment_ID' ) );
 	}
 
 	/**
@@ -3048,10 +3050,12 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
+		$comments = array_map( 'strval', $comments );
+
 		// $comments is ASC by default.
 		rsort( $comments );
 
-		$this->assertEquals( $comments, wp_list_pluck( $found, 'comment_ID' ) );
+		$this->assertSameSetsWithIndex( $comments, wp_list_pluck( $found, 'comment_ID' ) );
 	}
 
 	/**

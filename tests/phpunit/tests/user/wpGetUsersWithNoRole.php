@@ -35,10 +35,10 @@ class Tests_User_wpGetUsersWithNoRole extends WP_UnitTestCase {
 		// Test users.
 		$users = wp_get_users_with_no_role();
 
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
-				$nobody,
-				$nobody_else,
+				(string) $nobody,
+				(string) $nobody_else,
 			),
 			$users
 		);

@@ -222,9 +222,14 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( self::$author_ids[3], self::$author_ids[1], self::$author_ids[0], self::$author_ids[2] );
+		$expected = array(
+			(string) self::$author_ids[3],
+			(string) self::$author_ids[1],
+			(string) self::$author_ids[0],
+			(string) self::$author_ids[2],
+		);
 
-		$this->assertEquals( $expected, $q->get_results() );
+		$this->assertSameSetsWithIndex( $expected, $q->get_results() );
 	}
 
 	/**
@@ -244,9 +249,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] );
+		$expected = array(
+			(string) self::$author_ids[1],
+			(string) self::$author_ids[2],
+			(string) self::$author_ids[0],
+		);
 
-		$this->assertEquals( $expected, $q->get_results() );
+		$this->assertSameSetsWithIndex( $expected, $q->get_results() );
 	}
 
 	/**
@@ -266,9 +275,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] );
+		$expected = array(
+			(string) self::$author_ids[1],
+			(string) self::$author_ids[2],
+			(string) self::$author_ids[0],
+		);
 
-		$this->assertEquals( $expected, $q->get_results() );
+		$this->assertSameSetsWithIndex( $expected, $q->get_results() );
 	}
 
 	/**
@@ -293,7 +306,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] ), $q->results );
+		$expected = array(
+			(string) self::$author_ids[1],
+			(string) self::$author_ids[2],
+			(string) self::$author_ids[0],
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $q->results );
 	}
 
 	/**
@@ -336,7 +355,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $u3, $u1, $u2 ), $q->results );
+		$expected = array(
+			(string) $u3,
+			(string) $u1,
+			(string) $u2,
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $q->results );
 	}
 
 	/**
@@ -370,7 +395,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$author_ids[2], self::$author_ids[0], self::$author_ids[1] ), $q->results );
+		$expected = array(
+			(string) self::$author_ids[2],
+			(string) self::$author_ids[0],
+			(string) self::$author_ids[1],
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $q->results );
 	}
 
 	/**
@@ -403,8 +434,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected_orderby = 'ORDER BY FIELD( ' . $wpdb->users . '.ID, ' . self::$author_ids[1] . ',' . self::$author_ids[0] . ',' . self::$author_ids[3] . ' )';
 		$this->assertStringContainsString( $expected_orderby, $q->query_orderby );
 
-		// assertEquals() respects order but ignores type (get_results() returns numeric strings).
-		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[0], self::$author_ids[3] ), $q->get_results() );
+		$expected = array(
+			(string) self::$author_ids[1],
+			(string) self::$author_ids[0],
+			(string) self::$author_ids[3],
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $q->get_results() );
 	}
 
 	/**
@@ -424,8 +460,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected_orderby = 'ORDER BY FIELD( ' . $wpdb->users . '.ID, ' . self::$author_ids[1] . ',' . self::$author_ids[0] . ',' . self::$author_ids[3] . ' )';
 		$this->assertStringContainsString( $expected_orderby, $q->query_orderby );
 
-		// assertEquals() respects order but ignores type (get_results() returns numeric strings).
-		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[0], self::$author_ids[3] ), $q->get_results() );
+		$expected = array(
+			(string) self::$author_ids[1],
+			(string) self::$author_ids[0],
+			(string) self::$author_ids[3],
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $q->get_results() );
 	}
 
 	/**
@@ -643,7 +684,12 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$author_ids[0], self::$author_ids[1] ), $query->get_results() );
+		$expected = array(
+			(string) self::$author_ids[0],
+			(string) self::$author_ids[1],
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $query->get_results() );
 	}
 
 	public function test_roles_and_caps_should_be_populated_for_default_value_of_blog_id() {
@@ -1305,7 +1351,12 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$contrib_id, self::$editor_ids[2] ), $q->results );
+		$expected = array(
+			(string) self::$contrib_id,
+			(string) self::$editor_ids[2],
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $q->results );
 	}
 
 	/**
@@ -1685,7 +1736,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$ids = $q->get_results();
 
 		// Must include user that has the same string in display_name.
-		$this->assertEquals( array( $new_user1 ), $ids );
+		$this->assertSameSetsWithIndex( array( (string) $new_user1 ), $ids );
 	}
 
 	/**
