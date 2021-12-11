@@ -288,7 +288,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'id=>name',
 			)
 		);
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				$term_id1 => 'WOO!',
 				$term_id2 => 'HOO!',
@@ -303,7 +303,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'id=>slug',
 			)
 		);
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				$term_id1 => 'woo',
 				$term_id2 => 'hoo',

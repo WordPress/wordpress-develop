@@ -59,7 +59,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 			'operator'         => 'IN',
 		);
 
-		$this->assertEquals( $expected, $tq->queries[0] );
+		$this->assertSameSetsWithIndex( $expected, $tq->queries[0] );
 	}
 
 	public function test_construct_fill_missing_query_params_merge_with_passed_values() {
@@ -82,7 +82,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 			'foo'              => 'bar',
 		);
 
-		$this->assertEquals( $expected, $tq->queries[0] );
+		$this->assertSameSetsWithIndex( $expected, $tq->queries[0] );
 	}
 
 	public function test_construct_cast_terms_to_array() {

@@ -2439,7 +2439,7 @@ if ( is_multisite() ) :
 
 			wpmu_create_blog( 'testsite1.example.org', '/new-blog/', 'New Blog', get_current_user_id(), $meta, 1 );
 
-			$this->assertEquals( $expected_meta, $this->wp_initialize_site_meta );
+			$this->assertSameSetsWithIndex( $expected_meta, $this->wp_initialize_site_meta );
 
 			$this->wp_initialize_site_meta = array();
 		}
@@ -2541,8 +2541,8 @@ if ( is_multisite() ) :
 					),
 					array(
 						'public' => 0,
-						'WPLANG' => 'en_US',
 						'foo'    => 'bar',
+						'WPLANG' => 'en_US',
 					),
 				),
 			);
