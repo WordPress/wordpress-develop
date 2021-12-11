@@ -3304,10 +3304,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	protected function check_comment_data( $data, $context, $links ) {
 		$comment = get_comment( $data['id'] );
 
-		$this->assertEquals( $comment->comment_ID, $data['id'] );
-		$this->assertEquals( $comment->comment_post_ID, $data['post'] );
-		$this->assertEquals( $comment->comment_parent, $data['parent'] );
-		$this->assertEquals( $comment->user_id, $data['author'] );
+		$this->assertSame( (int) $comment->comment_ID, $data['id'] );
+		$this->assertSame( (int) $comment->comment_post_ID, $data['post'] );
+		$this->assertSame( (int) $comment->comment_parent, $data['parent'] );
+		$this->assertSame( (int) $comment->user_id, $data['author'] );
 		$this->assertSame( $comment->comment_author, $data['author_name'] );
 		$this->assertSame( $comment->comment_author_url, $data['author_url'] );
 		$this->assertSame( wpautop( $comment->comment_content ), $data['content']['rendered'] );

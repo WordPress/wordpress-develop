@@ -419,7 +419,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 			$links = $response['_links'];
 		}
 
-		$this->assertEquals( $revision->post_author, $response['author'] );
+		$this->assertSame( (int) $revision->post_author, $response['author'] );
 
 		$rendered_content = apply_filters( 'the_content', $revision->post_content );
 		$this->assertSame( $rendered_content, $response['content']['rendered'] );

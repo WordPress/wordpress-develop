@@ -918,7 +918,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		// Validate that the post has had the default category assigned again.
 		$this->assertCount( 1, $assigned_terms );
-		$this->assertEquals( get_option( 'default_category' ), $assigned_terms[0]->term_id );
+		$this->assertSame( (int) get_option( 'default_category' ), $assigned_terms[0]->term_id );
 	}
 
 	/**

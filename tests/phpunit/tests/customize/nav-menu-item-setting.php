@@ -175,7 +175,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$value = $setting->value();
 		$this->assertSame( $menu_item->title, $value['title'] );
 		$this->assertSame( $menu_item->type, $value['type'] );
-		$this->assertEquals( $menu_item->object_id, $value['object_id'] );
+		$this->assertSame( (int) $menu_item->object_id, $value['object_id'] );
 		$this->assertSame( $menu_id, $value['nav_menu_term_id'] );
 		$this->assertSame( 'Hello World', $value['original_title'] );
 
@@ -258,7 +258,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$value = $setting->value();
 		$this->assertSame( $menu_item->title, $value['title'] );
 		$this->assertSame( $menu_item->type, $value['type'] );
-		$this->assertEquals( $menu_item->object_id, $value['object_id'] );
+		$this->assertSame( (int) $menu_item->object_id, $value['object_id'] );
 		$this->assertSame( $menu_id, $value['nav_menu_term_id'] );
 		$this->assertSame( 'Salutations', $value['original_title'] );
 	}

@@ -177,7 +177,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$request->set_query_params( array( 'foo' => 123 ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( '123', $request['foo'] );
+		$this->assertSame( 123, $request['foo'] );
 	}
 
 	public function test_optional_param() {

@@ -906,7 +906,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		// Pesky string $this->assertIsInt( $tt_id );
 		$this->assertSame( $term, $deleted_term->term_id );
 		$this->assertSame( $taxonomy, $deleted_term->taxonomy );
-		$this->assertEquals( $tt_id, $deleted_term->term_taxonomy_id );
+		$this->assertSame( (int) $tt_id, $deleted_term->term_taxonomy_id );
 		$this->assertEmpty( $object_ids );
 	}
 
