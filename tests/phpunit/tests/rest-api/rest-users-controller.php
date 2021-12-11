@@ -2506,7 +2506,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		// Sanity check to ensure the factory created the post correctly.
 		$post = get_post( $test_post );
-		$this->assertEquals( $user_id, $post->post_author );
+		$this->assertSame( (string) $user_id, $post->post_author );
 
 		wp_set_current_user( self::$user );
 
@@ -2526,7 +2526,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		// Check that the post has been updated correctly.
 		$post = get_post( $test_post );
-		$this->assertEquals( $reassign_id, $post->post_author );
+		$this->assertSame( (string) $reassign_id, $post->post_author );
 	}
 
 	public function test_delete_user_invalid_reassign_id() {
@@ -2674,7 +2674,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		$test_post = get_post( $test_post );
-		$this->assertEquals( 0, $test_post->post_author );
+		$this->assertSame( '0', $test_post->post_author );
 	}
 
 	public function test_get_item_schema() {
@@ -2767,7 +2767,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 123, get_user_meta( 1, 'my_custom_int', true ) );
+		$this->assertSame( '123', get_user_meta( 1, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->set_body_params(
@@ -2779,7 +2779,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 123, $response->data['my_custom_int'] );
+		$this->assertSame( '123', $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();

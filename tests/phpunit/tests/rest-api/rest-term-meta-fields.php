@@ -793,7 +793,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_term_meta( self::$category_id, 'test_custom_schema', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 3, $meta[0] );
+		$this->assertSame( '3', $meta[0] );
 
 		$data = $response->get_data();
 		$meta = (array) $data['meta'];
@@ -822,7 +822,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_term_meta( self::$category_id, 'test_custom_schema_multi', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 2, $meta[0] );
+		$this->assertSame( '2', $meta[0] );
 
 		// Add another value.
 		$data = array(

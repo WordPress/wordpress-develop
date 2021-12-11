@@ -263,7 +263,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		unset( $_REQUEST['_thumbnail_id'] );
 		unset( $_REQUEST['preview_id'] );
 
-		$this->assertEquals( self::$attachment_id, $result );
+		$this->assertSame( (string) self::$attachment_id, $result );
 	}
 
 	/**

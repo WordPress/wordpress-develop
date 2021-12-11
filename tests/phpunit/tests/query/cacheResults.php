@@ -650,7 +650,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertTrue( $query2->have_comments() );
 
 		$feed_comment = $query1->next_comment();
-		$this->assertEquals( $comment_id, $feed_comment->comment_ID );
+		$this->assertSame( (string) $comment_id, $feed_comment->comment_ID );
 	}
 
 	/**

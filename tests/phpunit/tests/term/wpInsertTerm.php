@@ -31,7 +31,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertNotWPError( $t );
 		$this->assertGreaterThan( 0, $t['term_id'] );
 		$this->assertGreaterThan( 0, $t['term_taxonomy_id'] );
-		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => $taxonomy ) ) );
+		$this->assertSame( (string) ( $initial_count + 1 ), wp_count_terms( array( 'taxonomy' => $taxonomy ) ) );
 
 		// Make sure the term exists.
 		$this->assertGreaterThan( 0, term_exists( $term ) );

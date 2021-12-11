@@ -202,10 +202,8 @@ if ( is_multisite() ) :
 
 			$site_count = get_blog_count( self::$different_network_id );
 
-			$this->assertEquals( count( self::$different_site_ids ), $site_count );
+			$this->assertSame( count( self::$different_site_ids ), $site_count );
 		}
-
-
 
 		public function test_active_network_plugins() {
 			$path = 'hello.php';
@@ -287,7 +285,7 @@ if ( is_multisite() ) :
 		public function test_get_dashboard_blog() {
 			// If there is no dashboard blog set, current blog is used.
 			$dashboard_blog = get_dashboard_blog();
-			$this->assertEquals( 1, $dashboard_blog->blog_id );
+			$this->assertSame( '1', $dashboard_blog->blog_id );
 
 			$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 			$blog_id = self::factory()->blog->create( array( 'user_id' => $user_id ) );
@@ -296,7 +294,7 @@ if ( is_multisite() ) :
 			// Set the dashboard blog to another one.
 			update_site_option( 'dashboard_blog', $blog_id );
 			$dashboard_blog = get_dashboard_blog();
-			$this->assertEquals( $blog_id, $dashboard_blog->blog_id );
+			$this->assertSame( (string) $blog_id, $dashboard_blog->blog_id );
 		}
 
 		/**

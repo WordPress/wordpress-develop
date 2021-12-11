@@ -2433,7 +2433,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $comment_id );
 		$this->assertSame( 'approved', $comment['status'] );
-		$this->assertEquals( 1, $updated->comment_approved );
+		$this->assertSame( '1', $updated->comment_approved );
 	}
 
 	public function test_update_comment_field_does_not_use_default_values() {
@@ -2461,7 +2461,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $comment_id );
 		$this->assertSame( 'approved', $comment['status'] );
-		$this->assertEquals( 1, $updated->comment_approved );
+		$this->assertSame( '1', $updated->comment_approved );
 		$this->assertSame( 'some content', $updated->comment_content );
 	}
 
@@ -3233,7 +3233,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		wp_set_current_user( 1 );
 		rest_get_server()->dispatch( $request );
-		$this->assertEquals( 123, get_comment_meta( self::$approved_id, 'my_custom_int', true ) );
+		$this->assertSame( '123', get_comment_meta( self::$approved_id, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->set_body_params(
@@ -3247,7 +3247,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 123, $response->data['my_custom_int'] );
+		$this->assertSame( '123', $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();

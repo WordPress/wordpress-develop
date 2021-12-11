@@ -213,12 +213,12 @@ class Tests_Option_SiteOption extends WP_UnitTestCase {
 	 */
 	public function test_update_adds_falsey_value() {
 		$key   = __FUNCTION__;
-		$value = 0;
+		$value = '0';
 
 		delete_site_option( $key );
 		$this->assertTrue( update_site_option( $key, $value ) );
 		$this->flush_cache(); // Ensure we're getting the value from the DB.
-		$this->assertEquals( $value, get_site_option( $key ) );
+		$this->assertSame( $value, get_site_option( $key ) );
 	}
 
 	/**

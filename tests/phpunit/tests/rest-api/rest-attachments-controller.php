@@ -2163,7 +2163,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
-		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
+		$this->assertSame( (string) $attachment, $item['media_details']['parent_image']['attachment_id'] );
 		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 
@@ -2206,7 +2206,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
-		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
+		$this->assertSame( (string) $attachment, $item['media_details']['parent_image']['attachment_id'] );
 		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 

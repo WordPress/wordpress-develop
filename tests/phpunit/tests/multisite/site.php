@@ -1333,7 +1333,10 @@ if ( is_multisite() ) :
 
 			$site = get_site( $site_id );
 			foreach ( $expected_data as $key => $value ) {
-				$this->assertEquals( $value, $site->$key );
+				if ( is_string( $site->$key ) ) {
+					$value = (string) $value;
+				}
+				$this->assertSame( $value, $site->$key );
 			}
 		}
 
@@ -1470,7 +1473,10 @@ if ( is_multisite() ) :
 			$new_site = get_site( $site_id );
 			foreach ( $new_site->to_array() as $key => $value ) {
 				if ( isset( $expected_data[ $key ] ) ) {
-					$this->assertEquals( $expected_data[ $key ], $value );
+					if ( is_string( $value ) ) {
+						$expected_data[ $key ] = (string) $expected_data[ $key ];
+					}
+					$this->assertSame( $expected_data[ $key ], $value );
 				} elseif ( 'last_updated' === $key ) {
 					$this->assertTrue( $old_site->last_updated <= $value );
 				} else {
@@ -1555,9 +1561,9 @@ if ( is_multisite() ) :
 			$result = wp_update_site( $site_id, array( 'public' => 1 ) );
 			$site3  = get_site( $site_id );
 
-			$this->assertEquals( 1, $site1->public );
-			$this->assertEquals( 0, $site2->public );
-			$this->assertEquals( 1, $site3->public );
+			$this->assertSame( '1', $site1->public );
+			$this->assertSame( '0', $site2->public );
+			$this->assertSame( '1', $site3->public );
 		}
 
 		/**
@@ -2457,17 +2463,18 @@ if ( is_multisite() ) :
 		 */
 		public function test_get_site_not_found_cache_clear() {
 			$new_site_id = $this->_get_next_site_id();
+			$expected    = (string) $new_site_id;
 			$this->assertNull( get_site( $new_site_id ) );
 
 			$new_site = self::factory()->blog->create_and_get();
 
 			// Double-check we got the ID of the new site correct.
-			$this->assertEquals( $new_site_id, $new_site->blog_id );
+			$this->assertSame( $expected, $new_site->blog_id );
 
 			// Verify that if we fetch the site now, it's no longer false.
 			$fetched_site = get_site( $new_site_id );
 			$this->assertInstanceOf( 'WP_Site', $fetched_site );
-			$this->assertEquals( $new_site_id, $fetched_site->blog_id );
+			$this->assertSame( $expected, $fetched_site->blog_id );
 
 		}
 

@@ -1263,6 +1263,6 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertTrue( $this->q->have_comments() );
 
 		$feed_comment = $this->q->next_comment();
-		$this->assertEquals( $comment_id, $feed_comment->comment_ID );
+		$this->assertSame( (string) $comment_id, $feed_comment->comment_ID );
 	}
 }

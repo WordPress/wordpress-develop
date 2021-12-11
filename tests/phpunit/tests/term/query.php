@@ -430,7 +430,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 2, $count );
+		$this->assertSame( '2', $count );
 
 		$num_queries = $wpdb->num_queries;
 
@@ -442,7 +442,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 2, $count );
+		$this->assertSame( '2', $count );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
@@ -463,7 +463,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 2, $count );
+		$this->assertSame( '2', $count );
 
 		wp_delete_term( $terms[0], 'wptests_tax_1' );
 
@@ -475,7 +475,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 1, $count );
+		$this->assertSame( '1', $count );
 	}
 
 	/**
