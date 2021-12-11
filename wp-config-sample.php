@@ -8,7 +8,7 @@
  *
  * This file contains the following configurations:
  *
- * * MySQL settings
+ * * SQL settings
  * * Secret keys
  * * Database table prefix
  * * ABSPATH
@@ -18,17 +18,17 @@
  * @package WordPress
  */
 
-// ** MySQL settings - You can get this info from your web host ** //
+// ** SQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
 define( 'DB_NAME', 'database_name_here' );
 
-/** MySQL database username */
+/** SQL database username */
 define( 'DB_USER', 'username_here' );
 
-/** MySQL database password */
+/** SQL database password */
 define( 'DB_PASSWORD', 'password_here' );
 
-/** MySQL hostname */
+/** SQL hostname */
 define( 'DB_HOST', 'localhost' );
 
 /** Database charset to use in creating database tables. */
