@@ -192,7 +192,15 @@ class Tests_User extends WP_UnitTestCase {
 		$user = new WP_User( self::$author_id );
 
 		foreach ( $user->data as $key => $data ) {
-			$this->assertEquals( $data, $user->$key );
+			if ( is_string( $user->$key ) ) {
+				$data = (string) $data;
+			}
+
+			if ( is_int( $user->$key ) ) {
+				$data = (int) $data;
+			}
+
+			$this->assertSame( $data, $user->$key );
 		}
 
 		$this->assertTrue( isset( $user->$key ) );
