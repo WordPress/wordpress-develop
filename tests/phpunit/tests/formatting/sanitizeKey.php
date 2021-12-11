@@ -100,11 +100,20 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 	 * @ticket       54160
 	 * @dataProvider data_sanitize_key_with_non_scalars
 	 *
-	 * @param mixed $key      The key to sanitize.
-	 * @param mixed $expected The expected value.
+	 * @param mixed $nonscalar_key A non-scalar data type given as a key.
 	 */
-	public function test_sanitize_key_with_non_scalars( $key, $expected ) {
-		$this->assertSame( $expected, sanitize_key( $key ) );
+	public function test_sanitize_key_with_non_scalars( $nonscalar_key ) {
+		add_filter(
+			'sanitize_key',
+			function ( $sanitized_key, $key ) use ( $nonscalar_key ) {
+				$this->assertEmpty( $sanitized_key, 'Empty string not passed as first filtered argument' );
+				$this->assertSame( $nonscalar_key, $key, 'Given unsanitized key not passed as second filtered argument' );
+				return $sanitized_key;
+			},
+			10,
+			2
+		);
+		$this->assertEmpty( sanitize_key( $nonscalar_key ), 'Non-scalar key did not return empty string' );
 	}
 
 	/**
@@ -127,23 +136,5 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 				'expected' => '',
 			),
 		);
-	}
-
-	/**
-	 * @ticket 54160
-	 *
-	 * @covers WP_Hook::sanitize_key
-	 */
-	public function test_filter_sanitize_key() {
-		$key = 'Howdy, admin!';
-
-		add_filter(
-			'sanitize_key',
-			static function ( $key ) {
-				return 'Howdy, admin!';
-			}
-		);
-
-		$this->assertSame( $key, sanitize_key( $key ) );
 	}
 }
