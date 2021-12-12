@@ -74,7 +74,7 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		});
 
 		this.controller.trigger( 'attachment:compat:waiting', ['waiting'] );
-		this.model.saveCompat( data ).always( _.bind( this.postSave, this ) );
+		this.model.saveCompat( data, { silent: true }).always( _.bind( this.postSave, this ) );
 	},
 
 	postSave: function() {
