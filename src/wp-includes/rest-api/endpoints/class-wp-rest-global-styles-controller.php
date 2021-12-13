@@ -377,11 +377,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
 
 		$links = array(
-			'self'       => array(
+			'self' => array(
 				'href' => rest_url( trailingslashit( $base ) . $id ),
-			),
-			'collection' => array(
-				'href' => rest_url( $base ),
 			),
 		);
 

@@ -152,10 +152,25 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		unset( $data['_links'] );
-
+		$links    = $response->get_links();
 		$this->assertArrayHasKey( 'settings', $data );
 		$this->assertArrayHasKey( 'styles', $data );
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertStringContainsString( '/wp/v2/global-styles/themes/tt1-blocks', $links['self'][0]['href'] );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
+	 * @ticket 54595
+	 */
+	public function test_get_theme_item_fields() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
+		$request->set_param( '_fields', 'settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertArrayHasKey( 'settings', $data );
+		$this->assertArrayNotHasKey( 'styles', $data );
 	}
 
 	/**
@@ -223,7 +238,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		unset( $data['_links'] );
+		$links    = $response->get_links();
 
 		$this->assertEquals(
 			array(
@@ -237,6 +252,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			),
 			$data
 		);
+
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertStringContainsString( '/wp/v2/global-styles/' . self::$global_styles_id, $links['self'][0]['href'] );
 	}
 
 	public function test_create_item() {
