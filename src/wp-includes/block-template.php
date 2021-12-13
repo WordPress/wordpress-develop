@@ -6,6 +6,32 @@
  */
 
 /**
+ * Adds necessary filters to use 'wp_template' posts instead of theme template files.
+ *
+ * @access private
+ * @since 5.9.0
+ */
+function _add_template_loader_filters() {
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return;
+	}
+
+	$template_types = array_keys( get_default_block_template_types() );
+	foreach ( $template_types as $template_type ) {
+		// Skip 'embed' for now because it is not a regular template type.
+		if ( 'embed' === $template_type ) {
+			continue;
+		}
+		add_filter( str_replace( '-', '', $template_type ) . '_template', 'locate_block_template', 20, 3 );
+	}
+
+	// Request to resolve a template.
+	if ( isset( $_GET['_wp-find-template'] ) ) {
+		add_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
+	}
+}
+
+/**
  * Find a block template with equal or higher specificity than a given PHP template file.
  *
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
@@ -45,7 +71,7 @@ function locate_block_template( $template, $type, array $templates ) {
 		$templates = array_slice( $templates, 0, $index + 1 );
 	}
 
-	$block_template = resolve_block_template( $type, $templates );
+	$block_template = resolve_block_template( $type, $templates, $template );
 
 	if ( $block_template ) {
 		if ( empty( $block_template->content ) && is_user_logged_in() ) {
@@ -92,12 +118,14 @@ function locate_block_template( $template, $type, array $templates ) {
  *
  * @access private
  * @since 5.8.0
+ * @since 5.9.0 Added the `$fallback_template` parameter.
  *
  * @param string   $template_type      The current template type.
  * @param string[] $template_hierarchy The current template hierarchy, ordered by priority.
+ * @param string   $fallback_template  A PHP fallback template to use if no matching block template is found.
  * @return WP_Block_Template|null template A template object, or null if none could be found.
  */
-function resolve_block_template( $template_type, $template_hierarchy ) {
+function resolve_block_template( $template_type, $template_hierarchy, $fallback_template ) {
 	if ( ! $template_type ) {
 		return null;
 	}
@@ -128,6 +156,43 @@ function resolve_block_template( $template_type, $template_hierarchy ) {
 			return $slug_priorities[ $template_a->slug ] - $slug_priorities[ $template_b->slug ];
 		}
 	);
+
+	$theme_base_path        = get_stylesheet_directory() . DIRECTORY_SEPARATOR;
+	$parent_theme_base_path = get_template_directory() . DIRECTORY_SEPARATOR;
+
+	// Is the current theme a child theme, and is the PHP fallback template part of it?
+	if (
+		strpos( $fallback_template, $theme_base_path ) === 0 &&
+		strpos( $fallback_template, $parent_theme_base_path ) === false
+	) {
+		$fallback_template_slug = substr(
+			$fallback_template,
+			// Starting position of slug.
+			strpos( $fallback_template, $theme_base_path ) + strlen( $theme_base_path ),
+			// Remove '.php' suffix.
+			-4
+		);
+
+		// Is our candidate block template's slug identical to our PHP fallback template's?
+		if (
+			count( $templates ) &&
+			$fallback_template_slug === $templates[0]->slug &&
+			'theme' === $templates[0]->source
+		) {
+			// Unfortunately, we cannot trust $templates[0]->theme, since it will always
+			// be set to the current theme's slug by _build_block_template_result_from_file(),
+			// even if the block template is really coming from the current theme's parent.
+			// (The reason for this is that we want it to be associated with the current theme
+			// -- not its parent -- once we edit it and store it to the DB as a wp_template CPT.)
+			// Instead, we use _get_block_template_file() to locate the block template file.
+			$template_file = _get_block_template_file( 'wp_template', $fallback_template_slug );
+			if ( $template_file && get_template() === $template_file['theme'] ) {
+				// The block template is part of the parent theme, so we
+				// have to give precedence to the child theme's PHP template.
+				array_shift( $templates );
+			}
+		}
+	}
 
 	return count( $templates ) ? $templates[0] : null;
 }
@@ -226,4 +291,36 @@ function _block_template_render_without_post_block_context( $context ) {
 	}
 
 	return $context;
+}
+
+/**
+ * Sets the current WP_Query to return auto-draft posts.
+ *
+ * The auto-draft status indicates a new post, so allow the the WP_Query instance to
+ * return an auto-draft post for template resolution when editing a new post.
+ *
+ * @access private
+ * @since 5.9.0
+ *
+ * @param WP_Query $wp_query Current WP_Query instance, passed by reference.
+ */
+function _resolve_template_for_new_post( $wp_query ) {
+	remove_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
+
+	// Pages.
+	$page_id = isset( $wp_query->query['page_id'] ) ? $wp_query->query['page_id'] : null;
+
+	// Posts, including custom post types.
+	$p = isset( $wp_query->query['p'] ) ? $wp_query->query['p'] : null;
+
+	$post_id = $page_id ? $page_id : $p;
+	$post    = get_post( $post_id );
+
+	if (
+		$post &&
+		'auto-draft' === $post->post_status &&
+		current_user_can( 'edit_post', $post->ID )
+	) {
+		$wp_query->set( 'post_status', 'auto-draft' );
+	}
 }

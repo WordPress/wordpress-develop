@@ -2,7 +2,7 @@
 /**
  * @group block-supports
  */
-class WP_Block_Supports_Elements_Test extends WP_UnitTestCase {
+class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 	/**
 	 * Given a string containing a class prefixed by "wp-elements-" followed by a unique id,
 	 * this function returns a string where the id is one instead of being unique.

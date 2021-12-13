@@ -161,7 +161,7 @@ final class WP_Customize_Manager {
 	 * Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
 	 * @since 4.4.0
-	 * @var array
+	 * @var string[]
 	 */
 	protected $autofocus = array();
 
@@ -346,7 +346,7 @@ final class WP_Customize_Manager {
 		 * @see WP_Customize_Manager::__construct()
 		 *
 		 * @param string[]             $components Array of core components to load.
-		 * @param WP_Customize_Manager $manager   WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager    WP_Customize_Manager instance.
 		 */
 		$components = apply_filters( 'customize_loaded_components', $this->components, $this );
 
@@ -4720,7 +4720,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array {
+	 * @return string[] {
 	 *     Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
 	 *     @type string $control ID for control to be autofocused.

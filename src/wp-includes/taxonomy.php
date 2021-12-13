@@ -823,28 +823,26 @@ function unregister_taxonomy_for_object_type( $taxonomy, $object_type ) {
 //
 
 /**
- * Retrieve object_ids of valid taxonomy and term.
+ * Retrieve object IDs of valid taxonomy and term.
  *
- * The strings of $taxonomies must exist before this function will continue.
- * On failure of finding a valid taxonomy, it will return a WP_Error class,
- * kind of like Exceptions in PHP 5, except you can't catch them. Even so,
- * you can still test for the WP_Error class and get the error message.
+ * The strings of `$taxonomies` must exist before this function will continue.
+ * On failure of finding a valid taxonomy, it will return a WP_Error.
  *
- * The $terms aren't checked the same as $taxonomies, but still need to exist
- * for $object_ids to be returned.
+ * The `$terms` aren't checked the same as `$taxonomies`, but still need to exist
+ * for object IDs to be returned.
  *
- * It is possible to change the order that object_ids is returned by either
- * using PHP sort family functions or using the database by using $args with
- * either ASC or DESC array. The value should be in the key named 'order'.
+ * It is possible to change the order that object IDs are returned by using `$args`
+ * with either ASC or DESC array. The value should be in the key named 'order'.
  *
  * @since 2.3.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int|array    $term_ids   Term ID or array of term IDs of terms that will be used.
- * @param string|array $taxonomies String of taxonomy name or Array of string values of taxonomy names.
- * @param array|string $args       Change the order of the object_ids, either ASC or DESC.
- * @return array|WP_Error An array of $object_ids on success, WP_Error if the taxonomy does not exist.
+ * @param int|int[]       $term_ids   Term ID or array of term IDs of terms that will be used.
+ * @param string|string[] $taxonomies String of taxonomy name or Array of string values of taxonomy names.
+ * @param array|string    $args       Change the order of the object IDs, either ASC or DESC.
+ * @return string[]|WP_Error An array of object IDs as numeric strings on success,
+ *                           WP_Error if the taxonomy does not exist.
  */
 function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 	global $wpdb;
@@ -899,7 +897,7 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
  * @param array  $tax_query         A compact tax query
  * @param string $primary_table
  * @param string $primary_id_column
- * @return array
+ * @return string[]
  */
 function get_tax_sql( $tax_query, $primary_table, $primary_id_column ) {
 	$tax_query_obj = new WP_Tax_Query( $tax_query );
@@ -1144,8 +1142,8 @@ function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter 
  *
  * @since 2.3.0
  *
- * @param int    $term_id  ID of Term to get children.
- * @param string $taxonomy Taxonomy Name.
+ * @param int    $term_id  ID of term to get children.
+ * @param string $taxonomy Taxonomy name.
  * @return array|WP_Error List of Term IDs. WP_Error returned if `$taxonomy` does not exist.
  */
 function get_term_children( $term_id, $taxonomy ) {
@@ -1188,7 +1186,7 @@ function get_term_children( $term_id, $taxonomy ) {
  *
  * @param string      $field    Term field to fetch.
  * @param int|WP_Term $term     Term ID or object.
- * @param string      $taxonomy Optional. Taxonomy Name. Default empty.
+ * @param string      $taxonomy Optional. Taxonomy name. Default empty.
  * @param string      $context  Optional. How to sanitize term fields. Look at sanitize_term_field() for available options.
  *                              Default 'display'.
  * @return string|int|null|WP_Error Will return an empty string if $term is not an object or if $field is not set in $term.
@@ -1688,7 +1686,7 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  * @param string $field    Term field to sanitize.
  * @param string $value    Search for this term value.
  * @param int    $term_id  Term ID.
- * @param string $taxonomy Taxonomy Name.
+ * @param string $taxonomy Taxonomy name.
  * @param string $context  Context in which to sanitize the term field.
  *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
  *                         'attribute', or 'js'. Default 'display'.
@@ -1911,8 +1909,8 @@ function wp_count_terms( $args = array(), $deprecated = '' ) {
  *
  * @since 2.3.0
  *
- * @param int          $object_id  The term Object Id that refers to the term.
- * @param string|array $taxonomies List of Taxonomy Names or single Taxonomy name.
+ * @param int          $object_id  The term object ID that refers to the term.
+ * @param string|array $taxonomies List of taxonomy names or single taxonomy name.
  */
 function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
 	$object_id = (int) $object_id;
@@ -1941,7 +1939,7 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int          $term     Term ID.
- * @param string       $taxonomy Taxonomy Name.
+ * @param string       $taxonomy Taxonomy name.
  * @param array|string $args {
  *     Optional. Array of arguments to override the default term ID. Default empty array.
  *
@@ -2007,7 +2005,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	 * @since 4.1.0
 	 *
 	 * @param int    $term     Term ID.
-	 * @param string $taxonomy Taxonomy Name.
+	 * @param string $taxonomy Taxonomy name.
 	 */
 	do_action( 'pre_delete_term', $term, $taxonomy );
 
@@ -4636,10 +4634,10 @@ function get_term_link( $term, $taxonomy = '' ) {
  *     Arguments about which post to use and how to format the output. Shares all of the arguments
  *     supported by get_the_taxonomies(), in addition to the following.
  *
- *     @type  int|WP_Post $post   Post ID or object to get taxonomies of. Default current post.
- *     @type  string      $before Displays before the taxonomies. Default empty string.
- *     @type  string      $sep    Separates each taxonomy. Default is a space.
- *     @type  string      $after  Displays after the taxonomies. Default empty string.
+ *     @type int|WP_Post $post   Post ID or object to get taxonomies of. Default current post.
+ *     @type string      $before Displays before the taxonomies. Default empty string.
+ *     @type string      $sep    Separates each taxonomy. Default is a space.
+ *     @type string      $after  Displays after the taxonomies. Default empty string.
  * }
  */
 function the_taxonomies( $args = array() ) {
