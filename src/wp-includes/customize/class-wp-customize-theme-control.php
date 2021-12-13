@@ -261,9 +261,10 @@ class WP_Customize_Theme_Control extends WP_Customize_Control {
 					?>
 					<# if ( data.theme.actions.activate ) { #>
 						<?php
+							echo ' ';
 							printf(
-							/* translators: %s: URL to the themes page (also it activates the theme). */
-								' ' . __( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
+								/* translators: %s: URL to the themes page (also it activates the theme). */
+								__( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
 								'{{{ data.theme.actions.activate }}}'
 							);
 						?>
