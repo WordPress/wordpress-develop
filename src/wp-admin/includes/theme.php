@@ -1005,6 +1005,21 @@ function customize_themes_print_templates() {
 								?>
 							<# } #>
 						</p></div>
+					<# } else if ( ! data.active && data.blockTheme ) { #>
+						<div class="notice notice-error notice-alt notice-large"><p>
+						<?php
+							_e( 'This theme doesn\'t support Customizer.' );
+						?>
+						<# if ( data.actions.activate ) { #>
+							<?php
+							printf(
+								/* translators: %s: URL to the themes page (also it activates the theme). */
+								' ' . __( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
+								'{{{ data.actions.activate }}}'
+							);
+							?>
+						<# } #>
+						</p></div>
 					<# } #>
 
 					<p class="theme-description">{{{ data.description }}}</p>
