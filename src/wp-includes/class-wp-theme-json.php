@@ -1560,16 +1560,18 @@ class WP_Theme_JSON {
 			return $override;
 		}
 
-		// The relationship between whether to override the defaults
-		// and whether the defaults are enabled is inverse:
-		//
-		// - If defaults are enabled  => theme presets should not be overriden
-		// - If defaults are disabled => theme presets should be overriden
-		//
-		// For example, a theme sets defaultPalette to false,
-		// making the default palette hidden from the user.
-		// In that case, we want all the theme presets to be present,
-		// so they should override the defaults.
+		/*
+		 * The relationship between whether to override the defaults
+		 * and whether the defaults are enabled is inverse:
+		 *
+		 * - If defaults are enabled  => theme presets should not be overriden
+		 * - If defaults are disabled => theme presets should be overriden
+		 *
+		 * For example, a theme sets defaultPalette to false,
+		 * making the default palette hidden from the user.
+		 * In that case, we want all the theme presets to be present,
+		 * so they should override the defaults.
+		 */
 		if ( is_array( $override ) ) {
 			$value = _wp_array_get( $theme_json, array_merge( $path, $override ) );
 			if ( isset( $value ) ) {
@@ -1601,9 +1603,8 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $data A theme.json like structure.
+	 * @param array $data      A theme.json like structure.
 	 * @param array $node_path The path to inspect. It's 'settings' by default.
-	 *
 	 * @return array
 	 */
 	private static function get_default_slugs( $data, $node_path ) {
