@@ -53,7 +53,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 */
 	public function test_register_post_type_with_too_long_name() {
 		// Post type too long.
-		$this->assertInstanceOf( 'WP_Error', register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789' ) );
+		$this->assertInstanceOf( 'WP_Error', register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz012' ) );
 	}
 
 	/**
