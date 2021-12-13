@@ -246,12 +246,12 @@ class WP_Customize_Theme_Control extends WP_Customize_Control {
 					<div class="theme-id-container">
 						<h3 class="theme-name" id="{{ data.section }}-{{ data.theme.id }}-name">{{ data.theme.name }}</h3>
 						<div class="theme-actions">
-							<?php
-								/* translators: %s: Theme name. */
-								$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
-							?>
 							<# if ( data.theme.actions.activate ) { #>
-								<a href="{{{ data.theme.actions.activate }}}" class="button activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
+								<?php
+									/* translators: %s: Theme name. */
+									$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+								?>
+								<a href="{{{ data.theme.actions.activate }}}" class="button button-primary activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
 							<# } #>
 						</div>
 					</div>
