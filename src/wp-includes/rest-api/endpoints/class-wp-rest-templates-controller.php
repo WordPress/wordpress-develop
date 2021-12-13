@@ -68,7 +68,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Lists/updates a single template based on the given id.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\w\.-]+)',
+			'/' . $this->rest_base . '/(?P<id>[\/\s%\w\._\-]+)',
 			array(
 				'args'   => array(
 					'id' => array(
@@ -227,10 +227,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_item( $request ) {
+		$id = str_replace( '%20', ' ', $request['id'] );
 		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
-			$template = get_block_file_template( $request['id'], $this->post_type );
+			$template = get_block_file_template( $id, $this->post_type );
 		} else {
-			$template = get_block_template( $request['id'], $this->post_type );
+			$template = get_block_template( $id, $this->post_type );
 		}
 
 		if ( ! $template ) {
