@@ -68,7 +68,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Lists/updates a single template based on the given id.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\s%\w\._\-]+)',
+			'/' . $this->rest_base . '/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)',
 			array(
 				'args'   => array(
 					'id' => array(

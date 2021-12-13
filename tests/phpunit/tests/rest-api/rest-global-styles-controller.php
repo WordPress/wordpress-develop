@@ -98,23 +98,23 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey(
-			'/wp/v2/global-styles/(?P<id>[\/\s%\w\._\-]+)',
+			'/wp/v2/global-styles/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)',
 			$routes,
 			'Single global style based on the given ID route does not exist'
 		);
 		$this->assertCount(
 			2,
-			$routes['/wp/v2/global-styles/(?P<id>[\/\s%\w\._\-]+)'],
+			$routes['/wp/v2/global-styles/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)'],
 			'Single global style based on the given ID route does not have exactly two elements'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\._\-]+)',
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)',
 			$routes,
 			'Theme global styles route does not exist'
 		);
 		$this->assertCount(
 			1,
-			$routes['/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\._\-]+)'],
+			$routes['/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)'],
 			'Theme global styles route does not have exactly one element'
 		);
 	}
@@ -183,14 +183,13 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		return array(
 			'with |'                 => array( 'my|theme' ),
 			'with +'                 => array( 'my+theme' ),
-			'with @'                 => array( 'my@theme' ),
 			'with {}'                => array( 'my{theme}' ),
-			'with []'                => array( 'my[theme]' ),
 			'with #'                 => array( 'my#theme' ),
 			'with !'                 => array( 'my!theme' ),
 			'multiple invalid chars' => array( 'mytheme-[_(+@)]#! v4.0' ),
 		);
 	}
+
 	/**
 	 * @dataProvider data_get_theme_item
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
@@ -225,6 +224,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			'- and .'            => array( 'my-theme-0.1' ),
 			'space and .'        => array( 'mytheme v0.1' ),
 			'space, -, _, .'     => array( 'my-theme-v0.1' ),
+			'[]'                 => array( 'my[theme]' ),
+			'()'                 => array( 'my(theme)' ),
+			'@'                  => array( 'my@theme' ),
 		);
 	}
 
