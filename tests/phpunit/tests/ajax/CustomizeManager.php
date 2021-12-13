@@ -737,25 +737,25 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->make_ajax_call( 'customize_load_themes' );
 		$response = $this->_last_response_parsed;
 		$this->assertIsArray( $response, 'Response is not an array' );
-		
-		$this->assertArrayHasKey( 'success', $response 'Response must have a "success" key' );
+
+		$this->assertArrayHasKey( 'success', $response, 'Response must have a "success" key' );
 		$this->assertTrue( $response['success'], 'Response was not "success"' );
-		
+
 		$this->assertArrayHasKey( 'data', $response, 'Response must have a "data" key' );
 		$this->assertIsArray( $response['data'], 'The response "data" is not an array' );
 		$this->assertArrayHasKey( 'themes', $response['data'], 'The response data must have a "themes" key' );
 		$this->assertIsArray( $response['data']['themes'], 'Themes data is not an array' );
 		$this->assertNotEmpty( $response['data']['themes'], 'Themes data must not be empty' );
-		
+
 		foreach ( $response['data']['themes'] as $theme ) {
 			$this->assertIsArray( $theme, 'Theme is not an array' );
 			$this->assertNotEmpty( $theme, 'Theme data must not be empty' );
 			$this->assertArrayHasKey( 'id', $theme, 'Theme data must have an "id" key' );
 			$this->assertNotEmpty( $theme['id'], 'Theme id cannot be empty' );
-			
+
 			$this->assertArrayHasKey( 'name', $theme, 'Theme data must have a "name" key' );
 			$this->assertNotEmpty( $theme['name'], 'Theme name cannot be empty' );
-			
+
 			$this->assertArrayHasKey( 'blockTheme', $theme, 'Themes data must include information about blocks support' );
 			$this->assertNotEmpty( $theme['blockTheme'], 'Information about blocks support must not be empty' );
 		}
