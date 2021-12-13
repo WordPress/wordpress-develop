@@ -1999,7 +1999,10 @@ function wp_welcome_panel() {
 		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
 		<p>
 			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
-				<?php printf( __( 'Learn more about the %s version.' ), $display_version ); ?>
+			<?php
+				/* translators: %s: Current WordPress version. */
+				printf( __( 'Learn more about the %s version.' ), $display_version );
+			?>
 			</a>
 		</p>
 	</div>
@@ -2019,7 +2022,7 @@ function wp_welcome_panel() {
 				<h3><?php _e( 'Customize your entire site with block themes' ); ?></h3>
 				<p><?php _e( 'Design everything on your site — from the header down to the footer, all using blocks and patterns.' ); ?></p>
 				<a href="<?php echo esc_url( admin_url( 'site-editor.php' ) ); ?>"><?php _e( 'Open site editor' ); ?></a>
-			<?php else: ?>
+			<?php else : ?>
 				<h3><?php echo ( 'TBD: Heading' ); ?></h3>
 				<p><?php echo ( 'TBD: Copy for non-block-based themes.' ); ?></p>
 				<?php if ( $can_customize ) : ?>
@@ -2036,7 +2039,7 @@ function wp_welcome_panel() {
 				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
 				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative — how about a new color palette or font?' ); ?></p>
 				<a href="<?php echo esc_url( admin_url( 'site-editor.php?styles=open' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
-			<?php else: ?>
+			<?php else : ?>
 				<h3><?php echo ( 'TBD: Learn about styles?' ); ?></h3>
 				<p><?php echo ( 'TBD: Copy for non-block-based themes.' ); ?></p>
 				<a href="#"><?php echo ( 'Link to learn?' ); ?></a>
