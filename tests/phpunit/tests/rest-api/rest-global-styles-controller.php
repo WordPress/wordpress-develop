@@ -93,13 +93,30 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::register_routes
+	 * @ticket 54596
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
-		$this->assertArrayHasKey( '/wp/v2/global-styles/(?P<id>[\/\w-]+)', $routes );
-		$this->assertCount( 2, $routes['/wp/v2/global-styles/(?P<id>[\/\w-]+)'] );
-		$this->assertArrayHasKey( '/wp/v2/global-styles/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)', $routes );
-		$this->assertCount( 1, $routes['/wp/v2/global-styles/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)'] );
+		$this->assertArrayHasKey(
+			'/wp/v2/global-styles/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)',
+			$routes,
+			'Single global style based on the given ID route does not exist'
+		);
+		$this->assertCount(
+			2,
+			$routes['/wp/v2/global-styles/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)'],
+			'Single global style based on the given ID route does not have exactly two elements'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)',
+			$routes,
+			'Theme global styles route does not exist'
+		);
+		$this->assertCount(
+			1,
+			$routes['/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)'],
+			'Theme global styles route does not have exactly one element'
+		);
 	}
 
 	public function test_context_param() {
@@ -132,7 +149,6 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertErrorResponse( 'rest_cannot_manage_global_styles', $response, 403 );
 	}
 
-
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54516
@@ -145,17 +161,88 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
+	 * @dataProvider data_get_theme_item_invalid_theme_dirname
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
+	 * @ticket 54596
 	 */
-	public function test_get_theme_item() {
+	public function test_get_theme_item_invalid_theme_dirname( $theme_dirname ) {
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
+		switch_theme( $theme_dirname );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/' . $theme_dirname );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_theme_item_invalid_theme_dirname() {
+		return array(
+			'with |'                 => array( 'my|theme' ),
+			'with +'                 => array( 'my+theme' ),
+			'with {}'                => array( 'my{theme}' ),
+			'with #'                 => array( 'my#theme' ),
+			'with !'                 => array( 'my!theme' ),
+			'multiple invalid chars' => array( 'mytheme-[_(+@)]#! v4.0' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_get_theme_item
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
+	 * @ticket 54596
+	 */
+	public function test_get_theme_item( $theme ) {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( $theme );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/' . $theme );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		unset( $data['_links'] );
+		$links    = $response->get_links();
+		$this->assertArrayHasKey( 'settings', $data, 'Data does not have "settings" key' );
+		$this->assertArrayHasKey( 'styles', $data, 'Data does not have "styles" key' );
+		$this->assertArrayHasKey( 'self', $links, 'Links do not have a "self" key' );
+		$this->assertStringContainsString( '/wp/v2/global-styles/themes/' . $theme, $links['self'][0]['href'] );
+	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_theme_item() {
+		return array(
+			'alphabetic chars'   => array( 'mytheme' ),
+			'alphanumeric chars' => array( 'mythemev1' ),
+			'space'              => array( 'my theme' ),
+			'-'                  => array( 'my-theme' ),
+			'_'                  => array( 'my_theme' ),
+			'.'                  => array( 'mytheme0.1' ),
+			'- and .'            => array( 'my-theme-0.1' ),
+			'space and .'        => array( 'mytheme v0.1' ),
+			'space, -, _, .'     => array( 'my-theme-v0.1' ),
+			'[]'                 => array( 'my[theme]' ),
+			'()'                 => array( 'my(theme)' ),
+			'@'                  => array( 'my@theme' ),
+		);
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
+	 * @ticket 54595
+	 */
+	public function test_get_theme_item_fields() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
+		$request->set_param( '_fields', 'settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
 		$this->assertArrayHasKey( 'settings', $data );
-		$this->assertArrayHasKey( 'styles', $data );
+		$this->assertArrayNotHasKey( 'styles', $data );
 	}
 
 	/**
@@ -223,7 +310,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		unset( $data['_links'] );
+		$links    = $response->get_links();
 
 		$this->assertEquals(
 			array(
@@ -237,6 +324,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			),
 			$data
 		);
+
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertStringContainsString( '/wp/v2/global-styles/' . self::$global_styles_id, $links['self'][0]['href'] );
 	}
 
 	public function test_create_item() {
