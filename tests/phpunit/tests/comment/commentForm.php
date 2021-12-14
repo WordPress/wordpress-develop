@@ -23,9 +23,9 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$form = get_echo( 'comment_form', array( $args, $p ) );
 
-		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class wp-block-button__link" value="foo-label" />';
+		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class" value="foo-label" />';
 		$hidden = get_comment_id_fields( $p );
-		$this->assertMatchesRegularExpression( '|<p class="form\-submit wp\-block\-button">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
+		$this->assertMatchesRegularExpression( '|<p class="form\-submit">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
 	}
 
 	public function test_custom_submit_button() {
@@ -58,7 +58,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$form = get_echo( 'comment_form', array( $args, $p ) );
 
-		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class wp-block-button__link" value="foo-label" />';
+		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class" value="foo-label" />';
 		$hidden = get_comment_id_fields( $p );
 		$this->assertMatchesRegularExpression( '|<p class="my\-custom\-submit\-field">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
 	}
