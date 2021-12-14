@@ -94,7 +94,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param string $id_or_stylesheet Global styles ID or stylesheet.
-	 * @param string Sanitized global styles ID or stylesheet.
+	 * @return string Sanitized global styles ID or stylesheet.
 	 */
 	public function _sanitize_global_styles_callback( $id_or_stylesheet ) {
 		return urldecode( $id_or_stylesheet );
