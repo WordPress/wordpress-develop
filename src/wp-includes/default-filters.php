@@ -514,6 +514,7 @@ add_action( 'init', 'wp_sitemaps_get_server' );
  */
 // Theme.
 add_action( 'setup_theme', 'create_initial_theme_features', 0 );
+add_action( 'setup_theme', '_add_default_theme_supports', 1 );
 add_action( 'wp_loaded', '_custom_header_background_just_in_time' );
 add_action( 'wp_head', '_custom_logo_header_styles' );
 add_action( 'plugins_loaded', '_wp_customize_include' );
@@ -563,6 +564,7 @@ add_action( 'enqueue_block_editor_assets', 'wp_enqueue_registered_block_scripts_
 add_action( 'enqueue_block_editor_assets', 'enqueue_editor_block_styles_assets' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_block_directory_assets' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_format_library_assets' );
+add_action( 'enqueue_block_editor_assets', 'wp_enqueue_global_styles_css_custom_properties' );
 add_action( 'admin_print_scripts-index.php', 'wp_localize_community_events' );
 add_filter( 'wp_print_scripts', 'wp_just_in_time_script_localization' );
 add_filter( 'print_scripts_array', 'wp_prototype_before_jquery' );
@@ -674,7 +676,7 @@ add_filter( 'user_has_cap', 'wp_maybe_grant_install_languages_cap', 1 );
 add_filter( 'user_has_cap', 'wp_maybe_grant_resume_extensions_caps', 1 );
 add_filter( 'user_has_cap', 'wp_maybe_grant_site_health_caps', 1, 4 );
 
-// Block Templates post type and Rendering
+// Block templates post type and rendering.
 add_filter( 'render_block_context', '_block_template_render_without_post_block_context' );
 add_filter( 'pre_wp_unique_post_slug', 'wp_filter_wp_template_unique_post_slug', 10, 5 );
 add_action( 'save_post_wp_template_part', 'wp_set_unique_slug_on_create_template_part' );
