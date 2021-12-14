@@ -22,10 +22,10 @@
 /** The name of the database for WordPress */
 define( 'DB_NAME', 'database_name_here' );
 
-/** Database database username */
+/** Database username */
 define( 'DB_USER', 'username_here' );
 
-/** Database database password */
+/** Database password */
 define( 'DB_PASSWORD', 'password_here' );
 
 /** Database hostname */
