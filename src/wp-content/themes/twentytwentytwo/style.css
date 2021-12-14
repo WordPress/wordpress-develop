@@ -29,7 +29,7 @@ body {
 }
 
 /*
- * Text link styles.
+ * Text and navigation link styles.
  * Necessary until the following issue is resolved in Gutenberg:
  * https://github.com/WordPress/gutenberg/issues/27075
  */
@@ -46,6 +46,12 @@ a:focus {
 
 a:active {
 	text-decoration: none;
+}
+
+.wp-block-navigation .wp-block-navigation-item a:hover,
+.wp-block-navigation .wp-block-navigation-item a:focus {
+	text-decoration: underline;
+	text-decoration-style: solid;
 }
 
 /*
