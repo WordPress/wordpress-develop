@@ -151,11 +151,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
-	 * @ticket 54516
 	 */
-	public function test_get_theme_item_not_found() {
+	public function test_get_theme_item_invalid() {
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/doesnotexist' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/invalid' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_theme_not_found', $response, 404 );
 	}

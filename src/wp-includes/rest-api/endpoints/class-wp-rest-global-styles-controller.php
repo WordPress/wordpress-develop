@@ -49,8 +49,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'get_theme_item_permissions_check' ),
 					'args'                => array(
 						'stylesheet' => array(
-							'description' => __( 'The theme identifier' ),
-							'type'        => 'string',
+							'description'       => __( 'The theme identifier' ),
+							'type'              => 'string',
+							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
 						),
 					),
 				),
@@ -68,8 +69,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => array(
 						'id' => array(
-							'description' => __( 'The id of a template' ),
-							'type'        => 'string',
+							'description'       => __( 'The id of a template' ),
+							'type'              => 'string',
+							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
 						),
 					),
 				),
@@ -82,6 +84,20 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
+	}
+
+	/**
+	 * Sanitize the global styles ID or stylesheet to decode endpoint.
+	 * For example, `wp/v2/global-styles/templatetwentytwo%200.4.0`
+	 * would be decoded to `templatetwentytwo 0.4.0`.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $id_or_stylesheet Global styles ID or stylesheet.
+	 * @param string Sanitized global styles ID or stylesheet.
+	 */
+	public function _sanitize_global_styles_callback( $id_or_stylesheet ) {
+		return urldecode( $id_or_stylesheet );
 	}
 
 	/**
@@ -525,7 +541,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_item( $request ) {
-		if ( wp_get_theme()->get_stylesheet() !== str_replace( '%20', ' ', $request['stylesheet'] ) ) {
+		if ( wp_get_theme()->get_stylesheet() !== $request['stylesheet'] ) {
 			// This endpoint only supports the active theme for now.
 			return new WP_Error(
 				'rest_theme_not_found',

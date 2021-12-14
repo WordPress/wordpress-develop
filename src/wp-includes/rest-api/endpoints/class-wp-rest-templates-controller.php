@@ -149,6 +149,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return string Sanitized template ID.
 	 */
 	public function _sanitize_template_id( $id ) {
+		// Decode empty space.
+		$id = urldecode( $id );
+
 		$last_slash_pos = strrpos( $id, '/' );
 		if ( false === $last_slash_pos ) {
 			return $id;
@@ -227,11 +230,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_item( $request ) {
-		$id = str_replace( '%20', ' ', $request['id'] );
 		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
-			$template = get_block_file_template( $id, $this->post_type );
+			$template = get_block_file_template( $request['id'], $this->post_type );
 		} else {
-			$template = get_block_template( $id, $this->post_type );
+			$template = get_block_template( $request['id'], $this->post_type );
 		}
 
 		if ( ! $template ) {
