@@ -175,6 +175,13 @@
 	color: #fff;
 }
 
+.welcome-panel .welcome-panel-close:hover,
+.welcome-panel .welcome-panel-close:focus,
+.welcome-panel .welcome-panel-close:hover:before,
+.welcome-panel .welcome-panel-close:focus:before {
+	color: #f5e6ab;
+}
+
 /* @deprecated 5.9.0 -- Button removed from panel. */
 .wp-core-ui .welcome-panel .button.button-hero {
 	margin: 15px 13px 3px 0;
