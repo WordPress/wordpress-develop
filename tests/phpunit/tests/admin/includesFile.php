@@ -291,6 +291,9 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * @covers ::download_url
 	 */
 	public function test_download_url_no_warning_for_url_without_path() {
+		// Hook a mocked HTTP request response.
+		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
+
 		$result = download_url( 'https://example.com' );
 
 		$this->assertIsString( $result );
@@ -306,6 +309,9 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * @covers ::download_url
 	 */
 	public function test_download_url_no_warning_for_url_without_path_with_signature_verification() {
+		// Hook a mocked HTTP request response.
+		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
+
 		add_filter(
 			'wp_signature_hosts',
 			static function( $urls ) {
@@ -325,5 +331,25 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		 */
 		$this->assertWPError( $error );
 		$this->assertSame( 'signature_verification_no_signature', $error->get_error_code() );
+	}
+
+	/**
+	 * Mock the HTTP request response.
+	 *
+	 * @param bool   $false     False.
+	 * @param array  $arguments Request arguments.
+	 * @param string $url       Request URL.
+	 * @return array|bool
+	 */
+	public function mock_http_request( $false, $arguments, $url ) {
+		if ( 'https://example.com' === $url ) {
+			return array(
+				'response' => array(
+					'code' => 200,
+				),
+			);
+		}
+
+		return $false;
 	}
 }
