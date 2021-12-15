@@ -502,16 +502,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get the template, if the ID is valid.
+	 * Gets the template object for the given ID.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param int $id Supplied ID.
+	 * @param string $id Supplied ID.
 	 * @return WP_Block_Template|WP_Error Block template object if ID is valid, WP_Error otherwise.
 	 */
 	protected function get_block_template( $id ) {
 		$template = get_block_template( $id, $this->post_type );
-		if ( empty( $template ) ) {
+		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
 		}
 
