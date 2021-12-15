@@ -1325,7 +1325,13 @@ a.rsswidget {
 
 	.welcome-panel .welcome-panel-column-container {
 		grid-template-columns: 1fr;
+		box-sizing: border-box;
 		padding: 32px;
+		width: 100%;
+	}
+
+	.welcome-panel .welcome-panel-column-content {
+		max-width: 520px;
 	}
 
 	#dashboard-widgets h2 {
