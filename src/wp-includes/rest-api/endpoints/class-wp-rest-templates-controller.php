@@ -174,7 +174,17 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		$post_type = get_post_type_object( $this->post_type );
+
+		if ( 'edit' === $request['context'] && ! current_user_can( $post_type->cap->edit_posts ) ) {
+			return new WP_Error(
+				'rest_forbidden_context',
+				__( 'Sorry, you are not allowed to edit templates of this type.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -199,6 +209,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		$templates = array();
 		foreach ( get_block_templates( $query, $this->post_type ) as $template ) {
+			if ( ! $this->check_read_permission( $template ) ) {
+				continue;
+			}
 			$data        = $this->prepare_item_for_response( $template, $request );
 			$templates[] = $this->prepare_response_for_collection( $data );
 		}
@@ -220,19 +233,31 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $template;
 		}
 
-		if ( ! $template->wp_id ) {
-			return $this->permissions_check( $request );
-		}
-
-		if ( current_user_can( 'read_post', $template->wp_id ) ) {
+		if ( 'edit' === $request['context'] && $this->check_update_permission( $template ) ) {
 			return true;
 		}
 
-		if ( 'edit' === $request['context'] && current_user_can( 'edit_post', $template->wp_id ) ) {
+		if ( $this->check_read_permission( $template ) ) {
 			return true;
 		}
 
 		return $this->permissions_check( $request );
+	}
+
+	/**
+	 * Checks if a template can be read.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Block_Template $template Template object.
+	 * @return bool Whether the post can be edited.
+	 */
+	protected function check_read_permission( $template ) {
+		if ( ! $template->wp_id ) {
+			return current_user_can( 'edit_theme_options' );
+		}
+
+		return current_user_can( 'read_post', $template->wp_id );
 	}
 
 	/**
@@ -273,11 +298,27 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $template;
 		}
 
-		if ( $template->wp_id && current_user_can( 'edit_post', $template->wp_id ) ) {
+		if ( $this->check_update_permission( $template ) ) {
 			return true;
 		}
 
 		return $this->permissions_check( $request );
+	}
+
+	/**
+	 * Checks if a template can be edited.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Block_Template $template Template object.
+	 * @return bool Whether the post can be edited.
+	 */
+	protected function check_update_permission( $template ) {
+		if ( ! $template->wp_id ) {
+			return current_user_can( 'edit_theme_options' );
+		}
+
+		return current_user_can( 'edit_post', $template->wp_id );
 	}
 
 	/**
@@ -420,6 +461,22 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks if a template can be deleted.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Block_Template $template Template object.
+	 * @return bool Whether the post can be edited.
+	 */
+	protected function check_deleted_permission( $template ) {
+		if ( ! $template->wp_id ) {
+			return current_user_can( 'edit_theme_options' );
+		}
+
+		return current_user_can( 'delete_post', $template->wp_id );
+	}
+
+	/**
 	 * Checks if a given request has access to delete a single template.
 	 *
 	 * @since 5.8.0
@@ -433,7 +490,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $template;
 		}
 
-		if ( $template->wp_id && current_user_can( 'delete_post', $template->wp_id ) ) {
+		if ( $this->check_deleted_permission( $template ) ) {
 			return true;
 		}
 
