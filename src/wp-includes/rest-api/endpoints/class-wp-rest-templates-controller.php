@@ -117,6 +117,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	protected function permissions_check( $request ) {
+		_deprecated_function( __METHOD__, '5.9.0' );
 		// Verify if the current user has edit_theme_options capability.
 		// This capability is required to edit/view/delete templates.
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
@@ -237,11 +238,17 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		if ( $this->check_read_permission( $template ) ) {
-			return true;
+		if ( ! $this->check_read_permission( $template ) ) {
+			return new WP_Error(
+				'rest_cannot_manage_templates',
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
 		}
 
-		return $this->permissions_check( $request );
+		return true;
 	}
 
 	/**
@@ -253,11 +260,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return bool Whether the post can be edited.
 	 */
 	protected function check_read_permission( $template ) {
-		if ( ! $template->wp_id ) {
-			return current_user_can( 'edit_theme_options' );
+		if ( $template->wp_id ) {
+			return current_user_can( 'read_post', $template->wp_id );
 		}
 
-		return current_user_can( 'read_post', $template->wp_id );
+		$post_type = get_post_type_object( $this->post_type );
+		return current_user_can( $post_type->cap->read_post );
 	}
 
 	/**
@@ -298,11 +306,17 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $template;
 		}
 
-		if ( $this->check_update_permission( $template ) ) {
-			return true;
+		if ( ! $this->check_update_permission( $template ) ) {
+			return new WP_Error(
+				'rest_cannot_manage_templates',
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
 		}
 
-		return $this->permissions_check( $request );
+		return true;
 	}
 
 	/**
@@ -314,11 +328,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return bool Whether the post can be edited.
 	 */
 	protected function check_update_permission( $template ) {
-		if ( ! $template->wp_id ) {
-			return current_user_can( 'edit_theme_options' );
+		if ( $template->wp_id ) {
+			return current_user_can( 'edit_post', $template->wp_id );
 		}
-
-		return current_user_can( 'edit_post', $template->wp_id );
+		$post_type = get_post_type_object( $this->post_type );
+		return current_user_can( $post_type->cap->edit_post );
 	}
 
 	/**
@@ -401,11 +415,17 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	public function create_item_permissions_check( $request ) {
 		$post_type = get_post_type_object( $this->post_type );
 
-		if ( current_user_can( $post_type->cap->create_posts ) ) {
-			return true;
+		if ( ! current_user_can( $post_type->cap->create_posts ) ) {
+			return new WP_Error(
+				'rest_cannot_manage_templates',
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
 		}
 
-		return $this->permissions_check( $request );
+		return true;
 	}
 
 	/**
@@ -469,11 +489,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return bool Whether the post can be edited.
 	 */
 	protected function check_deleted_permission( $template ) {
-		if ( ! $template->wp_id ) {
-			return current_user_can( 'edit_theme_options' );
+		if ( $template->wp_id ) {
+			return current_user_can( 'delete_post', $template->wp_id );
 		}
 
-		return current_user_can( 'delete_post', $template->wp_id );
+		$post_type = get_post_type_object( $post->post_type );
+		return current_user_can( $post_type->cap->delete_post );
 	}
 
 	/**
@@ -490,11 +511,21 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $template;
 		}
 
-		if ( $this->check_deleted_permission( $template ) ) {
-			return true;
+		if ( 'custom' !== $template->source ) {
+			return new WP_Error( 'rest_invalid_template', __( 'Templates based on theme files can\'t be removed.' ), array( 'status' => 400 ) );
 		}
 
-		return $this->permissions_check( $request );
+		if ( ! $this->check_deleted_permission( $template ) ) {
+			return new WP_Error(
+				'rest_cannot_manage_templates',
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		return true;
 	}
 
 	/**
