@@ -2107,7 +2107,6 @@ function wp_ajax_inline_save_tax() {
 		wp_die( -1 );
 	}
 
-	// Get the tag just by ID, without the taxonomy argument and then get the taxonomy from the tag.
 	$tag = get_term( $id );
 	if ( ! $tag || is_wp_error( $tag ) ) {
 		wp_die( 0 );
