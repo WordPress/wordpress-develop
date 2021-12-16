@@ -1404,8 +1404,17 @@ a.rsswidget {
 
 @media screen and (max-width: 480px) {
 	.welcome-panel-column {
-		grid-template-columns: 1fr;
 		gap: 16px;
+	}
+}
+
+@media screen and (max-width: 360px) {
+	.welcome-panel-column {
+		grid-template-columns: 1fr;
+	}
+
+	[class*="welcome-panel-icon"] {
+		display: none;
 	}
 }
 
