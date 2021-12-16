@@ -2097,13 +2097,6 @@ function wp_ajax_inline_save() {
 function wp_ajax_inline_save_tax() {
 	check_ajax_referer( 'taxinlineeditnonce', '_inline_edit' );
 
-	$taxonomy = sanitize_key( $_POST['taxonomy'] );
-	$tax      = get_taxonomy( $taxonomy );
-
-	if ( ! $tax ) {
-		wp_die( 0 );
-	}
-
 	if ( ! isset( $_POST['tax_ID'] ) || ! (int) $_POST['tax_ID'] ) {
 		wp_die( -1 );
 	}
@@ -2114,9 +2107,15 @@ function wp_ajax_inline_save_tax() {
 		wp_die( -1 );
 	}
 
+	// Get the tag just by ID, without the taxonomy argument and then get the taxonomy from the tag.
+	$tag = get_term( $id );
+	if ( ! $tag || is_wp_error( $tag ) ) {
+		wp_die( 0 );
+	}
+	$taxonomy = $tag->taxonomy;
+
 	$wp_list_table = _get_list_table( 'WP_Terms_List_Table', array( 'screen' => 'edit-' . $taxonomy ) );
 
-	$tag                  = get_term( $id, $taxonomy );
 	$_POST['description'] = $tag->description;
 
 	$updated = wp_update_term( $id, $taxonomy, $_POST );
