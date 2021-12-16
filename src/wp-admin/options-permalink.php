@@ -423,11 +423,12 @@ else :
 <p id="htaccess-description">
 		<?php
 		printf(
-			/* translators: 1: .htaccess, 2: Documentation URL, 3: CTRL + a */
-			__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it isn&#8217;t so these are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s to select all.' ),
+			/* translators: 1: .htaccess, 2: Documentation URL, 3: CTRL + a, 4: ⌘ + A*/
+			__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it isn&#8217;t so these are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all.' ),
 			'<code>.htaccess</code>',
 			__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
-			'<kbd>CTRL + a</kbd>'
+			'<kbd>CTRL + a</kbd>',
+			'<kbd>⌘ + a</kbd>'
 		);
 		?>
 </p>
