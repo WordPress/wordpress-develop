@@ -1304,7 +1304,6 @@ a.rsswidget {
 @media screen and (max-width: 1180px) and (min-width: 783px) {
 	.welcome-panel-column {
 		grid-template-columns: 1fr;
-		gap: 16px;
 	}
 
 	[class*="welcome-panel-icon"] {
