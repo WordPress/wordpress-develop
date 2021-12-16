@@ -353,4 +353,135 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that block themes support a feature by default.
+	 *
+	 * @ticket 54597
+	 * @dataProvider data_block_theme_has_default_support
+	 *
+	 * @covers ::_add_default_theme_supports
+	 *
+	 * @param array $support {
+	 *     The feature to check.
+	 *
+	 *     @type string $feature     The feature to check.
+	 *     @type string $sub_feature Optional. The sub-feature to check.
+	 * }
+	 */
+	public function test_block_theme_has_default_support( $support ) {
+		$this->helper_requires_block_theme();
+
+		$support_data     = array_values( $support );
+		$support_data_str = implode( ': ', $support_data );
+
+		// Remove existing support.
+		if ( current_theme_supports( ...$support_data ) ) {
+			remove_theme_support( ...$support_data );
+		}
+
+		$this->assertFalse(
+			current_theme_supports( ...$support_data ),
+			"Could not remove support for $support_data_str."
+		);
+
+		do_action( 'setup_theme' );
+
+		$this->assertTrue(
+			current_theme_supports( ...$support_data ),
+			"Does not have default support for $support_data_str."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_block_theme_has_default_support() {
+		return array(
+			'post-thumbnails'      => array(
+				'support' => array(
+					'feature' => 'post-thumbnails',
+				),
+			),
+			'responsive-embeds'    => array(
+				'support' => array(
+					'feature' => 'responsive-embeds',
+				),
+			),
+			'editor-styles'        => array(
+				'support' => array(
+					'feature' => 'editor-styles',
+				),
+			),
+			'html5: style'         => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'style',
+				),
+			),
+			'html5: script'        => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'script',
+				),
+			),
+			'automatic-feed-links' => array(
+				'support' => array(
+					'feature' => 'automatic-feed-links',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that block themes load separate core block assets by default.
+	 *
+	 * @ticket 54597
+	 *
+	 * @covers ::wp_should_load_separate_core_block_assets
+	 */
+	public function test_block_theme_should_load_separate_core_block_assets_by_default() {
+		$this->helper_requires_block_theme();
+
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
+		$this->assertFalse(
+			wp_should_load_separate_core_block_assets(),
+			'Could not disable loading separate core block assets.'
+		);
+
+		do_action( 'setup_theme' );
+
+		$this->assertTrue(
+			wp_should_load_separate_core_block_assets(),
+			'Block themes do not load separate core block assets by default.'
+		);
+	}
+
+	/**
+	 * Helper function to ensure that a block theme is available and active.
+	 */
+	private function helper_requires_block_theme() {
+		// No need to switch if we're already on a block theme.
+		if ( wp_is_block_theme() ) {
+			return;
+		}
+
+		$block_theme        = 'twentytwentytwo';
+		$block_theme_object = new WP_Theme( $block_theme, WP_CONTENT_DIR . '/themes' );
+
+		// Skip if the block theme is not available.
+		if ( ! $block_theme_object->exists() ) {
+			$this->markTestSkipped( "$block_theme must be available." );
+		}
+
+		switch_theme( $block_theme );
+
+		// Skip if we could not switch to the block theme.
+		if ( wp_get_theme()->stylesheet !== $block_theme ) {
+			$this->markTestSkipped( "Could not switch to $block_theme." );
+		}
+	}
 }
