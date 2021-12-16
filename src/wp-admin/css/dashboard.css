@@ -1315,11 +1315,12 @@ a.rsswidget {
 	.welcome-panel:before {
 		width: 240px;
 		height: 305px;
+		right: 32px;
 	}
 
 	.welcome-panel-header {
-		/* 352px = 240px (balloon width) + 96px (offset from edge) + 16px (spacing). */
-		padding: 32px 352px 32px 32px;
+		/* 288px = 240px (balloon width) + 32px (offset from edge) + 16px (spacing). */
+		padding: 32px 288px 32px 32px;
 	}
 
 	.welcome-panel .welcome-panel-column-container {
@@ -1331,6 +1332,23 @@ a.rsswidget {
 
 	.welcome-panel .welcome-panel-column-content {
 		max-width: 520px;
+	}
+
+	/* Keep the close icon from overlapping the Welcome text. */
+	.welcome-panel .welcome-panel-close {
+		overflow: hidden;
+		text-indent: 40px;
+		white-space: nowrap;
+		width: 20px;
+		height: 20px;
+		padding: 5px;
+		top: 5px;
+		right: 5px;
+	}
+
+	.welcome-panel .welcome-panel-close:before {
+		top: 5px;
+		left: -35px;
 	}
 
 	#dashboard-widgets h2 {
@@ -1381,23 +1399,6 @@ a.rsswidget {
 
 	.welcome-panel-header {
 		padding: 32px;
-	}
-
-	/* Keep the close icon from overlapping the Welcome text. */
-	.welcome-panel .welcome-panel-close {
-		overflow: hidden;
-		text-indent: 40px;
-		white-space: nowrap;
-		width: 20px;
-		height: 20px;
-		padding: 5px;
-		top: 5px;
-		right: 5px;
-	}
-
-	.welcome-panel .welcome-panel-close:before {
-		top: 5px;
-		left: -35px;
 	}
 }
 
