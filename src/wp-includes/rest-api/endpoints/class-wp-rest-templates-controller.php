@@ -68,7 +68,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Lists/updates a single template based on the given id.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)',
+			// ([^\/]+(?:\/[^\/]+)?) matches `/<subdirectory>/<themedirectory>/` or `<themedirectory>/`.
+			// [\/\w-]+ matches the template name.
+			'/' . $this->rest_base . '/(?P<id>([^\/]+(?:\/[^\/]+)?)[\/\w-]+)',
 			array(
 				'args'   => array(
 					'id' => array(
@@ -149,7 +151,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return string Sanitized template ID.
 	 */
 	public function _sanitize_template_id( $id ) {
-		// Decode empty space.
 		$id = urldecode( $id );
 
 		$last_slash_pos = strrpos( $id, '/' );
