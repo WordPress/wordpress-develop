@@ -163,6 +163,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'REST Theme',
 			'Block Theme',
 			'Block Theme Child Theme',
+			'Block Thémé [0.4.0]',
 			'Test Block Theme',
 			'Test Block Child Theme',
 		);
