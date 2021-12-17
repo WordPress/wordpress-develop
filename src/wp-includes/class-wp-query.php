@@ -1782,7 +1782,9 @@ class WP_Query {
 		 *
 		 * @param WP_Query $query The WP_Query instance (passed by reference).
 		 */
-		do_action_ref_array( 'pre_get_posts', array( &$this ) );
+		if ( ! doing_action( 'pre_get_posts' ) ) {
+			do_action_ref_array( 'pre_get_posts', array( &$this ) );
+		}
 
 		// Shorthand.
 		$q = &$this->query_vars;
