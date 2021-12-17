@@ -22,7 +22,7 @@ final class WP_DB_Partial_Query {
 	/**
 	 * WP_DB_Partial_Query constructor.
 	 *
-	 * Accepts exapctly the same parameters as $wpdb->prepare.
+	 * Accepts exactly the same parameters as $wpdb->prepare().
 	 *
 	 * @param $query
 	 * @param ...$args
@@ -35,15 +35,16 @@ final class WP_DB_Partial_Query {
 	/**
 	 * Get prepared query.
 	 *
-	 * @return string|void
+	 * @return string|void The prepared query.
 	 */
 	public function get_query() {
 		return $this->query;
 	}
 
-
 	/**
 	 * Implementing this magic method allows object of this class to be interpolated in sprintf, vprintf etc methods.
+	 *
+	 * @return string The prepared query.
 	 */
 	public function __toString() {
 		return $this->get_query();

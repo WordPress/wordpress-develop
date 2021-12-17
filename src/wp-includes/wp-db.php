@@ -1327,7 +1327,7 @@ class wpdb {
 	 * @param string $string String to escape.
 	 */
 	public function escape_by_ref( &$string ) {
-		if ( ! is_float( $string ) && ! is_a( $string, WP_DB_Partial_Query::class ) ) {
+		if ( ! is_float( $string ) && ! $string instanceof WP_DB_Partial_Query ) {
 			$string = $this->_real_escape( $string );
 		}
 	}
@@ -1403,7 +1403,7 @@ class wpdb {
 		}
 
 		foreach ( $args as $arg ) {
-			if ( is_a( $arg, WP_DB_Partial_Query::class ) ) {
+			if ( $arg instanceof WP_DB_Partial_Query ) {
 				continue;
 			}
 
@@ -1505,6 +1505,11 @@ class wpdb {
 	/**
 	 * Similar to $this->prepare(), but returns a WP_DB_Partial_Query object instead of a string.
 	 * This method can be used as a query builder to join prepared query from various places.
+	 *
+	 * @param string $query     Same as $this->prepare()'s $query argument.
+	 * @param array|mixed $args Same as $this->prepare()'s $args argument.
+	 *
+	 * @return WP_DB_Partial_Query The prepared partial query.
 	 */
 	public function prepare_partial( $query, ...$args ) {
 		require_once trailingslashit( __DIR__ ) . 'class-wp-db-partial-query.php';
