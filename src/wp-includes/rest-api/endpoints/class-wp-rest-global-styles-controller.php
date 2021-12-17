@@ -41,8 +41,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		// List themes global styles.
 		register_rest_route(
 			$this->namespace,
-			// Matches the theme's directory:
-			// `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+			/**
+			 * Matches the theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+			 */
 			'/' . $this->rest_base . '/themes/(?P<stylesheet>[^\/]+(?:\/[^\/]+)?)',
 			array(
 				array(
