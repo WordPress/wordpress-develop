@@ -65,7 +65,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'Templates route does not exist'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/templates/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)',
+			'/wp/v2/templates/(?P<id>([^\/\|]+(?:\/[^\/\|]+)?)[\/\w-]+)',
 			$routes,
 			'Single template based on the given ID route does not exist'
 		);
