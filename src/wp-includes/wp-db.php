@@ -1443,7 +1443,7 @@ class wpdb {
 		$query = str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
 		$query = preg_replace( '/(?<!%)%s/', "'%s'", $query ); // Quote the strings, avoiding escaped strings like %%s.
 
-		$query = preg_replace( '/(?<!%)%q/', "%s", $query ); // Change %q to %s so that it can be interpolated by vprintf later on. We don't do this earlier to prevent quoting.
+		$query = preg_replace( '/(?<!%)%q/', '%s', $query ); // Change %q to %s so that it can be interpolated by vprintf later on. We don't do this earlier to prevent quoting.
 
 		$query = preg_replace( "/(?<!%)(%($allowed_format)?f)/", '%\\2F', $query ); // Force floats to be locale-unaware.
 
