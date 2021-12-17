@@ -16,7 +16,7 @@
  */
 class WP_REST_Themes_Controller extends WP_REST_Controller {
 
-	const PATTERN = '[^.\/]+(?:\/[^.\/]+)?';
+	const PATTERN = '[^\/\|]+(?:\/[^\/\|]+)?';
 
 	/**
 	 * Constructor.
@@ -56,8 +56,9 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'stylesheet' => array(
-						'description' => __( "The theme's stylesheet. This uniquely identifies the theme." ),
-						'type'        => 'string',
+						'description'       => __( "The theme's stylesheet. This uniquely identifies the theme." ),
+						'type'              => 'string',
+						'sanitize_callback' => array( $this, '_sanitize_stylesheet_callback' ),
 					),
 				),
 				array(
@@ -68,6 +69,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
+	}
+
+	/**
+	 * Sanitize the stylesheet to decode endpoint.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $stylesheet The stylesheet name.
+	 * @return string Sanitized stylesheet.
+	 */
+	public function _sanitize_stylesheet_callback( $stylesheet ) {
+		return urldecode( $stylesheet );
 	}
 
 	/**

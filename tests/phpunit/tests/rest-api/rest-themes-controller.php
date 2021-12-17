@@ -1285,15 +1285,72 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @ticket 54349
+	 * @dataProvider data_get_item_non_subdir_theme
+	 * @ticket 54596
+	 * @covers WP_REST_Themes_Controller::get_item
 	 */
-	public function test_get_item_subdirectory_theme() {
+	public function test_get_item_non_subdir_theme( $theme_dir, $expected_name ) {
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/subdir/theme2' );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . $theme_dir );
 		$response = rest_do_request( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'My Subdir Theme', $response->get_data()['name']['raw'] );
+		$this->assertSame( $expected_name, $response->get_data()['name']['raw'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_non_subdir_theme() {
+		return array(
+			'parent theme'                 => array(
+				'theme_dir'     => '/block-theme',
+				'expected_name' => 'Block Theme',
+			),
+			'child theme'                  => array(
+				'theme_dir'     => '/block-theme-child',
+				'expected_name' => 'Block Theme Child Theme',
+			),
+			'theme with é_-[]. characters' => array(
+				'theme_dir'     => '/block_thémé-[0.4.0]',
+				'expected_name' => 'Block Thémé [0.4.0]',
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_get_item_subdirectory_theme
+	 * @ticket 54349
+	 * @ticket 54596
+	 * @covers WP_REST_Themes_Controller::get_item
+	 */
+	public function test_get_item_subdirectory_theme( $theme_dir, $expected_name ) {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . $theme_dir );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected_name, $response->get_data()['name']['raw'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_subdirectory_theme() {
+		return array(
+			'theme2'                       => array(
+				'theme_dir'     => '/subdir/theme2',
+				'expected_name' => 'My Subdir Theme',
+			),
+			'theme with é_-[]. characters' => array(
+				'theme_dir'     => '/subdir/block_thémé-[1.0.0]',
+				'expected_name' => 'Block Thémé [1.0.0] in subdirectory',
+			),
+		);
 	}
 
 	/**
