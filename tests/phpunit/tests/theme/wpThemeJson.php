@@ -1484,7 +1484,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket _to_be_updated
+	 * @ticket 54640
 	 */
 	public function test_merge_incoming_data_presets_use_default_names() {
 		$defaults   = new WP_Theme_JSON(
