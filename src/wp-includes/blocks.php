@@ -106,8 +106,9 @@ function register_block_script_handle( $metadata, $field_name ) {
 	$wpinc_path_norm  = wp_normalize_path( ABSPATH . WPINC );
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
 	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
-	$is_plugin_block  = strpos( $metadata['file'], 'wp-content/plugins' );
-	$is_theme_block   = strpos( $metadata['file'], 'wp-content/themes' );
+	$is_plugin_block  = isset( $metadata['file'] ) && strpos( $metadata['file'], 'wp-content/plugins' );
+	$is_theme_block   = isset( $metadata['file'] ) && strpos( $metadata['file'], 'wp-content/themes' );
+	$script_uri       = false;
 
 	if ( false !== $is_plugin_block ) {
 		$script_uri = plugins_url( $script_path, $metadata['file'] );
@@ -161,8 +162,9 @@ function register_block_style_handle( $metadata, $field_name ) {
 	}
 	$wpinc_path_norm = wp_normalize_path( ABSPATH . WPINC );
 	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
-	$is_plugin_block = strpos( $metadata['file'], 'wp-content/plugins' );
-	$is_theme_block  = strpos( $metadata['file'], 'wp-content/themes' );
+	$is_plugin_block = isset( $metadata['file'] ) && strpos( $metadata['file'], 'wp-content/plugins' );
+	$is_theme_block  = isset( $metadata['file'] ) && strpos( $metadata['file'], 'wp-content/themes' );
+	$style_uri       = false;
 
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
