@@ -1539,23 +1539,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'settings' => array(
 				'typography' => array(
 					'fontSizes' => array(
-						'theme'   => array(
-							array(
-								'name' => 'Small',
-								'slug' => 'small',
-								'size' => '1.1rem',
-							),
-							array(
-								'name' => 'Large',
-								'slug' => 'large',
-								'size' => '1.75rem',
-							),
-							array(
-								'name' => 'Huge',
-								'slug' => 'huge',
-								'size' => '3rem',
-							),
-						),
 						'default' => array(
 							array(
 								'name' => 'Small',
@@ -1568,13 +1551,30 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'size' => '20px',
 							),
 						),
+						'theme'   => array(
+							array(
+								'slug' => 'small',
+								'size' => '1.1rem',
+								'name' => 'Small',
+							),
+							array(
+								'slug' => 'large',
+								'size' => '1.75rem',
+								'name' => 'Large',
+							),
+							array(
+								'name' => 'Huge',
+								'slug' => 'huge',
+								'size' => '3rem',
+							),
+						),
 					),
 				),
 			),
 		);
 		$defaults->merge( $theme_json );
 		$actual = $defaults->get_raw_data();
-		$this->assertEqualSetsWithIndex( $expected, $actual );
+		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
 	/**
