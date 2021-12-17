@@ -71,8 +71,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			/**
 			 * ([^\/]+(?:\/[^\/]+)?) matches the theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
 			 * [\/\w-]+ matches the template name.
+			 * Note: `|` is an invalid character for a Windows' directory name.
 			 */
-			'/' . $this->rest_base . '/(?P<id>([^\/]+(?:\/[^\/]+)?)[\/\w-]+)',
+			'/' . $this->rest_base . '/(?P<id>([^\/\|]+(?:\/[^\/\|]+)?)[\/\w-]+)',
 			array(
 				'args'   => array(
 					'id' => array(

@@ -43,8 +43,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			$this->namespace,
 			/**
 			 * Matches the theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+			 * Note: `|` is an invalid character for a Windows' directory name.
 			 */
-			'/' . $this->rest_base . '/themes/(?P<stylesheet>[^\/]+(?:\/[^\/]+)?)',
+			'/' . $this->rest_base . '/themes/(?P<stylesheet>[^\/\|]+(?:\/[^\/\|]+)?)',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,

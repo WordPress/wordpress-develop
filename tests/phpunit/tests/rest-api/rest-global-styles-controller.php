@@ -108,13 +108,13 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			'Single global style based on the given ID route does not have exactly two elements'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/global-styles/themes/(?P<stylesheet>[^\/]+(?:\/[^\/]+)?)',
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[^\/\|]+(?:\/[^\/\|]+)?)',
 			$routes,
 			'Theme global styles route does not exist'
 		);
 		$this->assertCount(
 			1,
-			$routes['/wp/v2/global-styles/themes/(?P<stylesheet>[^\/]+(?:\/[^\/]+)?)'],
+			$routes['/wp/v2/global-styles/themes/(?P<stylesheet>[^\/\|]+(?:\/[^\/\|]+)?)'],
 			'Theme global styles route does not have exactly one element'
 		);
 	}
@@ -181,12 +181,16 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 */
 	public function data_get_theme_item_invalid_theme_dirname() {
 		return array(
-			'+'                     => array(
+			'| (invalid on Windows)' => array(
+				'theme_dirname' => 'my|theme|',
+				'expected'      => 'rest_no_route',
+			),
+			'+'                      => array(
 				'theme_dirname' => 'my+theme+',
 				'expected'      => 'rest_theme_not_found',
 			),
 			// Themes deep in subdirectories.
-			'2 subdirectories deep' => array(
+			'2 subdirectories deep'  => array(
 				'theme_dirname' => 'subdir/subsubdir/mytheme',
 				'expected'      => 'rest_global_styles_not_found',
 			),
