@@ -106,10 +106,24 @@ function register_block_script_handle( $metadata, $field_name ) {
 	$wpinc_path_norm  = wp_normalize_path( ABSPATH . WPINC );
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
 	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+	$is_plugin_block  = strpos( $metadata['file'], 'wp-content/plugins' );
+	$is_theme_block   = strpos( $metadata['file'], 'wp-content/themes' );
 
-	$script_uri          = $is_core_block ?
-		includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) ) :
-		plugins_url( $script_path, $metadata['file'] );
+	if ( false !== $is_plugin_block ) {
+		$script_uri = plugins_url( $script_path, $metadata['file'] );
+	}
+
+	if ( false !== $is_theme_block ) {
+		$theme_pos         = strpos( $metadata['file'], '/themes' );
+		$theme_block_path  = substr( $metadata['file'], $theme_pos );
+		$theme_script_path = dirname( $theme_block_path ) . '/' . $script_path;
+		$script_uri        = content_url( $theme_script_path );
+	}
+
+	if ( $is_core_block ) {
+		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
+	}
+
 	$script_asset        = require $script_asset_path;
 	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
 	$result              = wp_register_script(
@@ -147,6 +161,9 @@ function register_block_style_handle( $metadata, $field_name ) {
 	}
 	$wpinc_path_norm = wp_normalize_path( ABSPATH . WPINC );
 	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+	$is_plugin_block = strpos( $metadata['file'], 'wp-content/plugins' );
+	$is_theme_block  = strpos( $metadata['file'], 'wp-content/themes' );
+
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
 	}
@@ -161,7 +178,17 @@ function register_block_style_handle( $metadata, $field_name ) {
 		return $style_handle;
 	}
 
-	$style_uri = plugins_url( $style_path, $metadata['file'] );
+	if ( false !== $is_plugin_block ) {
+		$style_uri = plugins_url( $style_path, $metadata['file'] );
+	}
+
+	if ( false !== $is_theme_block ) {
+		$theme_pos        = strpos( $metadata['file'], '/themes' );
+		$theme_block_path = substr( $metadata['file'], $theme_pos );
+		$theme_style_path = dirname( $theme_block_path ) . '/' . $style_path;
+		$style_uri        = content_url( $theme_style_path );
+	}
+
 	if ( $is_core_block ) {
 		$style_path = "style$suffix.css";
 		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
