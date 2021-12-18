@@ -1288,6 +1288,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @dataProvider data_get_item_non_subdir_theme
 	 * @ticket 54596
 	 * @covers WP_REST_Themes_Controller::get_item
+	 *
+	 * @param string $theme_dir     Theme directory to test.
+	 * @param string $expected_name Expected theme name.
 	 */
 	public function test_get_item_non_subdir_theme( $theme_dir, $expected_name ) {
 		wp_set_current_user( self::$admin_id );

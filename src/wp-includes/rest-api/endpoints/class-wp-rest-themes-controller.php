@@ -16,7 +16,11 @@
  */
 class WP_REST_Themes_Controller extends WP_REST_Controller {
 
-	const PATTERN = '[^\/\|]+(?:\/[^\/\|]+)?';
+	/**
+	 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+	 * Excludes invalid directory name characters: `/:<>*?"|`.
+	 */
+	const PATTERN = '[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?';
 
 	/**
 	 * Constructor.

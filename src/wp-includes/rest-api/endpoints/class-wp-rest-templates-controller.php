@@ -68,12 +68,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Lists/updates a single template based on the given id.
 		register_rest_route(
 			$this->namespace,
-			/**
-			 * ([^\/\|]+(?:\/[^\/\|]+)?) matches the theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
-			 * [\/\w-]+ matches the template name.
-			 * Note: `|` is an invalid character for a Windows' directory name.
-			 */
-			'/' . $this->rest_base . '/(?P<id>([^\/\|]+(?:\/[^\/\|]+)?)[\/\w-]+)',
+			// The route.
+			sprintf(
+				'/%s/(?P<id>%s%s)',
+				$this->rest_base,
+				// Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				// Excludes invalid directory name characters: `/:<>*?"|`.
+				'([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
+				// Matches the template name.
+				'[\/\w-]+'
+			),
 			array(
 				'args'   => array(
 					'id' => array(

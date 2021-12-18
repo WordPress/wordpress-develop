@@ -65,7 +65,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'Templates route does not exist'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/templates/(?P<id>([^\/\|]+(?:\/[^\/\|]+)?)[\/\w-]+)',
+			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
 			$routes,
 			'Single template based on the given ID route does not exist'
 		);
@@ -215,7 +215,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @param string $theme_dir Theme directory to test.
 	 * @param string $template  Template to test.
-	 * @param array $args       Arguments to create the 'wp_template" post.
+	 * @param array  $args      Arguments to create the 'wp_template" post.
 	 */
 	public function test_get_item_with_valid_theme_dirname( $theme_dir, $template, array $args ) {
 		wp_set_current_user( self::$admin_id );
@@ -237,7 +237,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		unset( $data['content'] );
 		unset( $data['_links'] );
 
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'id'             => "{$theme_dir}//{$template}",
 				'theme'          => $theme_dir,

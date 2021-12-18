@@ -41,11 +41,14 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		// List themes global styles.
 		register_rest_route(
 			$this->namespace,
-			/**
-			 * Matches the theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
-			 * Note: `|` is an invalid character for a Windows' directory name.
-			 */
-			'/' . $this->rest_base . '/themes/(?P<stylesheet>[^\/\|]+(?:\/[^\/\|]+)?)',
+			// The route.
+			sprintf(
+				'/%s/themes/(?P<stylesheet>%s)',
+				$this->rest_base,
+				// Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				// Excludes invalid directory name characters: `/:<>*?"|`.
+				'[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?'
+			),
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
