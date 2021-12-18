@@ -564,7 +564,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * Test case to validate `_doing_it_wrong()` when block style name attribute
 	 * contains one or more spaces.
 	 *
-	 * @dataProvider data_register_block_style_name_contain_spaces
+	 * @dataProvider data_register_block_style_name_contains_spaces
 	 *
 	 * @ticket 54296
 	 *
