@@ -69,7 +69,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		register_rest_route(
 			$this->namespace,
 			/**
-			 * ([^\/]+(?:\/[^\/]+)?) matches the theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+			 * ([^\/\|]+(?:\/[^\/\|]+)?) matches the theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
 			 * [\/\w-]+ matches the template name.
 			 * Note: `|` is an invalid character for a Windows' directory name.
 			 */

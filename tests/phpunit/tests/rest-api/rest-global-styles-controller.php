@@ -164,6 +164,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 * @dataProvider data_get_theme_item_invalid_theme_dirname
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54596
+	 *
+	 * @param string $theme_dirname Theme directory to test.
+	 * @param string $expected      Expected error code.
 	 */
 	public function test_get_theme_item_invalid_theme_dirname( $theme_dirname, $expected ) {
 		wp_set_current_user( self::$admin_id );
@@ -201,6 +204,8 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 * @dataProvider data_get_theme_item
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54596
+	 *
+	 * @param string $theme Theme directory to test.
 	 */
 	public function test_get_theme_item( $theme ) {
 		wp_set_current_user( self::$admin_id );

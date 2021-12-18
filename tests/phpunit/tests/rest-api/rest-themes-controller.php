@@ -1325,14 +1325,25 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 54349
 	 * @ticket 54596
 	 * @covers WP_REST_Themes_Controller::get_item
+	 *
+	 * @param string $theme_dir     Theme directory to test.
+	 * @param string $expected_name Expected theme name.
 	 */
 	public function test_get_item_subdirectory_theme( $theme_dir, $expected_name ) {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', self::$themes_route . $theme_dir );
 		$response = rest_do_request( $request );
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( $expected_name, $response->get_data()['name']['raw'] );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			'A 200 OK status was not returned.'
+		);
+		$this->assertSame(
+			$expected_name,
+			$response->get_data()['name']['raw'],
+			'The actual theme name was not the expected theme name.'
+		);
 	}
 
 	/**
