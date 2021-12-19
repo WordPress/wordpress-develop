@@ -378,7 +378,7 @@ function gen_tests_array( $name, $array ) {
 /**
  * Use to create objects by yourself
  */
-class MockClass {}
+class MockClass extends stdClass {}
 
 /**
  * Drops all tables from the WordPress database
