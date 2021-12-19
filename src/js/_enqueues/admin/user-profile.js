@@ -314,23 +314,27 @@
 	}
 
 	function showOrHideWeakPasswordCheckbox() {
-		var passStrength = $('#pass-strength-result')[0];
+		var passStrengthResult = $('#pass-strength-result');
 
-		if ( passStrength.className ) {
-			$pass1.addClass( passStrength.className );
-			if ( $( passStrength ).is( '.short, .bad' ) ) {
-				if ( ! $weakCheckbox.prop( 'checked' ) ) {
-					$submitButtons.prop( 'disabled', true );
-				}
-				$weakRow.show();
-			} else {
-				if ( $( passStrength ).is( '.empty' ) ) {
-					$submitButtons.prop( 'disabled', true );
-					$weakCheckbox.prop( 'checked', false );
+		if ( passStrengthResult.length ) {
+			var passStrength = passStrengthResult[0];
+
+			if ( passStrength.className ) {
+				$pass1.addClass( passStrength.className );
+				if ( $( passStrength ).is( '.short, .bad' ) ) {
+					if ( ! $weakCheckbox.prop( 'checked' ) ) {
+						$submitButtons.prop( 'disabled', true );
+					}
+					$weakRow.show();
 				} else {
-					$submitButtons.prop( 'disabled', false );
+					if ( $( passStrength ).is( '.empty' ) ) {
+						$submitButtons.prop( 'disabled', true );
+						$weakCheckbox.prop( 'checked', false );
+					} else {
+						$submitButtons.prop( 'disabled', false );
+					}
+					$weakRow.hide();
 				}
-				$weakRow.hide();
 			}
 		}
 	}
