@@ -733,6 +733,7 @@ endif;
 
 	</table>
 
+<?php if ( wp_is_application_passwords_available_for_user( $user_id ) || ! wp_is_application_passwords_supported() ) : ?>
 	<div class="application-passwords hide-if-no-js" id="application-passwords-section">
 		<h2><?php _e( 'Application Passwords' ); ?></h2>
 		<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
@@ -797,7 +798,7 @@ endif;
 			?>
 		</div>
 		<?php else : ?>
-			<p><?php _e( 'The application password feature requires HTTPS, which is not enabled on this site.' ); ?></p>
+			<p><?php _e( 'The application password feature requires HTTPS - which is not enabled on this site - or the environment type set as local.' ); ?></p>
 			<p>
 				<?php
 				printf(
@@ -809,6 +810,7 @@ endif;
 			</p>
 		<?php endif; ?>
 	</div>
+<?php endif; ?>
 
 		<?php
 		if ( IS_PROFILE_PAGE ) {
