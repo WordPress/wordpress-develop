@@ -53,10 +53,22 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		wp_delete_post( self::$post->ID );
 	}
 
+	/**
+	 * @covers WP_REST_Templates_Controller::register_routes
+	 * @ticket 54596
+	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
-		$this->assertArrayHasKey( '/wp/v2/templates', $routes );
-		$this->assertArrayHasKey( '/wp/v2/templates/(?P<id>[\/\w-]+)', $routes );
+		$this->assertArrayHasKey(
+			'/wp/v2/templates',
+			$routes,
+			'Templates route does not exist'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/templates/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)',
+			$routes,
+			'Single template based on the given ID route does not exist'
+		);
 	}
 
 	/**

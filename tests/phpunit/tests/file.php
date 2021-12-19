@@ -102,8 +102,8 @@ class Tests_File extends WP_UnitTestCase {
 			return false;
 		}
 
-		// Write some random contents.
-		$c = rand_str();
+		// Write some contents.
+		$c = 'foo';
 		fwrite( $fp, $c );
 		fclose( $fp );
 

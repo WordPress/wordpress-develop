@@ -704,11 +704,11 @@ function wp_prepare_themes_for_js( $themes = null ) {
 
 		$can_edit_theme_options = current_user_can( 'edit_theme_options' );
 		$can_customize          = current_user_can( 'customize' );
-		$is_block_based_theme   = $theme->is_block_based();
+		$is_block_theme         = $theme->is_block_theme();
 
-		if ( $is_block_based_theme && $can_edit_theme_options ) {
+		if ( $is_block_theme && $can_edit_theme_options ) {
 			$customize_action = esc_url( admin_url( 'site-editor.php' ) );
-		} elseif ( ! $is_block_based_theme && $can_customize && $can_edit_theme_options ) {
+		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
 			$customize_action = esc_url(
 				add_query_arg(
 					array(
@@ -782,6 +782,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 					? wp_nonce_url( admin_url( 'themes.php?action=' . $auto_update_action . '&amp;stylesheet=' . $encoded_slug ), 'updates' )
 					: null,
 			),
+			'blockTheme'     => $theme->is_block_theme(),
 		);
 	}
 
@@ -1004,6 +1005,21 @@ function customize_themes_print_templates() {
 								?>
 							<# } #>
 						</p></div>
+					<# } else if ( ! data.active && data.blockTheme ) { #>
+						<div class="notice notice-error notice-alt notice-large"><p>
+						<?php
+							_e( 'This theme doesn\'t support Customizer.' );
+						?>
+						<# if ( data.actions.activate ) { #>
+							<?php
+							printf(
+								/* translators: %s: URL to the themes page (also it activates the theme). */
+								' ' . __( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
+								'{{{ data.actions.activate }}}'
+							);
+							?>
+						<# } #>
+						</p></div>
 					<# } #>
 
 					<p class="theme-description">{{{ data.description }}}</p>
@@ -1024,10 +1040,20 @@ function customize_themes_print_templates() {
 						<# } #>
 					<?php } ?>
 
-					<# if ( data.compatibleWP && data.compatiblePHP ) { #>
-						<button type="button" class="button button-primary preview-theme" data-slug="{{ data.id }}"><?php _e( 'Live Preview' ); ?></button>
+					<# if ( data.blockTheme ) { #>
+						<?php
+							/* translators: %s: Theme name. */
+							$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+						?>
+						<# if ( data.compatibleWP && data.compatiblePHP && data.actions.activate ) { #>
+							<a href="{{{ data.actions.activate }}}" class="button button-primary activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
+						<# } #>
 					<# } else { #>
-						<button class="button button-primary disabled"><?php _e( 'Live Preview' ); ?></button>
+						<# if ( data.compatibleWP && data.compatiblePHP ) { #>
+							<button type="button" class="button button-primary preview-theme" data-slug="{{ data.id }}"><?php _e( 'Live Preview' ); ?></button>
+						<# } else { #>
+							<button class="button button-primary disabled"><?php _e( 'Live Preview' ); ?></button>
+						<# } #>
 					<# } #>
 				<# } else { #>
 					<# if ( data.compatibleWP && data.compatiblePHP ) { #>

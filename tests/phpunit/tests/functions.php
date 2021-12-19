@@ -364,9 +364,9 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	public function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
 		$serialized = maybe_serialize( $value );
-		if ( get_class( $value ) === 'WpOrg\Requests\Utility\FilteredIterator' ) {
+		if ( get_class( $value ) === 'Requests_Utility_FilteredIterator' ) {
 			$new_value = unserialize( $serialized );
-			$property  = ( new ReflectionClass( 'WpOrg\Requests\Utility\FilteredIterator' ) )->getProperty( 'callback' );
+			$property  = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
 			$property->setAccessible( true );
 			$callback_value = $property->getValue( $new_value );
 			$this->assertSame( null, $callback_value );
@@ -377,8 +377,8 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	public function data_serialize_deserialize_objects() {
 		return array(
-			array( new WpOrg\Requests\Utility\FilteredIterator( array( 1 ), 'md5' ) ),
-			array( new WpOrg\Requests\Utility\FilteredIterator( array( 1, 2 ), 'sha1' ) ),
+			array( new Requests_Utility_FilteredIterator( array( 1 ), 'md5' ) ),
+			array( new Requests_Utility_FilteredIterator( array( 1, 2 ), 'sha1' ) ),
 			array( new ArrayIterator( array( 1, 2, 3 ) ) ),
 		);
 	}

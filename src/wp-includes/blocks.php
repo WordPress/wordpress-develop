@@ -103,9 +103,9 @@ function register_block_script_handle( $metadata, $field_name ) {
 		return false;
 	}
 	// Path needs to be normalized to work in Windows env.
-	$wpinc_path_norm     = wp_normalize_path( ABSPATH . WPINC );
-	$script_path_norm    = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
-	$is_core_block       = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+	$wpinc_path_norm  = wp_normalize_path( ABSPATH . WPINC );
+	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
+	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 
 	$script_uri          = $is_core_block ?
 		includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) ) :
@@ -1191,15 +1191,16 @@ function get_query_pagination_arrow( $block, $is_next ) {
 }
 
 /**
- * Enqueue a stylesheet for a specific block.
+ * Enqueues a stylesheet for a specific block.
  *
  * If the theme has opted-in to separate-styles loading,
  * then the stylesheet will be enqueued on-render,
  * otherwise when the block inits.
  *
+ * @since 5.9.0
+ *
  * @param string $block_name The block-name, including namespace.
  * @param array  $args       An array of arguments [handle,src,deps,ver,media].
- *
  * @return void
  */
 function wp_enqueue_block_style( $block_name, $args ) {
@@ -1220,8 +1221,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
 	 * @param string $content When the callback is used for the render_block filter,
 	 *                        the content needs to be returned so the function parameter
 	 *                        is to ensure the content exists.
-	 *
-	 * @return string
+	 * @return string Block content.
 	 */
 	$callback = static function( $content ) use ( $args ) {
 		// Register the stylesheet.
@@ -1275,9 +1275,10 @@ function wp_enqueue_block_style( $block_name, $args ) {
 /**
  * Allow multiple block styles.
  *
- * @param array $metadata Metadata for registering a block type.
+ * @since 5.9.0
  *
- * @return array
+ * @param array $metadata Metadata for registering a block type.
+ * @return array Metadata for registering a block type.
  */
 function _wp_multiple_block_styles( $metadata ) {
 	foreach ( array( 'style', 'editorStyle' ) as $key ) {
