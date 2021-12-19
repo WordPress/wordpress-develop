@@ -10,9 +10,9 @@ class Tests_Hooks_PreinitHooks extends WP_UnitTestCase {
 
 	public function test_array_to_hooks() {
 		$tag1      = __FUNCTION__ . '_1';
-		$priority1 = rand( 1, 100 );
+		$priority1 = 1;
 		$tag2      = __FUNCTION__ . '_2';
-		$priority2 = rand( 1, 100 );
+		$priority2 = 2;
 		$filters   = array(
 			$tag1 => array(
 				$priority1 => array(
