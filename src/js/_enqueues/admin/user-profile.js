@@ -171,7 +171,7 @@
 		var $generateButton,
 			$cancelButton;
 
-		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap, .reset-pass-submit' );
+		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap, .mailserver-pass-wrap, .reset-pass-submit' );
 
 		// Hide the confirm password field when JavaScript support is enabled.
 		$('.user-pass2-wrap').hide();
@@ -188,7 +188,7 @@
 			$submitButtons.prop( 'disabled', ! $weakCheckbox.prop( 'checked' ) );
 		} );
 
-		$pass1 = $('#pass1');
+		$pass1 = $('#pass1, #mailserver_pass');
 		if ( $pass1.length ) {
 			bindPass1();
 		} else {
