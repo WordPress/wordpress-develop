@@ -163,8 +163,6 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'REST Theme',
 			'Block Theme',
 			'Block Theme Child Theme',
-			'Test Block Theme',
-			'Test Block Child Theme',
 		);
 
 		sort( $theme_names );
