@@ -8,7 +8,7 @@
  */
 
 /**
- * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names() and register_block_style().
+ * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names(), and register_block_style().
  *
  * @since 5.0.0
  *
@@ -564,7 +564,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * Test case to validate `_doing_it_wrong()` when block style name attribute
 	 * contains one or more spaces.
 	 *
-	 * @dataProvider data_register_block_style_name_contain_spaces
+	 * @dataProvider data_register_block_style_name_contains_spaces
 	 *
 	 * @ticket 54296
 	 *
@@ -573,7 +573,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Block_Styles_Registry::register
 	 * @param array $block_styles Array of block styles to test.
 	 */
-	public function test_register_block_style_name_contain_spaces( array $block_styles ) {
+	public function test_register_block_style_name_contains_spaces( array $block_styles ) {
 		register_block_style( 'core/query', $block_styles );
 	}
 
@@ -582,7 +582,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_register_block_style_name_contain_spaces() {
+	public function data_register_block_style_name_contains_spaces() {
 		return array(
 			'multiple spaces' => array(
 				array(

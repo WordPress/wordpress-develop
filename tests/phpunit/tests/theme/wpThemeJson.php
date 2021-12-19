@@ -200,12 +200,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
 	}
 
-	function test_get_settings_using_opt_in_key() {
+	function test_get_settings_appearance_true_opts_in() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'appearanceTools' => true,
+					'spacing'         => array(
+						'blockGap' => false, // This should override appearanceTools.
+					),
 					'blocks'          => array(
 						'core/paragraph' => array(
 							'typography' => array(
@@ -216,6 +219,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							'appearanceTools' => true,
 							'typography'      => array(
 								'lineHeight' => false, // This should override appearanceTools.
+							),
+							'spacing'         => array(
+								'blockGap' => null,
 							),
 						),
 					),
@@ -235,7 +241,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'link' => true,
 			),
 			'spacing'    => array(
-				'blockGap' => true,
+				'blockGap' => false,
 				'margin'   => true,
 				'padding'  => true,
 			),
@@ -259,10 +265,58 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'link' => true,
 					),
 					'spacing'    => array(
-						'blockGap' => true,
+						'blockGap' => false,
 						'margin'   => true,
 						'padding'  => true,
 					),
+					'typography' => array(
+						'lineHeight' => false,
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	function test_get_settings_appearance_false_does_not_opt_in() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'appearanceTools' => false,
+					'border'          => array(
+						'width' => true,
+					),
+					'blocks'          => array(
+						'core/paragraph' => array(
+							'typography' => array(
+								'lineHeight' => false,
+							),
+						),
+						'core/group'     => array(
+							'typography' => array(
+								'lineHeight' => false,
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual   = $theme_json->get_settings();
+		$expected = array(
+			'appearanceTools' => false,
+			'border'          => array(
+				'width' => true,
+			),
+			'blocks'          => array(
+				'core/paragraph' => array(
+					'typography' => array(
+						'lineHeight' => false,
+					),
+				),
+				'core/group'     => array(
 					'typography' => array(
 						'lineHeight' => false,
 					),
@@ -1133,13 +1187,14 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
-	public function test_merge_incoming_data_removes_theme_presets_with_slugs_as_default_presets() {
+	public function test_merge_incoming_data_color_presets_with_same_slugs_as_default_are_removed() {
 		$defaults = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'color'  => array(
-						'palette' => array(
+						'defaultPalette' => true,
+						'palette'        => array(
 							array(
 								'slug'  => 'red',
 								'color' => 'red',
@@ -1218,7 +1273,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 			'settings' => array(
 				'color'  => array(
-					'palette' => array(
+					'palette'        => array(
 						'default' => array(
 							array(
 								'slug'  => 'red',
@@ -1239,6 +1294,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 						),
 					),
+					'defaultPalette' => true,
 				),
 				'blocks' => array(
 					'core/paragraph' => array(
@@ -1256,6 +1312,162 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 										'slug'  => 'yellow',
 										'color' => 'yellow',
 										'name'  => 'Yellow',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$defaults->merge( $theme );
+		$actual = $defaults->get_raw_data();
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	public function test_merge_incoming_data_color_presets_with_same_slugs_as_default_are_not_removed_if_defaults_are_disabled() {
+		$defaults = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'  => array(
+						'defaultPalette' => true, // Emulate the defaults from core theme.json.
+						'palette'        => array(
+							array(
+								'slug'  => 'red',
+								'color' => 'red',
+								'name'  => 'Red',
+							),
+							array(
+								'slug'  => 'green',
+								'color' => 'green',
+								'name'  => 'Green',
+							),
+						),
+					),
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color' => array(
+								'palette' => array(
+									array(
+										'slug'  => 'blue',
+										'color' => 'blue',
+										'name'  => 'Blue',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+		$theme    = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'  => array(
+						'defaultPalette' => false,
+						'palette'        => array(
+							array(
+								'slug'  => 'pink',
+								'color' => 'pink',
+								'name'  => 'Pink',
+							),
+							array(
+								'slug'  => 'green',
+								'color' => 'green',
+								'name'  => 'Greenish',
+							),
+						),
+					),
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color' => array(
+								'palette' => array(
+									array(
+										'slug'  => 'blue',
+										'color' => 'blue',
+										'name'  => 'Bluish',
+									),
+									array(
+										'slug'  => 'yellow',
+										'color' => 'yellow',
+										'name'  => 'Yellow',
+									),
+									array(
+										'slug'  => 'green',
+										'color' => 'green',
+										'name'  => 'Block Green',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'color'  => array(
+					'defaultPalette' => false,
+					'palette'        => array(
+						'default' => array(
+							array(
+								'slug'  => 'red',
+								'color' => 'red',
+								'name'  => 'Red',
+							),
+							array(
+								'slug'  => 'green',
+								'color' => 'green',
+								'name'  => 'Green',
+							),
+						),
+						'theme'   => array(
+							array(
+								'slug'  => 'pink',
+								'color' => 'pink',
+								'name'  => 'Pink',
+							),
+							array(
+								'slug'  => 'green',
+								'color' => 'green',
+								'name'  => 'Greenish',
+							),
+						),
+					),
+				),
+				'blocks' => array(
+					'core/paragraph' => array(
+						'color' => array(
+							'palette' => array(
+								'default' => array(
+									array(
+										'slug'  => 'blue',
+										'color' => 'blue',
+										'name'  => 'Blue',
+									),
+								),
+								'theme'   => array(
+									array(
+										'slug'  => 'blue',
+										'color' => 'blue',
+										'name'  => 'Bluish',
+									),
+									array(
+										'slug'  => 'yellow',
+										'color' => 'yellow',
+										'name'  => 'Yellow',
+									),
+									array(
+										'slug'  => 'green',
+										'color' => 'green',
+										'name'  => 'Block Green',
 									),
 								),
 							),

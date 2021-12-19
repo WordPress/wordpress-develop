@@ -346,7 +346,7 @@ final class WP_Customize_Manager {
 		 * @see WP_Customize_Manager::__construct()
 		 *
 		 * @param string[]             $components Array of core components to load.
-		 * @param WP_Customize_Manager $manager   WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager    WP_Customize_Manager instance.
 		 */
 		$components = apply_filters( 'customize_loaded_components', $this->components, $this );
 
@@ -5808,10 +5808,11 @@ final class WP_Customize_Manager {
 		if ( 'installed' === $theme_action ) {
 
 			// Load all installed themes from wp_prepare_themes_for_js().
-			$themes = array( 'themes' => wp_prepare_themes_for_js() );
-			foreach ( $themes['themes'] as &$theme ) {
-				$theme['type']   = 'installed';
-				$theme['active'] = ( isset( $_POST['customized_theme'] ) && $_POST['customized_theme'] === $theme['id'] );
+			$themes = array( 'themes' => array() );
+			foreach ( wp_prepare_themes_for_js() as $theme ) {
+				$theme['type']      = 'installed';
+				$theme['active']    = ( isset( $_POST['customized_theme'] ) && $_POST['customized_theme'] === $theme['id'] );
+				$themes['themes'][] = $theme;
 			}
 		} elseif ( 'wporg' === $theme_action ) {
 

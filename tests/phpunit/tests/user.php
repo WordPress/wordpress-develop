@@ -1909,9 +1909,9 @@ class Tests_User extends WP_UnitTestCase {
 	 * This hook is used in `test_wp_insert_user_with_meta()`.
 	 */
 	public function filter_custom_meta( $meta_input ) {
-		// Update some meta inputs
+		// Update some meta inputs.
 		$meta_input['test_meta_key'] = 'update_from_filter';
-		// Add a new meta
+		// Add a new meta.
 		$meta_input['new_meta_from_filter'] = 'new_from_filter';
 
 		return $meta_input;

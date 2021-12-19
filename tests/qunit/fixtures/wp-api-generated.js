@@ -5134,7 +5134,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/templates/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/templates/(?P<id>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5786,7 +5786,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/template-parts/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/template-parts/(?P<id>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -9418,7 +9418,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
+        "/wp/v2/global-styles/themes/(?P<stylesheet>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -9438,7 +9438,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/global-styles/(?P<id>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",

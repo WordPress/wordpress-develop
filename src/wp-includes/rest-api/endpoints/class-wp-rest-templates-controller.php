@@ -68,7 +68,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Lists/updates a single template based on the given id.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\w-]+)',
+			'/' . $this->rest_base . '/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)',
 			array(
 				'args'   => array(
 					'id' => array(
@@ -149,6 +149,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return string Sanitized template ID.
 	 */
 	public function _sanitize_template_id( $id ) {
+		// Decode empty space.
+		$id = urldecode( $id );
+
 		$last_slash_pos = strrpos( $id, '/' );
 		if ( false === $last_slash_pos ) {
 			return $id;
@@ -342,7 +345,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
-		$prepared_post            = $this->prepare_item_for_database( $request );
+		$prepared_post = $this->prepare_item_for_database( $request );
 
 		if ( is_wp_error( $prepared_post ) ) {
 			return $prepared_post;
@@ -857,7 +860,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'author' => array(
+				'author'         => array(
 					'description' => __( 'The ID for the author of the template.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
