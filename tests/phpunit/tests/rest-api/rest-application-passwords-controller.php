@@ -957,6 +957,19 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_supported
+	 */
+	public function test_wp_is_application_passwords_supported_with_local_environment_only() {
+		putenv( 'WP_ENVIRONMENT_TYPE=local' );
+		$this->assertTrue( wp_is_application_passwords_supported() );
+
+		// Revert to default behaviour so that other tests are not affected.
+		putenv( 'WP_ENVIRONMENT_TYPE' );
+	}
+
+	/**
 	 * @dataProvider data_wp_is_application_passwords_available
 	 *
 	 * @ticket 53658
