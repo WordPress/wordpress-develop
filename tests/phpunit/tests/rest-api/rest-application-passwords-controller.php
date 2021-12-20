@@ -979,9 +979,9 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	 *
 	 * @covers ::wp_is_application_passwords_available
 	 *
-	 * @param bool|string $expected    The expected value.
-	 * @param string|null $callback    Optional. The callback for the `wp_is_application_passwords_available` hook.
-	 *                                 Default: null.
+	 * @param bool|string $expected The expected value.
+	 * @param string|null $callback Optional. The callback for the `wp_is_application_passwords_available` hook.
+	 *                              Default: null.
 	 */
 	public function test_wp_is_application_passwords_available( $expected, $callback = null ) {
 		remove_filter( 'wp_is_application_passwords_available', '__return_true' );
@@ -1014,7 +1014,6 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		return array(
 			'availability not forced'   => array(
 				'expected' => 'default',
-				'callback' => null,
 			),
 			'availability forced true'  => array(
 				'expected' => true,
