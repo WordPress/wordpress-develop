@@ -797,7 +797,7 @@ endif;
 			$application_passwords_list_table->display();
 			?>
 		</div>
-		<?php else : ?>
+		<?php elseif ( ! wp_is_application_passwords_supported() ) : ?>
 			<p><?php _e( 'The application password feature requires HTTPS - which is not enabled on this site - or the environment type set as local.' ); ?></p>
 			<p>
 				<?php
