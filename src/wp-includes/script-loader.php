@@ -1816,7 +1816,7 @@ function wp_localize_jquery_ui_datepicker() {
 		)
 	);
 
-	wp_add_inline_script( 'jquery-ui-datepicker', "jQuery(document).ready(function(jQuery){jQuery.datepicker.setDefaults({$datepicker_defaults});});" );
+	wp_add_inline_script( 'jquery-ui-datepicker', "jQuery(function(jQuery){jQuery.datepicker.setDefaults({$datepicker_defaults});});" );
 }
 
 /**
@@ -2459,10 +2459,14 @@ function enqueue_block_styles_assets() {
 				if ( wp_should_load_separate_core_block_assets() ) {
 					add_filter(
 						'render_block',
-						function( $html ) use ( $style_properties ) {
-							wp_enqueue_style( $style_properties['style_handle'] );
+						function( $html, $block ) use ( $block_name, $style_properties ) {
+							if ( $block['blockName'] === $block_name ) {
+								wp_enqueue_style( $style_properties['style_handle'] );
+							}
 							return $html;
-						}
+						},
+						10,
+						2
 					);
 				} else {
 					wp_enqueue_style( $style_properties['style_handle'] );
@@ -2858,4 +2862,15 @@ function wp_add_iframed_editor_assets_html() {
 	);
 
 	echo "<script>window.__editorAssets = $editor_assets</script>";
+}
+
+/**
+ * Function that enqueues the CSS Custom Properties coming from theme.json.
+ *
+ * @since 5.9.0
+ */
+function wp_enqueue_global_styles_css_custom_properties() {
+	wp_register_style( 'global-styles-css-custom-properties', false, array(), true, true );
+	wp_add_inline_style( 'global-styles-css-custom-properties', wp_get_global_stylesheet( array( 'variables' ) ) );
+	wp_enqueue_style( 'global-styles-css-custom-properties' );
 }

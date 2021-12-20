@@ -1694,8 +1694,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_invalid_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'after', rand_str() );
-		$request->set_param( 'before', rand_str() );
+		$request->set_param( 'after', 'foo' );
+		$request->set_param( 'before', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
@@ -1719,8 +1719,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_get_items_invalid_modified_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'modified_after', rand_str() );
-		$request->set_param( 'modified_before', rand_str() );
+		$request->set_param( 'modified_after', 'foo' );
+		$request->set_param( 'modified_before', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
@@ -1848,7 +1848,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( rest_url( '/wp/v2/users/' . self::$author_id ), $links['author'][0]['href'] );
 	}
 
-	public function test_get_post_draft_status_not_authenicated() {
+	public function test_get_post_draft_status_not_authenticated() {
 		$draft_id = $this->factory->post->create(
 			array(
 				'post_status' => 'draft',
@@ -2697,7 +2697,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'menu_order'     => rand( 1, 100 ),
+				'menu_order'     => 1,
 			)
 		);
 
@@ -3310,7 +3310,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_update_post_ignore_readonly() {
 		wp_set_current_user( self::$editor_id );
 
-		$new_content       = rand_str();
+		$new_content       = 'foo bar baz';
 		$expected_modified = current_time( 'mysql' );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
@@ -3375,7 +3375,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$params  = $this->set_post_data(
 			array(
-				'date' => rand_str(),
+				'date' => 'foo',
 			)
 		);
 		$request->set_body_params( $params );
@@ -3390,7 +3390,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$params  = $this->set_post_data(
 			array(
-				'date_gmt' => rand_str(),
+				'date_gmt' => 'foo',
 			)
 		);
 		$request->set_body_params( $params );

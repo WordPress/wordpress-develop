@@ -487,10 +487,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$p2 = $this->_create_plugin( "<?php\n//Test", 'not-a-dropin.php', WP_CONTENT_DIR );
 
 		$dropins = get_dropins();
-		$this->assertSame( array( 'advanced-cache.php' ), array_keys( $dropins ) );
 
 		unlink( $p1[1] );
 		unlink( $p2[1] );
+
+		$this->assertSame( array( 'advanced-cache.php' ), array_keys( $dropins ) );
 
 		// Clean up.
 		$this->_restore_drop_ins();
@@ -509,9 +510,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	public function test_is_network_only_plugin() {
 		$p = $this->_create_plugin( "<?php\n/*\nPlugin Name: test\nNetwork: true" );
 
-		$this->assertTrue( is_network_only_plugin( $p[0] ) );
+		$network_only = is_network_only_plugin( $p[0] );
 
 		unlink( $p[1] );
+
+		$this->assertTrue( $network_only );
 	}
 
 	/**
@@ -571,12 +574,14 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$uninstallable_plugins[ $plugin[0] ] = true;
 		update_option( 'uninstall_plugins', $uninstallable_plugins );
 
-		$this->assertTrue( is_uninstallable_plugin( $plugin[0] ) );
+		$is_uninstallable = is_uninstallable_plugin( $plugin[0] );
 
 		unset( $uninstallable_plugins[ $plugin[0] ] );
 		update_option( 'uninstall_plugins', $uninstallable_plugins );
 
 		unlink( $plugin[1] );
+
+		$this->assertTrue( $is_uninstallable );
 	}
 
 	/**
@@ -595,14 +600,15 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 */
 	private function _create_plugin( $data = "<?php\n/*\nPlugin Name: Test\n*/", $filename = false, $dir_path = false ) {
 		if ( false === $filename ) {
-			$filename = rand_str() . '.php';
+			$filename = __FUNCTION__ . '.php';
 		}
 
 		if ( false === $dir_path ) {
 			$dir_path = WP_PLUGIN_DIR;
 		}
 
-		$full_name = $dir_path . '/' . wp_unique_filename( $dir_path, $filename );
+		$filename  = wp_unique_filename( $dir_path, $filename );
+		$full_name = $dir_path . '/' . $filename;
 
 		$file = fopen( $full_name, 'w' );
 		fwrite( $file, $data );

@@ -1093,26 +1093,6 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			'emoji-banner-text': {
-				options: {
-					patterns: [
-						{
-							match: new RegExp( '\\s*' + BANNER_TEXT.replace( /[\/\*\!]/g, '\\$&' ) ),
-							replacement: ''
-						}
-					]
-				},
-				files: [
-					{
-						expand: true,
-						flatten: true,
-						src: [
-							BUILD_DIR + 'wp-includes/formatting.php'
-						],
-						dest: BUILD_DIR + 'wp-includes/'
-					}
-				]
-			},
 			'source-maps': {
 				options: {
 					patterns: [
@@ -1583,7 +1563,6 @@ module.exports = function(grunt) {
 				'build:files',
 				'build:js',
 				'build:css',
-				'replace:emoji-banner-text',
 				'replace:source-maps',
 				'verify:build'
 			] );

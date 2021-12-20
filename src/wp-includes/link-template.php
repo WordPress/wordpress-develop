@@ -923,17 +923,13 @@ function get_category_feed_link( $cat, $feed = '' ) {
  *
  * @param int|WP_Term|object $term     The ID or term object whose feed link will be retrieved.
  * @param string             $taxonomy Optional. Taxonomy of `$term_id`.
- *                                     Defaults to 'category' if term ID or non WP_Term object is passed.
  * @param string             $feed     Optional. Feed type. Possible values include 'rss2', 'atom'.
  *                                     Default is the value of get_default_feed().
  * @return string|false Link to the feed for the term specified by $term_id and $taxonomy.
  */
 function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
 	if ( ! is_object( $term ) ) {
-		$term     = (int) $term;
-		$taxonomy = 'category';
-	} elseif ( ! $term instanceof WP_Term ) {
-		$taxonomy = $term->taxonomy;
+		$term = (int) $term;
 	}
 
 	$term = get_term( $term, $taxonomy );
@@ -941,6 +937,8 @@ function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
 	if ( empty( $term ) || is_wp_error( $term ) ) {
 		return false;
 	}
+
+	$taxonomy = $term->taxonomy;
 
 	if ( empty( $feed ) ) {
 		$feed = get_default_feed();
@@ -1113,7 +1111,7 @@ function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
 	 * @param string $location    The edit link.
 	 * @param int    $term_id     Term ID.
 	 * @param string $taxonomy    Taxonomy name.
-	 * @param string $object_type The object type (eg. the post type).
+	 * @param string $object_type The object type.
 	 */
 	return apply_filters( 'get_edit_term_link', $location, $term_id, $taxonomy, $object_type );
 }
@@ -1628,7 +1626,7 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
 	 * @since 2.3.0
 	 *
 	 * @param string $link       Anchor tag for the edit link.
-	 * @param int    $comment_id Comment ID.
+	 * @param string $comment_id Comment ID as a numeric string.
 	 * @param string $text       Anchor text.
 	 */
 	echo $before . apply_filters( 'edit_comment_link', $link, $comment->comment_ID, $text ) . $after;
@@ -3989,7 +3987,7 @@ function rel_canonical() {
  * @since 3.0.0
  *
  * @param int    $id          Optional. A post or site ID. Default is 0, which means the current post or site.
- * @param string $context     Optional. Whether the ID is a 'site' id, 'post' id, or 'media' id. If 'post',
+ * @param string $context     Optional. Whether the ID is a 'site' ID, 'post' ID, or 'media' ID. If 'post',
  *                            the post_type of the post is consulted. If 'query', the current query is consulted
  *                            to determine the ID and context. Default 'post'.
  * @param bool   $allow_slugs Optional. Whether to allow post slugs in the shortlink. It is up to the plugin how

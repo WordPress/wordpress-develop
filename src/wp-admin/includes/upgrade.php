@@ -249,6 +249,11 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 				'post_content_filtered' => '',
 			)
 		);
+
+		if ( is_multisite() ) {
+			update_posts_count();
+		}
+
 		$wpdb->insert(
 			$wpdb->term_relationships,
 			array(
@@ -2256,6 +2261,8 @@ function upgrade_560() {
  *
  * @ignore
  * @since 5.9.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
  */
 function upgrade_590() {
 	global $wp_current_db_version;

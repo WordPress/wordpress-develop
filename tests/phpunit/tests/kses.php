@@ -1517,62 +1517,145 @@ EOF;
 	function data_wp_kses_object_tag_allowed() {
 		return array(
 			'valid value for type'                    => array(
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'invalid value for type'                  => array(
-				'<object type="application/exe" data="https://wordpress.org/foo.exe" />',
+				'<object type="application/exe" data="https://example.org/foo.exe" />',
 				'',
 			),
 			'multiple type attributes, last invalid'  => array(
-				'<object type="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" type="application/exe" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'multiple type attributes, first uppercase, last invalid' => array(
-				'<object TYPE="application/pdf" type="application/exe" data="https://wordpress.org/foo.pdf" />',
-				'<object TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object TYPE="application/pdf" type="application/exe" data="https://example.org/foo.pdf" />',
+				'<object TYPE="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'multiple type attributes, last upper case and invalid' => array(
-				'<object type="application/pdf" TYPE="application/exe" data="https://wordpress.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" TYPE="application/exe" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'multiple type attributes, first invalid' => array(
-				'<object type="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/exe" type="application/pdf" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'multiple type attributes, first upper case and invalid' => array(
-				'<object TYPE="application/exe" type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object TYPE="application/exe" type="application/pdf" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'multiple type attributes, first invalid, last uppercase' => array(
-				'<object type="application/exe" TYPE="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/exe" TYPE="application/pdf" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'multiple object tags, last invalid'      => array(
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" /><object type="application/exe" data="https://wordpress.org/foo.exe" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" /><object type="application/exe" data="https://example.org/foo.exe" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'multiple object tags, first invalid'     => array(
-				'<object type="application/exe" data="https://wordpress.org/foo.exe" /><object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/exe" data="https://example.org/foo.exe" /><object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
 			),
 			'type attribute with partially incorrect value' => array(
-				'<object type="application/pdfa" data="https://wordpress.org/foo.pdf" />',
+				'<object type="application/pdfa" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'type attribute with empty value'         => array(
-				'<object type="" data="https://wordpress.org/foo.pdf" />',
+				'<object type="" data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'type attribute with no value'            => array(
-				'<object type data="https://wordpress.org/foo.pdf" />',
+				'<object type data="https://example.org/foo.pdf" />',
 				'',
 			),
 			'no type attribute'                       => array(
-				'<object data="https://wordpress.org/foo.pdf" />',
+				'<object data="https://example.org/foo.pdf" />',
+				'',
+			),
+			'different protocol in url'               => array(
+				'<object type="application/pdf" data="http://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="http://example.org/foo.pdf" />',
+			),
+			'query string on url'                     => array(
+				'<object type="application/pdf" data="https://example.org/foo.pdf?lol=.pdf" />',
+				'',
+			),
+			'fragment on url'                         => array(
+				'<object type="application/pdf" data="https://example.org/foo.pdf#lol.pdf" />',
+				'',
+			),
+			'wrong extension'                         => array(
+				'<object type="application/pdf" data="https://example.org/foo.php" />',
+				'',
+			),
+			'protocol-relative url'                   => array(
+				'<object type="application/pdf" data="//example.org/foo.pdf" />',
+				'',
+			),
+			'unsupported protocol'                    => array(
+				'<object type="application/pdf" data="ftp://example.org/foo.pdf" />',
+				'',
+			),
+			'relative url'                            => array(
+				'<object type="application/pdf" data="/cat/foo.pdf" />',
+				'',
+			),
+			'url with port number-like path'          => array(
+				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
+			),
+		);
+	}
+
+	/**
+	 * Test that object tags are allowed when there is a port number in the URL.
+	 *
+	 * @ticket 54261
+	 *
+	 * @dataProvider data_wp_kses_object_data_url_with_port_number_allowed
+	 *
+	 * @param string $html     A string of HTML to test.
+	 * @param string $expected The expected result from KSES.
+	 */
+	function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
+		add_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_object_data_url_with_port_number_allowed().
+	 */
+	function data_wp_kses_object_data_url_with_port_number_allowed() {
+		return array(
+			'url with port number'                   => array(
+				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
+			),
+			'url with port number and http protocol' => array(
+				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
+				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
+			),
+			'url with wrong port number'             => array(
+				'<object type="application/pdf" data="http://example.org:3333/cat/foo.pdf" />',
+				'',
+			),
+			'url without port number'                => array(
+				'<object type="application/pdf" data="http://example.org/cat/foo.pdf" />',
 				'',
 			),
 		);
+	}
+
+	/**
+	 * Filter upload directory for tests using port number.
+	 *
+	 * @param  array $param See wp_upload_dir()
+	 * @return array        $param with a modified `url`.
+	 */
+	public function wp_kses_upload_dir_filter( $param ) {
+		$url_with_port_number = is_string( $param['url'] ) ? str_replace( 'example.org', 'example.org:8888', $param['url'] ) : $param['url'];
+		$param['url']         = $url_with_port_number;
+		return $param;
 	}
 
 	/**
@@ -1789,5 +1872,111 @@ HTML;
 		}
 
 		return $return_data;
+	}
+
+	/**
+	 * Test that XML named entities are encoded correctly.
+	 *
+	 * @dataProvider data_wp_kses_xml_named_entities
+	 *
+	 * @ticket 54060
+	 * @covers ::wp_kses_xml_named_entities
+	 *
+	 * @param array  $input    The input to wp_kses_xml_named_entities().
+	 * @param string $expected The expected output.
+	 */
+	public function test_wp_kses_xml_named_entities( $input, $expected ) {
+		$this->assertSame( $expected, wp_kses_xml_named_entities( $input ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_xml_named_entities().
+	 *
+	 * @return array Nested array of input, expected pairs.
+	 */
+	public function data_wp_kses_xml_named_entities() {
+		return array(
+			// Empty string value testing.
+			'empty string'       => array(
+				'input'    => '',
+				'expected' => '',
+			),
+
+			// Empty string array value testing.
+			'empty string array' => array(
+				'input'    => array( '', '' ),
+				'expected' => '',
+			),
+
+			// $allowedxmlentitynames values testing.
+			'amp'                => array(
+				'input'    => array( '', 'amp' ),
+				'expected' => '&amp;',
+			),
+			'lt'                 => array(
+				'input'    => array( '', 'lt' ),
+				'expected' => '&lt;',
+			),
+			'gt'                 => array(
+				'input'    => array( '', 'gt' ),
+				'expected' => '&gt;',
+			),
+
+			// $allowedentitynames values testing.
+			'nbsp'               => array(
+				'input'    => array( '', 'nbsp' ),
+				'expected' => utf8_encode( chr( 160 ) ),
+			),
+			'iexcl'              => array(
+				'input'    => array( '', 'iexcl' ),
+				'expected' => '¡',
+			),
+			'cent'               => array(
+				'input'    => array( '', 'cent' ),
+				'expected' => '¢',
+			),
+
+			// Some other value testing.
+			'test'               => array(
+				'input'    => array( '', 'test' ),
+				'expected' => '&amp;test;',
+			),
+
+		);
+	}
+
+	/**
+	 * Test that KSES globals are defined.
+	 *
+	 * @dataProvider data_kses_globals_are_defined
+	 *
+	 * @ticket 54060
+	 *
+	 * @param string $global The name of the global variable.
+	 */
+	public function test_kses_globals_are_defined( $global ) {
+		$this->assertArrayHasKey( $global, $GLOBALS );
+	}
+
+	/**
+	 * Data provider for test_kses_globals_are_defined().
+	 *
+	 * @return array
+	 */
+	public function data_kses_globals_are_defined() {
+		return array(
+			'allowedposttags'       => array(
+				'global' => 'allowedposttags',
+			),
+			'allowedtags'           => array(
+				'global' => 'allowedtags',
+			),
+			'allowedentitynames'    => array(
+				'global' => 'allowedentitynames',
+			),
+			'allowedxmlentitynames' => array(
+				'global' => 'allowedxmlentitynames',
+			),
+		);
 	}
 }

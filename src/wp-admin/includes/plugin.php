@@ -54,17 +54,19 @@
  *     Plugin data. Values will be empty if not supplied by the plugin.
  *
  *     @type string $Name        Name of the plugin. Should be unique.
- *     @type string $Title       Title of the plugin and link to the plugin's site (if set).
- *     @type string $Description Plugin description.
- *     @type string $Author      Author's name.
- *     @type string $AuthorURI   Author's website address (if set).
+ *     @type string $PluginURI   Plugin URI.
  *     @type string $Version     Plugin version.
+ *     @type string $Description Plugin description.
+ *     @type string $Author      Plugin author's name.
+ *     @type string $AuthorURI   Plugin author's website address (if set).
  *     @type string $TextDomain  Plugin textdomain.
- *     @type string $DomainPath  Plugins relative directory path to .mo files.
+ *     @type string $DomainPath  Plugin's relative directory path to .mo files.
  *     @type bool   $Network     Whether the plugin can only be activated network-wide.
  *     @type string $RequiresWP  Minimum required version of WordPress.
  *     @type string $RequiresPHP Minimum required version of PHP.
  *     @type string $UpdateURI   ID of the plugin for update purposes, should be a URI.
+ *     @type string $Title       Title of the plugin and link to the plugin's site (if set).
+ *     @type string $AuthorName  Plugin author's name.
  * }
  */
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
@@ -129,19 +131,8 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
  *                            Default true.
  * @param bool   $translate   Optional. If the returned data should be translated. Default true.
- * @return array {
- *     Plugin data. Values will be empty if not supplied by the plugin.
- *
- *     @type string $Name        Name of the plugin. Should be unique.
- *     @type string $Title       Title of the plugin and link to the plugin's site (if set).
- *     @type string $Description Plugin description.
- *     @type string $Author      Author's name.
- *     @type string $AuthorURI   Author's website address (if set).
- *     @type string $Version     Plugin version.
- *     @type string $TextDomain  Plugin textdomain.
- *     @type string $DomainPath  Plugins relative directory path to .mo files.
- *     @type bool   $Network     Whether the plugin can only be activated network-wide.
- * }
+ * @return array Plugin data. Values will be empty if not supplied by the plugin.
+ *               See get_plugin_data() for the list of possible values.
  */
 function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup = true, $translate = true ) {
 
@@ -2532,7 +2523,7 @@ function deactivated_plugins_notice() {
 	foreach ( $deactivated_plugins as $plugin ) {
 		if ( ! empty( $plugin['version_compatible'] ) && ! empty( $plugin['version_deactivated'] ) ) {
 			$explanation = sprintf(
-				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version, 4: Compatible plugin version */
+				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version, 4: Compatible plugin version. */
 				__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s, please upgrade to %1$s %4$s or later.' ),
 				$plugin['plugin_name'],
 				$plugin['version_deactivated'],
@@ -2541,7 +2532,7 @@ function deactivated_plugins_notice() {
 			);
 		} else {
 			$explanation = sprintf(
-				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version */
+				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version. */
 				__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s.' ),
 				$plugin['plugin_name'],
 				! empty( $plugin['version_deactivated'] ) ? $plugin['version_deactivated'] : '',
@@ -2553,7 +2544,7 @@ function deactivated_plugins_notice() {
 		printf(
 			'<div class="notice notice-warning"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
 			sprintf(
-				/* translators: %s: Name of deactivated plugin */
+				/* translators: %s: Name of deactivated plugin. */
 				__( '%s plugin deactivated during WordPress upgrade.' ),
 				$plugin['plugin_name']
 			),
