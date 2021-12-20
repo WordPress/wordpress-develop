@@ -131,7 +131,7 @@ class WP_Theme_JSON {
 			'path'              => array( 'color', 'duotone' ),
 			'override'          => true,
 			'use_default_names' => false,
-			'value_func'        => 'gutenberg_render_duotone_filter_preset',
+			'value_func'        => 'wp_render_duotone_filter_preset',
 			'css_vars'          => '--wp--preset--duotone--$slug',
 			'classes'           => array(),
 			'properties'        => array( 'filter' ),
