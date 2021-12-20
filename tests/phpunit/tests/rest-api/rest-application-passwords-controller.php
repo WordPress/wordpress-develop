@@ -963,10 +963,13 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	 */
 	public function test_wp_is_application_passwords_supported_with_local_environment_only() {
 		putenv( 'WP_ENVIRONMENT_TYPE=local' );
-		$this->assertTrue( wp_is_application_passwords_supported() );
+
+		$actual = wp_is_application_passwords_supported();
 
 		// Revert to default behaviour so that other tests are not affected.
 		putenv( 'WP_ENVIRONMENT_TYPE' );
+
+		$this->assertTrue( $actual );
 	}
 
 	/**
