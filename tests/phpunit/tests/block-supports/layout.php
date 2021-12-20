@@ -15,6 +15,21 @@
  * @group block-supports
  */
 class Test_Block_Supports_Layout extends WP_UnitTestCase {
+
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
+
 	function set_up() {
 		parent::set_up();
 		$this->theme_root     = realpath( DIR_TESTDATA . '/themedir1' );
@@ -28,7 +43,6 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
 
-		$this->queries = array();
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );

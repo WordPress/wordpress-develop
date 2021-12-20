@@ -12,6 +12,27 @@
  */
 class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
+
+	/**
+	 * Queries.
+	 *
+	 * @var array
+	 */
+	private $queries = array();
+
 	public function set_up() {
 		parent::set_up();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
