@@ -173,7 +173,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	public function test_url_to_postid_custom_post_type() {
 		delete_option( 'rewrite_rules' );
 
-		$post_type = rand_str( 12 );
+		$post_type = 'url_to_postid';
 		register_post_type( $post_type, array( 'public' => true ) );
 
 		$id = self::factory()->post->create( array( 'post_type' => $post_type ) );
