@@ -17,7 +17,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->post_type = rand_str( 20 );
+		$this->post_type = 'test-revision';
 	}
 
 	/**
@@ -446,7 +446,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			array(
 				'post_status'  => 'publish',
 				'ID'           => $post_id,
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 			)
 		);
 

@@ -1209,8 +1209,8 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		register_taxonomy_for_object_type( 'post_tag', 'attachment:image' );
 		$tag_id   = self::factory()->term->create(
 			array(
-				'slug' => rand_str(),
-				'name' => rand_str(),
+				'slug' => 'foo-bar',
+				'name' => 'Foo Bar',
 			)
 		);
 		$image_id = self::factory()->attachment->create_object(
