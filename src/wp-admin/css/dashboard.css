@@ -203,9 +203,6 @@
 }
 
 .welcome-panel-content {
-	margin-left: auto;
-	margin-right: auto;
-	max-width: 1500px;
 	min-height: 400px;
 	display: flex;
 	flex-direction: column;
@@ -213,11 +210,18 @@
 }
 
 .welcome-panel-header {
+	box-sizing: border-box;
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 1500px;
+	width: 100%;
 	/* 408px = 300px (balloon width) + 96px (offset from edge) + 16px (spacing). */
 	padding: 48px 408px 48px 48px;
 }
 
 .welcome-panel .welcome-panel-column-container {
+	box-sizing: border-box;
+	width: 100%;
 	clear: both;
 	display: grid;
 	z-index: 1;
@@ -1176,6 +1180,18 @@ a.rsswidget {
 
 /* =Media Queries
 -------------------------------------------------------------- */
+
+@media only screen and (min-width: 1600px) {
+	.welcome-panel .welcome-panel-column-container {
+		display: flex;
+		justify-content: center;
+	}
+
+	.welcome-panel-column {
+		width: 100%;
+		max-width: 460px;
+	}
+}
 
 /* one column on the dash */
 @media only screen and (max-width: 799px) {
