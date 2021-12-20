@@ -365,6 +365,15 @@ body.language-chooser {
 	display: none;
 }
 
+#toggle-password {
+	display: block;
+	margin-top: 10px;
+}
+
+#toggle-password span {
+	vertical-align: middle;
+}
+
 /**
  * HiDPI Displays
  */
