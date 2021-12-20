@@ -83,4 +83,81 @@ class Tests_Ajax_QuickEdit extends WP_Ajax_UnitTestCase {
 		$post_terms_2 = wp_get_object_terms( $post->ID, 'wptests_tax_2' );
 		$this->assertSameSets( array( $t2 ), wp_list_pluck( $post_terms_2, 'term_id' ) );
 	}
+
+	/**
+	 * @ticket 54521
+	 */
+	public function test_term_quick_edit() {
+
+		$taxonomy = 'wp_latin_tax';
+
+		register_taxonomy( $taxonomy, array( 'post' ) );
+
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $taxonomy ) );
+
+		// Become an administrator.
+		$this->_setRole( 'administrator' );
+
+		// Set up a request.
+		$_POST['_inline_edit'] = wp_create_nonce( 'taxinlineeditnonce' );
+		$_POST['name']         = $term->name . '-updated';
+		$_POST['slug']         = $term->slug . '-updated';
+		$_POST['taxonomy']     = array( $taxonomy );
+		$_POST['post_type']    = 'post';
+		$_POST['tax_type']     = 'tag';
+		$_POST['tax_ID']       = $term->term_id;
+
+		// Make the request.
+		try {
+			$this->_handleAjax( 'inline-save-tax' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		// Retrieve the updated term.
+		$updated_term = get_term( $term->term_id );
+
+		// Ensure that the previously fetched term and updated one have the same values.
+		$this->assertSame( $term->name . '-updated', $updated_term->name );
+		$this->assertSame( $term->slug . '-updated', $updated_term->slug );
+	}
+
+	/**
+	 * @ticket 54521
+	 */
+	public function test_term_quick_edit_non_latin_slug() {
+
+		$taxonomy = 'wp_ελληνικο_tax';
+
+		register_taxonomy( $taxonomy, array( 'post' ) );
+
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $taxonomy ) );
+
+		// Become an administrator.
+		$this->_setRole( 'administrator' );
+
+		// Set up a request.
+		$_POST['_inline_edit'] = wp_create_nonce( 'taxinlineeditnonce' );
+		$_POST['name']         = $term->name . '-updated';
+		$_POST['slug']         = $term->slug . '-updated';
+		$_POST['taxonomy']     = array( $taxonomy );
+		$_POST['post_type']    = 'post';
+		$_POST['tax_type']     = 'tag';
+		$_POST['tax_ID']       = $term->term_id;
+
+		// Make the request.
+		try {
+			$this->_handleAjax( 'inline-save-tax' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		// Retrieve the updated term.
+		$updated_term = get_term( $term->term_id );
+
+		// Ensure that the previously fetched term and updated one have the same values.
+		$this->assertSame( $term->name . '-updated', $updated_term->name );
+		$this->assertSame( $term->slug . '-updated', $updated_term->slug );
+	}
+
 }
