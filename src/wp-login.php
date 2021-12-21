@@ -314,6 +314,15 @@ function login_footer( $input_id = '' ) {
 	<?php
 	$languages = get_available_languages();
 
+	/**
+	 * Filters the Languages select input activation on the login screen.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param bool Whether to display the Languages select input on the login screen.
+	 */
+	$display_login_language_dropdown = apply_filters( 'display_login_language_dropdown', true );
+
 	if ( ! empty( $languages ) && ! $interim_login ) {
 		?>
 
