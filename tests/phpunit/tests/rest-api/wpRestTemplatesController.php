@@ -268,7 +268,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	public function data_get_item_with_valid_theme_dirname() {
 		$theme_root_dir = DIR_TESTDATA . '/themedir1/';
 		return array(
-			'template parts: parent theme'                 => array(
+			'template parts: parent theme'                => array(
 				'theme_dir' => 'themedir1/block-theme',
 				'template'  => 'small-header',
 				'args'      => array(
@@ -278,7 +278,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_excerpt' => 'Description of small header template.',
 				),
 			),
-			'template: parent theme'                       => array(
+			'template: parent theme'                      => array(
 				'theme_dir' => 'themedir1/block-theme',
 				'template'  => 'page-home',
 				'args'      => array(
@@ -288,7 +288,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_excerpt' => 'Description of page home template.',
 				),
 			),
-			'template: child theme'                        => array(
+			'template: child theme'                       => array(
 				'theme_dir' => 'themedir1/block-theme-child',
 				'template'  => 'page-1',
 				'args'      => array(
@@ -298,23 +298,23 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_excerpt' => 'Description of page 1 template.',
 				),
 			),
-			'template part: subdir with é_-[]. characters' => array(
-				'theme_dir' => 'themedir1/block_thémé-[0.4.0]',
+			'template part: subdir with _-[]. characters' => array(
+				'theme_dir' => 'themedir1/block_theme-[0.4.0]',
 				'template'  => 'large-header',
 				'args'      => array(
 					'post_name'    => 'large-header',
-					'post_title'   => 'Large Héader Témplaté Part',
-					'post_content' => file_get_contents( $theme_root_dir . 'block_thémé-[0.4.0]/parts/large-header.html' ),
+					'post_title'   => 'Large Header Template Part',
+					'post_content' => file_get_contents( $theme_root_dir . 'block_theme-[0.4.0]/parts/large-header.html' ),
 					'post_excerpt' => 'Description of large header template.',
 				),
 			),
-			'template: subdir with é_-[]. characters'      => array(
-				'theme_dir' => 'themedir1/block_thémé-[0.4.0]',
+			'template: subdir with _-[]. characters'      => array(
+				'theme_dir' => 'themedir1/block_theme-[0.4.0]',
 				'template'  => 'page-large-header',
 				'args'      => array(
 					'post_name'    => 'page-large-header',
 					'post_title'   => 'Page Large Template',
-					'post_content' => file_get_contents( $theme_root_dir . 'block_thémé-[0.4.0]/templates/page-large-header.html' ),
+					'post_content' => file_get_contents( $theme_root_dir . 'block_theme-[0.4.0]/templates/page-large-header.html' ),
 					'post_excerpt' => 'Description of page large template.',
 				),
 			),

@@ -1308,17 +1308,17 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function data_get_item_non_subdir_theme() {
 		return array(
-			'parent theme'                 => array(
+			'parent theme'                => array(
 				'theme_dir'     => '/block-theme',
 				'expected_name' => 'Block Theme',
 			),
-			'child theme'                  => array(
+			'child theme'                 => array(
 				'theme_dir'     => '/block-theme-child',
 				'expected_name' => 'Block Theme Child Theme',
 			),
-			'theme with é_-[]. characters' => array(
-				'theme_dir'     => '/block_thémé-[0.4.0]',
-				'expected_name' => 'Block Thémé [0.4.0]',
+			'theme with _-[]. characters' => array(
+				'theme_dir'     => '/block_theme-[0.4.0]',
+				'expected_name' => 'Block Theme [0.4.0]',
 			),
 		);
 	}
@@ -1356,13 +1356,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function data_get_item_subdirectory_theme() {
 		return array(
-			'theme2'                       => array(
+			'theme2'                      => array(
 				'theme_dir'     => '/subdir/theme2',
 				'expected_name' => 'My Subdir Theme',
 			),
-			'theme with é_-[]. characters' => array(
-				'theme_dir'     => '/subdir/block_thémé-[1.0.0]',
-				'expected_name' => 'Block Thémé [1.0.0] in subdirectory',
+			'theme with _-[]. characters' => array(
+				'theme_dir'     => '/subdir/block_theme-[1.0.0]',
+				'expected_name' => 'Block Theme [1.0.0] in subdirectory',
 			),
 		);
 	}

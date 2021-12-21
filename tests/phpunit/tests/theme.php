@@ -289,38 +289,12 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertNotEmpty( $root_uri );
 
 				$this->assertSame( $root_fs . '/' . get_stylesheet(), get_stylesheet_directory() );
-
-				$stylesheet = get_stylesheet();
-				if ( str_contains( get_stylesheet_directory_uri(), '%' ) ) {
-					$stylesheet = rawurlencode( $stylesheet );
-					$stylesheet = str_replace( '%2F', '/', $stylesheet );
-				}
-				$this->assertSame(
-					$root_uri . '/' . $stylesheet,
-					get_stylesheet_directory_uri(),
-					'Stylesheet directory URI does not match for ' . $name
-				);
-				$this->assertSame(
-					$root_uri . '/' . $stylesheet . '/style.css',
-					get_stylesheet_uri(),
-					'Theme stylesheet URI does not match for ' . $name
-				);
+				$this->assertSame( $root_uri . '/' . get_stylesheet(), get_stylesheet_directory_uri() );
+				$this->assertSame( $root_uri . '/' . get_stylesheet() . '/style.css', get_stylesheet_uri() );
 				// $this->assertSame( $root_uri . '/' . get_stylesheet(), get_locale_stylesheet_uri() );
-				$template = get_stylesheet();
-				$this->assertSame(
-					$root_fs . '/' . $template,
-					get_template_directory(),
-					'Template directory does not match for ' . $name
-				);
-				if ( str_contains( get_template_directory_uri(), '%' ) ) {
-					$template = rawurlencode( $template );
-					$template = str_replace( '%2F', '/', $template );
-				}
-				$this->assertSame(
-					$root_uri . '/' . $template,
-					get_template_directory_uri(),
-					'Template directory URI does not match for ' . $name
-				);
+
+				$this->assertSame( $root_fs . '/' . get_template(), get_template_directory() );
+				$this->assertSame( $root_uri . '/' . get_template(), get_template_directory_uri() );
 
 				// get_query_template()
 
