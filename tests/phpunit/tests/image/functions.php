@@ -174,6 +174,17 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_save_image_file() {
 		$classes = $this->get_image_editor_engine_classes();
 
+		foreach ( $classes as $key => $class ) {
+			if ( ! call_user_func( array( $class, 'test' ) ) ) {
+				// If the image editor isn't available, skip it.
+				unset( $classes[ $key ] );
+			}
+		}
+
+		if ( ! $classes ) {
+			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
+		}
+
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		// Mime types.
@@ -506,6 +517,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $attachment_id );
 
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+
 		$expected = array(
 			'sizes'    => array(
 				'full'      => array(
@@ -581,6 +594,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $attachment_id );
+
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$expected = array(
 			'sizes'    => array(
@@ -662,6 +677,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		add_image_size( 'test-size', 100, 100 );
 		add_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10, 2 );
 
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+
 		$expected = array(
 			'file'      => 'wordpress-gsoc-flyer-pdf-77x100.jpg',
 			'width'     => 77,
@@ -674,6 +691,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		// Different environments produce slightly different filesize results.
 		$metadata['sizes']['test-size']['filesize'] = round_to_nearest_thousand( $metadata['sizes']['test-size']['filesize'] );
+		$this->assertSame( $metadata['sizes']['test-size'], $expected );
 
 		$this->assertArrayHasKey( 'test-size', $metadata['sizes'], 'The `test-size` was not added to the metadata.' );
 		$this->assertSame( $expected, $metadata['sizes']['test-size'] );
