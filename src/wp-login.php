@@ -312,19 +312,21 @@ function login_footer( $input_id = '' ) {
 	</div><?php // End of <div id="login">. ?>
 
 	<?php
-	$languages = get_available_languages();
+	if (
+		! $interim_login &&
+		/**
+		 * Filters the Languages select input activation on the login screen.
+		 *
+		 * @since 5.9.0
+		 *
+		 * @param bool Whether to display the Languages select input on the login screen.
+		 */
+		apply_filters( 'display_login_language_dropdown', true )
+	) {
+		$languages = get_available_languages();
 
-	/**
-	 * Filters the Languages select input activation on the login screen.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param bool Whether to display the Languages select input on the login screen.
-	 */
-	$display_login_language_dropdown = apply_filters( 'display_login_language_dropdown', true );
-
-	if ( ! empty( $languages ) && ! $interim_login ) {
-		?>
+		if ( ! empty( $languages ) ) {
+			?>
 
 		<div class="language-switcher">
 			<form id="language-switcher" action="" method="get">
@@ -370,7 +372,7 @@ function login_footer( $input_id = '' ) {
 
 				</form>
 			</div>
-
+		<?php } ?>
 <?php } ?>
 
 	<?php
