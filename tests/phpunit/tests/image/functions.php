@@ -224,6 +224,17 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_mime_overrides_filename() {
 		$classes = $this->get_image_editor_engine_classes();
 
+		foreach ( $classes as $key => $class ) {
+			if ( ! call_user_func( array( $class, 'test' ) ) ) {
+				// If the image editor isn't available, skip it.
+				unset( $classes[ $key ] );
+			}
+		}
+
+		if ( ! $classes ) {
+			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
+		}
+
 		// Test each image editor engine.
 		foreach ( $classes as $class ) {
 			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
@@ -339,6 +350,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		if ( empty( $classes ) ) {
 			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
 		}
+
+		// Then, test with editors.
+		foreach ( $classes as $class ) {
+			$editor = new $class( DIR_TESTDATA );
+			$loaded = $editor->load();
 
 		return $classes;
 	}
@@ -643,13 +659,17 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$expected = array(
 			'file'      => 'wordpress-gsoc-flyer-pdf-77x100.jpg',
-			'filesize'  => 4575,
+			'filesize'  => 5000,
 			'width'     => 77,
 			'height'    => 100,
 			'mime-type' => 'image/jpeg',
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+
+		// Filesize results differ between environments.
+		$metadata['filesize'] = round_to_nearest_thousand( $metadata['filesize'] );
+
 		$this->assertArrayHasKey( 'test-size', $metadata['sizes'], 'The `test-size` was not added to the metadata.' );
 		$this->assertSame( $expected, $metadata['sizes']['test-size'] );
 
