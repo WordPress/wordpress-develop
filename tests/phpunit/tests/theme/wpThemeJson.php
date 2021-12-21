@@ -1484,6 +1484,100 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54640
+	 */
+	public function test_merge_incoming_data_presets_use_default_names() {
+		$defaults   = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'typography' => array(
+						'fontSizes' => array(
+							array(
+								'name' => 'Small',
+								'slug' => 'small',
+								'size' => '12px',
+							),
+							array(
+								'name' => 'Large',
+								'slug' => 'large',
+								'size' => '20px',
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'typography' => array(
+						'fontSizes' => array(
+							array(
+								'slug' => 'small',
+								'size' => '1.1rem',
+							),
+							array(
+								'slug' => 'large',
+								'size' => '1.75rem',
+							),
+							array(
+								'name' => 'Huge',
+								'slug' => 'huge',
+								'size' => '3rem',
+							),
+						),
+					),
+				),
+			),
+			'theme'
+		);
+		$expected   = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'typography' => array(
+					'fontSizes' => array(
+						'default' => array(
+							array(
+								'name' => 'Small',
+								'slug' => 'small',
+								'size' => '12px',
+							),
+							array(
+								'name' => 'Large',
+								'slug' => 'large',
+								'size' => '20px',
+							),
+						),
+						'theme'   => array(
+							array(
+								'slug' => 'small',
+								'size' => '1.1rem',
+								'name' => 'Small',
+							),
+							array(
+								'slug' => 'large',
+								'size' => '1.75rem',
+								'name' => 'Large',
+							),
+							array(
+								'name' => 'Huge',
+								'slug' => 'huge',
+								'size' => '3rem',
+							),
+						),
+					),
+				),
+			),
+		);
+		$defaults->merge( $theme_json );
+		$actual = $defaults->get_raw_data();
+		$this->assertSameSetsWithIndex( $expected, $actual );
+	}
+
+	/**
 	 * @ticket 54336
 	 */
 	public function test_remove_insecure_properties_removes_unsafe_styles() {
