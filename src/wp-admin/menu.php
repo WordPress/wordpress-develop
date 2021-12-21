@@ -241,38 +241,28 @@ if ( current_theme_supports( 'custom-background' ) && current_user_can( 'customi
 
 unset( $appearance_cap );
 
-// Add theme code/file editor to the bottom of the Appearance (non-block themes) or Tools (block themes) menu.
+// Add 'Theme File Editor' to the bottom of the Appearance (non-block themes) or Tools (block themes) menu.
 if ( ! is_multisite() ) {
 	// Must use API on the admin_menu hook, direct modification is only possible on/before the _admin_menu hook.
 	add_action( 'admin_menu', '_add_themes_utility_last', 101 );
 }
 /**
- * Adds the theme code/file editor menu item to the bottom of the
- * Appearance (non-block themes) or Tools (block themes) menu.
+ * Adds the 'Theme File Editor' menu item to the bottom of the Appearance (non-block themes)
+ * or Tools (block themes) menu.
  *
  * @access private
  * @since 3.0.0
- * @since 5.9.0 For block themes, renames 'Theme Editor' to 'Theme File Editor'
- * 		and relocates to Tools.
+ * @since 5.9.0 Renamed 'Theme Editor' to 'Theme File Editor'.
+ *              Relocates to Tools for block themes.
  */
 function _add_themes_utility_last() {
-	if ( wp_is_block_theme() ) {
-		add_submenu_page(
-			'tools.php',
-			__( 'Theme File Editor' ),
-			__( 'Theme File Editor' ),
-			'edit_themes',
-			'theme-editor.php'
-		);
-	} else {
-		add_submenu_page(
-			'themes.php',
-			__( 'Theme Editor' ),
-			__( 'Theme Editor' ),
-			'edit_themes',
-			'theme-editor.php'
-		);
-	}
+	add_submenu_page(
+		wp_is_block_theme() ? 'tools.php' : 'themes.php',
+		__( 'Theme File Editor' ),
+		__( 'Theme File Editor' ),
+		'edit_themes',
+		'theme-editor.php'
+	);
 }
 
 /**
@@ -319,7 +309,7 @@ if ( ! is_multisite() ) {
 		// Place the menu item below the Theme File Editor menu item.
 		add_action( 'admin_menu', '_add_plugin_file_editor_to_tools', 101 );
 	} else {
-		$submenu['plugins.php'][15] = array( __( 'Plugin Editor' ), 'edit_plugins', 'plugin-editor.php' );
+		$submenu['plugins.php'][15] = array( __( 'Plugin File Editor' ), 'edit_plugins', 'plugin-editor.php' );
 	}
 }
 
