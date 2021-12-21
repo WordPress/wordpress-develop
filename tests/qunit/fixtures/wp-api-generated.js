@@ -18,7 +18,13 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1"
     ],
-    "authentication": [],
+    "authentication": {
+        "application-passwords": {
+            "endpoints": {
+                "authorization": "http://example.org/wp-admin/authorize-application.php"
+            }
+        }
+    },
     "routes": {
         "/": {
             "namespace": "",
