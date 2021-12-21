@@ -241,17 +241,18 @@ if ( current_theme_supports( 'custom-background' ) && current_user_can( 'customi
 
 unset( $appearance_cap );
 
-// Add 'Theme File Editor' to the bottom of the Appearance menu.
+// Add 'Theme File Editor' to the bottom of the Appearance (non-block themes) or Tools (block themes) menu.
 if ( ! is_multisite() ) {
 	// Must use API on the admin_menu hook, direct modification is only possible on/before the _admin_menu hook.
 	add_action( 'admin_menu', '_add_themes_utility_last', 101 );
 }
 /**
- * Adds the 'Theme File Editor' link to the bottom of the Appearance menu.
+ * Adds the 'Theme File Editor' link to the bottom of the
+ * Appearance (non-block themes) or Tools (block themes) menu.
  *
  * @access private
  * @since 3.0.0
- * @since 5.9.0 'Theme Editor' link was renamed to 'Theme File Editor'.
+ * @since 5.9.0 Renamed 'Theme Editor' to 'Theme File Editor'.
  */
 function _add_themes_utility_last() {
 	add_submenu_page(
@@ -260,6 +261,26 @@ function _add_themes_utility_last() {
 		__( 'Theme File Editor' ),
 		'edit_themes',
 		'theme-editor.php'
+	);
+}
+
+/**
+ * Adds the 'Plugin File Editor' menu item after the 'Themes File Editor' in Tools
+ * for block themes.
+ *
+ * @access private
+ * @since 5.9.0
+ */
+function _add_plugin_file_editor_to_tools() {
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+	add_submenu_page(
+		'tools.php',
+		__( 'Plugin File Editor' ),
+		__( 'Plugin File Editor' ),
+		'edit_plugins',
+		'plugin-editor.php'
 	);
 }
 
@@ -283,7 +304,12 @@ $submenu['plugins.php'][5] = array( __( 'Installed Plugins' ), 'activate_plugins
 if ( ! is_multisite() ) {
 	/* translators: Add new plugin. */
 	$submenu['plugins.php'][10] = array( _x( 'Add New', 'plugin' ), 'install_plugins', 'plugin-install.php' );
-	$submenu['plugins.php'][15] = array( __( 'Plugin File Editor' ), 'edit_plugins', 'plugin-editor.php' );
+	if ( wp_is_block_theme() ) {
+		// Place the menu item below the Theme File Editor menu item.
+		add_action( 'admin_menu', '_add_plugin_file_editor_to_tools', 101 );
+	} else {
+		$submenu['plugins.php'][15] = array( __( 'Plugin File Editor' ), 'edit_plugins', 'plugin-editor.php' );
+	}
 }
 
 unset( $update_data );
