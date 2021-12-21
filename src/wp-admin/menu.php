@@ -255,7 +255,7 @@ if ( ! is_multisite() ) {
  */
 function _add_themes_utility_last() {
 	add_submenu_page(
-		'themes.php',
+		wp_is_block_theme() ? 'tools.php' : 'themes.php',
 		__( 'Theme File Editor' ),
 		__( 'Theme File Editor' ),
 		'edit_themes',
