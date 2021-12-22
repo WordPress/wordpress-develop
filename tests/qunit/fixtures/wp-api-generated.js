@@ -5035,7 +5035,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
@@ -5189,7 +5189,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -5503,7 +5503,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -5682,7 +5682,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
@@ -5841,7 +5841,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -6160,7 +6160,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
