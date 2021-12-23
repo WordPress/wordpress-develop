@@ -59,7 +59,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 		/**
 		 * Filters blocks passed to WP_Block_List constructor.
 		 *
-		 * @since x.x.x
+		 * @since 5.9.0
 		 * @param array[]|WP_Block[] $blocks Array of parsed block data, or block instances.
 		 */
 		$this->blocks            = apply_filters( 'block_list_blocks', $blocks );
