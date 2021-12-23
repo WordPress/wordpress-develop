@@ -56,7 +56,13 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 			$registry = WP_Block_Type_Registry::get_instance();
 		}
 
-		$this->blocks            = $blocks;
+		/**
+		 * Filters blocks passed to WP_Block_List constructor.
+		 *
+		 * @since x.x.x
+		 * @param array[]|WP_Block[] $blocks Array of parsed block data, or block instances.
+		 */
+		$this->blocks            = apply_filters( 'block_list_blocks', $blocks );
 		$this->available_context = $available_context;
 		$this->registry          = $registry;
 	}
