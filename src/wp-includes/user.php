@@ -3012,11 +3012,38 @@ function retrieve_password( $user_login = null ) {
 	 */
 	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
 
+	// Wrap the single notification email arguments in an array to pass them to the retrieve_password_notification_email filter.
+	$retrieve_password_notification_email = array(
+		'to'      => $user_email,
+		'subject' => $title,
+		'message' => $message,
+		'headers' => '',
+	);
+	
+	/**
+	 * Filters the contents of the reset password notification email sent to the user.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array   $retrieve_password_notification_email {
+	 *     Used to build wp_mail().
+	 *
+	 *     @type string $to      The intended recipient - user email address.
+	 *     @type string $subject The subject of the email.
+	 *     @type string $message The body of the email.
+	 *     @type string $headers The headers of the email.
+	 * }
+	 * @param string  $key        The activation key.
+	 * @param string  $user_login The username for the user.
+	 * @param WP_User $user_data  WP_User object.
+	 */
+	$retrieve_password_notification_email = apply_filters( 'retrieve_password_notification_email', $retrieve_password_notification_email, $key, $user_login, $user_data );
+
 	if ( $switched_locale ) {
 		restore_previous_locale();
 	}
 
-	if ( $message && ! wp_mail( $user_email, wp_specialchars_decode( $title ), $message ) ) {
+	if ( $message && ! wp_mail( $retrieve_password_notification_email['to'], wp_specialchars_decode( $retrieve_password_notification_email['subject'] ), $retrieve_password_notification_email['message'], $retrieve_password_notification_email['headers'] ) ) {
 		$errors->add(
 			'retrieve_password_email_failure',
 			sprintf(
