@@ -3043,15 +3043,26 @@ function retrieve_password( $user_login = null ) {
 		restore_previous_locale();
 	}
 
-	if ( $message && ! wp_mail( $retrieve_password_notification_email['to'], wp_specialchars_decode( $retrieve_password_notification_email['subject'] ), $retrieve_password_notification_email['message'], $retrieve_password_notification_email['headers'] ) ) {
-		$errors->add(
-			'retrieve_password_email_failure',
-			sprintf(
-				/* translators: %s: Documentation URL. */
-				__( '<strong>Error</strong>: The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
-				esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
-			)
+	if ( $message ) {
+		
+		$wp_mail_result = wp_mail( 
+			$retrieve_password_notification_email['to'], 
+			wp_specialchars_decode( $retrieve_password_notification_email['subject'] ), 
+			$retrieve_password_notification_email['message'], 
+			$retrieve_password_notification_email['headers'] 
 		);
+
+		if ( ! $wp_mail_result ) {
+			$errors->add(
+				'retrieve_password_email_failure',
+				sprintf(
+					/* translators: %s: Documentation URL. */
+					__( '<strong>Error</strong>: The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
+					esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
+				)
+			);
+		}
+
 		return $errors;
 	}
 
