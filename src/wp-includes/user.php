@@ -3019,11 +3019,11 @@ function retrieve_password( $user_login = null ) {
 		'message' => $message,
 		'headers' => '',
 	);
-	
+
 	/**
 	 * Filters the contents of the reset password notification email sent to the user.
 	 *
-	 * @since 5.9.0
+	 * @since x.x.x
 	 *
 	 * @param array   $retrieve_password_notification_email {
 	 *     Used to build wp_mail().
@@ -3044,12 +3044,12 @@ function retrieve_password( $user_login = null ) {
 	}
 
 	if ( $message ) {
-		
-		$wp_mail_result = wp_mail( 
-			$retrieve_password_notification_email['to'], 
-			wp_specialchars_decode( $retrieve_password_notification_email['subject'] ), 
-			$retrieve_password_notification_email['message'], 
-			$retrieve_password_notification_email['headers'] 
+
+		$wp_mail_result = wp_mail(
+			$retrieve_password_notification_email['to'],
+			wp_specialchars_decode( $retrieve_password_notification_email['subject'] ),
+			$retrieve_password_notification_email['message'],
+			$retrieve_password_notification_email['headers']
 		);
 
 		if ( ! $wp_mail_result ) {
