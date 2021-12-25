@@ -3013,43 +3013,49 @@ function retrieve_password( $user_login = null ) {
 	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
 
 	// Wrap the single notification email arguments in an array to pass them to the retrieve_password_notification_email filter.
-	$retrieve_password_notification_email = array(
+	$defaults = array(
 		'to'      => $user_email,
 		'subject' => $title,
 		'message' => $message,
 		'headers' => '',
 	);
 
+	$data = compact( 'key', 'user_login', 'user_data' );
+
 	/**
 	 * Filters the contents of the reset password notification email sent to the user.
 	 *
-	 * @since x.x.x
+	 * @since 6.0.0
 	 *
-	 * @param array   $retrieve_password_notification_email {
-	 *     Used to build wp_mail().
+	 * @param array   $defaults {
+	 *     The default notification email arguments. Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient - user email address.
 	 *     @type string $subject The subject of the email.
 	 *     @type string $message The body of the email.
 	 *     @type string $headers The headers of the email.
 	 * }
-	 * @param string  $key        The activation key.
-	 * @param string  $user_login The username for the user.
-	 * @param WP_User $user_data  WP_User object.
+	 * @param array $data {
+	 *     Additional information for extenders.
+	 *
+	 *     @type string  $key        The activation key.
+	 *     @type string  $user_login The username for the user.
+	 *     @type WP_User $user_data  WP_User object.
+	 * }
 	 */
-	$retrieve_password_notification_email = apply_filters( 'retrieve_password_notification_email', $retrieve_password_notification_email, $key, $user_login, $user_data );
+	$notification_email = apply_filters( 'retrieve_password_notification_email', $defaults, $data );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
 	}
 
-	if ( $message ) {
+	if ( is_array( $notification_email ) && ! empty( $notification_email['message'] ) ) {
 
 		$wp_mail_result = wp_mail(
-			$retrieve_password_notification_email['to'],
-			wp_specialchars_decode( $retrieve_password_notification_email['subject'] ),
-			$retrieve_password_notification_email['message'],
-			$retrieve_password_notification_email['headers']
+			$notification_email['to'],
+			wp_specialchars_decode( $notification_email['subject'] ),
+			$notification_email['message'],
+			$notification_email['headers']
 		);
 
 		if ( ! $wp_mail_result ) {
@@ -3061,9 +3067,9 @@ function retrieve_password( $user_login = null ) {
 					esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
 				)
 			);
-		}
 
-		return $errors;
+			return $errors;
+		}
 	}
 
 	return true;
