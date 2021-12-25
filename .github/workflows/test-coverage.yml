@@ -108,7 +108,7 @@ jobs:
           docker-compose run --rm php composer --version
 
           # Install using `composer update` as there is no `composer.lock` file.
-          docker-compose run --rm php composer update
+          docker-compose run --rm php composer update --no-interaction
 
       - name: Docker debug information
         run: |
