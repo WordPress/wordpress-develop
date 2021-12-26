@@ -3050,7 +3050,7 @@ function retrieve_password( $user_login = null ) {
 	}
 
 	// Prevent sending the reset password notification email if the filtered value is false.
-	if ( $notification_email !== false ) {
+	if ( false !== $notification_email ) {
 		if ( is_array( $notification_email ) ) {
 			// Merge defaults with the filtered array as fallback in case any required value is missing in the filtered array.
 			$notification_email = array_merge( $defaults, $notification_email );
