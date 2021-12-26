@@ -37,7 +37,7 @@ function wp_register_layout_support( $block_type ) {
  *
  * @param string $selector              CSS selector.
  * @param array  $layout                Layout object. The one that is passed has already checked
- *                                      the existance of default block layout.
+ *                                      the existence of default block layout.
  * @param bool   $has_block_gap_support Whether the theme has support for the block gap.
  * @return string CSS style.
  */
@@ -104,9 +104,6 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		$style .= 'align-items: center;';
 		if ( 'horizontal' === $layout_orientation ) {
 			$style .= 'align-items: center;';
-			if ( ! empty( $layout['setCascadingProperties'] ) && $layout['setCascadingProperties'] ) {
-				$style .= '--layout-direction: row;';
-			}
 			/**
 			 * Add this style only if is not empty for backwards compatibility,
 			 * since we intend to convert blocks that had flex layout implemented
@@ -114,27 +111,11 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			 */
 			if ( ! empty( $layout['justifyContent'] ) && array_key_exists( $layout['justifyContent'], $justify_content_options ) ) {
 				$style .= "justify-content: {$justify_content_options[ $layout['justifyContent'] ]};";
-				if ( ! empty( $layout['setCascadingProperties'] ) && $layout['setCascadingProperties'] ) {
-					// --layout-justification-setting allows children to inherit the value regardless or row or column direction.
-					$style .= "--layout-justification-setting: {$justify_content_options[ $layout['justifyContent'] ]};";
-					$style .= "--layout-wrap: $flex_wrap;";
-					$style .= "--layout-justify: {$justify_content_options[ $layout['justifyContent'] ]};";
-					$style .= '--layout-align: center;';
-				}
 			}
 		} else {
 			$style .= 'flex-direction: column;';
 			if ( ! empty( $layout['justifyContent'] ) && array_key_exists( $layout['justifyContent'], $justify_content_options ) ) {
 				$style .= "align-items: {$justify_content_options[ $layout['justifyContent'] ]};";
-				if ( ! empty( $layout['setCascadingProperties'] ) && $layout['setCascadingProperties'] ) {
-					$style .= '--layout-direction: column;';
-				}
-				if ( ! empty( $layout['setCascadingProperties'] ) && $layout['setCascadingProperties'] ) {
-					// --layout-justification-setting allows children to inherit the value regardless or row or column direction.
-					$style .= "--layout-justification-setting: {$justify_content_options[ $layout['justifyContent'] ]};";
-					$style .= '--layout-justify: initial;';
-					$style .= "--layout-align: {$justify_content_options[ $layout['justifyContent'] ]};";
-				}
 			}
 		}
 		$style .= '}';
