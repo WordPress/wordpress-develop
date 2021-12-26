@@ -3023,7 +3023,7 @@ function retrieve_password( $user_login = null ) {
 	$data = compact( 'key', 'user_login', 'user_data' );
 
 	/**
-	 * Filters the contents of the reset password notification email sent to the user.
+	 * Filter the contents of the reset password notification email sent to the user. Return false to prevent sending the email.
 	 *
 	 * @since 6.0.0
 	 *
@@ -3049,16 +3049,20 @@ function retrieve_password( $user_login = null ) {
 		restore_previous_locale();
 	}
 
-	if ( is_array( $notification_email ) && ! empty( $notification_email['message'] ) ) {
+	// Prevent sending the reset password notification email if the filtered value is false.
+	if ( $notification_email !== false ) {
+		if ( is_array( $notification_email ) ) {
+			// Merge defaults with the filtered array as fallback in case any required value is missing in the filtered array.
+			$notification_email = array_merge( $defaults, $notification_email );
+		} else {
+			$notification_email = $defaults;
+		}
 
-		$wp_mail_result = wp_mail(
-			$notification_email['to'],
-			wp_specialchars_decode( $notification_email['subject'] ),
-			$notification_email['message'],
-			$notification_email['headers']
-		);
+		list( $to, $subject, $message, $headers ) = array_values( $notification_email );
 
-		if ( ! $wp_mail_result ) {
+		$subject = wp_specialchars_decode( $subject );
+
+		if ( ! wp_mail( $to, $subject, $message, $headers ) ) {
 			$errors->add(
 				'retrieve_password_email_failure',
 				sprintf(
