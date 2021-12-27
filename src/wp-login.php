@@ -321,7 +321,7 @@ function login_footer( $input_id = '' ) {
 		 *
 		 * @param bool Whether to display the Languages select input on the login screen.
 		 */
-		apply_filters( 'login_language_display_dropdown', true )
+		apply_filters( 'login_display_language_dropdown', true )
 	) {
 		$languages = get_available_languages();
 
