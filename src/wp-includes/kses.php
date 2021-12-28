@@ -2501,6 +2501,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  *
  * @since 3.5.0
  * @since 5.0.0 Add support for `data-*` wildcard attributes.
+ * @since 6.0.0 Add `dir`, `lang`, and `xml:lang` to global attributes.
  * @access private
  * @ignore
  *
