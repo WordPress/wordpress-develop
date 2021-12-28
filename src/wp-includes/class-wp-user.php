@@ -451,7 +451,12 @@ class WP_User {
 		if ( '_init_caps' === $name ) {
 			return $this->_init_caps( ...$arguments );
 		}
-		return false;
+
+		$class = get_class( $this );
+		$trace = debug_backtrace(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
+		$file  = $trace[0]['file'];
+		$line  = $trace[0]['line'];
+		trigger_error( "Call to undefined method $class::$name() in $file on line $line", E_USER_ERROR );
 	}
 
 	/**
