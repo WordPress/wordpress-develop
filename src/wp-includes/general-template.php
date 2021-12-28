@@ -3153,7 +3153,7 @@ function feed_links_extra( $args = array() ) {
 		$id   = 0;
 		$post = get_post( $id );
 
-		if ( comments_open() || pings_open() || $post->comment_count > 0 ) {
+		if ( ( comments_open() || pings_open() ) && $post->comment_count > 0 ) {
 			$title = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
 			$href  = get_post_comments_feed_link( $post->ID );
 		}
