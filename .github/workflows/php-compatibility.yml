@@ -84,7 +84,7 @@ jobs:
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json', 'phpcompat.xml.dist') }}
 
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@a7320a0581dcd0432930c48a0e7ced67e6ec17e8 # v1.3.0
+        uses: ramsey/composer-install@713bde70030b2d4c58b47d6c003bf0896d49d13e # v1.3.0
         with:
           composer-options: "--no-progress --no-ansi --no-interaction"
 
