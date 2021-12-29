@@ -304,4 +304,49 @@ class Tests_User_ListAuthors extends WP_UnitTestCase {
 			)
 		);
 	}
+
+	function test_wp_list_authors_role() {
+		$expected['role'] = '';
+
+		$this->assertEquals(
+			$expected['role'],
+			wp_list_authors(
+				array(
+					'echo' => false,
+					'role' => 'administrator',
+				)
+			)
+		);
+	}
+
+	function test_wp_list_authors_role__in() {
+		$expected['role__in'] = '';
+
+		$this->assertEquals(
+			$expected['role__in'],
+			wp_list_authors(
+				array(
+					'echo' => false,
+					'role__in' => [ 'administrator', 'editor' ],
+				)
+			)
+		);
+	}
+
+	function test_wp_list_authors_role__not_in() {
+		$expected['role__not_in'] =
+			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a></li>' .
+			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a></li>' .
+			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a></li>';
+
+		$this->assertEquals(
+			$expected['role__not_in'],
+			wp_list_authors(
+				array(
+					'echo' => false,
+					'role__not_in' => [ 'administrator', 'editor' ],
+				)
+			)
+		);
+	}
 }
