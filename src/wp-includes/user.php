@@ -3050,30 +3050,28 @@ function retrieve_password( $user_login = null ) {
 	}
 
 	// Prevent sending the reset password notification email if the filtered value is false.
-	if ( false !== $notification_email ) {
-		if ( is_array( $notification_email ) ) {
-			// Merge defaults with the filtered array as fallback in case any required value is missing in the filtered array.
-			$notification_email = array_merge( $defaults, $notification_email );
-		} else {
-			$notification_email = $defaults;
-		}
+	if ( is_array( $notification_email ) ) {
+		// Merge defaults with the filtered array as fallback in case any required value is missing in the filtered array.
+		$notification_email = array_merge( $defaults, $notification_email );
+	} else {
+		$notification_email = $defaults;
+	}
 
-		list( $to, $subject, $message, $headers ) = array_values( $notification_email );
+	list( $to, $subject, $message, $headers ) = array_values( $notification_email );
 
-		$subject = wp_specialchars_decode( $subject );
+	$subject = wp_specialchars_decode( $subject );
 
-		if ( ! wp_mail( $to, $subject, $message, $headers ) ) {
-			$errors->add(
-				'retrieve_password_email_failure',
-				sprintf(
-					/* translators: %s: Documentation URL. */
-					__( '<strong>Error</strong>: The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
-					esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
-				)
-			);
+	if ( ! wp_mail( $to, $subject, $message, $headers ) ) {
+		$errors->add(
+			'retrieve_password_email_failure',
+			sprintf(
+				/* translators: %s: Documentation URL. */
+				__( '<strong>Error</strong>: The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
+				esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
+			)
+		);
 
-			return $errors;
-		}
+		return $errors;
 	}
 
 	return true;
