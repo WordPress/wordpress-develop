@@ -40,10 +40,19 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 
 		$response_body = $this->get_response_body( "https://dev.mysql.com/doc/relnotes/mysql/{$matches[1]}/en/" );
 
-		preg_match( '#(\d{4}-\d{2}-\d{2}), General Availability#', $response_body, $mysqlmatches );
+		// Retrieve the date of the first GA release for the recommended branch.
+		preg_match( '#.*(\d{4}-\d{2}-\d{2}), General Availability#s', $response_body, $mysqlmatches );
 
-		// Per https://www.mysql.com/support/, Oracle actively supports MySQL releases for 5 years from GA release.
-		$mysql_eol = strtotime( $mysqlmatches[1] . ' +5 years' );
+		/*
+		 * Per https://www.mysql.com/support/, Oracle actively supports MySQL releases for 5 years from GA release.
+		 *
+		 * The currently recommended MySQL 5.7 branch moved from active support to extended support on 2020-10-21.
+		 * As WordPress core is not fully compatible with MySQL 8.0 at this time, the "supported" period here
+		 * is increased to 8 years to include extended support.
+		 *
+		 * TODO: Reduce this back to 5 years once MySQL 8.0 compatibility is achieved.
+		 */
+		$mysql_eol = strtotime( $mysqlmatches[1] . ' +8 years' );
 
 		$this->assertLessThan( $mysql_eol, time(), "readme.html's Recommended MySQL version is too old. Remember to update the WordPress.org Requirements page, too." );
 	}
