@@ -70,7 +70,7 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
+        uses: actions/setup-node@1f8c6b94b26d0feae1e387ca63ccbdc44d27b561 # v2.4.1
         with:
           node-version: 14
           cache: npm
@@ -129,7 +129,7 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
+        uses: actions/setup-node@1f8c6b94b26d0feae1e387ca63ccbdc44d27b561 # v2.4.1
         with:
           node-version: 14
           cache: npm
