@@ -352,25 +352,24 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $post;
 		}
 
-		$user_id = get_current_user_id();
+		// If the autosave content matches the post content, do not create an autosave and delete any existing autosave.
+		$autosave_is_different = false;
+		$new_autosave          = _wp_post_revision_data( $post_data, true );
 
-		// Store one autosave per author. If there is already an autosave, overwrite it.
+		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
+			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
+				$autosave_is_different = true;
+				break;
+			}
+		}
+
+		// Store one autosave per author. If there is already an autosave for the current author, overwrite it.
+		$user_id      = get_current_user_id();
 		$old_autosave = wp_get_post_autosave( $post_id, $user_id );
 
 		if ( $old_autosave ) {
-			$new_autosave                = _wp_post_revision_data( $post_data, true );
 			$new_autosave['ID']          = $old_autosave->ID;
 			$new_autosave['post_author'] = $user_id;
-
-			// If the new autosave has the same content as the post, delete the autosave.
-			$autosave_is_different = false;
-
-			foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-				if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
-					$autosave_is_different = true;
-					break;
-				}
-			}
 
 			if ( ! $autosave_is_different ) {
 				wp_delete_post_revision( $old_autosave->ID );
@@ -386,6 +385,14 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 
 			// wp_update_post() expects escaped array.
 			return wp_update_post( wp_slash( $new_autosave ) );
+		}
+
+		if ( ! $autosave_is_different ) {
+			return new WP_Error(
+				'rest_autosave_no_changes',
+				__( 'There is nothing to save. The autosave and the post content are the same.' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		// Create the new autosave as a special post revision.
