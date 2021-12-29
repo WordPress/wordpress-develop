@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * Test retrieve_password, in wp-includes/user.php
+ *
+ * @group user
+ */
 class Tests_User_RetrievePassword extends WP_UnitTestCase {
 
     public function set_up() {
