@@ -2701,8 +2701,6 @@ function _wp_block_editor_posts_page_notice() {
 	);
 }
 
-}
-
 /**
  * Determine if Image Size settings should be displayed on the Media options page.
  *
