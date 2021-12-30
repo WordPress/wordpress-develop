@@ -427,6 +427,22 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	/**
 	 * @ticket 54713
 	 */
+	public function test_feed_links_extra_should_handle_an_array_of_post_types() {
+		$permalink = home_url( '?post_type[]=' . self::$post_type . '&post_type[]=post' );
+		$this->go_to( $permalink );
+
+		$expected = sprintf(
+			'<link rel="alternate" type="application/rss+xml" title="%s" href="%s" />' . "\n",
+			'Test Blog &raquo; CPT for feed_links_extra() Feed',
+			home_url( '?post_type=' . self::$post_type . '&#038;feed=rss2' )
+		);
+
+		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
+	}
+
+	/**
+	 * @ticket 54713
+	 */
 	public function test_feed_links_extra_should_respect_feed_type() {
 		add_filter(
 			'default_feed',
