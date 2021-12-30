@@ -19,10 +19,10 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 
 		$response_body = $this->get_response_body( 'https://www.php.net/supported-versions.php' );
 
-		preg_match_all( '#<tr class="stable">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $response_body, $phpmatches );
+		preg_match_all( '#<tr class="stable">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $response_body, $php_matches );
 
 		// TODO: Enable this check once PHP 8.0 compatibility is achieved.
-		// $this->assertContains( $matches[1], $phpmatches[1], "readme.html's Recommended PHP version is too old. Remember to update the WordPress.org Requirements page, too." );
+		// $this->assertContains( $matches[1], $php_matches[1], "readme.html's Recommended PHP version is too old. Remember to update the WordPress.org Requirements page, too." );
 	}
 
 	/**
@@ -41,7 +41,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 		$response_body = $this->get_response_body( "https://dev.mysql.com/doc/relnotes/mysql/{$matches[1]}/en/" );
 
 		// Retrieve the date of the first GA release for the recommended branch.
-		preg_match( '#.*(\d{4}-\d{2}-\d{2}), General Availability#s', $response_body, $mysqlmatches );
+		preg_match( '#.*(\d{4}-\d{2}-\d{2}), General Availability#s', $response_body, $mysql_matches );
 
 		/*
 		 * Per https://www.mysql.com/support/, Oracle actively supports MySQL releases for 5 years from GA release.
@@ -52,9 +52,34 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 		 *
 		 * TODO: Reduce this back to 5 years once MySQL 8.0 compatibility is achieved.
 		 */
-		$mysql_eol = strtotime( $mysqlmatches[1] . ' +8 years' );
+		$mysql_eol = strtotime( $mysql_matches[1] . ' +8 years' );
 
 		$this->assertLessThan( $mysql_eol, time(), "readme.html's Recommended MySQL version is too old. Remember to update the WordPress.org Requirements page, too." );
+	}
+
+	/**
+	 * @covers ::wp_remote_get
+	 * @covers ::wp_remote_retrieve_response_code
+	 * @covers ::wp_remote_retrieve_body
+	 */
+	public function test_readme_mariadb_version() {
+		// This test is designed to only run on trunk/master.
+		$this->skipOnAutomatedBranches();
+
+		$readme = file_get_contents( ABSPATH . 'readme.html' );
+
+		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
+		$matches[1] = str_replace( '.', '', $matches[1] );
+
+		$response_body = $this->get_response_body( "https://mariadb.com/kb/en/release-notes-mariadb-{$matches[1]}-series/" );
+
+		// Retrieve the date of the first stable release for the recommended branch.
+		preg_match( '#.*Stable.*?(\d{2} [A-Za-z]{3} \d{4})#s', $response_body, $mariadb_matches );
+
+		// Per https://mariadb.org/about/#maintenance-policy, MariaDB releases are supported for 5 years.
+		$mariadb_eol = strtotime( $mariadb_matches[1] . ' +5 years' );
+
+		$this->assertLessThan( $mariadb_eol, time(), "readme.html's Recommended MariaDB version is too old. Remember to update the WordPress.org Requirements page, too." );
 	}
 
 	/**
