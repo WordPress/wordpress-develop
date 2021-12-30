@@ -2700,3 +2700,57 @@ function _wp_block_editor_posts_page_notice() {
 		'after'
 	);
 }
+
+}
+
+/**
+ * Determine if Image Size settings should be displayed on the Media options page.
+ *
+ * The image size settings should not be displayed unless they have
+ * previously been edited. This value can be filtered.
+ *
+ * @since 6.0.0
+ *
+ * @return bool If the image size settings should be displayed.
+ */
+function wp_media_options_should_display_image_size_settings() {
+
+	// Hide the settings by default.
+	$should_display = false;
+
+	/*
+	 * Image size option names, along with default values.
+	 * @see wp-admin/includes/schema.php
+	 */
+	$image_sizes = array(
+		'large_size_h'     => 1024,
+		'large_size_w'     => 1024,
+		'medium_size_h'    => 300,
+		'medium_size_w'    => 300,
+		'thumbnail_size_h' => 150,
+		'thumbnail_size_w' => 150,
+		'thumbnail_crop'   => 1,
+	);
+
+	foreach ( $image_sizes as $label => $default ) {
+		$value = get_option( $label );
+		if ( intval( $value ) !== $default ) {
+			$should_display = true;
+			break;
+		}
+	}
+
+	/**
+	 * Filter if the image size settings should be displayed on the Media options page.
+	 *
+	 * If the default settings have not been edited, then hide these settings
+	 * from users. This filter allows developers to modify this value.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param bool $should_display If the settings should be displayed.
+	 *
+	 * @return bool If the Media Settings page should display the Image Size settings.
+	 */
+	return apply_filters( 'wp_media_options_should_display_image_size_settings', $should_display );
+}
