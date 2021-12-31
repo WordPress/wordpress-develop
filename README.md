@@ -1,4 +1,4 @@
-#!\ZachryTylerWood'@Administratir'@it.git.github.com
+ZachryTylerWood'@Administratir@it.git.github.com/repositories/bash/
 # README.md
 #ZachryTylerWood dob 10-15-1994/SSID-633441725'"''
 
