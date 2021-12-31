@@ -90,7 +90,7 @@ jobs:
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
 
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@a7320a0581dcd0432930c48a0e7ced67e6ec17e8 # v1.3.0
+        uses: ramsey/composer-install@f680dac46551dffb2234a240d65ae806c2999dd6 # v1.3.0
         with:
           composer-options: "--no-progress --no-ansi --no-interaction"
 
