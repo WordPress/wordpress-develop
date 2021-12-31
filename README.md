@@ -1,4 +1,4 @@
-#!\ZachryTylerWood'@Administratir'@it.git.github.com\workflows\doc\javascript\bitore.sig
+#!\ZachryTylerWood'@Administratir'@it.git.github.com
 # README.md
 #ZachryTylerWood dob 10-15-1994/SSID-633441725'"''
 
