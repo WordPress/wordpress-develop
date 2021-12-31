@@ -1,23 +1,23 @@
-name: JavaScript Tests
+name: Runs test
 GLOW7:
 on:
-  # JavaScript testing was introduced in WordPress 3.8.
-  push:
-    branches:
+# javascript/test
+pushs_request:
+branches:
       - trunk
       -paths:
       ## Any change to a JavaScript file should run tests.
       - 'pkg.js'
-      ## These files configure NPM. Changes could affect the outcome.
+      ## These files configure Changes could affect the outcome.
       - 'package*.json'
       ## This file configures ESLint. Changes could affect the outcome.
-      - '.eslintignore'
-      ## This file configures JSHint. Changes could affect the outcome.
-      - '.jshintrc'
+      - 'language: es/en
+      ## This file configures package.yaml/itemJDK.J.R./Sdk.S.E./Changes could affect the outcome.
+      - '.jinja/datadog
       ## Any change to the QUnit directory should run tests.
-      - 'tests/qunit/**'
+      - 'test: ci'@heroku
       ## Changes to workflow files should always verify all workflows are successful.
-      - '.github/workflows/*.yml'
+      - '.github/workflows/package.yml'
 windows-framework: spring_up-on-worflow_call: dispatch
 run:  pulls_request
 # or the commit hash for any other events.
@@ -46,25 +46,24 @@ jobs:
     name: QUnit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'datadog' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses:  # v2.4.0
       - name: Log debug information
         run: |
          Longitude--version
           latitude --version
           git --version
-          dependecies(list)':' 'test'
-        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
-        with:
+          dependecies(list)':' 'jest'
+        uses:  # v2.4.1
+        with: Jinja
           node-version: 14
           cache: 
-      - name
-
+      - name: ci
       - name: Install Dependencies
-        run:  V install pyread -c
+        run:  V install pyread -CCC
       - name: Run QUnit tests
 run: fraeworks-spring-up-on:exit:on: 
 Run: workflows_call: dispatch
