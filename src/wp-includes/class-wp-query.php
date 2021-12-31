@@ -941,8 +941,13 @@ class WP_Query {
 				$this->is_author = true;
 			}
 
-			if ( ! empty( $qv['post_type'] ) && ! is_array( $qv['post_type'] ) ) {
-				$post_type_obj = get_post_type_object( $qv['post_type'] );
+			if ( ! empty( $qv['post_type'] ) ) {
+				if ( is_array( $qv['post_type'] ) ) {
+					$post_type_obj = get_post_type_object( reset( $qv['post_type'] ) );
+				} else {
+					$post_type_obj = get_post_type_object( $qv['post_type'] );
+				}
+
 				if ( ! empty( $post_type_obj->has_archive ) ) {
 					$this->is_post_type_archive = true;
 				}
