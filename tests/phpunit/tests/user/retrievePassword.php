@@ -22,8 +22,26 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 54690
+	 */
 	public function test_retrieve_password_reset_notification_email() {
 		$message = 'Sending password reset notification email failed.';
 		$this->assertNotWPError( retrieve_password( $this->user->user_login ), $message );
+	}
+
+	/**
+	 * @ticket 54690
+	 */
+	public function test_retrieve_password_should_return_wp_error_on_failed_email() {
+		add_filter(
+			'retrieve_password_notification_email',
+			static function() {
+				return array( 'message' => '' );
+			}
+		);
+
+		$message = 'Sending password reset notification email succeeded.';
+		$this->assertWPError( retrieve_password( $this->user->user_login ), $message );
 	}
 }
