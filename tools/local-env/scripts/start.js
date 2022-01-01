@@ -7,6 +7,13 @@ dotenvExpand( dotenv.config() );
 // Start the local-env containers.
 execSync( 'docker-compose up -d wordpress-develop', { stdio: 'inherit' } );
 
+console.log(
+    `-------------------------------------------
+wp-env now running on http://127.0.0.1:${ process.env.LOCAL_PORT }
+-------------------------------------------`
+);
+
+
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
 	// VBoxManage is added to the PATH on every platform except Windows.
