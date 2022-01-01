@@ -300,4 +300,44 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		return $hints;
 	}
+
+	/**
+	 * @ticket 52465
+	 */
+	function test_same_url_different_attributes() {
+		$expected = "<link rel='dns-prefetch' href='//s.w.org' />\n" .
+					"<link href='https://example.org' rel='preconnect' />\n" .
+					"<link href='https://example.org' crossorigin='anonymous' rel='preconnect' />\n";
+
+		add_filter( 'wp_resource_hints', array( $this, '_add_same_url_with_different_attributes' ), 10, 2 );
+
+		$actual = get_echo( 'wp_resource_hints' );
+
+		remove_filter( 'wp_resource_hints', array( $this, '_add_same_url_with_different_attributes' ) );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	function _add_same_url_with_different_attributes( $urls, $relation_type ) {
+		if ( 'preconnect' !== $relation_type ) {
+			return $urls;
+		}
+
+		$urls[] = array(
+			'href' => 'https://example.org',
+		);
+
+		$urls[] = array(
+			'href'        => 'https://example.org',
+			'crossorigin' => 'anonymous',
+		);
+
+		// Ignored because we already have a crossorigin declaration for the same URL.
+		$urls[] = array(
+			'href'        => 'https://example.org',
+			'crossorigin' => 'use-credentials',
+		);
+
+		return $urls;
+	}
 }

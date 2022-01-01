@@ -3345,12 +3345,12 @@ function wp_resource_hints() {
 			$atts = array();
 
 			if ( is_array( $url ) ) {
-				if ( isset( $url['href'] ) ) {
-					$atts = $url;
-					$url  = $url['href'];
-				} else {
+				if ( ! isset( $url['href'] ) ) {
 					continue;
 				}
+
+				$atts = $url;
+				$url  = $url['href'];
 			}
 
 			$url = esc_url( $url, array( 'http', 'https' ) );
@@ -3359,7 +3359,11 @@ function wp_resource_hints() {
 				continue;
 			}
 
-			if ( isset( $unique_urls[ $url ] ) ) {
+			if (
+				( isset( $unique_urls[ $url ] ) && ! isset( $atts['crossorigin'] ) )
+				||
+				( isset( $unique_urls[ $url . '-crossorigin' ] ) && isset( $atts['crossorigin'] ) )
+			) {
 				continue;
 			}
 
@@ -3380,6 +3384,10 @@ function wp_resource_hints() {
 
 			$atts['rel']  = $relation_type;
 			$atts['href'] = $url;
+
+			if ( isset( $atts['crossorigin'] ) ) {
+				$url .= '-crossorigin';
+			}
 
 			$unique_urls[ $url ] = $atts;
 		}
