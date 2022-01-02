@@ -3023,7 +3023,7 @@ function retrieve_password( $user_login = null ) {
 	$data = compact( 'key', 'user_login', 'user_data' );
 
 	/**
-	 * Filter the contents of the reset password notification email sent to the user. Return false to prevent sending the email.
+	 * Filter the contents of the reset password notification email sent to the user.
 	 *
 	 * @since 6.0.0
 	 *
@@ -3049,9 +3049,8 @@ function retrieve_password( $user_login = null ) {
 		restore_previous_locale();
 	}
 
-	// Prevent sending the reset password notification email if the filtered value is false.
 	if ( is_array( $notification_email ) ) {
-		// Merge defaults with the filtered array as fallback in case any required value is missing in the filtered array.
+		// Force key order and merge defaults in case any value is missing in the filtered array.
 		$notification_email = array_merge( $defaults, $notification_email );
 	} else {
 		$notification_email = $defaults;
