@@ -32,9 +32,10 @@ $credits = wp_credits();
 			<?php
 			printf(
 				/* translators: %s: Version number. */
-				__( 'WordPress %s was created by a worldwide team of passionate individuals'),
+				__( 'WordPress %s was created by a worldwide team of passionate individuals' ),
 				$display_version
-			); ?>
+			);
+			?>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
