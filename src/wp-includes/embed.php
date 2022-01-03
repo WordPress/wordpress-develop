@@ -370,7 +370,7 @@ function wp_oembed_add_discovery_links() {
  * `wp_head` action.
  *
  * @since 4.4.0
- * @see wp_maybe_enqueue_oembed_host_js()
+ * @deprecated 5.9.0 Use {@see wp_maybe_enqueue_oembed_host_js()} instead.
  */
 function wp_oembed_add_host_js() {}
 
