@@ -696,4 +696,19 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
 	}
+
+	/**
+	 * @ticket 50873
+	 */
+	public function test_post_match_result_with_search_query_should_not_return_404() {
+		$this->set_permalink_structure( '/%postname%/' );
+		$this->factory->post->create(
+			array(
+				'post_name'  => 'sample-post',
+				'post_title' => 'Sample Post',
+			)
+		);
+		$this->go_to( add_query_arg( 's', 'test-post', home_url( 'sample-post' ) ) );
+		$this->assertFalse( is_404() );
+	}
 }
