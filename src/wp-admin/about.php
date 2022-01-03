@@ -28,7 +28,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 
 			<div class="about__header-text">
-				<?php _e( 'Build the site you’ve always wanted. With blocks.' ); ?>
+				<?php _e( 'Introducing site editing with block-based themes' ); ?>
 			</div>
 
 			<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
