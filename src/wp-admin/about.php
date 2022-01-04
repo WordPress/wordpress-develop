@@ -206,7 +206,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column">
 				<h3>
-					<?php _e( 'Introducing Block Themes' ); ?>
+					<?php _e( 'Introducing block themes' ); ?>
 				</h3>
 				<p>
 					<?php
