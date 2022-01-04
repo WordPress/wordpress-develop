@@ -64,14 +64,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php _e( 'And say hello to the first default block theme in the history of WordPress. This is more than just a new default theme. It&#8217;s a brand-new way to work with WordPress themes.' ); ?>
 				</p>
 				<p>
-					<?php _e( 'Block themes put a wide array of visual choices in your hands, from color schemes and typeface combinations to page templates and image filters &#8212; all together, in the site editing interface. By making changes in one place, you can give Twenty Twenty-Two the same look and feel as your brand or other websites &#8212; or take your site&#8217;s look in another direction.' ); ?>
+					<?php _e( 'Block themes put a wide array of visual choices in your hands, from color schemes and typeface combinations to page templates and image filters &#8212; all together, in the site editing interface. By making changes in one place, you can give Twenty Twenty&#8209;Two the same look and feel as your brand or other websites &#8212; or take your site&#8217;s look in another direction.' ); ?>
 				</p>
 				<?php if ( current_user_can( 'switch_themes' ) ) : ?>
 				<p>
 					<?php
 					printf(
 						/* translators: %s: Link to Themes screen. */
-						__( 'The Twenty Twenty-Two theme is already available to you. It came installed with WordPress 5.9, and you will find it with <a href="%s">your other installed themes</a>.' ),
+						__( 'The Twenty Twenty&#8209;Two theme is already available to you. It came installed with WordPress 5.9, and you will find it with <a href="%s">your other installed themes</a>.' ),
 						admin_url( 'themes.php' )
 					);
 					?>
@@ -86,10 +86,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php _e( 'Your personal paintbox awaits' ); ?>
 				</h3>
 				<p>
-					<?php _e( 'More block themes built for full site editing features are in the Theme Directory alongside the Twenty Twenty-Two theme, just waiting to be explored. Expect more to come!' ); ?>
+					<?php _e( 'More block themes built for full site editing features are in the Theme Directory alongside the Twenty Twenty&#8209;Two theme, just waiting to be explored. Expect more to come!' ); ?>
 				</p>
 				<p>
-					<?php _e( 'When you use any of those new themes, you no longer need the Customizer. Instead, you have all the power of the Styles interface inside the Site Editor. Just as in Twenty Twenty-Two, you build your site&#8217;s look and feel there, with the tools you need for the job in a fluid interface that practically comes alive in your hands.' ); ?>
+					<?php _e( 'When you use any of those new themes, you no longer need the Customizer. Instead, you have all the power of the Styles interface inside the Site Editor. Just as in Twenty Twenty&#8209;Two, you build your site&#8217;s look and feel there, with the tools you need for the job in a fluid interface that practically comes alive in your hands.' ); ?>
 				</p>
 			</div>
 			<div class="column about__image is-vertically-aligned-center is-edge-to-edge">
@@ -236,7 +236,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column">
 				<h3>
-					<?php _e( 'Block-level locking' ); ?>
+					<?php _e( 'Block&#8209;level locking' ); ?>
 				</h3>
 				<p>
 					<?php _e( 'Now you can lock any block (or a few of them) in a pattern, just by adding a lock attribute to its settings in block.json &#8212; leaving the rest of the pattern free for site editors to adapt to their content.' ); ?>
