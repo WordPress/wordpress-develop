@@ -3590,7 +3590,7 @@ function _wp_customize_loader_settings() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 	
-	if(!isset($admin_origin['host'])){
+	if ( ! isset( $admin_origin['host'] ) ) {
 		$admin_origin['host'] = '';
 	}
 	if(!isset($home_origin['host'])){
