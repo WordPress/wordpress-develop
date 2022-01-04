@@ -2023,8 +2023,8 @@ function wp_welcome_panel() {
 				<p><?php _e( 'Design everything on your site &#8212; from the header down to the footer, all using blocks and patterns.' ); ?></p>
 				<a href="<?php echo esc_url( admin_url( 'site-editor.php' ) ); ?>"><?php _e( 'Open site editor' ); ?></a>
 			<?php else : ?>
-				<h3><?php echo ( 'Start Customizing' ); ?></h3>
-				<p><?php echo ( 'Configure your site&#8217;s logo, header, menus, and more in the Customizer.' ); ?></p>
+				<h3><?php _e( 'Start Customizing' ); ?></h3>
+				<p><?php _e( 'Configure your site&#8217;s logo, header, menus, and more in the Customizer.' ); ?></p>
 				<?php if ( $can_customize ) : ?>
 					<a class="load-customize hide-if-no-customize" href="<?php echo wp_customize_url(); ?>"><?php _e( 'Open the Customizer' ); ?></a>
 				<?php endif; ?>
@@ -2039,9 +2039,9 @@ function wp_welcome_panel() {
 				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
 				<a href="<?php echo esc_url( admin_url( 'site-editor.php?styles=open' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
-				<h3><?php echo ( 'Discover a new way to build your site.' ); ?></h3>
-				<p><?php echo ( 'There&#8217;s a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
-				<?php echo ( '<a href="https://wordpress.org/support/article/block-themes/">Learn about block themes</a>' ); ?>
+				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
+				<p><?php _e( 'There&#8217;s a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
+				<a href="<?php echo esc_url( __( 'https://wordpress.org/support/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
 			<?php endif; ?>
 			</div>
 		</div>
