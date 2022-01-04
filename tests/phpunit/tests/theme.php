@@ -763,6 +763,36 @@ class Tests_Theme extends WP_UnitTestCase {
 					'feature' => 'editor-styles',
 				),
 			),
+			'html5: comment-list'  => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'comment-list',
+				),
+			),
+			'html5: comment-form'  => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'comment-form',
+				),
+			),
+			'html5: search-form'   => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'search-form',
+				),
+			),
+			'html5: gallery'       => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'gallery',
+				),
+			),
+			'html5: caption'       => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'caption',
+				),
+			),
 			'html5: style'         => array(
 				'support' => array(
 					'feature'     => 'html5',
