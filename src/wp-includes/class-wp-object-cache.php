@@ -260,6 +260,19 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Clears the object cache of all data for the given group.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @return true Always returns true.
+	 */
+	public function flush_group( $group ) {
+
+		unset( $this->cache[ $group ] );
+
+		return true;
+	}
+	/**
 	 * Retrieves the cache contents, if it exists.
 	 *
 	 * The contents will be first attempted to be retrieved by searching by the

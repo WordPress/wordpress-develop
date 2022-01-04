@@ -102,6 +102,45 @@ function wp_cache_flush() {
 
 	return $wp_object_cache->flush();
 }
+/**
+ * Removes all cache items in a group.
+ *
+ * @since 6.0.0
+ *
+ * @see WP_Object_Cache::flush_group()
+ * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+ *
+ * @param string|array $group name(s) of group to remove from cache.
+ *
+ * @return bool True on success, false on failure group not found.
+ */
+function wp_cache_flush_group( $group ) {
+	global $wp_object_cache;
+
+	// if group is an array loop and call each key in the array
+	if ( is_array( $group ) ) {
+		foreach ( $group as $group_key ) {
+
+			wp_cache_flush_group( $group_key );
+		}
+
+		return true;
+	}
+
+	if ( method_exists( $wp_object_cache, 'flush_group' ) ) {
+		// these are linked cache groups, so we have to flush them both if one is called
+		if ( 'users' === $group ) {
+			$wp_object_cache->flush_group( 'user_meta' );
+		}
+		if ( 'user_meta' === $group ) {
+			$wp_object_cache->flush_group( 'users' );
+		}
+
+		return $wp_object_cache->flush_group( $group );
+	}
+
+	return $wp_object_cache->flush();
+}
 
 /**
  * Retrieves the cache contents from the cache by key and group.

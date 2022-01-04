@@ -349,4 +349,78 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $found );
 	}
+
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * test wp_cache_flush_group
+	 *
+	 * @covers ::wp_cache_flush_group
+	 */
+	public function test_wp_cache_flush_group() {
+		$key = 'my-key';
+		$val = 'my-val';
+
+		wp_cache_set( $key, $val, 'group-test' );
+		wp_cache_set( $key, $val, 'group-kept' );
+		$this->assertSame( $val, wp_cache_get( $key, 'group-test' ), 'test_wp_cache_flush_group: group-test should contain my-val' );
+
+		wp_cache_flush_group( 'group-test' );
+		$this->assertFalse( wp_cache_get( $key, 'group-test' ), 'test_wp_cache_flush_group: group-test should return false' );
+		$this->assertSame( $val, wp_cache_get( $key, 'group-kept' ), 'test_wp_cache_flush_group: group-kept should still contain my-val' );
+	}
+
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * test wp_cache_flush_group with an array of groups
+	 *
+	 * @covers ::wp_cache_flush_groups
+	 */
+	public function test_wp_cache_flush_groups() {
+		$key = 'my-key';
+		$val = 'my-val';
+
+		wp_cache_set( $key, $val, 'group-test' );
+		wp_cache_set( $key, $val, 'group-test2' );
+		wp_cache_set( $key, $val, 'group-kept' );
+		$this->assertSame( $val, wp_cache_get( $key, 'group-test' ), 'test_wp_cache_flush_groups: group-test should contain my-val' );
+		$this->assertSame( $val, wp_cache_get( $key, 'group-test2' ), 'test_wp_cache_flush_groups: group-test2 should contain my-val' );
+
+		wp_cache_flush_group( array( 'group-test', 'group-test2' ) );
+		$this->assertFalse( wp_cache_get( $key, 'group-test' ), 'test_wp_cache_flush_groups: group-test should return false' );
+		$this->assertFalse( wp_cache_get( $key, 'group-test2' ), 'test_wp_cache_flush_groups: group-test2 should return false' );
+		$this->assertSame( $val, wp_cache_get( $key, 'group-kept' ), 'test_wp_cache_flush_groups: group-kept should still contain my-val' );
+	}
+
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * tests that is users cache is cleared user_meta is also cleared and vice versa.
+	 *
+	 * @covers ::wp_cache_flush_group
+	 */
+	public function test_wp_cache_flush_group_users() {
+		$key_users = 'my-user-key';
+		$val_users = 'my-user-val';
+		wp_cache_set( $key_users, $val_users, 'users' );
+
+		$key_meta = 'my-user_meta-key';
+		$val_meta = 'my-user_meta-val';
+		wp_cache_set( $key_meta, $val_meta, 'user_meta' );
+
+		wp_cache_flush_group( 'users' );
+		$this->assertFalse( wp_cache_get( $key_users, 'users' ), 'test_wp_cache_flush_group_users users: users should return false' );
+		$this->assertFalse( wp_cache_get( $key_meta, 'user_meta' ), 'test_wp_cache_flush_group_users users: user_meta should return false' );
+
+		wp_cache_set( $key_users, $val_users, 'users' );
+		wp_cache_set( $key_meta, $val_meta, 'user_meta' );
+
+		wp_cache_flush_group( 'user_meta' );
+		$this->assertFalse( wp_cache_get( $key_users, 'users' ), 'test_wp_cache_flush_group_users user_meta: users should return false' );
+		$this->assertFalse( wp_cache_get( $key_meta, 'user_meta' ), 'test_wp_cache_flush_group_users user_meta: user_meta should return false' );
+	}
 }
