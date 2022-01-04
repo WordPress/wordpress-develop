@@ -390,6 +390,52 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 54680
+	 * @covers WP_REST_Templates_Controller::create_item
+	 * @covers WP_REST_Templates_Controller::get_item_schema
+	 */
+	public function test_create_item_with_numeric_slug() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
+		$request->set_body_params(
+			array(
+				'slug'        => '404',
+				'description' => 'Template shown when no content is found.',
+				'title'       => '404',
+				'author'      => self::$admin_id,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		unset( $data['_links'] );
+		unset( $data['wp_id'] );
+
+		$this->assertSame(
+			array(
+				'id'             => 'default//404',
+				'theme'          => 'default',
+				'content'        => array(
+					'raw' => '',
+				),
+				'slug'           => '404',
+				'source'         => 'custom',
+				'origin'         => null,
+				'type'           => 'wp_template',
+				'description'    => 'Template shown when no content is found.',
+				'title'          => array(
+					'raw'      => '404',
+					'rendered' => '404',
+				),
+				'status'         => 'publish',
+				'has_theme_file' => false,
+				'is_custom'      => false,
+				'author'         => self::$admin_id,
+			),
+			$data
+		);
+	}
+
+	/**
 	 * @ticket 54422
 	 * @covers WP_REST_Templates_Controller::create_item
 	 */
