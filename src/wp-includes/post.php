@@ -4041,8 +4041,32 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	if ( $update || '0000-00-00 00:00:00' === $post_date ) {
-		$post_modified     = current_time( 'mysql' );
-		$post_modified_gmt = current_time( 'mysql', 1 );
+		/**
+		 * Filters whether to preserve the modified dates when updating posts.
+		 * Optionally allow you to set the date
+		 *
+		 * @since 2.9.0
+		 *
+		 * @param bool $trigger whether to preserve the modified date default: false
+		 * @param array $postarr that will be saved.
+		 *
+		 * @return Bool|string|array true to keep the current date, String to set both date to same value
+		 * keyed array to set both array( 'post_date' => date1, 'post_date_gmt' => date2 )
+		 */
+		$update_date = apply_filters( 'wp_update_post_preserve_dates', false, $postarr );
+		if ( false === $update_date ) {
+			$post_modified     = current_time( 'mysql' );
+			$post_modified_gmt = current_time( 'mysql', 1 );
+		} elseif ( ! is_array( $update_date ) && strtotime( $update_date ) ) {
+			$post_modified     = $update_date;
+			$post_modified_gmt = get_gmt_from_date( $update_date );
+		} elseif ( is_array( $update_date ) && isset( $update_date['post_modified'], $update_date['post_modified_gmt'] ) ) {
+			$post_modified     = $update_date['post_modified'];
+			$post_modified_gmt = $update_date['post_modified_gmt'];
+		} else {
+			$post_modified     = $postarr['post_modified'];
+			$post_modified_gmt = $postarr['post_modified_gmt'];
+		}
 	} else {
 		$post_modified     = $post_date;
 		$post_modified_gmt = $post_date_gmt;

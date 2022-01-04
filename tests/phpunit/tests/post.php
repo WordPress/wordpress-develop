@@ -1797,4 +1797,153 @@ class Tests_Post extends WP_UnitTestCase {
 		unstick_post( 3 );
 		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
+
+	function test_wp_update_post_not_keep_mod_dates() {
+
+		$past_date = gmdate( 'Y-m-d H:i:s', time() - 100 );
+		$post      = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => $past_date,
+			)
+		);
+
+		$updated_post_id = wp_update_post( $post );
+
+		$updated_post = get_post( $updated_post_id );
+
+		$this->assertNotEquals( $post->post_modified, $updated_post->post_modified );
+		$this->assertNotEquals( $post->post_modified_gmt, $updated_post->post_modified_gmt );
+		// reset the date
+		$updated_post->post_modified     = $post->post_modified;
+		$updated_post->post_modified_gmt = $post->post_modified_gmt;
+
+		$this->assertEquals( $post, $updated_post );
+	}
+
+	/**
+	 * Ensure when filter retures turn the date don't.
+	 *
+	 * @ticket 54020
+	 * @covers ::wp_update_post
+	 */
+	function test_wp_update_post_keep_mod_dates() {
+
+		$past_date = gmdate( 'Y-m-d H:i:s', time() - 100 );
+		$post      = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => $past_date,
+			)
+		);
+
+		add_filter( 'wp_update_post_preserve_dates', '__return_true' );
+
+		$updated_post_id = wp_update_post( $post );
+
+		$updated_post = get_post( $updated_post_id );
+
+		$this->assertEquals( $post, $updated_post );
+	}
+
+	/**
+	 * Ensure when filter retures turn code will use date passed via arrgs.
+	 *
+	 * @ticket 54020
+	 * @covers ::wp_update_post
+	 */
+	function test_wp_update_post_pass_new_dates() {
+
+		$past_date = gmdate( 'Y-m-d H:i:s', time() - 100 );
+		$post      = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => $past_date,
+			)
+		);
+
+		$older_date              = gmdate( 'Y-m-d H:i:s', time() - 10 );
+		$post->post_modified     = $older_date;
+		$older_date_gmt          = get_gmt_from_date( gmdate( 'Y-m-d H:i:s', time() - 10000 ) );
+		$post->post_modified_gmt = $older_date_gmt;
+
+		add_filter( 'wp_update_post_preserve_dates', '__return_true' );
+
+		$updated_post_id = wp_update_post( $post );
+
+		$updated_post = get_post( $updated_post_id );
+
+		$this->assertEquals( $updated_post->post_modified, $older_date );
+		$this->assertEquals( $updated_post->post_modified_gmt, $older_date_gmt );
+	}
+
+	/**
+	 * Ensure when filter return string date this is used to set both modified dates.
+	 *
+	 * @ticket 54020
+	 * @covers ::wp_update_post
+	 */
+	function test_wp_update_post_set_both_mod_dates() {
+
+		$past_date  = gmdate( 'Y-m-d H:i:s', time() - 100 );
+		$post       = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => $past_date,
+			)
+		);
+		$older_date = gmdate( 'Y-m-d H:i:s', time() - 10000 );
+
+		add_filter(
+			'wp_update_post_preserve_dates',
+			static function () use ( $older_date ) {
+
+				return $older_date;
+			}
+		);
+
+		$updated_post_id = wp_update_post( $post );
+
+		$updated_post = get_post( $updated_post_id );
+
+		$this->assertEquals( $updated_post->post_modified, $older_date );
+		$this->assertEquals( $updated_post->post_modified_gmt, $older_date );
+	}
+
+
+	/**
+	 * Ensure when filter returns keyed array this is used to set both modified dates.
+	 *
+	 * @ticket 54020
+	 * @covers ::wp_update_post
+	 */
+	function test_wp_update_post_set_dif_mod_dates() {
+
+		$past_date      = gmdate( 'Y-m-d H:i:s', time() - 100 );
+		$post           = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => $past_date,
+			)
+		);
+		$older_date     = gmdate( 'Y-m-d H:i:s', time() - 10 );
+		$older_date_gmt = get_gmt_from_date( gmdate( 'Y-m-d H:i:s', time() - 10000 ) );
+		add_filter(
+			'wp_update_post_preserve_dates',
+			static function () use ( $older_date, $older_date_gmt ) {
+
+				return array(
+					'post_modified_gmt' => $older_date_gmt,
+					'post_modified'     => $older_date,
+				);
+			}
+		);
+
+		$updated_post_id = wp_update_post( $post );
+
+		$updated_post = get_post( $updated_post_id );
+
+		$this->assertEquals( $updated_post->post_modified, $older_date );
+		$this->assertEquals( $updated_post->post_modified_gmt, $older_date_gmt );
+	}
 }
