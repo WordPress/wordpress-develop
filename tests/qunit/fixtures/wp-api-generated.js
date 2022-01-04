@@ -5035,7 +5035,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
@@ -5189,7 +5189,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -5503,7 +5503,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -5682,7 +5682,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
@@ -5841,7 +5841,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -6160,7 +6160,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -9630,6 +9630,11 @@ mockedApiResponse.Schema = {
                             "description": "Site logo.",
                             "type": "integer",
                             "required": false
+                        },
+                        "site_icon": {
+                            "description": "Site icon.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -12212,5 +12217,6 @@ mockedApiResponse.settings = {
     "posts_per_page": 10,
     "default_ping_status": "open",
     "default_comment_status": "open",
-    "site_logo": null
+    "site_logo": null,
+    "site_icon": 0
 };
