@@ -590,7 +590,7 @@
 	color: var(--text-light);
 }
 
-.about__header:before {
+.about__header::before {
 	content: "";
 	position: absolute;
 	top: 0;
@@ -602,14 +602,14 @@
 	background-size: contain;
 }
 
-.credits-php .about__header:before {
+.credits-php .about__header::before {
 	top: auto;
 	bottom: 70px;
 	height: 310px;
 	background-image: url('../images/about-header-credits.svg');
 }
 
-.freedoms-php .about__header:before {
+.freedoms-php .about__header::before {
 	top: 32px;
 	right: 0;
 	width: 375px;
@@ -617,7 +617,7 @@
 	background-image: url('../images/about-header-freedoms.svg');
 }
 
-.privacy-php .about__header:before {
+.privacy-php .about__header::before {
 	top: auto;
 	bottom: 70px;
 	height: 245px;
@@ -710,22 +710,22 @@
 }
 
 @media screen and (max-width: 782px) {
-	.about__header:before {
+	.about__header::before {
 		width: 240px;
 		height: 305px;
 		right: 32px;
 	}
 
-	.credits-php .about__header:before {
+	.credits-php .about__header::before {
 		height: 248px;
 	}
 
-	.freedoms-php .about__header:before {
+	.freedoms-php .about__header::before {
 		height: 192px;
 		width: 240px;
 	}
 
-	.privacy-php .about__header:before {
+	.privacy-php .about__header::before {
 		height: 196px;
 	}
 
@@ -764,7 +764,7 @@
 }
 
 @media screen and (max-width: 600px) {
-	.about__header:before {
+	.about__header::before {
 		display: none;
 	}
 
