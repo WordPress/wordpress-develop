@@ -4181,6 +4181,10 @@ function _add_default_theme_supports() {
 	add_theme_support( 'post-thumbnails' );
 	add_theme_support( 'responsive-embeds' );
 	add_theme_support( 'editor-styles' );
+	/*
+	 * Make block themes support HTML5 by default for all non-block content.
+	 * Blocks contain their own markup, which is HTML5.
+	 */
 	add_theme_support( 'html5', array( 'comment-form', 'comment-list', 'search-form', 'gallery', 'caption', 'style', 'script' ) );
 	add_theme_support( 'automatic-feed-links' );
 
