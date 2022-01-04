@@ -2041,7 +2041,7 @@ function wp_welcome_panel() {
 			<?php else : ?>
 				<h3><?php echo ( 'Discover a new way to build your site.' ); ?></h3>
 				<p><?php echo ( 'There&#8217;s a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
-				<a href="#"><?php echo ( 'Learn about block themes' ); ?></a>
+				<?php echo ( '<a href="https://wordpress.org/support/article/block-themes/">Learn about block themes</a>' ); ?>
 			<?php endif; ?>
 			</div>
 		</div>
