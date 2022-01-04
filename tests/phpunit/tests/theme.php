@@ -706,6 +706,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Tests that block themes support a feature by default.
 	 *
 	 * @ticket 54597
+	 * @ticket 54731
+	 *
 	 * @dataProvider data_block_theme_has_default_support
 	 *
 	 * @covers ::_add_default_theme_supports
