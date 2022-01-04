@@ -86,7 +86,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php _e( 'Your personal paintbox awaits' ); ?>
 				</h3>
 				<p>
-					<?php _e( 'Twenty Twenty-Two is not the only theme built for Full Site Editing. More block themes are in the Theme directory, and the number will grow.' ); ?>
+					<?php _e( 'More block themes built for full site editing features are in the Theme Directory alongside the Twenty Twenty-Two theme, just waiting to be explored. Expect more to come!' ); ?>
 				</p>
 				<p>
 					<?php _e( 'When you use any of those new themes, you no longer need the Customizer. Instead, you have all the power of the Styles interface inside the Site Editor. Just as in Twenty Twenty-Two, you build your site&#8217;s look and feel there, with the tools you need for the job in a fluid interface that practically comes alive in your hands.' ); ?>
@@ -109,7 +109,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php _e( 'Blocks come to site navigation, the heart of user experience.' ); ?>
 				</p>
 				<p>
-					<?php _e( 'The new Navigation block gives you the power to choose: an always-on responsive menu or one that adapts to your user&#8217;s screen size. And your choices survive all manner of other edits! Because in 5.9, the block saves menus as custom post types, which WordPress saves to the database.' ); ?>
+					<?php _e( 'The new Navigation block gives you the power to choose: an always-on responsive menu or one that adapts to your user&#8217;s screen size. Whatever you create, know it&#8217;s there to reuse wherever you like, whether in a brand new template or after switching themes.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -206,28 +206,18 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column">
 				<h3>
-					<?php _e( 'Theme.json for child themes' ); ?>
+					<?php _e( 'Introducing Block Themes' ); ?>
 				</h3>
 				<p>
 					<?php
 					printf(
 						/* translators: %s: Block-based themes dev note link. */
-						__( 'In 5.9, theme.json supports child themes. That means a site editor can build a child theme right in the WordPress Admin, without writing a single line of code. More information is available in the <a href="%s">theme.json dev note</a>.' ),
+						__( 'A new way to build themes: Block themes use blocks to define the templates that structure your entire site. The new templates and template parts are defined in HTML and use the custom styling offered in theme.json. More information is available in the <a href="%s">block themes dev note</a>.' ),
 						'https://make.wordpress.org/core/2022/01/04/block-themes-a-new-way-to-build-themes-in-wordpress-5-9/'
 					);
 					?>
 				</p>
 			</div>
-			<div class="column">
-				<h3>
-					<?php _e( 'Block-level locking' ); ?>
-				</h3>
-				<p>
-					<?php _e( 'Now you can lock any block (or a few of them) in a pattern, just by adding a lock attribute to its settings in block.json &#8212; leaving the rest of the pattern free for site editors to adapt to their content.' ); ?>
-				</p>
-			</div>
-		</div>
-		<div class="about__section has-2-columns">
 			<div class="column">
 				<h3>
 					<?php _e( 'Multiple stylesheets for a block' ); ?>
@@ -240,6 +230,16 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						'https://make.wordpress.org/core/2021/12/15/using-multiple-stylesheets-per-block/'
 					);
 					?>
+				</p>
+			</div>
+		</div>
+		<div class="about__section has-2-columns">
+			<div class="column">
+				<h3>
+					<?php _e( 'Block-level locking' ); ?>
+				</h3>
+				<p>
+					<?php _e( 'Now you can lock any block (or a few of them) in a pattern, just by adding a lock attribute to its settings in block.json &#8212; leaving the rest of the pattern free for site editors to adapt to their content.' ); ?>
 				</p>
 			</div>
 			<div class="column">
