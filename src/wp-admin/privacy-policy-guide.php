@@ -17,15 +17,6 @@ if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
 	include_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
 }
 
-add_filter(
-	'admin_body_class',
-	static function( $body_class ) {
-		$body_class .= ' privacy-settings ';
-
-		return $body_class;
-	}
-);
-
 wp_enqueue_script( 'privacy-tools' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
