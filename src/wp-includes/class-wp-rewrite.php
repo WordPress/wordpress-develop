@@ -684,21 +684,7 @@ class WP_Rewrite {
 	 * without attempting to set the value again.
 	 *
 	 * @since 1.5.0
-	 *<!--
-Hi there! Thanks for contributing to WordPress!
-
-Pull Requests in this GitHub repository **must** be linked to a ticket in the WordPress Core Trac instance (https://core.trac.wordpress.org), and are only used for code review. **No pull requests will be merged on GitHub.**
-
-See the WordPress Handbook page on using PRs for Code Review more information: https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/
-
-If this is your first time contributing, you may also find reviewing these guides first to be helpful:
-- FAQs for New Contributors: https://make.wordpress.org/core/handbook/tutorials/faq-for-new-contributors/
-- Contributing with Code Guide: https://make.wordpress.org/core/handbook/contribute/
-- WordPress Coding Standards: https://make.wordpress.org/core/handbook/best-practices/coding-standards/
-- Inline Documentation Standards: https://make.wordpress.org/core/handbook/best-practices/inline-documentation-standards/
-- Browser Support Policies: https://make.wordpress.org/core/handbook/best-practices/browser-support/
-- Proper spelling and grammar related best practices: https://make.wordpress.org/core/handbook/best-practices/spelling/
--->
+	 *
 	 * @return string|false Search permalink structure on success, false on failure.
 	 */
 	public function get_search_permastruct() {
@@ -1344,21 +1330,7 @@ If this is your first time contributing, you may also find reviewing these guide
 		 * Filters rewrite rules used for root-level archives.
 		 *
 		 * Likely root-level archives would include pagination rules for the homepage
-		 * as well as site-wide post feeds (<!--
-Hi there! Thanks for contributing to WordPress!
-
-Pull Requests in this GitHub repository **must** be linked to a ticket in the WordPress Core Trac instance (https://core.trac.wordpress.org), and are only used for code review. **No pull requests will be merged on GitHub.**
-
-See the WordPress Handbook page on using PRs for Code Review more information: https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/
-
-If this is your first time contributing, you may also find reviewing these guides first to be helpful:
-- FAQs for New Contributors: https://make.wordpress.org/core/handbook/tutorials/faq-for-new-contributors/
-- Contributing with Code Guide: https://make.wordpress.org/core/handbook/contribute/
-- WordPress Coding Standards: https://make.wordpress.org/core/handbook/best-practices/coding-standards/
-- Inline Documentation Standards: https://make.wordpress.org/core/handbook/best-practices/inline-documentation-standards/
-- Browser Support Policies: https://make.wordpress.org/core/handbook/best-practices/browser-support/
-- Proper spelling and grammar related best practices: https://make.wordpress.org/core/handbook/best-practices/spelling/
--->e.g. `/feed/`, and `/feed/atom/`).
+		 * as well as site-wide post feeds (e.g. `/feed/`, and `/feed/atom/`).
 		 *
 		 * @since 1.5.0
 		 *
@@ -1542,6 +1514,7 @@ If this is your first time contributing, you may also find reviewing these guide
 		$rules = '';
 
 		if ( ! $this->using_permalinks() ) {
+
 
 			$site_root = parse_url( site_url() );
 			if ( isset( $site_root['path'] ) ) {
