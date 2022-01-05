@@ -1515,7 +1515,6 @@ class WP_Rewrite {
 
 		if ( ! $this->using_permalinks() ) {
 
-
 			$site_root = parse_url( site_url() );
 			if ( isset( $site_root['path'] ) ) {
 				$site_root = trailingslashit( $site_root['path'] );
