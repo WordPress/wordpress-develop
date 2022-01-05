@@ -843,7 +843,7 @@ class WP_Automatic_Updater {
 			$body .= "\n***\n\n";
 			/* translators: %s: WordPress version. */
 			$body .= sprintf( __( 'Your site was running version %s.' ), get_bloginfo( 'version' ) );
-			$body .= ' ' . __( 'We have some data that describes the error your site encountered.' );
+			$body .= ' ' . __( 'Some data that describes the error your site encountered has been put together.' );
 			$body .= ' ' . __( 'Your hosting company, support forum volunteers, or a friendly developer may be able to use this information to help you:' );
 
 			// If we had a rollback and we're still critical, then the rollback failed too.
