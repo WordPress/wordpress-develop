@@ -1990,7 +1990,7 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 	 * Filters the `css` (`post_content`) and `preprocessed` (`post_content_filtered`) args
 	 * for a `custom_css` post being updated.
 	 *
-	 * This filter can be used by plugin that offers CSS pre-processors the ability to store the original
+	 * This filter can be used by plugins that offer CSS pre-processors to store the original
 	 * pre-processed CSS in `post_content_filtered` and then store processed CSS in `post_content`.
 	 *
 	 * <code>
