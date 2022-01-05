@@ -1990,20 +1990,17 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 	 * Filters the `css` (`post_content`) and `preprocessed` (`post_content_filtered`) args
 	 * for a `custom_css` post being updated.
 	 *
-	 * This filter can be used by plugin that offer CSS pre-processors, to store the original
+	 * This filter can be used by plugin that offers CSS pre-processors the ability to store the original
 	 * pre-processed CSS in `post_content_filtered` and then store processed CSS in `post_content`.
-	 * When used in this way, the `post_content_filtered` should be supplied as the setting value
-	 * instead of `post_content` via a the `customize_value_custom_css` filter, for example:
 	 *
 	 * <code>
-	 * add_filter( 'customize_value_custom_css', 'my_customize_value_custom_css', '10, 2 );
-	 *
-	 * function my_customize_value_custom_css( $value, $setting ) {
-	 *     $post = wp_get_custom_css_post( $setting->stylesheet );
-	 *     if ( $post && ! empty( $post->post_content_filtered ) ) {
-	 *         $css = $post->post_content_filtered;
+	 * add_filter( 'update_custom_css_data', 'my_update_custom_css_data', '10, 2 );
+	 * function my_update_custom_css_data( $data, $args ) {
+	 *     $css_post = wp_get_custom_css_post( $args['stylesheet'] );
+	 *     if ( $css_post && ! empty( $css_post->post_content_filtered ) ) {
+	 *         $data['post_content_filtered'] = $css_post->post_content_filtered;
 	 *     }
-	 *     return $css;
+	 *     return $data;
 	 * }
 	 * </code>
 	 *
