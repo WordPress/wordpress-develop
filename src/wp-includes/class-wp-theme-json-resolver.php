@@ -56,15 +56,15 @@ class WP_Theme_JSON_Resolver {
 	 * that holds the user data.
 	 *
 	 * @since 5.9.0
-	 * @var integer
+	 * @var int
 	 */
 	private static $user_custom_post_type_id = null;
 
 	/**
 	 * Container to keep loaded i18n schema for `theme.json`.
 	 *
-	 * @since 5.8.0
-	 * @since 5.9.0 Renamed from $theme_json_i18n
+	 * @since 5.8.0 As `$theme_json_i18n`.
+	 * @since 5.9.0 Renamed from `$theme_json_i18n` to `$i18n_schema`.
 	 * @var array
 	 */
 	private static $i18n_schema = null;
@@ -150,13 +150,14 @@ class WP_Theme_JSON_Resolver {
 	 * the theme.json takes precendence.
 	 *
 	 * @since 5.8.0
-	 * @since 5.9.0 Theme supports have been inlined and the argument removed.
+	 * @since 5.9.0 Theme supports have been inlined and the `$theme_support_data` argument removed.
 	 *
+	 * @param array $deprecated Deprecated. Not used.
 	 * @return WP_Theme_JSON Entity that holds theme data.
 	 */
 	public static function get_theme_data( $deprecated = array() ) {
 		if ( ! empty( $deprecated ) ) {
-			_deprecated_argument( __METHOD__, '5.9' );
+			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
 		if ( null === self::$theme ) {
 			$theme_json_data = self::read_json_file( self::get_file_path_from_theme( 'theme.json' ) );
@@ -177,11 +178,11 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		/*
-		* We want the presets and settings declared in theme.json
-		* to override the ones declared via theme supports.
-		* So we take theme supports, transform it to theme.json shape
-		* and merge the self::$theme upon that.
-		*/
+		 * We want the presets and settings declared in theme.json
+		 * to override the ones declared via theme supports.
+		 * So we take theme supports, transform it to theme.json shape
+		 * and merge the self::$theme upon that.
+		 */
 		$theme_support_data = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
 		if ( ! self::theme_has_support() ) {
 			if ( ! isset( $theme_support_data['settings']['color'] ) ) {
@@ -222,41 +223,58 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param bool  $should_create_cpt  Optional. Whether a new custom post type should be created if none are found.
-	 *                                  False by default.
-	 * @param array $post_status_filter Filter Optional. custom post type by post status.
-	 *                                   ['publish'] by default, so it only fetches published posts.
-	 *
+	 * @param WP_Theme $theme              The theme object. If empty, it
+	 *                                     defaults to the current theme.
+	 * @param bool     $create_post        Optional. Whether a new custom post
+	 *                                     type should be created if none are
+	 *                                     found. Default false.
+	 * @param array    $post_status_filter Optional. Filter custom post type by
+	 *                                     post status. Default `array( 'publish' )`,
+	 *                                     so it only fetches published posts.
 	 * @return array Custom Post Type for the user's origin config.
 	 */
-	private static function get_user_data_from_custom_post_type( $should_create_cpt = false, $post_status_filter = array( 'publish' ) ) {
+	public static function get_user_data_from_wp_global_styles( $theme, $create_post = false, $post_status_filter = array( 'publish' ) ) {
+		if ( ! $theme instanceof WP_Theme ) {
+			$theme = wp_get_theme();
+		}
 		$user_cpt         = array();
 		$post_type_filter = 'wp_global_styles';
-		$query            = new WP_Query(
-			array(
-				'posts_per_page' => 1,
-				'orderby'        => 'date',
-				'order'          => 'desc',
-				'post_type'      => $post_type_filter,
-				'post_status'    => $post_status_filter,
-				'tax_query'      => array(
-					array(
-						'taxonomy' => 'wp_theme',
-						'field'    => 'name',
-						'terms'    => wp_get_theme()->get_stylesheet(),
-					),
+		$args             = array(
+			'numberposts' => 1,
+			'orderby'     => 'date',
+			'order'       => 'desc',
+			'post_type'   => $post_type_filter,
+			'post_status' => $post_status_filter,
+			'tax_query'   => array(
+				array(
+					'taxonomy' => 'wp_theme',
+					'field'    => 'name',
+					'terms'    => $theme->get_stylesheet(),
 				),
-			)
+			),
 		);
 
-		if ( is_array( $query->posts ) && ( 1 === $query->post_count ) ) {
-			$user_cpt = $query->posts[0]->to_array();
-		} elseif ( $should_create_cpt ) {
+		$cache_key = sprintf( 'wp_global_styles_%s', md5( serialize( $args ) ) );
+		$post_id   = wp_cache_get( $cache_key );
+
+		if ( (int) $post_id > 0 ) {
+			return get_post( $post_id, ARRAY_A );
+		}
+
+		// Special case: '-1' is a results not found.
+		if ( -1 === $post_id && ! $create_post ) {
+			return $user_cpt;
+		}
+
+		$recent_posts = wp_get_recent_posts( $args );
+		if ( is_array( $recent_posts ) && ( count( $recent_posts ) === 1 ) ) {
+			$user_cpt = $recent_posts[0];
+		} elseif ( $create_post ) {
 			$cpt_post_id = wp_insert_post(
 				array(
 					'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
 					'post_status'  => 'publish',
-					'post_title'   => __( 'Custom Styles', 'default' ),
+					'post_title'   => 'Custom Styles',
 					'post_type'    => $post_type_filter,
 					'post_name'    => 'wp-global-styles-' . urlencode( wp_get_theme()->get_stylesheet() ),
 					'tax_input'    => array(
@@ -265,13 +283,10 @@ class WP_Theme_JSON_Resolver {
 				),
 				true
 			);
-
-			if ( is_wp_error( $cpt_post_id ) ) {
-				$user_cpt = array();
-			} else {
-				$user_cpt = get_post( $cpt_post_id, ARRAY_A );
-			}
+			$user_cpt    = get_post( $cpt_post_id, ARRAY_A );
 		}
+		$cache_expiration = $user_cpt ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
+		wp_cache_set( $cache_key, $user_cpt ? $user_cpt['ID'] : -1, '', $cache_expiration );
 
 		return $user_cpt;
 	}
@@ -281,7 +296,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return WP_Theme_JSON Entity that holds user data.
+	 * @return WP_Theme_JSON Entity that holds styles for user data.
 	 */
 	public static function get_user_data() {
 		if ( null !== self::$user ) {
@@ -289,7 +304,7 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$config   = array();
-		$user_cpt = self::get_user_data_from_custom_post_type();
+		$user_cpt = self::get_user_data_from_wp_global_styles( wp_get_theme() );
 
 		if ( array_key_exists( 'post_content', $user_cpt ) ) {
 			$decoded_data = json_decode( $user_cpt['post_content'], true );
@@ -297,11 +312,11 @@ class WP_Theme_JSON_Resolver {
 			$json_decoding_error = json_last_error();
 			if ( JSON_ERROR_NONE !== $json_decoding_error ) {
 				trigger_error( 'Error when decoding a theme.json schema for user data. ' . json_last_error_msg() );
-				return new WP_Theme_JSON( $config, 'user' );
+				return new WP_Theme_JSON( $config, 'custom' );
 			}
 
-			// Very important to verify if the flag isGlobalStylesUserThemeJSON is true.
-			// If is not true the content was not escaped and is not safe.
+			// Very important to verify that the flag isGlobalStylesUserThemeJSON is true.
+			// If it's not true then the content was not escaped and is not safe.
 			if (
 				is_array( $decoded_data ) &&
 				isset( $decoded_data['isGlobalStylesUserThemeJSON'] ) &&
@@ -311,15 +326,17 @@ class WP_Theme_JSON_Resolver {
 				$config = $decoded_data;
 			}
 		}
-		self::$user = new WP_Theme_JSON( $config, 'user' );
+		self::$user = new WP_Theme_JSON( $config, 'custom' );
 
 		return self::$user;
 	}
 
 	/**
+	 * Returns the data merged from multiple origins.
+	 *
 	 * There are three sources of data (origins) for a site:
-	 * default, theme, and user. The user's has higher priority
-	 * than the theme's, and the theme's higher than core's.
+	 * default, theme, and custom. The custom's has higher priority
+	 * than the theme's, and the theme's higher than default's.
 	 *
 	 * Unlike the getters {@link get_core_data},
 	 * {@link get_theme_data}, and {@link get_user_data},
@@ -333,23 +350,23 @@ class WP_Theme_JSON_Resolver {
 	 * the user preference wins.
 	 *
 	 * @since 5.8.0
-	 * @since 5.9.0 Add user data and change the arguments.
+	 * @since 5.9.0 Added user data, removed the `$settings` parameter,
+	 *              added the `$origin` parameter.
 	 *
 	 * @param string $origin Optional. To what level should we merge data.
-	 *                       Valid values are 'theme' or 'user'.
-	 *                       Default is 'user'.
+	 *                       Valid values are 'theme' or 'custom'. Default 'custom'.
 	 * @return WP_Theme_JSON
 	 */
-	public static function get_merged_data( $origin = 'user' ) {
+	public static function get_merged_data( $origin = 'custom' ) {
 		if ( is_array( $origin ) ) {
-			_deprecated_argument( __FUNCTION__, '5.9' );
+			_deprecated_argument( __FUNCTION__, '5.9.0' );
 		}
 
 		$result = new WP_Theme_JSON();
 		$result->merge( self::get_core_data() );
 		$result->merge( self::get_theme_data() );
 
-		if ( 'user' === $origin ) {
+		if ( 'custom' === $origin ) {
 			$result->merge( self::get_user_data() );
 		}
 
@@ -364,12 +381,12 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @return integer|null
 	 */
-	public static function get_user_custom_post_type_id() {
+	public static function get_user_global_styles_post_id() {
 		if ( null !== self::$user_custom_post_type_id ) {
 			return self::$user_custom_post_type_id;
 		}
 
-		$user_cpt = self::get_user_data_from_custom_post_type( true );
+		$user_cpt = self::get_user_data_from_wp_global_styles( wp_get_theme(), true );
 
 		if ( array_key_exists( 'ID', $user_cpt ) ) {
 			self::$user_custom_post_type_id = $user_cpt['ID'];
@@ -382,7 +399,7 @@ class WP_Theme_JSON_Resolver {
 	 * Whether the current theme has a theme.json file.
 	 *
 	 * @since 5.8.0
-	 * @since 5.9.0 Also check in the parent theme.
+	 * @since 5.9.0 Added a check in the parent theme.
 	 *
 	 * @return bool
 	 */
@@ -403,7 +420,7 @@ class WP_Theme_JSON_Resolver {
 	 * If it isn't, returns an empty string, otherwise returns the whole file path.
 	 *
 	 * @since 5.8.0
-	 * @since 5.9.0 Adapt to work with child themes.
+	 * @since 5.9.0 Adapted to work with child themes, added the `$template` argument.
 	 *
 	 * @param string $file_name Name of the file.
 	 * @param bool   $template  Optional. Use template theme directory. Default false.
@@ -420,7 +437,8 @@ class WP_Theme_JSON_Resolver {
 	 * Cleans the cached data so it can be recalculated.
 	 *
 	 * @since 5.8.0
-	 * @since 5.9.0 Added new variables to reset.
+	 * @since 5.9.0 Added the `$user`, `$user_custom_post_type_id`,
+	 *              and `$i18n_schema` variables to reset.
 	 */
 	public static function clean_cached_data() {
 		self::$core                     = null;

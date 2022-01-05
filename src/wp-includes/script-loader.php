@@ -1816,7 +1816,7 @@ function wp_localize_jquery_ui_datepicker() {
 		)
 	);
 
-	wp_add_inline_script( 'jquery-ui-datepicker', "jQuery(document).ready(function(jQuery){jQuery.datepicker.setDefaults({$datepicker_defaults});});" );
+	wp_add_inline_script( 'jquery-ui-datepicker', "jQuery(function(jQuery){jQuery.datepicker.setDefaults({$datepicker_defaults});});" );
 }
 
 /**
@@ -2235,6 +2235,8 @@ function script_concat_settings() {
 
 	$compressed_output = ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) );
 
+	$can_compress_scripts = ! wp_installing() && get_site_option( 'can_compress_scripts' );
+
 	if ( ! isset( $concatenate_scripts ) ) {
 		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
 		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
@@ -2244,14 +2246,14 @@ function script_concat_settings() {
 
 	if ( ! isset( $compress_scripts ) ) {
 		$compress_scripts = defined( 'COMPRESS_SCRIPTS' ) ? COMPRESS_SCRIPTS : true;
-		if ( $compress_scripts && ( ! get_site_option( 'can_compress_scripts' ) || $compressed_output ) ) {
+		if ( $compress_scripts && ( ! $can_compress_scripts || $compressed_output ) ) {
 			$compress_scripts = false;
 		}
 	}
 
 	if ( ! isset( $compress_css ) ) {
 		$compress_css = defined( 'COMPRESS_CSS' ) ? COMPRESS_CSS : true;
-		if ( $compress_css && ( ! get_site_option( 'can_compress_scripts' ) || $compressed_output ) ) {
+		if ( $compress_css && ( ! $can_compress_scripts || $compressed_output ) ) {
 			$compress_css = false;
 		}
 	}
@@ -2459,10 +2461,14 @@ function enqueue_block_styles_assets() {
 				if ( wp_should_load_separate_core_block_assets() ) {
 					add_filter(
 						'render_block',
-						function( $html ) use ( $style_properties ) {
-							wp_enqueue_style( $style_properties['style_handle'] );
+						function( $html, $block ) use ( $block_name, $style_properties ) {
+							if ( $block['blockName'] === $block_name ) {
+								wp_enqueue_style( $style_properties['style_handle'] );
+							}
 							return $html;
-						}
+						},
+						10,
+						2
 					);
 				} else {
 					wp_enqueue_style( $style_properties['style_handle'] );
@@ -2858,4 +2864,15 @@ function wp_add_iframed_editor_assets_html() {
 	);
 
 	echo "<script>window.__editorAssets = $editor_assets</script>";
+}
+
+/**
+ * Function that enqueues the CSS Custom Properties coming from theme.json.
+ *
+ * @since 5.9.0
+ */
+function wp_enqueue_global_styles_css_custom_properties() {
+	wp_register_style( 'global-styles-css-custom-properties', false, array(), true, true );
+	wp_add_inline_style( 'global-styles-css-custom-properties', wp_get_global_stylesheet( array( 'variables' ) ) );
+	wp_enqueue_style( 'global-styles-css-custom-properties' );
 }

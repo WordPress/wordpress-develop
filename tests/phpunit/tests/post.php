@@ -71,8 +71,8 @@ class Tests_Post extends WP_UnitTestCase {
 			$post = array(
 				'post_author'  => self::$editor_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => "{$post_type}_content",
+				'post_title'   => "{$post_type}_title",
 				'tax_input'    => array(
 					'post_tag' => 'tag1,tag2',
 					'ctax'     => 'cterm1,cterm2',
@@ -131,8 +131,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -169,8 +169,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -216,8 +216,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -260,8 +260,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'draft',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -297,8 +297,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -343,8 +343,8 @@ class Tests_Post extends WP_UnitTestCase {
 			$post = array(
 				'post_author'  => self::$editor_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => "{$status}_content",
+				'post_title'   => "{$status}_title",
 				'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 			);
 
@@ -387,8 +387,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'private',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -423,8 +423,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => '2012-02-30 00:00:00',
 		);
 
@@ -448,8 +448,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -562,8 +562,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -595,7 +595,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
+			'post_content' => 'content',
 			'post_title'   => '',
 			'post_date'    => '2007-10-31 06:15:00',
 		);
@@ -846,11 +846,11 @@ class Tests_Post extends WP_UnitTestCase {
 
 		register_taxonomy( 'test_tax', 'post' );
 
-		$title          = rand_str();
+		$title          = 'title';
 		$post_data      = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
+			'post_content' => 'content',
 			'post_title'   => $title,
 			'tax_input'    => array(
 				'test_tax' => array( 'term', 'term2', 'term3' ),
@@ -985,7 +985,7 @@ class Tests_Post extends WP_UnitTestCase {
 		register_taxonomy( $tax, $post_type );
 
 		$post = self::factory()->post->create( array( 'post_type' => $post_type ) );
-		wp_set_object_terms( $post, rand_str(), $tax );
+		wp_set_object_terms( $post, 'foo', $tax );
 
 		$wp_tag_cloud = wp_tag_cloud(
 			array(
@@ -1056,8 +1056,8 @@ class Tests_Post extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$editor_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 			)
 		);
 		$post    = get_post( $post_id );
@@ -1076,8 +1076,8 @@ class Tests_Post extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$editor_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 				'post_type'    => 'page',
 			)
 		);
@@ -1306,8 +1306,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'   => self::$editor_id,
 			'post_status'   => 'publish',
-			'post_content'  => rand_str(),
-			'post_title'    => rand_str(),
+			'post_content'  => 'content',
+			'post_title'    => 'title',
 			'post_date_gmt' => '2014-01-01 12:00:00',
 		);
 

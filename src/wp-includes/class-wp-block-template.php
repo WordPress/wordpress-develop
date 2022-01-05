@@ -38,7 +38,7 @@ class WP_Block_Template {
 	public $slug;
 
 	/**
-	 * Id.
+	 * ID.
 	 *
 	 * @since 5.8.0
 	 * @var string
@@ -78,10 +78,20 @@ class WP_Block_Template {
 	public $source = 'theme';
 
 	/**
-	 * Post Id.
+	 * Origin of the content when the content has been customized.
+	 * When customized, origin takes on the value of source and source becomes
+	 * 'custom'.
+	 *
+	 * @since 5.9.0
+	 * @var string
+	 */
+	public $origin;
+
+	/**
+	 * Post ID.
 	 *
 	 * @since 5.8.0
-	 * @var integer|null
+	 * @var int|null
 	 */
 	public $wp_id;
 
@@ -109,4 +119,30 @@ class WP_Block_Template {
 	 * @var bool
 	 */
 	public $is_custom = true;
+
+	/**
+	 * Author.
+	 *
+	 * A value of 0 means no author.
+	 *
+	 * @since 5.9.0
+	 * @var int
+	 */
+	public $author;
+
+	/**
+	 * Post types.
+	 *
+	 * @since 5.9.0
+	 * @var array
+	 */
+	public $post_types;
+
+	/**
+	 * Area.
+	 *
+	 * @since 5.9.0
+	 * @var string
+	 */
+	public $area;
 }

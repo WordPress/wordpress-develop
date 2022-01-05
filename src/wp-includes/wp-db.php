@@ -132,16 +132,25 @@ class wpdb {
 	 *
 	 * @since 0.71
 	 *
-	 * @var array|null
+	 * @var stdClass[]|null
 	 */
 	public $last_result;
 
 	/**
-	 * MySQL result, which is either a resource or boolean.
+	 * Database query result.
+	 *
+	 * Possible values:
+	 *
+	 * - For successful SELECT, SHOW, DESCRIBE, or EXPLAIN queries:
+	 *   - `mysqli_result` instance when the `mysqli` driver is in use
+	 *   - `resource` when the older `mysql` driver is in use
+	 * - `true` for other query types that were successful
+	 * - `null` if a query is yet to be made or if the result has since been flushed
+	 * - `false` if the query returned an error
 	 *
 	 * @since 0.71
 	 *
-	 * @var mixed
+	 * @var mysqli_result|resource|bool|null
 	 */
 	protected $result;
 
@@ -155,16 +164,16 @@ class wpdb {
 	protected $col_meta = array();
 
 	/**
-	 * Calculated character sets on tables.
+	 * Calculated character sets keyed by table name.
 	 *
 	 * @since 4.2.0
 	 *
-	 * @var array
+	 * @var string[]
 	 */
 	protected $table_charset = array();
 
 	/**
-	 * Whether text fields in the current query need to be sanity checked. Default false.
+	 * Whether text fields in the current query need to be sanity checked.
 	 *
 	 * @since 4.2.0
 	 *
@@ -200,7 +209,7 @@ class wpdb {
 	 * @since 5.3.0 The fifth element in each query log was added to record custom data.
 	 *
 	 * @var array[] {
-	 *     Array of queries that were executed.
+	 *     Array of arrays containing information about queries that were executed.
 	 *
 	 *     @type array ...$0 {
 	 *         Data for each query.
@@ -226,7 +235,7 @@ class wpdb {
 	protected $reconnect_retries = 5;
 
 	/**
-	 * WordPress table prefix
+	 * WordPress table prefix.
 	 *
 	 * You can set this to have multiple WordPress installations in a single database.
 	 * The second reason is for possible security precautions.
@@ -274,12 +283,12 @@ class wpdb {
 	public $siteid = 0;
 
 	/**
-	 * List of WordPress per-blog tables.
+	 * List of WordPress per-site tables.
 	 *
 	 * @since 2.5.0
 	 *
 	 * @see wpdb::tables()
-	 * @var array
+	 * @var string[]
 	 */
 	public $tables = array(
 		'posts',
@@ -302,7 +311,7 @@ class wpdb {
 	 * @since 2.9.0
 	 *
 	 * @see wpdb::tables()
-	 * @var array
+	 * @var string[]
 	 */
 	public $old_tables = array( 'categories', 'post2cat', 'link2cat' );
 
@@ -312,7 +321,7 @@ class wpdb {
 	 * @since 3.0.0
 	 *
 	 * @see wpdb::tables()
-	 * @var array
+	 * @var string[]
 	 */
 	public $global_tables = array( 'users', 'usermeta' );
 
@@ -322,7 +331,7 @@ class wpdb {
 	 * @since 3.0.0
 	 *
 	 * @see wpdb::tables()
-	 * @var array
+	 * @var string[]
 	 */
 	public $ms_global_tables = array(
 		'blogs',
@@ -581,11 +590,18 @@ class wpdb {
 	protected $dbhost;
 
 	/**
-	 * Database Handle.
+	 * Database handle.
+	 *
+	 * Possible values:
+	 *
+	 * - `mysqli` instance when the `mysqli` driver is in use
+	 * - `resource` when the older `mysql` driver is in use
+	 * - `null` if the connection is yet to be made or has been closed
+	 * - `false` if the connection has failed
 	 *
 	 * @since 0.71
 	 *
-	 * @var string
+	 * @var mysqli|resource|false|null
 	 */
 	protected $dbh;
 
@@ -617,7 +633,7 @@ class wpdb {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @var array
+	 * @var string[]
 	 */
 	protected $incompatible_modes = array(
 		'NO_ZERO_DATE',
@@ -669,24 +685,24 @@ class wpdb {
 	/**
 	 * Connects to the database server and selects a database.
 	 *
-	 * PHP5 style constructor for compatibility with PHP5. Does the actual setting up
+	 * Does the actual setting up
 	 * of the class properties and connection to the database.
 	 *
 	 * @since 2.0.8
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/3354
 	 *
-	 * @param string $dbuser     MySQL database user.
-	 * @param string $dbpassword MySQL database password.
-	 * @param string $dbname     MySQL database name.
-	 * @param string $dbhost     MySQL database host.
+	 * @param string $dbuser     Database user.
+	 * @param string $dbpassword Database password.
+	 * @param string $dbname     Database name.
+	 * @param string $dbhost     Database host.
 	 */
 	public function __construct( $dbuser, $dbpassword, $dbname, $dbhost ) {
 		if ( WP_DEBUG && WP_DEBUG_DISPLAY ) {
 			$this->show_errors();
 		}
 
-		// Use ext/mysqli if it exists unless WP_USE_EXT_MYSQL is defined as true.
+		// Use the `mysqli` extension if it exists unless `WP_USE_EXT_MYSQL` is defined as true.
 		if ( function_exists( 'mysqli_connect' ) ) {
 			$this->use_mysqli = true;
 
@@ -849,9 +865,9 @@ class wpdb {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param resource $dbh     The resource given by mysql_connect.
-	 * @param string   $charset Optional. The character set. Default null.
-	 * @param string   $collate Optional. The collation. Default null.
+	 * @param mysqli|resource $dbh     The connection returned by `mysqli_connect()` or `mysql_connect()`.
+	 * @param string          $charset Optional. The character set. Default null.
+	 * @param string          $collate Optional. The collation. Default null.
 	 */
 	public function set_charset( $dbh, $charset = null, $collate = null ) {
 		if ( ! isset( $charset ) ) {
@@ -1059,16 +1075,16 @@ class wpdb {
 	/**
 	 * Returns an array of WordPress tables.
 	 *
-	 * Also allows for the CUSTOM_USER_TABLE and CUSTOM_USER_META_TABLE to override the WordPress users
+	 * Also allows for the `CUSTOM_USER_TABLE` and `CUSTOM_USER_META_TABLE` to override the WordPress users
 	 * and usermeta tables that would otherwise be determined by the prefix.
 	 *
-	 * The $scope argument can take one of the following:
+	 * The `$scope` argument can take one of the following:
 	 *
-	 * 'all' - returns 'all' and 'global' tables. No old tables are returned.
-	 * 'blog' - returns the blog-level tables for the queried blog.
-	 * 'global' - returns the global tables for the installation, returning multisite tables only on multisite.
-	 * 'ms_global' - returns the multisite global tables, regardless if current installation is multisite.
-	 * 'old' - returns tables which are deprecated.
+	 * - 'all' - returns 'all' and 'global' tables. No old tables are returned.
+	 * - 'blog' - returns the blog-level tables for the queried blog.
+	 * - 'global' - returns the global tables for the installation, returning multisite tables only on multisite.
+	 * - 'ms_global' - returns the multisite global tables, regardless if current installation is multisite.
+	 * - 'old' - returns tables which are deprecated.
 	 *
 	 * @since 3.0.0
 	 *
@@ -1082,7 +1098,7 @@ class wpdb {
 	 * @param bool   $prefix  Optional. Whether to include table prefixes. If blog prefix is requested,
 	 *                        then the custom users and usermeta tables will be mapped. Default true.
 	 * @param int    $blog_id Optional. The blog_id to prefix. Used only when prefix is requested.
-	 *                        Defaults to wpdb::$blogid.
+	 *                        Defaults to `wpdb::$blogid`.
 	 * @return string[] Table names. When a prefix is requested, the key is the unprefixed table name.
 	 */
 	public function tables( $scope = 'all', $prefix = true, $blog_id = 0 ) {
@@ -1141,15 +1157,15 @@ class wpdb {
 	}
 
 	/**
-	 * Selects a database using the current database connection.
+	 * Selects a database using the current or provided database connection.
 	 *
 	 * The database name will be changed based on the current database connection.
 	 * On failure, the execution will bail and display a DB error.
 	 *
 	 * @since 0.71
 	 *
-	 * @param string        $db  MySQL database name.
-	 * @param resource|null $dbh Optional link identifier.
+	 * @param string          $db  Database name.
+	 * @param mysqli|resource $dbh Optional database connection.
 	 */
 	public function select( $db, $dbh = null ) {
 		if ( is_null( $dbh ) ) {
@@ -1335,18 +1351,19 @@ class wpdb {
 	 * Prepares a SQL query for safe execution.
 	 *
 	 * Uses sprintf()-like syntax. The following placeholders can be used in the query string:
-	 *   %d (integer)
-	 *   %f (float)
-	 *   %s (string)
+	 *
+	 * - %d (integer)
+	 * - %f (float)
+	 * - %s (string)
 	 *
 	 * All placeholders MUST be left unquoted in the query string. A corresponding argument
 	 * MUST be passed for each placeholder.
 	 *
 	 * Note: There is one exception to the above: for compatibility with old behavior,
-	 * numbered or formatted string placeholders (eg, %1$s, %5s) will not have quotes
+	 * numbered or formatted string placeholders (eg, `%1$s`, `%5s`) will not have quotes
 	 * added by this function, so should be passed with appropriate quotes around them.
 	 *
-	 * Literal percentage signs (%) in the query string must be written as %%. Percentage wildcards
+	 * Literal percentage signs (`%`) in the query string must be written as `%%`. Percentage wildcards
 	 * (for example, to use in LIKE syntax) must be passed via a substitution argument containing
 	 * the complete LIKE string, these cannot be inserted directly in the query string.
 	 * Also see wpdb::esc_like().
@@ -1355,6 +1372,7 @@ class wpdb {
 	 * containing all arguments. A combination of the two is not supported.
 	 *
 	 * Examples:
+	 *
 	 *     $wpdb->prepare( "SELECT * FROM `table` WHERE `column` = %s AND `field` = %d OR `other_field` LIKE %s", array( 'foo', 1337, '%bar' ) );
 	 *     $wpdb->prepare( "SELECT DATE_FORMAT(`field`, '%%c') FROM `table` WHERE `column` = %s", 'foo' );
 	 *
@@ -1495,7 +1513,7 @@ class wpdb {
 	}
 
 	/**
-	 * First half of escaping for LIKE special characters % and _ before preparing for MySQL.
+	 * First half of escaping for `LIKE` special characters `%` and `_` before preparing for SQL.
 	 *
 	 * Use this only before wpdb::prepare() or esc_sql(). Reversing the order is very bad for security.
 	 *
@@ -1684,7 +1702,7 @@ class wpdb {
 	/**
 	 * Connects to and selects database.
 	 *
-	 * If $allow_bail is false, the lack of database connection will need to be handled manually.
+	 * If `$allow_bail` is false, the lack of database connection will need to be handled manually.
 	 *
 	 * @since 3.0.0
 	 * @since 3.9.0 $allow_bail parameter added.
@@ -1883,7 +1901,7 @@ class wpdb {
 	 * If this function is unable to reconnect, it will forcibly die, or if called
 	 * after the {@see 'template_redirect'} hook has been fired, return false instead.
 	 *
-	 * If $allow_bail is false, the lack of database connection will need to be handled manually.
+	 * If `$allow_bail` is false, the lack of database connection will need to be handled manually.
 	 *
 	 * @since 3.9.0
 	 *
@@ -1967,7 +1985,7 @@ class wpdb {
 	}
 
 	/**
-	 * Performs a MySQL database query, using current database connection.
+	 * Performs a database query, using current database connection.
 	 *
 	 * More information can be found on the documentation page.
 	 *
@@ -2032,7 +2050,7 @@ class wpdb {
 
 		$this->_do_query( $query );
 
-		// MySQL server has gone away, try to reconnect.
+		// Database server has gone away, try to reconnect.
 		$mysql_errno = 0;
 		if ( ! empty( $this->dbh ) ) {
 			if ( $this->use_mysqli ) {
@@ -2257,6 +2275,7 @@ class wpdb {
 	 * Inserts a row into the table.
 	 *
 	 * Examples:
+	 *
 	 *     wpdb::insert( 'table', array( 'column' => 'foo', 'field' => 'bar' ) )
 	 *     wpdb::insert( 'table', array( 'column' => 'foo', 'field' => 1337 ), array( '%s', '%d' ) )
 	 *
@@ -2286,6 +2305,7 @@ class wpdb {
 	 * Replaces a row in the table.
 	 *
 	 * Examples:
+	 *
 	 *     wpdb::replace( 'table', array( 'column' => 'foo', 'field' => 'bar' ) )
 	 *     wpdb::replace( 'table', array( 'column' => 'foo', 'field' => 1337 ), array( '%s', '%d' ) )
 	 *
@@ -2373,6 +2393,7 @@ class wpdb {
 	 * Updates a row in the table.
 	 *
 	 * Examples:
+	 *
 	 *     wpdb::update( 'table', array( 'column' => 'foo', 'field' => 'bar' ), array( 'ID' => 1 ) )
 	 *     wpdb::update( 'table', array( 'column' => 'foo', 'field' => 1337 ), array( 'ID' => 1 ), array( '%s', '%d' ), array( '%d' ) )
 	 *
@@ -2452,6 +2473,7 @@ class wpdb {
 	 * Deletes a row in the table.
 	 *
 	 * Examples:
+	 *
 	 *     wpdb::delete( 'table', array( 'ID' => 1 ) )
 	 *     wpdb::delete( 'table', array( 'ID' => 1 ), array( '%d' ) )
 	 *
@@ -2861,13 +2883,14 @@ class wpdb {
 		/**
 		 * Filters the table charset value before the DB is checked.
 		 *
-		 * Passing a non-null value to the filter will effectively short-circuit
+		 * Returning a non-null value from the filter will effectively short-circuit
 		 * checking the DB for the charset, returning that value instead.
 		 *
 		 * @since 4.2.0
 		 *
-		 * @param string|null $charset The character set to use. Default null.
-		 * @param string      $table   The name of the table being checked.
+		 * @param string|WP_Error|null $charset The character set to use, WP_Error object
+		 *                                      if it couldn't be found. Default null.
+		 * @param string               $table   The name of the table being checked.
 		 */
 		$charset = apply_filters( 'pre_get_table_charset', null, $table );
 		if ( null !== $charset ) {
@@ -2885,7 +2908,7 @@ class wpdb {
 		$table       = '`' . implode( '`.`', $table_parts ) . '`';
 		$results     = $this->get_results( "SHOW FULL COLUMNS FROM $table" );
 		if ( ! $results ) {
-			return new WP_Error( 'wpdb_get_table_charset_failure' );
+			return new WP_Error( 'wpdb_get_table_charset_failure', __( 'Could not retrieve table charset.' ) );
 		}
 
 		foreach ( $results as $column ) {
@@ -3327,7 +3350,7 @@ class wpdb {
 			$this->check_current_query = false;
 			$row                       = $this->get_row( 'SELECT ' . implode( ', ', $sql ), ARRAY_A );
 			if ( ! $row ) {
-				return new WP_Error( 'wpdb_strip_invalid_text_failure' );
+				return new WP_Error( 'wpdb_strip_invalid_text_failure', __( 'Could not strip invalid text.' ) );
 			}
 
 			foreach ( array_keys( $data ) as $column ) {
@@ -3622,7 +3645,6 @@ class wpdb {
 		}
 	}
 
-
 	/**
 	 * Closes the current database connection.
 	 *
@@ -3768,7 +3790,7 @@ class wpdb {
 	}
 
 	/**
-	 * Retrieves the MySQL server version.
+	 * Retrieves the database server version.
 	 *
 	 * @since 2.7.0
 	 *
@@ -3779,7 +3801,7 @@ class wpdb {
 	}
 
 	/**
-	 * Retrieves full MySQL server information.
+	 * Retrieves full database server information.
 	 *
 	 * @since 5.5.0
 	 *

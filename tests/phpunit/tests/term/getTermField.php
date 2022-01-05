@@ -93,7 +93,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	}
 
 	public function test_get_term_field_name() {
-		$name = rand_str( 15 );
+		$name = 'baz';
 
 		$term = self::factory()->term->create_and_get(
 			array(
@@ -108,7 +108,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	}
 
 	public function test_get_term_field_slug_when_slug_is_set() {
-		$slug = rand_str( 15 );
+		$slug = 'baz';
 
 		$term = self::factory()->term->create_and_get(
 			array(
@@ -123,7 +123,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	}
 
 	public function test_get_term_field_slug_when_slug_falls_back_from_name() {
-		$name = rand_str( 15 );
+		$name = 'baz';
 
 		$term = self::factory()->term->create_and_get(
 			array(
@@ -158,7 +158,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	}
 
 	public function test_get_term_field_description() {
-		$desc = wpautop( rand_str() );
+		$desc = wpautop( 'baz' );
 
 		$term = self::factory()->term->create_and_get(
 			array(

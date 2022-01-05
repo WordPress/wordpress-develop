@@ -69,6 +69,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		}
 	}
 
+	/**
+	 * @ticket 54596
+	 */
 	public function test_expected_routes_in_schema() {
 		$routes = rest_get_server()->get_routes();
 
@@ -133,7 +136,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
 			'/wp/v2/global-styles/(?P<id>[\/\w-]+)',
-			'/wp/v2/global-styles/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)',
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 			'/wp/v2/search',
 			'/wp/v2/block-renderer/(?P<name>[a-z0-9-]+/[a-z0-9-]+)',
 			'/wp/v2/block-types',
@@ -141,19 +144,19 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)/(?P<name>[a-zA-Z0-9_-]+)',
 			'/wp/v2/settings',
 			'/wp/v2/template-parts',
-			'/wp/v2/template-parts/(?P<id>[\/\w-]+)',
 			'/wp/v2/template-parts/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/template-parts/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
 			'/wp/v2/template-parts/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp/v2/templates',
-			'/wp/v2/templates/(?P<id>[\/\w-]+)',
 			'/wp/v2/templates/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
 			'/wp/v2/templates/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/templates/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/templates/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp/v2/themes',
-			'/wp/v2/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)',
+			'/wp/v2/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 			'/wp/v2/plugins',
 			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/block-directory/search',
@@ -171,8 +174,6 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/navigation/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/navigation/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/navigation/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
-			'/wp/v2/block-navigation-areas',
-			'/wp/v2/block-navigation-areas/(?P<area>[\w-]+)',
 			'/wp-site-health/v1',
 			'/wp-site-health/v1/tests/background-updates',
 			'/wp-site-health/v1/tests/loopback-requests',

@@ -4,12 +4,13 @@
  */
 return array(
 	'title'      => __( 'Title, navigation, and social links header', 'twentytwentytwo' ),
-	'categories' => array( 'twentytwentytwo-headers' ),
+	'categories' => array( 'header' ),
 	'blockTypes' => array( 'core/template-part/header' ),
-	'content'    => '<!-- wp:group {"align":"wide","style":{"spacing":{"padding":{"bottom":"8rem","top":"max(1.25rem, 5vw)"}}},"layout":{"type":"flex","justifyContent":"space-between"}} -->
+	'content'    => '<!-- wp:group {"align":"full","layout":{"inherit":true}} -->
+					<div class="wp-block-group alignfull"><!-- wp:group {"align":"wide","style":{"spacing":{"padding":{"bottom":"8rem","top":"max(1.25rem, 5vw)"}}},"layout":{"type":"flex","justifyContent":"space-between"}} -->
 					<div class="wp-block-group alignwide" style="padding-top:max(1.25rem, 5vw);padding-bottom:8rem"><!-- wp:site-title {"style":{"typography":{"fontStyle":"italic","fontWeight":"400"}}} /-->
 
-					<!-- wp:navigation {"itemsJustification":"right","isResponsive":true} -->
+					<!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"}} -->
 					<!-- wp:page-list {"isNavigationChild":true,"showSubmenuIcon":true,"openSubmenusOnClick":false} /-->
 
 					<!-- wp:social-links {"iconColor":"foreground","iconColorValue":"var(--wp--preset--color--foreground)","className":"is-style-logos-only"} -->
@@ -18,5 +19,6 @@ return array(
 					<!-- wp:social-link {"url":"#","service":"twitter"} /--></ul>
 					<!-- /wp:social-links -->
 					<!-- /wp:navigation --></div>
+					<!-- /wp:group --></div>
 					<!-- /wp:group -->',
 );

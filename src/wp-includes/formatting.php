@@ -2132,23 +2132,26 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @since 3.0.0
  *
- * @param string $key String key
- * @return string Sanitized key
+ * @param string $key String key.
+ * @return string Sanitized key.
  */
 function sanitize_key( $key ) {
-	$raw_key = $key;
-	$key     = strtolower( $key );
-	$key     = preg_replace( '/[^a-z0-9_\-]/', '', $key );
+	$sanitized_key = '';
+
+	if ( is_scalar( $key ) ) {
+		$sanitized_key = strtolower( $key );
+		$sanitized_key = preg_replace( '/[^a-z0-9_\-]/', '', $sanitized_key );
+	}
 
 	/**
 	 * Filters a sanitized key string.
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string $key     Sanitized key.
-	 * @param string $raw_key The key prior to sanitization.
+	 * @param string $sanitized_key Sanitized key.
+	 * @param string $key           The key prior to sanitization.
 	 */
-	return apply_filters( 'sanitize_key', $key, $raw_key );
+	return apply_filters( 'sanitize_key', $sanitized_key, $key );
 }
 
 /**
@@ -2754,15 +2757,15 @@ function untrailingslashit( $string ) {
 }
 
 /**
- * Adds slashes to escape strings.
+ * Adds slashes to a string or recursively adds slashes to strings within an array.
  *
  * Slashes will first be removed if magic_quotes_gpc is set, see {@link
  * https://www.php.net/magic_quotes} for more details.
  *
  * @since 0.71
  *
- * @param string $gpc The string returned from HTTP request data.
- * @return string Returns a string escaped with slashes.
+ * @param string|array $gpc String or array of data to slash.
+ * @return string|array Slashed `$gpc`.
  */
 function addslashes_gpc( $gpc ) {
 	return wp_slash( $gpc );
@@ -4704,7 +4707,7 @@ function sanitize_option( $option, $value ) {
 	global $wpdb;
 
 	$original_value = $value;
-	$error          = '';
+	$error          = null;
 
 	switch ( $option ) {
 		case 'admin_email':
@@ -4912,7 +4915,9 @@ function sanitize_option( $option, $value ) {
 				$value = str_replace( 'http://', '', $value );
 			}
 
-			if ( 'permalink_structure' === $option && '' !== $value && ! preg_match( '/%[^\/%]+%/', $value ) ) {
+			if ( 'permalink_structure' === $option && null === $error
+				&& '' !== $value && ! preg_match( '/%[^\/%]+%/', $value )
+			) {
 				$error = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'A structure tag is required when using custom permalinks. <a href="%s">Learn more</a>' ),
@@ -4941,7 +4946,12 @@ function sanitize_option( $option, $value ) {
 			break;
 	}
 
-	if ( ! empty( $error ) ) {
+	if ( null !== $error ) {
+		if ( '' === $error && is_wp_error( $value ) ) {
+			/* translators: 1: Option name, 2: Error code. */
+			$error = sprintf( __( 'Could not sanitize the %1$s option. Error code: %2$s' ), $option, $value->get_error_code() );
+		}
+
 		$value = get_option( $option );
 		if ( function_exists( 'add_settings_error' ) ) {
 			add_settings_error( $option, "invalid_{$option}", $error );
@@ -5578,7 +5588,7 @@ function sanitize_trackback_urls( $to_ping ) {
  * @since 5.5.0 Non-string values are left untouched.
  *
  * @param string|array $value String or array of data to slash.
- * @return string|array Slashed $value.
+ * @return string|array Slashed `$value`.
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
@@ -5601,7 +5611,7 @@ function wp_slash( $value ) {
  * @since 3.6.0
  *
  * @param string|array $value String or array of data to unslash.
- * @return string|array Unslashed $value.
+ * @return string|array Unslashed `$value`.
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );
@@ -5773,7 +5783,7 @@ function _print_emoji_detection_script() {
 	}
 
 	wp_print_inline_script_tag(
-		sprintf( 'window._wpemojiSettings = %s;', wp_json_encode( $settings ) ) .
+		sprintf( 'window._wpemojiSettings = %s;', wp_json_encode( $settings ) ) . "\n" .
 			file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js' ) )
 	);
 }
