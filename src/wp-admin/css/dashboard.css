@@ -155,6 +155,11 @@
 	color: #fff;
 }
 
+.welcome-panel a:hover, .welcome-panel a:focus {
+	color: #f5e6ab;
+	text-decoration: none;
+}
+
 .welcome-panel p {
 	font-size: inherit;
 	line-height: inherit;
@@ -191,6 +196,7 @@
 .welcome-panel .welcome-panel-close:hover::before,
 .welcome-panel .welcome-panel-close:focus::before {
 	color: #f5e6ab;
+	text-decoration: underline;
 }
 
 /* @deprecated 5.9.0 -- Button removed from panel. */
