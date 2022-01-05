@@ -1793,7 +1793,7 @@ function is_blog_installed() {
 			continue;
 		}
 
-		// One or more tables exist. This is not good.
+		// One or more tables do not exist. This is not good.
 
 		wp_load_translations_early();
 
