@@ -34,7 +34,7 @@ class Tests_Functions_is_blog_installed extends WP_UnitTestCase {
 		$this->assertTrue( is_blog_installed(), 'cache set to false' );
 
 		// empty the siteurl
-		$options = wp_cache_get( 'alloptions', 'options');
+		$options            = wp_cache_get( 'alloptions', 'options' );
 		$options['siteurl'] = '';
 		wp_cache_set( 'alloptions', $options, 'options' );
 		// still true as it now look for the Tables
@@ -50,7 +50,7 @@ class Tests_Functions_is_blog_installed extends WP_UnitTestCase {
 		//set cache
 		wp_cache_set( 'is_blog_installed', false );
 		// set siteurl to empty
-		$options = wp_cache_get( 'alloptions', 'options');
+		$options            = wp_cache_get( 'alloptions', 'options' );
 		$options['siteurl'] = '';
 		wp_cache_set( 'alloptions', $options, 'options' );
 		// brake the checking of the tables by setting a faulty table name for users table
