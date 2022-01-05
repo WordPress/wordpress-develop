@@ -58,7 +58,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param array $shake_error_codes Error codes that shake the login form.
+	 * @param string[] $shake_error_codes Error codes that shake the login form.
 	 */
 	$shake_error_codes = apply_filters( 'shake_error_codes', $shake_error_codes );
 
@@ -185,8 +185,8 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array  $classes An array of body classes.
-	 * @param string $action  The action that brought the visitor to the login page.
+	 * @param string[] $classes An array of body classes.
+	 * @param string   $action  The action that brought the visitor to the login page.
 	 */
 	$classes = apply_filters( 'login_body_class', $classes, $action );
 
@@ -312,58 +312,67 @@ function login_footer( $input_id = '' ) {
 	</div><?php // End of <div id="login">. ?>
 
 	<?php
-	$languages = get_available_languages();
+	if (
+		! $interim_login &&
+		/**
+		 * Filters the Languages select input activation on the login screen.
+		 *
+		 * @since 5.9.0
+		 *
+		 * @param bool Whether to display the Languages select input on the login screen.
+		 */
+		apply_filters( 'login_display_language_dropdown', true )
+	) {
+		$languages = get_available_languages();
 
-	if ( ! empty( $languages ) && ! $interim_login ) {
-		?>
+		if ( ! empty( $languages ) ) {
+			?>
+			<div class="language-switcher">
+				<form id="language-switcher" action="" method="get">
 
-		<div class="language-switcher">
-			<form id="language-switcher" action="" method="get">
+					<label for="language-switcher-locales">
+						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
+						<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
+					</label>
 
-				<label for="language-switcher-locales">
-					<span class="dashicons dashicons-translation" aria-hidden="true"></span>
-					<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
-				</label>
+					<?php
+					$args = array(
+						'id'                          => 'language-switcher-locales',
+						'name'                        => 'wp_lang',
+						'selected'                    => determine_locale(),
+						'show_available_translations' => false,
+						'explicit_option_en_us'       => true,
+						'languages'                   => $languages,
+					);
 
-				<?php
-				$args = array(
-					'id'                          => 'language-switcher-locales',
-					'name'                        => 'wp_lang',
-					'selected'                    => determine_locale(),
-					'show_available_translations' => false,
-					'explicit_option_en_us'       => true,
-					'languages'                   => $languages,
-				);
+					/**
+					 * Filters default arguments for the Languages select input on the login screen.
+					 *
+					 * @since 5.9.0
+					 *
+					 * @param array $args Arguments for the Languages select input on the login screen.
+					 */
+					wp_dropdown_languages( apply_filters( 'login_language_dropdown_args', $args ) );
+					?>
 
-				/**
-				 * Filters default arguments for the Languages select input on the login screen.
-				 *
-				 * @since 5.9.0
-				 *
-				 * @param array $args Arguments for the Languages select input on the login screen.
-				 */
-				wp_dropdown_languages( apply_filters( 'wp_login_language_switcher_args', $args ) );
-				?>
+					<?php if ( $interim_login ) { ?>
+						<input type="hidden" name="interim-login" value="1" />
+					<?php } ?>
 
-				<?php if ( $interim_login ) { ?>
-					<input type="hidden" name="interim-login" value="1" />
-				<?php } ?>
+					<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
+						<input type="hidden" name="redirect_to" value="<?php echo esc_url_raw( $_GET['redirect_to'] ); ?>" />
+					<?php } ?>
 
-				<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
-					<input type="hidden" name="redirect_to" value="<?php echo esc_url_raw( $_GET['redirect_to'] ); ?>" />
-				<?php } ?>
+					<?php if ( isset( $_GET['action'] ) && '' !== $_GET['action'] ) { ?>
+						<input type="hidden" name="action" value="<?php echo esc_attr( $_GET['action'] ); ?>" />
+					<?php } ?>
 
-				<?php if ( isset( $_GET['action'] ) && '' !== $_GET['action'] ) { ?>
-					<input type="hidden" name="action" value="<?php echo esc_attr( $_GET['action'] ); ?>" />
-				<?php } ?>
+						<input type="submit" class="button" value="<?php esc_attr_e( 'Change' ); ?>">
 
-					<input type="submit" class="button button-primary" value="<?php esc_attr_e( 'Change' ); ?>">
-
-				</form>
-			</div>
-
-<?php } ?>
-
+					</form>
+				</div>
+		<?php } ?>
+	<?php } ?>
 	<?php
 
 	if ( ! empty( $input_id ) ) {
@@ -970,7 +979,7 @@ switch ( $action ) {
 			?>
 			<input type="hidden" name="rp_key" value="<?php echo esc_attr( $rp_key ); ?>" />
 			<p class="submit reset-pass-submit">
-				<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="true"><?php _e( 'Generate Password' ); ?></button>
+				<button type="button" class="button wp-generate-pw hide-if-no-js skip-aria-expanded"><?php _e( 'Generate Password' ); ?></button>
 				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Save Password' ); ?>" />
 			</p>
 		</form>

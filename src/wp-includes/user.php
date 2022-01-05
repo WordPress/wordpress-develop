@@ -2158,7 +2158,7 @@ function wp_insert_user( $userdata ) {
 	 * It only includes data in the users table, not any user metadata.
 	 *
 	 * @since 4.9.0
-	 * @since 5.8.0 The $userdata parameter was added.
+	 * @since 5.8.0 The `$userdata` parameter was added.
 	 *
 	 * @param array    $data {
 	 *     Values and keys for the user.
@@ -2203,7 +2203,7 @@ function wp_insert_user( $userdata ) {
 	 * For custom meta fields, see the {@see 'insert_custom_user_meta'} filter.
 	 *
 	 * @since 4.4.0
-	 * @since 5.8.0 The $userdata parameter was added.
+	 * @since 5.8.0 The `$userdata` parameter was added.
 	 *
 	 * @param array $meta {
 	 *     Default meta values and keys for the user.
@@ -2274,7 +2274,7 @@ function wp_insert_user( $userdata ) {
 		 * Fires immediately after an existing user is updated.
 		 *
 		 * @since 2.0.0
-		 * @since 5.8.0 The $userdata parameter was added.
+		 * @since 5.8.0 The `$userdata` parameter was added.
 		 *
 		 * @param int     $user_id       User ID.
 		 * @param WP_User $old_user_data Object containing user's data prior to update.
@@ -2308,7 +2308,7 @@ function wp_insert_user( $userdata ) {
 		 * Fires immediately after a new user is registered.
 		 *
 		 * @since 1.5.0
-		 * @since 5.8.0 The $userdata parameter was added.
+		 * @since 5.8.0 The `$userdata` parameter was added.
 		 *
 		 * @param int   $user_id  User ID.
 		 * @param array $userdata The raw array of data passed to wp_insert_user().
@@ -4658,18 +4658,30 @@ function wp_get_user_request( $request_id ) {
 }
 
 /**
+ * Checks if Application Passwords is supported.
+ *
+ * Application Passwords is supported only by sites using SSL or local environments
+ * but may be made available using the {@see 'wp_is_application_passwords_available'} filter.
+ *
+ * @since 5.9.0
+ *
+ * @return bool
+ */
+function wp_is_application_passwords_supported() {
+	return is_ssl() || 'local' === wp_get_environment_type();
+}
+
+/**
  * Checks if Application Passwords is globally available.
  *
  * By default, Application Passwords is available to all sites using SSL or to local environments.
- * Use {@see 'wp_is_application_passwords_available'} to adjust its availability.
+ * Use the {@see 'wp_is_application_passwords_available'} filter to adjust its availability.
  *
  * @since 5.6.0
  *
  * @return bool
  */
 function wp_is_application_passwords_available() {
-	$available = is_ssl() || 'local' === wp_get_environment_type();
-
 	/**
 	 * Filters whether Application Passwords is available.
 	 *
@@ -4677,7 +4689,7 @@ function wp_is_application_passwords_available() {
 	 *
 	 * @param bool $available True if available, false otherwise.
 	 */
-	return apply_filters( 'wp_is_application_passwords_available', $available );
+	return apply_filters( 'wp_is_application_passwords_available', wp_is_application_passwords_supported() );
 }
 
 /**

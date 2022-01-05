@@ -248,23 +248,17 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_is_block_based
+	 * @dataProvider data_is_block_theme
 	 * @ticket 54460
 	 *
-	 * @covers WP_Theme::is_block_based
+	 * @covers WP_Theme::is_block_theme
 	 *
 	 * @param string $theme_dir Directory of the theme to test.
 	 * @param bool   $expected  Expected result.
 	 */
-	public function test_is_block_based( $theme_dir, $expected ) {
-		$theme  = new WP_Theme( $theme_dir, $this->theme_root );
-		$actual = $theme->is_block_based();
-
-		if ( $expected ) {
-			$this->assertTrue( $actual );
-		} else {
-			$this->assertFalse( $actual );
-		}
+	public function test_is_block_theme( $theme_dir, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+		$this->assertSame( $expected, $theme->is_block_theme() );
 	}
 
 	/**
@@ -272,18 +266,18 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_block_based() {
+	public function data_is_block_theme() {
 		return array(
 			'default - non-block theme' => array(
 				'theme_dir' => 'default',
 				'expected'  => false,
 			),
 			'parent block theme'        => array(
-				'theme_dir' => 'test-block-theme',
+				'theme_dir' => 'block-theme',
 				'expected'  => true,
 			),
 			'child block theme'         => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'expected'  => true,
 			),
 		);
@@ -318,14 +312,14 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'expected'  => '/nonexistent',
 			),
 			'parent theme: no file given'       => array(
-				'theme_dir' => 'test-block-theme',
+				'theme_dir' => 'block-theme',
 				'file'      => '',
-				'expected'  => '/test-block-theme',
+				'expected'  => '/block-theme',
 			),
 			'child theme: no file given'        => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'file'      => '',
-				'expected'  => '/test-block-child-theme',
+				'expected'  => '/block-theme-child',
 			),
 			'nonexistent theme: file given'     => array(
 				'theme_dir' => 'nonexistent',
@@ -333,29 +327,29 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'expected'  => '/nonexistent/templates/page.html',
 			),
 			'parent theme: file exists'         => array(
-				'theme_dir' => 'test-block-theme',
+				'theme_dir' => 'block-theme',
 				'file'      => '/templates/page-home.html',
-				'expected'  => '/test-block-theme/templates/page-home.html',
+				'expected'  => '/block-theme/templates/page-home.html',
 			),
 			'parent theme: file does not exist' => array(
-				'theme_dir' => 'test-block-theme',
+				'theme_dir' => 'block-theme',
 				'file'      => '/templates/nonexistent.html',
-				'expected'  => '/test-block-theme/templates/nonexistent.html',
+				'expected'  => '/block-theme/templates/nonexistent.html',
 			),
 			'child theme: file exists'          => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'file'      => '/templates/page-1.html',
-				'expected'  => '/test-block-child-theme/templates/page-1.html',
+				'expected'  => '/block-theme-child/templates/page-1.html',
 			),
 			'child theme: file does not exist'  => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'file'      => '/templates/nonexistent.html',
-				'expected'  => '/test-block-theme/templates/nonexistent.html',
+				'expected'  => '/block-theme/templates/nonexistent.html',
 			),
 			'child theme: file exists in parent, not in child' => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'file'      => '/templates/page.html',
-				'expected'  => '/test-block-theme/templates/page.html',
+				'expected'  => '/block-theme/templates/page.html',
 			),
 		);
 	}

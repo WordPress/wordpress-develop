@@ -632,13 +632,13 @@ function _n_noop( $singular, $plural, $domain = null ) {
  * @return array {
  *     Array of translation information for the strings.
  *
- *     @type string $0        Singular form to be localized. No longer used.
- *     @type string $1        Plural form to be localized. No longer used.
- *     @type string $2        Context information for the translators. No longer used.
- *     @type string $singular Singular form to be localized.
- *     @type string $plural   Plural form to be localized.
- *     @type string $context  Context information for the translators.
- *     @type string $domain   Text domain.
+ *     @type string      $0        Singular form to be localized. No longer used.
+ *     @type string      $1        Plural form to be localized. No longer used.
+ *     @type string      $2        Context information for the translators. No longer used.
+ *     @type string      $singular Singular form to be localized.
+ *     @type string      $plural   Plural form to be localized.
+ *     @type string      $context  Context information for the translators.
+ *     @type string|null $domain   Text domain.
  * }
  */
 function _nx_noop( $singular, $plural, $context, $domain = null ) {
@@ -1508,7 +1508,7 @@ function wp_get_pomo_file_data( $po_file ) {
  *     @type bool     $show_available_translations  Whether to show available translations. Default true.
  *     @type bool     $show_option_site_default     Whether to show an option to fall back to the site's locale. Default false.
  *     @type bool     $show_option_en_us            Whether to show an option for English (United States). Default true.
- *     @type bool     $explicit_option_en_us        Whether the English (United States) option uses an explict value of en_US
+ *     @type bool     $explicit_option_en_us        Whether the English (United States) option uses an explicit value of en_US
  *                                                  instead of an empty value. Default false.
  * }
  * @return string HTML dropdown list of languages.

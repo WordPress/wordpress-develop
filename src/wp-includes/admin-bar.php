@@ -417,7 +417,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
  */
 function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 	// Don't show if a block theme is not activated.
-	if ( ! wp_is_block_template_theme() ) {
+	if ( ! wp_is_block_theme() ) {
 		return;
 	}
 
@@ -446,8 +446,8 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 function wp_admin_bar_customize_menu( $wp_admin_bar ) {
 	global $wp_customize;
 
-	// Don't show if a block theme is activated.
-	if ( wp_is_block_template_theme() ) {
+	// Don't show if a block theme is activated and no plugins use the customizer.
+	if ( wp_is_block_theme() && ! has_action( 'customize_register' ) ) {
 		return;
 	}
 

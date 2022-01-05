@@ -223,7 +223,7 @@ function wp_get_plugin_file_editable_extensions( $plugin ) {
 	);
 
 	/**
-	 * Filters the list of file types allowed for editing in the plugin editor.
+	 * Filters the list of file types allowed for editing in the plugin file editor.
 	 *
 	 * @since 2.8.0
 	 * @since 4.9.0 Added the `$plugin` parameter.
@@ -282,7 +282,7 @@ function wp_get_theme_file_editable_extensions( $theme ) {
 	);
 
 	/**
-	 * Filters the list of file types allowed for editing in the theme editor.
+	 * Filters the list of file types allowed for editing in the theme file editor.
 	 *
 	 * @since 4.4.0
 	 *
@@ -1384,7 +1384,6 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			),
 			array(
 				'php'    => phpversion(),
-				// phpcs:ignore PHPCompatibility.Constants.NewConstants.sodium_library_versionFound
 				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 			)
 		);
@@ -1417,7 +1416,6 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 				),
 				array(
 					'php'                => phpversion(),
-					// phpcs:ignore PHPCompatibility.Constants.NewConstants.sodium_library_versionFound
 					'sodium'             => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 					'polyfill_is_fast'   => false,
 					'max_execution_time' => ini_get( 'max_execution_time' ),
@@ -1491,7 +1489,6 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			'skipped_key' => $skipped_key,
 			'skipped_sig' => $skipped_signature,
 			'php'         => phpversion(),
-			// phpcs:ignore PHPCompatibility.Constants.NewConstants.sodium_library_versionFound
 			'sodium'      => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 		)
 	);
@@ -1941,53 +1938,6 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 	}
 
 	return true;
-}
-
-/**
- * Moves a directory from one location to another via the rename() PHP function.
- * If the renaming failed, falls back to copy_dir().
- *
- * Assumes that WP_Filesystem() has already been called and setup.
- *
- * @since 5.9.0
- *
- * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
- *
- * @param string $from        Source directory.
- * @param string $to          Destination directory.
- * @param string $working_dir Optional. Remote file source directory.
- *                            Default empty string.
- * @return true|WP_Error True on success, WP_Error on failure.
- */
-function move_dir( $from, $to, $working_dir = '' ) {
-	global $wp_filesystem;
-
-	if ( 'direct' === $wp_filesystem->method ) {
-		$wp_filesystem->rmdir( $to );
-		if ( @rename( $from, $to ) ) {
-			return true;
-		}
-	}
-
-	if ( ! $wp_filesystem->is_dir( $to ) ) {
-		if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
-
-			// Clear the working directory?
-			if ( ! empty( $working_dir ) ) {
-				$wp_filesystem->delete( $working_dir, true );
-			}
-
-			return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
-		}
-	}
-	$result = copy_dir( $from, $to );
-
-	// Clear the working directory?
-	if ( ! empty( $working_dir ) ) {
-		$wp_filesystem->delete( $working_dir, true );
-	}
-
-	return $result;
 }
 
 /**

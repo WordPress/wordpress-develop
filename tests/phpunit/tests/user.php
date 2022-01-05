@@ -104,7 +104,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $val, get_user_option( $key, self::$author_id ) );
 
 		// Change and get again.
-		$val2 = rand_str();
+		$val2 = 'baz';
 		update_user_option( self::$author_id, $key, $val2 );
 		$this->assertSame( $val2, get_user_option( $key, self::$author_id ) );
 	}
@@ -135,7 +135,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Delete by key AND value.
 		update_user_meta( self::$author_id, $key, $val );
 		// Incorrect key: key still exists.
-		delete_user_meta( self::$author_id, $key, rand_str() );
+		delete_user_meta( self::$author_id, $key, 'foo' );
 		$this->assertSame( $val, get_user_meta( self::$author_id, $key, true ) );
 		// Correct key: deleted.
 		delete_user_meta( self::$author_id, $key, $val );
@@ -149,9 +149,9 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_usermeta_array() {
 		// Some values to set.
 		$vals = array(
-			rand_str() => 'val-' . rand_str(),
-			rand_str() => 'val-' . rand_str(),
-			rand_str() => 'val-' . rand_str(),
+			'key0' => 'val0',
+			'key1' => 'val1',
+			'key2' => 'val2',
 		);
 
 		// There is already some stuff in the array.
@@ -475,8 +475,8 @@ class Tests_User extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$author_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_type'    => 'post',
 		);
 
@@ -636,7 +636,7 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_user_meta_error() {
 		$id1 = wp_insert_user(
 			array(
-				'user_login' => rand_str(),
+				'user_login' => 'taco_burrito',
 				'user_pass'  => 'password',
 				'user_email' => 'taco@burrito.com',
 			)
@@ -645,7 +645,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$id2 = wp_insert_user(
 			array(
-				'user_login' => rand_str(),
+				'user_login' => 'taco_burrito2',
 				'user_pass'  => 'password',
 				'user_email' => 'taco@burrito.com',
 			)
@@ -826,9 +826,9 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_wp_insert_user_should_not_wipe_existing_password() {
 		$user_details = array(
-			'user_login' => rand_str(),
+			'user_login' => 'jonsnow',
 			'user_pass'  => 'password',
-			'user_email' => rand_str() . '@example.com',
+			'user_email' => 'jonsnow@example.com',
 		);
 
 		$user_id = wp_insert_user( $user_details );
@@ -1909,9 +1909,9 @@ class Tests_User extends WP_UnitTestCase {
 	 * This hook is used in `test_wp_insert_user_with_meta()`.
 	 */
 	public function filter_custom_meta( $meta_input ) {
-		// Update some meta inputs
+		// Update some meta inputs.
 		$meta_input['test_meta_key'] = 'update_from_filter';
-		// Add a new meta
+		// Add a new meta.
 		$meta_input['new_meta_from_filter'] = 'new_from_filter';
 
 		return $meta_input;

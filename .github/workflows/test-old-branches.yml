@@ -28,12 +28,14 @@ jobs:
             'test-npm.yml'
         ]
         branch: [
-            '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
+            '5.9', '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
             '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
             '3.9', '3.8', '3.7'
         ]
         include:
           # PHP Compatibility testing was introduced in 5.5.
+          - branch: '5.9'
+            workflow: 'php-compatibility.yml'
           - branch: '5.8'
             workflow: 'php-compatibility.yml'
           - branch: '5.7'
@@ -46,7 +48,7 @@ jobs:
           # End to End testing was introduced in 5.3 but later removed as there were no meaningful assertions.
           # Only the officially supported major branch runs E2E tests so that more assertions can be added, and the
           # workflow does not continue to run needlessly on old branches.
-          - branch: '5.8'
+          - branch: '5.9'
             workflow: 'end-to-end-tests.yml'
         exclude:
           # Coding standards and JavaScript testing did not take place in 3.7.
@@ -59,7 +61,7 @@ jobs:
     steps:
       - name: Dispatch workflow run
         uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
-        if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == '5.7' }}
+        if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == '5.9' }}
         with:
           github-token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
           script: |

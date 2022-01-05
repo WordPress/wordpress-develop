@@ -1025,14 +1025,28 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'help', $index->get_links() );
 		$this->assertArrayNotHasKey( 'wp:active-theme', $index->get_links() );
 
-		// Check site icon.
+		// Check site logo and icon.
+		$this->assertArrayHasKey( 'site_logo', $data );
 		$this->assertArrayHasKey( 'site_icon', $data );
+	}
+
+	/**
+	 * @ticket 50152
+	 */
+	public function test_index_includes_link_to_active_theme_if_authenticated() {
+		$server = new WP_REST_Server();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+
+		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
 	}
 
 	/**
 	 * @ticket 52321
 	 */
-	public function test_get_index_with_site_icon() {
+	public function test_index_includes_site_icon() {
 		$server = new WP_REST_Server();
 		update_option( 'site_icon', self::$icon_id );
 
@@ -1041,7 +1055,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$data    = $index->get_data();
 
 		$this->assertArrayHasKey( 'site_icon', $data );
-		$this->assertEquals( self::$icon_id, $data['site_icon'] );
+		$this->assertSame( self::$icon_id, $data['site_icon'] );
 	}
 
 	public function test_get_namespace_index() {
@@ -2077,16 +2091,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$args     = $response->get_data()['endpoints'][0]['args'];
 
 		$this->assertSameSetsWithIndex( $expected, $args['param'] );
-	}
-
-	/**
-	 * @ticket 50152
-	 */
-	public function test_index_includes_link_to_active_theme_if_authenticated() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$index = rest_do_request( '/' );
-		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
 	}
 
 	/**
