@@ -1996,13 +1996,15 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 	 * instead of `post_content` via a the `customize_value_custom_css` filter, for example:
 	 *
 	 * <code>
-	 * add_filter( 'customize_value_custom_css', function( $value, $setting ) {
+	 * add_filter( 'customize_value_custom_css', 'my_customize_value_custom_css', '10, 2 );
+	 *
+	 * function my_customize_value_custom_css( $value, $setting ) {
 	 *     $post = wp_get_custom_css_post( $setting->stylesheet );
 	 *     if ( $post && ! empty( $post->post_content_filtered ) ) {
 	 *         $css = $post->post_content_filtered;
 	 *     }
 	 *     return $css;
-	 * }, 10, 2 );
+	 * }
 	 * </code>
 	 *
 	 * @since 4.7.0
