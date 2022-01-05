@@ -1510,63 +1510,67 @@ class WP_Rewrite {
 	 * @return string
 	 */
 	public function mod_rewrite_rules() {
+
+		$rules = '';
+
 		if ( ! $this->using_permalinks() ) {
-			return '';
-		}
 
-		$site_root = parse_url( site_url() );
-		if ( isset( $site_root['path'] ) ) {
-			$site_root = trailingslashit( $site_root['path'] );
-		}
 
-		$home_root = parse_url( home_url() );
-		if ( isset( $home_root['path'] ) ) {
-			$home_root = trailingslashit( $home_root['path'] );
-		} else {
-			$home_root = '/';
-		}
+			$site_root = parse_url( site_url() );
+			if ( isset( $site_root['path'] ) ) {
+				$site_root = trailingslashit( $site_root['path'] );
+			}
 
-		$rules  = "<IfModule mod_rewrite.c>\n";
-		$rules .= "RewriteEngine On\n";
-		$rules .= "RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]\n";
-		$rules .= "RewriteBase $home_root\n";
+			$home_root = parse_url( home_url() );
+			if ( isset( $home_root['path'] ) ) {
+				$home_root = trailingslashit( $home_root['path'] );
+			} else {
+				$home_root = '/';
+			}
 
-		// Prevent -f checks on index.php.
-		$rules .= "RewriteRule ^index\.php$ - [L]\n";
+			$rules  .= "<IfModule mod_rewrite.c>\n";
+			$rules .= "RewriteEngine On\n";
+			$rules .= "RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]\n";
+			$rules .= "RewriteBase $home_root\n";
 
-		// Add in the rules that don't redirect to WP's index.php (and thus shouldn't be handled by WP at all).
-		foreach ( (array) $this->non_wp_rules as $match => $query ) {
-			// Apache 1.3 does not support the reluctant (non-greedy) modifier.
-			$match = str_replace( '.+?', '.+', $match );
+			// Prevent -f checks on index.php.
+			$rules .= "RewriteRule ^index\.php$ - [L]\n";
 
-			$rules .= 'RewriteRule ^' . $match . ' ' . $home_root . $query . " [QSA,L]\n";
-		}
-
-		if ( $this->use_verbose_rules ) {
-			$this->matches = '';
-			$rewrite       = $this->rewrite_rules();
-			$num_rules     = count( $rewrite );
-			$rules        .= "RewriteCond %{REQUEST_FILENAME} -f [OR]\n" .
-				"RewriteCond %{REQUEST_FILENAME} -d\n" .
-				"RewriteRule ^.*$ - [S=$num_rules]\n";
-
-			foreach ( (array) $rewrite as $match => $query ) {
+			// Add in the rules that don't redirect to WP's index.php (and thus shouldn't be handled by WP at all).
+			foreach ( (array) $this->non_wp_rules as $match => $query ) {
 				// Apache 1.3 does not support the reluctant (non-greedy) modifier.
 				$match = str_replace( '.+?', '.+', $match );
 
-				if ( strpos( $query, $this->index ) !== false ) {
-					$rules .= 'RewriteRule ^' . $match . ' ' . $home_root . $query . " [QSA,L]\n";
-				} else {
-					$rules .= 'RewriteRule ^' . $match . ' ' . $site_root . $query . " [QSA,L]\n";
-				}
+				$rules .= 'RewriteRule ^' . $match . ' ' . $home_root . $query . " [QSA,L]\n";
 			}
-		} else {
-			$rules .= "RewriteCond %{REQUEST_FILENAME} !-f\n" .
-				"RewriteCond %{REQUEST_FILENAME} !-d\n" .
-				"RewriteRule . {$home_root}{$this->index} [L]\n";
-		}
 
-		$rules .= "</IfModule>\n";
+			if ( $this->use_verbose_rules ) {
+				$this->matches = '';
+				$rewrite       = $this->rewrite_rules();
+				$num_rules     = count( $rewrite );
+				$rules        .= "RewriteCond %{REQUEST_FILENAME} -f [OR]\n" .
+					"RewriteCond %{REQUEST_FILENAME} -d\n" .
+					"RewriteRule ^.*$ - [S=$num_rules]\n";
+
+				foreach ( (array) $rewrite as $match => $query ) {
+					// Apache 1.3 does not support the reluctant (non-greedy) modifier.
+					$match = str_replace( '.+?', '.+', $match );
+
+					if ( strpos( $query, $this->index ) !== false ) {
+						$rules .= 'RewriteRule ^' . $match . ' ' . $home_root . $query . " [QSA,L]\n";
+					} else {
+						$rules .= 'RewriteRule ^' . $match . ' ' . $site_root . $query . " [QSA,L]\n";
+					}
+				}
+			} else {
+				$rules .= "RewriteCond %{REQUEST_FILENAME} !-f\n" .
+					"RewriteCond %{REQUEST_FILENAME} !-d\n" .
+					"RewriteRule . {$home_root}{$this->index} [L]\n";
+			}
+
+			$rules .= "</IfModule>\n";
+
+		}
 
 		/**
 		 * Filters the list of rewrite rules formatted for output to an .htaccess file.
