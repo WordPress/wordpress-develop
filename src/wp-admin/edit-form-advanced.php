@@ -44,22 +44,24 @@ wp_enqueue_script( 'post' );
 $_wp_editor_expand   = false;
 $_content_editor_dfw = false;
 
-/**
- * Filters whether to enable the 'expand' functionality in the post editor.
- *
- * @since 4.0.0
- * @since 4.1.0 Added the `$post_type` parameter.
- *
- * @param bool   $expand    Whether to enable the 'expand' functionality. Default true.
- * @param string $post_type Post type.
- */
-if ( post_type_supports( $post_type, 'editor' ) && ! wp_is_mobile() &&
-	! ( $is_IE && preg_match( '/MSIE [5678]/', $_SERVER['HTTP_USER_AGENT'] ) ) &&
-	apply_filters( 'wp_editor_expand', true, $post_type ) ) {
-
-	wp_enqueue_script( 'editor-expand' );
-	$_content_editor_dfw = true;
-	$_wp_editor_expand   = ( 'on' === get_user_setting( 'editor_expand', 'on' ) );
+if ( post_type_supports( $post_type, 'editor' )
+	&& ! wp_is_mobile()
+	&& ! ( $is_IE && preg_match( '/MSIE [5678]/', $_SERVER['HTTP_USER_AGENT'] ) )
+) {
+	/**
+	 * Filters whether to enable the 'expand' functionality in the post editor.
+	 *
+	 * @since 4.0.0
+	 * @since 4.1.0 Added the `$post_type` parameter.
+	 *
+	 * @param bool   $expand    Whether to enable the 'expand' functionality. Default true.
+	 * @param string $post_type Post type.
+	 */
+	if ( apply_filters( 'wp_editor_expand', true, $post_type ) ) {
+		wp_enqueue_script( 'editor-expand' );
+		$_content_editor_dfw = true;
+		$_wp_editor_expand   = ( 'on' === get_user_setting( 'editor_expand', 'on' ) );
+	}
 }
 
 if ( wp_is_mobile() ) {
@@ -76,7 +78,7 @@ $post_ID = isset( $post_ID ) ? (int) $post_ID : 0;
 $user_ID = isset( $user_ID ) ? (int) $user_ID : 0;
 $action  = isset( $action ) ? $action : '';
 
-if ( (int) get_option( 'page_for_posts' ) === $post_ID && empty( $post->post_content ) ) {
+if ( (int) get_option( 'page_for_posts' ) === $post->ID && empty( $post->post_content ) ) {
 	add_action( 'edit_form_after_title', '_wp_posts_page_notice' );
 	remove_post_type_support( $post_type, 'editor' );
 }
@@ -92,7 +94,7 @@ if ( ! $thumbnail_support && 'attachment' === $post_type && $post->post_mime_typ
 
 if ( $thumbnail_support ) {
 	add_thickbox();
-	wp_enqueue_media( array( 'post' => $post_ID ) );
+	wp_enqueue_media( array( 'post' => $post->ID ) );
 }
 
 // Add the local autosave notice HTML.
@@ -101,7 +103,7 @@ add_action( 'admin_footer', '_local_storage_notice' );
 /*
  * @todo Document the $messages array(s).
  */
-$permalink = get_permalink( $post_ID );
+$permalink = get_permalink( $post->ID );
 if ( ! $permalink ) {
 	$permalink = '';
 }
@@ -169,9 +171,9 @@ if ( $viewable ) {
 $scheduled_date = sprintf(
 	/* translators: Publish box date string. 1: Date, 2: Time. */
 	__( '%1$s at %2$s' ),
-	/* translators: Publish box date format, see https://www.php.net/date */
+	/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
 	date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $post->post_date ) ),
-	/* translators: Publish box time format, see https://www.php.net/date */
+	/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
 	date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $post->post_date ) )
 );
 
@@ -235,12 +237,12 @@ if ( 'auto-draft' === $post->post_status ) {
 	$autosave    = false;
 	$form_extra .= "<input type='hidden' id='auto_draft' name='auto_draft' value='1' />";
 } else {
-	$autosave = wp_get_post_autosave( $post_ID );
+	$autosave = wp_get_post_autosave( $post->ID );
 }
 
 $form_action  = 'editpost';
-$nonce_action = 'update-post_' . $post_ID;
-$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post_ID ) . "' />";
+$nonce_action = 'update-post_' . $post->ID;
+$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post->ID ) . "' />";
 
 // Detect if there exists an autosave newer than the post and if that autosave is different than the post.
 if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
@@ -293,7 +295,11 @@ if ( 'post' === $post_type ) {
 	$title_and_editor .= '<p>' . __( 'The Text mode allows you to enter HTML along with your post text. Note that &lt;p&gt; and &lt;br&gt; tags are converted to line breaks when switching to the Text editor to make it less cluttered. When you type, a single line break can be used instead of typing &lt;br&gt;, and two line breaks instead of paragraph tags. The line breaks are converted back to tags automatically.' ) . '</p>';
 	$title_and_editor .= '<p>' . __( 'You can insert media files by clicking the button above the post editor and following the directions. You can align or edit images using the inline formatting toolbar available in Visual mode.' ) . '</p>';
 	$title_and_editor .= '<p>' . __( 'You can enable distraction-free writing mode using the icon to the right. This feature is not available for old browsers or devices with small screens, and requires that the full-height editor be enabled in Screen Options.' ) . '</p>';
-	$title_and_editor .= '<p>' . __( 'Keyboard users: When you&#8217;re working in the visual editor, you can use <kbd>Alt + F10</kbd> to access the toolbar.' ) . '</p>';
+	$title_and_editor .= '<p>' . sprintf(
+		/* translators: %s: Alt + F10 */
+		__( 'Keyboard users: When you&#8217;re working in the visual editor, you can use %s to access the toolbar.' ),
+		'<kbd>Alt + F10</kbd>'
+	) . '</p>';
 
 	get_current_screen()->add_help_tab(
 		array(
@@ -615,7 +621,7 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 	<?php
 	if ( 'auto-draft' !== $post->post_status ) {
 		echo '<span id="last-edit">';
-		$last_user = get_userdata( get_post_meta( $post_ID, '_edit_last', true ) );
+		$last_user = get_userdata( get_post_meta( $post->ID, '_edit_last', true ) );
 		if ( $last_user ) {
 			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
 			printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );

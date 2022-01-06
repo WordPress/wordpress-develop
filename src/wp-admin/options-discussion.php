@@ -12,6 +12,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Discussion Settings' );
 $parent_file = 'options-general.php';
 
@@ -57,7 +58,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <input name="default_comment_status" type="checkbox" id="default_comment_status" value="open" <?php checked( 'open', get_option( 'default_comment_status' ) ); ?> />
 <?php _e( 'Allow people to submit comments on new posts' ); ?></label>
 <br />
-<p class="description"><?php echo '(' . __( 'These settings may be overridden for individual posts.' ) . ')'; ?></p>
+<p class="description"><?php _e( 'Individual posts may override these settings. Changes here will only be applied to new posts.' ); ?></p>
 </fieldset></td>
 </tr>
 <tr>
@@ -108,7 +109,7 @@ $maxdeep = (int) apply_filters( 'thread_comments_depth_max', 10 );
 $thread_comments_depth = '</label> <label for="thread_comments_depth"><select name="thread_comments_depth" id="thread_comments_depth">';
 for ( $i = 2; $i <= $maxdeep; $i++ ) {
 	$thread_comments_depth .= "<option value='" . esc_attr( $i ) . "'";
-	if ( get_option( 'thread_comments_depth' ) == $i ) {
+	if ( (int) get_option( 'thread_comments_depth' ) === $i ) {
 		$thread_comments_depth .= " selected='selected'";
 	}
 	$thread_comments_depth .= ">$i</option>";
@@ -181,7 +182,7 @@ printf( __( 'Comments should be displayed with the %s comments at the top of eac
 <input name="comment_moderation" type="checkbox" id="comment_moderation" value="1" <?php checked( '1', get_option( 'comment_moderation' ) ); ?> />
 <?php _e( 'Comment must be manually approved' ); ?> </label>
 <br />
-<label for="comment_whitelist"><input type="checkbox" name="comment_whitelist" id="comment_whitelist" value="1" <?php checked( '1', get_option( 'comment_whitelist' ) ); ?> /> <?php _e( 'Comment author must have a previously approved comment' ); ?></label>
+<label for="comment_previously_approved"><input type="checkbox" name="comment_previously_approved" id="comment_previously_approved" value="1" <?php checked( '1', get_option( 'comment_previously_approved' ) ); ?> /> <?php _e( 'Comment author must have a previously approved comment' ); ?></label>
 </fieldset></td>
 </tr>
 <tr>
@@ -204,11 +205,11 @@ printf(
 </fieldset></td>
 </tr>
 <tr>
-<th scope="row"><?php _e( 'Comment Blocklist' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Comment Blocklist' ); ?></span></legend>
-<p><label for="blacklist_keys"><?php _e( 'When a comment contains any of these words in its content, author name, URL, email, IP address, or browser&#8217;s user agent string, it will be put in the Trash. One word or IP address per line. It will match inside words, so &#8220;press&#8221; will match &#8220;WordPress&#8221;.' ); ?></label></p>
+<th scope="row"><?php _e( 'Disallowed Comment Keys' ); ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Disallowed Comment Keys' ); ?></span></legend>
+<p><label for="disallowed_keys"><?php _e( 'When a comment contains any of these words in its content, author name, URL, email, IP address, or browser&#8217;s user agent string, it will be put in the Trash. One word or IP address per line. It will match inside words, so &#8220;press&#8221; will match &#8220;WordPress&#8221;.' ); ?></label></p>
 <p>
-<textarea name="blacklist_keys" rows="10" cols="50" id="blacklist_keys" class="large-text code"><?php echo esc_textarea( get_option( 'blacklist_keys' ) ); ?></textarea>
+<textarea name="disallowed_keys" rows="10" cols="50" id="disallowed_keys" class="large-text code"><?php echo esc_textarea( get_option( 'disallowed_keys' ) ); ?></textarea>
 </p>
 </fieldset></td>
 </tr>
@@ -255,7 +256,7 @@ $ratings = array(
 	'X'  => __( 'X &#8212; Even more mature than above' ),
 );
 foreach ( $ratings as $key => $rating ) :
-	$selected = ( get_option( 'avatar_rating' ) == $key ) ? 'checked="checked"' : '';
+	$selected = ( get_option( 'avatar_rating' ) === $key ) ? 'checked="checked"' : '';
 	echo "\n\t<label><input type='radio' name='avatar_rating' value='" . esc_attr( $key ) . "' $selected/> $rating</label><br />";
 endforeach;
 ?>
@@ -298,7 +299,7 @@ $avatar_list     = '';
 add_filter( 'pre_option_show_avatars', '__return_true', 100 );
 
 foreach ( $avatar_defaults as $default_key => $default_name ) {
-	$selected     = ( $default == $default_key ) ? 'checked="checked" ' : '';
+	$selected     = ( $default === $default_key ) ? 'checked="checked" ' : '';
 	$avatar_list .= "\n\t<label><input type='radio' name='avatar_default' id='avatar_{$default_key}' value='" . esc_attr( $default_key ) . "' {$selected}/> ";
 	$avatar_list .= get_avatar( $user_email, 32, $default_key, '', array( 'force_default' => true ) );
 	$avatar_list .= ' ' . $default_name . '</label>';

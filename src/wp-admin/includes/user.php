@@ -25,7 +25,7 @@ function add_user() {
  * @since 2.0.0
  *
  * @param int $user_id Optional. User ID.
- * @return int|WP_Error user id of the updated user.
+ * @return int|WP_Error User ID of the updated user or WP_Error on failure.
  */
 function edit_user( $user_id = 0 ) {
 	$wp_roles = wp_roles();
@@ -47,10 +47,10 @@ function edit_user( $user_id = 0 ) {
 	$pass1 = '';
 	$pass2 = '';
 	if ( isset( $_POST['pass1'] ) ) {
-		$pass1 = $_POST['pass1'];
+		$pass1 = trim( $_POST['pass1'] );
 	}
 	if ( isset( $_POST['pass2'] ) ) {
-		$pass2 = $_POST['pass2'];
+		$pass2 = trim( $_POST['pass2'] );
 	}
 
 	if ( isset( $_POST['role'] ) && current_user_can( 'promote_users' ) && ( ! $user_id || current_user_can( 'promote_user', $user_id ) ) ) {
@@ -174,7 +174,7 @@ function edit_user( $user_id = 0 ) {
 
 	// Checking the password has been typed twice the same.
 	if ( ( $update || ! empty( $pass1 ) ) && $pass1 != $pass2 ) {
-		$errors->add( 'pass', __( '<strong>Error</strong>: Please enter the same password in both password fields.' ), array( 'form-field' => 'pass1' ) );
+		$errors->add( 'pass', __( '<strong>Error</strong>: Passwords don&#8217;t match. Please enter the same password in both password fields.' ), array( 'form-field' => 'pass1' ) );
 	}
 
 	if ( ! empty( $pass1 ) ) {
@@ -204,7 +204,7 @@ function edit_user( $user_id = 0 ) {
 	} else {
 		$owner_id = email_exists( $user->user_email );
 		if ( $owner_id && ( ! $update || ( $owner_id != $user->ID ) ) ) {
-			$errors->add( 'email_exists', __( '<strong>Error</strong>: This email is already registered, please choose another one.' ), array( 'form-field' => 'email' ) );
+			$errors->add( 'email_exists', __( '<strong>Error</strong>: This email is already registered. Please choose another one.' ), array( 'form-field' => 'email' ) );
 		}
 	}
 
@@ -214,7 +214,7 @@ function edit_user( $user_id = 0 ) {
 	 * @since 2.8.0
 	 *
 	 * @param WP_Error $errors WP_Error object (passed by reference).
-	 * @param bool     $update  Whether this is a user update.
+	 * @param bool     $update Whether this is a user update.
 	 * @param stdClass $user   User object (passed by reference).
 	 */
 	do_action_ref_array( 'user_profile_update_errors', array( &$errors, $update, &$user ) );
@@ -234,9 +234,9 @@ function edit_user( $user_id = 0 ) {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param int    $user_id ID of the newly created user.
-		 * @param string $notify  Type of notification that should happen. See wp_send_new_user_notifications()
-		 *                        for more information on possible values.
+		 * @param int|WP_Error $user_id ID of the newly created user or WP_Error on failure.
+		 * @param string       $notify  Type of notification that should happen. See
+		 *                              wp_send_new_user_notifications() for more information.
 		 */
 		do_action( 'edit_user_created_user', $user_id, $notify );
 	}
@@ -280,7 +280,7 @@ function get_editable_roles() {
  * @since 2.0.5
  *
  * @param int $user_id User ID.
- * @return WP_User|bool WP_User object on success, false on failure.
+ * @return WP_User|false WP_User object on success, false on failure.
  */
 function get_user_to_edit( $user_id ) {
 	$user = get_userdata( $user_id );
@@ -358,12 +358,14 @@ function wp_delete_user( $id, $reassign = null ) {
 	 * Fires immediately before a user is deleted from the database.
 	 *
 	 * @since 2.0.0
+	 * @since 5.5.0 Added the `$user` parameter.
 	 *
 	 * @param int      $id       ID of the user to delete.
 	 * @param int|null $reassign ID of the user to reassign posts and links to.
 	 *                           Default null, for no reassignment.
+	 * @param WP_User  $user     WP_User object of the user to delete.
 	 */
-	do_action( 'delete_user', $id, $reassign );
+	do_action( 'delete_user', $id, $reassign, $user );
 
 	if ( null === $reassign ) {
 		$post_types_to_delete = array();
@@ -435,12 +437,14 @@ function wp_delete_user( $id, $reassign = null ) {
 	 * Fires immediately after a user is deleted from the database.
 	 *
 	 * @since 2.9.0
+	 * @since 5.5.0 Added the `$user` parameter.
 	 *
 	 * @param int      $id       ID of the deleted user.
 	 * @param int|null $reassign ID of the user to reassign posts and links to.
 	 *                           Default null, for no reassignment.
+	 * @param WP_User  $user     WP_User object of the deleted user.
 	 */
-	do_action( 'deleted_user', $id, $reassign );
+	do_action( 'deleted_user', $id, $reassign, $user );
 
 	return true;
 }
@@ -478,15 +482,15 @@ function default_password_nag_handler( $errors = false ) {
 		|| isset( $_GET['default_password_nag'] ) && '0' == $_GET['default_password_nag']
 	) {
 		delete_user_setting( 'default_password_nag' );
-		update_user_option( $user_ID, 'default_password_nag', false, true );
+		update_user_meta( $user_ID, 'default_password_nag', false );
 	}
 }
 
 /**
  * @since 2.8.0
  *
- * @param int    $user_ID
- * @param object $old_data
+ * @param int     $user_ID
+ * @param WP_User $old_data
  */
 function default_password_nag_edit_user( $user_ID, $old_data ) {
 	// Short-circuit it.
@@ -499,7 +503,7 @@ function default_password_nag_edit_user( $user_ID, $old_data ) {
 	// Remove the nag if the password has been changed.
 	if ( $new_data->user_pass != $old_data->user_pass ) {
 		delete_user_setting( 'default_password_nag' );
-		update_user_option( $user_ID, 'default_password_nag', false, true );
+		update_user_meta( $user_ID, 'default_password_nag', false );
 	}
 }
 
@@ -532,7 +536,7 @@ function default_password_nag() {
 function delete_users_add_js() {
 	?>
 <script>
-jQuery(document).ready( function($) {
+jQuery( function($) {
 	var submit = $('#submit').prop('disabled', true);
 	$('input[name="delete_option"]').one('change', function() {
 		submit.prop('disabled', false);
@@ -540,7 +544,7 @@ jQuery(document).ready( function($) {
 	$('#reassign_user').focus( function() {
 		$('#delete_option1').prop('checked', true).trigger('change');
 	});
-});
+} );
 </script>
 	<?php
 }
@@ -589,4 +593,70 @@ Please click the following link to activate your user account:
 		home_url(),
 		wp_specialchars_decode( translate_user_role( $role['name'] ) )
 	);
+}
+
+/**
+ * Checks if the Authorize Application Password request is valid.
+ *
+ * @since 5.6.0
+ *
+ * @param array   $request {
+ *     The array of request data. All arguments are optional and may be empty.
+ *
+ *     @type string $app_name    The suggested name of the application.
+ *     @type string $app_id      A UUID provided by the application to uniquely identify it.
+ *     @type string $success_url The URL the user will be redirected to after approving the application.
+ *     @type string $reject_url  The URL the user will be redirected to after rejecting the application.
+ * }
+ * @param WP_User $user The user authorizing the application.
+ * @return true|WP_Error True if the request is valid, a WP_Error object contains errors if not.
+ */
+function wp_is_authorize_application_password_request_valid( $request, $user ) {
+	$error = new WP_Error();
+
+	if ( ! empty( $request['success_url'] ) ) {
+		$scheme = wp_parse_url( $request['success_url'], PHP_URL_SCHEME );
+
+		if ( 'http' === $scheme ) {
+			$error->add(
+				'invalid_redirect_scheme',
+				__( 'The success URL must be served over a secure connection.' )
+			);
+		}
+	}
+
+	if ( ! empty( $request['reject_url'] ) ) {
+		$scheme = wp_parse_url( $request['reject_url'], PHP_URL_SCHEME );
+
+		if ( 'http' === $scheme ) {
+			$error->add(
+				'invalid_redirect_scheme',
+				__( 'The rejection URL must be served over a secure connection.' )
+			);
+		}
+	}
+
+	if ( ! empty( $request['app_id'] ) && ! wp_is_uuid( $request['app_id'] ) ) {
+		$error->add(
+			'invalid_app_id',
+			__( 'The application ID must be a UUID.' )
+		);
+	}
+
+	/**
+	 * Fires before application password errors are returned.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param WP_Error $error   The error object.
+	 * @param array    $request The array of request data.
+	 * @param WP_User  $user    The user authorizing the application.
+	 */
+	do_action( 'wp_authorize_application_password_request_errors', $error, $request, $user );
+
+	if ( $error->has_errors() ) {
+		return $error;
+	}
+
+	return true;
 }

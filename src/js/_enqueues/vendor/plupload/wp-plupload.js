@@ -70,7 +70,7 @@ window.wp = window.wp || {};
 
 		// Proxy all methods so this always refers to the current instance.
 		for ( key in this ) {
-			if ( $.isFunction( this[ key ] ) ) {
+			if ( typeof this[ key ] === 'function' ) {
 				this[ key ] = $.proxy( this[ key ], this );
 			}
 		}
@@ -115,9 +115,9 @@ window.wp = window.wp || {};
 		 *
 		 * @since 5.3.0
 		 *
-		 * @param  {string}        message  Error message.
-		 * @param  {object}        data     Error data from Plupload.
-		 * @param  {plupload.File} file     File that was uploaded.
+		 * @param {string}        message Error message.
+		 * @param {object}        data    Error data from Plupload.
+		 * @param {plupload.File} file    File that was uploaded.
 		 */
 		tryAgain = function( message, data, file ) {
 			var times, id;
@@ -203,10 +203,10 @@ window.wp = window.wp || {};
 		 * Add a new error to the errors collection, so other modules can track
 		 * and display errors. @see wp.Uploader.errors.
 		 *
-		 * @param  {string}        message  Error message.
-		 * @param  {object}        data     Error data from Plupload.
-		 * @param  {plupload.File} file     File that was uploaded.
-		 * @param  {string}        retry    Whether to try again to create image sub-sizes. Passing 'no-retry' will prevent it.
+		 * @param {string}        message Error message.
+		 * @param {object}        data    Error data from Plupload.
+		 * @param {plupload.File} file    File that was uploaded.
+		 * @param {string}        retry   Whether to try again to create image sub-sizes. Passing 'no-retry' will prevent it.
 		 */
 		error = function( message, data, file, retry ) {
 			var isImage = file.type && file.type.indexOf( 'image/' ) === 0,
@@ -284,7 +284,7 @@ window.wp = window.wp || {};
 			}
 
 			// 'dragenter' doesn't fire correctly, simulate it with a limited 'dragover'.
-			dropzone.bind( 'dragover.wp-uploader', function() {
+			dropzone.on( 'dragover.wp-uploader', function() {
 				if ( timer ) {
 					clearTimeout( timer );
 				}
@@ -297,7 +297,7 @@ window.wp = window.wp || {};
 				active = true;
 			});
 
-			dropzone.bind('dragleave.wp-uploader, drop.wp-uploader', function() {
+			dropzone.on('dragleave.wp-uploader, drop.wp-uploader', function() {
 				/*
 				 * Using an instant timer prevents the drag-over class
 				 * from being quickly removed and re-added when elements
@@ -348,6 +348,20 @@ window.wp = window.wp || {};
 
 				// Ignore failed uploads.
 				if ( plupload.FAILED === file.status ) {
+					return;
+				}
+
+				if ( file.type === 'image/heic' && up.settings.heic_upload_error ) {
+					// Show error but do not block uploading.
+					Uploader.errors.unshift({
+						message: pluploadL10n.unsupported_image,
+						data:    {},
+						file:    file
+					});
+				} else if ( file.type === 'image/webp' && up.settings.webp_upload_error ) {
+					// Disallow uploading of WebP images if the server cannot edit them.
+					error( pluploadL10n.noneditable_image, {}, file, 'no-retry' );
+					up.removeFile( file );
 					return;
 				}
 
@@ -431,7 +445,7 @@ window.wp = window.wp || {};
 				if ( pluploadError.code === plupload[ key ] ) {
 					message = Uploader.errorMap[ key ];
 
-					if ( _.isFunction( message ) ) {
+					if ( typeof message === 'function' ) {
 						message = message( pluploadError.file, pluploadError );
 					}
 

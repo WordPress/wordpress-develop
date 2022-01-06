@@ -8,11 +8,11 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_Get_Id_From_Blogname extends WP_UnitTestCase {
+	class Tests_Multisite_GetIdFromBlogname extends WP_UnitTestCase {
 		protected static $network_ids;
 		protected static $site_ids;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'wordpress.org/'     => array(
 					'domain' => 'wordpress.org',
@@ -101,7 +101,7 @@ if ( is_multisite() ) :
 			$result       = get_id_from_blogname( 'foo' );
 			$current_site = $original_network;
 
-			$this->assertEquals( $expected, $result );
+			$this->assertSame( $expected, $result );
 		}
 
 		/**
@@ -122,7 +122,7 @@ if ( is_multisite() ) :
 			$result       = get_id_from_blogname( 'foo' );
 			$current_site = $original_network;
 
-			$this->assertEquals( $expected, $result );
+			$this->assertSame( $expected, $result );
 		}
 
 		public function test_get_id_from_blogname_invalid_slug() {
@@ -134,7 +134,7 @@ if ( is_multisite() ) :
 			$result       = get_id_from_blogname( 'bar' );
 			$current_site = $original_network;
 
-			$this->assertEquals( null, $result );
+			$this->assertNull( $result );
 		}
 
 	}

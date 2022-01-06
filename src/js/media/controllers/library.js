@@ -191,12 +191,12 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 * @since 4.4.1
 	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @return {Boolean}
+	 * @return {boolean}
 	 */
 	isImageAttachment: function( attachment ) {
 		// If uploading, we know the filename but not the mime type.
 		if ( attachment.get('uploading') ) {
-			return /\.(jpe?g|png|gif)$/i.test( attachment.get('filename') );
+			return /\.(jpe?g|png|gif|webp)$/i.test( attachment.get('filename') );
 		}
 
 		return attachment.get('type') === 'image';
@@ -208,7 +208,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 * @since 3.6.0
 	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @return {Boolean}
+	 * @return {boolean}
 	 */
 	canEmbed: function( attachment ) {
 		// If uploading, we know the filename but not the mime type.

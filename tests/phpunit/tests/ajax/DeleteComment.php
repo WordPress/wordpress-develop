@@ -16,7 +16,7 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 	/**
-	 * List of comments
+	 * List of comments.
 	 *
 	 * @var array
 	 */
@@ -29,7 +29,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 */
 	protected static $post_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 
 		$comment_ids    = $factory->comment->create_post_comments( self::$post_id, 8 );
@@ -37,7 +37,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Clear the POST actions in between requests
+	 * Clears the POST actions in between requests.
 	 */
 	protected function _clear_post_action() {
 		unset( $_POST['trash'] );
@@ -53,12 +53,12 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 */
 
 	/**
-	 * Test as a privilged user (administrator)
-	 * Expects test to pass
+	 * Tests as a privileged user (administrator).
 	 *
-	 * @param mixed $comment Comment object
-	 * @param string action trash, untrash, etc.
-	 * @return void
+	 * Expects test to pass.
+	 *
+	 * @param WP_Comment $comment Comment object.
+	 * @param string     $action  Action: 'trash', 'untrash', etc.
 	 */
 	public function _test_as_admin( $comment, $action ) {
 
@@ -88,8 +88,8 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
 
 		// Ensure everything is correct.
-		$this->assertEquals( $comment->comment_ID, (string) $xml->response[0]->comment['id'] );
-		$this->assertEquals( 'delete-comment_' . $comment->comment_ID, (string) $xml->response['action'] );
+		$this->assertSame( $comment->comment_ID, (string) $xml->response[0]->comment['id'] );
+		$this->assertSame( 'delete-comment_' . $comment->comment_ID, (string) $xml->response['action'] );
 		$this->assertGreaterThanOrEqual( time() - 10, (int) $xml->response[0]->comment[0]->supplemental[0]->time[0] );
 		$this->assertLessThanOrEqual( time(), (int) $xml->response[0]->comment[0]->supplemental[0]->time[0] );
 
@@ -108,16 +108,16 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 		// Check for either possible total.
 		$message = sprintf( 'returned value: %1$d $total: %2$d  $recalc_total: %3$d', (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], $total, $recalc_total );
-		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ), true ), $message );
+		$this->assertContains( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ), $message );
 	}
 
 	/**
-	 * Test as a non-privileged user (subscriber)
-	 * Expects test to fail
+	 * Tests as a non-privileged user (subscriber).
 	 *
-	 * @param mixed $comment Comment object
-	 * @param string action trash, untrash, etc.
-	 * @return void
+	 * Expects test to fail.
+	 *
+	 * @param WP_Comment $comment Comment object.
+	 * @param string     $action  Action: 'trash', 'untrash', etc.
 	 */
 	public function _test_as_subscriber( $comment, $action ) {
 
@@ -137,18 +137,19 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		$_POST['_url']        = admin_url( 'edit-comments.php' );
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'delete-comment' );
 	}
 
 
 	/**
-	 * Test with a bad nonce
-	 * Expects test to fail
+	 * Tests with a bad nonce.
 	 *
-	 * @param mixed $comment Comment object
-	 * @param string action trash, untrash, etc.
-	 * @return void
+	 * Expects test to fail.
+	 *
+	 * @param WP_Comment $comment Comment object.
+	 * @param string     $action  Action: 'trash', 'untrash', etc.
 	 */
 	public function _test_with_bad_nonce( $comment, $action ) {
 
@@ -168,17 +169,18 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		$_POST['_url']        = admin_url( 'edit-comments.php' );
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'delete-comment' );
 	}
 
 	/**
-	 * Test with a bad id
-	 * Expects test to fail
+	 * Tests with a bad ID.
 	 *
-	 * @param mixed $comment Comment object
-	 * @param string action trash, untrash, etc.
-	 * @return void
+	 * Expects test to fail.
+	 *
+	 * @param WP_Comment $comment Comment object.
+	 * @param string     $action  Action: 'trash', 'untrash', etc.
 	 */
 	public function _test_with_bad_id( $comment, $action ) {
 
@@ -202,20 +204,20 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 			$this->_handleAjax( 'delete-comment' );
 			$this->fail( 'Expected exception: WPAjaxDieStopException' );
 		} catch ( WPAjaxDieStopException $e ) {
-			$this->assertEquals( 10, strlen( $e->getMessage() ) );
-			$this->assertTrue( is_numeric( $e->getMessage() ) );
+			$this->assertSame( 10, strlen( $e->getMessage() ) );
+			$this->assertIsNumeric( $e->getMessage() );
 		} catch ( Exception $e ) {
 			$this->fail( 'Unexpected exception type: ' . get_class( $e ) );
 		}
 	}
 
 	/**
-	 * Test doubling the action (e.g. trash a trashed comment)
-	 * Expects test to fail
+	 * Tests doubling the action (e.g. trash a trashed comment).
 	 *
-	 * @param mixed $comment Comment object
-	 * @param string action trash, untrash, etc.
-	 * @return void
+	 * Expects test to fail.
+	 *
+	 * @param WP_Comment $comment Comment object.
+	 * @param string     $action  Action: 'trash', 'untrash', etc.
 	 */
 	public function _test_double_action( $comment, $action ) {
 
@@ -252,17 +254,15 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 			$this->_handleAjax( 'delete-comment' );
 			$this->fail( 'Expected exception: WPAjaxDieStopException' );
 		} catch ( WPAjaxDieStopException $e ) {
-			$this->assertEquals( 10, strlen( $e->getMessage() ) );
-			$this->assertTrue( is_numeric( $e->getMessage() ) );
+			$this->assertSame( 10, strlen( $e->getMessage() ) );
+			$this->assertIsNumeric( $e->getMessage() );
 		} catch ( Exception $e ) {
 			$this->fail( 'Unexpected exception type: ' . get_class( $e ) );
 		}
 	}
 
 	/**
-	 * Delete a comment as an administrator (expects success)
-	 *
-	 * @return void
+	 * Deletes a comment as an administrator (expects success).
 	 */
 	public function test_ajax_comment_trash_actions_as_administrator() {
 		// Test trash/untrash.
@@ -278,9 +278,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Delete a comment as a subscriber (expects permission denied)
-	 *
-	 * @return void
+	 * Deletes a comment as a subscriber (expects permission denied).
 	 */
 	public function test_ajax_comment_trash_actions_as_subscriber() {
 		// Test trash/untrash.
@@ -296,9 +294,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Delete a comment with no id
-	 *
-	 * @return void
+	 * Deletes a comment with no ID.
 	 */
 	public function test_ajax_trash_comment_no_id() {
 		// Test trash/untrash.
@@ -314,9 +310,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Delete a comment with a bad nonce
-	 *
-	 * @return void
+	 * Deletes a comment with a bad nonce.
 	 */
 	public function test_ajax_trash_comment_bad_nonce() {
 		// Test trash/untrash.
@@ -332,9 +326,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test trashing an already trashed comment, etc.
-	 *
-	 * @return void
+	 * Tests trashing an already trashed comment, etc.
 	 */
 	public function test_ajax_trash_double_action() {
 		// Test trash/untrash.

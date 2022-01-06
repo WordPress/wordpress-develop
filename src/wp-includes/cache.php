@@ -111,19 +111,38 @@ function wp_cache_flush() {
  * @see WP_Object_Cache::get()
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
  *
- * @param int|string  $key    The key under which the cache contents are stored.
- * @param string      $group  Optional. Where the cache contents are grouped. Default empty.
- * @param bool        $force  Optional. Whether to force an update of the local cache from the persistent
- *                            cache. Default false.
- * @param bool        $found  Optional. Whether the key was found in the cache (passed by reference).
- *                            Disambiguates a return of false, a storable value. Default null.
- * @return bool|mixed False on failure to retrieve contents or the cache
- *                    contents on success
+ * @param int|string $key   The key under which the cache contents are stored.
+ * @param string     $group Optional. Where the cache contents are grouped. Default empty.
+ * @param bool       $force Optional. Whether to force an update of the local cache
+ *                          from the persistent cache. Default false.
+ * @param bool       $found Optional. Whether the key was found in the cache (passed by reference).
+ *                          Disambiguates a return of false, a storable value. Default null.
+ * @return mixed|false The cache contents on success, false on failure to retrieve contents.
  */
 function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
 	global $wp_object_cache;
 
 	return $wp_object_cache->get( $key, $group, $force, $found );
+}
+
+/**
+ * Retrieves multiple values from the cache in one call.
+ *
+ * @since 5.5.0
+ *
+ * @see WP_Object_Cache::get_multiple()
+ * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+ *
+ * @param array  $keys  Array of keys under which the cache contents are stored.
+ * @param string $group Optional. Where the cache contents are grouped. Default empty.
+ * @param bool   $force Optional. Whether to force an update of the local cache
+ *                      from the persistent cache. Default false.
+ * @return array Array of values organized into groups.
+ */
+function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
+	global $wp_object_cache;
+
+	return $wp_object_cache->get_multiple( $keys, $group, $force );
 }
 
 /**
@@ -228,7 +247,7 @@ function wp_cache_switch_to_blog( $blog_id ) {
  * @see WP_Object_Cache::add_global_groups()
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
  *
- * @param string|array $groups A group or an array of groups to add.
+ * @param string|string[] $groups A group or an array of groups to add.
  */
 function wp_cache_add_global_groups( $groups ) {
 	global $wp_object_cache;
@@ -241,7 +260,7 @@ function wp_cache_add_global_groups( $groups ) {
  *
  * @since 2.6.0
  *
- * @param string|array $groups A group or an array of groups to add.
+ * @param string|string[] $groups A group or an array of groups to add.
  */
 function wp_cache_add_non_persistent_groups( $groups ) {
 	// Default cache doesn't persist so nothing to do here.

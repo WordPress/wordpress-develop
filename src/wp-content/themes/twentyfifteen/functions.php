@@ -102,6 +102,7 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 				'caption',
 				'script',
 				'style',
+				'navigation-widgets',
 			)
 		);
 
@@ -144,20 +145,20 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 
 		// Setup the WordPress core custom background feature.
 
-		/**
-		 * Filter Twenty Fifteen custom-header support arguments.
-		 *
-		 * @since Twenty Fifteen 1.0
-		 *
-		 * @param array $args {
-		 *     An array of custom-header support arguments.
-		 *
-		 *     @type string $default-color          Default color of the header.
-		 *     @type string $default-attachment     Default attachment of the header.
-		 * }
-		 */
 		add_theme_support(
 			'custom-background',
+			/**
+			 * Filters Twenty Fifteen custom-background support arguments.
+			 *
+			 * @since Twenty Fifteen 1.0
+			 *
+			 * @param array $args {
+			 *     An array of custom-background support arguments.
+			 *
+			 *     @type string $default-color      Default color of the background.
+			 *     @type string $default-attachment Default attachment of the background.
+			 * }
+			 */
 			apply_filters(
 				'twentyfifteen_custom_background_args',
 				array(
@@ -367,10 +368,10 @@ function twentyfifteen_scripts() {
 	wp_enqueue_style( 'twentyfifteen-fonts', twentyfifteen_fonts_url(), array(), null );
 
 	// Add Genericons, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.2' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201208' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfifteen-style', get_stylesheet_uri(), array(), '20190507' );
+	wp_enqueue_style( 'twentyfifteen-style', get_stylesheet_uri(), array(), '20201208' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyfifteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfifteen-style' ), '20190102' );
@@ -412,7 +413,7 @@ add_action( 'wp_enqueue_scripts', 'twentyfifteen_scripts' );
  */
 function twentyfifteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyfifteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190102' );
+	wp_enqueue_style( 'twentyfifteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentyfifteen-fonts', twentyfifteen_fonts_url(), array(), null );
 }
@@ -491,10 +492,10 @@ add_action( 'wp_enqueue_scripts', 'twentyfifteen_post_nav_background' );
  *
  * @since Twenty Fifteen 1.0
  *
- * @param string  $item_output The menu item output.
- * @param WP_Post $item        Menu item object.
- * @param int     $depth       Depth of the menu.
- * @param array   $args        wp_nav_menu() arguments.
+ * @param string   $item_output The menu item's starting HTML output.
+ * @param WP_Post  $item        Menu item data object.
+ * @param int      $depth       Depth of the menu. Used for padding.
+ * @param stdClass $args        An object of wp_nav_menu() arguments.
  * @return string Menu item with possible description.
  */
 function twentyfifteen_nav_description( $item_output, $item, $depth, $args ) {
@@ -581,3 +582,10 @@ require get_template_directory() . '/inc/template-tags.php';
  * @since Twenty Fifteen 1.0
  */
 require get_template_directory() . '/inc/customizer.php';
+
+/**
+ * Block Patterns.
+ *
+ * @since Twenty Fifteen 3.0
+ */
+require get_template_directory() . '/inc/block-patterns.php';

@@ -75,7 +75,7 @@ twentytwenty.touchEnabled = {
 
 	init: function() {
 		var matchMedia = function() {
-			// Include the 'heartz' as a way to have a non matching MQ to help terminate the join. See <https://git.io/vznFH>.
+			// Include the 'heartz' as a way to have a non-matching MQ to help terminate the join. See <https://git.io/vznFH>.
 			var prefixes = [ '-webkit-', '-moz-', '-o-', '-ms-' ];
 			var query = [ '(', prefixes.join( 'touch-enabled),(' ), 'heartz', ')' ].join( '' );
 			return window.matchMedia && window.matchMedia( query ).matches;
@@ -646,6 +646,8 @@ twentytwenty.toggles = {
  *
  * This implementation is coming from https://gomakethings.com/a-native-javascript-equivalent-of-jquerys-ready-method/
  *
+ * @since Twenty Twenty 1.0
+ *
  * @param {Function} fn Callback function to run.
  */
 function twentytwentyDomReady( fn ) {
@@ -676,6 +678,9 @@ twentytwentyDomReady( function() {
 /* Toggle an attribute ----------------------- */
 
 function twentytwentyToggleAttribute( element, attribute, trueVal, falseVal ) {
+	if ( element.classList.contains( 'close-search-toggle' ) ) {
+		return;
+	}
 	if ( trueVal === undefined ) {
 		trueVal = true;
 	}
@@ -691,6 +696,8 @@ function twentytwentyToggleAttribute( element, attribute, trueVal, falseVal ) {
 
 /**
  * Toggle a menu item on or off.
+ *
+ * @since Twenty Twenty 1.0
  *
  * @param {HTMLElement} target
  * @param {number} duration
@@ -792,6 +799,8 @@ function twentytwentyMenuToggle( target, duration ) {
 
 /**
  * Traverses the DOM up to find elements matching the query.
+ *
+ * @since Twenty Twenty 1.0
  *
  * @param {HTMLElement} target
  * @param {string} query

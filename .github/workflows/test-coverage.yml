@@ -1,0 +1,183 @@
+name: Code Coverage Report
+
+on:
+  # Verify
+  push:
+    branches:
+      - trunk
+    paths:
+      - '.github/workflows/test-coverage.yml'
+      - 'phpunit.xml.dist'
+      - 'tests/phpunit/multisite.xml'
+  # Once daily at 00:00 UTC.
+  schedule:
+    - cron: '0 0 * * *'
+  # Allow manually triggering the workflow.
+  workflow_dispatch:
+
+env:
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
+  LOCAL_PHP: '7.4-fpm'
+  LOCAL_PHP_XDEBUG: true
+  LOCAL_PHP_MEMCACHED: ${{ false }}
+
+jobs:
+  # Sets up WordPress for testing or development use.
+  #
+  # Performs the following steps:
+  # - Set environment variables.
+  # - Checks out the repository.
+  # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
+  # - Logs debug information about the runner container.
+  # - Installs NodeJS 14.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs Docker debug information (about the Docker installation within the runner).
+  # - Starts the WordPress Docker container.
+  # - Logs debug general information.
+  # - Logs the running Docker containers.
+  # - Logs WordPress Docker container debug information.
+  # - Logs debug information about what's installed within the WordPress Docker containers.
+  # - Install WordPress within the Docker container.
+  # - Run the PHPUnit tests as a single site.
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Upload the single site code coverage report to Codecov.io.
+  # - Run the PHPUnit tests as a multisite.
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Upload the multisite code coverage report to Codecov.io.
+  test-coverage-report:
+    name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        multisite: [ false, true ]
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
+          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+
+      - name: Log debug information
+        run: |
+          echo "$GITHUB_REF"
+          echo "$GITHUB_EVENT_NAME"
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+          php --version
+          php -i
+          locale -a
+
+      - name: Install NodeJS
+        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
+        with:
+          node-version: 14
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      # This date is used to ensure that the Composer cache is refreshed at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353 # v2.1.6
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-date-${{ steps.get-date.outputs.date }}-composer-${{ hashFiles('**/composer.json') }}
+
+      - name: Install Composer dependencies
+        run: |
+          docker-compose run --rm php composer --version
+
+          # Install using `composer update` as there is no `composer.lock` file.
+          docker-compose run --rm php composer update
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Run tests as a single site
+        if: ${{ ! matrix.multisite }}
+        run: npm run test:php -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
+
+      - name: Upload single site report to Codecov
+        if: ${{ ! matrix.multisite }}
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2.1.0
+        with:
+          file: wp-code-coverage-single-clover-${{ github.sha }}.xml
+          flags: single,php
+
+      - name: Run tests as a multisite install
+        if: ${{ matrix.multisite }}
+        run: npm run test:php -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
+
+      - name: Upload multisite report to Codecov
+        if: ${{ matrix.multisite }}
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2.1.0
+        with:
+          file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+          flags: multisite,php
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    needs: [ test-coverage-report ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.test-coverage-report.result == 'success' && 'success' || needs.test-coverage-report.result == 'cancelled' && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}

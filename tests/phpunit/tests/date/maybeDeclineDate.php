@@ -4,8 +4,9 @@
  * @group functions.php
  * @group i18n
  * @group datetime
+ * @covers ::wp_maybe_decline_date
  */
-class Tests_Functions_MaybeDeclineDate extends WP_UnitTestCase {
+class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
 
 	/**
 	 * @var string
@@ -17,22 +18,22 @@ class Tests_Functions_MaybeDeclineDate extends WP_UnitTestCase {
 	 */
 	private $wp_locale_original;
 
-	public function setUp() {
+	public function set_up() {
 		global $locale, $wp_locale;
 
-		parent::setUp();
+		parent::set_up();
 
 		$this->locale_original    = $locale;
 		$this->wp_locale_original = clone $wp_locale;
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		global $locale, $wp_locale;
 
 		$locale    = $this->locale_original;
 		$wp_locale = $this->wp_locale_original;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -57,7 +58,7 @@ class Tests_Functions_MaybeDeclineDate extends WP_UnitTestCase {
 
 		remove_filter( 'gettext_with_context', array( $this, 'filter__enable_months_names_declension' ), 10 );
 
-		$this->assertEquals( $output, $declined_date );
+		$this->assertSame( $output, $declined_date );
 	}
 
 	public function filter__enable_months_names_declension( $translation, $text, $context ) {

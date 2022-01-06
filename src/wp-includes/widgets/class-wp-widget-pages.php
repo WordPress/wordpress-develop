@@ -26,6 +26,7 @@ class WP_Widget_Pages extends WP_Widget {
 			'classname'                   => 'widget_pages',
 			'description'                 => __( 'A list of your site&#8217;s Pages.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		parent::__construct( 'pages', __( 'Pages' ), $widget_ops );
 	}
@@ -40,7 +41,8 @@ class WP_Widget_Pages extends WP_Widget {
 	 * @param array $instance Settings for the current Pages widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		$title = ! empty( $instance['title'] ) ? $instance['title'] : __( 'Pages' );
+		$default_title = __( 'Pages' );
+		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
 
 		/**
 		 * Filters the widget title.
@@ -60,7 +62,7 @@ class WP_Widget_Pages extends WP_Widget {
 			$sortby = 'menu_order, post_title';
 		}
 
-		$out = wp_list_pages(
+		$output = wp_list_pages(
 			/**
 			 * Filters the arguments for the Pages widget.
 			 *
@@ -84,16 +86,34 @@ class WP_Widget_Pages extends WP_Widget {
 			)
 		);
 
-		if ( ! empty( $out ) ) {
+		if ( ! empty( $output ) ) {
 			echo $args['before_widget'];
 			if ( $title ) {
 				echo $args['before_title'] . $title . $args['after_title'];
 			}
+
+			$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
+
+			/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
+			$format = apply_filters( 'navigation_widgets_format', $format );
+
+			if ( 'html5' === $format ) {
+				// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+				$title      = trim( strip_tags( $title ) );
+				$aria_label = $title ? $title : $default_title;
+				echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
+			}
 			?>
-		<ul>
-			<?php echo $out; ?>
-		</ul>
+
+			<ul>
+				<?php echo $output; ?>
+			</ul>
+
 			<?php
+			if ( 'html5' === $format ) {
+				echo '</nav>';
+			}
+
 			echo $args['after_widget'];
 		}
 	}

@@ -14,9 +14,10 @@
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|stdClass $bookmark
- * @param string $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                       an stdClass object, an associative array, or a numeric array, respectively. Default OBJECT.
- * @param string $filter Optional, default is 'raw'.
+ * @param string       $output   Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                               correspond to an stdClass object, an associative array, or a numeric array,
+ *                               respectively. Default OBJECT.
+ * @param string       $filter   Optional. How to sanitize bookmark fields. Default 'raw'.
  * @return array|object|null Type returned depends on $output value.
  */
 function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
@@ -52,11 +53,11 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 
 	$_bookmark = sanitize_bookmark( $_bookmark, $filter );
 
-	if ( OBJECT == $output ) {
+	if ( OBJECT === $output ) {
 		return $_bookmark;
-	} elseif ( ARRAY_A == $output ) {
+	} elseif ( ARRAY_A === $output ) {
 		return get_object_vars( $_bookmark );
-	} elseif ( ARRAY_N == $output ) {
+	} elseif ( ARRAY_N === $output ) {
 		return array_values( get_object_vars( $_bookmark ) );
 	} else {
 		return $_bookmark;
@@ -68,9 +69,9 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
  *
  * @since 2.3.0
  *
- * @param string $field The name of the data field to return
- * @param int $bookmark The bookmark ID to get field
- * @param string $context Optional. The context of how the field will be used.
+ * @param string $field    The name of the data field to return.
+ * @param int    $bookmark The bookmark ID to get field.
+ * @param string $context  Optional. The context of how the field will be used.
  * @return string|WP_Error
  */
 function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
@@ -116,7 +117,7 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  *                                    Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
  *     @type int      $limit          Amount of bookmarks to display. Accepts any positive number or
  *                                    -1 for all.  Default -1.
- *     @type string   $category       Comma-separated list of category ids to include links from.
+ *     @type string   $category       Comma-separated list of category IDs to include links from.
  *                                    Default empty.
  *     @type string   $category_name  Category to retrieve links for by name. Default empty.
  *     @type int|bool $hide_invisible Whether to show or hide links marked as 'invisible'. Accepts
@@ -321,13 +322,12 @@ function get_bookmarks( $args = '' ) {
 }
 
 /**
- * Sanitizes all bookmark fields
+ * Sanitizes all bookmark fields.
  *
  * @since 2.3.0
  *
- * @param stdClass|array $bookmark Bookmark row
- * @param string $context Optional, default is 'display'. How to filter the
- *      fields
+ * @param stdClass|array $bookmark Bookmark row.
+ * @param string         $context  Optional. How to filter the fields. Default 'display'.
  * @return stdClass|array Same type as $bookmark but with fields sanitized.
  */
 function sanitize_bookmark( $bookmark, $context = 'display' ) {
@@ -391,16 +391,17 @@ function sanitize_bookmark( $bookmark, $context = 'display' ) {
  * @param string $field       The bookmark field.
  * @param mixed  $value       The bookmark field value.
  * @param int    $bookmark_id Bookmark ID.
- * @param string $context     How to filter the field value. Accepts 'raw', 'edit', 'attribute',
- *                            'js', 'db', or 'display'
+ * @param string $context     How to filter the field value. Accepts 'raw', 'edit', 'db',
+ *                            'display', 'attribute', or 'js'. Default 'display'.
  * @return mixed The filtered value.
  */
 function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
+	$int_fields = array( 'link_id', 'link_rating' );
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
+	}
+
 	switch ( $field ) {
-		case 'link_id': // ints
-		case 'link_rating':
-			$value = (int) $value;
-			break;
 		case 'link_category': // array( ints )
 			$value = array_map( 'absint', (array) $value );
 			// We return here so that the categories aren't filtered.
@@ -443,6 +444,11 @@ function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
 		} elseif ( 'js' === $context ) {
 			$value = esc_js( $value );
 		}
+	}
+
+	// Restore the type for integer fields after esc_attr().
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
 	}
 
 	return $value;

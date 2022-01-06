@@ -17,7 +17,7 @@
 get_header();
 ?>
 
-<main id="site-content" role="main">
+<main id="site-content">
 
 	<?php
 
@@ -47,6 +47,8 @@ get_header();
 		} else {
 			$archive_subtitle = __( 'We could not find any results for your search. You can give it another try through the search form below.', 'twentytwenty' );
 		}
+	} elseif ( is_archive() && ! have_posts() ) {
+		$archive_title = __( 'Nothing Found', 'twentytwenty' );
 	} elseif ( ! is_home() ) {
 		$archive_title    = get_the_archive_title();
 		$archive_subtitle = get_the_archive_description();
@@ -96,7 +98,7 @@ get_header();
 			<?php
 			get_search_form(
 				array(
-					'label' => __( 'search again', 'twentytwenty' ),
+					'aria_label' => __( 'search again', 'twentytwenty' ),
 				)
 			);
 			?>

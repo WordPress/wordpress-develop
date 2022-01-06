@@ -4,13 +4,26 @@
  * @group date
  * @group datetime
  * @group xmlrpc
+ * @covers IXR_Date
  */
 class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 30429
+	 *
+	 * @covers wp_xmlrpc_server::mw_newPost
 	 */
 	public function test_date_new_post() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$timezone = 'Europe/Kiev';
 		update_option( 'timezone_string', $timezone );
 
@@ -34,7 +47,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'UTC time with explicit time zone into mw_newPost'
@@ -55,7 +68,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'Local time w/o time zone into mw_newPost'
@@ -76,7 +89,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'UTC time into mw_newPost'
@@ -97,7 +110,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'Local time into wp_newPost'
@@ -118,7 +131,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'UTC time into wp_newPost'
@@ -127,6 +140,8 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 30429
+	 *
+	 * @covers wp_xmlrpc_server::mw_editPost
 	 */
 	public function test_date_edit_post() {
 		$timezone = 'Europe/Kiev';
@@ -158,7 +173,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 		$fetched_post = get_post( $post_id );
 
 		$this->assertTrue( $result );
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$fetched_post->post_date,
 			'Local time into mw_editPost'
@@ -185,7 +200,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 		$fetched_post = get_post( $post_id );
 
 		$this->assertTrue( $result );
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$fetched_post->post_date,
 			'UTC time into mw_editPost'
@@ -194,8 +209,10 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 30429
+	 *
+	 * @covers wp_xmlrpc_server::wp_editComment
 	 */
-	function test_date_edit_comment() {
+	public function test_date_edit_comment() {
 		$timezone = 'Europe/Kiev';
 		update_option( 'timezone_string', $timezone );
 
@@ -211,7 +228,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			'comment_author'       => 'Test commenter',
 			'comment_author_url'   => 'http://example.com/',
 			'comment_author_email' => 'example@example.com',
-			'comment_content'      => rand_str( 100 ),
+			'comment_content'      => 'Hello, world!',
 			'comment_approved'     => '1',
 		);
 		$comment_id   = wp_insert_comment( $comment_data );
@@ -231,7 +248,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 		$fetched_comment = get_comment( $comment_id );
 
 		$this->assertTrue( $result );
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$fetched_comment->comment_date,
 			'UTC time into wp_editComment'

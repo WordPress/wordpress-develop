@@ -38,7 +38,7 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 
 ?>
 	</title>
-<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="profile" href="https://gmpg.org/xfn/11" />
 <link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>?ver=20190507" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <?php
@@ -87,12 +87,13 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 				}
 
 				// Check if this is a post or page, if it has a thumbnail, and if it's a big one.
+				$image = false;
 				if ( is_singular() && has_post_thumbnail( $post->ID ) ) {
 					$image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), array( $header_image_width, $header_image_width ) );
-					if ( $image && $image[1] >= $header_image_width ) {
-						// Houston, we have a new header image!
-						echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
-					}
+				}
+				if ( $image && $image[1] >= $header_image_width ) {
+					// Houston, we have a new header image!
+					echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
 				} else {
 					// Compatibility with versions of WordPress prior to 3.4.
 					if ( function_exists( 'get_custom_header' ) ) {

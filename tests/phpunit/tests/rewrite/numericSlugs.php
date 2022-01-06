@@ -7,17 +7,12 @@
 class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 	private $old_current_user;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->author_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 
 		// Override the post/archive slug collision prevention in `wp_unique_post_slug()`.
 		add_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ), 10, 6 );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
-		remove_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ), 10, 6 );
 	}
 
 	public function test_go_to_year_segment_collision_without_title() {
@@ -28,7 +23,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '2015',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -58,7 +53,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '2015',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -75,7 +70,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array( 'ID' => $id )
 		);
 
-		$this->assertEquals( '2015', url_to_postid( get_permalink( '2015' ) ) );
+		$this->assertSame( 2015, url_to_postid( get_permalink( '2015' ) ) );
 	}
 
 	public function test_go_to_year_segment_collision_with_title() {
@@ -85,7 +80,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '2015',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -103,13 +98,13 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '2015',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_without_title() {
@@ -119,7 +114,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '02',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -138,14 +133,14 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '02',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_without_title_no_leading_zero() {
@@ -155,7 +150,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '2',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -174,14 +169,14 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '2',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_with_title() {
@@ -191,7 +186,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '02',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -209,13 +204,13 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '02',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_with_title_no_leading_zero() {
@@ -225,7 +220,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '2',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -243,13 +238,13 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '2',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_day_segment_collision_without_title() {
@@ -259,7 +254,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '01',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -278,14 +273,14 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '01',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_day_segment_collision_with_title() {
@@ -295,7 +290,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '01',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -313,13 +308,13 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '01',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_numeric_slug_permalink_conflicts_should_only_be_resolved_for_the_main_query() {
@@ -329,7 +324,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '01',
 				'post_date'    => '2015-02-01 01:00:00',
 			)

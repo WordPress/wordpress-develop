@@ -12,7 +12,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	protected $current_size_filter_data   = null;
 	protected $current_size_filter_result = null;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post           = $factory->post->create_and_get();
 		self::$different_post = $factory->post->create_and_get();
 
@@ -26,12 +26,12 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		);
 	}
 
-	public static function tearDownAfterClass() {
+	public static function tear_down_after_class() {
 		wp_delete_post( self::$attachment_id, true );
-		parent::tearDownAfterClass();
+		parent::tear_down_after_class();
 	}
 
-	function test_has_post_thumbnail() {
+	public function test_has_post_thumbnail() {
 		$this->assertFalse( has_post_thumbnail( self::$post ) );
 		$this->assertFalse( has_post_thumbnail( self::$post->ID ) );
 		$this->assertFalse( has_post_thumbnail() );
@@ -53,22 +53,22 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertTrue( has_post_thumbnail() );
 	}
 
-	function test_get_post_thumbnail_id() {
-		$this->assertEmpty( get_post_thumbnail_id( self::$post ) );
-		$this->assertEmpty( get_post_thumbnail_id( self::$post->ID ) );
-		$this->assertEmpty( get_post_thumbnail_id() );
+	public function test_get_post_thumbnail_id() {
+		$this->assertSame( 0, get_post_thumbnail_id( self::$post ) );
+		$this->assertSame( 0, get_post_thumbnail_id( self::$post->ID ) );
+		$this->assertFalse( get_post_thumbnail_id() );
 
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
-		$this->assertEquals( self::$attachment_id, get_post_thumbnail_id( self::$post ) );
-		$this->assertEquals( self::$attachment_id, get_post_thumbnail_id( self::$post->ID ) );
+		$this->assertSame( self::$attachment_id, get_post_thumbnail_id( self::$post ) );
+		$this->assertSame( self::$attachment_id, get_post_thumbnail_id( self::$post->ID ) );
 
 		$GLOBALS['post'] = self::$post;
 
-		$this->assertEquals( self::$attachment_id, get_post_thumbnail_id() );
+		$this->assertSame( self::$attachment_id, get_post_thumbnail_id() );
 	}
 
-	function test_update_post_thumbnail_cache() {
+	public function test_update_post_thumbnail_cache() {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
 		$query = new WP_Query(
@@ -89,8 +89,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 12235
 	 */
-	function test_get_the_post_thumbnail_caption() {
-		$this->assertEquals( '', get_the_post_thumbnail_caption() );
+	public function test_get_the_post_thumbnail_caption() {
+		$this->assertSame( '', get_the_post_thumbnail_caption() );
 
 		$caption = 'This is a caption.';
 
@@ -107,13 +107,13 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 		set_post_thumbnail( $post_id, $attachment_id );
 
-		$this->assertEquals( $caption, get_the_post_thumbnail_caption( $post_id ) );
+		$this->assertSame( $caption, get_the_post_thumbnail_caption( $post_id ) );
 	}
 
 	/**
 	 * @ticket 12235
 	 */
-	function test_get_the_post_thumbnail_caption_empty() {
+	public function test_get_the_post_thumbnail_caption_empty() {
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
 			'image.jpg',
@@ -127,13 +127,13 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 		set_post_thumbnail( $post_id, $attachment_id );
 
-		$this->assertEquals( '', get_the_post_thumbnail_caption( $post_id ) );
+		$this->assertSame( '', get_the_post_thumbnail_caption( $post_id ) );
 	}
 
 	/**
 	 * @ticket 12235
 	 */
-	function test_the_post_thumbnail_caption() {
+	public function test_the_post_thumbnail_caption() {
 		$caption = 'This is a caption.';
 
 		$post_id       = self::factory()->post->create();
@@ -153,9 +153,9 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		the_post_thumbnail_caption( $post_id );
 	}
 
-	function test_get_the_post_thumbnail() {
-		$this->assertEquals( '', get_the_post_thumbnail() );
-		$this->assertEquals( '', get_the_post_thumbnail( self::$post ) );
+	public function test_get_the_post_thumbnail() {
+		$this->assertSame( '', get_the_post_thumbnail() );
+		$this->assertSame( '', get_the_post_thumbnail( self::$post ) );
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
 		$expected = wp_get_attachment_image(
@@ -167,14 +167,14 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $expected, get_the_post_thumbnail( self::$post ) );
+		$this->assertSame( $expected, get_the_post_thumbnail( self::$post ) );
 
 		$GLOBALS['post'] = self::$post;
 
-		$this->assertEquals( $expected, get_the_post_thumbnail() );
+		$this->assertSame( $expected, get_the_post_thumbnail() );
 	}
 
-	function test_the_post_thumbnail() {
+	public function test_the_post_thumbnail() {
 
 		$this->expectOutputString( '' );
 		the_post_thumbnail();
@@ -202,7 +202,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 33070
 	 */
-	function test_get_the_post_thumbnail_url() {
+	public function test_get_the_post_thumbnail_url() {
 		$this->assertFalse( has_post_thumbnail( self::$post ) );
 		$this->assertFalse( get_the_post_thumbnail_url() );
 		$this->assertFalse( get_the_post_thumbnail_url( self::$post ) );
@@ -210,17 +210,17 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
 		$this->assertFalse( get_the_post_thumbnail_url() );
-		$this->assertEquals( wp_get_attachment_url( self::$attachment_id ), get_the_post_thumbnail_url( self::$post ) );
+		$this->assertSame( wp_get_attachment_url( self::$attachment_id ), get_the_post_thumbnail_url( self::$post ) );
 
 		$GLOBALS['post'] = self::$post;
 
-		$this->assertEquals( wp_get_attachment_url( self::$attachment_id ), get_the_post_thumbnail_url() );
+		$this->assertSame( wp_get_attachment_url( self::$attachment_id ), get_the_post_thumbnail_url() );
 	}
 
 	/**
 	 * @ticket 33070
 	 */
-	function test_get_the_post_thumbnail_url_with_invalid_post() {
+	public function test_get_the_post_thumbnail_url_with_invalid_post() {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
 		$this->assertNotFalse( get_the_post_thumbnail_url( self::$post->ID ) );
@@ -234,7 +234,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 33070
 	 */
-	function test_the_post_thumbnail_url() {
+	public function test_the_post_thumbnail_url() {
 		$GLOBALS['post'] = self::$post;
 
 		$this->expectOutputString( '' );
@@ -249,7 +249,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 12922
 	 */
-	function test__wp_preview_post_thumbnail_filter() {
+	public function test__wp_preview_post_thumbnail_filter() {
 		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
 
 		$GLOBALS['post']           = self::$post;
@@ -269,7 +269,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 37697
 	 */
-	function test__wp_preview_post_thumbnail_filter_secondary_post() {
+	public function test__wp_preview_post_thumbnail_filter_secondary_post() {
 		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
 
 		$secondary_post = self::factory()->post->create(
@@ -295,7 +295,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 12922
 	 */
-	function test_insert_post_with_post_thumbnail() {
+	public function test_insert_post_with_post_thumbnail() {
 		$post_id = wp_insert_post(
 			array(
 				'ID'            => self::$post->ID,
@@ -307,7 +307,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		);
 
 		$thumbnail_id = get_post_thumbnail_id( $post_id );
-		$this->assertEquals( self::$attachment_id, $thumbnail_id );
+		$this->assertSame( self::$attachment_id, $thumbnail_id );
 
 		$post_id = wp_insert_post(
 			array(
@@ -326,7 +326,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 37658
 	 */
-	function test_insert_attachment_with_post_thumbnail() {
+	public function test_insert_attachment_with_post_thumbnail() {
 		// Audio files support featured images.
 		$post_id = wp_insert_post(
 			array(
@@ -342,7 +342,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		);
 
 		$thumbnail_id = get_post_thumbnail_id( $post_id );
-		$this->assertEquals( self::$attachment_id, $thumbnail_id );
+		$this->assertSame( self::$attachment_id, $thumbnail_id );
 
 		// Images do not support featured images.
 		$post_id = wp_insert_post(
@@ -365,7 +365,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 39030
 	 */
-	function test_post_thumbnail_size_filter_simple() {
+	public function test_post_thumbnail_size_filter_simple() {
 		$this->current_size_filter_data = 'medium';
 
 		add_filter( 'post_thumbnail_size', array( $this, 'filter_post_thumbnail_size' ), 10, 2 );
@@ -386,7 +386,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 * @ticket 39030
 	 * @dataProvider data_post_thumbnail_size_filter_complex
 	 */
-	function test_post_thumbnail_size_filter_complex( $which_post, $expected ) {
+	public function test_post_thumbnail_size_filter_complex( $which_post, $expected ) {
 		$this->current_size_filter_data = array(
 			self::$post->ID           => 'medium',
 			self::$different_post->ID => 'thumbnail',
@@ -408,14 +408,14 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertSame( $expected, $result );
 	}
 
-	function data_post_thumbnail_size_filter_complex() {
+	public function data_post_thumbnail_size_filter_complex() {
 		return array(
 			array( 0, 'medium' ),
 			array( 1, 'thumbnail' ),
 		);
 	}
 
-	function filter_post_thumbnail_size( $size, $post_id ) {
+	public function filter_post_thumbnail_size( $size, $post_id ) {
 		if ( is_array( $this->current_size_filter_data ) && isset( $this->current_size_filter_data[ $post_id ] ) ) {
 			return $this->current_size_filter_data[ $post_id ];
 		}
@@ -427,7 +427,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		return $size;
 	}
 
-	function filter_set_post_thumbnail_size_result( $html, $post_id, $post_thumbnail_id, $size ) {
+	public function filter_set_post_thumbnail_size_result( $html, $post_id, $post_thumbnail_id, $size ) {
 		$this->current_size_filter_result = $size;
 
 		return $html;

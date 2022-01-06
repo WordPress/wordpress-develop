@@ -12,7 +12,7 @@ if ( is_multisite() ) :
 		protected static $network_ids;
 		protected static $site_ids;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'wordpress.org/'         => array(
 					'domain' => 'wordpress.org',
@@ -123,9 +123,9 @@ if ( is_multisite() ) :
 		 * @param string $path         The requested path.
 		 * @param string $message      The message to pass for failed tests.
 		 */
-		function test_get_network_by_path( $expected_key, $domain, $path, $message ) {
+		public function test_get_network_by_path( $expected_key, $domain, $path, $message ) {
 			$network = get_network_by_path( $domain, $path );
-			$this->assertEquals( self::$network_ids[ $expected_key ], $network->id, $message );
+			$this->assertSame( self::$network_ids[ $expected_key ], $network->id, $message );
 		}
 
 		public function data_get_network_by_path() {
@@ -161,7 +161,7 @@ if ( is_multisite() ) :
 
 			remove_filter( 'network_by_path_segments_count', '__return_zero' );
 
-			$this->assertEquals( self::$network_ids[ $expected_key ], $network->id, $message );
+			$this->assertSame( self::$network_ids[ $expected_key ], $network->id, $message );
 		}
 
 		public function data_get_network_by_path_with_zero_path_segments() {
@@ -186,7 +186,7 @@ if ( is_multisite() ) :
 			$network = get_network_by_path( 'wordpress.org', '/one/b/' );
 			remove_filter( 'network_by_path_segments_count', array( $this, 'filter_network_path_segments' ) );
 
-			$this->assertEquals( self::$network_ids['wordpress.org/one/'], $network->id );
+			$this->assertSame( self::$network_ids['wordpress.org/one/'], $network->id );
 		}
 
 		public function filter_network_path_segments() {
@@ -255,7 +255,7 @@ if ( is_multisite() ) :
 		 * @param string $domain      The requested domain.
 		 * @param string $path        The requested path.
 		 */
-		function test_multisite_bootstrap( $site_key, $network_key, $domain, $path ) {
+		public function test_multisite_bootstrap( $site_key, $network_key, $domain, $path ) {
 			global $current_blog;
 
 			$expected = array(

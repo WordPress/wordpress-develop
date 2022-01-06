@@ -19,7 +19,7 @@
 	 *   passed as an input that expects booleans. If key is undefined in the map,
 	 *   but has a default value, set it.
 	 *
-	 * @param {object} attrs Map of props from a shortcode or settings.
+	 * @param {Object} attrs Map of props from a shortcode or settings.
 	 * @param {string} key The key within the passed map to check for a value.
 	 * @return {mixed|undefined} The original or coerced value of key within attrs.
 	 */
@@ -627,7 +627,7 @@
 				_wpnonce:     settings.post.nonce
 			}).done( function( html ) {
 				if ( '0' === html ) {
-					window.alert( window.setPostThumbnailL10n.error );
+					window.alert( wp.i18n.__( 'Could not set that as the thumbnail image. Try a different attachment.' ) );
 					return;
 				}
 				$( '.inside', '#postimagediv' ).html( html );

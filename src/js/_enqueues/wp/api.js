@@ -186,7 +186,7 @@
 	 * Extract a route part based on negative index.
 	 *
 	 * @param {string}   route          The endpoint route.
-	 * @param {int}      part           The number of parts from the end of the route to retrieve. Default 1.
+	 * @param {number}   part           The number of parts from the end of the route to retrieve. Default 1.
 	 *                                  Example route `/a/b/c`: part 1 is `c`, part 2 is `b`, part 3 is `a`.
 	 * @param {string}  [versionString] Version string, defaults to `wp.api.versionString`.
 	 * @param {boolean} [reverse]       Whether to reverse the order when extracting the route part. Optional, default false.
@@ -234,7 +234,7 @@
 	/**
 	 * Add args and options to a model prototype from a route's endpoints.
 	 *
-	 * @param {array}  routeEndpoints Array of route endpoints.
+	 * @param {Array}  routeEndpoints Array of route endpoints.
 	 * @param {Object} modelInstance  An instance of the model (or collection)
 	 *                                to add the args to.
 	 */
@@ -248,7 +248,7 @@
 			// Add post and edit endpoints as model args.
 			if ( _.includes( routeEndpoint.methods, 'POST' ) || _.includes( routeEndpoint.methods, 'PUT' ) ) {
 
-				// Add any non empty args, merging them into the args object.
+				// Add any non-empty args, merging them into the args object.
 				if ( ! _.isEmpty( routeEndpoint.args ) ) {
 
 					// Set as default if no args yet.
@@ -265,7 +265,7 @@
 				// Add GET method as model options.
 				if ( _.includes( routeEndpoint.methods, 'GET' ) ) {
 
-					// Add any non empty args, merging them into the defaults object.
+					// Add any non-empty args, merging them into the defaults object.
 					if ( ! _.isEmpty( routeEndpoint.args ) ) {
 
 						// Set as default if no defaults yet.
@@ -327,7 +327,7 @@
 				setDate: function( date, field ) {
 					var theField = field || 'date';
 
-					// Don't alter non parsable date fields.
+					// Don't alter non-parsable date fields.
 					if ( _.indexOf( parseableDates, theField ) < 0 ) {
 						return false;
 					}
@@ -348,7 +348,7 @@
 					var theField   = field || 'date',
 						theISODate = this.get( theField );
 
-					// Only get date fields and non null values.
+					// Only get date fields and non-null values.
 					if ( _.indexOf( parseableDates, theField ) < 0 || _.isNull( theISODate ) ) {
 						return false;
 					}
@@ -360,19 +360,19 @@
 			/**
 			 * Build a helper function to retrieve related model.
 			 *
-			 * @param  {string} parentModel      The parent model.
-			 * @param  {int}    modelId          The model ID if the object to request
-			 * @param  {string} modelName        The model name to use when constructing the model.
-			 * @param  {string} embedSourcePoint Where to check the embedds object for _embed data.
-			 * @param  {string} embedCheckField  Which model field to check to see if the model has data.
+			 * @param {string} parentModel      The parent model.
+			 * @param {number} modelId          The model ID if the object to request
+			 * @param {string} modelName        The model name to use when constructing the model.
+			 * @param {string} embedSourcePoint Where to check the embedded object for _embed data.
+			 * @param {string} embedCheckField  Which model field to check to see if the model has data.
 			 *
 			 * @return {Deferred.promise}        A promise which resolves to the constructed model.
 			 */
 			buildModelGetter = function( parentModel, modelId, modelName, embedSourcePoint, embedCheckField ) {
-				var getModel, embeddeds, attributes, deferred;
+				var getModel, embeddedObjects, attributes, deferred;
 
-				deferred  = jQuery.Deferred();
-				embeddeds = parentModel.get( '_embedded' ) || {};
+				deferred        = jQuery.Deferred();
+				embeddedObjects = parentModel.get( '_embedded' ) || {};
 
 				// Verify that we have a valid object id.
 				if ( ! _.isNumber( modelId ) || 0 === modelId ) {
@@ -381,8 +381,8 @@
 				}
 
 				// If we have embedded object data, use that when constructing the getModel.
-				if ( embeddeds[ embedSourcePoint ] ) {
-					attributes = _.findWhere( embeddeds[ embedSourcePoint ], { id: modelId } );
+				if ( embeddedObjects[ embedSourcePoint ] ) {
+					attributes = _.findWhere( embeddedObjects[ embedSourcePoint ], { id: modelId } );
 				}
 
 				// Otherwise use the modelId.
@@ -414,49 +414,49 @@
 			/**
 			 * Build a helper to retrieve a collection.
 			 *
-			 * @param  {string} parentModel      The parent model.
-			 * @param  {string} collectionName   The name to use when constructing the collection.
-			 * @param  {string} embedSourcePoint Where to check the embedds object for _embed data.
-			 * @param  {string} embedIndex       An addiitonal optional index for the _embed data.
+			 * @param {string} parentModel      The parent model.
+			 * @param {string} collectionName   The name to use when constructing the collection.
+			 * @param {string} embedSourcePoint Where to check the embedded object for _embed data.
+			 * @param {string} embedIndex       An additional optional index for the _embed data.
 			 *
-			 * @return {Deferred.promise}        A promise which resolves to the constructed collection.
+			 * @return {Deferred.promise} A promise which resolves to the constructed collection.
 			 */
 			buildCollectionGetter = function( parentModel, collectionName, embedSourcePoint, embedIndex ) {
 				/**
 				 * Returns a promise that resolves to the requested collection
 				 *
-				 * Uses the embedded data if available, otherwises fetches the
+				 * Uses the embedded data if available, otherwise fetches the
 				 * data from the server.
 				 *
 				 * @return {Deferred.promise} promise Resolves to a wp.api.collections[ collectionName ]
 				 * collection.
 				 */
-				var postId, embeddeds, getObjects,
+				var postId, embeddedObjects, getObjects,
 					classProperties = '',
 					properties      = '',
 					deferred        = jQuery.Deferred();
 
-				postId    = parentModel.get( 'id' );
-				embeddeds = parentModel.get( '_embedded' ) || {};
+				postId          = parentModel.get( 'id' );
+				embeddedObjects = parentModel.get( '_embedded' ) || {};
 
-				// Verify that we have a valid post id.
+				// Verify that we have a valid post ID.
 				if ( ! _.isNumber( postId ) || 0 === postId ) {
 					deferred.reject();
 					return deferred;
 				}
 
 				// If we have embedded getObjects data, use that when constructing the getObjects.
-				if ( ! _.isUndefined( embedSourcePoint ) && ! _.isUndefined( embeddeds[ embedSourcePoint ] ) ) {
+				if ( ! _.isUndefined( embedSourcePoint ) && ! _.isUndefined( embeddedObjects[ embedSourcePoint ] ) ) {
 
 					// Some embeds also include an index offset, check for that.
 					if ( _.isUndefined( embedIndex ) ) {
 
 						// Use the embed source point directly.
-						properties = embeddeds[ embedSourcePoint ];
+						properties = embeddedObjects[ embedSourcePoint ];
 					} else {
 
 						// Add the index to the embed source point.
-						properties = embeddeds[ embedSourcePoint ][ embedIndex ];
+						properties = embeddedObjects[ embedSourcePoint ][ embedIndex ];
 					}
 				} else {
 
@@ -513,7 +513,7 @@
 				 *
 				 * @param {string} key The meta key.
 				 *
-				 * @return {object} The post meta value.
+				 * @return {Object} The post meta value.
 				 */
 				getMeta: function( key ) {
 					var metas = this.get( 'meta' );
@@ -523,7 +523,7 @@
 				/**
 				 * Get all meta key/values for a post.
 				 *
-				 * @return {object} The post metas, as a key value pair object.
+				 * @return {Object} The post metas, as a key value pair object.
 				 */
 				getMetas: function() {
 					return this.get( 'meta' );
@@ -532,7 +532,7 @@
 				/**
 				 * Set a group of meta key/values for a post.
 				 *
-				 * @param {object} meta The post meta to set, as key/value pairs.
+				 * @param {Object} meta The post meta to set, as key/value pairs.
 				 */
 				setMetas: function( meta ) {
 					var metas = this.get( 'meta' );
@@ -544,7 +544,7 @@
 				 * Set a single meta value for a post, by key.
 				 *
 				 * @param {string} key   The meta key.
-				 * @param {object} value The meta value.
+				 * @param {Object} value The meta value.
 				 */
 				setMeta: function( key, value ) {
 					var metas = this.get( 'meta' );
@@ -589,7 +589,7 @@
 				 *
 				 * Accepts an array of tag slugs, or a Tags collection.
 				 *
-				 * @param {array|Backbone.Collection} tags The tags to set on the post.
+				 * @param {Array|Backbone.Collection} tags The tags to set on the post.
 				 *
 				 */
 				setTags: function( tags ) {
@@ -635,12 +635,12 @@
 				 *
 				 * Accepts a Tags collection.
 				 *
-				 * @param {array|Backbone.Collection} tags The tags to set on the post.
+				 * @param {Array|Backbone.Collection} tags The tags to set on the post.
 				 *
 				 */
 				setTagsWithCollection: function( tags ) {
 
-					// Pluck out the category ids.
+					// Pluck out the category IDs.
 					this.set( 'tags', tags.pluck( 'id' ) );
 					return this.save();
 				}
@@ -673,7 +673,7 @@
 				 *
 				 * Accepts an array of category slugs, or a Categories collection.
 				 *
-				 * @param {array|Backbone.Collection} categories The categories to set on the post.
+				 * @param {Array|Backbone.Collection} categories The categories to set on the post.
 				 *
 				 */
 				setCategories: function( categories ) {
@@ -720,12 +720,12 @@
 				 *
 				 * Accepts Categories collection.
 				 *
-				 * @param {array|Backbone.Collection} categories The categories to set on the post.
+				 * @param {Array|Backbone.Collection} categories The categories to set on the post.
 				 *
 				 */
 				setCategoriesWithCollection: function( categories ) {
 
-					// Pluck out the category ids.
+					// Pluck out the category IDs.
 					this.set( 'categories', categories.pluck( 'id' ) );
 					return this.save();
 				}
@@ -1057,7 +1057,7 @@
 					};
 				}
 
-				// Continue by calling Bacckbone's sync.
+				// Continue by calling Backbone's sync.
 				return Backbone.sync( method, model, options );
 			},
 
@@ -1347,7 +1347,7 @@
 					modelClassName = mapping.models[ modelClassName ] || modelClassName;
 					loadingObjects.models[ modelClassName ] = wp.api.WPApiBaseModel.extend( {
 
-						// Function that returns a constructed url based on the id.
+						// Function that returns a constructed url based on the ID.
 						url: function() {
 							var url = routeModel.get( 'apiRoot' ) +
 								routeModel.get( 'versionString' ) +
@@ -1412,8 +1412,11 @@
 						// Function that returns a constructed url passed on the parent.
 						url: function() {
 							return routeModel.get( 'apiRoot' ) + routeModel.get( 'versionString' ) +
-									parentName + '/' + this.parent + '/' +
-									routeName;
+								parentName + '/' +
+								( ( _.isUndefined( this.parent ) || '' === this.parent ) ?
+									( _.isUndefined( this.get( 'parent_post' ) ) ? '' : this.get( 'parent_post' ) + '/' ) :
+									this.parent + '/' ) +
+								routeName;
 						},
 
 						// Specify the model that this collection contains.
@@ -1495,11 +1498,11 @@
 	/**
 	 * Initialize the wp-api, optionally passing the API root.
 	 *
-	 * @param {object} [args]
+	 * @param {Object} [args]
 	 * @param {string} [args.nonce] The nonce. Optional, defaults to wpApiSettings.nonce.
 	 * @param {string} [args.apiRoot] The api root. Optional, defaults to wpApiSettings.root.
 	 * @param {string} [args.versionString] The version string. Optional, defaults to wpApiSettings.root.
-	 * @param {object} [args.schema] The schema. Optional, will be fetched from API if not provided.
+	 * @param {Object} [args.schema] The schema. Optional, will be fetched from API if not provided.
 	 */
 	wp.api.init = function( args ) {
 		var endpoint, attributes = {}, deferred, promise;

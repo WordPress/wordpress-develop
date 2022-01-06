@@ -56,7 +56,7 @@ class WP_Customize_Panel {
 	 * Priority of the panel, defining the display order of panels and sections.
 	 *
 	 * @since 4.0.0
-	 * @var integer
+	 * @var int
 	 */
 	public $priority = 160;
 
@@ -275,7 +275,7 @@ class WP_Customize_Panel {
 		 *
 		 * @since 4.0.0
 		 *
-		 * @param WP_Customize_Panel $this WP_Customize_Panel instance.
+		 * @param WP_Customize_Panel $panel WP_Customize_Panel instance.
 		 */
 		do_action( 'customize_render_panel', $this );
 
@@ -371,7 +371,7 @@ class WP_Customize_Panel {
 				<span class="preview-notice">
 				<?php
 					/* translators: %s: The site/panel title in the Customizer. */
-					echo sprintf( __( 'You are customizing %s' ), '<strong class="panel-title">{{ data.title }}</strong>' );
+					printf( __( 'You are customizing %s' ), '<strong class="panel-title">{{ data.title }}</strong>' );
 				?>
 				</span>
 				<# if ( data.description ) { #>

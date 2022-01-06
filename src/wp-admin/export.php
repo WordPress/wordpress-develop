@@ -15,6 +15,8 @@ if ( ! current_user_can( 'export' ) ) {
 
 /** Load WordPress export API */
 require_once ABSPATH . 'wp-admin/includes/export.php';
+
+// Used in the HTML title tag.
 $title = __( 'Export' );
 
 /**
@@ -25,11 +27,11 @@ $title = __( 'Export' );
 function export_add_js() {
 	?>
 <script type="text/javascript">
-	jQuery(document).ready(function($){
+	jQuery( function($) {
 		var form = $('#export-filters'),
 			filters = form.find('.export-filters');
 		filters.hide();
-		form.find('input:radio').change(function() {
+		form.find('input:radio').on( 'change', function() {
 			filters.slideUp('fast');
 			switch ( $(this).val() ) {
 				case 'attachment': $('#attachment-filters').slideDown(); break;
@@ -37,7 +39,7 @@ function export_add_js() {
 				case 'pages': $('#page-filters').slideDown(); break;
 			}
 		});
-	});
+	} );
 </script>
 	<?php
 }

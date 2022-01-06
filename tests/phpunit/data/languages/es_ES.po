@@ -2,12 +2,12 @@
 # This file is distributed under the same license as the Development (5.2.x) package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2019-03-28 19:43+0300\n"
+"PO-Revision-Date: 2020-07-23 21:12+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Poedit 2.3\n"
 "Project-Id-Version: Development (5.2.x)\n"
 "Language: es_ES\n"
 "POT-Creation-Date: \n"
@@ -43,7 +43,7 @@ msgstr "(Actualmente fijado en: %s)"
 #. translators: Privacy data request subject. 1: Site name, 2: Name of the action
 #: wp-includes/user.php:3445
 msgid "[%1$s] Confirm Action: %2$s"
-msgstr "[%1$s] Confirma la acción: %2$s"
+msgstr "[%1$s] Confirmar la acción: %2$s"
 
 #. translators: %s: Site name.
 #: wp-includes/user.php:3175

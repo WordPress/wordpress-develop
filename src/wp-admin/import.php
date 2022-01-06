@@ -15,6 +15,7 @@ if ( ! current_user_can( 'import' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to import content into this site.' ) );
 }
 
+// Used in the HTML title tag.
 $title = __( 'Import' );
 
 get_current_screen()->add_help_tab(
@@ -156,7 +157,7 @@ if ( empty( $importers ) ) {
 						esc_attr( $plugin_slug ),
 						esc_attr( $data[0] ),
 						/* translators: %s: Importer name. */
-						esc_attr( sprintf( __( 'Install %s now' ), $data[0] ) ),
+						esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $data[0] ) ),
 						__( 'Install Now' )
 					);
 				} else {

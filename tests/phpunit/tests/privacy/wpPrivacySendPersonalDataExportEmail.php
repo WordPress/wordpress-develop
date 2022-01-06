@@ -8,14 +8,14 @@
  */
 
 /**
- * Tests_Privacy_WpPrivacySendPersonalDataExportEmail class.
+ * Tests_Privacy_wpPrivacySendPersonalDataExportEmail class.
  *
  * @group privacy
- * @covers wp_privacy_send_personal_data_export_email
+ * @covers ::wp_privacy_send_personal_data_export_email
  *
  * @since 4.9.6
  */
-class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase {
 	/**
 	 * Request ID.
 	 *
@@ -57,8 +57,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @since 4.9.6
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
@@ -67,10 +67,10 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @since 4.9.6
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		reset_phpmailer_instance();
 		restore_previous_locale();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -80,7 +80,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$requester_email = 'requester@example.com';
 		self::$request_user    = $factory->user->create_and_get(
 			array(
@@ -104,17 +104,19 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The function should send an export link to the requester when the user request is confirmed.
 	 */
 	public function test_function_should_send_export_link_to_requester() {
-		$archive_url = wp_privacy_exports_url() . 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
-		update_post_meta( self::$request_id, '_export_file_url', $archive_url );
+		$exports_url      = wp_privacy_exports_url();
+		$export_file_name = 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
+		$export_file_url  = $exports_url . $export_file_name;
+		update_post_meta( self::$request_id, '_export_file_name', $export_file_name );
 
 		$email_sent = wp_privacy_send_personal_data_export_email( self::$request_id );
 		$mailer     = tests_retrieve_phpmailer_instance();
 
 		$this->assertSame( 'request-confirmed', get_post_status( self::$request_id ) );
 		$this->assertSame( self::$requester_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'Personal Data Export', $mailer->get_sent()->subject );
-		$this->assertContains( $archive_url, $mailer->get_sent()->body );
-		$this->assertContains( 'please download it', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Personal Data Export', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( $export_file_url, $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'please download it', $mailer->get_sent()->body );
 		$this->assertTrue( $email_sent );
 	}
 
@@ -158,7 +160,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 		wp_privacy_send_personal_data_export_email( self::$request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertContains( 'we will automatically delete the file on December 18, 2017,', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'we will automatically delete the file on December 18, 2017,', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -167,7 +169,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 4.9.6
 	 *
 	 * @param int $expiration The expiration age of the export, in seconds.
-	 * @return int $expiration The expiration age of the export, in seconds.
+	 * @return int The expiration age of the export, in seconds.
 	 */
 	public function modify_export_expiration( $expiration ) {
 		// Set date to always be "Mon, 18 Dec 2017 21:30:00 GMT", so can assert a fixed date.
@@ -194,7 +196,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.3.0
 	 *
 	 * @param  string $user_email The email address of the notification recipient.
-	 * @return string $user_email The modified email address of the notification recipient.
+	 * @return string The modified email address of the notification recipient.
 	 */
 	public function filter_email_address( $user_email ) {
 		return 'modified-' . $user_email;
@@ -220,7 +222,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.3.0
 	 *
 	 * @param string $subject The email subject.
-	 * @return string $subject The email subject.
+	 * @return string The email subject.
 	 */
 	public function filter_email_subject( $subject ) {
 		return 'Modified subject';
@@ -236,7 +238,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 		wp_privacy_send_personal_data_export_email( self::$request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertContains( 'Custom content for request ID: ' . self::$request_id, $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Custom content for request ID: ' . self::$request_id, $mailer->get_sent()->body );
 	}
 
 	/**
@@ -246,7 +248,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @param string $email_text Text in the email.
 	 * @param int    $request_id The request ID for this personal data export.
-	 * @return string $email_text Text in the email.
+	 * @return string Text in the email.
 	 */
 	public function modify_email_content( $email_text, $request_id ) {
 		return 'Custom content for request ID: ' . $request_id;
@@ -265,7 +267,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
+		$this->assertStringContainsString( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
 	}
 
 	/**
@@ -274,7 +276,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.4.0
 	 *
 	 * @param string|array $headers The email headers.
-	 * @return array       $headers The new email headers.
+	 * @return array The new email headers.
 	 */
 	public function modify_email_headers( $headers ) {
 		$headers = array(
@@ -295,7 +297,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$site_url = home_url();
 		$mailer   = tests_retrieve_phpmailer_instance();
-		$this->assertContains( 'Custom content using the $site_url of $email_data: ' . $site_url, $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Custom content using the $site_url of $email_data: ' . $site_url, $mailer->get_sent()->body );
 	}
 
 	/**
@@ -319,7 +321,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *     @type string          $siteurl           The site URL sending the mail.
 	 * }
 	 *
-	 * @return string $email_text Text in the email.
+	 * @return string Text in the email.
 	 */
 	public function modify_email_content_with_email_data( $email_text, $request_id, $email_data ) {
 		return 'Custom content using the $site_url of $email_data: ' . $email_data['siteurl'];
@@ -339,7 +341,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Exportación de datos personales', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Exportación de datos personales', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -361,7 +363,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Export personenbezogener Daten', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Export personenbezogener Daten', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -383,7 +385,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Exportación de datos personales', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Exportación de datos personales', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -407,7 +409,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Export personenbezogener Daten', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Export personenbezogener Daten', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -429,7 +431,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Personal Data Export', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Personal Data Export', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -454,6 +456,6 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Exportación de datos personales', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Exportación de datos personales', $mailer->get_sent()->subject );
 	}
 }

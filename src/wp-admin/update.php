@@ -17,6 +17,8 @@ require_once __DIR__ . '/admin.php';
 
 require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
+wp_enqueue_script( 'wp-a11y' );
+
 if ( isset( $_GET['action'] ) ) {
 	$plugin = isset( $_REQUEST['plugin'] ) ? trim( $_REQUEST['plugin'] ) : '';
 	$theme  = isset( $_REQUEST['theme'] ) ? urldecode( $_REQUEST['theme'] ) : '';
@@ -57,6 +59,7 @@ if ( isset( $_GET['action'] ) ) {
 
 		check_admin_referer( 'upgrade-plugin_' . $plugin );
 
+		// Used in the HTML title tag.
 		$title        = __( 'Update Plugin' );
 		$parent_file  = 'plugins.php';
 		$submenu_file = 'plugins.php';
@@ -121,9 +124,11 @@ if ( isset( $_GET['action'] ) ) {
 			wp_die( $api );
 		}
 
+		// Used in the HTML title tag.
 		$title        = __( 'Plugin Installation' );
 		$parent_file  = 'plugins.php';
 		$submenu_file = 'plugin-install.php';
+
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		/* translators: %s: Plugin name and version. */
@@ -151,19 +156,24 @@ if ( isset( $_GET['action'] ) ) {
 
 		$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
 
+		// Used in the HTML title tag.
 		$title        = __( 'Upload Plugin' );
 		$parent_file  = 'plugins.php';
 		$submenu_file = 'plugin-install.php';
+
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		/* translators: %s: File name. */
-		$title = sprintf( __( 'Installing Plugin from uploaded file: %s' ), esc_html( basename( $file_upload->filename ) ) );
+		$title = sprintf( __( 'Installing plugin from uploaded file: %s' ), esc_html( basename( $file_upload->filename ) ) );
 		$nonce = 'plugin-upload';
 		$url   = add_query_arg( array( 'package' => $file_upload->id ), 'update.php?action=upload-plugin' );
 		$type  = 'upload'; // Install plugin type, From Web or an Upload.
 
-		$upgrader = new Plugin_Upgrader( new Plugin_Installer_Skin( compact( 'type', 'title', 'nonce', 'url' ) ) );
-		$result   = $upgrader->install( $file_upload->package );
+		$overwrite = isset( $_GET['overwrite'] ) ? sanitize_text_field( $_GET['overwrite'] ) : '';
+		$overwrite = in_array( $overwrite, array( 'update-plugin', 'downgrade-plugin' ), true ) ? $overwrite : '';
+
+		$upgrader = new Plugin_Upgrader( new Plugin_Installer_Skin( compact( 'type', 'title', 'nonce', 'url', 'overwrite' ) ) );
+		$result   = $upgrader->install( $file_upload->package, array( 'overwrite_package' => $overwrite ) );
 
 		if ( $result || is_wp_error( $result ) ) {
 			$file_upload->cleanup();
@@ -171,6 +181,26 @@ if ( isset( $_GET['action'] ) ) {
 
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 
+	} elseif ( 'upload-plugin-cancel-overwrite' === $action ) {
+		if ( ! current_user_can( 'upload_plugins' ) ) {
+			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
+		}
+
+		check_admin_referer( 'plugin-upload-cancel-overwrite' );
+
+		// Make sure the attachment still exists, or File_Upload_Upgrader will call wp_die()
+		// that shows a generic "Please select a file" error.
+		if ( ! empty( $_GET['package'] ) ) {
+			$attachment_id = (int) $_GET['package'];
+
+			if ( get_post( $attachment_id ) ) {
+				$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
+				$file_upload->cleanup();
+			}
+		}
+
+		wp_redirect( self_admin_url( 'plugin-install.php' ) );
+		exit;
 	} elseif ( 'upgrade-theme' === $action ) {
 
 		if ( ! current_user_can( 'update_themes' ) ) {
@@ -181,9 +211,11 @@ if ( isset( $_GET['action'] ) ) {
 
 		wp_enqueue_script( 'updates' );
 
+		// Used in the HTML title tag.
 		$title        = __( 'Update Theme' );
 		$parent_file  = 'themes.php';
 		$submenu_file = 'themes.php';
+
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$nonce = 'upgrade-theme_' . $theme;
@@ -244,9 +276,11 @@ if ( isset( $_GET['action'] ) ) {
 			wp_die( $api );
 		}
 
+		// Used in the HTML title tag.
 		$title        = __( 'Install Themes' );
 		$parent_file  = 'themes.php';
 		$submenu_file = 'themes.php';
+
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		/* translators: %s: Theme name and version. */
@@ -270,6 +304,7 @@ if ( isset( $_GET['action'] ) ) {
 
 		$file_upload = new File_Upload_Upgrader( 'themezip', 'package' );
 
+		// Used in the HTML title tag.
 		$title        = __( 'Upload Theme' );
 		$parent_file  = 'themes.php';
 		$submenu_file = 'theme-install.php';
@@ -277,13 +312,16 @@ if ( isset( $_GET['action'] ) ) {
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		/* translators: %s: File name. */
-		$title = sprintf( __( 'Installing Theme from uploaded file: %s' ), esc_html( basename( $file_upload->filename ) ) );
+		$title = sprintf( __( 'Installing theme from uploaded file: %s' ), esc_html( basename( $file_upload->filename ) ) );
 		$nonce = 'theme-upload';
 		$url   = add_query_arg( array( 'package' => $file_upload->id ), 'update.php?action=upload-theme' );
 		$type  = 'upload'; // Install theme type, From Web or an Upload.
 
-		$upgrader = new Theme_Upgrader( new Theme_Installer_Skin( compact( 'type', 'title', 'nonce', 'url' ) ) );
-		$result   = $upgrader->install( $file_upload->package );
+		$overwrite = isset( $_GET['overwrite'] ) ? sanitize_text_field( $_GET['overwrite'] ) : '';
+		$overwrite = in_array( $overwrite, array( 'update-theme', 'downgrade-theme' ), true ) ? $overwrite : '';
+
+		$upgrader = new Theme_Upgrader( new Theme_Installer_Skin( compact( 'type', 'title', 'nonce', 'url', 'overwrite' ) ) );
+		$result   = $upgrader->install( $file_upload->package, array( 'overwrite_package' => $overwrite ) );
 
 		if ( $result || is_wp_error( $result ) ) {
 			$file_upload->cleanup();
@@ -291,6 +329,26 @@ if ( isset( $_GET['action'] ) ) {
 
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 
+	} elseif ( 'upload-theme-cancel-overwrite' === $action ) {
+		if ( ! current_user_can( 'upload_themes' ) ) {
+			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
+		}
+
+		check_admin_referer( 'theme-upload-cancel-overwrite' );
+
+		// Make sure the attachment still exists, or File_Upload_Upgrader will call wp_die()
+		// that shows a generic "Please select a file" error.
+		if ( ! empty( $_GET['package'] ) ) {
+			$attachment_id = (int) $_GET['package'];
+
+			if ( get_post( $attachment_id ) ) {
+				$file_upload = new File_Upload_Upgrader( 'themezip', 'package' );
+				$file_upload->cleanup();
+			}
+		}
+
+		wp_redirect( self_admin_url( 'theme-install.php' ) );
+		exit;
 	} else {
 		/**
 		 * Fires when a custom plugin or theme update request is received.

@@ -18,6 +18,13 @@
 		}, '*' );
 	}
 
+	/**
+	 * Send the height message to the parent window.
+	 */
+	function sendHeightMessage() {
+		sendEmbedMessage( 'height', Math.ceil( document.body.getBoundingClientRect().height ) );
+	}
+
 	function onLoad() {
 		if ( loaded ) {
 			return;
@@ -137,16 +144,12 @@
 			return;
 		}
 
-		/**
-		 * Send this document's height to the parent (embedding) site.
-		 */
-		sendEmbedMessage( 'height', Math.ceil( document.body.getBoundingClientRect().height ) );
+		// Send this document's height to the parent (embedding) site.
+		sendHeightMessage();
 
 		// Send the document's height again after the featured image has been loaded.
 		if ( featured_image ) {
-			featured_image.addEventListener( 'load', function() {
-				sendEmbedMessage( 'height', Math.ceil( document.body.getBoundingClientRect().height ) );
-			} );
+			featured_image.addEventListener( 'load', sendHeightMessage );
 		}
 
 		/**
@@ -161,9 +164,12 @@
 				href = target.parentElement.getAttribute( 'href' );
 			}
 
-			/**
-			 * Send link target to the parent (embedding) site.
-			 */
+			// Only catch clicks from the primary mouse button, without any modifiers.
+			if ( event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ) {
+				return;
+			}
+
+			// Send link target to the parent (embedding) site.
 			if ( href ) {
 				sendEmbedMessage( 'link', href );
 				e.preventDefault();
@@ -183,9 +189,36 @@
 
 		clearTimeout( resizing );
 
-		resizing = setTimeout( function () {
-			sendEmbedMessage( 'height', Math.ceil( document.body.getBoundingClientRect().height ) );
-		}, 100 );
+		resizing = setTimeout( sendHeightMessage, 100 );
+	}
+
+	/**
+	 * Message handler.
+	 *
+	 * @param {MessageEvent} event
+	 */
+	function onMessage( event ) {
+		var data = event.data;
+
+		if ( ! data ) {
+			return;
+		}
+
+		if ( event.source !== window.parent ) {
+			return;
+		}
+
+		if ( ! ( data.secret || data.message ) ) {
+			return;
+		}
+
+		if ( data.secret !== secret ) {
+			return;
+		}
+
+		if ( 'ready' === data.message ) {
+			sendHeightMessage();
+		}
 	}
 
 	/**
@@ -211,5 +244,6 @@
 		document.addEventListener( 'DOMContentLoaded', onLoad, false );
 		window.addEventListener( 'load', onLoad, false );
 		window.addEventListener( 'resize', onResize, false );
+		window.addEventListener( 'message', onMessage, false );
 	}
 })( window, document );

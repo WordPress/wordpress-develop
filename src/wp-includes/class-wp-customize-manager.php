@@ -161,7 +161,7 @@ final class WP_Customize_Manager {
 	 * Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
 	 * @since 4.4.0
-	 * @var array
+	 * @var string[]
 	 */
 	protected $autofocus = array();
 
@@ -346,7 +346,7 @@ final class WP_Customize_Manager {
 		 * @see WP_Customize_Manager::__construct()
 		 *
 		 * @param string[]             $components Array of core components to load.
-		 * @param WP_Customize_Manager $this       WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager    WP_Customize_Manager instance.
 		 */
 		$components = apply_filters( 'customize_loaded_components', $this->components, $this );
 
@@ -606,6 +606,7 @@ final class WP_Customize_Manager {
 	 * enabled, then a new UUID will be generated.
 	 *
 	 * @since 4.9.0
+	 *
 	 * @global string $pagenow
 	 */
 	public function establish_loaded_changeset() {
@@ -690,7 +691,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'start_previewing_theme', $this );
 	}
@@ -728,7 +729,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'stop_previewing_theme', $this );
 	}
@@ -737,6 +738,7 @@ final class WP_Customize_Manager {
 	 * Gets whether settings are or will be previewed.
 	 *
 	 * @since 4.9.0
+	 *
 	 * @see WP_Customize_Setting::preview()
 	 *
 	 * @return bool
@@ -749,6 +751,7 @@ final class WP_Customize_Manager {
 	 * Gets whether data from a changeset's autosaved revision should be loaded if it exists.
 	 *
 	 * @since 4.9.0
+	 *
 	 * @see WP_Customize_Manager::changeset_data()
 	 *
 	 * @return bool Is using autosaved changeset revision.
@@ -761,6 +764,7 @@ final class WP_Customize_Manager {
 	 * Whether the changeset branching is allowed.
 	 *
 	 * @since 4.9.0
+	 *
 	 * @see WP_Customize_Manager::establish_loaded_changeset()
 	 *
 	 * @return bool Is changeset branching.
@@ -801,6 +805,7 @@ final class WP_Customize_Manager {
 	 * Get the changeset UUID.
 	 *
 	 * @since 4.7.0
+	 *
 	 * @see WP_Customize_Manager::establish_loaded_changeset()
 	 *
 	 * @return string UUID.
@@ -923,7 +928,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_register', $this );
 
@@ -1072,7 +1077,7 @@ final class WP_Customize_Manager {
 	}
 
 	/**
-	 * Get the changeset post id for the loaded changeset.
+	 * Get the changeset post ID for the loaded changeset.
 	 *
 	 * @since 4.7.0
 	 *
@@ -1180,7 +1185,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @param array $starter_content Starter content. Defaults to `get_theme_starter_content()`.
 	 */
-	function import_theme_starter_content( $starter_content = array() ) {
+	public function import_theme_starter_content( $starter_content = array() ) {
 		if ( empty( $starter_content ) ) {
 			$starter_content = get_theme_starter_content();
 		}
@@ -1225,6 +1230,8 @@ final class WP_Customize_Manager {
 					if ( $settings instanceof ArrayObject || $settings instanceof ArrayIterator ) {
 						$settings = $settings->getArrayCopy();
 					}
+
+					unset( $settings['_multiwidget'] );
 
 					// Find the max widget number for this type.
 					$widget_numbers = array_keys( $settings );
@@ -1456,7 +1463,7 @@ final class WP_Customize_Manager {
 					preg_match( '#^nav_menu\[(?P<nav_menu_id>-?\d+)\]$#', $setting_id, $matches )
 				);
 				if ( $can_reuse ) {
-					$nav_menu_term_id              = intval( $matches['nav_menu_id'] );
+					$nav_menu_term_id              = (int) $matches['nav_menu_id'];
 					$nav_menu_setting_id           = $setting_id;
 					$reused_nav_menu_setting_ids[] = $setting_id;
 					break;
@@ -1809,7 +1816,7 @@ final class WP_Customize_Manager {
 	 * @param WP_Customize_Setting $setting A WP_Customize_Setting derived object.
 	 * @param mixed                $default Value returned $setting has no post value (added in 4.2.0)
 	 *                                      or the post value is invalid (added in 4.6.0).
-	 * @return string|mixed $post_value Sanitized value or the $default provided.
+	 * @return string|mixed Sanitized value or the $default provided.
 	 */
 	public function post_value( $setting, $default = null ) {
 		$post_values = $this->unsanitized_post_values();
@@ -1852,8 +1859,8 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param mixed                $value Unsanitized setting post value.
-		 * @param WP_Customize_Manager $this  WP_Customize_Manager instance.
+		 * @param mixed                $value   Unsanitized setting post value.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( "customize_post_value_set_{$setting_id}", $value, $this );
 
@@ -1869,7 +1876,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @param string               $setting_id Setting ID.
 		 * @param mixed                $value      Unsanitized setting post value.
-		 * @param WP_Customize_Manager $this       WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager    WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_post_value_set', $setting_id, $value, $this );
 	}
@@ -1893,7 +1900,7 @@ final class WP_Customize_Manager {
 			nocache_headers();
 			header( 'X-Robots: noindex, nofollow, noarchive' );
 		}
-		add_action( 'wp_head', 'wp_no_robots' );
+		add_filter( 'wp_robots', 'wp_robots_no_robots' );
 		add_filter( 'wp_headers', array( $this, 'filter_iframe_security_headers' ) );
 
 		/*
@@ -1902,7 +1909,14 @@ final class WP_Customize_Manager {
 		 * that the user's session has expired and they need to re-authenticate.
 		 */
 		if ( $this->messenger_channel && ! current_user_can( 'customize' ) ) {
-			$this->wp_die( -1, __( 'Unauthorized. You may remove the customize_messenger_channel param to preview as frontend.' ) );
+			$this->wp_die(
+				-1,
+				sprintf(
+					/* translators: %s: customize_messenger_channel */
+					__( 'Unauthorized. You may remove the %s param to preview as frontend.' ),
+					'<code>customize_messenger_channel<code>'
+				)
+			);
 			return;
 		}
 
@@ -1923,13 +1937,13 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_preview_init', $this );
 	}
 
 	/**
-	 * Filter the X-Frame-Options and Content-Security-Policy headers to ensure frontend can load in customizer.
+	 * Filters the X-Frame-Options and Content-Security-Policy headers to ensure frontend can load in customizer.
 	 *
 	 * @since 4.7.0
 	 *
@@ -1946,6 +1960,7 @@ final class WP_Customize_Manager {
 	 * Add customize state query params to a given URL if preview is allowed.
 	 *
 	 * @since 4.7.0
+	 *
 	 * @see wp_redirect()
 	 * @see WP_Customize_Manager::get_allowed_url()
 	 *
@@ -2286,7 +2301,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param $current_theme {@internal Parameter is not used}
+	 * @param mixed $current_theme {@internal Parameter is not used}
 	 * @return string Theme name.
 	 */
 	public function current_theme( $current_theme ) {
@@ -2382,7 +2397,7 @@ final class WP_Customize_Manager {
 			$notification = array();
 			foreach ( $validity->errors as $error_code => $error_messages ) {
 				$notification[ $error_code ] = array(
-					'message' => join( ' ', $error_messages ),
+					'message' => implode( ' ', $error_messages ),
 					'data'    => $validity->get_error_data( $error_code ),
 				);
 			}
@@ -2577,7 +2592,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @param array                $response Additional information passed back to the 'saved'
 		 *                                       event on `wp.customize`.
-		 * @param WP_Customize_Manager $this     WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager  WP_Customize_Manager instance.
 		 */
 		$response = apply_filters( 'customize_save_response', $response, $this );
 
@@ -2607,7 +2622,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @return array|WP_Error Returns array on success and WP_Error with array data on error.
 	 */
-	function save_changeset_post( $args = array() ) {
+	public function save_changeset_post( $args = array() ) {
 
 		$args = array_merge(
 			array(
@@ -2745,7 +2760,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_save_validation_before', $this );
 
@@ -3030,8 +3045,9 @@ final class WP_Customize_Manager {
 	 * untouched.
 	 *
 	 * @since 4.9.0
-	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @see wp_trash_post()
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int|WP_Post $post The changeset post.
 	 * @return mixed A WP_Post object for the trashed post or an empty value on failure.
@@ -3089,6 +3105,8 @@ final class WP_Customize_Manager {
 		/** This action is documented in wp-includes/post.php */
 		do_action( 'wp_insert_post', $post->ID, $post, true );
 
+		wp_after_insert_post( get_post( $post_id ), true, $post );
+
 		wp_trash_post_comments( $post_id );
 
 		/** This action is documented in wp-includes/post.php */
@@ -3132,13 +3150,27 @@ final class WP_Customize_Manager {
 			return;
 		}
 
-		if ( $changeset_post_id && ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
-			wp_send_json_error(
-				array(
-					'code'    => 'changeset_trash_unauthorized',
-					'message' => __( 'Unable to trash changes.' ),
-				)
-			);
+		if ( $changeset_post_id ) {
+			if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
+				wp_send_json_error(
+					array(
+						'code'    => 'changeset_trash_unauthorized',
+						'message' => __( 'Unable to trash changes.' ),
+					)
+				);
+			}
+
+			$lock_user = (int) wp_check_post_lock( $changeset_post_id );
+
+			if ( $lock_user && get_current_user_id() !== $lock_user ) {
+				wp_send_json_error(
+					array(
+						'code'     => 'changeset_locked',
+						'message'  => __( 'Changeset is being edited by other user.' ),
+						'lockUser' => $this->get_lock_user_data( $lock_user ),
+					)
+				);
+			}
 		}
 
 		if ( 'trash' === get_post_status( $changeset_post_id ) ) {
@@ -3179,6 +3211,7 @@ final class WP_Customize_Manager {
 	 * This should be able to be removed once #40922 is addressed in core.
 	 *
 	 * @since 4.9.0
+	 *
 	 * @link https://core.trac.wordpress.org/ticket/40922
 	 * @see WP_Customize_Manager::save_changeset_post()
 	 * @see _wp_translate_postdata()
@@ -3202,8 +3235,8 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param int  $changeset_post_id Changeset post id.
-	 * @param bool $take_over Take over the changeset, default is false.
+	 * @param int  $changeset_post_id Changeset post ID.
+	 * @param bool $take_over Whether to take over the changeset. Default false.
 	 */
 	public function set_changeset_lock( $changeset_post_id, $take_over = false ) {
 		if ( $changeset_post_id ) {
@@ -3227,7 +3260,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param int $changeset_post_id Changeset post id.
+	 * @param int $changeset_post_id Changeset post ID.
 	 */
 	public function refresh_changeset_lock( $changeset_post_id ) {
 		if ( ! $changeset_post_id ) {
@@ -3237,7 +3270,7 @@ final class WP_Customize_Manager {
 		$lock = explode( ':', $lock );
 
 		if ( $lock && ! empty( $lock[1] ) ) {
-			$user_id         = intval( $lock[1] );
+			$user_id         = (int) $lock[1];
 			$current_user_id = get_current_user_id();
 			if ( $user_id === $current_user_id ) {
 				$lock = sprintf( '%s:%s', time(), $user_id );
@@ -3247,7 +3280,7 @@ final class WP_Customize_Manager {
 	}
 
 	/**
-	 * Filter heartbeat settings for the Customizer.
+	 * Filters heartbeat settings for the Customizer.
 	 *
 	 * @since 4.9.0
 	 * @param array $settings Current settings to filter.
@@ -3407,6 +3440,7 @@ final class WP_Customize_Manager {
 	 * invoking this method.
 	 *
 	 * @since 4.7.0
+	 *
 	 * @see _wp_customize_publish_changeset()
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -3873,14 +3907,20 @@ final class WP_Customize_Manager {
 	public function remove_panel( $id ) {
 		// Removing core components this way is _doing_it_wrong().
 		if ( in_array( $id, $this->components, true ) ) {
-			$message = sprintf(
-				/* translators: 1: Panel ID, 2: Link to 'customize_loaded_components' filter reference. */
-				__( 'Removing %1$s manually will cause PHP warnings. Use the %2$s filter instead.' ),
-				$id,
-				'<a href="' . esc_url( 'https://developer.wordpress.org/reference/hooks/customize_loaded_components/' ) . '"><code>customize_loaded_components</code></a>'
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: Panel ID, 2: Link to 'customize_loaded_components' filter reference. */
+					__( 'Removing %1$s manually will cause PHP warnings. Use the %2$s filter instead.' ),
+					$id,
+					sprintf(
+						'<a href="%1$s">%2$s</a>',
+						esc_url( 'https://developer.wordpress.org/reference/hooks/customize_loaded_components/' ),
+						'<code>customize_loaded_components</code>'
+					)
+				),
+				'4.5.0'
 			);
-
-			_doing_it_wrong( __METHOD__, $message, '4.5.0' );
 		}
 		unset( $this->panels[ $id ] );
 	}
@@ -4239,7 +4279,7 @@ final class WP_Customize_Manager {
 		<script type="text/html" id="tmpl-customize-changeset-locked-notification">
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
 				<div class="notification-message customize-changeset-locked-message">
-					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}">
+					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
 					<p class="currently-editing">
 						<# if ( data.message ) { #>
 							{{{ data.message }}}
@@ -4648,7 +4688,7 @@ final class WP_Customize_Manager {
 
 			/*
 			 * If the return URL is a page added by a theme to the Appearance menu via add_submenu_page(),
-			 * verify that belongs to the active theme, otherwise fall back to the Themes screen.
+			 * verify that it belongs to the active theme, otherwise fall back to the Themes screen.
 			 */
 			if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
 				$return_url = admin_url( 'themes.php' );
@@ -4666,9 +4706,9 @@ final class WP_Customize_Manager {
 	 * @param array $autofocus {
 	 *     Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
-	 *     @type string [$control]  ID for control to be autofocused.
-	 *     @type string [$section]  ID for section to be autofocused.
-	 *     @type string [$panel]    ID for panel to be autofocused.
+	 *     @type string $control ID for control to be autofocused.
+	 *     @type string $section ID for section to be autofocused.
+	 *     @type string $panel   ID for panel to be autofocused.
 	 * }
 	 */
 	public function set_autofocus( $autofocus ) {
@@ -4680,12 +4720,12 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array {
+	 * @return string[] {
 	 *     Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
-	 *     @type string [$control]  ID for control to be autofocused.
-	 *     @type string [$section]  ID for section to be autofocused.
-	 *     @type string [$panel]    ID for panel to be autofocused.
+	 *     @type string $control ID for control to be autofocused.
+	 *     @type string $section ID for section to be autofocused.
+	 *     @type string $panel   ID for panel to be autofocused.
 	 * }
 	 */
 	public function get_autofocus() {
@@ -4714,9 +4754,9 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 4.2.0
 		 *
-		 * @param string[]             $nonces Array of refreshed nonces for save and
-		 *                                     preview actions.
-		 * @param WP_Customize_Manager $this   WP_Customize_Manager instance.
+		 * @param string[]             $nonces  Array of refreshed nonces for save and
+		 *                                      preview actions.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		$nonces = apply_filters( 'customize_refresh_nonces', $nonces, $this );
 
@@ -5768,10 +5808,11 @@ final class WP_Customize_Manager {
 		if ( 'installed' === $theme_action ) {
 
 			// Load all installed themes from wp_prepare_themes_for_js().
-			$themes = array( 'themes' => wp_prepare_themes_for_js() );
-			foreach ( $themes['themes'] as &$theme ) {
-				$theme['type']   = 'installed';
-				$theme['active'] = ( isset( $_POST['customized_theme'] ) && $_POST['customized_theme'] === $theme['id'] );
+			$themes = array( 'themes' => array() );
+			foreach ( wp_prepare_themes_for_js() as $theme ) {
+				$theme['type']      = 'installed';
+				$theme['active']    = ( isset( $_POST['customized_theme'] ) && $_POST['customized_theme'] === $theme['id'] );
+				$themes['themes'][] = $theme;
 			}
 		} elseif ( 'wporg' === $theme_action ) {
 
@@ -5883,7 +5924,7 @@ final class WP_Customize_Manager {
 		 * @see themes_api()
 		 * @see WP_Customize_Manager::__construct()
 		 *
-		 * @param array                $themes  Nested array of theme data.
+		 * @param array|stdClass       $themes  Nested array or object of theme data.
 		 * @param array                $args    List of arguments, such as page, search term, and tags to query for.
 		 * @param WP_Customize_Manager $manager Instance of Customize manager.
 		 */
@@ -5922,7 +5963,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string $value Repeat value.
+	 * @param string               $value   Repeat value.
 	 * @param WP_Customize_Setting $setting Setting.
 	 * @return string|WP_Error Background value or validation error.
 	 */
@@ -5964,9 +6005,9 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array $response Response.
+	 * @param array                          $response          Response.
 	 * @param WP_Customize_Selective_Refresh $selective_refresh Selective refresh component.
-	 * @param array $partials Array of partials.
+	 * @param array                          $partials          Array of partials.
 	 * @return array
 	 */
 	public function export_header_video_settings( $response, $selective_refresh, $partials ) {
@@ -5985,7 +6026,7 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @param WP_Error $validity
-	 * @param mixed $value
+	 * @param mixed    $value
 	 * @return mixed
 	 */
 	public function _validate_header_video( $validity, $value ) {
@@ -6021,7 +6062,7 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @param WP_Error $validity
-	 * @param mixed $value
+	 * @param mixed    $value
 	 * @return mixed
 	 */
 	public function _validate_external_header_video( $validity, $value ) {

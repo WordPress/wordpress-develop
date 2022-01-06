@@ -116,6 +116,7 @@ add_action( 'customize_register', 'twentyfifteen_customize_register', 11 );
  * Render the site title for the selective refresh partial.
  *
  * @since Twenty Fifteen 1.5
+ *
  * @see twentyfifteen_customize_register()
  *
  * @return void
@@ -128,6 +129,7 @@ function twentyfifteen_customize_partial_blogname() {
  * Render the site tagline for the selective refresh partial.
  *
  * @since Twenty Fifteen 1.5
+ *
  * @see twentyfifteen_customize_register()
  *
  * @return void
@@ -155,7 +157,7 @@ function twentyfifteen_customize_partial_blogdescription() {
  */
 function twentyfifteen_get_color_schemes() {
 	/**
-	 * Filter the color schemes registered for use with Twenty Fifteen.
+	 * Filters the color schemes registered for use with Twenty Fifteen.
 	 *
 	 * The default schemes include 'default', 'dark', 'yellow', 'pink', 'purple', and 'blue'.
 	 *

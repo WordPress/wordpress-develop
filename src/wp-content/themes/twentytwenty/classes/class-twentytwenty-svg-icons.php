@@ -11,13 +11,17 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 	/**
 	 * SVG ICONS CLASS
 	 * Retrieve the SVG code for the specified icon. Based on a solution in Twenty Nineteen.
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	class TwentyTwenty_SVG_Icons {
 		/**
 		 * GET SVG CODE
 		 * Get the SVG code for the specified icon
 		 *
-		 * @param string $icon Icon name.
+		 * @since Twenty Twenty 1.0
+		 *
+		 * @param string $icon  Icon name.
 		 * @param string $group Icon group.
 		 * @param string $color Color.
 		 */
@@ -29,6 +33,30 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 			} else {
 				$arr = array();
 			}
+
+			/**
+			 * Filters Twenty Twenty's array of icons.
+			 *
+			 * The dynamic portion of the hook name, `$group`, refers to
+			 * the name of the group of icons, either "ui" or "social".
+			 *
+			 * @since Twenty Twenty 1.5
+			 *
+			 * @param array $arr Array of icons.
+			 */
+			$arr = apply_filters( "twentytwenty_svg_icons_{$group}", $arr );
+
+			/**
+			 * Filters an SVG icon's color.
+			 *
+			 * @since Twenty Twenty 1.5
+			 *
+			 * @param string $color The icon color.
+			 * @param string $icon  The icon name.
+			 * @param string $group The icon group.
+			 */
+			$color = apply_filters( 'twentytwenty_svg_icon_color', $color, $icon, $group );
+
 			if ( array_key_exists( $icon, $arr ) ) {
 				$repl = '<svg class="svg-icon" aria-hidden="true" role="img" focusable="false" ';
 				$svg  = preg_replace( '/^<svg /', $repl, trim( $arr[ $icon ] ) ); // Add extra attributes to SVG code.
@@ -45,14 +73,37 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 		 * GET SOCIAL LINK SVG
 		 * Detects the social network from a URL and returns the SVG code for its icon.
 		 *
+		 * @since Twenty Twenty 1.0
+		 *
 		 * @param string $uri The URL to retrieve SVG for.
 		 */
 		public static function get_social_link_svg( $uri ) {
 			static $regex_map; // Only compute regex map once, for performance.
 			if ( ! isset( $regex_map ) ) {
 				$regex_map = array();
-				$map       = &self::$social_icons_map; // Use reference instead of copy, to save memory.
-				foreach ( array_keys( self::$social_icons ) as $icon ) {
+
+				/**
+				 * Filters Twenty Twenty's array of domain mappings for social icons.
+				 *
+				 * By default, each Icon ID is matched against a .com TLD. To override this behavior,
+				 * specify all the domains it covers (including the .com TLD too, if applicable).
+				 *
+				 * @since Twenty Twenty 1.5
+				 *
+				 * @param array $social_icons_map Array of default social icons.
+				 */
+				$map = apply_filters( 'twentytwenty_social_icons_map', self::$social_icons_map );
+
+				/**
+				 * Filters Twenty Twenty's array of social icons.
+				 *
+				 * @since Twenty Twenty 1.5
+				 *
+				 * @param array $social_icons Array of default social icons.
+				 */
+				$social_icons = apply_filters( 'twentytwenty_svg_icons_social', self::$social_icons );
+
+				foreach ( array_keys( $social_icons ) as $icon ) {
 					$domains            = array_key_exists( $icon, $map ) ? $map[ $icon ] : array( sprintf( '%s.com', $icon ) );
 					$domains            = array_map( 'trim', $domains ); // Remove leading/trailing spaces, to prevent regex from failing to match.
 					$domains            = array_map( 'preg_quote', $domains );
@@ -71,6 +122,7 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 		 * ICON STORAGE
 		 * Store the code for all SVGs in an array.
 		 *
+		 * @since Twenty Twenty 1.0
 		 * @var array
 		 */
 		public static $ui_icons = array(
@@ -124,6 +176,7 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 		 * By default, each Icon ID is matched against a .com TLD. To override this behavior,
 		 * specify all the domains it covers (including the .com TLD too, if applicable).
 		 *
+		 * @since Twenty Twenty 1.0
 		 * @var array
 		 */
 		public static $social_icons_map = array(
@@ -170,6 +223,10 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 			'twitch'    => array(
 				'twitch.tv',
 			),
+			'whatsapp'  => array(
+				'wa.me',
+				'whatsapp.com',
+			),
 			'wordpress' => array(
 				'wordpress.com',
 				'wordpress.org',
@@ -179,6 +236,7 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 		/**
 		 * Social Icons – svg sources.
 		 *
+		 * @since Twenty Twenty 1.0
 		 * @var array
 		 */
 		public static $social_icons = array(

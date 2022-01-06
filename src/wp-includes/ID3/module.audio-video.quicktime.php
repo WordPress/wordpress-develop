@@ -15,13 +15,27 @@
 //                                                            ///
 /////////////////////////////////////////////////////////////////
 
+if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+	exit;
+}
 getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.audio.mp3.php', __FILE__, true);
 getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.tag.id3v2.php', __FILE__, true); // needed for ISO 639-2 language code lookup
 
 class getid3_quicktime extends getid3_handler
 {
 
-	public $ReturnAtomData        = true;
+	/** audio-video.quicktime
+	 * return all parsed data from all atoms if true, otherwise just returned parsed metadata
+	 *
+	 * @var bool
+	 */
+	public $ReturnAtomData        = false;
+
+	/** audio-video.quicktime
+	 * return all parsed data from all atoms if true, otherwise just returned parsed metadata
+	 *
+	 * @var bool
+	 */
 	public $ParseAllPossibleAtoms = false;
 
 	/**
@@ -55,23 +69,33 @@ class getid3_quicktime extends getid3_handler
 				$atomsize = getid3_lib::BigEndian2Int($this->fread(8));
 			}
 
-			$info['quicktime'][$atomname]['name']   = $atomname;
-			$info['quicktime'][$atomname]['size']   = $atomsize;
-			$info['quicktime'][$atomname]['offset'] = $offset;
-
 			if (($offset + $atomsize) > $info['avdataend']) {
+				$info['quicktime'][$atomname]['name']   = $atomname;
+				$info['quicktime'][$atomname]['size']   = $atomsize;
+				$info['quicktime'][$atomname]['offset'] = $offset;
 				$this->error('Atom at offset '.$offset.' claims to go beyond end-of-file (length: '.$atomsize.' bytes)');
 				return false;
 			}
-
 			if ($atomsize == 0) {
 				// Furthermore, for historical reasons the list of atoms is optionally
 				// terminated by a 32-bit integer set to 0. If you are writing a program
 				// to read user data atoms, you should allow for the terminating 0.
+				$info['quicktime'][$atomname]['name']   = $atomname;
+				$info['quicktime'][$atomname]['size']   = $atomsize;
+				$info['quicktime'][$atomname]['offset'] = $offset;
 				break;
 			}
+
 			$atomHierarchy = array();
-			$info['quicktime'][$atomname] = $this->QuicktimeParseAtom($atomname, $atomsize, $this->fread(min($atomsize, $atom_data_read_buffer_size)), $offset, $atomHierarchy, $this->ParseAllPossibleAtoms);
+			$parsedAtomData = $this->QuicktimeParseAtom($atomname, $atomsize, $this->fread(min($atomsize, $atom_data_read_buffer_size)), $offset, $atomHierarchy, $this->ParseAllPossibleAtoms);
+			$parsedAtomData['name']   = $atomname;
+			$parsedAtomData['size']   = $atomsize;
+			$parsedAtomData['offset'] = $offset;
+			if (in_array($atomname, array('uuid'))) {
+				@$info['quicktime'][$atomname][] = $parsedAtomData;
+			} else {
+				$info['quicktime'][$atomname] = $parsedAtomData;
+			}
 
 			$offset += $atomsize;
 			$atomcounter++;
@@ -114,7 +138,8 @@ class getid3_quicktime extends getid3_handler
 			foreach ($info['quicktime']['comments']['location.ISO6709'] as $ISO6709string) {
 				$ISO6709parsed = array('latitude'=>false, 'longitude'=>false, 'altitude'=>false);
 				if (preg_match('#^([\\+\\-])([0-9]{2}|[0-9]{4}|[0-9]{6})(\\.[0-9]+)?([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?(([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?)?/$#', $ISO6709string, $matches)) {
-					@list($dummy, $lat_sign, $lat_deg, $lat_deg_dec, $lon_sign, $lon_deg, $lon_deg_dec, $dummy, $alt_sign, $alt_deg, $alt_deg_dec) = $matches; // phpcs:ignore PHPCompatibility.Lists.AssignmentOrder.Affected
+					// phpcs:ignore PHPCompatibility.Lists.AssignmentOrder.Affected
+					@list($dummy, $lat_sign, $lat_deg, $lat_deg_dec, $lon_sign, $lon_deg, $lon_deg_dec, $dummy, $alt_sign, $alt_deg, $alt_deg_dec) = $matches;
 
 					if (strlen($lat_deg) == 2) {        // [+-]DD.D
 						$ISO6709parsed['latitude'] = (($lat_sign == '-') ? -1 : 1) * floatval(ltrim($lat_deg, '0').$lat_deg_dec);
@@ -143,8 +168,8 @@ class getid3_quicktime extends getid3_handler
 					foreach (array('latitude', 'longitude', 'altitude') as $key) {
 						if ($ISO6709parsed[$key] !== false) {
 							$value = (($lat_sign == '-') ? -1 : 1) * floatval($ISO6709parsed[$key]);
-							if (!in_array($value, $info['quicktime']['comments']['gps_'.$key])) {
-								$info['quicktime']['comments']['gps_'.$key][]  = (($lat_sign == '-') ? -1 : 1) * floatval($ISO6709parsed[$key]);
+							if (!isset($info['quicktime']['comments']['gps_'.$key]) || !in_array($value, $info['quicktime']['comments']['gps_'.$key])) {
+								@$info['quicktime']['comments']['gps_'.$key][] = (($lat_sign == '-') ? -1 : 1) * floatval($ISO6709parsed[$key]);
 							}
 						}
 					}
@@ -156,7 +181,7 @@ class getid3_quicktime extends getid3_handler
 			}
 		}
 
-		if (!isset($info['bitrate']) && isset($info['playtime_seconds'])) {
+		if (!isset($info['bitrate']) && !empty($info['playtime_seconds'])) {
 			$info['bitrate'] = (($info['avdataend'] - $info['avdataoffset']) * 8) / $info['playtime_seconds'];
 		}
 		if (isset($info['bitrate']) && !isset($info['audio']['bitrate']) && !isset($info['quicktime']['video'])) {
@@ -527,6 +552,7 @@ class getid3_quicktime extends getid3_handler
 														} elseif (preg_match('#^GIF#', $atom_structure['data'])) {
 															$atom_structure['image_mime'] = 'image/gif';
 														}
+														$info['quicktime']['comments']['picture'][] = array('image_mime'=>$atom_structure['image_mime'], 'data'=>$atom_structure['data'], 'description'=>'cover');
 														break;
 
 													case 'atID':
@@ -545,13 +571,27 @@ class getid3_quicktime extends getid3_handler
 											default:
 												$atom_structure['data'] = substr($boxdata, 8);
 												if ($atomname == 'covr') {
-													// not a foolproof check, but better than nothing
-													if (preg_match('#^\\xFF\\xD8\\xFF#', $atom_structure['data'])) {
-														$atom_structure['image_mime'] = 'image/jpeg';
-													} elseif (preg_match('#^\\x89\\x50\\x4E\\x47\\x0D\\x0A\\x1A\\x0A#', $atom_structure['data'])) {
-														$atom_structure['image_mime'] = 'image/png';
-													} elseif (preg_match('#^GIF#', $atom_structure['data'])) {
-														$atom_structure['image_mime'] = 'image/gif';
+													if (!empty($atom_structure['data'])) {
+														$atom_structure['image_mime'] = 'image/unknown'; // provide default MIME type to ensure array keys exist
+														if (function_exists('getimagesizefromstring') && ($getimagesize = getimagesizefromstring($atom_structure['data'])) && !empty($getimagesize['mime'])) {
+															$atom_structure['image_mime'] = $getimagesize['mime'];
+														} else {
+															// if getimagesizefromstring is not available, or fails for some reason, fall back to simple detection of common image formats
+															$ImageFormatSignatures = array(
+																'image/jpeg' => "\xFF\xD8\xFF",
+																'image/png'  => "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A",
+																'image/gif'  => 'GIF',
+															);
+															foreach ($ImageFormatSignatures as $mime => $image_format_signature) {
+																if (substr($atom_structure['data'], 0, strlen($image_format_signature)) == $image_format_signature) {
+																	$atom_structure['image_mime'] = $mime;
+																	break;
+																}
+															}
+														}
+														$info['quicktime']['comments']['picture'][] = array('image_mime'=>$atom_structure['image_mime'], 'data'=>$atom_structure['data'], 'description'=>'cover');
+													} else {
+														$this->warning('Unknown empty "covr" image at offset '.$baseoffset);
 													}
 												}
 												break;
@@ -712,11 +752,13 @@ class getid3_quicktime extends getid3_handler
 					$atom_structure['flags']['play_on_open'] = (bool) $atom_structure['play_on_open_flag'];
 					$atom_structure['flags']['slide_show']   = (bool) $atom_structure['slide_show_flag'];
 
-					$ptv_lookup[0] = 'normal';
-					$ptv_lookup[1] = 'double';
-					$ptv_lookup[2] = 'half';
-					$ptv_lookup[3] = 'full';
-					$ptv_lookup[4] = 'current';
+					$ptv_lookup = array(
+						0 => 'normal',
+						1 => 'double',
+						2 => 'half',
+						3 => 'full',
+						4 => 'current'
+					);
 					if (isset($ptv_lookup[$atom_structure['display_size_raw']])) {
 						$atom_structure['display_size'] = $ptv_lookup[$atom_structure['display_size_raw']];
 					} else {
@@ -755,6 +797,15 @@ class getid3_quicktime extends getid3_handler
 						$stsdEntriesDataOffset += 2;
 						$atom_structure['sample_description_table'][$i]['data']             =                           substr($atom_data, $stsdEntriesDataOffset, ($atom_structure['sample_description_table'][$i]['size'] - 4 - 4 - 6 - 2));
 						$stsdEntriesDataOffset += ($atom_structure['sample_description_table'][$i]['size'] - 4 - 4 - 6 - 2);
+
+						if (substr($atom_structure['sample_description_table'][$i]['data'],  1, 54) == 'application/octet-stream;type=com.parrot.videometadata') {
+							// special handling for apparently-malformed (TextMetaDataSampleEntry?) data for some version of Parrot drones
+							$atom_structure['sample_description_table'][$i]['parrot_frame_metadata']['mime_type']        =       substr($atom_structure['sample_description_table'][$i]['data'],  1, 55);
+							$atom_structure['sample_description_table'][$i]['parrot_frame_metadata']['metadata_version'] = (int) substr($atom_structure['sample_description_table'][$i]['data'], 55,  1);
+							unset($atom_structure['sample_description_table'][$i]['data']);
+$this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in this version of getID3() ['.$this->getid3->version().']');
+							continue;
+						}
 
 						$atom_structure['sample_description_table'][$i]['encoder_version']  = getid3_lib::BigEndian2Int(substr($atom_structure['sample_description_table'][$i]['data'],  0, 2));
 						$atom_structure['sample_description_table'][$i]['encoder_revision'] = getid3_lib::BigEndian2Int(substr($atom_structure['sample_description_table'][$i]['data'],  2, 2));
@@ -883,13 +934,13 @@ class getid3_quicktime extends getid3_handler
 										$atom_structure['sample_description_table'][$i]['video_pixel_color_depth'] =   getid3_lib::BigEndian2Int(substr($atom_structure['sample_description_table'][$i]['data'], 66,  2));
 										$atom_structure['sample_description_table'][$i]['video_color_table_id']    =   getid3_lib::BigEndian2Int(substr($atom_structure['sample_description_table'][$i]['data'], 68,  2));
 
-										$atom_structure['sample_description_table'][$i]['video_pixel_color_type']  = (($atom_structure['sample_description_table'][$i]['video_pixel_color_depth'] > 32) ? 'grayscale' : 'color');
+										$atom_structure['sample_description_table'][$i]['video_pixel_color_type']  = (((int) $atom_structure['sample_description_table'][$i]['video_pixel_color_depth'] > 32) ? 'grayscale' : 'color');
 										$atom_structure['sample_description_table'][$i]['video_pixel_color_name']  = $this->QuicktimeColorNameLookup($atom_structure['sample_description_table'][$i]['video_pixel_color_depth']);
 
 										if ($atom_structure['sample_description_table'][$i]['video_pixel_color_name'] != 'invalid') {
 											$info['quicktime']['video']['codec_fourcc']        = $atom_structure['sample_description_table'][$i]['data_format'];
 											$info['quicktime']['video']['codec_fourcc_lookup'] = $this->QuicktimeVideoCodecLookup($atom_structure['sample_description_table'][$i]['data_format']);
-											$info['quicktime']['video']['codec']               = (($atom_structure['sample_description_table'][$i]['video_encoder_name_len'] > 0) ? $atom_structure['sample_description_table'][$i]['video_encoder_name'] : $atom_structure['sample_description_table'][$i]['data_format']);
+											$info['quicktime']['video']['codec']               = (((int) $atom_structure['sample_description_table'][$i]['video_encoder_name_len'] > 0) ? $atom_structure['sample_description_table'][$i]['video_encoder_name'] : $atom_structure['sample_description_table'][$i]['data_format']);
 											$info['quicktime']['video']['color_depth']         = $atom_structure['sample_description_table'][$i]['video_pixel_color_depth'];
 											$info['quicktime']['video']['color_depth_name']    = $atom_structure['sample_description_table'][$i]['video_pixel_color_name'];
 
@@ -1133,7 +1184,7 @@ class getid3_quicktime extends getid3_handler
 					$atom_structure['component_manufacturer'] =                           substr($atom_data, 12, 4);
 					$atom_structure['component_flags_raw']    = getid3_lib::BigEndian2Int(substr($atom_data, 16, 4));
 					$atom_structure['component_flags_mask']   = getid3_lib::BigEndian2Int(substr($atom_data, 20, 4));
-					$atom_structure['component_name']         =      $this->Pascal2String(substr($atom_data, 24));
+					$atom_structure['component_name']         = $this->MaybePascal2String(substr($atom_data, 24));
 
 					if (($atom_structure['component_subtype'] == 'STpn') && ($atom_structure['component_manufacturer'] == 'zzzz')) {
 						$info['video']['dataformat'] = 'quicktimevr';
@@ -1164,6 +1215,8 @@ class getid3_quicktime extends getid3_handler
 					if (empty($info['comments']['language']) || (!in_array($atom_structure['language'], $info['comments']['language']))) {
 						$info['comments']['language'][] = $atom_structure['language'];
 					}
+					$info['quicktime']['timestamps_unix']['create'][$atom_structure['hierarchy']] = $atom_structure['creation_time_unix'];
+					$info['quicktime']['timestamps_unix']['modify'][$atom_structure['hierarchy']] = $atom_structure['modify_time_unix'];
 					break;
 
 
@@ -1174,6 +1227,7 @@ class getid3_quicktime extends getid3_handler
 					$atom_structure['atom_index']             = getid3_lib::BigEndian2Int(substr($atom_data, 10, 2)); // usually: 0x01
 
 					$atom_structure['modification_date_unix'] = getid3_lib::DateMac2Unix($atom_structure['modification_date']);
+					$info['quicktime']['timestamps_unix']['modify'][$atom_structure['hierarchy']] = $atom_structure['modification_date_unix'];
 					break;
 
 
@@ -1271,6 +1325,8 @@ class getid3_quicktime extends getid3_handler
 					}
 					$atom_structure['creation_time_unix']        = getid3_lib::DateMac2Unix($atom_structure['creation_time']);
 					$atom_structure['modify_time_unix']          = getid3_lib::DateMac2Unix($atom_structure['modify_time']);
+					$info['quicktime']['timestamps_unix']['create'][$atom_structure['hierarchy']] = $atom_structure['creation_time_unix'];
+					$info['quicktime']['timestamps_unix']['modify'][$atom_structure['hierarchy']] = $atom_structure['modify_time_unix'];
 					$info['quicktime']['time_scale']    = ((isset($info['quicktime']['time_scale']) && ($info['quicktime']['time_scale'] < 1000)) ? max($info['quicktime']['time_scale'], $atom_structure['time_scale']) : $atom_structure['time_scale']);
 					$info['quicktime']['display_scale'] = $atom_structure['matrix_a'];
 					$info['playtime_seconds']           = $atom_structure['duration'] / $atom_structure['time_scale'];
@@ -1309,6 +1365,8 @@ class getid3_quicktime extends getid3_handler
 					$atom_structure['flags']['in_poster']  = (bool) ($atom_structure['flags_raw'] & 0x0008);
 					$atom_structure['creation_time_unix']  = getid3_lib::DateMac2Unix($atom_structure['creation_time']);
 					$atom_structure['modify_time_unix']    = getid3_lib::DateMac2Unix($atom_structure['modify_time']);
+					$info['quicktime']['timestamps_unix']['create'][$atom_structure['hierarchy']] = $atom_structure['creation_time_unix'];
+					$info['quicktime']['timestamps_unix']['modify'][$atom_structure['hierarchy']] = $atom_structure['modify_time_unix'];
 
 					// https://www.getid3.org/phpBB3/viewtopic.php?t=1908
 					// attempt to compute rotation from matrix values
@@ -1450,7 +1508,7 @@ class getid3_quicktime extends getid3_handler
 						$info['avdataend']    = $atom_structure['offset'] + $atom_structure['size']; // $info['quicktime'][$atomname]['offset'] + $info['quicktime'][$atomname]['size'];
 
 						$getid3_temp = new getID3();
-						$getid3_temp->openfile($this->getid3->filename);
+						$getid3_temp->openfile($this->getid3->filename, $this->getid3->info['filesize'], $this->getid3->fp);
 						$getid3_temp->info['avdataoffset'] = $info['avdataoffset'];
 						$getid3_temp->info['avdataend']    = $info['avdataend'];
 						$getid3_mp3 = new getid3_mp3($getid3_temp);
@@ -1566,33 +1624,61 @@ class getid3_quicktime extends getid3_handler
 					break;
 
 				case 'NCDT':
-					// http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Nikon.html
+					// https://exiftool.org/TagNames/Nikon.html
 					// Nikon-specific QuickTime tags found in the NCDT atom of MOV videos from some Nikon cameras such as the Coolpix S8000 and D5100
 					$atom_structure['subatoms'] = $this->QuicktimeParseContainerAtom($atom_data, $baseoffset + 4, $atomHierarchy, $ParseAllPossibleAtoms);
 					break;
 				case 'NCTH': // Nikon Camera THumbnail image
 				case 'NCVW': // Nikon Camera preVieW image
-					// http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Nikon.html
+				case 'NCM1': // Nikon Camera preview iMage 1
+				case 'NCM2': // Nikon Camera preview iMage 2
+					// https://exiftool.org/TagNames/Nikon.html
 					if (preg_match('/^\xFF\xD8\xFF/', $atom_data)) {
+						$descriptions = array(
+							'NCTH' => 'Nikon Camera Thumbnail Image',
+							'NCVW' => 'Nikon Camera Preview Image',
+							'NCM1' => 'Nikon Camera Preview Image 1',
+							'NCM2' => 'Nikon Camera Preview Image 2',
+						);
 						$atom_structure['data'] = $atom_data;
 						$atom_structure['image_mime'] = 'image/jpeg';
-						$atom_structure['description'] = (($atomname == 'NCTH') ? 'Nikon Camera Thumbnail Image' : (($atomname == 'NCVW') ? 'Nikon Camera Preview Image' : 'Nikon preview image'));
-						$info['quicktime']['comments']['picture'][] = array('image_mime'=>$atom_structure['image_mime'], 'data'=>$atom_data, 'description'=>$atom_structure['description']);
+						$atom_structure['description'] = isset($descriptions[$atomname]) ? $descriptions[$atomname] : 'Nikon preview image';
+						$info['quicktime']['comments']['picture'][] = array(
+							'image_mime' => $atom_structure['image_mime'],
+							'data' => $atom_data,
+							'description' => $atom_structure['description']
+						);
 					}
 					break;
-				case 'NCTG': // Nikon - http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Nikon.html#NCTG
-					$atom_structure['data'] = $this->QuicktimeParseNikonNCTG($atom_data);
+				case 'NCTG': // Nikon - https://exiftool.org/TagNames/Nikon.html#NCTG
+					getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.tag.nikon-nctg.php', __FILE__, true);
+					$nikonNCTG = new getid3_tag_nikon_nctg($this->getid3);
+
+					$atom_structure['data'] = $nikonNCTG->parse($atom_data);
 					break;
-				case 'NCHD': // Nikon:MakerNoteVersion  - http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Nikon.html
-				case 'NCDB': // Nikon                   - http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Nikon.html
-				case 'CNCV': // Canon:CompressorVersion - http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Canon.html
+				case 'NCHD': // Nikon:MakerNoteVersion  - https://exiftool.org/TagNames/Nikon.html
+					$makerNoteVersion = '';
+					for ($i = 0, $iMax = strlen($atom_data); $i < $iMax; ++$i) {
+						if (ord($atom_data[$i]) >= 0x00 && ord($atom_data[$i]) <= 0x1F) {
+							$makerNoteVersion .= ' '.ord($atom_data[$i]);
+						} else {
+							$makerNoteVersion .= $atom_data[$i];
+						}
+					}
+					$makerNoteVersion = rtrim($makerNoteVersion, "\x00");
+					$atom_structure['data'] = array(
+						'MakerNoteVersion' => $makerNoteVersion
+					);
+					break;
+				case 'NCDB': // Nikon                   - https://exiftool.org/TagNames/Nikon.html
+				case 'CNCV': // Canon:CompressorVersion - https://exiftool.org/TagNames/Canon.html
 					$atom_structure['data'] = $atom_data;
 					break;
 
 				case "\x00\x00\x00\x00":
 					// some kind of metacontainer, may contain a big data dump such as:
 					// mdta keys \005 mdtacom.apple.quicktime.make (mdtacom.apple.quicktime.creationdate ,mdtacom.apple.quicktime.location.ISO6709 $mdtacom.apple.quicktime.software !mdtacom.apple.quicktime.model ilst \01D \001 \015data \001DE\010Apple 0 \002 (data \001DE\0102011-05-11T17:54:04+0200 2 \003 *data \001DE\010+52.4936+013.3897+040.247/ \01D \004 \015data \001DE\0104.3.1 \005 \018data \001DE\010iPhone 4
-					// http://www.geocities.com/xhelmboyx/quicktime/formats/qti-layout.txt
+					// https://xhelmboyx.tripod.com/formats/qti-layout.txt
 
 					$atom_structure['version']   =          getid3_lib::BigEndian2Int(substr($atom_data, 0, 1));
 					$atom_structure['flags_raw'] =          getid3_lib::BigEndian2Int(substr($atom_data, 1, 3));
@@ -1639,122 +1725,145 @@ class getid3_quicktime extends getid3_handler
 					}
 					break;
 
-				case 'uuid': // Atom holding 360fly spatial data??
-					/* code in this block by Paul Lewis 2019-Oct-31 */
-					/*	Sensor Timestamps need to be calculated using the recordings base time at ['quicktime']['moov']['subatoms'][0]['creation_time_unix']. */
-					$atom_structure['title'] = '360Fly Sensor Data';
-
+				case 'uuid': // user-defined atom often seen containing XML data, also used for potentially many other purposes, only a few specifically handled by getID3 (e.g. 360fly spatial data)
 					//Get the UUID ID in first 16 bytes
 					$uuid_bytes_read = unpack('H8time_low/H4time_mid/H4time_hi/H4clock_seq_hi/H12clock_seq_low', substr($atom_data, 0, 16));
-					$atom_structure['uuid_field_id'] = print_r(implode('-', $uuid_bytes_read), true);
+					$atom_structure['uuid_field_id'] = implode('-', $uuid_bytes_read);
 
-					//Get the UUID HEADER data
-					$uuid_bytes_read = unpack('Sheader_size/Sheader_version/Stimescale/Shardware_version/x/x/x/x/x/x/x/x/x/x/x/x/x/x/x/x/', substr($atom_data, 16, 32));
-					$atom_structure['uuid_header'] = json_encode($uuid_bytes_read, true);
+					switch ($atom_structure['uuid_field_id']) {   // http://fileformats.archiveteam.org/wiki/Boxes/atoms_format#UUID_boxes
 
-					$start_byte = 48;
-					$atom_SENSOR_data = substr($atom_data, $start_byte);
-					$atom_structure['sensor_data']['data_type'] = array(
-							'fusion_count'   => 0,       // ID 250
-							'fusion_data'    => array(),
-							'accel_count'    => 0,       // ID 1
-							'accel_data'     => array(),
-							'gyro_count'     => 0,       // ID 2
-							'gyro_data'      => array(),
-							'magno_count'    => 0,       // ID 3
-							'magno_data'     => array(),
-							'gps_count'      => 0,       // ID 5
-							'gps_data'       => array(),
-							'rotation_count' => 0,       // ID 6
-							'rotation_data'  => array(),
-							'unknown_count'  => 0,       // ID ??
-							'unknown_data'   => array(),
-							'debug_list'     => '',      // Used to debug variables stored as comma delimited strings
-					);
-					$debug_structure['debug_items'] = array();
-					// Can start loop here to decode all sensor data in 32 Byte chunks:
-					foreach (str_split($atom_SENSOR_data, 32) as $sensor_key => $sensor_data) {
-						// This gets me a data_type code to work out what data is in the next 31 bytes.
-						$sensor_data_type = substr($sensor_data, 0, 1);
-						$sensor_data_content = substr($sensor_data, 1);
-						$uuid_bytes_read = unpack('C*', $sensor_data_type);
-						$sensor_data_array = array();
-						switch ($uuid_bytes_read[1]) {
-							case 250:
-								$atom_structure['sensor_data']['data_type']['fusion_count']++;
-								$uuid_bytes_read = unpack('cmode/Jtimestamp/Gyaw/Gpitch/Groll/x*', $sensor_data_content);
-								$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
-								$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
-								$sensor_data_array['yaw']       = $uuid_bytes_read['yaw'];
-								$sensor_data_array['pitch']     = $uuid_bytes_read['pitch'];
-								$sensor_data_array['roll']      = $uuid_bytes_read['roll'];
-								array_push($atom_structure['sensor_data']['data_type']['fusion_data'], $sensor_data_array);
-								break;
-							case 1:
-								$atom_structure['sensor_data']['data_type']['accel_count']++;
-								$uuid_bytes_read = unpack('cmode/Jtimestamp/Gyaw/Gpitch/Groll/x*', $sensor_data_content);
-								$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
-								$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
-								$sensor_data_array['yaw']       = $uuid_bytes_read['yaw'];
-								$sensor_data_array['pitch']     = $uuid_bytes_read['pitch'];
-								$sensor_data_array['roll']      = $uuid_bytes_read['roll'];
-								array_push($atom_structure['sensor_data']['data_type']['accel_data'], $sensor_data_array);
-								break;
-							case 2:
-								$atom_structure['sensor_data']['data_type']['gyro_count']++;
-								$uuid_bytes_read = unpack('cmode/Jtimestamp/Gyaw/Gpitch/Groll/x*', $sensor_data_content);
-								$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
-								$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
-								$sensor_data_array['yaw']       = $uuid_bytes_read['yaw'];
-								$sensor_data_array['pitch']     = $uuid_bytes_read['pitch'];
-								$sensor_data_array['roll']      = $uuid_bytes_read['roll'];
-								array_push($atom_structure['sensor_data']['data_type']['gyro_data'], $sensor_data_array);
-								break;
-							case 3:
-								$atom_structure['sensor_data']['data_type']['magno_count']++;
-								$uuid_bytes_read = unpack('cmode/Jtimestamp/Gmagx/Gmagy/Gmagz/x*', $sensor_data_content);
-								$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
-								$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
-								$sensor_data_array['magx']      = $uuid_bytes_read['magx'];
-								$sensor_data_array['magy']      = $uuid_bytes_read['magy'];
-								$sensor_data_array['magz']      = $uuid_bytes_read['magz'];
-								array_push($atom_structure['sensor_data']['data_type']['magno_data'], $sensor_data_array);
-								break;
-							case 5:
-								$atom_structure['sensor_data']['data_type']['gps_count']++;
-								$uuid_bytes_read = unpack('cmode/Jtimestamp/Glat/Glon/Galt/Gspeed/nbearing/nacc/x*', $sensor_data_content);
-								$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
-								$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
-								$sensor_data_array['lat']       = $uuid_bytes_read['lat'];
-								$sensor_data_array['lon']       = $uuid_bytes_read['lon'];
-								$sensor_data_array['alt']       = $uuid_bytes_read['alt'];
-								$sensor_data_array['speed']     = $uuid_bytes_read['speed'];
-								$sensor_data_array['bearing']   = $uuid_bytes_read['bearing'];
-								$sensor_data_array['acc']       = $uuid_bytes_read['acc'];
-								//$sensor_data_array = print_r($uuid_bytes_read, true);
-								array_push($atom_structure['sensor_data']['data_type']['gps_data'], $sensor_data_array);
-								//array_push($debug_structure['debug_items'], $uuid_bytes_read['timestamp']);
-								break;
-							case 6:
-								$atom_structure['sensor_data']['data_type']['rotation_count']++;
-								$uuid_bytes_read = unpack('cmode/Jtimestamp/Grotx/Groty/Grotz/x*', $sensor_data_content);
-								$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
-								$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
-								$sensor_data_array['rotx']      = $uuid_bytes_read['rotx'];
-								$sensor_data_array['roty']      = $uuid_bytes_read['roty'];
-								$sensor_data_array['rotz']      = $uuid_bytes_read['rotz'];
-								array_push($atom_structure['sensor_data']['data_type']['rotation_data'], $sensor_data_array);
-								break;
-							default:
-								$atom_structure['sensor_data']['data_type']['unknown_count']++;
-								break;
-						}
+						case '0537cdab-9d0c-4431-a72a-fa561f2a113e': // Exif                                       - http://fileformats.archiveteam.org/wiki/Exif
+						case '2c4c0100-8504-40b9-a03e-562148d6dfeb': // Photoshop Image Resources                  - http://fileformats.archiveteam.org/wiki/Photoshop_Image_Resources
+						case '33c7a4d2-b81d-4723-a0ba-f1a3e097ad38': // IPTC-IIM                                   - http://fileformats.archiveteam.org/wiki/IPTC-IIM
+						case '8974dbce-7be7-4c51-84f9-7148f9882554': // PIFF Track Encryption Box                  - http://fileformats.archiveteam.org/wiki/Protected_Interoperable_File_Format
+						case '96a9f1f1-dc98-402d-a7ae-d68e34451809': // GeoJP2 World File Box                      - http://fileformats.archiveteam.org/wiki/GeoJP2
+						case 'a2394f52-5a9b-4f14-a244-6c427c648df4': // PIFF Sample Encryption Box                 - http://fileformats.archiveteam.org/wiki/Protected_Interoperable_File_Format
+						case 'b14bf8bd-083d-4b43-a5ae-8cd7d5a6ce03': // GeoJP2 GeoTIFF Box                         - http://fileformats.archiveteam.org/wiki/GeoJP2
+						case 'd08a4f18-10f3-4a82-b6c8-32d8aba183d3': // PIFF Protection System Specific Header Box - http://fileformats.archiveteam.org/wiki/Protected_Interoperable_File_Format
+							$this->warning('Unhandled (but recognized) "uuid" atom identified by "'.$atom_structure['uuid_field_id'].'" at offset '.$atom_structure['offset'].' ('.strlen($atom_data).' bytes)');
+							break;
+
+						case 'be7acfcb-97a9-42e8-9c71-999491e3afac': // XMP data (in XML format)
+							$atom_structure['xml'] = substr($atom_data, 16, strlen($atom_data) - 16 - 8); // 16 bytes for UUID, 8 bytes header(?)
+							break;
+
+						case 'efe1589a-bb77-49ef-8095-27759eb1dc6f': // 360fly data
+							/* 360fly code in this block by Paul Lewis 2019-Oct-31 */
+							/*	Sensor Timestamps need to be calculated using the recordings base time at ['quicktime']['moov']['subatoms'][0]['creation_time_unix']. */
+							$atom_structure['title'] = '360Fly Sensor Data';
+
+							//Get the UUID HEADER data
+							$uuid_bytes_read = unpack('vheader_size/vheader_version/vtimescale/vhardware_version/x/x/x/x/x/x/x/x/x/x/x/x/x/x/x/x/', substr($atom_data, 16, 32));
+							$atom_structure['uuid_header'] = $uuid_bytes_read;
+
+							$start_byte = 48;
+							$atom_SENSOR_data = substr($atom_data, $start_byte);
+							$atom_structure['sensor_data']['data_type'] = array(
+									'fusion_count'   => 0,       // ID 250
+									'fusion_data'    => array(),
+									'accel_count'    => 0,       // ID 1
+									'accel_data'     => array(),
+									'gyro_count'     => 0,       // ID 2
+									'gyro_data'      => array(),
+									'magno_count'    => 0,       // ID 3
+									'magno_data'     => array(),
+									'gps_count'      => 0,       // ID 5
+									'gps_data'       => array(),
+									'rotation_count' => 0,       // ID 6
+									'rotation_data'  => array(),
+									'unknown_count'  => 0,       // ID ??
+									'unknown_data'   => array(),
+									'debug_list'     => '',      // Used to debug variables stored as comma delimited strings
+							);
+							$debug_structure = array();
+							$debug_structure['debug_items'] = array();
+							// Can start loop here to decode all sensor data in 32 Byte chunks:
+							foreach (str_split($atom_SENSOR_data, 32) as $sensor_key => $sensor_data) {
+								// This gets me a data_type code to work out what data is in the next 31 bytes.
+								$sensor_data_type = substr($sensor_data, 0, 1);
+								$sensor_data_content = substr($sensor_data, 1);
+								$uuid_bytes_read = unpack('C*', $sensor_data_type);
+								$sensor_data_array = array();
+								switch ($uuid_bytes_read[1]) {
+									case 250:
+										$atom_structure['sensor_data']['data_type']['fusion_count']++;
+										$uuid_bytes_read = unpack('cmode/Jtimestamp/Gyaw/Gpitch/Groll/x*', $sensor_data_content);
+										$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
+										$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
+										$sensor_data_array['yaw']       = $uuid_bytes_read['yaw'];
+										$sensor_data_array['pitch']     = $uuid_bytes_read['pitch'];
+										$sensor_data_array['roll']      = $uuid_bytes_read['roll'];
+										array_push($atom_structure['sensor_data']['data_type']['fusion_data'], $sensor_data_array);
+										break;
+									case 1:
+										$atom_structure['sensor_data']['data_type']['accel_count']++;
+										$uuid_bytes_read = unpack('cmode/Jtimestamp/Gyaw/Gpitch/Groll/x*', $sensor_data_content);
+										$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
+										$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
+										$sensor_data_array['yaw']       = $uuid_bytes_read['yaw'];
+										$sensor_data_array['pitch']     = $uuid_bytes_read['pitch'];
+										$sensor_data_array['roll']      = $uuid_bytes_read['roll'];
+										array_push($atom_structure['sensor_data']['data_type']['accel_data'], $sensor_data_array);
+										break;
+									case 2:
+										$atom_structure['sensor_data']['data_type']['gyro_count']++;
+										$uuid_bytes_read = unpack('cmode/Jtimestamp/Gyaw/Gpitch/Groll/x*', $sensor_data_content);
+										$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
+										$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
+										$sensor_data_array['yaw']       = $uuid_bytes_read['yaw'];
+										$sensor_data_array['pitch']     = $uuid_bytes_read['pitch'];
+										$sensor_data_array['roll']      = $uuid_bytes_read['roll'];
+										array_push($atom_structure['sensor_data']['data_type']['gyro_data'], $sensor_data_array);
+										break;
+									case 3:
+										$atom_structure['sensor_data']['data_type']['magno_count']++;
+										$uuid_bytes_read = unpack('cmode/Jtimestamp/Gmagx/Gmagy/Gmagz/x*', $sensor_data_content);
+										$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
+										$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
+										$sensor_data_array['magx']      = $uuid_bytes_read['magx'];
+										$sensor_data_array['magy']      = $uuid_bytes_read['magy'];
+										$sensor_data_array['magz']      = $uuid_bytes_read['magz'];
+										array_push($atom_structure['sensor_data']['data_type']['magno_data'], $sensor_data_array);
+										break;
+									case 5:
+										$atom_structure['sensor_data']['data_type']['gps_count']++;
+										$uuid_bytes_read = unpack('cmode/Jtimestamp/Glat/Glon/Galt/Gspeed/nbearing/nacc/x*', $sensor_data_content);
+										$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
+										$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
+										$sensor_data_array['lat']       = $uuid_bytes_read['lat'];
+										$sensor_data_array['lon']       = $uuid_bytes_read['lon'];
+										$sensor_data_array['alt']       = $uuid_bytes_read['alt'];
+										$sensor_data_array['speed']     = $uuid_bytes_read['speed'];
+										$sensor_data_array['bearing']   = $uuid_bytes_read['bearing'];
+										$sensor_data_array['acc']       = $uuid_bytes_read['acc'];
+										array_push($atom_structure['sensor_data']['data_type']['gps_data'], $sensor_data_array);
+										//array_push($debug_structure['debug_items'], $uuid_bytes_read['timestamp']);
+										break;
+									case 6:
+										$atom_structure['sensor_data']['data_type']['rotation_count']++;
+										$uuid_bytes_read = unpack('cmode/Jtimestamp/Grotx/Groty/Grotz/x*', $sensor_data_content);
+										$sensor_data_array['mode']      = $uuid_bytes_read['mode'];
+										$sensor_data_array['timestamp'] = $uuid_bytes_read['timestamp'];
+										$sensor_data_array['rotx']      = $uuid_bytes_read['rotx'];
+										$sensor_data_array['roty']      = $uuid_bytes_read['roty'];
+										$sensor_data_array['rotz']      = $uuid_bytes_read['rotz'];
+										array_push($atom_structure['sensor_data']['data_type']['rotation_data'], $sensor_data_array);
+										break;
+									default:
+										$atom_structure['sensor_data']['data_type']['unknown_count']++;
+										break;
+								}
+							}
+							//if (isset($debug_structure['debug_items']) && count($debug_structure['debug_items']) > 0) {
+							//	$atom_structure['sensor_data']['data_type']['debug_list'] = implode(',', $debug_structure['debug_items']);
+							//} else {
+								$atom_structure['sensor_data']['data_type']['debug_list'] = 'No debug items in list!';
+							//}
+							break;
+
+						default:
+							$this->warning('Unhandled "uuid" atom identified by "'.$atom_structure['uuid_field_id'].'" at offset '.$atom_structure['offset'].' ('.strlen($atom_data).' bytes)');
 					}
-//					if (isset($debug_structure['debug_items']) && count($debug_structure['debug_items']) > 0) {
-//						$atom_structure['sensor_data']['data_type']['debug_list'] = implode(',', $debug_structure['debug_items']);
-//					} else {
-						$atom_structure['sensor_data']['data_type']['debug_list'] = 'No debug items in list!';
-//					}
 					break;
 
 				case 'gps ':
@@ -1949,17 +2058,22 @@ class getid3_quicktime extends getid3_handler
 				case 'thma': // subatom to "frea" -- "ThumbnailImage"
 					// https://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Kodak.html#frea
 					if (strlen($atom_data) > 0) {
-						$info['quicktime']['comments']['picture'][] = array('data'=>$atom_data, 'image_mime'=>'image/jpeg');
+						$info['quicktime']['comments']['picture'][] = array('data'=>$atom_data, 'image_mime'=>'image/jpeg', 'description'=>'ThumbnailImage');
 					}
 					break;
 				case 'scra': // subatom to "frea" -- "PreviewImage"
 					// https://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Kodak.html#frea
 					// but the only sample file I've seen has no useful data here
 					if (strlen($atom_data) > 0) {
-						$info['quicktime']['comments']['picture'][] = array('data'=>$atom_data, 'image_mime'=>'image/jpeg');
+						$info['quicktime']['comments']['picture'][] = array('data'=>$atom_data, 'image_mime'=>'image/jpeg', 'description'=>'PreviewImage');
 					}
 					break;
 
+				case 'cdsc': // timed metadata reference
+					// A QuickTime movie can contain none, one, or several timed metadata tracks. Timed metadata tracks can refer to multiple tracks.
+					// Metadata tracks are linked to the tracks they describe using a track-reference of type 'cdsc'. The metadata track holds the 'cdsc' track reference.
+					$atom_structure['track_number'] = getid3_lib::BigEndian2Int($atom_data);
+					break;
 
 				default:
 					$this->warning('Unknown QuickTime atom type: "'.preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $atomname).'" ('.trim(getid3_lib::PrintHexBytes($atomname)).'), '.$atomsize.' bytes at offset '.$baseoffset);
@@ -1980,7 +2094,7 @@ class getid3_quicktime extends getid3_handler
 	 * @return array|false
 	 */
 	public function QuicktimeParseContainerAtom($atom_data, $baseoffset, &$atomHierarchy, $ParseAllPossibleAtoms) {
-		$atom_structure  = false;
+		$atom_structure = array();
 		$subatomoffset  = 0;
 		$subatomcounter = 0;
 		if ((strlen($atom_data) == 4) && (getid3_lib::BigEndian2Int($atom_data) == 0x00000000)) {
@@ -1998,11 +2112,22 @@ class getid3_quicktime extends getid3_handler
 					$subatomoffset += 4;
 					continue;
 				}
-				return $atom_structure;
+				break;
+			}
+			if (strlen($subatomdata) < ($subatomsize - 8)) {
+			    // we don't have enough data to decode the subatom.
+			    // this may be because we are refusing to parse large subatoms, or it may be because this atom had its size set too large
+			    // so we passed in the start of a following atom incorrectly?
+			    break;
 			}
 			$atom_structure[$subatomcounter++] = $this->QuicktimeParseAtom($subatomname, $subatomsize, $subatomdata, $baseoffset + $subatomoffset, $atomHierarchy, $ParseAllPossibleAtoms);
 			$subatomoffset += $subatomsize;
 		}
+
+		if (empty($atom_structure)) {
+			return false;
+		}
+
 		return $atom_structure;
 	}
 
@@ -2487,8 +2612,9 @@ class getid3_quicktime extends getid3_handler
 		static $QuicktimeContentRatingLookup = array();
 		if (empty($QuicktimeContentRatingLookup)) {
 			$QuicktimeContentRatingLookup[0]  = 'None';
+			$QuicktimeContentRatingLookup[1]  = 'Explicit';
 			$QuicktimeContentRatingLookup[2]  = 'Clean';
-			$QuicktimeContentRatingLookup[4]  = 'Explicit';
+			$QuicktimeContentRatingLookup[4]  = 'Explicit (old)';
 		}
 		return (isset($QuicktimeContentRatingLookup[$rtng]) ? $QuicktimeContentRatingLookup[$rtng] : 'invalid');
 	}
@@ -2539,189 +2665,6 @@ class getid3_quicktime extends getid3_handler
 			$QuicktimeStoreFrontCodeLookup[143441] = 'United States';
 		}
 		return (isset($QuicktimeStoreFrontCodeLookup[$sfid]) ? $QuicktimeStoreFrontCodeLookup[$sfid] : 'invalid');
-	}
-
-	/**
-	 * @param string $atom_data
-	 *
-	 * @return array
-	 */
-	public function QuicktimeParseNikonNCTG($atom_data) {
-		// http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Nikon.html#NCTG
-		// Nikon-specific QuickTime tags found in the NCDT atom of MOV videos from some Nikon cameras such as the Coolpix S8000 and D5100
-		// Data is stored as records of:
-		// * 4 bytes record type
-		// * 2 bytes size of data field type:
-		//     0x0001 = flag   (size field *= 1-byte)
-		//     0x0002 = char   (size field *= 1-byte)
-		//     0x0003 = DWORD+ (size field *= 2-byte), values are stored CDAB
-		//     0x0004 = QWORD+ (size field *= 4-byte), values are stored EFGHABCD
-		//     0x0005 = float  (size field *= 8-byte), values are stored aaaabbbb where value is aaaa/bbbb; possibly multiple sets of values appended together
-		//     0x0007 = bytes  (size field *= 1-byte), values are stored as ??????
-		//     0x0008 = ?????  (size field *= 2-byte), values are stored as ??????
-		// * 2 bytes data size field
-		// * ? bytes data (string data may be null-padded; datestamp fields are in the format "2011:05:25 20:24:15")
-		// all integers are stored BigEndian
-
-		$NCTGtagName = array(
-			0x00000001 => 'Make',
-			0x00000002 => 'Model',
-			0x00000003 => 'Software',
-			0x00000011 => 'CreateDate',
-			0x00000012 => 'DateTimeOriginal',
-			0x00000013 => 'FrameCount',
-			0x00000016 => 'FrameRate',
-			0x00000022 => 'FrameWidth',
-			0x00000023 => 'FrameHeight',
-			0x00000032 => 'AudioChannels',
-			0x00000033 => 'AudioBitsPerSample',
-			0x00000034 => 'AudioSampleRate',
-			0x02000001 => 'MakerNoteVersion',
-			0x02000005 => 'WhiteBalance',
-			0x0200000b => 'WhiteBalanceFineTune',
-			0x0200001e => 'ColorSpace',
-			0x02000023 => 'PictureControlData',
-			0x02000024 => 'WorldTime',
-			0x02000032 => 'UnknownInfo',
-			0x02000083 => 'LensType',
-			0x02000084 => 'Lens',
-		);
-
-		$offset = 0;
-		$data = null;
-		$datalength = strlen($atom_data);
-		$parsed = array();
-		while ($offset < $datalength) {
-			$record_type       = getid3_lib::BigEndian2Int(substr($atom_data, $offset, 4));  $offset += 4;
-			$data_size_type    = getid3_lib::BigEndian2Int(substr($atom_data, $offset, 2));  $offset += 2;
-			$data_size         = getid3_lib::BigEndian2Int(substr($atom_data, $offset, 2));  $offset += 2;
-			switch ($data_size_type) {
-				case 0x0001: // 0x0001 = flag   (size field *= 1-byte)
-					$data = getid3_lib::BigEndian2Int(substr($atom_data, $offset, $data_size * 1));
-					$offset += ($data_size * 1);
-					break;
-				case 0x0002: // 0x0002 = char   (size field *= 1-byte)
-					$data = substr($atom_data, $offset, $data_size * 1);
-					$offset += ($data_size * 1);
-					$data = rtrim($data, "\x00");
-					break;
-				case 0x0003: // 0x0003 = DWORD+ (size field *= 2-byte), values are stored CDAB
-					$data = '';
-					for ($i = $data_size - 1; $i >= 0; $i--) {
-						$data .= substr($atom_data, $offset + ($i * 2), 2);
-					}
-					$data = getid3_lib::BigEndian2Int($data);
-					$offset += ($data_size * 2);
-					break;
-				case 0x0004: // 0x0004 = QWORD+ (size field *= 4-byte), values are stored EFGHABCD
-					$data = '';
-					for ($i = $data_size - 1; $i >= 0; $i--) {
-						$data .= substr($atom_data, $offset + ($i * 4), 4);
-					}
-					$data = getid3_lib::BigEndian2Int($data);
-					$offset += ($data_size * 4);
-					break;
-				case 0x0005: // 0x0005 = float  (size field *= 8-byte), values are stored aaaabbbb where value is aaaa/bbbb; possibly multiple sets of values appended together
-					$data = array();
-					for ($i = 0; $i < $data_size; $i++) {
-						$numerator    = getid3_lib::BigEndian2Int(substr($atom_data, $offset + ($i * 8) + 0, 4));
-						$denomninator = getid3_lib::BigEndian2Int(substr($atom_data, $offset + ($i * 8) + 4, 4));
-						if ($denomninator == 0) {
-							$data[$i] = false;
-						} else {
-							$data[$i] = (double) $numerator / $denomninator;
-						}
-					}
-					$offset += (8 * $data_size);
-					if (count($data) == 1) {
-						$data = $data[0];
-					}
-					break;
-				case 0x0007: // 0x0007 = bytes  (size field *= 1-byte), values are stored as ??????
-					$data = substr($atom_data, $offset, $data_size * 1);
-					$offset += ($data_size * 1);
-					break;
-				case 0x0008: // 0x0008 = ?????  (size field *= 2-byte), values are stored as ??????
-					$data = substr($atom_data, $offset, $data_size * 2);
-					$offset += ($data_size * 2);
-					break;
-				default:
-					echo 'QuicktimeParseNikonNCTG()::unknown $data_size_type: '.$data_size_type.'<br>';
-					break 2;
-			}
-
-			switch ($record_type) {
-				case 0x00000011: // CreateDate
-				case 0x00000012: // DateTimeOriginal
-					$data = strtotime($data);
-					break;
-				case 0x0200001e: // ColorSpace
-					switch ($data) {
-						case 1:
-							$data = 'sRGB';
-							break;
-						case 2:
-							$data = 'Adobe RGB';
-							break;
-					}
-					break;
-				case 0x02000023: // PictureControlData
-					$PictureControlAdjust = array(0=>'default', 1=>'quick', 2=>'full');
-					$FilterEffect = array(0x80=>'off', 0x81=>'yellow', 0x82=>'orange',    0x83=>'red', 0x84=>'green',  0xff=>'n/a');
-					$ToningEffect = array(0x80=>'b&w', 0x81=>'sepia',  0x82=>'cyanotype', 0x83=>'red', 0x84=>'yellow', 0x85=>'green', 0x86=>'blue-green', 0x87=>'blue', 0x88=>'purple-blue', 0x89=>'red-purple', 0xff=>'n/a');
-					$data = array(
-						'PictureControlVersion'     =>                           substr($data,  0,  4),
-						'PictureControlName'        =>                     rtrim(substr($data,  4, 20), "\x00"),
-						'PictureControlBase'        =>                     rtrim(substr($data, 24, 20), "\x00"),
-						//'?'                       =>                           substr($data, 44,  4),
-						'PictureControlAdjust'      => $PictureControlAdjust[ord(substr($data, 48,  1))],
-						'PictureControlQuickAdjust' =>                       ord(substr($data, 49,  1)),
-						'Sharpness'                 =>                       ord(substr($data, 50,  1)),
-						'Contrast'                  =>                       ord(substr($data, 51,  1)),
-						'Brightness'                =>                       ord(substr($data, 52,  1)),
-						'Saturation'                =>                       ord(substr($data, 53,  1)),
-						'HueAdjustment'             =>                       ord(substr($data, 54,  1)),
-						'FilterEffect'              =>         $FilterEffect[ord(substr($data, 55,  1))],
-						'ToningEffect'              =>         $ToningEffect[ord(substr($data, 56,  1))],
-						'ToningSaturation'          =>                       ord(substr($data, 57,  1)),
-					);
-					break;
-				case 0x02000024: // WorldTime
-					// http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Nikon.html#WorldTime
-					// timezone is stored as offset from GMT in minutes
-					$timezone = getid3_lib::BigEndian2Int(substr($data, 0, 2));
-					if ($timezone & 0x8000) {
-						$timezone = 0 - (0x10000 - $timezone);
-					}
-					$timezone /= 60;
-
-					$dst = (bool) getid3_lib::BigEndian2Int(substr($data, 2, 1));
-					switch (getid3_lib::BigEndian2Int(substr($data, 3, 1))) {
-						case 2:
-							$datedisplayformat = 'D/M/Y'; break;
-						case 1:
-							$datedisplayformat = 'M/D/Y'; break;
-						case 0:
-						default:
-							$datedisplayformat = 'Y/M/D'; break;
-					}
-
-					$data = array('timezone'=>floatval($timezone), 'dst'=>$dst, 'display'=>$datedisplayformat);
-					break;
-				case 0x02000083: // LensType
-					$data = array(
-						//'_'  => $data,
-						'mf' => (bool) ($data & 0x01),
-						'd'  => (bool) ($data & 0x02),
-						'g'  => (bool) ($data & 0x04),
-						'vr' => (bool) ($data & 0x08),
-					);
-					break;
-			}
-			$tag_name = (isset($NCTGtagName[$record_type]) ? $NCTGtagName[$record_type] : '0x'.str_pad(dechex($record_type), 8, '0', STR_PAD_LEFT));
-			$parsed[$tag_name] = $data;
-		}
-		return $parsed;
 	}
 
 	/**
@@ -2840,19 +2783,8 @@ class getid3_quicktime extends getid3_handler
 		}
 		if ($comment_key) {
 			if ($comment_key == 'picture') {
-				if (!is_array($data)) {
-					$image_mime = '';
-					if (preg_match('#^\x89\x50\x4E\x47\x0D\x0A\x1A\x0A#', $data)) {
-						$image_mime = 'image/png';
-					} elseif (preg_match('#^\xFF\xD8\xFF#', $data)) {
-						$image_mime = 'image/jpeg';
-					} elseif (preg_match('#^GIF#', $data)) {
-						$image_mime = 'image/gif';
-					} elseif (preg_match('#^BM#', $data)) {
-						$image_mime = 'image/bmp';
-					}
-					$data = array('data'=>$data, 'image_mime'=>$image_mime);
-				}
+				// already copied directly into [comments][picture] elsewhere, do not re-copy here
+				return true;
 			}
 			$gooddata = array($data);
 			if ($comment_key == 'genre') {
@@ -2860,7 +2792,7 @@ class getid3_quicktime extends getid3_handler
 				$gooddata = explode(';', $data);
 			}
 			foreach ($gooddata as $data) {
-				if (is_array($data) || (!empty($info['quicktime']['comments'][$comment_key]) && in_array($data, $info['quicktime']['comments'][$comment_key]))) {
+				if (!empty($info['quicktime']['comments'][$comment_key]) && in_array($data, $info['quicktime']['comments'][$comment_key], true)) {
 					// avoid duplicate copies of identical data
 					continue;
 				}
@@ -2927,6 +2859,23 @@ class getid3_quicktime extends getid3_handler
 	public function Pascal2String($pascalstring) {
 		// Pascal strings have 1 unsigned byte at the beginning saying how many chars (1-255) are in the string
 		return substr($pascalstring, 1);
+	}
+
+	/**
+	 * @param string $pascalstring
+	 *
+	 * @return string
+	 */
+	public function MaybePascal2String($pascalstring) {
+		// Pascal strings have 1 unsigned byte at the beginning saying how many chars (1-255) are in the string
+		// Check if string actually is in this format or written incorrectly, straight string, or null-terminated string
+		if (ord(substr($pascalstring, 0, 1)) == (strlen($pascalstring) - 1)) {
+			return substr($pascalstring, 1);
+		} elseif (substr($pascalstring, -1, 1) == "\x00") {
+			// appears to be null-terminated instead of Pascal-style
+			return substr($pascalstring, 0, -1);
+		}
+		return $pascalstring;
 	}
 
 
