@@ -2454,26 +2454,14 @@ function enqueue_block_styles_assets() {
 	$block_styles = WP_Block_Styles_Registry::get_instance()->get_all_registered();
 
 	foreach ( $block_styles as $block_name => $styles ) {
-		foreach ( $styles as $style_properties ) {
-			if ( isset( $style_properties['style_handle'] ) ) {
 
-				// If the site loads separate styles per-block, enqueue the stylesheet on render.
-				if ( wp_should_load_separate_core_block_assets() ) {
-					add_filter(
-						'render_block',
-						function( $html, $block ) use ( $block_name, $style_properties ) {
-							if ( $block['blockName'] === $block_name ) {
-								wp_enqueue_style( $style_properties['style_handle'] );
-							}
-							return $html;
-						},
-						10,
-						2
-					);
-				} else {
-					wp_enqueue_style( $style_properties['style_handle'] );
-				}
-			}
+		// If the site loads separate styles per-block, enqueue the stylesheet on render.
+		if ( wp_should_load_separate_core_block_assets() ) {
+			add_filter( "render_block_{$block_name}", 'load_separate_core_block_assets', 10, 2 );
+		}
+
+		foreach ( $styles as $style_properties ) {
+
 			if ( isset( $style_properties['inline_style'] ) ) {
 
 				// Default to "wp-block-library".
@@ -2493,6 +2481,34 @@ function enqueue_block_styles_assets() {
 			}
 		}
 	}
+}
+
+/**
+ * If the site loads separate styles per-block, enqueue the stylesheet on render.
+ *
+ * Intended for use with the render_block_{$block_name} filter.
+ *
+ * @see enqueue_block_styles_assets()
+ *
+ * @param string $html  The block markup.
+ * @param array  $block The block attributes.
+ *
+ * @return string
+ */
+function load_separate_core_block_assets( $html, $block ) {
+
+	$block_styles = WP_Block_Styles_Registry::get_instance()->get_registered( $block['blockName'] );
+
+	if ( ! empty( $block_styles ) && is_array( $block_styles ) ) {
+
+		foreach ( $block_styles as $style_properties ) {
+
+			if ( isset( $style_properties['style_handle'] ) ) {
+				wp_enqueue_style( $style_properties['style_handle'] );
+			}
+		}
+	}
+	return $html;
 }
 
 /**
