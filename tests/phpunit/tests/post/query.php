@@ -768,7 +768,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$q = new WP_Query(
 			array(
-				'posts_per_page' => 2,
+				'posts_per_page'         => 2,
 				'update_post_term_cache' => false,
 				'update_post_meta_cache' => false,
 			)
@@ -778,20 +778,20 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$before_found_posts = ( $wpdb->num_queries - $start );
 
 		// Fetch found posts
-		$found_posts = $q->found_posts;
+		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
 		// Count the queries after fetching found posts
 		$after_found_posts = ( $wpdb->num_queries - $start );
 
 		// Repeat
-		$found_posts = $q->found_posts;
+		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
 		$after_found_posts_again_1 = ( $wpdb->num_queries - $start );
 
 		// Repeat again
-		$found_posts = $q->found_posts;
+		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
 		$after_found_posts_again_2 = ( $wpdb->num_queries - $start );
