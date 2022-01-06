@@ -119,10 +119,7 @@ function wp_cache_flush_group( $group ) {
 
 	// if group is an array loop and call each key in the array
 	if ( is_array( $group ) ) {
-		foreach ( $group as $group_key ) {
-
-			wp_cache_flush_group( $group_key );
-		}
+		array_map( 'wp_cache_flush_group', $group );
 
 		return true;
 	}
