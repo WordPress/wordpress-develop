@@ -769,6 +769,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$q = new WP_Query(
 			array(
 				'posts_per_page' => 2,
+				'update_post_term_cache' => false,
+				'update_post_meta_cache' => false,
 			)
 		);
 
