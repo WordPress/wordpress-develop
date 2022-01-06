@@ -471,7 +471,7 @@ class WP_Network_Query {
 
 		$found_rows = '';
 		if ( ! $this->query_vars['no_found_rows'] ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS';
+			$found_rows = 'SQL_CALC_FOUND_ROWS'; // @TODO
 		}
 
 		$this->sql_clauses['select']  = "SELECT $found_rows $fields";
