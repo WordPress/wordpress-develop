@@ -1943,7 +1943,7 @@ class WP_Query {
 			$q['page'] = absint( $q['page'] );
 		}
 
-		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
+		// If true, forcibly turns off the query to count found rows even when limits are present.
 		if ( isset( $q['no_found_rows'] ) ) {
 			$q['no_found_rows'] = (bool) $q['no_found_rows'];
 		} else {
