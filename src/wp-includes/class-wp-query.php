@@ -176,7 +176,7 @@ class WP_Query {
 	 *
 	 * @var int
 	 */
-	private $found_posts = 0;
+	private $found_posts = null;
 
 	/**
 	 * The number of pages.
@@ -534,7 +534,7 @@ class WP_Query {
 		unset( $this->comment );
 		$this->comment_count         = 0;
 		$this->current_comment       = -1;
-		$this->found_posts           = 0;
+		$this->found_posts           = null;
 		$this->max_num_pages         = 0;
 		$this->max_num_comment_pages = 0;
 
@@ -3336,6 +3336,10 @@ class WP_Query {
 	private function set_found_posts( $q = null, $limits = null ) {
 		global $wpdb;
 
+		if ( null !== $this->found_posts ) {
+			return;
+		}
+
 		if ( null === $q ) {
 			$q = $this->query_vars;
 		}
@@ -3347,6 +3351,7 @@ class WP_Query {
 		// Bail if posts is an empty array. Continue if posts is an empty string,
 		// null, or false to accommodate caching plugins that fill posts later.
 		if ( $q['no_found_rows'] || ( is_array( $this->posts ) && ! $this->posts ) ) {
+			$this->found_posts = 0;
 			return;
 		}
 

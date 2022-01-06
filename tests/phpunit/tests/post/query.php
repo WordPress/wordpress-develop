@@ -802,8 +802,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertEquals( 3, $max_num_pages );
 
 		// Ensure subsequent counts only trigger one query
-		$this->assertSame( 2, $after_found_posts );
-		$this->assertSame( 2, $after_found_posts_again_1 );
-		$this->assertSame( 2, $after_found_posts_again_2 );
+		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts );
+		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts_again_1 );
+		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts_again_2 );
 	}
 }
