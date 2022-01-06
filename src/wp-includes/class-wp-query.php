@@ -3012,6 +3012,7 @@ class WP_Query {
 			 * Filters the completed SQL query before sending.
 			 *
 			 * @since 2.0.0
+			 * @since x.x.x This query now no longer contains a `SQL_CALC_FOUND_ROWS` modifier.
 			 *
 			 * @param string   $request The complete SQL query.
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
@@ -3096,6 +3097,7 @@ class WP_Query {
 				 * Filters the Post IDs SQL request before sending.
 				 *
 				 * @since 3.4.0
+				 * @since x.x.x This query now no longer contains a `SQL_CALC_FOUND_ROWS` modifier.
 				 *
 				 * @param string   $request The post ID request.
 				 * @param WP_Query $query   The WP_Query instance.
@@ -3332,6 +3334,7 @@ class WP_Query {
 			 * Filters the query to run for retrieving the found posts.
 			 *
 			 * @since 2.1.0
+			 * @since x.x.x This query was changed...
 			 *
 			 * @param string   $found_posts_query The query to run to find the found posts.
 			 * @param WP_Query $query             The WP_Query instance (passed by reference).
