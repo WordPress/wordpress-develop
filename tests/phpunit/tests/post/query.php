@@ -758,4 +758,52 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->assertIsInt( $q->found_posts );
 	}
+
+	public function test_found_posts_query_should_be_lazily_loaded() {
+		global $wpdb;
+
+		self::factory()->post->create_many( 5 );
+
+		$start = $wpdb->num_queries;
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 2,
+			)
+		);
+
+		// Count the queries
+		$before_found_posts = ( $wpdb->num_queries - $start );
+
+		// Fetch found posts
+		$found_posts = $q->found_posts;
+		$max_num_pages = $q->max_num_pages;
+
+		// Count the queries after fetching found posts
+		$after_found_posts = ( $wpdb->num_queries - $start );
+
+		// Repeat
+		$found_posts = $q->found_posts;
+		$max_num_pages = $q->max_num_pages;
+
+		$after_found_posts_again_1 = ( $wpdb->num_queries - $start );
+
+		// Repeat again
+		$found_posts = $q->found_posts;
+		$max_num_pages = $q->max_num_pages;
+
+		$after_found_posts_again_2 = ( $wpdb->num_queries - $start );
+
+		// Ensure the posts were not initially counted
+		$this->assertSame( 1, $before_found_posts );
+
+		// Ensure the counts are correct
+		$this->assertSame( 5, $found_posts );
+		$this->assertEquals( 3, $max_num_pages );
+
+		// Ensure subsequent counts only trigger one query
+		$this->assertSame( 2, $after_found_posts );
+		$this->assertSame( 2, $after_found_posts_again_1 );
+		$this->assertSame( 2, $after_found_posts_again_2 );
+	}
 }

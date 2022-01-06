@@ -172,17 +172,21 @@ class WP_Query {
 	 * If limit clause was not used, equals $post_count.
 	 *
 	 * @since 2.1.0
+	 * @since x.x.x This value is now lazily loaded only when it's needed.
+	 *
 	 * @var int
 	 */
-	public $found_posts = 0;
+	private $found_posts = 0;
 
 	/**
 	 * The number of pages.
 	 *
 	 * @since 2.1.0
+	 * @since x.x.x This value is now lazily loaded only when it's needed.
+	 *
 	 * @var int
 	 */
-	public $max_num_pages = 0;
+	private $max_num_pages = 0;
 
 	/**
 	 * The number of comment pages.
@@ -459,6 +463,14 @@ class WP_Query {
 	 * @var array
 	 */
 	private $stopwords;
+
+	/**
+	 * Undocumented variable
+	 *
+	 * @since x.x.x
+	 * @var string
+	 */
+	private $limits = '';
 
 	private $compat_fields = array( 'query_vars_hash', 'query_vars_changed' );
 
@@ -3046,7 +3058,7 @@ class WP_Query {
 			/** @var int[] */
 			$this->posts      = array_map( 'intval', $this->posts );
 			$this->post_count = count( $this->posts );
-			$this->set_found_posts( $q, $limits );
+			$this->limits     = $limits;
 
 			return $this->posts;
 		}
@@ -3057,7 +3069,7 @@ class WP_Query {
 			}
 
 			$this->post_count = count( $this->posts );
-			$this->set_found_posts( $q, $limits );
+			$this->limits     = $limits;
 
 			/** @var int[] */
 			$r = array();
@@ -3108,14 +3120,14 @@ class WP_Query {
 
 				if ( $ids ) {
 					$this->posts = $ids;
-					$this->set_found_posts( $q, $limits );
+					$this->limits = $limits;
 					_prime_post_caches( $ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 				} else {
 					$this->posts = array();
 				}
 			} else {
 				$this->posts = $wpdb->get_results( $this->request );
-				$this->set_found_posts( $q, $limits );
+				$this->limits = $limits;
 			}
 		}
 
@@ -3314,14 +3326,23 @@ class WP_Query {
 	 * for the current query.
 	 *
 	 * @since 3.5.0
+	 * @since x.x.x The `$q` and `$limits` parameters were made optional.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param array  $q      Query variables.
-	 * @param string $limits LIMIT clauses of the query.
+	 * @param array  $q      Optional. Query variables.
+	 * @param string $limits Optional. LIMIT clauses of the query.
 	 */
-	private function set_found_posts( $q, $limits ) {
+	private function set_found_posts( $q = null, $limits = null ) {
 		global $wpdb;
+
+		if ( null === $q ) {
+			$q = $this->query_vars;
+		}
+
+		if ( null === $limits ) {
+			$limits = $this->limits;
+		}
 
 		// Bail if posts is an empty array. Continue if posts is an empty string,
 		// null, or false to accommodate caching plugins that fill posts later.
@@ -3358,6 +3379,7 @@ class WP_Query {
 		 * Filters the number of found posts for the query.
 		 *
 		 * @since 2.1.0
+		 * @since x.x.x This filter now only runs after the value is lazily loaded...
 		 *
 		 * @param int      $found_posts The number of posts found.
 		 * @param WP_Query $query       The WP_Query instance (passed by reference).
@@ -3662,14 +3684,20 @@ class WP_Query {
 	}
 
 	/**
-	 * Make private properties readable for backward compatibility.
+	 * Make private properties readable for backward compatibility and lazy loading.
 	 *
 	 * @since 4.0.0
+	 * @since x.x.x The `found_posts` and `max_num_pages` properties are now lazily loaded.
 	 *
 	 * @param string $name Property to get.
 	 * @return mixed Property.
 	 */
 	public function __get( $name ) {
+		if ( 'found_posts' === $name || 'max_num_pages' === $name ) {
+			$this->set_found_posts();
+			return $this->$name;
+		}
+
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
 		}
