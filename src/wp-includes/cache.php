@@ -146,6 +146,13 @@ function wp_cache_flush_group( $group ) {
 	return false;
 }
 
+/**
+ * checks for group flushing capabilities
+ *
+ * @since 6.0.0
+ *
+ * @return bool True if group flushing is supported.
+ */
 function wp_cache_supports_flushing_groups() {
 	global $wp_object_cache;
 
@@ -164,10 +171,17 @@ function wp_cache_supports_flushing_groups() {
 	return apply_filters( 'wp_cache_supports_flushing_groups', false );
 }
 
+/**
+ * stores the mapping of linked cache groups
+ *
+ * @since 6.0.0
+ *
+ * @return array keyed by group, value is array of linked groups
+ */
 function wp_cache_get_linked_meta() {
 
 	return array(
-		'users' => array( 'user_meta' ),
+		'users'     => array( 'user_meta' ),
 		'user_meta' => array( 'users' ),
 	);
 }
