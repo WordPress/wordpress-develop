@@ -124,19 +124,52 @@ function wp_cache_flush_group( $group ) {
 		return true;
 	}
 
-	if ( method_exists( $wp_object_cache, 'flush_group' ) ) {
+	if ( wp_cache_supports_flushing_groups() ) {
 		// these are linked cache groups, so we have to flush them both if one is called
-		if ( 'users' === $group ) {
-			$wp_object_cache->flush_group( 'user_meta' );
-		}
-		if ( 'user_meta' === $group ) {
-			$wp_object_cache->flush_group( 'users' );
+		$cache_pairs = wp_cache_get_linked_meta();
+		if ( isset( $cache_pairs[ $group ] ) ) {
+			array_map( 'wp_cache_flush_group', $cache_pairs[ $group ] );
 		}
 
-		return $wp_object_cache->flush_group( $group );
+		/**
+		 * Filters to allow caching plugins to set this function to be called to flush groups.
+		 * See: filter "wp_cache_supports_flushing_groups" to declare group flushing is supported.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string return $flush_group_function name of function to call from the cashing class.
+		 */
+		$flush_group_function = apply_filters( 'wp_cache_flush_group_function', 'flush_group' );
+		return $wp_object_cache->$flush_group_function( $group );
 	}
 
-	return $wp_object_cache->flush();
+	return false;
+}
+
+function wp_cache_supports_flushing_groups() {
+	global $wp_object_cache;
+
+	if ( method_exists( $wp_object_cache, 'flush_group' ) ) {
+		return true;
+	}
+
+	/**
+	 * Filters to allow caching plugins to declare if they support flushing groups.
+	 * See: filter "wp_cache_flush_group_function" to change the function used.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param boolean return true if your caching tool support group flushing.
+	 */
+	return apply_filters( 'wp_cache_supports_flushing_groups', false );
+}
+
+function wp_cache_get_linked_meta( ) {
+
+	return array(
+		'users' => array( 'user_meta' ),
+		'user_meta' => array( 'users' ),
+	);
 }
 
 /**
