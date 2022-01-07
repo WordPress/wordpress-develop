@@ -1346,7 +1346,11 @@ class WP_Automatic_Updater {
 			$body[] = '';
 		}
 
-		$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		if ( '' != get_bloginfo( 'name' ) ) {
+			$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		} else {
+			$site_title = parse_url( home_url(), PHP_URL_HOST );
+		}
 
 		if ( $failures ) {
 			$body[] = trim(
