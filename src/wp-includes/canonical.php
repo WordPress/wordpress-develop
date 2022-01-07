@@ -445,7 +445,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				// Strip off any existing comment paging.
 				$redirect['path'] = preg_replace( "#/{$wp_rewrite->comments_pagination_base}-[0-9]+?(/+)?$#", '/', $redirect['path'] );
 				// Strip off any existing embed.
-				$redirect['path'] = preg_replace( "#/embed(/+)?$#", '/', $redirect['path'] );
+				$redirect['path'] = preg_replace( '#/embed(/+)?$#', '/', $redirect['path'] );
 			}
 
 			$addl_path    = '';
