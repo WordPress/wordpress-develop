@@ -427,7 +427,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		if ( get_query_var( 'sitemap' ) ) {
 			$redirect_url      = get_sitemap_url( get_query_var( 'sitemap' ), get_query_var( 'sitemap-subtype' ), get_query_var( 'paged' ) );
 			$redirect['query'] = remove_query_arg( array( 'sitemap', 'sitemap-subtype', 'paged' ), $redirect['query'] );
-		} elseif ( get_query_var( 'paged' ) || is_feed() || get_query_var( 'cpage' ) ) {
+		} elseif ( get_query_var( 'paged' ) || is_feed() || is_embed() || get_query_var( 'cpage' ) ) {
 			// Paging and feeds.
 			$paged = get_query_var( 'paged' );
 			$feed  = get_query_var( 'feed' );
@@ -480,6 +480,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 					wp_redirect( $redirect_url, 301 );
 					die();
 				}
+			} elseif ( is_embed() ) {
+				$addl_path .= user_trailingslashit( 'embed/' );
+
+				$redirect['query'] = remove_query_arg( 'embed', $redirect['query'] );
 			}
 
 			if ( $paged > 0 ) {
