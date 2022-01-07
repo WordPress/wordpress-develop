@@ -164,7 +164,7 @@ function wp_cache_supports_flushing_groups() {
 	return apply_filters( 'wp_cache_supports_flushing_groups', false );
 }
 
-function wp_cache_get_linked_meta( ) {
+function wp_cache_get_linked_meta() {
 
 	return array(
 		'users' => array( 'user_meta' ),
