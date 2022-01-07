@@ -455,14 +455,10 @@ class WP_Term_Query {
 		$exclude_tree = $args['exclude_tree'];
 		$include      = $args['include'];
 
-		$inclusions = '';
 		if ( ! empty( $include ) ) {
-			$exclude      = '';
-			$exclude_tree = '';
-			$inclusions   = implode( ',', wp_parse_id_list( $include ) );
-		}
-
-		if ( ! empty( $inclusions ) ) {
+			$exclude                                  = '';
+			$exclude_tree                             = '';
+			$inclusions                               = implode( ',', wp_parse_id_list( $include ) );
 			$this->sql_clauses['where']['inclusions'] = 't.term_id IN ( ' . $inclusions . ' )';
 		}
 
@@ -771,7 +767,8 @@ class WP_Term_Query {
 
 		if ( empty( $terms ) ) {
 			wp_cache_add( $cache_key, array(), 'terms', DAY_IN_SECONDS );
-			return array();
+			$this->terms = array();
+			return $this->terms;
 		}
 
 		if ( $child_of ) {
