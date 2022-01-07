@@ -424,6 +424,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$redirect['query'] = remove_query_arg( 'page', $redirect['query'] );
 		}
 
+		if ( $redirect_url ) {
+			$redirect = parse_url( $redirect_url );
+		}
+
 		if ( get_query_var( 'sitemap' ) ) {
 			$redirect_url      = get_sitemap_url( get_query_var( 'sitemap' ), get_query_var( 'sitemap-subtype' ), get_query_var( 'paged' ) );
 			$redirect['query'] = remove_query_arg( array( 'sitemap', 'sitemap-subtype', 'paged' ), $redirect['query'] );
