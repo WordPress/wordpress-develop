@@ -3761,7 +3761,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -3949,7 +3949,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -4134,7 +4134,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
