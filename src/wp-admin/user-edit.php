@@ -511,7 +511,7 @@ endif;
 		if ( $profileuser->ID == $current_user->ID ) :
 			?>
 		<p class="description" id="email-description">
-			<?php _e( 'If you change this, we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
+			<?php _e( 'If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
 		</p>
 			<?php
 		endif;

@@ -777,7 +777,7 @@ class WP_Automatic_Updater {
 				// Don't show this message if there is a newer version available.
 				// Potential for confusion, and also not useful for them to know at this point.
 				if ( 'fail' === $type && ! $newer_version_available ) {
-					$body .= __( 'We tried but were unable to update your site automatically.' ) . ' ';
+					$body .= __( 'An attempt was made, but your site could not be updated automatically.' ) . ' ';
 				}
 
 				$body .= __( 'Updating is easy and only takes a few moments:' );
