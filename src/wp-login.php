@@ -321,7 +321,7 @@ function login_footer( $input_id = '' ) {
 		 *
 		 * @param bool Whether to display the Languages select input on the login screen.
 		 */
-		apply_filters( 'display_login_language_dropdown', true )
+		apply_filters( 'login_display_language_dropdown', true )
 	) {
 		$languages = get_available_languages();
 
@@ -352,7 +352,7 @@ function login_footer( $input_id = '' ) {
 					 *
 					 * @param array $args Arguments for the Languages select input on the login screen.
 					 */
-					wp_dropdown_languages( apply_filters( 'wp_login_language_switcher_args', $args ) );
+					wp_dropdown_languages( apply_filters( 'login_language_dropdown_args', $args ) );
 					?>
 
 					<?php if ( $interim_login ) { ?>
@@ -979,7 +979,7 @@ switch ( $action ) {
 			?>
 			<input type="hidden" name="rp_key" value="<?php echo esc_attr( $rp_key ); ?>" />
 			<p class="submit reset-pass-submit">
-				<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="true"><?php _e( 'Generate Password' ); ?></button>
+				<button type="button" class="button wp-generate-pw hide-if-no-js skip-aria-expanded"><?php _e( 'Generate Password' ); ?></button>
 				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Save Password' ); ?>" />
 			</p>
 		</form>

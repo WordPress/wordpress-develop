@@ -706,6 +706,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Tests that block themes support a feature by default.
 	 *
 	 * @ticket 54597
+	 * @ticket 54731
+	 *
 	 * @dataProvider data_block_theme_has_default_support
 	 *
 	 * @covers ::_add_default_theme_supports
@@ -761,6 +763,36 @@ class Tests_Theme extends WP_UnitTestCase {
 			'editor-styles'        => array(
 				'support' => array(
 					'feature' => 'editor-styles',
+				),
+			),
+			'html5: comment-list'  => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'comment-list',
+				),
+			),
+			'html5: comment-form'  => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'comment-form',
+				),
+			),
+			'html5: search-form'   => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'search-form',
+				),
+			),
+			'html5: gallery'       => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'gallery',
+				),
+			),
+			'html5: caption'       => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'caption',
 				),
 			),
 			'html5: style'         => array(
