@@ -170,7 +170,7 @@ switch ( $step ) {
 		<?php
 		printf(
 			/* translators: %s: wp-config.php */
-			__( 'We&#8217;re going to use this information to create a %s file.' ),
+			__( 'This information is being used to create a %s file.' ),
 			'<code>wp-config.php</code>'
 		);
 		?>

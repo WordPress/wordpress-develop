@@ -1186,7 +1186,7 @@ class wpdb {
 
 				$message .= '<p>' . sprintf(
 					/* translators: %s: Database name. */
-					__( 'The database server could be connected (which means your username and password is okay) but the %s database could not be selected.' ),
+					__( 'The database server could be connected to (which means your username and password is okay) but the %s database could not be selected.' ),
 					'<code>' . htmlspecialchars( $db, ENT_QUOTES ) . '</code>'
 				) . "</p>\n";
 
