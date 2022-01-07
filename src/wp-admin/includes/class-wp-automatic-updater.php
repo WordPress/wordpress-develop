@@ -1235,9 +1235,15 @@ class WP_Automatic_Updater {
 		$body[] = __( 'https://wordpress.org/support/forums/' );
 		$body[] = "\n" . __( 'The WordPress Team' );
 
+		if ( '' !== get_bloginfo( 'name' ) ) {
+			$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		} else {
+			$site_title = parse_url( home_url(), PHP_URL_HOST );
+		}
+
 		$body    = implode( "\n", $body );
 		$to      = get_site_option( 'admin_email' );
-		$subject = sprintf( $subject, wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) );
+		$subject = sprintf( $subject, $site_title );
 		$headers = '';
 
 		$email = compact( 'to', 'subject', 'body', 'headers' );
