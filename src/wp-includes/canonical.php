@@ -426,6 +426,14 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 		if ( $redirect_url ) {
 			$redirect = parse_url( $redirect_url );
+
+			// Notice fixing.
+			if ( ! isset( $redirect['path'] ) ) {
+				$redirect['path'] = '';
+			}
+			if ( ! isset( $redirect['query'] ) ) {
+				$redirect['query'] = '';
+			}
 		}
 
 		if ( get_query_var( 'sitemap' ) ) {
@@ -577,6 +585,13 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	if ( $redirect_url ) {
 		$redirect = parse_url( $redirect_url );
+		// Notice fixing.
+		if ( ! isset( $redirect['path'] ) ) {
+			$redirect['path'] = '';
+		}
+		if ( ! isset( $redirect['query'] ) ) {
+			$redirect['query'] = '';
+		}
 	}
 
 	// www.example.com vs. example.com
