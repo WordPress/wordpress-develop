@@ -181,7 +181,7 @@ if ( has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) )
 	}
 	?>
 
-	<div id="welcome-panel" class="<?php echo esc_attr( $classes ); ?>">
+	<div id="welcome-panel" class="<?php echo esc_attr( $classes ); ?>" data-alt="<?php echo esc_attr( __( 'Balloon graphic, 5.9' ) ); ?>">
 		<?php wp_nonce_field( 'welcome-panel-nonce', 'welcomepanelnonce', false ); ?>
 		<a class="welcome-panel-close" href="<?php echo esc_url( admin_url( '?welcome=0' ) ); ?>" aria-label="<?php esc_attr_e( 'Dismiss the welcome panel' ); ?>"><?php _e( 'Dismiss' ); ?></a>
 		<?php
