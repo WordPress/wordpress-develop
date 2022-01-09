@@ -272,7 +272,10 @@ if ( ! CUSTOM_TAGS ) {
 			'xml:lang' => true,
 		),
 		'object'     => array(
-			'data' => true,
+			'data' => array(
+				'required'       => true,
+				'value_callback' => '_wp_kses_allow_pdf_objects',
+			),
 			'type' => array(
 				'required' => true,
 				'values'   => array( 'application/pdf' ),
@@ -459,7 +462,7 @@ if ( ! CUSTOM_TAGS ) {
 	);
 
 	/**
-	 * @var string[] $allowedentitynames Array of KSES allowed HTML entitity names.
+	 * @var string[] $allowedentitynames Array of KSES allowed HTML entity names.
 	 * @since 1.0.0
 	 */
 	$allowedentitynames = array(
@@ -719,10 +722,10 @@ if ( ! CUSTOM_TAGS ) {
 	);
 
 	/**
-	 * @var string[] $allowedxmlentitynames Array of KSES allowed XML entitity names.
+	 * @var string[] $allowedxmlentitynames Array of KSES allowed XML entity names.
 	 * @since 5.5.0
 	 */
-	$allowedxmlnamedentities = array(
+	$allowedxmlentitynames = array(
 		'amp',
 		'lt',
 		'gt',
@@ -1142,7 +1145,17 @@ function wp_kses_split2( $string, $allowed_html, $allowed_protocols ) {
  * is to check if the tag has a closing XHTML slash, and if it does, it puts one
  * in the returned code as well.
  *
+ * An array of allowed values can be defined for attributes. If the attribute value
+ * doesn't fall into the list, the attribute will be removed from the tag.
+ *
+ * Attributes can be marked as required. If a required attribute is not present,
+ * KSES will remove all attributes from the tag. As KSES doesn't match opening and
+ * closing tags, it's not possible to safely remove the tag itself, the safest
+ * fallback is to strip all attributes from the tag, instead.
+ *
  * @since 1.0.0
+ * @since 5.9.0 Added support for an array of allowed values for attributes.
+ *              Added support for required attributes.
  *
  * @param string         $element           HTML element/tag.
  * @param string         $attr              HTML attributes from HTML element to closing HTML element tag.
@@ -1180,16 +1193,17 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 		}
 	);
 
-	// If a required attribute check fails, we can return nothing for a self-closing tag,
-	// but for a non-self-closing tag the best option is to return the element with attributes,
-	// as KSES doesn't handle matching the relevant closing tag.
+	/*
+	 * If a required attribute check fails, we can return nothing for a self-closing tag,
+	 * but for a non-self-closing tag the best option is to return the element with attributes,
+	 * as KSES doesn't handle matching the relevant closing tag.
+	 */
 	$stripped_tag = '';
 	if ( empty( $xhtml_slash ) ) {
 		$stripped_tag = "<$element>";
 	}
 
-	// Go through $attrarr, and save the allowed attributes for this element
-	// in $attr2.
+	// Go through $attrarr, and save the allowed attributes for this element in $attr2.
 	$attr2 = '';
 	foreach ( $attrarr as $arreach ) {
 		// Check if this attribute is required.
@@ -1650,6 +1664,17 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 				$ok = false;
 			}
 			break;
+
+		case 'value_callback':
+			/*
+			 * The value_callback check is used when you want to make sure that the attribute
+			 * value is accepted by the callback function.
+			 */
+
+			if ( ! call_user_func( $checkvalue, $value ) ) {
+				$ok = false;
+			}
+			break;
 	} // End switch.
 
 	return $ok;
@@ -1906,7 +1931,7 @@ function wp_kses_named_entities( $matches ) {
  * @return string Correctly encoded entity.
  */
 function wp_kses_xml_named_entities( $matches ) {
-	global $allowedentitynames, $allowedxmlnamedentities;
+	global $allowedentitynames, $allowedxmlentitynames;
 
 	if ( empty( $matches[1] ) ) {
 		return '';
@@ -1914,7 +1939,7 @@ function wp_kses_xml_named_entities( $matches ) {
 
 	$i = $matches[1];
 
-	if ( in_array( $i, $allowedxmlnamedentities, true ) ) {
+	if ( in_array( $i, $allowedxmlentitynames, true ) ) {
 		return "&$i;";
 	} elseif ( in_array( $i, $allowedentitynames, true ) ) {
 		return html_entity_decode( "&$i;", ENT_HTML5 );
@@ -2082,6 +2107,33 @@ function wp_filter_post_kses( $data ) {
 }
 
 /**
+ * Sanitizes global styles user content removing unsafe rules.
+ *
+ * @since 5.9.0
+ *
+ * @param string $data Post content to filter.
+ * @return string Filtered post content with unsafe rules removed.
+ */
+function wp_filter_global_styles_post( $data ) {
+	$decoded_data        = json_decode( wp_unslash( $data ), true );
+	$json_decoding_error = json_last_error();
+	if (
+		JSON_ERROR_NONE === $json_decoding_error &&
+		is_array( $decoded_data ) &&
+		isset( $decoded_data['isGlobalStylesUserThemeJSON'] ) &&
+		$decoded_data['isGlobalStylesUserThemeJSON']
+	) {
+		unset( $decoded_data['isGlobalStylesUserThemeJSON'] );
+
+		$data_to_encode = WP_Theme_JSON::remove_insecure_properties( $decoded_data );
+
+		$data_to_encode['isGlobalStylesUserThemeJSON'] = true;
+		return wp_slash( wp_json_encode( $data_to_encode ) );
+	}
+	return $data;
+}
+
+/**
  * Sanitizes content for allowed HTML tags for post content.
  *
  * Post content refers to the page contents of the 'post' type and not `$_POST`
@@ -2151,8 +2203,10 @@ function kses_init_filters() {
 
 	// Post filtering.
 	add_filter( 'content_save_pre', 'wp_filter_post_kses' );
+	add_filter( 'content_save_pre', 'wp_filter_global_styles_post' );
 	add_filter( 'excerpt_save_pre', 'wp_filter_post_kses' );
 	add_filter( 'content_filtered_save_pre', 'wp_filter_post_kses' );
+	add_filter( 'content_filtered_save_pre', 'wp_filter_global_styles_post' );
 }
 
 /**
@@ -2177,8 +2231,10 @@ function kses_remove_filters() {
 
 	// Post filtering.
 	remove_filter( 'content_save_pre', 'wp_filter_post_kses' );
+	remove_filter( 'content_save_pre', 'wp_filter_global_styles_post' );
 	remove_filter( 'excerpt_save_pre', 'wp_filter_post_kses' );
 	remove_filter( 'content_filtered_save_pre', 'wp_filter_post_kses' );
+	remove_filter( 'content_filtered_save_pre', 'wp_filter_global_styles_post' );
 }
 
 /**
@@ -2258,16 +2314,24 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'border-right-width',
 			'border-bottom',
 			'border-bottom-color',
+			'border-bottom-left-radius',
+			'border-bottom-right-radius',
 			'border-bottom-style',
 			'border-bottom-width',
+			'border-bottom-right-radius',
+			'border-bottom-left-radius',
 			'border-left',
 			'border-left-color',
 			'border-left-style',
 			'border-left-width',
 			'border-top',
 			'border-top-color',
+			'border-top-left-radius',
+			'border-top-right-radius',
 			'border-top-style',
 			'border-top-width',
+			'border-top-left-radius',
+			'border-top-right-radius',
 
 			'border-spacing',
 			'border-collapse',
@@ -2282,6 +2346,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'column-width',
 
 			'color',
+			'filter',
 			'font',
 			'font-family',
 			'font-size',
@@ -2514,4 +2579,40 @@ function _wp_add_global_attributes( $value ) {
 	}
 
 	return $value;
+}
+
+/**
+ * Helper function to check if this is a safe PDF URL.
+ *
+ * @since 5.9.0
+ * @access private
+ * @ignore
+ *
+ * @param string $url The URL to check.
+ * @return bool True if the URL is safe, false otherwise.
+ */
+function _wp_kses_allow_pdf_objects( $url ) {
+	// We're not interested in URLs that contain query strings or fragments.
+	if ( str_contains( $url, '?' ) || str_contains( $url, '#' ) ) {
+		return false;
+	}
+
+	// If it doesn't have a PDF extension, it's not safe.
+	if ( ! str_ends_with( $url, '.pdf' ) ) {
+		return false;
+	}
+
+	// If the URL host matches the current site's media URL, it's safe.
+	$upload_info = wp_upload_dir( null, false );
+	$parsed_url  = wp_parse_url( $upload_info['url'] );
+	$upload_host = isset( $parsed_url['host'] ) ? $parsed_url['host'] : '';
+	$upload_port = isset( $parsed_url['port'] ) ? ':' . $parsed_url['port'] : '';
+
+	if ( str_starts_with( $url, "http://$upload_host$upload_port/" )
+		|| str_starts_with( $url, "https://$upload_host$upload_port/" )
+	) {
+		return true;
+	}
+
+	return false;
 }

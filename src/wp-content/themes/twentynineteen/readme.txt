@@ -2,7 +2,7 @@
 Contributors: wordpressdotorg
 Tags: one-column, flexible-header, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
 Requires at least: 4.9.6
-Tested up to: 5.8
+Tested up to: 5.9
 Stable tag: 2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -24,7 +24,7 @@ For more information about Twenty Nineteen please go to https://wordpress.org/su
 
 == Copyright ==
 
-Twenty Nineteen WordPress Theme, Copyright 2018-2021 WordPress.org
+Twenty Nineteen WordPress Theme, Copyright 2018-2022 WordPress.org
 Twenty Nineteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -101,7 +101,7 @@ Initial release
 
 == Resources ==
 * normalize.css, © 2012-2018 Nicolas Gallagher and Jonathan Neal, MIT
-* Underscores, © 2012-2021 Automattic, Inc., GNU GPL v2 or later
+* Underscores, © 2012-2022 Automattic, Inc., GNU GPL v2 or later
 * Bundled block pattern images:
 	* Abstract Background by HD Wallpapers, CC0. https://stocksnap.io/photo/abstract-background-0SRRVNMKBX
 	* Abstract Waves by HD Wallpapers, CC0. https://stocksnap.io/photo/abstract-waves-0KREGLTZQ3

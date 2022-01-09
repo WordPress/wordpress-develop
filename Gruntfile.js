@@ -1020,16 +1020,6 @@ module.exports = function(grunt) {
 				dest: SOURCE_DIR
 			}
 		},
-		includes: {
-			emoji: {
-				src: BUILD_DIR + 'wp-includes/formatting.php',
-				dest: '.'
-			},
-			embed: {
-				src: BUILD_DIR + 'wp-includes/embed.php',
-				dest: '.'
-			}
-		},
 		replace: {
 			'emoji-regex': {
 				options: {
@@ -1100,26 +1090,6 @@ module.exports = function(grunt) {
 							SOURCE_DIR + 'wp-includes/formatting.php'
 						],
 						dest: SOURCE_DIR + 'wp-includes/'
-					}
-				]
-			},
-			'emoji-banner-text': {
-				options: {
-					patterns: [
-						{
-							match: new RegExp( '\\s*' + BANNER_TEXT.replace( /[\/\*\!]/g, '\\$&' ) ),
-							replacement: ''
-						}
-					]
-				},
-				files: [
-					{
-						expand: true,
-						flatten: true,
-						src: [
-							BUILD_DIR + 'wp-includes/formatting.php'
-						],
-						dest: BUILD_DIR + 'wp-includes/'
 					}
 				]
 			},
@@ -1549,6 +1519,9 @@ module.exports = function(grunt) {
 	 * @ticket 46218
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
+		const ignoredFiles = [
+			'build/wp-includes/js/dist/components.js'
+		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
 			if ( '!' === path[0] || '**' !== path.substr( -2 ) ) {
@@ -1563,18 +1536,20 @@ module.exports = function(grunt) {
 			'No JavaScript files found in the build directory.'
 		);
 
-		files.forEach( function( file ) {
-			const contents = fs.readFileSync( file, {
-				encoding: 'utf8',
-			} );
-			// `data:` URLs are allowed:
-			const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+		files
+			.filter(file => ! ignoredFiles.includes( file) )
+			.forEach( function( file ) {
+				const contents = fs.readFileSync( file, {
+					encoding: 'utf8',
+				} );
+				// `data:` URLs are allowed:
+				const match = contents.match( /sourceMappingURL=((?!data:).)/ );
 
-			assert(
-				match === null,
-				`The ${ file } file must not contain a sourceMappingURL.`
-			);
-		} );
+				assert(
+					match === null,
+					`The ${ file } file must not contain a sourceMappingURL.`
+				);
+			} );
 	} );
 
 	grunt.registerTask( 'build', function() {
@@ -1588,9 +1563,6 @@ module.exports = function(grunt) {
 				'build:files',
 				'build:js',
 				'build:css',
-				'includes:emoji',
-				'includes:embed',
-				'replace:emoji-banner-text',
 				'replace:source-maps',
 				'verify:build'
 			] );

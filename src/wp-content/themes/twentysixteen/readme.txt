@@ -1,6 +1,6 @@
 === Twenty Sixteen ===
 Contributors: wordpressdotorg
-Tested up to: 5.8
+Tested up to: 5.9
 Version: 2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -28,7 +28,7 @@ For more information about Twenty Sixteen please go to https://wordpress.org/sup
 
 == Copyright ==
 
-Twenty Sixteen WordPress Theme, Copyright 2014-2021 WordPress.org
+Twenty Sixteen WordPress Theme, Copyright 2014-2022 WordPress.org
 Twenty Sixteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify

@@ -103,9 +103,9 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 
 	$vendor_scripts_versions = array(
-		'react'                       => '16.13.1',
-		'react-dom'                   => '16.13.1',
-		'regenerator-runtime'         => '0.13.7',
+		'react'                       => '17.0.1',
+		'react-dom'                   => '17.0.1',
+		'regenerator-runtime'         => '0.13.9',
 		'moment'                      => '2.29.1',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.2',
@@ -883,7 +883,7 @@ function wp_default_scripts( $scripts ) {
 		'missing_upload_url'        => __( 'There was a configuration error. Please contact the server administrator.' ),
 		'upload_limit_exceeded'     => __( 'You may only upload 1 file.' ),
 		'http_error'                => __( 'Unexpected response from the server. The file may have been uploaded successfully. Check in the Media Library or reload the page.' ),
-		'http_error_image'          => __( 'Post-processing of the image failed likely because the server is busy or does not have enough resources. Uploading a smaller image may help. Suggested maximum size is 2500 pixels.' ),
+		'http_error_image'          => __( 'The server cannot process the image. This can happen if the server is busy or does not have enough resources to complete the task. Uploading a smaller image may help. Suggested maximum size is 2560 pixels.' ),
 		'upload_failed'             => __( 'Upload failed.' ),
 		/* translators: 1: Opening link tag, 2: Closing link tag. */
 		'big_upload_failed'         => __( 'Please try uploading this file with the %1$sbrowser uploader%2$s.' ),
@@ -1247,7 +1247,7 @@ function wp_default_scripts( $scripts ) {
 		)
 	);
 
-	$scripts->add( 'wp-embed', "/wp-includes/js/wp-embed$suffix.js" );
+	$scripts->add( 'wp-embed', "/wp-includes/js/wp-embed$suffix.js", array(), false, 1 );
 
 	// To enqueue media-views or media-editor, call wp_enqueue_media().
 	// Both rely on numerous settings, styles, and templates to operate correctly.
@@ -1598,6 +1598,11 @@ function wp_default_styles( $styles ) {
 			'wp-block-library',
 			'wp-reusable-blocks',
 		),
+		'edit-site'            => array(
+			'wp-components',
+			'wp-block-editor',
+			'wp-edit-blocks',
+		),
 	);
 
 	foreach ( $package_styles as $package => $dependencies ) {
@@ -1655,6 +1660,7 @@ function wp_default_styles( $styles ) {
 		'wp-components',
 		'wp-customize-widgets',
 		'wp-edit-post',
+		'wp-edit-site',
 		'wp-edit-widgets',
 		'wp-editor',
 		'wp-format-library',
@@ -1810,7 +1816,7 @@ function wp_localize_jquery_ui_datepicker() {
 		)
 	);
 
-	wp_add_inline_script( 'jquery-ui-datepicker', "jQuery(document).ready(function(jQuery){jQuery.datepicker.setDefaults({$datepicker_defaults});});" );
+	wp_add_inline_script( 'jquery-ui-datepicker', "jQuery(function(jQuery){jQuery.datepicker.setDefaults({$datepicker_defaults});});" );
 }
 
 /**
@@ -2229,6 +2235,8 @@ function script_concat_settings() {
 
 	$compressed_output = ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) );
 
+	$can_compress_scripts = ! wp_installing() && get_site_option( 'can_compress_scripts' );
+
 	if ( ! isset( $concatenate_scripts ) ) {
 		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
 		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
@@ -2238,14 +2246,14 @@ function script_concat_settings() {
 
 	if ( ! isset( $compress_scripts ) ) {
 		$compress_scripts = defined( 'COMPRESS_SCRIPTS' ) ? COMPRESS_SCRIPTS : true;
-		if ( $compress_scripts && ( ! get_site_option( 'can_compress_scripts' ) || $compressed_output ) ) {
+		if ( $compress_scripts && ( ! $can_compress_scripts || $compressed_output ) ) {
 			$compress_scripts = false;
 		}
 	}
 
 	if ( ! isset( $compress_css ) ) {
 		$compress_css = defined( 'COMPRESS_CSS' ) ? COMPRESS_CSS : true;
-		if ( $compress_css && ( ! get_site_option( 'can_compress_scripts' ) || $compressed_output ) ) {
+		if ( $compress_css && ( ! $can_compress_scripts || $compressed_output ) ) {
 			$compress_css = false;
 		}
 	}
@@ -2265,7 +2273,19 @@ function wp_common_block_scripts_and_styles() {
 	wp_enqueue_style( 'wp-block-library' );
 
 	if ( current_theme_supports( 'wp-block-styles' ) ) {
-		wp_enqueue_style( 'wp-block-library-theme' );
+		if ( wp_should_load_separate_core_block_assets() ) {
+			$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? 'css' : 'min.css';
+			$files  = glob( __DIR__ . "/blocks/**/theme.$suffix" );
+			foreach ( $files as $path ) {
+				$block_name = basename( dirname( $path ) );
+				if ( is_rtl() && file_exists( __DIR__ . "/blocks/$block_name/theme-rtl.$suffix" ) ) {
+					$path = __DIR__ . "/blocks/$block_name/theme-rtl.$suffix";
+				}
+				wp_add_inline_style( "wp-block-{$block_name}", file_get_contents( $path ) );
+			}
+		} else {
+			wp_enqueue_style( 'wp-block-library-theme' );
+		}
 	}
 
 	/**
@@ -2303,32 +2323,7 @@ function wp_enqueue_global_styles() {
 		return;
 	}
 
-	$can_use_cache = (
-		( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) &&
-		( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) &&
-		( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) &&
-		! is_admin()
-	);
-
-	$stylesheet     = null;
-	$transient_name = 'global_styles_' . get_stylesheet();
-
-	if ( $can_use_cache ) {
-		$cache = get_transient( $transient_name );
-		if ( $cache ) {
-			$stylesheet = $cache;
-		}
-	}
-
-	if ( null === $stylesheet ) {
-		$settings   = get_default_block_editor_settings();
-		$theme_json = WP_Theme_JSON_Resolver::get_merged_data( $settings );
-		$stylesheet = $theme_json->get_stylesheet();
-
-		if ( $can_use_cache ) {
-			set_transient( $transient_name, $stylesheet, MINUTE_IN_SECONDS );
-		}
-	}
+	$stylesheet = wp_get_global_stylesheet();
 
 	if ( empty( $stylesheet ) ) {
 		return;
@@ -2466,10 +2461,14 @@ function enqueue_block_styles_assets() {
 				if ( wp_should_load_separate_core_block_assets() ) {
 					add_filter(
 						'render_block',
-						function( $html ) use ( $style_properties ) {
-							wp_enqueue_style( $style_properties['style_handle'] );
+						function( $html, $block ) use ( $block_name, $style_properties ) {
+							if ( $block['blockName'] === $block_name ) {
+								wp_enqueue_style( $style_properties['style_handle'] );
+							}
 							return $html;
-						}
+						},
+						10,
+						2
 					);
 				} else {
 					wp_enqueue_style( $style_properties['style_handle'] );
@@ -2631,7 +2630,7 @@ function wp_print_script_tag( $attributes ) {
  * @since 5.7.0
  *
  * @param string $javascript Inline JavaScript code.
- * @param array  $attributes  Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
@@ -2643,9 +2642,10 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
-	 *                          Only the attribute name is added to the `<script>` tag for
-	 *                          entries with a boolean value, and that are true.
+	 * @param array  $attributes Key-value pairs representing `<script>` tag attributes.
+	 *                           Only the attribute name is added to the `<script>` tag for
+	 *                           entries with a boolean value, and that are true.
+	 * @param string $javascript Inline JavaScript code.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
 
@@ -2701,6 +2701,7 @@ function wp_maybe_inline_styles() {
 		if ( wp_styles()->get_data( $handle, 'path' ) && file_exists( $wp_styles->registered[ $handle ]->extra['path'] ) ) {
 			$styles[] = array(
 				'handle' => $handle,
+				'src'    => $wp_styles->registered[ $handle ]->src,
 				'path'   => $wp_styles->registered[ $handle ]->extra['path'],
 				'size'   => filesize( $wp_styles->registered[ $handle ]->extra['path'] ),
 			);
@@ -2735,6 +2736,10 @@ function wp_maybe_inline_styles() {
 			// Get the styles if we don't already have them.
 			$style['css'] = file_get_contents( $style['path'] );
 
+			// Check if the style contains relative URLs that need to be modified.
+			// URLs relative to the stylesheet's path should be converted to relative to the site's root.
+			$style['css'] = _wp_normalize_relative_css_links( $style['css'], $style['src'] );
+
 			// Set `src` to `false` and add styles inline.
 			$wp_styles->registered[ $style['handle'] ]->src = false;
 			if ( empty( $wp_styles->registered[ $style['handle'] ]->extra['after'] ) ) {
@@ -2749,11 +2754,52 @@ function wp_maybe_inline_styles() {
 }
 
 /**
+ * Make URLs relative to the WordPress installation.
+ *
+ * @since 5.9.0
+ * @access private
+ *
+ * @param string $css            The CSS to make URLs relative to the WordPress installation.
+ * @param string $stylesheet_url The URL to the stylesheet.
+ *
+ * @return string The CSS with URLs made relative to the WordPress installation.
+ */
+function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
+	$has_src_results = preg_match_all( '#url\s*\(\s*[\'"]?\s*([^\'"\)]+)#', $css, $src_results );
+	if ( $has_src_results ) {
+		// Loop through the URLs to find relative ones.
+		foreach ( $src_results[1] as $src_index => $src_result ) {
+			// Skip if this is an absolute URL.
+			if ( 0 === strpos( $src_result, 'http' ) || 0 === strpos( $src_result, '//' ) ) {
+				continue;
+			}
+
+			// Build the absolute URL.
+			$absolute_url = dirname( $stylesheet_url ) . '/' . $src_result;
+			$absolute_url = str_replace( '/./', '/', $absolute_url );
+			// Convert to URL related to the site root.
+			$relative_url = wp_make_link_relative( $absolute_url );
+
+			// Replace the URL in the CSS.
+			$css = str_replace(
+				$src_results[0][ $src_index ],
+				str_replace( $src_result, $relative_url, $src_results[0][ $src_index ] ),
+				$css
+			);
+		}
+	}
+
+	return $css;
+}
+
+/**
  * Inject the block editor assets that need to be loaded into the editor's iframe as an inline script.
  *
  * @since 5.8.0
  */
 function wp_add_iframed_editor_assets_html() {
+	global $pagenow;
+
 	if ( ! wp_should_load_block_editor_scripts_and_styles() ) {
 		return;
 	}
@@ -2765,6 +2811,11 @@ function wp_add_iframed_editor_assets_html() {
 		'wp-block-library-theme',
 		'wp-edit-blocks',
 	);
+
+	if ( 'widgets.php' === $pagenow || 'customize.php' === $pagenow ) {
+		$style_handles[] = 'wp-widgets';
+		$style_handles[] = 'wp-edit-widgets';
+	}
 
 	$block_registry = WP_Block_Type_Registry::get_instance();
 
@@ -2787,7 +2838,8 @@ function wp_add_iframed_editor_assets_html() {
 
 	ob_start();
 
-	wp_styles()->done = array();
+	// We do not need reset styles for the iframed editor.
+	wp_styles()->done = array( 'wp-reset-editor-styles' );
 	wp_styles()->do_items( $style_handles );
 	wp_styles()->done = $done;
 
@@ -2812,4 +2864,15 @@ function wp_add_iframed_editor_assets_html() {
 	);
 
 	echo "<script>window.__editorAssets = $editor_assets</script>";
+}
+
+/**
+ * Function that enqueues the CSS Custom Properties coming from theme.json.
+ *
+ * @since 5.9.0
+ */
+function wp_enqueue_global_styles_css_custom_properties() {
+	wp_register_style( 'global-styles-css-custom-properties', false, array(), true, true );
+	wp_add_inline_style( 'global-styles-css-custom-properties', wp_get_global_stylesheet( array( 'variables' ) ) );
+	wp_enqueue_style( 'global-styles-css-custom-properties' );
 }

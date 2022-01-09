@@ -25,6 +25,14 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	protected $widgets_retrieved = false;
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var array
+	 */
+	protected $allow_batch = array( 'v1' => true );
+
+	/**
 	 * Widgets controller constructor.
 	 *
 	 * @since 5.8.0
@@ -56,7 +64,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema(),
 				),
-				'allow_batch' => array( 'v1' => true ),
+				'allow_batch' => $this->allow_batch,
 				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
@@ -90,7 +98,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'allow_batch' => array( 'v1' => true ),
+				'allow_batch' => $this->allow_batch,
 				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
@@ -180,7 +188,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string $sidebar_id The sidebar id.
+	 * @param string $sidebar_id The sidebar ID.
 	 * @return bool Whether the sidebar can be read.
 	 */
 	protected function check_read_sidebar_permission( $sidebar_id ) {
@@ -452,10 +460,10 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 *
 		 * @since 5.8.0
 		 *
-		 * @param string           $widget_id  ID of the widget marked for deletion.
-		 * @param string           $sidebar_id ID of the sidebar the widget was deleted from.
-		 * @param WP_REST_Response $response   The response data.
-		 * @param WP_REST_Request  $request    The request sent to the API.
+		 * @param string                    $widget_id  ID of the widget marked for deletion.
+		 * @param string                    $sidebar_id ID of the sidebar the widget was deleted from.
+		 * @param WP_REST_Response|WP_Error $response   The response data, or WP_Error object on failure.
+		 * @param WP_REST_Request           $request    The request sent to the API.
 		 */
 		do_action( 'rest_delete_widget', $widget_id, $sidebar_id, $response, $request );
 
@@ -725,9 +733,9 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 *
 		 * @since 5.8.0
 		 *
-		 * @param WP_REST_Response $response The response object.
-		 * @param array            $widget   The registered widget data.
-		 * @param WP_REST_Request  $request  Request used to generate the response.
+		 * @param WP_REST_Response|WP_Error $response The response object, or WP_Error object on failure.
+		 * @param array                     $widget   The registered widget data.
+		 * @param WP_REST_Request           $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_widget', $response, $widget, $request );
 	}

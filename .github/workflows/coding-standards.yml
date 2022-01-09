@@ -5,7 +5,6 @@ on:
   # PHPCS checking was introduced in WordPress 5.1.
   push:
     branches:
-      - master
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
@@ -14,7 +13,6 @@ on:
       - '[4-9].[0-9]*'
   pull_request:
     branches:
-      - master
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
@@ -50,6 +48,7 @@ jobs:
   # - Checks out the repository.
   # - Sets up PHP.
   # - Logs debug information.
+  # - Configures caching for PHPCS scans.
   # - Installs Composer dependencies (use cache if possible).
   # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
@@ -59,14 +58,15 @@ jobs:
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@afefcaf556d98dc7896cca380e181decb609ca44 # v2.10.0
+        uses: shivammathur/setup-php@ac7d3d7f84d81a029c20ab72d60264bdb7535831 # v2.15.0
         with:
           php-version: '7.4'
           coverage: none
@@ -77,8 +77,20 @@ jobs:
           php --version
           composer --version
 
+      # This date is used to ensure that the PHPCS cache is cleared at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+
+      - name: Cache PHPCS scan cache
+        uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353 # v2.1.6
+        with:
+          path: .cache/phpcs.json
+          key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
+
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@92a7904348d4ad30236f3611e33b7f0c6f9edd70 # v1.1.0
+        uses: ramsey/composer-install@a7320a0581dcd0432930c48a0e7ced67e6ec17e8 # v1.3.0
         with:
           composer-options: "--no-progress --no-ansi --no-interaction"
 
@@ -112,13 +124,14 @@ jobs:
   jshint:
     name: JavaScript coding standards
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     env:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
 
       - name: Log debug information
         run: |
@@ -128,7 +141,7 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
+        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
         with:
           node-version: 14
           cache: npm
@@ -149,7 +162,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ phpcs, jshint ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:

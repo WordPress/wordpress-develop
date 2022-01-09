@@ -70,6 +70,7 @@ final class WP_Theme implements ArrayAccess {
 		'twentynineteen'  => 'Twenty Nineteen',
 		'twentytwenty'    => 'Twenty Twenty',
 		'twentytwentyone' => 'Twenty Twenty-One',
+		'twentytwentytwo' => 'Twenty Twenty-Two',
 	);
 
 	/**
@@ -1212,8 +1213,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 4.7.0
 	 * @since 5.8.0 Include block templates.
 	 *
-	 * @return string[] Array of page templates, keyed by filename and post type,
-	 *                  with the value of the translated header name.
+	 * @return array[] Array of page template arrays, keyed by post type and filename,
+	 *                 with the value of the translated header name.
 	 */
 	public function get_post_templates() {
 		// If you screw up your current theme and we invalidate your parent, most things still work. Let it slide.
@@ -1252,6 +1253,14 @@ final class WP_Theme implements ArrayAccess {
 				$block_templates = get_block_templates( array(), 'wp_template' );
 				foreach ( get_post_types( array( 'public' => true ) ) as $type ) {
 					foreach ( $block_templates as $block_template ) {
+						if ( ! $block_template->is_custom ) {
+							continue;
+						}
+
+						if ( isset( $block_template->post_types ) && ! in_array( $type, $block_template->post_types, true ) ) {
+							continue;
+						}
+
 						$post_templates[ $type ][ $block_template->slug ] = $block_template->title;
 					}
 				}
@@ -1457,6 +1466,57 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns whether this theme is a block-based theme or not.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return bool
+	 */
+	public function is_block_theme() {
+		$paths_to_index_block_template = array(
+			$this->get_file_path( '/block-templates/index.html' ),
+			$this->get_file_path( '/templates/index.html' ),
+		);
+
+		foreach ( $paths_to_index_block_template as $path_to_index_block_template ) {
+			if ( is_file( $path_to_index_block_template ) && is_readable( $path_to_index_block_template ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Retrieves the path of a file in the theme.
+	 *
+	 * Searches in the stylesheet directory before the template directory so themes
+	 * which inherit from a parent theme can just override one file.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $file Optional. File to search for in the stylesheet directory.
+	 * @return string The path of the file.
+	 */
+	public function get_file_path( $file = '' ) {
+		$file = ltrim( $file, '/' );
+
+		$stylesheet_directory = $this->get_stylesheet_directory();
+		$template_directory   = $this->get_template_directory();
+
+		if ( empty( $file ) ) {
+			$path = $stylesheet_directory;
+		} elseif ( file_exists( $stylesheet_directory . '/' . $file ) ) {
+			$path = $stylesheet_directory . '/' . $file;
+		} else {
+			$path = $template_directory . '/' . $file;
+		}
+
+		/** This filter is documented in wp-includes/link-template.php */
+		return apply_filters( 'theme_file_path', $path, $file );
 	}
 
 	/**
