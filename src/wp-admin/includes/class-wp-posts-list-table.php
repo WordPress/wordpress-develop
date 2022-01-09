@@ -1422,6 +1422,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$actions          = array();
 		$title            = _draft_or_post_title();
 
+		$actions['id'] = sprintf( __( 'ID: %d' ), $post->ID );
+
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
