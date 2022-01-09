@@ -1345,9 +1345,10 @@ class wpdb {
 	 * Prepares a SQL query for safe execution.
 	 *
 	 * Uses sprintf()-like syntax. The following placeholders can be used in the query string:
-	 *   %d (integer)
-	 *   %f (float)
-	 *   %s (string)
+	 * - %d (integer)
+	 * - %f (float)
+	 * - %s (string)
+	 * - %i (identifier, e.g. table/field names)
 	 *
 	 * All placeholders MUST be left unquoted in the query string. A corresponding argument
 	 * MUST be passed for each placeholder.
@@ -1372,6 +1373,11 @@ class wpdb {
 	 * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
 	 *              by updating the function signature. The second parameter was changed
 	 *              from `$args` to `...$args`.
+	 * @since 6.0.0 Added %i for Identifiers, e.g. table or field names.
+	 *              This preserves compatibility with sprinf, as the C version uses %d and $i
+	 *              as a signed integer, whereas PHP only supports %d.
+	 * @since 6.0.0 Added `%...d` and `%...s` to work with the `IN()` operator, e.g.
+	 *              'WHERE type = %s AND id IN (%...d)', ['post', [4, 29, 51]]
 	 *
 	 * @link https://www.php.net/sprintf Description of syntax.
 	 *
