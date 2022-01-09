@@ -54,6 +54,15 @@ define( 'ARRAY_N', 'ARRAY_N' );
 class wpdb {
 
 	/**
+	 * Version number, to check what features are available.
+	 *
+	 * @since 6.0.0 - V2: wbdb::prepare() supports Identifiers via 'SELECT * FROM %i', and Variadics via 'IN (%...d)'
+	 *
+	 * @var int
+	 */
+	public $version = 2;
+
+	/**
 	 * Whether to show SQL/DB errors.
 	 *
 	 * Default is to show errors if both WP_DEBUG and WP_DEBUG_DISPLAY evaluate to true.
@@ -1339,6 +1348,7 @@ class wpdb {
 	 *   %d (integer)
 	 *   %f (float)
 	 *   %s (string)
+	 *   %i (identifier, e.g. table or field name)
 	 *
 	 * All placeholders MUST be left unquoted in the query string. A corresponding argument
 	 * MUST be passed for each placeholder.
@@ -1363,6 +1373,9 @@ class wpdb {
 	 * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
 	 *              by updating the function signature. The second parameter was changed
 	 *              from `$args` to `...$args`.
+	 * @since 6.0.0 Added %i for Identifiers, e.g. table or field names.
+	 *              This preserves compatibility with sprinf, as the C version uses %d and $i
+	 *              as a signed integer, whereas PHP only supports %d.
 	 *
 	 * @link https://www.php.net/sprintf Description of syntax.
 	 *
@@ -1394,28 +1407,6 @@ class wpdb {
 			);
 		}
 
-		// If args were passed as an array (as in vsprintf), move them up.
-		$passed_as_array = false;
-		if ( is_array( $args[0] ) && count( $args ) === 1 ) {
-			$passed_as_array = true;
-			$args            = $args[0];
-		}
-
-		foreach ( $args as $arg ) {
-			if ( ! is_scalar( $arg ) && ! is_null( $arg ) ) {
-				wp_load_translations_early();
-				_doing_it_wrong(
-					'wpdb::prepare',
-					sprintf(
-						/* translators: %s: Value type. */
-						__( 'Unsupported value type (%s).' ),
-						gettype( $arg )
-					),
-					'4.8.2'
-				);
-			}
-		}
-
 		/*
 		 * Specify the formatting allowed in a placeholder. The following are allowed:
 		 *
@@ -1436,14 +1427,20 @@ class wpdb {
 		 */
 		$query = str_replace( "'%s'", '%s', $query ); // Strip any existing single quotes.
 		$query = str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
-		$query = preg_replace( '/(?<!%)%s/', "'%s'", $query ); // Quote the strings, avoiding escaped strings like %%s.
 
-		$query = preg_replace( "/(?<!%)(%($allowed_format)?f)/", '%\\2F', $query ); // Force floats to be locale-unaware.
+		$query = preg_replace( "/%(?:%|$|(?!($allowed_format)?[sdfFi]))/", '%%\\1', $query ); // Escape any unescaped percents (i.e. anything unrecognised).
 
-		$query = preg_replace( "/%(?:%|$|(?!($allowed_format)?[sdF]))/", '%%\\1', $query ); // Escape any unescaped percents.
+		// Placeholders in the query.
+		$placeholders = preg_match_all( "/(^|[^%]|(%%)+)(%($allowed_format)?)([sdfFi])/", $query, $matches, PREG_OFFSET_CAPTURE );
 
-		// Count the number of valid placeholders in the query.
-		$placeholders = preg_match_all( "/(^|[^%]|(%%)+)%($allowed_format)?[sdF]/", $query, $matches );
+		// If args were passed as an array (as in vsprintf), move them up.
+		$passed_as_array = ( count( $args ) === 1 && is_array( $args[0] ) );
+		if ( ( $passed_as_array ) && ( isset( $matches[4][0][0] ) ? $matches[4][0][0] : '' ) === '...' ) { // If the single placeholder is using variadics (e.g. '%...d').
+			$passed_as_array = ( count( $args[0] ) === 1 && is_array( $args[0][0] ) ); // Only move up if it's a double array, (e.g. `[ [ 1, 2, 3 ] ]`).
+		}
+		if ( $passed_as_array ) {
+			$args = $args[0];
+		}
 
 		$args_count = count( $args );
 
@@ -1480,8 +1477,15 @@ class wpdb {
 				 * return an empty string to avoid a fatal error on PHP 8.
 				 */
 				if ( $args_count < $placeholders ) {
-					$max_numbered_placeholder = ! empty( $matches[3] ) ? max( array_map( 'intval', $matches[3] ) ) : 0;
-
+					$max_numbered_placeholder = 0;
+					if ( ! empty( $matches[4] ) ) {
+						foreach ( $matches[4] as $match ) {
+							$match = intval( $match[0] );
+							if ( $max_numbered_placeholder < $match ) {
+								$max_numbered_placeholder = $match;
+							}
+						}
+					}
 					if ( ! $max_numbered_placeholder || $args_count < $max_numbered_placeholder ) {
 						return '';
 					}
@@ -1489,8 +1493,62 @@ class wpdb {
 			}
 		}
 
-		array_walk( $args, array( $this, 'escape_by_ref' ) );
-		$query = vsprintf( $query, $args );
+		$args_escaped = array();
+		$args_replace = array();
+
+		foreach ( $args as $i => $value ) {
+
+			if ( ! isset( $matches[0][ $i ] ) ) {
+				continue;
+			}
+
+			$type = $matches[5][ $i ][0];
+			if ( 'f' === $type ) {
+				$type = 'F'; // Force floats to be locale-unaware.
+			}
+
+			if ( ! is_scalar( $value ) && ! is_null( $value ) ) {
+				wp_load_translations_early();
+				_doing_it_wrong(
+					'wpdb::prepare',
+					sprintf(
+						/* translators: %s: Value type. */
+						__( 'Unsupported value type (%s).' ),
+						gettype( $value )
+					),
+					'4.8.2'
+				);
+				$value = ''; // Preserving old behaviour, where values are escaped as strings.
+			}
+			$value = array( $value );
+			if ( 'i' === $type ) {
+				$new_placeholder = '`' . $matches[3][ $i ][0] . 's`';
+			} elseif ( '' !== $matches[4][ $i ][0] || 'd' === $type || 'F' === $type ) {
+				$new_placeholder = $matches[3][ $i ][0] . $type; // Dangerous! No quotes with numbers or formatting (for backward compatibility, see note above).
+			} else {
+				$new_placeholder = '\'' . $matches[3][ $i ][0] . $type . '\'';
+			}
+
+			$args_replace[] = array( $new_placeholder, $matches[3][ $i ][1], ( strlen( $matches[3][ $i ][0] ) + 1 ) );
+
+			foreach ( $value as $j => $v ) {
+				if ( 'd' === $type ) {
+					$args_escaped[] = intval( $v ); // Quite a bit faster than $this->_real_escape().
+				} elseif ( 'F' === $type ) {
+					$args_escaped[] = floatval( $v );
+				} elseif ( 'i' === $type ) {
+					$args_escaped[] = preg_replace( '/[^a-zA-Z0-9_\-]/', '', $v );
+				} else {
+					$args_escaped[] = $this->_real_escape( $v );
+				}
+			}
+		}
+
+		foreach ( array_reverse( $args_replace ) as $info ) {
+			$query = substr_replace( $query, $info[0], $info[1], $info[2] );
+		}
+
+		$query = vsprintf( $query, $args_escaped );
 
 		return $this->add_placeholder_escape( $query );
 	}

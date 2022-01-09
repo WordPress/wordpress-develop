@@ -47,6 +47,18 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test Version number is accessible
+	 *
+	 * Make sure $wpdb->version is available for plugins to check what features are available.
+	 *
+	 * @ticket 54042
+	 */
+	public function test_version() {
+		global $wpdb;
+		$this->assertGreaterThan( 1, $wpdb->version );
+	}
+
+	/**
 	 * Test that WPDB will reconnect when the DB link dies
 	 *
 	 * @ticket 5932
@@ -1550,6 +1562,18 @@ class Tests_DB extends WP_UnitTestCase {
 				array( 'hello', 'foo' ),
 				false,
 				"'hello' 'foo##'",
+			),
+			array(
+				'SELECT * FROM %i WHERE %i = 123;',
+				array( 'my_table', 'my_field' ),
+				false,
+				'SELECT * FROM `my_table` WHERE `my_field` = 123;',
+			),
+			array(
+				'WHERE \'%i\' = 1 AND "%i" = 2 AND `%i` = 3 AND %15i = 4',
+				array( 'my_field1', 'my_field2', 'my_field3', 'my_field4' ),
+				false,
+				'WHERE \'`my_field1`\' = 1 AND "`my_field2`" = 2 AND ``my_field3`` = 3 AND `      my_field4` = 4', // Does not remove any existing quotes, always adds it's own (safer)
 			),
 		);
 	}
