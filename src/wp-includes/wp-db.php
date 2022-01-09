@@ -1364,6 +1364,7 @@ class wpdb {
 	 * - %d (integer)
 	 * - %f (float)
 	 * - %s (string)
+	 * - %i (identifier, e.g. table/field names)
 	 *
 	 * All placeholders MUST be left unquoted in the query string. A corresponding argument
 	 * MUST be passed for each placeholder.

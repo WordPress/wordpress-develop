@@ -1730,16 +1730,22 @@ class Tests_DB extends WP_UnitTestCase {
 				"'hello' 'foo##'",
 			),
 			array(
-				'SELECT * FROM %i WHERE %i = 123;',
-				array( 'my_table', 'my_field' ),
+				'SELECT * FROM %i WHERE %i = %d;',
+				array( 'my_table', 'my_field', 321 ),
 				false,
-				'SELECT * FROM `my_table` WHERE `my_field` = 123;',
+				'SELECT * FROM `my_table` WHERE `my_field` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'evil_`_field', 321 ),
+				false,
+				'WHERE `evil__field` = 321;', // Invalid characters removed.
 			),
 			array(
 				'WHERE \'%i\' = 1 AND "%i" = 2 AND `%i` = 3 AND %15i = 4',
 				array( 'my_field1', 'my_field2', 'my_field3', 'my_field4' ),
 				false,
-				'WHERE \'`my_field1`\' = 1 AND "`my_field2`" = 2 AND ``my_field3`` = 3 AND `      my_field4` = 4', // Does not remove any existing quotes, always adds it's own (safer)
+				'WHERE \'`my_field1`\' = 1 AND "`my_field2`" = 2 AND ``my_field3`` = 3 AND `      my_field4` = 4', // Does not remove any existing quotes, always adds it's own (safer).
 			),
 		);
 	}
