@@ -1345,10 +1345,11 @@ class wpdb {
 	 * Prepares a SQL query for safe execution.
 	 *
 	 * Uses sprintf()-like syntax. The following placeholders can be used in the query string:
-	 *   %d (integer)
-	 *   %f (float)
-	 *   %s (string)
-	 *   %i (identifier, e.g. table or field name)
+	 *
+	 * - %d (integer)
+	 * - %f (float)
+	 * - %s (string)
+	 * - %i (identifier, e.g. table or field name)
 	 *
 	 * All placeholders MUST be left unquoted in the query string. A corresponding argument
 	 * MUST be passed for each placeholder.
