@@ -788,13 +788,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
-		$after_found_posts_again_1 = ( $wpdb->num_queries - $start );
-
-		// Repeat again
-		$found_posts   = $q->found_posts;
-		$max_num_pages = $q->max_num_pages;
-
-		$after_found_posts_again_2 = ( $wpdb->num_queries - $start );
+		$after_found_posts_again = ( $wpdb->num_queries - $start );
 
 		// Ensure the posts were not initially counted
 		$this->assertSame( 1, $before_found_posts );
@@ -805,7 +799,6 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		// Ensure subsequent counts only trigger one query
 		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts );
-		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts_again_1 );
-		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts_again_2 );
+		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts_again );
 	}
 }
