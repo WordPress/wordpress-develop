@@ -610,8 +610,8 @@
 }
 
 .freedoms-php .about__header::before {
-	top: 32px;
-	right: 0;
+	top: calc(50% - 182px);
+	right: 32px;
 	width: 375px;
 	height: 300px;
 	background-image: url('../images/about-header-freedoms.svg');
@@ -619,8 +619,7 @@
 
 .privacy-php .about__header::before {
 	top: auto;
-	bottom: 70px;
-	height: 245px;
+	bottom: -16px;
 	background-image: url('../images/about-header-privacy.svg');
 }
 
@@ -654,8 +653,8 @@
 
 .freedoms-php .about__header-title,
 .freedoms-php .about__header-text {
-	/* 391px = 375px (balloon width) + 16px (spacing). */
-	padding-right: 391px;
+	/* 423px = 375px (balloon width) + 32px (offset from edge) + 16px (spacing). */
+	padding-right: 423px;
 	margin-right: 0;
 }
 
@@ -721,12 +720,14 @@
 	}
 
 	.freedoms-php .about__header::before {
+		top: calc(50% - 132px);
 		height: 192px;
 		width: 240px;
 	}
 
 	.privacy-php .about__header::before {
-		height: 196px;
+		bottom: 0;
+		height: 280px;
 	}
 
 	.about__container .about__header-text {
