@@ -768,7 +768,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @param int      $expected_pages
 	 * @param callable $factory
 	 */
-	public function test_found_posts_query_should_be_lazily_loaded( array $args, $expected_posts, $expected_pages, $factory ) {
+	public function test_found_posts_should_be_lazily_loaded( array $args, $expected_posts, $expected_pages, $factory ) {
 		global $wpdb;
 
 		call_user_func( $factory, self::factory() );
@@ -799,6 +799,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
+		// Count the queries after fetching found posts a second time
 		$after_found_posts_again = ( $wpdb->num_queries - $start );
 
 		// Ensure the posts were not initially counted
@@ -808,7 +809,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $expected_posts, $found_posts );
 		$this->assertEquals( $expected_pages, $max_num_pages );
 
-		// Ensure subsequent counts only trigger one query
+		// Ensure subsequent counts only triggered one query
 		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts );
 		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts_again );
 	}
@@ -816,7 +817,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	public function data_found_posts_queries() {
 		return array(
 
-			array(
+			'basic query' => array(
 				'args' => array(
 					'posts_per_page' => 2,
 				),
