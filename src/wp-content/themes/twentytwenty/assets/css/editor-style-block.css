@@ -206,21 +206,21 @@ Inter variable font. Usage:
 /* GENERAL COLORS */
 
 .has-black-background-color {
-	background-color: #000;
+	--wp--preset--color--black: #000;
 	color: #fff;
 }
 
 .has-white-background-color {
-	background-color: #fff;
+	--wp--preset--color--white: #fff;
 	color: #000;
 }
 
 .has-black-color {
-	color: #000;
+	--wp--preset--color--black: #000;
 }
 
 .has-white-color {
-	color: #fff;
+	--wp--preset--color--white: #fff;
 }
 
 
