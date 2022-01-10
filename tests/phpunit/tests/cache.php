@@ -423,4 +423,137 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $key_users, 'users' ), 'test_wp_cache_flush_group_users user_meta: users should return false' );
 		$this->assertFalse( wp_cache_get( $key_meta, 'user_meta' ), 'test_wp_cache_flush_group_users user_meta: user_meta should return false' );
 	}
+
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * test wp_cache_supports_flushing_groups
+	 *
+	 * @covers ::wp_cache_supports_flushing_groups
+	 */
+	public function test_wp_cache_supports_flushing_groups() {
+		$this->assertTrue( wp_cache_supports_flushing_groups(), 'test_wp_cache_supports_flushing_groups: should return true' );
+	}
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * test wp_cache_supports_flushing_groups
+	 *
+	 * @covers ::wp_cache_supports_flushing_groups
+	 */
+	public function test_wp_cache_supports_flushing_groups_no_support() {
+		global $wp_object_cache;
+		$temp            = $wp_object_cache;
+		$wp_object_cache = new stdClass();
+		$this->assertFalse( wp_cache_supports_flushing_groups(), 'test_wp_cache_supports_flushing_groups: should return false' );
+
+		$wp_object_cache = $temp;
+	}
+
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * test wp_cache_supports_flushing_groups
+	 *
+	 * @covers ::wp_cache_supports_flushing_groups
+	 */
+	public function test_wp_cache_supports_flushing_groups_filtered_function() {
+		global $wp_object_cache;
+		$temp            = $wp_object_cache;
+		$wp_object_cache = new WP_Object_Cache_dummy();
+
+		add_filter(
+			'wp_cache_flush_group_function',
+			static function() {
+				return 'dummy_function';
+			}
+		);
+
+		$this->assertTrue( wp_cache_supports_flushing_groups(), 'test_wp_cache_supports_flushing_groups: should return false' );
+
+		$wp_object_cache = $temp;
+	}
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * test wp_cache_supports_flushing_groups
+	 *
+	 * @covers ::wp_cache_supports_flushing_groups
+	 */
+	public function test_wp_cache_supports_flushing_groups_filtered() {
+		global $wp_object_cache;
+		$temp            = $wp_object_cache;
+		$wp_object_cache = new WP_Object_Cache_dummy();
+
+		add_filter( 'wp_cache_supports_flushing_groups', '__return_true' );
+
+		$this->assertTrue( wp_cache_supports_flushing_groups(), 'test_wp_cache_supports_flushing_groups with filter: should return true' );
+
+		$wp_object_cache = $temp;
+	}
+
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * test wp_cache_supports_flushing_groups
+	 *
+	 * @covers ::wp_cache_supports_flushing_groups
+	 */
+	public function test_wp_cache_flushing_groups_filtered() {
+		global $wp_object_cache;
+		$temp            = $wp_object_cache;
+		$wp_object_cache = new WP_Object_Cache_dummy();
+
+		add_filter(
+			'wp_cache_flush_group_function',
+			static function() {
+				return 'dummy_function';
+			}
+		);
+
+		$key = 'my-key';
+		$val = 'my-val';
+
+		wp_cache_set( $key, $val, 'group-test' );
+		wp_cache_set( $key, $val, 'group-kept' );
+		$this->assertTrue( wp_cache_flush_group( 'dummy_group' ) );
+
+		$wp_object_cache = $temp;
+	}
+
+
+
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * test wp_cache_get_linked_meta returns an array
+	 *
+	 * @covers ::wp_cache_get_linked_meta
+	 */
+	public function test_wp_cache_get_linked_meta() {
+
+		$this->assertIsArray( wp_cache_get_linked_meta() );
+	}
+
+
+}
+class WP_Object_Cache_dummy {
+	public function dummy_function() {
+		return true;
+	}
+	public function flush() {
+		return;
+	}
+	public function add_global_groups() {
+		return;
+	}
+	public function set() {
+		return;
+	}
 }
