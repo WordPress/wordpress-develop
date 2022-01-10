@@ -288,7 +288,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress 5.9 Field Guide link. */
 						__( 'Check out the latest version of the WordPress Field Guide. It highlights developer notes for each change you may want to be aware of. <a href="%s">WordPress 5.9 Field Guide.</a>' ),
-						'https://make.wordpress.org/core/2022/01/04/wordpress-5-9-field-guide/'
+						'https://make.wordpress.org/core/2022/01/10/wordpress-5-9-field-guide/'
 					);
 					?>
 				</p>
