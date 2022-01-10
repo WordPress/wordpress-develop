@@ -71,7 +71,7 @@ jobs:
       - name: Get the workflow ID
         id: current-workflow-id
         if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
+        uses: actions/github-script@e3cbab99d3a9b271e1b79fc96d103a4a5534998c # v5.0.0
         with:
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
@@ -83,7 +83,7 @@ jobs:
 
       - name: Get details about the previous workflow run
         id: previous-result
-        uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
+        uses: actions/github-script@e3cbab99d3a9b271e1b79fc96d103a4a5534998c # v5.0.0
         with:
           script: |
             const previous_runs = await github.rest.actions.listWorkflowRuns({
@@ -102,7 +102,7 @@ jobs:
 
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
+        uses: actions/github-script@e3cbab99d3a9b271e1b79fc96d103a4a5534998c # v5.0.0
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           script: |
