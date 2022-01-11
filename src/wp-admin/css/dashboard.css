@@ -168,6 +168,13 @@
 	text-decoration: none;
 }
 
+.welcome-panel-header a:focus,
+.welcome-panel .welcome-panel-close:focus {
+	outline-color: currentColor;
+	outline-offset: 1px;
+	box-shadow: none;
+}
+
 .welcome-panel-header p {
 	margin: 0.5em 0 0;
 	font-size: 20px;
