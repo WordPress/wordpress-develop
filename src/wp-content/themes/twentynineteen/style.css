@@ -2363,7 +2363,7 @@ h5 {
 }
 
 .has-small-font-size {
-  --wp--preset--font-size--smal: $font__size-xs;
+  --wp--preset--font-size--small: $font__size-xs;
 }
 
 .entry-meta,
