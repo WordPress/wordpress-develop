@@ -791,27 +791,19 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider data_found_posts_queries
-	 *
-	 * @param array    $args
-	 * @param int      $expected_posts
-	 * @param int      $expected_pages
-	 * @param callable $factory
 	 */
-	public function test_found_posts_should_be_lazily_loaded( array $args, $expected_posts, $expected_pages, $factory ) {
+	public function test_found_posts_should_be_lazily_loaded() {
 		global $wpdb;
 
-		call_user_func( $factory, self::factory() );
+		self::factory()->post->create_many( 5 );
 
 		$start = $wpdb->num_queries;
 
 		$q = new WP_Query(
-			array_merge(
-				$args,
-				array(
-					'update_post_term_cache' => false,
-					'update_post_meta_cache' => false,
-				)
+			array(
+				'posts_per_page'         => 2,
+				'update_post_term_cache' => false,
+				'update_post_meta_cache' => false,
 			)
 		);
 
@@ -836,12 +828,37 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( 1, $before_found_posts );
 
 		// Ensure the counts are correct
-		$this->assertSame( $expected_posts, $found_posts );
-		$this->assertEquals( $expected_pages, $max_num_pages );
+		$this->assertSame( 5, $found_posts );
+		$this->assertEquals( 3, $max_num_pages );
 
 		// Ensure subsequent counts only triggered one query
 		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts );
 		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts_again );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider data_found_posts_queries
+	 *
+	 * @param array    $args
+	 * @param int      $expected_posts
+	 * @param int      $expected_pages
+	 * @param callable $factory
+	 */
+	public function test_found_posts_are_correct( array $args, $expected_posts, $expected_pages, $factory ) {
+		call_user_func( $factory, self::factory() );
+
+		$q = new WP_Query( $args );
+
+		$message = sprintf(
+			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
+			$q->request,
+			$q->request_count
+		);
+
+		// Ensure the counts are correct
+		$this->assertSame( $expected_posts, $q->found_posts, $message );
+		$this->assertEquals( $expected_pages, $q->max_num_pages, $message );
 	}
 
 	public function data_found_posts_queries() {
