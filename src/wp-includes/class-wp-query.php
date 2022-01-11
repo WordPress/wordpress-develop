@@ -3326,27 +3326,19 @@ class WP_Query {
 	 * for the current query.
 	 *
 	 * @since 3.5.0
-	 * @since x.x.x The `$q` and `$limits` parameters were made optional.
+	 * @since x.x.x The `$q` and `$limits` parameters were removed.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @param array  $q      Optional. Query variables.
-	 * @param string $limits Optional. LIMIT clauses of the query.
 	 */
-	private function set_found_posts( $q = null, $limits = null ) {
+	private function set_found_posts() {
 		global $wpdb;
 
 		if ( null !== $this->found_posts ) {
 			return;
 		}
 
-		if ( null === $q ) {
-			$q = $this->query_vars;
-		}
-
-		if ( null === $limits ) {
-			$limits = $this->limits;
-		}
+		$q      = $this->query_vars;
+		$limits = $this->limits;
 
 		// Bail if posts is an empty array. Continue if posts is an empty string,
 		// null, or false to accommodate caching plugins that fill posts later.
