@@ -769,6 +769,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertTrue( isset( $q->found_posts ) );
 		$this->assertTrue( property_exists( $q, 'found_posts' ) );
 		$this->assertObjectHasAttribute( 'found_posts', $q );
 		$this->assertNotNull( $q->found_posts );
@@ -784,6 +785,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertTrue( isset( $q->max_num_pages ) );
 		$this->assertTrue( property_exists( $q, 'max_num_pages' ) );
 		$this->assertObjectHasAttribute( 'max_num_pages', $q );
 		$this->assertNotNull( $q->max_num_pages );

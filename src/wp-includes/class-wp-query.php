@@ -3701,7 +3701,7 @@ class WP_Query {
 	}
 
 	/**
-	 * Make private properties checkable for backward compatibility.
+	 * Make private properties checkable for backward compatibility and lazy loading.
 	 *
 	 * @since 4.0.0
 	 *
@@ -3709,6 +3709,10 @@ class WP_Query {
 	 * @return bool Whether the property is set.
 	 */
 	public function __isset( $name ) {
+		if ( 'found_posts' === $name || 'max_num_pages' === $name ) {
+			return true;
+		}
+
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
