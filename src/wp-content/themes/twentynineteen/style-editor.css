@@ -581,6 +581,22 @@ h6:lang(vi), figcaption:lang(vi),
 }
 
 /** === Editor Frame === */
+.has-small-font-size {
+  --wp--preset--font-size--small: $font__size-sm;
+}
+
+.has-normal-font-size {
+  --wp--preset--font-size--normal: $font__size-md;
+}
+
+.has-large-font-size {
+  --wp--preset--font-size--large: $font__size-lg;
+}
+
+.has-huge-font-size {
+  --wp--preset--font-size--huge: $font__size-xl;
+}
+
 body .wp-block[data-align="full"],
 body .wp-block.alignfull {
   max-width: calc(100% + 16px);
