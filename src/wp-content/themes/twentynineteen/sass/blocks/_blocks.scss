@@ -446,13 +446,16 @@
 				margin-left: $size__spacing-unit;
 				margin-right: $size__spacing-unit;
 
+				&.has-white-color {
+					--wp--preset--color--white: inherit;
+				}
+
 				&.has-text-color p,
 				&.has-text-color a,
 				&.has-primary-color,
 				&.has-secondary-color,
 				&.has-dark-gray-color,
-				&.has-light-gray-color,
-				&.has-white-color {
+				&.has-light-gray-color {
 					color: inherit;
 				}
 
@@ -1004,7 +1007,7 @@
 
 	.has-white-background-color,
 	.wp-block-pullquote.is-style-solid-color.has-white-background-color {
-		background-color: #FFF;
+		--wp--preset--background-color--white: #FFF;
 	}
 
 	//! Custom foreground colors
@@ -1038,6 +1041,6 @@
 	.has-white-color,
 	.wp-block-pullquote blockquote.has-white-color,
 	.wp-block-pullquote.is-style-solid-color blockquote.has-white-color {
-		color: #FFF;
+		--wp--preset--color--white: #FFF;
 	}
 }
