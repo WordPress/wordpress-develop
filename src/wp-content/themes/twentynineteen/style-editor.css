@@ -582,19 +582,19 @@ h6:lang(vi), figcaption:lang(vi),
 
 /** === Editor Frame === */
 .has-small-font-size {
-  --wp--preset--font-size--small: $font__size-sm;
+  --wp--preset--font-size--small: 19.5px;
 }
 
 .has-normal-font-size {
-  --wp--preset--font-size--normal: $font__size-md;
+  --wp--preset--font-size--normal: 22px;
 }
 
 .has-large-font-size {
-  --wp--preset--font-size--large: $font__size-lg;
+  --wp--preset--font-size--large: 36.5px;
 }
 
 .has-huge-font-size {
-  --wp--preset--font-size--huge: $font__size-xl;
+  --wp--preset--font-size--huge: 49.5px;
 }
 
 body .wp-block[data-align="full"],
