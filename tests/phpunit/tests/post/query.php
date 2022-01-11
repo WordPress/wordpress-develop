@@ -855,7 +855,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 				'expected_pages' => 3,
 				'factory' => function( WP_UnitTest_Factory $factory ) {
 					$factory->post->create_many( 5 );
-				}
+				},
 			),
 
 		);
