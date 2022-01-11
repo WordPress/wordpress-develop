@@ -761,6 +761,36 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 */
+	public function test_found_posts_property_is_present() {
+		$q = new WP_Query(
+			array(
+				'post_type' => 'post',
+			)
+		);
+
+		$this->assertTrue( property_exists( $q, 'found_posts' ) );
+		$this->assertObjectHasAttribute( 'found_posts', $q );
+		$this->assertNotNull( $q->found_posts );
+	}
+
+	/**
+	 * @ticket 47280
+	 */
+	public function test_max_num_pages_property_is_present() {
+		$q = new WP_Query(
+			array(
+				'post_type' => 'post',
+			)
+		);
+
+		$this->assertTrue( property_exists( $q, 'max_num_pages' ) );
+		$this->assertObjectHasAttribute( 'max_num_pages', $q );
+		$this->assertNotNull( $q->max_num_pages );
+	}
+
+	/**
+	 * @ticket 47280
 	 * @dataProvider data_found_posts_queries
 	 *
 	 * @param array    $args
