@@ -840,17 +840,15 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider data_found_posts_queries
-	 *
-	 * @param array    $args
-	 * @param int      $expected_posts
-	 * @param int      $expected_pages
-	 * @param callable $factory
 	 */
-	public function test_found_posts_are_correct( array $args, $expected_posts, $expected_pages, $factory ) {
-		call_user_func( $factory, self::factory() );
+	public function test_found_posts_are_correct_for_basic_query() {
+		self::factory()->post->create_many( 5 );
 
-		$q = new WP_Query( $args );
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 2,
+			)
+		);
 
 		$message = sprintf(
 			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
@@ -858,25 +856,64 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$q->request_count
 		);
 
-		// Ensure the counts are correct
-		$this->assertSame( $expected_posts, $q->found_posts, $message );
-		$this->assertEquals( $expected_pages, $q->max_num_pages, $message );
+		$this->assertSame( 5, $q->found_posts, $message );
+		$this->assertEquals( 3, $q->max_num_pages, $message );
 	}
 
-	public function data_found_posts_queries() {
-		return array(
+	/**
+	 * @ticket 47280
+	 */
+	public function test_found_posts_are_correct_for_author_queries() {
+		$author = self::factory()->user->create();
+		self::factory()->post->create_many( 5 );
+		self::factory()->post->create_many( 5, array(
+			'post_author' => $author,
+		) );
 
-			'basic query' => array(
-				'args' => array(
-					'posts_per_page' => 2,
-				),
-				'expected_posts' => 5,
-				'expected_pages' => 3,
-				'factory' => function( WP_UnitTest_Factory $factory ) {
-					$factory->post->create_many( 5 );
-				},
-			),
-
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 2,
+				'author'         => $author,
+			)
 		);
+
+		$message = sprintf(
+			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
+			$q->request,
+			$q->request_count
+		);
+
+		$this->assertSame( 5, $q->found_posts, $message );
+		$this->assertEquals( 3, $q->max_num_pages, $message );
 	}
+
+	/**
+	 * @ticket 47280
+	 */
+	public function test_found_posts_are_correct_for_term_queries() {
+		$term = self::factory()->term->create_and_get();
+		self::factory()->post->create_many( 5 );
+		self::factory()->post->create_many( 5, array(
+			'tax_input' => array(
+				'post_tag' => array( $term->slug ),
+			),
+		) );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 2,
+				'tag'            => $term->slug,
+			)
+		);
+
+		$message = sprintf(
+			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
+			$q->request,
+			$q->request_count
+		);
+
+		$this->assertSame( 5, $q->found_posts, $message );
+		$this->assertEquals( 3, $q->max_num_pages, $message );
+	}
+
 }
