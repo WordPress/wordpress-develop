@@ -5,7 +5,6 @@ Theme URI: https://wordpress.org/themes/twentynineteen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Our 2019 default theme is designed to show off the power of the block editor. It features custom styles for all the default blocks, and is built so that what you see in the editor looks like what you'll see on your website. Twenty Nineteen is designed to be adaptable to a wide range of websites, whether you’re running a photo blog, launching a new business, or supporting a non-profit. Featuring ample whitespace and modern sans-serif headlines paired with classic serif body text, it's built to be beautiful on all screen sizes.
-Tested up to: 5.9
 Requires at least: 4.9.6
 Requires PHP: 5.2.4
 Version: 2.1
@@ -2333,8 +2332,11 @@ h2 {
   }
 }
 
+.has-large-font-size {
+  --wp--preset--font-size--large: $font__size-lg;
+}
+
 .has-regular-font-size,
-.has-large-font-size,
 .comments-title,
 h3 {
   font-size: 1.6875em;
@@ -2360,11 +2362,14 @@ h5 {
   font-size: 0.88889em;
 }
 
+.has-small-font-size {
+  --wp--preset--font-size--smal: $font__size-xs;
+}
+
 .entry-meta,
 .entry-footer,
 .discussion-meta-info,
 .site-info,
-.has-small-font-size,
 .comment-reply-link,
 .comment-metadata,
 .comment-notes,
@@ -5760,8 +5765,12 @@ body.page .main-navigation {
   margin-left: 1rem;
 }
 
+.entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-white-color {
+  --wp--preset--color--white: inherit;
+}
+
 .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-text-color p,
-.entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-text-color a, .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-primary-color, .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-secondary-color, .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-dark-gray-color, .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-light-gray-color, .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-white-color {
+.entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-text-color a, .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-primary-color, .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-secondary-color, .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-dark-gray-color, .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-light-gray-color {
   color: inherit;
 }
 
@@ -6283,19 +6292,19 @@ body.page .main-navigation {
 }
 
 .entry .entry-content .has-small-font-size {
-  font-size: 0.88889em;
+  --wp--preset--font-size--small: $font__size-sm;
 }
 
 .entry .entry-content .has-normal-font-size {
-  font-size: 1.125em;
+  --wp--preset--font-size--normal: $font__size-md;
 }
 
 .entry .entry-content .has-large-font-size {
-  font-size: 1.6875em;
+  --wp--preset--font-size--large: $font__size-lg;
 }
 
 .entry .entry-content .has-huge-font-size {
-  font-size: 2.25em;
+  --wp--preset--font-size--huge: $font__size-xl;
 }
 
 .entry .entry-content .has-primary-background-color,
@@ -6410,7 +6419,7 @@ body.page .main-navigation {
 .entry .entry-content .has-white-color,
 .entry .entry-content .wp-block-pullquote blockquote.has-white-color,
 .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-white-color {
-  color: #FFF;
+  --wp--preset--color--white: #FFF;
 }
 
 /* Media */

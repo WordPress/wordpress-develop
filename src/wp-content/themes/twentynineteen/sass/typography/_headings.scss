@@ -83,8 +83,11 @@ h2 {
 	}
 }
 
+.has-large-font-size {
+	--wp--preset--font-size--large: $font__size-lg;
+}
+
 .has-regular-font-size,
-.has-large-font-size,
 .comments-title,
 h3 {
 	font-size: $font__size-lg;
@@ -110,11 +113,14 @@ h5 {
 	font-size: $font__size-sm;
 }
 
+.has-small-font-size {
+	--wp--preset--font-size--smal: $font__size-xs;
+}
+
 .entry-meta,
 .entry-footer,
 .discussion-meta-info,
 .site-info,
-.has-small-font-size,
 .comment-reply-link,
 .comment-metadata,
 .comment-notes,

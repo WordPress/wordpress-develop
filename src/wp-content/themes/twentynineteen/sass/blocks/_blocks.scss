@@ -930,19 +930,19 @@
 
 	//! Font Sizes
 	.has-small-font-size {
-		font-size: $font__size-sm;
+		--wp--preset--font-size--small: $font__size-sm;
 	}
 
 	.has-normal-font-size {
-		font-size: $font__size-md;
+		--wp--preset--font-size--normal: $font__size-md;
 	}
 
 	.has-large-font-size {
-		font-size: $font__size-lg;
+		--wp--preset--font-size--large: $font__size-lg;
 	}
 
 	.has-huge-font-size {
-		font-size: $font__size-xl;
+		--wp--preset--font-size--huge: $font__size-xl;
 	}
 
 	//! Custom background colors
