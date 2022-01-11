@@ -1,6 +1,6 @@
 === Twenty Thirteen ===
 Contributors: wordpressdotorg
-Tested up to: 5.8
+Tested up to: 5.9
 Stable tag: 3.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -21,7 +21,7 @@ For more information about Twenty Thirteen please go to https://codex.wordpress.
 
 == Copyright ==
 
-Twenty Thirteen WordPress Theme, Copyright 2013-2021 WordPress.org & Automattic.com
+Twenty Thirteen WordPress Theme, Copyright 2013-2022 WordPress.org & Automattic.com
 Twenty Thirteen is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify

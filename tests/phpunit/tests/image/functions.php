@@ -626,7 +626,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 		$this->assertArrayHasKey( 'test-size', $metadata['sizes'], 'The `test-size` was not added to the metadata.' );
-		$this->assertSame( $metadata['sizes']['test-size'], $expected );
+		$this->assertSame( $expected, $metadata['sizes']['test-size'] );
 
 		remove_image_size( 'test-size' );
 		remove_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10 );
@@ -699,5 +699,131 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
+	}
+
+	/**
+	 * Test for wp_exif_frac2dec verified that it properly handles edge cases
+	 * and always returns an int or float, or 0 for failures.
+	 *
+	 * @param mixed     $fraction The fraction to convert.
+	 * @param int|float $expect   The expected result.
+	 *
+	 * @ticket 54385
+	 * @dataProvider data_wp_exif_frac2dec
+	 *
+	 * @covers ::wp_exif_frac2dec
+	 */
+	public function test_wp_exif_frac2dec( $fraction, $expect ) {
+		$this->assertSame( $expect, wp_exif_frac2dec( $fraction ) );
+	}
+
+	/**
+	 * Data provider for testing `wp_exif_frac2dec()`.
+	 *
+	 * @return array
+	 */
+	public function data_wp_exif_frac2dec() {
+		return array(
+			'invalid input: null'              => array(
+				'fraction' => null,
+				'expect'   => 0,
+			),
+			'invalid input: boolean true'      => array(
+				'fraction' => null,
+				'expect'   => 0,
+			),
+			'invalid input: empty array value' => array(
+				'fraction' => array(),
+				'expect'   => 0,
+			),
+			'input is already integer'         => array(
+				'fraction' => 12,
+				'expect'   => 12,
+			),
+			'input is already float'           => array(
+				'fraction' => 10.123,
+				'expect'   => 10.123,
+			),
+			'string input is not a fraction - no slash, not numeric' => array(
+				'fraction' => '123notafraction',
+				'expect'   => 0,
+			),
+			'string input is not a fraction - no slash, numeric integer' => array(
+				'fraction' => '48',
+				'expect'   => 48.0,
+			),
+			'string input is not a fraction - no slash, numeric integer (integer 0)' => array(
+				'fraction' => '0',
+				'expect'   => 0.0,
+			),
+			'string input is not a fraction - no slash, octal numeric integer' => array(
+				'fraction' => '010',
+				'expect'   => 10.0,
+			),
+			'string input is not a fraction - no slash, numeric float (float 0)' => array(
+				'fraction' => '0.0',
+				'expect'   => 0.0,
+			),
+			'string input is not a fraction - no slash, numeric float (typical fnumber)' => array(
+				'fraction' => '4.8',
+				'expect'   => 4.8,
+			),
+			'string input is not a fraction - more than 1 slash with text' => array(
+				'fraction' => 'path/to/file',
+				'expect'   => 0,
+			),
+			'string input is not a fraction - more than 1 slash with numbers' => array(
+				'fraction' => '1/2/3',
+				'expect'   => 0,
+			),
+			'string input is not a fraction - only a slash' => array(
+				'fraction' => '/',
+				'expect'   => 0,
+			),
+			'string input is not a fraction - only slashes' => array(
+				'fraction' => '///',
+				'expect'   => 0,
+			),
+			'string input is not a fraction - left/right is not numeric' => array(
+				'fraction' => 'path/to',
+				'expect'   => 0,
+			),
+			'string input is not a fraction - left is not numeric' => array(
+				'fraction' => 'path/10',
+				'expect'   => 0,
+			),
+			'string input is not a fraction - right is not numeric' => array(
+				'fraction' => '0/abc',
+				'expect'   => 0,
+			),
+			'division by zero is prevented 1'  => array(
+				'fraction' => '0/0',
+				'expect'   => 0,
+			),
+			'division by zero is prevented 2'  => array(
+				'fraction' => '100/0.0',
+				'expect'   => 0,
+			),
+			'typical focal length'             => array(
+				'fraction' => '37 mm',
+				'expect'   => 0,
+			),
+			'typical exposure time'            => array(
+				'fraction' => '1/350',
+				'expect'   => 0.002857142857142857,
+			),
+			'valid fraction 1'                 => array(
+				'fraction' => '50/100',
+				'expect'   => 0.5,
+			),
+			'valid fraction 2'                 => array(
+				'fraction' => '25/100',
+				'expect'   => .25,
+			),
+			'valid fraction 3'                 => array(
+				'fraction' => '4/2',
+				'expect'   => 2,
+			),
+		);
 	}
 }

@@ -244,7 +244,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 			'attachment_id' => 1,
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment ID.
 		$result = $widget->update(
@@ -260,7 +260,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 			'url' => 'https://example.org',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment url.
 		$result = $widget->update(
@@ -276,7 +276,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 			'title' => 'What a title',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment title.
 		$result = $widget->update(

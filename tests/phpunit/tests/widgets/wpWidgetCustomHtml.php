@@ -185,7 +185,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 			'content' => $instance['content'],
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Make sure KSES is applying as expected.
 		add_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ), 10, 2 );
@@ -193,7 +193,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$instance['content'] = '<script>alert( "Howdy!" );</script>';
 		$expected['content'] = $instance['content'];
 		$result              = $widget->update( $instance, array() );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 		remove_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ) );
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10, 2 );
@@ -201,7 +201,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$instance['content'] = '<script>alert( "Howdy!" );</script>';
 		$expected['content'] = wp_kses_post( $instance['content'] );
 		$result              = $widget->update( $instance, array() );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 		remove_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10 );
 	}
 

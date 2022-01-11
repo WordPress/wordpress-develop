@@ -865,7 +865,7 @@ function post_comment_meta_box( $post ) {
 		$hidden = get_hidden_meta_boxes( get_current_screen() );
 		if ( ! in_array( 'commentsdiv', $hidden, true ) ) {
 			?>
-			<script type="text/javascript">jQuery(document).ready(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
+			<script type="text/javascript">jQuery(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
 			<?php
 		}
 
@@ -984,8 +984,8 @@ function page_attributes_meta_box( $post ) {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param string  $template The template used for the current post.
-		 * @param WP_Post $post     The current post.
+		 * @param string|false $template The template used for the current post.
+		 * @param WP_Post      $post     The current post.
 		 */
 		do_action( 'page_attributes_meta_box_template', $template, $post );
 		?>
