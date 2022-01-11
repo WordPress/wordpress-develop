@@ -123,7 +123,7 @@
 }
 
 .welcome-panel::before {
-	content: attr(data-alt);
+	content: "";
 	position: absolute;
 	top: -16px;
 	right: 96px;
