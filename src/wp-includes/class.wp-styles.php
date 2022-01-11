@@ -189,7 +189,23 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		if ( $this->do_concat ) {
-			if ( $this->in_default_dir( $src ) && ! $conditional && ! isset( $obj->extra['alt'] ) ) {
+			/*
+			 * Don't concatinate the block editor styles that need to be loaded into the editor's iframe.
+			 *
+			 * See wp_add_iframed_editor_assets_html() in wp-includes/script-loader.php
+			 */
+			$iframe_editor_asset_handles = array(
+				'wp-block-editor',
+				'wp-block-library',
+				'wp-block-library-theme',
+				'wp-edit-blocks',
+				'wp-widgets',
+				'wp-edit-widgets',
+				'wp-reset-editor-styles',
+			);
+			$is_iframe_editor_asset = in_array( $handle, $iframe_editor_asset_handles, true );
+
+			if ( $this->in_default_dir( $src ) && ! $conditional && ! isset( $obj->extra['alt'] ) && ! $is_iframe_editor_asset ) {
 				$this->concat         .= "$handle,";
 				$this->concat_version .= "$handle$ver";
 
