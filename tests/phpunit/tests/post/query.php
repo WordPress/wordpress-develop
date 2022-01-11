@@ -812,7 +812,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 					'update_post_term_cache' => false,
 					'update_post_meta_cache' => false,
 				),
-			),
+			)
 		);
 
 		// Count the queries
