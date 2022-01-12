@@ -1125,19 +1125,22 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		add_filter( 'posts_request', function( $request ) {
-			global $wpdb;
+		add_filter(
+			'posts_request',
+			function( $request ) {
+				global $wpdb;
 
-			return "
-				SELECT SQL_CALC_FOUND_ROWS {$wpdb->posts}.ID
-				FROM {$wpdb->posts}
-				WHERE 1=1
-				AND {$wpdb->posts}.post_type = 'post'
-				AND {$wpdb->posts}.post_status = 'draft'
-				ORDER BY {$wpdb->posts}.post_date
-				DESC LIMIT 0, 2
-			";
-		} );
+				return "
+					SELECT SQL_CALC_FOUND_ROWS {$wpdb->posts}.ID
+					FROM {$wpdb->posts}
+					WHERE 1=1
+					AND {$wpdb->posts}.post_type = 'post'
+					AND {$wpdb->posts}.post_status = 'draft'
+					ORDER BY {$wpdb->posts}.post_date
+					DESC LIMIT 0, 2
+				";
+			}
+		);
 
 		$q = new WP_Query(
 			array(
