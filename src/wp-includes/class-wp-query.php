@@ -189,6 +189,15 @@ class WP_Query implements JsonSerializable, Serializable {
 	private $max_num_pages = 0;
 
 	/**
+	 * Undocumented variable
+	 *
+	 * @since x.x.x
+	 *
+	 * @var bool
+	 */
+	private $use_calc_found_rows = false;
+
+	/**
 	 * The number of comment pages.
 	 *
 	 * @since 2.7.0
@@ -3024,12 +3033,17 @@ class WP_Query implements JsonSerializable, Serializable {
 			 * Filters the completed SQL query before sending.
 			 *
 			 * @since 2.0.0
-			 * @since x.x.x This query now no longer contains a `SQL_CALC_FOUND_ROWS` modifier.
+			 * @since x.x.x This query no longer contains a `SQL_CALC_FOUND_ROWS` modifier by default.
 			 *
 			 * @param string   $request The complete SQL query.
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
 			 */
 			$this->request = apply_filters_ref_array( 'posts_request', array( $this->request, &$this ) );
+
+			if ( false !== strpos( $this->request, 'SQL_CALC_FOUND_ROWS' ) ) {
+				$this->use_calc_found_rows = true;
+				$this->request_count       = 'SELECT FOUND_ROWS()';
+			}
 		}
 
 		/**
@@ -3058,7 +3072,7 @@ class WP_Query implements JsonSerializable, Serializable {
 			/** @var int[] */
 			$this->posts      = array_map( 'intval', $this->posts );
 			$this->post_count = count( $this->posts );
-			$this->limits     = $limits;
+			$this->set_limits( $limits );
 
 			return $this->posts;
 		}
@@ -3069,7 +3083,7 @@ class WP_Query implements JsonSerializable, Serializable {
 			}
 
 			$this->post_count = count( $this->posts );
-			$this->limits     = $limits;
+			$this->set_limits( $limits );
 
 			/** @var int[] */
 			$r = array();
@@ -3120,14 +3134,15 @@ class WP_Query implements JsonSerializable, Serializable {
 
 				if ( $ids ) {
 					$this->posts = $ids;
-					$this->limits = $limits;
+					$this->set_limits( $limits );
+
 					_prime_post_caches( $ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 				} else {
 					$this->posts = array();
 				}
 			} else {
 				$this->posts = $wpdb->get_results( $this->request );
-				$this->limits = $limits;
+				$this->set_limits( $limits );
 			}
 		}
 
@@ -3385,6 +3400,21 @@ class WP_Query implements JsonSerializable, Serializable {
 
 		if ( ! empty( $limits ) ) {
 			$this->max_num_pages = ceil( $this->found_posts / $q['posts_per_page'] );
+		}
+	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $limits ...
+	 */
+	private function set_limits( $limits ) {
+		$this->limits = $limits;
+
+		if ( $this->use_calc_found_rows ) {
+			$this->set_found_posts();
 		}
 	}
 
