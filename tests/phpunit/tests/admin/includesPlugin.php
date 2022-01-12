@@ -352,7 +352,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		// Verify the menu was inserted.
 		$this->assertSame( 'main_slug', $menu[1][2] );
 		// Verify the menu was inserted correctly on passing float as position.
-		$this->assertSame( 'main1_slug', $menu[1.5][2] );
+		$this->assertSame( 'main1_slug', $menu[ 1.5 ][2] );
 	}
 
 	public function test_is_plugin_active_true() {
