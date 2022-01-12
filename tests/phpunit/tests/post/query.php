@@ -813,6 +813,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$before_found_posts = ( $wpdb->num_queries - $start );
 
 		// Fetch found posts
+		$post_count    = $q->post_count;
 		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
@@ -830,6 +831,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( 1, $before_found_posts );
 
 		// Ensure the counts are correct
+		$this->assertSame( 2, $post_count );
 		$this->assertSame( 5, $found_posts );
 		$this->assertEquals( 3, $max_num_pages );
 
@@ -856,6 +858,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$q->request_count
 		);
 
+		$this->assertSame( 2, $q->post_count, $message );
 		$this->assertSame( 5, $q->found_posts, $message );
 		$this->assertEquals( 3, $q->max_num_pages, $message );
 	}
@@ -883,6 +886,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$q->request_count
 		);
 
+		$this->assertSame( 2, $q->post_count, $message );
 		$this->assertSame( 5, $q->found_posts, $message );
 		$this->assertEquals( 3, $q->max_num_pages, $message );
 	}
@@ -912,6 +916,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$q->request_count
 		);
 
+		$this->assertSame( 2, $q->post_count, $message );
 		$this->assertSame( 5, $q->found_posts, $message );
 		$this->assertEquals( 3, $q->max_num_pages, $message );
 	}
