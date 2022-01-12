@@ -762,32 +762,40 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 47280
 	 */
-	public function test_found_posts_property_is_present() {
+	public function test_found_posts_property_is_present_with_no_found_rows_false() {
 		$q = new WP_Query(
 			array(
-				'post_type' => 'post',
+				'post_type'     => 'post',
+				'no_found_rows' => false,
 			)
 		);
 
-		$this->assertTrue( isset( $q->found_posts ) );
 		$this->assertTrue( property_exists( $q, 'found_posts' ) );
-		$this->assertObjectHasAttribute( 'found_posts', $q );
+		$this->assertTrue( isset( $q->found_posts ) );
 		$this->assertNotNull( $q->found_posts );
+
+		$this->assertTrue( property_exists( $q, 'max_num_pages' ) );
+		$this->assertTrue( isset( $q->max_num_pages ) );
+		$this->assertNotNull( $q->max_num_pages );
 	}
 
 	/**
 	 * @ticket 47280
 	 */
-	public function test_max_num_pages_property_is_present() {
+	public function test_found_posts_property_is_present_with_no_found_rows_true() {
 		$q = new WP_Query(
 			array(
-				'post_type' => 'post',
+				'post_type'     => 'post',
+				'no_found_rows' => true,
 			)
 		);
 
-		$this->assertTrue( isset( $q->max_num_pages ) );
+		$this->assertTrue( property_exists( $q, 'found_posts' ) );
+		$this->assertTrue( isset( $q->found_posts ) );
+		$this->assertNotNull( $q->found_posts );
+
 		$this->assertTrue( property_exists( $q, 'max_num_pages' ) );
-		$this->assertObjectHasAttribute( 'max_num_pages', $q );
+		$this->assertTrue( isset( $q->max_num_pages ) );
 		$this->assertNotNull( $q->max_num_pages );
 	}
 
