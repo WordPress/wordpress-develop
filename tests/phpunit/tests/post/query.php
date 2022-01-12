@@ -852,15 +852,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$message = sprintf(
-			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
-			$q->request,
-			$q->request_count
-		);
-
-		$this->assertSame( 2, $q->post_count, $message );
-		$this->assertSame( 5, $q->found_posts, $message );
-		$this->assertEquals( 3, $q->max_num_pages, $message );
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
 	/**
@@ -876,15 +870,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$message = sprintf(
-			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
-			$q->request,
-			$q->request_count
-		);
-
-		$this->assertSame( 1, $q->post_count, $message );
-		$this->assertSame( 5, $q->found_posts, $message );
-		$this->assertEquals( 3, $q->max_num_pages, $message );
+		$this->assertSame( 1, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
 	/**
@@ -904,15 +892,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$message = sprintf(
-			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
-			$q->request,
-			$q->request_count
-		);
-
-		$this->assertSame( 2, $q->post_count, $message );
-		$this->assertSame( 5, $q->found_posts, $message );
-		$this->assertEquals( 3, $q->max_num_pages, $message );
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
 	/**
@@ -934,15 +916,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$message = sprintf(
-			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
-			$q->request,
-			$q->request_count
-		);
-
-		$this->assertSame( 2, $q->post_count, $message );
-		$this->assertSame( 5, $q->found_posts, $message );
-		$this->assertEquals( 3, $q->max_num_pages, $message );
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
 	/**
@@ -963,15 +939,17 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$message = sprintf(
-			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
-			$q->request,
-			$q->request_count
-		);
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
 
-		$this->assertSame( 2, $q->post_count, $message );
-		$this->assertSame( 5, $q->found_posts, $message );
-		$this->assertEquals( 3, $q->max_num_pages, $message );
+	protected static function get_count_message( WP_Query $query ) {
+		return sprintf(
+			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
+			$query->request,
+			$query->request_count
+		);
 	}
 
 }
