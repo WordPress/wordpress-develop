@@ -327,7 +327,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	/**
 	 * Passing a string as position will fail in menu.
 	 *
-	 * @ticket 48599
+	 * @ticket 54798
 	 */
 	public function test_passing_string_as_position_fires_doing_it_wrong_menu() {
 		$this->setExpectedIncorrectUsage( 'add_menu_page' );
