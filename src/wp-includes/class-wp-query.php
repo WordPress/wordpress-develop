@@ -3754,7 +3754,7 @@ class WP_Query implements JsonSerializable, Serializable {
 	 *
 	 * @return array The properties of the object as an associative array.
 	 */
-	public function __serialize() {
+	public function __serialize() { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__serializeFound
 		$this->set_found_posts();
 
 		return get_object_vars( $this );
@@ -3782,7 +3782,7 @@ class WP_Query implements JsonSerializable, Serializable {
 	 * @param array $data The associative array representation of the object.
 	 * @return void
 	 */
-	public function __unserialize( $data ) {
+	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
 		foreach ( $data as $key => $value ) {
 			$this->$key = $value;
 		}
