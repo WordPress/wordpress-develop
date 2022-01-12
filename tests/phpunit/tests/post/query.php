@@ -866,6 +866,30 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 47280
 	 */
+	public function test_found_posts_are_correct_for_paged_query() {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 2,
+				'paged'          => 3,
+			)
+		);
+
+		$message = sprintf(
+			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
+			$q->request,
+			$q->request_count
+		);
+
+		$this->assertSame( 1, $q->post_count, $message );
+		$this->assertSame( 5, $q->found_posts, $message );
+		$this->assertEquals( 3, $q->max_num_pages, $message );
+	}
+
+	/**
+	 * @ticket 47280
+	 */
 	public function test_found_posts_are_correct_for_author_queries() {
 		$author = self::factory()->user->create();
 		self::factory()->post->create_many( 5 );
