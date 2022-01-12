@@ -1888,7 +1888,6 @@ body.full-overlay-active {
 	position: absolute;
 	z-index: 0;
 	background-color: #f0f0f1;
-	overflow: auto;
 }
 
 .customize-loading #customize-container {
