@@ -1110,6 +1110,46 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
+	/**
+	 * @ticket 47280
+	 */
+	public function test_posts_are_counted_with_select_found_rows_when_query_includes_sql_calc_found_rows() {
+		// Create five published posts.
+		self::factory()->post->create_many( 5 );
+		// Create ten draft posts.
+		self::factory()->post->create_many(
+			10,
+			array(
+				'post_status' => 'draft',
+			)
+		);
+
+		add_filter( 'posts_request', function( $request ) {
+			global $wpdb;
+
+			return "
+				SELECT SQL_CALC_FOUND_ROWS {$wpdb->posts}.ID
+				FROM {$wpdb->posts}
+				WHERE 1=1
+				AND {$wpdb->posts}.post_type = 'post'
+				AND {$wpdb->posts}.post_status = 'draft'
+				ORDER BY {$wpdb->posts}.post_date
+				DESC LIMIT 0, 2
+			";
+		} );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 2,
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 10, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 5, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+
 	public function dataFields() {
 		return array(
 			'posts'   => array(
