@@ -284,8 +284,6 @@ class WP_Network {
 	 * @since 4.4.0
 	 */
 	private function _set_site_name() {
-		global $wpdb;
-
 		if ( ! empty( $this->site_name ) ) {
 			return;
 		}
