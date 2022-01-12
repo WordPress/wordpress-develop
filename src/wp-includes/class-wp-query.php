@@ -15,7 +15,7 @@
  * @since 1.5.0
  * @since 4.5.0 Removed the `$comments_popup` property.
  */
-class WP_Query implements JsonSerializable {
+class WP_Query implements JsonSerializable, Serializable {
 
 	/**
 	 * Query vars set by the user.
@@ -3739,12 +3739,53 @@ class WP_Query implements JsonSerializable {
 	 *
 	 * @since x.x.x
 	 *
+	 * @return string The PHP serialized representation of the object.
+	 */
+	public function serialize() {
+		return serialize( $this->__serialize() );
+	}
+
+	/**
+	 * Controls how the object is represented during PHP serialization.
+	 *
+	 * Used by PHP >= 7.4.
+	 *
+	 * @since x.x.x
+	 *
 	 * @return array The properties of the object as an associative array.
 	 */
 	public function __serialize() {
 		$this->set_found_posts();
 
 		return get_object_vars( $this );
+	}
+
+	/**
+	 * Controls how the object is reconstructed from a PHP serialized representation.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $data The PHP serialized representation of the object.
+	 * @return void
+	 */
+	public function unserialize( $data ) {
+		$this->__unserialize( unserialize( $data ) );
+	}
+
+	/**
+	 * Controls how the object is reconstructed from a PHP serialized representation.
+	 *
+	 * Used by PHP >= 7.4.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param array $data The associative array representation of the object.
+	 * @return void
+	 */
+	public function __unserialize( $data ) {
+		foreach ( $data as $key => $value ) {
+			$this->$key = $value;
+		}
 	}
 
 	/**
