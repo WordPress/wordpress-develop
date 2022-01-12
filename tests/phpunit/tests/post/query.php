@@ -858,7 +858,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $q->post_count );
 		$this->assertSame( 0, $q->found_posts );
-		$this->assertEquals( 0, $q->max_num_pages );
+		$this->assertSame( 0, $q->max_num_pages );
 	}
 
 	/**
@@ -876,6 +876,42 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
 		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
 		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 */
+	public function test_found_posts_are_correct_for_query_with_no_limit() {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => -1,
+			)
+		);
+
+		$this->assertSame( 5, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		// You would expect this to be 1 but historically it's 0 for posts without paging
+		$this->assertSame( 0, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 */
+	public function test_found_posts_are_correct_for_query_with_no_paging() {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'nopaging' => true,
+			)
+		);
+
+		$this->assertSame( 5, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		// You would expect this to be 1 but historically it's 0 for posts without paging
+		$this->assertSame( 0, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
 	/**
