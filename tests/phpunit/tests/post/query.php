@@ -897,11 +897,11 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	public function test_found_posts_are_correct_for_term_queries() {
 		$term = self::factory()->term->create_and_get();
 		self::factory()->post->create_many( 5 );
-		self::factory()->post->create_many( 5, array(
-			'tax_input' => array(
-				'post_tag' => array( $term->slug ),
-			),
-		) );
+		$ids = self::factory()->post->create_many( 5 );
+
+		foreach ( $ids as $id ) {
+			wp_set_post_terms( $id, $term->slug );
+		}
 
 		$q = new WP_Query(
 			array(

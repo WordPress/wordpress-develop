@@ -3017,7 +3017,7 @@ class WP_Query {
 
 		$old_request   = "SELECT $distinct $fields FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits";
 		$this->request = $old_request;
-		$this->request_count = "SELECT COUNT($distinct {$wpdb->posts}.ID) FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby";
+		$this->request_count = "SELECT COUNT($distinct {$wpdb->posts}.ID) FROM {$wpdb->posts} $join WHERE 1=1 $where";
 
 		if ( ! $q['suppress_filters'] ) {
 			/**
