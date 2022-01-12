@@ -851,6 +851,19 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 47280
 	 */
+	public function test_found_posts_are_correct_for_empty_query() {
+		self::factory()->post->create_many( 12 );
+
+		$q = new WP_Query();
+
+		$this->assertSame( 0, $q->post_count );
+		$this->assertSame( 0, $q->found_posts );
+		$this->assertEquals( 0, $q->max_num_pages );
+	}
+
+	/**
+	 * @ticket 47280
+	 */
 	public function test_found_posts_are_correct_for_basic_query() {
 		self::factory()->post->create_many( 5 );
 

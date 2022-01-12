@@ -3342,7 +3342,7 @@ class WP_Query {
 
 		// Bail if posts is an empty array. Continue if posts is an empty string,
 		// null, or false to accommodate caching plugins that fill posts later.
-		if ( $q['no_found_rows'] || ( is_array( $this->posts ) && ! $this->posts ) ) {
+		if ( empty( $q ) || $q['no_found_rows'] || ( is_array( $this->posts ) && ! $this->posts ) ) {
 			$this->found_posts = 0;
 			return;
 		}
