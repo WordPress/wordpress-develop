@@ -430,6 +430,12 @@ class WP_Site_Query {
 	protected function get_site_ids() {
 		global $wpdb;
 
+		$blogs_table = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->blogs ) ) ) !== null );
+
+		if ( ! $blogs_table ) {
+			return [];
+		}
+
 		$order = $this->parse_order( $this->query_vars['order'] );
 
 		// Disable ORDER BY with 'none', an empty array, or boolean false.

@@ -284,12 +284,15 @@ class WP_Network {
 	 * @since 4.4.0
 	 */
 	private function _set_site_name() {
+		global $wpdb;
+
 		if ( ! empty( $this->site_name ) ) {
 			return;
 		}
 
 		$default         = ucfirst( $this->domain );
-		$this->site_name = get_network_option( $this->id, 'site_name', $default );
+		$sitemeta        = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->sitemeta ) ) ) !== null );
+		$this->site_name = $sitemeta ? get_network_option( $this->id, 'site_name', $default ) : $default;
 	}
 
 	/**
