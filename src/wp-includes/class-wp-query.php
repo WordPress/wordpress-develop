@@ -3041,6 +3041,8 @@ class WP_Query implements JsonSerializable, Serializable {
 			$this->request = apply_filters_ref_array( 'posts_request', array( $this->request, &$this ) );
 
 			if ( false !== strpos( $this->request, 'SQL_CALC_FOUND_ROWS' ) ) {
+				_deprecated_argument( 'The posts_request filter', 'x.x.x', '...' );
+
 				$this->use_calc_found_rows = true;
 				$this->request_count       = 'SELECT FOUND_ROWS()';
 			}
