@@ -1112,10 +1112,10 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	public function dataFields() {
 		return array(
-			'posts' => array(
+			'posts'   => array(
 				'',
 			),
-			'ids' => array(
+			'ids'     => array(
 				'ids',
 			),
 			'parents' => array(
