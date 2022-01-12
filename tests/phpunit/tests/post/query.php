@@ -918,7 +918,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 47280
 	 */
-	public function test_found_posts_are_correct_for_term_queries() {
+	public function test_found_posts_are_correct_for_tax_queries() {
 		$term = self::factory()->term->create_and_get();
 		self::factory()->post->create_many( 5 );
 		$ids = self::factory()->post->create_many( 5 );
@@ -931,6 +931,35 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			array(
 				'posts_per_page' => 2,
 				'tag'            => $term->slug,
+			)
+		);
+
+		$message = sprintf(
+			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
+			$q->request,
+			$q->request_count
+		);
+
+		$this->assertSame( 2, $q->post_count, $message );
+		$this->assertSame( 5, $q->found_posts, $message );
+		$this->assertEquals( 3, $q->max_num_pages, $message );
+	}
+
+	/**
+	 * @ticket 47280
+	 */
+	public function test_found_posts_are_correct_for_meta_queries() {
+		self::factory()->post->create_many( 5 );
+		$ids = self::factory()->post->create_many( 5 );
+
+		foreach ( $ids as $id ) {
+			add_post_meta( $id, 'my_meta', 'foo' );
+		}
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 2,
+				'meta_key'       => 'my_meta',
 			)
 		);
 
