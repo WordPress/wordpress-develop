@@ -889,9 +889,12 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	public function test_found_posts_are_correct_for_author_queries() {
 		$author = self::factory()->user->create();
 		self::factory()->post->create_many( 5 );
-		self::factory()->post->create_many( 5, array(
-			'post_author' => $author,
-		) );
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_author' => $author,
+			)
+		);
 
 		$q = new WP_Query(
 			array(
