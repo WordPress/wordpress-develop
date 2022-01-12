@@ -1339,7 +1339,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
 				),
 				'6.0.0'
 			);
-			// Check if the position is non-string(i.e. float) and convert it to string.
+			// If the position is not a string (i.e. float), convert it to string.
 			if ( ! is_string( $position ) ) {
 				$position = (string) $position;
 			}
