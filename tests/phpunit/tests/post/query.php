@@ -761,10 +761,14 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_property_is_present_with_no_found_rows_false() {
+	public function test_found_posts_property_is_present_with_no_found_rows_false( $fields ) {
 		$q = new WP_Query(
 			array(
+				'fields'        => $fields,
 				'post_type'     => 'post',
 				'no_found_rows' => false,
 			)
@@ -781,10 +785,14 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_property_is_present_with_no_found_rows_true() {
+	public function test_found_posts_property_is_present_with_no_found_rows_true( $fields ) {
 		$q = new WP_Query(
 			array(
+				'fields'        => $fields,
 				'post_type'     => 'post',
 				'no_found_rows' => true,
 			)
@@ -801,8 +809,11 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_should_be_lazily_loaded() {
+	public function test_found_posts_should_be_lazily_loaded( $fields ) {
 		global $wpdb;
 
 		self::factory()->post->create_many( 5 );
@@ -811,6 +822,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$q = new WP_Query(
 			array(
+				'fields'                 => $fields,
 				'posts_per_page'         => 2,
 				'update_post_term_cache' => false,
 				'update_post_meta_cache' => false,
@@ -863,12 +875,16 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_are_correct_for_basic_query() {
+	public function test_found_posts_are_correct_for_basic_query( $fields ) {
 		self::factory()->post->create_many( 5 );
 
 		$q = new WP_Query(
 			array(
+				'fields'         => $fields,
 				'posts_per_page' => 2,
 			)
 		);
@@ -880,12 +896,16 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_are_correct_for_query_with_no_limit() {
+	public function test_found_posts_are_correct_for_query_with_no_limit( $fields ) {
 		self::factory()->post->create_many( 5 );
 
 		$q = new WP_Query(
 			array(
+				'fields'         => $fields,
 				'posts_per_page' => -1,
 			)
 		);
@@ -898,12 +918,16 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_are_correct_for_query_with_no_paging() {
+	public function test_found_posts_are_correct_for_query_with_no_paging( $fields ) {
 		self::factory()->post->create_many( 5 );
 
 		$q = new WP_Query(
 			array(
+				'fields'   => $fields,
 				'nopaging' => true,
 			)
 		);
@@ -916,12 +940,16 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_are_correct_for_paged_query() {
+	public function test_found_posts_are_correct_for_paged_query( $fields ) {
 		self::factory()->post->create_many( 5 );
 
 		$q = new WP_Query(
 			array(
+				'fields'         => $fields,
 				'posts_per_page' => 2,
 				'paged'          => 3,
 			)
@@ -934,8 +962,11 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_are_correct_for_author_queries() {
+	public function test_found_posts_are_correct_for_author_queries( $fields ) {
 		$author = self::factory()->user->create();
 		self::factory()->post->create_many( 5 );
 		self::factory()->post->create_many(
@@ -947,6 +978,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$q = new WP_Query(
 			array(
+				'fields'         => $fields,
 				'posts_per_page' => 2,
 				'author'         => $author,
 			)
@@ -959,8 +991,11 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_are_correct_for_tax_queries() {
+	public function test_found_posts_are_correct_for_tax_queries( $fields ) {
 		$term = self::factory()->term->create_and_get();
 		self::factory()->post->create_many( 5 );
 		$ids = self::factory()->post->create_many( 5 );
@@ -971,6 +1006,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$q = new WP_Query(
 			array(
+				'fields'         => $fields,
 				'posts_per_page' => 2,
 				'tag'            => $term->slug,
 			)
@@ -983,8 +1019,11 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
 	 */
-	public function test_found_posts_are_correct_for_meta_queries() {
+	public function test_found_posts_are_correct_for_meta_queries( $fields ) {
 		self::factory()->post->create_many( 5 );
 		$ids = self::factory()->post->create_many( 5 );
 
@@ -994,6 +1033,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$q = new WP_Query(
 			array(
+				'fields'         => $fields,
 				'posts_per_page' => 2,
 				'meta_key'       => 'my_meta',
 			)
@@ -1002,6 +1042,20 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
 		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
 		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	public function dataFields() {
+		return array(
+			'posts' => array(
+				'',
+			),
+			'ids' => array(
+				'ids',
+			),
+			'parents' => array(
+				'id=>parent',
+			),
+		);
 	}
 
 	protected static function get_count_message( WP_Query $query ) {
