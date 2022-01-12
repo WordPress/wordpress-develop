@@ -291,8 +291,7 @@ class WP_Network {
 		}
 
 		$default         = ucfirst( $this->domain );
-		$sitemeta        = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->sitemeta ) ) ) !== null );
-		$this->site_name = $sitemeta ? get_network_option( $this->id, 'site_name', $default ) : $default;
+		$this->site_name = get_network_option( $this->id, 'site_name', $default );
 	}
 
 	/**
