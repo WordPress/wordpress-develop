@@ -46,13 +46,13 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 
 	.has-large-font-size {
 		--wp--preset--font-size--large: 14pt;
-		font-size: 14pt;
 	}
 
 	h2,
 	h3,
 	h4,
-	.has-regular-font-size, 
+	.has-regular-font-size,
+	.has-large-font-size,
 	h2.author-title, 
 	p.author-bio, 
 	.comments-title, h3 {

@@ -448,7 +448,6 @@
 
 				&.has-white-color {
 					--wp--preset--color--white: inherit;
-					color: inherit;
 				}
 
 				&.has-text-color p,
@@ -456,7 +455,8 @@
 				&.has-primary-color,
 				&.has-secondary-color,
 				&.has-dark-gray-color,
-				&.has-light-gray-color {
+				&.has-light-gray-color,
+				&.has-white-color {
 					color: inherit;
 				}
 
