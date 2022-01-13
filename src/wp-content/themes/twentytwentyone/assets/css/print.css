@@ -55,6 +55,10 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 		font-weight: bold;
 	}
 
+	.has-large-font-size {
+		--wp--preset--font-size--large: 14pt;
+	}
+
 	h2,
 	h3,
 	h4,

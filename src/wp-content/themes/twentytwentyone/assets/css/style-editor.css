@@ -2160,6 +2160,7 @@ pre.wp-block-verse {
 
 :root .is-large-text,
 :root .has-large-font-size {
+	--wp--preset--font-size--large: var(--global--font-size-lg);
 	font-size: var(--global--font-size-lg);
 	line-height: var(--global--line-height-heading);
 }
