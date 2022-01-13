@@ -133,7 +133,7 @@ if ( current_user_can( 'switch_themes' ) ) {
 		'<p>' . __( 'From this screen you can:' ) . '</p>' .
 		'<ul><li>' . __( 'Hover or tap to see Activate and Live Preview buttons' ) . '</li>' .
 		'<li>' . __( 'Click on the theme to see the theme name, version, author, description, tags, and the Delete link' ) . '</li>' .
-		'<li>' . __( 'Click Customize for the currently active theme or Live Preview for any other theme to see a live preview' ) . '</li></ul>' .
+		'<li>' . __( 'Click Customize for the active theme or Live Preview for any other theme to see a live preview' ) . '</li></ul>' .
 		'<p>' . __( 'The active theme is displayed highlighted as the first theme.' ) . '</p>' .
 		'<p>' . __( 'The search for installed themes will search for terms in their name, description, author, or tag.' ) . ' <span id="live-search-desc">' . __( 'The search results will be updated as you type.' ) . '</span></p>';
 
