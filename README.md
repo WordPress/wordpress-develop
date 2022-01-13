@@ -40,7 +40,7 @@ Your WordPress site will accessible at http://localhost:8889. You can see or cha
 
 #### For Mac M1 users and ARM architectures
 
-You can add a new file at the root of the installation to customize the docker-compose configuration:
+You can add a new file named `docker-compose.override.yml` at the root of the installation to customize the docker-compose configuration:
 
 ```
 # docker-compose.override.yml
