@@ -3633,6 +3633,7 @@ table.wp-calendar-table caption {
 
 :root .is-huge-text,
 :root .has-huge-font-size {
+	--wp--preset--font-size--huge: var(--global--font-size-xxl);
 	font-size: var(--global--font-size-xxl);
 	line-height: var(--global--line-height-heading);
 	font-weight: var(--heading--font-weight-page-title);

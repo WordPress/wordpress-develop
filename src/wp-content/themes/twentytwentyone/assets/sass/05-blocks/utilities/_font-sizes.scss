@@ -39,6 +39,7 @@
 
 	.is-huge-text,
 	.has-huge-font-size {
+		--wp--preset--font-size--huge: var(--global--font-size-xxl);
 		font-size: var(--global--font-size-xxl);
 		line-height: var(--global--line-height-heading);
 
