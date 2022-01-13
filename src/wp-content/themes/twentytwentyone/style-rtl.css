@@ -3611,6 +3611,7 @@ table.wp-calendar-table caption {
 :root .is-normal-font-size,
 :root .has-normal-font-size,
 :root .has-medium-font-size {
+	--wp--preset--font-size--medium: var(--global--font-size-base);
 	font-size: var(--global--font-size-base);
 }
 

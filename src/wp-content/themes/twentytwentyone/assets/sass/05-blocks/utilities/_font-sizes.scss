@@ -17,6 +17,7 @@
 	.is-normal-font-size,
 	.has-normal-font-size,
 	.has-medium-font-size {
+		--wp--preset--font-size--medium: var(--global--font-size-base);
 		font-size: var(--global--font-size-base);
 	}
 
