@@ -151,7 +151,7 @@ class conditional_options_cache {
 		$alloptions_count = $wpdb->get_results( "SELECT count(*) as count FROM $wpdb->options WHERE autoload = 'yes'" );
 		  $options_count  = $alloptions_count[0]->count;
 
-		echo "$keys_count options loaded/used insteed of an alloption count of $options_count";
+		echo "$keys_count options loaded/used instead of an all options count of $options_count";
 	}
 
 
