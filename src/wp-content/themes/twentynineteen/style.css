@@ -2335,6 +2335,7 @@ h2 {
 
 .has-large-font-size {
   --wp--preset--font-size--large: 1.6875em;
+  font-size: 1.6875em;
 }
 
 .has-regular-font-size,
@@ -2365,6 +2366,7 @@ h5 {
 
 .has-small-font-size {
   --wp--preset--font-size--small: 0.71111em;
+  font-size: 0.71111em;
 }
 
 .entry-meta,
@@ -5780,6 +5782,7 @@ body.page .main-navigation {
 
 .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-white-color {
   --wp--preset--color--white: inherit;
+  color: inherit;
 }
 
 .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-text-color p,
@@ -6306,18 +6309,22 @@ body.page .main-navigation {
 
 .entry .entry-content .has-small-font-size {
   --wp--preset--font-size--small: 0.88889em;
+  font-size: 0.88889em;
 }
 
 .entry .entry-content .has-normal-font-size {
   --wp--preset--font-size--normal: 1.125em;
+  font-size: 1.125em;
 }
 
 .entry .entry-content .has-large-font-size {
   --wp--preset--font-size--large: 1.6875em;
+  font-size: 1.6875em;
 }
 
 .entry .entry-content .has-huge-font-size {
   --wp--preset--font-size--huge: 2.25em;
+  font-size: 2.25em;
 }
 
 .entry .entry-content .has-primary-background-color,
@@ -6399,7 +6406,8 @@ body.page .main-navigation {
 
 .entry .entry-content .has-white-background-color,
 .entry .entry-content .wp-block-pullquote.is-style-solid-color.has-white-background-color {
-  --wp--preset--background-color--white: #FFF;
+  --wp--preset--color--white: #FFF;
+  background-color: #FFF;
 }
 
 .entry .entry-content .has-primary-color,
@@ -6433,6 +6441,7 @@ body.page .main-navigation {
 .entry .entry-content .wp-block-pullquote blockquote.has-white-color,
 .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-white-color {
   --wp--preset--color--white: #FFF;
+  color: #FFF;
 }
 
 /* Media */
