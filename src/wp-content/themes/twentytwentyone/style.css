@@ -3612,6 +3612,7 @@ table.wp-calendar-table caption {
 
 :root .is-small-text,
 :root .has-small-font-size {
+	--wp--preset--font-size--small: var(--global--font-size-sm);
 	font-size: var(--global--font-size-sm);
 }
 

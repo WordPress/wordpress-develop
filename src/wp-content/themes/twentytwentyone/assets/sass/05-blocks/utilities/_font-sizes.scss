@@ -8,6 +8,7 @@
 
 	.is-small-text,
 	.has-small-font-size {
+		--wp--preset--font-size--small: var(--global--font-size-sm);
 		font-size: var(--global--font-size-sm);
 	}
 
