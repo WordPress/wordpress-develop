@@ -45,10 +45,12 @@ jobs:
           - branch: '5.5'
             workflow: 'php-compatibility.yml'
 
-          # End to End testing was introduced in 5.3 but later removed as there were no meaningful assertions.
-          # Only the officially supported major branch runs E2E tests so that more assertions can be added, and the
-          # workflow does not continue to run needlessly on old branches.
+          # End-to-end testing was introduced in 5.3 but was later removed as there were no meaningful assertions.
+          # Starting in 5.8 with #52905, some additional tests with real assertions were introduced.
+          # Branches 5.8 and newer should be tested to confirm no regressions are introduced.
           - branch: '5.9'
+            workflow: 'end-to-end-tests.yml'
+          - branch: '5.8'
             workflow: 'end-to-end-tests.yml'
         exclude:
           # Coding standards and JavaScript testing did not take place in 3.7.
