@@ -1520,7 +1520,6 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
  *
  * @since 3.0.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|string $term     The term to check. Accepts term ID, slug, or name.
  * @param string     $taxonomy Optional. The taxonomy name to use.
@@ -1531,65 +1530,70 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
  *               Returns 0 if term ID 0 is passed to the function.
  */
 function term_exists( $term, $taxonomy = '', $parent = null ) {
-	global $wpdb;
-
 	if ( null === $term ) {
 		return null;
 	}
-
-	$select     = "SELECT term_id FROM $wpdb->terms as t WHERE ";
-	$tax_select = "SELECT tt.term_id, tt.term_taxonomy_id FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy as tt ON tt.term_id = t.term_id WHERE ";
 
 	if ( is_int( $term ) ) {
 		if ( 0 === $term ) {
 			return 0;
 		}
-		$where = 't.term_id = %d';
-		if ( ! empty( $taxonomy ) ) {
-			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-			return $wpdb->get_row( $wpdb->prepare( $tax_select . $where . ' AND tt.taxonomy = %s', $term, $taxonomy ), ARRAY_A );
-		} else {
-			return $wpdb->get_var( $wpdb->prepare( $select . $where, $term ) );
+		$_term = get_term( $term, $taxonomy );
+		if ( is_wp_error( $_term ) || is_null( $_term ) ) {
+			return null;
 		}
+		if ( ! empty( $taxonomy ) ) {
+			return array(
+				'term_id'          => (string) $_term->term_id,
+				'term_taxonomy_id' => (string) $_term->term_taxonomy_id,
+			);
+		}
+
+		return (string) $_term->term_id;
 	}
 
 	$term = trim( wp_unslash( $term ) );
-	$slug = sanitize_title( $term );
+	if ( empty( $term ) ) {
+		return null;
+	}
 
-	$where             = 't.slug = %s';
-	$else_where        = 't.name = %s';
-	$where_fields      = array( $slug );
-	$else_where_fields = array( $term );
-	$orderby           = 'ORDER BY t.term_id ASC';
-	$limit             = 'LIMIT 1';
+	$defaults = array(
+		'get'                    => 'all',
+		'hide_empty'             => false,
+		'number'                 => 1,
+		'update_term_meta_cache' => false,
+		'orderby'                => 'term_id',
+		'suppress_filter'        => true,
+		'cached_results'         => false,
+	);
+
+	if ( is_numeric( $parent ) ) {
+		$defaults['parent'] = (int) $parent;
+	}
 	if ( ! empty( $taxonomy ) ) {
-		if ( is_numeric( $parent ) ) {
-			$parent              = (int) $parent;
-			$where_fields[]      = $parent;
-			$else_where_fields[] = $parent;
-			$where              .= ' AND tt.parent = %d';
-			$else_where         .= ' AND tt.parent = %d';
-		}
-
-		$where_fields[]      = $taxonomy;
-		$else_where_fields[] = $taxonomy;
-
-		$result = $wpdb->get_row( $wpdb->prepare( "SELECT tt.term_id, tt.term_taxonomy_id FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy as tt ON tt.term_id = t.term_id WHERE $where AND tt.taxonomy = %s $orderby $limit", $where_fields ), ARRAY_A );
-		if ( $result ) {
-			return $result;
-		}
-
-		return $wpdb->get_row( $wpdb->prepare( "SELECT tt.term_id, tt.term_taxonomy_id FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy as tt ON tt.term_id = t.term_id WHERE $else_where AND tt.taxonomy = %s $orderby $limit", $else_where_fields ), ARRAY_A );
+		$defaults['taxonomy'] = $taxonomy;
 	}
 
-	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-	$result = $wpdb->get_var( $wpdb->prepare( "SELECT term_id FROM $wpdb->terms as t WHERE $where $orderby $limit", $where_fields ) );
-	if ( $result ) {
-		return $result;
+	$args  = wp_parse_args( array( 'slug' => $term ), $defaults );
+	$terms = get_terms( $args );
+	if ( empty( $terms ) || is_wp_error( $terms ) ) {
+		$args  = wp_parse_args( array( 'name' => $term ), $defaults );
+		$terms = get_terms( $args );
+		if ( empty( $terms ) || is_wp_error( $terms ) ) {
+			return null;
+		}
 	}
 
-	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-	return $wpdb->get_var( $wpdb->prepare( "SELECT term_id FROM $wpdb->terms as t WHERE $else_where $orderby $limit", $else_where_fields ) );
+	$_term = array_shift( $terms );
+
+	if ( ! empty( $taxonomy ) ) {
+		return array(
+			'term_id'          => (string) $_term->term_id,
+			'term_taxonomy_id' => (string) $_term->term_taxonomy_id,
+		);
+	}
+
+	return (string) $_term->term_id;
 }
 
 /**

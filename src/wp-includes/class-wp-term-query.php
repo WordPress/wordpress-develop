@@ -219,6 +219,7 @@ class WP_Term_Query {
 			'parent'                 => '',
 			'childless'              => false,
 			'cache_domain'           => 'core',
+			'cached_results'         => true,
 			'update_term_meta_cache' => true,
 			'meta_query'             => '',
 			'meta_key'               => '',
@@ -746,7 +747,10 @@ class WP_Term_Query {
 		$key          = md5( serialize( wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) ) ) . serialize( $taxonomies ) . $this->request );
 		$last_changed = wp_cache_get_last_changed( 'terms' );
 		$cache_key    = "get_terms:$key:$last_changed";
-		$cache        = wp_cache_get( $cache_key, 'terms' );
+		$cache        = false;
+		if ( $args['cached_results'] ) {
+			$cache = wp_cache_get( $cache_key, 'terms' );
+		}
 		if ( false !== $cache ) {
 			if ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
 				$cache = $this->populate_terms( $cache );
