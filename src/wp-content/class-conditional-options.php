@@ -47,7 +47,7 @@ class conditional_options_cache {
 		}
 	}
 
-	public static function conditional_options_preload( $force_cache ) {
+	public static function conditional_options_preload() {
 
 		return self::$options;
 	}
@@ -72,14 +72,14 @@ class conditional_options_cache {
 			return maybe_unserialize( self::$options[ $option_name ] );
 		}
 
-		self::$running                 = true;
+		self::$running = true;
 
-		$option_value                  = get_option( $option_name, $default );
+		$option_value = get_option( $option_name, $default );
 		if ( false !== $option_value ) {
 			self::$options[ $option_name ] = $option_value;
 			self::$has_miss                = true;
-        }
-		self::$running                 = false;
+		}
+		self::$running = false;
 
 		return $option_value;
 
@@ -96,10 +96,10 @@ class conditional_options_cache {
 			ARRAY_A
 		);
 
-		$key_array                  = explode( ',', $keys[0]['keys'] );
+		$key_array = explode( ',', $keys[0]['keys'] );
 
 		$commaDelimitedPlaceholders = implode( ',', array_fill( 0, count( $key_array ), '%s' ) );
-		$options = $wpdb->get_results(
+		$options                    = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT `option_name`, `option_value` FROM $wpdb->options WHERE `option_name` IN ( $commaDelimitedPlaceholders )",
 				$key_array
@@ -130,13 +130,12 @@ class conditional_options_cache {
 			$key_string = implode( ',', array_keys( self::$options ) );
 
 			// TODO: add code to reset cache
-//			$db = $wpdb->query(
-//				$wpdb->prepare(
-//					'DELETE FROM ' . self::$table_name . ' WHERE `url_hash` = %s',
-//					self::$context
-//				)
-//			);
-
+			//          $db = $wpdb->query(
+			//              $wpdb->prepare(
+			//                  'DELETE FROM ' . self::$table_name . ' WHERE `url_hash` = %s',
+			//                  self::$context
+			//              )
+			//          );
 
 			$db = $wpdb->query(
 				$wpdb->prepare(
@@ -147,11 +146,11 @@ class conditional_options_cache {
 				)
 			);
 		}
-		$keys_count = count( self::$options );
+		$keys_count       = count( self::$options );
 		$alloptions_count = $wpdb->get_results( "SELECT count(*) as count FROM $wpdb->options WHERE autoload = 'yes'" );
-		  $options_count  = $alloptions_count[0]->count;
+		$options_count    = $alloptions_count[0]->count;
 
-		echo "$keys_count options loaded/used instead of an all options count of $options_count";
+		echo "<center>$keys_count options loaded/used instead of an all options count of $options_count</center>";
 	}
 
 
