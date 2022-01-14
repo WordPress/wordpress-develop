@@ -2271,11 +2271,11 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
 	 *
-	 *     @type int    $blog_id      Blog ID (unused).
-	 *     @type string $username     Username.
-	 *     @type string $password     Password.
+	 *     @type int    $blog_id       Blog ID (unused).
+	 *     @type string $username      Username.
+	 *     @type string $password      Password.
 	 *     @type string $taxonomy_name Taxonomy name.
-	 *     @type int    $term_id      Term ID.
+	 *     @type int    $term_id       Term ID.
 	 * }
 	 * @return true|IXR_Error True on success, IXR_Error instance on failure.
 	 */
