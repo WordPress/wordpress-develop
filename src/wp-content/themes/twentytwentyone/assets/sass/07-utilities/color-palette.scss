@@ -4,8 +4,10 @@
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
 		--local--color-primary: var(--global--color-black, #000000);
+		--wp--preset--color--black: var(--local--color-primary);
 		color: var(--local--color-primary);
 	}
+	--wp--preset--color--black: var(--global--color-black);
 	color: var(--global--color-black);
 }
 
@@ -85,8 +87,10 @@
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
 		--local--color-primary: var(--global--color-white, #FFFFFF);
+		--wp--preset--color--white: var(--local--color-primary);
 		color: var(--local--color-primary);
 	}
+	--wp--preset--color--white: var(--global--color-white);
 	color: var(--global--color-white);
 }
 
@@ -109,8 +113,10 @@
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
 		--local--color-background: var(--global--color-black, #000000);
+		--wp--preset--color--black: var(--local--color-background);
 		background-color: var(--local--color-background);
 	}
+	--wp--preset--color--black: var(--global--color-black);
 	background-color: var(--global--color-black);
 }
 
@@ -199,8 +205,10 @@
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
 		--local--color-background: var(--global--color-white, #FFFFFF);
+		--wp--preset--color--white: var(--local--color-background);
 		background-color: var(--local--color-background);
 	}
+	--wp--preset--color--white: var(--global--color-white);
 	background-color: var(--global--color-white);
 }
 
@@ -209,7 +217,7 @@
 	&.has-black-background-color[class],
 	&.has-gray-background-color[class],
 	&.has-dark-gray-background-color[class] {
-	  	color: var(--global--color-white);
+		color: var(--global--color-white);
 
 		// Localize CSS-variables to limit relationship scope
 		> [class*="__inner-container"] {
@@ -229,7 +237,7 @@
 	&.has-orange-background-color[class],
 	&.has-yellow-background-color[class],
 	&.has-white-background-color[class] {
-	  	color: var(--global--color-dark-gray);
+		color: var(--global--color-dark-gray);
 
 		// Localize CSS-variables to limit relationship scope
 		> [class*="__inner-container"] {

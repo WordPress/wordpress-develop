@@ -5644,11 +5644,13 @@ h1.page-title {
 }
 
 .has-black-color[class] {
+	--wp--preset--color--black: var(--global--color-black);
 	color: var(--global--color-black);
 }
 
 .has-black-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-black, #000);
+	--wp--preset--color--black: var(--local--color-primary);
 	color: var(--local--color-primary);
 }
 
@@ -5725,11 +5727,13 @@ h1.page-title {
 }
 
 .has-white-color[class] {
+	--wp--preset--color--white: var(--global--color-white);
 	color: var(--global--color-white);
 }
 
 .has-white-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-white, #fff);
+	--wp--preset--color--white: var(--local--color-primary);
 	color: var(--local--color-primary);
 }
 
@@ -5745,11 +5749,13 @@ h1.page-title {
 }
 
 .has-black-background-color[class] {
+	--wp--preset--color--black: var(--global--color-black);
 	background-color: var(--global--color-black);
 }
 
 .has-black-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-black, #000);
+	--wp--preset--color--black: var(--local--color-background);
 	background-color: var(--local--color-background);
 }
 
@@ -5835,11 +5841,13 @@ h1.page-title {
 }
 
 .has-white-background-color[class] {
+	--wp--preset--color--white: var(--global--color-white);
 	background-color: var(--global--color-white);
 }
 
 .has-white-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-white, #fff);
+	--wp--preset--color--white: var(--local--color-background);
 	background-color: var(--local--color-background);
 }
 
