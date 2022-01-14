@@ -130,12 +130,24 @@ function get_option( $option, $default = false ) {
 	 */
 	$pre = apply_filters( "pre_option_{$option}", false, $option, $default );
 
-	if ( false === $pre && function_exists( 'conditional_get_options' ) ) {
 
-		if ( function_exists( 'conditional_get_options_running' ) && ! conditional_get_options_running() ) {
-			$pre = conditional_get_options( $pre, $option, $default );
-		}
-	}
+	/**
+	 * Filters the value of all existing options before it is retrieved.
+	 *
+	 * Returning a truthy value from the filter will effectively short-circuit retrieval
+	 * and return the passed value instead.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param mixed  $pre_option The value to return instead of the option value. This differs
+	 *                           from `$default`, which is used as the fallback value in the event
+	 *                           the option doesn't exist elsewhere in get_option().
+	 *                           Default false (to skip past the short-circuit).
+	 * @param string $option     Option name.
+	 * @param mixed  $default    The fallback value to return if the option does not exist.
+	 *                           Default false.
+	 */
+	$pre = apply_filters( 'pre_option_all', $pre, $option, $default );
 
 	if ( false !== $pre ) {
 		return $pre;
@@ -283,15 +295,26 @@ function form_option( $option ) {
 function wp_load_alloptions( $force_cache = false ) {
 	include_once( dirname( __DIR__ ) . '/wp-content/object-cache.php');
 	global $wpdb;
-	if ( ! wp_installing() && function_exists( 'conditional_options_preload' ) && function_exists( 'conditional_get_options_running' )&& ! conditional_get_options_running() ) {
-			$alloptions = conditional_options_preload( $force_cache );
-	} else {
-		if ( ! wp_installing() || ! is_multisite() ) {
-			$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
-		} else {
-			$alloptions = false;
-		}
+
+	/**
+	 * Filters all options before loading them.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param mixed $pre Array with all options.
+	 * @param bool $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
+	 */
+	$pre = apply_filters( 'pre_get_alloptions', null, $force_cache );
+	if ( null !== $pre ) {
+		return $pre;
 	}
+
+	if ( ! wp_installing() || ! is_multisite() ) {
+		$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
+	} else {
+		$alloptions = false;
+	}
+
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
