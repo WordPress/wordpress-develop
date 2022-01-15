@@ -513,7 +513,7 @@ function twentyeleven_layout_classes( $existing_classes ) {
 	 * @since Twenty Eleven 1.0
 	 *
 	 * @param array  $classes        An array of body classes.
-	 * @param string $current_layout The current theme layout.
+	 * @param string $current_layout The active theme layout.
 	 */
 	$classes = apply_filters( 'twentyeleven_layout_classes', $classes, $current_layout );
 
