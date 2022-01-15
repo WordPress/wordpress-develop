@@ -437,6 +437,14 @@ function render_block_core_navigation( $attributes, $content, $block ) {
 		$inner_blocks = new WP_Block_List( $compacted_blocks, $attributes );
 	}
 
+	/**
+	 * Filter navigation block $inner_blocks.
+	 * Allows modification of a navigation block menu items.
+	 *
+	 * @param \WP_Block_List $inner_blocks
+	 */
+	$inner_blocks = apply_filters( 'render_block_core_navigation_inner_blocks', $inner_blocks );
+
 	// If there are no inner blocks then fallback to rendering an appropriate fallback.
 	if ( empty( $inner_blocks ) ) {
 		$is_fallback = true; // indicate we are rendering the fallback.
