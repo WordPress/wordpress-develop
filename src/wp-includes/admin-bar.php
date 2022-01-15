@@ -619,7 +619,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param bool $show_site_icons Whether site icon should be shown in the toolbar. Default true.
+	 * @param bool $show_site_icons Whether site icons should be shown in the toolbar. Default true.
 	 */
 	$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
 
