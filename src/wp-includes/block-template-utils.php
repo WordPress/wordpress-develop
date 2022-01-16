@@ -303,6 +303,10 @@ function _get_block_templates_files( $template_type ) {
 		return null;
 	}
 
+	if ( ! wp_get_theme()->is_block_theme() ) {
+		return array();
+	}
+
 	$themes         = array(
 		get_stylesheet() => get_stylesheet_directory(),
 		get_template()   => get_template_directory(),
