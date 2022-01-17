@@ -1553,6 +1553,7 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 		}
 	}
 
+	$term = apply_filters( 'pre_term_name', $term );
 	$term = trim( wp_unslash( $term ) );
 	$slug = sanitize_title( $term );
 
