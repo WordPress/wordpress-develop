@@ -2938,6 +2938,17 @@ function retrieve_password( $user_login = null ) {
 		return $errors;
 	}
 
+	/**
+	 * Filter whether to disable the retrieve password email.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param bool $disable True to disable. Default: false
+	*/
+	if ( apply_filters( 'disable_retrieve_password_notification_email', false ) ) {
+		return true;
+	}
+
 	// Redefining user_login ensures we return the right case in the email.
 	$user_login = $user_data->user_login;
 	$user_email = $user_data->user_email;
@@ -3011,6 +3022,11 @@ function retrieve_password( $user_login = null ) {
 	 * @param WP_User $user_data  WP_User object.
 	 */
 	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
+
+	// Short-circuit on falsey $message value for backwards compatibility.
+	if ( ! $message ) {
+		return true;
+	}
 
 	// Wrap the single notification email arguments in an array to pass them to the retrieve_password_notification_email filter.
 	$defaults = array(
