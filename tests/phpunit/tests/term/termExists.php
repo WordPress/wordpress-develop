@@ -277,4 +277,50 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$this->assertNull( term_exists( '' ) );
 		$this->assertNull( term_exists( null ) );
 	}
+
+	/**
+	 * @dataProvider data_term_exists_should_find_term_with_special_chars
+	 *
+	 * @ticket 54840
+	 *
+	 * @covers ::term_exists
+	 *
+	 * @param string $term_name The name of the term.
+	 */
+	public function test_term_exists_should_find_term_with_special_chars( $term_name ) {
+		$args = array( 'slug' => $term_name . ' Suffix' );
+		$term = wp_insert_term( $term_name, 'category', $args );
+
+		$this->assertIsArray(
+			$term,
+			'The term was not inserted successfully'
+		);
+
+		$this->assertArrayHasKey(
+			'term_id',
+			$term,
+			'The term does not have the term_id key'
+		);
+
+		$this->assertSame(
+			(string) $term['term_id'],
+			term_exists( $term_name ),
+			'The term was not found'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_term_exists_should_find_term_with_special_chars() {
+		return array(
+			'term name with &' => array( 'term_name' => 'X & Y' ),
+			'term name with <' => array( 'term_name' => 'X < Y' ),
+			'term name with >' => array( 'term_name' => 'X > Y' ),
+			'term name with "' => array( 'term_name' => 'X " Y' ),
+			"term name with '" => array( 'term_name' => "X ' Y" ),
+		);
+	}
 }
