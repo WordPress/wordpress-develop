@@ -29,6 +29,8 @@ class conditional_options_cache {
 	public function __construct() {
 		self::set_context();
 
+		add_filter( 'pre_get_alloptions', array( __CLASS__, 'options_preload' ) );
+		add_filter( 'pre_option_all', array( __CLASS__, 'get_option' ), 10, 3 );
 		add_action( 'shutdown', array( __CLASS__, 'save_options_cache' ) );
 	}
 
@@ -45,9 +47,10 @@ class conditional_options_cache {
 			self::$context = self::get_context();
 			self::$options = self::get_cache();
 		}
+
 	}
 
-	public static function conditional_options_preload() {
+	public static function options_preload() {
 
 		return self::$options;
 	}
@@ -65,8 +68,7 @@ class conditional_options_cache {
 
 			return $pre;
 		}
-
-		if ( array_key_exists( $option_name, self::$options ) ) {
+		if ( is_array( self::$options ) && array_key_exists( $option_name, self::$options ) ) {
 			self::$running = false;
 
 			return maybe_unserialize( self::$options[ $option_name ] );
@@ -95,6 +97,11 @@ class conditional_options_cache {
 			),
 			ARRAY_A
 		);
+
+		if ( empty( $keys ) ) {
+
+			return false;
+		}
 
 		$key_array = explode( ',', $keys[0]['keys'] );
 
@@ -125,7 +132,6 @@ class conditional_options_cache {
 		global $wpdb;
 
 		if ( self::$has_miss ) {
-			//	self::maybe_create_table();
 
 			$key_string = implode( ',', array_keys( self::$options ) );
 
@@ -146,13 +152,13 @@ class conditional_options_cache {
 				)
 			);
 		}
-	 self::stats();
+		self::stats();
 	}
 
 	public static function stats() {
 		global $wpdb;
 
-		$keys_count       = count( self::$options );
+		$keys_count = count( self::$options );
 		$alloptions = $wpdb->get_results( "SELECT option_name FROM $wpdb->options WHERE autoload = 'yes'" );
 
 		$options_keys = array();
@@ -162,7 +168,7 @@ class conditional_options_cache {
 
 		$diff_count = count( array_diff( array_keys( self::$options ), $options_keys ) );
 
-		$options_count    = count( $alloptions );
+		$options_count = count( $alloptions );
 
 		echo "<center>$keys_count options loaded/used instead of an all options count of $options_count</center>";
 		echo "<center>Pluss the $keys_count included $diff_count options that were not set to be autoload</center>";
@@ -214,13 +220,15 @@ class conditional_options_cache {
 				if ( is_admin() ) {
 					$context = ' wp_admin';
 				} else {
-					$context = ' wp_front';
+					$context = $queryied_name;
 				}
 				break;
 		}
 
 		return md5( $context );
 	}
+
+	// this should part of setup
 	private static function maybe_create_table() {
 		global $wpdb;
 
