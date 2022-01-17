@@ -62,6 +62,20 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 'tags', $data['post_tag']['rest_base'] );
 	}
 
+	/**
+	 * @ticket 50012
+	 */
+	public function test_get_items_with_filtered_fields() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
+		$request->set_param( '_fields', 'name,hierarchical' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'name', $data['category'] );
+		$this->assertArrayHasKey( 'hierarchical', $data['category'] );
+		$this->assertFalse( array_key_exists( 'slug', $data['category'] ) );
+	}
+
 	public function test_get_items_context_edit() {
 		wp_set_current_user( self::$contributor_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
