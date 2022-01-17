@@ -2720,10 +2720,28 @@ class WP_Query {
 			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
 			$climits  = ( ! empty( $climits ) ) ? $climits : '';
 
-			$comments = (array) $wpdb->get_results( "SELECT $distinct {$wpdb->comments}.* FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits" );
-			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comments );
+			$comments_request = "SELECT $distinct {$wpdb->comments}.* FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
+
+			$key          = md5( $comments_request );
+			$last_changed = wp_cache_get_last_changed( 'comment' ) . wp_cache_get_last_changed( 'posts' );
+
+			$cache_key   = "comment_feed:$key:$last_changed";
+			$comment_ids = wp_cache_get( $cache_key, 'comment' );
+			if ( ! $comment_ids ) {
+				$comments = (array) $wpdb->get_results( $comments_request );
+				// Convert to WP_Comment.
+				/** @var WP_Comment[] */
+				$comments    = array_map( 'get_comment', $comments );
+				$comment_ids = wp_list_pluck( $comments, 'comment_ID' );
+				wp_cache_add( $cache_key, $comment_ids, 'comment' );
+			} else {
+				_prime_comment_caches( $comment_ids, false );
+				// Convert to WP_Comment.
+				/** @var WP_Comment[] */
+				$comments = array_map( 'get_comment', $comment_ids );
+			}
+			
+			$this->comments      = $comments;
 			$this->comment_count = count( $this->comments );
 
 			$post_ids = array();
@@ -3150,10 +3168,26 @@ class WP_Query {
 			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
 
 			$comments_request = "SELECT {$wpdb->comments}.* FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
-			$comments         = $wpdb->get_results( $comments_request );
-			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comments );
+			$key = md5( $comments_request );
+			$last_changed = wp_cache_get_last_changed( 'comment' );
+
+			$cache_key   = "comment_feed:$key:$last_changed";
+			$comment_ids = wp_cache_get( $cache_key, 'comment' );
+			if ( ! $comment_ids ) {
+				$comments = (array) $wpdb->get_results( $comments_request );
+				// Convert to WP_Comment.
+				/** @var WP_Comment[] */
+				$comments    = array_map( 'get_comment', $comments );
+				$comment_ids = wp_list_pluck( $comments, 'comment_ID' );
+				wp_cache_add( $cache_key, $comment_ids, 'comment' );
+			} else {
+				_prime_comment_caches( $comment_ids, false );
+				// Convert to WP_Comment.
+				/** @var WP_Comment[] */
+				$comments = array_map( 'get_comment', $comment_ids );
+			}
+
+			$this->comments      = $comments;
 			$this->comment_count = count( $this->comments );
 		}
 
