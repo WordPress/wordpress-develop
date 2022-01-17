@@ -146,14 +146,27 @@ class conditional_options_cache {
 				)
 			);
 		}
-		$keys_count       = count( self::$options );
-		$alloptions_count = $wpdb->get_results( "SELECT count(*) as count FROM $wpdb->options WHERE autoload = 'yes'" );
-		$options_count    = $alloptions_count[0]->count;
-
-		echo "<center>$keys_count options loaded/used instead of an all options count of $options_count</center>";
+	 self::stats();
 	}
 
+	public static function stats() {
+		global $wpdb;
 
+		$keys_count       = count( self::$options );
+		$alloptions = $wpdb->get_results( "SELECT option_name FROM $wpdb->options WHERE autoload = 'yes'" );
+
+		$options_keys = array();
+		foreach ( $alloptions as $value ) {
+			$options_keys[] = $value->option_name;
+		}
+
+		$diff_count = count( array_diff( array_keys( self::$options ), $options_keys ) );
+
+		$options_count    = count( $alloptions );
+
+		echo "<center>$keys_count options loaded/used instead of an all options count of $options_count</center>";
+		echo "<center>Pluss the $keys_count included $diff_count options that were not set to be autoload</center>";
+	}
 
 
 	/**

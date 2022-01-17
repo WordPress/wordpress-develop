@@ -293,7 +293,6 @@ function form_option( $option ) {
  * @return array List of all options.
  */
 function wp_load_alloptions( $force_cache = false ) {
-	include_once( dirname( __DIR__ ) . '/wp-content/object-cache.php');
 	global $wpdb;
 
 	/**
