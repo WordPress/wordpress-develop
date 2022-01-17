@@ -693,8 +693,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 			continue;
 		}
 
-		if ( $active_theme !== $template->theme )
-		{
+		if ( $active_theme !== $template->theme ) {
 			if ( $template->has_theme_file ) {
 				continue;
 			}
