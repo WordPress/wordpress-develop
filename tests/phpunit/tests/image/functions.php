@@ -10,22 +10,22 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Setup test fixture
 	 */
-	public function set_up() {
-		parent::set_up();
+public function set_up() {
+	parent::set_up();
 
-		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
-		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
-		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
+	require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+	require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
+	require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 
-		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
+	require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
-		// Ensure no legacy / failed tests detritus.
-		$folder = get_temp_dir() . 'wordpress-gsoc-flyer*.*';
+	// Ensure no legacy / failed tests detritus.
+	$folder = get_temp_dir() . 'wordpress-gsoc-flyer*.*';
 
-		foreach ( glob( $folder ) as $file ) {
-			unlink( $file );
-		}
+	foreach ( glob( $folder ) as $file ) {
+		unlink( $file );
 	}
+}
 
 	/**
 	 * Get the MIME type of a file
@@ -33,137 +33,137 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @param string $filename
 	 * @return string
 	 */
-	protected function get_mime_type( $filename ) {
-		$mime_type = '';
-		if ( extension_loaded( 'fileinfo' ) ) {
-			$finfo     = new finfo();
-			$mime_type = $finfo->file( $filename, FILEINFO_MIME );
-		}
-		if ( false !== strpos( $mime_type, ';' ) ) {
-			list( $mime_type, $charset ) = explode( ';', $mime_type, 2 );
-		}
-		return $mime_type;
+protected function get_mime_type( $filename ) {
+	$mime_type = '';
+	if ( extension_loaded( 'fileinfo' ) ) {
+		$finfo     = new finfo();
+		$mime_type = $finfo->file( $filename, FILEINFO_MIME );
+	}
+	if ( false !== strpos( $mime_type, ';' ) ) {
+		list( $mime_type, $charset ) = explode( ';', $mime_type, 2 );
+	}
+	return $mime_type;
+}
+
+public function test_is_image_positive() {
+	// These are all image files recognized by PHP.
+	$files = array(
+		'test-image-cmyk.jpg',
+		'test-image.bmp',
+		'test-image-grayscale.jpg',
+		'test-image.gif',
+		'test-image.png',
+		'test-image.tiff',
+		'test-image-lzw.tiff',
+		'test-image.jp2',
+		'test-image.psd',
+		'test-image-zip.tiff',
+		'test-image.jpg',
+		'webp-animated.webp',
+		'webp-lossless.webp',
+		'webp-lossy.webp',
+		'webp-transparent.webp',
+	);
+
+	// IMAGETYPE_ICO is only defined in PHP 5.3+.
+	if ( defined( 'IMAGETYPE_ICO' ) ) {
+		$files[] = 'test-image.ico';
 	}
 
-	public function test_is_image_positive() {
-		// These are all image files recognized by PHP.
-		$files = array(
-			'test-image-cmyk.jpg',
-			'test-image.bmp',
-			'test-image-grayscale.jpg',
-			'test-image.gif',
-			'test-image.png',
-			'test-image.tiff',
-			'test-image-lzw.tiff',
-			'test-image.jp2',
-			'test-image.psd',
-			'test-image-zip.tiff',
-			'test-image.jpg',
-			'webp-animated.webp',
-			'webp-lossless.webp',
-			'webp-lossy.webp',
-			'webp-transparent.webp',
+	foreach ( $files as $file ) {
+		$this->assertTrue( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
+	}
+}
+
+public function test_is_image_negative() {
+	// These are actually image files but aren't recognized or usable by PHP.
+	$files = array(
+		'test-image.pct',
+		'test-image.tga',
+		'test-image.sgi',
+	);
+
+	foreach ( $files as $file ) {
+		$this->assertFalse( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
+	}
+}
+
+public function test_is_displayable_image_positive() {
+	// These are all usable in typical web browsers.
+	$files = array(
+		'test-image.gif',
+		'test-image.png',
+		'test-image.jpg',
+	);
+
+	// Add WebP images if the image editor supports them.
+	$file   = DIR_TESTDATA . '/images/test-image.webp';
+	$editor = wp_get_image_editor( $file );
+
+	if ( ! is_wp_error( $editor ) && $editor->supports_mime_type( 'image/webp' ) ) {
+		$files = array_merge(
+			$files,
+			array(
+				'webp-animated.webp',
+				'webp-lossless.webp',
+				'webp-lossy.webp',
+				'webp-transparent.webp',
+			)
 		);
-
-		// IMAGETYPE_ICO is only defined in PHP 5.3+.
-		if ( defined( 'IMAGETYPE_ICO' ) ) {
-			$files[] = 'test-image.ico';
-		}
-
-		foreach ( $files as $file ) {
-			$this->assertTrue( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
-		}
 	}
 
-	public function test_is_image_negative() {
-		// These are actually image files but aren't recognized or usable by PHP.
-		$files = array(
-			'test-image.pct',
-			'test-image.tga',
-			'test-image.sgi',
-		);
-
-		foreach ( $files as $file ) {
-			$this->assertFalse( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
-		}
+	// IMAGETYPE_ICO is only defined in PHP 5.3+.
+	if ( defined( 'IMAGETYPE_ICO' ) ) {
+		$files[] = 'test-image.ico';
 	}
 
-	public function test_is_displayable_image_positive() {
-		// These are all usable in typical web browsers.
-		$files = array(
-			'test-image.gif',
-			'test-image.png',
-			'test-image.jpg',
-		);
-
-		// Add WebP images if the image editor supports them.
-		$file   = DIR_TESTDATA . '/images/test-image.webp';
-		$editor = wp_get_image_editor( $file );
-
-		if ( ! is_wp_error( $editor ) && $editor->supports_mime_type( 'image/webp' ) ) {
-			$files = array_merge(
-				$files,
-				array(
-					'webp-animated.webp',
-					'webp-lossless.webp',
-					'webp-lossy.webp',
-					'webp-transparent.webp',
-				)
-			);
-		}
-
-		// IMAGETYPE_ICO is only defined in PHP 5.3+.
-		if ( defined( 'IMAGETYPE_ICO' ) ) {
-			$files[] = 'test-image.ico';
-		}
-
-		foreach ( $files as $file ) {
-			$this->assertTrue( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
-		}
+	foreach ( $files as $file ) {
+		$this->assertTrue( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
 	}
+}
 
-	public function test_is_displayable_image_negative() {
-		// These are image files but aren't suitable for web pages because of compatibility or size issues.
-		$files = array(
-			// 'test-image-cmyk.jpg',      Allowed in r9727.
-			// 'test-image.bmp',           Allowed in r28589.
-			// 'test-image-grayscale.jpg', Allowed in r9727.
-			'test-image.pct',
-			'test-image.tga',
-			'test-image.sgi',
-			'test-image.tiff',
-			'test-image-lzw.tiff',
-			'test-image.jp2',
-			'test-image.psd',
-			'test-image-zip.tiff',
-		);
+public function test_is_displayable_image_negative() {
+	// These are image files but aren't suitable for web pages because of compatibility or size issues.
+	$files = array(
+		// 'test-image-cmyk.jpg',      Allowed in r9727.
+		// 'test-image.bmp',           Allowed in r28589.
+		// 'test-image-grayscale.jpg', Allowed in r9727.
+		'test-image.pct',
+		'test-image.tga',
+		'test-image.sgi',
+		'test-image.tiff',
+		'test-image-lzw.tiff',
+		'test-image.jp2',
+		'test-image.psd',
+		'test-image-zip.tiff',
+	);
 
-		foreach ( $files as $file ) {
-			$this->assertFalse( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
-		}
+	foreach ( $files as $file ) {
+		$this->assertFalse( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
 	}
+}
 
 
 	/**
 	 * @ticket 50833
 	 */
-	public function test_is_gd_image_invalid_types() {
-		$this->assertFalse( is_gd_image( new stdClass() ) );
-		$this->assertFalse( is_gd_image( array() ) );
-		$this->assertFalse( is_gd_image( null ) );
+public function test_is_gd_image_invalid_types() {
+	$this->assertFalse( is_gd_image( new stdClass() ) );
+	$this->assertFalse( is_gd_image( array() ) );
+	$this->assertFalse( is_gd_image( null ) );
 
-		$handle = fopen( __FILE__, 'r' );
-		$this->assertFalse( is_gd_image( $handle ) );
-		fclose( $handle );
-	}
+	$handle = fopen( __FILE__, 'r' );
+	$this->assertFalse( is_gd_image( $handle ) );
+	fclose( $handle );
+}
 
 	/**
 	 * @ticket 50833
 	 * @requires extension gd
 	 */
-	public function test_is_gd_image_valid_types() {
-		$this->assertTrue( is_gd_image( imagecreate( 5, 5 ) ) );
-	}
+public function test_is_gd_image_valid_types() {
+	$this->assertTrue( is_gd_image( imagecreate( 5, 5 ) ) );
+}
 
 	/**
 	 * Test save image file and mime_types
@@ -171,92 +171,47 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 6821
 	 * @requires extension fileinfo
 	 */
-	public function test_wp_save_image_file() {
-		$classes = $this->get_image_editor_engine_classes();
+public function test_wp_save_image_file() {
+	$classes = $this->get_image_editor_engine_classes();
 
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
-
-		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
-
-		// Mime types.
-		$mime_types = array(
-			'image/jpeg',
-			'image/gif',
-			'image/png',
-		);
-
-		// Include WebP in tests when platform supports it.
-		if ( function_exists( 'imagewebp' ) ) {
-			array_push( $mime_types, 'image/webp' );
-		}
-
-		// Test each image editor engine.
-		foreach ( $classes as $class ) {
-			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
-			$loaded = $img->load();
-
-			// Save a file as each mime type, assert it works.
-			foreach ( $mime_types as $mime_type ) {
-				if ( ! $img->supports_mime_type( $mime_type ) ) {
-					continue;
-				}
-
-				$file = wp_tempnam();
-				$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
-				$this->assertNotEmpty( $ret );
-				$this->assertNotWPError( $ret );
-				$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
-
-				// Clean up.
-				unlink( $file );
-				unlink( $ret['path'] );
-			}
-
-			// Clean up.
-			unset( $img );
+	foreach ( $classes as $key => $class ) {
+		if ( ! call_user_func( array( $class, 'test' ) ) ) {
+			// If the image editor isn't available, skip it.
+			unset( $classes[ $key ] );
 		}
 	}
 
-	/**
-	 * Test that a passed mime type overrides the extension in the filename
-	 *
-	 * @ticket 6821
-	 * @requires extension fileinfo
-	 */
-	public function test_mime_overrides_filename() {
-		$classes = $this->get_image_editor_engine_classes();
+	if ( ! $classes ) {
+		$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
+	}
 
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
+	require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+	// Mime types.
+	$mime_types = array(
+		'image/jpeg',
+		'image/gif',
+		'image/png',
+	);
+
+	// Include WebP in tests when platform supports it.
+	if ( function_exists( 'imagewebp' ) ) {
+		array_push( $mime_types, 'image/webp' );
+	}
+
+	// Test each image editor engine.
+	foreach ( $classes as $class ) {
+		$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
+		$loaded = $img->load();
+
+		// Save a file as each mime type, assert it works.
+		foreach ( $mime_types as $mime_type ) {
+			if ( ! $img->supports_mime_type( $mime_type ) ) {
+				continue;
 			}
-		}
 
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
-
-		// Test each image editor engine.
-		foreach ( $classes as $class ) {
-			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
-			$loaded = $img->load();
-
-			// Save the file.
-			$mime_type = 'image/gif';
-			$file      = wp_tempnam( 'tmp.jpg' );
-			$ret       = $img->save( $file, $mime_type );
-
-			// Make assertions.
+			$file = wp_tempnam();
+			$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 			$this->assertNotEmpty( $ret );
 			$this->assertNotWPError( $ret );
 			$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
@@ -264,9 +219,54 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			// Clean up.
 			unlink( $file );
 			unlink( $ret['path'] );
-			unset( $img );
+		}
+
+		// Clean up.
+		unset( $img );
+	}
+}
+
+	/**
+	 * Test that a passed mime type overrides the extension in the filename
+	 *
+	 * @ticket 6821
+	 * @requires extension fileinfo
+	 */
+public function test_mime_overrides_filename() {
+	$classes = $this->get_image_editor_engine_classes();
+
+	foreach ( $classes as $key => $class ) {
+		if ( ! call_user_func( array( $class, 'test' ) ) ) {
+			// If the image editor isn't available, skip it.
+			unset( $classes[ $key ] );
 		}
 	}
+
+	if ( ! $classes ) {
+		$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
+	}
+
+	// Test each image editor engine.
+	foreach ( $classes as $class ) {
+		$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
+		$loaded = $img->load();
+
+		// Save the file.
+		$mime_type = 'image/gif';
+		$file      = wp_tempnam( 'tmp.jpg' );
+		$ret       = $img->save( $file, $mime_type );
+
+		// Make assertions.
+		$this->assertNotEmpty( $ret );
+		$this->assertNotWPError( $ret );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
+
+		// Clean up.
+		unlink( $file );
+		unlink( $ret['path'] );
+		unset( $img );
+	}
+}
 
 	/**
 	 * Test that mime types are correctly inferred from file extensions
@@ -274,58 +274,58 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 6821
 	 * @requires extension fileinfo
 	 */
-	public function test_inferred_mime_types() {
-		$classes = $this->get_image_editor_engine_classes();
+public function test_inferred_mime_types() {
+	$classes = $this->get_image_editor_engine_classes();
 
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
-
-		// Mime types.
-		$mime_types = array(
-			'jpg'  => 'image/jpeg',
-			'jpeg' => 'image/jpeg',
-			'jpe'  => 'image/jpeg',
-			'gif'  => 'image/gif',
-			'png'  => 'image/png',
-			'webp' => 'image/webp',
-			'unk'  => 'image/jpeg',   // Default, unknown.
-		);
-
-		// Test each image editor engine.
-		foreach ( $classes as $class ) {
-			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
-			$loaded = $img->load();
-
-			// Save the image as each file extension, check the mime type.
-			$img = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
-			$this->assertNotWPError( $img );
-
-			$temp = get_temp_dir();
-			foreach ( $mime_types as $ext => $mime_type ) {
-				if ( ! $img->supports_mime_type( $mime_type ) ) {
-					continue;
-				}
-
-				$file = wp_unique_filename( $temp, uniqid() . ".$ext" );
-				$ret  = $img->save( trailingslashit( $temp ) . $file );
-				$this->assertNotEmpty( $ret );
-				$this->assertNotWPError( $ret );
-				$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
-				unlink( $ret['path'] );
-			}
-
-			// Clean up.
-			unset( $img );
+	foreach ( $classes as $key => $class ) {
+		if ( ! call_user_func( array( $class, 'test' ) ) ) {
+			// If the image editor isn't available, skip it.
+			unset( $classes[ $key ] );
 		}
 	}
+
+	if ( ! $classes ) {
+		$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
+	}
+
+	// Mime types.
+	$mime_types = array(
+		'jpg'  => 'image/jpeg',
+		'jpeg' => 'image/jpeg',
+		'jpe'  => 'image/jpeg',
+		'gif'  => 'image/gif',
+		'png'  => 'image/png',
+		'webp' => 'image/webp',
+		'unk'  => 'image/jpeg',   // Default, unknown.
+	);
+
+	// Test each image editor engine.
+	foreach ( $classes as $class ) {
+		$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
+		$loaded = $img->load();
+
+		// Save the image as each file extension, check the mime type.
+		$img = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertNotWPError( $img );
+
+		$temp = get_temp_dir();
+		foreach ( $mime_types as $ext => $mime_type ) {
+			if ( ! $img->supports_mime_type( $mime_type ) ) {
+				continue;
+			}
+
+			$file = wp_unique_filename( $temp, uniqid() . ".$ext" );
+			$ret  = $img->save( trailingslashit( $temp ) . $file );
+			$this->assertNotEmpty( $ret );
+			$this->assertNotWPError( $ret );
+			$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
+			unlink( $ret['path'] );
+		}
+
+		// Clean up.
+		unset( $img );
+	}
+}
 
 	/**
 	 * Try loading a directory
@@ -333,50 +333,50 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 17814
 	 * @expectedDeprecated wp_load_image
 	 */
-	public function test_load_directory() {
+public function test_load_directory() {
 
-		// First, test with deprecated wp_load_image function.
-		$editor1 = wp_load_image( DIR_TESTDATA );
-		$this->assertIsString( $editor1 );
+	// First, test with deprecated wp_load_image function.
+	$editor1 = wp_load_image( DIR_TESTDATA );
+	$this->assertIsString( $editor1 );
 
-		$editor2 = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertInstanceOf( 'WP_Error', $editor2 );
+	$editor2 = wp_get_image_editor( DIR_TESTDATA );
+	$this->assertInstanceOf( 'WP_Error', $editor2 );
 
-		$classes = $this->get_image_editor_engine_classes();
+	$classes = $this->get_image_editor_engine_classes();
 
-		// Then, test with editors.
-		foreach ( $classes as $class ) {
-			$editor = new $class( DIR_TESTDATA );
-			$loaded = $editor->load();
+	// Then, test with editors.
+	foreach ( $classes as $class ) {
+		$editor = new $class( DIR_TESTDATA );
+		$loaded = $editor->load();
 
-			$this->assertInstanceOf( 'WP_Error', $loaded );
-			$this->assertSame( 'error_loading_image', $loaded->get_error_code() );
-		}
+		$this->assertInstanceOf( 'WP_Error', $loaded );
+		$this->assertSame( 'error_loading_image', $loaded->get_error_code() );
 	}
+}
 
 	/**
 	 * Get the available image editor engine class(es).
 	 *
 	 * @return string[] Available image editor classes; empty array when none are avaialble.
 	 */
-	private function get_image_editor_engine_classes() {
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
+private function get_image_editor_engine_classes() {
+	$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
+	foreach ( $classes as $key => $class ) {
+		if ( ! call_user_func( array( $class, 'test' ) ) ) {
+			// If the image editor isn't available, skip it.
+			unset( $classes[ $key ] );
 		}
+	}
 
-		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
-		}
+	if ( empty( $classes ) ) {
+		$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
+	}
 
-		// Then, test with editors.
-		foreach ( $classes as $class ) {
-			$editor = new $class( DIR_TESTDATA );
-			$loaded = $editor->load();
+	// Then, test with editors.
+	foreach ( $classes as $class ) {
+		$editor = new $class( DIR_TESTDATA );
+		$loaded = $editor->load();
 
 		return $classes;
 	}
