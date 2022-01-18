@@ -223,7 +223,7 @@ function wp_get_plugin_file_editable_extensions( $plugin ) {
 	);
 
 	/**
-	 * Filters the list of file types allowed for editing in the plugin editor.
+	 * Filters the list of file types allowed for editing in the plugin file editor.
 	 *
 	 * @since 2.8.0
 	 * @since 4.9.0 Added the `$plugin` parameter.
@@ -282,7 +282,7 @@ function wp_get_theme_file_editable_extensions( $theme ) {
 	);
 
 	/**
-	 * Filters the list of file types allowed for editing in the theme editor.
+	 * Filters the list of file types allowed for editing in the theme file editor.
 	 *
 	 * @since 4.4.0
 	 *
@@ -1384,7 +1384,6 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			),
 			array(
 				'php'    => phpversion(),
-				// phpcs:ignore PHPCompatibility.Constants.NewConstants.sodium_library_versionFound
 				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 			)
 		);
@@ -1417,7 +1416,6 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 				),
 				array(
 					'php'                => phpversion(),
-					// phpcs:ignore PHPCompatibility.Constants.NewConstants.sodium_library_versionFound
 					'sodium'             => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 					'polyfill_is_fast'   => false,
 					'max_execution_time' => ini_get( 'max_execution_time' ),
@@ -1491,7 +1489,6 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			'skipped_key' => $skipped_key,
 			'skipped_sig' => $skipped_signature,
 			'php'         => phpversion(),
-			// phpcs:ignore PHPCompatibility.Constants.NewConstants.sodium_library_versionFound
 			'sodium'      => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 		)
 	);
@@ -1664,7 +1661,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	 * Require we have enough space to unzip the file and copy its contents, with a 10% buffer.
 	 */
 	if ( wp_doing_cron() ) {
-		$available_space = @disk_free_space( WP_CONTENT_DIR );
+		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
 		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space ) {
 			return new WP_Error(
@@ -1805,7 +1802,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	 * Require we have enough space to unzip the file and copy its contents, with a 10% buffer.
 	 */
 	if ( wp_doing_cron() ) {
-		$available_space = @disk_free_space( WP_CONTENT_DIR );
+		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
 		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space ) {
 			return new WP_Error(

@@ -146,7 +146,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
 }
 
 /**
- * Tidies a filename for url display by the theme editor.
+ * Tidies a filename for url display by the theme file editor.
  *
  * @since 2.9.0
  * @access private
@@ -521,7 +521,7 @@ function themes_api( $action, $args = array() ) {
 	/**
 	 * Filters whether to override the WordPress.org Themes API.
 	 *
-	 * Passing a non-false value will effectively short-circuit the WordPress.org API request.
+	 * Returning a non-false value will effectively short-circuit the WordPress.org API request.
 	 *
 	 * If `$action` is 'query_themes', 'theme_information', or 'feature_list', an object MUST
 	 * be passed. If `$action` is 'hot_tags', an array should be passed.
@@ -831,7 +831,7 @@ function customize_themes_print_templates() {
 
 				<div class="theme-info">
 					<# if ( data.active ) { #>
-						<span class="current-label"><?php _e( 'Current Theme' ); ?></span>
+						<span class="current-label"><?php _e( 'Active Theme' ); ?></span>
 					<# } #>
 					<h2 class="theme-name">{{{ data.name }}}<span class="theme-version">
 						<?php
