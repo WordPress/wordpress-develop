@@ -1151,7 +1151,17 @@ function build_query_vars_from_query_block( $block, $page ) {
 			$query['s'] = $block->context['query']['search'];
 		}
 	}
-	return $query;
+
+	/**
+	 * Filters the WP_Query args array from the `Query` block properties.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param string[] $query WP_Query args array.
+	 * @param WP_Block $block Block instance.
+	 * @param int      $page  Current query's page.
+	 */
+	return apply_filters( 'query_vars_from_query_block', $query, $block, $page );
 }
 
 /**
