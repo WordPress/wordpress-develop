@@ -353,7 +353,7 @@ class WP_Object_Cache {
 	 *                           Default 0 (no expiration).
 	 * @return array Array of return values organized into groups.
 	 */
-	public function add_multiple( $keys, $group = '', $expire = 0 ) {
+	public function add_multiple( $data, $group = '', $expire = 0 ) {
 		$values = array();
 
 		foreach ( $data as $key => $value ) {
@@ -374,7 +374,7 @@ class WP_Object_Cache {
 	 *                           Default 0 (no expiration).
 	 * @return array Array of return values organized into groups.
 	 */
-	public function set_multiple( $keys, $group = '', $expire = 0 ) {
+	public function set_multiple( $data, $group = '', $expire = 0 ) {
 		$values = array();
 
 		foreach ( $data as $key => $value ) {
