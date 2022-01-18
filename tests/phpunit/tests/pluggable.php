@@ -295,6 +295,20 @@ class Tests_Pluggable extends WP_UnitTestCase {
 						'group' => '',
 						'force' => false,
 					),
+					'wp_cache_set_multiple'              => array(
+						'data',
+						'group'  => '',
+						'expire' => 0,
+					),
+					'wp_cache_add_multiple'              => array(
+						'data',
+						'group'  => '',
+						'expire' => 0,
+					),
+					'wp_cache_delete_multiple'           => array(
+						'keys',
+						'group' => '',
+					),
 					'wp_cache_incr'                      => array(
 						'key',
 						'offset' => 1,
