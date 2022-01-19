@@ -9,8 +9,9 @@
 /**
  * Test retrieve_password(), in wp-includes/user.php.
  *
- * @group user
+ * @since 6.0.0
  *
+ * @group user
  * @covers ::retrieve_password
  */
 class Tests_User_RetrievePassword extends WP_UnitTestCase {
@@ -23,6 +24,11 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	 */
 	protected $user;
 
+	/**
+	 * Create users for tests.
+	 *
+	 * @since 6.0.0
+	 */
 	public function set_up() {
 		parent::set_up();
 
@@ -36,6 +42,7 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The function should error when the email was not sent.
 	 * @ticket 54690
 	 */
 	public function test_retrieve_password_reset_notification_email() {
@@ -44,6 +51,7 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The function should error when the email was not sent.
 	 * @ticket 54690
 	 */
 	public function test_retrieve_password_should_return_wp_error_on_failed_email() {
