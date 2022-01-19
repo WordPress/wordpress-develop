@@ -2939,13 +2939,13 @@ function retrieve_password( $user_login = null ) {
 	}
 
 	/**
-	 * Filter whether to disable the retrieve password email.
+	 * Filter whether to send the retrieve password email.
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param bool $disable True to disable. Default: false
-	*/
-	if ( apply_filters( 'disable_retrieve_password_notification_email', false ) ) {
+	 * @param bool $send False to prevent sending. Default: true
+	 */
+	if ( ! apply_filters( 'send_retrieve_password_email', true ) ) {
 		return true;
 	}
 
