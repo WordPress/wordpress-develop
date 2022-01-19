@@ -42,7 +42,8 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The function should error when the email was not sent.
+	 * The function should not error when the email was sent.
+	 *
 	 * @ticket 54690
 	 */
 	public function test_retrieve_password_reset_notification_email() {
@@ -52,6 +53,7 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 
 	/**
 	 * The function should error when the email was not sent.
+	 *
 	 * @ticket 54690
 	 */
 	public function test_retrieve_password_should_return_wp_error_on_failed_email() {
