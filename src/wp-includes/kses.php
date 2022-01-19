@@ -95,8 +95,7 @@ if ( ! CUSTOM_TAGS ) {
 			'src'      => true,
 		),
 		'b'          => array(),
-		'bdo'        => array(
-		),
+		'bdo'        => array(),
 		'big'        => array(),
 		'blockquote' => array(
 			'cite'     => true,
@@ -111,8 +110,7 @@ if ( ! CUSTOM_TAGS ) {
 		'caption'    => array(
 			'align' => true,
 		),
-		'cite'       => array(
-		),
+		'cite'       => array(),
 		'code'       => array(),
 		'col'        => array(
 			'align'   => true,
