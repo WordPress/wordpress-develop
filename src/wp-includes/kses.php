@@ -82,15 +82,9 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'article'    => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'aside'      => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'audio'      => array(
 			'autoplay' => true,
@@ -102,13 +96,10 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'b'          => array(),
 		'bdo'        => array(
-			'dir' => true,
 		),
 		'big'        => array(),
 		'blockquote' => array(
 			'cite'     => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'br'         => array(),
 		'button'     => array(
@@ -121,8 +112,6 @@ if ( ! CUSTOM_TAGS ) {
 			'align' => true,
 		),
 		'cite'       => array(
-			'dir'  => true,
-			'lang' => true,
 		),
 		'code'       => array(),
 		'col'        => array(
@@ -130,7 +119,6 @@ if ( ! CUSTOM_TAGS ) {
 			'char'    => true,
 			'charoff' => true,
 			'span'    => true,
-			'dir'     => true,
 			'valign'  => true,
 			'width'   => true,
 		),
@@ -149,16 +137,10 @@ if ( ! CUSTOM_TAGS ) {
 		'dfn'        => array(),
 		'details'    => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
 			'open'     => true,
-			'xml:lang' => true,
 		),
 		'div'        => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'dl'         => array(),
 		'dt'         => array(),
@@ -166,15 +148,9 @@ if ( ! CUSTOM_TAGS ) {
 		'fieldset'   => array(),
 		'figure'     => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'figcaption' => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'font'       => array(
 			'color' => true,
@@ -183,9 +159,6 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'footer'     => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'h1'         => array(
 			'align' => true,
@@ -207,15 +180,9 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'header'     => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'hgroup'     => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'hr'         => array(
 			'align'   => true,
@@ -254,9 +221,6 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'main'       => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'map'        => array(
 			'name' => true,
@@ -267,9 +231,6 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'nav'        => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'object'     => array(
 			'data' => array(
@@ -283,9 +244,6 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'p'          => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'pre'        => array(
 			'width' => true,
@@ -296,16 +254,10 @@ if ( ! CUSTOM_TAGS ) {
 		's'          => array(),
 		'samp'       => array(),
 		'span'       => array(
-			'dir'      => true,
 			'align'    => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'section'    => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'small'      => array(),
 		'strike'     => array(),
@@ -313,9 +265,6 @@ if ( ! CUSTOM_TAGS ) {
 		'sub'        => array(),
 		'summary'    => array(
 			'align'    => true,
-			'dir'      => true,
-			'lang'     => true,
-			'xml:lang' => true,
 		),
 		'sup'        => array(),
 		'table'      => array(
@@ -324,7 +273,6 @@ if ( ! CUSTOM_TAGS ) {
 			'border'      => true,
 			'cellpadding' => true,
 			'cellspacing' => true,
-			'dir'         => true,
 			'rules'       => true,
 			'summary'     => true,
 			'width'       => true,
@@ -343,7 +291,6 @@ if ( ! CUSTOM_TAGS ) {
 			'char'    => true,
 			'charoff' => true,
 			'colspan' => true,
-			'dir'     => true,
 			'headers' => true,
 			'height'  => true,
 			'nowrap'  => true,
@@ -2549,6 +2496,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  *
  * @since 3.5.0
  * @since 5.0.0 Add support for `data-*` wildcard attributes.
+ * @since 6.0.0 Add `dir`, `lang`, and `xml:lang` to global attributes.
+ *
  * @access private
  * @ignore
  *
@@ -2563,7 +2512,10 @@ function _wp_add_global_attributes( $value ) {
 		'aria-labelledby'  => true,
 		'aria-hidden'      => true,
 		'class'            => true,
+		'dir'              => true,
 		'id'               => true,
+		'lang'             => true,
+		'xml:lang'         => true,
 		'style'            => true,
 		'title'            => true,
 		'role'             => true,
