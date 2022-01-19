@@ -421,15 +421,15 @@ function wp_register_sidebar_widget( $id, $name, $output_callback, $options = ar
 		$wp_widget_factory->register( $widget_object );
 	}
 
-	$widget_object->name             = $name;
-	$widget_object->option_name      = 'dynamic_widget_' . $id_base;
-	$widget_object->widget_options   = $options;
-	$widget_object->display_callback = function( $args ) use ( $output_callback, $params ) {
+	$widget_object->name            = $name;
+	$widget_object->option_name     = 'sidebar_widget_' . $id_base;
+	$widget_object->widget_options  = array_merge( $widget_object->widget_options, $options );
+	$widget_object->widget_callback = function( $args, $instance ) use ( $output_callback, $params ) {
 		call_user_func_array( $output_callback, array_merge( array( $args ), $params ) );
 	};
 
 	if ( did_action( 'widgets_init' ) ) {
-		$widget_object->_register(); // TODO: Ensure we're not calling twice?
+		$widget_object->_register();
 	}
 }
 
@@ -583,17 +583,18 @@ function wp_register_widget_control( $id, $name, $control_callback, $options = a
 	}
 
 	$widget_object->name            = $name;
-	$widget_object->option_name     = 'dynamic_widget_' . $id_base;
-	$widget_object->control_options = $options;
-	$widget_object->update_callback = function() use ( $control_callback, $params ) {
+	$widget_object->option_name     = 'sidebar_widget_' . $id_base;
+	$widget_object->control_options = array_merge( $widget_object->control_options, $options );
+	$widget_object->update_callback = function( $new_instance, $old_instance ) use ( $control_callback, $params ) {
 		call_user_func_array( $control_callback, $params );
+		return $new_instance;
 	};
-	$widget_object->form_callback   = function() use ( $control_callback, $params ) {
+	$widget_object->form_callback   = function( $instance ) use ( $control_callback, $params ) {
 		call_user_func_array( $control_callback, $params );
 	};
 
 	if ( did_action( 'widgets_init' ) ) {
-		$widget_object->_register(); // TODO: Ensure we're not calling twice?
+		$widget_object->_register(); // TODO: Don't call twice? (First call is in wp_register_sidebar_widget().)
 	}
 }
 

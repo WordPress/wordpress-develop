@@ -1,7 +1,7 @@
 <?php
 
 class WP_Dynamic_Widget extends WP_Widget {
-	public $display_callback = null;
+	public $widget_callback = null;
 
 	public $update_callback = null;
 
@@ -11,15 +11,15 @@ class WP_Dynamic_Widget extends WP_Widget {
 		parent::__construct( $id_base, '' );
 	}
 
-	public function _get_display_callback() {
-		return $this->display_callback ?? parent::_get_display_callback();
+	public function widget( $args, $instance ) {
+		call_user_func( $this->widget_callback, $args, $instance );
 	}
 
-	public function _get_update_callback() {
-		return $this->update_callback ?? parent::_get_update_callback();
+	public function update( $new_instance, $old_instance ) {
+		return call_user_func( $this->update_callback, $new_instance, $old_instance );
 	}
 
-	public function _get_form_callback() {
-		return $this->form_callback ?? parent::_get_form_callback();
+	public function form( $instance ) {
+		return call_user_func( $this->form_callback, $instance );
 	}
 }
