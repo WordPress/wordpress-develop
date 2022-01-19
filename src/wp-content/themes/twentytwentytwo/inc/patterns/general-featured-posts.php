@@ -4,7 +4,7 @@
  */
 return array(
 	'title'      => __( 'Featured posts', 'twentytwentytwo' ),
-	'categories' => array( 'twentytwentytwo-general' ),
+	'categories' => array( 'featured', 'query' ),
 	'content'    => '<!-- wp:group {"align":"wide","layout":{"inherit":false}} -->
 					<div class="wp-block-group alignwide"><!-- wp:paragraph {"style":{"typography":{"textTransform":"uppercase"}}} -->
 					<p style="text-transform:uppercase">' . esc_html__( 'Latest posts', 'twentytwentytwo' ) . '</p>
@@ -14,7 +14,7 @@ return array(
 					<div class="wp-block-query"><!-- wp:post-template -->
 					<!-- wp:post-featured-image {"isLink":true,"width":"","height":"310px"} /-->
 
-					<!-- wp:post-title {"isLink":true,"fontSize":"medium"} /-->
+					<!-- wp:post-title {"isLink":true,"fontSize":"large"} /-->
 
 					<!-- wp:post-excerpt /-->
 

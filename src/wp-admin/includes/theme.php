@@ -146,7 +146,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
 }
 
 /**
- * Tidies a filename for url display by the theme editor.
+ * Tidies a filename for url display by the theme file editor.
  *
  * @since 2.9.0
  * @access private
@@ -521,7 +521,7 @@ function themes_api( $action, $args = array() ) {
 	/**
 	 * Filters whether to override the WordPress.org Themes API.
 	 *
-	 * Passing a non-false value will effectively short-circuit the WordPress.org API request.
+	 * Returning a non-false value will effectively short-circuit the WordPress.org API request.
 	 *
 	 * If `$action` is 'query_themes', 'theme_information', or 'feature_list', an object MUST
 	 * be passed. If `$action` is 'hot_tags', an array should be passed.
@@ -782,6 +782,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 					? wp_nonce_url( admin_url( 'themes.php?action=' . $auto_update_action . '&amp;stylesheet=' . $encoded_slug ), 'updates' )
 					: null,
 			),
+			'blockTheme'     => $theme->is_block_theme(),
 		);
 	}
 
@@ -830,7 +831,7 @@ function customize_themes_print_templates() {
 
 				<div class="theme-info">
 					<# if ( data.active ) { #>
-						<span class="current-label"><?php _e( 'Current Theme' ); ?></span>
+						<span class="current-label"><?php _e( 'Active Theme' ); ?></span>
 					<# } #>
 					<h2 class="theme-name">{{{ data.name }}}<span class="theme-version">
 						<?php
@@ -1004,6 +1005,21 @@ function customize_themes_print_templates() {
 								?>
 							<# } #>
 						</p></div>
+					<# } else if ( ! data.active && data.blockTheme ) { #>
+						<div class="notice notice-error notice-alt notice-large"><p>
+						<?php
+							_e( 'This theme doesn\'t support Customizer.' );
+						?>
+						<# if ( data.actions.activate ) { #>
+							<?php
+							printf(
+								/* translators: %s: URL to the themes page (also it activates the theme). */
+								' ' . __( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
+								'{{{ data.actions.activate }}}'
+							);
+							?>
+						<# } #>
+						</p></div>
 					<# } #>
 
 					<p class="theme-description">{{{ data.description }}}</p>
@@ -1024,10 +1040,20 @@ function customize_themes_print_templates() {
 						<# } #>
 					<?php } ?>
 
-					<# if ( data.compatibleWP && data.compatiblePHP ) { #>
-						<button type="button" class="button button-primary preview-theme" data-slug="{{ data.id }}"><?php _e( 'Live Preview' ); ?></button>
+					<# if ( data.blockTheme ) { #>
+						<?php
+							/* translators: %s: Theme name. */
+							$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+						?>
+						<# if ( data.compatibleWP && data.compatiblePHP && data.actions.activate ) { #>
+							<a href="{{{ data.actions.activate }}}" class="button button-primary activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
+						<# } #>
 					<# } else { #>
-						<button class="button button-primary disabled"><?php _e( 'Live Preview' ); ?></button>
+						<# if ( data.compatibleWP && data.compatiblePHP ) { #>
+							<button type="button" class="button button-primary preview-theme" data-slug="{{ data.id }}"><?php _e( 'Live Preview' ); ?></button>
+						<# } else { #>
+							<button class="button button-primary disabled"><?php _e( 'Live Preview' ); ?></button>
+						<# } #>
 					<# } #>
 				<# } else { #>
 					<# if ( data.compatibleWP && data.compatiblePHP ) { #>

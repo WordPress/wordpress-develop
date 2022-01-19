@@ -694,7 +694,7 @@ function get_taxonomy_labels( $tax ) {
 		'back_to_items'              => array( __( '&larr; Go to Tags' ), __( '&larr; Go to Categories' ) ),
 		'item_link'                  => array(
 			_x( 'Tag Link', 'navigation link block title' ),
-			_x( 'Category Link', 'navigation link block description' ),
+			_x( 'Category Link', 'navigation link block title' ),
 		),
 		'item_link_description'      => array(
 			_x( 'A link to a tag.', 'navigation link block description' ),
@@ -1142,8 +1142,8 @@ function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter 
  *
  * @since 2.3.0
  *
- * @param int    $term_id  ID of Term to get children.
- * @param string $taxonomy Taxonomy Name.
+ * @param int    $term_id  ID of term to get children.
+ * @param string $taxonomy Taxonomy name.
  * @return array|WP_Error List of Term IDs. WP_Error returned if `$taxonomy` does not exist.
  */
 function get_term_children( $term_id, $taxonomy ) {
@@ -1186,7 +1186,7 @@ function get_term_children( $term_id, $taxonomy ) {
  *
  * @param string      $field    Term field to fetch.
  * @param int|WP_Term $term     Term ID or object.
- * @param string      $taxonomy Optional. Taxonomy Name. Default empty.
+ * @param string      $taxonomy Optional. Taxonomy name. Default empty.
  * @param string      $context  Optional. How to sanitize term fields. Look at sanitize_term_field() for available options.
  *                              Default 'display'.
  * @return string|int|null|WP_Error Will return an empty string if $term is not an object or if $field is not set in $term.
@@ -1686,7 +1686,7 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  * @param string $field    Term field to sanitize.
  * @param string $value    Search for this term value.
  * @param int    $term_id  Term ID.
- * @param string $taxonomy Taxonomy Name.
+ * @param string $taxonomy Taxonomy name.
  * @param string $context  Context in which to sanitize the term field.
  *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
  *                         'attribute', or 'js'. Default 'display'.
@@ -1909,8 +1909,8 @@ function wp_count_terms( $args = array(), $deprecated = '' ) {
  *
  * @since 2.3.0
  *
- * @param int          $object_id  The term Object Id that refers to the term.
- * @param string|array $taxonomies List of Taxonomy Names or single Taxonomy name.
+ * @param int          $object_id  The term object ID that refers to the term.
+ * @param string|array $taxonomies List of taxonomy names or single taxonomy name.
  */
 function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
 	$object_id = (int) $object_id;
@@ -1939,7 +1939,7 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int          $term     Term ID.
- * @param string       $taxonomy Taxonomy Name.
+ * @param string       $taxonomy Taxonomy name.
  * @param array|string $args {
  *     Optional. Array of arguments to override the default term ID. Default empty array.
  *
@@ -2005,7 +2005,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	 * @since 4.1.0
 	 *
 	 * @param int    $term     Term ID.
-	 * @param string $taxonomy Taxonomy Name.
+	 * @param string $taxonomy Taxonomy name.
 	 */
 	do_action( 'pre_delete_term', $term, $taxonomy );
 
@@ -2533,7 +2533,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * and term_taxonomy_id of the older term instead. Then return out of the function so that the "create" hooks
 	 * are not fired.
 	 */
-	$duplicate_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.term_id, t.slug, tt.term_taxonomy_id, tt.taxonomy FROM $wpdb->terms t INNER JOIN $wpdb->term_taxonomy tt ON ( tt.term_id = t.term_id ) WHERE t.slug = %s AND tt.parent = %d AND tt.taxonomy = %s AND t.term_id < %d AND tt.term_taxonomy_id != %d", $slug, $parent, $taxonomy, $term_id, $tt_id ) );
+	$duplicate_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.term_id, t.slug, tt.term_taxonomy_id, tt.taxonomy FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON ( tt.term_id = t.term_id ) WHERE t.slug = %s AND tt.parent = %d AND tt.taxonomy = %s AND t.term_id < %d AND tt.term_taxonomy_id != %d", $slug, $parent, $taxonomy, $term_id, $tt_id ) );
 
 	/**
 	 * Filters the duplicate term check that takes place during term creation.

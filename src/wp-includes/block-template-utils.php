@@ -41,7 +41,7 @@ function get_block_theme_folders( $theme_stylesheet = null ) {
 	$root_dir   = get_theme_root( $theme_name );
 	$theme_dir  = "$root_dir/$theme_name";
 
-	if ( is_readable( $theme_dir . '/block-templates/index.html' ) ) {
+	if ( file_exists( $theme_dir . '/block-templates' ) || file_exists( $theme_dir . '/block-template-parts' ) ) {
 		return array(
 			'wp_template'      => 'block-templates',
 			'wp_template_part' => 'block-template-parts',
@@ -119,7 +119,7 @@ function get_default_block_template_types() {
 		),
 		'home'           => array(
 			'title'       => _x( 'Home', 'Template name' ),
-			'description' => __( 'Displays as the site\'s home page, or as the Posts page when a static home page it set.' ),
+			'description' => __( 'Displays as the site\'s home page, or as the Posts page when a static home page isn\'t set.' ),
 		),
 		'front-page'     => array(
 			'title'       => _x( 'Front Page', 'Template name' ),
@@ -913,7 +913,7 @@ function block_footer_area() {
  */
 function wp_generate_block_templates_export_file() {
 	if ( ! class_exists( 'ZipArchive' ) ) {
-		return new WP_Error( __( 'Zip Export not supported.' ) );
+		return new WP_Error( 'missing_zip_package', __( 'Zip Export not supported.' ) );
 	}
 
 	$obscura  = wp_generate_password( 12, false, false );
@@ -921,7 +921,7 @@ function wp_generate_block_templates_export_file() {
 
 	$zip = new ZipArchive();
 	if ( true !== $zip->open( $filename, ZipArchive::CREATE ) ) {
-		return new WP_Error( __( 'Unable to open export file (archive) for writing.' ) );
+		return new WP_Error( 'unable_to_create_zip', __( 'Unable to open export file (archive) for writing.' ) );
 	}
 
 	$zip->addEmptyDir( 'theme' );

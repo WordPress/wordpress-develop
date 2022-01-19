@@ -222,7 +222,7 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
  * @since 5.3.0
  *
  * @param string $file          Full path to the image file.
- * @param int    $attachment_id Attachment Id to process.
+ * @param int    $attachment_id Attachment ID to process.
  * @return array The image attachment meta data.
  */
 function wp_create_image_subsizes( $file, $attachment_id ) {
@@ -380,7 +380,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
  * @param array  $new_sizes     Array defining what sizes to create.
  * @param string $file          Full path to the image file.
  * @param array  $image_meta    The attachment meta data array.
- * @param int    $attachment_id Attachment Id to process.
+ * @param int    $attachment_id Attachment ID to process.
  * @return array The attachment meta data with updated `sizes` array. Includes an array of errors encountered while resizing.
  */
 function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
@@ -470,8 +470,8 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
  *
  * @since 2.1.0
  *
- * @param int    $attachment_id Attachment Id to process.
- * @param string $file          Filepath of the Attached image.
+ * @param int    $attachment_id Attachment ID to process.
+ * @param string $file          Filepath of the attached image.
  * @return array Metadata for attachment.
  */
 function wp_generate_attachment_metadata( $attachment_id, $file ) {
@@ -947,7 +947,7 @@ function file_is_valid_image( $path ) {
  * @return bool True if suitable, false if not suitable.
  */
 function file_is_displayable_image( $path ) {
-	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP ); // phpcs:ignore PHPCompatibility.Constants.NewConstants.imagetype_webpFound
+	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP );
 
 	$info = wp_getimagesize( $path );
 	if ( empty( $info ) ) {

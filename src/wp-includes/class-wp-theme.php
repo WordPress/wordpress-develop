@@ -981,8 +981,8 @@ final class WP_Theme implements ArrayAccess {
 						'tan'               => __( 'Tan' ),
 						'white'             => __( 'White' ),
 						'yellow'            => __( 'Yellow' ),
-						'dark'              => __( 'Dark' ),
-						'light'             => __( 'Light' ),
+						'dark'              => _x( 'Dark', 'color scheme' ),
+						'light'             => _x( 'Light', 'color scheme' ),
 						'fixed-layout'      => __( 'Fixed Layout' ),
 						'fluid-layout'      => __( 'Fluid Layout' ),
 						'responsive-layout' => __( 'Responsive Layout' ),
@@ -1253,6 +1253,14 @@ final class WP_Theme implements ArrayAccess {
 				$block_templates = get_block_templates( array(), 'wp_template' );
 				foreach ( get_post_types( array( 'public' => true ) ) as $type ) {
 					foreach ( $block_templates as $block_template ) {
+						if ( ! $block_template->is_custom ) {
+							continue;
+						}
+
+						if ( isset( $block_template->post_types ) && ! in_array( $type, $block_template->post_types, true ) ) {
+							continue;
+						}
+
 						$post_templates[ $type ][ $block_template->slug ] = $block_template->title;
 					}
 				}

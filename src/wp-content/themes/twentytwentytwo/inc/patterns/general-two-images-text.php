@@ -4,7 +4,7 @@
  */
 return array(
 	'title'      => __( 'Two images with text', 'twentytwentytwo' ),
-	'categories' => array( 'twentytwentytwo-general' ),
+	'categories' => array( 'featured', 'columns', 'gallery' ),
 	'content'    => '<!-- wp:columns {"align":"wide"} -->
 					<div class="wp-block-columns alignwide"><!-- wp:column {"style":{"spacing":{"padding":{"top":"0rem","right":"0rem","bottom":"0rem","left":"0rem"}}}} -->
 					<div class="wp-block-column" style="padding-top:0rem;padding-right:0rem;padding-bottom:0rem;padding-left:0rem"><!-- wp:image {"sizeSlug":"large"} -->
@@ -21,8 +21,8 @@ return array(
 					<div style="height:30px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
-					<!-- wp:heading {"fontSize":"large"} -->
-					<h2 class="has-large-font-size" id="screening">' . esc_html__( 'SCREENING', 'twentytwentytwo' ) . '</h2>
+					<!-- wp:heading {"fontSize":"x-large"} -->
+					<h2 class="has-x-large-font-size" id="screening">' . esc_html__( 'SCREENING', 'twentytwentytwo' ) . '</h2>
 					<!-- /wp:heading -->
 
 					<!-- wp:paragraph -->
