@@ -384,9 +384,19 @@ function is_registered_sidebar( $sidebar_id ) {
  * @param mixed      ...$params       Optional additional parameters to pass to the callback function when it's called.
  */
 function wp_register_sidebar_widget( $id, $name, $output_callback, $options = array(), ...$params ) {
-	global $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates, $_wp_deprecated_widgets_callbacks;
+	global
+		$wp_registered_widgets,
+		$wp_registered_widget_controls,
+		$wp_registered_widget_updates,
+		$_wp_deprecated_widgets_callbacks,
+		$wp_widget_factory;
+
+	_deprecated_function( __FUNCTION__, '6.0.0', 'WP_Widget' );
 
 	$id = strtolower( $id );
+
+	// TODO: BEGIN Have a think about this stuff...
+	// Also need to ensure we can't register twice.
 
 	if ( empty( $output_callback ) ) {
 		unset( $wp_registered_widgets[ $id ] );
@@ -400,27 +410,26 @@ function wp_register_sidebar_widget( $id, $name, $output_callback, $options = ar
 		return;
 	}
 
+	// TODO: END thinking
+
 	$defaults = array( 'classname' => $output_callback );
 	$options  = wp_parse_args( $options, $defaults );
-	$widget   = array(
-		'name'     => $name,
-		'id'       => $id,
-		'callback' => $output_callback,
-		'params'   => $params,
-	);
-	$widget   = array_merge( $widget, $options );
 
-	if ( is_callable( $output_callback ) && ( ! isset( $wp_registered_widgets[ $id ] ) || did_action( 'widgets_init' ) ) ) {
+	$widget_object = $wp_widget_factory->get_widget_object( $id_base );
+	if ( ! $widget_object ) {
+		$widget_object = new WP_Dynamic_Widget( $id_base );
+		$wp_widget_factory->register( $widget_object );
+	}
 
-		/**
-		 * Fires once for each registered widget.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param array $widget An array of default widget arguments.
-		 */
-		do_action( 'wp_register_sidebar_widget', $widget );
-		$wp_registered_widgets[ $id ] = $widget;
+	$widget_object->name             = $name;
+	$widget_object->option_name      = 'dynamic_widget_' . $id_base;
+	$widget_object->widget_options   = $options;
+	$widget_object->display_callback = function( $args ) use ( $output_callback, $params ) {
+		call_user_func_array( $output_callback, array_merge( array( $args ), $params ) );
+	};
+
+	if ( did_action( 'widgets_init' ) ) {
+		$widget_object->_register(); // TODO: Ensure we're not calling twice?
 	}
 }
 
@@ -524,10 +533,19 @@ function wp_unregister_sidebar_widget( $id ) {
  * @param mixed      ...$params        Optional additional parameters to pass to the callback function when it's called.
  */
 function wp_register_widget_control( $id, $name, $control_callback, $options = array(), ...$params ) {
-	global $wp_registered_widget_controls, $wp_registered_widget_updates, $wp_registered_widgets, $_wp_deprecated_widgets_callbacks;
+	global
+		$wp_registered_widget_controls,
+		$wp_registered_widget_updates,
+		$wp_registered_widgets,
+		$_wp_deprecated_widgets_callbacks,
+		$wp_widget_factory;
+
+	_deprecated_function( __FUNCTION__, '6.0.0', 'WP_Widget' );
 
 	$id      = strtolower( $id );
 	$id_base = _get_widget_id_base( $id );
+
+	// TODO: BEGIN Have a think about this stuff...
 
 	if ( empty( $control_callback ) ) {
 		unset( $wp_registered_widget_controls[ $id ] );
@@ -544,6 +562,8 @@ function wp_register_widget_control( $id, $name, $control_callback, $options = a
 		return;
 	}
 
+	// TODO: END thinking
+
 	$defaults          = array(
 		'width'  => 250,
 		'height' => 200,
@@ -552,26 +572,68 @@ function wp_register_widget_control( $id, $name, $control_callback, $options = a
 	$options['width']  = (int) $options['width'];
 	$options['height'] = (int) $options['height'];
 
-	$widget = array(
-		'name'     => $name,
-		'id'       => $id,
-		'callback' => $control_callback,
-		'params'   => $params,
-	);
-	$widget = array_merge( $widget, $options );
+	if ( isset( $params[0]['number'] ) ) {
+		$params[0]['number'] = -1;
+	}
 
-	$wp_registered_widget_controls[ $id ] = $widget;
+	$widget_object = $wp_widget_factory->get_widget_object( $id_base );
+	if ( ! $widget_object ) {
+		$widget_object = new WP_Dynamic_Widget( $id_base );
+		$wp_widget_factory->register( $widget_object );
+	}
 
-	if ( isset( $wp_registered_widget_updates[ $id_base ] ) ) {
+	$widget_object->name            = $name;
+	$widget_object->option_name     = 'dynamic_widget_' . $id_base;
+	$widget_object->control_options = $options;
+	$widget_object->update_callback = function() use ( $control_callback, $params ) {
+		call_user_func_array( $control_callback, $params );
+	};
+	$widget_object->form_callback   = function() use ( $control_callback, $params ) {
+		call_user_func_array( $control_callback, $params );
+	};
+
+	if ( did_action( 'widgets_init' ) ) {
+		$widget_object->_register(); // TODO: Ensure we're not calling twice?
+	}
+}
+
+function _register_widget_display_callback( $id, $name, $display_callback, $options, ...$params ) {
+	global $wp_registered_widgets;
+
+	$id = strtolower( $id );
+
+	if ( empty( $display_callback ) ) {
+		unset( $wp_registered_widgets[ $id ] );
 		return;
 	}
 
-	if ( isset( $widget['params'][0]['number'] ) ) {
-		$widget['params'][0]['number'] = -1;
-	}
+	$defaults = array( 'classname' => $display_callback );
+	$options  = wp_parse_args( $options, $defaults );
+	$widget   = array(
+		'name'     => $name,
+		'id'       => $id,
+		'callback' => $display_callback,
+		'params'   => $params,
+	);
+	$widget   = array_merge( $widget, $options );
 
-	unset( $widget['width'], $widget['height'], $widget['name'], $widget['id'] );
-	$wp_registered_widget_updates[ $id_base ] = $widget;
+	if (
+		is_callable( $display_callback ) &&
+		(
+			! isset( $wp_registered_widgets[ $id ] ) ||
+			did_action( 'widgets_init' )
+		)
+	) {
+		/**
+		 * Fires once for each registered widget.
+		 *
+		 * @since 3.0.0
+		 *
+		 * @param array $widget An array of default widget arguments.
+		 */
+		do_action( 'wp_register_sidebar_widget', $widget );
+		$wp_registered_widgets[ $id ] = $widget;
+	}
 }
 
 /**

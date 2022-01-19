@@ -564,7 +564,7 @@ class WP_Widget {
 	 *                    compared to other instances of the same class. Default -1.
 	 */
 	public function _register_one( $number = -1 ) {
-		wp_register_sidebar_widget(
+		_register_widget_display_callback(
 			$this->id,
 			$this->name,
 			$this->_get_display_callback(),
