@@ -1112,6 +1112,41 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @group ms-required
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
+	 */
+	public function test_found_posts_are_correct_when_switching_between_sites( $fields ) {
+		$blog = self::factory()->blog->create();
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+			)
+		);
+
+		// Switch to another site.
+		switch_to_blog( $blog );
+
+		// Count the posts from the original site. This works because the SQL query
+		// and its table names has already been formed during the original query.
+		$post_count = $q->post_count;
+		$found_posts = $q->found_posts;
+		$max_num_pages = $q->max_num_pages;
+
+		// Switch back.
+		restore_current_blog();
+
+		$this->assertSame( 2, $post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
 	 * @expectedDeprecated The posts_request filter
 	 */
 	public function test_posts_are_counted_with_select_found_rows_when_query_includes_sql_calc_found_rows() {
