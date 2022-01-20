@@ -2740,7 +2740,7 @@ class WP_Query {
 				/** @var WP_Comment[] */
 				$comments = array_map( 'get_comment', $comment_ids );
 			}
-			
+
 			$this->comments      = $comments;
 			$this->comment_count = count( $this->comments );
 
@@ -3168,8 +3168,8 @@ class WP_Query {
 			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
 
 			$comments_request = "SELECT {$wpdb->comments}.* FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
-			$key = md5( $comments_request );
-			$last_changed = wp_cache_get_last_changed( 'comment' );
+			$key              = md5( $comments_request );
+			$last_changed     = wp_cache_get_last_changed( 'comment' );
 
 			$cache_key   = "comment_feed:$key:$last_changed";
 			$comment_ids = wp_cache_get( $cache_key, 'comment' );

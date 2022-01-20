@@ -4,7 +4,6 @@
  * @group query
  */
 class Tests_Query_CommentFeed extends WP_UnitTestCase {
-	public static $post_ids = array();
 	public static $post_type = 'post'; // Can be anything.
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -16,7 +15,6 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 				)
 			);
 			$factory->comment->create_post_comments( $post_id, 5 );
-			self::$post_ids[] = $post_id;
 		}
 
 		update_option( 'posts_per_rss', 100 );
