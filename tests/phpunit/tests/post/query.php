@@ -846,6 +846,40 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *
 	 * @param string $fields
 	 */
+	public function test_found_posts_property_is_present_in_php_serialized_query_with_no_found_rows( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'post_type'      => 'post',
+				'no_found_rows'  => true,
+			)
+		);
+
+		$serialized = serialize( $q );
+
+		// Create more matching posts to simulate unserialization occuring at a later date.
+		self::factory()->post->create_many( 5 );
+
+		$unserialized = unserialize( $serialized );
+
+		$this->assertTrue( property_exists( $unserialized, 'found_posts' ) );
+		$this->assertTrue( isset( $unserialized->found_posts ) );
+		$this->assertSame( 0, $unserialized->found_posts );
+
+		$this->assertTrue( property_exists( $unserialized, 'max_num_pages' ) );
+		$this->assertTrue( isset( $unserialized->max_num_pages ) );
+		$this->assertSame( 0, $unserialized->max_num_pages );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
+	 */
 	public function test_found_posts_property_is_present_in_json_serialized_query( $fields ) {
 		self::factory()->post->create_many( 5 );
 
@@ -871,6 +905,40 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertTrue( property_exists( $unserialized, 'max_num_pages' ) );
 		$this->assertTrue( isset( $unserialized->max_num_pages ) );
 		$this->assertEquals( 3, $unserialized->max_num_pages );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
+	 */
+	public function test_found_posts_property_is_present_in_json_serialized_query_with_no_found_rows( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'post_type'      => 'post',
+				'no_found_rows'  => true,
+			)
+		);
+
+		$serialized = json_encode( $q );
+
+		// Create more matching posts to simulate unserialization occuring at a later date.
+		self::factory()->post->create_many( 5 );
+
+		$unserialized = json_decode( $serialized );
+
+		$this->assertTrue( property_exists( $unserialized, 'found_posts' ) );
+		$this->assertTrue( isset( $unserialized->found_posts ) );
+		$this->assertSame( 0, $unserialized->found_posts );
+
+		$this->assertTrue( property_exists( $unserialized, 'max_num_pages' ) );
+		$this->assertTrue( isset( $unserialized->max_num_pages ) );
+		$this->assertSame( 0, $unserialized->max_num_pages );
 	}
 
 	/**
