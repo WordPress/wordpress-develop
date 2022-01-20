@@ -470,7 +470,7 @@ class WP_Community_Events {
 
 			if ( time() < $end_time ) {
 				// Decode HTML entities from the event title.
-				$event['title'] = html_entity_decode( $event['title'] );
+				$event['title'] = html_entity_decode( $event['title'], ENT_QUOTES, 'UTF-8' );
 
 				array_push( $future_events, $event );
 			}
