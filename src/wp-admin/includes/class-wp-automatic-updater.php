@@ -1353,8 +1353,8 @@ class WP_Automatic_Updater {
 			$body[] = '';
 		}
 
-		if ( '' !== get_bloginfo( 'name' ) ) {
-			$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		if ( '' !== get_option( 'blogname' ) ) {
+			$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 		} else {
 			$site_title = parse_url( home_url(), PHP_URL_HOST );
 		}
