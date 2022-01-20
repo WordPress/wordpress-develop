@@ -415,6 +415,19 @@ function wp_register_sidebar_widget( $id, $name, $output_callback, $options = ar
 	$defaults = array( 'classname' => $output_callback );
 	$options  = wp_parse_args( $options, $defaults );
 
+	// Convert 'classname' to a string in the same manner that dynamic_sidebar()
+	// does it. Non-string classnames aren't supported by WP_Widget.
+	$classname = '';
+	foreach ( (array) $options['classname'] as $cn ) {
+		if ( is_string( $cn ) ) {
+			$classname .= '_' . $cn;
+		} elseif ( is_object( $cn ) ) {
+			$classname .= '_' . get_class( $cn );
+		}
+	}
+	$classname            = ltrim( $classname, '_' );
+	$options['classname'] = $classname;
+
 	$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 	if ( ! $widget_object ) {
 		$widget_object = new WP_Dynamic_Widget( $id_base );
