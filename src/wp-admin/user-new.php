@@ -117,7 +117,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 			} else {
 				$site_title = parse_url( home_url(), PHP_URL_HOST );
 			}
-	
+
 			/* translators: 1: Site title, 2: Site URL, 3: User role, 4: Activation URL. */
 			$message = __(
 				'Hi,
