@@ -810,13 +810,14 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 }
 
 /**
- * Retrieves a single unified template object using its id.
+ * Retrieves an array of template objects by id.
  *
  * @since 5.9.0
  *
  * @param string $id            Template unique identifier (example: theme_slug//template_slug).
  * @param array  $template_type Optional. Template type: `'wp_template'` or '`wp_template_part'`.
  *                              Default `'wp_template'`.
+ * @return WP_Block_Template|null The found block template, or null if there isn't one.
  */
 function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	/**
@@ -839,19 +840,19 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 
 	$parts = explode( '//', $id, 2 );
 	if ( count( $parts ) < 2 ) {
-		/** This filter is documented at the end of this function */
+		/** This filter is documented in wp-includes/block-template-utils.php */
 		return apply_filters( 'get_block_file_template', null, $id, $template_type );
 	}
 	list( $theme, $slug ) = $parts;
 
 	if ( wp_get_theme()->get_stylesheet() !== $theme ) {
-		/** This filter is documented at the end of this function */
+		/** This filter is documented in wp-includes/block-template-utils.php */
 		return apply_filters( 'get_block_file_template', null, $id, $template_type );
 	}
 
 	$template_file = _get_block_template_file( $template_type, $slug );
 	if ( null === $template_file ) {
-		/** This filter is documented at the end of this function */
+		/** This filter is documented in wp-includes/block-template-utils.php */
 		return apply_filters( 'get_block_file_template', null, $id, $template_type );
 	}
 
@@ -862,9 +863,9 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param WP_Block_Template $block_template The found block template.
-	 * @param string            $id             Template unique identifier (example: theme_slug//template_slug).
-	 * @param array             $template_type  Template type: `'wp_template'` or '`wp_template_part'`.
+	 * @param WP_Block_Template|null $block_template The found block template, or null if there is none.
+	 * @param string                 $id             Template unique identifier (example: theme_slug//template_slug).
+	 * @param array                  $template_type  Template type: `'wp_template'` or '`wp_template_part'`.
 	 */
 	return apply_filters( 'get_block_file_template', $block_template, $id, $template_type );
 }
