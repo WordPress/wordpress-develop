@@ -261,6 +261,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @expectedDeprecated get_current_theme
 	 */
 	public function test_switch_theme() {
+		$this->expectException( 'WPDieException' );
 		$themes = get_themes();
 
 		// Switch to each theme in sequence.
@@ -720,6 +721,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * }
 	 */
 	public function test_block_theme_has_default_support( $support ) {
+		$this->expectException( 'WPDieException' );
 		$this->helper_requires_block_theme();
 
 		$support_data     = array_values( $support );
@@ -824,6 +826,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @covers ::wp_should_load_separate_core_block_assets
 	 */
 	public function test_block_theme_should_load_separate_core_block_assets_by_default() {
+		$this->expectException( 'WPDieException' );
 		$this->helper_requires_block_theme();
 
 		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
