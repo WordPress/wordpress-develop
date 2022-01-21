@@ -776,7 +776,9 @@ class WP_User_Query {
 		}
 
 		if ( 'all_with_meta' === $qv['fields'] ) {
-			switch_to_blog( $qv['blog_id'] );
+			if ( is_multisite() ) {
+				switch_to_blog( $qv['blog_id'] );
+			}
 			cache_users( $this->results );
 
 			$r = array();
@@ -785,13 +787,19 @@ class WP_User_Query {
 			}
 
 			$this->results = $r;
-			restore_current_blog();
+			if ( is_multisite() ) {
+				restore_current_blog();
+			}
 		} elseif ( 'all' === $qv['fields'] ) {
-			switch_to_blog( $qv['blog_id'] );
+			if ( is_multisite() ) {
+				switch_to_blog( $qv['blog_id'] );
+			}
 			foreach ( $this->results as $key => $user ) {
 				$this->results[ $key ] = new WP_User( $user );
 			}
-			restore_current_blog();
+			if ( is_multisite() ) {
+				restore_current_blog();
+			}
 		}
 	}
 
