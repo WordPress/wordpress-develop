@@ -18,7 +18,7 @@ class Tests_Functions_wp_nonce_url extends WP_UnitTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_wp_nonce_url( $expected, $actionurl, $action = -1, $name = '_wpnonce'  ) {
+	public function test_wp_nonce_url( $expected, $actionurl, $action = -1, $name = '_wpnonce' ) {
 
 		$this->assertMatchesRegularExpression( $expected, wp_nonce_url( $actionurl, $action, $name ) );
 	}
