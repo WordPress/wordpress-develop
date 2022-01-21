@@ -94,7 +94,6 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			return;
 		}
 
-		/** @var WP_Theme|false $theme_info */
 		$theme_info = $this->upgrader->theme_info();
 		if ( empty( $theme_info ) ) {
 			return;
