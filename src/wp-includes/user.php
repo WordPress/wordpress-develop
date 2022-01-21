@@ -2941,9 +2941,11 @@ function retrieve_password( $user_login = null ) {
 	/**
 	 * Filters whether to send the retrieve password email.
 	 *
+	 * Return false to disable sending the email.
+	 *
 	 * @since 6.0.0
 	 *
-	 * @param bool $send False to prevent sending. Default true.
+	 * @param bool $send Whether to send the email.
 	 */
 	if ( ! apply_filters( 'send_retrieve_password_email', true ) ) {
 		return true;
@@ -3028,7 +3030,10 @@ function retrieve_password( $user_login = null ) {
 		return true;
 	}
 
-	// Wrap the single notification email arguments in an array to pass them to the retrieve_password_notification_email filter.
+	/*
+	 * Wrap the single notification email arguments in an array
+	 * to pass them to the retrieve_password_notification_email filter.
+	 */
 	$defaults = array(
 		'to'      => $user_email,
 		'subject' => $title,
