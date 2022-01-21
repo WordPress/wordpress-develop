@@ -2046,12 +2046,14 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 				'subject' => __( '[%s] New User Registration' ),
 				'message' => $message,
 				'headers' => '',
+				'send'    => true,
 			);
 
 			/**
 			 * Filters the contents of the new user notification email sent to the site admin.
 			 *
 			 * @since 4.9.0
+			 * @since 6.0.0 Add the $send flag
 			 *
 			 * @param array   $wp_new_user_notification_email_admin {
 			 *     Used to build wp_mail().
@@ -2060,18 +2062,21 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			 *     @type string $subject The subject of the email.
 			 *     @type string $message The body of the email.
 			 *     @type string $headers The headers of the email.
+			 *     @type bool   $send    Whether to actually send the mail
 			 * }
 			 * @param WP_User $user     User object for new user.
 			 * @param string  $blogname The site title.
 			 */
 			$wp_new_user_notification_email_admin = apply_filters( 'wp_new_user_notification_email_admin', $wp_new_user_notification_email_admin, $user, $blogname );
 
-			wp_mail(
-				$wp_new_user_notification_email_admin['to'],
-				wp_specialchars_decode( sprintf( $wp_new_user_notification_email_admin['subject'], $blogname ) ),
-				$wp_new_user_notification_email_admin['message'],
-				$wp_new_user_notification_email_admin['headers']
-			);
+			if ( true === $wp_new_user_notification_email_admin['send'] ) {
+				wp_mail(
+					$wp_new_user_notification_email_admin['to'],
+					wp_specialchars_decode( sprintf( $wp_new_user_notification_email_admin['subject'], $blogname ) ),
+					$wp_new_user_notification_email_admin['message'],
+					$wp_new_user_notification_email_admin['headers']
+				);
+			}
 
 			if ( $switched_locale ) {
 				restore_previous_locale();
@@ -2103,12 +2108,14 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			'subject' => __( '[%s] Login Details' ),
 			'message' => $message,
 			'headers' => '',
+			'send'    => true,
 		);
 
 		/**
 		 * Filters the contents of the new user notification email sent to the new user.
 		 *
 		 * @since 4.9.0
+		 * @since 6.0.0 Add the $send flag
 		 *
 		 * @param array   $wp_new_user_notification_email {
 		 *     Used to build wp_mail().
@@ -2117,18 +2124,21 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 *     @type string $subject The subject of the email.
 		 *     @type string $message The body of the email.
 		 *     @type string $headers The headers of the email.
+		 *     @type bool   $send    Whether to actually send the mail
 		 * }
 		 * @param WP_User $user     User object for new user.
 		 * @param string  $blogname The site title.
 		 */
 		$wp_new_user_notification_email = apply_filters( 'wp_new_user_notification_email', $wp_new_user_notification_email, $user, $blogname );
 
-		wp_mail(
-			$wp_new_user_notification_email['to'],
-			wp_specialchars_decode( sprintf( $wp_new_user_notification_email['subject'], $blogname ) ),
-			$wp_new_user_notification_email['message'],
-			$wp_new_user_notification_email['headers']
-		);
+		if ( true === $wp_new_user_notification_email['send'] ) {
+			wp_mail(
+				$wp_new_user_notification_email['to'],
+				wp_specialchars_decode( sprintf( $wp_new_user_notification_email['subject'], $blogname ) ),
+				$wp_new_user_notification_email['message'],
+				$wp_new_user_notification_email['headers']
+			);
+		}
 
 		if ( $switched_locale ) {
 			restore_previous_locale();
