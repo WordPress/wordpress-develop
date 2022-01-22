@@ -304,6 +304,14 @@ class Tests_Functions_PreloadOutgoingVersionFiles extends WP_UnitTestCase {
 					'expected'      => 'dangerous_path',
 				),
 			),
+			'an `array` path -> invalid_path'   => array(
+				'args' => array(
+					'wp_base'       => ABSPATH,
+					'preload_paths' => array( array() ),
+					'wp_filesystem' => 'WP_Filesystem_Direct',
+					'expected'      => 'invalid_path',
+				),
+			),
 		);
 	}
 }
