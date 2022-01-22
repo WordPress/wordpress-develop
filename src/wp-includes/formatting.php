@@ -3351,7 +3351,7 @@ function wp_remove_targeted_link_rel_filters() {
 function translate_smiley( $matches ) {
 	global $wpsmiliestrans;
 
-	if ( count( $matches ) == 0 ) {
+	if ( ! is_array( $matches ) || count( $matches ) == 0 ) {
 		return '';
 	}
 
