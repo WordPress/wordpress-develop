@@ -240,7 +240,7 @@ class Tests_Functions_PreloadOutgoingVersionFiles extends WP_UnitTestCase {
 	 */
 	public function data_preload_outgoing_version_files_returns_wp_error() {
 		return array(
-			'no filesystem -> fs_unavailable' => array(
+			'no filesystem -> fs_unavailable'   => array(
 				'args' => array(
 					'wp_base'       => DIR_TESTDATA,
 					'preload_paths' => array(),
@@ -248,7 +248,7 @@ class Tests_Functions_PreloadOutgoingVersionFiles extends WP_UnitTestCase {
 					'expected'      => 'fs_unavailable',
 				),
 			),
-			'no preload paths -> empty_paths' => array(
+			'no preload paths -> empty_paths'   => array(
 				'args' => array(
 					'wp_base'       => DIR_TESTDATA,
 					'preload_paths' => array(),
@@ -272,12 +272,36 @@ class Tests_Functions_PreloadOutgoingVersionFiles extends WP_UnitTestCase {
 					'expected'      => 'path_does_not_exist',
 				),
 			),
-			'a non-PHP file -> bad_file'      => array(
+			'a non-PHP file -> bad_file'        => array(
 				'args' => array(
 					'wp_base'       => ABSPATH,
 					'preload_paths' => array( 'readme.html' ),
 					'wp_filesystem' => 'WP_Filesystem_Direct',
 					'expected'      => 'bad_file',
+				),
+			),
+			'an empty string -> dangerous_path' => array(
+				'args' => array(
+					'wp_base'       => ABSPATH,
+					'preload_paths' => array( '' ),
+					'wp_filesystem' => 'WP_Filesystem_Direct',
+					'expected'      => 'dangerous_path',
+				),
+			),
+			'a period -> dangerous_path'        => array(
+				'args' => array(
+					'wp_base'       => ABSPATH,
+					'preload_paths' => array( '.' ),
+					'wp_filesystem' => 'WP_Filesystem_Direct',
+					'expected'      => 'dangerous_path',
+				),
+			),
+			'a forward slash -> dangerous_path' => array(
+				'args' => array(
+					'wp_base'       => ABSPATH,
+					'preload_paths' => array( '/' ),
+					'wp_filesystem' => 'WP_Filesystem_Direct',
+					'expected'      => 'dangerous_path',
 				),
 			),
 		);
