@@ -1786,12 +1786,35 @@ function preload_outgoing_version_files( $wp_base, array $preload_paths, $skip_p
 	$errors = new WP_Error();
 
 	// Preload files.
+	$dangerous_paths = array( '', '.', '/' );
+
 	foreach ( $preload_paths as $path ) {
+		if ( ! is_string( $path ) ) {
+			$errors->add(
+				'invalid_path',
+				/* translators: %s: The invalid path. */
+				sprintf( __( '%s is not a valid path.' ), print_r( $path, true ) )
+			);
+			continue;
+		}
+
+		if ( in_array( trim( $path ), $dangerous_paths, true ) ) {
+			$errors->add(
+				'dangerous_path',
+				/* translators: %s: The path to the file or directory. */
+				sprintf( __( '%s is a dangerous path.' ), $path )
+			);
+			continue;
+		}
+
 		$fullpath = trailingslashit( $wp_base ) . $path;
 
 		if ( ! $wp_filesystem->exists( $fullpath ) ) {
-			/* translators: %s: The path to the file or directory. */
-			$errors->add( 'path_does_not_exist', sprintf( __( '%s does not exist.' ), $fullpath ) );
+			$errors->add(
+				'path_does_not_exist',
+				/* translators: %s: The path to the file or directory. */
+				sprintf( __( '%s does not exist.' ), $fullpath )
+			);
 			continue;
 		}
 
@@ -1834,8 +1857,11 @@ function preload_outgoing_version_files( $wp_base, array $preload_paths, $skip_p
 		}
 
 		if ( ! str_ends_with( $fullpath, '.php' ) ) {
-			/* translators: %s: The path to the file. */
-			$errors->add( 'bad_file', sprintf( __( '%s is not a PHP file.' ), $path ) );
+			$errors->add(
+				'bad_file',
+				/* translators: %s: The path to the file. */
+				sprintf( __( '%s is not a PHP file.' ), $path )
+			);
 			continue;
 		}
 
