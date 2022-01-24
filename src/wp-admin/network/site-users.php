@@ -14,9 +14,6 @@ if ( ! current_user_can( 'manage_sites' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to edit this site.' ), 403 );
 }
 
-$wp_list_table = _get_list_table( 'WP_Users_List_Table' );
-$wp_list_table->prepare_items();
-
 get_current_screen()->add_help_tab( get_site_screen_help_tab_args() );
 get_current_screen()->set_help_sidebar( get_site_screen_help_sidebar_content() );
 
@@ -53,6 +50,9 @@ if ( ! can_edit_network( $details->site_id ) ) {
 $is_main_site = is_main_site( $id );
 
 switch_to_blog( $id );
+
+$wp_list_table = _get_list_table( 'WP_Users_List_Table' );
+$wp_list_table->prepare_items();
 
 $action = $wp_list_table->current_action();
 
@@ -271,6 +271,7 @@ if ( isset( $_GET['update'] ) ) :
 endif;
 ?>
 
+<?php switch_to_blog( $id ); ?>
 <form class="search-form" method="get">
 <?php $wp_list_table->search_box( __( 'Search Users' ), 'user' ); ?>
 <input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
@@ -284,6 +285,7 @@ endif;
 <?php $wp_list_table->display(); ?>
 
 </form>
+<?php restore_current_blog(); ?>
 
 <?php
 /**
