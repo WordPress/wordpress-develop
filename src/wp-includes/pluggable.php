@@ -2049,7 +2049,16 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		// We want to reverse this for the plain text arena of emails.
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
-		if ( 'user' !== $notify ) {
+		/**
+		 * Filters whether the Admin notification about a new user registration should be send or not.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param WP_User $user     User object for new user.
+		 */
+		$send_notification_to_admin = apply_filters( 'send_new_user_notification_email_to_admin', true, $user );
+
+		if ( 'user' !== $notify && true === $send_notification_to_admin ) {
 			$switched_locale = switch_to_locale( get_locale() );
 
 			/* translators: %s: Site title. */
@@ -2072,7 +2081,6 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			 * Filters the contents of the new user notification email sent to the site admin.
 			 *
 			 * @since 4.9.0
-			 * @since 6.0.0 Add the $send flag
 			 *
 			 * @param array   $wp_new_user_notification_email_admin {
 			 *     Used to build wp_mail().
@@ -2081,29 +2089,35 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			 *     @type string $subject The subject of the email.
 			 *     @type string $message The body of the email.
 			 *     @type string $headers The headers of the email.
-			 *     @type bool   $send    Whether to actually send the mail
 			 * }
 			 * @param WP_User $user     User object for new user.
 			 * @param string  $blogname The site title.
 			 */
 			$wp_new_user_notification_email_admin = apply_filters( 'wp_new_user_notification_email_admin', $wp_new_user_notification_email_admin, $user, $blogname );
 
-			if ( true === $wp_new_user_notification_email_admin['send'] ) {
-				wp_mail(
-					$wp_new_user_notification_email_admin['to'],
-					wp_specialchars_decode( sprintf( $wp_new_user_notification_email_admin['subject'], $blogname ) ),
-					$wp_new_user_notification_email_admin['message'],
-					$wp_new_user_notification_email_admin['headers']
-				);
-			}
+			wp_mail(
+				$wp_new_user_notification_email_admin['to'],
+				wp_specialchars_decode( sprintf( $wp_new_user_notification_email_admin['subject'], $blogname ) ),
+				$wp_new_user_notification_email_admin['message'],
+				$wp_new_user_notification_email_admin['headers']
+			);
 
 			if ( $switched_locale ) {
 				restore_previous_locale();
 			}
 		}
 
+		/**
+		 * Filters whether the User notification about a new user registration should be send or not.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param WP_User $user     User object for new user.
+		 */
+		$send_notification_to_user = apply_filters( 'send_new_user_notification_email_to_user', true, $user );
+
 		// `$deprecated` was pre-4.3 `$plaintext_pass`. An empty `$plaintext_pass` didn't sent a user notification.
-		if ( 'admin' === $notify || ( empty( $deprecated ) && empty( $notify ) ) ) {
+		if ( 'admin' === $notify || false === $send_notification_to_user || ( empty( $deprecated ) && empty( $notify ) ) ) {
 			return;
 		}
 
@@ -2134,7 +2148,6 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 * Filters the contents of the new user notification email sent to the new user.
 		 *
 		 * @since 4.9.0
-		 * @since 6.0.0 Add the $send flag
 		 *
 		 * @param array   $wp_new_user_notification_email {
 		 *     Used to build wp_mail().
@@ -2143,21 +2156,18 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 *     @type string $subject The subject of the email.
 		 *     @type string $message The body of the email.
 		 *     @type string $headers The headers of the email.
-		 *     @type bool   $send    Whether to actually send the mail
 		 * }
 		 * @param WP_User $user     User object for new user.
 		 * @param string  $blogname The site title.
 		 */
 		$wp_new_user_notification_email = apply_filters( 'wp_new_user_notification_email', $wp_new_user_notification_email, $user, $blogname );
 
-		if ( true === $wp_new_user_notification_email['send'] ) {
-			wp_mail(
-				$wp_new_user_notification_email['to'],
-				wp_specialchars_decode( sprintf( $wp_new_user_notification_email['subject'], $blogname ) ),
-				$wp_new_user_notification_email['message'],
-				$wp_new_user_notification_email['headers']
-			);
-		}
+		wp_mail(
+			$wp_new_user_notification_email['to'],
+			wp_specialchars_decode( sprintf( $wp_new_user_notification_email['subject'], $blogname ) ),
+			$wp_new_user_notification_email['message'],
+			$wp_new_user_notification_email['headers']
+		);
 
 		if ( $switched_locale ) {
 			restore_previous_locale();
