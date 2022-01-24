@@ -235,7 +235,7 @@ class WP_Customize_Panel {
 	 *
 	 * @return bool False if theme doesn't support the panel or the user doesn't have the capability.
 	 */
-	final public function check_capabilities() {
+	public function check_capabilities() {
 		if ( $this->capability && ! current_user_can( $this->capability ) ) {
 			return false;
 		}
