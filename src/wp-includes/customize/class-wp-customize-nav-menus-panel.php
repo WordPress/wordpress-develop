@@ -108,7 +108,7 @@ class WP_Customize_Nav_Menus_Panel extends WP_Customize_Panel {
 	 * @return bool False if theme doesn't support the panel or the user doesn't have the capability.
 	 */
 	public function check_capabilities() {
-		/* 
+		/*
 		 * WP_Customize_Panel::$theme_supports only supports checking one
 		 * theme_supports, so instead we override check_capabilities().
 		 */
