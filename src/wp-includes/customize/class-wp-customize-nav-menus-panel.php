@@ -103,7 +103,7 @@ class WP_Customize_Nav_Menus_Panel extends WP_Customize_Panel {
 	 * Checks required user capabilities and whether the theme has the
 	 * feature support required by the panel.
 	 *
-	 * @since 4.0.0
+	 * @since 5.9.0
 	 *
 	 * @return bool False if theme doesn't support the panel or the user doesn't have the capability.
 	 */
