@@ -957,13 +957,13 @@ function wp_clean_update_cache() {
 }
 
 /**
-  * Deletes all contents of the temp-backup directory.
-  *
-  * @since 6.0.0
-  *
-  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
-  */
-  function wp_delete_all_temp_backups() {
+ * Deletes all contents of the temp-backup directory.
+ *
+ * @since 6.0.0
+ *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ */
+function wp_delete_all_temp_backups() {
 	/*
 	 * Check if there's a lock, or if currently performing an Ajax request,
 	 * in which case there's a chance we're doing an update.

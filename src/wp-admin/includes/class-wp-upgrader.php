@@ -156,7 +156,7 @@ class WP_Upgrader {
 		if ( false === wp_next_scheduled( 'wp_delete_temp_updater_backups' ) ) {
 			wp_schedule_event( time(), 'weekly', 'wp_delete_temp_updater_backups' );
 		}
-   }
+	}
 
 	/**
 	 * Add the generic strings to WP_Upgrader::$strings.
@@ -528,7 +528,7 @@ class WP_Upgrader {
 			}
 		}
 
-	   // Retain the original source and destinations.
+		// Retain the original source and destinations.
 		$remote_source     = $args['source'];
 		$local_destination = $destination;
 
@@ -860,7 +860,7 @@ class WP_Upgrader {
 					}
 				);
 			}
-		   $this->skin->error( $result );
+			$this->skin->error( $result );
 
 			if ( ! method_exists( $this->skin, 'hide_process_failed' ) || ! $this->skin->hide_process_failed( $result ) ) {
 				$this->skin->feedback( 'process_failed' );
@@ -883,7 +883,7 @@ class WP_Upgrader {
 			);
 		}
 
-	   if ( ! $options['is_multi'] ) {
+		if ( ! $options['is_multi'] ) {
 
 			/**
 			 * Fires when the upgrader process is complete.
@@ -1017,7 +1017,7 @@ class WP_Upgrader {
  	 * @param array $args Array of data for the temp-backup. Must include a slug, the source, and directory.
  	 * @return bool|WP_Error
  	 */
-	  public function move_to_temp_backup_dir( $args ) {
+	public function move_to_temp_backup_dir( $args ) {
 		global $wp_filesystem;
 
 		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
