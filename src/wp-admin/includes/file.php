@@ -1944,6 +1944,46 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 }
 
 /**
+ * Moves a directory from one location to another via the rename() PHP function.
+ * If the renaming failed, falls back to copy_dir().
+ *
+ * Assumes that WP_Filesystem() has already been called and setup.
+ *
+ * @since 6.0.0
+ *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ *
+ * @param string $from        Source directory.
+ * @param string $to          Destination directory.
+ * @param string $working_dir Remote file source directory. Optional.
+ *
+ * @return true|WP_Error True on success, WP_Error on failure.
+ */
+function move_dir( $from, $to, $working_dir = '' ) {
+	global $wp_filesystem;
+	$result = false;
+
+	if ( 'direct' === $wp_filesystem->method && ! $wp_filesystem->is_virtual_box() ) {
+		$wp_filesystem->rmdir( $to );
+		$result = @rename( $from, $to );
+	}
+
+	if ( ! $result && ! $wp_filesystem->is_dir( $to ) ) {
+		if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
+			return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
+		}
+		$result = copy_dir( $from, $to );
+	}
+
+	// Clear the working directory?
+	if ( ! empty( $working_dir ) ) {
+		$wp_filesystem->delete( $working_dir, true );
+	}
+
+	return $result;
+}
+
+/**
  * Initializes and connects the WordPress Filesystem Abstraction classes.
  *
  * This function will include the chosen transport and attempt connecting.

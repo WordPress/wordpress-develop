@@ -455,6 +455,26 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	}
 
 	/**
+	 * Return whether constant or environmental variable indicates using VirtualBox.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @return bool
+	 */
+	public function is_virtual_box() {
+		if ( defined( 'ENV_VB' ) && ENV_VB && 'false' !== ENV_VB ) {
+			return true;
+		}
+
+		$WP_ENV_VB = getenv( 'WP_ENV_VB' );
+		if ( $WP_ENV_VB && 'false' !== $WP_ENV_VB ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Gets the file's last access time.
 	 *
 	 * @since 2.5.0
