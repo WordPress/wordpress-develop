@@ -139,7 +139,6 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		$this->assertTrue( have_posts() );
 
-		if ( have_posts() ) {
 			while ( have_posts() ) {
 				the_post();
 
@@ -159,7 +158,6 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 				$this->assertSame( 'bar', get_term_meta( $orphan_term, 'foo', true ) );
 				$this->assertSame( $num_queries, $wpdb->num_queries );
 			}
-		}
 	}
 
 	public static function set_cache_results( $q ) {
@@ -212,7 +210,6 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		$this->assertTrue( $q->have_posts() );
 
-		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
 
@@ -226,7 +223,6 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 				$num_queries++;
 				$this->assertSame( $num_queries, $wpdb->num_queries );
 			}
-		}
 	}
 
 	public function test_adding_term_meta_should_bust_get_terms_cache() {

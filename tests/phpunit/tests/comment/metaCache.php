@@ -110,7 +110,6 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 		$this->assertTrue( have_posts() );
 
-		if ( have_posts() ) {
 			while ( have_posts() ) {
 				the_post();
 
@@ -127,7 +126,6 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 				get_comment_meta( $comment_ids[2], 'sauce' );
 				$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 			}
-		}
 	}
 
 	/**
