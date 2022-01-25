@@ -134,7 +134,7 @@ class WP_Upgrader {
 	 * and also add the generic strings to `WP_Upgrader::$strings`.
 	 *
 	 * Additionally, it will schedule a weekly task to clean up the temp-backup directory.
- 	 *
+	 *
 	 * @since 2.8.0
 	 * @since 6.0.0 Added the `schedule_temp_backup_cleanup()` task.
 	 */
@@ -185,11 +185,11 @@ class WP_Upgrader {
 		$this->strings['maintenance_start'] = __( 'Enabling Maintenance mode&#8230;' );
 		$this->strings['maintenance_end']   = __( 'Disabling Maintenance mode&#8230;' );
 
- 		/* translators: %s: temp-backup */
- 		$this->strings['temp_backup_mkdir_failed'] = sprintf( __( 'Could not create the %s directory.' ), 'temp-backup' );
- 		/* translators: %s: temp-backup */
- 		$this->strings['temp_backup_move_failed']    = sprintf( __( 'Could not move old version to the %s directory.' ), 'temp-backup' );
- 		$this->strings['temp_backup_restore_failed'] = __( 'Could not restore original version.' );
+		/* translators: %s: temp-backup */
+		$this->strings['temp_backup_mkdir_failed'] = sprintf( __( 'Could not create the %s directory.' ), 'temp-backup' );
+		/* translators: %s: temp-backup */
+		$this->strings['temp_backup_move_failed']    = sprintf( __( 'Could not move old version to the %s directory.' ), 'temp-backup' );
+		$this->strings['temp_backup_restore_failed'] = __( 'Could not restore original version.' );
 
 	}
 

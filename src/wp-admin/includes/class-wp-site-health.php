@@ -1883,13 +1883,13 @@ class WP_Site_Health {
 	}
 
 	/**
- 	 * Test available disk space for updates.
- 	 *
- 	 * @since 6.0.0
- 	 *
- 	 * @return array The test results.
- 	 */
-	  public function get_test_available_updates_disk_space() {
+	 * Test available disk space for updates.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_available_updates_disk_space() {
 		$available_space       = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : 0;
 		$available_space_in_mb = $available_space / MB_IN_BYTES;
 
@@ -2072,7 +2072,7 @@ class WP_Site_Health {
 		return $result;
 	}
 
-   /**
+	/**
 	 * Test if loopbacks work as expected.
 	 *
 	 * A loopback is when WordPress queries itself, for example to start a new WP_Cron instance,
