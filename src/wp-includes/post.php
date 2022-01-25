@@ -509,6 +509,18 @@ function create_initial_post_types() {
 			'show_in_rest'          => true,
 			'rewrite'               => false,
 			'map_meta_cap'          => true,
+			'capabilities'          => array(
+				'edit_others_posts'      => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'delete_private_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'edit_private_posts'     => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+			),
 			'rest_base'             => 'navigation',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
 			'supports'              => array(
@@ -5130,7 +5142,7 @@ function _truncate_post_slug( $slug, $length = 200 ) {
 		if ( $decoded_slug === $slug ) {
 			$slug = substr( $slug, 0, $length );
 		} else {
-			$slug = utf8_uri_encode( $decoded_slug, $length );
+			$slug = utf8_uri_encode( $decoded_slug, $length, true );
 		}
 	}
 

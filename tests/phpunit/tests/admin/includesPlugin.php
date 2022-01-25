@@ -296,11 +296,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Passing a string as position will fail.
+	 * Passing a string as position will fail in submenu.
 	 *
 	 * @ticket 48599
 	 */
-	public function test_passing_string_as_position_fires_doing_it_wrong() {
+	public function test_passing_string_as_position_fires_doing_it_wrong_submenu() {
 		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
 		global $submenu, $menu;
 
@@ -322,6 +322,37 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'submenu_page_1', $submenu['main_slug'][1][2] );
+	}
+
+	/**
+	 * Passing a string as position will fail in menu.
+	 *
+	 * @ticket 54798
+	 */
+	public function test_passing_string_as_position_fires_doing_it_wrong_menu() {
+		$this->setExpectedIncorrectUsage( 'add_menu_page' );
+		global $submenu, $menu;
+
+		// Reset menus.
+		$submenu      = array();
+		$menu         = array();
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Setup a menu with some items.
+		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback', 'icon_url', '1' );
+		add_menu_page( 'Main Menu 1', 'Main Menu 1', 'manage_options', 'main1_slug', 'main1_page_callback', 'icon_url1', 1.5 );
+
+		// Clean up the temporary user.
+		wp_set_current_user( $current_user );
+		wp_delete_user( $admin_user );
+
+		// Verify the menu was inserted.
+		$this->assertSame( 'main_slug', $menu[1][2] );
+		// Verify the menu was inserted correctly on passing float as position.
+		$this->assertSame( 'main1_slug', $menu['1.5'][2] );
 	}
 
 	public function test_is_plugin_active_true() {

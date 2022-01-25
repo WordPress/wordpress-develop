@@ -68,7 +68,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Lists/updates a single template based on the given id.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)',
+			// The route.
+			sprintf(
+				'/%s/(?P<id>%s%s)',
+				$this->rest_base,
+				// Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				// Excludes invalid directory name characters: `/:<>*?"|`.
+				'([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
+				// Matches the template name.
+				'[\/\w-]+'
+			),
 			array(
 				'args'   => array(
 					'id' => array(
@@ -149,7 +158,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return string Sanitized template ID.
 	 */
 	public function _sanitize_template_id( $id ) {
-		// Decode empty space.
 		$id = urldecode( $id );
 
 		$last_slash_pos = strrpos( $id, '/' );
@@ -773,7 +781,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'required'    => true,
 					'minLength'   => 1,
-					'pattern'     => '[a-zA-Z_\-]+',
+					'pattern'     => '[a-zA-Z0-9_\-]+',
 				),
 				'theme'          => array(
 					'description' => __( 'Theme identifier for the template.' ),
