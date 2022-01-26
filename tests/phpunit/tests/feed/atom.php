@@ -51,6 +51,9 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
 
+		// Assign a tagline option.
+		update_option( 'blogdescription', 'Just another WordPress site' );
+
 	}
 
 	/**
