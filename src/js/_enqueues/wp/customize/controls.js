@@ -8335,6 +8335,22 @@
 			}
 
 			/**
+			 * Displays a Site Editor notification when a block theme is activated.
+
+			 * @param {string} [notification] - A notification to display.
+			 *
+			 * @return {void}
+			 */
+			function addSiteEditorNotification( notification )
+			{
+				api.notifications.add( new api.Notification( 'site_editor_block_theme_notice', {
+					message: notification,
+					type: 'warning',
+					dismissible: false
+				} ) );
+			}
+
+			/**
 			 * Dismiss autosave.
 			 *
 			 * @return {void}
@@ -8407,6 +8423,9 @@
 			}
 			if ( api.settings.changeset.latestAutoDraftUuid || api.settings.changeset.hasAutosaveRevision ) {
 				addAutosaveRestoreNotification();
+			}
+			if (api.l10n.blockThemeNotification) {
+				addSiteEditorNotification(api.l10n.blockThemeNotification);
 			}
 		})();
 
