@@ -106,9 +106,9 @@ function wp_get_global_stylesheet( $types = array() ) {
 	$supports_theme_json = WP_Theme_JSON_Resolver::theme_has_support();
 	$supports_link_color = get_theme_support( 'experimental-link-color' );
 	if ( empty( $types ) && ! $supports_theme_json ) {
-		$types = array( 'variables', 'presets' );
+		$types = array( 'presets' );
 	} elseif ( empty( $types ) ) {
-		$types = array( 'variables', 'styles', 'presets' );
+		$types = array( 'presets', 'styles' );
 	}
 
 	$origins = array( 'default', 'theme', 'custom' );
@@ -121,8 +121,11 @@ function wp_get_global_stylesheet( $types = array() ) {
 		$origins = array( 'default', 'theme' );
 	}
 
+
 	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
-	$stylesheet = $tree->get_stylesheet( $types, $origins );
+	$variables  = $tree->get_stylesheet( array('variables') );
+	$rest       = $tree->get_stylesheet( $types, $origins );
+	$stylesheet = $variables . $rest;
 
 	if ( $can_use_cached ) {
 		// Cache for a minute.
