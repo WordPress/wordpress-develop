@@ -2140,7 +2140,7 @@ function wp_normalize_path( $path ) {
 		$wrapper .= '://';
 	}
 
-	// Standardise all paths to use '/'.
+	// Standardize all paths to use '/'.
 	$path = str_replace( '\\', '/', $path );
 
 	// Replace multiple slashes down to a singular, allowing for network shares having two slashes.
@@ -8342,11 +8342,18 @@ function clean_dirsize_cache( $path ) {
  *
  * @since 5.2.0
  *
+ * @global string $wp_version WordPress version.
+ *
  * @param string $required Minimum required WordPress version.
  * @return bool True if required version is compatible or empty, false if not.
  */
 function is_wp_version_compatible( $required ) {
-	return empty( $required ) || version_compare( get_bloginfo( 'version' ), $required, '>=' );
+	global $wp_version;
+
+	// Strip off any -alpha, -RC, -beta, -src suffixes.
+	list( $version ) = explode( '-', $wp_version );
+
+	return empty( $required ) || version_compare( $version, $required, '>=' );
 }
 
 /**
