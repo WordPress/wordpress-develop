@@ -123,6 +123,9 @@ function wp_get_global_stylesheet( $types = array() ) {
 
 
 	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	// The CSS Custom Properties always consider the theme values.
+	// This is so themes without theme.json work well with default presets.
+	// See https://core.trac.wordpress.org/ticket/54782
 	$variables  = $tree->get_stylesheet( array('variables') );
 	$rest       = $tree->get_stylesheet( $types, $origins );
 	$stylesheet = $variables . $rest;
