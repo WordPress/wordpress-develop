@@ -5194,8 +5194,10 @@ function wp_widgets_add_menu() {
 	if ( ! current_theme_supports( 'widgets' ) ) {
 		return;
 	}
+	
+	$position = wp_is_block_theme() ? 8 : 7;
 
-	$submenu['themes.php'][7] = array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' );
+	$submenu['themes.php'][$position] = array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' );
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
 }
 
