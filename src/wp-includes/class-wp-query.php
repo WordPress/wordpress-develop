@@ -529,18 +529,18 @@ class WP_Query implements JsonSerializable, Serializable {
 	 * @since 1.5.0
 	 */
 	public function init() {
-		unset( $this->posts );
-		unset( $this->query );
+		$this->posts = null;
+		$this->query = null;
 		$this->query_vars = array();
-		unset( $this->queried_object );
-		unset( $this->queried_object_id );
+		$this->queried_object = null;
+		$this->queried_object_id = null;
 		$this->post_count   = 0;
 		$this->current_post = -1;
 		$this->in_the_loop  = false;
-		unset( $this->request );
-		unset( $this->post );
-		unset( $this->comments );
-		unset( $this->comment );
+		$this->request = null;
+		$this->post = null;
+		$this->comments = null;
+		$this->comment = null;
 		$this->comment_count         = 0;
 		$this->current_comment       = -1;
 		$this->found_posts           = null;
@@ -3729,6 +3729,27 @@ class WP_Query implements JsonSerializable, Serializable {
 
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
+		}
+	}
+
+	/**
+	 * Allows some private properties to be set.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $name  Name of property to set.
+	 * @param mixed  $value Value to set.
+	 */
+	public function __set( $name, $value ) {
+		if ( 'found_posts' === $name || 'max_num_pages' === $name ) {
+			$this->$name = $value;
+			return;
+		}
+
+		// This allows third party code to set dynamic properties.
+		if ( ! property_exists( $this, $name ) ) {
+			$this->$name = $value;
+			return;
 		}
 	}
 

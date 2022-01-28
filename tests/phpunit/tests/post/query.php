@@ -813,6 +813,36 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *
 	 * @param string $fields
 	 */
+	public function test_found_posts_property_can_be_set_externally( $fields ) {
+		add_filter(
+			'posts_request',
+			function( $request, $query ) {
+				$query->found_posts   = 123;
+				$query->max_num_pages = 456;
+
+				return $request;
+			},
+			10,
+			2
+		);
+
+		$q = new WP_Query(
+			array(
+				'fields'    => $fields,
+				'post_type' => 'post',
+			)
+		);
+
+		$this->assertSame( 123, $q->found_posts );
+		$this->assertEquals( 456, $q->max_num_pages );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
+	 */
 	public function test_found_posts_property_is_present_in_php_serialized_query( $fields ) {
 		self::factory()->post->create_many( 5 );
 
