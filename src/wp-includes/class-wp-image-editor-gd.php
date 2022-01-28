@@ -241,13 +241,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
 	 *     }
 	 * }
+	 * @param string $mime_type Optional. The mime-type. Default null. Added in 6.0.
 	 * @return array An array of resized images' metadata by size.
 	 */
-	public function multi_resize( $sizes ) {
+	public function multi_resize( $sizes, $mime_type = null ) {
 		$metadata = array();
 
 		foreach ( $sizes as $size => $size_data ) {
-			$meta = $this->make_subsize( $size_data );
+			$meta = $this->make_subsize( $size_data, $mime_type );
 
 			if ( ! is_wp_error( $meta ) ) {
 				$metadata[ $size ] = $meta;
@@ -269,10 +270,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type int  $height The maximum height in pixels.
 	 *     @type bool $crop   Whether to crop the image to exact dimensions.
 	 * }
+	 * @param string $mime_type Optional. The mime-type. Default null. Added in 6.0.
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
 	 */
-	public function make_subsize( $size_data ) {
+	public function make_subsize( $size_data, $mime_type = null ) {
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
 			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
 		}
@@ -296,7 +298,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		if ( is_wp_error( $resized ) ) {
 			$saved = $resized;
 		} else {
-			$saved = $this->_save( $resized );
+			$saved = $this->_save( $resized, null, $mime_type );
 			imagedestroy( $resized );
 		}
 

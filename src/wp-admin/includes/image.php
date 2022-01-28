@@ -425,6 +425,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	$new_sizes = array_filter( array_merge( $priority, $new_sizes ) );
 
 	$editor = wp_get_image_editor( $file );
+	$file_mime_type = wp_get_image_mime( $file );
 
 	if ( is_wp_error( $editor ) ) {
 		// The image cannot be edited.
@@ -440,25 +441,34 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		}
 	}
 
-	if ( method_exists( $editor, 'make_subsize' ) ) {
-		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
-			$new_size_meta = $editor->make_subsize( $new_size_data );
+	$output_mime_types = apply_filters( 'wp_mime_output_types', array( 'image/jpeg' ), $file );
+	$additional_mime_sizes = array();
+	foreach ( $output_mime_types as $mime_type ) {
 
-			if ( is_wp_error( $new_size_meta ) ) {
-				// TODO: Log errors.
-			} else {
-				// Save the size meta value.
-				$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+		if ( method_exists( $editor, 'make_subsize' ) ) {
+			foreach ( $new_sizes as $new_size_name => $new_size_data ) {
+				$new_size_meta = $editor->make_subsize( $new_size_data, $mime_type );
+
+				if ( is_wp_error( $new_size_meta ) ) {
+					// TODO: Log errors.
+				} else {
+					// Save the size meta value.
+					$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+					if ( $mime_type !== $file_mime_type ) {
+						$new_meta_name = $new_size_name . '_' . str_replace( '/', '_', $mime_type );
+						$image_meta['sizes'][ $new_meta_name ] = $new_size_meta;
+					}
+					wp_update_attachment_metadata( $attachment_id, $image_meta );
+				}
+			}
+		} else {
+			// Fall back to `$editor->multi_resize()`.
+			$created_sizes = $editor->multi_resize( $new_sizes, $mime_type );
+
+			if ( ! empty( $created_sizes ) ) {
+				$image_meta['sizes'] = array_merge( $image_meta['sizes'], $created_sizes );
 				wp_update_attachment_metadata( $attachment_id, $image_meta );
 			}
-		}
-	} else {
-		// Fall back to `$editor->multi_resize()`.
-		$created_sizes = $editor->multi_resize( $new_sizes );
-
-		if ( ! empty( $created_sizes ) ) {
-			$image_meta['sizes'] = array_merge( $image_meta['sizes'], $created_sizes );
-			wp_update_attachment_metadata( $attachment_id, $image_meta );
 		}
 	}
 

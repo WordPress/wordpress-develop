@@ -115,9 +115,10 @@ abstract class WP_Image_Editor {
 	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
 	 *     }
 	 * }
+	 * @param string $mime_type Optional. The mime-type. Default null. Added in 6.0.
 	 * @return array An array of resized images metadata by size.
 	 */
-	abstract public function multi_resize( $sizes );
+	abstract public function multi_resize( $sizes, $mime_type = null );
 
 	/**
 	 * Crops Image.
