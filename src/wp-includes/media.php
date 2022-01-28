@@ -1236,12 +1236,13 @@ function wp_get_attachment_image_srcset( $attachment_id, $size = 'medium', $imag
  *     @type int $0 The width in pixels.
  *     @type int $1 The height in pixels.
  * }
- * @param string $image_src     The 'src' of the image.
- * @param array  $image_meta    The image meta data as returned by 'wp_get_attachment_metadata()'.
+ * @param string $image_src               The 'src' of the image.
+ * @param array  $image_meta              The image meta data as returned by 'wp_get_attachment_metadata()'.
  * @param int    $attachment_id Optional. The image attachment ID. Default 0.
+ * @param string $mime_type Optional.     The mime-type to use for srcset. Default null. Added in 6.0.
  * @return string|false The 'srcset' attribute value. False on error or when only one source exists.
  */
-function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attachment_id = 0 ) {
+function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attachment_id = 0, $mime_type = false ) {
 	/**
 	 * Let plugins pre-filter the image meta to be able to fix inconsistencies in the stored data.
 	 *
@@ -1264,6 +1265,13 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	}
 
 	$image_sizes = $image_meta['sizes'];
+
+	// Only include a single mime type in the srcset. Uses the passed mime_type,
+	// Or the original file mime type if mime_type is not passed.
+	if ( ! $mime_type ) {
+		$mime_type = wp_get_image_mime( wp_get_original_image_path( $attachment_id ) );
+	}
+	$image_sizes = array_filter( $image_sizes, function( $size ) use ( $mime_type ) { return $size['mime-type'] == $mime_type; } );
 
 	// Get the width and height of the image.
 	$image_width  = (int) $size_array[0];
