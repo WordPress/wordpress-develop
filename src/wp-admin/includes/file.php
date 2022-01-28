@@ -287,7 +287,7 @@ function wp_get_theme_file_editable_extensions( $theme ) {
 	 * @since 4.4.0
 	 *
 	 * @param string[] $default_types An array of editable theme file extensions.
-	 * @param WP_Theme $theme         The current theme object.
+	 * @param WP_Theme $theme         The active theme object.
 	 */
 	$file_types = apply_filters( 'wp_theme_editor_filetypes', $default_types, $theme );
 
@@ -1395,7 +1395,10 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 		// Allow for an old version of Sodium_Compat being loaded before the bundled WordPress one.
 		if ( method_exists( 'ParagonIE_Sodium_Compat', 'runtime_speed_test' ) ) {
-			// Run `ParagonIE_Sodium_Compat::runtime_speed_test()` in optimized integer mode, as that's what WordPress utilises during signing verifications.
+			/*
+			 * Run `ParagonIE_Sodium_Compat::runtime_speed_test()` in optimized integer mode,
+			 * as that's what WordPress utilizes during signing verifications.
+			 */
 			// phpcs:disable WordPress.NamingConventions.ValidVariableName
 			$old_fastMult                      = ParagonIE_Sodium_Compat::$fastMult;
 			ParagonIE_Sodium_Compat::$fastMult = true;
