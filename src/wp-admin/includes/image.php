@@ -425,7 +425,10 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	$new_sizes = array_filter( array_merge( $priority, $new_sizes ) );
 
 	$editor = wp_get_image_editor( $file );
-	$file_mime_type = wp_get_image_mime( $file ) || 'image/jpeg';
+	$file_mime_type = wp_get_image_mime( $file );
+	if ( ! $file_mime_type ) {
+		$file_mime_type = 'image/jpeg';
+	}
 
 	if ( is_wp_error( $editor ) ) {
 		// The image cannot be edited.
@@ -440,10 +443,15 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 			// TODO: Log errors.
 		}
 	}
-
-	$output_mime_types = apply_filters( 'wp_mime_output_types', array( $file_mime_type ), $file );
+	$default_output_mime_types = array();
+	$default_output_mime_types[ $file_mime_type ] = array( $file_mime_type );
+	$output_mime_types = apply_filters( 'image_editor_output_formats', $default_output_mime_types, $file );
+	// Ensure at least one output format is available, otherwise fall back to the default.
+	if ( ! isset(  $output_mime_types[ $file_mime_type ] ) || 0 === sizeof(  $output_mime_types[ $file_mime_type ] ) ) {
+		$output_mime_types = $default_output_mime_types;
+	}
 	$additional_mime_sizes = array();
-	foreach ( $output_mime_types as $mime_type ) {
+	foreach ( $output_mime_types[ $file_mime_type ] as $mime_type ) {
 		if ( method_exists( $editor, 'make_subsize' ) ) {
 			foreach ( $new_sizes as $new_size_name => $new_size_data ) {
 				$new_size_meta = $editor->make_subsize( $new_size_data, $mime_type );
