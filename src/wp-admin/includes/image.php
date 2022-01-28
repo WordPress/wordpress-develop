@@ -425,7 +425,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	$new_sizes = array_filter( array_merge( $priority, $new_sizes ) );
 
 	$editor = wp_get_image_editor( $file );
-	$file_mime_type = wp_get_image_mime( $file );
+	$file_mime_type = wp_get_image_mime( $file ) || 'image/jpeg';
 
 	if ( is_wp_error( $editor ) ) {
 		// The image cannot be edited.
@@ -453,11 +453,10 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 				} else {
 					// Save the size meta value.
 					if ( $mime_type !== $file_mime_type ) {
-						$new_meta_name = $new_size_name . '_' . str_replace( '/', '_', $mime_type );
-						$image_meta['sizes'][ $new_meta_name ] = $new_size_meta;
-					} else {
-						$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+						$new_size_name = $new_size_name . '_' . str_replace( '/', '_', $mime_type );
 					}
+					$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+
 					wp_update_attachment_metadata( $attachment_id, $image_meta );
 				}
 			}
