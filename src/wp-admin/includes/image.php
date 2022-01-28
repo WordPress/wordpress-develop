@@ -441,7 +441,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		}
 	}
 
-	$output_mime_types = apply_filters( 'wp_mime_output_types', array( 'image/jpeg' ), $file );
+	$output_mime_types = apply_filters( 'wp_mime_output_types', array( $file_mime_type ), $file );
 	$additional_mime_sizes = array();
 	foreach ( $output_mime_types as $mime_type ) {
 		if ( method_exists( $editor, 'make_subsize' ) ) {
