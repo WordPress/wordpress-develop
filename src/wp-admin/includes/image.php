@@ -444,7 +444,6 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	$output_mime_types = apply_filters( 'wp_mime_output_types', array( 'image/jpeg' ), $file );
 	$additional_mime_sizes = array();
 	foreach ( $output_mime_types as $mime_type ) {
-
 		if ( method_exists( $editor, 'make_subsize' ) ) {
 			foreach ( $new_sizes as $new_size_name => $new_size_data ) {
 				$new_size_meta = $editor->make_subsize( $new_size_data, $mime_type );
@@ -453,10 +452,11 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 					// TODO: Log errors.
 				} else {
 					// Save the size meta value.
-					$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
 					if ( $mime_type !== $file_mime_type ) {
 						$new_meta_name = $new_size_name . '_' . str_replace( '/', '_', $mime_type );
 						$image_meta['sizes'][ $new_meta_name ] = $new_size_meta;
+					} else {
+						$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
 					}
 					wp_update_attachment_metadata( $attachment_id, $image_meta );
 				}
