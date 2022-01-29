@@ -227,20 +227,31 @@ class WP_Scripts extends WP_Dependencies {
 			return $output;
 		}
 
-		printf( "<script%s id='%s-js-extra'>\n", $this->type_attr, esc_attr( $handle ) );
+		$tag = sprintf( "<script%s id='%s-js-extra'>\n", $this->type_attr, esc_attr( $handle ) );
 
 		// CDATA is not needed for HTML 5.
 		if ( $this->type_attr ) {
-			echo "/* <![CDATA[ */\n";
+			$tag .= "/* <![CDATA[ */\n";
 		}
 
-		echo "$output\n";
+		$tag .= "$output\n";
 
 		if ( $this->type_attr ) {
-			echo "/* ]]> */\n";
+			$tag .= "/* ]]> */\n";
 		}
 
-		echo "</script>\n";
+		$tag .= "</script>\n";
+		/**
+		 * Filters the HTML script tag of an enqueued script.
+		 *
+		 * @since 5.8.3
+		 *
+		 * @param string $tag    The `<script>` tag for the enqueued script.
+		 * @param string $handle The script's registered handle.
+		 * @param string $output The script's content (raw JS).
+		 */
+		$tag = apply_filters( 'inline_script_tag', $tag, $handle, $output );
+		echo $tag;
 
 		return true;
 	}
