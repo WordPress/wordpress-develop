@@ -1509,7 +1509,7 @@ final class WP_Theme implements ArrayAccess {
 
 			$content = file_get_contents( $path_to_index_block_template );
 
-			// Skip a file that has no blocks.
+			// A template file should have blocks.
 			if ( ! str_contains( $content, '<!-- wp:' ) ) {
 				continue;
 			}
@@ -1517,8 +1517,13 @@ final class WP_Theme implements ArrayAccess {
 			$blocks = parse_blocks( trim( $content ) );
 
 			/*
-			 * Non-block HTML is parsed with `blockName => NULL`.
-			 * If there are no NULL names, then it is a block-only file.
+			 * A block theme should ONLY have blocks in its templates.
+			 *
+			 * For other HTML, `parse_blocks()` will parse this with
+			 * a `blockName` of `NULL`.
+			 *
+			 * If the template contains any `NULL` block names, then
+			 * this is not a block theme.
 			 */
 			if ( false === array_search( null, wp_list_pluck( $blocks, 'blockName' ), true ) ) {
 				$this->cache_add( 'is_block_theme', 1 );
