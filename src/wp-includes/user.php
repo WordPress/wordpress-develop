@@ -935,7 +935,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! is_multisite() ) {
 		$site_id                        = get_current_blog_id();
-		$sites                          = array( $site_id => new stdClass );
+		$sites                          = array( $site_id => new stdClass() );
 		$sites[ $site_id ]->userblog_id = $site_id;
 		$sites[ $site_id ]->blogname    = get_option( 'blogname' );
 		$sites[ $site_id ]->domain      = '';
@@ -1977,9 +1977,6 @@ function wp_insert_user( $userdata ) {
 	 */
 	if ( ! empty( $userdata['user_nicename'] ) ) {
 		$user_nicename = sanitize_user( $userdata['user_nicename'], true );
-		if ( mb_strlen( $user_nicename ) > 50 ) {
-			return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
-		}
 	} else {
 		$user_nicename = mb_substr( $user_login, 0, 50 );
 	}
@@ -1994,6 +1991,16 @@ function wp_insert_user( $userdata ) {
 	 * @param string $user_nicename The user's nicename.
 	 */
 	$user_nicename = apply_filters( 'pre_user_nicename', $user_nicename );
+
+	// Remove any non-printable chars from the user_nicename string to see if we have ended up with an empty username.
+	$user_nicename = trim( $user_nicename );
+
+	// user_nicename must be between 0 and 50 characters.
+	if ( empty( $user_nicename ) ) {
+		return new WP_Error( 'empty_user_nicename', __( 'Cannot create a user with an empty nicename.' ) );
+	} elseif ( mb_strlen( $user_nicename ) > 50 ) {
+		return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
+	}
 
 	$user_nicename_check = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_nicename = %s AND user_login != %s LIMIT 1", $user_nicename, $user_login ) );
 
