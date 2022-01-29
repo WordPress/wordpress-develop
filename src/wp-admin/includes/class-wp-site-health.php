@@ -284,7 +284,7 @@ class WP_Site_Health {
 
 			$result['description'] = sprintf(
 				'<p>%s</p>',
-				__( 'We were unable to check if any new versions of WordPress are available.' )
+				__( 'Unable to check if any new versions of WordPress are available.' )
 			);
 
 			$result['actions'] = sprintf(
@@ -467,7 +467,7 @@ class WP_Site_Health {
 					),
 					$unused_plugins
 				),
-				__( 'Inactive plugins are tempting targets for attackers. If you&#8217;re not going to use a plugin, we recommend you remove it.' )
+				__( 'Inactive plugins are tempting targets for attackers. If you&#8217;re not going to use a plugin, you should consider removing it.' )
 			);
 
 			$result['actions'] .= sprintf(
@@ -634,7 +634,7 @@ class WP_Site_Health {
 						),
 						sprintf(
 							/* translators: 1: The currently active theme. 2: The active theme's parent theme. */
-							__( 'To enhance your site&#8217;s security, we recommend you remove any themes you&#8217;re not using. You should keep your current theme, %1$s, and %2$s, its parent theme.' ),
+							__( 'To enhance your site&#8217;s security, you should consider removing any themes you&#8217;re not using. You should keep your current theme, %1$s, and %2$s, its parent theme.' ),
 							$active_theme->name,
 							$active_theme->parent()->name
 						)
@@ -653,7 +653,7 @@ class WP_Site_Health {
 						),
 						sprintf(
 							/* translators: 1: The default theme for WordPress. 2: The currently active theme. 3: The active theme's parent theme. */
-							__( 'To enhance your site&#8217;s security, we recommend you remove any themes you&#8217;re not using. You should keep %1$s, the default WordPress theme, %2$s, your current theme, and %3$s, its parent theme.' ),
+							__( 'To enhance your site&#8217;s security, you should consider removing any themes you&#8217;re not using. You should keep %1$s, the default WordPress theme, %2$s, your current theme, and %3$s, its parent theme.' ),
 							$default_theme ? $default_theme->name : WP_DEFAULT_THEME,
 							$active_theme->name,
 							$active_theme->parent()->name
@@ -679,7 +679,7 @@ class WP_Site_Health {
 							$themes_inactive,
 							$active_theme->name
 						),
-						__( 'We recommend removing any unused themes to enhance your site&#8217;s security.' )
+						__( 'You should consider removing any unused themes to enhance your site&#8217;s security.' )
 					);
 				} else {
 					$result['description'] .= sprintf(
@@ -695,7 +695,7 @@ class WP_Site_Health {
 							$default_theme ? $default_theme->name : WP_DEFAULT_THEME,
 							$active_theme->name
 						),
-						__( 'We recommend removing any unused themes to enhance your site&#8217;s security.' )
+						__( 'You should consider removing any unused themes to enhance your site&#8217;s security.' )
 					);
 				}
 			}
@@ -1200,7 +1200,7 @@ class WP_Site_Health {
 				'<p>%s</p>',
 				sprintf(
 					/* translators: 1: The database engine in use (MySQL or MariaDB). 2: Database server recommended version number. */
-					__( 'For optimal performance and security reasons, we recommend running %1$s version %2$s or higher. Contact your web hosting company to correct this.' ),
+					__( 'For optimal performance and security reasons, you should consider running %1$s version %2$s or higher. Contact your web hosting company to correct this.' ),
 					( $this->is_mariadb ? 'MariaDB' : 'MySQL' ),
 					$this->health_check_mysql_rec_version
 				)
@@ -1978,8 +1978,8 @@ class WP_Site_Health {
 		$themes_dir_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/themes" );
 
 		if ( $plugins_dir_exists && ! $plugins_dir_is_writable && $themes_dir_exists && ! $themes_dir_is_writable ) {
-			$result['status']      = 'critical';
-			$result['label']       = sprintf(
+			$result['status'] = 'critical';
+			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Plugins and themes %s directories exist but are not writable' ),
 				'temp-backup'
@@ -1994,8 +1994,8 @@ class WP_Site_Health {
 		}
 
 		if ( $plugins_dir_exists && ! $plugins_dir_is_writable ) {
-			$result['status']      = 'critical';
-			$result['label']       = sprintf(
+			$result['status'] = 'critical';
+			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Plugins %s directory exists but is not writable' ),
 				'temp-backup'
@@ -2009,8 +2009,8 @@ class WP_Site_Health {
 		}
 
 		if ( $themes_dir_exists && ! $themes_dir_is_writable ) {
-			$result['status']      = 'critical';
-			$result['label']       = sprintf(
+			$result['status'] = 'critical';
+			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Themes %s directory exists but is not writable' ),
 				'temp-backup'
@@ -2024,8 +2024,8 @@ class WP_Site_Health {
 		}
 
 		if ( ( ! $plugins_dir_exists || ! $themes_dir_exists ) && $backup_dir_exists && ! $backup_dir_is_writable ) {
-			$result['status']      = 'critical';
-			$result['label']       = sprintf(
+			$result['status'] = 'critical';
+			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'The %s directory exists but is not writable' ),
 				'temp-backup'
@@ -2039,8 +2039,8 @@ class WP_Site_Health {
 		}
 
 		if ( ! $backup_dir_exists && $upgrade_dir_exists && ! $upgrade_dir_is_writable ) {
-			$result['status']      = 'critical';
-			$result['label']       = sprintf(
+			$result['status'] = 'critical';
+			$result['label']  = sprintf(
 				/* translators: %s: upgrade */
 				__( 'The %s directory exists but is not writable' ),
 				'upgrade'
@@ -2054,8 +2054,8 @@ class WP_Site_Health {
 		}
 
 		if ( ! $upgrade_dir_exists && ! $wp_filesystem->is_writable( $wp_content ) ) {
-			$result['status']      = 'critical';
-			$result['label']       = sprintf(
+			$result['status'] = 'critical';
+			$result['label']  = sprintf(
 				/* translators: %s: upgrade */
 				__( 'The %s directory cannot be created' ),
 				'upgrade'
@@ -2767,7 +2767,7 @@ class WP_Site_Health {
 	 *
 	 * @return object The test results.
 	 */
-	function detect_plugin_theme_auto_update_issues() {
+	public function detect_plugin_theme_auto_update_issues() {
 		$mock_plugin = (object) array(
 			'id'            => 'w.org/plugins/a-fake-plugin',
 			'slug'          => 'a-fake-plugin',
@@ -2850,7 +2850,7 @@ class WP_Site_Health {
 	 *
 	 * @return object The test results.
 	 */
-	function can_perform_loopback() {
+	public function can_perform_loopback() {
 		$body    = array( 'site-health' => 'loopback-test' );
 		$cookies = wp_unslash( $_COOKIE );
 		$timeout = 10;

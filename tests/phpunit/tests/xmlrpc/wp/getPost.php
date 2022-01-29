@@ -9,7 +9,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 	public $post_date_ts;
 	public $post_custom_field;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->post_date_ts            = strtotime( '+1 day' );
@@ -28,13 +28,13 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->post_custom_field['id'] = add_post_meta( $this->post_id, $this->post_custom_field['key'], $this->post_custom_field['value'] );
 	}
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'username', 'password', 1 ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_valid_post() {
+	public function test_valid_post() {
 		add_theme_support( 'post-thumbnails' );
 
 		$fields = array( 'post', 'custom_fields' );
@@ -79,7 +79,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		remove_theme_support( 'post-thumbnails' );
 	}
 
-	function test_no_fields() {
+	public function test_no_fields() {
 		$fields = array();
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, $fields ) );
 		$this->assertNotIXRError( $result );
@@ -89,7 +89,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( array( 'post_id' ), array_keys( $result ) );
 	}
 
-	function test_default_fields() {
+	public function test_default_fields() {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id ) );
 		$this->assertNotIXRError( $result );
 
@@ -99,7 +99,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertArrayHasKey( 'custom_fields', $result );
 	}
 
-	function test_date() {
+	public function test_date() {
 		$fields = array( 'post' );
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, $fields ) );
 		$this->assertNotIXRError( $result );
@@ -122,7 +122,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 21308
 	 */
-	function test_valid_page() {
+	public function test_valid_page() {
 		$this->make_user_by_role( 'editor' );
 
 		$parent_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
