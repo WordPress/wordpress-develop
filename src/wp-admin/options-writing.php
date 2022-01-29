@@ -173,13 +173,12 @@ if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
 	</th>
 	<td>
 		<input class="hidden" value=" " /><!-- #24364 workaround -->
-		<span class="password-input-wrapper">
+		<span class="wp-pwd">
 			<input type="text" name="mailserver_pass" id="mailserver_pass" class="regular-text" autocomplete="off" data-reveal="1" data-pw="<?php echo esc_attr( get_option( 'mailserver_pass' ) ); ?>" />
+			<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+				<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+			</button>
 		</span>
-		<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
-			<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
-			<span class="text"><?php _e( 'Show' ); ?></span>
-		</button>
 	</td>
 </tr>
 <tr>
