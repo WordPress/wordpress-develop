@@ -1282,7 +1282,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		// These results should now reflect the results for draft posts, as set by the filter
-		$this->assertStringContainsString( 'SELECT FOUND_ROWS()', $q->request_count );
+		$this->assertStringContainsString( 'SELECT FOUND_ROWS()', $q->count_request );
 		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
 		$this->assertSame( 10, $q->found_posts, self::get_count_message( $q ) );
 		$this->assertEquals( 5, $q->max_num_pages, self::get_count_message( $q ) );
@@ -1306,7 +1306,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		return sprintf(
 			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
 			$query->request,
-			$query->request_count
+			$query->count_request
 		);
 	}
 

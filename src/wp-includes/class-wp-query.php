@@ -89,7 +89,7 @@ class WP_Query implements JsonSerializable, Serializable {
 	 * @since xxx
 	 * @var string
 	 */
-	public $request_count;
+	public $count_request;
 
 	/**
 	 * Array of post objects or post IDs.
@@ -3026,7 +3026,7 @@ class WP_Query implements JsonSerializable, Serializable {
 
 		$old_request   = "SELECT $distinct $fields FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits";
 		$this->request = $old_request;
-		$this->request_count = "SELECT COUNT($distinct {$wpdb->posts}.ID) FROM {$wpdb->posts} $join WHERE 1=1 $where";
+		$this->count_request = "SELECT COUNT($distinct {$wpdb->posts}.ID) FROM {$wpdb->posts} $join WHERE 1=1 $where";
 
 		if ( ! $q['suppress_filters'] ) {
 			/**
@@ -3044,7 +3044,7 @@ class WP_Query implements JsonSerializable, Serializable {
 				_deprecated_argument( 'The posts_request filter', 'x.x.x', '...' );
 
 				$this->use_calc_found_rows = true;
-				$this->request_count       = 'SELECT FOUND_ROWS()';
+				$this->count_request       = 'SELECT FOUND_ROWS()';
 			}
 		}
 
@@ -3374,7 +3374,7 @@ class WP_Query implements JsonSerializable, Serializable {
 			 * @param string   $found_posts_query The query to run to find the found posts.
 			 * @param WP_Query $query             The WP_Query instance (passed by reference).
 			 */
-			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( $this->request_count, &$this ) );
+			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( $this->count_request, &$this ) );
 
 			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
 		} else {
