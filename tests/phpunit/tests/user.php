@@ -1001,6 +1001,24 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44107
+	 */
+	public function test_wp_insert_user_should_reject_user_url_over_100_characters() {
+		$user_url = str_repeat( 'a', 101 );
+		$u        = wp_insert_user(
+			array(
+				'user_login' => 'test',
+				'user_email' => 'test@example.com',
+				'user_pass'  => 'password',
+				'user_url'   => $user_url,
+			)
+		);
+
+		$this->assertWPError( $u );
+		$this->assertSame( 'user_url_too_long', $u->get_error_code() );
+	}
+
+	/**
 	 * @ticket 28004
 	 */
 	public function test_wp_insert_user_with_invalid_user_id() {
