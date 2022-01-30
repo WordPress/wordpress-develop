@@ -1305,8 +1305,22 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	protected static function get_count_message( WP_Query $query ) {
 		return sprintf(
 			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
-			$query->request,
-			$query->count_request
+			self::format_sql( $query->request ),
+			self::format_sql( $query->count_request )
+		);
+	}
+
+	/**
+	 * Applies some basic formatting to an SQL query to make it more readable during a test failure.
+	 *
+	 * @param string $sql
+	 * @return string
+	 */
+	protected static function format_sql( $sql ) {
+		return preg_replace(
+			'# (FROM|INNER JOIN|LEFT JOIN|ON|WHERE|AND|GROUP BY|ORDER BY|LIMIT) #',
+			"\n\$1 ",
+			$sql
 		);
 	}
 
