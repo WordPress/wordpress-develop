@@ -239,13 +239,13 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 		 * @param int $num Number to get plural form for.
 		 * @return int Plural form value.
 		 */
-		public function get( $num ) {
-			if ( isset( $this->cache[ $num ] ) ) {
-				return $this->cache[ $num ];
-			}
-			$this->cache[ $num ] = $this->execute( $num );
-			return $this->cache[ $num ];
-		}
+                public function get( $num ) {
+                        if ( isset( $this->cache[ (int) $num ] ) ) {
+                                return $this->cache[ $num ];
+                        }
+                        $this->cache[ (int) $num ] = $this->execute( (int) $num );
+                        return $this->cache[ (int) $num ];
+                }
 
 		/**
 		 * Execute the plural form function.
