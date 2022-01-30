@@ -1171,7 +1171,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$term = self::factory()->term->create_and_get(
 			array(
 				'taxonomy' => $taxonomy,
-			),
+			)
 		);
 		self::factory()->post->create_many( 5 );
 		$ids = self::factory()->post->create_many( 5 );
