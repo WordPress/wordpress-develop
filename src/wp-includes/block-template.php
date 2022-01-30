@@ -46,6 +46,10 @@ function _add_template_loader_filters() {
  * @return string The path to the Full Site Editing template canvas file, or the fallback PHP template.
  */
 function locate_block_template( $template, $type, array $templates ) {
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return $template;
+	}
+
 	global $_wp_current_template_content;
 
 	if ( $template ) {
