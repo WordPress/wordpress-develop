@@ -1154,6 +1154,48 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A query for the following triggers an additional LEFT JOIN on `wp_posts`:
+	 *
+	 *  - Custom taxonomy query
+	 *  - `post_status` specified
+	 *  - `post_type` not specified
+	 *
+	 * @ticket 47280
+	 * @dataProvider dataFields
+	 *
+	 * @param string $fields
+	 */
+	public function test_found_posts_are_correct_for_query_that_performs_post_status_join( $fields ) {
+		$taxonomy = 'post_status_join_tax';
+		register_taxonomy( $taxonomy, 'post' );
+		$term = self::factory()->term->create_and_get(
+			array(
+				'taxonomy' => $taxonomy,
+			),
+		);
+		self::factory()->post->create_many( 5 );
+		$ids = self::factory()->post->create_many( 5 );
+
+		foreach ( $ids as $id ) {
+			wp_set_post_terms( $id, $term->slug, $taxonomy );
+		}
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'taxonomy'       => $taxonomy,
+				'term'           => $term->slug,
+				'post_status'    => 'publish',
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
 	 * @ticket 47280
 	 * @dataProvider dataFields
 	 *
