@@ -1410,7 +1410,7 @@ module.exports = function(grunt) {
 				grunt.file.write(
 					SOURCE_DIR + 'wp-includes/blocks/' + subdir + '/block-json.php',
 					'<?php return ' + json2php( JSON.parse( grunt.file.read( abspath ) ) ) + ';'
-				)
+				);
 			}
 		} );
 	} );
