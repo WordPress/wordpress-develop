@@ -32,8 +32,9 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		 * Translations can be filed in the /languages/ directory.
 		 * If you're building a theme based on Twenty Twenty-One, use a find and replace
 		 * to change 'twentytwentyone' to the name of your theme in all the template files.
+		 * @link https://developer.wordpress.org/themes/functionality/internationalization/
 		 */
-		load_theme_textdomain( 'twentytwentyone', get_template_directory() . '/languages' );
+		load_theme_textdomain( 'twentytwentyone' );
 
 		// Add default posts and comments RSS feed links to head.
 		add_theme_support( 'automatic-feed-links' );
