@@ -81,9 +81,13 @@ $table_prefix = 'wp_';
  */
 define( 'WP_DEBUG', false );
 
+/**
+ * AJAX_DEBUG = true will added action as url parameter debug=AJAX_ACTION
+ * This will help developers to filter out the ajax requests from Browser Developer Tools Network tab,
+ * without having to click every ajax request to check what it is for.
+ */
+define( 'AJAX_DEBUG', false );
 /* Add any custom values between this line and the "stop editing" line. */
-
-
 
 /* That's all, stop editing! Happy publishing. */
 
