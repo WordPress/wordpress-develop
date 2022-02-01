@@ -1,0 +1,72 @@
+/**
+ * External dependencies
+ */
+const postcss = require( 'postcss' );
+const { join } = require( 'path' );
+
+const baseDir = join( __dirname, '../../' );
+
+const baseConfig = ( env ) => {
+	const mode = env.environment;
+
+	const config = {
+		target: 'browserslist',
+		mode,
+		optimization: {
+			moduleIds: mode === 'production' ? 'deterministic' : 'named',
+		},
+		module: {
+			rules: [
+				{
+					test: /\.js$/,
+					use: [ 'source-map-loader' ],
+					enforce: 'pre',
+				},
+			],
+		},
+		resolve: {
+			modules: [
+				baseDir,
+				'node_modules',
+			],
+			alias: {
+				'lodash-es': 'lodash',
+			},
+		},
+		stats: {
+			children: false,
+		},
+		watch: env.watch,
+	};
+
+	if ( mode === 'development' && env.buildTarget === 'build/' ) {
+		config.mode = 'production';
+		config.optimization = {
+			minimize: false,
+			moduleIds: 'deterministic',
+		};
+	} else if ( mode !== 'production' ) {
+		config.devtool = process.env.SOURCEMAP || 'source-map';
+	}
+
+	return config;
+};
+
+const stylesTransform = ( mode ) => ( content ) => {
+	if ( mode === 'production' ) {
+		return postcss( [
+			require( 'cssnano' )( {
+				preset: 'default',
+			} ),
+		] )
+			.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
+			.then( ( result ) => result.css );
+	}
+	return content;
+};
+
+module.exports = {
+	baseDir,
+	baseConfig,
+	stylesTransform,
+};
