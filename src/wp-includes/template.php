@@ -63,7 +63,7 @@ function get_query_template( $type, $templates = array() ) {
 
 	$template = locate_template( $templates );
 
-	if ( wp_is_block_theme() ) {
+	if ( get_theme_support( 'block-templates' ) || wp_is_block_theme() ) {
 		$template = locate_block_template( $template, $type, $templates );
 	}
 
