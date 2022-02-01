@@ -1405,14 +1405,16 @@ module.exports = function(grunt) {
 	} );
 
 	grunt.registerTask( 'blockJson2PHP', 'Copies block.json file contents to block-json.php.', function() {
+		var blocks = {};
 		grunt.file.recurse( SOURCE_DIR + 'wp-includes/blocks', function( abspath, rootdir, subdir, filename ) {
 			if ( /^block\.json$/.test( filename ) ) {
-				grunt.file.write(
-					SOURCE_DIR + 'wp-includes/blocks/' + subdir + '/block-json.php',
-					'<?php return ' + json2php( JSON.parse( grunt.file.read( abspath ) ) ) + ';'
-				);
+				blocks[ subdir ] = grunt.file.readJSON( abspath );
 			}
 		} );
+		grunt.file.write(
+			SOURCE_DIR + 'wp-includes/blocks/blocks-json.php',
+			'<?php return ' + json2php( blocks ) + ';'
+		);
 	} );
 
 	grunt.registerTask( 'copy:js', [
