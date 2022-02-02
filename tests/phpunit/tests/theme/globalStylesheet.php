@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @group classicthemes
+ * @group themes
  */
 class Tests_Global_Stylesheet extends WP_UnitTestCase {
 
