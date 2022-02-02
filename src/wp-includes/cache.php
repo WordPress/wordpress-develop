@@ -132,33 +132,6 @@ function wp_cache_flush_group( $group ) {
 	return false;
 }
 
-
-/**
- * stores the mapping of linked cache groups
- *
- * @since 6.0.0
- *
- * @return array keyed by group, value is array of linked groups
- */
-function wp_cache_get_linked_meta() {
-
-	/**
-	 * some the cache groups are linked, so we need to flush them both if one is called
-	 * this is the mapping for these groups
-	 *
-	 * @since 6.0.0
-	 *
-	 * @param array array of linked cache groups that need to delete as a set.
-	 */
-	return apply_filters(
-		'wp_cache_get_linked_meta',
-		array(
-			'users'     => array( 'user_meta' ),
-			'user_meta' => array( 'users' ),
-		)
-	);
-}
-
 /**
  * Retrieves the cache contents from the cache by key and group.
  *
