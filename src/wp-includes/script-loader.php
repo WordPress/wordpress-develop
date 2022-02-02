@@ -1221,11 +1221,11 @@ function wp_default_scripts( $scripts ) {
 			'publishSettings'         => __( 'Publish Settings' ),
 			'invalidDate'             => __( 'Invalid date.' ),
 			'invalidValue'            => __( 'Invalid value.' ),
-			'blockThemeNotification'  => wp_is_block_theme() ? sprintf(
-				__( 'To get the best customization experience from your block theme, use the <a href="%s">new Site Editor</a>.' ),
+			'blockThemeNotification'  => sprintf(
 				/* translators: %s: URL to the Site Editor admin screen. */
+				__( 'To get the best customization experience from your block theme, use the <a href="%s">new Site Editor</a>.' ),
 				esc_url( admin_url( 'site-editor.php' ) )
-			) : '',
+			),
 		)
 	);
 	$scripts->add( 'customize-selective-refresh', "/wp-includes/js/customize-selective-refresh$suffix.js", array( 'jquery', 'wp-util', 'customize-preview' ), false, 1 );

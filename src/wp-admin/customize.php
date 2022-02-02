@@ -222,7 +222,7 @@ do_action( 'customize_controls_head' );
 				<ul></ul>
 			</div>
 			<div class="wp-full-overlay-sidebar-content" tabindex="-1">
-				<div id="customize-info" class="accordion-section customize-info">
+				<div id="customize-info" class="accordion-section customize-info" data-block-theme="<?php echo (int) wp_is_block_theme(); ?>">
 					<div class="accordion-section-title">
 						<span class="preview-notice">
 						<?php
