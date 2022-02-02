@@ -6,7 +6,7 @@ import {
 
 describe('media', () => {
     try {
-        it('filter media by type', async() => {
+        it('filter media by date', async() => {
             await loginUser();
             await visitAdminPage('upload.php');
             await page.waitForSelector('#filter-by-date', { timeout: 0 }, { visible: true });
