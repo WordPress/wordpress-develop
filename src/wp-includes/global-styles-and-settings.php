@@ -109,10 +109,11 @@ function wp_get_global_stylesheet( $types = array() ) {
 	if ( empty( $types ) && ! $supports_theme_json ) {
 		$types = array( 'variables', 'presets' );
 	} elseif ( empty( $types ) ) {
-		$types = array( 'variables', 'presets', 'styles' );
+		$types = array( 'variables', 'styles', 'presets' );
 	}
 
-	// The variables are always enqueued for all origins (default, theme, user).
+	// If variables are part of the stylesheet,
+	// we add them for all origins (default, theme, user).
 	// This is so themes without a theme.json still work as before 5.9:
 	// they can override the default presets.
 	// See https://core.trac.wordpress.org/ticket/54782
