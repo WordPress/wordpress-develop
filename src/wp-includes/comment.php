@@ -2968,9 +2968,11 @@ function generic_ping( $post_id = 0 ) {
  *
  * @since 0.71
  * @since 4.7.0 `$post_id` can be a WP_Post object.
+ * @since 6.0 Returns an array of pingback statuses indexed by link.
  *
  * @param string      $content Post content to check for links. If empty will retrieve from post.
  * @param int|WP_Post $post_id Post Object or ID.
+ * @return bool[]     An array of pingback statuses indexed by link.
  */
 function pingback( $content, $post_id ) {
 	include_once ABSPATH . WPINC . '/class-IXR.php';
@@ -3036,6 +3038,8 @@ function pingback( $content, $post_id ) {
 	 */
 	do_action_ref_array( 'pre_ping', array( &$post_links, &$pung, $post->ID ) );
 
+	$ping_status = array();
+
 	foreach ( (array) $post_links as $pagelinkedto ) {
 		$pingback_server_url = discover_pingback_server_uri( $pagelinkedto );
 
@@ -3063,11 +3067,17 @@ function pingback( $content, $post_id ) {
 			// When set to true, this outputs debug messages by itself.
 			$client->debug = false;
 
-			if ( $client->query( 'pingback.ping', $pagelinkedfrom, $pagelinkedto ) || ( isset( $client->error->code ) && 48 == $client->error->code ) ) { // Already registered.
+			$status = $client->query( 'pingback.ping', $pagelinkedfrom, $pagelinkedto );
+			if ( $status // Ping registered.
+				|| ( isset( $client->error->code ) && 48 === $client->error->code ) // Already registered.
+			) {
 				add_ping( $post, $pagelinkedto );
 			}
+			$ping_status[ $pagelinkedto ] = $status;
 		}
 	}
+
+	return $ping_status;
 }
 
 /**
