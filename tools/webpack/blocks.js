@@ -124,7 +124,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const blockStylesheetCopies = blockFolders.map( ( blockName ) => ( {
 		from: join( baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
-		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/[name]${suffix}.css` ),
+		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/[name]${ suffix }.css` ),
 		transform: stylesTransform( mode ),
 		noErrorOnMissing: true,
 	} ) );

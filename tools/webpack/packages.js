@@ -116,7 +116,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	let cssCopies = packages.map( ( packageName ) => ( {
 		from: join( baseDir, `node_modules/@wordpress/${ packageName }/build-style/*.css` ),
-		to: join( baseDir, `${ buildTarget }/css/dist/${ packageName }/[name]${suffix}.css` ),
+		to: join( baseDir, `${ buildTarget }/css/dist/${ packageName }/[name]${ suffix }.css` ),
 		transform: stylesTransform( mode ),
 		noErrorOnMissing: true,
 	} ) );
