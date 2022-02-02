@@ -8424,7 +8424,7 @@
 			if ( api.settings.changeset.latestAutoDraftUuid || api.settings.changeset.hasAutosaveRevision ) {
 				addAutosaveRestoreNotification();
 			}
-			var shouldDisplayBlockThemeNotification = !! parseInt( $( '#customize-info' ).data( 'block-theme' ) );
+			var shouldDisplayBlockThemeNotification = !! parseInt( $( '#customize-info' ).data( 'block-theme' ), 10 );
 			if (shouldDisplayBlockThemeNotification) {
 				addSiteEditorNotification( api.l10n.blockThemeNotification );
 			}
