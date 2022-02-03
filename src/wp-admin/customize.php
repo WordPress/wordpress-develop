@@ -235,7 +235,7 @@ do_action( 'customize_controls_head' );
 					<div class="customize-panel-description">
 						<p>
 							<?php
-							_e( 'The Customizer allows you to preview changes to your site before publishing them. You can navigate to different pages on your site within the preview. Edit shortcuts are shown for some editable elements.' );
+							_e( 'The Customizer allows you to preview changes to your site before publishing them. You can navigate to different pages on your site within the preview. Edit shortcuts are shown for some editable elements. The Customizer is intended for use with non-block themes.' );
 							?>
 						</p>
 						<p>
