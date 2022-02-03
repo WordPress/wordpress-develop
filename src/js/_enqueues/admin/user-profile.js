@@ -177,6 +177,8 @@
 			$submitButtons.prop( 'disabled', ! $weakCheckbox.prop( 'checked' ) );
 		} );
 
+		bindToggleButton();
+
 		$pass1 = $('#pass1');
 		if ( $pass1.length ) {
 			bindPass1();
@@ -208,8 +210,6 @@
 
 		$passwordWrapper = $pass1Row.find( '.wp-pwd' );
 		$generateButton  = $pass1Row.find( 'button.wp-generate-pw' );
-
-		bindToggleButton();
 
 		$generateButton.show();
 		$generateButton.on( 'click', function () {
