@@ -3,7 +3,7 @@
 /**
  * @group themes
  */
-class Tests_Global_Stylesheet extends WP_UnitTestCase {
+class Tests_Theme_GlobalStylesheet extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
