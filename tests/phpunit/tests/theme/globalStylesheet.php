@@ -10,10 +10,10 @@ class Tests_Global_Stylesheet extends WP_UnitTestCase {
 
 		$styles = wp_get_global_stylesheet( array( 'variables' ) );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--small: 13px' ), 'small font size is 13px' );
-		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is 20px');
-		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 36px' ), 'large font size is 36px');
-		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is 42px');
-		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--custom: 100px;' ), 'custom font size is 100px');
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is 20px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 36px' ), 'large font size is 36px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is 42px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--custom: 100px;' ), 'custom font size is 100px' );
 
 		switch_theme( WP_DEFAULT_THEME );
 	}
@@ -36,10 +36,10 @@ class Tests_Global_Stylesheet extends WP_UnitTestCase {
 
 		$styles = wp_get_global_stylesheet();
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--small: 13px' ), 'small font size is 13px' );
-		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is 20px');
-		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 36px' ), 'large font size is 36px');
-		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is 42px');
-		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--custom: 100px;' ), 'custom font size is 100px');
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is 20px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 36px' ), 'large font size is 36px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is 42px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--custom: 100px;' ), 'custom font size is 100px' );
 
 		switch_theme( WP_DEFAULT_THEME );
 	}
