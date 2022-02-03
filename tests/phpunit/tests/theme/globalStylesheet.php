@@ -84,10 +84,10 @@ class Tests_Global_Stylesheet extends WP_UnitTestCase {
 		switch_theme( 'classic-with-presets' );
 
 		$styles = wp_get_global_stylesheet( array( 'variables' ) );
-		$this->assertTrue( str_contains( $styles, "--wp--preset--font-size--small: 18px" ), 'small font size is 18px' );
-		$this->assertTrue( str_contains( $styles, "--wp--preset--font-size--medium: 20px" ), 'medium font size is 20px' );
-		$this->assertTrue( str_contains( $styles, "--wp--preset--font-size--large: 26.25px" ), 'large font size is 26.25px' );
-		$this->assertTrue( str_contains( $styles, "--wp--preset--font-size--x-large: 42px" ), 'x-large font size is 42px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--small: 18px' ), 'small font size is 18px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is 20px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 26.25px' ), 'large font size is 26.25px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is 42px' );
 
 		switch_theme( WP_DEFAULT_THEME );
 	}
@@ -96,10 +96,10 @@ class Tests_Global_Stylesheet extends WP_UnitTestCase {
 		switch_theme( 'classic-with-presets' );
 
 		$styles = wp_get_global_stylesheet( array( 'presets' ) );
-		$this->assertFalse( str_contains( $styles, "--wp--preset--font-size--small: 18px" ), 'small font size is not present' );
-		$this->assertFalse( str_contains( $styles, "--wp--preset--font-size--medium: 20px" ), 'medium font size is not present' );
-		$this->assertFalse( str_contains( $styles, "--wp--preset--font-size--large: 26.25px" ), 'large font size is not present' );
-		$this->assertFalse( str_contains( $styles, "--wp--preset--font-size--x-large: 42px" ), 'x-large font size is not present' );
+		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--small: 18px' ), 'small font size is not present' );
+		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is not present' );
+		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--large: 26.25px' ), 'large font size is not present' );
+		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is not present' );
 
 		switch_theme( WP_DEFAULT_THEME );
 	}
@@ -108,10 +108,10 @@ class Tests_Global_Stylesheet extends WP_UnitTestCase {
 		switch_theme( 'classic-with-presets' );
 
 		$styles = wp_get_global_stylesheet();
-		$this->assertTrue( str_contains( $styles, "--wp--preset--font-size--small: 18px" ), 'small font size is 18px' );
-		$this->assertTrue( str_contains( $styles, "--wp--preset--font-size--medium: 20px" ), 'medium font size is 20px' );
-		$this->assertTrue( str_contains( $styles, "--wp--preset--font-size--large: 26.25px" ), 'large font size is 26.25px' );
-		$this->assertTrue( str_contains( $styles, "--wp--preset--font-size--x-large: 42px" ), 'small font size is 42px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--small: 18px' ), 'small font size is 18px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is 20px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 26.25px' ), 'large font size is 26.25px' );
+		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'small font size is 42px' );
 
 		switch_theme( WP_DEFAULT_THEME );
 	}
