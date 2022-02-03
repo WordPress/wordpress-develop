@@ -146,7 +146,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
 }
 
 /**
- * Tidies a filename for url display by the theme editor.
+ * Tidies a filename for url display by the theme file editor.
  *
  * @since 2.9.0
  * @access private
@@ -521,7 +521,7 @@ function themes_api( $action, $args = array() ) {
 	/**
 	 * Filters whether to override the WordPress.org Themes API.
 	 *
-	 * Passing a non-false value will effectively short-circuit the WordPress.org API request.
+	 * Returning a non-false value will effectively short-circuit the WordPress.org API request.
 	 *
 	 * If `$action` is 'query_themes', 'theme_information', or 'feature_list', an object MUST
 	 * be passed. If `$action` is 'hot_tags', an array should be passed.
@@ -653,7 +653,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 	 *
 	 * @param array           $prepared_themes An associative array of theme data. Default empty array.
 	 * @param WP_Theme[]|null $themes          An array of theme objects to prepare, if any.
-	 * @param string          $current_theme   The current theme slug.
+	 * @param string          $current_theme   The active theme slug.
 	 */
 	$prepared_themes = (array) apply_filters( 'pre_prepare_themes_for_js', array(), $themes, $current_theme );
 
@@ -661,7 +661,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		return $prepared_themes;
 	}
 
-	// Make sure the current theme is listed first.
+	// Make sure the active theme is listed first.
 	$prepared_themes[ $current_theme ] = array();
 
 	if ( null === $themes ) {
@@ -831,7 +831,7 @@ function customize_themes_print_templates() {
 
 				<div class="theme-info">
 					<# if ( data.active ) { #>
-						<span class="current-label"><?php _e( 'Current Theme' ); ?></span>
+						<span class="current-label"><?php _e( 'Active Theme' ); ?></span>
 					<# } #>
 					<h2 class="theme-name">{{{ data.name }}}<span class="theme-version">
 						<?php

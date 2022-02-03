@@ -98,23 +98,23 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey(
-			'/wp/v2/global-styles/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)',
+			'/wp/v2/global-styles/(?P<id>[\/\w-]+)',
 			$routes,
 			'Single global style based on the given ID route does not exist'
 		);
 		$this->assertCount(
 			2,
-			$routes['/wp/v2/global-styles/(?P<id>[\/\s%\w\.\(\)\[\]\@_\-]+)'],
+			$routes['/wp/v2/global-styles/(?P<id>[\/\w-]+)'],
 			'Single global style based on the given ID route does not have exactly two elements'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)',
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 			$routes,
 			'Theme global styles route does not exist'
 		);
 		$this->assertCount(
 			1,
-			$routes['/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)'],
+			$routes['/wp/v2/global-styles/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)'],
 			'Theme global styles route does not have exactly one element'
 		);
 	}
@@ -164,14 +164,17 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 * @dataProvider data_get_theme_item_invalid_theme_dirname
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54596
+	 *
+	 * @param string $theme_dirname Theme directory to test.
+	 * @param string $expected      Expected error code.
 	 */
-	public function test_get_theme_item_invalid_theme_dirname( $theme_dirname ) {
+	public function test_get_theme_item_invalid_theme_dirname( $theme_dirname, $expected ) {
 		wp_set_current_user( self::$admin_id );
 		switch_theme( $theme_dirname );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/' . $theme_dirname );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		$this->assertErrorResponse( $expected, $response, 404 );
 	}
 
 	/**
@@ -181,12 +184,39 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 */
 	public function data_get_theme_item_invalid_theme_dirname() {
 		return array(
-			'with |'                 => array( 'my|theme' ),
-			'with +'                 => array( 'my+theme' ),
-			'with {}'                => array( 'my{theme}' ),
-			'with #'                 => array( 'my#theme' ),
-			'with !'                 => array( 'my!theme' ),
-			'multiple invalid chars' => array( 'mytheme-[_(+@)]#! v4.0' ),
+			'+'                      => array(
+				'theme_dirname' => 'my+theme+',
+				'expected'      => 'rest_theme_not_found',
+			),
+			':'                      => array(
+				'theme_dirname' => 'my:theme:',
+				'expected'      => 'rest_no_route',
+			),
+			'<>'                     => array(
+				'theme_dirname' => 'my<theme>',
+				'expected'      => 'rest_no_route',
+			),
+			'*'                      => array(
+				'theme_dirname' => 'my*theme*',
+				'expected'      => 'rest_no_route',
+			),
+			'?'                      => array(
+				'theme_dirname' => 'my?theme?',
+				'expected'      => 'rest_no_route',
+			),
+			'"'                      => array(
+				'theme_dirname' => 'my"theme?"',
+				'expected'      => 'rest_no_route',
+			),
+			'| (invalid on Windows)' => array(
+				'theme_dirname' => 'my|theme|',
+				'expected'      => 'rest_no_route',
+			),
+			// Themes deep in subdirectories.
+			'2 subdirectories deep'  => array(
+				'theme_dirname' => 'subdir/subsubdir/mytheme',
+				'expected'      => 'rest_global_styles_not_found',
+			),
 		);
 	}
 
@@ -194,6 +224,8 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 * @dataProvider data_get_theme_item
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54596
+	 *
+	 * @param string $theme Theme directory to test.
 	 */
 	public function test_get_theme_item( $theme ) {
 		wp_set_current_user( self::$admin_id );
@@ -216,18 +248,34 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 */
 	public function data_get_theme_item() {
 		return array(
-			'alphabetic chars'   => array( 'mytheme' ),
-			'alphanumeric chars' => array( 'mythemev1' ),
-			'space'              => array( 'my theme' ),
-			'-'                  => array( 'my-theme' ),
-			'_'                  => array( 'my_theme' ),
-			'.'                  => array( 'mytheme0.1' ),
-			'- and .'            => array( 'my-theme-0.1' ),
-			'space and .'        => array( 'mytheme v0.1' ),
-			'space, -, _, .'     => array( 'my-theme-v0.1' ),
-			'[]'                 => array( 'my[theme]' ),
-			'()'                 => array( 'my(theme)' ),
-			'@'                  => array( 'my@theme' ),
+			'alphabetic'                     => array( 'mytheme' ),
+			'alphanumeric'                   => array( 'mythemev1' ),
+			'àáâãäåæç'                       => array( 'àáâãäåæç' ),
+			'space'                          => array( 'my theme' ),
+			'-_.'                            => array( 'my_theme-0.1' ),
+			'[]'                             => array( 'my[theme]' ),
+			'()'                             => array( 'my(theme)' ),
+			'{}'                             => array( 'my{theme}' ),
+			'&=#@!$,^~%'                     => array( 'theme &=#@!$,^~%' ),
+			'all combined'                   => array( 'thémé {}&=@!$,^~%[0.1](-_-)' ),
+
+			// Themes in a subdirectory.
+			'subdir: alphabetic'             => array( 'subdir/mytheme' ),
+			'subdir: alphanumeric in theme'  => array( 'subdir/mythemev1' ),
+			'subdir: alphanumeric in subdir' => array( 'subdirv1/mytheme' ),
+			'subdir: alphanumeric in both'   => array( 'subdirv1/mythemev1' ),
+			'subdir: àáâãäåæç in theme'      => array( 'subdir/àáâãäåæç' ),
+			'subdir: àáâãäåæç in subdir'     => array( 'àáâãäåæç/mythemev1' ),
+			'subdir: àáâãäåæç in both'       => array( 'àáâãäåæç/àáâãäåæç' ),
+			'subdir: space in theme'         => array( 'subdir/my theme' ),
+			'subdir: space in subdir'        => array( 'sub dir/mytheme' ),
+			'subdir: space in both'          => array( 'sub dir/my theme' ),
+			'subdir: -_. in theme'           => array( 'subdir/my_theme-0.1' ),
+			'subdir: -_. in subdir'          => array( 'sub_dir-0.1/mytheme' ),
+			'subdir: -_. in both'            => array( 'sub_dir-0.1/my_theme-0.1' ),
+			'subdir: all combined in theme'  => array( 'subdir/thémé {}&=@!$,^~%[0.1](-_-)' ),
+			'subdir: all combined in subdir' => array( 'sűbdīr {}&=@!$,^~%[0.1](-_-)/mytheme' ),
+			'subdir: all combined in both'   => array( 'sűbdīr {}&=@!$,^~%[0.1](-_-)/thémé {}&=@!$,^~%[0.1](-_-)' ),
 		);
 	}
 

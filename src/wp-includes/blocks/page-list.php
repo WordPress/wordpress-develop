@@ -119,7 +119,7 @@ function block_core_page_list_build_css_font_sizes( $context ) {
 		$font_sizes['css_classes'][] = sprintf( 'has-%s-font-size', $context['fontSize'] );
 	} elseif ( $has_custom_font_size ) {
 		// Add the custom font size inline style.
-		$font_sizes['inline_styles'] = sprintf( 'font-size: %spx;', $context['style']['typography']['fontSize'] );
+		$font_sizes['inline_styles'] = sprintf( 'font-size: %s;', $context['style']['typography']['fontSize'] );
 	}
 
 	return $font_sizes;
@@ -177,7 +177,7 @@ function block_core_page_list_render_nested_page_list( $open_submenus_on_click, 
 		$aria_label = sprintf(
 			/* translators: Accessibility text. %s: Parent page title. */
 			__( '%s submenu' ),
-			$title
+			wp_strip_all_tags( $title )
 		);
 
 		$markup .= '<li class="wp-block-pages-list__item' . $css_class . '"' . $style_attribute . '>';

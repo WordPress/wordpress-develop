@@ -1,7 +1,7 @@
 /*
 Theme Name: Twenty Twenty
 Text Domain: twentytwenty
-Version: 1.8
+Version: 1.9
 Tested up to: 5.9
 Requires at least: 4.7
 Requires PHP: 5.2.4
@@ -3547,7 +3547,7 @@ figure.wp-block-table.is-style-stripes {
 /* Font Families ----------------------------- */
 
 .entry-content {
-	font-family: NonBreakingSpaceOverride, "Hoefler Text", Garamond, "Times New Roman", serif;
+	font-family: NonBreakingSpaceOverride, "Hoefler Text", "Noto Serif", Garamond, "Times New Roman", serif;
 	letter-spacing: normal;
 }
 
@@ -4154,7 +4154,7 @@ div.comment:first-of-type {
 .widget_text dl,
 .widget_text dt,
 .widget-content .rssSummary {
-	font-family: NonBreakingSpaceOverride, "Hoefler Text", Garamond, "Times New Roman", serif;
+	font-family: NonBreakingSpaceOverride, "Hoefler Text", "Noto Serif", Garamond, "Times New Roman", serif;
 	letter-spacing: normal;
 }
 
