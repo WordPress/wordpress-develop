@@ -82,43 +82,45 @@ class Tests_Theme_GlobalStylesheet extends WP_UnitTestCase {
 	}
 
 	public function test_variables_in_classic_theme_with_no_presets_using_variables() {
-		switch_theme( 'default' );
-
 		$styles = wp_get_global_stylesheet( array( 'variables' ) );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--small: 13px' ), 'small font size is 13px' );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is 20px' );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 36px' ), 'large font size is 36px' );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is 42px' );
-
-		switch_theme( WP_DEFAULT_THEME );
 	}
 
 	public function test_variables_in_classic_theme_with_no_presets_using_presets() {
-		switch_theme( 'default' );
-
 		$styles = wp_get_global_stylesheet( array( 'presets' ) );
 		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--small: 13px' ), 'small font size is not present' );
 		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is not present' );
 		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--large: 36px' ), 'large font size is not present' );
 		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is not present' );
-
-		switch_theme( WP_DEFAULT_THEME );
 	}
 
 	public function test_variables_in_classic_theme_with_no_presets_using_defaults() {
-		switch_theme( 'default' );
-
 		$styles = wp_get_global_stylesheet();
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--small: 13px' ), 'small font size is 13px' );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ), 'medium font size is 20px' );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 36px' ), 'large font size is 36px' );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is 42px' );
-
-		switch_theme( WP_DEFAULT_THEME );
 	}
 
 	public function test_variables_in_classic_theme_with_presets_using_variables() {
-		switch_theme( 'classic-with-presets' );
+		add_theme_support(
+			'editor-font-sizes',
+			array(
+				array(
+					'name'      => 'Small',
+					'size'      => 18,
+					'slug'      => 'small',
+				),
+				array(
+					'name'      => 'Large',
+					'size'      => 26.25,
+					'slug'      => 'large',
+				),
+			)
+		);
 
 		$styles = wp_get_global_stylesheet( array( 'variables' ) );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--small: 18px' ), 'small font size is 18px' );
@@ -126,11 +128,25 @@ class Tests_Theme_GlobalStylesheet extends WP_UnitTestCase {
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 26.25px' ), 'large font size is 26.25px' );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is 42px' );
 
-		switch_theme( WP_DEFAULT_THEME );
+		remove_theme_support( 'editor-font-sizes' );
 	}
 
 	public function test_variables_in_classic_theme_with_presets_using_presets() {
-		switch_theme( 'classic-with-presets' );
+		add_theme_support(
+			'editor-font-sizes',
+			array(
+				array(
+					'name'      => 'Small',
+					'size'      => 18,
+					'slug'      => 'small',
+				),
+				array(
+					'name'      => 'Large',
+					'size'      => 26.25,
+					'slug'      => 'large',
+				),
+			)
+		);
 
 		$styles = wp_get_global_stylesheet( array( 'presets' ) );
 		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--small: 18px' ), 'small font size is not present' );
@@ -138,14 +154,25 @@ class Tests_Theme_GlobalStylesheet extends WP_UnitTestCase {
 		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--large: 26.25px' ), 'large font size is not present' );
 		$this->assertFalse( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'x-large font size is not present' );
 
-		switch_theme( WP_DEFAULT_THEME );
+		remove_theme_support( 'editor-font-sizes' );
 	}
 
-	/**
-	 * @group my-unit-test
-	 */
 	public function test_variables_in_classic_theme_with_presets_using_defaults() {
-		switch_theme( 'classic-with-presets' );
+		add_theme_support(
+			'editor-font-sizes',
+			array(
+				array(
+					'name'      => 'Small',
+					'size'      => 18,
+					'slug'      => 'small',
+				),
+				array(
+					'name'      => 'Large',
+					'size'      => 26.25,
+					'slug'      => 'large',
+				),
+			)
+		);
 
 		$styles = wp_get_global_stylesheet();
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--small: 18px' ), 'small font size is 18px' );
@@ -153,7 +180,7 @@ class Tests_Theme_GlobalStylesheet extends WP_UnitTestCase {
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 26.25px' ), 'large font size is 26.25px' );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ), 'small font size is 42px' );
 
-		switch_theme( WP_DEFAULT_THEME );
+		remove_theme_support( 'editor-font-sizes' );
 	}
 
 }
