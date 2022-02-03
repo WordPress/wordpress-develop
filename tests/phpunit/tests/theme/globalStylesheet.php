@@ -110,14 +110,14 @@ class Tests_Theme_GlobalStylesheet extends WP_UnitTestCase {
 			'editor-font-sizes',
 			array(
 				array(
-					'name'      => 'Small',
-					'size'      => 18,
-					'slug'      => 'small',
+					'name' => 'Small',
+					'size' => 18,
+					'slug' => 'small',
 				),
 				array(
-					'name'      => 'Large',
-					'size'      => 26.25,
-					'slug'      => 'large',
+					'name' => 'Large',
+					'size' => 26.25,
+					'slug' => 'large',
 				),
 			)
 		);
@@ -136,14 +136,14 @@ class Tests_Theme_GlobalStylesheet extends WP_UnitTestCase {
 			'editor-font-sizes',
 			array(
 				array(
-					'name'      => 'Small',
-					'size'      => 18,
-					'slug'      => 'small',
+					'name' => 'Small',
+					'size' => 18,
+					'slug' => 'small',
 				),
 				array(
-					'name'      => 'Large',
-					'size'      => 26.25,
-					'slug'      => 'large',
+					'name' => 'Large',
+					'size' => 26.25,
+					'slug' => 'large',
 				),
 			)
 		);
@@ -162,14 +162,14 @@ class Tests_Theme_GlobalStylesheet extends WP_UnitTestCase {
 			'editor-font-sizes',
 			array(
 				array(
-					'name'      => 'Small',
-					'size'      => 18,
-					'slug'      => 'small',
+					'name' => 'Small',
+					'size' => 18,
+					'slug' => 'small',
 				),
 				array(
-					'name'      => 'Large',
-					'size'      => 26.25,
-					'slug'      => 'large',
+					'name' => 'Large',
+					'size' => 26.25,
+					'slug' => 'large',
 				),
 			)
 		);
