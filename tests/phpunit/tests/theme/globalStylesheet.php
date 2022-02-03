@@ -28,6 +28,8 @@ class Tests_Global_Stylesheet extends WP_UnitTestCase {
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 36px' ) );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ) );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--custom: 100px;' ) );
+
+		switch_theme( WP_DEFAULT_THEME );
 	}
 
 	public function test_variables_in_classic_theme_with_no_presets() {
@@ -50,6 +52,8 @@ class Tests_Global_Stylesheet extends WP_UnitTestCase {
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--medium: 20px' ) );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--large: 36px' ) );
 		$this->assertTrue( str_contains( $styles, '--wp--preset--font-size--x-large: 42px' ) );
+
+		switch_theme( WP_DEFAULT_THEME );
 	}
 
 	public function test_variables_in_classic_theme_with_presets() {
@@ -74,6 +78,8 @@ class Tests_Global_Stylesheet extends WP_UnitTestCase {
 		// $this->assertTrue( str_contains( $styles, "--wp--preset--font-size--medium: 20px" ) );
 		// $this->assertTrue( str_contains( $styles, "--wp--preset--font-size--large: 26.25px" ) );
 		// $this->assertTrue( str_contains( $styles, "--wp--preset--font-size--x-large: 42px" ) );
+
+		switch_theme( WP_DEFAULT_THEME );
 	}
 
 }
