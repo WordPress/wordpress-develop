@@ -1346,14 +1346,14 @@ class WP_Query {
 
 
 	/**
-	 * Generates SQL for the WHERE clause based on passed search terms.
+	 * Load comments from cache where possible, else make query and cache. 
 	 *
-	 * @since 3.7.0
+	 * @since 6.0.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $comments_request SQL to run.
-	 * @return array Array of comments.
+	 * @param string $comments_request SQL query.
+	 * @return WP_Comment[] Array of `WP_Comment` objects.
 	 */
 	protected function get_comments( $comments_request ) {
 		global $wpdb;
@@ -1364,16 +1364,12 @@ class WP_Query {
 		$cache_key   = "comment_feed:$key:$last_changed";
 		$comment_ids = wp_cache_get( $cache_key, 'comment' );
 		if ( ! $comment_ids ) {
-			$comments = (array) $wpdb->get_results( $comments_request );
-			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
+			$comments    = (array) $wpdb->get_results( $comments_request );
 			$comments    = array_map( 'get_comment', $comments );
 			$comment_ids = wp_list_pluck( $comments, 'comment_ID' );
 			wp_cache_add( $cache_key, $comment_ids, 'comment' );
 		} else {
 			_prime_comment_caches( $comment_ids, false );
-			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
 			$comments = array_map( 'get_comment', $comment_ids );
 		}
 
