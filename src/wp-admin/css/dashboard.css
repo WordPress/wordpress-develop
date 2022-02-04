@@ -110,7 +110,7 @@
 	max-width: 100%;
 }
 
-/* Screen Meta */
+/* Exception for the Dashboard page for when the h1 heading is below the Welcome Panel. */
 .index-php #screen-meta-links {
 	margin: 0 20px 8px 0;
 }
