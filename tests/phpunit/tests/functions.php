@@ -992,6 +992,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			'http://taco.com?burrito=enchilada#guac',
 			'http://example.org/?post_type=post&p=4',
 			'http://example.org/?post_type=post&p=5',
+			'http://example.org/?post_type=post&p=6',
 		);
 
 		$blob = '
@@ -1057,6 +1058,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			http://example.org/?post_type=post&amp;p=4
 			http://example.org/?post_type=post&#038;p=5
+			http://example.org/?post_type=post&p=6
 		';
 
 		$urls = wp_extract_urls( $blob );
