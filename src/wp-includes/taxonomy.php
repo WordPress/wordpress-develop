@@ -3743,13 +3743,16 @@ function update_object_term_cache( $object_ids, $object_type ) {
 		}
 	}
 
-	$data = array();
+	$cache_values = array();
 	foreach ( $object_terms as $id => $value ) {
 		foreach ( $value as $taxonomy => $terms ) {
-			$data[ $id ] = $terms;
+			$cache_values[ $taxonomy ][ $id ] = $terms;
+
 		}
 	}
-	wp_cache_add_multiple( $data, "{$taxonomy}_relationships" );
+	foreach ( $cache_values as $taxonomy => $data ) {
+		wp_cache_add_multiple( $data, "{$taxonomy}_relationships" );
+	}
 }
 
 /**
