@@ -5133,11 +5133,8 @@ function wp_get_webp_info( $filename ) {
 	}
 
 	try {
-		$handle = fopen( $filename, 'rb' );
-		if ( $handle ) {
-			$magic = fread( $handle, 40 );
-			fclose( $handle );
-
+		$magic = file_get_contents( $filename, false, null, 0, 40 );
+		if ( false !== $magic ) {
 			// Make sure we got enough bytes.
 			if ( strlen( $magic ) < 40 ) {
 				return compact( 'width', 'height', 'type' );
