@@ -103,7 +103,6 @@ ul.add-menu-item-tabs li {
 
 #nav-menu-bulk-actions-bottom {
 	margin: 1em 0;
-	margin: calc( 1em + 9px ) 0 ; 
 }
 
 .bulk-actions input.button {
@@ -198,7 +197,6 @@ input.bulk-select-switcher:focus + .bulk-select-button-label{
 
 .menu-settings {
 	border-top: 1px solid #f0f0f1;
-	margin-top: 2em;
 }
 
 .menu-settings-group {
@@ -534,7 +532,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label{
 	clear: both;
 	line-height: 1.5;
 	position: relative;
-	margin: 9px 0 0;
+	margin: 9px 0;
 }
 
 .menu-item-bar .menu-item-handle {
@@ -742,6 +740,14 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 /* Menu editing */
 .menu-instructions-inactive {
 	display: none;
+}
+
+#menu-instructions {
+	padding: 0.1em 0;
+}
+
+#menu-name-desc {
+	padding-bottom: 1.1em;
 }
 
 .menu-item-settings {
