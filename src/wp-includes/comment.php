@@ -3257,7 +3257,7 @@ function update_comment_cache( $comments, $update_meta_cache = true ) {
 	foreach ( (array) $comments as $comment ) {
 		$data[ $comment->comment_ID ] = $comment;
 	}
-	wp_cache_add_multiple( $data, 'networks' );
+	wp_cache_add_multiple( $data, 'comment' );
 
 	if ( $update_meta_cache ) {
 		// Avoid `wp_list_pluck()` in case `$comments` is passed by reference.
