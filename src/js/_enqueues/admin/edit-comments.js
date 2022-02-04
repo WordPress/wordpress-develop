@@ -1033,8 +1033,13 @@ window.commentReply = {
 				window.scroll(0, rtop - 35);
 
 			$('#replycontent').trigger( 'focus' ).on( 'keyup', function(e){
-				if ( e.which == 27 )
-					commentReply.revert(); // Close on Escape.
+				if ( e.which === 27 ) {
+					// Close on Escape.
+					if ( true === window.confirm(  __( 'Are you sure you want to do this?\nThe replay you made will be lost.' ) ) ) {
+						commentReply.revert();
+					}
+				}
+
 			});
 		}, 600);
 
