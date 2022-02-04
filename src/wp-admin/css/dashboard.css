@@ -110,6 +110,12 @@
 	max-width: 100%;
 }
 
+/* Screen Meta */
+
+.index-php #screen-meta-links {
+	margin: 0 20px 8px 0;
+}
+
 /* Welcome Panel */
 .welcome-panel {
 	position: relative;
@@ -120,6 +126,7 @@
 	background-blend-mode: overlay;
 	font-size: 14px;
 	line-height: 1.3;
+	clear: both;
 }
 
 .welcome-panel::before {
