@@ -990,6 +990,8 @@ class Tests_Functions extends WP_UnitTestCase {
 			'ftp://127.0.0.1/',
 			'http://www.woo.com/video?v=exvUH2qKLTU',
 			'http://taco.com?burrito=enchilada#guac',
+			'http://example.org/?post_type=post&p=4',
+			'http://example.org/?post_type=post&p=5',
 		);
 
 		$blob = '
@@ -1052,6 +1054,9 @@ class Tests_Functions extends WP_UnitTestCase {
 			http://www.woo.com/video?v=exvUH2qKLTU
 
 			http://taco.com?burrito=enchilada#guac
+
+			http://example.org/?post_type=post&amp;p=4
+			http://example.org/?post_type=post&#038;p=5
 		';
 
 		$urls = wp_extract_urls( $blob );
