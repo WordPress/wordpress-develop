@@ -104,6 +104,22 @@ function wp_cache_flush() {
 }
 
 /**
+ * Removes all cache items, from the in-memory runtime cache.
+ *
+ * @since 6.0.0
+ *
+ * @see WP_Object_Cache::flush()
+ * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+ *
+ * @return bool False on failure, true on success
+ */
+function wp_cache_flush_runtime() {
+	global $wp_object_cache;
+
+	return $wp_object_cache->flush();
+}
+
+/**
  * Retrieves the cache contents from the cache by key and group.
  *
  * @since 2.0.0
