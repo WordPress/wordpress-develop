@@ -284,6 +284,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 						'group' => '',
 					),
 					'wp_cache_flush'                     => array(),
+					'wp_cache_flush_runtime'             => array(),
 					'wp_cache_get'                       => array(
 						'key',
 						'group' => '',
