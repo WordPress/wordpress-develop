@@ -1842,6 +1842,18 @@ function wp_filter_content_tags( $content, $context = null ) {
 			if ( $add_img_loading_attr && false === strpos( $filtered_image, ' loading=' ) ) {
 				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
 			}
+			/**
+			 * Filters img tag that will be injected into the content.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $filtered_image  the img tag with attributes being created that will
+			 * 									replace the source img tag in the content.
+			 * @param string $context Optional. Additional context to pass to the filters.
+			 *                        Defaults to `current_filter()` when not set.
+			 * @param int    $attachment_id the ID of the image attachment.
+			 */
+			$filtered_image = apply_filters( 'wp_img_tag_add_adjust', $filtered_image, $context, $attachment_id );
 
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
