@@ -5,14 +5,16 @@
 return array(
 	'title'      => __( 'About page links', 'twentytwentytwo' ),
 	'categories' => array( 'pages', 'buttons' ),
-	'content'    => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"10rem","right":"max(1.25rem, 5vw)","bottom":"10rem","left":"max(1.25rem, 5vw)"}}},"layout":{"inherit":false,"contentSize":"400px"}} -->
-					<div class="wp-block-group alignfull" style="padding-top:10rem;padding-right:max(1.25rem, 5vw);padding-bottom:10rem;padding-left:max(1.25rem, 5vw)"><!-- wp:image {"align":"center","width":100,"height":100,"sizeSlug":"full","linkDestination":"none","className":"is-style-rounded"} -->
+	'content'    => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"10rem","bottom":"10rem"}}},"layout":{"inherit":false,"contentSize":"400px"}} -->
+					<div class="wp-block-group alignfull" style="padding-top:10rem;padding-bottom:10rem;"><!-- wp:image {"align":"center","width":100,"height":100,"sizeSlug":"full","linkDestination":"none","className":"is-style-rounded"} -->
 					<div class="wp-block-image is-style-rounded"><figure class="aligncenter size-full is-resized"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/icon-bird.jpg" alt="' . esc_attr__( 'Logo featuring a flying bird', 'twentytwentytwo' ) . '" width="100" height="100"/></figure></div>
 					<!-- /wp:image -->
 
 					<!-- wp:group -->
-					<div class="wp-block-group"><!-- wp:heading {"textAlign":"center","fontSize":"huge"} -->
-					<h2 class="has-text-align-center has-huge-font-size" id="swoop-1">' . esc_html__( 'Swoop', 'twentytwentytwo' ) . '</h2>
+					<div class="wp-block-group">
+
+					<!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"var(--wp--custom--typography--font-size--huge, clamp(2.25rem, 4vw, 2.75rem))"}}} -->
+					<h2 class="has-text-align-center" style="font-size:var(--wp--custom--typography--font-size--huge, clamp(2.25rem, 4vw, 2.75rem))">' . esc_html__( 'Swoop', 'twentytwentytwo' ) . '</h2>
 					<!-- /wp:heading -->
 
 					<!-- wp:paragraph {"align":"center"} -->

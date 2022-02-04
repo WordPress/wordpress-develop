@@ -1024,8 +1024,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$posts = $query->get_posts();
-		$this->assertCount( 0, $posts );
+		$this->assertCount( 0, $query->posts );
 	}
 
 	/**
@@ -1059,8 +1058,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$posts = $query->get_posts();
-		$this->assertCount( 0, $posts );
+		$this->assertCount( 0, $query->posts );
 	}
 
 	public function test_tax_query_include_children() {
