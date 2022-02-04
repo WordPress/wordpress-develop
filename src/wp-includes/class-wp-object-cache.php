@@ -335,7 +335,7 @@ class WP_Object_Cache {
 	public function delete_multiple( $keys, $group = '' ) {
 		$values = array();
 
-		foreach ( $keys as $key ) {
+		foreach ( (array) $keys as $key ) {
 			$values[ $key ] = $this->delete( $key, $group );
 		}
 
@@ -356,7 +356,7 @@ class WP_Object_Cache {
 	public function add_multiple( $data, $group = '', $expire = 0 ) {
 		$values = array();
 
-		foreach ( $data as $key => $value ) {
+		foreach ( (array) $data as $key => $value ) {
 			$values[ $key ] = $this->add( $key, $value, $group, $expire );
 		}
 
@@ -377,7 +377,7 @@ class WP_Object_Cache {
 	public function set_multiple( $data, $group = '', $expire = 0 ) {
 		$values = array();
 
-		foreach ( $data as $key => $value ) {
+		foreach ( (array) $data as $key => $value ) {
 			$values[ $key ] = $this->set( $key, $value, $group, $expire );
 		}
 
