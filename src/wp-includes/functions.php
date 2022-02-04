@@ -3227,12 +3227,7 @@ function wp_get_image_mime( $file ) {
 			return $mime;
 		}
 
-		$handle = fopen( $file, 'rb' );
-		if ( false === $handle ) {
-			return false;
-		}
-
-		$magic = fread( $handle, 12 );
+		$magic = file_get_contents( $file, false, null, 0, 12 );
 		if ( false === $magic ) {
 			return false;
 		}
@@ -3251,8 +3246,6 @@ function wp_get_image_mime( $file ) {
 		) {
 			$mime = 'image/webp';
 		}
-
-		fclose( $handle );
 	} catch ( Exception $e ) {
 		$mime = false;
 	}
