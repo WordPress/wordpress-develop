@@ -3514,10 +3514,8 @@ function clean_object_term_cache( $object_ids, $object_type ) {
 
 	$taxonomies = get_object_taxonomies( $object_type );
 
-	foreach ( $object_ids as $id ) {
-		foreach ( $taxonomies as $taxonomy ) {
-			wp_cache_delete( $id, "{$taxonomy}_relationships" );
-		}
+	foreach ( $taxonomies as $taxonomy ) {
+		wp_cache_delete_multiple( $object_ids, "{$taxonomy}_relationships" );
 	}
 
 	/**
@@ -3567,18 +3565,12 @@ function clean_term_cache( $ids, $taxonomy = '', $clean_taxonomy = true ) {
 		foreach ( (array) $terms as $term ) {
 			$taxonomies[] = $term->taxonomy;
 			$ids[]        = $term->term_id;
-			wp_cache_delete( $term->term_id, 'terms' );
 		}
-
+		wp_cache_delete_multiple( $ids, 'terms' );
 		$taxonomies = array_unique( $taxonomies );
 	} else {
+		wp_cache_delete_multiple( $ids, 'terms' );
 		$taxonomies = array( $taxonomy );
-
-		foreach ( $taxonomies as $taxonomy ) {
-			foreach ( $ids as $id ) {
-				wp_cache_delete( $id, 'terms' );
-			}
-		}
 	}
 
 	foreach ( $taxonomies as $taxonomy ) {
@@ -3751,11 +3743,13 @@ function update_object_term_cache( $object_ids, $object_type ) {
 		}
 	}
 
+	$data = array();
 	foreach ( $object_terms as $id => $value ) {
 		foreach ( $value as $taxonomy => $terms ) {
-			wp_cache_add( $id, $terms, "{$taxonomy}_relationships" );
+			$data[ $id ] = $terms;
 		}
 	}
+	wp_cache_add_multiple( $data, "{$taxonomy}_relationships" );
 }
 
 /**
@@ -3767,6 +3761,7 @@ function update_object_term_cache( $object_ids, $object_type ) {
  * @param string    $taxonomy Not used.
  */
 function update_term_cache( $terms, $taxonomy = '' ) {
+	$data = array();
 	foreach ( (array) $terms as $term ) {
 		// Create a copy in case the array was passed by reference.
 		$_term = clone $term;
@@ -3774,8 +3769,9 @@ function update_term_cache( $terms, $taxonomy = '' ) {
 		// Object ID should not be cached.
 		unset( $_term->object_id );
 
-		wp_cache_add( $term->term_id, $_term, 'terms' );
+		$data[ $term->term_id ] = $_term;
 	}
+	wp_cache_add_multiple( $data, 'terms' );
 }
 
 //
