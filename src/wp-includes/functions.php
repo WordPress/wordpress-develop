@@ -705,6 +705,7 @@ function is_serialized( $data, $strict = true ) {
 			// Or else fall through.
 		case 'a':
 		case 'O':
+		case 'E':
 			return (bool) preg_match( "/^{$token}:[0-9]+:/s", $data );
 		case 'b':
 		case 'i':
