@@ -11,5 +11,5 @@ return array(
 					<!-- wp:paragraph {"align":"center"} -->
 					<p class="has-text-align-center">' . esc_html__( 'This page could not be found. Maybe try a search?', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
-					<!-- wp:search {"label":"' . _x( 'Search', 'Label for a search input field.', 'twentytwentytwo' ) . '","showLabel":false,"width":50,"widthUnit":"%","buttonText":"' . _x( 'Search', 'Text that appears on a search input button.', 'twentytwentytwo' ) . '","buttonUseIcon":true,"align":"center"} /-->',
+					<!-- wp:search {"label":"' . esc_html_x( 'Search', 'label', 'twentytwentytwo' ) . '","showLabel":false,"width":50,"widthUnit":"%","buttonText":"' . esc_html__( 'Search', 'twentytwentytwo' ) . '","buttonUseIcon":true,"align":"center"} /-->',
 );

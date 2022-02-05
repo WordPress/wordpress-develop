@@ -356,7 +356,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_theme(),
+			'show_ui'               => false,
 			'show_in_menu'          => false,
 			'show_in_rest'          => true,
 			'rewrite'               => false,
@@ -416,7 +416,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_theme(),
+			'show_ui'               => false,
 			'show_in_menu'          => false,
 			'show_in_rest'          => true,
 			'rewrite'               => false,
@@ -2291,7 +2291,7 @@ function is_post_type_viewable( $post_type ) {
 /**
  * Determine whether a post status is considered "viewable".
  *
- * For built-in post statuses such as publish and private, the 'public' value will be evaluted.
+ * For built-in post statuses such as publish and private, the 'public' value will be evaluated.
  * For all others, the 'publicly_queryable' value will be used.
  *
  * @since 5.7.0
@@ -2475,7 +2475,7 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  * @return bool True on success, false on failure.
  */
 function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
-	// Make sure meta is added to the post, not a revision.
+	// Make sure meta is deleted from the post, not from a revision.
 	$the_post = wp_is_post_revision( $post_id );
 	if ( $the_post ) {
 		$post_id = $the_post;
@@ -2527,7 +2527,7 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  *                  is the same as the one that is already in the database.
  */
 function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
-	// Make sure meta is added to the post, not a revision.
+	// Make sure meta is updated for the post, not for a revision.
 	$the_post = wp_is_post_revision( $post_id );
 	if ( $the_post ) {
 		$post_id = $the_post;
