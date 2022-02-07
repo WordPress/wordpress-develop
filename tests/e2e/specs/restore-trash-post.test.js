@@ -1,11 +1,14 @@
 import {
-    loginUser,
     visitAdminPage,
     createNewPost,
+	trashAllPosts,
     publishPost
 } from '@wordpress/e2e-test-utils';
 
 describe( 'Restore trash post', () => {
+	beforeEach( async () => {
+		await trashAllPosts();
+	} );
 
     it( 'Restore trash post', async () => {
     
