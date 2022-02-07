@@ -31,9 +31,6 @@ describe( 'Restore trash post', () => {
         await page.waitForSelector( '#the-list .type-post' );
         await page.hover('.row-title');
         await page.click("a[aria-label='Move “Test Title” to the Trash']");
-	
-	await visitAdminPage( '/edit.php' );
-	await page.waitForSelector( '#the-list .type-post' );
 
         // Remove post from trash 
         await page.click(".trash");
