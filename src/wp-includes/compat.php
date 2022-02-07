@@ -478,6 +478,33 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	}
 }
 
+if ( ! function_exists( 'array_is_list' ) ) {
+	/**
+	 * Polyfill for `array_is_list()` function added in PHP 8.1.
+	 *
+	 * Determines if the given array is a list.
+	 *
+	 * An array is considered a list if its keys consist
+	 * of consecutive numbers from 0 to count( $array ) - 1.
+	 *
+	 * This function returns `true` on empty arrays.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array $arr The array.
+	 * @return bool True if array is a list, false otherwise.
+	 */
+	function array_is_list( array $arr ) {
+		$i = 0;
+		foreach ( $arr as $k => $v ) {
+			if ( $k !== $i++ ) {
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
 // IMAGETYPE_WEBP constant is only defined in PHP 7.1 or later.
 if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
 	define( 'IMAGETYPE_WEBP', 18 );
