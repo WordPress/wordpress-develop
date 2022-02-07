@@ -1,7 +1,7 @@
 import {
     visitAdminPage,
     createNewPost,
-	trashAllPosts,
+    trashAllPosts,
     publishPost
 } from '@wordpress/e2e-test-utils';
 
