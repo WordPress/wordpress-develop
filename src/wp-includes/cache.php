@@ -165,7 +165,7 @@ function wp_cache_delete_multiple( $keys, $group = '' ) {
 }
 
 /**
- * Add multiple values from the cache in one call.
+ * Add multiple values to the cache in one call.
  *
  * @since 6.0.0
  *

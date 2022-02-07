@@ -65,7 +65,7 @@ endif;
 
 if ( ! function_exists( 'wp_cache_add_multiple' ) ) :
 	/**
-	 * Add multiple values from the cache in one call.
+	 * Add multiple values to the cache in one call, if the cache keys doesn't already exist.
 	 *
 	 * Compat function to mimic wp_cache_set_multiple().
 	 *
@@ -93,7 +93,9 @@ endif;
 
 if ( ! function_exists( 'wp_cache_set_multiple' ) ) :
 	/**
-	 * Set multiple values from the cache in one call.
+	 * Set multiple values to the cache in one call.
+	 * 
+	 * Differs from wp_cache_add_multiple() in that it will always write data.
 	 *
 	 * Compat function to mimic wp_cache_set_multiple().
 	 *
