@@ -9,6 +9,14 @@ describe( 'Restore trash post', () => {
 	beforeEach( async () => {
 		await trashAllPosts();
 	} );
+	
+    it( 'displays a message in the posts table when no posts are present', async () => {
+		await visitAdminPage( '/edit.php' );
+		const noPostsMessage = await page.$x(
+			'//td[text()="No posts found."]'
+		);
+		expect( noPostsMessage.length ).toBe( 1 );
+	} );
 
     it( 'Restore trash post', async () => {
     
@@ -23,11 +31,11 @@ describe( 'Restore trash post', () => {
         await page.waitForSelector( '#the-list .type-post' );
         await page.hover('.row-title');
         await page.click("a[aria-label='Move “Test Title” to the Trash']");
+	
+	await visitAdminPage( '/edit.php' );
+	await page.waitForSelector( '#the-list .type-post' );
 
-
-        // Remove post from trash
-        await page.waitForSelector( '#the-list .type-post' );
-
+        // Remove post from trash 
         await page.click(".trash");
         await page.waitForSelector( '#the-list .type-post' );
         await page.hover('.page-title');
