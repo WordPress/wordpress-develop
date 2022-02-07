@@ -22,7 +22,7 @@ describe( 'Restore trash post', () => {
         // Move one post to trash
         await page.waitForSelector( '#the-list .type-post' );
         await page.hover('.row-title');
-        await page.click("a.submitdelete");
+        await page.click("a[aria-label='Move “Test Title” to the Trash']");
 
 
         // Remove post from trash
