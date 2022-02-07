@@ -3614,6 +3614,12 @@ class WP_Query {
 			$this->queried_object_id = (int) $this->post->ID;
 		} elseif ( $this->is_author ) {
 			$this->queried_object_id = (int) $this->get( 'author' );
+			if ( ! $this->queried_object_id ) {
+				$user = get_user_by( 'slug', $this->get( 'author_name' ) );
+				if ( $user ) {
+					$this->queried_object_id = $user->ID;
+				}
+			}
 			$this->queried_object    = get_userdata( $this->queried_object_id );
 		}
 
