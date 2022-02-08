@@ -356,7 +356,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_theme(),
+			'show_ui'               => false,
 			'show_in_menu'          => false,
 			'show_in_rest'          => true,
 			'rewrite'               => false,
@@ -416,7 +416,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_theme(),
+			'show_ui'               => false,
 			'show_in_menu'          => false,
 			'show_in_rest'          => true,
 			'rewrite'               => false,
@@ -2291,7 +2291,7 @@ function is_post_type_viewable( $post_type ) {
 /**
  * Determine whether a post status is considered "viewable".
  *
- * For built-in post statuses such as publish and private, the 'public' value will be evaluted.
+ * For built-in post statuses such as publish and private, the 'public' value will be evaluated.
  * For all others, the 'publicly_queryable' value will be used.
  *
  * @since 5.7.0
