@@ -2770,7 +2770,7 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
 				continue;
 			}
 
-			// Skip if the URL is a HTML ID.
+			// Skip if the URL is an HTML ID.
 			if ( str_starts_with( $src_result, '#' ) ) {
 				continue;
 			}
