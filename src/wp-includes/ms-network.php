@@ -82,7 +82,10 @@ function clean_network_cache( $ids ) {
 		return;
 	}
 
-	foreach ( (array) $ids as $id ) {
+	$network_ids = (array) $ids;
+	wp_cache_delete_multiple( $network_ids, 'networks' );
+
+	foreach ( $network_ids as $id ) {
 		/**
 		 * Fires immediately after a network has been removed from the object cache.
 		 *
@@ -92,7 +95,6 @@ function clean_network_cache( $ids ) {
 		 */
 		do_action( 'clean_network_cache', $id );
 	}
-	wp_cache_delete_multiple( (array) $ids, 'networks' );
 
 	wp_cache_set( 'last_changed', microtime(), 'networks' );
 }
@@ -109,9 +111,6 @@ function clean_network_cache( $ids ) {
  * @param array $networks Array of network row objects.
  */
 function update_network_cache( $networks ) {
-	if ( ! $networks ) {
-		return;
-	}
 	$data = array();
 	foreach ( (array) $networks as $network ) {
 		$data[ $network->id ] = $network;

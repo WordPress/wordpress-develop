@@ -3224,7 +3224,10 @@ function xmlrpc_pingback_error( $ixr_error ) {
  * @param int|array $ids Comment ID or an array of comment IDs to remove from cache.
  */
 function clean_comment_cache( $ids ) {
-	foreach ( (array) $ids as $id ) {
+	$comment_ids = (array) $ids;
+	
+	wp_cache_delete_multiple( $comment_ids, 'comment' );
+	foreach ( $comment_ids as $id ) {
 		/**
 		 * Fires immediately after a comment has been removed from the object cache.
 		 *
@@ -3234,8 +3237,6 @@ function clean_comment_cache( $ids ) {
 		 */
 		do_action( 'clean_comment_cache', $id );
 	}
-	wp_cache_delete_multiple( (array) $ids, 'comment' );
-
 	wp_cache_set( 'last_changed', microtime(), 'comment' );
 }
 
