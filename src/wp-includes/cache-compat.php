@@ -47,7 +47,7 @@ if ( ! function_exists( 'wp_cache_flush_runtime' ) ) :
 	 *
 	 * @see wp_cache_flush_runtime()
 	 *
-	 * @return bool False on failure, true on success
+	 * @return bool False on failure, true on success.
 	 */
 	function wp_cache_flush_runtime() {
 		return wp_using_ext_object_cache() ? false : wp_cache_flush();
