@@ -232,7 +232,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 				'css'      => 'p {background-image: url(\'http://foo.com/image2.png\');}',
 				'expected' => 'p {background-image: url(\'http://foo.com/image2.png\');}',
 			),
-			'a HTML ID'                                    => array(
+			'An HTML ID'                                    => array(
 				'css'      => 'clip-path: url(#image1);',
 				'expected' => 'clip-path: url(#image1);',
 			),
