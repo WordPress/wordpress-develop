@@ -25,7 +25,7 @@ if ( ! function_exists( 'wp_cache_get_multiple' ) ) :
 	 *                      from the persistent cache. Default false.
 	 * @return array Array of values organized into groups.
 	 */
-	function wp_cache_get_multiple( array $keys, $group = '', $force = false ) {
+	function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
 		$values = array();
 
 		foreach ( $keys as $key ) {
