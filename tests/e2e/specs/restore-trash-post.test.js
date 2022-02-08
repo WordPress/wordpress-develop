@@ -33,7 +33,7 @@ describe( 'Restore trash post', () => {
         await page.click("a[aria-label='Move “Test Title” to the Trash']");
 
         // Remove post from trash 
-        await page.click(".trash");
+	await page.click("a[href='edit.php?post_status=trash&post_type=post']");
         await page.waitForSelector( '#the-list .type-post' );
         await page.hover('.page-title');
         await page.click(".untrash"); 
