@@ -133,6 +133,8 @@ final class WP_Term {
 				return false;
 			}
 
+			$_term = false;
+
 			// If a taxonomy was specified, find a match.
 			if ( $taxonomy ) {
 				foreach ( $terms as $match ) {

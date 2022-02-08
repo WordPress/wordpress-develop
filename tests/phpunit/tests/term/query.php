@@ -391,6 +391,46 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	* @ticket 37189
+	* @group cache
+	*/
+	public function test_object_ids_should_be_fetched_from_cache() {
+		global $wpdb;
+
+		register_taxonomy( 'wptests_tax_1', 'post' );
+
+		$p     = self::factory()->post->create();
+		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax_1' ) );
+
+		wp_set_object_terms( $p, array( $terms[0] ), 'wptests_tax_1' );
+
+		$query     = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_1',
+				'object_ids' => $p,
+				'fields'     => 'all_with_object_id',
+			)
+		);
+		$found     = $query->get_terms();
+		$found_ids = wp_list_pluck( $found, 'term_id' );
+		$this->assertEqualSets( array( $terms[0] ), $found_ids );
+
+		$num_queries = $wpdb->num_queries;
+
+		$query     = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_1',
+				'object_ids' => $p,
+				'fields'     => 'all_with_object_id',
+			)
+		);
+		$found     = $query->get_terms();
+		$found_ids = wp_list_pluck( $found, 'term_id' );
+		$this->assertEqualSets( array( $terms[0] ), $found_ids );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+	}
+
+	/**
 	 * @ticket 38295
 	 * @group cache
 	 */

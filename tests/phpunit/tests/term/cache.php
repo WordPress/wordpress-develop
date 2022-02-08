@@ -253,14 +253,12 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		);
 
 		clean_term_cache( $term_id, 'post_tag' );
-		$num_queries = $wpdb->num_queries;
-
 		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
-		$num_queries++;
 		$this->assertSame( 'Taco', $term->name );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+
 
 		// This should now hit cache.
+		$num_queries = $wpdb->num_queries;
 		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
 		$this->assertSame( 'Taco', $term->name );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
@@ -284,14 +282,12 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		);
 
 		clean_term_cache( $term_id, 'post_tag' );
-		$num_queries = $wpdb->num_queries;
 
 		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
-		$num_queries++;
 		$this->assertSame( 'Taco', $term->name );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		// This should now hit cache.
+		$num_queries = $wpdb->num_queries;
 		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
 		$this->assertSame( 'Taco', $term->name );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
@@ -304,7 +300,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
 		$num_queries++;
 		$this->assertSame( 'No Taco', $term->name );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertGreaterThan( $num_queries, $wpdb->num_queries );
 	}
 
 	/**
@@ -324,11 +320,11 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		clean_term_cache( $term_id, 'post_tag' );
 		$num_queries = $wpdb->num_queries;
 
-		get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
+		$this->assertSame( 'Burrito', $term->name );;
 
 		// This should now hit cache.
+		$num_queries = $wpdb->num_queries;
 		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -351,13 +347,11 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		);
 
 		clean_term_cache( $term_id, 'post_tag' );
-		$num_queries = $wpdb->num_queries;
 
 		get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		// This should now hit cache.
+		$num_queries = $wpdb->num_queries;
 		get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -385,13 +379,13 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		);
 
 		clean_term_cache( $term_id, 'post_tag' );
-		$num_queries  = $wpdb->num_queries;
 		$last_changed = wp_cache_get( 'last_changed', 'terms' );
 
 		$term1 = get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
+
 
 		// Verify the term is cached.
+		$num_queries  = $wpdb->num_queries;
 		$term2 = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 		$this->assertEquals( $term1, $term2 );
@@ -429,14 +423,13 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		add_term_meta( $term_id, 'foo', 'bar' );
 
 		clean_term_cache( $term_id, 'post_tag' );
-		$num_queries = $wpdb->num_queries;
 
 		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
+
 		$this->assertInstanceOf( 'WP_Term', $term );
 		$this->assertSame( $term_id, $term->term_id );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
 
+		$num_queries = $wpdb->num_queries;
 		$term_meta = get_term_meta( $term_id, 'foo', true );
 		$num_queries++;
 		$this->assertSame( $term_meta, 'bar' );

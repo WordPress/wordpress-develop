@@ -4,6 +4,7 @@
  * @group taxonomy
  */
 class Tests_Term_getTerms extends WP_UnitTestCase {
+
 	public function set_up() {
 		parent::set_up();
 
@@ -118,7 +119,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertCount( 3, $terms );
 		$time1 = wp_cache_get( 'last_changed', 'terms' );
 		$this->assertNotEmpty( $time1 );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
 
 		$num_queries = $wpdb->num_queries;
 
@@ -3066,9 +3067,12 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$post_id = self::factory()->post->create();
-		wp_set_post_terms( $post_id, $terms['parent2'], 'hierarchical_fields', true );
-		wp_set_post_terms( $post_id, $terms['child1'], 'hierarchical_fields', true );
+
+			$post_id = self::factory()->post->create();
+			wp_set_post_terms( $post_id, $terms['parent2'], 'hierarchical_fields', true );
+			wp_set_post_terms( $post_id, $terms['child1'], 'hierarchical_fields', true );
+
+
 
 		return $terms;
 	}
@@ -3084,68 +3088,60 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		 *     - Six (1)
 		 *   - Seven
 		 */
-		$one_term   = wp_insert_term(
+		$terms['one_term']   = wp_insert_term(
 			'One',
 			'category'
 		);
-		$two_term   = wp_insert_term(
+		$terms['two_term']   = wp_insert_term(
 			'Two',
 			'category',
 			array(
-				'parent' => $one_term['term_id'],
+				'parent' => $terms['one_term']['term_id'],
 			)
 		);
-		$three_term = wp_insert_term(
+		$terms['three_term'] = wp_insert_term(
 			'Three',
 			'category',
 			array(
-				'parent' => $two_term['term_id'],
+				'parent' => $terms['two_term']['term_id'],
 			)
 		);
-		$four_term  = wp_insert_term(
+		$terms['four_term']  = wp_insert_term(
 			'Four',
 			'category',
 			array(
-				'parent' => $two_term['term_id'],
+				'parent' => $terms['two_term']['term_id'],
 			)
 		);
-		$five_term  = wp_insert_term(
+		$terms['five_term']  = wp_insert_term(
 			'Five',
 			'category',
 			array(
-				'parent' => $one_term['term_id'],
+				'parent' => $terms['one_term']['term_id'],
 			)
 		);
-		$six_term   = wp_insert_term(
+		$terms['six_term']   = wp_insert_term(
 			'Six',
 			'category',
 			array(
-				'parent' => $five_term['term_id'],
+				'parent' => $terms['five_term']['term_id'],
 			)
 		);
-		$seven_term = wp_insert_term(
+		$terms['seven_term'] = wp_insert_term(
 			'Seven',
 			'category',
 			array(
-				'parent' => $one_term['term_id'],
+				'parent' => $terms['one_term']['term_id'],
 			)
 		);
 
 		// Ensure child terms are not empty.
 		$first_post_id  = self::factory()->post->create();
 		$second_post_id = self::factory()->post->create();
-		wp_set_post_terms( $first_post_id, array( $three_term['term_id'] ), 'category' );
-		wp_set_post_terms( $second_post_id, array( $six_term['term_id'] ), 'category' );
+		wp_set_post_terms( $first_post_id, array( $terms['three_term']['term_id'] ), 'category' );
+		wp_set_post_terms( $second_post_id, array( $terms['six_term']['term_id'] ), 'category' );
 
-		return array(
-			'one_term'   => $one_term,
-			'two_term'   => $two_term,
-			'three_term' => $three_term,
-			'four_term'  => $four_term,
-			'five_term'  => $five_term,
-			'six_term'   => $six_term,
-			'seven_term' => $seven_term,
-		);
+		return $terms;
 	}
 
 	protected function set_up_three_posts_and_tags() {

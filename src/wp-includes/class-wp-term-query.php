@@ -636,32 +636,11 @@ class WP_Term_Query {
 
 		$selects = array();
 		switch ( $args['fields'] ) {
-			case 'all':
-			case 'all_with_object_id':
-			case 'tt_ids':
-			case 'slugs':
-				$selects = array( 't.*', 'tt.*' );
-				if ( 'all_with_object_id' === $args['fields'] && ! empty( $args['object_ids'] ) ) {
-					$selects[] = 'tr.object_id';
-				}
+			case 'all_with_object_id' :
+			$selects = array( 't.term_id', 'tr.object_id' );
 				break;
-			case 'ids':
-			case 'id=>parent':
-				$selects = array( 't.term_id', 'tt.parent', 'tt.count', 'tt.taxonomy' );
-				break;
-			case 'names':
-				$selects = array( 't.term_id', 'tt.parent', 'tt.count', 't.name', 'tt.taxonomy' );
-				break;
-			case 'count':
-				$orderby = '';
-				$order   = '';
-				$selects = array( 'COUNT(*)' );
-				break;
-			case 'id=>name':
-				$selects = array( 't.term_id', 't.name', 'tt.parent', 'tt.count', 'tt.taxonomy' );
-				break;
-			case 'id=>slug':
-				$selects = array( 't.term_id', 't.slug', 'tt.parent', 'tt.count', 'tt.taxonomy' );
+			default:
+				$selects = array( 't.term_id' );
 				break;
 		}
 
@@ -743,40 +722,52 @@ class WP_Term_Query {
 		}
 
 		// $args can be anything. Only use the args defined in defaults to compute the key.
-		$key          = md5( serialize( wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) ) ) . serialize( $taxonomies ) . $this->request );
+		$_args = wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) );
+		if ( 'count' !== $_fields && 'all_with_object_id' !== $_fields ) {
+				unset( $_args['fields'] );
+		}
+		$key = md5( serialize( $_args ) . $this->request );
+
 		$last_changed = wp_cache_get_last_changed( 'terms' );
 		$cache_key    = "get_terms:$key:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'terms' );
-		if ( false !== $cache ) {
-			if ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
-				$cache = $this->populate_terms( $cache );
-			}
-
-			$this->terms = $cache;
-			return $this->terms;
-		}
-
 		if ( 'count' === $_fields ) {
-			$count = $wpdb->get_var( $this->request );
-			wp_cache_set( $cache_key, $count, 'terms' );
-			return $count;
+			if ( false === $cache ) {
+				$cache = $wpdb->get_var( $this->request );
+				wp_cache_set( $cache_key, $cache, 'terms' );
+			}
+			return $cache;
 		}
 
-		$terms = $wpdb->get_results( $this->request );
-
-		if ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
-			update_term_cache( $terms );
+		if ( false === $cache ) {
+			$cache = $wpdb->get_results( $this->request );
+			wp_cache_set( $cache_key, $cache, 'terms' );
 		}
 
-		// Prime termmeta cache.
-		if ( $args['update_term_meta_cache'] ) {
-			$term_ids = wp_list_pluck( $terms, 'term_id' );
+		$term_ids = wp_list_pluck( $cache, 'term_id' );
+
+		if ( empty( $term_ids ) ) {
+			wp_cache_add( $cache_key, array(), 'terms' );
+			return array();
+		} else {
 			update_termmeta_cache( $term_ids );
 		}
 
-		if ( empty( $terms ) ) {
-			wp_cache_add( $cache_key, array(), 'terms' );
-			return array();
+		// 'ids' requests only need full term objects in certain cases.
+		if ( 'ids' === $_fields && ! $child_of && ( ! $hierarchical || ! $args['hide_empty'] ) ) {
+			$terms = $cache;
+			if ( $args['update_term_meta_cache'] ) {
+				update_termmeta_cache( $term_ids );
+			}
+		} else {
+			_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
+			$terms = array_map( 'get_term', $term_ids );
+
+			if ( in_array( 'tr.object_id', $selects, true ) ) {
+				foreach ( $cache as $index => $result ) {
+					$terms[ $index ]->object_id = (int) $result->object_id;
+				}
+			}
 		}
 
 		if ( $child_of ) {
@@ -1064,6 +1055,9 @@ class WP_Term_Query {
 		}
 
 		foreach ( $term_ids as $key => $term_id ) {
+			if ( is_wp_error( $term_id ) ) {
+				continue;
+			}
 			$term = get_term( $term_id );
 			if ( $term instanceof WP_Term ) {
 				$terms[ $key ] = $term;
