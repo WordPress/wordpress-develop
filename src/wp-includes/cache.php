@@ -111,7 +111,7 @@ function wp_cache_flush() {
  * @see WP_Object_Cache::flush()
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
  *
- * @return bool False on failure, true on success
+ * @return bool False on failure, true on success.
  */
 function wp_cache_flush_runtime() {
 	global $wp_object_cache;
