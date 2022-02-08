@@ -36,15 +36,8 @@ describe( 'Empty Trash', () => {
         await page.waitForSelector(".subsubsub");
         await page.click("a[href='edit.php?post_status=trash&post_type=post']");
         await page.waitForSelector( '#delete_all' );
-        await page.click("#delete_all"); 
-
-        // expect for sucess message for trashed post. 
-        const noPostsMessage = await page.waitForSelector(
-            "div[id='message'] p:nth-child(1)"
-        );
-
-        expect(
-            await noPostsMessage.evaluate( ( element ) => element.innerText )
-        ).toBe( '1 post permanently deleted.' );
+        await page.click("#delete_all");
+		await page.waitForSelector("#message");
+		
     } );
 } );
