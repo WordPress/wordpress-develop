@@ -114,9 +114,7 @@ function wp_cache_flush() {
  * @return bool False on failure, true on success.
  */
 function wp_cache_flush_runtime() {
-	global $wp_object_cache;
-
-	return $wp_object_cache->flush();
+	return wp_cache_flush();
 }
 
 /**
