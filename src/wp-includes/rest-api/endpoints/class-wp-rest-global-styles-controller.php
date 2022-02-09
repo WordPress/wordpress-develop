@@ -263,15 +263,15 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( isset( $request['styles'] ) || isset( $request['settings'] ) ) {
+		if ( isset( $request->styles ) || isset( $request->settings ) ) {
 			$config = array();
-			if ( isset( $request['styles'] ) ) {
-				$config['styles'] = $request['styles'];
+			if ( isset( $request->styles ) ) {
+				$config['styles'] = $request->styles;
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
 			}
-			if ( isset( $request['settings'] ) ) {
-				$config['settings'] = $request['settings'];
+			if ( isset( $request->settings ) ) {
+				$config['settings'] = $request->settings;
 			} elseif ( isset( $existing_config['settings'] ) ) {
 				$config['settings'] = $existing_config['settings'];
 			}
