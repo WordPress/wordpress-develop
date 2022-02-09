@@ -1223,7 +1223,7 @@ function wp_default_scripts( $scripts ) {
 			'invalidValue'            => __( 'Invalid value.' ),
 			'blockThemeNotification'  => sprintf(
 				/* translators: %s: URL to the Site Editor admin screen. */
-				__( 'To get the best customization experience from your block theme, use the <a href="%s">new Site Editor</a>.' ),
+				__( 'To get the best customization experience from your block theme, use the <a href="%s">Site Editor</a>.' ),
 				esc_url( admin_url( 'site-editor.php' ) )
 			),
 		)
