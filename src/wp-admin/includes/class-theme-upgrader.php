@@ -92,7 +92,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		/* translators: %s: Theme name. */
 		$this->strings['parent_theme_not_found'] = sprintf( __( '<strong>The parent theme could not be found.</strong> You will need to install the parent theme, %s, before you can use this child theme.' ), '<strong>%s</strong>' );
 		/* translators: %s: Theme error. */
-		$this->strings['current_theme_has_errors'] = __( 'The current theme has the following error: "%s".' );
+		$this->strings['current_theme_has_errors'] = __( 'The active theme has the following error: "%s".' );
 
 		if ( ! empty( $this->skin->overwrite ) ) {
 			if ( 'update-theme' === $this->skin->overwrite ) {
@@ -328,14 +328,9 @@ class Theme_Upgrader extends WP_Upgrader {
 				'clear_destination' => true,
 				'clear_working'     => true,
 				'hook_extra'        => array(
-					'theme'       => $theme,
-					'type'        => 'theme',
-					'action'      => 'update',
-					'temp_backup' => array(
-						'slug' => $theme,
-						'src'  => get_theme_root( $theme ),
-						'dir'  => 'themes',
-					),
+					'theme'  => $theme,
+					'type'   => 'theme',
+					'action' => 'update',
 				),
 			)
 		);
@@ -448,12 +443,7 @@ class Theme_Upgrader extends WP_Upgrader {
 					'clear_working'     => true,
 					'is_multi'          => true,
 					'hook_extra'        => array(
-						'theme'       => $theme,
-						'temp_backup' => array(
-							'slug' => $theme,
-							'src'  => get_theme_root( $theme ),
-							'dir'  => 'themes',
-						),
+						'theme' => $theme,
 					),
 				)
 			);
@@ -619,7 +609,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Turn on maintenance mode before attempting to upgrade the current theme.
+	 * Turn on maintenance mode before attempting to upgrade the active theme.
 	 *
 	 * Hooked to the {@see 'upgrader_pre_install'} filter by Theme_Upgrader::upgrade() and
 	 * Theme_Upgrader::bulk_upgrade().
@@ -637,7 +627,7 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
 
-		// Only run if current theme
+		// Only run if active theme
 		if ( get_stylesheet() !== $theme ) {
 			return $return;
 		}
@@ -651,7 +641,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Turn off maintenance mode after upgrading the current theme.
+	 * Turn off maintenance mode after upgrading the active theme.
 	 *
 	 * Hooked to the {@see 'upgrader_post_install'} filter by Theme_Upgrader::upgrade()
 	 * and Theme_Upgrader::bulk_upgrade().
@@ -669,7 +659,7 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
 
-		// Only run if current theme.
+		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
 			return $return;
 		}

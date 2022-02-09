@@ -137,7 +137,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/using-themes/#adding-new-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/appearance-themes-screen/#install-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -221,15 +221,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		// and to ensure tags are translated.
 		$feature_list = get_theme_feature_list( false );
 
-		foreach ( $feature_list as $feature_name => $features ) {
+		foreach ( $feature_list as $feature_group => $features ) {
 			echo '<fieldset class="filter-group">';
-			$feature_name = esc_html( $feature_name );
-			echo '<legend>' . $feature_name . '</legend>';
+			echo '<legend>' . esc_html( $feature_group ) . '</legend>';
 			echo '<div class="filter-group-feature">';
 			foreach ( $features as $feature => $feature_name ) {
 				$feature = esc_attr( $feature );
 				echo '<input type="checkbox" id="filter-id-' . $feature . '" value="' . $feature . '" /> ';
-				echo '<label for="filter-id-' . $feature . '">' . $feature_name . '</label>';
+				echo '<label for="filter-id-' . $feature . '">' . esc_html( $feature_name ) . '</label>';
 			}
 			echo '</div>';
 			echo '</fieldset>';

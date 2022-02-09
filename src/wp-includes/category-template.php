@@ -661,9 +661,9 @@ function wp_list_categories( $args = '' ) {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $output HTML output.
-	 * @param array  $args   An array of taxonomy-listing arguments. See wp_list_categories()
-	 *                       for information on accepted arguments.
+	 * @param string       $output HTML output.
+	 * @param array|string $args   An array or query string of taxonomy-listing arguments. See
+	 *                             wp_list_categories() for information on accepted arguments.
 	 */
 	$html = apply_filters( 'wp_list_categories', $output, $args );
 
@@ -737,9 +737,9 @@ function wp_tag_cloud( $args = '' ) {
 
 	foreach ( $tags as $key => $tag ) {
 		if ( 'edit' === $args['link'] ) {
-			$link = get_edit_term_link( $tag->term_id, $tag->taxonomy, $args['post_type'] );
+			$link = get_edit_term_link( $tag, $tag->taxonomy, $args['post_type'] );
 		} else {
-			$link = get_term_link( (int) $tag->term_id, $tag->taxonomy );
+			$link = get_term_link( $tag, $tag->taxonomy );
 		}
 
 		if ( is_wp_error( $link ) ) {
