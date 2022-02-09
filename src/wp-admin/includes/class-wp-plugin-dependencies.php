@@ -94,8 +94,8 @@ class WP_Plugin_Dependencies {
 		foreach ( array_keys( $this->plugins ) as $plugin ) {
 			$requires_plugins = get_file_data( WP_PLUGIN_DIR . '/' . $plugin, array( 'RequiresPlugins' => 'Requires Plugins' ) );
 			if ( ! empty( $requires_plugins['RequiresPlugins'] ) ) {
-				$required_headers[ $plugin ] = $requires_plugins;
-				$this->requires_plugins[]    = $plugin;
+				$required_headers[ $plugin ]       = $requires_plugins;
+				$this->requires_plugins[ $plugin ] = $requires_plugins['RequiresPlugins'];
 			}
 		}
 
@@ -139,7 +139,7 @@ class WP_Plugin_Dependencies {
 			if ( ! function_exists( 'plugins_api' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 			}
-			$args = array(
+			$args     = array(
 				'slug'   => $slug,
 				'fields' => array(
 					'short_description' => true,
@@ -165,7 +165,7 @@ class WP_Plugin_Dependencies {
 		$dependencies        = $this->get_dependency_paths();
 		$deactivate_requires = array();
 
-		foreach ( $this->requires_plugins as $requires ) {
+		foreach ( array_keys( $this->requires_plugins ) as $requires ) {
 			if ( array_key_exists( $requires, $this->plugins ) ) {
 				$plugin_dependencies = $this->plugins[ $requires ]['RequiresPlugins'];
 				foreach ( $plugin_dependencies as $plugin_dependency ) {
@@ -314,6 +314,7 @@ class WP_Plugin_Dependencies {
 
 	/**
 	 * Unset plugin action links so required plugins can't be removed or deactivated.
+	 * Only when the requiring plugin is active.
 	 *
 	 * @param array  $actions     Action links.
 	 * @param string $plugin_file Plugin file.
@@ -322,11 +323,16 @@ class WP_Plugin_Dependencies {
 	 */
 	public function unset_action_links( $actions, $plugin_file ) {
 		if ( in_array( dirname( $plugin_file ), $this->slugs, true ) ) {
-			if ( isset( $actions['delete'] ) ) {
-				unset( $actions['delete'] );
-			}
-			if ( isset( $actions['deactivate'] ) ) {
-				unset( $actions['deactivate'] );
+			foreach ( $this->requires_plugins as $plugin => $requires ) {
+				$dependents = explode( ',', $requires );
+				if ( is_plugin_active( $plugin ) && in_array( dirname( $plugin_file ), $dependents, true ) ) {
+					if ( isset( $actions['delete'] ) ) {
+						unset( $actions['delete'] );
+					}
+					if ( isset( $actions['deactivate'] ) ) {
+						unset( $actions['deactivate'] );
+					}
+				}
 			}
 		}
 
