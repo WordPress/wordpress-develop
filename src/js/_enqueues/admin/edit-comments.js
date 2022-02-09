@@ -967,7 +967,6 @@ window.commentReply = {
 		action = action || 'replyto';
 		act = 'edit' == action ? 'edit' : 'replyto';
 		act = t.act = act + '-comment';
-		t.originalContent = $('textarea.comment', rowData).val();
 		colspanVal = $( '> th:visible, > td:visible', c ).length;
 
 		// Make sure it's actually a table and there's a `colspan` value to apply.
@@ -987,6 +986,12 @@ window.commentReply = {
 			$('#replycontent', editRow).val( $('textarea.comment', rowData).val() );
 			$( '#edithead, #editlegend, #savebtn', editRow ).show();
 			$('#replyhead, #replybtn, #addhead, #addbtn', editRow).hide();
+
+			// If currently editing comment value isn't same as the original comment value
+			// then we will insert the currently editing value in originalContent
+			if($('#replycontent', editRow).val() !== $('#replycontent', editRow).val( $('textarea.comment', rowData).val() )){
+				this.originalContent = $('#replycontent', editRow).val();
+			}
 
 			if ( h > 120 ) {
 				// Limit the maximum height when editing very long comments to make it more manageable.
