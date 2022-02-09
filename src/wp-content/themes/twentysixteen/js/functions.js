@@ -89,9 +89,7 @@
 					el.getAttribute( 'aria-expanded' ) === 'false' ? 'true' : 'false'
 				);
 				screenReaderSpan.textContent =
-					screenReaderSpan.textContent === screenReaderText.expand
-						? screenReaderText.collapse
-						: screenReaderText.expand;
+					screenReaderSpan.textContent === screenReaderText.expand ? screenReaderText.collapse: screenReaderText.expand;
 			} );
 		} );
 	}
@@ -222,9 +220,8 @@
 				var elementPosTop = element.getBoundingClientRect().top;
 				var article = closest( element, 'article' );
 				var entryFooter = article && article.querySelector( '.entry-footer' );
-				var entryFooterPosBottom = entryFooter
-					? entryFooter.getBoundingClientRect().top + entryFooter.offsetHeight + 28
-					: null;
+				var entryFooterPosBottom =
+					entryFooter ? entryFooter.getBoundingClientRect().top + entryFooter.offsetHeight + 28	: null;
 				var caption = closest( element, 'figure' );
 				var next = element.nextSibling;
 				var figcaption = next && matches( next, 'figcaption' ) ? next : null;
