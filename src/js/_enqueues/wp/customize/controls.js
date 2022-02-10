@@ -8353,7 +8353,7 @@
 
 						button.on( 'click', function( event ) {
 							event.preventDefault();
-							location.assign(button.data( 'action' ));
+							location.assign( button.data( 'action' ) );
 						} );
 
 						return notification;
