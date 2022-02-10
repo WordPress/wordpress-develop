@@ -8346,7 +8346,18 @@
 				api.notifications.add( new api.Notification( 'site_editor_block_theme_notice', {
 					message: notification,
 					type: 'warning',
-					dismissible: false
+					dismissible: false,
+					render: function() {
+						var notification = api.Notification.prototype.render.call( this ),
+							button = notification.find( 'button.switch-to-editor' );
+
+						button.on( 'click', function( event ) {
+							event.preventDefault();
+							location.assign(button.data( 'action' ));
+						} );
+
+						return notification;
+					}
 				} ) );
 			}
 
