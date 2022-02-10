@@ -1222,9 +1222,11 @@ function wp_default_scripts( $scripts ) {
 			'invalidDate'             => __( 'Invalid date.' ),
 			'invalidValue'            => __( 'Invalid value.' ),
 			'blockThemeNotification'  => sprintf(
-				/* translators: %s: URL to the Site Editor admin screen. */
-				__( 'To get the best customization experience from your block theme, use the <a href="%s">Site Editor</a>.' ),
-				esc_url( admin_url( 'site-editor.php' ) )
+				/* translators: 1. %s: URL to the Site Editor admin screen, 2: "Switch to Site Editor" button placeholder. */
+				__( 'To get the best customization experience from your block theme, use the Site Editor. <a href="%s" target="_blank">Tell me more</a>. %s' ),
+				'https://wordpress.org/support/article/site-editor/',
+				/* translators: Button that takes a user to the Site Editor admin screen. */
+				sprintf( '<button type="button" class="button switch-to-editor" aria-label="%s">%s</button>', __('Switch to Site Editor') )
 			),
 		)
 	);
