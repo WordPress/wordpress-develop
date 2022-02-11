@@ -60,6 +60,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 	margin-left: 1.5em;
 }
 
+.wp-block-image a,
+.wp-block-image a:hover,
+.wp-block-image a:focus {
+	box-shadow: none;
+}
+
 /* Gallery */
 
 .wp-block-gallery {
