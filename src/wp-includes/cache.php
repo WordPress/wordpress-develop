@@ -145,6 +145,7 @@ function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
 	return $wp_object_cache->get_multiple( $keys, $group, $force );
 }
 
+
 /**
  * Delete multiple values from the cache in one call.
  *

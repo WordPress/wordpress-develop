@@ -3225,7 +3225,7 @@ function xmlrpc_pingback_error( $ixr_error ) {
  */
 function clean_comment_cache( $ids ) {
 	$comment_ids = (array) $ids;
-	
+
 	wp_cache_delete_multiple( $comment_ids, 'comment' );
 	foreach ( $comment_ids as $id ) {
 		/**
@@ -3237,6 +3237,7 @@ function clean_comment_cache( $ids ) {
 		 */
 		do_action( 'clean_comment_cache', $id );
 	}
+	
 	wp_cache_set( 'last_changed', microtime(), 'comment' );
 }
 
