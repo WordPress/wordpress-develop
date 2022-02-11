@@ -94,8 +94,10 @@ class WP_Plugin_Dependencies {
 		foreach ( array_keys( $this->plugins ) as $plugin ) {
 			$requires_plugins = get_file_data( WP_PLUGIN_DIR . '/' . $plugin, array( 'RequiresPlugins' => 'Requires Plugins' ) );
 			if ( ! empty( $requires_plugins['RequiresPlugins'] ) ) {
-				$required_headers[ $plugin ]       = $requires_plugins;
-				$this->requires_plugins[ $plugin ] = $requires_plugins['RequiresPlugins'];
+				$required_headers[ $plugin ] = $requires_plugins;
+				$sanitized_requires_slugs    = implode( ', ', $this->sanitize_required_headers( $required_headers ) );
+
+				$this->requires_plugins[ $plugin ]['RequiresPlugins'] = $sanitized_requires_slugs;
 			}
 		}
 
@@ -293,16 +295,18 @@ class WP_Plugin_Dependencies {
 			$deactivated_plugins = implode( ', ', $deactivated_plugins );
 			printf(
 				'<div class="notice-error notice is-dismissible"><p>'
-				/* translators: s: plugin names */
-				. esc_html__( '%s plugins(s) could not be activated. There are uninstalled or inactive dependencies.' )
+				/* translators: 1: plugin names, 2: opening tag and link to Dependencies install page, 3: closing tag */
+				. esc_html__( '%1$s plugin(s) could not be activated. There are uninstalled or inactive dependencies. Go to the %2$sDependencies%3$s install page.' )
 				. '</p></div>',
-				'<strong>' . esc_html( $deactivated_plugins ) . '</strong>'
+				'<strong>' . esc_html( $deactivated_plugins ) . '</strong>',
+				'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
+				'</a>'
 			);
 		}
 	}
 
 	/**
-	 * Acutally make modifications to plugin row.
+	 * Actually make modifications to plugin row.
 	 *
 	 * @param string $plugin_file Plugin file.
 	 */
@@ -324,7 +328,7 @@ class WP_Plugin_Dependencies {
 	public function unset_action_links( $actions, $plugin_file ) {
 		if ( in_array( dirname( $plugin_file ), $this->slugs, true ) ) {
 			foreach ( $this->requires_plugins as $plugin => $requires ) {
-				$dependents = explode( ',', $requires );
+				$dependents = explode( ',', $requires['RequiresPlugins'] );
 				if ( is_plugin_active( $plugin ) && in_array( dirname( $plugin_file ), $dependents, true ) ) {
 					if ( isset( $actions['delete'] ) ) {
 						unset( $actions['delete'] );
