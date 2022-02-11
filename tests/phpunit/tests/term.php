@@ -134,7 +134,7 @@ class Tests_Term extends WP_UnitTestCase {
 		}
 
 		foreach ( $posts as $post_id ) {
-			$this->assertTrue( (bool) wp_delete_post( $post_id ) );
+			$this->assertInstanceOf( 'WP_Post', wp_delete_post( $post_id ) );
 		}
 	}
 

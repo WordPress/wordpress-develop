@@ -131,9 +131,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @covers ::remove_block_asset_path_prefix
 	 */
 	public function test_removes_block_asset_path_prefix() {
+		$result = remove_block_asset_path_prefix( 'file:block.js' );
+
+		$this->assertSame( 'block.js', $result );
+	}
+
+	/**
+	 * @ticket 54797
+	 */
+	public function test_removes_block_asset_path_prefix_and_current_directory() {
 		$result = remove_block_asset_path_prefix( 'file:./block.js' );
 
-		$this->assertSame( './block.js', $result );
+		$this->assertSame( 'block.js', $result );
 	}
 
 	/**

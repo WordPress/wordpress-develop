@@ -3265,12 +3265,8 @@ function wp_get_image_mime( $file ) {
 			return $mime;
 		}
 
-		$handle = fopen( $file, 'rb' );
-		if ( false === $handle ) {
-			return false;
-		}
+		$magic = file_get_contents( $file, false, null, 0, 12 );
 
-		$magic = fread( $handle, 12 );
 		if ( false === $magic ) {
 			return false;
 		}
@@ -3289,8 +3285,6 @@ function wp_get_image_mime( $file ) {
 		) {
 			$mime = 'image/webp';
 		}
-
-		fclose( $handle );
 	} catch ( Exception $e ) {
 		$mime = false;
 	}
@@ -6566,16 +6560,10 @@ function wp_scheduled_delete() {
  * @return string[] Array of file header values keyed by header name.
  */
 function get_file_data( $file, $default_headers, $context = '' ) {
-	// We don't need to write to the file, so just open for reading.
-	$fp = fopen( $file, 'r' );
+	// Pull only the first 8 KB of the file in.
+	$file_data = file_get_contents( $file, false, null, 0, 8 * KB_IN_BYTES );
 
-	if ( $fp ) {
-		// Pull only the first 8 KB of the file in.
-		$file_data = fread( $fp, 8 * KB_IN_BYTES );
-
-		// PHP will close file handle, but we are good citizens.
-		fclose( $fp );
-	} else {
+	if ( false === $file_data ) {
 		$file_data = '';
 	}
 

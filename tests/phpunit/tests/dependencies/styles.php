@@ -205,6 +205,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @dataProvider data_normalize_relative_css_links
 	 *
 	 * @ticket 54243
+	 * @ticket 54922
 	 *
 	 * @covers ::_wp_normalize_relative_css_links
 	 *
@@ -240,6 +241,10 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 			'External URLs, shouldn\'t change'             => array(
 				'css'      => 'p {background-image: url(\'http://foo.com/image2.png\');}',
 				'expected' => 'p {background-image: url(\'http://foo.com/image2.png\');}',
+			),
+			'An HTML ID'                                   => array(
+				'css'      => 'clip-path: url(#image1);',
+				'expected' => 'clip-path: url(#image1);',
 			),
 		);
 	}
