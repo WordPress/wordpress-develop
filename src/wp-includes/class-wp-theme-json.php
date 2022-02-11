@@ -198,7 +198,7 @@ class WP_Theme_JSON {
 		'padding-right'              => array( 'spacing', 'padding', 'right' ),
 		'padding-bottom'             => array( 'spacing', 'padding', 'bottom' ),
 		'padding-left'               => array( 'spacing', 'padding', 'left' ),
-		'--wp--style--block-gap'     => array( 'spacing', 'blockGap' ),
+		'gap'                        => array( 'spacing', 'blockGap' ),
 		'text-decoration'            => array( 'typography', 'textDecoration' ),
 		'text-transform'             => array( 'typography', 'textTransform' ),
 		'filter'                     => array( 'filter', 'duotone' ),
@@ -317,7 +317,7 @@ class WP_Theme_JSON {
 		'spacing'    => array(
 			'margin'   => null,
 			'padding'  => null,
-			'blockGap' => 'top',
+			'blockGap' => null,
 		),
 		'typography' => array(
 			'fontFamily'     => null,
@@ -826,6 +826,7 @@ class WP_Theme_JSON {
 
 				$has_block_gap_support = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'blockGap' ) ) !== null;
 				if ( $has_block_gap_support ) {
+					$block_rules .= 'body { --wp--style--block-gap: ' . _wp_array_get( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ) ) . ';}';
 					$block_rules .= '.wp-site-blocks > * { margin-top: 0; margin-bottom: 0; }';
 					$block_rules .= '.wp-site-blocks > * + * { margin-top: var( --wp--style--block-gap ); }';
 				}
