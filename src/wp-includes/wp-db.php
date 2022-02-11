@@ -656,11 +656,13 @@ class wpdb {
 	/**
 	 * Backwards compatibility, where wpdb::prepare() would not quote string placeholders with formatting.
 	 * They were used in the middle of longer strings, or as table name placeholders.
+	 * But they are risky, e.g. forgetting to add the quotes:
+	 *   $sql = $wpdb->prepare('WHERE id = %s id = %5s OR id = %3$s', ['id', 'id', 'id']);
 	 *
 	 * @since 6.0.0
 	 * @var bool
 	 */
-	private $unsafe_unquoted_parameters = true;
+	public $unsafe_unquoted_parameters = true;
 
 	/**
 	 * Whether to use mysqli over mysql. Default false.
