@@ -34,6 +34,7 @@ if ( ! can_edit_network( $details->site_id ) ) {
 
 $parsed_scheme = parse_url( $details->siteurl, PHP_URL_SCHEME );
 $is_main_site  = is_main_site( $id );
+$message_class = 'notice';
 
 if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] ) {
 	check_admin_referer( 'edit-site' );
@@ -81,7 +82,8 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] ) {
 		}
 	}
 
-	update_blog_details( $id, $blog_data );
+	// We need this variable in case update_blog_details() fails.
+	$update_blog_details = update_blog_details( $id, $blog_data );
 
 	// Maybe update home and siteurl options.
 	$new_details = get_site( $id );
@@ -102,11 +104,17 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] ) {
 		update_option( 'siteurl', $new_site_url );
 	}
 
+	$update_argument = 'updated';
+
+	if ( false == $update_blog_details ) {
+		$update_argument = 'failed';
+	}
+
 	restore_current_blog();
 	wp_redirect(
 		add_query_arg(
 			array(
-				'update' => 'updated',
+				'update' => $update_argument,
 				'id'     => $id,
 			),
 			'site-info.php'
@@ -119,6 +127,9 @@ if ( isset( $_GET['update'] ) ) {
 	$messages = array();
 	if ( 'updated' === $_GET['update'] ) {
 		$messages[] = __( 'Site info updated.' );
+	} else if ( 'failed' === $_GET['update'] ) {
+		$messages[] = __( 'Site info not updated.' );
+		$message_class = 'error';
 	}
 }
 
@@ -128,6 +139,7 @@ $title = sprintf( __( 'Edit Site: %s' ), esc_html( $details->blogname ) );
 
 $parent_file  = 'sites.php';
 $submenu_file = 'sites.php';
+
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
@@ -147,7 +159,7 @@ network_edit_site_nav(
 
 if ( ! empty( $messages ) ) {
 	foreach ( $messages as $msg ) {
-		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
+		echo '<div id="message" class="updated '. $message_class .' is-dismissible"><p>' . $msg . '</p></div>';
 	}
 }
 ?>
