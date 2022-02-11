@@ -260,7 +260,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		// Insert a term.
-		$term = rand_str();
+		$term = __FUNCTION__;
 		$t    = wp_insert_term( $term, 'wptests_tax' );
 		$this->assertIsArray( $t );
 		$this->assertEquals( $t['term_id'], term_exists( $t['term_id'] ) );

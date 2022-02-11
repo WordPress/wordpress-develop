@@ -823,8 +823,6 @@ img.emoji {
 	outline: 0;
 }
 
-.welcome-panel .welcome-panel-close:hover:before,
-.welcome-panel .welcome-panel-close:focus:before,
 .tagchecklist .ntdelbutton:hover .remove-tag-icon:before,
 .tagchecklist .ntdelbutton:focus .remove-tag-icon:before,
 #bulk-titles div a:hover:before,
@@ -3145,7 +3143,7 @@ img {
 	width: 300px;
 }
 
-/* Theme/Plugin Editor */
+/* Theme/Plugin file editor */
 .alignleft h2 {
 	margin: 0;
 }
@@ -3198,7 +3196,7 @@ img {
 }
 
 /*
- * Styles for Theme and Plugin editors.
+ * Styles for Theme and Plugin file editors.
  */
 
 /* Hide collapsed items. */

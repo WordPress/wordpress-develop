@@ -1329,6 +1329,21 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
 		$position            = $position + substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
 		$menu[ "$position" ] = $new_menu;
 	} else {
+		if ( ! is_int( $position ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: add_menu_page() */
+					__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
+					'<code>add_menu_page()</code>'
+				),
+				'6.0.0'
+			);
+			// If the position is not a string (i.e. float), convert it to string.
+			if ( ! is_string( $position ) ) {
+				$position = (string) $position;
+			}
+		}
 		$menu[ $position ] = $new_menu;
 	}
 
@@ -2523,7 +2538,7 @@ function deactivated_plugins_notice() {
 	foreach ( $deactivated_plugins as $plugin ) {
 		if ( ! empty( $plugin['version_compatible'] ) && ! empty( $plugin['version_deactivated'] ) ) {
 			$explanation = sprintf(
-				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version, 4: Compatible plugin version */
+				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version, 4: Compatible plugin version. */
 				__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s, please upgrade to %1$s %4$s or later.' ),
 				$plugin['plugin_name'],
 				$plugin['version_deactivated'],
@@ -2532,7 +2547,7 @@ function deactivated_plugins_notice() {
 			);
 		} else {
 			$explanation = sprintf(
-				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version */
+				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version. */
 				__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s.' ),
 				$plugin['plugin_name'],
 				! empty( $plugin['version_deactivated'] ) ? $plugin['version_deactivated'] : '',
@@ -2544,7 +2559,7 @@ function deactivated_plugins_notice() {
 		printf(
 			'<div class="notice notice-warning"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
 			sprintf(
-				/* translators: %s: Name of deactivated plugin */
+				/* translators: %s: Name of deactivated plugin. */
 				__( '%s plugin deactivated during WordPress upgrade.' ),
 				$plugin['plugin_name']
 			),

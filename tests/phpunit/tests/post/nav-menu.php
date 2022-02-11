@@ -12,7 +12,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->menu_id = wp_create_nav_menu( rand_str() );
+		$this->menu_id = wp_create_nav_menu( 'foo' );
 	}
 
 	/**
@@ -255,8 +255,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_wp_setup_nav_menu_item_for_post_type_archive() {
 
-		$post_type_slug        = rand_str( 12 );
-		$post_type_description = rand_str();
+		$post_type_slug        = 'fooo-bar-baz';
+		$post_type_description = 'foo';
 		register_post_type(
 			$post_type_slug,
 			array(
@@ -288,7 +288,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_wp_setup_nav_menu_item_for_post_type_archive_no_description() {
 
-		$post_type_slug        = rand_str( 12 );
+		$post_type_slug        = 'fooo-bar-baz';
 		$post_type_description = '';
 		register_post_type(
 			$post_type_slug,
@@ -319,8 +319,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_wp_setup_nav_menu_item_for_post_type_archive_custom_description() {
 
-		$post_type_slug        = rand_str( 12 );
-		$post_type_description = rand_str();
+		$post_type_slug        = 'fooo-bar-baz';
+		$post_type_description = 'foobaz';
 		register_post_type(
 			$post_type_slug,
 			array(
@@ -331,7 +331,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 			)
 		);
 
-		$menu_item_description = rand_str();
+		$menu_item_description = 'foo_description';
 
 		$post_type_archive_item_id = wp_update_nav_menu_item(
 			$this->menu_id,
@@ -354,7 +354,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_wp_setup_nav_menu_item_for_unknown_post_type_archive_no_description() {
 
-		$post_type_slug = rand_str( 12 );
+		$post_type_slug = 'fooo-bar-baz';
 
 		$post_type_archive_item_id = wp_update_nav_menu_item(
 			$this->menu_id,

@@ -145,9 +145,8 @@ function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
 	return $wp_object_cache->get_multiple( $keys, $group, $force );
 }
 
-
 /**
- * Retrieves multiple values from the cache in one call.
+ * Delete multiple values from the cache in one call.
  *
  * @since 6.0.0
  *
@@ -158,14 +157,14 @@ function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
  * @param string $group Optional. Where the cache contents are grouped. Default empty.
  * @return array Array of return values organized into groups.
  */
-function wp_cache_delete_multiple( $keys, $group = '' ) {
+function wp_cache_delete_multiple( array $keys, $group = '' ) {
 	global $wp_object_cache;
 
 	return $wp_object_cache->delete_multiple( $keys, $group );
 }
 
 /**
- * Add multiple values from the cache in one call.
+ * Add multiple values to the cache in one call.
  *
  * @since 6.0.0
  *
@@ -176,16 +175,18 @@ function wp_cache_delete_multiple( $keys, $group = '' ) {
  * @param string $group Optional. Where the cache contents are grouped. Default empty.
  * @param int    $expire Optional. When to expire the cache contents, in seconds.
  *                           Default 0 (no expiration).
- * @return array Array of return values organized into groups.
+ * @return array Array of return values.
  */
-function wp_cache_add_multiple( $data, $group = '', $expire = 0 ) {
+function wp_cache_add_multiple( array $data, $group = '', $expire = 0 ) {
 	global $wp_object_cache;
 
 	return $wp_object_cache->add_multiple( $data, $group, $expire );
 }
 
 /**
- * Set multiple values from the cache in one call.
+ * Set multiple values to the cache in one call.
+ *
+ * @since 6.0.0
  *
  * @see WP_Object_Cache::set_multiple()
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
@@ -194,9 +195,9 @@ function wp_cache_add_multiple( $data, $group = '', $expire = 0 ) {
  * @param string $group Optional. Where the cache contents are grouped. Default empty.
  * @param int    $expire Optional. When to expire the cache contents, in seconds.
  *                           Default 0 (no expiration).
- * @return array Array of return values organized into groups.
+ * @return array Array of return values.
  */
-function wp_cache_set_multiple( $data, $group = '', $expire = 0 ) {
+function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
 	global $wp_object_cache;
 
 	return $wp_object_cache->set_multiple( $data, $group, $expire );

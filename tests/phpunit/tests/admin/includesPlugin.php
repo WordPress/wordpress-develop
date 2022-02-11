@@ -296,11 +296,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Passing a string as position will fail.
+	 * Passing a string as position will fail in submenu.
 	 *
 	 * @ticket 48599
 	 */
-	public function test_passing_string_as_position_fires_doing_it_wrong() {
+	public function test_passing_string_as_position_fires_doing_it_wrong_submenu() {
 		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
 		global $submenu, $menu;
 
@@ -322,6 +322,37 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'submenu_page_1', $submenu['main_slug'][1][2] );
+	}
+
+	/**
+	 * Passing a string as position will fail in menu.
+	 *
+	 * @ticket 54798
+	 */
+	public function test_passing_string_as_position_fires_doing_it_wrong_menu() {
+		$this->setExpectedIncorrectUsage( 'add_menu_page' );
+		global $submenu, $menu;
+
+		// Reset menus.
+		$submenu      = array();
+		$menu         = array();
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Setup a menu with some items.
+		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback', 'icon_url', '1' );
+		add_menu_page( 'Main Menu 1', 'Main Menu 1', 'manage_options', 'main1_slug', 'main1_page_callback', 'icon_url1', 1.5 );
+
+		// Clean up the temporary user.
+		wp_set_current_user( $current_user );
+		wp_delete_user( $admin_user );
+
+		// Verify the menu was inserted.
+		$this->assertSame( 'main_slug', $menu[1][2] );
+		// Verify the menu was inserted correctly on passing float as position.
+		$this->assertSame( 'main1_slug', $menu['1.5'][2] );
 	}
 
 	public function test_is_plugin_active_true() {
@@ -487,10 +518,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$p2 = $this->_create_plugin( "<?php\n//Test", 'not-a-dropin.php', WP_CONTENT_DIR );
 
 		$dropins = get_dropins();
-		$this->assertSame( array( 'advanced-cache.php' ), array_keys( $dropins ) );
 
 		unlink( $p1[1] );
 		unlink( $p2[1] );
+
+		$this->assertSame( array( 'advanced-cache.php' ), array_keys( $dropins ) );
 
 		// Clean up.
 		$this->_restore_drop_ins();
@@ -509,9 +541,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	public function test_is_network_only_plugin() {
 		$p = $this->_create_plugin( "<?php\n/*\nPlugin Name: test\nNetwork: true" );
 
-		$this->assertTrue( is_network_only_plugin( $p[0] ) );
+		$network_only = is_network_only_plugin( $p[0] );
 
 		unlink( $p[1] );
+
+		$this->assertTrue( $network_only );
 	}
 
 	/**
@@ -571,12 +605,14 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$uninstallable_plugins[ $plugin[0] ] = true;
 		update_option( 'uninstall_plugins', $uninstallable_plugins );
 
-		$this->assertTrue( is_uninstallable_plugin( $plugin[0] ) );
+		$is_uninstallable = is_uninstallable_plugin( $plugin[0] );
 
 		unset( $uninstallable_plugins[ $plugin[0] ] );
 		update_option( 'uninstall_plugins', $uninstallable_plugins );
 
 		unlink( $plugin[1] );
+
+		$this->assertTrue( $is_uninstallable );
 	}
 
 	/**
@@ -595,14 +631,15 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 */
 	private function _create_plugin( $data = "<?php\n/*\nPlugin Name: Test\n*/", $filename = false, $dir_path = false ) {
 		if ( false === $filename ) {
-			$filename = rand_str() . '.php';
+			$filename = __FUNCTION__ . '.php';
 		}
 
 		if ( false === $dir_path ) {
 			$dir_path = WP_PLUGIN_DIR;
 		}
 
-		$full_name = $dir_path . '/' . wp_unique_filename( $dir_path, $filename );
+		$filename  = wp_unique_filename( $dir_path, $filename );
+		$full_name = $dir_path . '/' . $filename;
 
 		$file = fopen( $full_name, 'w' );
 		fwrite( $file, $data );

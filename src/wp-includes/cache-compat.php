@@ -38,7 +38,7 @@ endif;
 
 if ( ! function_exists( 'wp_cache_delete_multiple' ) ) :
 	/**
-	 * Retrieves multiple values from the cache in one call.
+	 * Delete multiple values from the cache in one call.
 	 *
 	 * Compat function to mimic wp_cache_delete_multiple().
 	 *
@@ -49,9 +49,9 @@ if ( ! function_exists( 'wp_cache_delete_multiple' ) ) :
 	 *
 	 * @param array  $keys  Array of keys under which the cache to deleted.
 	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
-	 * @return array Array of return values organized into groups.
+	 * @return array Array of return values.
 	 */
-	function wp_cache_delete_multiple( $keys, $group = '' ) {
+	function wp_cache_delete_multiple( array $keys, $group = '' ) {
 		$values = array();
 
 		foreach ( $keys as $key ) {
@@ -65,22 +65,21 @@ endif;
 
 if ( ! function_exists( 'wp_cache_add_multiple' ) ) :
 	/**
-	 * Add multiple values from the cache in one call.
+	 * Add multiple values to the cache in one call, if the cache keys doesn't already exist.
 	 *
-	 * Compat function to mimic wp_cache_set_multiple().
+	 * Compat function to mimic wp_cache_add_multiple().
 	 *
 	 * @ignore
 	 * @since 6.0.0
 	 *
 	 * @see wp_cache_add_multiple()
 	 *
-	 * @param array  $data  Array of key and value to be set.
+	 * @param array  $data  Array of key and value to be added.
 	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
-	 * @param int    $expire Optional. When to expire the cache contents, in seconds.
-	 *                           Default 0 (no expiration).
-	 * @return array Array of return values organized into groups.
+	 * @param int    $expire Optional. When to expire the cache contents, in seconds. Default 0 (no expiration).
+	 * @return array Array of return values.
 	 */
-	function wp_cache_add_multiple( $data, $group = '', $expire = 0 ) {
+	function wp_cache_add_multiple( array $data, $group = '', $expire = 0 ) {
 		$values = array();
 
 		foreach ( $data as $key => $value ) {
@@ -93,7 +92,9 @@ endif;
 
 if ( ! function_exists( 'wp_cache_set_multiple' ) ) :
 	/**
-	 * Set multiple values from the cache in one call.
+	 * Set multiple values to the cache in one call.
+	 *
+	 * Differs from wp_cache_add_multiple() in that it will always write data.
 	 *
 	 * Compat function to mimic wp_cache_set_multiple().
 	 *
@@ -104,11 +105,10 @@ if ( ! function_exists( 'wp_cache_set_multiple' ) ) :
 	 *
 	 * @param array  $data  Array of key and value to be set.
 	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
-	 * @param int    $expire Optional. When to expire the cache contents, in seconds.
-	 *                           Default 0 (no expiration).
-	 * @return array Array of return values organized into groups.
+	 * @param int    $expire Optional. When to expire the cache contents, in seconds. Default 0 (no expiration).
+	 * @return array Array of return values.
 	 */
-	function wp_cache_set_multiple( $data, $group = '', $expire = 0 ) {
+	function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
 		$values = array();
 
 		foreach ( $data as $key => $value ) {

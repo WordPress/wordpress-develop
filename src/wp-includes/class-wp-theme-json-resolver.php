@@ -147,7 +147,7 @@ class WP_Theme_JSON_Resolver {
 	 * Data from theme.json will be backfilled from existing
 	 * theme supports, if any. Note that if the same data
 	 * is present in theme.json and in theme supports,
-	 * the theme.json takes precendence.
+	 * the theme.json takes precedence.
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Theme supports have been inlined and the `$theme_support_data` argument removed.
@@ -217,15 +217,15 @@ class WP_Theme_JSON_Resolver {
 
 	/**
 	 * Returns the custom post type that contains the user's origin config
-	 * for the current theme or a void array if none are found.
+	 * for the active theme or a void array if none are found.
 	 *
 	 * This can also create and return a new draft custom post type.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param WP_Theme $theme              The theme object. If empty, it
-	 *                                     defaults to the current theme.
-	 * @param bool     $should_create_cpt  Optional. Whether a new custom post
+	 *                                     defaults to the active theme.
+	 * @param bool     $create_post        Optional. Whether a new custom post
 	 *                                     type should be created if none are
 	 *                                     found. Default false.
 	 * @param array    $post_status_filter Optional. Filter custom post type by
@@ -233,7 +233,7 @@ class WP_Theme_JSON_Resolver {
 	 *                                     so it only fetches published posts.
 	 * @return array Custom Post Type for the user's origin config.
 	 */
-	public static function get_user_data_from_custom_post_type( $theme, $should_create_cpt = false, $post_status_filter = array( 'publish' ) ) {
+	public static function get_user_data_from_wp_global_styles( $theme, $create_post = false, $post_status_filter = array( 'publish' ) ) {
 		if ( ! $theme instanceof WP_Theme ) {
 			$theme = wp_get_theme();
 		}
@@ -262,14 +262,14 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		// Special case: '-1' is a results not found.
-		if ( -1 === $post_id && ! $should_create_cpt ) {
+		if ( -1 === $post_id && ! $create_post ) {
 			return $user_cpt;
 		}
 
 		$recent_posts = wp_get_recent_posts( $args );
 		if ( is_array( $recent_posts ) && ( count( $recent_posts ) === 1 ) ) {
 			$user_cpt = $recent_posts[0];
-		} elseif ( $should_create_cpt ) {
+		} elseif ( $create_post ) {
 			$cpt_post_id = wp_insert_post(
 				array(
 					'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
@@ -296,7 +296,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return WP_Theme_JSON Entity that holds user data.
+	 * @return WP_Theme_JSON Entity that holds styles for user data.
 	 */
 	public static function get_user_data() {
 		if ( null !== self::$user ) {
@@ -304,7 +304,7 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$config   = array();
-		$user_cpt = self::get_user_data_from_custom_post_type( wp_get_theme() );
+		$user_cpt = self::get_user_data_from_wp_global_styles( wp_get_theme() );
 
 		if ( array_key_exists( 'post_content', $user_cpt ) ) {
 			$decoded_data = json_decode( $user_cpt['post_content'], true );
@@ -381,12 +381,12 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @return integer|null
 	 */
-	public static function get_user_custom_post_type_id() {
+	public static function get_user_global_styles_post_id() {
 		if ( null !== self::$user_custom_post_type_id ) {
 			return self::$user_custom_post_type_id;
 		}
 
-		$user_cpt = self::get_user_data_from_custom_post_type( wp_get_theme(), true );
+		$user_cpt = self::get_user_data_from_wp_global_styles( wp_get_theme(), true );
 
 		if ( array_key_exists( 'ID', $user_cpt ) ) {
 			self::$user_custom_post_type_id = $user_cpt['ID'];
@@ -396,7 +396,7 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Whether the current theme has a theme.json file.
+	 * Whether the active theme has a theme.json file.
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added a check in the parent theme.

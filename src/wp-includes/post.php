@@ -333,8 +333,8 @@ function create_initial_post_types() {
 		'wp_template',
 		array(
 			'labels'                => array(
-				'name'                  => __( 'Templates' ),
-				'singular_name'         => __( 'Template' ),
+				'name'                  => _x( 'Templates', 'post type general name' ),
+				'singular_name'         => _x( 'Template', 'post type singular name' ),
 				'add_new'               => _x( 'Add New', 'Template' ),
 				'add_new_item'          => __( 'Add New Template' ),
 				'new_item'              => __( 'New Template' ),
@@ -356,7 +356,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_template_theme(),
+			'show_ui'               => false,
 			'show_in_menu'          => false,
 			'show_in_rest'          => true,
 			'rewrite'               => false,
@@ -393,8 +393,8 @@ function create_initial_post_types() {
 		'wp_template_part',
 		array(
 			'labels'                => array(
-				'name'                  => __( 'Template Parts' ),
-				'singular_name'         => __( 'Template Part' ),
+				'name'                  => _x( 'Template Parts', 'post type general name' ),
+				'singular_name'         => _x( 'Template Part', 'post type singular name' ),
 				'add_new'               => _x( 'Add New', 'Template Part' ),
 				'add_new_item'          => __( 'Add New Template Part' ),
 				'new_item'              => __( 'New Template Part' ),
@@ -416,7 +416,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_template_theme(),
+			'show_ui'               => false,
 			'show_in_menu'          => false,
 			'show_in_rest'          => true,
 			'rewrite'               => false,
@@ -480,8 +480,8 @@ function create_initial_post_types() {
 		'wp_navigation',
 		array(
 			'labels'                => array(
-				'name'                  => __( 'Navigation Menus' ),
-				'singular_name'         => __( 'Navigation Menu' ),
+				'name'                  => _x( 'Navigation Menus', 'post type general name' ),
+				'singular_name'         => _x( 'Navigation Menu', 'post type singular name' ),
 				'add_new'               => _x( 'Add New', 'Navigation Menu' ),
 				'add_new_item'          => __( 'Add New Navigation Menu' ),
 				'new_item'              => __( 'New Navigation Menu' ),
@@ -503,12 +503,24 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_template_theme(),
-			'show_in_menu'          => 'themes.php',
+			'show_ui'               => wp_is_block_theme(),
+			'show_in_menu'          => false,
 			'show_in_admin_bar'     => false,
 			'show_in_rest'          => true,
 			'rewrite'               => false,
 			'map_meta_cap'          => true,
+			'capabilities'          => array(
+				'edit_others_posts'      => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'delete_private_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'edit_private_posts'     => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+			),
 			'rest_base'             => 'navigation',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
 			'supports'              => array(
@@ -2279,7 +2291,7 @@ function is_post_type_viewable( $post_type ) {
 /**
  * Determine whether a post status is considered "viewable".
  *
- * For built-in post statuses such as publish and private, the 'public' value will be evaluted.
+ * For built-in post statuses such as publish and private, the 'public' value will be evaluated.
  * For all others, the 'publicly_queryable' value will be used.
  *
  * @since 5.7.0
@@ -2463,7 +2475,7 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  * @return bool True on success, false on failure.
  */
 function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
-	// Make sure meta is added to the post, not a revision.
+	// Make sure meta is deleted from the post, not from a revision.
 	$the_post = wp_is_post_revision( $post_id );
 	if ( $the_post ) {
 		$post_id = $the_post;
@@ -2515,7 +2527,7 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  *                  is the same as the one that is already in the database.
  */
 function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
-	// Make sure meta is added to the post, not a revision.
+	// Make sure meta is updated for the post, not for a revision.
 	$the_post = wp_is_post_revision( $post_id );
 	if ( $the_post ) {
 		$post_id = $the_post;
@@ -4352,27 +4364,31 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		 * Filters attachment post data before it is updated in or added to the database.
 		 *
 		 * @since 3.9.0
-		 * @since 5.4.1 `$unsanitized_postarr` argument added.
+		 * @since 5.4.1 The `$unsanitized_postarr` parameter was added.
+		 * @since 6.0.0 The `$update` parameter was added.
 		 *
 		 * @param array $data                An array of slashed, sanitized, and processed attachment post data.
 		 * @param array $postarr             An array of slashed and sanitized attachment post data, but not processed.
 		 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data
 		 *                                   as originally passed to wp_insert_post().
+		 * @param bool  $update              Whether this is an existing attachment post being updated.
 		 */
-		$data = apply_filters( 'wp_insert_attachment_data', $data, $postarr, $unsanitized_postarr );
+		$data = apply_filters( 'wp_insert_attachment_data', $data, $postarr, $unsanitized_postarr, $update );
 	} else {
 		/**
 		 * Filters slashed post data just before it is inserted into the database.
 		 *
 		 * @since 2.7.0
-		 * @since 5.4.1 `$unsanitized_postarr` argument added.
+		 * @since 5.4.1 The `$unsanitized_postarr` parameter was added.
+		 * @since 6.0.0 The `$update` parameter was added.
 		 *
 		 * @param array $data                An array of slashed, sanitized, and processed post data.
 		 * @param array $postarr             An array of sanitized (and slashed) but otherwise unmodified post data.
 		 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
 		 *                                   originally passed to wp_insert_post().
+		 * @param bool  $update              Whether this is an existing post being updated.
 		 */
-		$data = apply_filters( 'wp_insert_post_data', $data, $postarr, $unsanitized_postarr );
+		$data = apply_filters( 'wp_insert_post_data', $data, $postarr, $unsanitized_postarr, $update );
 	}
 
 	$data  = wp_unslash( $data );
@@ -5130,7 +5146,7 @@ function _truncate_post_slug( $slug, $length = 200 ) {
 		if ( $decoded_slug === $slug ) {
 			$slug = substr( $slug, 0, $length );
 		} else {
-			$slug = utf8_uri_encode( $decoded_slug, $length );
+			$slug = utf8_uri_encode( $decoded_slug, $length, true );
 		}
 	}
 
