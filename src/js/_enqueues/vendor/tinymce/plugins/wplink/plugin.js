@@ -161,7 +161,7 @@
 
 			hasLinkError = false;
 
-			if ( /^http/i.test( href ) && ( ! urlRegex1.test( href ) || ! urlRegex2.test( href ) ) ) {
+			if ( ( /^http/i.test( href ) && ( ! urlRegex1.test( href ) ) || ! urlRegex2.test( href ) ) ) {
 				hasLinkError = true;
 				$link.attr( 'data-wplink-url-error', 'true' );
 				speak( editor.translate( 'Warning: the link has been inserted but may have errors. Please test it.' ), 'assertive' );
