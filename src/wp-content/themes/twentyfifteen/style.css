@@ -3374,12 +3374,19 @@ p > video {
 	}
 
 	.entry-content h5,
-	.entry-content h6,
 	.entry-summary h5,
-	.entry-summary h6,
 	.page-content h5,
+	.comment-content h5 {
+		font-size: 18px;
+		font-size: 1.8rem;
+		line-height: 1.2353;
+		margin-top: 3.1111em;
+    	margin-bottom: 1.5556em;
+	}
+
+	.entry-content h6,
+	.entry-summary h6,
 	.page-content h6,
-	.comment-content h5,
 	.comment-content h6 {
 		font-size: 17px;
 		font-size: 1.7rem;
@@ -3948,18 +3955,25 @@ p > video {
 	}
 
 	.entry-content h5,
-	.entry-content h6,
 	.entry-summary h5,
-	.entry-summary h6,
 	.page-content h5,
-	.page-content h6,
-	.comment-content h5,
-	.comment-content h6 {
-		font-size: 19px;
-		font-size: 1.9rem;
+	.comment-content h5 {
+		font-size: 20px;
+		font-size: 2rem;
 		line-height: 1.2632;
-		margin-top: 3.3684em;
-		margin-bottom: 1.6842em;
+		margin-top: 3.2em;
+		margin-bottom: 1.6em;
+	}
+
+	.entry-content h6,
+	.entry-summary h6,
+	.page-content h6,
+	.comment-content h6 {
+		font-size: 18px;
+		font-size: 1.8rem;
+		line-height: 1.2632;
+		margin-top: 3.5555em;
+		margin-bottom: 1.7775em;
 	}
 
 	.entry-content .more-link:after,
@@ -4621,12 +4635,19 @@ p > video {
 	}
 
 	.entry-content h5,
-	.entry-content h6,
 	.entry-summary h5,
-	.entry-summary h6,
 	.page-content h5,
+	.comment-content h5 {
+		font-size: 16px;
+		font-size: 1.6rem;
+		line-height: 1.2;
+		margin-top: 3em;
+		margin-bottom: 1.5em;
+	}
+
+	.entry-content h6,
+	.entry-summary h6,
 	.page-content h6,
-	.comment-content h5,
 	.comment-content h6 {
 		font-size: 15px;
 		font-size: 1.5rem;
@@ -5204,12 +5225,20 @@ p > video {
 	}
 
 	.entry-content h5,
-	.entry-content h6,
 	.entry-summary h5,
-	.entry-summary h6,
 	.page-content h5,
+	.comment-content h5{
+		font-size: 18px;
+		font-size: 1.75rem;
+		line-height: 1.375;
+		margin-top: 3.2em;
+		margin-bottom: 1.6em;
+	}
+
+	
+	.entry-content h6,
+	.entry-summary h6,
 	.page-content h6,
-	.comment-content h5,
 	.comment-content h6 {
 		font-size: 17px;
 		font-size: 1.7rem;
@@ -5217,6 +5246,7 @@ p > video {
 		margin-top: 3.2941em;
 		margin-bottom: 1.6471em;
 	}
+
 
 	.entry-content .more-link:after,
 	.entry-summary .more-link:after {
@@ -5759,18 +5789,25 @@ p > video {
 	}
 
 	.entry-content h5,
-	.entry-content h6,
 	.entry-summary h5,
-	.entry-summary h6,
 	.page-content h5,
+	.comment-content h5{
+		font-size: 20px;
+		font-size: 2rem;
+		line-height: 1.375;
+		margin-top: 3.2em;
+		margin-bottom: 1.6em;
+	}
+	
+	.entry-content h6,
+	.entry-summary h6,
 	.page-content h6,
-	.comment-content h5,
 	.comment-content h6 {
-		font-size: 19px;
-		font-size: 1.9rem;
-		line-height: 1.2632;
-		margin-top: 3.3684em;
-		margin-bottom: 1.6842em;
+		font-size: 18px;
+		font-size: 1.8rem;
+    	line-height: 1.2632;
+    	margin-top: 3.5555em;
+    	margin-bottom: 1.7775em;
 	}
 
 	.entry-content .more-link:after,
