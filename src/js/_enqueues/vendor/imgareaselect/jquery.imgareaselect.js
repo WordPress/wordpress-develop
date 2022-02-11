@@ -430,6 +430,13 @@ $.imgAreaSelect = function (img, options) {
     function doUpdate(resetKeyPress) {
         adjust();
         update(resetKeyPress);
+        updateSelectionRelativeToParentElement();
+    }
+
+    /**
+     * Set the correct values of x1, y1, x2, and y2.
+     */
+    function updateSelectionRelativeToParentElement() {
         x1 = viewX(selection.x1); y1 = viewY(selection.y1);
         x2 = viewX(selection.x2); y2 = viewY(selection.y2);
     }
@@ -589,6 +596,14 @@ $.imgAreaSelect = function (img, options) {
      * aspect ratio
      */
     function doResize() {
+        /**
+         * Make sure x1, x2, y1, y2 are initialized to avoid the following calculation
+         * getting incorrect results.
+         */
+        if ( x1 == null || x2 == null || y1 == null || y2 == null ) {
+            updateSelectionRelativeToParentElement();
+        }
+
         /*
          * Make sure the top left corner of the selection area stays within
          * image boundaries (it might not if the image source was dynamically
