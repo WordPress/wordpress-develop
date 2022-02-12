@@ -1747,6 +1747,18 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 				'WHERE \'`my_field1`\' = 1 AND "`my_field2`" = 2 AND ``my_field3`` = 3 AND `      my_field4` = 4', // Does not remove any existing quotes, always adds it's own (safer).
 			),
+			array(
+				'WHERE %i LIKE %1$s LIMIT 1',
+				array( "field -- ", false ),
+				true, // Incorrect usage.
+				NULL, // Should be rejected, otherwise the `%1$s` could use Identifier escaping, e.g. 'WHERE `field -- ` LIKE field --  LIMIT 1' (thanks @vortfu).
+			),
+			array(
+				'WHERE %i LIKE %s LIMIT 1',
+				array( "field' -- ", "field' -- " ),
+				false,
+				"WHERE `field' -- ` LIKE 'field\' -- ' LIMIT 1", // In contrast to the above, Identifier vs String escaping is used
+			),
 		);
 	}
 

@@ -1499,6 +1499,7 @@ class wpdb {
 		$key             = 2; // keys 0 and 1 in $split_query contain values before the first placeholder.
 		$arg_id          = 0;
 		$arg_identifiers = array();
+		$arg_strings     = array();
 		while ( $key < $split_query_count ) {
 
 			$placeholder = $split_query[ $key ];
@@ -1515,13 +1516,18 @@ class wpdb {
 				// Keep $placeholder.
 			} elseif ( 'i' === $type ) {
 				$placeholder = '`%' . $format . 's`';
-				if ( strpos( $format, '$' ) !== false ) {
+				if ( strpos( $format, '$' ) !== false ) { // Using a simple strpos() due to previous checking (e.g. $allowed_format).
 					$arg_identifiers[] = intval( substr( $format, 1 ) );
 				} else {
 					$arg_identifiers[] = $arg_id;
 				}
-			} elseif ( true !== $this->unsafe_unquoted_parameters || '' === $format ) { // Unquoted strings for backwards compatibility (dangerous).
-				$placeholder = "'%" . $format . "s'";
+			} else { // 's' === $type
+				if ( strpos( $format, '$' ) !== false ) {
+					$arg_strings[] = intval( substr( $format, 1 ) );
+				}
+				if ( true !== $this->unsafe_unquoted_parameters || '' === $format ) { // Unquoted strings for backwards compatibility (dangerous).
+					$placeholder = "'%" . $format . "s'";
+				}
 			}
 
 			$new_query .= $split_query[ $key - 2 ] . $split_query[ $key - 1 ] . $placeholder;
@@ -1532,6 +1538,17 @@ class wpdb {
 
 		}
 		$query = $new_query . $split_query[ $key - 2 ]; // Replace $query; and add remaining $query characters, or index 0 if there were no placeholders.
+
+		if ( count( array_intersect( $arg_identifiers, $arg_strings ) ) ) {
+			wp_load_translations_early();
+			_doing_it_wrong(
+				'wpdb::prepare',
+				__( 'You cannot use a an argument for a string and an identifier.' ),
+				'6.0.0'
+			);
+
+			return;
+		}
 
 		$args_count = count( $args );
 
