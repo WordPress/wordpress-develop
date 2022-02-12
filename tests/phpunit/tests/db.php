@@ -1749,7 +1749,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 			array(
 				'WHERE %i LIKE %1$s LIMIT 1',
-				array( "field -- ", false ),
+				array( 'field -- ', false ),
 				true, // Incorrect usage.
 				NULL, // Should be rejected, otherwise the `%1$s` could use Identifier escaping, e.g. 'WHERE `field -- ` LIKE field --  LIMIT 1' (thanks @vortfu).
 			),
