@@ -193,8 +193,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Cleans the global scope (e.g `$_GET` and `$_POST`).
 	 */
 	public function clean_up_global_scope() {
-		$_GET  = array();
-		$_POST = array();
+		$_GET     = array();
+		$_POST    = array();
+		$_REQUEST = array();
 		self::flush_cache();
 	}
 
@@ -503,10 +504,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 		add_action( 'deprecated_function_run', array( $this, 'deprecated_function_run' ) );
 		add_action( 'deprecated_argument_run', array( $this, 'deprecated_function_run' ) );
+		add_action( 'deprecated_file_included', array( $this, 'deprecated_function_run' ) );
 		add_action( 'deprecated_hook_run', array( $this, 'deprecated_function_run' ) );
 		add_action( 'doing_it_wrong_run', array( $this, 'doing_it_wrong_run' ) );
 		add_action( 'deprecated_function_trigger_error', '__return_false' );
 		add_action( 'deprecated_argument_trigger_error', '__return_false' );
+		add_action( 'deprecated_file_trigger_error', '__return_false' );
 		add_action( 'deprecated_hook_trigger_error', '__return_false' );
 		add_action( 'doing_it_wrong_trigger_error', '__return_false' );
 	}
@@ -685,6 +688,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertEqualFields( $object, $fields, $message = '' ) {
+		$this->assertIsObject( $object, $message . ' Passed $object is not an object.' );
+		$this->assertIsArray( $fields, $message . ' Passed $fields is not an array.' );
+		$this->assertNotEmpty( $fields, $message . ' Fields array is empty.' );
+
 		foreach ( $fields as $field_name => $field_value ) {
 			$this->assertObjectHasAttribute( $field_name, $object, $message . " Property $field_name does not exist on the object." );
 			$this->assertSame( $field_value, $object->$field_name, $message . " Value of property $field_name is not $field_value." );
@@ -697,12 +704,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since UT (3.7.0)
 	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param string $expected The expected value.
-	 * @param string $actual   The actual value.
+	 * @param mixed  $expected The expected value.
+	 * @param mixed  $actual   The actual value.
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertDiscardWhitespace( $expected, $actual, $message = '' ) {
-		$this->assertEquals( preg_replace( '/\s*/', '', $expected ), preg_replace( '/\s*/', '', $actual ), $message );
+		if ( is_string( $expected ) ) {
+			$expected = preg_replace( '/\s*/', '', $expected );
+		}
+
+		if ( is_string( $actual ) ) {
+			$actual = preg_replace( '/\s*/', '', $actual );
+		}
+
+		$this->assertEquals( $expected, $actual, $message );
 	}
 
 	/**
@@ -712,24 +727,36 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 5.8.0 Added support for nested arrays.
 	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param string|array $expected The expected value.
-	 * @param string|array $actual   The actual value.
-	 * @param string       $message  Optional. Message to display when the assertion fails.
+	 * @param mixed  $expected The expected value.
+	 * @param mixed  $actual   The actual value.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertSameIgnoreEOL( $expected, $actual, $message = '' ) {
-		$expected = map_deep(
-			$expected,
-			function ( $value ) {
-				return str_replace( "\r\n", "\n", $value );
-			}
-		);
+		if ( null !== $expected ) {
+			$expected = map_deep(
+				$expected,
+				static function ( $value ) {
+					if ( is_string( $value ) ) {
+						return str_replace( "\r\n", "\n", $value );
+					}
 
-		$actual = map_deep(
-			$actual,
-			function ( $value ) {
-				return str_replace( "\r\n", "\n", $value );
-			}
-		);
+					return $value;
+				}
+			);
+		}
+
+		if ( null !== $actual ) {
+			$actual = map_deep(
+				$actual,
+				static function ( $value ) {
+					if ( is_string( $value ) ) {
+						return str_replace( "\r\n", "\n", $value );
+					}
+
+					return $value;
+				}
+			);
+		}
 
 		$this->assertSame( $expected, $actual, $message );
 	}
@@ -741,8 +768,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 5.6.0 Turned into an alias for `::assertSameIgnoreEOL()`.
 	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param string $expected The expected value.
-	 * @param string $actual   The actual value.
+	 * @param mixed  $expected The expected value.
+	 * @param mixed  $actual   The actual value.
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertEqualsIgnoreEOL( $expected, $actual, $message = '' ) {
@@ -760,6 +787,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertSameSets( $expected, $actual, $message = '' ) {
+		$this->assertIsArray( $expected, $message . ' Expected value must be an array.' );
+		$this->assertIsArray( $actual, $message . ' Value under test is not an array.' );
+
 		sort( $expected );
 		sort( $actual );
 		$this->assertSame( $expected, $actual, $message );
@@ -776,6 +806,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertEqualSets( $expected, $actual, $message = '' ) {
+		$this->assertIsArray( $expected, $message . ' Expected value must be an array.' );
+		$this->assertIsArray( $actual, $message . ' Value under test is not an array.' );
+
 		sort( $expected );
 		sort( $actual );
 		$this->assertEquals( $expected, $actual, $message );
@@ -792,6 +825,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertSameSetsWithIndex( $expected, $actual, $message = '' ) {
+		$this->assertIsArray( $expected, $message . ' Expected value must be an array.' );
+		$this->assertIsArray( $actual, $message . ' Value under test is not an array.' );
+
 		ksort( $expected );
 		ksort( $actual );
 		$this->assertSame( $expected, $actual, $message );
@@ -808,6 +844,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertEqualSetsWithIndex( $expected, $actual, $message = '' ) {
+		$this->assertIsArray( $expected, $message . ' Expected value must be an array.' );
+		$this->assertIsArray( $actual, $message . ' Value under test is not an array.' );
+
 		ksort( $expected );
 		ksort( $actual );
 		$this->assertEquals( $expected, $actual, $message );

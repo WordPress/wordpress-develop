@@ -19,7 +19,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 * @global WP_Scripts $wp_scripts
 	 * @global WP_Styles $wp_styles
 	 */
-	function clean_up_global_scope() {
+	public function clean_up_global_scope() {
 		global $wp_scripts, $wp_styles;
 		parent::clean_up_global_scope();
 		$wp_scripts = null;
@@ -31,7 +31,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Media_Audio::get_instance_schema
 	 */
-	function test_get_instance_schema() {
+	public function test_get_instance_schema() {
 		$wp_widget_audio = new WP_Widget_Media_Audio();
 		$schema          = $wp_widget_audio->get_instance_schema();
 
@@ -57,7 +57,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 *
 	 * @ticket 45029
 	 */
-	function test_get_instance_schema_filtering() {
+	public function test_get_instance_schema_filtering() {
 		$wp_widget_audio = new WP_Widget_Media_Audio();
 		$schema          = $wp_widget_audio->get_instance_schema();
 
@@ -87,7 +87,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Media_Audio::__construct
 	 */
-	function test_constructor() {
+	public function test_constructor() {
 		$widget = new WP_Widget_Media_Audio();
 
 		$this->assertArrayHasKey( 'mime_type', $widget->widget_options );
@@ -116,7 +116,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Media_Audio::update
 	 */
-	function test_update() {
+	public function test_update() {
 		$widget   = new WP_Widget_Media_Audio();
 		$instance = array();
 
@@ -125,7 +125,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 			'attachment_id' => 1,
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment ID.
 		$result = $widget->update(
@@ -141,7 +141,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 			'url' => 'https://chickenandribs.org',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment url.
 		$result = $widget->update(
@@ -158,7 +158,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 			'loop' => true,
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid loop setting.
 		$result = $widget->update(
@@ -174,7 +174,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 			'title' => 'An audio sample of parrots',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment title.
 		$result = $widget->update(
@@ -190,7 +190,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 			'preload' => 'none',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid preload setting.
 		$result = $widget->update(
@@ -216,7 +216,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Media_Audio::render_media
 	 */
-	function test_render_media() {
+	public function test_render_media() {
 		$test_audio_file = __FILE__ . '../../data/uploads/small-audio.mp3';
 		$widget          = new WP_Widget_Media_Audio();
 		$attachment_id   = self::factory()->attachment->create_object(
@@ -282,7 +282,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 * @global WP_Styles $wp_styles
 	 * @covers WP_Widget_Media_Audio::enqueue_preview_scripts
 	 */
-	function test_enqueue_preview_scripts() {
+	public function test_enqueue_preview_scripts() {
 		global $wp_scripts, $wp_styles;
 		$wp_scripts = null;
 		$wp_styles  = null;
@@ -302,7 +302,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Media_Audio::enqueue_admin_scripts
 	 */
-	function test_enqueue_admin_scripts() {
+	public function test_enqueue_admin_scripts() {
 		set_current_screen( 'widgets.php' );
 		$widget = new WP_Widget_Media_Audio();
 		$widget->enqueue_admin_scripts();
@@ -315,7 +315,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Media_Audio::render_control_template_scripts
 	 */
-	function test_render_control_template_scripts() {
+	public function test_render_control_template_scripts() {
 		$widget = new WP_Widget_Media_Audio();
 
 		ob_start();

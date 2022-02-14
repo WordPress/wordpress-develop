@@ -105,6 +105,12 @@ body:not(.ready) #customize-save-button-wrapper .save {
 	height: 100%;
 }
 
+@media (prefers-reduced-motion: reduce) {
+	#customize-sidebar-outer-content {
+		transition: none;
+	}
+}
+
 #customize-theme-controls .control-section-outer {
 	display: none !important;
 }
@@ -121,6 +127,12 @@ body:not(.ready) #customize-save-button-wrapper .save {
 	visibility: visible;
 	left: 100%;
 	transition: left .18s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.outer-section-open .wp-full-overlay.expanded #customize-sidebar-outer-content {
+		transition: none;
+	}
 }
 
 .customize-outer-pane-parent {
@@ -537,6 +549,13 @@ body.trashing #publish-settings {
 		.15s border-color ease-in-out;
 }
 
+@media (prefers-reduced-motion: reduce) {
+	#customize-theme-controls .accordion-section-title,
+	#customize-outer-theme-controls .accordion-section-title {
+		transition: none;
+	}
+}
+
 #customize-controls #customize-theme-controls .customize-themes-panel .accordion-section-title {
 	color: #50575e;
 	background-color: #fff;
@@ -635,6 +654,14 @@ body.trashing #publish-settings {
 	transition: 0.18s transform cubic-bezier(0.645, 0.045, 0.355, 1); /* easeInOutCubic */
 }
 
+@media (prefers-reduced-motion: reduce) {
+	#customize-info,
+	#customize-theme-controls .customize-pane-parent,
+	#customize-theme-controls .customize-pane-child {
+		transition: none;
+	}
+}
+
 #customize-theme-controls .customize-pane-child.skip-transition {
 	transition: none;
 }
@@ -716,7 +743,7 @@ body.trashing #publish-settings {
 }
 
 .customize-section-title {
-	margin: -12px -12px 0 -12px;
+	margin: -12px -12px 0;
 	border-bottom: 1px solid #dcdcde;
 	background: #fff;
 }
@@ -739,11 +766,11 @@ div.customize-section-description p:last-child {
 
 #customize-theme-controls .customize-themes-panel h3.customize-section-title:first-child {
 	border-bottom: 1px solid #dcdcde;
-	padding: 12px 12px 12px 12px;
+	padding: 12px;
 }
 
 .ios #customize-theme-controls .customize-themes-panel h3.customize-section-title:first-child {
-	padding: 12px 12px 13px 12px;
+	padding: 12px 12px 13px;
 }
 
 .customize-section-title h3,
@@ -922,7 +949,8 @@ p.customize-section-description {
 .customize-control input[type="number"],
 .customize-control input[type="search"],
 .customize-control input[type="tel"],
-.customize-control input[type="url"] {
+.customize-control input[type="url"],
+.customize-control input[type="range"] {
 	width: 100%;
 	margin: 0;
 }
@@ -1113,7 +1141,7 @@ p.customize-section-description {
  */
 
 #customize-controls .customize-control-notifications-container { /* Scoped to #customize-controls for specificity over notification styles in common.css. */
-	margin: 4px 0 8px 0;
+	margin: 4px 0 8px;
 	padding: 0;
 	cursor: default;
 }
@@ -1126,7 +1154,7 @@ p.customize-section-description {
 
 #customize-controls .customize-control-notifications-container li.notice {
 	list-style: none;
-	margin: 0 0 6px 0;
+	margin: 0 0 6px;
 	padding: 9px 14px;
 	overflow: hidden;
 }
@@ -1428,7 +1456,7 @@ p.customize-section-description {
 }
 
 .customize-control-header .header-view:last-child {
-	margin-bottom: 0px;
+	margin-bottom: 0;
 }
 
 /* Convoluted, but 'outline' support isn't good enough yet */
@@ -1664,7 +1692,7 @@ p.customize-section-description {
 	border-bottom: 1px solid #dcdcde;
 	border-left: none;
 	border-right: none;
-	margin: 0 0 15px 0;
+	margin: 0 0 15px;
 	padding-right: 100px; /* Space for the button */
 }
 
@@ -1721,6 +1749,12 @@ p.customize-section-description {
 	height: calc(100% - 96px);
 	background: #f0f0f1;
 	z-index: 20;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.control-panel-themes .customize-themes-full-container {
+		transition: none;
+	}
 }
 
 @media screen and (min-width: 1670px) {
@@ -1860,7 +1894,7 @@ p.customize-section-description {
 }
 
 .control-panel-themes .customize-themes-notifications .notice {
-	margin: 0 0 25px 0;
+	margin: 0 0 25px;
 }
 
 .customize-themes-full-container .customize-themes-section {
@@ -1874,7 +1908,7 @@ p.customize-section-description {
 
 .control-section .customize-section-text-before {
 	padding: 0 0 8px 15px;
-	margin: 15px 0 0 0;
+	margin: 15px 0 0;
 	line-height: 16px;
 	border-bottom: 1px solid #dcdcde;
 	color: #50575e;
@@ -2095,7 +2129,7 @@ p.customize-section-description {
 		position: relative;
 		left: 0;
 		width: 100%;
-		margin: 0 0 25px 0;
+		margin: 0 0 25px;
 	}
 	.filter-drawer {
 		top: 46px;
@@ -2205,7 +2239,7 @@ p.customize-section-description {
 		width: 26px;
 		display: block;
 		line-height: 2.3;
-		padding: 0 8px 0 8px;
+		padding: 0 8px;
 		border-right: 1px solid #dcdcde;
 	}
 
@@ -2366,7 +2400,7 @@ body.cheatin h1 {
 	color: #50575e;
 	font-size: 24px;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-	margin: 30px 0 0 0;
+	margin: 30px 0 0;
 	padding: 0 0 7px;
 }
 

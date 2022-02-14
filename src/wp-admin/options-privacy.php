@@ -20,7 +20,7 @@ if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
 
 add_filter(
 	'admin_body_class',
-	function( $body_class ) {
+	static function( $body_class ) {
 		$body_class .= ' privacy-settings ';
 
 		return $body_class;
@@ -28,6 +28,21 @@ add_filter(
 );
 
 $action = isset( $_POST['action'] ) ? $_POST['action'] : '';
+
+get_current_screen()->add_help_tab(
+	array(
+		'id'      => 'overview',
+		'title'   => __( 'Overview' ),
+		'content' =>
+				'<p>' . __( 'The Privacy screen lets you either build a new privacy-policy page or choose one you already have to show.' ) . '</p>' .
+				'<p>' . __( 'This screen includes suggestions to help you write your own privacy policy. However, it is your responsibility to use these resources correctly, to provide the information required by your privacy policy, and to keep this information current and accurate.' ) . '</p>',
+	)
+);
+
+get_current_screen()->set_help_sidebar(
+	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-privacy-screen/">Documentation on Privacy Settings</a>' ) . '</p>'
+);
 
 if ( ! empty( $action ) ) {
 	check_admin_referer( $action );

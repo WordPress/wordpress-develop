@@ -4,7 +4,8 @@ Theme URI: https://wordpress.org/themes/twentyeleven/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: The 2011 theme for WordPress is sophisticated, lightweight, and adaptable. Make it yours with a custom menu, header image, and background -- then go further with available theme options for light or dark color scheme, custom link colors, and three layout choices. Twenty Eleven comes equipped with a Showcase page template that transforms your front page into a showcase to show off your best content, widget support galore (sidebar, three footer areas, and a Showcase page widget area), and a custom "Ephemera" widget to display your Aside, Link, Quote, or Status posts. Included are styles for print and for the admin editor, support for featured images (as custom header images on posts and pages and as large images on featured "sticky" posts), and special styles for six different post formats.
-Version: 3.9
+Version: 4.0
+Tested up to: 5.9
 Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -701,6 +702,7 @@ a.assistive-text:focus,
 	top: auto;
 	bottom: -27px;
 	max-width: 195px;
+	height: 32px;
 }
 #branding .only-search + #access div {
 	padding-right: 205px;
@@ -2231,14 +2233,20 @@ a.comment-reply-link > span {
 	resize: vertical;
 	width: 95%;
 }
-#respond .comment-form-author .required,
-#respond .comment-form-email .required {
+#respond .comment-form label .required,
+#respond .comment-form .comment-notes .required,
+#respond .comment-form .logged-in-as .required {
 	color: #bd3500;
 	font-size: 22px;
 	font-weight: bold;
-	left: 75%;
-	position: absolute;
-	z-index: 1;
+}
+#respond .comment-form label .required {
+	float: right;
+	margin-left: 4px;
+}
+#respond .comment-form .comment-notes .required,
+#respond .comment-form .logged-in-as .required {
+	vertical-align: middle;
 }
 #respond .comment-notes,
 #respond .logged-in-as {

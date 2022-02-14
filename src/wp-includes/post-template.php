@@ -1005,9 +1005,9 @@ function wp_link_pages( $args = '' ) {
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param string $output HTML output of paginated posts' page links.
-	 * @param array  $args   An array of arguments. See wp_link_pages()
-	 *                       for information on accepted arguments.
+	 * @param string       $output HTML output of paginated posts' page links.
+	 * @param array|string $args   An array or query string of arguments. See wp_link_pages()
+	 *                             for information on accepted arguments.
 	 */
 	$html = apply_filters( 'wp_link_pages', $output, $args );
 
@@ -1521,26 +1521,26 @@ function wp_page_menu( $args = array() ) {
  * @param array $pages
  * @param int   $depth
  * @param int   $current_page
- * @param array $r
+ * @param array $args
  * @return string
  */
-function walk_page_tree( $pages, $depth, $current_page, $r ) {
-	if ( empty( $r['walker'] ) ) {
+function walk_page_tree( $pages, $depth, $current_page, $args ) {
+	if ( empty( $args['walker'] ) ) {
 		$walker = new Walker_Page;
 	} else {
 		/**
 		 * @var Walker $walker
 		 */
-		$walker = $r['walker'];
+		$walker = $args['walker'];
 	}
 
 	foreach ( (array) $pages as $page ) {
 		if ( $page->post_parent ) {
-			$r['pages_with_children'][ $page->post_parent ] = true;
+			$args['pages_with_children'][ $page->post_parent ] = true;
 		}
 	}
 
-	return $walker->walk( $pages, $depth, $r, $current_page );
+	return $walker->walk( $pages, $depth, $args, $current_page );
 }
 
 /**
@@ -1646,7 +1646,7 @@ function wp_get_attachment_link( $id = 0, $size = 'thumbnail', $permalink = fals
 	 * @since 5.1.0 Added the `$attr` parameter.
 	 *
 	 * @param string       $link_html The page link HTML output.
-	 * @param int          $id        Post ID.
+	 * @param int|WP_Post  $id        Post ID or object. Can be 0 for the current global post.
 	 * @param string|int[] $size      Requested image size. Can be any registered image size name, or
 	 *                                an array of width and height values in pixels (in that order).
 	 * @param bool         $permalink Whether to add permalink to image. Default false.

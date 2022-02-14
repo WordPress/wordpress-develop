@@ -28,10 +28,14 @@ $block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( true );
 
+// Load block patterns from w.org.
+_load_remote_block_patterns();
+_load_remote_featured_patterns();
+
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
-	function( $classes ) {
+	static function( $classes ) {
 		return "$classes is-fullscreen-mode";
 	}
 );
@@ -49,7 +53,7 @@ add_filter( 'screen_options_show_screen', '__return_false' );
 wp_enqueue_script( 'heartbeat' );
 wp_enqueue_script( 'wp-edit-post' );
 
-$rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
+$rest_path = rest_get_route_for_post( $post );
 
 // Preload common data.
 $preload_paths = array(
@@ -57,12 +61,12 @@ $preload_paths = array(
 	'/wp/v2/types?context=edit',
 	'/wp/v2/taxonomies?per_page=-1&context=edit',
 	'/wp/v2/themes?status=active',
-	sprintf( '/wp/v2/%s/%s?context=edit', $rest_base, $post->ID ),
+	add_query_arg( 'context', 'edit', $rest_path ),
 	sprintf( '/wp/v2/types/%s?context=edit', $post_type ),
 	sprintf( '/wp/v2/users/me?post_type=%s&context=edit', $post_type ),
-	array( '/wp/v2/media', 'OPTIONS' ),
-	array( '/wp/v2/blocks', 'OPTIONS' ),
-	sprintf( '/wp/v2/%s/%d/autosaves?context=edit', $rest_base, $post->ID ),
+	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'wp_block' ), 'OPTIONS' ),
+	sprintf( '%s/autosaves?context=edit', $rest_path ),
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
@@ -77,16 +81,22 @@ wp_add_inline_script(
  * Assign initial edits, if applicable. These are not initially assigned to the persisted post,
  * but should be included in its save payload.
  */
-$initial_edits = null;
+$initial_edits = array();
 $is_new_post   = false;
 if ( 'auto-draft' === $post->post_status ) {
 	$is_new_post = true;
 	// Override "(Auto Draft)" new post default title with empty string, or filtered value.
-	$initial_edits = array(
-		'title'   => $post->post_title,
-		'content' => $post->post_content,
-		'excerpt' => $post->post_excerpt,
-	);
+	if ( post_type_supports( $post->post_type, 'title' ) ) {
+		$initial_edits['title'] = $post->post_title;
+	}
+
+	if ( post_type_supports( $post->post_type, 'editor' ) ) {
+		$initial_edits['content'] = $post->post_content;
+	}
+
+	if ( post_type_supports( $post->post_type, 'excerpt' ) ) {
+		$initial_edits['excerpt'] = $post->post_excerpt;
+	}
 }
 
 // Preload server-registered block schemas.
@@ -221,6 +231,10 @@ if ( $is_new_post && ! isset( $editor_settings['template'] ) && 'post' === $post
 	if ( in_array( $post_format, array( 'audio', 'gallery', 'image', 'quote', 'video' ), true ) ) {
 		$editor_settings['template'] = array( array( "core/$post_format" ) );
 	}
+}
+
+if ( wp_is_block_theme() && $editor_settings['supportsTemplateMode'] ) {
+	$editor_settings['defaultTemplatePartAreas'] = get_allowed_block_template_part_areas();
 }
 
 /**

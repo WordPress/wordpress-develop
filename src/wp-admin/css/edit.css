@@ -146,6 +146,11 @@ body.post-new-php .submitbox .submitdelete {
 	margin-top: 3px;
 }
 
+body.post-type-wp_navigation div#minor-publishing,
+body.post-type-wp_navigation .inline-edit-status {
+	display: none;
+}
+
 /* Post Screen */
 
 /* Only highlight drop zones when dragging and only in the 2 columns layout. */
@@ -450,7 +455,7 @@ form#tags-filter {
 }
 
 .curtime #timestamp {
-	padding: 2px 0 1px 0;
+	padding: 2px 0 1px;
 	display: inline !important;
 	height: auto !important;
 }
@@ -650,7 +655,7 @@ form#tags-filter {
 }
 
 #poststuff .inside {
-	margin: 6px 0 0 0;
+	margin: 6px 0 0;
 }
 
 .link-php #poststuff .inside,
@@ -721,7 +726,7 @@ form#tags-filter {
 	font-weight: 600;
 	margin: 0 0.8rem 1rem;
 	font-size: 23px;
-	padding: 9px 0 4px 0;
+	padding: 9px 0 4px;
 	line-height: 1.3;
 }
 
@@ -1363,7 +1368,7 @@ p.description code {
 }
 
 #poststuff .tagsdiv .howto {
-	margin: 1em 0 6px 0;
+	margin: 1em 0 6px;
 }
 
 .ajaxtag .newtag {
@@ -1772,7 +1777,7 @@ table.links-table {
 	}
 
 	#titlediv #title-prompt-text {
-		padding: 10px 10px;
+		padding: 10px;
 	}
 
 	#poststuff .stuffbox .inside {
@@ -1955,7 +1960,7 @@ table.links-table {
 	}
 
 	.misc-pub-section {
-		padding: 20px 10px 20px;
+		padding: 20px 10px;
 	}
 
 	.misc-pub-section > a {

@@ -12,15 +12,15 @@
  *
  * @since 3.0.0
  *
- * @param array $file $_FILES array for a given file.
- * @return array $_FILES array with 'error' key set if file exceeds quota. 'error' is empty otherwise.
+ * @param array $file An element from the `$_FILES` array for a given file.
+ * @return array The `$_FILES` array element with 'error' key set if file exceeds quota. 'error' is empty otherwise.
  */
 function check_upload_size( $file ) {
 	if ( get_site_option( 'upload_space_check_disabled' ) ) {
 		return $file;
 	}
 
-	if ( '0' != $file['error'] ) { // There's already an error.
+	if ( $file['error'] > 0 ) { // There's already an error.
 		return $file;
 	}
 
@@ -45,7 +45,7 @@ function check_upload_size( $file ) {
 		$file['error'] = __( 'You have used your space quota. Please delete files before uploading.' );
 	}
 
-	if ( '0' != $file['error'] && ! isset( $_POST['html-upload'] ) && ! wp_doing_ajax() ) {
+	if ( $file['error'] > 0 && ! isset( $_POST['html-upload'] ) && ! wp_doing_ajax() ) {
 		wp_die( $file['error'] . ' <a href="javascript:history.go(-1)">' . __( 'Back' ) . '</a>' );
 	}
 
@@ -66,8 +66,10 @@ function check_upload_size( $file ) {
 function wpmu_delete_blog( $blog_id, $drop = false ) {
 	global $wpdb;
 
+	$blog_id = (int) $blog_id;
+
 	$switch = false;
-	if ( get_current_blog_id() != $blog_id ) {
+	if ( get_current_blog_id() !== $blog_id ) {
 		$switch = true;
 		switch_to_blog( $blog_id );
 	}
@@ -82,7 +84,10 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 	}
 
 	// Don't destroy the initial, main, or root blog.
-	if ( $drop && ( 1 == $blog_id || is_main_site( $blog_id ) || ( $blog->path == $current_network->path && $blog->domain == $current_network->domain ) ) ) {
+	if ( $drop
+		&& ( 1 === $blog_id || is_main_site( $blog_id )
+			|| ( $blog->path === $current_network->path && $blog->domain === $current_network->domain ) )
+	) {
 		$drop = false;
 	}
 
@@ -702,7 +707,7 @@ function site_admin_notice() {
 		return;
 	}
 
-	if ( get_site_option( 'wpmu_upgrade_site' ) != $wp_db_version ) {
+	if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $wp_db_version ) {
 		echo "<div class='update-nag notice notice-warning inline'>" . sprintf(
 			/* translators: %s: URL to Upgrade Network screen. */
 			__( 'Thank you for Updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ),
@@ -736,16 +741,22 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
 	if ( ! is_main_site() ) {
 		return $data;
 	}
+	if ( isset( $data['post_parent'] ) && $data['post_parent'] ) {
+		return $data;
+	}
 
 	$post_name = $data['post_name'];
 	$c         = 0;
+
 	while ( $c < 10 && get_id_from_blogname( $post_name ) ) {
 		$post_name .= mt_rand( 1, 10 );
-		$c ++;
+		$c++;
 	}
-	if ( $post_name != $data['post_name'] ) {
+
+	if ( $post_name !== $data['post_name'] ) {
 		$data['post_name'] = $post_name;
 	}
+
 	return $data;
 }
 
@@ -766,14 +777,14 @@ function choose_primary_blog() {
 		<td>
 		<?php
 		$all_blogs    = get_blogs_of_user( get_current_user_id() );
-		$primary_blog = get_user_meta( get_current_user_id(), 'primary_blog', true );
+		$primary_blog = (int) get_user_meta( get_current_user_id(), 'primary_blog', true );
 		if ( count( $all_blogs ) > 1 ) {
 			$found = false;
 			?>
 			<select name="primary_blog" id="primary_blog">
 				<?php
 				foreach ( (array) $all_blogs as $blog ) {
-					if ( $primary_blog == $blog->userblog_id ) {
+					if ( $blog->userblog_id === $primary_blog ) {
 						$found = true;
 					}
 					?>
@@ -787,10 +798,10 @@ function choose_primary_blog() {
 				$blog = reset( $all_blogs );
 				update_user_meta( get_current_user_id(), 'primary_blog', $blog->userblog_id );
 			}
-		} elseif ( count( $all_blogs ) == 1 ) {
+		} elseif ( 1 === count( $all_blogs ) ) {
 			$blog = reset( $all_blogs );
 			echo esc_url( get_home_url( $blog->userblog_id ) );
-			if ( $primary_blog != $blog->userblog_id ) { // Set the primary blog again if it's out of sync with blog list.
+			if ( $blog->userblog_id !== $primary_blog ) { // Set the primary blog again if it's out of sync with blog list.
 				update_user_meta( get_current_user_id(), 'primary_blog', $blog->userblog_id );
 			}
 		} else {
@@ -815,7 +826,7 @@ function choose_primary_blog() {
  * @return bool True if network can be edited, otherwise false.
  */
 function can_edit_network( $network_id ) {
-	if ( get_current_network_id() == $network_id ) {
+	if ( get_current_network_id() === (int) $network_id ) {
 		$result = true;
 	} else {
 		$result = false;
@@ -875,7 +886,7 @@ function confirm_delete_users( $users ) {
 	<?php
 	$allusers = (array) $_POST['allusers'];
 	foreach ( $allusers as $user_id ) {
-		if ( '' !== $user_id && '0' != $user_id ) {
+		if ( '' !== $user_id && '0' !== $user_id ) {
 			$delete_user = get_userdata( $user_id );
 
 			if ( ! current_user_can( 'delete_user', $delete_user->ID ) ) {
@@ -999,7 +1010,7 @@ function confirm_delete_users( $users ) {
 function network_settings_add_js() {
 	?>
 <script type="text/javascript">
-jQuery(document).ready( function($) {
+jQuery( function($) {
 	var languageSelect = $( '#WPLANG' );
 	$( 'form' ).on( 'submit', function() {
 		// Don't show a spinner for English and installed languages,
@@ -1008,7 +1019,7 @@ jQuery(document).ready( function($) {
 			$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
 		}
 	});
-});
+} );
 </script>
 	<?php
 }

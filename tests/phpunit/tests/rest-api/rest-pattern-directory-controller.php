@@ -272,7 +272,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		// Test that filter changes uncached values.
 		add_filter(
 			'rest_prepare_block_pattern',
-			function( $response ) {
+			static function( $response ) {
 				return 'initial value';
 			}
 		);
@@ -286,7 +286,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		// Test that filter changes cached values (the previous request primed the cache).
 		add_filter(
 			'rest_prepare_block_pattern',
-			function( $response ) {
+			static function( $response ) {
 				return 'modified the cache';
 			},
 			11

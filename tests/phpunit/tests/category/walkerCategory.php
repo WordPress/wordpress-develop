@@ -38,7 +38,7 @@ class Tests_Category_Walker_Category extends WP_UnitTestCase {
 
 		add_filter(
 			'category_list_link_attributes',
-			function( $atts ) use ( $value ) {
+			static function( $atts ) use ( $value ) {
 				$atts['data-test'] = $value;
 				return $atts;
 			}

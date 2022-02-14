@@ -1,7 +1,7 @@
 === Twenty Seventeen ===
 Contributors: wordpressdotorg
-Tested up to: 5.8
-Version: 2.8
+Tested up to: 5.9
+Version: 2.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: one-column, two-columns, right-sidebar, flexible-header, accessibility-ready, custom-colors, custom-header, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, post-formats, rtl-language-support, sticky-post, theme-options, threaded-comments, translation-ready, block-patterns
@@ -22,7 +22,7 @@ For more information about Twenty Seventeen please go to https://wordpress.org/s
 
 == Copyright ==
 
-Twenty Seventeen WordPress Theme, Copyright 2016-2021 WordPress.org
+Twenty Seventeen WordPress Theme, Copyright 2016-2022 WordPress.org
 Twenty Seventeen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -67,6 +67,11 @@ License: CC0 1.0 Universal (CC0 1.0)
 Source: https://stocksnap.io/photo/striped-fabric-9CBVWF2CDU
 
 == Changelog ==
+
+= 2.9 =
+* Released: January 25, 2022
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_2.9
 
 = 2.8 =
 * Released: July 20, 2021

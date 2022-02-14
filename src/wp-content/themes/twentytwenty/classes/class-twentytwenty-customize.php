@@ -49,8 +49,9 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 			$wp_customize->selective_refresh->add_partial(
 				'custom_logo',
 				array(
-					'selector'        => '.header-titles [class*=site-]:not(.site-description)',
-					'render_callback' => 'twentytwenty_customize_partial_site_logo',
+					'selector'            => '.header-titles [class*=site-]:not(.site-description)',
+					'render_callback'     => 'twentytwenty_customize_partial_site_logo',
+					'container_inclusive' => true,
 				)
 			);
 
@@ -186,7 +187,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 						'settings'        => 'accent_hue',
 						'description'     => __( 'Apply a custom color for links, buttons, featured images.', 'twentytwenty' ),
 						'mode'            => 'hue',
-						'active_callback' => function() use ( $wp_customize ) {
+						'active_callback' => static function() use ( $wp_customize ) {
 							return ( 'custom' === $wp_customize->get_setting( 'accent_hue_active' )->value() );
 						},
 					)
