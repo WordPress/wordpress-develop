@@ -4492,6 +4492,7 @@ function wp_enqueue_media( $args = array() ) {
 		'mediaFound'                  => __( 'Number of media items found: %d' ),
 		'noMedia'                     => __( 'No media items found.' ),
 		'noMediaTryNewSearch'         => __( 'No media items found. Try a different search.' ),
+		'couldNotDeleteMediaItem'     => __( 'The media item could not be deleted.' ),
 
 		// Library Details.
 		'attachmentDetails'           => __( 'Attachment details' ),

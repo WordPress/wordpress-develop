@@ -154,7 +154,13 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 		this.getFocusableElements();
 
 		if ( window.confirm( l10n.warnDelete ) ) {
-			this.model.destroy( { wait: true } );
+			this.model.destroy( {
+				wait: true,
+				error: function() {
+					alert( l10n.couldNotDeleteMediaItem );
+				}
+			} );
+
 			this.moveFocus();
 		}
 	},
