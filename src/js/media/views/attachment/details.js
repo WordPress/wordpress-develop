@@ -157,7 +157,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 			this.model.destroy( {
 				wait: true,
 				error: function() {
-					alert( l10n.couldNotDeleteMediaItem );
+					window.alert( l10n.couldNotDeleteMediaItem );
 				}
 			} );
 
