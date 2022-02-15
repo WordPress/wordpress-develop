@@ -26,6 +26,8 @@ class Tests_User_WpUser_GetDataBy extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_id_field_for_valid_userid
+	 *
+	 * @param string $cast_func Name of a function to cast the user ID to a different type.
 	 */
 	public function test_id_field_for_valid_userid( $cast_func ) {
 		$user_id = $cast_func( self::$user_id );
@@ -51,6 +53,8 @@ class Tests_User_WpUser_GetDataBy extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_id_field_for_invalid_userid
 	 * @group        me
+	 *
+	 * @param mixed $user_id An invalid user ID.
 	 */
 	public function test_id_field_for_invalid_userid( $user_id ) {
 		$this->assertFalse( WP_User::get_data_by( 'id', $user_id ) );
