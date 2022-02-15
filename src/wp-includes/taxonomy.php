@@ -1562,10 +1562,14 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 		'hide_empty'             => false,
 		'number'                 => 1,
 		'update_term_meta_cache' => false,
+		'order'                  => 'ASC',
 		'orderby'                => 'term_id',
 		'suppress_filter'        => true,
-		'cache_domain'           => 'term_exists',
 	);
+
+	if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) {
+		$defaults['cache_domain'] = microtime();
+	}
 
 	if ( ! empty( $taxonomy ) ) {
 		$defaults['taxonomy'] = $taxonomy;
