@@ -1564,7 +1564,7 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 		'update_term_meta_cache' => false,
 		'orderby'                => 'term_id',
 		'suppress_filter'        => true,
-		'cache_results'          => false,
+		'cache_domain'           => 'term_exists',
 	);
 
 	if ( is_numeric( $parent ) ) {
