@@ -1965,6 +1965,10 @@ function move_dir( $from, $to ) {
 	if ( 'direct' === $wp_filesystem->method && ! $wp_filesystem->is_virtual_box() ) {
 		$wp_filesystem->rmdir( $to );
 		$result = @rename( $from, $to );
+
+		if ( false === $result ) {
+			return new WP_Error( 'rename_failed_move_dir', __( 'Could not rename directory.' ), $to );
+		}
 	}
 
 	if ( ! $result ) {
