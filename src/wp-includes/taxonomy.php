@@ -1553,9 +1553,6 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 	}
 
 	$term = trim( wp_unslash( $term ) );
-	if ( empty( $term ) ) {
-		return null;
-	}
 
 	$defaults = array(
 		'get'                    => 'all',
@@ -1574,7 +1571,7 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 		$defaults['taxonomy'] = $taxonomy;
 	}
 
-	$args  = wp_parse_args( array( 'slug' => $term ), $defaults );
+	$args  = wp_parse_args( array( 'slug' => sanitize_title( $term ) ), $defaults );
 	$terms = get_terms( $args );
 	if ( empty( $terms ) || is_wp_error( $terms ) ) {
 		$args  = wp_parse_args( array( 'name' => $term ), $defaults );
