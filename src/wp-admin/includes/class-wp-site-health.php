@@ -1890,8 +1890,11 @@ class WP_Site_Health {
 	 * @return array The test results.
 	 */
 	public function get_test_available_updates_disk_space() {
-		$available_space       = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : 0;
-		$available_space_in_mb = $available_space / MB_IN_BYTES;
+		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : false;
+
+		if ( false === $available_space ) {
+			$available_space = 0;
+		}
 
 		$result = array(
 			'label'       => __( 'Disk space available to safely perform updates' ),
@@ -1909,12 +1912,12 @@ class WP_Site_Health {
 			'test'        => 'available_updates_disk_space',
 		);
 
-		if ( $available_space_in_mb < 100 ) {
+		if ( $available_space < 100 * MB_IN_BYTES ) {
 			$result['description'] = __( 'Available disk space is low, less than 100 MB available.' );
 			$result['status']      = 'recommended';
 		}
 
-		if ( $available_space_in_mb < 20 ) {
+		if ( $available_space < 20 * MB_IN_BYTES ) {
 			$result['description'] = __( 'Available disk space is critically low, less than 20 MB available. Proceed with caution, updates may fail.' );
 			$result['status']      = 'critical';
 		}
