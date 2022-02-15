@@ -1953,14 +1953,13 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $from        Source directory.
- * @param string $to          Destination directory.
- * @param string $working_dir Remote file source directory. Optional.
- *
+ * @param string $from Source directory.
+ * @param string $to   Destination directory.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
-function move_dir( $from, $to, $working_dir = '' ) {
+function move_dir( $from, $to ) {
 	global $wp_filesystem;
+
 	$result = false;
 
 	if ( 'direct' === $wp_filesystem->method && ! $wp_filesystem->is_virtual_box() ) {
@@ -1968,19 +1967,23 @@ function move_dir( $from, $to, $working_dir = '' ) {
 		$result = @rename( $from, $to );
 	}
 
-	if ( ! $result && ! $wp_filesystem->is_dir( $to ) ) {
-		if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
-			return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
+	if ( ! $result ) {
+		if ( ! $wp_filesystem->is_dir( $to ) ) {
+			if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
+				return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
+			}
 		}
-		$result = copy_dir( $from, $to );
-	}
 
-	// Clear the working directory?
-	if ( ! empty( $working_dir ) ) {
-		$wp_filesystem->delete( $working_dir, true );
+		$result = copy_dir( $from, $to );
+
+		if ( ! is_wp_error( $result ) ) {
+			// Clear the source directory.
+			$wp_filesystem->delete( $from, true );
+		}
 	}
 
 	return $result;
+
 }
 
 /**
