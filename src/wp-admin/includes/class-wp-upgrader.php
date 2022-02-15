@@ -629,17 +629,14 @@ class WP_Upgrader {
 
 		// Move new version of item into place.
 		$result = move_dir( $source, $remote_destination );
-		
-		if ( is_wp_error( $result ) ) {
-			if ( $args['clear_working'] ) {
-				$wp_filesystem->delete( $remote_source, true );
-			}
-			return $result;
-		}
 
 		// Clear the working directory?
 		if ( $args['clear_working'] ) {
 			$wp_filesystem->delete( $remote_source, true );
+		}
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
 		}
 
 		$destination_name = basename( str_replace( $local_destination, '', $destination ) );
