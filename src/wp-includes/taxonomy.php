@@ -1553,6 +1553,9 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 	}
 
 	$term = trim( wp_unslash( $term ) );
+	if ( '' === $term ) {
+		return null;
+	}
 
 	$defaults = array(
 		'get'                    => 'all',
