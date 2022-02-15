@@ -1567,11 +1567,11 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 		'cache_domain'           => 'term_exists',
 	);
 
-	if ( is_numeric( $parent ) ) {
-		$defaults['parent'] = (int) $parent;
-	}
 	if ( ! empty( $taxonomy ) ) {
 		$defaults['taxonomy'] = $taxonomy;
+		if ( is_numeric( $parent ) ) {
+			$defaults['parent'] = (int) $parent;
+		}
 	}
 
 	$args  = wp_parse_args( array( 'slug' => sanitize_title( $term ) ), $defaults );
