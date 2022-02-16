@@ -520,6 +520,7 @@ function create_initial_post_types() {
 				'delete_others_posts'    => 'edit_theme_options',
 				'edit_private_posts'     => 'edit_theme_options',
 				'edit_published_posts'   => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
 			),
 			'rest_base'             => 'navigation',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
