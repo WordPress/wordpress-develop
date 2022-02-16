@@ -503,7 +503,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_theme(),
+			'show_ui'               => true,
 			'show_in_menu'          => false,
 			'show_in_admin_bar'     => false,
 			'show_in_rest'          => true,
