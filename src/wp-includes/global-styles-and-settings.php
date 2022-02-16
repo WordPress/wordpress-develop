@@ -154,6 +154,8 @@ function wp_get_global_stylesheet( $types = array() ) {
 /**
  * Returns a string containing the SVGs to be referenced as filters (duotone).
  *
+ * @since 5.9.0
+ *
  * @return string
  */
 function wp_get_global_styles_svg_filters() {
