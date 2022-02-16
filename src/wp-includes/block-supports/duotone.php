@@ -352,6 +352,110 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
 	}
 }
 
+/**
+ * Returns the prefixed id for the duotone filter for use as a CSS id.
+ *
+ * @since 5.9.0
+ * @access private
+ *
+ * @param  array $preset Duotone preset value as seen in theme.json.
+ * @return string        Duotone filter CSS id.
+ */
+function wp_get_duotone_filter_id( $preset ) {
+	return 'wp-duotone-' . $preset['slug'];
+}
+
+/**
+ * Returns the CSS filter property url to reference the rendered SVG.
+ *
+ * @since 5.9.0
+ * @access private
+ *
+ * @param  array $preset Duotone preset value as seen in theme.json.
+ * @return string        Duotone CSS filter property url value.
+ */
+function wp_get_duotone_filter_property( $preset ) {
+	$filter_id = wp_get_duotone_filter_id( $preset );
+	return "url('#" . $filter_id . "')";
+}
+
+/**
+ * Returns the duotone filter SVG string for the preset.
+ *
+ * @since 5.9.0
+ * @access private
+ *
+ * @param  array $preset Duotone preset value as seen in theme.json.
+ * @return string        Duotone SVG filter.
+ */
+function wp_get_duotone_filter_svg( $preset ) {
+	$filter_id = wp_get_duotone_filter_id( $preset );
+
+	$duotone_values = array(
+		'r' => array(),
+		'g' => array(),
+		'b' => array(),
+		'a' => array(),
+	);
+	foreach ( $preset['colors'] as $color_str ) {
+		$color = wp_tinycolor_string_to_rgb( $color_str );
+
+		$duotone_values['r'][] = $color['r'] / 255;
+		$duotone_values['g'][] = $color['g'] / 255;
+		$duotone_values['b'][] = $color['b'] / 255;
+		$duotone_values['a'][] = $color['a'];
+	}
+
+	ob_start();
+
+	?>
+
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 0 0"
+		width="0"
+		height="0"
+		focusable="false"
+		role="none"
+		style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;"
+	>
+		<defs>
+			<filter id="<?php echo esc_attr( $filter_id ); ?>">
+				<feColorMatrix
+					color-interpolation-filters="sRGB"
+					type="matrix"
+					values="
+						.299 .587 .114 0 0
+						.299 .587 .114 0 0
+						.299 .587 .114 0 0
+						.299 .587 .114 0 0
+					"
+				/>
+				<feComponentTransfer color-interpolation-filters="sRGB" >
+					<feFuncR type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['r'] ) ); ?>" />
+					<feFuncG type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['g'] ) ); ?>" />
+					<feFuncB type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['b'] ) ); ?>" />
+					<feFuncA type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['a'] ) ); ?>" />
+				</feComponentTransfer>
+				<feComposite in2="SourceGraphic" operator="in" />
+			</filter>
+		</defs>
+	</svg>
+
+	<?php
+
+	$svg = ob_get_clean();
+
+	if ( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) {
+		// Clean up the whitespace.
+		$svg = preg_replace( "/[\r\n\t ]+/", ' ', $svg );
+		$svg = preg_replace( '/> </', '><', $svg );
+		$svg = trim( $svg );
+	}
+
+	return $svg;
+}
+
 
 /**
  * Registers the style and colors block attributes for block types that support it.
@@ -500,8 +604,9 @@ function wp_render_duotone_support( $block_content, $block ) {
 		'slug'   => uniqid(),
 		'colors' => $block['attrs']['style']['color']['duotone'],
 	);
-	$filter_property = wp_render_duotone_filter_preset( $filter_preset );
-	$filter_id       = 'wp-duotone-' . $filter_preset['slug'];
+	$filter_property = wp_get_duotone_filter_property( $filter_preset );
+	$filter_id       = wp_get_duotone_filter_id( $filter_preset );
+	$filter_svg      = wp_get_duotone_filter_svg( $filter_preset );
 
 	$scope     = '.' . $filter_id;
 	$selectors = explode( ',', $duotone_support );
@@ -521,6 +626,20 @@ function wp_render_duotone_support( $block_content, $block ) {
 	wp_add_inline_style( $filter_id, $filter_style );
 	wp_enqueue_style( $filter_id );
 
+	// Render any custom filter the user may have added.
+	add_action(
+		// There are a couple of known rendering quirks in Safari.
+		// 1. Filters won't render at all when the SVG is in the head of
+		// the document.
+		// 2. Filters display incorrectly when the SVG is defined after
+		// where the filter is used in the document, so the footer does
+		// not work.
+		'wp_body_open',
+		static function () use ( $filter_svg ) {
+			echo $filter_svg;
+		}
+	);
+
 	// Like the layout hook, this assumes the hook only applies to blocks with a single wrapper.
 	return preg_replace(
 		'/' . preg_quote( 'class="', '/' ) . '/',
@@ -538,3 +657,21 @@ WP_Block_Supports::get_instance()->register(
 	)
 );
 add_filter( 'render_block', 'wp_render_duotone_support', 10, 2 );
+
+/**
+ * Render the SVG filters supplied by theme.json.
+ *
+ * Note that this doesn't render the per-block user-defined
+ * filters which are handled by wp_render_duotone_support,
+ * but it should be rendered in the same location as those to satisfy
+ * Safari's rendering quirks.
+ *
+ * @since 5.9.0
+ */
+function wp_global_styles_render_svg_filters() {
+	$filters = wp_get_global_styles_svg_filters();
+	if ( ! empty( $filters ) ) {
+		echo $filters;
+	}
+}
+add_action( 'wp_body_open', 'wp_global_styles_render_svg_filters' );
