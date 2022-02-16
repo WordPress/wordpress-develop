@@ -1971,7 +1971,7 @@ function move_dir( $from, $to ) {
 	 * without reporting an error properly.
 	 *
 	 * More details:
-	 * https://www.virtualbox.org/ticket/8761#comment:24 
+	 * https://www.virtualbox.org/ticket/8761#comment:24
 	 * https://www.virtualbox.org/ticket/17971
 	 */
 	if ( $wp_env_vbox && 'false' !== $wp_env_vbox
