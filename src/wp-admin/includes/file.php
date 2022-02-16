@@ -1962,9 +1962,10 @@ function move_dir( $from, $to ) {
 
 	$result = false;
 
-	if ( 'direct' === $wp_filesystem->method && ! $wp_filesystem->is_virtual_box() ) {
+	if ( ! $wp_filesystem->is_virtual_box() ) {
 		$wp_filesystem->rmdir( $to );
-		$result = @rename( $from, $to );
+
+		$result = $wp_filesystem->move( $from, $to );
 	}
 
 	if ( ! $result ) {
