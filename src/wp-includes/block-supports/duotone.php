@@ -489,88 +489,16 @@ function wp_register_duotone_support( $block_type ) {
  * reference the rendered SVG.
  *
  * @since 5.9.0
- * @access private
-
+ * @deprecated 5.9.1 Use `wp_get_duotone_filter_property` introduced in 5.9.1.
+ *
+ * @see wp_get_duotone_filter_property()
+ *
  * @param array $preset Duotone preset value as seen in theme.json.
  * @return string Duotone CSS filter property.
  */
 function wp_render_duotone_filter_preset( $preset ) {
-	$duotone_id     = $preset['slug'];
-	$duotone_colors = $preset['colors'];
-	$filter_id      = 'wp-duotone-' . $duotone_id;
-	$duotone_values = array(
-		'r' => array(),
-		'g' => array(),
-		'b' => array(),
-		'a' => array(),
-	);
-	foreach ( $duotone_colors as $color_str ) {
-		$color = wp_tinycolor_string_to_rgb( $color_str );
-
-		$duotone_values['r'][] = $color['r'] / 255;
-		$duotone_values['g'][] = $color['g'] / 255;
-		$duotone_values['b'][] = $color['b'] / 255;
-		$duotone_values['a'][] = $color['a'];
-	}
-
-	ob_start();
-
-	?>
-
-	<svg
-		xmlns="http://www.w3.org/2000/svg"
-		viewBox="0 0 0 0"
-		width="0"
-		height="0"
-		focusable="false"
-		role="none"
-		style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;"
-	>
-		<defs>
-			<filter id="<?php echo esc_attr( $filter_id ); ?>">
-				<feColorMatrix
-					color-interpolation-filters="sRGB"
-					type="matrix"
-					values="
-						.299 .587 .114 0 0
-						.299 .587 .114 0 0
-						.299 .587 .114 0 0
-						.299 .587 .114 0 0
-					"
-				/>
-				<feComponentTransfer color-interpolation-filters="sRGB" >
-					<feFuncR type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['r'] ) ); ?>" />
-					<feFuncG type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['g'] ) ); ?>" />
-					<feFuncB type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['b'] ) ); ?>" />
-					<feFuncA type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['a'] ) ); ?>" />
-				</feComponentTransfer>
-				<feComposite in2="SourceGraphic" operator="in" />
-			</filter>
-		</defs>
-	</svg>
-
-	<?php
-
-	$svg = ob_get_clean();
-
-	if ( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) {
-		// Clean up the whitespace.
-		$svg = preg_replace( "/[\r\n\t ]+/", ' ', $svg );
-		$svg = preg_replace( '/> </', '><', $svg );
-		$svg = trim( $svg );
-	}
-
-	add_action(
-		// Safari doesn't render SVG filters defined in data URIs,
-		// and SVG filters won't render in the head of a document,
-		// so the next best place to put the SVG is in the footer.
-		is_admin() ? 'admin_footer' : 'wp_footer',
-		function () use ( $svg ) {
-			echo $svg;
-		}
-	);
-
-	return "url('#" . $filter_id . "')";
+	_deprecated_function( __FUNCTION__, '5.9.1', 'wp_get_duotone_filter_property()' );
+	return wp_get_duotone_filter_property( $preset );
 }
 
 /**
