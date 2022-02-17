@@ -17,7 +17,7 @@
 			url = nextEl.getAttribute( 'href' );
 		}
 
-		if ( url && document.activeElement && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' ) {
+		if ( url && document.activeElement && ! document.activeElement.matches( 'input, textarea' ) ) {
 			window.location = url;
 		}
 	} );

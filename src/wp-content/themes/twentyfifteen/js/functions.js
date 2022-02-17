@@ -14,14 +14,6 @@
 		}
 	}
 
-	function toggleClass( element, className ) {
-		if ( -1 !== element.className.indexOf( className ) ) {
-			element.className = element.className.replace( ' ' + className, '' );
-		} else {
-			element.className += ' ' + className;
-		}
-	}
-
 	var sidebar, resizeTimer, secondary, button;
 
 	function initMainNavigation( container ) {
@@ -30,7 +22,7 @@
 		}
 
 		// Add dropdown toggle that display child menu items.
-		Array.from( container.querySelectorAll( '.menu-item-has-children > a' ) ).forEach( function( menuLink ) {
+		container.querySelectorAll( '.menu-item-has-children > a' ).forEach( function( menuLink ) {
 			var dropdownToggle = document.createElement( 'button' );
 			dropdownToggle.className = 'dropdown-toggle';
 			dropdownToggle.setAttribute( 'aria-expanded', 'false' );
@@ -39,16 +31,16 @@
 		} );
 
 		// Toggle buttons and submenu items with active children menu items.
-		Array.from( container.querySelectorAll( '.current-menu-ancestor > button, .current-menu-ancestor > .sub-menu' ) ).forEach( function( subItem ) {
-			subItem.className += 'toggle-on';
+		container.querySelectorAll( '.current-menu-ancestor > button, .current-menu-ancestor > .sub-menu' ).forEach( function( subItem ) {
+			subItem.classList.add( 'toggle-on' );
 		} );
 
-		Array.from( container.querySelectorAll( '.dropdown-toggle' ) ).forEach( function( dropdownToggle ) {
+		container.querySelectorAll( '.dropdown-toggle' ).forEach( function( dropdownToggle ) {
 			dropdownToggle.addEventListener( 'click', function( e ) {
 				e.preventDefault();
-				toggleClass( this, 'toggle-on' );
-				if ( this.nextElementSibling.tagName === 'UL' || this.nextElementSibling.tagName === 'OL' ) {
-					toggleClass( this.nextElementSibling, 'toggled-on' );
+				this.classList.toggle( 'toggle-on' );
+				if ( this.nextElementSibling && this.nextElementSibling.matches( '.children, .sub-menu' ) {
+					this.nextElementSibling.classList.toggle( 'toggled-on' );
 				}
 				this.setAttribute( 'aria-expanded', this.getAttribute( 'aria-expanded' ) === 'false' ? 'true' : 'false' );
 				this.innerHTML = this.innerHTML === screenReaderText.expand ? screenReaderText.collapse : screenReaderText.expand;
@@ -62,7 +54,7 @@
 	if ( window.jQuery ) {
 		var $ = window.jQuery;
 		$( document ).on( 'customize-preview-menu-refreshed', function( e, params ) {
-			if ( 'primary' === params.wpNavMenuArgs.theme_location ) {
+			if ( params.wpNavMenuArgs.theme_location === 'primary' ) {
 				// Extract the raw DOM element from the jQuery wrapper here.
 				initMainNavigation( params.newContainer[0] );
 
@@ -95,10 +87,10 @@
 		}
 
 		button.addEventListener( 'click', function() {
-			toggleClass( secondary, 'toggled-on' );
+			secondary.classList.toggle( 'toggled-on' );
 			window.dispatchEvent( new Event( 'resize' ) );
-			toggleClass( this, 'toggled-on' );
-			if ( -1 !== this.className.indexOf( 'toggled-on' ) && -1 !== secondary.className.indexOf( 'toggled-on' ) ) {
+			this.classList.toggle( 'toggled-on' );
+			if ( -1 !== this.classList.contains( 'toggled-on' ) && -1 !== secondary.classList.contains( 'toggled-on' ) ) {
 				this.setAttribute( 'aria-expanded', 'true' );
 				secondary.setAttribute( 'aria-expanded', 'true' );
 			} else {
@@ -117,7 +109,7 @@
 	 * @since Twenty Fifteen 1.1
 	 */
 	function onResizeARIA() {
-		if ( 955 > document.documentElement.clientWidth ) {
+		if ( document.documentElement.clientWidth < 955 ) {
 			button.setAttribute( 'aria-expanded', 'false' );
 			secondary.setAttribute( 'aria-expanded', 'false' );
 			button.setAttribute( 'aria-controls', 'secondary' );
@@ -135,7 +127,7 @@
 			sidebarHeight = sidebar.clientHeight,
 			bodyHeight = document.body.clientHeight;
 
-		if( 955 < document.documentElement.clientWidth && bodyHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
+		if( document.documentElement.clientWidth > 955 && bodyHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
 			sidebar.style.position = 'fixed';
 			sidebar.style.bottom = sidebarHeight > windowHeight ? 0 : 'auto';
 		} else {
@@ -153,7 +145,7 @@
 			resizeTimer = setTimeout( resizeAndScroll, 500 );
 			onResizeARIA();
 		} );
-		Array.from( sidebar.getElementsByTagName( 'button' ) ).forEach( function( sidebarButton ) {
+		sidebar.getElementsByTagName( 'button' ).forEach( function( sidebarButton ) {
 			sidebarButton.addEventListener( 'click', resizeAndScroll );
 			sidebarButton.addEventListener( 'keydown', resizeAndScroll );
 		} );
