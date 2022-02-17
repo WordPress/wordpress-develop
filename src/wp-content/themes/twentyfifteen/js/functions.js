@@ -39,7 +39,7 @@
 			dropdownToggle.addEventListener( 'click', function( e ) {
 				e.preventDefault();
 				this.classList.toggle( 'toggle-on' );
-				if ( this.nextElementSibling && this.nextElementSibling.matches( '.children, .sub-menu' ) {
+				if ( this.nextElementSibling && this.nextElementSibling.matches( '.children, .sub-menu' ) ) {
 					this.nextElementSibling.classList.toggle( 'toggled-on' );
 				}
 				this.setAttribute( 'aria-expanded', this.getAttribute( 'aria-expanded' ) === 'false' ? 'true' : 'false' );
