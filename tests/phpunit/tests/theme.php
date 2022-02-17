@@ -22,7 +22,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwentyone',
 	);
 
-	function set_up() {
+	public function set_up() {
 		global $wp_theme_directories;
 
 		parent::set_up();
@@ -30,24 +30,24 @@ class Tests_Theme extends WP_UnitTestCase {
 		$backup_wp_theme_directories = $wp_theme_directories;
 		$wp_theme_directories        = array( WP_CONTENT_DIR . '/themes' );
 
-		add_filter( 'extra_theme_headers', array( $this, '_theme_data_extra_headers' ) );
+		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		global $wp_theme_directories;
 
 		$wp_theme_directories = $this->wp_theme_directories;
 
-		remove_filter( 'extra_theme_headers', array( $this, '_theme_data_extra_headers' ) );
+		remove_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
 		parent::tear_down();
 	}
 
-	function test_wp_get_themes_default() {
+	public function test_wp_get_themes_default() {
 		$themes = wp_get_themes();
 		$this->assertInstanceOf( 'WP_Theme', $themes[ $this->theme_slug ] );
 		$this->assertSame( $this->theme_name, $themes[ $this->theme_slug ]->get( 'Name' ) );
@@ -61,7 +61,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @expectedDeprecated get_theme
 	 * @expectedDeprecated get_themes
 	 */
-	function test_get_themes_default() {
+	public function test_get_themes_default() {
 		$themes = get_themes();
 		$this->assertInstanceOf( 'WP_Theme', $themes[ $this->theme_name ] );
 		$this->assertSame( $themes[ $this->theme_name ], get_theme( $this->theme_name ) );
@@ -75,7 +75,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @expectedDeprecated get_theme
 	 * @expectedDeprecated get_themes
 	 */
-	function test_get_theme() {
+	public function test_get_theme() {
 		$themes = get_themes();
 		foreach ( array_keys( $themes ) as $name ) {
 			$theme = get_theme( $name );
@@ -86,7 +86,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		}
 	}
 
-	function test_wp_get_theme() {
+	public function test_wp_get_theme() {
 		$themes = wp_get_themes();
 		foreach ( $themes as $theme ) {
 			$this->assertInstanceOf( 'WP_Theme', $theme );
@@ -101,7 +101,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * @expectedDeprecated get_themes
 	 */
-	function test_get_themes_contents() {
+	public function test_get_themes_contents() {
 		$themes = get_themes();
 		// Generic tests that should hold true for any theme.
 		foreach ( $themes as $k => $theme ) {
@@ -167,7 +167,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		}
 	}
 
-	function test_wp_get_theme_contents() {
+	public function test_wp_get_theme_contents() {
 		$theme = wp_get_theme( $this->theme_slug );
 
 		$this->assertSame( $this->theme_name, $theme->get( 'Name' ) );
@@ -192,7 +192,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @ticket 29925
 	 */
-	function test_default_theme_in_default_theme_list() {
+	public function test_default_theme_in_default_theme_list() {
 		$latest_default_theme = WP_Theme::get_core_default_theme();
 		if ( ! $latest_default_theme->exists() || 'twenty' !== substr( $latest_default_theme->get_stylesheet(), 0, 6 ) ) {
 			$this->fail( 'No Twenty* series default themes are installed.' );
@@ -200,7 +200,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertContains( $latest_default_theme->get_stylesheet(), $this->default_themes );
 	}
 
-	function test_default_themes_have_textdomain() {
+	public function test_default_themes_have_textdomain() {
 		foreach ( $this->default_themes as $theme ) {
 			if ( wp_get_theme( $theme )->exists() ) {
 				$this->assertSame( $theme, wp_get_theme( $theme )->get( 'TextDomain' ) );
@@ -211,7 +211,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * @ticket 48566
 	 */
-	function test_year_in_readme() {
+	public function test_year_in_readme() {
 		// This test is designed to only run on trunk/master.
 		$this->skipOnAutomatedBranches();
 
@@ -239,7 +239,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @ticket 20897
 	 * @expectedDeprecated get_theme_data
 	 */
-	function test_extra_theme_headers() {
+	public function test_extra_theme_headers() {
 		$wp_theme = wp_get_theme( $this->theme_slug );
 		$this->assertNotEmpty( $wp_theme->get( 'License' ) );
 		$path_to_style_css = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/style.css';
@@ -251,7 +251,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertSame( $theme_data['License'], $wp_theme->get( 'License' ) );
 	}
 
-	function _theme_data_extra_headers() {
+	public function theme_data_extra_headers() {
 		return array( 'License' );
 	}
 
@@ -259,7 +259,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @expectedDeprecated get_themes
 	 * @expectedDeprecated get_current_theme
 	 */
-	function test_switch_theme() {
+	public function test_switch_theme() {
 		$themes = get_themes();
 
 		// Switch to each theme in sequence.
@@ -330,7 +330,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		}
 	}
 
-	function test_switch_theme_bogus() {
+	public function test_switch_theme_bogus() {
 		// Try switching to a theme that doesn't exist.
 		$template = rand_str();
 		$style    = rand_str();
@@ -352,7 +352,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts
 	 */
-	function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
+	public function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
 		$nav_created_post_ids = $this->factory()->post->create_many(
 			2,
 			array(
@@ -621,7 +621,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * @ticket 49406
 	 *
-	 * @dataProvider _dp_register_theme_support_validation
+	 * @dataProvider data_register_theme_support_validation
 	 *
 	 * @param string $error_code The error code expected.
 	 * @param array  $args       The args to register.
@@ -633,7 +633,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertSame( $error_code, $registered->get_error_code() );
 	}
 
-	public function _dp_register_theme_support_validation() {
+	public function data_register_theme_support_validation() {
 		return array(
 			array(
 				'invalid_type',
