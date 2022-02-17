@@ -602,7 +602,7 @@ add_filter( 'render_block', 'wp_render_duotone_support', 10, 2 );
  * but it should be rendered in the same location as those to satisfy
  * Safari's rendering quirks.
  *
- * @since 5.9.0
+ * @since 5.9.1
  */
 function wp_global_styles_render_svg_filters() {
 	$filters = wp_get_global_styles_svg_filters();
