@@ -126,7 +126,7 @@ endif;
 
 if ( ! function_exists( 'wp_cache_flush_runtime' ) ) :
 	/**
-	 * Removes all cache items, from the in-memory runtime cache.
+	 * Removes all cache items from the in-memory runtime cache.
 	 *
 	 * Compat function to mimic wp_cache_flush_runtime().
 	 *
@@ -135,7 +135,7 @@ if ( ! function_exists( 'wp_cache_flush_runtime' ) ) :
 	 *
 	 * @see wp_cache_flush_runtime()
 	 *
-	 * @return bool False on failure, true on success.
+	 * @return bool True on success, false on failure.
 	 */
 	function wp_cache_flush_runtime() {
 		return wp_using_ext_object_cache() ? false : wp_cache_flush();

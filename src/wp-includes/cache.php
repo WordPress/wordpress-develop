@@ -133,14 +133,13 @@ function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
 }
 
 /**
- * Removes all cache items, from the in-memory runtime cache.
+ * Removes all cache items from the in-memory runtime cache.
  *
  * @since 6.0.0
  *
  * @see WP_Object_Cache::flush()
- * @global WP_Object_Cache $wp_object_cache Object cache global instance.
  *
- * @return bool False on failure, true on success.
+ * @return bool True on success, false on failure.
  */
 function wp_cache_flush_runtime() {
 	return wp_cache_flush();
