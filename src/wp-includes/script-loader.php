@@ -2349,7 +2349,7 @@ function wp_enqueue_global_styles() {
 function wp_global_styles_render_svg_filters() {
 	/*
 	 * When calling via the in_admin_header action, we only want to render the
-	 * SVGs on the post editor page.
+	 * SVGs on block editor pages.
 	 */
 	global $pagenow;
 	if (
