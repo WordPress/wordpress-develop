@@ -2351,10 +2351,9 @@ function wp_global_styles_render_svg_filters() {
 	 * When calling via the in_admin_header action, we only want to render the
 	 * SVGs on block editor pages.
 	 */
-	global $pagenow;
 	if (
 		is_admin() &&
-		get_current_screen()->is_block_editor()
+		! get_current_screen()->is_block_editor()
 	) {
 		return;
 	}
