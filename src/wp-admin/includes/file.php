@@ -1980,10 +1980,10 @@ function move_dir( $from, $to ) {
 		$is_virtualbox = true;
 	}
 
-	if ( ! $is_virtualbox ) {
+	if ( 'direct' === $wp_filesystem->method && ! $is_virtualbox ) {
 		$wp_filesystem->rmdir( $to );
 
-		$result = $wp_filesystem->move( $from, $to );
+		$result = @rename( $from, $to );
 	}
 
 	if ( ! $result ) {
