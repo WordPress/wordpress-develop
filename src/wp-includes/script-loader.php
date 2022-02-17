@@ -2347,6 +2347,18 @@ function wp_enqueue_global_styles() {
  * @since 5.9.1
  */
 function wp_global_styles_render_svg_filters() {
+	/*
+	 * When calling via the in_admin_header action, we only want to render the
+	 * SVGs on the post editor page.
+	 */
+	global $pagenow;
+	if (
+		is_admin() &&
+		( 'post.php' !== $pagenow || 'edit' !== $_GET['action'] )
+	) {
+		return;
+	}
+
 	$filters = wp_get_global_styles_svg_filters();
 	if ( ! empty( $filters ) ) {
 		echo $filters;
