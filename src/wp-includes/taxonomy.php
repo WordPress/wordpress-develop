@@ -1567,7 +1567,7 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 		'suppress_filter'        => true,
 	);
 
-	// Ensure that while importing, queries are not cached. 
+	// Ensure that while importing, queries are not cached.
 	if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) {
 		$defaults['cache_domain'] = microtime();
 	}

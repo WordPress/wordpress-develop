@@ -285,6 +285,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$this->assertEquals( $t['term_id'], term_exists( $term ) );
 		$num_queries = $wpdb->num_queries;
 		$this->assertEquals( $t['term_id'], term_exists( $term ) );
+		var_dump($wpdb->last_query);
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		$this->assertTrue( wp_delete_term( $t['term_id'], 'wptests_tax' ) );
