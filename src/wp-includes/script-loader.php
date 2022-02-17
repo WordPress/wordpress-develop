@@ -2354,7 +2354,7 @@ function wp_global_styles_render_svg_filters() {
 	global $pagenow;
 	if (
 		is_admin() &&
-		( 'post.php' !== $pagenow || 'edit' !== $_GET['action'] )
+		get_current_screen()->is_block_editor()
 	) {
 		return;
 	}
