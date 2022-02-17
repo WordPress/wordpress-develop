@@ -1223,9 +1223,9 @@ function wp_default_scripts( $scripts ) {
 			'invalidDate'             => __( 'Invalid date.' ),
 			'invalidValue'            => __( 'Invalid value.' ),
 			'blockThemeNotification'  => sprintf(
-				/* translators: 1. %s: URL to the Site Editor admin screen, 2: "Switch to Site Editor" button placeholder. */
+				/* translators: 1. %s: URL to the localized version of the https://wordpress.org/support/article/site-editor/ page, 2: "Switch to Site Editor" button placeholder. */
 				__( 'To get the best customization experience from your block theme, use the Site Editor. <a href="%1$s" target="_blank">Tell me more</a>. %2$s' ),
-				'https://wordpress.org/support/article/site-editor/',
+				__( 'https://wordpress.org/support/article/site-editor/' ),
 				sprintf(
 					/* translators: 1. %s: URL to the Site Editor admin screen, 2. %s: Label for the button that takes a user to the Site Editor admin screen, 3: Same as the previous placeholder. */
 					'<button type="button" data-action="%1$s" class="button switch-to-editor" aria-label="%2$s">%3$s</button>',
