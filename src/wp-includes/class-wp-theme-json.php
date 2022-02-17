@@ -1577,7 +1577,7 @@ class WP_Theme_JSON {
 	/**
 	 * Converts all filter (duotone) presets into SVGs.
 	 *
-	 * @since 5.9.0
+	 * @since 5.9.1
 	 *
 	 * @param array $origins List of origins to process.
 	 * @return string SVG filters.
