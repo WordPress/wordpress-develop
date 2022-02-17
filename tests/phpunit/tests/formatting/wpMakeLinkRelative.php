@@ -38,7 +38,7 @@ class Tests_Formatting_wpMakeLinkRelative extends WP_UnitTestCase {
 	/**
 	 * @ticket 26819
 	 */
-	function test_wp_make_link_relative_with_no_path() {
+	public function test_wp_make_link_relative_with_no_path() {
 		$link          = 'http://example.com';
 		$relative_link = wp_make_link_relative( $link );
 		$this->assertSame( '', $relative_link );
