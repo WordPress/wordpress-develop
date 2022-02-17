@@ -401,6 +401,10 @@ function wp_get_duotone_filter_svg( $preset ) {
 		'b' => array(),
 		'a' => array(),
 	);
+	if ( ! isset( $preset['colors'] || ! is_array( $preset['colors'] ) ) {
+		$preset['colors'] = array();
+	}
+	
 	foreach ( $preset['colors'] as $color_str ) {
 		$color = wp_tinycolor_string_to_rgb( $color_str );
 
