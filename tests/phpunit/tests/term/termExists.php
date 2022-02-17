@@ -277,6 +277,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 	public function test_term_exists_caching() {
 		global $wpdb;
 		register_taxonomy( 'wptests_tax', 'post' );
+		add_filter( 'get_terms_args', array( $this, 'reset_get_terms_args' ) );
 
 		// Insert a term.
 		$term = __FUNCTION__;
@@ -285,7 +286,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$this->assertEquals( $t['term_id'], term_exists( $term ) );
 		$num_queries = $wpdb->num_queries;
 		$this->assertEquals( $t['term_id'], term_exists( $term ) );
-		var_dump($wpdb->last_query);
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		$this->assertTrue( wp_delete_term( $t['term_id'], 'wptests_tax' ) );
@@ -294,7 +294,23 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
 
 		// Clean up.
+		remove_filter( 'get_terms_args', array( $this, 'reset_get_terms_args' ) );
 		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * Filter the `get_terms_args` to reset cache_domain back to core if WP_IMPORTING is defined.
+	 *
+	 * @param array $args get_terms_args args.
+	 *
+	 * @return array
+	 */
+	public function reset_get_terms_args( $args ) {
+		if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) {
+			$args['cache_domain'] = 'core';
+		}
+
+		return $args;
 	}
 
 	public function test_term_exists_unknown() {
