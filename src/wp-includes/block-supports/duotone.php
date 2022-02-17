@@ -386,7 +386,7 @@ function wp_get_duotone_filter_property( $preset ) {
 /**
  * Returns the duotone filter SVG string for the preset.
  *
- * @since 5.9.0
+ * @since 5.9.1
  * @access private
  *
  * @param  array $preset Duotone preset value as seen in theme.json.
