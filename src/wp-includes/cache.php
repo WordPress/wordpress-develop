@@ -133,19 +133,6 @@ function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
 }
 
 /**
- * Removes all cache items from the in-memory runtime cache.
- *
- * @since 6.0.0
- *
- * @see WP_Object_Cache::flush()
- *
- * @return bool True on success, false on failure.
- */
-function wp_cache_flush_runtime() {
-	return wp_cache_flush();
-}
-
-/**
  * Retrieves the cache contents from the cache by key and group.
  *
  * @since 2.0.0
@@ -279,6 +266,19 @@ function wp_cache_flush() {
 	global $wp_object_cache;
 
 	return $wp_object_cache->flush();
+}
+
+/**
+ * Removes all cache items from the in-memory runtime cache.
+ *
+ * @since 6.0.0
+ *
+ * @see WP_Object_Cache::flush()
+ *
+ * @return bool True on success, false on failure.
+ */
+function wp_cache_flush_runtime() {
+	return wp_cache_flush();
 }
 
 /**
