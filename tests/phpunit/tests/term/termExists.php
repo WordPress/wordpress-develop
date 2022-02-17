@@ -4,6 +4,17 @@
  * @group taxonomy
  */
 class Tests_TermExists extends WP_UnitTestCase {
+	public function set_up() {
+		parent::set_up();
+		add_filter( 'get_terms_args', array( $this, 'reset_get_terms_args' ) );
+	}
+
+	public function tear_down() {
+		remove_filter( 'get_terms_args', array( $this, 'reset_get_terms_args' ) );
+		parent::tear_down();
+	}
+
+
 	public function test_term_exists_term_0() {
 		$this->assertSame( 0, term_exists( 0 ) );
 	}
@@ -277,7 +288,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 	public function test_term_exists_caching() {
 		global $wpdb;
 		register_taxonomy( 'wptests_tax', 'post' );
-		add_filter( 'get_terms_args', array( $this, 'reset_get_terms_args' ) );
 
 		// Insert a term.
 		$term = __FUNCTION__;
@@ -294,7 +304,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
 
 		// Clean up.
-		remove_filter( 'get_terms_args', array( $this, 'reset_get_terms_args' ) );
 		_unregister_taxonomy( 'wptests_tax' );
 	}
 
