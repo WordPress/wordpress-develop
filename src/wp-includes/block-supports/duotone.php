@@ -559,9 +559,11 @@ function wp_render_duotone_support( $block_content, $block ) {
 		static function () use ( $filter_svg, $selector ) {
 			echo $filter_svg;
 
-			// Safari renders elements incorrectly on first paint when the SVG
-			// filter comes after the content that it is filtering, so we force
-			// a repaint with a WebKit hack which solves the issue.
+			/*
+			 * Safari renders elements incorrectly on first paint when the SVG
+			 * filter comes after the content that it is filtering, so we force
+			 * a repaint with a WebKit hack which solves the issue.
+			 */
 			global $is_safari;
 			if ( $is_safari ) {
 				printf(
