@@ -355,7 +355,7 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
 /**
  * Returns the prefixed id for the duotone filter for use as a CSS id.
  *
- * @since 5.9.0
+ * @since 5.9.1
  * @access private
  *
  * @param  array $preset Duotone preset value as seen in theme.json.
