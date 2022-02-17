@@ -362,6 +362,10 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
  * @return string        Duotone filter CSS id.
  */
 function wp_get_duotone_filter_id( $preset ) {
+	if ( ! isset( $preset['slug'] ) ) {
+		return '';
+	}
+
 	return 'wp-duotone-' . $preset['slug'];
 }
 
