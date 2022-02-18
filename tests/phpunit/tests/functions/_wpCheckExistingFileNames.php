@@ -11,8 +11,8 @@ class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 	 *
 	 * @ticket 55192
 	 *
-	 * @param string $filename filename looked for.
-	 * @param array $files files check against.
+	 * @param string  $filename The file name to check.
+	 * @param array   $files    An array of existing files in the directory.
 	 * @param boolean $expected Expected result.
 	 */
 	public function test__wp_check_existing_file_names( $filename, $files, $expected ) {
