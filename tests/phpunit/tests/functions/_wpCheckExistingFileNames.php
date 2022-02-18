@@ -52,10 +52,20 @@ class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 				'files'    => array( 'filename-1x1.ext', 'filename-scaled.ext', 'filename-rotated.ext' ),
 				'expected' => true,
 			),
-			'lots' => array(
+			'lots'           => array(
 				'filename' => 'filename.png',
 				'files'    => array( 'filename-rotated.png' ),
 				'expected' => true,
+			),
+			'no extension'   => array(
+				'filename' => 'filename',
+				'files'    => array( 'filename-1x1.png' ),
+				'expected' => false,
+			),
+			'no filename'    => array(
+				'filename' => '.htaccess',
+				'files'    => array( 'filename-1x1.png' ),
+				'expected' => false,
 			),
 		);
 	}
