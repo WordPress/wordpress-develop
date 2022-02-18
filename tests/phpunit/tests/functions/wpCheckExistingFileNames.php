@@ -51,21 +51,21 @@ class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 				'files'    => array( 'filename-1x1.ext', 'filename-scaled.ext', 'filename-rotated.ext' ),
 				'expected' => true,
 			),
-			'lots' 			  => array(
+			'lots'            => array(
 				'filename' => 'filename.png',
 				'files'    => array( 'filename-rotated.png' ),
 				'expected' => true,
 			),
-			'file-without-ext'=> array(
+			'file-without-ext' => array(
 				'filename' => 'filename',
-				'files'    => array('filename'),
-				'expected' => true
+				'files'    => array( 'filename' ),
+				'expected' => true,
 			),
-			'file-without-name'=> array(
+			'file-without-name' => array(
 				'filename' => '',
-				'files'	   => array('.htaccess'),
+				'files'	   => array( '.htaccess' ),
 				'expected' => false,
-			)
+			),
 		);
 	}
 }
