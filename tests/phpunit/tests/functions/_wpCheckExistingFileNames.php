@@ -2,17 +2,17 @@
 
 /**
  * @group functions.php
- * @covers ::wp_is_numeric_array
+ * @covers ::_wp_check_existing_file_names
  */
 class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data__wp_check_existing_file_names
 	 *
-	 * @ticket 53971
+	 * @ticket 55192
 	 *
-	 * @param string $filename filename looked for.
-	 * @param array $files files check against.
+	 * @param string  $filename The file name to check.
+	 * @param array   $files    An array of existing files in the directory.
 	 * @param boolean $expected Expected result.
 	 */
 	public function test__wp_check_existing_file_names( $filename, $files, $expected ) {
@@ -47,12 +47,12 @@ class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 				'files'    => array( 'filename-scaled.png' ),
 				'expected' => true,
 			),
-			'rotated'        => array(
+			'three matches'  => array(
 				'filename' => 'filename.ext',
 				'files'    => array( 'filename-1x1.ext', 'filename-scaled.ext', 'filename-rotated.ext' ),
 				'expected' => true,
 			),
-			'lots'           => array(
+			'rotated'        => array(
 				'filename' => 'filename.png',
 				'files'    => array( 'filename-rotated.png' ),
 				'expected' => true,
