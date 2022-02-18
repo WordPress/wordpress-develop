@@ -52,7 +52,7 @@ class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 				'files'    => array( 'filename-1x1.ext', 'filename-scaled.ext', 'filename-rotated.ext' ),
 				'expected' => true,
 			),
-			'lots' => array(
+			'rotated'        => array(
 				'filename' => 'filename.png',
 				'files'    => array( 'filename-rotated.png' ),
 				'expected' => true,
