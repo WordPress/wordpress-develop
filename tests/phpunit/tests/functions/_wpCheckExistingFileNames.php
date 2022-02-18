@@ -47,7 +47,7 @@ class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 				'files'    => array( 'filename-scaled.png' ),
 				'expected' => true,
 			),
-			'rotated'        => array(
+			'three matches'  => array(
 				'filename' => 'filename.ext',
 				'files'    => array( 'filename-1x1.ext', 'filename-scaled.ext', 'filename-rotated.ext' ),
 				'expected' => true,
