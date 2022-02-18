@@ -4,7 +4,7 @@
  * @group functions.php
  * @covers ::wp_is_numeric_array
  */
-class Tests_Functions__wp_check_existing_file_names extends WP_UnitTestCase {
+class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data__wp_check_existing_file_names
@@ -52,7 +52,6 @@ class Tests_Functions__wp_check_existing_file_names extends WP_UnitTestCase {
 				'files'    => array( 'filename-1x1.ext', 'filename-scaled.ext', 'filename-rotated.ext' ),
 				'expected' => true,
 			),
-
 			'lots' => array(
 				'filename' => 'filename.png',
 				'files'    => array( 'filename-rotated.png' ),
