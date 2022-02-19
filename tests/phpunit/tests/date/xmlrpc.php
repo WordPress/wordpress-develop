@@ -228,7 +228,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			'comment_author'       => 'Test commenter',
 			'comment_author_url'   => 'http://example.com/',
 			'comment_author_email' => 'example@example.com',
-			'comment_content'      => rand_str( 100 ),
+			'comment_content'      => 'Hello, world!',
 			'comment_approved'     => '1',
 		);
 		$comment_id   = wp_insert_comment( $comment_data );

@@ -17,7 +17,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_get_unknown_taxonomies() {
 		// Taxonomies for an unknown object type.
-		$this->assertSame( array(), get_object_taxonomies( rand_str() ) );
+		$this->assertSame( array(), get_object_taxonomies( 'unknown' ) );
 		$this->assertSame( array(), get_object_taxonomies( '' ) );
 		$this->assertSame( array(), get_object_taxonomies( 0 ) );
 		$this->assertSame( array(), get_object_taxonomies( null ) );
@@ -144,7 +144,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	public function test_register_taxonomy() {
 
 		// Make up a new taxonomy name, and ensure it's unused.
-		$tax = rand_str();
+		$tax = 'tax_new';
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
 		register_taxonomy( $tax, 'post' );
@@ -158,7 +158,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	public function test_register_hierarchical_taxonomy() {
 
 		// Make up a new taxonomy name, and ensure it's unused.
-		$tax = rand_str();
+		$tax = 'tax_new';
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );

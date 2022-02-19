@@ -110,7 +110,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 *
 	 * @param int    $object_id   ID of the object metadata is for.
 	 * @param string $meta_key    Metadata key.
-	 * @param mixed  $_meta_value Metadata value. Serialized if non-scalar.
+	 * @param mixed  $_meta_value Metadata value.
 	 */
 	do_action( "add_{$meta_type}_meta", $object_id, $meta_key, $_meta_value );
 
@@ -149,7 +149,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 * @param int    $mid         The meta ID after successful update.
 	 * @param int    $object_id   ID of the object metadata is for.
 	 * @param string $meta_key    Metadata key.
-	 * @param mixed  $_meta_value Metadata value. Serialized if non-scalar.
+	 * @param mixed  $_meta_value Metadata value.
 	 */
 	do_action( "added_{$meta_type}_meta", $mid, $object_id, $meta_key, $_meta_value );
 
@@ -283,7 +283,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		 * @param int    $meta_id     ID of the metadata entry to update.
 		 * @param int    $object_id   ID of the object metadata is for.
 		 * @param string $meta_key    Metadata key.
-		 * @param mixed  $_meta_value Metadata value. Serialized if non-scalar.
+		 * @param mixed  $_meta_value Metadata value.
 		 */
 		do_action( "update_{$meta_type}_meta", $meta_id, $object_id, $meta_key, $_meta_value );
 
@@ -329,7 +329,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		 * @param int    $meta_id     ID of updated metadata entry.
 		 * @param int    $object_id   ID of the object metadata is for.
 		 * @param string $meta_key    Metadata key.
-		 * @param mixed  $_meta_value Metadata value. Serialized if non-scalar.
+		 * @param mixed  $_meta_value Metadata value.
 		 */
 		do_action( "updated_{$meta_type}_meta", $meta_id, $object_id, $meta_key, $_meta_value );
 
@@ -471,7 +471,7 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	 * @param string[] $meta_ids    An array of metadata entry IDs to delete.
 	 * @param int      $object_id   ID of the object metadata is for.
 	 * @param string   $meta_key    Metadata key.
-	 * @param mixed    $_meta_value Metadata value. Serialized if non-scalar.
+	 * @param mixed    $_meta_value Metadata value.
 	 */
 	do_action( "delete_{$meta_type}_meta", $meta_ids, $object_id, $meta_key, $_meta_value );
 
@@ -496,12 +496,11 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	}
 
 	if ( $delete_all ) {
-		foreach ( (array) $object_ids as $o_id ) {
-			wp_cache_delete( $o_id, $meta_type . '_meta' );
-		}
+		$data = (array) $object_ids;
 	} else {
-		wp_cache_delete( $object_id, $meta_type . '_meta' );
+		$data = array( $object_id );
 	}
+	wp_cache_delete_multiple( $data, $meta_type . '_meta' );
 
 	/**
 	 * Fires immediately after deleting metadata of a specific type.
@@ -521,7 +520,7 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	 * @param string[] $meta_ids    An array of metadata entry IDs to delete.
 	 * @param int      $object_id   ID of the object metadata is for.
 	 * @param string   $meta_key    Metadata key.
-	 * @param mixed    $_meta_value Metadata value. Serialized if non-scalar.
+	 * @param mixed    $_meta_value Metadata value.
 	 */
 	do_action( "deleted_{$meta_type}_meta", $meta_ids, $object_id, $meta_key, $_meta_value );
 
@@ -1191,12 +1190,14 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		}
 	}
 
+	$data = array();
 	foreach ( $non_cached_ids as $id ) {
 		if ( ! isset( $cache[ $id ] ) ) {
 			$cache[ $id ] = array();
 		}
-		wp_cache_add( $id, $cache[ $id ], $cache_key );
+		$data[ $id ] = $cache[ $id ];
 	}
+	wp_cache_add_multiple( $data, $cache_key );
 
 	return $cache;
 }

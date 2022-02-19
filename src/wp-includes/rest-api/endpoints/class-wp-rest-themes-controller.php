@@ -16,7 +16,11 @@
  */
 class WP_REST_Themes_Controller extends WP_REST_Controller {
 
-	const PATTERN = '[^.\/]+(?:\/[^.\/]+)?';
+	/**
+	 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+	 * Excludes invalid directory name characters: `/:<>*?"|`.
+	 */
+	const PATTERN = '[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?';
 
 	/**
 	 * Constructor.
@@ -56,8 +60,9 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'stylesheet' => array(
-						'description' => __( "The theme's stylesheet. This uniquely identifies the theme." ),
-						'type'        => 'string',
+						'description'       => __( "The theme's stylesheet. This uniquely identifies the theme." ),
+						'type'              => 'string',
+						'sanitize_callback' => array( $this, '_sanitize_stylesheet_callback' ),
 					),
 				),
 				array(
@@ -68,6 +73,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
+	}
+
+	/**
+	 * Sanitize the stylesheet to decode endpoint.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $stylesheet The stylesheet name.
+	 * @return string Sanitized stylesheet.
+	 */
+	public function _sanitize_stylesheet_callback( $stylesheet ) {
+		return urldecode( $stylesheet );
 	}
 
 	/**
@@ -315,6 +332,21 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $data );
 
 		$response->add_links( $this->prepare_links( $theme ) );
+
+		if ( $theme->get_stylesheet() === wp_get_theme()->get_stylesheet() ) {
+			// This creates a record for the active theme if not existent.
+			$id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
+		} else {
+			$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
+			$id       = isset( $user_cpt['ID'] ) ? $user_cpt['ID'] : null;
+		}
+
+		if ( $id ) {
+			$response->add_link(
+				'https://api.w.org/user-global-styles',
+				rest_url( 'wp/v2/global-styles/' . $id )
+			);
+		}
 
 		/**
 		 * Filters theme data returned from the REST API.

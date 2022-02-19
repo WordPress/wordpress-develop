@@ -170,7 +170,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 16, $settings );
+		$this->assertCount( 18, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
@@ -265,6 +265,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			$settings['imageSizes']
 		);
 		$this->assertIsInt( $settings['maxUploadFileSize'] );
+		$this->assertTrue( $settings['__unstableGalleryWithImageBlocks'] );
 	}
 
 	/**
@@ -495,17 +496,51 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 53344
+	 * @ticket 54558
+	 * @dataProvider data_block_editor_rest_api_preload_adds_missing_leading_slash
+	 *
+	 * @covers ::block_editor_rest_api_preload
+	 *
+	 * @param array  $preload_paths The paths to preload.
+	 * @param string $expected      The expected substring.
 	 */
-	public function test_get_block_editor_theme_styles() {
-		$theme_styles = get_block_editor_theme_styles();
-		$this->assertCount( 1, $theme_styles );
-		$this->assertSameSets(
-			array(
-				'css'            => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
-				'__unstableType' => 'core',
+	public function test_block_editor_rest_api_preload_adds_missing_leading_slash( array $preload_paths, $expected ) {
+		block_editor_rest_api_preload( $preload_paths, new WP_Block_Editor_Context() );
+		$haystack = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
+		$this->assertStringContainsString( $expected, $haystack );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_block_editor_rest_api_preload_adds_missing_leading_slash() {
+		return array(
+			'a string without a slash'               => array(
+				'preload_paths' => array( 'wp/v2/blocks' ),
+				'expected'      => '\/wp\/v2\/blocks',
 			),
-			$theme_styles[0]
+			'a string with a slash'                  => array(
+				'preload_paths' => array( '/wp/v2/blocks' ),
+				'expected'      => '\/wp\/v2\/blocks',
+			),
+			'a string starting with a question mark' => array(
+				'preload_paths' => array( '?context=edit' ),
+				'expected'      => '/?context=edit',
+			),
+			'an array with a string without a slash' => array(
+				'preload_paths' => array( array( 'wp/v2/blocks', 'OPTIONS' ) ),
+				'expected'      => '\/wp\/v2\/blocks',
+			),
+			'an array with a string with a slash'    => array(
+				'preload_paths' => array( array( '/wp/v2/blocks', 'OPTIONS' ) ),
+				'expected'      => '\/wp\/v2\/blocks',
+			),
+			'an array with a string starting with a question mark' => array(
+				'preload_paths' => array( array( '?context=edit', 'OPTIONS' ) ),
+				'expected'      => '\/?context=edit',
+			),
 		);
 	}
 }

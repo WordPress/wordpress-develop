@@ -714,4 +714,49 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertSame( 'no_autosave_revision_to_delete', $this->_last_response_parsed['data'] );
 	}
+
+	/**
+	 * Test request for retrieving installed themes.
+	 *
+	 * @ticket 54549
+	 * @covers WP_Customize_Manager::handle_load_themes_request
+	 */
+	public function test_wp_ajax_customize_load_themes_action() {
+		$arguments = array(
+			'changeset_uuid'     => false,
+			'settings_previewed' => true,
+			'branching'          => false,
+		);
+		new WP_Customize_Manager( $arguments );
+		wp_set_current_user( self::$admin_user_id );
+		$nonce                 = wp_create_nonce( 'switch_themes' );
+		$_POST['nonce']        = $nonce;
+		$_GET['nonce']         = $nonce;
+		$_REQUEST['nonce']     = $nonce;
+		$_POST['theme_action'] = 'installed';
+		$this->make_ajax_call( 'customize_load_themes' );
+		$response = $this->_last_response_parsed;
+		$this->assertIsArray( $response, 'Response is not an array' );
+
+		$this->assertArrayHasKey( 'success', $response, 'Response must have a "success" key' );
+		$this->assertTrue( $response['success'], 'Response was not "success"' );
+
+		$this->assertArrayHasKey( 'data', $response, 'Response must have a "data" key' );
+		$this->assertIsArray( $response['data'], 'The response "data" is not an array' );
+		$this->assertArrayHasKey( 'themes', $response['data'], 'The response data must have a "themes" key' );
+		$this->assertIsArray( $response['data']['themes'], 'Themes data is not an array' );
+		$this->assertNotEmpty( $response['data']['themes'], 'Themes data must not be empty' );
+
+		foreach ( $response['data']['themes'] as $theme ) {
+			$this->assertIsArray( $theme, 'Theme is not an array' );
+			$this->assertNotEmpty( $theme, 'Theme data must not be empty' );
+			$this->assertArrayHasKey( 'id', $theme, 'Theme data must have an "id" key' );
+			$this->assertNotEmpty( $theme['id'], 'Theme id cannot be empty' );
+
+			$this->assertArrayHasKey( 'name', $theme, 'Theme data must have a "name" key' );
+			$this->assertNotEmpty( $theme['name'], 'Theme name cannot be empty' );
+
+			$this->assertArrayHasKey( 'blockTheme', $theme, 'Themes data must include information about blocks support' );
+		}
+	}
 }
