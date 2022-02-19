@@ -177,7 +177,7 @@ class WP_Object_Cache {
 		$groups = (array) $groups;
 
 		// Allow force ignoring of global groups.
-		if ( is_array( WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS ) ) {
+		if ( defined( 'WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS' ) ) {
 			$groups = array_diff( $groups, WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS );
 		}
 
