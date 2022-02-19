@@ -7,6 +7,22 @@
  * @covers ::wp_validate_boolean
  */
 class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
+
+	/**
+	 * Test wp_validate_boolean().
+	 *
+	 * @dataProvider data_provider
+	 *
+	 * @param mixed $test_value
+	 * @param bool $expected
+	 *
+	 * @ticket 30238
+	 * @ticket 39868
+	 */
+	public function test_wp_validate_boolean( $test_value, $expected ) {
+		$this->assertSame( $expected, wp_validate_boolean( $test_value ) );
+	}
+
 	/**
 	 * Provides test scenarios for all possible scenarios in wp_validate_boolean().
 	 *
@@ -40,20 +56,5 @@ class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 				array( '0', false ),
 				array( $std, true ),
 			);
-	}
-
-	/**
-	 * Test wp_validate_boolean().
-	 *
-	 * @dataProvider data_provider
-	 *
-	 * @param mixed $test_value
-	 * @param bool $expected
-	 *
-	 * @ticket 30238
-	 * @ticket 39868
-	 */
-	public function test_wp_validate_boolean( $test_value, $expected ) {
-		$this->assertSame( wp_validate_boolean( $test_value ), $expected );
 	}
 }
