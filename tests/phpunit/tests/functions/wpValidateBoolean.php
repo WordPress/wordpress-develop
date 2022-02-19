@@ -16,8 +16,8 @@ class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 	 * @ticket 30238
 	 * @ticket 39868
 	 *
-	 * @param mixed $test_value
-	 * @param bool  $expected
+	 * @param mixed $test_value Test value.
+	 * @param bool  $expected   Expected return value.
 	 */
 	public function test_wp_validate_boolean( $test_value, $expected ) {
 		$this->assertSame( $expected, wp_validate_boolean( $test_value ) );
@@ -27,8 +27,8 @@ class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 	 * Data provider for test_wp_validate_boolean().
 	 *
 	 * @return array[] Test parameters {
-	 *     @type string $test_value Test value.
-	 *     @type string $expected   Expected return value.
+	 *     @type mixed $test_value Test value.
+	 *     @type bool  $expected   Expected return value.
 	 * }
 	 */
 	public function data_wp_validate_boolean() {
