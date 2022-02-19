@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests the wp_validate_boolean function.
+ * Tests for the wp_validate_boolean() function.
  *
  * @group functions.php
  * @covers ::wp_validate_boolean
@@ -11,24 +11,27 @@ class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 	/**
 	 * Test wp_validate_boolean().
 	 *
-	 * @dataProvider data_provider
-	 *
-	 * @param mixed $test_value
-	 * @param bool $expected
+	 * @dataProvider data_wp_validate_boolean
 	 *
 	 * @ticket 30238
 	 * @ticket 39868
+	 *
+	 * @param mixed $test_value
+	 * @param bool  $expected
 	 */
 	public function test_wp_validate_boolean( $test_value, $expected ) {
 		$this->assertSame( $expected, wp_validate_boolean( $test_value ) );
 	}
 
 	/**
-	 * Provides test scenarios for all possible scenarios in wp_validate_boolean().
+	 * Data provider for test_wp_validate_boolean().
 	 *
-	 * @return array
+	 * @return array[] Test parameters {
+	 *     @type string $test_value Test value.
+	 *     @type string $expected   Expected return value.
+	 * }
 	 */
-	public function data_provider() {
+	public function data_wp_validate_boolean() {
 			$std = new \stdClass();
 
 			return array(
