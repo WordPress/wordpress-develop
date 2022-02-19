@@ -22,7 +22,7 @@ class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
 	 * @param array $expected     The expected result.
 	 */
 	public function test_wp_array_slice_assoc( $target_array, $keys, $expected ) {
-		$this->assertSame( wp_array_slice_assoc( $target_array, $keys ), $expected );
+		$this->assertSame( $expected, wp_array_slice_assoc( $target_array, $keys ) );
 	}
 
 	/**
