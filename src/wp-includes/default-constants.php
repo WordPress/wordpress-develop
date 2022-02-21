@@ -382,7 +382,7 @@ function wp_functionality_constants() {
 	 * @since 6.0.0
 	 */
 	if ( ! defined( 'WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS' ) ) {
-		define( 'WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS', array() );
+		define( 'WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS', false );
 	}
 }
 
