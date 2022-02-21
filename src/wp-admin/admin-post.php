@@ -31,6 +31,11 @@ do_action( 'admin_init' );
 
 $action = empty( $_REQUEST['action'] ) ? '' : $_REQUEST['action'];
 
+// Reject invalid parameters.
+if ( ! is_scalar( $action ) ) {
+	wp_die( '', 400 );
+}
+
 if ( ! is_user_logged_in() ) {
 	if ( empty( $action ) ) {
 		/**
