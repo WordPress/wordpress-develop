@@ -102,7 +102,20 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket #55109
+	 * Data provider for test_download_url_should_respect_filename_from_content_disposition_header.
+	 *
+	 * @return array
+	 */
+	public function data_download_url_should_respect_filename_from_content_disposition_header() {
+		return array(
+			'valid parameters' => array( 'filter_content_disposition_header_with_filename' ),
+			'path traversal'   => array( 'filter_content_disposition_header_with_filename_with_path_traversal' ),
+			'no quotes'        => array( 'filter_content_disposition_header_with_filename_without_quotes' ),
+		);
+	}
+
+	/**
+	 * @ticket 55109
 	 * @dataProvider data_save_to_temp_directory_when_getting_filename_from_content_disposition_header
 	 *
 	 * @covers ::download_url
@@ -117,19 +130,6 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		$this->unlink( $filename );
 
 		remove_filter( 'pre_http_request', array( $this, $filter ) );
-	}
-
-	/**
-	 * Data provider for test_download_url_should_respect_filename_from_content_disposition_header.
-	 *
-	 * @return array
-	 */
-	public function data_download_url_should_respect_filename_from_content_disposition_header() {
-		return array(
-			'valid parameters' => array( 'filter_content_disposition_header_with_filename' ),
-			'path traversal'   => array( 'filter_content_disposition_header_with_filename_with_path_traversal' ),
-			'no quotes'        => array( 'filter_content_disposition_header_with_filename_without_quotes' ),
-		);
 	}
 
 	/**
