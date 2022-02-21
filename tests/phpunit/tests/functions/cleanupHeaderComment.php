@@ -11,7 +11,7 @@
 class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
 
 	/**
-	 * Test cleanup header of header comment.
+	 * Tests _cleanup_header_comment().
 	 *
 	 * @dataProvider data_cleanup_header_comment
 	 *
@@ -23,7 +23,7 @@ class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_cleanup_header_comment.
+	 * Data provider for test_cleanup_header_comment().
 	 *
 	 * @return array[] Test parameters {
 	 *     @type string $test_string Test string.
