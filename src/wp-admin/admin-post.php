@@ -45,6 +45,11 @@ if ( ! is_user_logged_in() ) {
 		 */
 		do_action( 'admin_post_nopriv' );
 	} else {
+		// If no action is registered, return a Bad Request response.
+		if ( ! has_action( "admin_post_nopriv_{$action}" ) ) {
+			wp_die( '', 400 );
+		}
+
 		/**
 		 * Fires on a non-authenticated admin post request for the given action.
 		 *
@@ -64,6 +69,11 @@ if ( ! is_user_logged_in() ) {
 		 */
 		do_action( 'admin_post' );
 	} else {
+		// If no action is registered, return a Bad Request response.
+		if ( ! has_action( "admin_post_{$action}" ) ) {
+			wp_die( '', 400 );
+		}
+
 		/**
 		 * Fires on an authenticated admin post request for the given action.
 		 *
