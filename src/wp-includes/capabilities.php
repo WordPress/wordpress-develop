@@ -97,6 +97,22 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
+			// Handle templates and template parts.
+			if ( in_array( $post_type->name, array( 'wp_template', 'wp_template_part' ), true ) ) {
+				$terms = get_the_terms( $post, 'wp_theme' );
+
+				if ( ! is_wp_error( $terms ) && $terms ) {
+					// Can be handled with the template capabilities.
+					$template_cap = str_replace( 'wp', 'delete', $post_type->name );
+					$template_id = $terms[0]->name . '//' . $post->post_name;
+					return map_meta_cap( $template_cap, $user_id, $template_id );
+				} else {
+					// Template without a theme, fall back to edit_theme_options.
+					$caps[] = 'edit_theme_options';
+					break;
+				}
+			}
+
 			if ( ! $post_type->map_meta_cap ) {
 				$caps[] = $post_type->cap->$cap;
 				// Prior to 3.1 we would re-call map_meta_cap here.
@@ -168,6 +184,22 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
+			// Handle templates and template parts.
+			if ( in_array( $post_type->name, array( 'wp_template', 'wp_template_part' ), true ) ) {
+				$terms = get_the_terms( $post, 'wp_theme' );
+
+				if ( ! is_wp_error( $terms ) && $terms ) {
+					// Can be handled with the template capabilities.
+					$template_cap = str_replace( 'wp', 'edit', $post_type->name );
+					$template_id = $terms[0]->name . '//' . $post->post_name;
+					return map_meta_cap( $template_cap, $user_id, $template_id );
+				} else {
+					// Template without a theme, fall back to edit_theme_options.
+					$caps[] = 'edit_theme_options';
+					break;
+				}
+			}
+
 			if ( ! $post_type->map_meta_cap ) {
 				$caps[] = $post_type->cap->$cap;
 				// Prior to 3.1 we would re-call map_meta_cap here.
@@ -237,6 +269,22 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
+			// Handle templates and template parts.
+			if ( in_array( $post_type->name, array( 'wp_template', 'wp_template_part' ), true ) ) {
+				$terms = get_the_terms( $post, 'wp_theme' );
+
+				if ( ! is_wp_error( $terms ) && $terms ) {
+					// Can be handled with the template capabilities.
+					$template_cap = str_replace( 'wp', 'read', $post_type->name );
+					$template_id = $terms[0]->name . '//' . $post->post_name;
+					return map_meta_cap( $template_cap, $user_id, $template_id );
+				} else {
+					// Template without a theme, fall back to edit_theme_options.
+					$caps[] = 'edit_theme_options';
+					break;
+				}
+			}
+
 			if ( ! $post_type->map_meta_cap ) {
 				$caps[] = $post_type->cap->$cap;
 				// Prior to 3.1 we would re-call map_meta_cap here.
@@ -280,6 +328,22 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
+			}
+
+			// Handle templates and template parts.
+			if ( in_array( $post_type->name, array( 'wp_template', 'wp_template_part' ), true ) ) {
+				$terms = get_the_terms( $post, 'wp_theme' );
+
+				if ( ! is_wp_error( $terms ) && $terms ) {
+					// Can be handled with the template capabilities.
+					$template_cap = str_replace( 'wp', 'publish', $post_type->name );
+					$template_id = $terms[0]->name . '//' . $post->post_name;
+					return map_meta_cap( $template_cap, $user_id, $template_id );
+				} else {
+					// Template without a theme, fall back to edit_theme_options.
+					$caps[] = 'edit_theme_options';
+					break;
+				}
 			}
 
 			$caps[] = $post_type->cap->publish_posts;
@@ -614,6 +678,56 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'delete_app_passwords':
 		case 'delete_app_password':
 			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
+			break;
+		case 'create_template':
+		case 'create_template_part':
+			$template = get_block_template( $args[0], 'wp' . substr( $cap, 6 ) );
+			if ( $template ) {
+				// Template can't be created because it already exists.
+				$caps[] = 'do_not_allow';
+			} else {
+				$parts = explode( '//', $args[0], 2 );
+
+				// Template ID needs to be valid to be created.
+				if ( 2 === count( $parts ) && '' !== $parts[0] && '' !== $parts[1] ) {
+					$caps[] = 'edit_theme_options';
+				} else {
+					$caps[] = 'do_not_allow';
+				}
+			}
+			break;
+		case 'delete_template':
+		case 'delete_template_part':
+			$template = get_block_template( $args[0], 'wp' . substr( $cap, 6 ) );
+			if ( $template && ! $template->has_theme_file ) {
+				// Templates can only be deleted if they have no theme file.
+				$caps[] = 'edit_theme_options';
+			} else {
+				$caps[] = 'do_not_allow';
+			}
+			break;
+		case 'edit_template':
+		case 'edit_template_part':
+		case 'read_template':
+		case 'read_template_part':
+			$template = get_block_template( $args[0], 'wp' . substr( $cap, 4 ) );
+			if ( $template ) {
+				$caps[] = 'edit_theme_options';
+			} else {
+				// Template can't be read or edited if it doesn't exist.
+				$caps[] = 'do_not_allow';
+			}
+			break;
+		case 'publish_template':
+		case 'publish_template_part':
+			$template = get_block_template( $args[0], 'wp' . substr( $cap, 7 ) );
+
+			// Template needs to currently exist in an un-published state to be published.
+			if ( $template && 'publish' !== $template->status ) {
+				$caps[] = 'edit_theme_options';
+			} else {
+				$caps[] = 'do_not_allow';
+			}
 			break;
 		default:
 			// Handle meta capabilities for custom post types.
