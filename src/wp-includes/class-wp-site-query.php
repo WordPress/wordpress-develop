@@ -776,6 +776,7 @@ class WP_Site_Query {
 			case 'last_updated':
 			case 'path':
 			case 'registered':
+			case 'deleted':
 				$parsed = $orderby;
 				break;
 			case 'network_id':
