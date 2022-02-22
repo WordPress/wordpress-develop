@@ -3543,6 +3543,7 @@ function wp_ajax_query_themes() {
 				(array) $theme_field_defaults,
 				array(
 					'reviews_url' => true, // Explicitly request the reviews URL to be linked from the Add Themes screen.
+					'tags' => true, // Request tags to tell block and non-block themes apart.
 				)
 			),
 		)
