@@ -336,7 +336,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 
 				if ( ! is_wp_error( $terms ) && $terms ) {
 					// Can be handled with the template capabilities.
-					$template_cap = str_replace( 'wp', 'publish', $post_type->name );
+					$template_cap = str_replace( 'wp', 'edit', $post_type->name );
 					$template_id = $terms[0]->name . '//' . $post->post_name;
 					return map_meta_cap( $template_cap, $user_id, $template_id );
 				} else {
@@ -715,17 +715,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				$caps[] = 'edit_theme_options';
 			} else {
 				// Template can't be read or edited if it doesn't exist.
-				$caps[] = 'do_not_allow';
-			}
-			break;
-		case 'publish_template':
-		case 'publish_template_part':
-			$template = get_block_template( $args[0], 'wp' . substr( $cap, 7 ) );
-
-			// Template needs to currently exist in an un-published state to be published.
-			if ( $template && 'publish' !== $template->status ) {
-				$caps[] = 'edit_theme_options';
-			} else {
 				$caps[] = 'do_not_allow';
 			}
 			break;
