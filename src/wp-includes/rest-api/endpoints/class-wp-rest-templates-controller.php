@@ -367,7 +367,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	public function create_item_permissions_check( $request ) {
 		// Verify if the current user has edit_theme_options capability.
 		// This capability is required to edit/view/delete templates.
-		if ( ! current_user_can( str_replace( 'wp', 'create', $this->post_type ), $request['id'] ) ) {
+		if ( ! current_user_can( str_replace( 'wp', 'create', $this->post_type ), wp_get_theme()->get_stylesheet() . '//' . $request['slug'] ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_templates',
 				__( 'Sorry, you are not allowed to access the templates on this site.' ),
