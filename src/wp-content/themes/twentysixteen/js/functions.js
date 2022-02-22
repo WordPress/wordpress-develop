@@ -132,7 +132,7 @@
 
 	// Fix sub-menus for touch devices and better focus for hidden submenu items for accessibility.
 	( function () {
-		if ( ! siteNavigation || siteNavigation.children.length === 0 ) {
+		if ( ! siteNavigation || ! siteNavigation.children.length ) {
 			return;
 		}
 
