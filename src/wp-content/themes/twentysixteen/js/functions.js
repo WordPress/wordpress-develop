@@ -7,7 +7,7 @@
  ( function () {
 	'use strict';
 
-	var masthead, menuToggle, siteNavigation, socialNavigation, siteHeaderMenu, resizeTimer;
+	var mainNav, masthead, menuToggle, siteNavigation, socialNavigation, siteHeaderMenu, resizeTimer;
 
 	function matches( el, sel ) {
 		if ( Element.prototype.matches ) {
@@ -93,7 +93,11 @@
 			} );
 		} );
 	}
-	initMainNavigation( document.querySelector( '.main-navigation' ) );
+
+	mainNav = document.querySelector( '.main-navigation' );
+	if ( mainNav ) {
+		initMainNavigation( mainNav );
+	}
 
 	masthead = document.querySelector( '#masthead' );
 	menuToggle = masthead && masthead.querySelector( '#menu-toggle' );
