@@ -636,32 +636,21 @@ class WP_Term_Query {
 
 		$selects = array();
 		switch ( $args['fields'] ) {
-			case 'all':
 			case 'all_with_object_id':
-			case 'tt_ids':
-			case 'slugs':
 				$selects = array( 't.*', 'tt.*' );
 				if ( 'all_with_object_id' === $args['fields'] && ! empty( $args['object_ids'] ) ) {
 					$selects[] = 'tr.object_id';
+					$distinct  = 'DISTINCT';
 				}
-				break;
-			case 'ids':
-			case 'id=>parent':
-				$selects = array( 't.term_id', 'tt.parent', 'tt.count', 'tt.taxonomy' );
-				break;
-			case 'names':
-				$selects = array( 't.term_id', 'tt.parent', 'tt.count', 't.name', 'tt.taxonomy' );
 				break;
 			case 'count':
 				$orderby = '';
 				$order   = '';
 				$selects = array( 'COUNT(*)' );
 				break;
-			case 'id=>name':
-				$selects = array( 't.term_id', 't.name', 'tt.parent', 'tt.count', 'tt.taxonomy' );
-				break;
-			case 'id=>slug':
-				$selects = array( 't.term_id', 't.slug', 'tt.parent', 'tt.count', 'tt.taxonomy' );
+			default:
+				$selects  = array( 't.term_id' );
+				$distinct = 'DISTINCT';
 				break;
 		}
 
@@ -748,8 +737,13 @@ class WP_Term_Query {
 		$cache_key    = "get_terms:$key:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'terms' );
 		if ( false !== $cache ) {
-			if ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
+			if ( 'all_with_object_id' === $_fields ) {
 				$cache = $this->populate_terms( $cache );
+			}
+
+			if ( 'all' === $_fields ) {
+				$term_ids = wp_list_pluck( $cache, 'term_id' );
+				$cache    = $this->populate_terms( $term_ids );
 			}
 
 			$this->terms = $cache;
@@ -757,14 +751,15 @@ class WP_Term_Query {
 		}
 
 		if ( 'count' === $_fields ) {
-			$count = $wpdb->get_var( $this->request );
+			$count = $wpdb->get_var( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			wp_cache_set( $cache_key, $count, 'terms' );
 			return $count;
 		}
 
-		$terms = $wpdb->get_results( $this->request );
+		$terms = $wpdb->get_results( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		if ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
+		if ( 'all_with_object_id' === $_fields ) {
+			$terms_objects = $terms;
 			update_term_cache( $terms );
 		}
 
@@ -779,11 +774,16 @@ class WP_Term_Query {
 			return array();
 		}
 
+		if ( 'all_with_object_id' !== $args['fields'] && 'count' !== $args['fields'] ) {
+			$term_ids      = wp_list_pluck( $terms, 'term_id' );
+			$terms_objects = $this->populate_terms( $term_ids );
+		}
+
 		if ( $child_of ) {
 			foreach ( $taxonomies as $_tax ) {
 				$children = _get_term_hierarchy( $_tax );
 				if ( ! empty( $children ) ) {
-					$terms = _get_term_children( $child_of, $terms, $_tax );
+					$terms_objects = _get_term_children( $child_of, $terms_objects, $_tax );
 				}
 			}
 		}
@@ -791,13 +791,13 @@ class WP_Term_Query {
 		// Update term counts to include children.
 		if ( $args['pad_counts'] && 'all' === $_fields ) {
 			foreach ( $taxonomies as $_tax ) {
-				_pad_term_counts( $terms, $_tax );
+				_pad_term_counts( $terms_objects, $_tax );
 			}
 		}
 
 		// Make sure we show empty categories that have children.
-		if ( $hierarchical && $args['hide_empty'] && is_array( $terms ) ) {
-			foreach ( $terms as $k => $term ) {
+		if ( $hierarchical && $args['hide_empty'] && is_array( $terms_objects ) ) {
+			foreach ( $terms_objects as $k => $term ) {
 				if ( ! $term->count ) {
 					$children = get_term_children( $term->term_id, $term->taxonomy );
 					if ( is_array( $children ) ) {
@@ -810,7 +810,7 @@ class WP_Term_Query {
 					}
 
 					// It really is empty.
-					unset( $terms[ $k ] );
+					unset( $terms_objects[ $k ] );
 				}
 			}
 		}
@@ -838,31 +838,31 @@ class WP_Term_Query {
 
 		$_terms = array();
 		if ( 'id=>parent' === $_fields ) {
-			foreach ( $terms as $term ) {
+			foreach ( $terms_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->parent;
 			}
 		} elseif ( 'ids' === $_fields ) {
-			foreach ( $terms as $term ) {
+			foreach ( $terms_objects as $term ) {
 				$_terms[] = (int) $term->term_id;
 			}
 		} elseif ( 'tt_ids' === $_fields ) {
-			foreach ( $terms as $term ) {
+			foreach ( $terms_objects as $term ) {
 				$_terms[] = (int) $term->term_taxonomy_id;
 			}
 		} elseif ( 'names' === $_fields ) {
-			foreach ( $terms as $term ) {
+			foreach ( $terms_objects as $term ) {
 				$_terms[] = $term->name;
 			}
 		} elseif ( 'slugs' === $_fields ) {
-			foreach ( $terms as $term ) {
+			foreach ( $terms_objects as $term ) {
 				$_terms[] = $term->slug;
 			}
 		} elseif ( 'id=>name' === $_fields ) {
-			foreach ( $terms as $term ) {
+			foreach ( $terms_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->name;
 			}
 		} elseif ( 'id=>slug' === $_fields ) {
-			foreach ( $terms as $term ) {
+			foreach ( $terms_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->slug;
 			}
 		}
@@ -882,8 +882,12 @@ class WP_Term_Query {
 
 		wp_cache_add( $cache_key, $terms, 'terms' );
 
-		if ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
+		if ( 'all_with_object_id' === $_fields ) {
 			$terms = $this->populate_terms( $terms );
+		}
+
+		if ( 'all' === $_fields ) {
+			$terms = $terms_objects;
 		}
 
 		$this->terms = $terms;

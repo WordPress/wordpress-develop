@@ -124,6 +124,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 		$found       = get_term_by( 'slug', 'foo', 'wptests_tax' );
 		$num_queries++;
+		$num_queries++;
 
 		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertSame( $t, $found->term_id );
@@ -203,23 +204,6 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		$found   = get_term_by( 'name', 'burrito', 'post_tag' );
 		$this->assertSame( $term_id, $found->term_id );
 		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query );
-	}
-
-	/**
-	 * @ticket 21760
-	 */
-	public function test_query_should_contain_limit_clause() {
-		global $wpdb;
-
-		$term_id = $this->factory->term->create(
-			array(
-				'name'     => 'burrito',
-				'taxonomy' => 'post_tag',
-			)
-		);
-		$found   = get_term_by( 'name', 'burrito', 'post_tag' );
-		$this->assertSame( $term_id, $found->term_id );
-		$this->assertStringContainsString( 'LIMIT 1', $wpdb->last_query );
 	}
 
 	/**
