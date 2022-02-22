@@ -329,7 +329,7 @@ function wp_create_term( $tag_name, $taxonomy = 'post_tag' ) {
  *                                respectively. Default OBJECT.
  * @return WP_Term|array|null WP_Term (or array) on success, or null on failure.
  */
-function get_term_by_path( $term_path, $taxonomy = 'category', $output = OBJECT  ) {
+function get_term_by_path( $term_path, $taxonomy = 'category', $output = OBJECT ) {
 	global $wpdb;
 
 	$last_changed = wp_cache_get_last_changed( 'terms' );
