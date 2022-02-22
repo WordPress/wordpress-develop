@@ -249,7 +249,7 @@ class WP {
 						$taxonomies = array_filter( $taxonomies, 'is_taxonomy_viewable' );
 
 						foreach ( $taxonomies as $taxonomy ) {
-							if ( $wp_rewrite->use_verbose_page_rules && preg_match( '/'. $taxonomy->query_var . '=\$matches\[([0-9]+)\]/', $query, $varmatch ) ) {
+							if ( $wp_rewrite->use_verbose_page_rules && preg_match( '/' . $taxonomy->query_var . '=\$matches\[([0-9]+)\]/', $query, $varmatch ) ) {
 								// This is a verbose taxonomy match, let's check to be sure about it.
 								$term = get_term_by_path( $matches[ $varmatch[1] ], $taxonomy->name );
 								if ( ! $term ) {
