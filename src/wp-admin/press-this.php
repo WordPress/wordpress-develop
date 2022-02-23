@@ -6,14 +6,39 @@
  * @subpackage Press_This
  */
 
-define( 'IFRAME_REQUEST', true );
+const IFRAME_REQUEST = true;
 
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/**
+ * Loads the Press This application.
+ *
+ * If Press This is not installed, it offers to install it for users with sufficient capabilities.
+ */
 function wp_load_press_this() {
-	$plugin_slug = 'press-this';
-	$plugin_file = 'press-this/press-this-plugin.php';
+	/**
+	 * Press This Plugin Slug
+	 *
+	 * The slug for the Press This plugin, e.g. `press-this`.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $slug The slug for the plugin used for Press This.
+	 */
+	$plugin_slug = apply_filters( 'press_this_plugin_slug', 'press-this' );
+	/**
+	 * Press This Plugin Filename
+	 *
+	 * The filename for the Press This plugin, e.g. `press-this/press-this-plugin.php`.
+	 * This is the value used by WordPress to indicate the plugin is active. It should be the main plugin file for the
+	 * Press This plugin.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $filename The file name value for the plugin used for Press This.
+	 */
+	$plugin_file = apply_filters( 'press_this_plugin_file', 'press-this/press-this-plugin.php' );
 
 	if ( ! current_user_can( 'edit_posts' ) || ! current_user_can( get_post_type_object( 'post' )->cap->create_posts ) ) {
 		wp_die(
@@ -22,9 +47,27 @@ function wp_load_press_this() {
 			403
 		);
 	} elseif ( is_plugin_active( $plugin_file ) ) {
-		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
-		$wp_press_this = new WP_Press_This_Plugin();
-		$wp_press_this->html();
+		/**
+		 * Press This execution function
+		 *
+		 * The function name used to executing Press This. By default, this is the Core function `wp_execute_press_this`
+		 * and assumes the default Press This plugin.
+		 *
+		 * @since 5.8.0
+		 *
+		 * @param callable $func The function used to execute Press This.
+		 */
+		$func = apply_filters( 'press_this_execution_func', 'wp_execute_press_this' );
+
+		if ( is_callable( $func ) ) {
+			call_user_func( $func );
+		} else {
+			wp_die(
+				/* translators: %s is the name of a WordPress filter. */
+				sprintf( __( 'The value passed to the %s filter must be a callable.' ), 'press_this_execution_func' ),
+				500
+			);
+		}
 	} elseif ( current_user_can( 'activate_plugins' ) ) {
 		if ( file_exists( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
 			$url    = wp_nonce_url(
@@ -82,6 +125,15 @@ function wp_load_press_this() {
 			200
 		);
 	}
+}
+
+/**
+ * Executes the default Press This application.
+ */
+function wp_execute_press_this() {
+	include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
+	$wp_press_this = new WP_Press_This_Plugin();
+	$wp_press_this->html();
 }
 
 wp_load_press_this();
