@@ -3568,7 +3568,17 @@ function wp_ajax_query_themes() {
 
 	$update_php = network_admin_url( 'update.php?action=install-theme' );
 
-	$current_theme = get_stylesheet();
+	$installed_themes = search_theme_directories();
+
+	if ( false === $installed_themes ) {
+		$installed_themes = array();
+	}
+
+	foreach ( $installed_themes as $k => $v ) {
+		if ( false !== strpos( $k, '/' ) ) {
+			unset( $installed_themes[ $k ] );
+		}
+	}
 
 	foreach ( $api->themes as &$theme ) {
 		$theme->install_url = add_query_arg(
@@ -3601,15 +3611,13 @@ function wp_ajax_query_themes() {
 			}
 		}
 
+		$is_theme_installed = array_key_exists($theme->slug, $installed_themes);
+
+		// We only care about installed themes.
+		$theme->block_theme = $is_theme_installed && wp_get_theme( $theme->slug )->is_block_theme();
+
 		if ( ! is_multisite() && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
-			$is_block_theme = false;
-
-			// We only care about active themes.
-			if ( $current_theme === $theme->slug ) {
-				$is_block_theme = wp_get_theme()->is_block_theme();
-			}
-
-			$customize_url = $is_block_theme ? admin_url( 'site-editor.php' ) : wp_customize_url( $theme->slug );
+			$customize_url = $theme->block_theme ? admin_url( 'site-editor.php' ) : wp_customize_url( $theme->slug );
 
 			$theme->customize_url = add_query_arg(
 				array(
@@ -3617,8 +3625,6 @@ function wp_ajax_query_themes() {
 				),
 				$customize_url
 			);
-
-
 		}
 
 		$theme->name        = wp_kses( $theme->name, $themes_allowedtags );

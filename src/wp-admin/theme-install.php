@@ -373,7 +373,9 @@ if ( $tab ) {
 					<# } #>
 					<# if ( data.customize_url ) { #>
 						<# if ( ! data.active ) { #>
-							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<# if ( ! data.block_theme ) { #>
+								<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<# } #>
 						<# } else { #>
 							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Customize' ); ?></a>
 						<# } #>
