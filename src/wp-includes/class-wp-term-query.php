@@ -745,6 +745,7 @@ class WP_Term_Query {
 			if ( 'all_with_object_id' === $_fields ) {
 				$cache = $this->populate_terms( $cache );
 			} elseif ( 'count' !== $_fields ) {
+				_prime_term_caches( $cache, false );
 				$terms_objects = $this->populate_terms( $cache );
 				$cache         = $this->format_terms( $terms_objects, $_fields );
 			}
@@ -779,6 +780,7 @@ class WP_Term_Query {
 
 		if ( 'all_with_object_id' !== $args['fields'] && 'count' !== $args['fields'] ) {
 			$term_ids      = wp_list_pluck( $terms, 'term_id' );
+			_prime_term_caches( $term_ids, false );
 			$terms_objects = $this->populate_terms( $term_ids );
 		}
 
