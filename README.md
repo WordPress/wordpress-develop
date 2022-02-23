@@ -93,6 +93,15 @@ Starting the environment again is a single command:
 npm run env:start
 ```
 
+#### To clean up the development environment
+
+Clean up the environment including docker images with:
+
+```
+npm run env:clean
+npm run env:reset
+```
+
 ## Credentials
 
 These are the default environment credentials:
