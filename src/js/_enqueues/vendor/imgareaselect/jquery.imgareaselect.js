@@ -18,6 +18,7 @@
  * shortcuts
  */
 var abs = Math.abs,
+    ceil = Math.ceil,
     max = Math.max,
     min = Math.min,
     round = Math.round;
@@ -73,7 +74,7 @@ $.imgAreaSelect = function (img, options) {
         imgOfs = { left: 0, top: 0 },
 
         /* Image dimensions (as returned by .width() and .height()) */
-        imgWidth, imgHeight,
+        imgWidth, imgHeight, imgInnerWidth, imgInnerHeight,
 
         /*
          * jQuery object representing the parent element that the plugin
@@ -286,11 +287,14 @@ $.imgAreaSelect = function (img, options) {
         imgOfs = { left: round($img.offset().left), top: round($img.offset().top) };
 
         /* Get image dimensions */
-        imgWidth = $img.innerWidth();
-        imgHeight = $img.innerHeight();
+        imgWidth = ceil($img.innerWidth());
+        imgHeight = ceil($img.innerHeight());
 
-        imgOfs.top += ($img.outerHeight() - imgHeight) >> 1;
-        imgOfs.left += ($img.outerWidth() - imgWidth) >> 1;
+        imgInnerWidth = ceil($img.innerWidth());
+        imgInnerHeight = ceil($img.innerHeight());
+
+        imgOfs.top += (imgInnerHeight - imgHeight) >> 1;
+        imgOfs.left += (imgInnerWidth - imgWidth) >> 1;
 
         /* Set minimum and maximum selection area dimensions */
         minWidth = round(options.minWidth / scaleX) || 0;
