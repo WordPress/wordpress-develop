@@ -542,6 +542,21 @@ class WP_User {
 			return;
 		}
 
+		/**
+		 * Filters the role-to-be-added  to a user. Return an empty string to prevent the role being added.
+		 *
+		 * @since x.x.x
+		 *
+		 * @param string  $role          The new role.
+		 * @param WP_User $user          The user object
+		 * @param string  $original_role The new role (as originally requested).
+		 */
+		$role = apply_filters( 'pre_add_user_role', $role, $this, $original_role = $role );
+
+		if ( empty( $role ) || in_array( $role, $this->roles, true ) ) {
+			return;
+		}
+
 		$this->caps[ $role ] = true;
 		update_user_meta( $this->ID, $this->cap_key, $this->caps );
 		$this->get_role_caps();
@@ -552,10 +567,12 @@ class WP_User {
 		 *
 		 * @since 4.3.0
 		 *
-		 * @param int    $user_id The user ID.
-		 * @param string $role    The new role.
+		 * @param int     $user_id       The user ID.
+		 * @param string  $role          The new role.
+		 * @param WP_User $user          The user object
+		 * @param string  $original_role The new role (as originally requested).
 		 */
-		do_action( 'add_user_role', $this->ID, $role );
+		do_action( 'add_user_role', $this->ID, $role, $this, $original_role );
 	}
 
 	/**
@@ -566,9 +583,25 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function remove_role( $role ) {
-		if ( ! in_array( $role, $this->roles, true ) ) {
+		if ( empty( $role ) ) {
 			return;
 		}
+
+		/**
+		 * Filters the role-to-be-removed from a user. Return an empty string to prevent the role being removed.
+		 *
+		 * @since x.x.x
+		 *
+		 * @param string  $role          The role to be removed.
+		 * @param WP_User $user          The user object
+		 * @param string  $original_role The role to be removed (as originally requested).
+		 */
+		$role = apply_filters( 'pre_remove_user_role', $role, $this, $original_role = $role );
+
+		if ( empty( $role ) || ! in_array( $role, $this->roles, true ) ) {
+			return;
+		}
+
 		unset( $this->caps[ $role ] );
 		update_user_meta( $this->ID, $this->cap_key, $this->caps );
 		$this->get_role_caps();
@@ -579,10 +612,12 @@ class WP_User {
 		 *
 		 * @since 4.3.0
 		 *
-		 * @param int    $user_id The user ID.
-		 * @param string $role    The removed role.
+		 * @param int     $user_id       The user ID.
+		 * @param string  $role          The removed role.
+		 * @param WP_User $user          The user object
+		 * @param string  $original_role The role to be removed (as originally requested).
 		 */
-		do_action( 'remove_user_role', $this->ID, $role );
+		do_action( 'remove_user_role', $this->ID, $role, $this, $original_role );
 	}
 
 	/**
