@@ -97,6 +97,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 		$offset = ( $page_num - 1 ) * wp_sitemaps_get_max_urls( $this->object_type );
 
 		$args           = $this->get_taxonomies_query_args( $taxonomy );
+		$args['fields'] = 'all';
 		$args['offset'] = $offset;
 
 		$taxonomy_terms = new WP_Term_Query( $args );
@@ -194,7 +195,6 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 		$args = apply_filters(
 			'wp_sitemaps_taxonomies_query_args',
 			array(
-				'fields'                 => 'ids',
 				'taxonomy'               => $taxonomy,
 				'orderby'                => 'term_order',
 				'number'                 => wp_sitemaps_get_max_urls( $this->object_type ),
