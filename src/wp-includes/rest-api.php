@@ -673,7 +673,7 @@ function rest_handle_doing_it_wrong( $function, $message, $version ) {
 		$string = sprintf( $string, $function, $message );
 	}
 
-	header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
+	header( sprintf( 'X-WP-DoingItWrong: %s', $string ), false );
 }
 
 /**
