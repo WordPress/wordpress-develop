@@ -3543,7 +3543,6 @@ function wp_ajax_query_themes() {
 				(array) $theme_field_defaults,
 				array(
 					'reviews_url' => true, // Explicitly request the reviews URL to be linked from the Add Themes screen.
-					'tags' => true, // Request tags to tell block and non-block themes apart.
 				)
 			),
 		)
@@ -3568,6 +3567,8 @@ function wp_ajax_query_themes() {
 	}
 
 	$update_php = network_admin_url( 'update.php?action=install-theme' );
+
+	$current_theme = get_stylesheet();
 
 	foreach ( $api->themes as &$theme ) {
 		$theme->install_url = add_query_arg(
@@ -3601,12 +3602,23 @@ function wp_ajax_query_themes() {
 		}
 
 		if ( ! is_multisite() && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
+			$is_block_theme = false;
+
+			// We only care about active themes.
+			if ( $current_theme === $theme->slug ) {
+				$is_block_theme = wp_get_theme()->is_block_theme();
+			}
+
+			$customize_url = $is_block_theme ? admin_url( 'site-editor.php' ) : wp_customize_url( $theme->slug );
+
 			$theme->customize_url = add_query_arg(
 				array(
 					'return' => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
 				),
-				wp_customize_url( $theme->slug )
+				$customize_url
 			);
+
+
 		}
 
 		$theme->name        = wp_kses( $theme->name, $themes_allowedtags );
