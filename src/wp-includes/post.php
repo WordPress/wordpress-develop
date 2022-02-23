@@ -4307,6 +4307,10 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	// New-style support for all custom taxonomies.
 	if ( ! empty( $postarr['tax_input'] ) ) {
 		foreach ( $postarr['tax_input'] as $taxonomy => $tags ) {
+			if ( ! is_object_in_taxonomy( $post_type, $taxonomy ) ) {
+				continue;
+			}
+
 			$taxonomy_obj = get_taxonomy( $taxonomy );
 
 			if ( ! $taxonomy_obj ) {
