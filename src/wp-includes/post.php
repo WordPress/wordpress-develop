@@ -4657,12 +4657,21 @@ function wp_publish_post( $post ) {
 		wp_set_post_terms( $post->ID, array( $default_term_id ), $taxonomy );
 	}
 
-	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
+	$wpdb->update( $wpdb->posts,
+		array(
+			'post_status'       => 'publish',
+			'post_modified'     => $post->post_date,
+			'post_modified_gmt' => $post->post_date_gmt,
+		),
+		array( 'ID' => $post->ID )
+	);
 
 	clean_post_cache( $post->ID );
 
-	$old_status        = $post->post_status;
-	$post->post_status = 'publish';
+	$old_status              = $post->post_status;
+	$post->post_status       = 'publish';
+	$post->post_modified     = $post->post_date;
+	$post->post_modified_gmt = $post->post_date_gmt;
 	wp_transition_post_status( 'publish', $old_status, $post );
 
 	/** This action is documented in wp-includes/post.php */
