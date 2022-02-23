@@ -309,7 +309,7 @@ class Walker {
 			$start  = ( (int) $page_num - 1 ) * (int) $per_page;
 			$end    = $start + $per_page;
 			if ( -1 == $max_depth ) {
-				$this->max_pages = ceil( $total_top / $per_page );
+				$this->max_pages = wp_total_pages( $total_top, (int) $per_page );
 			}
 		}
 
@@ -353,7 +353,7 @@ class Walker {
 
 		$total_top = count( $top_level_elements );
 		if ( $paging ) {
-			$this->max_pages = ceil( $total_top / $per_page );
+			$this->max_pages = wp_total_pages( $total_top, (int) $per_page );
 		} else {
 			$end = $total_top;
 		}

@@ -1454,7 +1454,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 
 			$top_level_count = $top_level_query->query( $top_level_args );
 
-			$comment_args['offset'] = ( ceil( $top_level_count / $per_page ) - 1 ) * $per_page;
+			$comment_args['offset'] = ( wp_total_pages( $top_level_count, $per_page ) - 1 ) * $per_page;
 		}
 	}
 

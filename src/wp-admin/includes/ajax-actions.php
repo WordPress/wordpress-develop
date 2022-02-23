@@ -520,6 +520,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 	$time    = time();
 	$comment = get_comment( $comment_id );
 	$counts  = wp_count_comments();
+	$total_pages = wp_total_pages( $total, $per_page );
 
 	$x = new WP_Ajax_Response(
 		array(
@@ -530,8 +531,8 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 				'postId'               => $comment ? $comment->comment_post_ID : '',
 				/* translators: %s: Number of comments. */
 				'total_items_i18n'     => sprintf( _n( '%s item', '%s items', $total ), number_format_i18n( $total ) ),
-				'total_pages'          => ceil( $total / $per_page ),
-				'total_pages_i18n'     => number_format_i18n( ceil( $total / $per_page ) ),
+				'total_pages'          => $total_pages,
+				'total_pages_i18n'     => number_format_i18n( $total_pages ),
 				'total'                => $total,
 				'time'                 => $time,
 				'in_moderation'        => $counts->moderated,
@@ -3005,7 +3006,7 @@ function wp_ajax_query_attachments() {
 
 	$posts_per_page = (int) $attachments_query->get( 'posts_per_page' );
 
-	$max_pages = $posts_per_page ? ceil( $total_posts / $posts_per_page ) : 0;
+	$max_pages = $posts_per_page ? wp_total_pages( $total_posts, $posts_per_page ) : 0;
 
 	header( 'X-WP-Total: ' . (int) $total_posts );
 	header( 'X-WP-TotalPages: ' . (int) $max_pages );

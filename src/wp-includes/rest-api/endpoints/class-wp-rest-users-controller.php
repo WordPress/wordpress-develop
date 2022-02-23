@@ -339,7 +339,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		// Store pagination values for headers then unset for count query.
 		$per_page = (int) $prepared_args['number'];
-		$page     = ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
+		$page     = wp_total_pages( (int) $prepared_args['offset'], $per_page ) + 1;
 
 		$prepared_args['fields'] = 'ID';
 
@@ -354,7 +354,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$response->header( 'X-WP-Total', (int) $total_users );
 
-		$max_pages = ceil( $total_users / $per_page );
+		$max_pages = wp_total_pages( (int) $total_users, $per_page );
 
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 

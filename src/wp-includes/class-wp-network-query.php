@@ -268,7 +268,7 @@ class WP_Network_Query {
 		}
 
 		if ( $this->found_networks && $this->query_vars['number'] ) {
-			$this->max_num_pages = ceil( $this->found_networks / $this->query_vars['number'] );
+			$this->max_num_pages = wp_total_pages( $this->found_networks, $this->query_vars['number'] );
 		}
 
 		// If querying for a count only, there's nothing more to do.

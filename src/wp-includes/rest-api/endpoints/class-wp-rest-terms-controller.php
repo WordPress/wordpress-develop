@@ -285,11 +285,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		// Store pagination values for headers.
 		$per_page = (int) $prepared_args['number'];
-		$page     = ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
+		$page     = wp_total_pages( (int) $prepared_args['offset'], $per_page ) + 1;
 
 		$response->header( 'X-WP-Total', (int) $total_terms );
 
-		$max_pages = ceil( $total_terms / $per_page );
+		$max_pages = wp_total_pages( (int) $total_terms, $per_page );
 
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 

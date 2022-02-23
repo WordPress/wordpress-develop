@@ -597,7 +597,7 @@ class WP_User_Search {
 				$args['role'] = urlencode($this->role);
 
 			$this->paging_text = paginate_links( array(
-				'total' => ceil($this->total_users_for_query / $this->users_per_page),
+				'total' => wp_total_pages( $this->total_users_for_query, $this->users_per_page ),
 				'current' => $this->page,
 				'base' => 'users.php?%_%',
 				'format' => 'userspage=%#%',

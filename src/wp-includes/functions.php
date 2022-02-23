@@ -8333,3 +8333,24 @@ function is_php_version_compatible( $required ) {
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
+
+/**
+ * Calculate the number of pages a set of results can be split into.
+ *
+ * This is similar to using `ceil()` on division but returns an integer.
+ *
+ * @since 5.8.0
+ *
+ * @param int $total_items The count of items to paginate.
+ * @param int $per_page    The maximum number of items per page.
+ * @return int The total number of pages.
+ */
+function wp_total_pages( $total_items, $per_page ) {
+	$remainder = $total_items % $per_page;
+
+	if ( $remainder ) {
+		$total_items += $per_page - $remainder;
+	}
+
+	return $total_items / $per_page;
+}
