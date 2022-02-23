@@ -2,24 +2,24 @@
 duplicate styling from the Privacy settings screen
 are styled in the Privacy section of edit.css */
 
-.health-check-body h2 {
+.wp-core-ui-body h2 {
 	line-height: 1.4;
 }
 
-.health-check-body h3 {
+.wp-core-ui-body h3 {
 	padding: 0;
 	font-weight: 400;
 }
 
-.health-check-widget-title-section {
+.wp-core-ui-widget-title-section {
 	text-align: center;
 }
 
-.site-health-progress-wrapper {
+.wp-core-ui-progress-wrapper {
 	margin-bottom: 1rem;
 }
 
-.site-health-progress {
+.wp-core-ui-progress {
 	display: inline-block;
 	height: 20px;
 	width: 20px;
@@ -30,7 +30,7 @@ are styled in the Privacy section of edit.css */
 	font-size: 0.4rem;
 }
 
-.site-health-progress-count {
+.wp-core-ui-progress-count {
 	position: absolute;
 	display: block;
 	height: 80px;
@@ -44,39 +44,39 @@ are styled in the Privacy section of edit.css */
 	font-size: 2em;
 }
 
-.loading .site-health-progress svg #bar {
+.loading .wp-core-ui-progress svg #bar {
 	stroke-dashoffset: 0;
 	stroke: #c3c4c7;
 	animation: loadingPulse 3s infinite ease-in-out;
 }
 
-.site-health-progress svg circle {
+.wp-core-ui-progress svg circle {
 	stroke-dashoffset: 0;
 	transition: stroke-dashoffset 1s linear;
 	stroke: #c3c4c7;
 	stroke-width: 2em;
 }
 
-.site-health-progress svg #bar {
+.wp-core-ui-progress svg #bar {
 	stroke-dashoffset: 565;
 	stroke: #d63638;
 }
 
-.green .site-health-progress #bar {
+.green .wp-core-ui-progress #bar {
 	stroke: #00a32a;
 }
-.green .site-health-progress .site-health-progress-label {
+.green .wp-core-ui-progress .wp-core-ui-progress-label {
 	color: #00a32a;
 }
 
-.orange .site-health-progress #bar {
+.orange .wp-core-ui-progress #bar {
 	stroke: #dba617;
 }
-.orange .site-health-progress .site-health-progress-label {
+.orange .wp-core-ui-progress .wp-core-ui-progress-label {
 	color: #dba617;
 }
 
-.site-health-progress-label {
+.wp-core-ui-progress-label {
 	font-weight: 600;
 	line-height: 20px;
 	margin-left: 0.3rem;
@@ -94,7 +94,7 @@ are styled in the Privacy section of edit.css */
 	}
 }
 
-.health-check-tabs-wrapper {
+.wp-core-ui-tabs-wrapper {
 	/* IE 11 */
 	display: -ms-inline-grid;
 	-ms-grid-columns: 1fr 1fr 1fr 1fr;
@@ -104,17 +104,17 @@ are styled in the Privacy section of edit.css */
 	grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
-.health-check-tabs-wrapper.tab-count-1 {
+.wp-core-ui-tabs-wrapper.tab-count-1 {
 	grid-template-columns: 1fr;
 }
-.health-check-tabs-wrapper.tab-count-2 {
+.wp-core-ui-tabs-wrapper.tab-count-2 {
 	grid-template-columns: 1fr 1fr;
 }
-.health-check-tabs-wrapper.tab-count-3 {
+.wp-core-ui-tabs-wrapper.tab-count-3 {
 	grid-template-columns: 1fr 1fr 1fr;
 }
 
-.health-check-tab {
+.wp-core-ui-tab {
 	display: block; /* IE 11 */
 	text-decoration: none;
 	color: inherit;
@@ -123,16 +123,16 @@ are styled in the Privacy section of edit.css */
 	transition: box-shadow 0.5s ease-in-out;
 }
 
-.health-check-offscreen-nav-wrapper {
+.wp-core-ui-offscreen-nav-wrapper {
 	position: relative;
 	background: transparent;
 	border: none;
 }
-.health-check-offscreen-nav-wrapper:focus .health-check-offscreen-nav {
+.wp-core-ui-offscreen-nav-wrapper:focus .wp-core-ui-offscreen-nav {
 	left: initial;
 }
 
-.health-check-offscreen-nav {
+.wp-core-ui-offscreen-nav {
 	display: none;
 	position: absolute;
 	padding-top: 10px;
@@ -140,10 +140,10 @@ are styled in the Privacy section of edit.css */
 	top: 100%;
 	width: 13rem;
 }
-.health-check-offscreen-nav-wrapper.visible .health-check-offscreen-nav {
+.wp-core-ui-offscreen-nav-wrapper.visible .wp-core-ui-offscreen-nav {
 	display: inline-block;
 }
-.health-check-offscreen-nav:before {
+.wp-core-ui-offscreen-nav:before {
 	position: absolute;
 	content: "";
 	width: 0;
@@ -155,71 +155,71 @@ are styled in the Privacy section of edit.css */
 	top: 5px;
 }
 
-.health-check-offscreen-nav .health-check-tab {
+.wp-core-ui-offscreen-nav .wp-core-ui-tab {
 	background: #fff;
 	box-shadow: 0 2px 5px 0 rgba( 0, 0, 0, 0.75 );
 }
 
-.health-check-offscreen-nav .health-check-tab.active {
+.wp-core-ui-offscreen-nav .wp-core-ui-tab.active {
 	box-shadow: inset 3px 0 #3582c4;
 	font-weight: 600;
 }
 
-.health-check-body {
+.wp-core-ui-body {
 	max-width: 800px;
 	margin: 0 auto;
 }
 
-.health-check-table td:first-child {
+.wp-core-ui-table td:first-child {
 	width: 30%;
 }
 
-.health-check-table td {
+.wp-core-ui-table td {
 	width: 70%;
 }
 
-.health-check-table ul,
-.health-check-table ol {
+.wp-core-ui-table ul,
+.wp-core-ui-table ol {
 	margin: 0;
 }
 
-.health-check-body li {
+.wp-core-ui-body li {
 	line-height: 1.5;
 }
 
-.health-check-body .pass::before,
-.health-check-body .good::before {
+.wp-core-ui-body .pass::before,
+.wp-core-ui-body .good::before {
 	content: "\f147";
 	color: #00a32a;
 }
 
-.health-check-body .warning::before {
+.wp-core-ui-body .warning::before {
 	content: "\f460";
 	color: #dba617;
 }
 
-.health-check-body .info::before {
+.wp-core-ui-body .info::before {
 	content: "\f348";
 	color: #72aee6;
 }
 
-.health-check-body .fail::before,
-.health-check-body .error::before {
+.wp-core-ui-body .fail::before,
+.wp-core-ui-body .error::before {
 	content: "\f335";
 	color: #d63638;
 }
 
-.site-health-copy-buttons {
+.wp-core-ui-copy-buttons {
 	margin: 1rem 0;
 }
 
-.site-health-copy-buttons .copy-button-wrapper {
+.wp-core-ui-copy-buttons .copy-button-wrapper {
 	display: inline-flex;
 	align-items: center;
 	margin: 0.5rem 0 1rem;
 }
 
-.site-health-copy-buttons .success {
+.wp-core-ui-copy-buttons .success {
 	color: #008a20;
 	margin-left: 0.5rem;
 }
@@ -228,15 +228,15 @@ are styled in the Privacy section of edit.css */
 	display: none;
 }
 
-.site-health-view-more {
+.wp-core-ui-view-more {
 	text-align: center;
 }
 
-.site-health-issues-wrapper:first-of-type {
+.wp-core-ui-issues-wrapper:first-of-type {
 	margin-top: 3rem;
 }
 
-.site-health-issues-wrapper {
+.wp-core-ui-issues-wrapper {
 	margin-bottom: 3rem;
 	margin-top: 2rem;
 }
@@ -278,7 +278,7 @@ are styled in the Privacy section of edit.css */
 	margin: 0;
 }
 
-.wp-core-ui .button.site-health-view-passed {
+.wp-core-ui .button.wp-core-ui-view-passed {
 	position: relative;
 	padding-right: 40px;
 	padding-left: 20px;
@@ -286,16 +286,16 @@ are styled in the Privacy section of edit.css */
 
 
 /* Better position for the WordPress admin notices and update nag. */
-.site-health .notice {
+.wp-core-ui .notice {
 	margin: 5px 20px 15px 22px;
 }
 
-.site-health .update-nag {
+.wp-core-ui .update-nag {
 	margin-bottom: 20px;
 	margin-left: 22px;
 }
 
-.health-check-wp-paths-sizes.spinner {
+.wp-core-ui-wp-paths-sizes.spinner {
 	visibility: visible;
 	float: none;
 	margin: 0 4px;
@@ -303,56 +303,56 @@ are styled in the Privacy section of edit.css */
 }
 
 /* Styling unique to the dashboard widget. */
-#dashboard_site_health .site-health-details {
+#dashboard_site_health .wp-core-ui-details {
 	padding-left: 16px;
 }
 
-#dashboard_site_health .health-check-widget {
+#dashboard_site_health .wp-core-ui-widget {
 	display: grid;
 	grid-template-columns: 1fr 2fr;
 	grid-auto-rows: minmax(64px, auto);
 	column-gap: 16px;
 	align-items: center;
 }
-#dashboard_site_health .site-health-progress-label {
+#dashboard_site_health .wp-core-ui-progress-label {
 	margin-left: 0;
 }
 
 @media screen and (max-width: 480px) {
-	#dashboard_site_health .health-check-widget {
+	#dashboard_site_health .wp-core-ui-widget {
 		grid-template-columns: 100%;
 	}
 }
 
 @media screen and (max-width: 782px) {
 
-	.site-health-issues-wrapper .health-check-accordion-trigger {
+	.wp-core-ui-issues-wrapper .wp-core-ui-accordion-trigger {
 		flex-direction: column;
 		align-items: flex-start;
 	}
 
-	.health-check-accordion-trigger .badge {
+	.wp-core-ui-accordion-trigger .badge {
 		margin: 1em 0 0;
 	}
 
-	.health-check-table {
+	.wp-core-ui-table {
 		table-layout: fixed;
 	}
 
-	.health-check-table td {
+	.wp-core-ui-table td {
 		box-sizing: border-box;
 		display: block;
 		width: 100%;
 		word-wrap: break-word;
 	}
 
-	.health-check-table td:first-child {
+	.wp-core-ui-table td:first-child {
 		width: 100%;
 		padding-bottom: 0;
 		font-weight: 600;
 	}
 
-	.wp-core-ui .site-health-copy-buttons .copy-button {
+	.wp-core-ui .wp-core-ui-copy-buttons .copy-button {
 		margin-bottom: 0;
 	}
 }

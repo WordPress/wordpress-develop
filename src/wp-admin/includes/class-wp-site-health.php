@@ -2652,7 +2652,7 @@ class WP_Site_Health {
 			return $body_class;
 		}
 
-		$body_class .= ' site-health';
+		$body_class .= ' wp-core-ui';
 
 		return $body_class;
 	}
