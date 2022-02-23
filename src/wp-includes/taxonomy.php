@@ -808,31 +808,57 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 		}
 	}
 
-	$defaults = array( 'order' => 'ASC' );
+	$defaults = array(
+		'order'  => 'ASC',
+		'format' => false,
+	);
 	$args     = wp_parse_args( $args, $defaults );
 
-	$order = ( 'desc' === strtolower( $args['order'] ) ) ? 'DESC' : 'ASC';
+	$order  = ( 'desc' === strtolower( $args['order'] ) ) ? 'DESC' : 'ASC';
+	$format = (bool) $args['format'];
 
 	$term_ids = array_map( 'intval', $term_ids );
 
 	$taxonomies = "'" . implode( "', '", array_map( 'esc_sql', $taxonomies ) ) . "'";
 	$term_ids   = "'" . implode( "', '", $term_ids ) . "'";
 
-	$sql = "SELECT tr.object_id FROM $wpdb->term_relationships AS tr INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tt.term_id IN ($term_ids) ORDER BY tr.object_id $order";
+	$select_cols = 'tr.object_id';
+	if ( $format ) {
+		$select_cols .= ', tt.term_id';
+	}
+
+	$sql = "SELECT $select_cols FROM $wpdb->term_relationships AS tr INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tt.term_id IN ($term_ids) ORDER BY tr.object_id $order";
 
 	$last_changed = wp_cache_get_last_changed( 'terms' );
 	$cache_key    = 'get_objects_in_term:' . md5( $sql ) . ":$last_changed";
 	$cache        = wp_cache_get( $cache_key, 'terms' );
-	if ( false === $cache ) {
-		$object_ids = $wpdb->get_col( $sql );
-		wp_cache_set( $cache_key, $object_ids, 'terms' );
-	} else {
+
+	if ( false !== $cache ) {
 		$object_ids = (array) $cache;
+		return empty( $object_ids ) ? array() : $object_ids;
 	}
+
+	if ( $format ) {
+		$object_ids = $wpdb->get_results( $sql );
+		if ( ! empty( $object_ids ) ) {
+			$formatted_object = array();
+			foreach ( $object_ids as $obj ) {
+				if ( ! isset( $formatted_object[ $obj->term_id ] ) ) {
+					$formatted_object[ $obj->term_id ] = array();
+				}
+				$formatted_object[ $obj->term_id ][] = $obj->object_id;
+			}
+			$object_ids = $formatted_object;
+		}
+	} else {
+		$object_ids = $wpdb->get_col( $sql );
+	}
+	wp_cache_set( $cache_key, $object_ids, 'terms' );
 
 	if ( ! $object_ids ) {
 		return array();
 	}
+
 	return $object_ids;
 }
 

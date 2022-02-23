@@ -1052,4 +1052,111 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertContains( $tax1, $taxonomies );
 		$this->assertContains( $tax2, $taxonomies );
 	}
+
+	/**
+	 * @ticket 23635
+	 */
+	function test_get_objects_in_term_format() {
+		$heroes   = 'heroes';
+		$villains = 'villains';
+
+		register_taxonomy( $heroes, 'post' );
+		register_taxonomy( $villains, 'post' );
+
+		$batman   = wp_insert_term( 'Batman', $heroes );
+		$superman = wp_insert_term( 'Superman', $heroes );
+		$flash    = wp_insert_term( 'Flash', $heroes );
+
+		$joker   = wp_insert_term( 'Joker', $villains );
+		$lex     = wp_insert_term( 'Lex Luthor', $villains );
+		$thinker = wp_insert_term( 'Thinker', $villains );
+
+		$post1 = self::factory()->post->create();
+		$post2 = self::factory()->post->create();
+		$post3 = self::factory()->post->create();
+		$post4 = self::factory()->post->create();
+
+		/**
+		 * Visual representation
+		 *
+		 * Post 1 - Batman
+		 * Post 2 - Superman, Lex, Thinker
+		 * Post 3 - Flash, Thinker
+		 * Post 4 - Joker, Lex, Thinker
+		 */
+		wp_set_object_terms( $post1, $batman['term_id'], $heroes, true );
+		wp_set_object_terms( $post2, $superman['term_id'], $heroes, true );
+		wp_set_object_terms( $post2, array( $lex['term_id'], $thinker['term_id'] ), $villains, true );
+		wp_set_object_terms( $post3, $flash['term_id'], $heroes, true );
+		wp_set_object_terms( $post3, $thinker['term_id'], $villains, true );
+		wp_set_object_terms(
+			$post4,
+			array(
+				$joker['term_id'],
+				$lex['term_id'],
+				$thinker['term_id'],
+			),
+			$villains,
+			true
+		);
+
+		// Test normal behavior `get_objects_in_term()`.
+		$this->assertEqualSets( array( $post1 ), get_objects_in_term( $batman['term_id'], $heroes ) );
+		$this->assertEqualSets( array( $post2, $post4 ), get_objects_in_term( $lex['term_id'], $villains ) );
+		$this->assertEqualSets( array( $post2, $post3, $post4 ), get_objects_in_term( $thinker['term_id'], $villains ) );
+
+		// Test output with `format` on `$args`.
+		$this->assertEquals(
+			array(
+				$batman['term_id'] => array(
+					$post1,
+				),
+			),
+			get_objects_in_term( $batman['term_id'], $heroes, array( 'format' => true ) )
+		);
+		$this->assertEquals(
+			array(
+				$lex['term_id'] => array(
+					$post2,
+					$post4,
+				),
+			),
+			get_objects_in_term( $lex['term_id'], $villains, array( 'format' => true ) )
+		);
+		$this->assertEquals(
+			array(
+				$batman['term_id']   => array( $post1 ),
+				$superman['term_id'] => array( $post2 ),
+				$flash['term_id']    => array( $post3 ),
+			),
+			get_objects_in_term(
+				array(
+					$batman['term_id'],
+					$superman['term_id'],
+					$flash['term_id'],
+				),
+				$heroes,
+				array( 'format' => true )
+			)
+		);
+		$this->assertEquals(
+			array(
+				$batman['term_id']  => array( $post1 ),
+				$thinker['term_id'] => array( $post2, $post3, $post4 ),
+				$joker['term_id']   => array( $post4 ),
+			),
+			get_objects_in_term(
+				array(
+					$batman['term_id'],
+					$thinker['term_id'],
+					$joker['term_id'],
+				),
+				array(
+					$heroes,
+					$villains,
+				),
+				array( 'format' => true )
+			)
+		);
+	}
 }
