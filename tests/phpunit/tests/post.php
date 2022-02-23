@@ -66,15 +66,15 @@ class Tests_Post extends WP_UnitTestCase {
 
 		foreach ( $post_types as $post_type ) {
 			$post = array(
-				'post_author'  => self::$editor_id,
-				'post_status'  => 'publish',
+				'post_author' => self::$editor_id,
+				'post_status' => 'publish',
 				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
-				'tax_input'    => array(
+				'post_title' => rand_str(),
+				'tax_input' => array(
 					'post_tag' => 'tag1,tag2',
-					'ctax'     => 'cterm1,cterm2',
+					'ctax' => 'cterm1,cterm2',
 				),
-				'post_type'    => $post_type,
+				'post_type' => $post_type,
 			);
 
 			// Insert a post and make sure the ID is OK.
