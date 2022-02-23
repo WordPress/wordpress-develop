@@ -1056,7 +1056,10 @@ function get_custom_logo( $blog_id = 0 ) {
 			'loading' => false,
 		);
 
-		$unlink_homepage_logo = (bool) get_theme_support( 'custom-logo', 'unlink-homepage-logo' );
+		$custom_logo_support = get_theme_support( 'custom-logo' );
+		$custom_logo_support = $custom_logo_support ? $custom_logo_support[0] : false;
+
+		$unlink_homepage_logo = isset( $custom_logo_support['unlink-homepage-logo'] ) ? (bool) $custom_logo_support['unlink-homepage-logo'] : false;
 
 		if ( $unlink_homepage_logo && is_front_page() && ! is_paged() ) {
 			/*
@@ -1087,10 +1090,20 @@ function get_custom_logo( $blog_id = 0 ) {
 		$custom_logo_attr = apply_filters( 'get_custom_logo_image_attributes', $custom_logo_attr, $custom_logo_id, $blog_id );
 
 		/*
+		 * If the custom logo's height and width are supplied, pass that along to wp_get_attachment_image().
+		 * Otherwise, default to full as the size.
+		 */
+		if ( ! empty( $custom_logo_support['width'] ) && ! empty( $custom_logo_support['height'] ) ) {
+			$size = array( $custom_logo_support['width'], $custom_logo_support['height'] );
+		} else {
+			$size = 'full';
+		}
+
+		/*
 		 * If the alt attribute is not empty, there's no need to explicitly pass it
 		 * because wp_get_attachment_image() already adds the alt attribute.
 		 */
-		$image = wp_get_attachment_image( $custom_logo_id, 'full', false, $custom_logo_attr );
+		$image = wp_get_attachment_image( $custom_logo_id, $size, false, $custom_logo_attr );
 
 		if ( $unlink_homepage_logo && is_front_page() && ! is_paged() ) {
 			// If on the home page, don't link the logo to home.
