@@ -1205,6 +1205,56 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 53452
+	 */
+	public function test_create_item_legacy_widget_using_sidebar_from_POST() {
+		global $wp_widget_factory;
+
+		$base_id = 'custom-widget';
+		$sidebar = 'sidebar-1';
+
+		$custom_widget = new Test_WP_Widget_For_53452( $base_id, $base_id );
+
+		register_widget( $custom_widget );
+		$wp_widget_factory->_register_widgets();
+
+		$instance = array(
+			'foo' => 'bar',
+		);
+
+		$expected_instance            = $instance;
+		$expected_instance['sidebar'] = $sidebar;
+
+		$this->setup_sidebar(
+			$sidebar,
+			array(
+				'name' => 'Test sidebar',
+			),
+			array()
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
+		$request->set_body_params(
+			array(
+				'id_base'  => $base_id,
+				'instance' => array(
+					'encoded' => base64_encode( serialize( $instance ) ),
+					'hash'    => wp_hash( serialize( $instance ) ),
+				),
+				'sidebar'  => $sidebar,
+			)
+		);
+		rest_get_server()->dispatch( $request );
+
+		$instances = $custom_widget->get_settings();
+
+		$this->assertEquals(
+			$expected_instance,
+			reset( $instances )
+		);
+	}
+
+	/**
 	 * @ticket 41683
 	 */
 	public function test_update_item_no_permission() {
@@ -1555,3 +1605,14 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		return $data;
 	}
 }
+
+class Test_WP_Widget_For_53452 extends \WP_Widget {
+
+	public function widget( $args, $instance ) {}
+
+	public function update( $new_instance, $old_instance ) {
+		$new_instance['sidebar'] = $_POST['sidebar'];
+
+		return $new_instance;
+	}
+};
