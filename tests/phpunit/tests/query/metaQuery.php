@@ -272,7 +272,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	}
 
 	public function test_meta_query_single_query_compare_startswith() {
-		$posts = self::factory()->post->create_many(5);
+		$posts = self::factory()->post->create_many( 5 );
 
 		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
 		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
@@ -301,7 +301,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	}
 
 	public function test_meta_query_single_query_compare_not_startswith() {
-		$posts = self::factory()->post->create_many(5);
+		$posts = self::factory()->post->create_many( 5 );
 
 		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
 		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
@@ -330,7 +330,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	}
 
 	public function test_meta_query_single_query_compare_endswith() {
-		$posts = self::factory()->post->create_many(5);
+		$posts = self::factory()->post->create_many( 5 );
 
 		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
 		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
@@ -359,7 +359,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	}
 
 	public function test_meta_query_single_query_compare_not_endswith() {
-		$posts = self::factory()->post->create_many(5);
+		$posts = self::factory()->post->create_many( 5 );
 
 		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
 		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
@@ -2015,7 +2015,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[0], $posts[2] );
-		$this->assertSameSets( $expected , $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_compare_key_like_endswith() {
