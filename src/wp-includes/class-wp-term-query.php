@@ -638,7 +638,7 @@ class WP_Term_Query {
 		$selects = array();
 		switch ( $args['fields'] ) {
 			case 'all_with_object_id':
-				$selects = array(  't.term_id' );
+				$selects = array( 't.term_id' );
 				if ( ! empty( $args['object_ids'] ) ) {
 					$selects[] = 'tr.object_id';
 				}
@@ -769,9 +769,9 @@ class WP_Term_Query {
 		$term_ids = wp_list_pluck( $terms, 'term_id' );
 
 		// Prime termmeta cache.
-        if ( $args['update_term_meta_cache'] ) {
-        	update_termmeta_cache( $term_ids );
-        }
+		if ( $args['update_term_meta_cache'] ) {
+			update_termmeta_cache( $term_ids );
+		}
 		_prime_term_caches( $term_ids, false );
 		$terms_objects = $this->populate_terms( $terms );
 
