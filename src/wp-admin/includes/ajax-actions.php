@@ -3611,7 +3611,7 @@ function wp_ajax_query_themes() {
 			}
 		}
 
-		$is_theme_installed = array_key_exists($theme->slug, $installed_themes);
+		$is_theme_installed = array_key_exists( $theme->slug, $installed_themes );
 
 		// We only care about installed themes.
 		$theme->block_theme = $is_theme_installed && wp_get_theme( $theme->slug )->is_block_theme();
