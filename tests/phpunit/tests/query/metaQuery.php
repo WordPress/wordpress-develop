@@ -2038,7 +2038,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $posts[2] ), $query->posts );
+		$expected = array( $posts[2] );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_compare_key_like_explicit_contains() {
