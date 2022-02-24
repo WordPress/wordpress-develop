@@ -220,6 +220,7 @@ function register_sidebars( $number = 1, $args = array() ) {
  *
  * @since 2.2.0
  * @since 5.6.0 Added the `before_sidebar` and `after_sidebar` arguments.
+ * @since 5.9.0 Added the `show_in_rest` argument.
  *
  * @global array $wp_registered_sidebars Registered sidebars.
  *
@@ -250,6 +251,8 @@ function register_sidebars( $number = 1, $args = array() ) {
  *     @type string $after_sidebar  HTML content to append to the sidebar when displayed.
  *                                  Outputs before the {@see 'dynamic_sidebar_after'} action.
  *                                  Default empty string.
+ *     @type bool $show_in_rest     Whether to show this sidebar publicly in the REST API.
+ *                                  Defaults to only showing the sidebar to administrator users.
  * }
  * @return string Sidebar ID added to $wp_registered_sidebars global.
  */
@@ -272,6 +275,7 @@ function register_sidebar( $args = array() ) {
 		'after_title'    => "</h2>\n",
 		'before_sidebar' => '',
 		'after_sidebar'  => '',
+		'show_in_rest'   => false,
 	);
 
 	/**
@@ -1036,6 +1040,35 @@ function wp_get_sidebars_widgets( $deprecated = true ) {
 }
 
 /**
+ * Retrieves the registered sidebar with the given id.
+ *
+ * @since 5.9.0
+ *
+ * @global array $wp_registered_sidebars The registered sidebars.
+ *
+ * @param string $id The sidebar id.
+ * @return array|null The discovered sidebar, or null if it is not registered.
+ */
+function wp_get_sidebar( $id ) {
+	global $wp_registered_sidebars;
+
+	foreach ( (array) $wp_registered_sidebars as $sidebar ) {
+		if ( $sidebar['id'] === $id ) {
+			return $sidebar;
+		}
+	}
+
+	if ( 'wp_inactive_widgets' === $id ) {
+		return array(
+			'id'   => 'wp_inactive_widgets',
+			'name' => __( 'Inactive widgets' ),
+		);
+	}
+
+	return null;
+}
+
+/**
  * Set the sidebar widget option to update sidebars.
  *
  * @since 2.2.0
@@ -1255,7 +1288,17 @@ function _wp_sidebars_changed() {
 }
 
 /**
- * Look for "lost" widgets, this has to run at least on each theme change.
+ * Validates and remaps any "orphaned" widgets to wp_inactive_widgets sidebar,
+ * and saves the widget settings. This has to run at least on each theme change.
+ *
+ * For example, let's say theme A has a "footer" sidebar, and theme B doesn't have one.
+ * After switching from theme A to theme B, all the widgets previously assigned
+ * to the footer would be inaccessible. This function detects this scenario, and
+ * moves all the widgets previously assigned to the footer under wp_inactive_widgets.
+ *
+ * Despite the word "retrieve" in the name, this function actually updates the database
+ * and the global `$sidebars_widgets`. For that reason it should not be run on front end,
+ * unless the `$theme_changed` value is 'customize' (to bypass the database write).
  *
  * @since 2.8.0
  *
@@ -1310,6 +1353,7 @@ function retrieve_widgets( $theme_changed = false ) {
 	$sidebars_widgets['wp_inactive_widgets'] = array_merge( $lost_widgets, (array) $sidebars_widgets['wp_inactive_widgets'] );
 
 	if ( 'customize' !== $theme_changed ) {
+		// Update the widgets settings in the database.
 		wp_set_sidebars_widgets( $sidebars_widgets );
 	}
 
@@ -1728,11 +1772,12 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 	$show_summary = isset( $widget_rss['show_summary'] ) ? (int) $widget_rss['show_summary'] : 0;
 	$show_author  = isset( $widget_rss['show_author'] ) ? (int) $widget_rss['show_author'] : 0;
 	$show_date    = isset( $widget_rss['show_date'] ) ? (int) $widget_rss['show_date'] : 0;
+	$error        = false;
+	$link         = '';
 
 	if ( $check_feed ) {
-		$rss   = fetch_feed( $url );
-		$error = false;
-		$link  = '';
+		$rss = fetch_feed( $url );
+
 		if ( is_wp_error( $rss ) ) {
 			$error = $rss->get_error_message();
 		} else {

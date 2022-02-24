@@ -10,20 +10,12 @@ if ( is_multisite() ) :
 	 */
 	class Tests_Multisite_Network extends WP_UnitTestCase {
 		protected $plugin_hook_count = 0;
-		protected $suppress          = false;
 
 		protected static $different_network_id;
 		protected static $different_site_ids = array();
 
-		function set_up() {
-			global $wpdb;
-			parent::set_up();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tear_down() {
-			global $wpdb, $current_site;
-			$wpdb->suppress_errors( $this->suppress );
+		public function tear_down() {
+			global $current_site;
 			$current_site->id = 1;
 			parent::tear_down();
 		}
@@ -75,7 +67,7 @@ if ( is_multisite() ) :
 		/**
 		 * By default, only one network exists and has a network ID of 1.
 		 */
-		function test_get_main_network_id_default() {
+		public function test_get_main_network_id_default() {
 			$this->assertSame( 1, get_main_network_id() );
 		}
 
@@ -83,7 +75,7 @@ if ( is_multisite() ) :
 		 * If a second network is created, network ID 1 should still be returned
 		 * as the main network ID.
 		 */
-		function test_get_main_network_id_two_networks() {
+		public function test_get_main_network_id_two_networks() {
 			self::factory()->network->create();
 
 			$this->assertSame( 1, get_main_network_id() );
@@ -93,7 +85,7 @@ if ( is_multisite() ) :
 		 * When the `$current_site` global is populated with another network, the
 		 * main network should still return as 1.
 		 */
-		function test_get_main_network_id_after_network_switch() {
+		public function test_get_main_network_id_after_network_switch() {
 			global $current_site;
 
 			$id = self::factory()->network->create();
@@ -110,7 +102,7 @@ if ( is_multisite() ) :
 		 * @todo In the future, we'll have a smarter way of deleting a network. For now,
 		 * fake the process with UPDATE queries.
 		 */
-		function test_get_main_network_id_after_network_delete() {
+		public function test_get_main_network_id_after_network_delete() {
 			global $wpdb, $current_site;
 
 			$temp_id = self::$different_network_id + 1;
@@ -123,20 +115,20 @@ if ( is_multisite() ) :
 			$this->assertSame( self::$different_network_id, $main_network_id );
 		}
 
-		function test_get_main_network_id_filtered() {
-			add_filter( 'get_main_network_id', array( $this, '_get_main_network_id' ) );
+		public function test_get_main_network_id_filtered() {
+			add_filter( 'get_main_network_id', array( $this, 'get_main_network_id' ) );
 			$this->assertSame( 3, get_main_network_id() );
-			remove_filter( 'get_main_network_id', array( $this, '_get_main_network_id' ) );
+			remove_filter( 'get_main_network_id', array( $this, 'get_main_network_id' ) );
 		}
 
-		function _get_main_network_id() {
+		public function get_main_network_id() {
 			return 3;
 		}
 
 		/**
 		 * @ticket 37050
 		 */
-		function test_wp_network_object_id_property_is_int() {
+		public function test_wp_network_object_id_property_is_int() {
 			$id = self::factory()->network->create();
 
 			$network = WP_Network::get_instance( $id );
@@ -233,7 +225,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 22917
 		 */
-		function test_enable_live_network_user_counts_filter() {
+		public function test_enable_live_network_user_counts_filter() {
 			// False for large networks by default.
 			add_filter( 'enable_live_network_counts', '__return_false' );
 
@@ -262,7 +254,7 @@ if ( is_multisite() ) :
 			remove_filter( 'enable_live_network_counts', '__return_true' );
 		}
 
-		function test_active_network_plugins() {
+		public function test_active_network_plugins() {
 			$path = 'hello.php';
 
 			// Local activate, should be invisible for the network.
@@ -270,7 +262,7 @@ if ( is_multisite() ) :
 			$active_plugins = wp_get_active_network_plugins();
 			$this->assertSame( array(), $active_plugins );
 
-			add_action( 'deactivated_plugin', array( $this, '_helper_deactivate_hook' ) );
+			add_action( 'deactivated_plugin', array( $this, 'helper_deactivate_hook' ) );
 
 			// Activate the plugin sitewide.
 			activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
@@ -293,7 +285,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 28651
 		 */
-		function test_duplicate_network_active_plugin() {
+		public function test_duplicate_network_active_plugin() {
 			$path = 'hello.php';
 			$mock = new MockAction();
 			add_action( 'activate_' . $path, array( $mock, 'action' ) );
@@ -313,21 +305,21 @@ if ( is_multisite() ) :
 			remove_action( 'activate_' . $path, array( $mock, 'action' ) );
 		}
 
-		function test_is_plugin_active_for_network_true() {
+		public function test_is_plugin_active_for_network_true() {
 			activate_plugin( 'hello.php', '', true );
 			$this->assertTrue( is_plugin_active_for_network( 'hello.php' ) );
 		}
 
-		function test_is_plugin_active_for_network_false() {
+		public function test_is_plugin_active_for_network_false() {
 			deactivate_plugins( 'hello.php', false, true );
 			$this->assertFalse( is_plugin_active_for_network( 'hello.php' ) );
 		}
 
-		function _helper_deactivate_hook() {
+		public function helper_deactivate_hook() {
 			$this->plugin_hook_count++;
 		}
 
-		function test_get_user_count() {
+		public function test_get_user_count() {
 			// Refresh the cache.
 			wp_update_network_counts();
 			$start_count = get_user_count();
@@ -346,7 +338,7 @@ if ( is_multisite() ) :
 			remove_filter( 'enable_live_network_counts', '__return_false' );
 		}
 
-		function test_wp_schedule_update_network_counts() {
+		public function test_wp_schedule_update_network_counts() {
 			$this->assertFalse( wp_next_scheduled( 'update_network_counts' ) );
 
 			// We can't use wp_schedule_update_network_counts() because WP_INSTALLING is set.
@@ -358,7 +350,7 @@ if ( is_multisite() ) :
 		/**
 		 * @expectedDeprecated get_dashboard_blog
 		 */
-		function test_get_dashboard_blog() {
+		public function test_get_dashboard_blog() {
 			// If there is no dashboard blog set, current blog is used.
 			$dashboard_blog = get_dashboard_blog();
 			$this->assertEquals( 1, $dashboard_blog->blog_id );
@@ -376,7 +368,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 37528
 		 */
-		function test_wp_update_network_site_counts() {
+		public function test_wp_update_network_site_counts() {
 			update_network_option( null, 'blog_count', 40 );
 
 			$expected = get_sites(
@@ -398,7 +390,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 37528
 		 */
-		function test_wp_update_network_site_counts_on_different_network() {
+		public function test_wp_update_network_site_counts_on_different_network() {
 			update_network_option( self::$different_network_id, 'blog_count', 40 );
 
 			wp_update_network_site_counts( self::$different_network_id );
@@ -590,9 +582,13 @@ if ( is_multisite() ) :
 		 * @ticket 38699
 		 */
 		public function test_wpmu_create_blog_updates_correct_network_site_count() {
+			global $wpdb;
+
 			$original_count = get_blog_count( self::$different_network_id );
 
-			$site_id = wpmu_create_blog( 'example.org', '/', '', 1, array(), self::$different_network_id );
+			$suppress = $wpdb->suppress_errors();
+			$site_id  = wpmu_create_blog( 'example.org', '/', '', 1, array(), self::$different_network_id );
+			$wpdb->suppress_errors( $suppress );
 
 			$result = get_blog_count( self::$different_network_id );
 

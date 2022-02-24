@@ -8,7 +8,7 @@ class Tests_Formatting_wpAutop extends WP_UnitTestCase {
 	/**
 	 * @ticket 11008
 	 */
-	function test_first_post() {
+	public function test_first_post() {
 		$expected  = '<p>Welcome to WordPress!  This post contains important information.  After you read it, you can make it private to hide it from visitors but still have the information handy for future reference.</p>
 <p>First things first:</p>
 <ul>
@@ -282,7 +282,7 @@ Paragraph two.';
 	 *
 	 * @ticket 27268
 	 */
-	function test_that_wpautop_treats_block_level_elements_as_blocks() {
+	public function test_that_wpautop_treats_block_level_elements_as_blocks() {
 		$blocks = array(
 			'table',
 			'thead',
@@ -376,7 +376,7 @@ Paragraph two.';
 	 *
 	 * @ticket 27268
 	 */
-	function test_that_wpautop_does_not_wrap_blockquotes_but_does_autop_their_contents() {
+	public function test_that_wpautop_does_not_wrap_blockquotes_but_does_autop_their_contents() {
 		$content  = '<blockquote>foo</blockquote>';
 		$expected = '<blockquote><p>foo</p></blockquote>';
 
@@ -388,7 +388,7 @@ Paragraph two.';
 	 *
 	 * @ticket 27268
 	 */
-	function test_that_wpautop_treats_inline_elements_as_inline() {
+	public function test_that_wpautop_treats_inline_elements_as_inline() {
 		$inlines = array(
 			'a',
 			'em',
@@ -438,11 +438,11 @@ Paragraph two.';
 	 * @ticket 33106
 	 * @dataProvider data_element_sanity
 	 */
-	function test_element_sanity( $input, $output ) {
+	public function test_element_sanity( $input, $output ) {
 		return $this->assertSame( $output, wpautop( $input ) );
 	}
 
-	function data_element_sanity() {
+	public function data_element_sanity() {
 		return array(
 			array(
 				"Hello <a\nhref='world'>",
@@ -490,7 +490,7 @@ Paragraph two.';
 	 *
 	 * @ticket 33377
 	 */
-	function test_that_wpautop_skips_line_breaks_after_br() {
+	public function test_that_wpautop_skips_line_breaks_after_br() {
 		$content = '
 line 1<br>
 line 2<br/>
@@ -513,7 +513,7 @@ line 5</p>';
 	 *
 	 * @ticket 33377
 	 */
-	function test_that_wpautop_adds_a_paragraph_after_multiple_br() {
+	public function test_that_wpautop_adds_a_paragraph_after_multiple_br() {
 		$content = '
 line 1<br>
 <br/>
@@ -531,7 +531,7 @@ line 2<br/>
 	/**
 	 * @ticket 4857
 	 */
-	function test_that_text_before_blocks_is_peed() {
+	public function test_that_text_before_blocks_is_peed() {
 		$content  = 'a<div>b</div>';
 		$expected = "<p>a</p>\n<div>b</div>";
 
@@ -546,7 +546,7 @@ line 2<br/>
 	 *
 	 * @ticket 39307
 	 */
-	function test_that_wpautop_does_not_add_extra_closing_p_in_figure() {
+	public function test_that_wpautop_does_not_add_extra_closing_p_in_figure() {
 		$content1  = '<figure><img src="example.jpg" /><figcaption>Caption</figcaption></figure>';
 		$expected1 = $content1;
 
@@ -565,7 +565,7 @@ line 2<br/>
 	/**
 	 * @ticket 14674
 	 */
-	function test_the_hr_is_not_peed() {
+	public function test_the_hr_is_not_peed() {
 		$content  = 'paragraph1<hr>paragraph2';
 		$expected = "<p>paragraph1</p>\n<hr>\n<p>paragraph2</p>";
 
@@ -577,7 +577,7 @@ line 2<br/>
 	 *
 	 * @ticket 9437
 	 */
-	function test_that_wpautop_ignores_inline_svgs() {
+	public function test_that_wpautop_ignores_inline_svgs() {
 		$content =
 			'<svg xmlns="http://www.w3.org/2000/svg">
 				<circle cx="50" cy="50" r="30" fill="blue">
@@ -595,7 +595,7 @@ line 2<br/>
 	 *
 	 * @ticket 9437
 	 */
-	function test_that_wpautop_ignores_inline_scripts() {
+	public function test_that_wpautop_ignores_inline_scripts() {
 		$content =
 			'<script type="text/javascript">
 				var dummy = 1;

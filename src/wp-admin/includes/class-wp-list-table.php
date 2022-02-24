@@ -207,12 +207,14 @@ class WP_List_Table {
 	 * @since 4.0.0
 	 *
 	 * @param string $name Property to check if set.
-	 * @return bool Whether the property is set.
+	 * @return bool Whether the property is a back-compat property and it is set.
 	 */
 	public function __isset( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
+
+		return false;
 	}
 
 	/**
@@ -313,6 +315,8 @@ class WP_List_Table {
 		if ( isset( $this->_pagination_args[ $key ] ) ) {
 			return $this->_pagination_args[ $key ];
 		}
+
+		return 0;
 	}
 
 	/**
@@ -906,15 +910,9 @@ class WP_List_Table {
 			$disable_first = true;
 			$disable_prev  = true;
 		}
-		if ( 2 == $current ) {
-			$disable_first = true;
-		}
 		if ( $total_pages == $current ) {
 			$disable_last = true;
 			$disable_next = true;
-		}
-		if ( $total_pages - 1 == $current ) {
-			$disable_last = true;
 		}
 
 		if ( $disable_first ) {
