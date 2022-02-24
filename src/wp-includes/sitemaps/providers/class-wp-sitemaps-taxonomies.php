@@ -120,10 +120,11 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 				 * @since 5.5.0
 				 *
 				 * @param array   $sitemap_entry Sitemap entry for the term.
-				 * @param WP_Term $term          Term object.
+				 * @param int     $term_id       Term ID.
 				 * @param string  $taxonomy      Taxonomy name.
+				 * @param WP_Term $term          Term object.
 				 */
-				$sitemap_entry = apply_filters( 'wp_sitemaps_taxonomies_entry', $sitemap_entry, $term, $taxonomy );
+				$sitemap_entry = apply_filters( 'wp_sitemaps_taxonomies_entry', $sitemap_entry, $term->term_id, $taxonomy, $term );
 				$url_list[]    = $sitemap_entry;
 			}
 		}
