@@ -40,6 +40,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected $password_check_passed = array();
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var array
+	 */
+	protected $allow_batch = array( 'v1' => true );
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -80,7 +88,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -98,7 +107,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
-				'args'   => array(
+				'args'        => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the post.' ),
 						'type'        => 'integer',
@@ -128,7 +137,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 	}
@@ -1541,7 +1551,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				continue;
 			}
 
-			foreach ( $request[ $base ] as $term_id ) {
+			foreach ( (array) $request[ $base ] as $term_id ) {
 				// Invalid terms will be rejected later.
 				if ( ! get_term( $term_id, $taxonomy->name ) ) {
 					continue;
@@ -2029,7 +2039,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( $post_type_obj->hierarchical && ! empty( $post->post_parent ) ) {
 			$links['up'] = array(
-				'href'       => rest_url( trailingslashit( $base ) . (int) $post->post_parent ),
+				'href'       => rest_url( rest_get_route_for_post( $post->post_parent ) ),
 				'embeddable' => true,
 			);
 		}

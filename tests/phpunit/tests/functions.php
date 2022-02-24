@@ -666,6 +666,62 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that add_query_arg removes the question mark when
+	 * a parameter is set to false.
+	 *
+	 * @dataProvider data_add_query_arg_removes_question_mark
+	 *
+	 * @ticket 44499
+	 * @group  add_query_arg
+	 *
+	 * @covers ::add_query_arg
+	 *
+	 * @param string $url      Url to test.
+	 * @param string $expected Expected URL.
+	 */
+	public function test_add_query_arg_removes_question_mark( $url, $expected, $key = 'param', $value = false ) {
+		$this->assertSame( $expected, add_query_arg( $key, $value, $url ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_add_query_arg_removes_question_mark() {
+		return array(
+			'anchor'                                     => array(
+				'url'      => 'http://example.org?#anchor',
+				'expected' => 'http://example.org#anchor',
+			),
+			'/ then anchor'                              => array(
+				'url'      => 'http://example.org/?#anchor',
+				'expected' => 'http://example.org/#anchor',
+			),
+			'invalid query param and anchor'             => array(
+				'url'      => 'http://example.org?param=value#anchor',
+				'expected' => 'http://example.org#anchor',
+			),
+			'/ then invalid query param and anchor'      => array(
+				'url'      => 'http://example.org/?param=value#anchor',
+				'expected' => 'http://example.org/#anchor',
+			),
+			'?#anchor when adding valid key/value args'  => array(
+				'url'      => 'http://example.org?#anchor',
+				'expected' => 'http://example.org?foo=bar#anchor',
+				'key'      => 'foo',
+				'value'    => 'bar',
+			),
+			'/?#anchor when adding valid key/value args' => array(
+				'url'      => 'http://example.org/?#anchor',
+				'expected' => 'http://example.org/?foo=bar#anchor',
+				'key'      => 'foo',
+				'value'    => 'bar',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 21594
 	 */
 	public function test_get_allowed_mime_types() {

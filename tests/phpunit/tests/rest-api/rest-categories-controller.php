@@ -117,6 +117,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/categories' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSameSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
@@ -124,6 +125,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request   = new WP_REST_Request( 'OPTIONS', '/wp/v2/categories/' . $category1 );
 		$response  = rest_get_server()->dispatch( $request );
 		$data      = $response->get_data();
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSameSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}

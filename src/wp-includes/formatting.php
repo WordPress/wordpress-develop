@@ -433,171 +433,171 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
  *
  * @since 0.71
  *
- * @param string $pee The text which has to be formatted.
- * @param bool   $br  Optional. If set, this will convert all remaining line breaks
- *                    after paragraphing. Line breaks within `<script>`, `<style>`,
- *                    and `<svg>` tags are not affected. Default true.
+ * @param string $text The text which has to be formatted.
+ * @param bool   $br   Optional. If set, this will convert all remaining line breaks
+ *                     after paragraphing. Line breaks within `<script>`, `<style>`,
+ *                     and `<svg>` tags are not affected. Default true.
  * @return string Text which has been converted into correct paragraph tags.
  */
-function wpautop( $pee, $br = true ) {
+function wpautop( $text, $br = true ) {
 	$pre_tags = array();
 
-	if ( trim( $pee ) === '' ) {
+	if ( trim( $text ) === '' ) {
 		return '';
 	}
 
 	// Just to make things a little easier, pad the end.
-	$pee = $pee . "\n";
+	$text = $text . "\n";
 
 	/*
 	 * Pre tags shouldn't be touched by autop.
 	 * Replace pre tags with placeholders and bring them back after autop.
 	 */
-	if ( strpos( $pee, '<pre' ) !== false ) {
-		$pee_parts = explode( '</pre>', $pee );
-		$last_pee  = array_pop( $pee_parts );
-		$pee       = '';
-		$i         = 0;
+	if ( strpos( $text, '<pre' ) !== false ) {
+		$text_parts = explode( '</pre>', $text );
+		$last_part  = array_pop( $text_parts );
+		$text       = '';
+		$i          = 0;
 
-		foreach ( $pee_parts as $pee_part ) {
-			$start = strpos( $pee_part, '<pre' );
+		foreach ( $text_parts as $text_part ) {
+			$start = strpos( $text_part, '<pre' );
 
 			// Malformed HTML?
 			if ( false === $start ) {
-				$pee .= $pee_part;
+				$text .= $text_part;
 				continue;
 			}
 
 			$name              = "<pre wp-pre-tag-$i></pre>";
-			$pre_tags[ $name ] = substr( $pee_part, $start ) . '</pre>';
+			$pre_tags[ $name ] = substr( $text_part, $start ) . '</pre>';
 
-			$pee .= substr( $pee_part, 0, $start ) . $name;
+			$text .= substr( $text_part, 0, $start ) . $name;
 			$i++;
 		}
 
-		$pee .= $last_pee;
+		$text .= $last_part;
 	}
 	// Change multiple <br>'s into two line breaks, which will turn into paragraphs.
-	$pee = preg_replace( '|<br\s*/?>\s*<br\s*/?>|', "\n\n", $pee );
+	$text = preg_replace( '|<br\s*/?>\s*<br\s*/?>|', "\n\n", $text );
 
 	$allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|math|style|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
 
 	// Add a double line break above block-level opening tags.
-	$pee = preg_replace( '!(<' . $allblocks . '[\s/>])!', "\n\n$1", $pee );
+	$text = preg_replace( '!(<' . $allblocks . '[\s/>])!', "\n\n$1", $text );
 
 	// Add a double line break below block-level closing tags.
-	$pee = preg_replace( '!(</' . $allblocks . '>)!', "$1\n\n", $pee );
+	$text = preg_replace( '!(</' . $allblocks . '>)!', "$1\n\n", $text );
 
 	// Add a double line break after hr tags, which are self closing.
-	$pee = preg_replace( '!(<hr\s*?/?>)!', "$1\n\n", $pee );
+	$text = preg_replace( '!(<hr\s*?/?>)!', "$1\n\n", $text );
 
 	// Standardize newline characters to "\n".
-	$pee = str_replace( array( "\r\n", "\r" ), "\n", $pee );
+	$text = str_replace( array( "\r\n", "\r" ), "\n", $text );
 
 	// Find newlines in all elements and add placeholders.
-	$pee = wp_replace_in_html_tags( $pee, array( "\n" => ' <!-- wpnl --> ' ) );
+	$text = wp_replace_in_html_tags( $text, array( "\n" => ' <!-- wpnl --> ' ) );
 
 	// Collapse line breaks before and after <option> elements so they don't get autop'd.
-	if ( strpos( $pee, '<option' ) !== false ) {
-		$pee = preg_replace( '|\s*<option|', '<option', $pee );
-		$pee = preg_replace( '|</option>\s*|', '</option>', $pee );
+	if ( strpos( $text, '<option' ) !== false ) {
+		$text = preg_replace( '|\s*<option|', '<option', $text );
+		$text = preg_replace( '|</option>\s*|', '</option>', $text );
 	}
 
 	/*
 	 * Collapse line breaks inside <object> elements, before <param> and <embed> elements
 	 * so they don't get autop'd.
 	 */
-	if ( strpos( $pee, '</object>' ) !== false ) {
-		$pee = preg_replace( '|(<object[^>]*>)\s*|', '$1', $pee );
-		$pee = preg_replace( '|\s*</object>|', '</object>', $pee );
-		$pee = preg_replace( '%\s*(</?(?:param|embed)[^>]*>)\s*%', '$1', $pee );
+	if ( strpos( $text, '</object>' ) !== false ) {
+		$text = preg_replace( '|(<object[^>]*>)\s*|', '$1', $text );
+		$text = preg_replace( '|\s*</object>|', '</object>', $text );
+		$text = preg_replace( '%\s*(</?(?:param|embed)[^>]*>)\s*%', '$1', $text );
 	}
 
 	/*
 	 * Collapse line breaks inside <audio> and <video> elements,
 	 * before and after <source> and <track> elements.
 	 */
-	if ( strpos( $pee, '<source' ) !== false || strpos( $pee, '<track' ) !== false ) {
-		$pee = preg_replace( '%([<\[](?:audio|video)[^>\]]*[>\]])\s*%', '$1', $pee );
-		$pee = preg_replace( '%\s*([<\[]/(?:audio|video)[>\]])%', '$1', $pee );
-		$pee = preg_replace( '%\s*(<(?:source|track)[^>]*>)\s*%', '$1', $pee );
+	if ( strpos( $text, '<source' ) !== false || strpos( $text, '<track' ) !== false ) {
+		$text = preg_replace( '%([<\[](?:audio|video)[^>\]]*[>\]])\s*%', '$1', $text );
+		$text = preg_replace( '%\s*([<\[]/(?:audio|video)[>\]])%', '$1', $text );
+		$text = preg_replace( '%\s*(<(?:source|track)[^>]*>)\s*%', '$1', $text );
 	}
 
 	// Collapse line breaks before and after <figcaption> elements.
-	if ( strpos( $pee, '<figcaption' ) !== false ) {
-		$pee = preg_replace( '|\s*(<figcaption[^>]*>)|', '$1', $pee );
-		$pee = preg_replace( '|</figcaption>\s*|', '</figcaption>', $pee );
+	if ( strpos( $text, '<figcaption' ) !== false ) {
+		$text = preg_replace( '|\s*(<figcaption[^>]*>)|', '$1', $text );
+		$text = preg_replace( '|</figcaption>\s*|', '</figcaption>', $text );
 	}
 
 	// Remove more than two contiguous line breaks.
-	$pee = preg_replace( "/\n\n+/", "\n\n", $pee );
+	$text = preg_replace( "/\n\n+/", "\n\n", $text );
 
 	// Split up the contents into an array of strings, separated by double line breaks.
-	$pees = preg_split( '/\n\s*\n/', $pee, -1, PREG_SPLIT_NO_EMPTY );
+	$paragraphs = preg_split( '/\n\s*\n/', $text, -1, PREG_SPLIT_NO_EMPTY );
 
-	// Reset $pee prior to rebuilding.
-	$pee = '';
+	// Reset $text prior to rebuilding.
+	$text = '';
 
 	// Rebuild the content as a string, wrapping every bit with a <p>.
-	foreach ( $pees as $tinkle ) {
-		$pee .= '<p>' . trim( $tinkle, "\n" ) . "</p>\n";
+	foreach ( $paragraphs as $paragraph ) {
+		$text .= '<p>' . trim( $paragraph, "\n" ) . "</p>\n";
 	}
 
 	// Under certain strange conditions it could create a P of entirely whitespace.
-	$pee = preg_replace( '|<p>\s*</p>|', '', $pee );
+	$text = preg_replace( '|<p>\s*</p>|', '', $text );
 
 	// Add a closing <p> inside <div>, <address>, or <form> tag if missing.
-	$pee = preg_replace( '!<p>([^<]+)</(div|address|form)>!', '<p>$1</p></$2>', $pee );
+	$text = preg_replace( '!<p>([^<]+)</(div|address|form)>!', '<p>$1</p></$2>', $text );
 
 	// If an opening or closing block element tag is wrapped in a <p>, unwrap it.
-	$pee = preg_replace( '!<p>\s*(</?' . $allblocks . '[^>]*>)\s*</p>!', '$1', $pee );
+	$text = preg_replace( '!<p>\s*(</?' . $allblocks . '[^>]*>)\s*</p>!', '$1', $text );
 
 	// In some cases <li> may get wrapped in <p>, fix them.
-	$pee = preg_replace( '|<p>(<li.+?)</p>|', '$1', $pee );
+	$text = preg_replace( '|<p>(<li.+?)</p>|', '$1', $text );
 
 	// If a <blockquote> is wrapped with a <p>, move it inside the <blockquote>.
-	$pee = preg_replace( '|<p><blockquote([^>]*)>|i', '<blockquote$1><p>', $pee );
-	$pee = str_replace( '</blockquote></p>', '</p></blockquote>', $pee );
+	$text = preg_replace( '|<p><blockquote([^>]*)>|i', '<blockquote$1><p>', $text );
+	$text = str_replace( '</blockquote></p>', '</p></blockquote>', $text );
 
 	// If an opening or closing block element tag is preceded by an opening <p> tag, remove it.
-	$pee = preg_replace( '!<p>\s*(</?' . $allblocks . '[^>]*>)!', '$1', $pee );
+	$text = preg_replace( '!<p>\s*(</?' . $allblocks . '[^>]*>)!', '$1', $text );
 
 	// If an opening or closing block element tag is followed by a closing <p> tag, remove it.
-	$pee = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*</p>!', '$1', $pee );
+	$text = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*</p>!', '$1', $text );
 
 	// Optionally insert line breaks.
 	if ( $br ) {
 		// Replace newlines that shouldn't be touched with a placeholder.
-		$pee = preg_replace_callback( '/<(script|style|svg).*?<\/\\1>/s', '_autop_newline_preservation_helper', $pee );
+		$text = preg_replace_callback( '/<(script|style|svg).*?<\/\\1>/s', '_autop_newline_preservation_helper', $text );
 
 		// Normalize <br>
-		$pee = str_replace( array( '<br>', '<br/>' ), '<br />', $pee );
+		$text = str_replace( array( '<br>', '<br/>' ), '<br />', $text );
 
 		// Replace any new line characters that aren't preceded by a <br /> with a <br />.
-		$pee = preg_replace( '|(?<!<br />)\s*\n|', "<br />\n", $pee );
+		$text = preg_replace( '|(?<!<br />)\s*\n|', "<br />\n", $text );
 
 		// Replace newline placeholders with newlines.
-		$pee = str_replace( '<WPPreserveNewline />', "\n", $pee );
+		$text = str_replace( '<WPPreserveNewline />', "\n", $text );
 	}
 
 	// If a <br /> tag is after an opening or closing block tag, remove it.
-	$pee = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*<br />!', '$1', $pee );
+	$text = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*<br />!', '$1', $text );
 
 	// If a <br /> tag is before a subset of opening or closing block tags, remove it.
-	$pee = preg_replace( '!<br />(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $pee );
-	$pee = preg_replace( "|\n</p>$|", '</p>', $pee );
+	$text = preg_replace( '!<br />(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $text );
+	$text = preg_replace( "|\n</p>$|", '</p>', $text );
 
 	// Replace placeholder <pre> tags with their original content.
 	if ( ! empty( $pre_tags ) ) {
-		$pee = str_replace( array_keys( $pre_tags ), array_values( $pre_tags ), $pee );
+		$text = str_replace( array_keys( $pre_tags ), array_values( $pre_tags ), $text );
 	}
 
 	// Restore newlines in all elements.
-	if ( false !== strpos( $pee, '<!-- wpnl -->' ) ) {
-		$pee = str_replace( array( ' <!-- wpnl --> ', '<!-- wpnl -->' ), "\n", $pee );
+	if ( false !== strpos( $text, '<!-- wpnl -->' ) ) {
+		$text = str_replace( array( ' <!-- wpnl --> ', '<!-- wpnl -->' ), "\n", $text );
 	}
 
-	return $pee;
+	return $text;
 }
 
 /**
@@ -814,14 +814,14 @@ function _autop_newline_preservation_helper( $matches ) {
  *
  * @global array $shortcode_tags
  *
- * @param string $pee The content.
+ * @param string $text The content.
  * @return string The filtered content.
  */
-function shortcode_unautop( $pee ) {
+function shortcode_unautop( $text ) {
 	global $shortcode_tags;
 
 	if ( empty( $shortcode_tags ) || ! is_array( $shortcode_tags ) ) {
-		return $pee;
+		return $text;
 	}
 
 	$tagregexp = implode( '|', array_map( 'preg_quote', array_keys( $shortcode_tags ) ) );
@@ -861,7 +861,7 @@ function shortcode_unautop( $pee ) {
 		. '/';
 	// phpcs:enable
 
-	return preg_replace( $pattern, '$1', $pee );
+	return preg_replace( $pattern, '$1', $text );
 }
 
 /**
@@ -1138,12 +1138,14 @@ function wp_check_invalid_utf8( $string, $strip = false ) {
  * Encode the Unicode values to be used in the URI.
  *
  * @since 1.5.0
+ * @since 5.8.3 Added the `encode_ascii_characters` parameter.
  *
- * @param string $utf8_string
- * @param int    $length Max  length of the string
+ * @param string $utf8_string             String to encode.
+ * @param int    $length                  Max length of the string
+ * @param bool   $encode_ascii_characters Whether to encode ascii characters such as < " '
  * @return string String with Unicode encoded for URI.
  */
-function utf8_uri_encode( $utf8_string, $length = 0 ) {
+function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = false ) {
 	$unicode        = '';
 	$values         = array();
 	$num_octets     = 1;
@@ -1158,11 +1160,14 @@ function utf8_uri_encode( $utf8_string, $length = 0 ) {
 		$value = ord( $utf8_string[ $i ] );
 
 		if ( $value < 128 ) {
-			if ( $length && ( $unicode_length >= $length ) ) {
+			$char                = chr( $value );
+			$encoded_char        = $encode_ascii_characters ? rawurlencode( $char ) : $char;
+			$encoded_char_length = strlen( $encoded_char );
+			if ( $length && ( $unicode_length + $encoded_char_length ) > $length ) {
 				break;
 			}
-			$unicode .= chr( $value );
-			$unicode_length++;
+			$unicode        .= $encoded_char;
+			$unicode_length += $encoded_char_length;
 		} else {
 			if ( count( $values ) == 0 ) {
 				if ( $value < 224 ) {
@@ -2132,23 +2137,26 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @since 3.0.0
  *
- * @param string $key String key
- * @return string Sanitized key
+ * @param string $key String key.
+ * @return string Sanitized key.
  */
 function sanitize_key( $key ) {
-	$raw_key = $key;
-	$key     = strtolower( $key );
-	$key     = preg_replace( '/[^a-z0-9_\-]/', '', $key );
+	$sanitized_key = '';
+
+	if ( is_scalar( $key ) ) {
+		$sanitized_key = strtolower( $key );
+		$sanitized_key = preg_replace( '/[^a-z0-9_\-]/', '', $sanitized_key );
+	}
 
 	/**
 	 * Filters a sanitized key string.
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string $key     Sanitized key.
-	 * @param string $raw_key The key prior to sanitization.
+	 * @param string $sanitized_key Sanitized key.
+	 * @param string $key           The key prior to sanitization.
 	 */
-	return apply_filters( 'sanitize_key', $key, $raw_key );
+	return apply_filters( 'sanitize_key', $sanitized_key, $key );
 }
 
 /**
@@ -2514,9 +2522,9 @@ function force_balance_tags( $text ) {
 	$tagqueue  = '';
 	$newtext   = '';
 	// Known single-entity/self-closing tags.
-	$single_tags = array( 'area', 'base', 'basefont', 'br', 'col', 'command', 'embed', 'frame', 'hr', 'img', 'input', 'isindex', 'link', 'meta', 'param', 'source' );
+	$single_tags = array( 'area', 'base', 'basefont', 'br', 'col', 'command', 'embed', 'frame', 'hr', 'img', 'input', 'isindex', 'link', 'meta', 'param', 'source', 'track', 'wbr' );
 	// Tags that can be immediately nested within themselves.
-	$nestable_tags = array( 'blockquote', 'div', 'object', 'q', 'span' );
+	$nestable_tags = array( 'article', 'aside', 'blockquote', 'details', 'div', 'figure', 'object', 'q', 'section', 'span' );
 
 	// WP bug fix for comments - in case you REALLY meant to type '< !--'.
 	$text = str_replace( '< !--', '<    !--', $text );
@@ -2754,15 +2762,15 @@ function untrailingslashit( $string ) {
 }
 
 /**
- * Adds slashes to escape strings.
+ * Adds slashes to a string or recursively adds slashes to strings within an array.
  *
  * Slashes will first be removed if magic_quotes_gpc is set, see {@link
  * https://www.php.net/magic_quotes} for more details.
  *
  * @since 0.71
  *
- * @param string $gpc The string returned from HTTP request data.
- * @return string Returns a string escaped with slashes.
+ * @param string|array $gpc String or array of data to slash.
+ * @return string|array Slashed `$gpc`.
  */
 function addslashes_gpc( $gpc ) {
 	return wp_slash( $gpc );
@@ -4687,7 +4695,7 @@ function wp_make_link_relative( $link ) {
 }
 
 /**
- * Sanitises various option values based on the nature of the option.
+ * Sanitizes various option values based on the nature of the option.
  *
  * This is basically a switch statement which will pass $value through a number
  * of functions depending on the $option.
@@ -4704,7 +4712,7 @@ function sanitize_option( $option, $value ) {
 	global $wpdb;
 
 	$original_value = $value;
-	$error          = '';
+	$error          = null;
 
 	switch ( $option ) {
 		case 'admin_email':
@@ -4912,7 +4920,9 @@ function sanitize_option( $option, $value ) {
 				$value = str_replace( 'http://', '', $value );
 			}
 
-			if ( 'permalink_structure' === $option && '' !== $value && ! preg_match( '/%[^\/%]+%/', $value ) ) {
+			if ( 'permalink_structure' === $option && null === $error
+				&& '' !== $value && ! preg_match( '/%[^\/%]+%/', $value )
+			) {
 				$error = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'A structure tag is required when using custom permalinks. <a href="%s">Learn more</a>' ),
@@ -4941,7 +4951,12 @@ function sanitize_option( $option, $value ) {
 			break;
 	}
 
-	if ( ! empty( $error ) ) {
+	if ( null !== $error ) {
+		if ( '' === $error && is_wp_error( $value ) ) {
+			/* translators: 1: Option name, 2: Error code. */
+			$error = sprintf( __( 'Could not sanitize the %1$s option. Error code: %2$s' ), $option, $value->get_error_code() );
+		}
+
 		$value = get_option( $option );
 		if ( function_exists( 'add_settings_error' ) ) {
 			add_settings_error( $option, "invalid_{$option}", $error );
@@ -5578,7 +5593,7 @@ function sanitize_trackback_urls( $to_ping ) {
  * @since 5.5.0 Non-string values are left untouched.
  *
  * @param string|array $value String or array of data to slash.
- * @return string|array Slashed $value.
+ * @return string|array Slashed `$value`.
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
@@ -5601,7 +5616,7 @@ function wp_slash( $value ) {
  * @since 3.6.0
  *
  * @param string|array $value String or array of data to unslash.
- * @return string|array Unslashed $value.
+ * @return string|array Unslashed `$value`.
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );
@@ -5756,8 +5771,7 @@ function _print_emoji_detection_script() {
 		'svgExt'  => apply_filters( 'emoji_svg_ext', '.svg' ),
 	);
 
-	$version   = 'ver=' . get_bloginfo( 'version' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/javascript"';
+	$version = 'ver=' . get_bloginfo( 'version' );
 
 	if ( SCRIPT_DEBUG ) {
 		$settings['source'] = array(
@@ -5766,36 +5780,17 @@ function _print_emoji_detection_script() {
 			/** This filter is documented in wp-includes/class.wp-scripts.php */
 			'twemoji' => apply_filters( 'script_loader_src', includes_url( "js/twemoji.js?$version" ), 'twemoji' ),
 		);
-
-		?>
-		<script<?php echo $type_attr; ?>>
-			window._wpemojiSettings = <?php echo wp_json_encode( $settings ); ?>;
-			<?php readfile( ABSPATH . WPINC . '/js/wp-emoji-loader.js' ); ?>
-		</script>
-		<?php
 	} else {
 		$settings['source'] = array(
 			/** This filter is documented in wp-includes/class.wp-scripts.php */
 			'concatemoji' => apply_filters( 'script_loader_src', includes_url( "js/wp-emoji-release.min.js?$version" ), 'concatemoji' ),
 		);
-
-		/*
-		 * If you're looking at a src version of this file, you'll see an "include"
-		 * statement below. This is used by the `npm run build` process to directly
-		 * include a minified version of wp-emoji-loader.js, instead of using the
-		 * readfile() method from above.
-		 *
-		 * If you're looking at a build version of this file, you'll see a string of
-		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
-		 * and edit wp-emoji-loader.js directly.
-		 */
-		?>
-		<script<?php echo $type_attr; ?>>
-			window._wpemojiSettings = <?php echo wp_json_encode( $settings ); ?>;
-			include "js/wp-emoji-loader.min.js"
-		</script>
-		<?php
 	}
+
+	wp_print_inline_script_tag(
+		sprintf( 'window._wpemojiSettings = %s;', wp_json_encode( $settings ) ) . "\n" .
+			file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js' ) )
+	);
 }
 
 /**

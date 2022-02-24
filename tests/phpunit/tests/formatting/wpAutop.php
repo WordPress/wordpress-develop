@@ -531,7 +531,7 @@ line 2<br/>
 	/**
 	 * @ticket 4857
 	 */
-	public function test_that_text_before_blocks_is_peed() {
+	public function test_that_text_before_blocks_is_wrapped_in_a_paragraph() {
 		$content  = 'a<div>b</div>';
 		$expected = "<p>a</p>\n<div>b</div>";
 
@@ -565,7 +565,7 @@ line 2<br/>
 	/**
 	 * @ticket 14674
 	 */
-	public function test_the_hr_is_not_peed() {
+	public function test_the_hr_is_not_wrapped_in_a_paragraph() {
 		$content  = 'paragraph1<hr>paragraph2';
 		$expected = "<p>paragraph1</p>\n<hr>\n<p>paragraph2</p>";
 

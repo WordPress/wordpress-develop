@@ -14,7 +14,7 @@
  */
 function wp_get_server_protocol() {
 	$protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : '';
-	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ), true ) ) {
+	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3' ), true ) ) {
 		$protocol = 'HTTP/1.0';
 	}
 	return $protocol;
@@ -76,7 +76,7 @@ function wp_fix_server_vars() {
 	}
 
 	// Fix for Dreamhost and other PHP as CGI hosts.
-	if ( strpos( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) !== false ) {
+	if ( isset( $_SERVER['SCRIPT_NAME'] ) && ( strpos( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) !== false ) ) {
 		unset( $_SERVER['PATH_INFO'] );
 	}
 
@@ -191,7 +191,7 @@ function wp_check_php_mysql_versions() {
 function wp_get_environment_type() {
 	static $current_env = '';
 
-	if ( $current_env ) {
+	if ( ! defined( 'WP_RUN_CORE_TESTS' ) && $current_env ) {
 		return $current_env;
 	}
 
@@ -426,7 +426,7 @@ function wp_debug_mode() {
 	 * Filters whether to allow the debug mode check to occur.
 	 *
 	 * This filter runs before it can be used by plugins. It is designed for
-	 * non-web run-times. Returning false causes the `WP_DEBUG` and related
+	 * non-web runtimes. Returning false causes the `WP_DEBUG` and related
 	 * constants to not be checked and the default PHP values for errors
 	 * will be used unless you take care to update them yourself.
 	 *
@@ -673,7 +673,7 @@ function wp_start_object_cache() {
 	 * Filters whether to enable loading of the object-cache.php drop-in.
 	 *
 	 * This filter runs before it can be used by plugins. It is designed for non-web
-	 * run-times. If false is returned, object-cache.php will never be loaded.
+	 * runtimes. If false is returned, object-cache.php will never be loaded.
 	 *
 	 * @since 5.8.0
 	 *
