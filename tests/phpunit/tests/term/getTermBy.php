@@ -123,8 +123,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 		$found       = get_term_by( 'slug', 'foo', 'wptests_tax' );
-		$num_queries++;
-		$num_queries++;
+		$num_queries = $num_queries+2;
 
 		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertSame( $t, $found->term_id );
