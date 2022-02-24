@@ -373,7 +373,6 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		// Verify that the terms are shared.
 		$t1_terms = wp_get_object_terms( $posts[0], 'wptests_tax' );
 		$t2_terms = wp_get_object_terms( $posts[1], 'wptests_tax_2' );
-
 		$this->assertSame( $t1_terms[0]->term_id, $t2_terms[0]->term_id );
 
 		wp_update_term(
