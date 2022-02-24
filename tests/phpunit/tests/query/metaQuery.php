@@ -272,18 +272,13 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	}
 
 	public function test_meta_query_single_query_compare_startswith() {
-		$p1 = self::factory()->post->create();
-		$p2 = self::factory()->post->create();
-		$p3 = self::factory()->post->create();
-		$p4 = self::factory()->post->create();
-		$p5 = self::factory()->post->create();
-		$p6 = self::factory()->post->create();
+		$posts = self::factory()->post->create_many(5);
 
-		add_post_meta( $p1, 'foo', 'barSTARTSWITH' );
-		add_post_meta( $p2, 'foo', 'ENDSWITHbar' );
-		add_post_meta( $p3, 'foo', 'CONTAINSbarCONTAINS' );
-		add_post_meta( $p4, 'foo', 'nomatch' );
-		add_post_meta( $p5, 'foo', 'barbar' );
+		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
+		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
+		add_post_meta( $posts[2], 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $posts[3], 'foo', 'nomatch' );
+		add_post_meta( $posts[4], 'foo', 'barbar' );
 
 		$query = new WP_Query(
 			array(
@@ -301,23 +296,18 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( $p1, $p5 );
+		$expected = array( $posts[0], $posts[4] );
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_not_startswith() {
-		$p1 = self::factory()->post->create();
-		$p2 = self::factory()->post->create();
-		$p3 = self::factory()->post->create();
-		$p4 = self::factory()->post->create();
-		$p5 = self::factory()->post->create();
-		$p6 = self::factory()->post->create();
+		$posts = self::factory()->post->create_many(5);
 
-		add_post_meta( $p1, 'foo', 'barSTARTSWITH' );
-		add_post_meta( $p2, 'foo', 'ENDSWITHbar' );
-		add_post_meta( $p3, 'foo', 'CONTAINSbarCONTAINS' );
-		add_post_meta( $p4, 'foo', 'nomatch' );
-		add_post_meta( $p5, 'foo', 'barbar' );
+		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
+		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
+		add_post_meta( $posts[2], 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $posts[3], 'foo', 'nomatch' );
+		add_post_meta( $posts[4], 'foo', 'barbar' );
 
 		$query = new WP_Query(
 			array(
@@ -335,23 +325,18 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( $p2, $p3, $p4 );
+		$expected = array( $posts[1], $posts[2], $posts[3] );
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_endswith() {
-		$p1 = self::factory()->post->create();
-		$p2 = self::factory()->post->create();
-		$p3 = self::factory()->post->create();
-		$p4 = self::factory()->post->create();
-		$p5 = self::factory()->post->create();
-		$p6 = self::factory()->post->create();
+		$posts = self::factory()->post->create_many(5);
 
-		add_post_meta( $p1, 'foo', 'barSTARTSWITH' );
-		add_post_meta( $p2, 'foo', 'ENDSWITHbar' );
-		add_post_meta( $p3, 'foo', 'CONTAINSbarCONTAINS' );
-		add_post_meta( $p4, 'foo', 'nomatch' );
-		add_post_meta( $p5, 'foo', 'barbar' );
+		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
+		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
+		add_post_meta( $posts[2], 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $posts[3], 'foo', 'nomatch' );
+		add_post_meta( $posts[4], 'foo', 'barbar' );
 
 		$query = new WP_Query(
 			array(
@@ -369,23 +354,18 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( $p2, $p5 );
+		$expected = array( $posts[1], $posts[4] );
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_not_endswith() {
-		$p1 = self::factory()->post->create();
-		$p2 = self::factory()->post->create();
-		$p3 = self::factory()->post->create();
-		$p4 = self::factory()->post->create();
-		$p5 = self::factory()->post->create();
-		$p6 = self::factory()->post->create();
+		$posts = self::factory()->post->create_many(5);
 
-		add_post_meta( $p1, 'foo', 'barSTARTSWITH' );
-		add_post_meta( $p2, 'foo', 'ENDSWITHbar' );
-		add_post_meta( $p3, 'foo', 'CONTAINSbarCONTAINS' );
-		add_post_meta( $p4, 'foo', 'nomatch' );
-		add_post_meta( $p5, 'foo', 'barbar' );
+		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
+		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
+		add_post_meta( $posts[2], 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $posts[3], 'foo', 'nomatch' );
+		add_post_meta( $posts[4], 'foo', 'barbar' );
 
 		$query = new WP_Query(
 			array(
@@ -403,7 +383,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( $p1, $p3, $p4 );
+		$expected = array( $posts[0], $posts[2], $posts[3] );
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
@@ -2021,7 +2001,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
 		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
 
-		$q = new WP_Query(
+		$query = new WP_Query(
 			array(
 				'meta_query' => array(
 					array(
@@ -2034,7 +2014,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
+		$expected = array( $posts[0], $posts[2] );
+		$this->assertSameSets( $expected , $query->posts );
 	}
 
 	public function test_compare_key_like_endswith() {
@@ -2044,7 +2025,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
 		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
 
-		$q = new WP_Query(
+		$query = new WP_Query(
 			array(
 				'meta_query' => array(
 					array(
@@ -2057,7 +2038,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[2] ), $query->posts );
 	}
 
 	public function test_compare_key_like_explicit_contains() {
@@ -2067,7 +2048,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
 		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
 
-		$q = new WP_Query(
+		$query = new WP_Query(
 			array(
 				'meta_query' => array(
 					array(
@@ -2080,7 +2061,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
+		$expected = array( $posts[0], $posts[2] );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_compare_key_like_and_value_like() {
@@ -2090,7 +2072,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		add_post_meta( $posts[1], 'aaa_bar_aaa', 'def' );
 		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
 
-		$q = new WP_Query(
+		$query = new WP_Query(
 			array(
 				'meta_query' => array(
 					array(
@@ -2106,7 +2088,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $posts[1] ), $q->posts );
+		$expected = array( $posts[1] );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
