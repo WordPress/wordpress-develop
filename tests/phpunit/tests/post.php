@@ -1686,6 +1686,57 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures sticking a post after delete 'sticky_posts' option.
+	 *
+	 * @ticket 52007
+	 * @ticket 55176
+	 * @covers ::stick_post
+	 */
+	public function test_stick_post_after_delete_sticky_posts_option() {
+		delete_option( 'sticky_posts' );
+
+		stick_post( 1 );
+		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensures sticking works with an unexpected option value.
+	 *
+	 * @ticket 52007
+	 * @ticket 55176
+	 * @covers ::stick_post
+	 * @dataProvider data_stick_post_with_unexpected_sticky_posts_option
+	 *
+	 * @param mixed $stick Value to pass to stick_post().
+	 */
+	public function test_stick_post_with_unexpected_sticky_posts_option( $starting_option ) {
+		update_option( 'sticky_posts', $starting_option );
+
+		stick_post( 1 );
+		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Data provider for test_stick_post_after_delete_sticky_posts_option().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type mixed $stick Value to pass to stick_post().
+	 * }
+	 */
+	public function data_stick_post_with_unexpected_sticky_posts_option() {
+		return array(
+			array( false ),
+			array( 'string' ),
+			array( 1 ),
+			array( null ),
+			array( true ),
+			array( new stdClass ),
+		);
+	}
+
+	/**
 	 * Ensure sticking a post removes other duplicate post IDs from the option.
 	 *
 	 * @ticket 52007
