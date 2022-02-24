@@ -638,8 +638,8 @@ class WP_Term_Query {
 		$selects = array();
 		switch ( $args['fields'] ) {
 			case 'all_with_object_id':
-				$selects = array( 't.*', 'tt.*' );
-				if ( 'all_with_object_id' === $args['fields'] && ! empty( $args['object_ids'] ) ) {
+				$selects = array(  't.term_id' );
+				if ( ! empty( $args['object_ids'] ) ) {
 					$selects[] = 'tr.object_id';
 				}
 				break;
@@ -742,10 +742,9 @@ class WP_Term_Query {
 		$cache_key    = "get_terms:$key:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'terms' );
 		if ( false !== $cache ) {
-			if ( 'all_with_object_id' === $_fields ) {
-				$cache = $this->populate_terms( $cache );
-			} elseif ( 'count' !== $_fields ) {
-				_prime_term_caches( $cache, false );
+			if ( 'count' !== $_fields ) {
+				$term_ids = wp_list_pluck( $cache, 'term_id' );
+				_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
 				$terms_objects = $this->populate_terms( $cache );
 				$cache         = $this->format_terms( $terms_objects, $_fields );
 			}
@@ -762,27 +761,19 @@ class WP_Term_Query {
 
 		$terms = $wpdb->get_results( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		if ( 'all_with_object_id' === $_fields ) {
-			$terms_objects = $terms;
-			update_term_cache( $terms );
-		}
-
-		// Prime termmeta cache.
-		if ( $args['update_term_meta_cache'] ) {
-			$term_ids = wp_list_pluck( $terms, 'term_id' );
-			update_termmeta_cache( $term_ids );
-		}
-
 		if ( empty( $terms ) ) {
 			wp_cache_add( $cache_key, array(), 'terms' );
 			return array();
 		}
 
-		if ( 'all_with_object_id' !== $args['fields'] && 'count' !== $args['fields'] ) {
-			$term_ids      = wp_list_pluck( $terms, 'term_id' );
-			_prime_term_caches( $term_ids, false );
-			$terms_objects = $this->populate_terms( $term_ids );
-		}
+		$term_ids = wp_list_pluck( $terms, 'term_id' );
+
+		// Prime termmeta cache.
+        if ( $args['update_term_meta_cache'] ) {
+        	update_termmeta_cache( $term_ids );
+        }
+		_prime_term_caches( $term_ids, false );
+		$terms_objects = $this->populate_terms( $terms );
 
 		if ( $child_of ) {
 			foreach ( $taxonomies as $_tax ) {
@@ -852,14 +843,8 @@ class WP_Term_Query {
 			}
 		}
 
-		if ( 'all_with_object_id' === $_fields ) {
-			wp_cache_add( $cache_key, $terms, 'terms' );
-			$terms = $this->populate_terms( $terms );
-		} else {
-			$term_ids = wp_list_pluck( $terms_objects, 'term_id' );
-			wp_cache_add( $cache_key, $term_ids, 'terms' );
-			$terms    = $this->format_terms( $terms_objects, $_fields );
-		}
+		wp_cache_add( $cache_key, $terms, 'terms' );
+		$terms = $this->format_terms( $terms_objects, $_fields );
 
 		$this->terms = $terms;
 		return $this->terms;
@@ -962,7 +947,7 @@ class WP_Term_Query {
 			foreach ( $terms_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->slug;
 			}
-		} elseif ( 'all' === $_fields ) {
+		} elseif ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
 			$_terms = $terms_objects;
 		}
 
@@ -1073,19 +1058,22 @@ class WP_Term_Query {
 	 *
 	 * @since 4.9.8
 	 *
-	 * @param array $term_ids Term IDs.
+	 * @param array $terms_data Term data.
 	 * @return array
 	 */
-	protected function populate_terms( $term_ids ) {
+	protected function populate_terms( $terms_data ) {
 		$terms = array();
 
-		if ( ! is_array( $term_ids ) ) {
+		if ( ! is_array( $terms_data ) ) {
 			return $terms;
 		}
 
-		foreach ( $term_ids as $key => $term_id ) {
-			$term = get_term( $term_id );
+		foreach ( $terms_data as $key => $term_data ) {
+			$term = get_term( $term_data->term_id );
 			if ( $term instanceof WP_Term ) {
+				if ( isset( $term_data->object_id ) ) {
+					$term->object_id = (int) $term_data->object_id;
+				}
 				$terms[ $key ] = $term;
 			}
 		}
