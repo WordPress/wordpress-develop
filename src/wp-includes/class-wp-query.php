@@ -536,10 +536,10 @@ class WP_Query {
 	 * @since 2.1.0
 	 * @since 4.5.0 Removed the `comments_popup` public query variable.
 	 *
-	 * @param array $array Defined query variables.
+	 * @param array $vars Defined query variables.
 	 * @return array Complete query variables with undefined ones filled in empty.
 	 */
-	public function fill_query_vars( $array ) {
+	public function fill_query_vars( $vars ) {
 		$keys = array(
 			'error',
 			'm',

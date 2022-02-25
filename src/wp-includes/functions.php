@@ -4796,16 +4796,16 @@ function wp_parse_slug_list( $list ) {
  *
  * @since 3.1.0
  *
- * @param array $array The original array.
- * @param array $keys  The list of keys.
+ * @param array $original_array The original array.
+ * @param array $keys_to_return  The list of keys.
  * @return array The array slice.
  */
-function wp_array_slice_assoc( $array, $keys ) {
+function wp_array_slice_assoc( $original_array, $keys_to_return ) {
 	$slice = array();
 
-	foreach ( $keys as $key ) {
-		if ( isset( $array[ $key ] ) ) {
-			$slice[ $key ] = $array[ $key ];
+	foreach ( $keys_to_return as $key ) {
+		if ( isset( $original_array[ $key ] ) ) {
+			$slice[ $key ] = $original_array[ $key ];
 		}
 	}
 
