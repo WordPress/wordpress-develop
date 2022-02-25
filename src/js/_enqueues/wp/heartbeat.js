@@ -155,11 +155,15 @@
 				 */
 				if ( options.minimalInterval ) {
 					options.minimalInterval = parseInt( options.minimalInterval, 10 );
-					settings.minimalInterval = options.minimalInterval > 0 && options.minimalInterval <= 600 ? options.minimalInterval * 1000 : 0;
+					settings.minimalInterval = options.minimalInterval > 0 && options.minimalInterval <= 600 ? options.minimalInterval : 0;
 				}
 
 				if ( settings.minimalInterval && settings.mainInterval < settings.minimalInterval ) {
 					settings.mainInterval = settings.minimalInterval;
+				}
+
+				if ( settings.minimalInterval ) {
+					settings.minimalInterval = settings.minimalInterval * 1000;
 				}
 
 				// 'screenId' can be added from settings on the front end where the JS global
