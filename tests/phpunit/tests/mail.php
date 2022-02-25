@@ -241,9 +241,9 @@ class Tests_Mail extends WP_UnitTestCase {
 		// Single site test runs.
 		add_filter( 'home_url', '__return_empty_string' );
 
-		$success = wp_mail( $to, $subject, $message );
+		$result = wp_mail( $to, $subject, $message );
 
-		$this->assertFalse( $success, 'wp_mail() should have returned false' );
+		$this->assertFalse( $result, 'wp_mail() should have returned false' );
 		$this->assertGreaterThan( 0, did_action( 'wp_mail_failed' ), 'wp_mail_failed action was not called' );
 	}
 
