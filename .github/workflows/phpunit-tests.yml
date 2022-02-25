@@ -113,7 +113,7 @@ jobs:
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
 
       - name: Install NodeJS
-        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
+        uses: actions/setup-node@9ced9a43a244f3ac94f13bfd896db8c8f30da67a # v2.4.1
         with:
           node-version: 14
           cache: npm
