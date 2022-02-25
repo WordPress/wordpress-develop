@@ -986,6 +986,7 @@ JS;
 	}
 
 	/**
+	 * @ticket 45103
 	 * @ticket 55250
 	 */
 	public function test_wp_set_script_translations_when_translation_file_does_not_exist() {
