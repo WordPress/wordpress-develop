@@ -185,6 +185,8 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 11611
+	 *
 	 * @covers ::current_theme_supports
 	 */
 	public function test_plugin_hook() {

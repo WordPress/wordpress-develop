@@ -392,28 +392,9 @@ class Tests_Cache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 20875
-	 *
-	 * @covers ::wp_cache_get_multiple
-	 */
-	public function test_get_multiple() {
-		wp_cache_set( 'foo1', 'bar', 'group1' );
-		wp_cache_set( 'foo2', 'bar', 'group1' );
-		wp_cache_set( 'foo1', 'bar', 'group2' );
-
-		$found = wp_cache_get_multiple( array( 'foo1', 'foo2', 'foo3' ), 'group1' );
-
-		$expected = array(
-			'foo1' => 'bar',
-			'foo2' => 'bar',
-			'foo3' => false,
-		);
-
-		$this->assertSame( $expected, $found );
-	}
-
-	/**
 	 * @ticket 54574
+	 *
+	 * @covers ::wp_cache_add_multiple
 	 */
 	public function test_wp_cache_add_multiple() {
 		$found = wp_cache_add_multiple(
@@ -436,12 +417,10 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54574
+	 *
+	 * @covers ::wp_cache_set_multiple
 	 */
 	public function test_wp_cache_set_multiple() {
-		wp_cache_set( 'foo1', 'bar', 'group1' );
-		wp_cache_set( 'foo2', 'bar', 'group1' );
-		wp_cache_set( 'foo3', 'bar', 'group2' );
-
 		$found = wp_cache_set_multiple(
 			array(
 				'foo1' => 'bar',
@@ -461,7 +440,30 @@ class Tests_Cache extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 20875
+	 *
+	 * @covers ::wp_cache_get_multiple
+	 */
+	public function test_wp_cache_get_multiple() {
+		wp_cache_set( 'foo1', 'bar', 'group1' );
+		wp_cache_set( 'foo2', 'bar', 'group1' );
+		wp_cache_set( 'foo1', 'bar', 'group2' );
+
+		$found = wp_cache_get_multiple( array( 'foo1', 'foo2', 'foo3' ), 'group1' );
+
+		$expected = array(
+			'foo1' => 'bar',
+			'foo2' => 'bar',
+			'foo3' => false,
+		);
+
+		$this->assertSame( $expected, $found );
+	}
+
+	/**
 	 * @ticket 54574
+	 *
+	 * @covers ::wp_cache_delete_multiple
 	 */
 	public function test_wp_cache_delete_multiple() {
 		wp_cache_set( 'foo1', 'bar', 'group1' );
