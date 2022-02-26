@@ -2,21 +2,13 @@ import { activateTheme, loginUser, visitAdminPage} from '@wordpress/e2e-test-uti
 
 describe( 'Should create a new Menu', () => {
 
-    beforeEach( async () => {
-        await loginUser();
-        await activateTheme("twentytwentyone");
-    } );
 
+    async function createMenu() {
 
-	it( 'Add a new menu', async () => {
-		
-		await visitAdminPage("nav-menus.php");
-        
-        // check if it's a first menu
-        await page.waitForSelector(".first-menu-message");
+        await visitAdminPage("nav-menus.php");
 
         await page.type('#menu-name','New Menu');
-        
+
         // select menu as a primary menu
         await page.click("#locations-primary");
 
@@ -24,12 +16,21 @@ describe( 'Should create a new Menu', () => {
 
         await page.waitForSelector(".add-edit-menu-action");
 
-	} );
+    }
+
+
+    beforeEach( async () => {
+        await loginUser();
+        await activateTheme("twentytwentyone");
+    } );
+
 
 
     it( 'Remove existing menu', async () => {
-		
-		await visitAdminPage("nav-menus.php");
+
+        createMenu();
+
+	await visitAdminPage("nav-menus.php");
 
         await page.click(".add-edit-menu-action a");
 
@@ -38,20 +39,17 @@ describe( 'Should create a new Menu', () => {
         await page.type('#menu-name','Test Menu');
         await page.click("#locations-primary");
         await page.click("#save_menu_footer");
-        
+
         await page.waitForSelector("#nav-menu-footer")
-        await page.waitForSelector(".delete-action");
+       
         await page.click(".submitdelete.deletion.menu-delete")
         page.on('dialog', async (dialog) => {
             await dialog.accept();
           });
 
-        
         await page.waitForSelector(".add-edit-menu-action");
 
 	} );
 
 
 } );
-
-
