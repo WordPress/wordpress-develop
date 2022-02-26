@@ -62,7 +62,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	 */
 	private function make_prop_accessible( $obj_or_class, $prop ) {
 		$property = new ReflectionProperty( $obj_or_class, $prop );
-		$property->setAccessible(true);
+		$property->setAccessible( true );
 		return $property;
 	}
 
