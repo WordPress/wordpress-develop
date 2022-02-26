@@ -150,104 +150,104 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	 */
 	public function data_parse_headers() {
 		return array(
-			'no dependencies'                         => array(
+			'no dependencies'                        => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
 						'Plugin Name' => 'Test Plugin',
 					),
 				),
-				'expected' => array(),
+				'expected'     => array(),
 			),
 			'one dependency'                         => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
-						'Plugin Name' => 'Test Plugin',
+						'Plugin Name'      => 'Test Plugin',
 						'Requires Plugins' => 'hello-dolly',
 					),
 				),
-				'expected' => array(
+				'expected'     => array(
 					'RequiresPlugins' => 'hello-dolly',
 				),
 			),
 			'two dependencies in alphabetical order' => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
-						'Plugin Name' => 'Test Plugin',
+						'Plugin Name'      => 'Test Plugin',
 						'Requires Plugins' => 'hello-dolly, woocommerce',
 					),
 				),
-				'expected' => array(
+				'expected'     => array(
 					'RequiresPlugins' => 'hello-dolly, woocommerce',
 				),
 			),
 			'two dependencies in reverse alphabetical order' => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
-						'Plugin Name' => 'Test Plugin',
+						'Plugin Name'      => 'Test Plugin',
 						'Requires Plugins' => 'woocommerce, hello-dolly',
 					),
 				),
-				'expected' => array(
+				'expected'     => array(
 					'RequiresPlugins' => 'woocommerce, hello-dolly',
 				),
 			),
 			'two dependencies with a space'          => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
-						'Plugin Name' => 'Test Plugin',
+						'Plugin Name'      => 'Test Plugin',
 						'Requires Plugins' => 'hello-dolly , woocommerce',
 					),
 				),
-				'expected' => array(
+				'expected'     => array(
 					'RequiresPlugins' => 'hello-dolly , woocommerce',
 				),
 			),
 			'a repeated dependency'                  => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
-						'Plugin Name' => 'Test Plugin',
+						'Plugin Name'      => 'Test Plugin',
 						'Requires Plugins' => 'hello-dolly, woocommerce, hello-dolly',
 					),
 				),
-				'expected' => array(
+				'expected'     => array(
 					'RequiresPlugins' => 'hello-dolly, woocommerce, hello-dolly',
 				),
 			),
 			'a dependency with an underscore'        => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
-						'Plugin Name' => 'Test Plugin',
+						'Plugin Name'      => 'Test Plugin',
 						'Requires Plugins' => 'hello_dolly',
 					),
 				),
-				'expected' => array( 'RequiresPlugins' => 'hello_dolly' ),
+				'expected'     => array( 'RequiresPlugins' => 'hello_dolly' ),
 			),
 			'a dependency with a space'              => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
-						'Plugin Name' => 'Test Plugin',
+						'Plugin Name'      => 'Test Plugin',
 						'Requires Plugins' => 'hello dolly',
 					),
 				),
-				'expected' => array( 'RequiresPlugins' => 'hello dolly' ),
+				'expected'     => array( 'RequiresPlugins' => 'hello dolly' ),
 			),
 			'a dependency in quotes'                 => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
-						'Plugin Name' => 'Test Plugin',
+						'Plugin Name'      => 'Test Plugin',
 						'Requires Plugins' => '"hello-dolly"',
 					),
 				),
-				'expected' => array( 'RequiresPlugins' => '"hello-dolly"' ),
+				'expected'     => array( 'RequiresPlugins' => '"hello-dolly"' ),
 			),
 			'two dependencies in quotes'             => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
-						'Plugin Name' => 'Test Plugin',
+						'Plugin Name'      => 'Test Plugin',
 						'Requires Plugins' => '"hello-dolly, woocommerce"',
 					),
 				),
-				'expected' => array( 'RequiresPlugins' => '"hello-dolly, woocommerce"' ),
+				'expected'     => array( 'RequiresPlugins' => '"hello-dolly, woocommerce"' ),
 			),
 		);
 	}
