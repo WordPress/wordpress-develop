@@ -238,7 +238,7 @@ class WP_Plugin_Dependencies {
 			return;
 		}
 
-		$this->plugin_data = get_site_transient( 'wp_plugin_dependencies_plugin_data', array() );
+		$this->plugin_data = get_site_transient( 'wp_plugin_dependencies_plugin_data' );
 		foreach ( $this->slugs as $key => $slug ) {
 			// Don't hit plugins API if data exists.
 			if ( array_key_exists( $slug, (array) $this->plugin_data ) ) {
@@ -354,7 +354,7 @@ class WP_Plugin_Dependencies {
 
 		// Plugin deactivated if dependencies not met.
 		// Transient on a 10 second timeout.
-		$deactivate_requires = get_site_transient( 'wp_plugin_dependencies_deactivate_plugins', array() );
+		$deactivate_requires = get_site_transient( 'wp_plugin_dependencies_deactivate_plugins' );
 		if ( ! empty( $deactivate_requires ) ) {
 			foreach ( $deactivate_requires as $deactivated ) {
 				$deactivated_plugins[] = $this->plugins[ $deactivated ]['Name'];
