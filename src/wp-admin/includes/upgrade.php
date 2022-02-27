@@ -2287,16 +2287,12 @@ function upgrade_590() {
 }
 
 /**
- * Executes changes made in WordPress 5.9.0.
+ * Executes changes made in WordPress 6.0.0.
  *
  * @ignore
- * @since 5.9.0
- *
- * @global int $wp_current_db_version The old (current) database version.
+ * @since 6.0.0
  */
 function upgrade_600() {
-	global $wp_current_db_version;
-
 	if ( ! is_multisite() ) {
 		// Replace non-autoload option can_compress_scripts with autoload option, see #55270
 		$can_compress_scripts = get_option( 'can_compress_scripts' ) ? 1 : 0 ;
