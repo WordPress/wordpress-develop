@@ -549,8 +549,10 @@ function populate_options( array $options = array() ) {
 
 	// 3.3.0
 	if ( ! is_multisite() ) {
-		$defaults['initial_db_version'] = ! empty( $wp_current_db_version ) && $wp_current_db_version < $wp_db_version
+		$defaults['initial_db_version']   = ! empty( $wp_current_db_version ) && $wp_current_db_version < $wp_db_version
 			? $wp_current_db_version : $wp_db_version;
+		// 6.0.0
+		$defaults['can_compress_scripts'] = 0;
 	}
 
 	// 3.0.0 multisite.
@@ -664,7 +666,6 @@ function populate_options( array $options = array() ) {
 		'rich_editing',
 		'autosave_interval',
 		'deactivated_plugins',
-		'can_compress_scripts',
 		'page_uris',
 		'update_core',
 		'update_plugins',
