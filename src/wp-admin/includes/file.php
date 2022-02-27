@@ -1962,9 +1962,6 @@ function move_dir( $from, $to ) {
 
 	$result = false;
 
-	$is_virtualbox = false;
-	$wp_env_vbox   = getenv( 'WP_ENV_VBOX' );
-
 	/*
 	 * Skip the rename() call on VirtualBox environments.
 	 * There are some known issues where rename() can fail on shared folders
@@ -1974,13 +1971,7 @@ function move_dir( $from, $to ) {
 	 * https://www.virtualbox.org/ticket/8761#comment:24
 	 * https://www.virtualbox.org/ticket/17971
 	 */
-	if ( $wp_env_vbox && 'false' !== $wp_env_vbox
-		|| defined( 'WP_ENV_VBOX' ) && WP_ENV_VBOX && 'false' !== WP_ENV_VBOX
-	) {
-		$is_virtualbox = true;
-	}
-
-	if ( 'direct' === $wp_filesystem->method && ! $is_virtualbox ) {
+	if ( 'direct' === $wp_filesystem->method && 'virtualbox' !== wp_get_runtime_environment() ) {
 		$wp_filesystem->rmdir( $to );
 
 		$result = @rename( $from, $to );

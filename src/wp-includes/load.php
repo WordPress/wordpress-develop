@@ -240,6 +240,71 @@ function wp_get_environment_type() {
 }
 
 /**
+ * Retrieves the current runtime environment type.
+ *
+ * The type can be set via the `WP_RUNTIME_ENVIRONMENT` global system variable,
+ * or a constant of the same name.
+ *
+ * Possible values are 'virtualbox', 'vvv', 'mamp', 'wamp', 'lamp'.
+ * If not set, the type defaults to 'lamp'.
+ *
+ * @since 6.0.0
+ *
+ * @return string The current runtime environment type.
+ */
+function wp_get_runtime_environment() {
+	static $current_runtime_env = '';
+
+	if ( ! defined( 'WP_RUN_CORE_TESTS' ) && $current_runtime_env ) {
+		return $current_runtime_env;
+	}
+
+	$wp_runtime_environments = array(
+		'virtualbox',
+		'vvv',
+		'mamp',
+		'wamp',
+		'lamp',
+	);
+
+	// Add a note about the deprecated WP_ENVIRONMENT_TYPES constant.
+	if ( defined( 'WP_ENVIRONMENT_TYPES' ) && function_exists( '_deprecated_argument' ) ) {
+		if ( function_exists( '__' ) ) {
+			/* translators: %s: WP_ENVIRONMENT_TYPES */
+			$message = sprintf( __( 'The %s constant is no longer supported.' ), 'WP_ENVIRONMENT_TYPES' );
+		} else {
+			$message = sprintf( 'The %s constant is no longer supported.', 'WP_ENVIRONMENT_TYPES' );
+		}
+
+		_deprecated_argument(
+			'define()',
+			'5.5.1',
+			$message
+		);
+	}
+
+	// Check if the runtime environment variable has been set, if `getenv` is available on the system.
+	if ( function_exists( 'getenv' ) ) {
+		$has_runtime_env = getenv( 'WP_RUNTIME_ENVIRONMENT' );
+		if ( false !== $has_runtime_env ) {
+			$current_runtime_env = $has_runtime_env;
+		}
+	}
+
+	// Fetch the runtime environment from a constant, this overrides the global system variable.
+	if ( defined( 'WP_RUNTIME_ENVIRONMENT' ) ) {
+		$current_runtime_env = WP_RUNTIME_ENVIRONMENT;
+	}
+
+	// Make sure the runtime environment is an allowed one, and not accidentally set to an invalid value.
+	if ( ! in_array( $current_runtime_env, $wp_runtime_environments, true ) ) {
+		$current_runtime_env = 'lamp';
+	}
+
+	return $current_runtime_env;
+}
+
+/**
  * Don't load all of WordPress when handling a favicon.ico request.
  *
  * Instead, send the headers for a zero-length favicon and bail.
