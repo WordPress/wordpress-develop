@@ -845,6 +845,10 @@ function upgrade_all() {
 		upgrade_590();
 	}
 
+	if ( $wp_current_db_version < 52448 ) {
+		upgrade_600();
+	}
+	
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2279,6 +2283,25 @@ function upgrade_590() {
 			$crons = array_filter( $crons );
 			_set_cron_array( $crons );
 		}
+	}
+}
+
+/**
+ * Executes changes made in WordPress 5.9.0.
+ *
+ * @ignore
+ * @since 5.9.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_600() {
+	global $wp_current_db_version;
+
+	if ( ! is_multisite() ) {
+		// Replace non-autoload option can_compress_scripts with autoload option, see #55270
+		$can_compress_scripts = get_option( 'can_compress_scripts' ) ? 1 : 0 ;
+		delete_option( 'can_compress_scripts' );
+		add_option( 'can_compress_scripts', $can_compress_scripts );
 	}
 }
 
