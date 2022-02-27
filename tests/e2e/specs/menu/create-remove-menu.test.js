@@ -1,7 +1,6 @@
 import { activateTheme, loginUser, visitAdminPage} from '@wordpress/e2e-test-utils';
 
-describe( 'Should create a new Menu', () => {
-
+describe( 'Should create and delete a menu', () => {
 
     async function createMenu() {
 
@@ -28,7 +27,7 @@ describe( 'Should create a new Menu', () => {
 
     it( 'Remove existing menu', async () => {
 
-        createMenu();
+        await createMenu();
 
 	await visitAdminPage("nav-menus.php");
 
@@ -40,9 +39,11 @@ describe( 'Should create a new Menu', () => {
         await page.click("#locations-primary");
         await page.click("#save_menu_footer");
 
-        await page.waitForSelector("#nav-menu-footer")
+        await page.waitForSelector("#nav-menu-footer");
        
-        await page.click(".submitdelete.deletion.menu-delete")
+        await page.click(".submitdelete.deletion.menu-delete");
+        await page.click(".submitdelete.deletion.menu-delete");
+        
         page.on('dialog', async (dialog) => {
             await dialog.accept();
           });
