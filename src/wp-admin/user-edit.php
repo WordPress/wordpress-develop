@@ -241,48 +241,16 @@ switch ( $action ) {
 				<?php endif; ?>
 			<?php endif; ?>
 
-<<<<<<< HEAD
 			<hr class="wp-header-end">
-=======
-		<?php
-		// Allow admins to send reset password link.
-		if ( ! IS_PROFILE_PAGE ) :
-			?>
-	<tr class="user-generate-reset-link-wrap hide-if-no-js">
-		<th><?php _e( 'Password Reset' ); ?></th>
-		<td>
-			<div class="generate-reset-link">
-				<button type="button" class="button button-secondary" id="generate-reset-link">
-					<?php _e( 'Send Reset Link' ); ?>
-				</button>
-			</div>
-			<p class="description">
-				<?php
-				printf(
-					/* translators: %s: User's display name. */
-					__( 'Send %s a link to reset their password. This will not change their password, nor will it force a change.' ),
-					esc_html( $profile_user->display_name )
-				);
-				?>
-			</p>
-		</td>
-	</tr>
-		<?php endif; ?>
->>>>>>> trunk
 
 			<form id="your-profile" action="<?php echo esc_url( self_admin_url( IS_PROFILE_PAGE ? 'profile.php' : 'user-edit.php' ) ); ?>" method="post" novalidate="novalidate"
 				<?php
-<<<<<<< HEAD
 				/**
 				 * Fires inside the your-profile form tag on the user editing screen.
 				 *
 				 * @since 3.0.0
 				 */
 				do_action( 'user_edit_form_tag' );
-=======
-				/* translators: %s: User's display name. */
-				printf( __( 'Log %s out of all locations.' ), $profile_user->display_name );
->>>>>>> trunk
 				?>
 				>
 				<?php wp_nonce_field( 'update-user_' . $user_id ); ?>
@@ -394,25 +362,21 @@ switch ( $action ) {
 								$user_locale = 'site-default';
 							}
 
-							// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
-							// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 							wp_dropdown_languages(
 								array(
-									'name'                        => 'locale',
-									'id'                          => 'locale',
-									'selected'                    => $user_locale,
-									'languages'                   => $languages,
+									'name'      => 'locale',
+									'id'        => 'locale',
+									'selected'  => $user_locale,
+									'languages' => $languages,
 									'show_available_translations' => false,
-									'show_option_site_default'    => true,
+									'show_option_site_default' => true,
 								)
 							);
-							// phpcs:enable
 							?>
 						</td>
 					</tr>
 					<?php endif; ?>
 
-<<<<<<< HEAD
 					<?php
 					/**
 					 * Fires at the end of the 'Personal Options' settings table on the user editing screen.
@@ -423,18 +387,6 @@ switch ( $action ) {
 					 */
 					do_action( 'personal_options', $profile_user );
 					?>
-=======
-				<?php
-				/**
-				 * Fires in the create Application Passwords form.
-				 *
-				 * @since 5.6.0
-				 *
-				 * @param WP_User $profile_user The current WP_User object.
-				 */
-				do_action( 'wp_create_application_password_form', $profile_user );
-				?>
->>>>>>> trunk
 
 				</table>
 				<?php
@@ -451,7 +403,6 @@ switch ( $action ) {
 					do_action( 'profile_personal_options', $profile_user );
 				}
 				?>
-<<<<<<< HEAD
 
 				<h2><?php _e( 'Name' ); ?></h2>
 
@@ -860,66 +811,6 @@ switch ( $action ) {
 							<?php endif; ?>
 						</div>
 					<?php endif; // End Application Passwords. ?>
-=======
-			</p>
-		<?php endif; ?>
-	</div>
-<?php endif; // phpcs:enable Generic.WhiteSpace.ScopeIndent ?>
-
-		<?php
-		if ( IS_PROFILE_PAGE ) {
-			/**
-			 * Fires after the 'About Yourself' settings table on the 'Profile' editing screen.
-			 *
-			 * The action only fires if the current user is editing their own profile.
-			 *
-			 * @since 2.0.0
-			 *
-			 * @param WP_User $profile_user The current WP_User object.
-			 */
-			do_action( 'show_user_profile', $profile_user );
-		} else {
-			/**
-			 * Fires after the 'About the User' settings table on the 'Edit User' screen.
-			 *
-			 * @since 2.0.0
-			 *
-			 * @param WP_User $profile_user The current WP_User object.
-			 */
-			do_action( 'edit_user_profile', $profile_user );
-		}
-		?>
-
-		<?php
-		/**
-		 * Filters whether to display additional capabilities for the user.
-		 *
-		 * The 'Additional Capabilities' section will only be enabled if
-		 * the number of the user's capabilities exceeds their number of
-		 * roles.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param bool    $enable       Whether to display the capabilities. Default true.
-		 * @param WP_User $profile_user The current WP_User object.
-		 */
-		if ( count( $profile_user->caps ) > count( $profile_user->roles )
-			&& apply_filters( 'additional_capabilities_display', true, $profile_user )
-		) :
-			?>
-	<h2><?php _e( 'Additional Capabilities' ); ?></h2>
-<table class="form-table" role="presentation">
-<tr class="user-capabilities-wrap">
-	<th scope="row"><?php _e( 'Capabilities' ); ?></th>
-	<td>
-			<?php
-			$output = '';
-			foreach ( $profile_user->caps as $cap => $value ) {
-				if ( ! $wp_roles->is_role( $cap ) ) {
-					if ( '' !== $output ) {
-						$output .= ', ';
-					}
->>>>>>> trunk
 
 					<?php
 					if ( IS_PROFILE_PAGE ) {
