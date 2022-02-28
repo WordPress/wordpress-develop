@@ -14,7 +14,7 @@
  */
 function render_block_core_site_logo( $attributes ) {
 	$adjust_width_height_filter = function ( $image ) use ( $attributes ) {
-		if ( empty( $attributes['width'] ) || empty( $image ) ) {
+		if ( empty( $attributes['width'] ) || empty( $image ) || ! $image[1] || ! $image[2] ) {
 			return $image;
 		}
 		$height = (float) $attributes['width'] / ( (float) $image[1] / (float) $image[2] );
@@ -75,6 +75,23 @@ function register_block_core_site_logo_setting() {
 }
 
 add_action( 'rest_api_init', 'register_block_core_site_logo_setting', 10 );
+
+/**
+ * Register a core site setting for a site icon
+ */
+function register_block_core_site_icon_setting() {
+	register_setting(
+		'general',
+		'site_icon',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'integer',
+			'description'  => __( 'Site icon.' ),
+		)
+	);
+}
+
+add_action( 'rest_api_init', 'register_block_core_site_icon_setting', 10 );
 
 /**
  * Registers the `core/site-logo` block on the server.

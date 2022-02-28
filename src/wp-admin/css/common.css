@@ -270,6 +270,7 @@ a:active {
 
 a:focus,
 a:focus .media-icon img,
+a:focus .plugin-icon,
 .wp-person a:focus .gravatar {
 	color: #043959;
 	box-shadow:
@@ -823,8 +824,6 @@ img.emoji {
 	outline: 0;
 }
 
-.welcome-panel .welcome-panel-close:hover:before,
-.welcome-panel .welcome-panel-close:focus:before,
 .tagchecklist .ntdelbutton:hover .remove-tag-icon:before,
 .tagchecklist .ntdelbutton:focus .remove-tag-icon:before,
 #bulk-titles div a:hover:before,
