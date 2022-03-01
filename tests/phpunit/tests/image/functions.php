@@ -411,8 +411,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 * @requires extension openssl
 	 */
-	public
-	function test_wp_crop_image_url() {
+	public function test_wp_crop_image_url() {
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
 			0,
@@ -440,8 +439,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 
-	public
-	function test_wp_crop_image_file_not_exist() {
+	public function test_wp_crop_image_file_not_exist() {
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
 			0,
@@ -457,8 +455,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @requires extension openssl
 	 */
-	public
-	function test_wp_crop_image_url_not_exist() {
+	public function test_wp_crop_image_url_not_exist() {
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
 			0,
@@ -480,8 +477,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 23325
 	 */
-	public
-	function test_wp_crop_image_error_on_saving() {
+	public function test_wp_crop_image_error_on_saving() {
 		WP_Image_Editor_Mock::$save_return = new WP_Error();
 		add_filter( 'wp_image_editors', array( $this, 'mock_image_editor' ) );
 
@@ -503,8 +499,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 31050
 	 */
-	public
-	function test_wp_generate_attachment_metadata_pdf() {
+	public function test_wp_generate_attachment_metadata_pdf() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
@@ -581,8 +576,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 43226
 	 */
-	public
-	function test_crop_setting_for_pdf() {
+	public function test_crop_setting_for_pdf() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
@@ -665,8 +659,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 39231
 	 */
-	public
-	function test_fallback_intermediate_image_sizes() {
+	public function test_fallback_intermediate_image_sizes() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
@@ -738,8 +731,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
-	public
-	function filter_fallback_intermediate_image_sizes(
+	public function filter_fallback_intermediate_image_sizes(
 		$fallback_sizes, $metadata
 	) {
 		// Add the 'test-size' to the list of fallback sizes.
@@ -753,8 +745,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 39875
 	 */
-	public
-	function test_pdf_preview_doesnt_overwrite_existing_jpeg() {
+	public function test_pdf_preview_doesnt_overwrite_existing_jpeg() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
@@ -817,8 +808,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_exif_frac2dec
 	 */
-	public
-	function test_wp_exif_frac2dec(
+	public function test_wp_exif_frac2dec(
 		$fraction, $expect
 	) {
 		$this->assertSame( $expect, wp_exif_frac2dec( $fraction ) );
@@ -829,8 +819,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public
-	function data_wp_exif_frac2dec() {
+	public function data_wp_exif_frac2dec() {
 		return array(
 			'invalid input: null'              => array(
 				'fraction' => null,
