@@ -499,7 +499,7 @@ class WP_Object_Cache {
 	 * Sets the list of global cache groups.
 	 *
 	 * @since 3.0.0
-   * @since 6.0.0 Added the possibility to ignore global groups by setting the WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS as an array in wp-config.php   
+	 * @since 6.0.0 Added the possibility to ignore global groups by setting the WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS as an array in wp-config.php
 	 *
 	 * @param string|string[] $groups List of groups that are global.
 	 */
