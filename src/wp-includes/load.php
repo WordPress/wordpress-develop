@@ -261,7 +261,10 @@ function wp_get_runtime_environment() {
 
 	$wp_runtime_environments = array(
 		'virtualbox',
-		'vvv',
+		'docker',
+		'parallels',
+		'vmware',
+		'hyper-v',
 		'mamp',
 		'wamp',
 		'lamp',
