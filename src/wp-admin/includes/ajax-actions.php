@@ -4158,9 +4158,10 @@ function wp_ajax_install_theme() {
 		}
 	}
 
+	$theme = wp_get_theme( $slug );
+	$status['blockTheme'] = $theme->is_block_theme();
+
 	if ( ! is_multisite() && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
-		$theme = wp_get_theme( $slug );
-		$status['blockTheme'] = $theme->is_block_theme();
 		$status['customizeUrl'] = add_query_arg(
 			array(
 				'return' => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
