@@ -1520,6 +1520,7 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
  *
  * @since 3.0.0
  *
+ * @global bool $_wp_suspend_cache_invalidation
  *
  * @param int|string $term     The term to check. Accepts term ID, slug, or name.
  * @param string     $taxonomy Optional. The taxonomy name to use.
@@ -1530,6 +1531,8 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
  *               Returns 0 if term ID 0 is passed to the function.
  */
 function term_exists( $term, $taxonomy = '', $parent = null ) {
+	global $_wp_suspend_cache_invalidation;
+
 	if ( null === $term ) {
 		return null;
 	}
@@ -1568,7 +1571,7 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 	);
 
 	// Ensure that while importing, queries are not cached.
-	if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) {
+	if ( ! empty( $_wp_suspend_cache_invalidation ) ) {
 		$defaults['cache_domain'] = microtime();
 	}
 

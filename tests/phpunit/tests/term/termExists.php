@@ -4,17 +4,6 @@
  * @group taxonomy
  */
 class Tests_TermExists extends WP_UnitTestCase {
-	public function set_up() {
-		parent::set_up();
-		add_filter( 'get_terms_args', array( $this, 'reset_get_terms_args' ) );
-	}
-
-	public function tear_down() {
-		remove_filter( 'get_terms_args', array( $this, 'reset_get_terms_args' ) );
-		parent::tear_down();
-	}
-
-
 	public function test_term_exists_term_0() {
 		$this->assertSame( 0, term_exists( 0 ) );
 	}
@@ -305,21 +294,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		// Clean up.
 		_unregister_taxonomy( 'wptests_tax' );
-	}
-
-	/**
-	 * Filter the `get_terms_args` to reset cache_domain back to core if WP_IMPORTING is defined.
-	 *
-	 * @param array $args get_terms_args args.
-	 *
-	 * @return array
-	 */
-	public function reset_get_terms_args( $args ) {
-		if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) {
-			$args['cache_domain'] = 'core';
-		}
-
-		return $args;
 	}
 
 	public function test_term_exists_unknown() {
