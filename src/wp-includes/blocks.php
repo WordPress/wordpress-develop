@@ -20,10 +20,14 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
 	if ( 0 !== strpos( $asset_handle_or_path, $path_prefix ) ) {
 		return $asset_handle_or_path;
 	}
-	return substr(
+	$path = substr(
 		$asset_handle_or_path,
 		strlen( $path_prefix )
 	);
+	if ( strpos( $path, './' ) === 0 ) {
+		$path = substr( $path, 2 );
+	}
+	return $path;
 }
 
 /**
@@ -199,7 +203,7 @@ function register_block_style_handle( $metadata, $field_name ) {
  *
  * @since 5.9.0
  *
- * @return array The schema for block's metadata.
+ * @return object The schema for block's metadata.
  */
 function get_block_metadata_i18n_schema() {
 	static $i18n_block_schema;
@@ -1164,7 +1168,7 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @since 5.9.0
  *
  * @param WP_Block $block   Block instance.
- * @param boolean  $is_next Flag for hanlding `next/previous` blocks.
+ * @param boolean  $is_next Flag for handling `next/previous` blocks.
  *
  * @return string|null Returns the constructed WP_Query arguments.
  */
