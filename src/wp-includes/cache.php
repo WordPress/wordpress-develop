@@ -144,7 +144,6 @@ function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
  * @return bool True on success, false on failure group not found.
  */
 function wp_cache_flush_group( $group ) {
-
 	global $wp_object_cache;
 
 	// if group is an array loop and call each key in the array

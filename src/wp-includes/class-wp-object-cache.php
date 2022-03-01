@@ -298,7 +298,6 @@ class WP_Object_Cache {
 	 * @return true Always returns true.
 	 */
 	public function flush_group( $group ) {
-
 		unset( $this->cache[ $group ] );
 
 		return true;
@@ -472,7 +471,6 @@ class WP_Object_Cache {
 			$group = 'default';
 		}
 
-		$id = $key;
 		if ( $this->multisite && ! isset( $this->global_groups[ $group ] ) ) {
 			$key = $this->blog_prefix . $key;
 		}
