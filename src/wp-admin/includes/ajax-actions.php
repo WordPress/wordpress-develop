@@ -1111,7 +1111,7 @@ function wp_ajax_add_tag() {
 		$message = $messages['_item'][1];
 	}
 
-	$data_is_message = true;
+	$data_is_success_message = true;
 
 	$x->add(
 		array(
