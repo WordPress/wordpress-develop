@@ -273,6 +273,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
+	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_caching() {
 		global $wpdb;
@@ -291,6 +292,30 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 		$this->assertNull( term_exists( $term ) );
 		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
+
+		// Clean up.
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * @ticket 36949
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_caching_suspend_cache_invalidation() {
+		global $wpdb;
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		wp_suspend_cache_invalidation( true );
+		// Insert a term.
+		$term = __FUNCTION__;
+		$t    = wp_insert_term( $term, 'wptests_tax' );
+		$this->assertIsArray( $t );
+
+		$this->assertEquals( $t['term_id'], term_exists( $term ) );
+		$num_queries = $wpdb->num_queries;
+		$this->assertEquals( $t['term_id'], term_exists( $term ) );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		wp_suspend_cache_invalidation( false );
 
 		// Clean up.
 		_unregister_taxonomy( 'wptests_tax' );
