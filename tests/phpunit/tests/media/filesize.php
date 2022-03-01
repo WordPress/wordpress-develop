@@ -5,10 +5,10 @@
  * @group media_filesize
  */
 class Tests_Image_Filesize extends WP_UnitTestCase {
-	function tearDown() {
+	function tear_down() {
 		$this->remove_added_uploads();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
