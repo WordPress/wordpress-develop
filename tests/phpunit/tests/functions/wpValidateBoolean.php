@@ -9,7 +9,7 @@
 class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 
 	/**
-	 * Test wp_validate_boolean().
+	 * Tests wp_validate_boolean().
 	 *
 	 * @dataProvider data_wp_validate_boolean
 	 *

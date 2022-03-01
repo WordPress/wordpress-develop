@@ -11,7 +11,7 @@
 class Tests_Functions_wpToKebabCase extends WP_UnitTestCase {
 
 	/**
-	 * Test _wp_to_kebab_case().
+	 * Tests _wp_to_kebab_case().
 	 *
 	 * @dataProvider data_wp_to_kebab_case
 	 *
