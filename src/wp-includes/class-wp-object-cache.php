@@ -298,7 +298,6 @@ class WP_Object_Cache {
 	 * @return true Always returns true.
 	 */
 	public function flush_group( $group ) {
-
 		unset( $this->cache[ $group ] );
 
 		return true;
