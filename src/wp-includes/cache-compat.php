@@ -153,17 +153,19 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	 *
 	 * @param string|array $group name(s) of group to remove from cache.
 	 *
-	 * @return bool True on success, false on failure group not found.
+	 * @return bool|Array True or array of bool in array passed on success, false on failure group not found.
 	 */
 	function wp_cache_flush_group( $group ) {
 
 		global $wp_object_cache;
 
 		// if group is an array loop and call each key in the array
-		if ( is_array( $group ) ) {
-			array_map( 'wp_cache_flush_group', array_values( $group ) );
 
-			return true;
+		if ( is_array( $group ) ) {
+			$result   = false;
+			$result[] = array_map( 'wp_cache_flush_group', array_values( $group ) );
+
+			return $result;
 		}
 
 		if ( method_exists( $wp_object_cache, 'flush_group' ) ) {
