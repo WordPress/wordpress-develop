@@ -245,7 +245,7 @@ function wp_get_environment_type() {
  * The value can be set via the `WP_RUNTIME_ENVIRONMENT` global system variable,
  * or a constant of the same name.
  *
- * Possible values are 'virtualbox', 'vvv', 'mamp', 'wamp', 'lamp'.
+ * Possible values are 'virtualbox', 'docker', 'parallels', 'vmware', 'hyper-v', 'mamp', 'wamp', 'lamp'.
  * If not set, the value defaults to 'lamp'.
  *
  * @since 6.0.0
