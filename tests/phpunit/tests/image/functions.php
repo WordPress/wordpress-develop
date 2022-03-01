@@ -468,9 +468,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
-	public function mock_image_editor(
-		$editors
-	) {
+	public function mock_image_editor( $editors ) {
 		return array( 'WP_Image_Editor_Mock' );
 	}
 
@@ -684,15 +682,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertNotEmpty( $attachment_id );
 
 		add_image_size( 'test-size', 100, 100 );
-		add_filter(
-			'fallback_intermediate_image_sizes',
-			array(
-				$this,
-				'filter_fallback_intermediate_image_sizes',
-			),
-			10,
-			2
-		);
+		add_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10, 2 );
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
@@ -731,9 +721,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
-	public function filter_fallback_intermediate_image_sizes(
-		$fallback_sizes, $metadata
-	) {
+	public function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {
 		// Add the 'test-size' to the list of fallback sizes.
 		$fallback_sizes[] = 'test-size';
 
@@ -808,9 +796,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_exif_frac2dec
 	 */
-	public function test_wp_exif_frac2dec(
-		$fraction, $expect
-	) {
+	public function test_wp_exif_frac2dec( $fraction, $expect ) {
 		$this->assertSame( $expect, wp_exif_frac2dec( $fraction ) );
 	}
 
