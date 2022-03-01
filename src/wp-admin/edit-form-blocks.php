@@ -28,6 +28,10 @@ $block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( true );
 
+// Load block patterns from w.org.
+_load_remote_block_patterns();
+_load_remote_featured_patterns();
+
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
@@ -187,7 +191,6 @@ $editor_settings = array(
 	'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
 	'bodyPlaceholder'                      => $body_placeholder,
 	'autosaveInterval'                     => AUTOSAVE_INTERVAL,
-	'styles'                               => get_block_editor_theme_styles(),
 	'richEditingEnabled'                   => user_can_richedit(),
 	'postLock'                             => $lock_details,
 	'postLockUtils'                        => array(
@@ -227,6 +230,10 @@ if ( $is_new_post && ! isset( $editor_settings['template'] ) && 'post' === $post
 	if ( in_array( $post_format, array( 'audio', 'gallery', 'image', 'quote', 'video' ), true ) ) {
 		$editor_settings['template'] = array( array( "core/$post_format" ) );
 	}
+}
+
+if ( wp_is_block_theme() && $editor_settings['supportsTemplateMode'] ) {
+	$editor_settings['defaultTemplatePartAreas'] = get_allowed_block_template_part_areas();
 }
 
 /**

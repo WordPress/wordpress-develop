@@ -307,7 +307,7 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_calendar' );
 	remove_action( 'init', 'register_block_core_categories' );
 	remove_action( 'init', 'register_block_core_file' );
-	remove_action( 'init', 'register_block_core_gallery', 20 );
+	remove_action( 'init', 'register_block_core_gallery' );
 	remove_action( 'init', 'register_block_core_image' );
 	remove_action( 'init', 'register_block_core_latest_comments' );
 	remove_action( 'init', 'register_block_core_latest_posts' );
@@ -346,5 +346,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_template_part' );
 	remove_action( 'init', 'register_block_core_term_description' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+	remove_action( 'init', 'register_block_core_widget_group' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

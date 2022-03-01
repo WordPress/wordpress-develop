@@ -1528,6 +1528,10 @@ table.form-table td .updated p {
 		margin: 0 3px;
 	}
 
+	.form-table .regular-text ~ input[type="text"].small-text {
+		margin-top: 5px;
+	}
+
 	#pass-strength-result {
 		width: 100%;
 		box-sizing: border-box;

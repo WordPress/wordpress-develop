@@ -149,6 +149,9 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		return false;
 	}
 
+	/**
+	 * @ticket 11611
+	 */
 	public function test_plugin_hook() {
 		$this->assertFalse( current_theme_supports( 'foobar' ) );
 		add_theme_support( 'foobar' );
@@ -162,6 +165,17 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 
 		remove_theme_support( 'foobar' );
 		$this->assertFalse( current_theme_supports( 'foobar', 'bar' ) );
+	}
+
+	/**
+	 * @ticket 55219
+	 */
+	public function test_plugin_hook_with_no_args() {
+		add_theme_support( 'foobar' );
+
+		add_filter( 'current_theme_supports-foobar', '__return_false' );
+
+		$this->assertFalse( current_theme_supports( 'foobar' ) );
 	}
 
 	/**
