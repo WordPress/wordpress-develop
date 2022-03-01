@@ -471,7 +471,6 @@ class WP_Object_Cache {
 			$group = 'default';
 		}
 
-		$id = $key;
 		if ( $this->multisite && ! isset( $this->global_groups[ $group ] ) ) {
 			$key = $this->blog_prefix . $key;
 		}
