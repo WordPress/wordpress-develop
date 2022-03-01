@@ -1968,8 +1968,8 @@ function move_dir( $from, $to ) {
 	 * without reporting an error properly.
 	 *
 	 * More details:
-	 * https://www.virtualbox.org/ticket/8761#comment:24
-	 * https://www.virtualbox.org/ticket/17971
+	 * - https://www.virtualbox.org/ticket/8761#comment:24
+	 * - https://www.virtualbox.org/ticket/17971
 	 */
 	if ( 'direct' === $wp_filesystem->method && 'virtualbox' !== wp_get_runtime_environment() ) {
 		$wp_filesystem->rmdir( $to );

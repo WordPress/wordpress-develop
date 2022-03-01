@@ -240,17 +240,17 @@ function wp_get_environment_type() {
 }
 
 /**
- * Retrieves the current runtime environment type.
+ * Retrieves the current runtime environment.
  *
- * The type can be set via the `WP_RUNTIME_ENVIRONMENT` global system variable,
+ * The value can be set via the `WP_RUNTIME_ENVIRONMENT` global system variable,
  * or a constant of the same name.
  *
  * Possible values are 'virtualbox', 'vvv', 'mamp', 'wamp', 'lamp'.
- * If not set, the type defaults to 'lamp'.
+ * If not set, the value defaults to 'lamp'.
  *
  * @since 6.0.0
  *
- * @return string The current runtime environment type.
+ * @return string The current runtime environment.
  */
 function wp_get_runtime_environment() {
 	static $current_runtime_env = '';
