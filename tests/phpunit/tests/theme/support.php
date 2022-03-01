@@ -168,6 +168,17 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55219
+	 */
+	public function test_plugin_hook_with_no_args() {
+		add_theme_support( 'foobar' );
+
+		add_filter( 'current_theme_supports-foobar', '__return_false' );
+
+		$this->assertFalse( current_theme_supports( 'foobar' ) );
+	}
+
+	/**
 	 * @ticket 26900
 	 */
 	public function test_supports_menus() {
