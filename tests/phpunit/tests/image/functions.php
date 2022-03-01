@@ -640,12 +640,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
-		// Different environments produce slightly different filesize results.
-		foreach ( $metadata['sizes'] as &$item ) {
-			$item['filesize'] = round( $item['filesize'], -3 );
-		}
-		$metadata['filesize'] = round( $metadata['filesize'], -3 );
-
 		$this->assertSame( $expected, $metadata );
 
 		unlink( $test_file );
@@ -699,7 +693,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		// Different environments produce slightly different filesize results.
-		$metadata['sizes']['test-size']['filesize'] = round( $metadata['sizes']['test-size']['filesize'], -3 );
 		$this->assertSame( $metadata['sizes']['test-size'], $expected );
 
 		$this->assertArrayHasKey( 'test-size', $metadata['sizes'], 'The `test-size` was not added to the metadata.' );
