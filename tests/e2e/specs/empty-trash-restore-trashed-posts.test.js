@@ -34,8 +34,7 @@ describe( 'Empty Trash', () => {
         await page.click("a[aria-label='Move “Test Title” to the Trash']");
 
         // Empty trash 
-        const trashbutton = await page.$x("//li[@class='trash']");
-        await trashbutton[0].click();   
+        await page.click("a[href='edit.php?post_status=trash&post_type=post']");  
         const deleteAllButton = await page.waitForSelector('input[value="Empty Trash"]');
         await deleteAllButton.click();
         await page.waitForSelector("#message");
