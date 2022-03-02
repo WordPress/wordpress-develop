@@ -39,4 +39,20 @@ class Tests_WP_ParseRequest extends WP_UnitTestCase {
 		$this->wp->parse_request();
 		$this->assertSame( '', $this->wp->request );
 	}
+	/**
+	 * Test that the parse_request() returns bool
+	 *
+	 * @ticket 10886
+	 */
+	public function test_parse_request_returns_bool() {
+
+		// check if parse_request() returns true for default setup.
+		$this->assertTrue( $this->wp->parse_request(), 'returns true' );
+
+		// add filter to shortcut the parse_request function.
+		add_filter( 'do_parse_request', '__return_false' );
+		$this->assertFalse( $this->wp->parse_request(), 'returns false' );
+		remove_filter( 'do_parse_request', '__return_false' );
+
+	}
 }
