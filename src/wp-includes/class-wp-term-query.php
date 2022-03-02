@@ -742,7 +742,9 @@ class WP_Term_Query {
 		$cache_key    = "get_terms:$key:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'terms' );
 		if ( false !== $cache ) {
-			if ( 'count' !== $_fields ) {
+			if ( 'ids' === $_fields ) {
+				$cache = wp_list_pluck( $cache, 'term_id' );
+			} else if ( 'count' !== $_fields ) {
 				$term_ids = wp_list_pluck( $cache, 'term_id' );
 				_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
 				$terms_objects = $this->populate_terms( $cache );
