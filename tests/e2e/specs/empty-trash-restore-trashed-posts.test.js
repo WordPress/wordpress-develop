@@ -30,9 +30,7 @@ describe("Empty Trash", () => {
 
     // Empty trash
     await page.click("a[href='edit.php?post_status=trash&post_type=post']");
-    const deleteAllButton = await page.waitForSelector(
-      'input[value="Empty Trash"]'
-    );
+    const deleteAllButton = await page.waitForSelector('input[value="Empty Trash"]');
     await deleteAllButton.click();
     await page.waitForSelector("#message");
   });
