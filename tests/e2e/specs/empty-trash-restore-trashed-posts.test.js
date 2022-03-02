@@ -1,73 +1,64 @@
 import {
-    visitAdminPage,
-    createNewPost,
-    trashAllPosts,
-    publishPost
-} from '@wordpress/e2e-test-utils';
+  visitAdminPage,
+  createNewPost,
+  trashAllPosts,
+  publishPost,
+} from "@wordpress/e2e-test-utils";
 
+const posttitle = "Test Title";
 
-const posttitle = 'Test Title';
+describe("Empty Trash", () => {
+  async function createPost(title) {
+    // Create a Post
+    await createNewPost({ title });
+    await publishPost();
+  }
 
-describe( 'Empty Trash', () => {
+  afterEach(async () => {
+    await trashAllPosts();
+  });
 
-    async function createPost(title) {
-        // Create a Post     
-        await createNewPost( {title} );
-        await publishPost();
+  it("Empty Trash", async () => {
+    await createPost(posttitle);
 
-    }
+    await visitAdminPage("/edit.php");
 
-    afterEach( async () => {
-        await trashAllPosts();
-    } );
+    // Move post to trash
+    await page.waitForSelector("#the-list .type-post");
+    await page.hover(".row-title");
+    await page.click("a[aria-label='Move “Test Title” to the Trash']");
 
-    it( 'Empty Trash', async () => {
+    // Empty trash
+    await page.click("a[href='edit.php?post_status=trash&post_type=post']");
+    const deleteAllButton = await page.waitForSelector(
+      'input[value="Empty Trash"]'
+    );
+    await deleteAllButton.click();
+    await page.waitForSelector("#message");
+  });
 
-        await createPost(posttitle);
-       
-        await visitAdminPage( '/edit.php' );  
+  it("Restore trash post", async () => {
+    await createPost(posttitle);
 
-        // Move post to trash
-        await page.waitForSelector( '#the-list .type-post' );
-        await page.hover('.row-title');
-        await page.click("a[aria-label='Move “Test Title” to the Trash']")
+    await visitAdminPage("/edit.php");
 
-        // Empty trash 
-        const trashbutton = await page.$x("//li[@class='trash']");
-        await trashbutton[0].click();   
-        const deleteAllButton = await page.waitForSelector('input[value="Empty Trash"]');
-        await deleteAllButton.click();
-        await page.waitForSelector("#message");
-        
-    } );
+    // Move one post to trash
+    await page.waitForSelector("#the-list .type-post");
+    await page.hover(".row-title");
+    await page.click("a[aria-label='Move “Test Title” to the Trash']");
 
+    // Remove post from trash
+    await page.click("a[href='edit.php?post_status=trash&post_type=post']");
 
-    it( 'Restore trash post', async () => {
+    await page.waitForSelector("#the-list .type-post");
+    await page.hover(".page-title");
+    await page.click(`[aria-label="Restore “${posttitle}” from the Trash"]`);
 
-        await createPost(posttitle);
-    
-        await visitAdminPage( '/edit.php' );  
+    // Expect for sucess message for trashed post.
+    const messageElement = await page.waitForSelector("#message");
 
-        // Move one post to trash
-        await page.waitForSelector( '#the-list .type-post' );
-        await page.hover('.row-title');
-        await page.click("a[aria-label='Move “Test Title” to the Trash']");
-
-        // Remove post from trash 
-        const trashbutton = await page.$x("//li[@class='trash']");
-        await trashbutton[0].click();   
-        
-        await page.waitForSelector( '#the-list .type-post' );
-        await page.hover('.page-title'); 
-        await page.click(`[aria-label="Restore “${posttitle}” from the Trash"]`);
-
-        // expect for sucess message for trashed post. 
-        const messageElement = await page.waitForSelector('#message'); 
-
-        expect( 
-            await messageElement.evaluate( ( element ) => element.innerText ) 
-        ).toContain( '1 post restored from the Trash.' )
-
-    } );
-   
-} );
+    expect(
+      await messageElement.evaluate((element) => element.innerText)
+    ).toContain("1 post restored from the Trash.");
+  });
+});
