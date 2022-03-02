@@ -743,7 +743,8 @@ class WP_Term_Query {
 		$cache        = wp_cache_get( $cache_key, 'terms' );
 		if ( false !== $cache ) {
 			if ( 'ids' === $_fields ) {
-				$cache = wp_list_pluck( $cache, 'term_id' );
+				$term_ids = wp_list_pluck( $cache, 'term_id' );
+				$cache    = array_map( 'intval', $term_ids );
 			} else if ( 'count' !== $_fields ) {
 				$term_ids = wp_list_pluck( $cache, 'term_id' );
 				_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
