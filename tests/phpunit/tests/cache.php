@@ -464,21 +464,6 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $key, 'group-test2' ), 'test_wp_cache_flush_groups: group-test2 should return false' );
 		$this->assertSame( $val, wp_cache_get( $key, 'group-kept' ), 'test_wp_cache_flush_groups: group-kept should still contain my-val' );
 	}
-
-	/**
-	 * @ticket 4476
-	 * @ticket 9773
-	 *
-	 * test wp_cache_get_linked_meta returns an array
-	 *
-	 * @covers ::wp_cache_get_linked_meta
-	 */
-	public function test_wp_cache_get_linked_meta() {
-
-		$this->assertIsArray( wp_cache_get_linked_meta() );
-	}
-
-
 }
 class WP_Object_Cache_dummy {
 	public function dummy_function() {
