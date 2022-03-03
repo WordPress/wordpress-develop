@@ -663,7 +663,8 @@ function comment_excerpt( $comment_ID = 0 ) {
  * @return string The comment ID as a numeric string.
  */
 function get_comment_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	$comment = get_comment();
+	$comment    = get_comment();
+	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID : '0';
 
 	/**
 	 * Filters the returned comment ID.
@@ -674,7 +675,7 @@ function get_comment_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFun
 	 * @param string     $comment_ID The current comment ID as a numeric string.
 	 * @param WP_Comment $comment    The comment object.
 	 */
-	return apply_filters( 'get_comment_ID', $comment->comment_ID, $comment );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+	return apply_filters( 'get_comment_ID', $comment_ID, $comment );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
 }
 
 /**
