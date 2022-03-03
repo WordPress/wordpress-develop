@@ -745,7 +745,7 @@ class WP_Term_Query {
 			if ( 'ids' === $_fields ) {
 				$term_ids = wp_list_pluck( $cache, 'term_id' );
 				$cache    = array_map( 'intval', $term_ids );
-			} else if ( 'count' !== $_fields ) {
+			} elseif ( 'count' !== $_fields ) {
 				$term_ids = wp_list_pluck( $cache, 'term_id' );
 				_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
 				$terms_objects = $this->populate_terms( $cache );
