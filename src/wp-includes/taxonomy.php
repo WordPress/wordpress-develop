@@ -1519,6 +1519,7 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
  * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 3.0.0
+ * @since 6.0.0 Converted to use `get_terms()`.
  *
  * @global bool $_wp_suspend_cache_invalidation
  *
