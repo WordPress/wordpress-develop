@@ -275,22 +275,69 @@ class Tests_TermExists extends WP_UnitTestCase {
 	 * @ticket 36949
 	 * @covers ::term_exists()
 	 */
+	public function test_term_lookup_by_id_and_update() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$this->assertEquals( $t, term_exists( $t ) );
+		$this->assertTrue( wp_delete_term( $t, 'wptests_tax' ) );
+		$this->assertNull( term_exists( $t ) );
+
+		// Clean up.
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * @ticket 36949
+	 * @covers ::term_exists()
+	 */
+	public function test_term_lookup_by_slug_and_update() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$this->assertEquals( $t, term_exists( $slug ) );
+		$this->assertTrue( wp_delete_term( $t, 'wptests_tax' ) );
+		$this->assertNull( term_exists( $slug ) );
+
+		// Clean up.
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * @ticket 36949
+	 * @covers ::term_exists()
+	 */
 	public function test_term_exists_caching() {
 		global $wpdb;
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		// Insert a term.
-		$term = __FUNCTION__;
-		$t    = wp_insert_term( $term, 'wptests_tax' );
-		$this->assertIsArray( $t );
-		$this->assertEquals( $t['term_id'], term_exists( $term ) );
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$this->assertEquals( $t, term_exists( $slug ) );
 		$num_queries = $wpdb->num_queries;
-		$this->assertEquals( $t['term_id'], term_exists( $term ) );
+		$this->assertEquals( $t, term_exists( $slug ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
-		$this->assertTrue( wp_delete_term( $t['term_id'], 'wptests_tax' ) );
+		$this->assertTrue( wp_delete_term( $t, 'wptests_tax' ) );
 		$num_queries = $wpdb->num_queries;
-		$this->assertNull( term_exists( $term ) );
+		$this->assertNull( term_exists( $slug ) );
 		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
 
 		// Clean up.
@@ -306,14 +353,17 @@ class Tests_TermExists extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		wp_suspend_cache_invalidation( true );
-		// Insert a term.
-		$term = __FUNCTION__;
-		$t    = wp_insert_term( $term, 'wptests_tax' );
-		$this->assertIsArray( $t );
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
 
-		$this->assertEquals( $t['term_id'], term_exists( $term ) );
+		$this->assertEquals( $t, term_exists( $slug ) );
 		$num_queries = $wpdb->num_queries;
-		$this->assertEquals( $t['term_id'], term_exists( $term ) );
+		$this->assertEquals( $t, term_exists( $slug ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 		wp_suspend_cache_invalidation( false );
 
