@@ -35,9 +35,10 @@ if ( false === $installed_themes ) {
 	$installed_themes = array();
 }
 
-foreach ( $installed_themes as $k => $v ) {
-	if ( false !== strpos( $k, '/' ) ) {
-		unset( $installed_themes[ $k ] );
+foreach ( $installed_themes as $theme_slug => $theme_data ) {
+	// Ignore child themes.
+	if ( str_contains( $theme_slug, '/' ) ) {
+		unset( $installed_themes[ $theme_slug ] );
 	}
 }
 
