@@ -913,12 +913,14 @@ class WP_Term_Query {
 	}
 
 	/**
-	 * Format responses.
+	 * Format response depending on field requested.
+	 *
+	 * @since 6.0.0
 	 *
 	 * @param WP_Term[] $terms_objects Array of term objects.
 	 * @param string $_fields Field to format.
 	 *
-	 * @return array
+	 * @return WP_Term[]|int[]|string[] Array of terms / strings / ints depending on field requested.
 	 */
 	protected function format_terms( $terms_objects, $_fields ) {
 		$_terms = array();
