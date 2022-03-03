@@ -371,6 +371,32 @@ class Tests_TermExists extends WP_UnitTestCase {
 		_unregister_taxonomy( 'wptests_tax' );
 	}
 
+	/**
+	 * @ticket 36949
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_caching_by_int_suspend_cache_invalidation() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		// Warm cache in get_term() via term_exists().
+		term_exists( $t );
+		wp_suspend_cache_invalidation( true );
+		wp_delete_term( $t, 'wptests_tax' );
+		$this->assertNull( term_exists( $t ) );
+
+		// Reneable cache invalidation.
+		wp_suspend_cache_invalidation( false );
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
 	public function test_term_exists_unknown() {
 		$this->assertNull( term_exists( rand_str() ) );
 		$this->assertSame( 0, term_exists( 0 ) );
