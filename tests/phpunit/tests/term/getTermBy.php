@@ -5,6 +5,8 @@
  */
 class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
+	protected $query = '';
+
 	public function test_get_term_by_slug() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'slug', 'foo', 'category' );
@@ -208,6 +210,23 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	/**
 	 * @ticket 21760
 	 */
+	public function test_query_should_contain_limit_clause() {
+		$term_id = $this->factory->term->create(
+			array(
+				'name'     => 'burrito',
+				'taxonomy' => 'post_tag',
+			)
+		);
+		add_filter( 'terms_pre_query', array( $this, 'get_query_from_filter' ), 10, 2 );
+		$found = get_term_by( 'name', 'burrito', 'post_tag' );
+		remove_filter( 'terms_pre_query', array( $this, 'get_query_from_filter' ) );
+		$this->assertSame( $term_id, $found->term_id );
+		$this->assertStringContainsString( 'LIMIT 1', $this->query );
+	}
+
+	/**
+	 * @ticket 21760
+	 */
 	public function test_prevent_recursion_by_get_terms_filter() {
 		$action = new MockAction();
 
@@ -264,5 +283,11 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 		$this->assertFalse( $found_by_slug );
 		$this->assertFalse( $found_by_name );
+	}
+
+	public function get_query_from_filter( $terms, $wp_term_query ) {
+		$this->query = $wp_term_query->request;
+
+		return $terms;
 	}
 }
