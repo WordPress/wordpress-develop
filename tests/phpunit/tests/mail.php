@@ -226,6 +226,28 @@ class Tests_Mail extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_mail() returns false with an empty home URL and does not error out on PHP 8.1.
+	 *
+	 * @ticket 54730
+	 */
+	public function test_wp_mail_with_empty_home_url() {
+		$to      = 'address@tld.com';
+		$subject = 'Testing';
+		$message = 'Test Message';
+
+		// Multisite test runs.
+		add_filter( 'network_home_url', '__return_empty_string' );
+
+		// Single site test runs.
+		add_filter( 'home_url', '__return_empty_string' );
+
+		$result = wp_mail( $to, $subject, $message );
+
+		$this->assertFalse( $result, 'wp_mail() should have returned false' );
+		$this->assertGreaterThan( 0, did_action( 'wp_mail_failed' ), 'wp_mail_failed action was not called' );
+	}
+
+	/**
 	 * @ticket 30266
 	 */
 	public function test_wp_mail_with_valid_content_type_header() {
