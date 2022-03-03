@@ -32,7 +32,7 @@ describe("Empty Trash", () => {
     await page.click("a[href='edit.php?post_status=trash&post_type=post']");
     const deleteAllButton = await page.waitForSelector('input[value="Empty Trash"]');
     await deleteAllButton.click();
-    await page.waitForSelector("#message");
+    await page.waitForSelector("#message"); // TODO
   });
 
   it("Restore trash post", async () => {
