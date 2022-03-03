@@ -22,10 +22,11 @@
  * @return string The comment author
  */
 function get_comment_author( $comment_ID = 0 ) {
-	$comment = get_comment( $comment_ID );
+	$comment    = get_comment( $comment_ID );
+	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID : $comment_ID;
 
 	if ( empty( $comment->comment_author ) ) {
-		$user = $comment->user_id ? get_userdata( $comment->user_id ) : false;
+		$user = ! empty( $comment->user_id ) ? get_userdata( $comment->user_id ) : false;
 		if ( $user ) {
 			$author = $user->display_name;
 		} else {
@@ -45,7 +46,7 @@ function get_comment_author( $comment_ID = 0 ) {
 	 * @param string     $comment_ID The comment ID as a numeric string.
 	 * @param WP_Comment $comment    The comment object.
 	 */
-	return apply_filters( 'get_comment_author', $author, $comment->comment_ID, $comment );
+	return apply_filters( 'get_comment_author', $author, $comment_ID, $comment );
 }
 
 /**
