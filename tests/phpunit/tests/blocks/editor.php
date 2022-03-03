@@ -97,7 +97,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket
+	 * @ticket 55301
 	 */
 	public function test_block_editor_context_widgets() {
 		$context = new WP_Block_Editor_Context( array( 'type' => 'widgets' ) );
@@ -108,7 +108,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket
+	 * @ticket 55301
 	 */
 	public function test_block_editor_context_widgets_customizer() {
 		$context = new WP_Block_Editor_Context(
@@ -124,7 +124,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket
+	 * @ticket 55301
 	 */
 	public function test_block_editor_context_site() {
 		$context = new WP_Block_Editor_Context( array( 'type' => 'site' ) );
