@@ -1572,6 +1572,7 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 
 	// Ensure that while importing, queries are not cached.
 	if ( ! empty( $_wp_suspend_cache_invalidation ) ) {
+		// @todo Disable caching once #52710 is merged.
 		$defaults['cache_domain'] = microtime();
 	}
 
