@@ -245,8 +245,8 @@ function wp_get_environment_type() {
  * The value can be set via the `WP_RUNTIME_ENVIRONMENT` global system variable,
  * or a constant of the same name.
  *
- * Possible value(s) is 'virtualbox' only at this time.
- * If not set, the value defaults to ''.
+ * The only value currently supported is 'virtualbox'. If not set, the value
+ * defaults to an empty string.
  *
  * @since 6.0.0
  *
