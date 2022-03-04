@@ -1381,8 +1381,8 @@ class wpdb {
 	/**
 	 * Escapes an identifier value.
 	 *
-	 * Escapes an identifier value without adding the surrounding quotes. 
-	 * 
+	 * Escapes an identifier value without adding the surrounding quotes.
+	 *
 	 * - Permitted characters in quoted identifiers include the full Unicode Basic Multilingual Plane (BMP), except U+0000
 	 * - To quote the identifier itself, then you need to double the character, e.g. `a``b`
 	 *
