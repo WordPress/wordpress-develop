@@ -473,17 +473,18 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param array $size_data {
+	 * @param array  $size_data {
 	 *     Array of size data.
 	 *
 	 *     @type int  $width  The maximum width in pixels.
 	 *     @type int  $height The maximum height in pixels.
 	 *     @type bool $crop   Whether to crop the image to exact dimensions.
 	 * }
+	 * @param string $mime_type Optional. The mime type of the image.
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
 	 */
-	public function make_subsize( $size_data ) {
+	public function make_subsize( $size_data, $mime_type ) {
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
 			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
 		}
@@ -508,7 +509,11 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( is_wp_error( $resized ) ) {
 			$saved = $resized;
 		} else {
-			$saved = $this->_save( $this->image );
+			if ( $mime_type ) {
+				$saved = $this->_save( $this->image, null, $mime_type );
+			} else {
+				$saved = $this->_save( $this->image );
+			}
 
 			$this->image->clear();
 			$this->image->destroy();
