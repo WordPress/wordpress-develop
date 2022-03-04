@@ -1388,6 +1388,7 @@ class wpdb {
 	 *
 	 * @link https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
 	 * @since 6.0.0
+	 * @access private
 	 *
 	 * @param string $identifier Identifier to escape.
 	 */
