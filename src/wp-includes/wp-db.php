@@ -1516,23 +1516,21 @@ class wpdb {
 				$placeholder = '%' . $format . $type;
 			}
 
-			if ( 'd' === $type || 'F' === $type ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
-				// Keep $placeholder.
-			} elseif ( 'i' === $type ) {
+			if ( 'i' === $type ) {
 				$placeholder = '`%' . $format . 's`';
 				if ( strpos( $format, '$' ) !== false ) { // Using a simple strpos() due to previous checking (e.g. $allowed_format).
 					$arg_identifiers[] = intval( substr( $format, 1 ) );
 				} else {
 					$arg_identifiers[] = $arg_id;
 				}
-			} else { // 's' === $type
+			} elseif ( 's' === $type ) {
 				if ( strpos( $format, '$' ) !== false ) {
 					$arg_strings[] = intval( substr( $format, 1 ) );
 				}
 				if ( true !== $this->unsafe_unquoted_parameters || '' === $format ) { // Unquoted strings for backwards compatibility (dangerous).
 					$placeholder = "'%" . $format . "s'";
 				}
-			}
+			} // elseif ( 'd' === $type || 'F' === $type ), nothing needs to be done (keep $placeholder)
 
 			$new_query .= $split_query[ $key - 2 ] . $split_query[ $key - 1 ] . $placeholder;
 				// Glue (-2), any prefix characters (-1), then the new $placeholder.
