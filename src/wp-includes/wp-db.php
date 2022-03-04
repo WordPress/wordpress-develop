@@ -1543,7 +1543,7 @@ class wpdb {
 			wp_load_translations_early();
 			_doing_it_wrong(
 				'wpdb::prepare',
-				__( 'You cannot use a an argument for a string and an identifier.' ),
+				__( 'You cannot use an argument for a string and an identifier.' ),
 				'6.0.0'
 			);
 
