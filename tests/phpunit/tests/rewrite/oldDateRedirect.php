@@ -48,6 +48,7 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_old_date_redirect() {
+		global $wpdb;
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
 
 		$time = '2004-01-03 00:00:00';
@@ -65,6 +66,36 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 	}
+
+	public function test_old_date_redirect_uses_cache_for_second_query() {
+		global $wpdb;
+		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		$time = '2004-01-03 00:00:00';
+		wp_update_post(
+			array(
+				'ID'            => self::$post_id,
+				'post_date'     => $time,
+				'post_date_gmt' => get_gmt_from_date( $time ),
+			)
+		);
+
+		$permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_date_redirect_url );
+
+		$query_count = $wpdb->num_queries;
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_date_redirect_url );
+
+		$this->assertSame( $query_count, $wpdb->num_queries );
+
+	}
+
 
 	public function test_old_date_slug_redirect() {
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
@@ -84,6 +115,35 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->go_to( $old_permalink );
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
+	}
+
+	public function test_old_date_slug_redirect_uses_cache_for_second_quer() {
+		global $wpdb;
+		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		$time = '2004-01-03 00:00:00';
+		wp_update_post(
+			array(
+				'ID'            => self::$post_id,
+				'post_date'     => $time,
+				'post_date_gmt' => get_gmt_from_date( $time ),
+				'post_name'     => 'bar-baz',
+			)
+		);
+
+		$permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_date_redirect_url );
+
+		$query_count = $wpdb->num_queries;
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_date_redirect_url );
+
+		$this->assertSame( $query_count, $wpdb->num_queries );
 	}
 
 	public function test_old_date_redirect_attachment() {
