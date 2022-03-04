@@ -1063,8 +1063,8 @@ class WP_Term_Query {
 	 *
 	 * @since 4.9.8
 	 *
-	 * @param array $terms_data Term data.
-	 * @return array
+	 * @param Object[]|int[] $terms_data List of objects or term ids.
+	 * @return WP_Term[] Array of `WP_Term` objects.
 	 */
 	protected function populate_terms( $terms_data ) {
 		$terms = array();
