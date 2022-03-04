@@ -1538,32 +1538,9 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 		return null;
 	}
 
-	if ( is_int( $term ) ) {
-		if ( 0 === $term ) {
-			return 0;
-		}
-		$_term = get_term( $term, $taxonomy );
-		if ( is_wp_error( $_term ) || is_null( $_term ) ) {
-			return null;
-		}
-		if ( ! empty( $taxonomy ) ) {
-			return array(
-				'term_id'          => (string) $_term->term_id,
-				'term_taxonomy_id' => (string) $_term->term_taxonomy_id,
-			);
-		}
-
-		return (string) $_term->term_id;
-	}
-
-	$term = trim( wp_unslash( $term ) );
-	if ( '' === $term ) {
-		return null;
-	}
-
 	$defaults = array(
 		'get'                    => 'all',
-		'hide_empty'             => false,
+		'fields'                 => 'ids',
 		'number'                 => 1,
 		'update_term_meta_cache' => false,
 		'order'                  => 'ASC',
@@ -1579,19 +1556,35 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 
 	if ( ! empty( $taxonomy ) ) {
 		$defaults['taxonomy'] = $taxonomy;
-		if ( is_numeric( $parent ) ) {
+		$defaults['fields']   = 'all';
+	}
+
+	if ( is_int( $term ) ) {
+		if ( 0 === $term ) {
+			return 0;
+		}
+		$args  = wp_parse_args( array( 'include' => array( $term ) ), $defaults );
+		$terms = get_terms( $args );
+	} else {
+		$term = trim( wp_unslash( $term ) );
+		if ( '' === $term ) {
+			return null;
+		}
+
+		if ( ! empty( $taxonomy ) && is_numeric( $parent ) ) {
 			$defaults['parent'] = (int) $parent;
+		}
+
+		$args  = wp_parse_args( array( 'slug' => sanitize_title( $term ) ), $defaults );
+		$terms = get_terms( $args );
+		if ( empty( $terms ) || is_wp_error( $terms ) ) {
+			$args  = wp_parse_args( array( 'name' => $term ), $defaults );
+			$terms = get_terms( $args );
 		}
 	}
 
-	$args  = wp_parse_args( array( 'slug' => sanitize_title( $term ) ), $defaults );
-	$terms = get_terms( $args );
 	if ( empty( $terms ) || is_wp_error( $terms ) ) {
-		$args  = wp_parse_args( array( 'name' => $term ), $defaults );
-		$terms = get_terms( $args );
-		if ( empty( $terms ) || is_wp_error( $terms ) ) {
-			return null;
-		}
+		return null;
 	}
 
 	$_term = array_shift( $terms );
@@ -1603,7 +1596,7 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 		);
 	}
 
-	return (string) $_term->term_id;
+	return (string) $_term;
 }
 
 /**
