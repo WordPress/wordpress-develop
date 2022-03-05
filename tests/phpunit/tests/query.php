@@ -719,7 +719,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$query->parse_query(
 			array(
-				'author_name' => $user->user_nicename
+				'author_name' => $user->user_nicename,
 			)
 		);
 		$this->assertEquals( $query->get_queried_object(), $user );
