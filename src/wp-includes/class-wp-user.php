@@ -186,11 +186,15 @@ class WP_User {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string     $field The field to query against: 'id', 'ID', 'slug', 'email' or 'login'.
-	 * @param string|int $value The field value
-	 * @return object|false Raw user object
+	 * @param string|int $value The field value.
+	 * @return object|false Raw user object on success. False on failure.
 	 */
 	public static function get_data_by( $field, $value ) {
 		global $wpdb;
+
+		if ( ! is_scalar( $value ) ) {
+			return false;
+		}
 
 		// 'ID' is an alias of 'id'.
 		if ( 'ID' === $field ) {
