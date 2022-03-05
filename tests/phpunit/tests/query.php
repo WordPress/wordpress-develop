@@ -712,7 +712,7 @@ class Tests_Query extends WP_UnitTestCase {
 		$query = new WP_Query();
 		$query->parse_query(
 			array(
-				'author' => $user_id
+				'author' => $user_id,
 			)
 		);
 		$this->assertEquals( $query->get_queried_object(), $user );
