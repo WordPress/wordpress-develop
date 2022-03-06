@@ -247,9 +247,9 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	if ( $exif_meta ) {
 		$image_meta['image_meta'] = $exif_meta;
 	}
-
+	$mime_type = $imagesize['mime'];
 	// Do not scale (large) PNG images. May result in sub-sizes that have greater file size than the original. See #48736.
-	if ( 'image/png' !== $imagesize['mime'] ) {
+	if ( 'image/png' !== $mime_type ) {
 
 		/**
 		 * Filters the "BIG image" threshold value.
@@ -297,21 +297,45 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			if ( ! is_wp_error( $resized ) ) {
 				// Append "-scaled" to the image file name. It will look like "my_image-scaled.jpg".
 				// This doesn't affect the sub-sizes names as they are generated from the original image (for best quality).
-				$saved = $editor->save( $editor->generate_filename( 'scaled' ) );
+				$valid_mime_transforms = wp_get_image_mime_transforms( $attachment_id);
 
-				if ( ! is_wp_error( $saved ) ) {
-					$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
+				$output_mime_types     = isset( $valid_mime_transforms[ $mime_type ] ) ? $valid_mime_transforms[ $mime_type ] : array( $mime_type );
 
-					// If the image was rotated update the stored EXIF data.
-					if ( true === $rotated && ! empty( $image_meta['image_meta']['orientation'] ) ) {
-						$image_meta['image_meta']['orientation'] = 1;
+				// Generate all off of the output types.
+				foreach( $output_mime_types as $mime_index => $mime_type ) {
+					if ( 0 === $mime_index ) {
+						$saved = $editor->save( $editor->generate_filename( 'scaled' ), $mime_type );
+						if ( ! is_wp_error( $saved ) ) {
+							$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
+
+							// If the image was rotated update the stored EXIF data.
+							if ( true === $rotated && ! empty( $image_meta['image_meta']['orientation'] ) ) {
+								$image_meta['image_meta']['orientation'] = 1;
+							}
+						} else {
+							// TODO: Log errors.
+						}
+					} else {
+						$saved = $editor->save( $editor->generate_filename( str_replace( 'image/', '', $mime_type ) ), $mime_type );
 					}
-				} else {
-					// TODO: Log errors.
+
+					if ( ! is_wp_error( $saved ) ) {
+						$image_meta['sources'][ $mime_type ] = array(
+							'file' => $saved['file'],
+							'filesize' => filesize( $saved['path'] )
+						);
+						// If the image was rotated update the stored EXIF data.
+						if ( true === $rotated && ! empty( $image_meta['image_meta']['orientation'] ) ) {
+							$image_meta['image_meta']['orientation'] = 1;
+						} else {
+						// TODO: Log errors.
+						}
+					}
 				}
 			} else {
 				// TODO: Log errors.
 			}
+
 		} elseif ( ! empty( $exif_meta['orientation'] ) && 1 !== (int) $exif_meta['orientation'] ) {
 			// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
 
@@ -390,16 +414,18 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		// Not an image attachment.
 		return array();
 	}
+
+	// Set up a top level sources array for the full size images.
+	if ( ! isset( $metadata['sources'] ) || ! is_array( $metadata['sources'] ) ) {
+		$metadata['sources'] = array();
+	}
+
 	// Assemble the output mime types
 	$valid_mime_transforms = wp_get_image_mime_transforms( $attachment_id);
-	$output_mime_types = array( $mime_type );
+	$output_mime_types     = isset( $valid_mime_transforms[ $mime_type ] ) ? $valid_mime_transforms[ $mime_type ] : array( $mime_type );
+	$dirname               = pathinfo( $file, PATHINFO_DIRNAME );
 
-	if ( isset( $valid_mime_transforms[ $mime_type ] ) ) {
-		$output_mime_types = $valid_mime_transforms[ $mime_type ];
-	}
-	$dirname = pathinfo( $file, PATHINFO_DIRNAME );
-
-	// Generate off of the output types.
+	// Generate all off of the output types.
 	foreach( $output_mime_types as $mime_index => $mime_type ) {
 
 		// Check if any of the new sizes already exist for this mime type.
