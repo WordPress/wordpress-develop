@@ -1905,7 +1905,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				/* translators: %s: Available disk space in MB or GB. */
-				'<p>' . __( '%s available disk space was detected, update routines can be performed safely.' ),
+				'<p>' . __( '%s available disk space was detected, update routines can be performed safely.' ) . '</p>',
 				size_format( $available_space )
 			),
 			'actions'     => '',
@@ -1955,7 +1955,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup */
-				'<p>' . __( 'The %s directory used to improve the stability of plugin and theme updates is writable.' ),
+				'<p>' . __( 'The %s directory used to improve the stability of plugin and theme updates is writable.' ) . '</p>',
 				'<code>wp-content/upgrade/temp-backup</code>'
 			),
 			'actions'     => '',
