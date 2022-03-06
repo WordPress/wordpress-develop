@@ -489,7 +489,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 			}
 		} else {
 			// Fall back to `$editor->multi_resize()`.
-			$created_sizes = $editor->multi_resize( $new_sizes, $mime_type );
+			$created_sizes = $editor->multi_resize( $new_sizes );
 
 			if ( ! empty( $created_sizes ) ) {
 				$image_meta['sizes'] = array_merge( $image_meta['sizes'], $created_sizes );
