@@ -393,24 +393,24 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	// Assemble the output mime types
 	$valid_mime_transforms = wp_get_image_mime_transforms( $attachment_id);
 	$output_mime_types = array( $mime_type );
-	error_log( json_encode( $valid_mime_transforms, JSON_PRETTY_PRINT));
 
 	if ( isset( $valid_mime_transforms[ $mime_type ] ) ) {
 		$output_mime_types = $valid_mime_transforms[ $mime_type ];
 	}
+	$dirname = pathinfo( $file, PATHINFO_DIRNAME );
 
 	// Generate off of the output types.
-	foreach( $output_mime_types as $mime_type ) {
+	foreach( $output_mime_types as $mime_index => $mime_type ) {
 
-		// Check if any of the new sizes already exist.
+		// Check if any of the new sizes already exist for this mime type.
 		if ( isset( $image_meta['sizes'] ) && is_array( $image_meta['sizes'] ) ) {
 			foreach ( $image_meta['sizes'] as $size_name => $size_meta ) {
 				if ( ! isset ( $size_meta['sources'] ) ) {
 					$size_meta['sources'] = array();
 				}
 
-				if ( ! isset( $size_meta['sources'][ $mime_type ] ) ) {
-					$size_meta['sources'][ $mime_type ] = array();
+				if ( ! isset( $new_sizes['sources'][ $mime_type ] ) ) {
+					$new_sizes['sources'][ $mime_type ] = array();
 					continue;
 				}
 
@@ -419,7 +419,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 				* don't match the currently defined size with the same name.
 				* To change the behavior, unset changed/mismatched sizes in the `sizes` array in image meta.
 				*/
-				if ( array_key_exists( $size_name, $new_sizes ) ) {
+				if ( array_key_exists( $size_name, $new_sizes['sources'][ $mime_type ] ) ) {
 					unset( $new_sizes[ $size_name ] );
 				}
 			}
@@ -469,8 +469,21 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 				if ( is_wp_error( $new_size_meta ) ) {
 					// TODO: Log errors.
 				} else {
-					// Save the size meta value.
-					$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+					// Save the default (first) mime size in the 'sizes'meta value.
+					if ( 0 === $mime_index ) {
+						$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+					}
+
+					// Store the mime type specific sub-size in the 'sources' attribute.
+					$source_meta = array(
+						'file' => $new_size_meta['file'],
+						'filesize' => 0
+					);
+					$file_location = path_join( $dirname, $new_size_meta['file'] );
+					if ( file_exists( $file_location ) ) {
+						$source_meta['filesize'] = filesize( $file_location );
+					}
+					$image_meta['sizes'][ $new_size_name ]['sources'][ $mime_type ] = $source_meta;
 					wp_update_attachment_metadata( $attachment_id, $image_meta );
 				}
 			}

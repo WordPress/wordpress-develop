@@ -275,9 +275,6 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *                        WP_Error object on error.
 	 */
 	public function make_subsize( $size_data, $mime_type ) {
-		error_log( json_encode( $size_data, JSON_PRETTY_PRINT));
-		error_log( json_encode( $mime_type, JSON_PRETTY_PRINT));
-
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
 			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
 		}
