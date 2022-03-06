@@ -6480,6 +6480,27 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 					$deleted = false;
 				}
 			}
+			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) ) {
+
+				$original_size_mime = empty( $sizeinfo['mime-type'] ) ? '' : $sizeinfo['mime-type'];
+				foreach ( $sizeinfo['sources'] as $mime => $properties ) {
+
+					if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
+						continue;
+					}
+
+					// Delete alternate mime types.
+					if ( $original_size_mime === $mime ) {
+						continue;
+					}
+
+					$intermediate_file = str_replace(  wp_basename( $file ), $properties['file'], $file );
+					if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
+						$deleted = false;
+					}
+				}
+			}
+
 		}
 	}
 
