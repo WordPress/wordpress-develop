@@ -1641,8 +1641,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		add_action( 'add_user_role', array( $add_user_role, 'action' ) );
 
 		$user->set_role( 'editor' );
-		$this->assertSame( 1, $remove_user_role->get_call_count() );
-		$this->assertSame( 1, $add_user_role->get_call_count() );
+		$user->set_role( 'administrator' );
+		$this->assertSame( 2, $remove_user_role->get_call_count() );
+		$this->assertSame( 2, $add_user_role->get_call_count() );
 	}
 
 	public function test_current_user_can_for_blog() {
