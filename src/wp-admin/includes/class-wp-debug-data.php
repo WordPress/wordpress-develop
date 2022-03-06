@@ -241,92 +241,104 @@ class WP_Debug_Data {
 			$wp_environment_type = __( 'Undefined' );
 		}
 
+		// Check WP_RUNTIME_ENVIRONMENT.
+		if ( defined( 'WP_RUNTIME_ENVIRONMENT' ) ) {
+			$wp_runtime_environment = WP_RUNTIME_ENVIRONMENT;
+		} else {
+			$wp_runtime_environment = __( 'Undefined' );
+		}
+
 		$info['wp-constants'] = array(
 			'label'       => __( 'WordPress Constants' ),
 			'description' => __( 'These settings alter where and how parts of WordPress are loaded.' ),
 			'fields'      => array(
-				'ABSPATH'             => array(
+				'ABSPATH'                => array(
 					'label'   => 'ABSPATH',
 					'value'   => ABSPATH,
 					'private' => true,
 				),
-				'WP_HOME'             => array(
+				'WP_HOME'                => array(
 					'label' => 'WP_HOME',
 					'value' => ( defined( 'WP_HOME' ) ? WP_HOME : __( 'Undefined' ) ),
 					'debug' => ( defined( 'WP_HOME' ) ? WP_HOME : 'undefined' ),
 				),
-				'WP_SITEURL'          => array(
+				'WP_SITEURL'             => array(
 					'label' => 'WP_SITEURL',
 					'value' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : __( 'Undefined' ) ),
 					'debug' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : 'undefined' ),
 				),
-				'WP_CONTENT_DIR'      => array(
+				'WP_CONTENT_DIR'         => array(
 					'label' => 'WP_CONTENT_DIR',
 					'value' => WP_CONTENT_DIR,
 				),
-				'WP_PLUGIN_DIR'       => array(
+				'WP_PLUGIN_DIR'          => array(
 					'label' => 'WP_PLUGIN_DIR',
 					'value' => WP_PLUGIN_DIR,
 				),
-				'WP_MEMORY_LIMIT'     => array(
+				'WP_MEMORY_LIMIT'        => array(
 					'label' => 'WP_MEMORY_LIMIT',
 					'value' => WP_MEMORY_LIMIT,
 				),
-				'WP_MAX_MEMORY_LIMIT' => array(
+				'WP_MAX_MEMORY_LIMIT'    => array(
 					'label' => 'WP_MAX_MEMORY_LIMIT',
 					'value' => WP_MAX_MEMORY_LIMIT,
 				),
-				'WP_DEBUG'            => array(
+				'WP_DEBUG'               => array(
 					'label' => 'WP_DEBUG',
 					'value' => WP_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
 					'debug' => WP_DEBUG,
 				),
-				'WP_DEBUG_DISPLAY'    => array(
+				'WP_DEBUG_DISPLAY'       => array(
 					'label' => 'WP_DEBUG_DISPLAY',
 					'value' => WP_DEBUG_DISPLAY ? __( 'Enabled' ) : __( 'Disabled' ),
 					'debug' => WP_DEBUG_DISPLAY,
 				),
-				'WP_DEBUG_LOG'        => array(
+				'WP_DEBUG_LOG'           => array(
 					'label' => 'WP_DEBUG_LOG',
 					'value' => $wp_debug_log_value,
 					'debug' => WP_DEBUG_LOG,
 				),
-				'SCRIPT_DEBUG'        => array(
+				'SCRIPT_DEBUG'           => array(
 					'label' => 'SCRIPT_DEBUG',
 					'value' => SCRIPT_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
 					'debug' => SCRIPT_DEBUG,
 				),
-				'WP_CACHE'            => array(
+				'WP_CACHE'               => array(
 					'label' => 'WP_CACHE',
 					'value' => WP_CACHE ? __( 'Enabled' ) : __( 'Disabled' ),
 					'debug' => WP_CACHE,
 				),
-				'CONCATENATE_SCRIPTS' => array(
+				'CONCATENATE_SCRIPTS'    => array(
 					'label' => 'CONCATENATE_SCRIPTS',
 					'value' => $concatenate_scripts,
 					'debug' => $concatenate_scripts_debug,
 				),
-				'COMPRESS_SCRIPTS'    => array(
+				'COMPRESS_SCRIPTS'       => array(
 					'label' => 'COMPRESS_SCRIPTS',
 					'value' => $compress_scripts,
 					'debug' => $compress_scripts_debug,
 				),
-				'COMPRESS_CSS'        => array(
+				'COMPRESS_CSS'           => array(
 					'label' => 'COMPRESS_CSS',
 					'value' => $compress_css,
 					'debug' => $compress_css_debug,
 				),
-				'WP_ENVIRONMENT_TYPE' => array(
+				'WP_ENVIRONMENT_TYPE'    => array(
 					'label' => 'WP_ENVIRONMENT_TYPE',
 					'value' => $wp_environment_type,
 					'debug' => $wp_environment_type,
 				),
-				'DB_CHARSET'          => array(
+				'WP_RUNTIME_ENVIRONMENT' => array(
+					'label' => 'WP_RUNTIME_ENVIRONMENT',
+					'value' => $wp_runtime_environment,
+					'debug' => $wp_runtime_environment,
+				),
+				'DB_CHARSET'             => array(
 					'label' => 'DB_CHARSET',
 					'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
 					'debug' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
 				),
-				'DB_COLLATE'          => array(
+				'DB_COLLATE'             => array(
 					'label' => 'DB_COLLATE',
 					'value' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : __( 'Undefined' ) ),
 					'debug' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : 'undefined' ),
