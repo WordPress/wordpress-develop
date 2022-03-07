@@ -5751,38 +5751,44 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
-	global $wpdb;
 
-	if ( is_array( $post_type ) ) {
-		$post_type           = esc_sql( $post_type );
-		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
-		$sql                 = $wpdb->prepare(
-			"
-			SELECT ID
-			FROM $wpdb->posts
-			WHERE post_title = %s
-			AND post_type IN ($post_type_in_string)
-		",
-			$page_title
-		);
-	} else {
-		$sql = $wpdb->prepare(
-			"
-			SELECT ID
-			FROM $wpdb->posts
-			WHERE post_title = %s
-			AND post_type = %s
-		",
-			$page_title,
-			$post_type
-		);
+	$last_changed = wp_cache_get_last_changed( 'posts' );
+
+	$hash      = md5( $page_title . serialize( $post_type ) );
+	$cache_key = "get_page_by_title:$hash:$last_changed";
+	$cached    = wp_cache_get( $cache_key, 'posts' );
+
+	if ( false !== $cached ) {
+		// Special case: '0' is a bad `$page_path`.
+		if ( '0' === $cached || 0 === $cached ) {
+			return null;
+		} else {
+			return get_post( $cached, $output );
+		}
 	}
 
-	$page = $wpdb->get_var( $sql );
+	// Make sure that we even query post statuses that are excluded from search
+	$post_status = array_values( get_post_stati( array( 'exclude_from_search' => true ) ) );
+	$posts       = get_posts(
+		array(
+			'title'            => $page_title,
+			'post_type'        => $post_type,
+			'posts_per_page'   => 1,
+			'post_status'      => array_merge( $post_status, array( 'any' ) ),
+			'orderby'          => 'none',
+			'suppress_filters' => false,
+			'fields'           => 'ids',
+		)
+	);
 
-	if ( $page ) {
-		return get_post( $page, $output );
+	if ( $posts ) {
+		wp_cache_set( $cache_key, $posts[0], 'posts' );
+
+		return get_post( $posts[0], $output );
 	}
+
+	// Cache a miss as well.
+	wp_cache_set( $cache_key, 0, 'posts' );
 
 	return null;
 }
