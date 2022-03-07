@@ -274,7 +274,7 @@ class WP_Plugin_Dependencies {
 			}
 		}
 
-		asort( $this->plugin_data );
+		ksort( $this->plugin_data );
 		set_site_transient( 'wp_plugin_dependencies_plugin_data', $this->plugin_data, 12 * HOUR_IN_SECONDS );
 	}
 
