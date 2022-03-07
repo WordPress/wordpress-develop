@@ -27,11 +27,14 @@ window.wpAjax = jQuery.extend( {
 				var th = jQuery(this), child = jQuery(this.firstChild), response;
 				response = { action: th.attr('action'), what: child.get(0).nodeName, id: child.attr('id'), oldId: child.attr('old_id'), position: child.attr('position') };
 				response.data = jQuery( 'response_data', child ).text();
-				if ( jQuery( 'supplemental', child ).children()['data_is_success_message'] ) {
-					successmsg += response.data;
-				}
 				response.supplemental = {};
 				if ( !jQuery( 'supplemental', child ).children().each( function() {
+
+					if ( this.nodeName === 'message' && '1' === jQuery(this).text() ) {
+						successmsg += response.data;
+						return
+					}
+
 					response.supplemental[this.nodeName] = jQuery(this).text();
 				} ).length ) { response.supplemental = false; }
 				response.errors = [];

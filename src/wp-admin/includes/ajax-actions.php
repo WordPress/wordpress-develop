@@ -1111,13 +1111,15 @@ function wp_ajax_add_tag() {
 		$message = $messages['_item'][1];
 	}
 
-	$data_is_success_message = true;
-
 	$x->add(
 		array(
 			'what'         => 'taxonomy',
 			'data'         => $message,
-			'supplemental' => compact( 'parents', 'noparents', 'data_is_success_message' ),
+			'supplemental' => array(
+				'parents'   => $parents,
+				'noparents' => $noparents,
+				'message'   => true,
+			),
 		)
 	);
 
