@@ -42,7 +42,7 @@ class Tests_Functions_wpCheckFiletype extends WP_UnitTestCase {
 			array( 'http://example.com/file.exe#file.jpg', false ),
 			array( 'http://example.com/file.exe?file.jpg', false ),
 			array( 'http://example.com/file.mp3?foo=bar#?file=file.jpg', 'mp3' ),
-			array( 'http://example.com?file.jpg', false ),			
+			array( 'http://example.com?file.jpg', false ),
 		);
 	}
 
