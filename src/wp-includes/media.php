@@ -1843,6 +1843,9 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
 			}
 
+			// Use alternate mime types when specified and available.
+			$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $attachment_id );
+
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
 			}
@@ -1864,6 +1867,52 @@ function wp_filter_content_tags( $content, $context = null ) {
 	}
 
 	return $content;
+}
+
+/**
+ * Potentially add alternate mime type images to the content output.
+ *
+ * @since 6.0.0
+ *
+ * @param string $image         The HTML `img` tag where the attribute should be added.
+ * @param int    $attachment_id The attachment ID.
+ * @return string Converted `img` tag with `loading` attribute added.
+ */
+function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
+	$metadata = wp_get_attachment_metadata( $attachment_id );
+	if ( empty( $metadata['file'] ) ) {
+		return $image;
+	}
+
+	// TODO: Add a filterable option to determine image extensions.
+	$target_image_extensions = array(
+		'jpg',
+		'jpeg',
+	);
+
+	// TODO: Add a filterable option to change the selected mime type.
+	$target_mime = 'image/webp';
+
+	// Find the appropriate size for the provided URL.
+	foreach ( $metadata['sizes'] as $name => $size_data ) {
+		// Not the size we are looking for.
+		if ( empty( $size_data['file'] ) ) {
+			continue;
+		}
+
+		if ( empty( $size_data['sources'][ $target_mime ]['file'] ) ) {
+			continue;
+		}
+		$src_filename = wp_basename( $size_data['file'] );
+
+		// This is the same as the file we want to replace nothing to do here.
+		if ( $size_data['sources'][ $target_mime ]['file'] === $src_filename ) {
+			continue;
+		}
+
+		$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
+	}
+	return $image;
 }
 
 /**
