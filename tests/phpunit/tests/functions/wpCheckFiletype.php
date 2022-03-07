@@ -35,7 +35,6 @@ class Tests_Functions_wpCheckFiletype extends WP_UnitTestCase {
 			array( 'http://example.com/wibble.mp3#wobble', 'mp3' ),
 			array( 'http://example.com/wibble.mp3?wobble=true', 'mp3' ),
 			array( 'http://example.com/wibble.mp3?wobble=true#wobble', 'mp3' ),
-			array( 'http://example.mp3', false ),
 			array( 'http://example.mp3/', false ),
 			array( 'http://example.com/file.mp3#file.jpg', 'mp3' ),
 			array( 'http://example.com/file.mp3?file.jpg', 'mp3' ),
