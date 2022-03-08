@@ -1870,7 +1870,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 }
 
 /**
- * Potentially add alternate mime type images to the content output.
+ * Potentially use alternate mime type images in the content output.
  *
  * @since 6.0.0
  *
