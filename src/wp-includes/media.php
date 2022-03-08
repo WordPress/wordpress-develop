@@ -1912,6 +1912,22 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 
 		$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
 	}
+
+	// Handle the full size image.
+	if ( isset( $metadata['sources'] ) && isset( $metadata['sources'][ $target_mime ] ) ) {
+		if ( empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
+			return $image;
+		}
+		$src_filename = wp_basename( $metadata['file'] );
+
+		// This is the same as the file we want to replace nothing to do here.
+		if ( $metadata['sources'][ $target_mime ]['file'] === $src_filename ) {
+			return $image;
+		}
+
+		$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
+	}
+
 	return $image;
 }
 
