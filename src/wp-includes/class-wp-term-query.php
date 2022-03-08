@@ -620,7 +620,7 @@ class WP_Term_Query {
 
 		// Meta query support.
 		$join     = '';
-		$distinct = 'DISTINCT';
+		$distinct = '';
 
 		// Reparse meta_query query_vars, in case they were modified in a 'pre_get_terms' callback.
 		$this->meta_query->parse_query_vars( $this->query_vars );
