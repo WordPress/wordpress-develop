@@ -149,10 +149,7 @@ function wp_cache_flush_group( $group ) {
 
 	// if group is an array loop and call each key in the array
 	if ( is_array( $group ) ) {
-		$result   = false;
-		$result[] = array_map( 'wp_cache_flush_group', array_values( $group ) );
-
-		return $result;
+		return array_map( 'wp_cache_flush_group', array_values( $group ) );
 	}
 
 	if ( method_exists( $wp_object_cache, 'flush_group' ) ) {
