@@ -2570,7 +2570,7 @@ function wp_filesize( $path ) {
 	/**
 	 * Filters the result of wp_filesize before the PHP function is run.
 	 *
-	 * @since 5.7.0
+	 * @since 6.0.0 
 	 *
 	 * @param null|int $size The unfiltered value. Returning an int from the callback bypasses the filesize call.
 	 * @param string   $path Path to the file.
