@@ -1059,10 +1059,9 @@ class WP_Term_Query {
 	 * @return WP_Term[] Array of `WP_Term` objects.
 	 */
 	protected function populate_terms( $terms ) {
-		$terms = array();
-
+		$terms_objects = array();
 		if ( ! is_array( $terms ) ) {
-			return $terms;
+			return $terms_objects;
 		}
 
 		foreach ( $terms as $key => $term_data ) {
@@ -1076,10 +1075,10 @@ class WP_Term_Query {
 			}
 
 			if ( $term instanceof WP_Term ) {
-				$terms[ $key ] = $term;
+				$terms_objects[ $key ] = $term;
 			}
 		}
 
-		return $terms;
+		return $terms_objects;
 	}
 }
