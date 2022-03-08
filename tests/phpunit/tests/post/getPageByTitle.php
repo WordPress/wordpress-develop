@@ -7,9 +7,6 @@
  * @covers ::get_page_by_title
  */
 class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
-	public function set_up() {
-		parent::set_up();
-	}
 	/**
 	 * @ticket 36905
 	 */
