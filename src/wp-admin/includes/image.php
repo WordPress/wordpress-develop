@@ -436,7 +436,6 @@ function _wp_get_sources_from_meta( $meta ) {
  * @return array The attachment meta data with updated `sizes` array. Includes an array of errors encountered while resizing.
  */
 function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
-	$mime_type = get_post_mime_type( $attachment_id );
 	if ( empty( $image_meta ) || ! is_array( $image_meta ) ) {
 		// Not an image attachment.
 		return array();
@@ -445,6 +444,13 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	// Set up a top level sources array for the full size images.
 	if ( ! isset( $metadata['sources'] ) || ! is_array( $metadata['sources'] ) ) {
 		$metadata['sources'] = array();
+	}
+	$mime_type = get_post_mime_type( $attachment_id );
+	$editor = wp_get_image_editor( $file );
+
+	if ( is_wp_error( $editor ) ) {
+		// The image cannot be edited.
+		return $image_meta;
 	}
 
 	// Assemble the output mime types
@@ -499,17 +505,10 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 
 		$new_sizes = array_filter( array_merge( $priority, $new_sizes ) );
 
-		$editor = wp_get_image_editor( $file );
-
-		if ( is_wp_error( $editor ) ) {
-			// The image cannot be edited.
-			return $image_meta;
-		}
-
 		// This mime type is not supported, skip it unless it is the only mime type, in which case
 		// core will fall back to a supported type.
 		if ( ! $editor->supports_mime_type( $output_mime_type ) && 1 < sizeof( $output_mime_types ) ) {
-			return $image_meta;
+			continue;
 		}
 
 		// If stored EXIF data exists, rotate the source image before creating sub-sizes.

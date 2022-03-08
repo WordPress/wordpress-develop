@@ -1899,13 +1899,18 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 	 */
 	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes );
 
-	// Find the appropriate size for the provided URL.
-	foreach ( $metadata['sizes'] as $name => $size_data ) {
-		// Not the size we are looking for.
-		if ( empty( $size_data['file'] ) ) {
+	// Find the appropriate size for the provided URL in the first available mime type.
+	foreach ( $target_mimes as $target_mime ) {
+		if ( ! isset( $metadata['sources'][ $target_mime ] ) || empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
 			continue;
 		}
-		foreach ( $target_mimes as $target_mime ) {
+
+		// Handle sub-sized image replacement.
+		foreach ( $metadata['sizes'] as $name => $size_data ) {
+			// Not the size we are looking for.
+			if ( empty( $size_data['file'] ) ) {
+				continue;
+			}
 			if ( empty( $size_data['sources'][ $target_mime ]['file'] ) ) {
 				continue;
 			}
@@ -1916,16 +1921,11 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 				continue;
 			}
 
-			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
-			break;
+			// Found a match, replace with the new filename and stop searching.
+			$image    = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
 		}
-	}
 
-	// Ensure the full size image is also replaced.
-	if ( isset( $metadata['sources'] ) && isset( $metadata['sources'][ $target_mime ] ) ) {
-		if ( empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
-			return $image;
-		}
+		// Handle full size image replacement
 		$src_filename = wp_basename( $metadata['file'] );
 
 		// This is the same as the file we want to replace nothing to do here.
@@ -1935,7 +1935,6 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 
 		$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
 	}
-
 	return $image;
 }
 
