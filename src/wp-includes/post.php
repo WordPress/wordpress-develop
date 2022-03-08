@@ -5754,6 +5754,7 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
+	$post_type = (array) $post_type;
 	$hash      = md5( $page_title . serialize( $post_type ) );
 	$cache_key = "get_page_by_title:$hash:$last_changed";
 	$cached    = wp_cache_get( $cache_key, 'posts' );
