@@ -648,8 +648,7 @@ class WP_Term_Query {
 				$selects = array( 'COUNT(*)' );
 				break;
 			default:
-				$selects  = array( 't.term_id' );
-				$distinct = 'DISTINCT';
+				$selects = array( 't.term_id' );
 				break;
 		}
 
@@ -676,7 +675,8 @@ class WP_Term_Query {
 		$join .= " INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id";
 
 		if ( ! empty( $this->query_vars['object_ids'] ) ) {
-			$join .= " INNER JOIN {$wpdb->term_relationships} AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id";
+			$join     .= " INNER JOIN {$wpdb->term_relationships} AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id";
+			$distinct = 'DISTINCT';
 		}
 
 		$where = implode( ' AND ', $this->sql_clauses['where'] );
