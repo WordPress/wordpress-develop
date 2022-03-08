@@ -4046,11 +4046,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	if ( isset( $meta['filesize'] ) ) {
 		$bytes = $meta['filesize'];
 	} elseif ( file_exists( $attached_file ) ) {
-		$meta = wp_generate_attachment_metadata( $attachment->ID, $attached_file );
-
-		if ( is_array( $meta ) && isset( $meta['filesize'] ) ) {
-			$bytes = $meta['filesize'];
-		}
+		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
 	}
