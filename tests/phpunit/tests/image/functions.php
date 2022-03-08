@@ -693,14 +693,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, $metadata['sizes']['test-size'] );
 
 		remove_image_size( 'test-size' );
-		remove_filter(
-			'fallback_intermediate_image_sizes',
-			array(
-				$this,
-				'filter_fallback_intermediate_image_sizes',
-			),
-			10
-		);
+		remove_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10 );
 
 		unlink( $test_file );
 		foreach ( $metadata['sizes'] as $size ) {
