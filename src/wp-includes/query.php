@@ -1122,12 +1122,12 @@ function _find_post_by_old_slug( $post_type ) {
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 	$cache_key = "_find_post_by_old_slug:$key:$last_changed";
 	$cache     = wp_cache_get( $cache_key, 'posts' );
-	if ( $cache !== false ) {
-		$id = $cache;
-	} else {
-		$id = (int) $wpdb->get_var( $query );
-		wp_cache_set( $cache_key, $id, 'posts' );
+	if ( false !== $cache ) {
+		return $cache;
 	}
+
+	$id = (int) $wpdb->get_var( $query );
+	wp_cache_set( $cache_key, $id, 'posts' );
 
 	return $id;
 }
