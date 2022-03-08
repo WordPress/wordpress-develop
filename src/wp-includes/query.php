@@ -1119,11 +1119,7 @@ function _find_post_by_old_slug( $post_type ) {
 	}
 
 	$key          = md5( $query );
-	$last_changed = wp_cache_get( 'last_changed', 'posts' );
-	if ( ! $last_changed ) {
-		$last_changed = microtime();
-		wp_cache_set( 'last_changed', $last_changed, 'posts' );
-	}
+	$last_changed = wp_cache_get_last_changed( 'posts' );
 	$cache_key = "_find_post_by_old_slug:$key:$last_changed";
 	$cache     = wp_cache_get( $cache_key, 'posts' );
 	if ( $cache !== false ) {
