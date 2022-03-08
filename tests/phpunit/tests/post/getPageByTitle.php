@@ -25,7 +25,6 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	 * @ticket 36905
 	 */
 	public function test_get_page_by_title_second_call_uses_cache() {
-		global $wpdb;
 
 		$page_id = self::factory()->post->create_object(
 			array(
@@ -37,12 +36,12 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		$page = get_page_by_title( 'some Page' );
 		$this->assertEquals( $page_id, $page->ID );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$page = get_page_by_title( 'some Page' );
 		$this->assertEquals( $page_id, $page->ID );
 
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 	/**
 	 * @ticket 36905
@@ -62,7 +61,6 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	 * @ticket 36905
 	 */
 	public function test_get_page_by_title_miss_second_call_uses_cache() {
-		global $wpdb;
 
 		$page_id = self::factory()->post->create_object(
 			array(
@@ -70,16 +68,16 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 				'post_type'  => 'page',
 			)
 		);
-
-		$page = get_page_by_title( 'xxxx' );
-		$this->assertNull( $page );;
-
-		$num_queries = $wpdb->num_queries;
-
-		$page = get_page_by_title( 'xxx' );
+		$bad_title = 'xxx';
+		$page = get_page_by_title( $bad_title );
 		$this->assertNull( $page );
 
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$num_queries = get_num_queries();
+
+		$page = get_page_by_title( $bad_title );
+		$this->assertNull( $page );
+
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 	/**
 	 * @ticket 36905
