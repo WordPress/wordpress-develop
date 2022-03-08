@@ -1884,14 +1884,20 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 		return $image;
 	}
 
-	// TODO: Add a filterable option to determine image extensions.
-	$target_image_extensions = array(
-		'jpg',
-		'jpeg',
-	);
+	$target_mimes = array( 'image/webp', 'image/jpeg' );
 
-	// TODO: Add a filterable option to change the selected mime type.
-	$target_mime = 'image/webp';
+	/**
+	 * Filter the content image mime type output selection and order.
+	 *
+	 * When outputting images in the content, the first mime type available will be used.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array $target_mimes The image output mime type and order. Default is ( 'image/webp', 'image/jpeg' ).
+	 * @return array The filtered output mime type and order.
+	 *
+	 */
+	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes );
 
 	// Find the appropriate size for the provided URL.
 	foreach ( $metadata['sizes'] as $name => $size_data ) {
@@ -1899,18 +1905,20 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 		if ( empty( $size_data['file'] ) ) {
 			continue;
 		}
+		foreach ( $target_mimes as $target_mime ) {
+			if ( empty( $size_data['sources'][ $target_mime ]['file'] ) ) {
+				continue;
+			}
+			$src_filename = wp_basename( $size_data['file'] );
 
-		if ( empty( $size_data['sources'][ $target_mime ]['file'] ) ) {
-			continue;
+			// This is the same as the file we want to replace nothing to do here.
+			if ( $size_data['sources'][ $target_mime ]['file'] === $src_filename ) {
+				continue;
+			}
+
+			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
+			break;
 		}
-		$src_filename = wp_basename( $size_data['file'] );
-
-		// This is the same as the file we want to replace nothing to do here.
-		if ( $size_data['sources'][ $target_mime ]['file'] === $src_filename ) {
-			continue;
-		}
-
-		$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
 	}
 
 	// Ensure the full size image is also replaced.
