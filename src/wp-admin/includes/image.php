@@ -252,7 +252,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	$mime_type = $imagesize['mime'];
 	// Do not scale (large) PNG images. May result in sub-sizes that have greater file size than the original. See #48736.
 	if ( 'image/png' !== $mime_type ) {
-		$valid_mime_transforms = wp_get_image_mime_transforms( $attachment_id );
+		$valid_mime_transforms = wp_upload_image_mime_transforms( $attachment_id );
 		$output_mime_types     = isset( $valid_mime_transforms[ $mime_type ] ) ? $valid_mime_transforms[ $mime_type ] : array( $mime_type );
 
 		/**
@@ -448,11 +448,11 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	}
 
 	// Assemble the output mime types
-	$valid_mime_transforms = wp_get_image_mime_transforms( $attachment_id );
+	$valid_mime_transforms = wp_upload_image_mime_transforms( $attachment_id );
 	$output_mime_types     = isset( $valid_mime_transforms[ $mime_type ] ) ? $valid_mime_transforms[ $mime_type ] : array( $mime_type );
 	$dirname               = pathinfo( $file, PATHINFO_DIRNAME );
 
-	// Generate all off of the output types.
+	// Generate all off of the output mime types.
 	foreach ( $output_mime_types as $mime_index => $output_mime_type ) {
 
 		// Check if any of the new sizes already exist for this mime type.
@@ -1237,7 +1237,7 @@ function _copy_image_file( $attachment_id ) {
  * @param $attachment_id int The attachment ID.
  * @return array<string, array<string>> An array of valid mime types, where the key is the mime type and the value is the extension type.
  */
-function wp_get_image_mime_transforms( $attachment_id ) {
+function wp_upload_image_mime_transforms( $attachment_id ) {
 	$image_mime_transforms = array(
 		'image/jpeg' => array( 'image/jpeg', 'image/webp' ),
 		'image/webp' => array( 'image/webp', 'image/jpeg' ),
@@ -1252,5 +1252,5 @@ function wp_get_image_mime_transforms( $attachment_id ) {
 	 * @param array $image_mime_transforms A map with the valid mime transforms.
 	 * @param int   $attachment_id The ID of the attachment where the hook was dispatched.
 	 */
-	return (array) apply_filters( 'wp_image_mime_transforms', $image_mime_transforms, $attachment_id );
+	return (array) apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id );
 }
