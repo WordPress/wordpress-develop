@@ -31,7 +31,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Get the MIME type of a file
 	 *
 	 * @param string $filename
-	 *
 	 * @return string
 	 */
 	protected function get_mime_type( $filename ) {
