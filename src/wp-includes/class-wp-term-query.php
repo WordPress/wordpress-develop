@@ -630,6 +630,7 @@ class WP_Term_Query {
 		if ( ! empty( $meta_clauses ) ) {
 			$join                                    .= $mq_sql['join'];
 			$this->sql_clauses['where']['meta_query'] = preg_replace( '/^\s*AND\s*/', '', $mq_sql['where'] );
+			$distinct                                .= 'DISTINCT';
 		}
 
 		$selects = array();
