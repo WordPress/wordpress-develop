@@ -152,11 +152,7 @@ function wp_cache_flush_group( $group ) {
 		return array_map( 'wp_cache_flush_group', array_values( $group ) );
 	}
 
-	if ( method_exists( $wp_object_cache, 'flush_group' ) ) {
-		return $wp_object_cache->flush_group( $group );
-	}
-
-	return false;
+	return $wp_object_cache->flush_group( $group );
 }
 
 /**
