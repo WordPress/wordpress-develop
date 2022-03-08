@@ -673,7 +673,7 @@ class WP_Term_Query {
 		$join .= " INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id";
 
 		if ( ! empty( $this->query_vars['object_ids'] ) ) {
-			$join     .= " INNER JOIN {$wpdb->term_relationships} AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id";
+			$join    .= " INNER JOIN {$wpdb->term_relationships} AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 			$distinct = 'DISTINCT';
 		}
 
@@ -740,8 +740,8 @@ class WP_Term_Query {
 			} elseif ( 'count' !== $_fields ) {
 				$term_ids = wp_list_pluck( $cache, 'term_id' );
 				_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
-				$terms_objects = $this->populate_terms( $cache );
-				$cache         = $this->format_terms( $terms_objects, $_fields );
+				$term_objects = $this->populate_terms( $cache );
+				$cache        = $this->format_terms( $term_objects, $_fields );
 			}
 
 			$this->terms = $cache;
@@ -768,13 +768,13 @@ class WP_Term_Query {
 			update_termmeta_cache( $term_ids );
 		}
 		_prime_term_caches( $term_ids, false );
-		$terms_objects = $this->populate_terms( $terms );
+		$term_objects = $this->populate_terms( $terms );
 
 		if ( $child_of ) {
 			foreach ( $taxonomies as $_tax ) {
 				$children = _get_term_hierarchy( $_tax );
 				if ( ! empty( $children ) ) {
-					$terms_objects = _get_term_children( $child_of, $terms_objects, $_tax );
+					$term_objects = _get_term_children( $child_of, $term_objects, $_tax );
 				}
 			}
 		}
@@ -782,13 +782,13 @@ class WP_Term_Query {
 		// Update term counts to include children.
 		if ( $args['pad_counts'] && 'all' === $_fields ) {
 			foreach ( $taxonomies as $_tax ) {
-				_pad_term_counts( $terms_objects, $_tax );
+				_pad_term_counts( $term_objects, $_tax );
 			}
 		}
 
 		// Make sure we show empty categories that have children.
-		if ( $hierarchical && $args['hide_empty'] && is_array( $terms_objects ) ) {
-			foreach ( $terms_objects as $k => $term ) {
+		if ( $hierarchical && $args['hide_empty'] && is_array( $term_objects ) ) {
+			foreach ( $term_objects as $k => $term ) {
 				if ( ! $term->count ) {
 					$children = get_term_children( $term->term_id, $term->taxonomy );
 					if ( is_array( $children ) ) {
@@ -801,7 +801,7 @@ class WP_Term_Query {
 					}
 
 					// It really is empty.
-					unset( $terms_objects[ $k ] );
+					unset( $term_objects[ $k ] );
 				}
 			}
 		}
@@ -830,16 +830,16 @@ class WP_Term_Query {
 		// Hierarchical queries are not limited, so 'offset' and 'number' must be handled now.
 		if ( $hierarchical && $number && is_array( $terms ) ) {
 			if ( $offset >= count( $terms ) ) {
-				$terms         = array();
-				$terms_objects = array();
+				$terms        = array();
+				$term_objects = array();
 			} else {
-				$terms         = array_slice( $terms, $offset, $number, true );
-				$terms_objects = array_slice( $terms_objects, $offset, $number, true );
+				$terms        = array_slice( $terms, $offset, $number, true );
+				$term_objects = array_slice( $term_objects, $offset, $number, true );
 			}
 		}
 
 		wp_cache_add( $cache_key, $terms, 'terms' );
-		$terms = $this->format_terms( $terms_objects, $_fields );
+		$terms = $this->format_terms( $term_objects, $_fields );
 
 		$this->terms = $terms;
 		return $this->terms;
@@ -909,43 +909,43 @@ class WP_Term_Query {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param WP_Term[] $terms_objects Array of term objects.
+	 * @param WP_Term[] $term_objects Array of term objects.
 	 * @param string $_fields Field to format.
 	 *
 	 * @return WP_Term[]|int[]|string[] Array of terms / strings / ints depending on field requested.
 	 */
-	protected function format_terms( $terms_objects, $_fields ) {
+	protected function format_terms( $term_objects, $_fields ) {
 		$_terms = array();
 		if ( 'id=>parent' === $_fields ) {
-			foreach ( $terms_objects as $term ) {
+			foreach ( $term_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->parent;
 			}
 		} elseif ( 'ids' === $_fields ) {
-			foreach ( $terms_objects as $term ) {
+			foreach ( $term_objects as $term ) {
 				$_terms[] = (int) $term->term_id;
 			}
 		} elseif ( 'tt_ids' === $_fields ) {
-			foreach ( $terms_objects as $term ) {
+			foreach ( $term_objects as $term ) {
 				$_terms[] = (int) $term->term_taxonomy_id;
 			}
 		} elseif ( 'names' === $_fields ) {
-			foreach ( $terms_objects as $term ) {
+			foreach ( $term_objects as $term ) {
 				$_terms[] = $term->name;
 			}
 		} elseif ( 'slugs' === $_fields ) {
-			foreach ( $terms_objects as $term ) {
+			foreach ( $term_objects as $term ) {
 				$_terms[] = $term->slug;
 			}
 		} elseif ( 'id=>name' === $_fields ) {
-			foreach ( $terms_objects as $term ) {
+			foreach ( $term_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->name;
 			}
 		} elseif ( 'id=>slug' === $_fields ) {
-			foreach ( $terms_objects as $term ) {
+			foreach ( $term_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->slug;
 			}
 		} elseif ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
-			$_terms = $terms_objects;
+			$_terms = $term_objects;
 		}
 
 		return $_terms;
@@ -1059,9 +1059,9 @@ class WP_Term_Query {
 	 * @return WP_Term[] Array of `WP_Term` objects.
 	 */
 	protected function populate_terms( $terms ) {
-		$terms_objects = array();
+		$term_objects = array();
 		if ( ! is_array( $terms ) ) {
-			return $terms_objects;
+			return $term_objects;
 		}
 
 		foreach ( $terms as $key => $term_data ) {
@@ -1075,10 +1075,10 @@ class WP_Term_Query {
 			}
 
 			if ( $term instanceof WP_Term ) {
-				$terms_objects[ $key ] = $term;
+				$term_objects[ $key ] = $term;
 			}
 		}
 
-		return $terms_objects;
+		return $term_objects;
 	}
 }
