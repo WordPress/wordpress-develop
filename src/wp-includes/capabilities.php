@@ -73,6 +73,21 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			break;
 		case 'delete_post':
 		case 'delete_page':
+			if ( ! isset( $args[0] ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
+						esc_html( $cap ),
+						( ( 'delete_page' === $cap ) ? __( 'page' ) : __( 'post' ) )
+					),
+					'6.0.0'
+				);
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
 			$post = get_post( $args[0] );
 			if ( ! $post ) {
 				$caps[] = 'do_not_allow';
@@ -146,6 +161,21 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		// edit_others_posts.
 		case 'edit_post':
 		case 'edit_page':
+			if ( ! isset( $args[0] ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
+						esc_html( $cap ),
+						( ( 'edit_page' === $cap ) ? __( 'page' ) : __( 'post' ) )
+					),
+					'6.0.0'
+				);
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
 			$post = get_post( $args[0] );
 			if ( ! $post ) {
 				$caps[] = 'do_not_allow';
@@ -215,6 +245,21 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			break;
 		case 'read_post':
 		case 'read_page':
+			if ( ! isset( $args[0] ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
+						esc_html( $cap ),
+						( ( 'read_page' === $cap ) ? __( 'page' ) : __( 'post' ) )
+					),
+					'6.0.0'
+				);
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
 			$post = get_post( $args[0] );
 			if ( ! $post ) {
 				$caps[] = 'do_not_allow';
@@ -268,6 +313,21 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			}
 			break;
 		case 'publish_post':
+			if ( ! isset( $args[0] ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
+						esc_html( $cap ),
+						__( 'post' )
+					),
+					'6.0.0'
+				);
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
 			$post = get_post( $args[0] );
 			if ( ! $post ) {
 				$caps[] = 'do_not_allow';
@@ -297,7 +357,23 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'delete_user_meta':
 		case 'add_user_meta':
 			$object_type = explode( '_', $cap )[1];
-			$object_id   = (int) $args[0];
+
+			if ( ! isset( $args[0] ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
+						esc_html( $cap ),
+						esc_html( $object_type )
+					),
+					'6.0.0'
+				);
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
+			$object_id = (int) $args[0];
 
 			$object_subtype = get_object_subtype( $object_type, $object_id );
 
@@ -392,6 +468,21 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			}
 			break;
 		case 'edit_comment':
+			if ( ! isset( $args[0] ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
+						esc_html( $cap ),
+						__( 'comment' )
+					),
+					'6.0.0'
+				);
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
 			$comment = get_comment( $args[0] );
 			if ( ! $comment ) {
 				$caps[] = 'do_not_allow';
@@ -532,6 +623,21 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'edit_term':
 		case 'delete_term':
 		case 'assign_term':
+			if ( ! isset( $args[0] ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
+						esc_html( $cap ),
+						__( 'term' )
+					),
+					'6.0.0'
+				);
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
 			$term_id = (int) $args[0];
 			$term    = get_term( $term_id );
 			if ( ! $term || is_wp_error( $term ) ) {
