@@ -1,7 +1,5 @@
 <?php
 
-use function PHPSTORM_META\map;
-
 /**
  * @group user
  * @group capabilities
