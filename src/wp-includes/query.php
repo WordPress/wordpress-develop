@@ -1038,31 +1038,21 @@ function wp_old_slug_redirect() {
 			$post_type = reset( $post_type );
 		}
 
+
 		// Do not attempt redirect for hierarchical post types.
 		if ( is_post_type_hierarchical( $post_type ) ) {
 			return;
 		}
 
-		$id = _find_post_by_old_slug( $post_type );
+		$link = _find_post_by_old_slug( $post_type );
 
-		if ( ! $id ) {
-			$id = _find_post_by_old_date( $post_type );
+		if ( ! $link ) {
+			$link = _find_post_by_old_date( $post_type );
 		}
 
-		/**
-		 * Filters the old slug redirect post ID.
-		 *
-		 * @since 4.9.3
-		 *
-		 * @param int $id The redirect post ID.
-		 */
-		$id = apply_filters( 'old_slug_redirect_post_id', $id );
-
-		if ( ! $id ) {
+		if ( ! $link ) {
 			return;
 		}
-
-		$link = get_permalink( $id );
 
 		if ( get_query_var( 'paged' ) > 1 ) {
 			$link = user_trailingslashit( trailingslashit( $link ) . 'page/' . get_query_var( 'paged' ) );
@@ -1079,9 +1069,6 @@ function wp_old_slug_redirect() {
 		 */
 		$link = apply_filters( 'old_slug_redirect_url', $link );
 
-		if ( ! $link ) {
-			return;
-		}
 
 		wp_redirect( $link, 301 ); // Permanent redirect.
 		exit;
@@ -1119,17 +1106,32 @@ function _find_post_by_old_slug( $post_type ) {
 	}
 
 	$key          = md5( $query );
-	$last_changed = wp_cache_get_last_changed( 'posts' );
-	$cache_key = "_find_post_by_old_slug:$key:$last_changed";
+	$cache_key = "_find_post_by_old_slug:$key";
 	$cache     = wp_cache_get( $cache_key, 'posts' );
 	if ( false !== $cache ) {
 		return $cache;
 	}
 
 	$id = (int) $wpdb->get_var( $query );
-	wp_cache_set( $cache_key, $id, 'posts' );
 
-	return $id;
+	/**
+	 * Filters the old slug redirect post ID.
+	 *
+	 * @since 4.9.3
+	 *
+	 * @param int $id The redirect post ID.
+	 */
+	$id = apply_filters( 'old_slug_redirect_post_id', $id );
+
+	if ( ! $id ) {
+		return;
+	}
+
+	$link = get_permalink( $id );
+
+	wp_cache_set( $cache_key, $link, 'posts' );
+
+	return $link;
 }
 
 /**
@@ -1159,20 +1161,13 @@ function _find_post_by_old_date( $post_type ) {
 		$date_query .= $wpdb->prepare( ' AND DAYOFMONTH(pm_date.meta_value) = %d', get_query_var( 'day' ) );
 	}
 
-	$id = 0;
-
 	if ( $date_query ) {
 		$key          = md5( $date_query );
-		$last_changed = wp_cache_get( 'last_changed', 'posts' );
-		if ( ! $last_changed ) {
-			$last_changed = microtime();
-			wp_cache_set( 'last_changed', $last_changed, 'posts' );
-		}
-		$cache_key = "_find_post_by_old_date:$key:$last_changed";
-		$cache     = wp_cache_get( $cache_key, 'posts' );
+		$cache_key    = "_find_post_by_old_date:$key";
+		$cache        = wp_cache_get( $cache_key, 'posts' );
 
 		if ( $cache !== false ) {
-			$id = $cache;
+			return $cache;
 		} else {
 			$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta AS pm_date, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_date' AND post_name = %s" . $date_query, $post_type, get_query_var( 'name' ) ) );
 
@@ -1180,12 +1175,28 @@ function _find_post_by_old_date( $post_type ) {
 				// Check to see if an old slug matches the old date.
 				$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts, $wpdb->postmeta AS pm_slug, $wpdb->postmeta AS pm_date WHERE ID = pm_slug.post_id AND ID = pm_date.post_id AND post_type = %s AND pm_slug.meta_key = '_wp_old_slug' AND pm_slug.meta_value = %s AND pm_date.meta_key = '_wp_old_date'" . $date_query, $post_type, get_query_var( 'name' ) ) );
 			}
+			/**
+			 * Filters the old slug redirect post ID.
+			 *
+			 * @since 4.9.3
+			 *
+			 * @param int $id The redirect post ID.
+			 */
+			$id = apply_filters( 'old_slug_redirect_post_id', $id );
 
-			wp_cache_set( $cache_key, $id, 'posts' );
+			if ( ! $id ) {
+				return;
+			}
+
+			$link = get_permalink( $id );
+
+			wp_cache_set( $cache_key, $link, 'posts' );
+
+			return $link;
 		}
 	}
 
-	return $id;
+	return;
 }
 
 /**

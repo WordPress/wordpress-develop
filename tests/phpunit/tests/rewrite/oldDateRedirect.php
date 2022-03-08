@@ -68,7 +68,7 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_old_date_redirect_uses_cache_for_second_query() {
-		global $wpdb;
+
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
 
 		$time = '2004-01-03 00:00:00';
@@ -86,13 +86,14 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 
-		$query_count = $wpdb->num_queries;
-
 		$this->go_to( $old_permalink );
+
+		$query_count = get_num_queries();
+
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 
-		$this->assertSame( $query_count, $wpdb->num_queries );
+		$this->assertSame( $query_count, get_num_queries() );
 
 	}
 
@@ -117,8 +118,8 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 	}
 
-	public function test_old_date_slug_redirect_uses_cache_for_second_quer() {
-		global $wpdb;
+	public function test_old_date_slug_redirect_uses_cache_for_second_query() {
+
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
 
 		$time = '2004-01-03 00:00:00';
@@ -137,13 +138,14 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 
-		$query_count = $wpdb->num_queries;
-
 		$this->go_to( $old_permalink );
+
+		$query_count = get_num_queries();
+
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 
-		$this->assertSame( $query_count, $wpdb->num_queries );
+		$this->assertSame( $query_count, get_num_queries() );
 	}
 
 	public function test_old_date_redirect_attachment() {
