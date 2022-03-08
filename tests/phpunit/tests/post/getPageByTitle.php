@@ -87,7 +87,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	/**
 	 * @ticket 36905
 	 */
-	public function test_should_not_care_about_cases() {
+	public function test_should_be_case_insensitive() {
 		$page_id = self::factory()->post->create_object(
 			array(
 				'post_title' => 'Some Page',
