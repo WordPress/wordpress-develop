@@ -287,6 +287,12 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 				return $image_meta;
 			}
 
+			// This mime type is not supported, skip it unless it is the only mime type, in which case
+			// core will fall back to a supported type.
+			if ( ! $editor->supports_mime_type( $output_mime_type ) && 1 < sizeof( $output_mime_types ) ) {
+				continue;
+			}
+
 			// If the original image's dimensions are over the threshold,
 			// scale the image and use it as the "full" size.
 			if ( $threshold && ( $image_meta['width'] > $threshold || $image_meta['height'] > $threshold ) ) {
@@ -302,7 +308,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 				if ( ! is_wp_error( $resized ) ) {
 					// For the default mime type scaled image is named "my_image-scaled.jpg".
-					if ( $mime_type === $output_mime_type ) {
+					if ( 0 === $mime_index ) {
 						// Append "-scaled" to the image file name. It will look like "my_image-scaled.jpg".
 						// This doesn't affect the sub-sizes names as they are generated from the original image (for best quality).
 						$saved = $editor->save( $editor->generate_filename( 'scaled' ) );
@@ -339,7 +345,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					$rotated = $editor->maybe_exif_rotate();
 
 					// For the default mime type rotated image is named "my_image-rotated.jpg".
-					if ( true === $rotated && $mime_type === $output_mime_type ) {
+					if ( true === $rotated && 0 === $mime_index ) {
 						// Append `-rotated` to the image file name.
 						$saved = $editor->save( $editor->generate_filename( 'rotated' ) );
 					} else {
@@ -359,7 +365,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					}
 				} else {
 					// For the default mime type, only add the file data to the 'sources' array.
-					if ( $mime_type === $output_mime_type ) {
+					if ( 0 === $mime_index ) {
 						$image_meta['sources'][ $output_mime_type ] = array(
 							'file'     => wp_basename( $image_meta['file'] ),
 							'filesize' => filesize( $file ),
@@ -504,6 +510,12 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 			return $image_meta;
 		}
 
+		// This mime type is not supported, skip it unless it is the only mime type, in which case
+		// core will fall back to a supported type.
+		if ( ! $editor->supports_mime_type( $output_mime_type ) && 1 < sizeof( $output_mime_types ) ) {
+			return $image_meta;
+		}
+
 		// If stored EXIF data exists, rotate the source image before creating sub-sizes.
 		if ( ! empty( $image_meta['image_meta'] ) ) {
 			$rotated = $editor->maybe_exif_rotate();
@@ -521,7 +533,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 					// TODO: Log errors.
 				} else {
 					// Save the default (first) mime size in the 'sizes'meta value.
-					if ( $mime_type === $output_mime_type ) {
+					if ( 0 === $mime_index ) {
 						$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
 					}
 
