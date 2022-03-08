@@ -1046,8 +1046,9 @@ class WP_Upgrader {
 			return new WP_Error( 'fs_temp_backup_mkdir', $this->strings['temp_backup_mkdir_failed'] );
 		}
 
-		$src  = trailingslashit( $args['src'] ) . $args['slug'];
-		$dest = $dest_dir . $args['dir'] . '/' . $args['slug'];
+		$src_dir = $wp_filesystem->find_folder( $args['src'] );
+		$src     = trailingslashit( $src_dir ) . $args['slug'];
+		$dest    = $dest_dir . $args['dir'] . '/' . $args['slug'];
 
 		// Delete the temp-backup directory if it already exists.
 		if ( $wp_filesystem->is_dir( $dest ) ) {
@@ -1079,8 +1080,9 @@ class WP_Upgrader {
 			return false;
 		}
 
-		$src  = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $args['dir'] . '/' . $args['slug'];
-		$dest = trailingslashit( $args['src'] ) . $args['slug'];
+		$src      = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $args['dir'] . '/' . $args['slug'];
+		$dest_dir = $wp_filesystem->find_folder( $args['src'] );
+		$dest     = trailingslashit( $dest_dir ) . $args['slug'];
 
 		if ( $wp_filesystem->is_dir( $src ) ) {
 			// Cleanup.
