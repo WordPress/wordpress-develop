@@ -521,10 +521,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $attachment_id );
 
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
-
 		$temp_dir = get_temp_dir();
 
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+		
 		$expected = array(
 			'sizes'    => array(
 				'full'      => array(
@@ -558,8 +558,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			),
 			'filesize' => wp_filesize( $test_file ),
 		);
-
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$this->assertSame( $expected, $metadata );
 
@@ -600,9 +598,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $attachment_id );
 
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
-
 		$temp_dir = get_temp_dir();
+		
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$expected = array(
 			'sizes'    => array(
@@ -618,7 +616,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'width'     => 300,
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-' . __FUNCTION__ . '-300x300.jpg' ),
+					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-' . __FUNCTION__ . '-pdf-300x300.jpg' ),
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-' . __FUNCTION__ . '-pdf-791x1024.jpg',
@@ -637,8 +635,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			),
 			'filesize' => wp_filesize( $test_file ),
 		);
-
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$this->assertSame( $expected, $metadata );
 
@@ -689,8 +685,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'mime-type' => 'image/jpeg',
 			'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-' . __FUNCTION__ . '-pdf-77x100.jpg' ),
 		);
-
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		// Different environments produce slightly different filesize results.
 		$this->assertSame( $metadata['sizes']['test-size'], $expected );
