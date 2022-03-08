@@ -2607,16 +2607,19 @@ function add_theme_support( $feature, ...$args ) {
 
 		case 'html5':
 			// You can't just pass 'html5', you need to pass an array of types.
-			if ( empty( $args[0] ) ) {
-				// Build an array of types for back-compat.
-				$args = array( 0 => array( 'comment-list', 'comment-form', 'search-form' ) );
-			} elseif ( ! isset( $args[0] ) || ! is_array( $args[0] ) ) {
+			if ( empty( $args[0] ) || ! is_array( $args[0] ) ) {
 				_doing_it_wrong(
 					"add_theme_support( 'html5' )",
 					__( 'You need to pass an array of types.' ),
 					'3.6.1'
 				);
-				return false;
+
+				if ( ! empty( $args[0] ) && ! is_array( $args[0] ) ) {
+					return false;
+				}
+
+				// Build an array of types for back-compat.
+				$args = array( 0 => array( 'comment-list', 'comment-form', 'search-form' ) );
 			}
 
 			// Calling 'html5' again merges, rather than overwrites.
@@ -3037,9 +3040,10 @@ function current_theme_supports( $feature, ...$args ) {
 		return false;
 	}
 
-	// If no args passed then no extra checks need be performed.
+	// If no args passed then no extra checks need to be performed.
 	if ( ! $args ) {
-		return true;
+		/** This filter is documented in wp-includes/theme.php */
+		return apply_filters( "current_theme_supports-{$feature}", true, $args, $_wp_theme_features[ $feature ] ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 
 	switch ( $feature ) {
