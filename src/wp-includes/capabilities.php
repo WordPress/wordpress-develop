@@ -74,16 +74,14 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'delete_post':
 		case 'delete_page':
 			if ( ! isset( $args[0] ) ) {
-				_doing_it_wrong(
-					__FUNCTION__,
-					sprintf(
-						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
-						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
-						esc_html( $cap ),
-						( ( 'delete_page' === $cap ) ? __( 'page' ) : __( 'post' ) )
-					),
-					'6.0.0'
-				);
+				if ( 'delete_page' === $cap ) {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific page.' );
+				} else {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific post.' );
+				}
+				_doing_it_wrong( __FUNCTION__, sprintf( $log_message, esc_html( $cap ) ), '6.0.0' );
 				$caps[] = 'do_not_allow';
 				break;
 			}
@@ -162,16 +160,14 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'edit_post':
 		case 'edit_page':
 			if ( ! isset( $args[0] ) ) {
-				_doing_it_wrong(
-					__FUNCTION__,
-					sprintf(
-						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
-						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
-						esc_html( $cap ),
-						( ( 'edit_page' === $cap ) ? __( 'page' ) : __( 'post' ) )
-					),
-					'6.0.0'
-				);
+				if ( 'edit_page' === $cap ) {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific page.' );
+				} else {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific post.' );
+				}
+				_doing_it_wrong( __FUNCTION__, sprintf( $log_message, esc_html( $cap ) ), '6.0.0' );
 				$caps[] = 'do_not_allow';
 				break;
 			}
@@ -246,16 +242,14 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'read_post':
 		case 'read_page':
 			if ( ! isset( $args[0] ) ) {
-				_doing_it_wrong(
-					__FUNCTION__,
-					sprintf(
-						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
-						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
-						esc_html( $cap ),
-						( ( 'read_page' === $cap ) ? __( 'page' ) : __( 'post' ) )
-					),
-					'6.0.0'
-				);
+				if ( 'read_page' === $cap ) {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific page.' );
+				} else {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific post.' );
+				}
+				_doing_it_wrong( __FUNCTION__, sprintf( $log_message, esc_html( $cap ) ), '6.0.0' );
 				$caps[] = 'do_not_allow';
 				break;
 			}
@@ -317,10 +311,9 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf(
-						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
-						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
-						esc_html( $cap ),
-						__( 'post' )
+						/* translators: 1: Capability name. */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific post.' ),
+						esc_html( $cap )
 					),
 					'6.0.0'
 				);
@@ -359,16 +352,20 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$object_type = explode( '_', $cap )[1];
 
 			if ( ! isset( $args[0] ) ) {
-				_doing_it_wrong(
-					__FUNCTION__,
-					sprintf(
-						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
-						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
-						esc_html( $cap ),
-						esc_html( $object_type )
-					),
-					'6.0.0'
-				);
+				if ( 'comment' === $object_type ) {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific comment.' );
+				} elseif ( 'user' === $object_type ) {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific user.' );
+				} elseif ( 'term' === $object_type ) {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific term.' );
+				} else {
+					/* translators: 1: Capability name. */
+					$log_message = __( 'When checking for the "%1$s" capability, you must always check it against a specific post.' );
+				}
+				_doing_it_wrong( __FUNCTION__, sprintf( $log_message, esc_html( $cap ) ), '6.0.0' );
 				$caps[] = 'do_not_allow';
 				break;
 			}
@@ -472,10 +469,9 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf(
-						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
-						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
-						esc_html( $cap ),
-						__( 'comment' )
+						/* translators: 1: Capability name. */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific comment.' ),
+						esc_html( $cap )
 					),
 					'6.0.0'
 				);
@@ -627,10 +623,9 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf(
-						/* translators: 1: Capability name. 2: Type of content, such as "post" or "comment". */
-						__( 'When checking for the "%1$s" capability, you must always check it against a specific %2$s.' ),
-						esc_html( $cap ),
-						__( 'term' )
+						/* translators: 1: Capability name. */
+						__( 'When checking for the "%1$s" capability, you must always check it against a specific term.' ),
+						esc_html( $cap )
 					),
 					'6.0.0'
 				);
