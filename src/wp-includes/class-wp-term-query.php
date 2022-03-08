@@ -636,17 +636,16 @@ class WP_Term_Query {
 
 		$selects = array();
 		switch ( $args['fields'] ) {
-			case 'all':
-			case 'all_with_object_id':
-				$selects = array( 't.term_id' );
-				if ( 'all_with_object_id' === $args['fields'] && ! empty( $args['object_ids'] ) ) {
-					$selects[] = 'tr.object_id';
-				}
-				break;
 			case 'count':
 				$orderby = '';
 				$order   = '';
 				$selects = array( 'COUNT(*)' );
+				break;
+			default:
+				$selects = array( 't.term_id' );
+				if ( 'all_with_object_id' === $args['fields'] && ! empty( $args['object_ids'] ) ) {
+					$selects[] = 'tr.object_id';
+				}
 				break;
 		}
 
