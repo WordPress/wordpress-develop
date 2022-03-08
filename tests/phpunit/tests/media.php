@@ -2294,6 +2294,20 @@ EOF;
 	}
 
 	/**
+	 * @ticket 55347
+	 *
+	 * @covers ::wp_filter_content_tags
+	 */
+	public function test_wp_filter_content_tags_has_filter() {
+		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
+
+		add_filter( 'wp_img_tag_add_adjust', static function( $content ) {
+			return $content . 'data-test="filter_active"';
+		} );
+
+		$this->assertStringContainsString( 'data-test="filter_active"', wp_filter_content_tags( $img ), 'The content filter should have been applied.' );
+	}
+	/**
 	 * @ticket 33641
 	 * @ticket 34528
 	 */

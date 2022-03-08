@@ -1842,6 +1842,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			if ( $add_img_loading_attr && false === strpos( $filtered_image, ' loading=' ) ) {
 				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
 			}
+
 			/**
 			 * Filters img tag that will be injected into the content.
 			 *
