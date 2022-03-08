@@ -156,22 +156,6 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	 * @return bool|Array True or array of bool in array passed on success, false on failure group not found.
 	 */
 	function wp_cache_flush_group( $group ) {
-
-		global $wp_object_cache;
-
-		// if group is an array loop and call each key in the array
-
-		if ( is_array( $group ) ) {
-			$result   = false;
-			$result[] = array_map( 'wp_cache_flush_group', array_values( $group ) );
-
-			return $result;
-		}
-
-		if ( method_exists( $wp_object_cache, 'flush_group' ) ) {
-			return $wp_object_cache->flush_group( $group );
-		}
-
-		return false;
+		return wp_cache_flush();
 	}
 endif;
