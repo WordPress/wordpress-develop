@@ -636,9 +636,10 @@ class WP_Term_Query {
 
 		$selects = array();
 		switch ( $args['fields'] ) {
+			case 'all':
 			case 'all_with_object_id':
 				$selects = array( 't.term_id' );
-				if ( ! empty( $args['object_ids'] ) ) {
+				if ( 'all_with_object_id' === $args['fields'] && ! empty( $args['object_ids'] ) ) {
 					$selects[] = 'tr.object_id';
 				}
 				break;
@@ -646,9 +647,6 @@ class WP_Term_Query {
 				$orderby = '';
 				$order   = '';
 				$selects = array( 'COUNT(*)' );
-				break;
-			default:
-				$selects = array( 't.term_id' );
 				break;
 		}
 
@@ -1057,17 +1055,17 @@ class WP_Term_Query {
 	 *
 	 * @since 4.9.8
 	 *
-	 * @param Object[]|int[] $terms_data List of objects or term ids.
+	 * @param Object[]|int[] $terms List of objects or term ids.
 	 * @return WP_Term[] Array of `WP_Term` objects.
 	 */
-	protected function populate_terms( $terms_data ) {
+	protected function populate_terms( $terms ) {
 		$terms = array();
 
-		if ( ! is_array( $terms_data ) ) {
+		if ( ! is_array( $terms ) ) {
 			return $terms;
 		}
 
-		foreach ( $terms_data as $key => $term_data ) {
+		foreach ( $terms as $key => $term_data ) {
 			if ( is_object( $term_data ) && property_exists( $term_data, 'term_id' ) ) {
 				$term = get_term( $term_data->term_id );
 				if ( property_exists( $term_data, 'object_id' ) ) {
