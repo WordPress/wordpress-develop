@@ -1913,7 +1913,7 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 		$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
 	}
 
-	// Handle the full size image.
+	// Ensure the full size image is also replaced.
 	if ( isset( $metadata['sources'] ) && isset( $metadata['sources'][ $target_mime ] ) ) {
 		if ( empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
 			return $image;

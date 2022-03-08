@@ -314,7 +314,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 						$saved = $editor->save( $editor->generate_filename( 'scaled' ) );
 
 						if ( ! is_wp_error( $saved ) ) {
-							$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
+							$image_meta                                 = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
 							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 
 							// If the image was rotated update the stored EXIF data.
@@ -331,15 +331,12 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						}
 					}
-
 				} else {
 					// TODO: Log errors.
 				}
 			} else {
 				if ( ! empty( $exif_meta['orientation'] ) && 1 !== (int) $exif_meta['orientation'] ) {
 					// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
-
-
 
 					// Rotate the image.
 					$rotated = $editor->maybe_exif_rotate();
@@ -354,7 +351,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					}
 
 					if ( ! is_wp_error( $saved ) ) {
-						$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
+						$image_meta                                 = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						// Update the stored EXIF data.
 						if ( ! empty( $image_meta['image_meta']['orientation'] ) ) {
@@ -383,7 +380,6 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			}
 		}
 	}
-
 
 	/*
 	 * Initial save of the new metadata.

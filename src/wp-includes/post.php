@@ -6480,6 +6480,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 					$deleted = false;
 				}
 			}
+			// Check for alternate mime types in the sizeinfo['sources'] array to delete.
 			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) ) {
 				$deleted = $deleted && _wp_delete_alternate_mime_sizes( $sizeinfo['sources'], $intermediate_dir, $file );
 			}
@@ -6502,7 +6503,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		}
 	}
 
-	// Remove any additional mime type full sized images.
+	// Check for alternate full size mime types in the root sources array to delete.
 	if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
 		$deleted = $deleted && _wp_delete_alternate_mime_sizes( $meta['sources'], $intermediate_dir, $file );
 	}

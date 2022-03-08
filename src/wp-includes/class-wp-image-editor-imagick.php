@@ -472,6 +472,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * Create an image sub-size and return the image meta data value for it.
 	 *
 	 * @since 5.3.0
+	 * @since 6.0.0 Added the $mime_type parameter.
 	 *
 	 * @param array  $size_data {
 	 *     Array of size data.
