@@ -43,7 +43,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		if ( false !== strpos( $mime_type, ';' ) ) {
 			list( $mime_type, $charset ) = explode( ';', $mime_type, 2 );
 		}
-
 		return $mime_type;
 	}
 
@@ -438,7 +437,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		unlink( $file );
 	}
 
-
 	public function test_wp_crop_image_file_not_exist() {
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
@@ -768,8 +766,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Test for wp_exif_frac2dec verified that it properly handles edge cases
 	 * and always returns an int or float, or 0 for failures.
 	 *
-	 * @param mixed $fraction The fraction to convert.
-	 * @param int|float $expect The expected result.
+	 * @param mixed     $fraction The fraction to convert.
+	 * @param int|float $expect   The expected result.
 	 *
 	 * @ticket 54385
 	 * @dataProvider data_wp_exif_frac2dec
