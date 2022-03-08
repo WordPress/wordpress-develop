@@ -254,7 +254,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_inferred_mime_types() {
 		$classes = $this->get_image_editor_engine_classes();
-		
+
 		// Mime types.
 		$mime_types = array(
 			'jpg'  => 'image/jpeg',
@@ -340,13 +340,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
 		}
 
-		// Then, test with editors.
-		foreach ( $classes as $class ) {
-			$editor = new $class( DIR_TESTDATA );
-			$loaded = $editor->load();
-
-			return $classes;
-		}
+		return $classes;
 	}
 
 	/**
