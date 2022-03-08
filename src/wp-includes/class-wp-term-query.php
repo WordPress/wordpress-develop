@@ -620,8 +620,7 @@ class WP_Term_Query {
 
 		// Meta query support.
 		$join     = '';
-		$distinct = '';
-		$groupby  = '';
+		$distinct = 'DISTINCT';
 
 		// Reparse meta_query query_vars, in case they were modified in a 'pre_get_terms' callback.
 		$this->meta_query->parse_query_vars( $this->query_vars );
@@ -631,8 +630,6 @@ class WP_Term_Query {
 		if ( ! empty( $meta_clauses ) ) {
 			$join                                    .= $mq_sql['join'];
 			$this->sql_clauses['where']['meta_query'] = preg_replace( '/^\s*AND\s*/', '', $mq_sql['where'] );
-			$distinct                                .= 'DISTINCT';
-
 		}
 
 		$selects = array();
@@ -650,7 +647,6 @@ class WP_Term_Query {
 				break;
 			default:
 				$selects = array( 't.term_id' );
-				$groupby = 'tt.term_taxonomy_id';
 				break;
 		}
 
@@ -691,7 +687,7 @@ class WP_Term_Query {
 		 * @param string[] $taxonomies An array of taxonomy names.
 		 * @param array    $args       An array of term query arguments.
 		 */
-		$clauses = apply_filters( 'terms_clauses', compact( 'fields', 'join', 'where', 'distinct', 'orderby', 'order', 'limits', 'groupby' ), $taxonomies, $args );
+		$clauses = apply_filters( 'terms_clauses', compact( 'fields', 'join', 'where', 'distinct', 'orderby', 'order', 'limits' ), $taxonomies, $args );
 
 		$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
 		$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
@@ -700,7 +696,6 @@ class WP_Term_Query {
 		$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
 		$order    = isset( $clauses['order'] ) ? $clauses['order'] : '';
 		$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
-		$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
 
 		if ( $where ) {
 			$where = "WHERE $where";
@@ -711,11 +706,7 @@ class WP_Term_Query {
 		$this->sql_clauses['orderby'] = $orderby ? "$orderby $order" : '';
 		$this->sql_clauses['limits']  = $limits;
 
-		if ( ! empty( $groupby ) ) {
-			$groupby = 'GROUP BY ' . $groupby;
-		}
-
-		$this->request = "{$this->sql_clauses['select']} {$this->sql_clauses['from']} {$where} {$groupby} {$this->sql_clauses['orderby']} {$this->sql_clauses['limits']}";
+		$this->request = "{$this->sql_clauses['select']} {$this->sql_clauses['from']} {$where} {$this->sql_clauses['orderby']} {$this->sql_clauses['limits']}";
 
 		$this->terms = null;
 
