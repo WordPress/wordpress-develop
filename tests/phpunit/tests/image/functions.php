@@ -174,17 +174,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_save_image_file() {
 		$classes = $this->get_image_editor_engine_classes();
 
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
-
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		// Mime types.
@@ -235,17 +224,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_mime_overrides_filename() {
 		$classes = $this->get_image_editor_engine_classes();
 
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
-
 		// Test each image editor engine.
 		foreach ( $classes as $class ) {
 			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
@@ -276,18 +254,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_inferred_mime_types() {
 		$classes = $this->get_image_editor_engine_classes();
-
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
-
+		
 		// Mime types.
 		$mime_types = array(
 			'jpg'  => 'image/jpeg',
