@@ -1922,7 +1922,7 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 			}
 
 			// Found a match, replace with the new filename and stop searching.
-			$image    = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
+			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
 		}
 
 		// Handle full size image replacement

@@ -313,7 +313,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 						// This doesn't affect the sub-sizes names as they are generated from the original image (for best quality).
 						$saved = $editor->save( $editor->generate_filename( 'scaled' ) );
 
-						if ( ! is_wp_error( $saved ) ) {
+						if ( ! is_wp_error( $saved ) && ! empty( $saved ) ) {
 							$image_meta                                 = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
 							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 
@@ -327,7 +327,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					} else {
 						// Additional mime types are named "my_image-{mime-extension}-scaled"
 						$saved = $editor->save( $editor->generate_filename( str_replace( 'image/', '', $output_mime_type ) . '-scaled' ), $output_mime_type );
-						if ( ! is_wp_error( $saved ) ) {
+						if ( ! is_wp_error( $saved && ! empty( $saved ) ) ) {
 							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						}
 					}
@@ -350,7 +350,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 						$saved = $editor->save( $editor->generate_filename( str_replace( 'image/', '', $output_mime_type ) . '-rotated' ), $output_mime_type );
 					}
 
-					if ( ! is_wp_error( $saved ) ) {
+					if ( ! is_wp_error( $saved && ! empty( $saved ) ) ) {
 						$image_meta                                 = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						// Update the stored EXIF data.
@@ -370,7 +370,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					} else {
 						// For alternate mime types, generate a full size image and add it to the 'sources' array.
 						$saved = $editor->save( $editor->generate_filename( str_replace( 'image/', '', $output_mime_type ) ), $output_mime_type );
-						if ( ! is_wp_error( $saved ) ) {
+						if ( ! is_wp_error( $saved ) && ! empty( $saved ) ) {
 							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						} else {
 							// @TODO Log errors
@@ -446,7 +446,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		$metadata['sources'] = array();
 	}
 	$mime_type = get_post_mime_type( $attachment_id );
-	$editor = wp_get_image_editor( $file );
+	$editor    = wp_get_image_editor( $file );
 
 	if ( is_wp_error( $editor ) ) {
 		// The image cannot be edited.

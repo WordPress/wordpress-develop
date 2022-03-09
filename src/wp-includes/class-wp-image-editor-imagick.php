@@ -458,7 +458,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		$metadata = array();
 
 		foreach ( $sizes as $size => $size_data ) {
-			$meta = $this->make_subsize( $size_data );
+			$meta = $this->make_subsize( $size_data, null );
 
 			if ( ! is_wp_error( $meta ) ) {
 				$metadata[ $size ] = $meta;
