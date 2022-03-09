@@ -1573,18 +1573,25 @@ function wp_check_php_version() {
 }
 
 /**
- * Add 'is-fullscreen-mode' to avoid jumps in the UI.
+ * Add 'is-fullscreen-mode' body class in Block Editor screens to
+ * avoid jumps in the UI.
  *
  * @param string $classes Space-separated list of CSS classes.
  *
  * @return string $classes String of classes.
  */
 function body_class_edit_form_blocks( $classes ) {
-	return "$classes is-fullscreen-mode";
+	$current_screen = get_current_screen();
+
+	if ( ! is_null( $current_screen->id ) && in_array( $current_screen->id, array( 'post', 'page' ) ) ) {
+		$classes .= ' is-fullscreen-mode';
+	}
+
+	return $classes;
 }
 
 /**
- * Add 'options-privacy' class in Privacy Options page.
+ * Add 'options-privacy' in Privacy Options page.
  *
  * @param string $classes Space-separated list of CSS classes.
  *
