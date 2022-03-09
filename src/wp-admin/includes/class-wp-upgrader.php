@@ -1072,11 +1072,11 @@ class WP_Upgrader {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param array|string $args {
-	 *    Array of data for the temp-backup.
+	 *     Array of data for the temp-backup.
 	 *
-	 *    @type string $slug Plugin slug.
-	 *    @type string $src  File path to directory.
-	 *    @type string $dir  Directory name.
+	 *     @type string $slug Plugin slug.
+	 *     @type string $src  File path to directory.
+	 *     @type string $dir  Directory name.
 	 * }
 	 *
 	 * @return bool|WP_Error
@@ -1115,11 +1115,11 @@ class WP_Upgrader {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param array|string $args {
-	 *    Array of data for the temp-backup.
+	 *     Array of data for the temp-backup.
 	 *
-	 *    @type string $slug Plugin slug.
-	 *    @type string $src  File path to directory.
-	 *    @type string $dir  Directory name.
+	 *     @type string $slug Plugin slug.
+	 *     @type string $src  File path to directory.
+	 *     @type string $dir  Directory name.
 	 * }
 	 *
 	 * @return bool
