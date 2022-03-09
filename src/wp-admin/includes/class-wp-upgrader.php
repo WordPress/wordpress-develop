@@ -1023,7 +1023,7 @@ class WP_Upgrader {
 			return false;
 		}
 
-		/**
+		/*
 		 * Skip any plugin that has "." as its slug.
 		 * A slug of "." will result in a `$src` value ending in a period.
 		 *
