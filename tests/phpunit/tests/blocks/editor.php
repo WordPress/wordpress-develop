@@ -80,9 +80,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_block_editor_context_no_settings() {
 		$context = new WP_Block_Editor_Context();
 
-		$this->assertSame( 'post', $context->type );
+		$this->assertSame( 'core/edit-post', $context->name );
 		$this->assertNull( $context->post );
-		$this->assertFalse( $context->is_customizer );
 	}
 
 	/**
@@ -91,47 +90,38 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_block_editor_context_post() {
 		$context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
 
-		$this->assertSame( 'post', $context->type );
+		$this->assertSame( 'core/edit-post', $context->name );
 		$this->assertSame( get_post(), $context->post );
-		$this->assertFalse( $context->is_customizer );
 	}
 
 	/**
 	 * @ticket 55301
 	 */
 	public function test_block_editor_context_widgets() {
-		$context = new WP_Block_Editor_Context( array( 'type' => 'widgets' ) );
+		$context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-widgets' ) );
 
-		$this->assertSame( 'widgets', $context->type );
+		$this->assertSame( 'core/edit-widgets', $context->name );
 		$this->assertNull( $context->post );
-		$this->assertFalse( $context->is_customizer );
 	}
 
 	/**
 	 * @ticket 55301
 	 */
 	public function test_block_editor_context_widgets_customizer() {
-		$context = new WP_Block_Editor_Context(
-			array(
-				'type'          => 'widgets',
-				'is_customizer' => true,
-			)
-		);
+		$context = new WP_Block_Editor_Context( array( 'name' => 'core/customize-widgets' ) );
 
-		$this->assertSame( 'widgets', $context->type );
+		$this->assertSame( 'core/customize-widgets', $context->name );
 		$this->assertNull( $context->post );
-		$this->assertTrue( $context->is_customizer );
 	}
 
 	/**
 	 * @ticket 55301
 	 */
 	public function test_block_editor_context_site() {
-		$context = new WP_Block_Editor_Context( array( 'type' => 'site' ) );
+		$context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
 
-		$this->assertSame( 'site', $context->type );
+		$this->assertSame( 'core/edit-site', $context->name );
 		$this->assertNull( $context->post );
-		$this->assertFalse( $context->is_customizer );
 	}
 
 	/**
