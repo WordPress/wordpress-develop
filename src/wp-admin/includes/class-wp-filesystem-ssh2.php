@@ -26,7 +26,7 @@
  * Restart Apache!
  * Check phpinfo() streams to confirm that: ssh2.shell, ssh2.exec, ssh2.tunnel, ssh2.scp, ssh2.sftp  exist.
  *
- * Note: As of WordPress 2.8, this utilises the PHP5+ function `stream_get_contents()`.
+ * Note: As of WordPress 2.8, this utilizes the PHP5+ function `stream_get_contents()`.
  *
  * @since 2.7.0
  *
@@ -88,7 +88,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			$this->options['public_key']  = $opt['public_key'];
 			$this->options['private_key'] = $opt['private_key'];
 
-			$this->options['hostkey'] = array( 'hostkey' => 'ssh-rsa' );
+			$this->options['hostkey'] = array( 'hostkey' => 'ssh-rsa,ssh-ed25519' );
 
 			$this->keys = true;
 		} elseif ( empty( $opt['username'] ) ) {
