@@ -1005,6 +1005,7 @@ class WP_Upgrader {
 	public static function release_lock( $lock_name ) {
 		return delete_option( $lock_name . '.lock' );
 	}
+
 	/**
 	 * Moves the plugin/theme being updated into a temp-backup directory.
 	 *
