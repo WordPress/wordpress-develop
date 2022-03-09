@@ -485,7 +485,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
 	 */
-	public function make_subsize( $size_data, $mime_type ) {
+	public function make_subsize( $size_data, $mime_type = null ) {
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
 			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
 		}
