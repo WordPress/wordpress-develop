@@ -979,6 +979,7 @@ function wp_delete_all_temp_backups() {
 		/*
 		 * This action runs on shutdown to make sure there's no plugin updates currently running.
 		 * Using a closure in this case is OK since the action can be removed by removing the parent hook.
+		 * `remove_action( 'wp_delete_temp_updater_backups', 'wp_delete_all_temp_backups' );`
 		 */
 		function() {
 			global $wp_filesystem;
