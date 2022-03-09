@@ -24,7 +24,9 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 		$this->assertEquals( wp_filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
 
 		foreach ( $metadata['sizes'] as $intermediate_size ) {
-			$this->assertTrue( ! empty( $intermediate_size['filesize'] ) && is_numeric( $intermediate_size['filesize'] ) );
+			$this->assertArrayHasKey( 'filesize', $intermediate_size );
+			$this->assertNotEmpty( $intermediate_size['filesize'] );
+			$this->assertIsNumeric( $intermediate_size['filesize'] );
 		}
 	}
 

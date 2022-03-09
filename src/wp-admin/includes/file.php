@@ -2591,5 +2591,5 @@ function wp_filesize( $path ) {
 	 * @param int    $size The result of PHP filesize on the file.
 	 * @param string $path Path to the file.
 	 */
-	return apply_filters( 'wp_filesize', $size, $path );
+	return (int) apply_filters( 'wp_filesize', $size, $path );
 }
