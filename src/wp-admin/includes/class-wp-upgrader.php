@@ -1013,7 +1013,14 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the temp-backup. Must include a slug, the source, and directory.
+	 * @param array|string $args {
+	 *     Array of data for the temp-backup.
+	 *
+	 *     @type string $slug Plugin slug.
+	 *     @type string $src  File path to directory.
+	 *     @type string $dir  Directory name.
+	 * }
+	 *
 	 * @return bool|WP_Error
 	 */
 	public function move_to_temp_backup_dir( $args ) {
