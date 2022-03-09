@@ -6654,6 +6654,8 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 		}
 	}
 
+	$url = rawurlencode( $url );
+
 	/*
 	 * If any of the above options failed, Fallback on the GUID as used pre-2.7,
 	 * not recommended to rely upon this.

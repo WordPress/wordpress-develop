@@ -440,6 +440,30 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
 	}
 
+	/**
+	 * @ticket 14148
+	 */
+	public function test_wp_get_attachment_url_should_encode_url() {
+		// Set https upload URL.
+		add_filter( 'upload_dir', '_upload_dir_https' );
+
+		$filename = ( DIR_TESTDATA . '/images/test-image-àèòìù.jpg' );
+		$contents = file_get_contents( $filename );
+
+		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$this->assertEmpty( $upload['error'] );
+
+		// Set attachment ID.
+		$attachment_id = $this->_make_attachment( $upload );
+
+		$_SERVER['HTTPS'] = 'on';
+		set_current_screen( 'dashboard' );
+
+		$url = wp_get_attachment_url( $attachment_id );
+
+		$this->assertStringContainsString( 'test-image-aeoiu', $url );
+	}
+
 	public function test_wp_attachment_is() {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );

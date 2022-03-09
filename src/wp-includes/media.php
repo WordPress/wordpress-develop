@@ -221,7 +221,7 @@ function image_downsize( $id, $size = 'medium' ) {
 	// Otherwise, a non-image type could be returned.
 	if ( ! $is_image ) {
 		if ( ! empty( $meta['sizes']['full'] ) ) {
-			$img_url          = str_replace( $img_url_basename, $meta['sizes']['full']['file'], $img_url );
+			$img_url          = str_replace( $img_url_basename, rawurlencode( $meta['sizes']['full']['file'] ), $img_url );
 			$img_url_basename = $meta['sizes']['full']['file'];
 			$width            = $meta['sizes']['full']['width'];
 			$height           = $meta['sizes']['full']['height'];
@@ -234,7 +234,7 @@ function image_downsize( $id, $size = 'medium' ) {
 	$intermediate = image_get_intermediate_size( $id, $size );
 
 	if ( $intermediate ) {
-		$img_url         = str_replace( $img_url_basename, $intermediate['file'], $img_url );
+		$img_url         = str_replace( $img_url_basename, rawurlencode( $intermediate['file'] ), $img_url );
 		$width           = $intermediate['width'];
 		$height          = $intermediate['height'];
 		$is_intermediate = true;
