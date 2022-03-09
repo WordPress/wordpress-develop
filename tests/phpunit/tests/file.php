@@ -294,8 +294,5 @@ class Tests_File extends WP_UnitTestCase {
 		add_filter( 'pre_wp_filesize', $pre_filter );
 
 		$this->assertEquals( 111, wp_filesize( $file ) );
-
-		remove_filter( 'wp_filesize', $filter );
-		remove_filter( 'pre_wp-filesize', $pre_filter );
 	}
 }
