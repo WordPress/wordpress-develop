@@ -2252,11 +2252,14 @@ EOF;
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
 		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
+
 	}
 
 	/**
@@ -2285,9 +2288,11 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes_with_preexisting_srcset() {
 		// Generate HTML and add a dummy srcset attribute.
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
+		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		// The content filter should return the image unchanged.
 		$this->assertSame( $img, wp_filter_content_tags( $img ) );
@@ -2343,6 +2348,7 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_filter_content_tags_schemes() {
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -2387,6 +2393,7 @@ EOF;
 		$actual = wp_filter_content_tags( $unfiltered );
 
 		$this->assertSame( $expected, $actual );
+		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -2804,6 +2811,8 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_filter_content_tags_width_height() {
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
+
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -2837,11 +2846,13 @@ EOF;
 		// Do not add loading, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
 		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -2895,11 +2906,13 @@ EOF;
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
 		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -2927,9 +2940,13 @@ EOF;
 		// Enable globally for all tags.
 		add_filter( 'wp_lazy_loading_enabled', '__return_true' );
 
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
+
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 		remove_filter( 'wp_lazy_loading_enabled', '__return_true' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
+
 	}
 
 	/**
@@ -2953,9 +2970,12 @@ EOF;
 		// Disable globally for all tags.
 		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
 
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
+
 		$this->assertSame( $content, wp_filter_content_tags( $content ) );
 		remove_filter( 'wp_lazy_loading_enabled', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -3381,6 +3401,7 @@ EOF;
 	 */
 	function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
 		global $wp_query, $wp_the_query;
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$iframe1      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
@@ -3390,6 +3411,7 @@ EOF;
 		$lazy_img2    = wp_img_tag_add_loading_attr( $img2, 'the_content' );
 		$lazy_img3    = wp_img_tag_add_loading_attr( $img3, 'the_content' );
 		$lazy_iframe2 = wp_iframe_tag_add_loading_attr( $iframe2, 'the_content' );
+
 
 		// Use a threshold of 2.
 		add_filter(
@@ -3415,6 +3437,7 @@ EOF;
 			$content_filtered = wp_filter_content_tags( $content_unfiltered, 'the_content' );
 			remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 		}
+		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		// After filtering, the first image should not be lazy-loaded while the other ones should be.
 		$this->assertSame( $content_expected, $content_filtered );

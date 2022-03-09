@@ -1870,7 +1870,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 }
 
 /**
- * Potentially use alternate mime type images in the content output.
+ * Use alternate mime type images in the content output when available.
  *
  * @since 6.0.0
  *
@@ -1893,12 +1893,14 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param array $target_mimes The image output mime type and order. Default is ( 'image/webp', 'image/jpeg' ).
-	 * @return array The filtered output mime type and order.
-	 *
+	 * @param array $target_mimes  The image output mime type and order. Default is ( 'image/webp', 'image/jpeg' ).
+	 * @param int   $attachment_id The attachment ID.
+	 * @return array The filtered output mime type and order. Return an empty array to skip mime type substitution.
 	 */
-	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes );
-
+	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes, $attachment_id );
+	if ( false === $target_mimes ) {
+		return $image;
+	}
 	// Find the appropriate size for the provided URL in the first available mime type.
 	foreach ( $target_mimes as $target_mime ) {
 		if ( ! isset( $metadata['sources'][ $target_mime ] ) || empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
