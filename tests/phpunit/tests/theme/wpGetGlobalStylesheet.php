@@ -1,9 +1,11 @@
 <?php
 
 /**
+ * Tests wp_get_global_stylesheet().
+ *
  * @group themes
  */
-class Tests_Theme_GlobalStylesheet extends WP_UnitTestCase {
+class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
