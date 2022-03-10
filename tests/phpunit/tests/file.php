@@ -265,6 +265,7 @@ class Tests_File extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49412
+	 * @covers ::wp_filesize
 	 */
 	function test_wp_filesize_with_nonexistent_file() {
 		$file = 'nonexistent/file.jpg';
@@ -273,6 +274,7 @@ class Tests_File extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49412
+	 * @covers ::wp_filesize
 	 */
 	function test_wp_filesize() {
 		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
