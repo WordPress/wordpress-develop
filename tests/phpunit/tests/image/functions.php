@@ -592,7 +592,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
 					'sources'   => array(
-					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-300x300.jpg' ),
+						'filesize'   => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-300x300.jpg' ),
 						'image/jpeg' => array(
 							'file' => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
 						),
