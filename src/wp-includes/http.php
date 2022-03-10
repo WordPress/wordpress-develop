@@ -661,7 +661,7 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  * schemeless and relative url's with :// in the path. This function works around
  * those limitations providing a standard output on PHP 5.2~5.4+.
  *
- * Secondly, across various PHP versions, schemeless URLs starting containing a ":"
+ * Secondly, across various PHP versions, schemeless URLs containing a ":"
  * in the query are being handled inconsistently. This function works around those
  * differences as well.
  *
