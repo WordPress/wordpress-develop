@@ -530,7 +530,8 @@ class WP_Term_Query {
 			( ! empty( $args['name'] ) ) ||
 			( is_string( $args['name'] ) && 0 !== strlen( $args['name'] ) )
 		) {
-			$names = (array) $args['name'];
+			$args['name'] = (array) $args['name'];
+			$names        = $args['name'];
 			foreach ( $names as &$_name ) {
 				// `sanitize_term_field()` returns slashed data.
 				$_name = stripslashes( sanitize_term_field( 'name', $_name, 0, reset( $taxonomies ), 'db' ) );
@@ -543,22 +544,16 @@ class WP_Term_Query {
 			( ! empty( $args['slug'] ) ) ||
 			( is_string( $args['slug'] ) && 0 !== strlen( $args['slug'] ) )
 		) {
-			if ( is_array( $args['slug'] ) ) {
-				$slug                               = array_map( 'sanitize_title', $args['slug'] );
-				$this->sql_clauses['where']['slug'] = "t.slug IN ('" . implode( "', '", $slug ) . "')";
-			} else {
-				$slug                               = sanitize_title( $args['slug'] );
-				$this->sql_clauses['where']['slug'] = "t.slug = '$slug'";
-			}
+			$args['slug']                       = (array) $args['slug'];
+			$slug                               = array_map( 'sanitize_title', $args['slug'] );
+			$this->sql_clauses['where']['slug'] = "t.slug IN ('" . implode( "', '", $slug ) . "')";
+
 		}
 
 		if ( ! empty( $args['term_taxonomy_id'] ) ) {
-			if ( is_array( $args['term_taxonomy_id'] ) ) {
-				$tt_ids = implode( ',', array_map( 'intval', $args['term_taxonomy_id'] ) );
-				$this->sql_clauses['where']['term_taxonomy_id'] = "tt.term_taxonomy_id IN ({$tt_ids})";
-			} else {
-				$this->sql_clauses['where']['term_taxonomy_id'] = $wpdb->prepare( 'tt.term_taxonomy_id = %d', $args['term_taxonomy_id'] );
-			}
+			$args['term_taxonomy_id']                       = (array) $args['term_taxonomy_id'];
+			$tt_ids                                         = implode( ',', array_map( 'intval', $args['term_taxonomy_id'] ) );
+			$this->sql_clauses['where']['term_taxonomy_id'] = "tt.term_taxonomy_id IN ({$tt_ids})";
 		}
 
 		if ( ! empty( $args['name__like'] ) ) {
@@ -570,12 +565,8 @@ class WP_Term_Query {
 		}
 
 		if ( ! empty( $args['object_ids'] ) ) {
-			$object_ids = $args['object_ids'];
-			if ( ! is_array( $object_ids ) ) {
-				$object_ids = array( $object_ids );
-			}
-
-			$object_ids                               = implode( ', ', array_map( 'intval', $object_ids ) );
+			$args['object_ids']                       = (array) $args['object_ids'];
+			$object_ids                               = implode( ', ', array_map( 'intval', $args['object_ids'] ) );
 			$this->sql_clauses['where']['object_ids'] = "tr.object_id IN ($object_ids)";
 		}
 
@@ -728,7 +719,12 @@ class WP_Term_Query {
 		}
 
 		// $args can be anything. Only use the args defined in defaults to compute the key.
-		$key          = md5( serialize( wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) ) ) . serialize( $taxonomies ) . $this->request );
+		$cache_args = wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) );
+		unset( $cache_args['pad_counts'], $cache_args['update_term_meta_cache'] );
+		if ( 'count' !== $_fields && 'all_with_object_id' !== $_fields ) {
+			$cache_args['fields'] = 'all';
+		}
+		$key          = md5( serialize( $cache_args ) . serialize( $taxonomies ) . $this->request );
 		$last_changed = wp_cache_get_last_changed( 'terms' );
 		$cache_key    = "get_terms:$key:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'terms' );
