@@ -118,6 +118,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 				 * Filters the sitemap entry for an individual term.
 				 *
 				 * @since 5.5.0
+				 * @since 6.0.0 Added fourth argument for the term object.
 				 *
 				 * @param array   $sitemap_entry Sitemap entry for the term.
 				 * @param int     $term_id       Term ID.
