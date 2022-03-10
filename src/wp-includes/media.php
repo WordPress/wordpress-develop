@@ -1898,6 +1898,7 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 	 * @return array The filtered output mime type and order. Return an empty array to skip mime type substitution.
 	 */
 	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes, $attachment_id );
+
 	if ( false === $target_mimes ) {
 		return $image;
 	}
