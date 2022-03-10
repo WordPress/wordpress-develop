@@ -270,6 +270,7 @@ a:active {
 
 a:focus,
 a:focus .media-icon img,
+a:focus .plugin-icon,
 .wp-person a:focus .gravatar {
 	color: #043959;
 	box-shadow:
@@ -823,8 +824,6 @@ img.emoji {
 	outline: 0;
 }
 
-.welcome-panel .welcome-panel-close:hover:before,
-.welcome-panel .welcome-panel-close:focus:before,
 .tagchecklist .ntdelbutton:hover .remove-tag-icon:before,
 .tagchecklist .ntdelbutton:focus .remove-tag-icon:before,
 #bulk-titles div a:hover:before,
@@ -883,7 +882,8 @@ hr {
 #media-items a.delete-permanently,
 #nav-menu-footer .menu-delete,
 #delete-link a.delete,
-a#remove-post-thumbnail {
+a#remove-post-thumbnail,
+.privacy_requests .remove-personal-data .remove-personal-data-handle {
 	color: #b32d2e;
 }
 
@@ -901,7 +901,8 @@ span.required,
 #media-items a.delete-permanently:hover,
 #nav-menu-footer .menu-delete:hover,
 #delete-link a.delete:hover,
-a#remove-post-thumbnail:hover {
+a#remove-post-thumbnail:hover,
+.privacy_requests .remove-personal-data .remove-personal-data-handle:hover {
 	color: #b32d2e;
 	border: none;
 }
@@ -3143,7 +3144,7 @@ img {
 	width: 300px;
 }
 
-/* Theme/Plugin Editor */
+/* Theme/Plugin file editor */
 .alignleft h2 {
 	margin: 0;
 }
@@ -3196,7 +3197,7 @@ img {
 }
 
 /*
- * Styles for Theme and Plugin editors.
+ * Styles for Theme and Plugin file editors.
  */
 
 /* Hide collapsed items. */

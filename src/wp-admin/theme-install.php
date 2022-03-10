@@ -35,9 +35,10 @@ if ( false === $installed_themes ) {
 	$installed_themes = array();
 }
 
-foreach ( $installed_themes as $k => $v ) {
-	if ( false !== strpos( $k, '/' ) ) {
-		unset( $installed_themes[ $k ] );
+foreach ( $installed_themes as $theme_slug => $theme_data ) {
+	// Ignore child themes.
+	if ( str_contains( $theme_slug, '/' ) ) {
+		unset( $installed_themes[ $theme_slug ] );
 	}
 }
 
@@ -137,7 +138,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/using-themes/#adding-new-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/appearance-themes-screen/#install-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -221,15 +222,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		// and to ensure tags are translated.
 		$feature_list = get_theme_feature_list( false );
 
-		foreach ( $feature_list as $feature_name => $features ) {
+		foreach ( $feature_list as $feature_group => $features ) {
 			echo '<fieldset class="filter-group">';
-			$feature_name = esc_html( $feature_name );
-			echo '<legend>' . $feature_name . '</legend>';
+			echo '<legend>' . esc_html( $feature_group ) . '</legend>';
 			echo '<div class="filter-group-feature">';
 			foreach ( $features as $feature => $feature_name ) {
 				$feature = esc_attr( $feature );
 				echo '<input type="checkbox" id="filter-id-' . $feature . '" value="' . $feature . '" /> ';
-				echo '<label for="filter-id-' . $feature . '">' . $feature_name . '</label>';
+				echo '<label for="filter-id-' . $feature . '">' . esc_html( $feature_name ) . '</label>';
 			}
 			echo '</div>';
 			echo '</fieldset>';
@@ -374,7 +374,9 @@ if ( $tab ) {
 					<# } #>
 					<# if ( data.customize_url ) { #>
 						<# if ( ! data.active ) { #>
-							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<# if ( ! data.block_theme ) { #>
+								<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<# } #>
 						<# } else { #>
 							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Customize' ); ?></a>
 						<# } #>

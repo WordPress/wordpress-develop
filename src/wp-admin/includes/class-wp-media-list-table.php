@@ -151,7 +151,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			);
 		}
 
-		$type_links['detached'] = '<option value="detached"' . ( $this->detached ? ' selected="selected"' : '' ) . '>' . __( 'Unattached' ) . '</option>';
+		$type_links['detached'] = '<option value="detached"' . ( $this->detached ? ' selected="selected"' : '' ) . '>' . _x( 'Unattached', 'media items' ) . '</option>';
 
 		$type_links['mine'] = sprintf(
 			'<option value="mine"%s>%s</option>',
@@ -805,6 +805,15 @@ class WP_Media_List_Table extends WP_List_Table {
 					/* translators: %s: Attachment title. */
 					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
 					__( 'View' )
+				);
+
+				$actions['copy'] = sprintf(
+					'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
+					esc_url( wp_get_attachment_url( $post->ID ) ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
+					__( 'Copy URL to clipboard' ),
+					__( 'Copied!' )
 				);
 			}
 		}

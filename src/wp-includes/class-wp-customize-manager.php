@@ -161,7 +161,7 @@ final class WP_Customize_Manager {
 	 * Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
 	 * @since 4.4.0
-	 * @var array
+	 * @var string[]
 	 */
 	protected $autofocus = array();
 
@@ -346,7 +346,7 @@ final class WP_Customize_Manager {
 		 * @see WP_Customize_Manager::__construct()
 		 *
 		 * @param string[]             $components Array of core components to load.
-		 * @param WP_Customize_Manager $manager   WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager    WP_Customize_Manager instance.
 		 */
 		$components = apply_filters( 'customize_loaded_components', $this->components, $this );
 
@@ -496,7 +496,7 @@ final class WP_Customize_Manager {
 	/**
 	 * Start preview and customize theme.
 	 *
-	 * Check if customize query variable exist. Init filters to filter the current theme.
+	 * Check if customize query variable exist. Init filters to filter the active theme.
 	 *
 	 * @since 3.4.0
 	 *
@@ -699,7 +699,7 @@ final class WP_Customize_Manager {
 	/**
 	 * Stop previewing the selected theme.
 	 *
-	 * Removes filters to change the current theme.
+	 * Removes filters to change the active theme.
 	 *
 	 * @since 3.4.0
 	 */
@@ -1185,7 +1185,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @param array $starter_content Starter content. Defaults to `get_theme_starter_content()`.
 	 */
-	function import_theme_starter_content( $starter_content = array() ) {
+	public function import_theme_starter_content( $starter_content = array() ) {
 		if ( empty( $starter_content ) ) {
 			$starter_content = get_theme_starter_content();
 		}
@@ -1769,7 +1769,7 @@ final class WP_Customize_Manager {
 				}
 				if ( isset( $setting_params['type'] ) && 'theme_mod' === $setting_params['type'] ) {
 
-					// Ensure that theme mods values are only used if they were saved under the current theme.
+					// Ensure that theme mods values are only used if they were saved under the active theme.
 					$namespace_pattern = '/^(?P<stylesheet>.+?)::(?P<setting_id>.+)$/';
 					if ( preg_match( $namespace_pattern, $setting_id, $matches ) && $this->get_stylesheet() === $matches['stylesheet'] ) {
 						$values[ $matches['setting_id'] ] = $setting_params['value'];
@@ -2297,7 +2297,7 @@ final class WP_Customize_Manager {
 	}
 
 	/**
-	 * Filters the current theme and return the name of the previewed theme.
+	 * Filters the active theme and return the name of the previewed theme.
 	 *
 	 * @since 3.4.0
 	 *
@@ -2622,7 +2622,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @return array|WP_Error Returns array on success and WP_Error with array data on error.
 	 */
-	function save_changeset_post( $args = array() ) {
+	public function save_changeset_post( $args = array() ) {
 
 		$args = array_merge(
 			array(
@@ -4720,7 +4720,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array {
+	 * @return string[] {
 	 *     Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
 	 *     @type string $control ID for control to be autofocused.
@@ -5808,10 +5808,11 @@ final class WP_Customize_Manager {
 		if ( 'installed' === $theme_action ) {
 
 			// Load all installed themes from wp_prepare_themes_for_js().
-			$themes = array( 'themes' => wp_prepare_themes_for_js() );
-			foreach ( $themes['themes'] as &$theme ) {
-				$theme['type']   = 'installed';
-				$theme['active'] = ( isset( $_POST['customized_theme'] ) && $_POST['customized_theme'] === $theme['id'] );
+			$themes = array( 'themes' => array() );
+			foreach ( wp_prepare_themes_for_js() as $theme ) {
+				$theme['type']      = 'installed';
+				$theme['active']    = ( isset( $_POST['customized_theme'] ) && $_POST['customized_theme'] === $theme['id'] );
+				$themes['themes'][] = $theme;
 			}
 		} elseif ( 'wporg' === $theme_action ) {
 
@@ -5923,7 +5924,7 @@ final class WP_Customize_Manager {
 		 * @see themes_api()
 		 * @see WP_Customize_Manager::__construct()
 		 *
-		 * @param array                $themes  Nested array of theme data.
+		 * @param array|stdClass       $themes  Nested array or object of theme data.
 		 * @param array                $args    List of arguments, such as page, search term, and tags to query for.
 		 * @param WP_Customize_Manager $manager Instance of Customize manager.
 		 */

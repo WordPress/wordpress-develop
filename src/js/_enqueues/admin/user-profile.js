@@ -43,6 +43,9 @@
 
 		// Once zxcvbn loads, passwords strength is known.
 		$( '#pw-weak-text-label' ).text( __( 'Confirm use of weak password' ) );
+
+		// Focus the password field.
+		$( $pass1 ).trigger( 'focus' );
 	}
 
 	function bindPass1() {
@@ -213,7 +216,7 @@
 			updateLock = true;
 
 			// Make sure the password fields are shown.
-			$generateButton.attr( 'aria-expanded', 'true' );
+			$generateButton.not( '.skip-aria-expanded' ).attr( 'aria-expanded', 'true' );
 			$passwordWrapper
 				.show()
 				.addClass( 'is-open' );
@@ -254,6 +257,8 @@
 
 			// Stop an empty password from being submitted as a change.
 			$submitButtons.prop( 'disabled', false );
+
+			$generateButton.attr( 'aria-expanded', 'false' );
 		} );
 
 		$pass1Row.closest( 'form' ).on( 'submit', function () {

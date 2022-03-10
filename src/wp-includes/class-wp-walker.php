@@ -24,7 +24,7 @@ class Walker {
 	 * DB fields to use.
 	 *
 	 * @since 2.1.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $db_fields;
 
@@ -209,7 +209,7 @@ class Walker {
 		/*
 		 * Need to display in hierarchical order.
 		 * Separate elements into two buckets: top level and children elements.
-		 * Children_elements is two dimensional array, eg.
+		 * Children_elements is two dimensional array. Example:
 		 * Children_elements[10][] contains all sub-elements whose parent is 10.
 		 */
 		$top_level_elements = array();
@@ -276,10 +276,10 @@ class Walker {
 	 * @since 5.3.0 Formalized the existing `...$args` parameter by adding it
 	 *              to the function signature.
 	 *
-	 * @param array $elements
+	 * @param array $elements  An array of elements.
 	 * @param int   $max_depth The maximum hierarchical depth.
 	 * @param int   $page_num  The specific page number, beginning with 1.
-	 * @param int   $per_page
+	 * @param int   $per_page  Number of elements per page.
 	 * @param mixed ...$args   Optional additional arguments.
 	 * @return string XHTML of the specified page of elements
 	 */

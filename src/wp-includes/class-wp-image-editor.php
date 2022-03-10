@@ -175,7 +175,7 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @return array {
+	 * @return int[] {
 	 *     Dimensions of the image.
 	 *
 	 *     @type int $width  The image width.
@@ -363,7 +363,6 @@ abstract class WP_Image_Editor {
 		 * }
 		 * @param string $filename  Path to the image.
 		 * @param string $mime_type The source image mime type.
-		 * }
 		 */
 		$output_format = apply_filters( 'image_editor_output_format', array(), $filename, $mime_type );
 
@@ -486,7 +485,7 @@ abstract class WP_Image_Editor {
 		}
 
 		/**
-		 * Filters the `$orientation` value to correct it before rotating or to prevemnt rotating the image.
+		 * Filters the `$orientation` value to correct it before rotating or to prevent rotating the image.
 		 *
 		 * @since 5.3.0
 		 *

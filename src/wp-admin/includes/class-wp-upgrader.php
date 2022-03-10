@@ -380,7 +380,7 @@ class WP_Upgrader {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param string $remote_destination The location on the remote filesystem to be cleared.
-	 * @return bool|WP_Error True upon success, WP_Error on failure.
+	 * @return true|WP_Error True upon success, WP_Error on failure.
 	 */
 	public function clear_destination( $remote_destination ) {
 		global $wp_filesystem;
@@ -440,8 +440,8 @@ class WP_Upgrader {
 	 *                                               Default empty.
 	 *     @type bool   $clear_destination           Whether to delete any files already in the destination
 	 *                                               folder. Default false.
-	 *     @type bool   $clear_working               Whether to delete the files form the working directory
-	 *                                               after copying to the destination. Default false.
+	 *     @type bool   $clear_working               Whether to delete the files from the working directory
+	 *                                               after copying them to the destination. Default false.
 	 *     @type bool   $abort_if_destination_exists Whether to abort the installation if
 	 *                                               the destination folder already exists. Default true.
 	 *     @type array  $hook_extra                  Extra arguments to pass to the filter hooks called by
@@ -650,8 +650,8 @@ class WP_Upgrader {
 	 *                                               Default empty.
 	 *     @type bool   $clear_destination           Whether to delete any files already in the
 	 *                                               destination folder. Default false.
-	 *     @type bool   $clear_working               Whether to delete the files form the working
-	 *                                               directory after copying to the destination.
+	 *     @type bool   $clear_working               Whether to delete the files from the working
+	 *                                               directory after copying them to the destination.
 	 *                                               Default false.
 	 *     @type bool   $abort_if_destination_exists Whether to abort the installation if the destination
 	 *                                               folder already exists. When true, `$clear_destination`
@@ -947,7 +947,6 @@ class WP_Upgrader {
 	public static function release_lock( $lock_name ) {
 		return delete_option( $lock_name . '.lock' );
 	}
-
 }
 
 /** Plugin_Upgrader class */
