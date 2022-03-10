@@ -657,7 +657,7 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  * A wrapper for PHP's parse_url() function that handles consistency in the return values
  * across PHP versions.
  *
- * PHP 5.4.7 expanded parse_url()'s ability to handle non-absolute url's, including
+ * PHP 5.4.7 expanded parse_url()'s ability to handle non-absolute URLs, including
  * schemeless and relative URLs with "://" in the path. This function works around
  * those limitations providing a standard output on PHP 5.2~5.4+.
  *
