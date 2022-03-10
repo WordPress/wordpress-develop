@@ -458,8 +458,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		$results = wp_cache_flush_group( array( 'group-test', 'group-test2' ) );
 
-		$this->assertIsArray( $results[0] );
-		$this->assertCount( 2, $results[0] );
+		$this->assertIsArray( $results );
+		$this->assertCount( 2, $results );
 		$this->assertFalse( wp_cache_get( $key, 'group-test' ), 'test_wp_cache_flush_groups: group-test should return false' );
 		$this->assertFalse( wp_cache_get( $key, 'group-test2' ), 'test_wp_cache_flush_groups: group-test2 should return false' );
 		$this->assertSame( $val, wp_cache_get( $key, 'group-kept' ), 'test_wp_cache_flush_groups: group-kept should still contain my-val' );
