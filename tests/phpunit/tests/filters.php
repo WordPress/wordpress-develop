@@ -218,7 +218,7 @@ class Tests_Filters extends WP_UnitTestCase {
 	/**
 	 * @ticket 53218
 	 */
-	function test_filter_with_ref_value() {
+	public function test_filter_with_ref_value() {
 		$obj = new stdClass();
 		$ref = &$obj;
 		$a   = new MockAction();
@@ -240,7 +240,7 @@ class Tests_Filters extends WP_UnitTestCase {
 	/**
 	 * @ticket 53218
 	 */
-	function test_filter_with_ref_argument() {
+	public function test_filter_with_ref_argument() {
 		$obj = new stdClass();
 		$ref = &$obj;
 		$a   = new MockAction();
