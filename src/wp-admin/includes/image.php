@@ -369,7 +369,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					if ( 0 === $mime_index ) {
 						$image_meta['sources'][ $output_mime_type ] = array(
 							'file'     => wp_basename( $image_meta['file'] ),
-							'filesize' => filesize( $file ),
+							'filesize' => wp_filesize( $file ),
 						);
 					} else {
 						// For alternate mime types, generate a full size image and add it to the 'sources' array.
@@ -419,7 +419,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 function _wp_get_sources_from_meta( $meta ) {
 	return array(
 		'file'     => wp_basename( $meta['file'] ),
-		'filesize' => filesize( $meta['path'] ),
+		'filesize' => wp_filesize( $meta['path'] ),
 	);
 }
 
@@ -543,7 +543,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 					);
 					$file_location = path_join( $dirname, $new_size_meta['file'] );
 					if ( file_exists( $file_location ) ) {
-						$source_meta['filesize'] = filesize( $file_location );
+						$source_meta['filesize'] = wp_filesize( $file_location );
 					}
 					$image_meta['sizes'][ $new_size_name ]['sources'][ $output_mime_type ] = $source_meta;
 					wp_update_attachment_metadata( $attachment_id, $image_meta );

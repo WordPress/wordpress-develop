@@ -480,7 +480,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertNotEmpty( $attachment_id );
 
 		$temp_dir = get_temp_dir();
-
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$expected = array(
@@ -500,7 +499,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-232x300.jpg' ),
 					'sources'   => array(
 						'image/jpeg' => array(
-							'file' => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
+							'file'     => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
+							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-232x300.jpg' ),
+
 						),
 					),
 				),
@@ -512,7 +513,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
 					'sources'   => array(
 						'image/jpeg' => array(
-							'file' => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
+							'file'     => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
+							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
 						),
 					),
 				),
@@ -524,7 +526,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
 					'sources'   => array(
 						'image/jpeg' => array(
-							'file' => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
+							'file'     => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
+							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
 						),
 					),
 				),
@@ -532,8 +535,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'filesize' => wp_filesize( $test_file ),
 		);
 
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
-		$metadata = $this->_unset_source_filesize_data( $metadata );
 		$this->assertSame( $expected, $metadata );
 
 		unlink( $test_file );
@@ -574,7 +575,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertNotEmpty( $attachment_id );
 
 		$temp_dir = get_temp_dir();
-
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$expected = array(
@@ -594,7 +594,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'sources'   => array(
 						'filesize'   => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-300x300.jpg' ),
 						'image/jpeg' => array(
-							'file' => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
+							'file'     => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
+							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-300x300.jpg' ),
 						),
 					),
 				),
@@ -606,7 +607,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
 					'sources'   => array(
 						'image/jpeg' => array(
-							'file' => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
+							'file'     => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
+							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
 						),
 					),
 
@@ -619,7 +621,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
 					'sources'   => array(
 						'image/jpeg' => array(
-							'file' => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
+							'file'     => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
+							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
 						),
 					),
 				),
@@ -627,31 +630,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'filesize' => wp_filesize( $test_file ),
 		);
 
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
-		$metadata = $this->_unset_source_filesize_data( $metadata );
 		$this->assertSame( $expected, $metadata );
 
 		unlink( $test_file );
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
-	}
-
-	/**
-	 * Unset the sources filesize for each image size for tests since the filesize
-	 * value will vary depending on the compression characteristics of the
-	 * underlying image library.
-	 *
-	 * @param array $metadata The metadata to clear sources/filesize from.
-	 * @param array The cleaned up meta data.
-	 */
-	function _unset_source_filesize_data( $metadata ) {
-		foreach ( $metadata['sizes'] as $size => $data ) {
-			if ( isset( $metadata['sizes'][ $size ]['sources']['image/jpeg']['filesize'] ) ) {
-				unset( $metadata['sizes'][ $size ]['sources']['image/jpeg']['filesize'] );
-			}
-		}
-		return $metadata;
 	}
 
 	/**
@@ -694,9 +678,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'height'    => 100,
 			'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-77x100.jpg' ),
 			'mime-type' => 'image/jpeg',
+			'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-77x100.jpg' ),
 			'sources'   => array(
 				'image/jpeg' => array(
-					'file' => 'wordpress-gsoc-flyer-pdf-77x100.jpg',
+					'file'     => 'wordpress-gsoc-flyer-pdf-77x100.jpg',
+					'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-77x100.jpg' ),
 				),
 			),
 		);
@@ -705,7 +691,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertSame( $metadata['sizes']['test-size'], $expected );
 
 		$this->assertArrayHasKey( 'test-size', $metadata['sizes'], 'The `test-size` was not added to the metadata.' );
-		$metadata = $this->_unset_source_filesize_data( $metadata );
 		$this->assertSame( $expected, $metadata['sizes']['test-size'] );
 
 		remove_image_size( 'test-size' );
