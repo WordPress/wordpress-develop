@@ -219,7 +219,6 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		);
 		add_filter( 'terms_pre_query', array( $this, 'get_query_from_filter' ), 10, 2 );
 		$found = get_term_by( 'name', 'burrito', 'post_tag' );
-		remove_filter( 'terms_pre_query', array( $this, 'get_query_from_filter' ) );
 		$this->assertSame( $term_id, $found->term_id );
 		$this->assertStringContainsString( 'LIMIT 1', $this->query );
 	}
