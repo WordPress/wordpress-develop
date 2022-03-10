@@ -369,7 +369,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					if ( 0 === $mime_index ) {
 						$image_meta['sources'][ $output_mime_type ] = array(
 							'file'     => wp_basename( $image_meta['file'] ),
-							'filesize' => wp_filesize( $file ),
+							'filesize' => isset( $image_meta['filesize'] ) ? $image_meta['filesize'] : wp_filesize( $file ),
 						);
 					} else {
 						// For alternate mime types, generate a full size image and add it to the 'sources' array.
