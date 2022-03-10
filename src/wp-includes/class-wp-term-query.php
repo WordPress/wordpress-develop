@@ -761,11 +761,6 @@ class WP_Term_Query {
 		}
 
 		$term_ids = wp_list_pluck( $terms, 'term_id' );
-
-		// Prime termmeta cache.
-		if ( $args['update_term_meta_cache'] ) {
-			update_termmeta_cache( $term_ids );
-		}
 		_prime_term_caches( $term_ids, false );
 		$term_objects = $this->populate_terms( $terms );
 
@@ -835,6 +830,12 @@ class WP_Term_Query {
 				$terms        = array_slice( $terms, $offset, $number, true );
 				$term_objects = array_slice( $term_objects, $offset, $number, true );
 			}
+		}
+
+		// Prime termmeta cache.
+		if ( $args['update_term_meta_cache'] ) {
+			$term_ids = wp_list_pluck( $term_objects, 'term_id' );
+			update_termmeta_cache( $term_ids );
 		}
 
 		wp_cache_add( $cache_key, $terms, 'terms' );
