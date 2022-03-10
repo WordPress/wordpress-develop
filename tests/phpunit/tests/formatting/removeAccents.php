@@ -80,67 +80,33 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 		$this->assertSame( 'aaeiouuAEIOUU', remove_accents( 'aɑeiouüAEIOUÜ' ) );
 	}
 
-	public function remove_accents_germanic_umlauts_cb() {
-		return 'de_DE';
-	}
-
 	/**
 	 * @ticket 3782
 	 */
 	public function test_remove_accents_germanic_umlauts() {
-		add_filter( 'locale', array( $this, 'remove_accents_germanic_umlauts_cb' ) );
-
-		$this->assertSame( 'AeOeUeaeoeuess', remove_accents( 'ÄÖÜäöüß' ) );
-
-		remove_filter( 'locale', array( $this, 'remove_accents_germanic_umlauts_cb' ) );
-	}
-
-	public function set_locale_to_danish() {
-		return 'da_DK';
+		$this->assertSame( 'AeOeUeaeoeuess', remove_accents( 'ÄÖÜäöüß', 'de_DE' ) );
 	}
 
 	/**
 	 * @ticket 23907
 	 */
 	public function test_remove_danish_accents() {
-		add_filter( 'locale', array( $this, 'set_locale_to_danish' ) );
-
-		$this->assertSame( 'AeOeAaaeoeaa', remove_accents( 'ÆØÅæøå' ) );
-
-		remove_filter( 'locale', array( $this, 'set_locale_to_danish' ) );
-	}
-
-	public function set_locale_to_catalan() {
-		return 'ca';
+		$this->assertSame( 'AeOeAaaeoeaa', remove_accents( 'ÆØÅæøå', 'da_DK' ) );
 	}
 
 	/**
 	 * @ticket 37086
 	 */
 	public function test_remove_catalan_middot() {
-		add_filter( 'locale', array( $this, 'set_locale_to_catalan' ) );
-
-		$this->assertSame( 'allallalla', remove_accents( 'al·lallaŀla' ) );
-
-		remove_filter( 'locale', array( $this, 'set_locale_to_catalan' ) );
-
+		$this->assertSame( 'allallalla', remove_accents( 'al·lallaŀla', 'ca' ) );
 		$this->assertSame( 'al·lallalla', remove_accents( 'al·lallaŀla' ) );
-	}
-
-	public function set_locale_to_serbian() {
-		return 'sr_RS';
 	}
 
 	/**
 	 * @ticket 38078
 	 */
 	public function test_transcribe_serbian_crossed_d() {
-		add_filter( 'locale', array( $this, 'set_locale_to_serbian' ) );
-
-		$this->assertSame( 'DJdj', remove_accents( 'Đđ' ) );
-
-		remove_filter( 'locale', array( $this, 'set_locale_to_serbian' ) );
-
+		$this->assertSame( 'DJdj', remove_accents( 'Đđ', 'sr_RS' ) );
 		$this->assertSame( 'Dd', remove_accents( 'Đđ' ) );
 	}
 }
