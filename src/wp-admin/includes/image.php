@@ -210,6 +210,9 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 	// Store the original image file name in image_meta.
 	$image_meta['original_image'] = wp_basename( $original_file );
 
+	// Add image file size.
+	$image_meta['filesize'] = wp_filesize( $new_file );
+
 	return $image_meta;
 }
 
@@ -236,11 +239,12 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 	// Default image meta.
 	$image_meta = array(
-		'width'   => $imagesize[0],
-		'height'  => $imagesize[1],
-		'file'    => _wp_relative_upload_path( $file ),
-		'sizes'   => array(),
-		'sources' => array(),
+		'width'    => $imagesize[0],
+		'height'   => $imagesize[1],
+		'file'     => _wp_relative_upload_path( $file ),
+		'filesize' => wp_filesize( $file ),
+		'sizes'    => array(),
+		'sources'  => array(),
 	);
 
 	// Fetch additional metadata from EXIF/IPTC.
@@ -721,6 +725,11 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 
 	// Remove the blob of binary data from the array.
 	unset( $metadata['image']['data'] );
+
+	// Capture file size for cases where it has not been captured yet, such as PDFs.
+	if ( ! isset( $metadata['filesize'] ) && file_exists( $file ) ) {
+		$metadata['filesize'] = wp_filesize( $file );
+	}
 
 	/**
 	 * Filters the generated attachment meta data.
