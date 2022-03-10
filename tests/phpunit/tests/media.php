@@ -2288,14 +2288,15 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes_with_preexisting_srcset() {
 		// Generate HTML and add a dummy srcset attribute.
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
-		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		// The content filter should return the image unchanged.
 		$this->assertSame( $img, wp_filter_content_tags( $img ) );
+
+		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -2536,7 +2537,11 @@ EOF;
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
 			'sizes="(max-width: 999px) 100vw, 999px" />';
 
+			error_log( 'self::$large_id ---  ' . json_encode( self::$large_id, JSON_PRETTY_PRINT ) );
+			error_log( 'wp_get_attachment_metadata() ---  ' . json_encode( wp_get_attachment_metadata( self::$large_id ), JSON_PRETTY_PRINT ) );
+
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
+		error_log( 'actual ---  ' . json_encode( $actual, JSON_PRETTY_PRINT ) );
 
 		remove_filter( 'wp_get_attachment_metadata', array( $this, 'filter_36246' ) );
 
