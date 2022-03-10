@@ -1,8 +1,12 @@
 <?php
+/**
+ * Tests_Image_Filesize class.
+ *
+ * @package WordPress
+ */
 
 /**
  * @group media
- * @group media_filesize
  */
 class Tests_Image_Filesize extends WP_UnitTestCase {
 	function tear_down() {
