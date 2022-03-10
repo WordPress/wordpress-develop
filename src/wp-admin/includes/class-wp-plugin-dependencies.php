@@ -195,16 +195,10 @@ class WP_Plugin_Dependencies {
 	 * @return string
 	 */
 	public function plugin_install_description( $description, $plugin ) {
-		$required   = null;
-		$dependents = $this->get_dependency_sources( $plugin );
-		if ( ! empty( $dependents ) ) {
-			$dependents = explode( ',', $dependents );
-			foreach ( $dependents as $dependent ) {
-				$required .= '<br>' . $dependent;
-			}
-			$required    = '<strong>' . __( 'Required by:' ) . '</strong>' . $required;
-			$description = '<p>' . $required . '</p>' . $description;
-		}
+		$required    = null;
+		$dependents  = $this->get_dependency_sources( $plugin );
+		$required    = '<strong>' . __( 'Required by:' ) . '</strong> ' . $dependents;
+		$description = $description . '<p>' . $required . '</p>';
 
 		return $description;
 	}
