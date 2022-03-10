@@ -696,4 +696,27 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
 	}
+
+	/**
+	 * @ticket 55100
+	 */
+	public function test_get_queried_object_should_work_for_author_name_before_get_posts() {
+		$user_id = self::factory()->user->create();
+		$user    = get_user_by( 'ID', $user_id );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+			)
+		);
+
+		$this->go_to( home_url( '?author=' . $user_id ) );
+
+		$this->assertInstanceOf( 'WP_User', get_queried_object() );
+		$this->assertSame( get_queried_object_id(), $user_id );
+
+		$this->go_to( home_url( '?author_name=' . $user->user_nicename ) );
+
+		$this->assertInstanceOf( 'WP_User', get_queried_object() );
+		$this->assertSame( get_queried_object_id(), $user_id );
+	}
 }
