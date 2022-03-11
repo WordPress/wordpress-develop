@@ -704,8 +704,8 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		'tax_query'   => array(
 			array(
 				'taxonomy' => 'nav_menu',
-				'field'    => 'term_id',
-				'terms'    => $menu->term_id,
+				'field'    => 'term_taxonomy_id',
+				'terms'    => $menu->term_taxonomy_id,
 			),
 		)
 	);
