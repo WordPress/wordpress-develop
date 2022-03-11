@@ -127,7 +127,7 @@ class Custom_Image_Header {
 					) .
 					'</p>' .
 					'<p>' . __( 'In the Header Text section of this page, you can choose whether to display this text or hide it. You can also choose a color for the text by clicking the Select Color button and either typing in a legitimate HTML hex value, e.g. &#8220;#ff0000&#8221; for red, or by choosing a color using the color picker.' ) . '</p>' .
-					'<p>' . __( 'Don&#8217;t forget to click &#8220;Save Changes&#8221; when you&#8217;re done!' ) . '</p>',
+					'<p>' . __( 'Don&#8217;t forget to use the &#8220;Save Changes&#8221; button when you&#8217;re done!' ) . '</p>',
 			)
 		);
 
@@ -750,7 +750,7 @@ class Custom_Image_Header {
 <th scope="row"><?php _e( 'Header Text' ); ?></th>
 <td>
 	<p>
-	<label><input type="checkbox" name="display-header-text" id="display-header-text"<?php checked( display_header_text() ); ?> /> <?php _e( 'Show header text with your image.' ); ?></label>
+	<label><input type="checkbox" name="display-header-text" id="display-header-text"<?php checked( display_header_text() ); ?> /> <?php _e( 'Show header text.' ); ?></label>
 	</p>
 </td>
 </tr>

@@ -529,7 +529,7 @@ final class WP_Customize_Nav_Menus {
 				'itemsFound'             => __( 'Number of items found: %d' ),
 				/* translators: %d: Number of additional menu items found. */
 				'itemsFoundMore'         => __( 'Additional items found: %d' ),
-				'itemsLoadingMore'       => __( 'Loading more results... please wait.' ),
+				'itemsLoadingMore'       => __( 'Loading more results&hellip; please wait.' ),
 				'reorderModeOn'          => __( 'Reorder mode enabled' ),
 				'reorderModeOff'         => __( 'Reorder mode closed' ),
 				'reorderLabelOn'         => esc_attr__( 'Reorder menu items' ),

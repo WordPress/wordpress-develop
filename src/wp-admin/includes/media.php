@@ -1411,7 +1411,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
 			'input' => 'textarea',
 		),
 		'url'          => array(
-			'label' => __( 'Link URL' ),
+			'label' => __( 'Link To' ),
 			'input' => 'html',
 			'html'  => image_link_input_fields( $post, get_option( 'image_default_link_type' ) ),
 			'helps' => __( 'Enter a link URL or click above for presets.' ),
@@ -1481,7 +1481,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
 
 		$form_fields['image_alt'] = array(
 			'value' => $alt,
-			'label' => __( 'Alternative Text' ),
+			'label' => __( 'Alt Text' ),
 			'helps' => __( 'Alt text for the image, e.g. &#8220;The Mona Lisa&#8221;' ),
 		);
 
@@ -2963,7 +2963,7 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 
 		<tr class="image-only">
 			<th scope="row" class="label">
-				<label for="alt"><span class="alignleft">' . __( 'Alternative Text' ) . '</span></label>
+				<label for="alt"><span class="alignleft">' . __( 'Alt Text' ) . '</span></label>
 			</th>
 			<td class="field"><input id="alt" name="alt" value="" type="text" required />
 			<p class="help">' . __( 'Alt text for the image, e.g. &#8220;The Mona Lisa&#8221;' ) . '</p></td>
@@ -3220,7 +3220,7 @@ function edit_form_image_editor( $post ) {
 	<div class="wp_attachment_details edit-form-section">
 	<?php if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) : ?>
 		<p class="attachment-alt-text">
-			<label for="attachment_alt"><strong><?php _e( 'Alternative Text' ); ?></strong></label><br />
+			<label for="attachment_alt"><strong><?php _e( 'Alt Text' ); ?></strong></label><br />
 			<input type="text" class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description" value="<?php echo esc_attr( $alt_text ); ?>" />
 		</p>
 		<p class="attachment-alt-text-description" id="alt-text-description">
