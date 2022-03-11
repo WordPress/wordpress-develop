@@ -2106,4 +2106,39 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 123 ), 'false not returned when int as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( null ), 'false not returned when null as mime type supplied' );
 	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize_with_nonexistent_file() {
+		$file = 'nonexistent/file.jpg';
+		$this->assertEquals( 0, wp_filesize( $file ) );
+	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize() {
+		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
+
+		$this->assertEquals( filesize( $file ), wp_filesize( $file ) );
+
+		$filter = function() {
+			return 999;
+		};
+
+		add_filter( 'wp_filesize', $filter );
+
+		$this->assertEquals( 999, wp_filesize( $file ) );
+
+		$pre_filter = function() {
+			return 111;
+		};
+
+		add_filter( 'pre_wp_filesize', $pre_filter );
+
+		$this->assertEquals( 111, wp_filesize( $file ) );
+	}
 }
