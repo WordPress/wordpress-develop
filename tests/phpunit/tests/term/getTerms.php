@@ -118,7 +118,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertCount( 3, $terms );
 		$time1 = wp_cache_get( 'last_changed', 'terms' );
 		$this->assertNotEmpty( $time1 );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
 
 		$num_queries = $wpdb->num_queries;
 
