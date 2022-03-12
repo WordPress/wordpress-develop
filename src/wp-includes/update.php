@@ -981,7 +981,7 @@ function wp_delete_all_temp_backups() {
 		 * Using a closure in this case is OK since the action can be removed by removing the parent hook.
 		 * `remove_action( 'wp_delete_temp_updater_backups', 'wp_delete_all_temp_backups' );`
 		 */
-		function() {
+		static function() {
 			global $wp_filesystem;
 
 			if ( ! $wp_filesystem ) {
