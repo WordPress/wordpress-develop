@@ -993,7 +993,7 @@ function wp_delete_all_temp_backups() {
 			$dirlist         = (array) $wp_filesystem->dirlist( $temp_backup_dir );
 
 			foreach ( array_keys( $dirlist ) as $dir ) {
-				if ( '.' === $dir || '..' === $dir ) {
+				if ( '.' === $dir || '..' === $dir || 0 === $dir ) {
 					continue;
 				}
 
