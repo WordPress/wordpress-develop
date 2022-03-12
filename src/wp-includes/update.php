@@ -989,14 +989,15 @@ function wp_delete_all_temp_backups() {
 				WP_Filesystem();
 			}
 
-			$dirlist = $wp_filesystem->dirlist( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' );
+			$temp_backup_dir = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
+			$dirlist         = (array) $wp_filesystem->dirlist( $temp_backup_dir );
 
 			foreach ( array_keys( $dirlist ) as $dir ) {
 				if ( '.' === $dir || '..' === $dir ) {
 					continue;
 				}
 
-				$wp_filesystem->delete( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $dir, true );
+				$wp_filesystem->delete( $temp_backup_dir . $dir, true );
 			}
 		}
 	);
