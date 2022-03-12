@@ -817,7 +817,7 @@ endif;
 		if ( ! current_theme_supports( 'custom-header', 'uploads' ) ) {
 			wp_die(
 				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The current theme does not support uploading a custom header image.' ) . '</p>',
+				'<p>' . __( 'The active theme does not support uploading a custom header image.' ) . '</p>',
 				403
 			);
 		}
@@ -1003,7 +1003,7 @@ endif;
 		if ( ! current_theme_supports( 'custom-header', 'uploads' ) ) {
 			wp_die(
 				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The current theme does not support uploading a custom header image.' ) . '</p>',
+				'<p>' . __( 'The active theme does not support uploading a custom header image.' ) . '</p>',
 				403
 			);
 		}
@@ -1014,7 +1014,7 @@ endif;
 		) {
 			wp_die(
 				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The current theme does not support a flexible sized header image.' ) . '</p>',
+				'<p>' . __( 'The active theme does not support a flexible sized header image.' ) . '</p>',
 				403
 			);
 		}
@@ -1455,7 +1455,7 @@ endif;
 
 	/**
 	 * Given an attachment ID for a header image, unsets it as a user-uploaded
-	 * header image for the current theme.
+	 * header image for the active theme.
 	 *
 	 * Triggered when the user clicks the overlay "X" button next to each image
 	 * choice in the Customizer's Header tool.
