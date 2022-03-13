@@ -8373,7 +8373,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 }
 
 /**
- * Retrieve the list item separator based on the locale.
+ * Retrieves the list item separator based on the locale.
  *
  * @since 6.0.0
  *

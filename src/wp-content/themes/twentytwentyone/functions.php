@@ -643,7 +643,7 @@ add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );
 
 if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	/**
-	 * Retrieve the list item separator based on the locale.
+	 * Retrieves the list item separator based on the locale.
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
