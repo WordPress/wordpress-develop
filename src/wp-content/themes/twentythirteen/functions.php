@@ -163,24 +163,24 @@ function twentythirteen_setup() {
 		'editor-gradient-presets',
 		array(
 			array(
-				'name'          =>      __( 'Autumn Brown', 'twentythirteen' ),
-				'gradient'      =>      'linear-gradient(135deg, rgba(226,45,15,1) 0%, rgba(158,25,13,1) 100%)',
-				'slug'          =>      'autumn-brown'
+				'name'     => __( 'Autumn Brown', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg, rgba(226,45,15,1) 0%, rgba(158,25,13,1) 100%)',
+				'slug'     => 'autumn-brown',
 			),
 			array(
-				 'name'          =>      __( 'Sunset Yellow', 'twentythirteen' ),
-				 'gradient'      =>      'linear-gradient(135deg, rgba(233,139,41,1) 0%, rgba(238,179,95,1) 100%)',
-				 'slug'          =>      'sunset-yellow'
+				'name'     => __( 'Sunset Yellow', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg, rgba(233,139,41,1) 0%, rgba(238,179,95,1) 100%)',
+				'slug'     => 'sunset-yellow',
 			),
 			array(
-				'name'          =>      __( 'Light Sky', 'twentythirteen' ),
-				'gradient'      =>      'linear-gradient(135deg,rgba(228,228,228,1.0) 0%,rgba(208,225,252,1.0) 100%)',
-				'slug'          =>      'light-sky'
+				'name'     => __( 'Light Sky', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg,rgba(228,228,228,1.0) 0%,rgba(208,225,252,1.0) 100%)',
+				'slug'     => 'light-sky',
 			),
 			array(
-				'name'          =>      __( 'Dark Sky', 'twentythirteen' ),
-				'gradient'      =>      'linear-gradient(135deg,rgba(0,0,0,1.0) 0%,rgba(56,61,69,1.0) 100%)',
-				'slug'          =>      'dark-sky'
+				'name'     => __( 'Dark Sky', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg,rgba(0,0,0,1.0) 0%,rgba(56,61,69,1.0) 100%)',
+				'slug'     => 'dark-sky',
 			),
 		)
 	);
