@@ -1056,7 +1056,7 @@ class WP_Upgrader {
 
 		$src_dir = $wp_filesystem->find_folder( $args['src'] );
 		$src     = trailingslashit( $src_dir ) . $args['slug'];
-		$dest    = $dest_dir . $args['dir'] . '/' . $args['slug'];
+		$dest    = $dest_dir . trailingslashit( $args['dir'] ) . $args['slug'];
 
 		// Delete the temp-backup directory if it already exists.
 		if ( $wp_filesystem->is_dir( $dest ) ) {
