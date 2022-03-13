@@ -990,10 +990,11 @@ function wp_delete_all_temp_backups() {
 			}
 
 			$temp_backup_dir = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
-			$dirlist         = (array) $wp_filesystem->dirlist( $temp_backup_dir );
+			$dirlist         = $wp_filesystem->dirlist( $temp_backup_dir );
+			$dirlist         = $dirlist ? $dirlist : array();
 
 			foreach ( array_keys( $dirlist ) as $dir ) {
-				if ( '.' === $dir || '..' === $dir || 0 === $dir ) {
+				if ( '.' === $dir || '..' === $dir ) {
 					continue;
 				}
 
