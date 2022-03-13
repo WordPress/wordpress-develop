@@ -194,7 +194,7 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 		/* translators: Used between list items, there is a space after the comma. */
 		return __( ', ', 'twentynineteen' );
 	}
-endif;	 
+endif;
 
 /**
  * Register widget area.
