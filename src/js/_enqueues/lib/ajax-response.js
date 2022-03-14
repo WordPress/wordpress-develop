@@ -32,7 +32,7 @@ window.wpAjax = jQuery.extend( {
 
 					if ( this.nodeName === 'message' ) {
 						successmsg += jQuery(this).text();
-						return
+						return;
 					}
 
 					response.supplemental[this.nodeName] = jQuery(this).text();
