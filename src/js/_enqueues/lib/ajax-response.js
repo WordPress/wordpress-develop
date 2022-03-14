@@ -30,8 +30,8 @@ window.wpAjax = jQuery.extend( {
 				response.supplemental = {};
 				if ( !jQuery( 'supplemental', child ).children().each( function() {
 
-					if ( this.nodeName === 'message' && '1' === jQuery(this).text() ) {
-						successmsg += response.data;
+					if ( this.nodeName === 'message' ) {
+						successmsg += jQuery(this).text();
 						return
 					}
 
