@@ -425,6 +425,10 @@ class Tests_Cache extends WP_UnitTestCase {
 	 * @covers ::wp_cache_flush_group
 	 */
 	public function test_wp_cache_flush_group() {
+		if ( ! method_exists( $this->cache, 'flush_group' ) ) {
+			$this->markTestSkipped( 'This test requires a flush_group() method on the cache object.' );
+		}
+
 		$key = 'my-key';
 		$val = 'my-val';
 
