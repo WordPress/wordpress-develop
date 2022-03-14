@@ -291,12 +291,6 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 				return $image_meta;
 			}
 
-			// This mime type is not supported, skip it unless it is the only mime type, in which case
-			// core will fall back to a supported type.
-			if ( ! $editor->supports_mime_type( $output_mime_type ) && 1 < sizeof( $output_mime_types ) ) {
-				continue;
-			}
-
 			// If the original image's dimensions are over the threshold,
 			// scale the image and use it as the "full" size.
 			if ( $threshold && ( $image_meta['width'] > $threshold || $image_meta['height'] > $threshold ) ) {
@@ -508,12 +502,6 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		);
 
 		$new_sizes = array_filter( array_merge( $priority, $new_sizes ) );
-
-		// This mime type is not supported, skip it unless it is the only mime type, in which case
-		// core will fall back to a supported type.
-		if ( ! $editor->supports_mime_type( $output_mime_type ) && 1 < sizeof( $output_mime_types ) ) {
-			continue;
-		}
 
 		// If stored EXIF data exists, rotate the source image before creating sub-sizes.
 		if ( ! empty( $image_meta['image_meta'] ) ) {
