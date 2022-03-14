@@ -1893,7 +1893,7 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param array $target_mimes  The image output mime type and order. Default is ( 'image/webp', 'image/jpeg' ).
+	 * @param array $target_mimes  The image output mime type and order. Default is array( 'image/webp', 'image/jpeg' ).
 	 * @param int   $attachment_id The attachment ID.
 	 * @return array The filtered output mime type and order. Return an empty array to skip mime type substitution.
 	 */
@@ -1926,12 +1926,13 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 
 			// Found a match, replace with the new filename and stop searching.
 			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
+			continue;
 		}
 
-		// Handle full size image replacement
+		// Handle full size image replacement.
 		$src_filename = wp_basename( $metadata['file'] );
 
-		// This is the same as the file we want to replace nothing to do here.
+		// This is the same as the file we want to replace nothing else to do here.
 		if ( $metadata['sources'][ $target_mime ]['file'] === $src_filename ) {
 			return $image;
 		}

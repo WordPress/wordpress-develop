@@ -2537,11 +2537,7 @@ EOF;
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
 			'sizes="(max-width: 999px) 100vw, 999px" />';
 
-			error_log( 'self::$large_id ---  ' . json_encode( self::$large_id, JSON_PRETTY_PRINT ) );
-			error_log( 'wp_get_attachment_metadata() ---  ' . json_encode( wp_get_attachment_metadata( self::$large_id ), JSON_PRETTY_PRINT ) );
-
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
-		error_log( 'actual ---  ' . json_encode( $actual, JSON_PRETTY_PRINT ) );
 
 		remove_filter( 'wp_get_attachment_metadata', array( $this, 'filter_36246' ) );
 

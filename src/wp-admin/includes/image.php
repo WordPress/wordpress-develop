@@ -451,7 +451,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		return $image_meta;
 	}
 
-	// Assemble the output mime types
+	// Determine which mime types to output.
 	$valid_mime_transforms = wp_upload_image_mime_transforms( $attachment_id );
 	$output_mime_types     = isset( $valid_mime_transforms[ $mime_type ] ) ? $valid_mime_transforms[ $mime_type ] : array( $mime_type );
 	$dirname               = pathinfo( $file, PATHINFO_DIRNAME );
@@ -519,7 +519,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 				if ( is_wp_error( $new_size_meta ) ) {
 					// TODO: Log errors.
 				} else {
-					// Save the default (first) mime size in the 'sizes'meta value.
+					// Save the default mime size in the 'sizes' meta value.
 					if ( 0 === $mime_index ) {
 						$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
 					}
@@ -1225,8 +1225,9 @@ function _copy_image_file( $attachment_id ) {
 }
 
 /**
- * Returns an array with the list of valid mime types that a specific mime type can be converted into it,
- * for example an image/jpeg can be converted into an image/webp.
+ * Returns an array with the list of valid mime types that a specific mime type should be converted into.
+ * For example an `image/jpeg` should be converted into an `image/jpeg` and `image/webp`. The first type
+ * is considered the primary output type for this image.
  *
  * @since 6.0.0
  *
@@ -1241,8 +1242,7 @@ function wp_upload_image_mime_transforms( $attachment_id ) {
 	);
 
 	/**
-	 * Filter to allow the definition of a custom mime types, in which a defined mime type
-	 * can be transformed and provide a wide range of mime types.
+	 * Filter to the output mime types for a given input mime type.
 	 *
 	 * @since 6.0.0
 	 *
