@@ -6,6 +6,10 @@
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
 		beStrictAboutOutputDuringTests="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
 		>
 	<php>
 		<const name="WP_TESTS_MULTISITE" value="1" />

@@ -193,8 +193,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Cleans the global scope (e.g `$_GET` and `$_POST`).
 	 */
 	public function clean_up_global_scope() {
-		$_GET  = array();
-		$_POST = array();
+		$_GET     = array();
+		$_POST    = array();
+		$_REQUEST = array();
 		self::flush_cache();
 	}
 
@@ -503,10 +504,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 		add_action( 'deprecated_function_run', array( $this, 'deprecated_function_run' ) );
 		add_action( 'deprecated_argument_run', array( $this, 'deprecated_function_run' ) );
+		add_action( 'deprecated_file_included', array( $this, 'deprecated_function_run' ) );
 		add_action( 'deprecated_hook_run', array( $this, 'deprecated_function_run' ) );
 		add_action( 'doing_it_wrong_run', array( $this, 'doing_it_wrong_run' ) );
 		add_action( 'deprecated_function_trigger_error', '__return_false' );
 		add_action( 'deprecated_argument_trigger_error', '__return_false' );
+		add_action( 'deprecated_file_trigger_error', '__return_false' );
 		add_action( 'deprecated_hook_trigger_error', '__return_false' );
 		add_action( 'doing_it_wrong_trigger_error', '__return_false' );
 	}
@@ -724,24 +727,36 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 5.8.0 Added support for nested arrays.
 	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param string|array $expected The expected value.
-	 * @param string|array $actual   The actual value.
-	 * @param string       $message  Optional. Message to display when the assertion fails.
+	 * @param mixed  $expected The expected value.
+	 * @param mixed  $actual   The actual value.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertSameIgnoreEOL( $expected, $actual, $message = '' ) {
-		$expected = map_deep(
-			$expected,
-			static function ( $value ) {
-				return str_replace( "\r\n", "\n", $value );
-			}
-		);
+		if ( null !== $expected ) {
+			$expected = map_deep(
+				$expected,
+				static function ( $value ) {
+					if ( is_string( $value ) ) {
+						return str_replace( "\r\n", "\n", $value );
+					}
 
-		$actual = map_deep(
-			$actual,
-			static function ( $value ) {
-				return str_replace( "\r\n", "\n", $value );
-			}
-		);
+					return $value;
+				}
+			);
+		}
+
+		if ( null !== $actual ) {
+			$actual = map_deep(
+				$actual,
+				static function ( $value ) {
+					if ( is_string( $value ) ) {
+						return str_replace( "\r\n", "\n", $value );
+					}
+
+					return $value;
+				}
+			);
+		}
 
 		$this->assertSame( $expected, $actual, $message );
 	}
@@ -753,8 +768,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 5.6.0 Turned into an alias for `::assertSameIgnoreEOL()`.
 	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param string $expected The expected value.
-	 * @param string $actual   The actual value.
+	 * @param mixed  $expected The expected value.
+	 * @param mixed  $actual   The actual value.
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertEqualsIgnoreEOL( $expected, $actual, $message = '' ) {

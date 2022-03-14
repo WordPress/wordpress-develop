@@ -8,7 +8,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @group taxonomy
 	 */
-	function test_category__and_var() {
+	public function test_category__and_var() {
 		$q = new WP_Query();
 
 		$term_id  = self::factory()->category->create(
@@ -50,7 +50,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 28099
 	 * @group taxonomy
 	 */
-	function test_empty_category__in() {
+	public function test_empty_category__in() {
 		$cat_id  = self::factory()->category->create();
 		$post_id = self::factory()->post->create();
 		wp_set_post_categories( $post_id, $cat_id );
@@ -79,7 +79,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 22448
 	 */
-	function test_the_posts_filter() {
+	public function test_the_posts_filter() {
 		// Create posts and clear their caches.
 		$post_ids = self::factory()->post->create_many( 4 );
 		foreach ( $post_ids as $post_id ) {
@@ -117,7 +117,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * Use with the_posts filter, appends a post and adds some custom data.
 	 */
-	function the_posts_filter( $posts ) {
+	public function the_posts_filter( $posts ) {
 		$posts[] = clone $posts[0];
 
 		// Add some custom data to each post.
@@ -128,7 +128,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		return $posts;
 	}
 
-	function test_post__in_ordering() {
+	public function test_post__in_ordering() {
 		$post_id1 = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -210,7 +210,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
-	function test_post__in_attachment_ordering() {
+	public function test_post__in_attachment_ordering() {
 		$post_id    = self::factory()->post->create();
 		$att_ids    = array();
 		$file       = DIR_TESTDATA . '/images/canola.jpg';
@@ -308,7 +308,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'post_name' ) );
 	}
 
-	function test_post_status() {
+	public function test_post_status() {
 		$statuses1 = get_post_stati();
 		$this->assertContains( 'auto-draft', $statuses1 );
 
@@ -331,7 +331,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 17065
 	 */
-	function test_orderby_array() {
+	public function test_orderby_array() {
 		global $wpdb;
 
 		$q1 = new WP_Query(
@@ -367,7 +367,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 17065
 	 */
-	function test_order() {
+	public function test_order() {
 		global $wpdb;
 
 		$q1 = new WP_Query(
@@ -407,7 +407,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 29629
 	 */
-	function test_orderby() {
+	public function test_orderby() {
 		// 'rand' is a valid value.
 		$q = new WP_Query( array( 'orderby' => 'rand' ) );
 		$this->assertStringContainsString( 'ORDER BY RAND()', $q->request );

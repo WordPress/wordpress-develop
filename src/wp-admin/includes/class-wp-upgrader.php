@@ -464,8 +464,8 @@ class WP_Upgrader {
 	 *                                               Default empty.
 	 *     @type bool   $clear_destination           Whether to delete any files already in the destination
 	 *                                               folder. Default false.
-	 *     @type bool   $clear_working               Whether to delete the files form the working directory
-	 *                                               after copying to the destination. Default false.
+	 *     @type bool   $clear_working               Whether to delete the files from the working directory
+	 *                                               after copying them to the destination. Default false.
 	 *     @type bool   $abort_if_destination_exists Whether to abort the installation if
 	 *                                               the destination folder already exists. Default true.
 	 *     @type array  $hook_extra                  Extra arguments to pass to the filter hooks called by
@@ -623,8 +623,8 @@ class WP_Upgrader {
 			}
 		}
 
-		// Copy new version of item into place.
-		$result = copy_dir( $source, $remote_destination );
+		// Move new version of item into place.
+		$result = move_dir( $source, $remote_destination );
 		if ( is_wp_error( $result ) ) {
 			if ( $args['clear_working'] ) {
 				$wp_filesystem->delete( $remote_source, true );
@@ -681,8 +681,8 @@ class WP_Upgrader {
 	 *                                               Default empty.
 	 *     @type bool   $clear_destination           Whether to delete any files already in the
 	 *                                               destination folder. Default false.
-	 *     @type bool   $clear_working               Whether to delete the files form the working
-	 *                                               directory after copying to the destination.
+	 *     @type bool   $clear_working               Whether to delete the files from the working
+	 *                                               directory after copying them to the destination.
 	 *                                               Default false.
 	 *     @type bool   $abort_if_destination_exists Whether to abort the installation if the destination
 	 *                                               folder already exists. When true, `$clear_destination`
@@ -843,7 +843,18 @@ class WP_Upgrader {
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
 			if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
-				$this->restore_temp_backup( $options['hook_extra']['temp_backup'] );
+				/*
+				 * Restore the backup on shutdown.
+				 * Actions running on `shutdown` are immune to PHP timeouts,
+				 * so in case the failure was due to a PHP timeout,
+				 * we'll still be able to properly restore the previous version.
+				 */
+				add_action(
+					'shutdown',
+					function() use ( $options ) {
+						$this->restore_temp_backup( $options['hook_extra']['temp_backup'] );
+					}
+				);
 			}
 			$this->skin->error( $result );
 
@@ -859,7 +870,13 @@ class WP_Upgrader {
 
 		// Clean up the backup kept in the temp-backup directory.
 		if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
-			$this->delete_temp_backup( $options['hook_extra']['temp_backup'] );
+			// Delete the backup on `shutdown` to avoid a PHP timeout.
+			add_action(
+				'shutdown',
+				function() use ( $options ) {
+					$this->delete_temp_backup( $options['hook_extra']['temp_backup'] );
+				}
+			);
 		}
 
 		if ( ! $options['is_multi'] ) {
