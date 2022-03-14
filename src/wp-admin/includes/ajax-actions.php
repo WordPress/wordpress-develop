@@ -1117,7 +1117,7 @@ function wp_ajax_add_tag() {
 			'supplemental' => array(
 				'parents'   => $parents,
 				'noparents' => $noparents,
-				'message'   => $message
+				'message'   => $message,
 			),
 		)
 	);
