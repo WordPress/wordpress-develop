@@ -56,6 +56,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( '%d' ),
 			array( '%d' )
 		);
+		clean_term_cache( $t1['term_id'], 'category' );
 
 		$t2_child = wp_insert_term(
 			'Foo Child',
@@ -153,6 +154,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( '%d' ),
 			array( '%d' )
 		);
+		clean_term_cache( $t1['term_id'], 'category' );
 		$th = _get_term_hierarchy( 'wptests_tax_4' );
 
 		$new_term_id = _split_shared_term( $t1['term_id'], $t3['term_taxonomy_id'] );
@@ -181,6 +183,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( '%d' ),
 			array( '%d' )
 		);
+		clean_term_cache( $t1['term_id'], 'category' );
 
 		$this->assertSame( $t1['term_id'], get_option( 'default_category', -1 ) );
 
@@ -209,6 +212,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( '%d' ),
 			array( '%d' )
 		);
+		clean_term_cache( $t1['term_id'], 'category' );
 
 		$menu_id       = wp_create_nav_menu( 'Nav Menu Bar' );
 		$cat_menu_item = wp_update_nav_menu_item(
@@ -247,6 +251,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( 'term_id' => $shared_term_id ),
 			array( 'term_taxonomy_id' => $nav_term->term_taxonomy_id )
 		);
+		clean_term_cache( $shared_term_id, 'category' );
 
 		set_theme_mod( 'nav_menu_locations', array( 'foo' => $shared_term_id ) );
 
@@ -276,6 +281,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( 'term_id' => $shared_term_id ),
 			array( 'term_taxonomy_id' => $nav_term->term_taxonomy_id )
 		);
+		clean_term_cache( $shared_term_id, 'category' );
 
 		$t1            = wp_insert_term( 'Random term', 'category' );
 		$cat_menu_item = wp_update_nav_menu_item(

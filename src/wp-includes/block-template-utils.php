@@ -159,10 +159,10 @@ function get_default_block_template_types() {
 		),
 		'tag'            => array(
 			'title'       => _x( 'Tag', 'Template name' ),
-			'description' => __( 'Displays latest posts with single post tag.' ),
+			'description' => __( 'Displays latest posts with a single post tag.' ),
 		),
 		'attachment'     => array(
-			'title'       => __( 'Media' ),
+			'title'       => __( 'Attachment' ),
 			'description' => __( 'Displays individual media items or attachments.' ),
 		),
 		'search'         => array(
