@@ -31,6 +31,8 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 			array( '%d' )
 		);
 
+		clean_term_cache( $t1['term_id'] );
+
 		return array(
 			array(
 				'term_id'          => $t1['term_id'],
