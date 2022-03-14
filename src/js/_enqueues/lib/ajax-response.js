@@ -26,8 +26,8 @@ window.wpAjax = jQuery.extend( {
 			jQuery('response', x).each( function() {
 				var th = jQuery(this), child = jQuery(this.firstChild), response;
 				response = { action: th.attr('action'), what: child.get(0).nodeName, id: child.attr('id'), oldId: child.attr('old_id'), position: child.attr('position') };
-				response.supplemental = {};
 				response.data = jQuery( 'response_data', child ).text();
+				response.supplemental = {};
 				if ( !jQuery( 'supplemental', child ).children().each( function() {
 
 					if ( this.nodeName === 'message' ) {

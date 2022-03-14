@@ -1114,7 +1114,7 @@ function wp_ajax_add_tag() {
 	$x->add(
 		array(
 			'what'         => 'taxonomy',
-			'data'         => $message,
+			'data'         => 'Message 1',
 			'supplemental' => array(
 				'parents'   => $parents,
 				'noparents' => $noparents,
