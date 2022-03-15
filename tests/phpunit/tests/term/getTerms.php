@@ -2988,6 +2988,191 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertSameSets( array( $term_id ), wp_list_pluck( $found, 'term_id' ) );
 	}
 
+
+	/**
+	 * @ticket 55352
+	 *
+	 * @dataProvider data_same_term_args
+	 */
+	public function test_cache_key_generation( $args_1, $args_2 ) {
+		global $wpdb;
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+
+		$term_id1 = self::factory()->term->create(
+			array(
+				'name'     => 'Foo',
+				'slug'     => 'Foo',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$term_id2 = self::factory()->term->create(
+			array(
+				'name'     => 'Bar',
+				'slug'     => 'bar',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$posts = self::factory()->post->create_many( 3, array( 'post_type' => 'post' ) );
+		foreach ( $posts as $i => $post ) {
+			wp_set_object_terms( $post, array( $term_id1, $term_id2 ), 'wptests_tax' );
+		}
+
+		$query1      = get_terms( $args_1 );
+		$num_queries = $wpdb->num_queries;
+		$query2      = get_terms( $args_2 );
+
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_same_term_args() {
+		return array(
+			array(
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'ids',
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'all',
+				),
+			),
+			array(
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'all',
+				),
+				array(
+					'taxonomy' => array( 'wptests_tax' ),
+					'fields'   => 'all',
+				),
+			),
+			array(
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'names',
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'slugs',
+				),
+			),
+			array(
+				array(
+					'taxonomy'               => 'wptests_tax',
+					'pad_counts'             => true,
+					'update_term_meta_cache' => false,
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'ids',
+				),
+			),
+			array(
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'all',
+					'slug'     => '',
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'all',
+					'slug'     => array(),
+				),
+			),
+			array(
+				array(
+					'taxonomy'   => 'wptests_tax',
+					'fields'     => 'all',
+					'object_ids' => '',
+				),
+				array(
+					'taxonomy'   => 'wptests_tax',
+					'fields'     => 'all',
+					'object_ids' => array(),
+				),
+			),
+			array(
+				array(
+					'taxonomy'         => 'wptests_tax',
+					'fields'           => 'ids',
+					'term_taxonomy_id' => '',
+				),
+				array(
+					'taxonomy'         => 'wptests_tax',
+					'fields'           => 'all',
+					'term_taxonomy_id' => array(),
+				),
+			),
+			array(
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'ids',
+					'slug'     => 'bar',
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'fields'   => 'all',
+					'slug'     => array( 'bar' ),
+				),
+			),
+			array(
+				array(
+					'taxonomy'   => 'wptests_tax',
+					'fields'     => 'ids',
+					'object_ids' => 1,
+				),
+				array(
+					'taxonomy'   => 'wptests_tax',
+					'fields'     => 'all',
+					'object_ids' => array( 1 ),
+				),
+			),
+			array(
+				array(
+					'taxonomy'   => 'wptests_tax',
+					'fields'     => 'ids',
+					'object_ids' => '1',
+				),
+				array(
+					'taxonomy'   => 'wptests_tax',
+					'fields'     => 'all',
+					'object_ids' => array( 1 ),
+				),
+			),
+			array(
+				array(
+					'taxonomy'         => 'wptests_tax',
+					'fields'           => 'ids',
+					'term_taxonomy_id' => 1,
+				),
+				array(
+					'taxonomy'         => 'wptests_tax',
+					'fields'           => 'all',
+					'term_taxonomy_id' => array( 1 ),
+				),
+			),
+			array(
+				array(
+					'taxonomy'         => 'wptests_tax',
+					'fields'           => 'ids',
+					'term_taxonomy_id' => '1',
+				),
+				array(
+					'taxonomy'         => 'wptests_tax',
+					'fields'           => 'all',
+					'term_taxonomy_id' => array( 1 ),
+				),
+			),
+		);
+	}
+
 	/**
 	 * @ticket 21760
 	 */

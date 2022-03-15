@@ -276,7 +276,11 @@ class WP_Term_Query {
 			$query['pad_counts']   = false;
 		}
 
-		$query['taxonomy'] = $taxonomies;
+		$query['taxonomy']         = $taxonomies;
+		$query['slug']             = is_string( $query['slug'] ) && 0 === strlen( $query['slug'] ) ? array() : (array) $query['slug'];
+		$query['name']             = is_string( $query['name'] ) && 0 === strlen( $query['name'] ) ? array() : (array) $query['name'];
+		$query['object_ids']       = is_string( $query['object_ids'] ) && 0 === strlen( $query['object_ids'] ) ? array() : (array) $query['object_ids'];
+		$query['term_taxonomy_id'] = is_string( $query['term_taxonomy_id'] ) && 0 === strlen( $query['term_taxonomy_id'] ) ? array() : (array) $query['term_taxonomy_id'];
 
 		$this->query_vars = $query;
 
@@ -526,12 +530,8 @@ class WP_Term_Query {
 			$this->sql_clauses['where']['exclusions'] = preg_replace( '/^\s*AND\s*/', '', $exclusions );
 		}
 
-		if (
-			( ! empty( $args['name'] ) ) ||
-			( is_string( $args['name'] ) && 0 !== strlen( $args['name'] ) )
-		) {
-			$args['name'] = (array) $args['name'];
-			$names        = $args['name'];
+		if ( ! empty( $args['name'] ) ) {
+			$names = $args['name'];
 			foreach ( $names as &$_name ) {
 				// `sanitize_term_field()` returns slashed data.
 				$_name = stripslashes( sanitize_term_field( 'name', $_name, 0, reset( $taxonomies ), 'db' ) );
@@ -540,19 +540,18 @@ class WP_Term_Query {
 			$this->sql_clauses['where']['name'] = "t.name IN ('" . implode( "', '", array_map( 'esc_sql', $names ) ) . "')";
 		}
 
-		if (
-			( ! empty( $args['slug'] ) ) ||
-			( is_string( $args['slug'] ) && 0 !== strlen( $args['slug'] ) )
-		) {
-			$args['slug']                       = (array) $args['slug'];
-			$slug                               = array_map( 'sanitize_title', $args['slug'] );
-			$this->sql_clauses['where']['slug'] = "t.slug IN ('" . implode( "', '", $slug ) . "')";
+		if ( ! empty( $args['slug'] ) ) {
+			$args['slug'] = array_map( 'sanitize_title', $args['slug'] );
+			$slug         = implode( "', '", $args['slug'] );
+
+			$this->sql_clauses['where']['slug'] = "t.slug IN ('" . $slug . "')";
 
 		}
 
 		if ( ! empty( $args['term_taxonomy_id'] ) ) {
-			$args['term_taxonomy_id']                       = (array) $args['term_taxonomy_id'];
-			$tt_ids                                         = implode( ',', array_map( 'intval', $args['term_taxonomy_id'] ) );
+			$args['term_taxonomy_id'] = array_map( 'intval', (array) $args['term_taxonomy_id'] );
+			$tt_ids                   = implode( ',', $args['term_taxonomy_id'] );
+
 			$this->sql_clauses['where']['term_taxonomy_id'] = "tt.term_taxonomy_id IN ({$tt_ids})";
 		}
 
@@ -565,8 +564,9 @@ class WP_Term_Query {
 		}
 
 		if ( ! empty( $args['object_ids'] ) ) {
-			$args['object_ids']                       = (array) $args['object_ids'];
-			$object_ids                               = implode( ', ', array_map( 'intval', $args['object_ids'] ) );
+			$args['object_ids'] = array_map( 'intval', (array) $args['object_ids'] );
+			$object_ids         = implode( ', ', $args['object_ids'] );
+
 			$this->sql_clauses['where']['object_ids'] = "tr.object_id IN ($object_ids)";
 		}
 
