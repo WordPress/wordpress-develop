@@ -10,6 +10,11 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 
 	public static $attachment_id;
 
+	/**
+	 * @param WP_UnitTest_Factory $factory
+	 *
+	 * @return void
+	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create(
 			array(
@@ -28,6 +33,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @return void
+	 */
 	public function set_up() {
 		parent::set_up();
 
@@ -41,12 +49,18 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		flush_rewrite_rules();
 	}
 
+	/**
+	 * @return void
+	 */
 	public function tear_down() {
 		$this->old_date_redirect_url = null;
 
 		parent::tear_down();
 	}
 
+	/**
+	 * @covers ::wp_old_slug_redirect
+	 */
 	public function test_old_date_redirect() {
 		global $wpdb;
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
@@ -67,6 +81,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 	}
 
+	/*
+	 * @covers ::wp_old_slug_redirect
+	 */
 	public function test_old_date_redirect_uses_cache_for_second_query() {
 
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
@@ -97,7 +114,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 
 	}
 
-
+	/**
+	 * @covers ::wp_old_slug_redirect
+	 */
 	public function test_old_date_slug_redirect() {
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
 
@@ -118,6 +137,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 	}
 
+	/**
+	 * @covers ::wp_old_slug_redirect
+	 */
 	public function test_old_date_slug_redirect_uses_cache_for_second_query() {
 
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
@@ -148,6 +170,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertSame( $query_count, get_num_queries() );
 	}
 
+	/**
+	 * @covers ::wp_old_slug_redirect
+	 */
 	public function test_old_date_redirect_attachment() {
 		$old_permalink = get_attachment_link( self::$attachment_id );
 
@@ -181,6 +206,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 	}
 
+	/**
+	 * @covers ::wp_old_slug_redirect
+	 */
 	public function test_old_date_slug_redirect_attachment() {
 		$old_permalink = get_attachment_link( self::$attachment_id );
 
@@ -215,6 +243,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 	}
 
+	/**
+	 * @covers ::wp_old_slug_redirect
+	 */
 	public function test_old_date_redirect_paged() {
 		wp_update_post(
 			array(
@@ -241,6 +272,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 	}
 
+	/**
+	 * @covers ::wp_old_slug_redirect
+	 */
 	public function test_old_date_slug_redirect_paged() {
 		wp_update_post(
 			array(
@@ -268,6 +302,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 	}
 
+	/**
+	 * @covers ::wp_old_slug_redirect
+	 */
 	public function test_old_date_slug_doesnt_redirect_when_reused() {
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
 
@@ -297,6 +334,11 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertNull( $this->old_date_redirect_url );
 	}
 
+	/**
+	 * @param $url
+	 *
+	 * @return false
+	 */
 	public function filter_old_date_redirect_url( $url ) {
 		$this->old_date_redirect_url = $url;
 		return false;
