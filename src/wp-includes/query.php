@@ -1138,7 +1138,7 @@ function _find_post_by_old_slug( $post_type ) {
  * Find the post ID for redirecting an old date.
  *
  * @since 4.9.3
- * @since 6.0.0 Added Caching Ticket #36723.
+ * @since 6.0.0 Results are are cached.
  * @access private
  *
  * @see wp_old_slug_redirect()
