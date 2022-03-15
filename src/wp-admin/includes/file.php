@@ -1979,6 +1979,11 @@ function move_dir( $from, $to ) {
 		$result = @rename( $from, $to );
 	}
 
+	// Non-direct filesystems use some version of rename without a fallback.
+	if ( 'direct' !== $wp_filesystem->method ) {
+		$result = $wp_filesystem->move( $from, $to );
+	}
+
 	if ( ! $result ) {
 		if ( ! $wp_filesystem->is_dir( $to ) ) {
 			if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
