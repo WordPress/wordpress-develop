@@ -1372,9 +1372,8 @@ class WP_Query {
 			wp_cache_add( $cache_key, $comment_ids, 'comment' );
 		}
 		_prime_comment_caches( $comment_ids, false );
-		$comments = array_map( 'get_comment', $comment_ids );
 
-		return $comments;
+		return array_map( 'get_comment', $comment_ids );
 	}
 
 	/**
@@ -2753,10 +2752,8 @@ class WP_Query {
 			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
 			$climits  = ( ! empty( $climits ) ) ? $climits : '';
 
-			$comments_request = "SELECT $distinct {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
-			$comments         = $this->get_comments( $comments_request );
-
-			$this->comments      = $comments;
+			$comments_request    = "SELECT $distinct {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
+			$this->comments      = $this->get_comments( $comments_request );
 			$this->comment_count = count( $this->comments );
 
 			$post_ids = array();
@@ -3182,10 +3179,8 @@ class WP_Query {
 			/** This filter is documented in wp-includes/query.php */
 			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
 
-			$comments_request = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
-			$comments         = $this->get_comments( $comments_request );
-
-			$this->comments      = $comments;
+			$comments_request    = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
+			$this->comments      = $this->get_comments( $comments_request );
 			$this->comment_count = count( $this->comments );
 		}
 
