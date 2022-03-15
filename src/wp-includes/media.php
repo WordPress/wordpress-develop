@@ -1077,6 +1077,8 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			}
 		}
 
+		$attr['decoding'] = 'async';
+
 		/**
 		 * Filters the list of attachment image attributes.
 		 *
@@ -1843,6 +1845,11 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
 			}
 
+			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
+			if ( false === strpos( $filtered_image, ' decoding=' ) ) {
+				$filtered_image = wp_img_tag_add_decoding_async_attr( $filtered_image );
+			}
+
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
 			}
@@ -1909,6 +1916,18 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 	}
 
 	return $image;
+}
+
+/**
+ * Adds `decoding=async` attribute to an `img` HTML tag.
+ *
+ * @since 5.9.0
+ *
+ * @param string $image   The HTML `img` tag where the attribute should be added.
+ * @return string Converted `img` tag with `decoding=async` attribute added.
+ */
+function wp_img_tag_add_decoding_async_attr( $image ) {
+	return str_replace( '<img ', '<img decoding="async" ', $image );
 }
 
 /**
