@@ -693,7 +693,7 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 
 	static $fetched = array();
 
-	$defaults        = array(
+	$defaults = array(
 		'order'       => 'ASC',
 		'orderby'     => 'menu_order',
 		'post_type'   => 'nav_menu_item',
@@ -707,10 +707,10 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 				'field'    => 'term_taxonomy_id',
 				'terms'    => $menu->term_taxonomy_id,
 			),
-		)
+		),
 	);
-	$args = wp_parse_args( $args, $defaults );
-	$items = get_posts( $args );
+	$args     = wp_parse_args( $args, $defaults );
+	$items    = get_posts( $args );
 
 	// Get all posts and terms at once to prime the caches.
 	if ( empty( $fetched[ $menu->term_id ] ) && ! wp_using_ext_object_cache() ) {
