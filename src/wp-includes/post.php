@@ -5783,7 +5783,7 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 	);
 
 	if ( $posts ) {
-		wp_cache_set( $cache_key, $posts[0], 'posts' );
+		wp_cache_set( $cache_key, (int) $posts[0], 'posts' );
 
 		return get_post( $posts[0], $output );
 	}
