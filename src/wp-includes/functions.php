@@ -8417,10 +8417,14 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  *
  * @since 6.0.0
  *
+ * @param int|null $network_id ID of the network. Default is the current network.
  * @return int Number of active users on the network.
  */
-function wp_get_user_count() {
-	return get_site_option( 'user_count', -1 );
+function get_user_count( $network_id = null ) {
+	if ( ! is_multisite() && null !== $network_id ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '5.0.0' );
+	}
+	return get_network_option( $network_id, 'user_count', -1 );
 }
 
 /**
@@ -8438,12 +8442,11 @@ function wp_get_user_count() {
  * @return bool
  */
 function wp_maybe_update_network_user_counts( $network_id = null ) {
-	$is_small_network = ! wp_is_large_user_count();
-
-	if ( ! is_multisite() && $network_id ) {
+	if ( ! is_multisite() && null !== $network_id ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '5.0.0' );
 	}
 
+	$is_small_network = ! wp_is_large_user_count( $network_id );
 	/** This filter is documented in wp-includes/ms-functions.php */
 	if ( ! apply_filters( 'enable_live_network_counts', $is_small_network, 'users' ) ) {
 		return;
@@ -8504,10 +8507,14 @@ function wp_schedule_update_network_counts() {
  *
  * @since 6.0.0
  *
+ * @param int|null $network_id ID of the network. Default is the current network.
  * @return boolean
  */
-function wp_is_large_user_count() {
-	$count = wp_get_user_count();
+function wp_is_large_user_count( $network_id = null ) {
+	if ( ! is_multisite() && $network_id ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '5.0.0' );
+	}
+	$count = get_user_count( $network_id );
 
 	/**
 	 * Filters whether the site is considered large, based on its number of users.

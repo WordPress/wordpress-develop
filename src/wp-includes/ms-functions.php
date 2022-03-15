@@ -22,7 +22,7 @@
 function get_sitestats() {
 	$stats = array(
 		'blogs' => get_blog_count(),
-		'users' => wp_get_user_count(),
+		'users' => get_user_count(),
 	);
 
 	return $stats;
@@ -2674,16 +2674,17 @@ function upload_size_limit_filter( $size ) {
  * @since 4.8.0 The `$network_id` parameter has been added.
  *
  * @param string $using      'sites or 'users'. Default is 'sites'.
- * @param null   $deprecated ID of the network. Default is the current network.
+ * @param int|null $network_id ID of the network. Default is the current network.
  * @return bool True if the network meets the criteria for large. False otherwise.
  */
 function wp_is_large_network( $using = 'sites', $network_id = null ) {
+	$network_id = (int) $network_id;
 	if ( ! $network_id ) {
 		$network_id = get_current_network_id();
 	}
 
 	if ( 'users' === $using ) {
-		$count = wp_get_user_count( $network_id );
+		$count = get_user_count( $network_id );
 
 		/** This filter is documented in wp-includes/functions.php */
 		$is_large_network = apply_filters( 'wp_is_large_user_count', $count > 10000, $count );

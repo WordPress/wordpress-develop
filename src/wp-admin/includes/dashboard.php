@@ -449,7 +449,7 @@ function wp_network_dashboard_right_now() {
 		$actions['create-user'] = '<a href="' . network_admin_url( 'user-new.php' ) . '">' . __( 'Create a New User' ) . '</a>';
 	}
 
-	$c_users = wp_get_user_count();
+	$c_users = get_user_count();
 	$c_blogs = get_blog_count();
 
 	/* translators: %s: Number of users on the network. */

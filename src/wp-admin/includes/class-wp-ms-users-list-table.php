@@ -133,7 +133,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	protected function get_views() {
 		global $role;
 
-		$total_users  = wp_get_user_count();
+		$total_users  = get_user_count();
 		$super_admins = get_super_admins();
 		$total_admins = count( $super_admins );
 

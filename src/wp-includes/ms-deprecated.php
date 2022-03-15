@@ -730,21 +730,3 @@ function update_user_status( $id, $pref, $value, $deprecated = null ) {
 
 	return $value;
 }
-
-/**
- * The number of active users in your installation.
- *
- * The count is cached and updated twice daily. This is not a live count.
- *
- * @since MU (3.0.0)
- * @since 4.8.0 The `$network_id` parameter has been added.
- * @deprecated 6.0.0
- *
- * @param int|null $network_id ID of the network. Default is the current network.
- * @return int Number of active users on the network.
- */
-function get_user_count( $network_id = null ) {
-	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_get_user_count()' );
-
-	return get_network_option( $network_id, 'user_count' );
-}
