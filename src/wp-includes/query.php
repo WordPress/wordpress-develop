@@ -1162,8 +1162,9 @@ function _find_post_by_old_date( $post_type ) {
 	}
 
 	if ( $date_query ) {
-		$key          = md5( $date_query );
-		$cache_key    = "_find_post_by_old_date:$key";
+                $last_changed = wp_cache_get_last_changed( 'posts' );
+                $hash         = md5( $date_query );
+	        $cache_key = "_find_post_by_old_date:$hash:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'posts' );
 
 		if ( $cache !== false ) {
