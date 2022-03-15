@@ -1038,7 +1038,6 @@ function wp_old_slug_redirect() {
 			$post_type = reset( $post_type );
 		}
 
-
 		// Do not attempt redirect for hierarchical post types.
 		if ( is_post_type_hierarchical( $post_type ) ) {
 			return;
@@ -1068,7 +1067,6 @@ function wp_old_slug_redirect() {
 		 * @param string $link The redirect URL.
 		 */
 		$link = apply_filters( 'old_slug_redirect_url', $link );
-
 
 		wp_redirect( $link, 301 ); // Permanent redirect.
 		exit;
@@ -1105,11 +1103,11 @@ function _find_post_by_old_slug( $post_type ) {
 		$query .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
 	}
 
-        $last_changed = wp_cache_get_last_changed( 'posts' );
+	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$hash         = md5( $query );
+	$cache_key    = "_find_post_by_old_slug:$hash:$last_changed";
+	$cache        = wp_cache_get( $cache_key, 'posts' );
 
-	$hash      = md5( $query );
-	$cache_key = "_find_post_by_old_slug:$hash:$last_changed";
-	$cache     = wp_cache_get( $cache_key, 'posts' );
 	if ( false !== $cache ) {
 		return $cache;
 	}
@@ -1131,7 +1129,7 @@ function _find_post_by_old_slug( $post_type ) {
 
 	wp_cache_set( $cache_key, $id, 'posts' );
 
-	return $link;
+	return $id;
 }
 
 /**
@@ -1145,7 +1143,7 @@ function _find_post_by_old_slug( $post_type ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $post_type The current post type based on the query vars.
- * @return int The Post ID.
+ * @return void|int The Post ID.
  */
 function _find_post_by_old_date( $post_type ) {
 	global $wpdb;
@@ -1162,9 +1160,9 @@ function _find_post_by_old_date( $post_type ) {
 	}
 
 	if ( $date_query ) {
-                $last_changed = wp_cache_get_last_changed( 'posts' );
-                $hash         = md5( $date_query );
-	        $cache_key = "_find_post_by_old_date:$hash:$last_changed";
+		$last_changed = wp_cache_get_last_changed( 'posts' );
+		$hash         = md5( $date_query );
+		$cache_key    = "_find_post_by_old_date:$hash:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'posts' );
 
 		if ( $cache !== false ) {
@@ -1191,7 +1189,7 @@ function _find_post_by_old_date( $post_type ) {
 
 			wp_cache_set( $cache_key, $id, 'posts' );
 
-			return $link;
+			return $id;
 		}
 	}
 
