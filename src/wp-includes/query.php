@@ -1127,9 +1127,7 @@ function _find_post_by_old_slug( $post_type ) {
 		return;
 	}
 
-	$link = get_permalink( $id );
-
-	wp_cache_set( $cache_key, $link, 'posts' );
+	wp_cache_set( $cache_key, $id, 'posts' );
 
 	return $link;
 }
