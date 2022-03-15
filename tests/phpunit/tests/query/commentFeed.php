@@ -40,7 +40,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$q2->query( $args );
 		$this->assertTrue( $q2->is_comment_feed() );
 		$this->assertFalse( $q2->is_singular() );
-		$this->assertSame( $num_queries + 3, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 4, $wpdb->num_queries );
 	}
 
 	/**
