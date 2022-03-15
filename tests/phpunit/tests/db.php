@@ -1742,6 +1742,36 @@ class Tests_DB extends WP_UnitTestCase {
 				'WHERE `evil_``_field` = 321;', // To quote the identifier itself, then you need to double the character, e.g. `a``b`.
 			),
 			array(
+				'WHERE %i = %d;',
+				array( 'evil_````````_field', 321 ),
+				false,
+				'WHERE `evil_````````````````_field` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( '``evil_field``', 321 ),
+				false,
+				'WHERE `````evil_field````` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'evil\'field', 321 ),
+				false,
+				'WHERE `evil\'field` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'evil_\``_field', 321 ),
+				false,
+				'WHERE `evil_\````_field` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'evil_%s_field', 321 ),
+				false,
+				"WHERE `evil_{$wpdb->placeholder_escape()}s_field` = 321;",
+			),
+			array(
 				'WHERE \'%i\' = 1 AND "%i" = 2 AND `%i` = 3 AND %15i = 4',
 				array( 'my_field1', 'my_field2', 'my_field3', 'my_field4' ),
 				false,
