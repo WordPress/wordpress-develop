@@ -1374,7 +1374,6 @@ class WP_Query {
 		_prime_comment_caches( $comment_ids, false );
 		$comments = array_map( 'get_comment', $comment_ids );
 
-
 		return $comments;
 	}
 
