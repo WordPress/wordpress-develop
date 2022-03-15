@@ -5761,7 +5761,7 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
-		if ( '0' === $cached || 0 === $cached ) {
+		if ( 0 === $cached ) {
 			return null;
 		} else {
 			return get_post( $cached, $output );
