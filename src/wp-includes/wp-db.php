@@ -662,7 +662,7 @@ class wpdb {
 	 * @since 6.0.0
 	 * @var bool
 	 */
-	public $unsafe_unquoted_parameters = true;
+	public $allow_unsafe_unquoted_parameters = true;
 
 	/**
 	 * Whether to use mysqli over mysql. Default false.
@@ -1527,7 +1527,7 @@ class wpdb {
 				if ( strpos( $format, '$' ) !== false ) {
 					$arg_strings[] = intval( substr( $format, 1 ) );
 				}
-				if ( true !== $this->unsafe_unquoted_parameters || '' === $format ) { // Unquoted strings for backwards compatibility (dangerous).
+				if ( true !== $this->allow_unsafe_unquoted_parameters || '' === $format ) { // Unquoted strings for backwards compatibility (dangerous).
 					$placeholder = "'%" . $format . "s'";
 				}
 			} // elseif ( 'd' === $type || 'F' === $type ), nothing needs to be done (keep $placeholder)
