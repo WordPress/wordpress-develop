@@ -1543,11 +1543,17 @@ class wpdb {
 		}
 		$query = $new_query . $split_query[ $key - 2 ]; // Replace $query; and add remaining $query characters, or index 0 if there were no placeholders.
 
-		if ( count( array_intersect( $arg_identifiers, $arg_strings ) ) ) {
+		$dual_use = array_intersect( $arg_identifiers, $arg_strings );
+		if ( count( $dual_use ) ) {
+
 			wp_load_translations_early();
 			_doing_it_wrong(
 				'wpdb::prepare',
-				__( 'You cannot use an argument for a string and an identifier.' ),
+				sprintf(
+					/* translators: %s: A comma separated list of arguments found to be a problem. */
+					__( 'Arguments (%s) cannot be used for both String and Identifier escaping.' ),
+					implode( ', ', $dual_use )
+				),
 				'6.0.0'
 			);
 
