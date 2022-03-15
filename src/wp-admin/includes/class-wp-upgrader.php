@@ -497,20 +497,24 @@ class WP_Upgrader {
 		$remote_source     = $args['source'];
 		$local_destination = $destination;
 
-		$source_files       = array_keys( $wp_filesystem->dirlist( $remote_source ) );
-		$remote_destination = $wp_filesystem->find_folder( $local_destination );
+		$remote_source_dir_list = $wp_filesystem->dirlist( $remote_source );
 
-		// Locate which directory to copy to the new folder. This is based on the actual folder holding the files.
-		if ( 1 === count( $source_files ) && $wp_filesystem->is_dir( trailingslashit( $args['source'] ) . $source_files[0] . '/' ) ) {
-			// Only one folder? Then we want its contents.
-			$source = trailingslashit( $args['source'] ) . trailingslashit( $source_files[0] );
-		} elseif ( 0 === count( $source_files ) ) {
-			// There are no files?
-			return new WP_Error( 'incompatible_archive_empty', $this->strings['incompatible_archive'], $this->strings['no_files'] );
-		} else {
-			// It's only a single file, the upgrader will use the folder name of this file as the destination folder.
-			// Folder name is based on zip filename.
-			$source = trailingslashit( $args['source'] );
+		if ( $remote_source_dir_list && is_array( $remote_source_dir_list ) ) {
+			$source_files       = array_keys( $remote_source_dir_list );
+			$remote_destination = $wp_filesystem->find_folder( $local_destination );
+
+			// Locate which directory to copy to the new folder. This is based on the actual folder holding the files.
+			if ( 1 === count( $source_files ) && $wp_filesystem->is_dir( trailingslashit( $args['source'] ) . $source_files[0] . '/' ) ) {
+				// Only one folder? Then we want its contents.
+				$source = trailingslashit( $args['source'] ) . trailingslashit( $source_files[0] );
+			} elseif ( 0 === count( $source_files ) ) {
+				// There are no files?
+				return new WP_Error( 'incompatible_archive_empty', $this->strings['incompatible_archive'], $this->strings['no_files'] );
+			} else {
+				// It's only a single file, the upgrader will use the folder name of this file as the destination folder.
+				// Folder name is based on zip filename.
+				$source = trailingslashit( $args['source'] );
+			}
 		}
 
 		/**
@@ -532,7 +536,11 @@ class WP_Upgrader {
 
 		// Has the source location changed? If so, we need a new source_files list.
 		if ( $source !== $remote_source ) {
-			$source_files = array_keys( $wp_filesystem->dirlist( $source ) );
+			$source_dir_list = $wp_filesystem->dirlist( $source );
+
+			if ( $source_dir_list && is_array( $source_dir_list ) ) {
+				$source_files = array_keys( $source_dir_list );
+			}
 		}
 
 		/*
