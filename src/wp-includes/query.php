@@ -1105,8 +1105,10 @@ function _find_post_by_old_slug( $post_type ) {
 		$query .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
 	}
 
-	$key          = md5( $query );
-	$cache_key = "_find_post_by_old_slug:$key";
+        $last_changed = wp_cache_get_last_changed( 'posts' );
+
+	$hash      = md5( $query );
+	$cache_key = "_find_post_by_old_slug:$hash:$last_changed";
 	$cache     = wp_cache_get( $cache_key, 'posts' );
 	if ( false !== $cache ) {
 		return $cache;
