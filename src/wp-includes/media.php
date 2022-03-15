@@ -1921,9 +1921,9 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 /**
  * Adds `decoding=async` attribute to an `img` HTML tag.
  *
- * @since 5.9.0
+ * @since 6.0.0
  *
- * @param string $image   The HTML `img` tag where the attribute should be added.
+ * @param string $image The HTML `img` tag where the attribute should be added.
  * @return string Converted `img` tag with `decoding=async` attribute added.
  */
 function wp_img_tag_add_decoding_async_attr( $image ) {
