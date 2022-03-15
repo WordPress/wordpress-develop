@@ -1792,6 +1792,30 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_allow_unsafe_unquoted_parameters() {
+		global $wpdb;
+
+		$sql    = 'WHERE (%i = %s) OR (%10i = %10s) OR (%5$i = %6$s)';
+		$values = array( 'field_a', 'string_a', 'field_b', 'string_b', 'field_c', 'string_c' );
+
+		$default = $wpdb->allow_unsafe_unquoted_parameters;
+
+		$wpdb->allow_unsafe_unquoted_parameters = true;
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$part = $wpdb->prepare( $sql, $values );
+		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` =   string_b) OR (`field_c` = string_c)', $part ); // Unsafe, unquoted parameters.
+
+		$wpdb->allow_unsafe_unquoted_parameters = false;
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$part = $wpdb->prepare( $sql, $values );
+		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` = \'  string_b\') OR (`field_c` = \'string_c\')', $part );
+
+		$wpdb->allow_unsafe_unquoted_parameters = $default;
+
+	}
+
 	/**
 	 * @dataProvider data_escape_and_prepare
 	 */
