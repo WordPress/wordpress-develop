@@ -2672,19 +2672,12 @@ function upload_size_limit_filter( $size ) {
  *
  * @since 3.3.0
  * @since 4.8.0 The `$network_id` parameter has been added.
- * @since 6.0.0 Deprecated `$network_id`.
  *
  * @param string $using      'sites or 'users'. Default is 'sites'.
  * @param null   $deprecated ID of the network. Default is the current network.
  * @return bool True if the network meets the criteria for large. False otherwise.
  */
-function wp_is_large_network( $using = 'sites', $deprecated = null ) {
-	if ( null !== $deprecated ) {
-		_deprecated_argument( __FUNCTION__, __( 'Unable to pass $network_id. ' ), '6.0.0' );
-	}
-
-	$network_id = (int) $deprecated;
-
+function wp_is_large_network( $using = 'sites', $network_id = null ) {
 	if ( ! $network_id ) {
 		$network_id = get_current_network_id();
 	}
@@ -2709,7 +2702,7 @@ function wp_is_large_network( $using = 'sites', $deprecated = null ) {
 		return apply_filters( 'wp_is_large_network', $is_large_network, 'users', $count, $network_id );
 	}
 
-	$count = get_blog_count();
+	$count = get_blog_count( $network_id );
 
 	/** This filter is documented in wp-includes/ms-functions.php */
 	return apply_filters( 'wp_is_large_network', $count > 10000, 'sites', $count, $network_id );
