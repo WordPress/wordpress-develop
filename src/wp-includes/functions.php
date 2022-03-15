@@ -8409,3 +8409,113 @@ function is_php_version_compatible( $required ) {
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
+
+/**
+ * The number of active users in your installation.
+ *
+ * The count is cached and updated twice daily. This is not a live count.
+ *
+ * @since 6.0.0
+ *
+ * @return int Number of active users on the network.
+ */
+function wp_get_user_count() {
+	return get_site_option( 'user_count', -1 );
+}
+
+/**
+ * Update the network-wide users count.
+ *
+ * If enabled through the {@see 'enable_live_network_counts'} filter, update the users count
+ * on a network when a user is created or its status is updated.
+ *
+ * @since 3.7.0
+ * @since 4.8.0 The `$network_id` parameter has been added.
+ * @since 6.0.0 Moved to functions.php.
+ *
+ * @param int|null $network_id ID of the network. Default is the current network.
+ *
+ * @return bool
+ */
+function wp_maybe_update_network_user_counts( $network_id = null ) {
+	$is_small_network = ! wp_is_large_user_count();
+
+	if ( ! is_multisite() && $network_id ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '5.0.0' );
+	}
+
+	/** This filter is documented in wp-includes/ms-functions.php */
+	if ( ! apply_filters( 'enable_live_network_counts', $is_small_network, 'users' ) ) {
+		return;
+	}
+
+	return wp_update_network_user_counts( $network_id );
+}
+
+/**
+ * Update the network-wide user count.
+ *
+ * @since 3.7.0
+ * @since 4.8.0 The `$network_id` parameter has been added.
+ * @since 6.0.0 Moved to functions.php.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int|null $network_id ID of the network. Default is the current network.
+ *
+ * @return bool
+ */
+function wp_update_network_user_counts( $network_id = null ) {
+	global $wpdb;
+
+	if ( ! is_multisite() && $network_id ) {
+		 _doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '5.0.0' );
+	}
+
+	if ( is_multisite() ) {
+		$query = "SELECT COUNT(ID) as c FROM $wpdb->users WHERE spam = '0' AND deleted = '0'";
+	} else {
+		$query = "SELECT COUNT(ID) as c FROM $wpdb->users";
+	}
+
+	$count = $wpdb->get_var( $query );
+
+	return update_network_option( $network_id, 'user_count', $count );
+}
+
+/**
+ * Schedule update of the network-wide counts for the current network.
+ *
+ * @since 3.1.0
+ * @since 6.0.0 Moved to functions.php.
+ */
+function wp_schedule_update_network_counts() {
+	if ( ! is_main_site() ) {
+		return;
+	}
+
+	if ( ! wp_next_scheduled( 'update_network_counts' ) && ! wp_installing() ) {
+		wp_schedule_event( time(), 'twicedaily', 'update_network_counts' );
+	}
+}
+
+/**
+ * Determine
+ *
+ * @since 6.0.0
+ *
+ * @return boolean
+ */
+function wp_is_large_user_count() {
+	$count = wp_get_user_count();
+
+	/**
+	 * Filters whether the site is considered large, based on its number of users.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param bool   $is_large_user_count Whether the site has more than 10000 users.
+	 * @param int    $count               The count of items for the component.
+	 */
+	return apply_filters( 'wp_is_large_user_count', $count > 10000, $count );
+}

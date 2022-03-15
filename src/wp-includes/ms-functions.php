@@ -22,7 +22,7 @@
 function get_sitestats() {
 	$stats = array(
 		'blogs' => get_blog_count(),
-		'users' => get_user_count(),
+		'users' => wp_get_user_count(),
 	);
 
 	return $stats;
@@ -98,21 +98,6 @@ function get_active_blog_for_user( $user_id ) {
 	} else {
 		return $primary;
 	}
-}
-
-/**
- * The number of active users in your installation.
- *
- * The count is cached and updated twice daily. This is not a live count.
- *
- * @since MU (3.0.0)
- * @since 4.8.0 The `$network_id` parameter has been added.
- *
- * @param int|null $network_id ID of the network. Default is the current network.
- * @return int Number of active users on the network.
- */
-function get_user_count( $network_id = null ) {
-	return get_network_option( $network_id, 'user_count' );
 }
 
 /**
@@ -2498,21 +2483,6 @@ function filter_SSL( $url ) {  // phpcs:ignore WordPress.NamingConventions.Valid
 }
 
 /**
- * Schedule update of the network-wide counts for the current network.
- *
- * @since 3.1.0
- */
-function wp_schedule_update_network_counts() {
-	if ( ! is_main_site() ) {
-		return;
-	}
-
-	if ( ! wp_next_scheduled( 'update_network_counts' ) && ! wp_installing() ) {
-		wp_schedule_event( time(), 'twicedaily', 'update_network_counts' );
-	}
-}
-
-/**
  * Update the network-wide counts for the current network.
  *
  * @since 3.1.0
@@ -2557,28 +2527,6 @@ function wp_maybe_update_network_site_counts( $network_id = null ) {
 }
 
 /**
- * Update the network-wide users count.
- *
- * If enabled through the {@see 'enable_live_network_counts'} filter, update the users count
- * on a network when a user is created or its status is updated.
- *
- * @since 3.7.0
- * @since 4.8.0 The `$network_id` parameter has been added.
- *
- * @param int|null $network_id ID of the network. Default is the current network.
- */
-function wp_maybe_update_network_user_counts( $network_id = null ) {
-	$is_small_network = ! wp_is_large_network( 'users', $network_id );
-
-	/** This filter is documented in wp-includes/ms-functions.php */
-	if ( ! apply_filters( 'enable_live_network_counts', $is_small_network, 'users' ) ) {
-		return;
-	}
-
-	wp_update_network_user_counts( $network_id );
-}
-
-/**
  * Update the network-wide site count.
  *
  * @since 3.7.0
@@ -2604,23 +2552,6 @@ function wp_update_network_site_counts( $network_id = null ) {
 	);
 
 	update_network_option( $network_id, 'blog_count', $count );
-}
-
-/**
- * Update the network-wide user count.
- *
- * @since 3.7.0
- * @since 4.8.0 The `$network_id` parameter has been added.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param int|null $network_id ID of the network. Default is the current network.
- */
-function wp_update_network_user_counts( $network_id = null ) {
-	global $wpdb;
-
-	$count = $wpdb->get_var( "SELECT COUNT(ID) as c FROM $wpdb->users WHERE spam = '0' AND deleted = '0'" );
-	update_network_option( $network_id, 'user_count', $count );
 }
 
 /**
@@ -2741,19 +2672,29 @@ function upload_size_limit_filter( $size ) {
  *
  * @since 3.3.0
  * @since 4.8.0 The `$network_id` parameter has been added.
+ * @since 6.0.0 Deprecated `$network_id`.
  *
- * @param string   $using      'sites or 'users'. Default is 'sites'.
- * @param int|null $network_id ID of the network. Default is the current network.
+ * @param string $using      'sites or 'users'. Default is 'sites'.
+ * @param null   $deprecated ID of the network. Default is the current network.
  * @return bool True if the network meets the criteria for large. False otherwise.
  */
-function wp_is_large_network( $using = 'sites', $network_id = null ) {
-	$network_id = (int) $network_id;
+function wp_is_large_network( $using = 'sites', $deprecated = null ) {
+	if ( null !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, __( 'Unable to pass $network_id. ' ), '6.0.0' );
+	}
+
+	$network_id = (int) $deprecated;
+
 	if ( ! $network_id ) {
 		$network_id = get_current_network_id();
 	}
 
 	if ( 'users' === $using ) {
-		$count = get_user_count( $network_id );
+		$count = wp_get_user_count( $network_id );
+
+		/** This filter is documented in wp-includes/functions.php */
+		$is_large_network = apply_filters( 'wp_is_large_user_count', $count > 10000, $count );
+
 		/**
 		 * Filters whether the network is considered large.
 		 *
@@ -2765,10 +2706,10 @@ function wp_is_large_network( $using = 'sites', $network_id = null ) {
 		 * @param int    $count            The count of items for the component.
 		 * @param int    $network_id       The ID of the network being checked.
 		 */
-		return apply_filters( 'wp_is_large_network', $count > 10000, 'users', $count, $network_id );
+		return apply_filters( 'wp_is_large_network', $is_large_network, 'users', $count, $network_id );
 	}
 
-	$count = get_blog_count( $network_id );
+	$count = get_blog_count();
 
 	/** This filter is documented in wp-includes/ms-functions.php */
 	return apply_filters( 'wp_is_large_network', $count > 10000, 'sites', $count, $network_id );

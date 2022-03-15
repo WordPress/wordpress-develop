@@ -98,6 +98,13 @@ add_filter( 'post_mime_type', 'sanitize_mime_type' );
 // Meta.
 add_filter( 'register_meta_args', '_wp_register_meta_args_allowed_list', 10, 2 );
 
+// Counts.
+add_action( 'admin_init', 'wp_schedule_update_network_counts' );
+add_action( 'update_network_counts', 'wp_update_network_user_counts', 10, 0 );
+foreach ( array( 'user_register', 'deleted_user', 'wpmu_new_user', 'make_spam_user', 'make_ham_user' ) as $action ) {
+	add_action( $action, 'wp_maybe_update_network_user_counts', 10, 0 );
+}
+
 // Post meta.
 add_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
 add_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' );
