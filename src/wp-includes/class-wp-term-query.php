@@ -531,7 +531,7 @@ class WP_Term_Query {
 		}
 
 		if ( ! empty( $args['name'] ) ) {
-			$names = $args['name'];
+			$names = (array) $args['name'];
 			foreach ( $names as &$_name ) {
 				// `sanitize_term_field()` returns slashed data.
 				$_name = stripslashes( sanitize_term_field( 'name', $_name, 0, reset( $taxonomies ), 'db' ) );
@@ -541,7 +541,7 @@ class WP_Term_Query {
 		}
 
 		if ( ! empty( $args['slug'] ) ) {
-			$args['slug'] = array_map( 'sanitize_title', $args['slug'] );
+			$args['slug'] = array_map( 'sanitize_title', (array) $args['slug'] );
 			$slug         = implode( "', '", $args['slug'] );
 
 			$this->sql_clauses['where']['slug'] = "t.slug IN ('" . $slug . "')";
