@@ -1518,14 +1518,16 @@ class wpdb {
 
 			if ( 'i' === $type ) {
 				$placeholder = '`%' . $format . 's`';
-				if ( ( $pos = strpos( $format, '$' ) ) !== false ) { // Using a simple strpos() due to previous checking (e.g. $allowed_format).
-					$arg_identifiers[] = ( intval( substr( $format, 0, $pos ) ) - 1 ); // sprintf argnum starts at 1, $arg_id from 0.
+				$argnum_pos  = strpos( $format, '$' ); // Using a simple strpos() due to previous checking (e.g. $allowed_format).
+				if ( false !== $argnum_pos ) {
+					$arg_identifiers[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 ); // sprintf argnum starts at 1, $arg_id from 0.
 				} else {
 					$arg_identifiers[] = $arg_id;
 				}
 			} elseif ( 's' === $type ) {
-				if ( ( $pos = strpos( $format, '$' ) ) !== false ) {
-					$arg_strings[] = ( intval( substr( $format, 0, $pos ) ) - 1 );
+				$argnum_pos = strpos( $format, '$' );
+				if ( false !== $argnum_pos ) {
+					$arg_strings[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
 				}
 				if ( true !== $this->allow_unsafe_unquoted_parameters || '' === $format ) { // Unquoted strings for backwards compatibility (dangerous).
 					$placeholder = "'%" . $format . "s'";
