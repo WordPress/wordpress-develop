@@ -169,6 +169,9 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		);
 		$post      = get_page_by_title( 'Some Page', OBJECT, array( 'my-cpt', 'page' ) );
 		$this->assertEquals( $post_id_2, $post->ID );
+
+		$post      = get_page_by_title( 'Some CPT', OBJECT, array( 'my-cpt', 'page' ) );
+		$this->assertEquals( $post_id_1, $post->ID );
 	}
 
 	/**
