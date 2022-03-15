@@ -8422,7 +8422,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  */
 function get_user_count( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '5.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
 	}
 	return get_network_option( $network_id, 'user_count', -1 );
 }
@@ -8443,7 +8443,7 @@ function get_user_count( $network_id = null ) {
  */
 function wp_maybe_update_network_user_counts( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '5.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
 	}
 
 	$is_small_network = ! wp_is_large_user_count( $network_id );
@@ -8471,7 +8471,7 @@ function wp_maybe_update_network_user_counts( $network_id = null ) {
 function wp_update_network_user_counts( $network_id = null ) {
 	global $wpdb;
 
-	if ( ! is_multisite() && $network_id ) {
+	if ( ! is_multisite() && null !== $network_id ) {
 		 _doing_it_wrong( __FUNCTION__, __( 'Unable to pass $network_id if not using multisite.' ), '6.0.0' );
 	}
 
@@ -8511,8 +8511,8 @@ function wp_schedule_update_network_counts() {
  * @return boolean
  */
 function wp_is_large_user_count( $network_id = null ) {
-	if ( ! is_multisite() && $network_id ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '5.0.0' );
+	if ( ! is_multisite() && null !== $network_id ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
 	}
 	$count = get_user_count( $network_id );
 
