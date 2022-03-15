@@ -8469,7 +8469,7 @@ function wp_update_network_user_counts( $network_id = null ) {
 	global $wpdb;
 
 	if ( ! is_multisite() && $network_id ) {
-		 _doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '5.0.0' );
+		 _doing_it_wrong( __FUNCTION__, __( 'Unable to pass $network_id if not using multisite.' ), '6.0.0' );
 	}
 
 	if ( is_multisite() ) {
