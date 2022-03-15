@@ -1772,10 +1772,10 @@ class Tests_DB extends WP_UnitTestCase {
 				"WHERE `evil_{$wpdb->placeholder_escape()}s_field` = 321;",
 			),
 			array(
-				'WHERE \'%i\' = 1 AND "%i" = 2 AND `%i` = 3 AND %15i = 4',
-				array( 'my_field1', 'my_field2', 'my_field3', 'my_field4' ),
+				'WHERE \'%i\' = 1 AND "%i" = 2 AND `%i` = 3 AND ``%i`` = 4 AND %15i = 5',
+				array( 'my_field1', 'my_field2', 'my_field3', 'my_field4', 'my_field5' ),
 				false,
-				'WHERE \'`my_field1`\' = 1 AND "`my_field2`" = 2 AND ``my_field3`` = 3 AND `      my_field4` = 4', // Does not remove any existing quotes, always adds it's own (safer).
+				'WHERE \'`my_field1`\' = 1 AND "`my_field2`" = 2 AND ``my_field3`` = 3 AND ```my_field4``` = 4 AND `      my_field5` = 5', // Does not remove any existing quotes, always adds it's own (safer).
 			),
 			array(
 				'WHERE id = %d AND %i LIKE %2$s LIMIT 1',
