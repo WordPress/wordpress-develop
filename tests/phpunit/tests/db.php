@@ -1772,6 +1772,36 @@ class Tests_DB extends WP_UnitTestCase {
 				"WHERE `evil_{$wpdb->placeholder_escape()}s_field` = 321;",
 			),
 			array(
+				'WHERE %i = %d;',
+				array( 'value`', 321 ),
+				false,
+				'WHERE `value``` = 321;',
+			),
+			array(
+				'WHERE `%i = %d;',
+				array( ' AND evil_value', 321 ),
+				false,
+				'WHERE `` AND evil_value` = 321;', // Won't run (SQL parse error: "Unclosed quote").
+			),
+			array(
+				'WHERE %i` = %d;',
+				array( 'evil_value -- ', 321 ),
+				false,
+				'WHERE `evil_value -- `` = 321;', // Won't run (SQL parse error: "Unclosed quote").
+			),
+			array(
+				'WHERE `%i`` = %d;',
+				array( ' AND true -- ', 321 ),
+				false,
+				'WHERE `` AND true -- ``` = 321;', // Won't run (Unknown column '').
+			),
+			array(
+				'WHERE ``%i` = %d;',
+				array( ' AND true -- ', 321 ),
+				false,
+				'WHERE ``` AND true -- `` = 321;', // Won't run (SQL parse error: "Unclosed quote").
+			),
+			array(
 				'WHERE \'%i\' = 1 AND "%i" = 2 AND `%i` = 3 AND ``%i`` = 4 AND %15i = 5',
 				array( 'my_field1', 'my_field2', 'my_field3', 'my_field4', 'my_field5' ),
 				false,
