@@ -1107,6 +1107,21 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 30580
+	 *
+	 * Tests for backward compatibility of `wp_extract_urls` to remove unused semicolons.
+	 */
+	public function test_wp_extract_urls_remove_semicolon() {
+		$url_with_typo = 'http://typo.com;';
+		$expected      = array(
+			'http://typo.com',
+		);
+
+		$urls = wp_extract_urls( $url_with_typo );
+		$this->assertSame( $urls, $expected );
+	}
+
+	/**
 	 * @ticket 28786
 	 */
 	public function test_wp_json_encode() {
