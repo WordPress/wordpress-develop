@@ -966,7 +966,7 @@ function wp_clean_update_cache() {
 function wp_delete_all_temp_backups() {
 	/*
 	 * Check if there's a lock, or if currently performing an Ajax request,
-	 * in which case there's a chance we're doing an update.
+	 * in which case there's a chance an update is running.
 	 * Reschedule for an hour from now and exit early.
 	 */
 	if ( get_option( 'core_updater.lock' ) || get_option( 'auto_updater.lock' ) || wp_doing_ajax() ) {
