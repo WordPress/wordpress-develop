@@ -1119,8 +1119,8 @@ class Tests_Functions extends WP_UnitTestCase {
 			'http://typo.com',
 		);
 
-		$urls = wp_extract_urls( $url_with_typo );
-		$this->assertSame( $urls, $expected );
+		$actual = wp_extract_urls( $url_with_typo );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
