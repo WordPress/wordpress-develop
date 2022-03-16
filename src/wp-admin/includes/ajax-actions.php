@@ -3975,6 +3975,8 @@ function wp_ajax_crop_image() {
 
 			$size       = wp_getimagesize( $cropped );
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
+			/** @var WP_Post $attachment */
+			$attachment = get_post( $attachment_id );
 
 			$object = array(
 				'post_title'     => wp_basename( $cropped ),
@@ -3983,6 +3985,18 @@ function wp_ajax_crop_image() {
 				'guid'           => $url,
 				'context'        => $context,
 			);
+
+			if ( trim( $attachment->post_title ) ) {
+				$object['post_title'] = $attachment->post_title;
+			}
+
+			if ( trim( $attachment->post_content ) ) {
+				$object['post_content'] = $attachment->post_content;
+			}
+
+			if ( trim( $attachment->post_excerpt )) {
+				$object['post_excerpt'] = $attachment->post_excerpt;
+			}
 
 			$attachment_id = wp_insert_attachment( $object, $cropped );
 			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
