@@ -242,6 +242,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		}
 
 		if ( ! empty( $avail_roles['none'] ) ) {
+
 			$current_link_attributes = '';
 
 			if ( 'none' === $role ) {
