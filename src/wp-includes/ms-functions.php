@@ -2483,6 +2483,21 @@ function filter_SSL( $url ) {  // phpcs:ignore WordPress.NamingConventions.Valid
 }
 
 /**
+ * Schedule update of the network-wide counts for the current network.
+ *
+ * @since 3.1.0
+ */
+function wp_schedule_update_network_counts() {
+	if ( ! is_main_site() ) {
+		return;
+	}
+
+	if ( ! wp_next_scheduled( 'update_network_counts' ) && ! wp_installing() ) {
+		wp_schedule_event( time(), 'twicedaily', 'update_network_counts' );
+	}
+}
+
+/**
  * Update the network-wide counts for the current network.
  *
  * @since 3.1.0
@@ -2527,6 +2542,21 @@ function wp_maybe_update_network_site_counts( $network_id = null ) {
 }
 
 /**
+ * Update the network-wide users count.
+ *
+ * If enabled through the {@see 'enable_live_network_counts'} filter, update the users count
+ * on a network when a user is created or its status is updated.
+ *
+ * @since 3.7.0
+ * @since 4.8.0 The `$network_id` parameter has been added.
+ *
+ * @param int|null $network_id ID of the network. Default is the current network.
+ */
+function wp_maybe_update_network_user_counts( $network_id = null ) {
+	return wp_maybe_update_user_counts( $network_id );
+}
+
+/**
  * Update the network-wide site count.
  *
  * @since 3.7.0
@@ -2552,6 +2582,20 @@ function wp_update_network_site_counts( $network_id = null ) {
 	);
 
 	update_network_option( $network_id, 'blog_count', $count );
+}
+
+/**
+ * Update the network-wide user count.
+ *
+ * @since 3.7.0
+ * @since 4.8.0 The `$network_id` parameter has been added.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int|null $network_id ID of the network. Default is the current network.
+ */
+function wp_update_network_user_counts( $network_id = null ) {
+	wp_update_user_counts( $network_id );
 }
 
 /**
@@ -2673,7 +2717,7 @@ function upload_size_limit_filter( $size ) {
  * @since 3.3.0
  * @since 4.8.0 The `$network_id` parameter has been added.
  *
- * @param string $using      'sites or 'users'. Default is 'sites'.
+ * @param string   $using      'sites or 'users'. Default is 'sites'.
  * @param int|null $network_id ID of the network. Default is the current network.
  * @return bool True if the network meets the criteria for large. False otherwise.
  */

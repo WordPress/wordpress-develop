@@ -8441,7 +8441,7 @@ function get_user_count( $network_id = null ) {
  *
  * @return bool
  */
-function wp_maybe_update_network_user_counts( $network_id = null ) {
+function wp_maybe_update_user_counts( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
 	}
@@ -8452,7 +8452,7 @@ function wp_maybe_update_network_user_counts( $network_id = null ) {
 		return;
 	}
 
-	return wp_update_network_user_counts( $network_id );
+	return wp_update_user_counts( $network_id );
 }
 
 /**
@@ -8468,7 +8468,7 @@ function wp_maybe_update_network_user_counts( $network_id = null ) {
  *
  * @return bool
  */
-function wp_update_network_user_counts( $network_id = null ) {
+function wp_update_user_counts( $network_id = null ) {
 	global $wpdb;
 
 	if ( ! is_multisite() && null !== $network_id ) {
@@ -8487,18 +8487,17 @@ function wp_update_network_user_counts( $network_id = null ) {
 }
 
 /**
- * Schedule update of the network-wide counts for the current network.
+ * Schedule update users.
  *
- * @since 3.1.0
- * @since 6.0.0 Moved to functions.php.
+ * @since 6.0.0
  */
-function wp_schedule_update_network_counts() {
+function wp_schedule_update_user_counts() {
 	if ( ! is_main_site() ) {
 		return;
 	}
 
-	if ( ! wp_next_scheduled( 'update_network_counts' ) && ! wp_installing() ) {
-		wp_schedule_event( time(), 'twicedaily', 'update_network_counts' );
+	if ( ! wp_next_scheduled( 'update_user_counts' ) && ! wp_installing() ) {
+		wp_schedule_event( time(), 'twicedaily', 'update_user_counts' );
 	}
 }
 
