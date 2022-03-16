@@ -487,7 +487,13 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @return int|false Size of the file in bytes on success, false on failure.
 	 */
 	public function size( $file ) {
-		return @filesize( $file );
+		$filesize = wp_filesize( $file );
+
+		if ( $filesize === 0 ) {
+			return false;
+		}
+
+		return $filesize;
 	}
 
 	/**
