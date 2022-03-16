@@ -345,7 +345,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 
 	public function test_wp_crop_image_extension() {
-		add_filter( 'image_editor_output_format', [ $this, 'filter_image_editor_output_format'] );
+		add_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canola.jpg',
 			0,
@@ -359,7 +359,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertFileExists( $file );
 
 		unlink( $file );
-		remove_filter( 'image_editor_output_format', [ $this, 'filter_image_editor_output_format' ] );
+		remove_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
 	}
 
 	/**
@@ -680,7 +680,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 
 	public function filter_image_editor_output_format() {
-		return array_fill_keys( [ 'image/jpg', 'image/jpeg', 'image/png' ], 'image/webp' );
+		return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 	}
 
 
