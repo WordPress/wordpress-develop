@@ -1284,7 +1284,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$space_left = get_upload_space_available();
 
-		$file_size = filesize( $file['tmp_name'] );
+		$file_size = wp_filesize( $file['tmp_name'] );
 
 		if ( $space_left < $file_size ) {
 			return new WP_Error(

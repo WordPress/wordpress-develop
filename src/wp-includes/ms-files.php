@@ -42,7 +42,7 @@ if ( $mime['type'] ) {
 
 header( 'Content-Type: ' . $mimetype ); // Always send this.
 if ( false === strpos( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS' ) ) {
-	header( 'Content-Length: ' . filesize( $file ) );
+	header( 'Content-Length: ' . wp_filesize( $file ) );
 }
 
 // Optional support for X-Sendfile and X-Accel-Redirect.
