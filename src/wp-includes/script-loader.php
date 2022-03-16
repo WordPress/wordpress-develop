@@ -2733,7 +2733,7 @@ function wp_maybe_inline_styles() {
 				'handle' => $handle,
 				'src'    => $wp_styles->registered[ $handle ]->src,
 				'path'   => $wp_styles->registered[ $handle ]->extra['path'],
-				'size'   => filesize( $wp_styles->registered[ $handle ]->extra['path'] ),
+				'size'   => wp_filesize( $wp_styles->registered[ $handle ]->extra['path'] ),
 			);
 		}
 	}
@@ -2778,7 +2778,7 @@ function wp_maybe_inline_styles() {
 			array_unshift( $wp_styles->registered[ $style['handle'] ]->extra['after'], $style['css'] );
 
 			// Add the styles size to the $total_inline_size var.
-			$total_inline_size += (int) $style['size'];
+			$total_inline_size += $style['size'];
 		}
 	}
 }
