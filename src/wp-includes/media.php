@@ -1927,7 +1927,24 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  * @return string Converted `img` tag with `decoding=async` attribute added.
  */
 function wp_img_tag_add_decoding_async_attr( $image ) {
-	return str_replace( '<img ', '<img decoding="async" ', $image );
+	/**
+	 * Filters the `decoding` attribute value to add to an image. Default `async`.
+	 *
+	 * Returning `false` or an empty string will not add the attribute.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param string|bool $value   The `decoding` attribute value. Returning a falsey value will result in
+	 *                             the attribute being omitted for the image.
+	 * @param string      $image   The HTML `img` tag to be filtered.
+	 * @param string      $context Additional context about how the function was called or where the img tag is.
+	 */
+	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+	if ( ! $value || ! in_array( $value, array( 'async', 'sync' ), true ) ) {
+		return $image;
+	}
+
+	return str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
 }
 
 /**
