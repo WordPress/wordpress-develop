@@ -1944,7 +1944,7 @@ function wp_img_tag_add_decoding_async_attr( $image, $context, $attachment_id ) 
 	 * @param string      $context Additional context about how the function was called or where the img tag is.
 	 */
 	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context, $attachment_id );
-	if ( $value && in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
+	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
 		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
 	}
 
