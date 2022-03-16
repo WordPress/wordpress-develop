@@ -646,7 +646,13 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return int|false Size of the file in bytes on success, false on failure.
 	 */
 	public function size( $file ) {
-		return filesize( $this->sftp_path( $file ) );
+		$filesize = wp_filesize( $this->sftp_path( $file ) );
+
+		if ( $filesize === 0 ) {
+			return false;
+		}
+
+		return $filesize;
 	}
 
 	/**
