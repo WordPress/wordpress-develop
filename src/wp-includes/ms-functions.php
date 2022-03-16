@@ -2559,7 +2559,7 @@ function wp_maybe_update_network_user_counts( $network_id = null ) {
 	if ( ! apply_filters( 'enable_live_network_counts', $is_small_network, 'users' ) ) {
 		return;
 	}
-	
+
 	wp_update_network_user_counts( $network_id );
 }
 

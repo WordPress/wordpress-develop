@@ -205,54 +205,7 @@ if ( is_multisite() ) :
 			$this->assertEquals( count( self::$different_site_ids ), $site_count );
 		}
 
-		/**
-		 * @ticket 37866
-		 */
-		public function test_get_user_count_on_different_network() {
-			wp_update_network_user_counts();
-			$current_network_user_count = get_user_count();
 
-			// Add another user to fake the network user count to be different.
-			wpmu_create_user( 'user', 'pass', 'email' );
-
-			wp_update_network_user_counts( self::$different_network_id );
-
-			$user_count = get_user_count( self::$different_network_id );
-
-			$this->assertEquals( $current_network_user_count + 1, $user_count );
-		}
-
-		/**
-		 * @ticket 22917
-		 */
-		public function test_enable_live_network_user_counts_filter() {
-			// False for large networks by default.
-			add_filter( 'enable_live_network_counts', '__return_false' );
-
-			// Refresh the cache.
-			wp_update_network_counts();
-			$start_count = get_user_count();
-
-			wpmu_create_user( 'user', 'pass', 'email' );
-
-			// No change, cache not refreshed.
-			$count = get_user_count();
-
-			$this->assertSame( $start_count, $count );
-
-			wp_update_network_counts();
-			$start_count = get_user_count();
-
-			add_filter( 'enable_live_network_counts', '__return_true' );
-
-			wpmu_create_user( 'user2', 'pass2', 'email2' );
-
-			$count = get_user_count();
-			$this->assertEquals( $start_count + 1, $count );
-
-			remove_filter( 'enable_live_network_counts', '__return_false' );
-			remove_filter( 'enable_live_network_counts', '__return_true' );
-		}
 
 		public function test_active_network_plugins() {
 			$path = 'hello.php';
@@ -317,25 +270,6 @@ if ( is_multisite() ) :
 
 		public function helper_deactivate_hook() {
 			$this->plugin_hook_count++;
-		}
-
-		public function test_get_user_count() {
-			// Refresh the cache.
-			wp_update_network_counts();
-			$start_count = get_user_count();
-
-			// Only false for large networks as of 3.7.
-			add_filter( 'enable_live_network_counts', '__return_false' );
-			self::factory()->user->create( array( 'role' => 'administrator' ) );
-
-			$count = get_user_count(); // No change, cache not refreshed.
-			$this->assertSame( $start_count, $count );
-
-			wp_update_network_counts(); // Magic happens here.
-
-			$count = get_user_count();
-			$this->assertEquals( $start_count + 1, $count );
-			remove_filter( 'enable_live_network_counts', '__return_false' );
 		}
 
 		public function test_wp_schedule_update_network_counts() {
@@ -452,15 +386,12 @@ if ( is_multisite() ) :
 		 */
 		public function test_wp_update_network_counts_on_different_network() {
 			delete_network_option( self::$different_network_id, 'blog_count' );
-			delete_network_option( self::$different_network_id, 'user_count' );
 
 			wp_update_network_counts( self::$different_network_id );
 
 			$site_count = (int) get_blog_count( self::$different_network_id );
-			$user_count = (int) get_user_count( self::$different_network_id );
 
 			$this->assertGreaterThan( 0, $site_count );
-			$this->assertGreaterThan( 0, $user_count );
 		}
 
 		/**
