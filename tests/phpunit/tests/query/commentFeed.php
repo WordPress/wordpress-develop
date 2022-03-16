@@ -25,6 +25,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	 */
 	public function test_archive_comment_feed() {
 		global $wpdb;
+		add_filter( 'split_the_query', '__return_false' );
 		$q1   = new WP_Query();
 		$args = array(
 			'withcomments'           => 1,
@@ -33,6 +34,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'ignore_sticky_posts'    => false,
+			'no_found_rows'          => true,
 		);
 		$q1->query( $args );
 		$num_queries = $wpdb->num_queries;
@@ -40,7 +42,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$q2->query( $args );
 		$this->assertTrue( $q2->is_comment_feed() );
 		$this->assertFalse( $q2->is_singular() );
-		$this->assertSame( $num_queries + 4, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 	}
 
 	/**
