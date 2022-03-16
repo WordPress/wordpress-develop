@@ -115,11 +115,11 @@
 				return ! isIdentical;
 			case 'emoji':
 				/*
-				 * Burning Love: Just a hunk, a hunk of burnin' love.
+				 * [insert witt]
 				 *
-				 *  To test for Emoji 13.1 support, try to render a new emoji: Heart on Fire!
+				 * To test for Emoji 14.0 support, try to render a new emoji: [emoji]
 				 *
-				 * The Heart on Fire emoji is a ZWJ sequence combining ❤️ Red Heart, a Zero Width Joiner and 🔥 Fire.
+				 * The [emoji] emoji is a ZWJ sequence combining [emoji], a Zero Width Joiner and [emoji].
 				 *
 				 * 0x2764, 0xfe0f == Red Heart emoji.
 				 * 0x200D == Zero-Width Joiner (ZWJ) that links the two code points for the new emoji or
