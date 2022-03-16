@@ -115,7 +115,7 @@
 				return ! isIdentical;
 			case 'emoji':
 				/*
-				 * [insert witt]
+				 * [insert witty comment about emoji support]
 				 *
 				 * To test for Emoji 14.0 support, try to render a new emoji: [emoji]
 				 *
