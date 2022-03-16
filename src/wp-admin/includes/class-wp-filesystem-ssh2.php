@@ -648,7 +648,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	public function size( $file ) {
 		$filesize = wp_filesize( $this->sftp_path( $file ) );
 
-		if ( $filesize === 0 ) {
+		if ( 0 === $filesize ) {
 			return false;
 		}
 

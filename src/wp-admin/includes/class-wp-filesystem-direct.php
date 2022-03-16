@@ -489,7 +489,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	public function size( $file ) {
 		$filesize = wp_filesize( $file );
 
-		if ( $filesize === 0 ) {
+		if ( 0 === $filesize ) {
 			return false;
 		}
 
