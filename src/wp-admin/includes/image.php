@@ -425,9 +425,9 @@ function _wp_get_sources_from_meta( $meta ) {
  *
  * Updates the image meta after each sub-size is created.
  * Errors are stored in the returned image metadata array.
- * Since 6.0.0 this function is capable of generating multiple mime type sub-sizes.
  *
  * @since 5.3.0
+ * @since 6.0.0 Support for generating multiple mime type sub-sizes was added.
  * @access private
  *
  * @param array  $new_sizes     Array defining what sizes to create.
