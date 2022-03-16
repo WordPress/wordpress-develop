@@ -8411,11 +8411,14 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 }
 
 /**
+ **
  * The number of active users in your installation.
  *
  * The count is cached and updated twice daily. This is not a live count.
  *
- * @since 6.0.0
+ * @since MU (3.0.0)
+ * @since 4.8.0 The `$network_id` parameter has been added.
+ * @since 6.0.0 Make to function.php.
  *
  * @param int|null $network_id ID of the network. Default is the current network.
  * @return int Number of active users on the network.
@@ -8428,14 +8431,7 @@ function get_user_count( $network_id = null ) {
 }
 
 /**
- * Update the network-wide users count.
- *
- * If enabled through the {@see 'enable_live_network_counts'} filter, update the users count
- * on a network when a user is created or its status is updated.
- *
- * @since 3.7.0
- * @since 4.8.0 The `$network_id` parameter has been added.
- * @since 6.0.0 Moved to functions.php.
+ * Update the site-wide users count.
  *
  * @param int|null $network_id ID of the network. Default is the current network.
  *
@@ -8446,21 +8442,11 @@ function wp_maybe_update_user_counts( $network_id = null ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
 	}
 
-	$is_small_network = ! wp_is_large_user_count( $network_id );
-	/** This filter is documented in wp-includes/ms-functions.php */
-	if ( ! apply_filters( 'enable_live_network_counts', $is_small_network, 'users' ) ) {
-		return;
-	}
-
 	return wp_update_user_counts( $network_id );
 }
 
 /**
- * Update the network-wide user count.
- *
- * @since 3.7.0
- * @since 4.8.0 The `$network_id` parameter has been added.
- * @since 6.0.0 Moved to functions.php.
+ * Update the site widge user count.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
