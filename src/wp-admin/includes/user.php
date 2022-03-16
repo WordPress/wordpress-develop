@@ -25,7 +25,7 @@ function add_user() {
  * @since 2.0.0
  *
  * @param int $user_id Optional. User ID.
- * @return int|WP_Error User ID of the updated user.
+ * @return int|WP_Error User ID of the updated user or WP_Error on failure.
  */
 function edit_user( $user_id = 0 ) {
 	$wp_roles = wp_roles();
@@ -234,9 +234,9 @@ function edit_user( $user_id = 0 ) {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param int    $user_id ID of the newly created user.
-		 * @param string $notify  Type of notification that should happen. See wp_send_new_user_notifications()
-		 *                        for more information on possible values.
+		 * @param int|WP_Error $user_id ID of the newly created user or WP_Error on failure.
+		 * @param string       $notify  Type of notification that should happen. See
+		 *                              wp_send_new_user_notifications() for more information.
 		 */
 		do_action( 'edit_user_created_user', $user_id, $notify );
 	}
@@ -536,7 +536,7 @@ function default_password_nag() {
 function delete_users_add_js() {
 	?>
 <script>
-jQuery(document).ready( function($) {
+jQuery( function($) {
 	var submit = $('#submit').prop('disabled', true);
 	$('input[name="delete_option"]').one('change', function() {
 		submit.prop('disabled', false);
@@ -544,7 +544,7 @@ jQuery(document).ready( function($) {
 	$('#reassign_user').focus( function() {
 		$('#delete_option1').prop('checked', true).trigger('change');
 	});
-});
+} );
 </script>
 	<?php
 }

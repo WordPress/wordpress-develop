@@ -122,7 +122,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 		$prepared_nav_item = (array) $prepared_nav_item;
 
-		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ) );
+		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ), false );
 		if ( is_wp_error( $nav_menu_item_id ) ) {
 			if ( 'db_insert_error' === $nav_menu_item_id->get_error_code() ) {
 				$nav_menu_item_id->add_data( array( 'status' => 500 ) );
@@ -181,7 +181,10 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		 */
 		do_action( 'rest_after_insert_nav_menu_item', $nav_menu_item, $request, true );
 
-		$response = $this->prepare_item_for_response( get_post( $nav_menu_item_id ), $request );
+		$post = get_post( $nav_menu_item_id );
+		wp_after_insert_post( $post, false, null );
+
+		$response = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $response );
 
 		$response->set_status( 201 );
@@ -204,7 +207,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		if ( is_wp_error( $valid_check ) ) {
 			return $valid_check;
 		}
-
+		$post_before       = get_post( $request['id'] );
 		$prepared_nav_item = $this->prepare_item_for_database( $request );
 
 		if ( is_wp_error( $prepared_nav_item ) ) {
@@ -213,7 +216,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 		$prepared_nav_item = (array) $prepared_nav_item;
 
-		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ) );
+		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ), false );
 
 		if ( is_wp_error( $nav_menu_item_id ) ) {
 			if ( 'db_update_error' === $nav_menu_item_id->get_error_code() ) {
@@ -245,6 +248,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		$post          = get_post( $nav_menu_item_id );
 		$nav_menu_item = $this->get_nav_menu_item( $nav_menu_item_id );
 		$fields_update = $this->update_additional_fields_for_object( $nav_menu_item, $request );
 
@@ -256,6 +260,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php */
 		do_action( 'rest_after_insert_nav_menu_item', $nav_menu_item, $request, false );
+
+		wp_after_insert_post( $post, true, $post_before );
 
 		$response = $this->prepare_item_for_response( get_post( $nav_menu_item_id ), $request );
 
@@ -339,7 +345,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 				'menu-item-title'       => $menu_item_obj->title,
 				'menu-item-url'         => $menu_item_obj->url,
 				'menu-item-description' => $menu_item_obj->description,
-				'menu-item-content'     => $menu_item_obj->menu_item_content,
 				'menu-item-attr-title'  => $menu_item_obj->attr_title,
 				'menu-item-target'      => $menu_item_obj->target,
 				'menu-item-classes'     => $menu_item_obj->classes,
@@ -360,7 +365,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 				'menu-item-title'       => '',
 				'menu-item-url'         => '',
 				'menu-item-description' => '',
-				'menu-item-content'     => '',
 				'menu-item-attr-title'  => '',
 				'menu-item-target'      => '',
 				'menu-item-classes'     => array(),
@@ -409,15 +413,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
-		// Nav menu content.
-		if ( ! empty( $schema['properties']['content'] ) && isset( $request['content'] ) ) {
-			if ( is_string( $request['content'] ) ) {
-				$prepared_nav_item['menu-item-content'] = $request['content'];
-			} elseif ( isset( $request['content']['raw'] ) ) {
-				$prepared_nav_item['menu-item-content'] = $request['content']['raw'];
-			}
-		}
-
 		$error = new WP_Error();
 
 		// Check if object id exists before saving.
@@ -458,11 +453,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			if ( empty( $prepared_nav_item['menu-item-url'] ) ) {
 				$error->add( 'rest_url_required', __( 'The url is required when using a custom menu item type.' ), array( 'status' => 400 ) );
 			}
-		}
-
-		// If menu item is type block, then content is required.
-		if ( 'block' === $prepared_nav_item['menu-item-type'] && empty( $prepared_nav_item['menu-item-content'] ) ) {
-			$error->add( 'rest_content_required', __( 'The content is required when using a block menu item type.' ), array( 'status' => 400 ) );
 		}
 
 		if ( $error->has_errors() ) {
@@ -564,23 +554,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		if ( rest_is_field_included( 'object_id', $fields ) ) {
 			// It is stored as a string, but should be exposed as an integer.
 			$data['object_id'] = absint( $menu_item->object_id );
-		}
-
-		if ( rest_is_field_included( 'content', $fields ) ) {
-			$data['content'] = array();
-		}
-
-		if ( rest_is_field_included( 'content.raw', $fields ) ) {
-			$data['content']['raw'] = $menu_item->menu_item_content;
-		}
-
-		if ( rest_is_field_included( 'content.rendered', $fields ) ) {
-			/** This filter is documented in wp-includes/post-template.php */
-			$data['content']['rendered'] = apply_filters( 'the_content', $menu_item->menu_item_content );
-		}
-
-		if ( rest_is_field_included( 'content.block_version', $fields ) ) {
-			$data['content']['block_version'] = block_version( $menu_item->menu_item_content );
 		}
 
 		if ( rest_is_field_included( 'parent', $fields ) ) {
@@ -781,7 +754,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		$schema['properties']['type'] = array(
 			'description' => __( 'The family of objects originally represented, such as "post_type" or "taxonomy".' ),
 			'type'        => 'string',
-			'enum'        => array( 'taxonomy', 'post_type', 'post_type_archive', 'custom', 'block' ),
+			'enum'        => array( 'taxonomy', 'post_type', 'post_type_archive', 'custom' ),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'default'     => 'custom',
 		);
@@ -843,7 +816,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		);
 
 		$schema['properties']['object'] = array(
-			'description' => __( 'The type of object originally represented, such as "category," "post", or "attachment."' ),
+			'description' => __( 'The type of object originally represented, such as "category", "post", or "attachment".' ),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'type'        => 'string',
 			'arg_options' => array(
@@ -857,31 +830,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			'type'        => 'integer',
 			'minimum'     => 0,
 			'default'     => 0,
-		);
-
-		$schema['properties']['content'] = array(
-			'description' => __( 'HTML content to display for this block menu item.' ),
-			'context'     => array( 'view', 'edit', 'embed' ),
-			'type'        => array( 'string', 'object' ),
-			'properties'  => array(
-				'raw'           => array(
-					'description' => __( 'HTML content, as it exists in the database.' ),
-					'type'        => 'string',
-					'context'     => array( 'edit' ),
-				),
-				'rendered'      => array(
-					'description' => __( 'HTML content, transformed for display.' ),
-					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'block_version' => array(
-					'description' => __( 'Version of the block format used in the HTML content.' ),
-					'type'        => 'integer',
-					'context'     => array( 'edit' ),
-					'readonly'    => true,
-				),
-			),
 		);
 
 		$schema['properties']['target'] = array(

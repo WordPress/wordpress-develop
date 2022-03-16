@@ -882,7 +882,8 @@ function get_intermediate_image_sizes() {
  * @uses wp_get_additional_image_sizes()
  * @uses get_intermediate_image_sizes()
  *
- * @return array Associative array of the registered image sub-sizes.
+ * @return array[] Associative array of arrays of image sub-size information,
+ *                 keyed by image size name.
  */
 function wp_get_registered_image_subsizes() {
 	$additional_sizes = wp_get_additional_image_sizes();
@@ -1129,7 +1130,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
  */
 function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail', $icon = false ) {
 	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
-	return isset( $image['0'] ) ? $image['0'] : false;
+	return isset( $image[0] ) ? $image[0] : false;
 }
 
 /**
@@ -4045,7 +4046,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	if ( isset( $meta['filesize'] ) ) {
 		$bytes = $meta['filesize'];
 	} elseif ( file_exists( $attached_file ) ) {
-		$bytes = filesize( $attached_file );
+		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
 	}
@@ -4224,7 +4225,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
  * @param array $args {
  *     Arguments for enqueuing media scripts.
  *
- *     @type int|WP_Post A post object or ID.
+ *     @type int|WP_Post $post A post object or ID.
  * }
  */
 function wp_enqueue_media( $args = array() ) {
@@ -4481,6 +4482,7 @@ function wp_enqueue_media( $args = array() ) {
 		'trashSelected'               => __( 'Move to Trash' ),
 		'restoreSelected'             => __( 'Restore from Trash' ),
 		'deletePermanently'           => __( 'Delete permanently' ),
+		'errorDeleting'               => __( 'Error in deleting the attachment.' ),
 		'apply'                       => __( 'Apply' ),
 		'filterByDate'                => __( 'Filter by date' ),
 		'filterByType'                => __( 'Filter by type' ),
@@ -4725,7 +4727,7 @@ function get_post_galleries( $post, $html = true ) {
 		return array();
 	}
 
-	if ( ! has_shortcode( $post->post_content, 'gallery' ) ) {
+	if ( ! has_shortcode( $post->post_content, 'gallery' ) && ! has_block( 'gallery', $post->post_content ) ) {
 		return array();
 	}
 
@@ -4764,6 +4766,98 @@ function get_post_galleries( $post, $html = true ) {
 					);
 				}
 			}
+		}
+	}
+
+	if ( has_block( 'gallery', $post->post_content ) ) {
+		$post_blocks = parse_blocks( $post->post_content );
+
+		while ( $block = array_shift( $post_blocks ) ) {
+			$has_inner_blocks = ! empty( $block['innerBlocks'] );
+
+			// Skip blocks with no blockName and no innerHTML.
+			if ( ! $block['blockName'] ) {
+				continue;
+			}
+
+			// Skip non-Gallery blocks.
+			if ( 'core/gallery' !== $block['blockName'] ) {
+				// Move inner blocks into the root array before skipping.
+				if ( $has_inner_blocks ) {
+					array_push( $post_blocks, ...$block['innerBlocks'] );
+				}
+				continue;
+			}
+
+			// New Gallery block format as HTML.
+			if ( $has_inner_blocks && $html ) {
+				$block_html  = wp_list_pluck( $block['innerBlocks'], 'innerHTML' );
+				$galleries[] = '<figure>' . implode( ' ', $block_html ) . '</figure>';
+				continue;
+			}
+
+			$srcs = array();
+
+			// New Gallery block format as an array.
+			if ( $has_inner_blocks ) {
+				$attrs = wp_list_pluck( $block['innerBlocks'], 'attrs' );
+				$ids   = wp_list_pluck( $attrs, 'id' );
+
+				foreach ( $ids as $id ) {
+					$url = wp_get_attachment_url( $id );
+
+					if ( is_string( $url ) && ! in_array( $url, $srcs, true ) ) {
+						$srcs[] = $url;
+					}
+				}
+
+				$galleries[] = array(
+					'ids' => implode( ',', $ids ),
+					'src' => $srcs,
+				);
+
+				continue;
+			}
+
+			// Old Gallery block format as HTML.
+			if ( $html ) {
+				$galleries[] = $block['innerHTML'];
+				continue;
+			}
+
+			// Old Gallery block format as an array.
+			$ids = ! empty( $block['attrs']['ids'] ) ? $block['attrs']['ids'] : array();
+
+			// If present, use the image IDs from the JSON blob as canonical.
+			if ( ! empty( $ids ) ) {
+				foreach ( $ids as $id ) {
+					$url = wp_get_attachment_url( $id );
+
+					if ( is_string( $url ) && ! in_array( $url, $srcs, true ) ) {
+						$srcs[] = $url;
+					}
+				}
+
+				$galleries[] = array(
+					'ids' => implode( ',', $ids ),
+					'src' => $srcs,
+				);
+
+				continue;
+			}
+
+			// Otherwise, extract srcs from the innerHTML.
+			preg_match_all( '#src=([\'"])(.+?)\1#is', $block['innerHTML'], $found_srcs, PREG_SET_ORDER );
+
+			if ( ! empty( $found_srcs[0] ) ) {
+				foreach ( $found_srcs as $src ) {
+					if ( isset( $src[2] ) && ! in_array( $src[2], $srcs, true ) ) {
+						$srcs[] = $src[2];
+					}
+				}
+			}
+
+			$galleries[] = array( 'src' => $srcs );
 		}
 	}
 
@@ -5106,7 +5200,7 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 			return array(
 				$width,
 				$height,
-				IMAGETYPE_WEBP, // phpcs:ignore PHPCompatibility.Constants.NewConstants.imagetype_webpFound
+				IMAGETYPE_WEBP,
 				sprintf(
 					'width="%d" height="%d"',
 					$width,
@@ -5122,20 +5216,19 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 }
 
 /**
- * Extracts meta information about a webp file: width, height and type.
+ * Extracts meta information about a WebP file: width, height, and type.
  *
  * @since 5.8.0
  *
  * @param string $filename Path to a WebP file.
- * @return array $webp_info {
+ * @return array {
  *     An array of WebP image information.
  *
- *     @type array $size {
- *         @type int|false    $width  Image width on success, false on failure.
- *         @type int|false    $height Image height on success, false on failure.
- *         @type string|false $type   The WebP type: one of 'lossy', 'lossless' or 'animated-alpha'.
- *                                    False on failure.
- *     }
+ *     @type int|false    $width  Image width on success, false on failure.
+ *     @type int|false    $height Image height on success, false on failure.
+ *     @type string|false $type   The WebP type: one of 'lossy', 'lossless' or 'animated-alpha'.
+ *                                False on failure.
+ * }
  */
 function wp_get_webp_info( $filename ) {
 	$width  = false;
@@ -5146,47 +5239,44 @@ function wp_get_webp_info( $filename ) {
 		return compact( 'width', 'height', 'type' );
 	}
 
-	try {
-		$handle = fopen( $filename, 'rb' );
-		if ( $handle ) {
-			$magic = fread( $handle, 40 );
-			fclose( $handle );
+	$magic = file_get_contents( $filename, false, null, 0, 40 );
 
-			// Make sure we got enough bytes.
-			if ( strlen( $magic ) < 40 ) {
-				return compact( 'width', 'height', 'type' );
-			}
+	if ( false === $magic ) {
+		return compact( 'width', 'height', 'type' );
+	}
 
-			// The headers are a little different for each of the three formats.
-			// Header values based on WebP docs, see https://developers.google.com/speed/webp/docs/riff_container.
-			switch ( substr( $magic, 12, 4 ) ) {
-				// Lossy WebP.
-				case 'VP8 ':
-					$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
-					$width  = (int) ( $parts[1] & 0x3FFF );
-					$height = (int) ( $parts[2] & 0x3FFF );
-					$type   = 'lossy';
-					break;
-				// Lossless WebP.
-				case 'VP8L':
-					$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
-					$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
-					$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) | ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
-					$type   = 'lossless';
-					break;
-				// Animated/alpha WebP.
-				case 'VP8X':
-					// Pad 24-bit int.
-					$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
-					$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
-					// Pad 24-bit int.
-					$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
-					$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
-					$type   = 'animated-alpha';
-					break;
-			}
-		}
-	} catch ( Exception $e ) {
+	// Make sure we got enough bytes.
+	if ( strlen( $magic ) < 40 ) {
+		return compact( 'width', 'height', 'type' );
+	}
+
+	// The headers are a little different for each of the three formats.
+	// Header values based on WebP docs, see https://developers.google.com/speed/webp/docs/riff_container.
+	switch ( substr( $magic, 12, 4 ) ) {
+		// Lossy WebP.
+		case 'VP8 ':
+			$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
+			$width  = (int) ( $parts[1] & 0x3FFF );
+			$height = (int) ( $parts[2] & 0x3FFF );
+			$type   = 'lossy';
+			break;
+		// Lossless WebP.
+		case 'VP8L':
+			$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
+			$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
+			$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) | ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
+			$type   = 'lossless';
+			break;
+		// Animated/alpha WebP.
+		case 'VP8X':
+			// Pad 24-bit int.
+			$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
+			$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
+			// Pad 24-bit int.
+			$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
+			$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
+			$type   = 'animated-alpha';
+			break;
 	}
 
 	return compact( 'width', 'height', 'type' );

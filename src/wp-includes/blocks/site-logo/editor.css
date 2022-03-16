@@ -75,23 +75,13 @@
  * Reset the WP Admin page styles for Gutenberg-like pages.
  */
 .wp-block[data-align=center] > .wp-block-site-logo {
+  display: table;
   margin-left: auto;
   margin-right: auto;
-  text-align: center;
 }
 
 .wp-block-site-logo a {
   pointer-events: none;
-}
-.wp-block-site-logo:not(.is-default-size) {
-  display: table;
-}
-.wp-block-site-logo.is-default-size {
-  width: 120px;
-}
-.wp-block-site-logo.is-default-size img {
-  height: auto;
-  width: 100%;
 }
 .wp-block-site-logo .custom-logo-link {
   cursor: inherit;
@@ -154,7 +144,7 @@
   bottom: 0;
   left: 0;
   border: 1px dashed currentColor;
-  opacity: 0.3;
+  opacity: 0.4;
   pointer-events: none;
   border-radius: inherit;
 }
@@ -194,7 +184,7 @@
   height: 100%;
   stroke: currentColor;
   stroke-dasharray: 3;
-  opacity: 0.3;
+  opacity: 0.4;
 }
 .wp-block-site-logo.wp-block-site-logo.is-selected .components-button.components-button {
   background: var(--wp-admin-theme-color);

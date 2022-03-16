@@ -96,8 +96,8 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 	 *
 	 * @see wp_terms_checklist()
 	 *
-	 * @param array $args    An array of arguments.
-	 * @param int   $post_id The post ID.
+	 * @param array|string $args    An array or string of arguments.
+	 * @param int          $post_id The post ID.
 	 */
 	$params = apply_filters( 'wp_terms_checklist_args', $args, $post_id );
 
@@ -344,7 +344,11 @@ function get_inline_data( $post ) {
 	foreach ( $taxonomy_names as $taxonomy_name ) {
 		$taxonomy = get_taxonomy( $taxonomy_name );
 
-		if ( $taxonomy->hierarchical && $taxonomy->show_ui ) {
+		if ( ! $taxonomy->show_in_quick_edit ) {
+			continue;
+		}
+
+		if ( $taxonomy->hierarchical ) {
 
 			$terms = get_object_term_cache( $post->ID, $taxonomy_name );
 			if ( false === $terms ) {
@@ -355,7 +359,7 @@ function get_inline_data( $post ) {
 
 			echo '<div class="post_category" id="' . $taxonomy_name . '_' . $post->ID . '">' . implode( ',', $term_ids ) . '</div>';
 
-		} elseif ( $taxonomy->show_ui ) {
+		} else {
 
 			$terms_to_edit = get_terms_to_edit( $post->ID, $taxonomy_name );
 			if ( ! is_string( $terms_to_edit ) ) {
@@ -2031,7 +2035,7 @@ function iframe_header( $title = '', $deprecated = false ) {
 	wp_enqueue_style( 'colors' );
 	?>
 <script type="text/javascript">
-addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(document).ready(func);else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
 var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
 	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',

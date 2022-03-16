@@ -406,18 +406,19 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 /**
  * Save the properties of a menu item or create a new one.
  *
- * The menu-item-title, menu-item-description, menu-item-attr-title, and menu-item-content are expected
+ * The menu-item-title, menu-item-description and menu-item-attr-title are expected
  * to be pre-slashed since they are passed directly to APIs that expect slashed data.
  *
  * @since 3.0.0
- * @since 5.9.0 Added the menu-item-content parameter.
+ * @since 5.9.0 Added the `$fire_after_hooks` parameter.
  *
- * @param int   $menu_id         The ID of the menu. Required. If "0", makes the menu item a draft orphan.
- * @param int   $menu_item_db_id The ID of the menu item. If "0", creates a new menu item.
- * @param array $menu_item_data  The menu item's data.
+ * @param int   $menu_id          The ID of the menu. If 0, makes the menu item a draft orphan.
+ * @param int   $menu_item_db_id  The ID of the menu item. If 0, creates a new menu item.
+ * @param array $menu_item_data   The menu item's data.
+ * @param bool  $fire_after_hooks Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The menu item's database ID or WP_Error object on failure.
  */
-function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item_data = array() ) {
+function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item_data = array(), $fire_after_hooks = true ) {
 	$menu_id         = (int) $menu_id;
 	$menu_item_db_id = (int) $menu_item_db_id;
 
@@ -449,7 +450,6 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		'menu-item-attr-title'    => '',
 		'menu-item-target'        => '',
 		'menu-item-classes'       => '',
-		'menu-item-content'       => '',
 		'menu-item-xfn'           => '',
 		'menu-item-status'        => '',
 		'menu-item-post-date'     => '',
@@ -528,7 +528,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	if ( ! $update ) {
 		$post['ID']          = 0;
 		$post['post_status'] = 'publish' === $args['menu-item-status'] ? 'publish' : 'draft';
-		$menu_item_db_id     = wp_insert_post( $post, true );
+		$menu_item_db_id     = wp_insert_post( $post, true, $fire_after_hooks );
 		if ( ! $menu_item_db_id || is_wp_error( $menu_item_db_id ) ) {
 			return $menu_item_db_id;
 		}
@@ -574,7 +574,6 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	update_post_meta( $menu_item_db_id, '_menu_item_classes', $args['menu-item-classes'] );
 	update_post_meta( $menu_item_db_id, '_menu_item_xfn', $args['menu-item-xfn'] );
 	update_post_meta( $menu_item_db_id, '_menu_item_url', esc_url_raw( $args['menu-item-url'] ) );
-	update_post_meta( $menu_item_db_id, '_menu_item_content', $args['menu-item-content'] );
 
 	if ( 0 == $menu_id ) {
 		update_post_meta( $menu_item_db_id, '_menu_item_orphaned', (string) time() );
@@ -913,10 +912,6 @@ function wp_setup_nav_menu_item( $menu_item ) {
 
 				$menu_item->title = ( '' === $menu_item->post_title ) ? $original_title : $menu_item->post_title;
 
-			} elseif ( 'block' === $menu_item->type ) {
-				$menu_item->type_label        = __( 'Block' );
-				$menu_item->title             = $menu_item->post_title;
-				$menu_item->menu_item_content = ! isset( $menu_item->menu_item_content ) ? get_post_meta( $menu_item->ID, '_menu_item_content', true ) : $menu_item->menu_item_content;
 			} else {
 				$menu_item->type_label = __( 'Custom Link' );
 				$menu_item->title      = $menu_item->post_title;

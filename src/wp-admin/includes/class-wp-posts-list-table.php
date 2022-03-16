@@ -817,8 +817,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		/*
-		 * Arrange pages into two parts: top level pages and children_pages
-		 * children_pages is two dimensional array, eg.
+		 * Arrange pages into two parts: top level pages and children_pages.
+		 * children_pages is two dimensional array. Example:
 		 * children_pages[10][] contains all sub-pages whose parent is 10.
 		 * It only takes O( N ) to arrange this and it takes O( 1 ) for subsequent lookup operations
 		 * If searching, ignore hierarchy and treat everything as top level
@@ -1294,8 +1294,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				 */
 				$term_links = apply_filters( 'post_column_taxonomy_links', $term_links, $taxonomy, $terms );
 
-				/* translators: Used between list items, there is a space after the comma. */
-				echo implode( __( ', ' ), $term_links );
+				echo implode( wp_get_list_item_separator(), $term_links );
 			} else {
 				echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . $taxonomy_object->labels->no_terms . '</span>';
 			}
@@ -1636,7 +1635,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 							<label>
 								<span class="title"><?php _e( 'Slug' ); ?></span>
-								<span class="input-text-wrap"><input type="text" name="post_name" value="" /></span>
+								<span class="input-text-wrap"><input type="text" name="post_name" value="" autocomplete="off" spellcheck="false" /></span>
 							</label>
 
 						<?php endif; // is_post_type_viewable() ?>

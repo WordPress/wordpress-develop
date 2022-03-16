@@ -11,11 +11,12 @@ require ABSPATH . WPINC . '/blocks/block.php';
 require ABSPATH . WPINC . '/blocks/calendar.php';
 require ABSPATH . WPINC . '/blocks/categories.php';
 require ABSPATH . WPINC . '/blocks/file.php';
+require ABSPATH . WPINC . '/blocks/gallery.php';
+require ABSPATH . WPINC . '/blocks/image.php';
 require ABSPATH . WPINC . '/blocks/latest-comments.php';
 require ABSPATH . WPINC . '/blocks/latest-posts.php';
 require ABSPATH . WPINC . '/blocks/legacy-widget.php';
 require ABSPATH . WPINC . '/blocks/loginout.php';
-require ABSPATH . WPINC . '/blocks/navigation-area.php';
 require ABSPATH . WPINC . '/blocks/navigation-link.php';
 require ABSPATH . WPINC . '/blocks/navigation-submenu.php';
 require ABSPATH . WPINC . '/blocks/navigation.php';
@@ -47,6 +48,7 @@ require ABSPATH . WPINC . '/blocks/social-link.php';
 require ABSPATH . WPINC . '/blocks/tag-cloud.php';
 require ABSPATH . WPINC . '/blocks/template-part.php';
 require ABSPATH . WPINC . '/blocks/term-description.php';
+require ABSPATH . WPINC . '/blocks/widget-group.php';
 
 /**
  * Registers core block types using metadata files.
@@ -65,11 +67,9 @@ function register_core_block_types_from_metadata() {
 		'cover',
 		'embed',
 		'freeform',
-		'gallery',
 		'group',
 		'heading',
 		'html',
-		'image',
 		'list',
 		'media-text',
 		'missing',

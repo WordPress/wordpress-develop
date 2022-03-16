@@ -451,7 +451,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @return mixed The value from the cache.
 	 */
 	private function get_cache( $key ) {
-		return get_transient( $key );
+		return get_site_transient( $key );
 	}
 
 	/**
@@ -478,7 +478,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 */
 		$cache_expiration = apply_filters( 'rest_url_details_cache_expiration', $ttl );
 
-		return set_transient( $key, $data, $cache_expiration );
+		return set_site_transient( $key, $data, $cache_expiration );
 	}
 
 	/**
@@ -557,7 +557,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		$pattern = '#<meta\s' .
 
 				/*
-				 * Alows for additional attributes before the content attribute.
+				 * Allows for additional attributes before the content attribute.
 				 * Searches for anything other than > symbol.
 				 */
 				'[^>]*' .
@@ -643,7 +643,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 				 */
 				'#isU';
 
-		// Find the metdata element.
+		// Find the metadata element.
 		foreach ( $meta_elements[0] as $index => $element ) {
 			preg_match( $pattern, $element, $match );
 

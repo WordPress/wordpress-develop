@@ -23,7 +23,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 * @since 5.4.0 Added `Requires at least` and `Requires PHP` headers.
-	 * @var array
+	 * @var string[]
 	 */
 	private static $file_headers = array(
 		'Name'        => 'Theme Name',
@@ -54,7 +54,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 5.0.0 Added the Twenty Nineteen theme.
 	 * @since 5.3.0 Added the Twenty Twenty theme.
 	 * @since 5.6.0 Added the Twenty Twenty-One theme.
-	 * @var array
+	 * @var string[]
 	 */
 	private static $default_themes = array(
 		'classic'         => 'WordPress Classic',
@@ -70,13 +70,14 @@ final class WP_Theme implements ArrayAccess {
 		'twentynineteen'  => 'Twenty Nineteen',
 		'twentytwenty'    => 'Twenty Twenty',
 		'twentytwentyone' => 'Twenty Twenty-One',
+		'twentytwentytwo' => 'Twenty Twenty-Two',
 	);
 
 	/**
 	 * Renamed theme tags.
 	 *
 	 * @since 3.8.0
-	 * @var array
+	 * @var string[]
 	 */
 	private static $tag_map = array(
 		'fixed-width'    => 'fixed-layout',
@@ -697,7 +698,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @return WP_Theme|false Parent theme, or false if the current theme is not a child theme.
+	 * @return WP_Theme|false Parent theme, or false if the active theme is not a child theme.
 	 */
 	public function parent() {
 		return isset( $this->parent ) ? $this->parent : false;
@@ -923,8 +924,7 @@ final class WP_Theme implements ArrayAccess {
 			case 'Tags':
 				static $comma = null;
 				if ( ! isset( $comma ) ) {
-					/* translators: Used between list items, there is a space after the comma. */
-					$comma = __( ', ' );
+					$comma = wp_get_list_item_separator();
 				}
 				$value = implode( $comma, $value );
 				break;
@@ -980,8 +980,8 @@ final class WP_Theme implements ArrayAccess {
 						'tan'               => __( 'Tan' ),
 						'white'             => __( 'White' ),
 						'yellow'            => __( 'Yellow' ),
-						'dark'              => __( 'Dark' ),
-						'light'             => __( 'Light' ),
+						'dark'              => _x( 'Dark', 'color scheme' ),
+						'light'             => _x( 'Light', 'color scheme' ),
 						'fixed-layout'      => __( 'Fixed Layout' ),
 						'fluid-layout'      => __( 'Fluid Layout' ),
 						'responsive-layout' => __( 'Responsive Layout' ),
@@ -1212,11 +1212,11 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 4.7.0
 	 * @since 5.8.0 Include block templates.
 	 *
-	 * @return string[] Array of page templates, keyed by filename and post type,
-	 *                  with the value of the translated header name.
+	 * @return array[] Array of page template arrays, keyed by post type and filename,
+	 *                 with the value of the translated header name.
 	 */
 	public function get_post_templates() {
-		// If you screw up your current theme and we invalidate your parent, most things still work. Let it slide.
+		// If you screw up your active theme and we invalidate your parent, most things still work. Let it slide.
 		if ( $this->errors() && $this->errors()->get_error_codes() !== array( 'theme_parent_invalid' ) ) {
 			return array();
 		}
@@ -1252,6 +1252,14 @@ final class WP_Theme implements ArrayAccess {
 				$block_templates = get_block_templates( array(), 'wp_template' );
 				foreach ( get_post_types( array( 'public' => true ) ) as $type ) {
 					foreach ( $block_templates as $block_template ) {
+						if ( ! $block_template->is_custom ) {
+							continue;
+						}
+
+						if ( isset( $block_template->post_types ) && ! in_array( $type, $block_template->post_types, true ) ) {
+							continue;
+						}
+
 						$post_templates[ $type ][ $block_template->slug ] = $block_template->title;
 					}
 				}
@@ -1457,6 +1465,57 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns whether this theme is a block-based theme or not.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return bool
+	 */
+	public function is_block_theme() {
+		$paths_to_index_block_template = array(
+			$this->get_file_path( '/block-templates/index.html' ),
+			$this->get_file_path( '/templates/index.html' ),
+		);
+
+		foreach ( $paths_to_index_block_template as $path_to_index_block_template ) {
+			if ( is_file( $path_to_index_block_template ) && is_readable( $path_to_index_block_template ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Retrieves the path of a file in the theme.
+	 *
+	 * Searches in the stylesheet directory before the template directory so themes
+	 * which inherit from a parent theme can just override one file.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $file Optional. File to search for in the stylesheet directory.
+	 * @return string The path of the file.
+	 */
+	public function get_file_path( $file = '' ) {
+		$file = ltrim( $file, '/' );
+
+		$stylesheet_directory = $this->get_stylesheet_directory();
+		$template_directory   = $this->get_template_directory();
+
+		if ( empty( $file ) ) {
+			$path = $stylesheet_directory;
+		} elseif ( file_exists( $stylesheet_directory . '/' . $file ) ) {
+			$path = $stylesheet_directory . '/' . $file;
+		} else {
+			$path = $template_directory . '/' . $file;
+		}
+
+		/** This filter is documented in wp-includes/link-template.php */
+		return apply_filters( 'theme_file_path', $path, $file );
 	}
 
 	/**

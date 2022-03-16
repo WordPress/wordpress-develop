@@ -18,7 +18,13 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1"
     ],
-    "authentication": [],
+    "authentication": {
+        "application-passwords": {
+            "endpoints": {
+                "authorization": "http://example.org/wp-admin/authorize-application.php"
+            }
+        }
+    },
     "routes": {
         "/": {
             "namespace": "",
@@ -3705,8 +3711,7 @@ mockedApiResponse.Schema = {
                                 "taxonomy",
                                 "post_type",
                                 "post_type_archive",
-                                "custom",
-                                "block"
+                                "custom"
                             ],
                             "required": false
                         },
@@ -3756,7 +3761,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -3765,40 +3770,6 @@ mockedApiResponse.Schema = {
                             "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
                             "type": "integer",
                             "minimum": 0,
-                            "required": false
-                        },
-                        "content": {
-                            "description": "HTML content to display for this block menu item.",
-                            "type": [
-                                "string",
-                                "object"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "HTML content, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the block format used in the HTML content.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
                             "required": false
                         },
                         "target": {
@@ -3931,8 +3902,7 @@ mockedApiResponse.Schema = {
                                 "taxonomy",
                                 "post_type",
                                 "post_type_archive",
-                                "custom",
-                                "block"
+                                "custom"
                             ],
                             "required": false
                         },
@@ -3979,7 +3949,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -3987,40 +3957,6 @@ mockedApiResponse.Schema = {
                             "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
                             "type": "integer",
                             "minimum": 0,
-                            "required": false
-                        },
-                        "content": {
-                            "description": "HTML content to display for this block menu item.",
-                            "type": [
-                                "string",
-                                "object"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "HTML content, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the block format used in the HTML content.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
                             "required": false
                         },
                         "target": {
@@ -4157,8 +4093,7 @@ mockedApiResponse.Schema = {
                                 "taxonomy",
                                 "post_type",
                                 "post_type_archive",
-                                "custom",
-                                "block"
+                                "custom"
                             ],
                             "required": false
                         },
@@ -4199,7 +4134,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -4207,40 +4142,6 @@ mockedApiResponse.Schema = {
                             "description": "The database ID of the original object this menu item represents, for example the ID for posts or the term_id for categories.",
                             "type": "integer",
                             "minimum": 0,
-                            "required": false
-                        },
-                        "content": {
-                            "description": "HTML content to display for this block menu item.",
-                            "type": [
-                                "string",
-                                "object"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "HTML content, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the block format used in the HTML content.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
                             "required": false
                         },
                         "target": {
@@ -5105,6 +5006,7 @@ mockedApiResponse.Schema = {
                                 "embed",
                                 "edit"
                             ],
+                            "default": "view",
                             "required": false
                         },
                         "wp_id": {
@@ -5133,11 +5035,16 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
                             "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
                             "type": "string",
                             "required": false
                         },
@@ -5148,6 +5055,24 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "title": {
@@ -5157,6 +5082,27 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5169,6 +5115,18 @@ mockedApiResponse.Schema = {
                             "default": "publish",
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -5182,7 +5140,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/templates/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5201,6 +5159,17 @@ mockedApiResponse.Schema = {
                             "description": "The id of a template",
                             "type": "string",
                             "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
                         }
                     }
                 },
@@ -5211,15 +5180,25 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
                         "slug": {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
                             "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
                             "type": "string",
                             "required": false
                         },
@@ -5229,6 +5208,24 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "title": {
@@ -5237,6 +5234,27 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5247,6 +5265,18 @@ mockedApiResponse.Schema = {
                         "status": {
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -5256,6 +5286,11 @@ mockedApiResponse.Schema = {
                         "DELETE"
                     ],
                     "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
                         "force": {
                             "type": "boolean",
                             "default": false,
@@ -5468,11 +5503,16 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
                             "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
                             "type": "string",
                             "required": false
                         },
@@ -5482,6 +5522,24 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "title": {
@@ -5490,6 +5548,27 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5500,6 +5579,18 @@ mockedApiResponse.Schema = {
                         "status": {
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -5562,6 +5653,7 @@ mockedApiResponse.Schema = {
                                 "embed",
                                 "edit"
                             ],
+                            "default": "view",
                             "required": false
                         },
                         "wp_id": {
@@ -5590,11 +5682,16 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
                             "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
                             "type": "string",
                             "required": false
                         },
@@ -5605,6 +5702,24 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "title": {
@@ -5614,6 +5729,27 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5626,6 +5762,18 @@ mockedApiResponse.Schema = {
                             "default": "publish",
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         },
                         "area": {
@@ -5644,7 +5792,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/template-parts/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5663,6 +5811,17 @@ mockedApiResponse.Schema = {
                             "description": "The id of a template",
                             "type": "string",
                             "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
                         }
                     }
                 },
@@ -5673,15 +5832,25 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
                         "slug": {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
                             "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
                             "type": "string",
                             "required": false
                         },
@@ -5691,6 +5860,24 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "title": {
@@ -5699,6 +5886,27 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5709,6 +5917,18 @@ mockedApiResponse.Schema = {
                         "status": {
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         },
                         "area": {
@@ -5723,6 +5943,11 @@ mockedApiResponse.Schema = {
                         "DELETE"
                     ],
                     "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
                         "force": {
                             "type": "boolean",
                             "default": false,
@@ -5935,11 +6160,16 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
                             "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
                             "type": "string",
                             "required": false
                         },
@@ -5949,6 +6179,24 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "title": {
@@ -5957,6 +6205,27 @@ mockedApiResponse.Schema = {
                                 "object",
                                 "string"
                             ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
                             "required": false
                         },
                         "description": {
@@ -5967,6 +6236,18 @@ mockedApiResponse.Schema = {
                         "status": {
                             "description": "Status of template.",
                             "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         },
                         "area": {
@@ -9143,7 +9424,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
+        "/wp/v2/global-styles/themes/(?P<stylesheet>[^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -9349,6 +9630,11 @@ mockedApiResponse.Schema = {
                             "description": "Site logo.",
                             "type": "integer",
                             "required": false
+                        },
+                        "site_icon": {
+                            "description": "Site icon.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -9387,7 +9673,7 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/themes"
             }
         },
-        "/wp/v2/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
+        "/wp/v2/themes/(?P<stylesheet>[^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -10367,9 +10653,31 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
+        },
+        "/wp-block-editor/v1/export": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1/export"
+                    }
+                ]
+            }
         }
     },
-    "site_logo": false
+    "site_logo": 0,
+    "site_icon": 0
 };
 
 mockedApiResponse.oembed = {
@@ -11357,7 +11665,7 @@ mockedApiResponse.TypesCollection = {
         }
     },
     "wp_navigation": {
-        "description": "Navigation menus.",
+        "description": "Navigation menus that can be inserted into your site.",
         "hierarchical": false,
         "name": "Navigation Menus",
         "slug": "wp_navigation",
@@ -11909,5 +12217,6 @@ mockedApiResponse.settings = {
     "posts_per_page": 10,
     "default_ping_status": "open",
     "default_comment_status": "open",
-    "site_logo": null
+    "site_logo": null,
+    "site_icon": 0
 };

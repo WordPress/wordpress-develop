@@ -420,6 +420,7 @@ final class WP_Customize_Widgets {
 				'priority'                 => 110,
 				'active_callback'          => array( $this, 'is_panel_active' ),
 				'auto_expand_sole_section' => true,
+				'theme_supports'           => 'widgets',
 			)
 		);
 
@@ -1421,9 +1422,8 @@ final class WP_Customize_Widgets {
 			if ( ! empty( $widget_object->widget_options['show_instance_in_rest'] ) ) {
 				if ( 'block' === $id_base && ! current_user_can( 'unfiltered_html' ) ) {
 					/*
-					 * The content of the 'block' widget is not filtered on the
-					 * fly while editing. Filter the content here to prevent
-					 * vulnerabilities.
+					 * The content of the 'block' widget is not filtered on the fly while editing.
+					 * Filter the content here to prevent vulnerabilities.
 					 */
 					$value['raw_instance']['content'] = wp_kses_post( $value['raw_instance']['content'] );
 				}

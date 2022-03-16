@@ -6,7 +6,7 @@
 	<arg name="extensions" value="php"/>
 
 	<!-- Whenever possible, cache the scan results and re-use those for unchanged files on the next scan. -->
-	<arg name="cache"/>
+	<arg name="cache" value=".cache/phpcs.json"/>
 
 	<!-- Set the memory limit to 256M.
 		 For most standard PHP configurations, this means the memory limit will temporarily be raised.
@@ -249,6 +249,7 @@
 				<element value="WP_REST_Test_Controller"/>
 				<element value="WP_Image_Editor_Mock"/>
 				<element value="WP_Filesystem_MockFS"/>
+				<element value="Mock_Invokable"/>
 				<element value="MockPHPMailer"/>
 				<element value="MockAction"/>
 				<element value="WP_Object_Cache"/>

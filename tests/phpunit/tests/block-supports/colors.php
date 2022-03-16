@@ -2,7 +2,7 @@
 /**
  * @group block-supports
  */
-class WP_Block_Supports_Colors_Test extends WP_UnitTestCase {
+class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 
 	function test_color_slugs_with_numbers_are_kebab_cased_properly() {
 		register_block_type(

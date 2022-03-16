@@ -666,6 +666,62 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that add_query_arg removes the question mark when
+	 * a parameter is set to false.
+	 *
+	 * @dataProvider data_add_query_arg_removes_question_mark
+	 *
+	 * @ticket 44499
+	 * @group  add_query_arg
+	 *
+	 * @covers ::add_query_arg
+	 *
+	 * @param string $url      Url to test.
+	 * @param string $expected Expected URL.
+	 */
+	public function test_add_query_arg_removes_question_mark( $url, $expected, $key = 'param', $value = false ) {
+		$this->assertSame( $expected, add_query_arg( $key, $value, $url ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_add_query_arg_removes_question_mark() {
+		return array(
+			'anchor'                                     => array(
+				'url'      => 'http://example.org?#anchor',
+				'expected' => 'http://example.org#anchor',
+			),
+			'/ then anchor'                              => array(
+				'url'      => 'http://example.org/?#anchor',
+				'expected' => 'http://example.org/#anchor',
+			),
+			'invalid query param and anchor'             => array(
+				'url'      => 'http://example.org?param=value#anchor',
+				'expected' => 'http://example.org#anchor',
+			),
+			'/ then invalid query param and anchor'      => array(
+				'url'      => 'http://example.org/?param=value#anchor',
+				'expected' => 'http://example.org/#anchor',
+			),
+			'?#anchor when adding valid key/value args'  => array(
+				'url'      => 'http://example.org?#anchor',
+				'expected' => 'http://example.org?foo=bar#anchor',
+				'key'      => 'foo',
+				'value'    => 'bar',
+			),
+			'/?#anchor when adding valid key/value args' => array(
+				'url'      => 'http://example.org/?#anchor',
+				'expected' => 'http://example.org/?foo=bar#anchor',
+				'key'      => 'foo',
+				'value'    => 'bar',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 21594
 	 */
 	public function test_get_allowed_mime_types() {
@@ -2049,5 +2105,40 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 123 ), 'false not returned when int as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( null ), 'false not returned when null as mime type supplied' );
+	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize_with_nonexistent_file() {
+		$file = 'nonexistent/file.jpg';
+		$this->assertEquals( 0, wp_filesize( $file ) );
+	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize() {
+		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
+
+		$this->assertEquals( filesize( $file ), wp_filesize( $file ) );
+
+		$filter = function() {
+			return 999;
+		};
+
+		add_filter( 'wp_filesize', $filter );
+
+		$this->assertEquals( 999, wp_filesize( $file ) );
+
+		$pre_filter = function() {
+			return 111;
+		};
+
+		add_filter( 'pre_wp_filesize', $pre_filter );
+
+		$this->assertEquals( 111, wp_filesize( $file ) );
 	}
 }

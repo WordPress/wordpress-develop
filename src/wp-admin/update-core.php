@@ -48,6 +48,8 @@ function list_core_update( $update ) {
 			// If the only available update is a partial builds, it doesn't need a language-specific version string.
 			$version_string = $update->current;
 		}
+	} elseif ( 'en_US' === $update->locale && 'en_US' !== get_locale() ) {
+		$version_string = sprintf( '%s&ndash;%s', $update->current, $update->locale );
 	}
 
 	$current = false;
@@ -204,18 +206,26 @@ function dismissed_updates() {
 			'available' => false,
 		)
 	);
-	if ( $dismissed ) {
 
+	if ( $dismissed ) {
 		$show_text = esc_js( __( 'Show hidden updates' ) );
 		$hide_text = esc_js( __( 'Hide hidden updates' ) );
 		?>
-	<script type="text/javascript">
-		jQuery(function( $ ) {
-			$( 'dismissed-updates' ).show();
-			$( '#show-dismissed' ).toggle( function() { $( this ).text( '<?php echo $hide_text; ?>' ).attr( 'aria-expanded', 'true' ); }, function() { $( this ).text( '<?php echo $show_text; ?>' ).attr( 'aria-expanded', 'false' ); } );
-			$( '#show-dismissed' ).click( function() { $( '#dismissed-updates' ).toggle( 'fast' ); } );
-		});
-	</script>
+		<script type="text/javascript">
+			jQuery( function( $ ) {
+				$( '#show-dismissed' ).on( 'click', function() {
+					var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
+
+					if ( isExpanded ) {
+						$( this ).text( '<?php echo $show_text; ?>' ).attr( 'aria-expanded', 'false' );
+					} else {
+						$( this ).text( '<?php echo $hide_text; ?>' ).attr( 'aria-expanded', 'true' );
+					}
+
+					$( '#dismissed-updates' ).toggle( 'fast' );
+				});
+			});
+		</script>
 		<?php
 		echo '<p class="hide-if-no-js"><button type="button" class="button" id="show-dismissed" aria-expanded="false">' . __( 'Show hidden updates' ) . '</button></p>';
 		echo '<ul id="dismissed-updates" class="core-updates dismissed">';
@@ -1044,7 +1054,7 @@ if ( 'upgrade-core' === $action ) {
 
 	echo '<p class="update-last-checked">';
 	/* translators: 1: Date, 2: Time. */
-	printf( __( 'Last checked on %1$s at %2$s.' ), date_i18n( __( 'F j, Y' ), $last_update_check ), date_i18n( __( 'g:i a' ), $last_update_check ) );
+	printf( __( 'Last checked on %1$s at %2$s.' ), date_i18n( __( 'F j, Y' ), $last_update_check ), date_i18n( __( 'g:i a T' ), $last_update_check ) );
 	echo ' <a href="' . esc_url( self_admin_url( 'update-core.php?force-check=1' ) ) . '">' . __( 'Check again.' ) . '</a>';
 	echo '</p>';
 
