@@ -200,25 +200,22 @@ class WP_Users_List_Table extends WP_List_Table {
 			$avail_roles =& $users_of_blog['avail_roles'];
 			unset( $users_of_blog );
 
-			$role_links['all'] = sprintf(
-					'<a href="%s"%s>%s</a>',
-					$url,
-					$current_link_attributes,
-					sprintf(
-					/* translators: %s: Number of users. */
-							_nx(
-									'All <span class="count">(%s)</span>',
-									'All <span class="count">(%s)</span>',
-									$total_users,
-									'users'
-							),
-							number_format_i18n( $total_users )
-					)
+			$all_text = sprintf(
+				/* translators: %s: Number of users. */
+				_nx(
+					'All <span class="count">(%s)</span>',
+					'All <span class="count">(%s)</span>',
+					$total_users,
+					'users'
+				),
+				number_format_i18n( $total_users )
 			);
 		} else {
-			$avail_roles       = array();
-			$role_links['all'] = "<a href='$url'$current_link_attributes>" . __( 'All' ) . '</a>';
+			$avail_roles = array();
+			$all_text    = __( 'All' );
 		}
+
+		$role_links['all'] = sprintf( '<a href="%s"%s>%s</a>', $url, $current_link_attributes, $all_text );
 
 		foreach ( $wp_roles->get_names() as $this_role => $name ) {
 			if ( $count_users && ! isset( $avail_roles[ $this_role ] ) ) {
@@ -233,8 +230,12 @@ class WP_Users_List_Table extends WP_List_Table {
 
 			$name = translate_user_role( $name );
 			if ( $count_users ) {
-				/* translators: User role name with count */
-				 $name = sprintf( __( '%1$s <span class="count">(%2$s)</span>' ), $name, number_format_i18n( $avail_roles[ $this_role ] ) );
+				$name = sprintf(
+				/* translators: 1: User role name, 2: Number of users. */
+					__( '%1$s <span class="count">(%2$s)</span>' ),
+					$name,
+					number_format_i18n( $avail_roles[ $this_role ] )
+				);
 			}
 
 			$role_links[ $this_role ] = "<a href='" . esc_url( add_query_arg( 'role', $this_role, $url ) ) . "'$current_link_attributes>$name</a>";
