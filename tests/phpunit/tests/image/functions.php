@@ -343,6 +343,25 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		return $classes;
 	}
 
+
+	public function test_wp_crop_image_extension() {
+		add_filter( 'image_editor_output_format', [ $this, 'filter_image_editor_output_format'] );
+		$file = wp_crop_image(
+			DIR_TESTDATA . '/images/canola.jpg',
+			0,
+			0,
+			100,
+			100,
+			100,
+			100
+		);
+		$this->assertNotWPError( $file );
+		$this->assertFileExists( $file );
+
+		unlink( $file );
+		remove_filter( 'image_editor_output_format', [ $this, 'filter_image_editor_output_format' ] );
+	}
+
 	/**
 	 * @requires function imagejpeg
 	 */
@@ -658,6 +677,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			unlink( $temp_dir . $size['file'] );
 		}
 	}
+
+
+	public function filter_image_editor_output_format() {
+		return array_fill_keys( [ 'image/jpg', 'image/jpeg', 'image/png' ], 'image/webp' );
+	}
+
 
 	public function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {
 		// Add the 'test-size' to the list of fallback sizes.
