@@ -1941,11 +1941,11 @@ function wp_img_tag_add_decoding_async_attr( $image, $context ) {
 	 * @param string      $context Additional context about how the function was called or where the img tag is.
 	 */
 	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
-	if ( ! $value || ! in_array( $value, array( 'async', 'sync' ), true ) ) {
-		return $image;
+	if ( $value && in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
+		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
 	}
 
-	return str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
+	return $image;
 }
 
 /**
