@@ -4046,7 +4046,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	if ( isset( $meta['filesize'] ) ) {
 		$bytes = $meta['filesize'];
 	} elseif ( file_exists( $attached_file ) ) {
-		$bytes = filesize( $attached_file );
+		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
 	}
@@ -4482,6 +4482,7 @@ function wp_enqueue_media( $args = array() ) {
 		'trashSelected'               => __( 'Move to Trash' ),
 		'restoreSelected'             => __( 'Restore from Trash' ),
 		'deletePermanently'           => __( 'Delete permanently' ),
+		'errorDeleting'               => __( 'Error in deleting the attachment.' ),
 		'apply'                       => __( 'Apply' ),
 		'filterByDate'                => __( 'Filter by date' ),
 		'filterByType'                => __( 'Filter by type' ),
@@ -4779,9 +4780,12 @@ function get_post_galleries( $post, $html = true ) {
 				continue;
 			}
 
-			// All blocks nested inside non-Gallery blocks should be in the root array.
-			if ( $has_inner_blocks && 'core/gallery' !== $block['blockName'] ) {
-				array_push( $post_blocks, ...$block['innerBlocks'] );
+			// Skip non-Gallery blocks.
+			if ( 'core/gallery' !== $block['blockName'] ) {
+				// Move inner blocks into the root array before skipping.
+				if ( $has_inner_blocks ) {
+					array_push( $post_blocks, ...$block['innerBlocks'] );
+				}
 				continue;
 			}
 
@@ -5235,47 +5239,44 @@ function wp_get_webp_info( $filename ) {
 		return compact( 'width', 'height', 'type' );
 	}
 
-	try {
-		$handle = fopen( $filename, 'rb' );
-		if ( $handle ) {
-			$magic = fread( $handle, 40 );
-			fclose( $handle );
+	$magic = file_get_contents( $filename, false, null, 0, 40 );
 
-			// Make sure we got enough bytes.
-			if ( strlen( $magic ) < 40 ) {
-				return compact( 'width', 'height', 'type' );
-			}
+	if ( false === $magic ) {
+		return compact( 'width', 'height', 'type' );
+	}
 
-			// The headers are a little different for each of the three formats.
-			// Header values based on WebP docs, see https://developers.google.com/speed/webp/docs/riff_container.
-			switch ( substr( $magic, 12, 4 ) ) {
-				// Lossy WebP.
-				case 'VP8 ':
-					$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
-					$width  = (int) ( $parts[1] & 0x3FFF );
-					$height = (int) ( $parts[2] & 0x3FFF );
-					$type   = 'lossy';
-					break;
-				// Lossless WebP.
-				case 'VP8L':
-					$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
-					$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
-					$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) | ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
-					$type   = 'lossless';
-					break;
-				// Animated/alpha WebP.
-				case 'VP8X':
-					// Pad 24-bit int.
-					$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
-					$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
-					// Pad 24-bit int.
-					$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
-					$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
-					$type   = 'animated-alpha';
-					break;
-			}
-		}
-	} catch ( Exception $e ) {
+	// Make sure we got enough bytes.
+	if ( strlen( $magic ) < 40 ) {
+		return compact( 'width', 'height', 'type' );
+	}
+
+	// The headers are a little different for each of the three formats.
+	// Header values based on WebP docs, see https://developers.google.com/speed/webp/docs/riff_container.
+	switch ( substr( $magic, 12, 4 ) ) {
+		// Lossy WebP.
+		case 'VP8 ':
+			$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
+			$width  = (int) ( $parts[1] & 0x3FFF );
+			$height = (int) ( $parts[2] & 0x3FFF );
+			$type   = 'lossy';
+			break;
+		// Lossless WebP.
+		case 'VP8L':
+			$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
+			$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
+			$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) | ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
+			$type   = 'lossless';
+			break;
+		// Animated/alpha WebP.
+		case 'VP8X':
+			// Pad 24-bit int.
+			$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
+			$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
+			// Pad 24-bit int.
+			$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
+			$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
+			$type   = 'animated-alpha';
+			break;
 	}
 
 	return compact( 'width', 'height', 'type' );

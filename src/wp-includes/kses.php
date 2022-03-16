@@ -1140,7 +1140,7 @@ function wp_kses_split2( $string, $allowed_html, $allowed_protocols ) {
  * Removes all attributes, if none are allowed for this element.
  *
  * If some are allowed it calls `wp_kses_hair()` to split them further, and then
- * it builds up new HTML code from the data that `kses_hair()` returns. It also
+ * it builds up new HTML code from the data that `wp_kses_hair()` returns. It also
  * removes `<` and `>` characters, if there are any left. One more thing it does
  * is to check if the tag has a closing XHTML slash, and if it does, it puts one
  * in the returned code as well.
@@ -1925,7 +1925,7 @@ function wp_kses_named_entities( $matches ) {
  * @since 5.5.0
  *
  * @global array $allowedentitynames
- * @global array $allowedxmlnamedentities
+ * @global array $allowedxmlentitynames
  *
  * @param array $matches preg_replace_callback() matches array.
  * @return string Correctly encoded entity.
@@ -2201,12 +2201,14 @@ function kses_init_filters() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 	}
 
+	// Global Styles filtering: Global Styles filters should be executed before normal post_kses HTML filters.
+	add_filter( 'content_save_pre', 'wp_filter_global_styles_post', 9 );
+	add_filter( 'content_filtered_save_pre', 'wp_filter_global_styles_post', 9 );
+
 	// Post filtering.
 	add_filter( 'content_save_pre', 'wp_filter_post_kses' );
-	add_filter( 'content_save_pre', 'wp_filter_global_styles_post' );
 	add_filter( 'excerpt_save_pre', 'wp_filter_post_kses' );
 	add_filter( 'content_filtered_save_pre', 'wp_filter_post_kses' );
-	add_filter( 'content_filtered_save_pre', 'wp_filter_global_styles_post' );
 }
 
 /**
@@ -2229,12 +2231,14 @@ function kses_remove_filters() {
 	remove_filter( 'pre_comment_content', 'wp_filter_post_kses' );
 	remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
+	// Global Styles filtering.
+	remove_filter( 'content_save_pre', 'wp_filter_global_styles_post', 9 );
+	remove_filter( 'content_filtered_save_pre', 'wp_filter_global_styles_post', 9 );
+
 	// Post filtering.
 	remove_filter( 'content_save_pre', 'wp_filter_post_kses' );
-	remove_filter( 'content_save_pre', 'wp_filter_global_styles_post' );
 	remove_filter( 'excerpt_save_pre', 'wp_filter_post_kses' );
 	remove_filter( 'content_filtered_save_pre', 'wp_filter_post_kses' );
-	remove_filter( 'content_filtered_save_pre', 'wp_filter_global_styles_post' );
 }
 
 /**
