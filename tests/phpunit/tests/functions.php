@@ -993,7 +993,6 @@ class Tests_Functions extends WP_UnitTestCase {
 			'http://example.org/?post_type=post&p=4',
 			'http://example.org/?post_type=post&p=5',
 			'http://example.org/?post_type=post&p=6',
-			'http://typo.com;',
 			'http://typo-in-query.org/?foo=bar&ampbaz=missing_semicolon',
 		);
 
@@ -1062,7 +1061,6 @@ class Tests_Functions extends WP_UnitTestCase {
 			http://example.org/?post_type=post&#038;p=5
 			http://example.org/?post_type=post&p=6
 
-			http://typo.com;
 			http://typo-in-query.org/?foo=bar&ampbaz=missing_semicolon
 		';
 
