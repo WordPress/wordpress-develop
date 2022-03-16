@@ -185,7 +185,8 @@ class WP_Users_List_Table extends WP_List_Table {
 			$url = 'users.php';
 		}
 
-		$role_links = array();
+		$role_links              = array();
+		$current_link_attributes = empty( $role ) ? ' class="current" aria-current="page"' : '';
 		if ( $count_users ) {
 			if ( $this->is_site_users ) {
 				switch_to_blog( $this->site_id );
@@ -199,13 +200,25 @@ class WP_Users_List_Table extends WP_List_Table {
 			$avail_roles =& $users_of_blog['avail_roles'];
 			unset( $users_of_blog );
 
-			$role_links['all'] = "<a href='$url'$current_link_attributes>" . sprintf( _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $total_users, 'users' ), number_format_i18n( $total_users ) ) . '</a>';
+			$role_links['all'] = sprintf(
+					'<a href="%s"%s>%s</a>',
+					$url,
+					$current_link_attributes,
+					sprintf(
+					/* translators: %s: Number of users. */
+							_nx(
+									'All <span class="count">(%s)</span>',
+									'All <span class="count">(%s)</span>',
+									$total_users,
+									'users'
+							),
+							number_format_i18n( $total_users )
+					)
+			);
 		} else {
 			$avail_roles       = array();
 			$role_links['all'] = "<a href='$url'$current_link_attributes>" . __( 'All' ) . '</a>';
 		}
-
-		$current_link_attributes = empty( $role ) ? ' class="current" aria-current="page"' : '';
 
 		foreach ( $wp_roles->get_names() as $this_role => $name ) {
 			if ( $count_users && ! isset( $avail_roles[ $this_role ] ) ) {
