@@ -405,7 +405,10 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 }
 
 /**
- * Get a sources array element from a meta.
+ * Gets a sources array element from a meta.
+ *
+ * @since 6.0.0
+ * @access private
  *
  * @param array $meta The meta to get the source from.
  * @return array The source array element.
