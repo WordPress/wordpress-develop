@@ -3986,26 +3986,24 @@ function wp_ajax_crop_image() {
 				'context'        => $context,
 			);
 
-			if ( 0 < mb_strlen( trim( $original_attachment->post_title ) ) ) {
+			if ( mb_strlen( trim( $original_attachment->post_title ) ) ) {
 				$object['post_title'] = $original_attachment->post_title;
 			}
 
-			if ( 0 < mb_strlen( trim( $original_attachment->post_content ) ) ) {
+			if ( mb_strlen( trim( $original_attachment->post_content ) ) ) {
 				$object['post_content'] = $original_attachment->post_content;
 			}
 
-			if ( 0 < mb_strlen( trim( $original_attachment->post_excerpt ) ) ) {
+			if ( mb_strlen( trim( $original_attachment->post_excerpt ) ) ) {
 				$object['post_excerpt'] = $original_attachment->post_excerpt;
 			}
-
-			// Copy the image alt text from the edited image.
-			$image_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
 
 			$attachment_id = wp_insert_attachment( $object, $cropped );
 			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
 
-			if ( 0 < mb_strlen( trim( $image_alt ) ) ) {
-				update_post_meta( $attachment_id, '_wp_attachment_image_alt', wp_slash( $image_alt ) );
+			// Copy the image alt text from the edited image.
+			if ( mb_strlen( trim( $original_attachment->_wp_attachment_image_alt ) ) ) {
+				update_post_meta( $attachment_id, '_wp_attachment_image_alt', wp_slash( $original_attachment->_wp_attachment_image_alt ) );
 			}
 
 			/**
