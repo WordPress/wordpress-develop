@@ -345,11 +345,14 @@ final class WP_Theme implements ArrayAccess {
 				&& ! file_exists( $theme_path . '/index.php' )
 			) {
 				$error_message = sprintf(
-					/* translators: 1: templates/index.html, 2: index.php, 3: Documentation URL, 4: style.css */
-					__( 'Template is missing. Standalone themes need to have a %1$s or %2$s template file. <a href="%3$s">Child themes</a> need to have a Template header in the %4$s stylesheet.' ),
+					/* translators: 1: Template word 2: templates/index.html, 3: index.php, 4: template word, 5: Documentation URL, 6: Template word, 7: style.css */
+					__( '%1$s is missing. Standalone themes need to have a %2$s or %3$s %4$s file. <a href="%5$s">Child themes</a> need to have a %6$s header in the %7$s stylesheet.' ),
+					'Template',
 					'<code>templates/index.html</code>',
 					'<code>index.php</code>',
+					'template',
 					__( 'https://developer.wordpress.org/themes/advanced-topics/child-themes/' ),
+					'Template',
 					'<code>style.css</code>'
 				);
 				$this->errors = new WP_Error( 'theme_no_index', $error_message );
