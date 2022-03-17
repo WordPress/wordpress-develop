@@ -342,6 +342,10 @@ class WP_Upgrader {
 
 		$this->skin->feedback( 'unpack_package' );
 
+		if ( ! $wp_filesystem->wp_content_dir() ) {
+			return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
+		}
+
 		$upgrade_folder = $wp_filesystem->wp_content_dir() . 'upgrade/';
 
 		// Clean up contents of upgrade directory beforehand.
@@ -1044,6 +1048,10 @@ class WP_Upgrader {
 			return false;
 		}
 
+		if ( ! $wp_filesystem->wp_content_dir() ) {
+			return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
+		}
+
 		$dest_dir = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
 		// Create the temp-backup directory if it doesn't exist.
 		if ( (
@@ -1098,6 +1106,10 @@ class WP_Upgrader {
 			return false;
 		}
 
+		if ( ! $wp_filesystem->wp_content_dir() ) {
+			return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
+		}
+
 		$src      = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $args['dir'] . '/' . $args['slug'];
 		$dest_dir = $wp_filesystem->find_folder( $args['src'] );
 		$dest     = trailingslashit( $dest_dir ) . $args['slug'];
@@ -1132,13 +1144,17 @@ class WP_Upgrader {
 	 *     @type string $dir  Directory name.
 	 * }
 	 *
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function delete_temp_backup( $args ) {
 		global $wp_filesystem;
 
 		if ( empty( $args['slug'] ) || empty( $args['dir'] ) ) {
 			return false;
+		}
+
+		if ( ! $wp_filesystem->wp_content_dir() ) {
+			return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
 		}
 
 		return $wp_filesystem->delete(

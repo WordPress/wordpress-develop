@@ -1970,6 +1970,10 @@ class WP_Site_Health {
 		}
 		$wp_content = $wp_filesystem->wp_content_dir();
 
+		if ( ! $wp_content ) {
+			return new WP_Error( 'fs_no_content_dir', __( 'Unable to locate WordPress content directory (wp-content).' ) );
+		}
+
 		$upgrade_dir_exists      = $wp_filesystem->is_dir( "$wp_content/upgrade" );
 		$upgrade_dir_is_writable = $wp_filesystem->is_writable( "$wp_content/upgrade" );
 		$backup_dir_exists       = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup" );

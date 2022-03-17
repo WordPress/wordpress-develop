@@ -984,6 +984,8 @@ function wp_delete_all_temp_backups() {
  * @access private
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ *
+ * @return void|WP_Error
  */
 function _wp_delete_all_temp_backups() {
 	global $wp_filesystem;
@@ -991,6 +993,10 @@ function _wp_delete_all_temp_backups() {
 	if ( ! $wp_filesystem ) {
 		require_once ABSPATH . '/wp-admin/includes/file.php';
 		WP_Filesystem();
+	}
+
+	if ( ! $wp_filesystem->wp_content_dir() ) {
+		return new WP_Error( 'fs_no_content_dir', __( 'Unable to locate WordPress content directory (wp-content).' ) );
 	}
 
 	$temp_backup_dir = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
