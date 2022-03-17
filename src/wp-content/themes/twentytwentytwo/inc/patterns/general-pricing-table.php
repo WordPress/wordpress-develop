@@ -29,7 +29,7 @@ return array(
 					<!-- /wp:button --></div>
 					<!-- /wp:buttons -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer --></div>
 					<!-- /wp:column -->
@@ -57,7 +57,7 @@ return array(
 					<!-- /wp:button --></div>
 					<!-- /wp:buttons -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer --></div>
 					<!-- /wp:column -->
@@ -85,7 +85,7 @@ return array(
 					<!-- /wp:button --></div>
 					<!-- /wp:buttons -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer --></div>
 					<!-- /wp:column --></div>

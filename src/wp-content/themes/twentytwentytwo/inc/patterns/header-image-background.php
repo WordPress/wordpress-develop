@@ -16,7 +16,7 @@ return array(
 					<!-- /wp:navigation --></div>
 					<!-- /wp:group -->
 
-					<!-- wp:spacer {"height":500} -->
+					<!-- wp:spacer {"height":"500px"} -->
 					<div style="height:500px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer --></div></div>
 					<!-- /wp:cover --></div>

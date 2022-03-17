@@ -22,7 +22,7 @@ return array(
 				<p>' . esc_html__( 'A film about hobbyist bird watchers, a catalog of different birds, paired with the noises they make. Each bird is listed by their scientific name so things seem more official.', 'twentytwentytwo' ) . '</p>
 				<!-- /wp:paragraph -->
 
-				<!-- wp:spacer {"height":20} -->
+				<!-- wp:spacer {"height":"20px"} -->
 				<div style="height:20px" aria-hidden="true" class="wp-block-spacer"></div>
 				<!-- /wp:spacer -->
 

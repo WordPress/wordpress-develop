@@ -10,7 +10,7 @@ return array(
 					<h1 class="alignwide" style="font-size:clamp(4rem, 15vw, 12.5rem);font-weight:200;line-height:1">' . wp_kses_post( __( '<em>Goldfinch </em><br><em>&amp; Sparrow</em>', 'twentytwentytwo' ) ) . '</h1>
 					<!-- /wp:heading -->
 
-					<!-- wp:spacer {"height":50} -->
+					<!-- wp:spacer {"height":"50px"} -->
 					<div style="height:50px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

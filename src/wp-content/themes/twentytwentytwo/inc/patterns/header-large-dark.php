@@ -28,7 +28,7 @@ return array(
 					<!-- wp:image {"align":"full","sizeSlug":"full","linkDestination":"none"} -->
 					<figure class="wp-block-image alignfull size-full"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-c.png" alt="' . esc_attr__( 'Illustration of a bird flying.', 'twentytwentytwo' ) . '"/></figure>
 					<!-- /wp:image --></div>
-					<!-- /wp:group --><!-- wp:spacer {"height":66} -->
+					<!-- /wp:group --><!-- wp:spacer {"height":"66px"} -->
 					<div style="height:66px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->',
 );

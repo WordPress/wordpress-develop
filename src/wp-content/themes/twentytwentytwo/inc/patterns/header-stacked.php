@@ -10,13 +10,13 @@ return array(
 					<div class="wp-block-group alignfull"><!-- wp:group {"align":"wide","style":{"spacing":{"padding":{"bottom":"var(--wp--custom--spacing--large, 8rem)","top":"var(--wp--custom--spacing--small, 1.25rem)"}}}} -->
 					<div class="wp-block-group alignwide" style="padding-top:var(--wp--custom--spacing--small, 1.25rem);padding-bottom:var(--wp--custom--spacing--large, 8rem)"><!-- wp:site-logo {"align":"center","width":128} /-->
 
-					<!-- wp:spacer {"height":10} -->
+					<!-- wp:spacer {"height":"10px"} -->
 					<div style="height:10px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
 					<!-- wp:site-title {"textAlign":"center","style":{"typography":{"fontStyle":"normal","fontWeight":"400","textTransform":"uppercase"}}} /-->
 
-					<!-- wp:spacer {"height":10} -->
+					<!-- wp:spacer {"height":"10px"} -->
 					<div style="height:10px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

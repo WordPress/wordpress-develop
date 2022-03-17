@@ -11,7 +11,7 @@ return array(
 					<h1 class="alignwide" id="warble-a-film-about-hobbyist-bird-watchers-1" style="font-size:clamp(3rem, 6vw, 4.5rem)">' . wp_kses_post( __( '<em>Warble</em>, a film about <br>hobbyist bird watchers.', 'twentytwentytwo' ) ) . '</h1>
 					<!-- /wp:heading -->
 
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -19,7 +19,7 @@ return array(
 					<figure class="wp-block-video alignwide"><video controls src="' . esc_url( get_template_directory_uri() ) . '/assets/videos/birds.mp4"></video></figure>
 					<!-- /wp:video -->
 
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
