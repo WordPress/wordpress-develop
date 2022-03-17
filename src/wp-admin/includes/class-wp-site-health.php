@@ -1985,7 +1985,7 @@ class WP_Site_Health {
 			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Plugins and themes %s directories exist but are not writable' ),
-				'temp-backup'
+				'<code>temp-backup</code>'
 			);
 			$result['description'] = sprintf(
 				/* translators: 1: wp-content/upgrade/temp-backup/plugins, 2: wp-content/upgrade/temp-backup/themes. */
