@@ -862,7 +862,7 @@ class WP_Upgrader {
 				 * Restore the backup on shutdown.
 				 * Actions running on `shutdown` are immune to PHP timeouts,
 				 * so in case the failure was due to a PHP timeout,
-				 * we'll still be able to properly restore the previous version.
+				 * it will still be able to properly restore the previous version.
 				 */
 				add_action( 'shutdown', array( $this, '_restore_temp_backup' ) );
 			}
