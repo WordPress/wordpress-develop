@@ -1946,7 +1946,7 @@ class WP_Site_Health {
 			'label'       => sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Plugin and theme update %s directory is writable' ),
-				'<code>temp-backup</code>'
+				'temp-backup'
 			),
 			'status'      => 'good',
 			'badge'       => array(
@@ -1989,7 +1989,7 @@ class WP_Site_Health {
 			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Plugins and themes %s directories exist but are not writable' ),
-				'<code>temp-backup</code>'
+				'temp-backup'
 			);
 			$result['description'] = sprintf(
 				/* translators: 1: wp-content/upgrade/temp-backup/plugins, 2: wp-content/upgrade/temp-backup/themes. */
@@ -2005,7 +2005,7 @@ class WP_Site_Health {
 			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Plugins %s directory exists but is not writable' ),
-				'<code>temp-backup</code>'
+				'temp-backup'
 			);
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup/plugins */
@@ -2020,7 +2020,7 @@ class WP_Site_Health {
 			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Themes %s directory exists but is not writable' ),
-				'<code>temp-backup</code>'
+				'temp-backup'
 			);
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup/themes */
@@ -2035,7 +2035,7 @@ class WP_Site_Health {
 			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'The %s directory exists but is not writable' ),
-				'<code>temp-backup</code>'
+				'temp-backup'
 			);
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup */
@@ -2530,7 +2530,7 @@ class WP_Site_Health {
 				),
 				'update_temp_backup_writable'  => array(
 					/* translators: %s: temp-backup */
-					'label' => sprintf( __( 'Updates %s directory access' ), '<code>temp-backup</code>' ),
+					'label' => sprintf( __( 'Updates %s directory access' ), 'temp-backup' ),
 					'test'  => 'update_temp_backup_writable',
 				),
 				'available_updates_disk_space' => array(
