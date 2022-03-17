@@ -1573,11 +1573,10 @@ function wp_check_php_version() {
 }
 
 /**
- * Add 'is-fullscreen-mode' body class in Block Editor screens to
+ * Adds 'is-fullscreen-mode' body class in Block Editor screens to
  * avoid jumps in the UI.
  *
  * @param string $classes Space-separated list of CSS classes.
- *
  * @return string $classes String of classes.
  */
 function body_class_edit_form_blocks( $classes ) {
@@ -1591,10 +1590,9 @@ function body_class_edit_form_blocks( $classes ) {
 }
 
 /**
- * Add 'options-privacy' in Privacy Options page.
+ * Adds 'options-privacy' in Privacy Options page.
  *
  * @param string $classes Space-separated list of CSS classes.
- *
  * @return string $classes String of classes.
  */
 function body_class_options_privacy( $classes ) {

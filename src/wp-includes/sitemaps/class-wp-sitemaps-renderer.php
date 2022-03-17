@@ -268,7 +268,7 @@ class WP_Sitemaps_Renderer {
 	}
 
 	/**
-	 * Return the _xml_wp_die_handler function name.
+	 * Returns the _xml_wp_die_handler function name.
 	 *
 	 * Used to prevent using a lambda function in the 'wp_die_handler' filter.
 	 *
