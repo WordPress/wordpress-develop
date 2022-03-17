@@ -63,7 +63,24 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		return $mime_type;
 	}
 
-	public function test_is_image_positive() {
+	/**
+	 * @dataProvider data_is_image_positive
+	 *
+	 * @covers ::file_is_valid_image
+	 * @covers ::wp_getimagesize
+	 *
+	 * @param string $file File name.
+	 */
+	public function test_is_image_positive( $file ) {
+		$this->assertTrue( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
+	}
+
+	/**
+	 * Data Provider.
+	 *
+	 * @return array
+	 */
+	public function data_is_image_positive() {
 		// These are all image files recognized by PHP.
 		$files = array(
 			'test-image-cmyk.jpg',
@@ -81,16 +98,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'webp-lossless.webp',
 			'webp-lossy.webp',
 			'webp-transparent.webp',
+			'test-image.ico',
 		);
 
-		// IMAGETYPE_ICO is only defined in PHP 5.3+.
-		if ( defined( 'IMAGETYPE_ICO' ) ) {
-			$files[] = 'test-image.ico';
-		}
-
-		foreach ( $files as $file ) {
-			$this->assertTrue( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
-		}
+		return $this->text_array_to_dataprovider( $files );
 	}
 
 	public function test_is_image_negative() {
