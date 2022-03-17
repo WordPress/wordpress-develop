@@ -112,6 +112,16 @@ class WP_Upgrader {
 	public $update_current = 0;
 
 	/**
+	 * Store options passed to private functions.
+	 *
+	 * Used by rollback functions.
+	 *
+	 * @since 6.0.0
+	 * @var array
+	 */
+	private $options = array();
+
+	/**
 	 * Construct the upgrader with a skin.
 	 *
 	 * @since 2.8.0
@@ -744,6 +754,9 @@ class WP_Upgrader {
 		 * }
 		 */
 		$options = apply_filters( 'upgrader_package_options', $options );
+
+		// Store options in private variable for use in private rollback methods.
+		$this->options = $options;
 
 		if ( ! $options['is_multi'] ) { // Call $this->header separately if running multiple times.
 			$this->skin->header();
