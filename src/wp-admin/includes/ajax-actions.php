@@ -3986,15 +3986,15 @@ function wp_ajax_crop_image() {
 				'context'        => $context,
 			);
 
-			if ( trim( $attachment->post_title ) ) {
+			if ( 0 < mb_strlen( trim( $attachment->post_title ) ) ) {
 				$object['post_title'] = $attachment->post_title;
 			}
 
-			if ( trim( $attachment->post_content ) ) {
+			if ( 0 < mb_strlen( trim( $attachment->post_content ) ) ) {
 				$object['post_content'] = $attachment->post_content;
 			}
 
-			if ( trim( $attachment->post_excerpt )) {
+			if ( 0 < mb_strlen( trim( $attachment->post_excerpt ) ) ) {
 				$object['post_excerpt'] = $attachment->post_excerpt;
 			}
 
