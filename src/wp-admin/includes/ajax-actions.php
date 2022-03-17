@@ -3975,8 +3975,8 @@ function wp_ajax_crop_image() {
 
 			$size       = wp_getimagesize( $cropped );
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
-			/** @var WP_Post $attachment */
-			$attachment = get_post( $attachment_id );
+			/** @var WP_Post $original_attachment */
+			$original_attachment = get_post( $attachment_id );
 
 			$object = array(
 				'post_title'     => wp_basename( $cropped ),
@@ -3986,20 +3986,27 @@ function wp_ajax_crop_image() {
 				'context'        => $context,
 			);
 
-			if ( 0 < mb_strlen( trim( $attachment->post_title ) ) ) {
-				$object['post_title'] = $attachment->post_title;
+			if ( 0 < mb_strlen( trim( $original_attachment->post_title ) ) ) {
+				$object['post_title'] = $original_attachment->post_title;
 			}
 
-			if ( 0 < mb_strlen( trim( $attachment->post_content ) ) ) {
-				$object['post_content'] = $attachment->post_content;
+			if ( 0 < mb_strlen( trim( $original_attachment->post_content ) ) ) {
+				$object['post_content'] = $original_attachment->post_content;
 			}
 
-			if ( 0 < mb_strlen( trim( $attachment->post_excerpt ) ) ) {
-				$object['post_excerpt'] = $attachment->post_excerpt;
+			if ( 0 < mb_strlen( trim( $original_attachment->post_excerpt ) ) ) {
+				$object['post_excerpt'] = $original_attachment->post_excerpt;
 			}
+
+			// Copy the image alt text from the edited image.
+			$image_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
 
 			$attachment_id = wp_insert_attachment( $object, $cropped );
 			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
+
+			if ( 0 < mb_strlen( trim( $image_alt ) ) ) {
+				update_post_meta( $attachment_id, '_wp_attachment_image_alt', wp_slash( $image_alt ) );
+			}
 
 			/**
 			 * Filters the cropped image attachment metadata.
