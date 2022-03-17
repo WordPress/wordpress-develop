@@ -261,17 +261,15 @@ function wp_get_runtime_environment() {
 
 	$wp_runtime_environments = array( 'virtualbox' );
 
-	// Check if the runtime environment variable has been set, if `getenv` is available on the system.
-	if ( function_exists( 'getenv' ) ) {
+	// Fetch the runtime environment from a constant, this overrides the global system variable.
+	if ( defined( 'WP_RUNTIME_ENVIRONMENT' ) ) {
+		$current_runtime_env = WP_RUNTIME_ENVIRONMENT;
+	} elseif ( function_exists( 'getenv' ) ) {
+		// Check if the runtime environment variable has been set, if `getenv` is available on the system.
 		$has_runtime_env = getenv( 'WP_RUNTIME_ENVIRONMENT' );
 		if ( false !== $has_runtime_env ) {
 			$current_runtime_env = $has_runtime_env;
 		}
-	}
-
-	// Fetch the runtime environment from a constant, this overrides the global system variable.
-	if ( defined( 'WP_RUNTIME_ENVIRONMENT' ) ) {
-		$current_runtime_env = WP_RUNTIME_ENVIRONMENT;
 	}
 
 	// Make sure the runtime environment is an allowed one, and not accidentally set to an invalid value.
