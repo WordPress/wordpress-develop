@@ -1946,7 +1946,7 @@ class WP_Site_Health {
 			'label'       => sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Plugin and theme update %s directory is writable' ),
-				'temp-backup'
+				'<code>temp-backup</code>'
 			),
 			'status'      => 'good',
 			'badge'       => array(
@@ -2001,7 +2001,7 @@ class WP_Site_Health {
 			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Plugins %s directory exists but is not writable' ),
-				'temp-backup'
+				'<code>temp-backup</code>'
 			);
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup/plugins */
@@ -2016,7 +2016,7 @@ class WP_Site_Health {
 			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'Themes %s directory exists but is not writable' ),
-				'temp-backup'
+				'<code>temp-backup</code>'
 			);
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup/themes */
@@ -2031,7 +2031,7 @@ class WP_Site_Health {
 			$result['label']  = sprintf(
 				/* translators: %s: temp-backup */
 				__( 'The %s directory exists but is not writable' ),
-				'temp-backup'
+				'<code>temp-backup</code>'
 			);
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade/temp-backup */
@@ -2526,7 +2526,7 @@ class WP_Site_Health {
 				),
 				'update_temp_backup_writable'  => array(
 					/* translators: %s: temp-backup */
-					'label' => sprintf( __( 'Updates %s directory access' ), 'temp-backup' ),
+					'label' => sprintf( __( 'Updates %s directory access' ), '<code>temp-backup</code>' ),
 					'test'  => 'update_temp_backup_writable',
 				),
 				'available_updates_disk_space' => array(
