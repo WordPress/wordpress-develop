@@ -112,7 +112,7 @@ class WP_Upgrader {
 	public $update_current = 0;
 
 	/**
-	 * Store options passed to private functions.
+	 * Store options passed to callback functions.
 	 *
 	 * Used by rollback functions.
 	 *
@@ -759,7 +759,7 @@ class WP_Upgrader {
 		 */
 		$options = apply_filters( 'upgrader_package_options', $options );
 
-		// Store options in private variable for use in private rollback methods.
+		// Store options in private variable for use in rollback methods.
 		$this->options = $options;
 
 		if ( ! $options['is_multi'] ) { // Call $this->header separately if running multiple times.
