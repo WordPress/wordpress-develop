@@ -3977,23 +3977,23 @@ function wp_ajax_crop_image() {
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 			/** @var WP_Post $original_attachment */
 			$original_attachment = get_post( $attachment_id );
+			$has_custom_description = 0 < mb_strlen( trim( $original_attachment->post_title ) );
 
 			$object = array(
-				'post_title'     => wp_basename( $cropped ),
+				// Copy the image description from the original image if it's defined.
+				'post_title'     => $has_custom_description ? $original_attachment->post_title : wp_basename( $cropped ),
 				'post_content'   => $url,
 				'post_mime_type' => $image_type,
 				'guid'           => $url,
 				'context'        => $context,
 			);
 
-			if ( mb_strlen( trim( $original_attachment->post_title ) ) ) {
-				$object['post_title'] = $original_attachment->post_title;
-			}
-
+			// Copy the image title from the original image.
 			if ( mb_strlen( trim( $original_attachment->post_content ) ) ) {
 				$object['post_content'] = $original_attachment->post_content;
 			}
 
+			// Copy the image caption from the original image.
 			if ( mb_strlen( trim( $original_attachment->post_excerpt ) ) ) {
 				$object['post_excerpt'] = $original_attachment->post_excerpt;
 			}
@@ -4001,7 +4001,7 @@ function wp_ajax_crop_image() {
 			$attachment_id = wp_insert_attachment( $object, $cropped );
 			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
 
-			// Copy the image alt text from the edited image.
+			// Copy the image alt text from the original image.
 			if ( mb_strlen( trim( $original_attachment->_wp_attachment_image_alt ) ) ) {
 				update_post_meta( $attachment_id, '_wp_attachment_image_alt', wp_slash( $original_attachment->_wp_attachment_image_alt ) );
 			}
