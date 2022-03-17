@@ -960,8 +960,6 @@ function wp_clean_update_cache() {
  * Deletes all contents of the temp-backup directory.
  *
  * @since 6.0.0
- *
- * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  */
 function wp_delete_all_temp_backups() {
 	/*
@@ -974,34 +972,38 @@ function wp_delete_all_temp_backups() {
 		return;
 	}
 
-	add_action(
-		'shutdown',
-		/*
-		 * This action runs on shutdown to make sure there's no plugin updates currently running.
-		 * Using a closure in this case is OK since the action can be removed by removing the parent hook.
-		 * `remove_action( 'wp_delete_temp_updater_backups', 'wp_delete_all_temp_backups' );`
-		 */
-		static function() {
-			global $wp_filesystem;
+	// This action runs on shutdown to make sure there's no plugin updates currently running.
+	add_action( 'shutdown', '_wp_delete_all_temp_backups' );
+}
 
-			if ( ! $wp_filesystem ) {
-				include_once ABSPATH . '/wp-admin/includes/file.php';
-				WP_Filesystem();
-			}
+/**
+ * Remove `temp-backup` directory.
+ *
+ * @since 6.0.0
+ *
+ * @access private
+ *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ */
+function _wp_delete_all_temp_backups() {
+	global $wp_filesystem;
 
-			$temp_backup_dir = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
-			$dirlist         = $wp_filesystem->dirlist( $temp_backup_dir );
-			$dirlist         = $dirlist ? $dirlist : array();
+	if ( ! $wp_filesystem ) {
+		require_once ABSPATH . '/wp-admin/includes/file.php';
+		WP_Filesystem();
+	}
 
-			foreach ( array_keys( $dirlist ) as $dir ) {
-				if ( '.' === $dir || '..' === $dir ) {
-					continue;
-				}
+	$temp_backup_dir = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
+	$dirlist         = $wp_filesystem->dirlist( $temp_backup_dir );
+	$dirlist         = $dirlist ? $dirlist : array();
 
-				$wp_filesystem->delete( $temp_backup_dir . $dir, true );
-			}
+	foreach ( array_keys( $dirlist ) as $dir ) {
+		if ( '.' === $dir || '..' === $dir ) {
+			continue;
 		}
-	);
+
+		$wp_filesystem->delete( $temp_backup_dir . $dir, true );
+	}
 }
 
 if ( ( ! is_main_site() && ! is_network_admin() ) || wp_doing_ajax() ) {

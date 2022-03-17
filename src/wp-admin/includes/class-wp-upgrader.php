@@ -864,12 +864,7 @@ class WP_Upgrader {
 				 * so in case the failure was due to a PHP timeout,
 				 * we'll still be able to properly restore the previous version.
 				 */
-				add_action(
-					'shutdown',
-					function() use ( $options ) {
-						$this->restore_temp_backup( $options['hook_extra']['temp_backup'] );
-					}
-				);
+				add_action( 'shutdown', array( $this, '_restore_temp_backup' ) );
 			}
 			$this->skin->error( $result );
 
@@ -886,12 +881,7 @@ class WP_Upgrader {
 		// Clean up the backup kept in the temp-backup directory.
 		if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
 			// Delete the backup on `shutdown` to avoid a PHP timeout.
-			add_action(
-				'shutdown',
-				function() use ( $options ) {
-					$this->delete_temp_backup( $options['hook_extra']['temp_backup'] );
-				}
-			);
+			add_action( 'shutdown', array( $this, '_delete_temp_backup' ) );
 		}
 
 		if ( ! $options['is_multi'] ) {
@@ -1155,6 +1145,32 @@ class WP_Upgrader {
 			$wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}",
 			true
 		);
+	}
+
+	/**
+	 * Private function for hook to restore rollback.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @access private
+	 *
+	 * @return void
+	 */
+	private function _restore_temp_backup() {
+		$this->restore_temp_backup( $this->options['hook_extra']['temp_backup'] );
+	}
+
+	/**
+	 * Private functio for hook to delete rollback files.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @access private
+	 *
+	 * @return void
+	 */
+	private function _delete_temp_backup() {
+		$this->delete_temp_backup( $this->options['hook_extra']['temp_backup'] );
 	}
 }
 
