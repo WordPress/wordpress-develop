@@ -171,7 +171,23 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		return $this->text_array_to_dataprovider( $files );
 	}
 
-	public function test_is_displayable_image_negative() {
+	/**
+	 * @dataProvider data_is_displayable_image_negative
+	 *
+	 * @covers ::file_is_displayable_image
+	 *
+	 * @param string $file File name.
+	 */
+	public function test_is_displayable_image_negative( $file ) {
+		$this->assertFalse( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
+	}
+
+	/**
+	 * Data Provider.
+	 *
+	 * @return array
+	 */
+	public function data_is_displayable_image_negative() {
 		// These are image files but aren't suitable for web pages because of compatibility or size issues.
 		$files = array(
 			// 'test-image-cmyk.jpg',      Allowed in r9727.
@@ -187,9 +203,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image-zip.tiff',
 		);
 
-		foreach ( $files as $file ) {
-			$this->assertFalse( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
-		}
+		return $this->text_array_to_dataprovider( $files );
 	}
 
 	/**
