@@ -1114,16 +1114,17 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_extract_urls
 	 */
 	public function test_wp_extract_urls_remove_semicolon() {
-		$url_with_typo = '
-			http://typo.com;
-			http://example.org/?post_type=;p;o;s;t;&amp;p=8;
-		';
-		$expected      = array(
+		$expected = array(
 			'http://typo.com',
 			'http://example.org/?post_type=post&p=8',
 		);
+		$actual   = wp_extract_urls(
+			'
+				http://typo.com;
+				http://example.org/?post_type=;p;o;s;t;&amp;p=8;
+			'
+		);
 
-		$actual = wp_extract_urls( $url_with_typo );
 		$this->assertSame( $expected, $actual );
 	}
 
