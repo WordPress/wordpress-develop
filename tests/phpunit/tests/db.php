@@ -2475,7 +2475,7 @@ class Tests_DB extends WP_UnitTestCase {
 			add_filter( 'log_query_error', array( $log_query_error_action, 'action' ), 10 );
 
 			//
-			// Test that global suppress_errors value is passed to filter
+			// Test that the current suppress_errors setting is passed to filter
 			//
 			$wpdb->suppress_errors = false;
 			$wpdb->print_error( 'expected-error' );
@@ -2498,7 +2498,7 @@ class Tests_DB extends WP_UnitTestCase {
 			$this->assertEquals( 0, $log_query_error_action->get_call_count() );
 
 			//
-			// Test that altering value with filter affects behavior
+			// Test altering error suppression with the filter
 			//
 			$suppress_query_error_filter->reset();
 			$log_query_error_action->reset();
