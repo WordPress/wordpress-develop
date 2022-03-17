@@ -502,7 +502,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 			?>
 			</span>
 			<?php if ( isset( $theme->screenshot_url ) ) : ?>
-				<img class="theme-screenshot" src="<?php echo esc_url( $theme->screenshot_url ); ?>" alt="" />
+				<img class="theme-screenshot" src="<?php echo esc_url( $theme->screenshot_url . '?ver=' . $theme->version ); ?>" alt="" />
 			<?php endif; ?>
 			<div class="theme-details">
 				<?php
