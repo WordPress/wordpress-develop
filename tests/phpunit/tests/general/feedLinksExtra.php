@@ -67,6 +67,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	protected static $post_with_cpt_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Author.
 		self::$author_id = $factory->user->create(
 			array(
 				'user_login' => 'author_feed_links_extra',
@@ -74,20 +75,23 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 			)
 		);
 
+		// Category.
 		self::$category_id = $factory->category->create(
 			array( 'name' => 'cat_feed_links_extra' )
 		);
 
+		// Tag.
 		self::$tag_id = $factory->tag->create(
 			array( 'name' => 'tag_feed_links_extra' )
 		);
 
+		// Taxonomy.
 		self::$tax_id = 'tax_feed_links_extra';
 
-		/** Post type */
+		// Post type.
 		self::$post_type = 'cpt_feed_links_extra';
 
-		/** Posts */
+		// Posts.
 		self::$post_no_comment_id = $factory->post->create(
 			array( 'post_title' => 'Post with no comments' )
 		);
