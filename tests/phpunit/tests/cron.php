@@ -163,7 +163,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertNotContains( false, get_option( 'cron' ), 'Resulting cron array contains the value "false"' );
 	}
 
-	public function test_unschedule_event() {
 	/**
 	 * @covers ::wp_unschedule_event
 	 */
