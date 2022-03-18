@@ -81,10 +81,10 @@ if ( ! CUSTOM_TAGS ) {
 			'target' => true,
 		),
 		'article'    => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'aside'      => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'audio'      => array(
 			'autoplay' => true,
@@ -98,7 +98,7 @@ if ( ! CUSTOM_TAGS ) {
 		'bdo'        => array(),
 		'big'        => array(),
 		'blockquote' => array(
-			'cite'     => true,
+			'cite' => true,
 		),
 		'br'         => array(),
 		'button'     => array(
@@ -134,21 +134,21 @@ if ( ! CUSTOM_TAGS ) {
 		'dd'         => array(),
 		'dfn'        => array(),
 		'details'    => array(
-			'align'    => true,
-			'open'     => true,
+			'align' => true,
+			'open'  => true,
 		),
 		'div'        => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'dl'         => array(),
 		'dt'         => array(),
 		'em'         => array(),
 		'fieldset'   => array(),
 		'figure'     => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'figcaption' => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'font'       => array(
 			'color' => true,
@@ -156,7 +156,7 @@ if ( ! CUSTOM_TAGS ) {
 			'size'  => true,
 		),
 		'footer'     => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'h1'         => array(
 			'align' => true,
@@ -177,10 +177,10 @@ if ( ! CUSTOM_TAGS ) {
 			'align' => true,
 		),
 		'header'     => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'hgroup'     => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'hr'         => array(
 			'align'   => true,
@@ -218,7 +218,7 @@ if ( ! CUSTOM_TAGS ) {
 			'value' => true,
 		),
 		'main'       => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'map'        => array(
 			'name' => true,
@@ -228,7 +228,7 @@ if ( ! CUSTOM_TAGS ) {
 			'type' => true,
 		),
 		'nav'        => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'object'     => array(
 			'data' => array(
@@ -241,7 +241,7 @@ if ( ! CUSTOM_TAGS ) {
 			),
 		),
 		'p'          => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'pre'        => array(
 			'width' => true,
@@ -252,17 +252,17 @@ if ( ! CUSTOM_TAGS ) {
 		's'          => array(),
 		'samp'       => array(),
 		'span'       => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'section'    => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'small'      => array(),
 		'strike'     => array(),
 		'strong'     => array(),
 		'sub'        => array(),
 		'summary'    => array(
-			'align'    => true,
+			'align' => true,
 		),
 		'sup'        => array(),
 		'table'      => array(
@@ -1182,7 +1182,7 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
  * Determines whether an attribute is allowed.
  *
  * @since 4.2.3
- * @since 5.0.0 Add support for `data-*` wildcard attributes.
+ * @since 5.0.0 Added support for `data-*` wildcard attributes.
  *
  * @param string $name         The attribute name. Passed by reference. Returns empty string when not allowed.
  * @param string $value        The attribute value. Passed by reference. Returns a filtered value.
@@ -1216,7 +1216,9 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 		 * Note: the attribute name should only contain `A-Za-z0-9_-` chars,
 		 * double hyphens `--` are not accepted by WordPress.
 		 */
-		if ( strpos( $name_low, 'data-' ) === 0 && ! empty( $allowed_attr['data-*'] ) && preg_match( '/^data(?:-[a-z0-9_]+)+$/', $name_low, $match ) ) {
+		if ( strpos( $name_low, 'data-' ) === 0 && ! empty( $allowed_attr['data-*'] )
+			&& preg_match( '/^data(?:-[a-z0-9_]+)+$/', $name_low, $match )
+		) {
 			/*
 			 * Add the whole attribute name to the allowed attributes and set any restrictions
 			 * for the `data-*` attribute values for the current element.
@@ -2493,8 +2495,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  * Helper function to add global attributes to a tag in the allowed HTML list.
  *
  * @since 3.5.0
- * @since 5.0.0 Add support for `data-*` wildcard attributes.
- * @since 6.0.0 Add `dir`, `lang`, and `xml:lang` to global attributes.
+ * @since 5.0.0 Added support for `data-*` wildcard attributes.
+ * @since 6.0.0 Added `dir`, `lang`, and `xml:lang` to global attributes.
  *
  * @access private
  * @ignore
@@ -2510,14 +2512,14 @@ function _wp_add_global_attributes( $value ) {
 		'aria-labelledby'  => true,
 		'aria-hidden'      => true,
 		'class'            => true,
+		'data-*'           => true,
 		'dir'              => true,
 		'id'               => true,
 		'lang'             => true,
-		'xml:lang'         => true,
 		'style'            => true,
 		'title'            => true,
 		'role'             => true,
-		'data-*'           => true,
+		'xml:lang'         => true,
 	);
 
 	if ( true === $value ) {
