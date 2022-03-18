@@ -17,7 +17,6 @@ class Tests_Functions_WpCheckAlternateFileNames extends WP_UnitTestCase {
 	 * @param boolean $expected Expected result.
 	 */
 	public function test_wp_check_alternate_file_names( $filenames, $dir, $files, $expected ) {
-
 		$this->assertSame( $expected, _wp_check_alternate_file_names( $filenames, $dir, $files ) );
 	}
 
