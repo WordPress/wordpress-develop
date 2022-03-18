@@ -7,7 +7,7 @@
 class Tests_Functions__WpCheckAlternateFileNames extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data__wp_check_alternate_file_names
+	 * @dataProvider data_wp_check_alternate_file_names
 	 *
 	 * @ticket 55192
 	 *
