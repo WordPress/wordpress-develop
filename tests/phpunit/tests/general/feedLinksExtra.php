@@ -402,7 +402,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @ticket 54713
 	 *
-	 * @param $type The name of the test class property containing the object ID.
+	 * @param string $type The name of the test class property containing the object ID.
 	 * @return string The permalink.
 	 */
 	private function helper_get_the_permalink( $type ) {
