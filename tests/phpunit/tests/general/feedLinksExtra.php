@@ -91,6 +91,27 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 		// Post type.
 		self::$post_type = 'cpt_feed_links_extra';
 
+		register_taxonomy(
+			self::$tax_id,
+			self::$post_type,
+			array(
+				'labels' => array(
+					'name'          => 'Taxonomy Terms',
+					'singular_name' => 'Taxonomy Term',
+				),
+			)
+		);
+
+		register_post_type(
+			self::$post_type,
+			array(
+				'public'      => true,
+				'has_archive' => true,
+				'taxonomies'  => array( self::$tax_id ),
+				'labels'      => array( 'name' => 'CPT for feed_links_extra()' ),
+			)
+		);
+
 		// Posts.
 		self::$post_no_comment_id = $factory->post->create(
 			array( 'post_title' => 'Post with no comments' )
@@ -106,6 +127,15 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 				'comment_post_ID' => self::$post_with_comment_id,
 			)
 		);
+
+		self::$post_with_cpt_id = $factory->post->create(
+			array(
+				'post_title' => 'Post with a custom post type',
+				'post_type'  => self::$post_type,
+			)
+		);
+
+		wp_set_object_terms( self::$post_with_cpt_id, 'tax_term', self::$tax_id );
 	}
 
 	public function set_up() {
@@ -131,22 +161,6 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 				'labels'      => array( 'name' => 'CPT for feed_links_extra()' ),
 			)
 		);
-
-		self::$post_with_cpt = $this->factory->post->create(
-			array(
-				'post_title' => 'Post with a custom post type',
-				'post_type'  => self::$post_type,
-			)
-		);
-
-		wp_set_object_terms( self::$post_with_cpt, 'tax_term', self::$tax );
-	}
-
-	public function tear_down() {
-		parent::tear_down();
-
-		_unregister_taxonomy( self::$tax );
-		_unregister_post_type( self::$post_type );
 	}
 
 	/**
