@@ -42,10 +42,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			}
 		}
 
-		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
-		}
-
 		return $classes;
 	}
 
