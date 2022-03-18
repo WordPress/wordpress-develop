@@ -187,7 +187,7 @@ class WP_Users_List_Table extends WP_List_Table {
 
 		$role_links              = array();
 		$avail_roles             = array();
-		$total_users             = 0;
+		$all_text                = __( 'All' );
 		$current_link_attributes = empty( $role ) ? ' class="current" aria-current="page"' : '';
 		if ( $count_users ) {
 			if ( $this->is_site_users ) {
@@ -201,23 +201,17 @@ class WP_Users_List_Table extends WP_List_Table {
 			$total_users = $users_of_blog['total_users'];
 			$avail_roles =& $users_of_blog['avail_roles'];
 			unset( $users_of_blog );
-		} else if ( ! is_multisite() ) {
-			$total_users = get_user_count();
-		}
 
-		if ( $total_users ) {
 			$all_text = sprintf(
-			/* translators: %s: Number of users. */
-					_nx(
-							'All <span class="count">(%s)</span>',
-							'All <span class="count">(%s)</span>',
-							$total_users,
-							'users'
-					),
-					number_format_i18n( $total_users )
+				/* translators: %s: Number of users. */
+				_nx(
+						'All <span class="count">(%s)</span>',
+						'All <span class="count">(%s)</span>',
+						$total_users,
+						'users'
+				),
+				number_format_i18n( $total_users )
 			);
-		} else {
-			$all_text = __( 'All' );
 		}
 
 		$role_links['all'] = sprintf( '<a href="%s"%s>%s</a>', $url, $current_link_attributes, $all_text );
