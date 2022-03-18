@@ -1,5 +1,8 @@
 <?php
 /**
+ * Validate recommended versions for dependencies referenced in `readme.html`,
+ * based on external site support pages.
+ *
  * @group external-http
  */
 class Tests_Readme extends WP_UnitTestCase {
