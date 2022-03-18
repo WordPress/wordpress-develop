@@ -8427,7 +8427,7 @@ function get_user_count( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
 	}
-	return get_network_option( $network_id, 'user_count', -1 );
+	return (int) get_network_option( $network_id, 'user_count', -1 );
 }
 
 /**
