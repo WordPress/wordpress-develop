@@ -11,10 +11,10 @@ class Tests_Functions_WpCheckAlternateFileNames extends WP_UnitTestCase {
 	 *
 	 * @ticket 55192
 	 *
-	 * @param $filenames Array of filenames to check.
-	 * @param $dir The directory to check.
-	 * @param array $files An array of existing files in the directory.
-	 * @param boolean $expected Expected result.
+	 * @param array  $filenames Array of filenames to check.
+	 * @param string $dir       The directory to check.
+	 * @param array  $files     An array of existing files in the directory.
+	 * @param bool   $expected  Expected result.
 	 */
 	public function test_wp_check_alternate_file_names( $filenames, $dir, $files, $expected ) {
 		$this->assertSame( $expected, _wp_check_alternate_file_names( $filenames, $dir, $files ) );
