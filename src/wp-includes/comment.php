@@ -383,21 +383,6 @@ function get_comment_count( $post_id = 0 ) {
 
 	$post_id = (int) $post_id;
 
-	$where = '';
-	if ( $post_id > 0 ) {
-		$where = $wpdb->prepare( 'WHERE comment_post_ID = %d', $post_id );
-	}
-
-	$totals = (array) $wpdb->get_results(
-		"
-		SELECT comment_approved, COUNT( * ) AS total
-		FROM {$wpdb->comments}
-		{$where}
-		GROUP BY comment_approved
-	",
-		ARRAY_A
-	);
-
 	$comment_count = array(
 		'approved'            => 0,
 		'awaiting_moderation' => 0,
@@ -408,32 +393,25 @@ function get_comment_count( $post_id = 0 ) {
 		'all'                 => 0,
 	);
 
-	foreach ( $totals as $row ) {
-		switch ( $row['comment_approved'] ) {
-			case 'trash':
-				$comment_count['trash'] = $row['total'];
-				break;
-			case 'post-trashed':
-				$comment_count['post-trashed'] = $row['total'];
-				break;
-			case 'spam':
-				$comment_count['spam']            = $row['total'];
-				$comment_count['total_comments'] += $row['total'];
-				break;
-			case '1':
-				$comment_count['approved']        = $row['total'];
-				$comment_count['total_comments'] += $row['total'];
-				$comment_count['all']            += $row['total'];
-				break;
-			case '0':
-				$comment_count['awaiting_moderation'] = $row['total'];
-				$comment_count['total_comments']     += $row['total'];
-				$comment_count['all']                += $row['total'];
-				break;
-			default:
-				break;
-		}
+	$where = '';
+	if ( $post_id > 0 ) {
+		$where = $wpdb->prepare( 'AND comment_post_ID = %d', $post_id );
 	}
+	$comment_count = array(
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		'approved'            => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = '1' {$where}" ),
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		'awaiting_moderation' => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = '0' {$where}" ),
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		'spam'                => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'spam' {$where}" ),
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		'trash'               => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'trash' {$where}" ),
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		'post-trashed'        => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'post-trashed' {$where}" ),
+	);
+
+	$comment_count['all']            = $comment_count['approved'] + $comment_count['awaiting_moderation'];
+	$comment_count['total_comments'] = $comment_count['all'] + $comment_count['spam'];
 
 	return array_map( 'intval', $comment_count );
 }
