@@ -421,30 +421,54 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Try loading a directory
+	 * Verify loading a directory fails when using the deprecated wp_load_image() function.
 	 *
+	 * @covers ::wp_load_image
 	 * @ticket 17814
 	 * @expectedDeprecated wp_load_image
 	 */
-	public function test_load_directory() {
+	public function test_load_directory_should_fail_with_error_message() {
+		$editor = wp_load_image( DIR_TESTDATA );
+		$this->assertIsString( $editor );
+	}
 
-		// First, test with deprecated wp_load_image function.
-		$editor1 = wp_load_image( DIR_TESTDATA );
-		$this->assertIsString( $editor1 );
+	/**
+	 * Verify loading a directory fails when using the wp_get_image_editor() function.
+	 *
+	 * @covers ::wp_get_image_editor
+	 * @ticket 17814
+	 */
+	public function test_load_directory_should_fail_with_wp_error_object_1() {
+		$editor = wp_get_image_editor( DIR_TESTDATA );
+		$this->assertInstanceOf( 'WP_Error', $editor );
+	}
 
-		$editor2 = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertInstanceOf( 'WP_Error', $editor2 );
+	/**
+	 * Verify loading a directory fails when using the load() method in an image editor class.
+	 *
+	 * @dataProvider data_load_directory
+	 * @covers       WP_Image_Editor_GD::load
+	 * @covers       WP_Image_Editor_Imagick::load
+	 *
+	 * @ticket 17814
+	 *
+	 * @param string $class_name Name of the image editor engine class to be tested.
+	 */
+	public function test_load_directory_should_fail_with_wp_error_object_2( $class_name ) {
+		$editor = new $class_name( DIR_TESTDATA );
+		$loaded = $editor->load();
 
-		$classes = $this->get_image_editor_engine_classes();
+		$this->assertInstanceOf( 'WP_Error', $loaded, 'Loading a directory did not result in a WP_Error' );
+		$this->assertSame( 'error_loading_image', $loaded->get_error_code(), 'Error code from WP_Error did not match expectation' );
+	}
 
-		// Then, test with editors.
-		foreach ( $classes as $class ) {
-			$editor = new $class( DIR_TESTDATA );
-			$loaded = $editor->load();
-
-			$this->assertInstanceOf( 'WP_Error', $loaded );
-			$this->assertSame( 'error_loading_image', $loaded->get_error_code() );
-		}
+	/**
+	 * Data Provider.
+	 *
+	 * @return array
+	 */
+	public function data_load_directory() {
+		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
 	}
 
 	/**
