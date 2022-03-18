@@ -24,7 +24,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @covers ::esc_url
 	 */
-	Tests_Formatting_BalanceTagsfunction test_bad_characters() {
+	public function test_bad_characters() {
 		$this->assertSame( 'http://example.com/watchthelinefeedgo', esc_url( 'http://example.com/watchthelinefeed%0Ago' ) );
 		$this->assertSame( 'http://example.com/watchthelinefeedgo', esc_url( 'http://example.com/watchthelinefeed%0ago' ) );
 		$this->assertSame( 'http://example.com/watchthecarriagereturngo', esc_url( 'http://example.com/watchthecarriagereturn%0Dgo' ) );
@@ -41,7 +41,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @covers ::esc_url
 	 */
-	Tests_Formatting_BalanceTagsfunction test_relative() {
+	public function test_relative() {
 		$this->assertSame( '/example.php', esc_url( '/example.php' ) );
 		$this->assertSame( 'example.php', esc_url( 'example.php' ) );
 		$this->assertSame( '#fragment', esc_url( '#fragment' ) );
@@ -52,7 +52,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	 * @covers ::esc_url
 	 * @covers ::esc_url_raw
 	 */
-	Tests_Formatting_BalanceTagsfunction test_all_url_parts() {
+	public function test_all_url_parts() {
 		$url = 'https://user:pass@host.example.com:1234/path;p=1?query=2&r[]=3#fragment';
 
 		$this->assertSame(
@@ -75,7 +75,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @covers ::esc_url
 	 */
-	Tests_Formatting_BalanceTagsfunction test_bare() {
+	public function test_bare() {
 		$this->assertSame( 'http://example.com?foo', esc_url( 'example.com?foo' ) );
 		$this->assertSame( 'http://example.com', esc_url( 'example.com' ) );
 		$this->assertSame( 'http://localhost', esc_url( 'localhost' ) );
@@ -87,7 +87,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	 * @covers ::esc_url
 	 * @covers ::esc_url_raw
 	 */
-	Tests_Formatting_BalanceTagsfunction test_encoding() {
+	public function test_encoding() {
 		$this->assertSame( 'http://example.com?foo=1&bar=2', esc_url_raw( 'http://example.com?foo=1&bar=2' ) );
 		$this->assertSame( 'http://example.com?foo=1&amp;bar=2', esc_url_raw( 'http://example.com?foo=1&amp;bar=2' ) );
 		$this->assertSame( 'http://example.com?foo=1&#038;bar=2', esc_url_raw( 'http://example.com?foo=1&#038;bar=2' ) );
@@ -104,7 +104,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	 * @covers ::esc_url
 	 * @covers ::esc_url_raw
 	 */
-	Tests_Formatting_BalanceTagsfunction test_protocol() {
+	public function test_protocol() {
 		$this->assertSame( 'http://example.com', esc_url( 'http://example.com' ) );
 		$this->assertSame( '', esc_url( 'nasty://example.com/' ) );
 		$this->assertSame(
@@ -179,7 +179,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @covers ::esc_url
 	 */
-	Tests_Formatting_BalanceTagsfunction test_display_extras() {
+	public function test_display_extras() {
 		$this->assertSame( 'http://example.com/&#039;quoted&#039;', esc_url( 'http://example.com/\'quoted\'' ) );
 		$this->assertSame( 'http://example.com/\'quoted\'', esc_url( 'http://example.com/\'quoted\'', null, 'notdisplay' ) );
 	}
@@ -187,7 +187,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @covers ::esc_url
 	 */
-	Tests_Formatting_BalanceTagsfunction test_non_ascii() {
+	public function test_non_ascii() {
 		$this->assertSame( 'http://example.org/баба', esc_url( 'http://example.org/баба' ) );
 		$this->assertSame( 'http://баба.org/баба', esc_url( 'http://баба.org/баба' ) );
 		$this->assertSame( 'http://müller.com/', esc_url( 'http://müller.com/' ) );
@@ -196,7 +196,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @covers ::esc_url
 	 */
-	Tests_Formatting_BalanceTagsfunction test_feed() {
+	public function test_feed() {
 		$this->assertSame( '', esc_url( 'feed:javascript:alert(1)' ) );
 		$this->assertSame( '', esc_url( 'feed:javascript:feed:alert(1)' ) );
 		$this->assertSame( '', esc_url( 'feed:feed:javascript:alert(1)' ) );
