@@ -4,11 +4,38 @@
  * @group taxonomy
  */
 class Tests_Term_getTerms extends WP_UnitTestCase {
+
+	protected static $taxonomy = 'wptests_tax_3';
+
 	public function set_up() {
 		parent::set_up();
 
+		register_taxonomy( self::$taxonomy, 'post', array( 'hierarchical' => true ) );
+
 		_clean_term_filters();
 		wp_cache_delete( 'last_changed', 'terms' );
+	}
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		register_taxonomy( self::$taxonomy, 'page', array( 'hierarchical' => true ) );
+		$term_id1 = $factory->term->create(
+			array(
+				'name'     => 'Foo',
+				'slug'     => 'Foo',
+				'taxonomy' => self::$taxonomy,
+			)
+		);
+		$term_id2 = $factory->term->create(
+			array(
+				'name'     => 'Bar',
+				'slug'     => 'bar',
+				'taxonomy' => self::$taxonomy,
+			)
+		);
+		$posts    = $factory->post->create_many( 3, array( 'post_type' => 'page' ) );
+		foreach ( $posts as $i => $post ) {
+			wp_set_object_terms( $post, array( $term_id1, $term_id2 ), self::$taxonomy );
+		}
 	}
 
 	/**
@@ -2991,39 +3018,48 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55352
+	 */
+	public function test_cache_key_generation_cache_domain() {
+		$args_1        = array(
+			'taxonomy' => self::$taxonomy,
+			'fields'   => 'ids',
+		);
+		$args_2        = array_merge( $args_1, array( 'cache_domain' => microtime() ) );
+		$query1        = get_terms( $args_1 );
+		$num_queries_1 = get_num_queries();
+		$query2        = get_terms( $args_2 );
+		$this->assertNotSame( $num_queries_1, get_num_queries() );
+		$this->assertSameSets( $query1, $query2 );
+	}
+
+	/**
+	 * @ticket 55352
+	 */
+	public function test_cache_key_generation_all_with_object_id() {
+		$args_1        = array(
+			'taxonomy' => self::$taxonomy,
+			'fields'   => 'ids',
+		);
+		$args_2        = array_merge( $args_1, array( 'fields' => 'all_with_object_id' ) );
+		$query1        = get_terms( $args_1 );
+		$num_queries_1 = get_num_queries();
+		$query2        = get_terms( $args_2 );
+		$this->assertNotSame( $num_queries_1, get_num_queries() );
+		$this->assertSameSets( $query1, wp_list_pluck( $query2, 'term_id' ) );
+	}
+
+
+	/**
+	 * @ticket 55352
 	 *
 	 * @dataProvider data_same_term_args
 	 */
 	public function test_cache_key_generation( $args_1, $args_2 ) {
-		global $wpdb;
-		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
-
-		$term_id1 = self::factory()->term->create(
-			array(
-				'name'     => 'Foo',
-				'slug'     => 'Foo',
-				'taxonomy' => 'wptests_tax',
-			)
-		);
-
-		$term_id2 = self::factory()->term->create(
-			array(
-				'name'     => 'Bar',
-				'slug'     => 'bar',
-				'taxonomy' => 'wptests_tax',
-			)
-		);
-
-		$posts = self::factory()->post->create_many( 3, array( 'post_type' => 'post' ) );
-		foreach ( $posts as $i => $post ) {
-			wp_set_object_terms( $post, array( $term_id1, $term_id2 ), 'wptests_tax' );
-		}
-
-		$query1      = get_terms( $args_1 );
-		$num_queries = $wpdb->num_queries;
-		$query2      = get_terms( $args_2 );
-
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$query1        = get_terms( $args_1 );
+		$num_queries_1 = get_num_queries();
+		$query2        = get_terms( $args_2 );
+		$this->assertSame( $num_queries_1, get_num_queries() );
+		$this->assertSame( count( $query1 ), count( $query2 ) );
 	}
 
 	/**
@@ -3033,139 +3069,127 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	 */
 	public function data_same_term_args() {
 		return array(
-			array(
+			'all fields vs ids'                     => array(
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'ids',
 				),
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'all',
 				),
 			),
-			array(
+			'array taxonomy vs string taxonomy'     => array(
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'all',
 				),
 				array(
-					'taxonomy' => array( 'wptests_tax' ),
+					'taxonomy' => array( self::$taxonomy ),
 					'fields'   => 'all',
 				),
 			),
-			array(
+			'slug fields vs names fields'           => array(
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'names',
 				),
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'slugs',
 				),
 			),
-			array(
+			'mete cache off, pad count on  vs mete cache on, pad count off' => array(
 				array(
-					'taxonomy'               => 'wptests_tax',
+					'taxonomy'               => self::$taxonomy,
 					'pad_counts'             => true,
 					'update_term_meta_cache' => false,
 				),
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'ids',
 				),
 			),
-			array(
+			'array slug vs string slug'             => array(
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'all',
 					'slug'     => '',
 				),
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'all',
 					'slug'     => array(),
 				),
 			),
-			array(
+			'array object_ids vs string object_ids' => array(
 				array(
-					'taxonomy'   => 'wptests_tax',
+					'taxonomy'   => self::$taxonomy,
 					'fields'     => 'all',
 					'object_ids' => '',
 				),
 				array(
-					'taxonomy'   => 'wptests_tax',
+					'taxonomy'   => self::$taxonomy,
 					'fields'     => 'all',
 					'object_ids' => array(),
 				),
 			),
-			array(
+			'array term_taxonomy_id vs string term_taxonomy_id' => array(
 				array(
-					'taxonomy'         => 'wptests_tax',
+					'taxonomy'         => self::$taxonomy,
 					'fields'           => 'ids',
 					'term_taxonomy_id' => '',
 				),
 				array(
-					'taxonomy'         => 'wptests_tax',
+					'taxonomy'         => self::$taxonomy,
 					'fields'           => 'all',
 					'term_taxonomy_id' => array(),
 				),
 			),
-			array(
+			'array 1 slug vs string slug'           => array(
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'ids',
 					'slug'     => 'bar',
 				),
 				array(
-					'taxonomy' => 'wptests_tax',
+					'taxonomy' => self::$taxonomy,
 					'fields'   => 'all',
 					'slug'     => array( 'bar' ),
 				),
 			),
-			array(
+			'int object_ids vs array object_ids'    => array(
 				array(
-					'taxonomy'   => 'wptests_tax',
+					'taxonomy'   => self::$taxonomy,
 					'fields'     => 'ids',
 					'object_ids' => 1,
 				),
 				array(
-					'taxonomy'   => 'wptests_tax',
+					'taxonomy'   => self::$taxonomy,
 					'fields'     => 'all',
 					'object_ids' => array( 1 ),
 				),
 			),
-			array(
+			'string object_ids vs array object_ids' => array(
 				array(
-					'taxonomy'   => 'wptests_tax',
+					'taxonomy'   => self::$taxonomy,
 					'fields'     => 'ids',
 					'object_ids' => '1',
 				),
 				array(
-					'taxonomy'   => 'wptests_tax',
+					'taxonomy'   => self::$taxonomy,
 					'fields'     => 'all',
 					'object_ids' => array( 1 ),
 				),
 			),
-			array(
+			'int term_taxonomy_id vs array term_taxonomy_id and fields different' => array(
 				array(
-					'taxonomy'         => 'wptests_tax',
+					'taxonomy'         => self::$taxonomy,
 					'fields'           => 'ids',
 					'term_taxonomy_id' => 1,
 				),
 				array(
-					'taxonomy'         => 'wptests_tax',
-					'fields'           => 'all',
-					'term_taxonomy_id' => array( 1 ),
-				),
-			),
-			array(
-				array(
-					'taxonomy'         => 'wptests_tax',
-					'fields'           => 'ids',
-					'term_taxonomy_id' => '1',
-				),
-				array(
-					'taxonomy'         => 'wptests_tax',
+					'taxonomy'         => self::$taxonomy,
 					'fields'           => 'all',
 					'term_taxonomy_id' => array( 1 ),
 				),
