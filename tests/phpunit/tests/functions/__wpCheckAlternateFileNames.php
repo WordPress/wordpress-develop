@@ -9,7 +9,7 @@ class Tests_Functions_WpCheckAlternateFileNames extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_wp_check_alternate_file_names
 	 *
-	 * @ticket 55192
+	 * @ticket 55199
 	 *
 	 * @param array  $filenames Array of filenames to check.
 	 * @param string $dir       The directory to check.
