@@ -5,9 +5,7 @@
 class Tests_Readme extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::wp_remote_get
-	 * @covers ::wp_remote_retrieve_response_code
-	 * @covers ::wp_remote_retrieve_body
+	 * @coversNothing
 	 */
 	public function test_readme_php_version() {
 		// This test is designed to only run on trunk/master.
@@ -26,9 +24,7 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::wp_remote_get
-	 * @covers ::wp_remote_retrieve_response_code
-	 * @covers ::wp_remote_retrieve_body
+	 * @coversNothing
 	 */
 	public function test_readme_mysql_version() {
 		// This test is designed to only run on trunk/master.
@@ -58,9 +54,7 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::wp_remote_get
-	 * @covers ::wp_remote_retrieve_response_code
-	 * @covers ::wp_remote_retrieve_body
+	 * @coversNothing
 	 */
 	public function test_readme_mariadb_version() {
 		// This test is designed to only run on trunk/master.
