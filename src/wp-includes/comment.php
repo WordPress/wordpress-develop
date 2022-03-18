@@ -395,19 +395,19 @@ function get_comment_count( $post_id = 0 ) {
 
 	$where = '';
 	if ( $post_id > 0 ) {
-		$where = $wpdb->prepare( 'AND comment_post_ID = %d', $post_id );
+		$where = $wpdb->prepare( ' AND comment_post_ID = %d', $post_id );
 	}
 	$comment_count = array(
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'approved'            => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = '1' {$where}" ),
+		'approved'            => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = '1'{$where}" ),
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'awaiting_moderation' => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = '0' {$where}" ),
+		'awaiting_moderation' => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = '0'{$where}" ),
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'spam'                => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'spam' {$where}" ),
+		'spam'                => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'spam'{$where}" ),
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'trash'               => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'trash' {$where}" ),
+		'trash'               => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'trash'{$where}" ),
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'post-trashed'        => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'post-trashed' {$where}" ),
+		'post-trashed'        => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'post-trashed'{$where}" ),
 	);
 
 	$comment_count['all']            = $comment_count['approved'] + $comment_count['awaiting_moderation'];
