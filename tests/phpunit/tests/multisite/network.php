@@ -386,12 +386,15 @@ if ( is_multisite() ) :
 		 */
 		public function test_wp_update_network_counts_on_different_network() {
 			delete_network_option( self::$different_network_id, 'blog_count' );
+			delete_network_option( self::$different_network_id, 'user_count' );
 
 			wp_update_network_counts( self::$different_network_id );
 
 			$site_count = (int) get_blog_count( self::$different_network_id );
+			$user_count = (int) get_user_count( self::$different_network_id );
 
 			$this->assertGreaterThan( 0, $site_count );
+			$this->assertGreaterThan( 0, $user_count );
 		}
 
 		/**
