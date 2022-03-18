@@ -542,7 +542,6 @@ class WP_Term_Query {
 			$slug = implode( "', '", $args['slug'] );
 
 			$this->sql_clauses['where']['slug'] = "t.slug IN ('" . $slug . "')";
-
 		}
 
 		$args['term_taxonomy_id'] = is_string( $args['term_taxonomy_id'] ) && 0 === strlen( $args['term_taxonomy_id'] ) ? array() : array_map( 'intval', (array) $args['term_taxonomy_id'] );
