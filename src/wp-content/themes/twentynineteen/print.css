@@ -104,6 +104,7 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
   .post-navigation,
   .widget-area,
   .comment-form-flex,
+  .comment-form-wrapper,
   .comment-reply,
   .comment .comment-metadata .edit-link {
     display: none;
