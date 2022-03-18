@@ -42,6 +42,82 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that only galleries are returned.
+	 *
+	 * @dataProvider data_returns_only_galleries
+	 *
+	 * @ticket 55203
+	 *
+	 * @param string $content The content of the post.
+	 * @param string $needle  The content of a non-gallery block.
+	 */
+	public function test_returns_only_galleries( $content, $needle ) {
+		$image_id = $this->factory->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_parent'    => 0,
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+
+		$content = str_replace(
+			array( 'IMAGE_ID', 'IMAGE_URL' ),
+			array( $image_id, $image_url ),
+			$content
+		);
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => $content,
+			)
+		);
+
+		$galleries = get_post_galleries( $post_id );
+		$actual    = implode( '', $galleries );
+
+		$this->assertStringNotContainsString( $needle, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_returns_only_galleries() {
+		$gallery = '
+		<!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
+		<figure
+		class="wp-block-gallery has-nested-images columns-default is-cropped columns-2"
+		>
+		<!-- wp:image {"id":IMAGE_ID,"sizeSlug":"large","linkDestination":"none"} -->
+		<figure class="wp-block-image size-large">
+		<img
+		src="IMAGE_URL"
+		alt="Image gallery image"
+		class="wp-image-IMAGE_ID"
+		/>
+		</figure>
+		<!-- /wp:image -->
+		</figure>
+		<!-- /wp:gallery -->
+		';
+
+		return array(
+			'a paragraph before a gallery' => array(
+				'content' => '<!-- wp:paragraph --><p>A paragraph before a gallery.</p><!-- /wp:paragraph -->' . $gallery,
+				'needle'  => 'A paragraph before a gallery.',
+			),
+			'a paragraph after a gallery'  => array(
+				'content' => $gallery . '<!-- wp:paragraph --><p>A paragraph after a gallery.</p><!-- /wp:paragraph -->',
+				'needle'  => 'A paragraph after a gallery.',
+			),
+		);
+	}
+
+	/**
 	 * Test that no srcs are returned for a shortcode gallery
 	 * in a post with no attached images.
 	 *

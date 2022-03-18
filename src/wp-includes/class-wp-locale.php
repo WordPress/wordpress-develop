@@ -96,6 +96,14 @@ class WP_Locale {
 	public $number_format;
 
 	/**
+	 * The separator string used for localizing list item separator.
+	 *
+	 * @since 6.0.0
+	 * @var string
+	 */
+	public $list_item_separator;
+
+	/**
 	 * Constructor which calls helper methods to set up object variables.
 	 *
 	 * @since 2.1.0
@@ -209,6 +217,9 @@ class WP_Locale {
 
 		$this->number_format['decimal_point'] = ( 'number_format_decimal_point' === $decimal_point ) ? '.' : $decimal_point;
 
+		/* translators: used between list items, there is a space after the comma */
+		$this->list_item_separator = __( ', ' );
+
 		// Set text direction.
 		if ( isset( $GLOBALS['text_direction'] ) ) {
 			$this->text_direction = $GLOBALS['text_direction'];
@@ -220,7 +231,7 @@ class WP_Locale {
 	}
 
 	/**
-	 * Retrieve the full translated weekday word.
+	 * Retrieves the full translated weekday word.
 	 *
 	 * Week starts on translated Sunday and can be fetched
 	 * by using 0 (zero). So the week starts with 0 (zero)
@@ -236,7 +247,7 @@ class WP_Locale {
 	}
 
 	/**
-	 * Retrieve the translated weekday initial.
+	 * Retrieves the translated weekday initial.
 	 *
 	 * The weekday initial is retrieved by the translated
 	 * full weekday word. When translating the weekday initial
@@ -253,7 +264,7 @@ class WP_Locale {
 	}
 
 	/**
-	 * Retrieve the translated weekday abbreviation.
+	 * Retrieves the translated weekday abbreviation.
 	 *
 	 * The weekday abbreviation is retrieved by the translated
 	 * full weekday word.
@@ -268,7 +279,7 @@ class WP_Locale {
 	}
 
 	/**
-	 * Retrieve the full translated month by month number.
+	 * Retrieves the full translated month by month number.
 	 *
 	 * The $month_number parameter has to be a string
 	 * because it must have the '0' in front of any number
@@ -288,7 +299,7 @@ class WP_Locale {
 	}
 
 	/**
-	 * Retrieve translated version of month abbreviation string.
+	 * Retrieves translated version of month abbreviation string.
 	 *
 	 * The $month_name parameter is expected to be the translated or
 	 * translatable version of the month.
@@ -303,7 +314,7 @@ class WP_Locale {
 	}
 
 	/**
-	 * Retrieve translated version of meridiem string.
+	 * Retrieves translated version of meridiem string.
 	 *
 	 * The $meridiem parameter is expected to not be translated.
 	 *
@@ -350,7 +361,7 @@ class WP_Locale {
 	}
 
 	/**
-	 * Register date/time format strings for general POT.
+	 * Registers date/time format strings for general POT.
 	 *
 	 * Private, unused method to add some date/time formats translated
 	 * on wp-admin/options-general.php to the general POT that would
@@ -365,5 +376,16 @@ class WP_Locale {
 		__( 'g:i a' );
 		/* translators: Localized date and time format, see https://www.php.net/manual/datetime.format.php */
 		__( 'F j, Y g:i a' );
+	}
+
+	/**
+	 * Retrieves the localized list item separator.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @return string Localized list item separator.
+	 */
+	public function get_list_item_separator() {
+		return $this->list_item_separator;
 	}
 }

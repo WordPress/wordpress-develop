@@ -29,7 +29,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the function with an explicit content input.
+	 * Tests the function with an explicit content input.
 	 *
 	 * @since 5.3.0
 	 *
@@ -45,7 +45,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the function with an implicit content input.
+	 * Tests the function with an implicit content input.
 	 *
 	 * @since 5.3.0
 	 *
@@ -65,7 +65,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Dataprovider for `test_function_with_explicit_content_input()`
+	 * Data provider for `test_function_with_explicit_content_input()`
 	 * and `test_function_with_implicit_content_input()`.
 	 *
 	 * @since 5.3.0
