@@ -16,7 +16,7 @@ class Tests_Functions__WpCheckAlternateFileNames extends WP_UnitTestCase {
 	 * @param array $files An array of existing files in the directory.
 	 * @param boolean $expected Expected result.
 	 */
-	public function test__wp_check_alternate_file_names( $filenames, $dir, $files, $expected ) {
+	public function test_wp_check_alternate_file_names( $filenames, $dir, $files, $expected ) {
 
 		$this->assertSame( $expected, _wp_check_alternate_file_names( $filenames, $dir, $files ) );
 	}
