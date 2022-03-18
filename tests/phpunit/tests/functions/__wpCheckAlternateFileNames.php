@@ -4,7 +4,7 @@
  * @group functions.php
  * @covers ::_wp_check_existing_file_names
  */
-class Tests_Functions__WpCheckAlternateFileNames extends WP_UnitTestCase {
+class Tests_Functions_WpCheckAlternateFileNames extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_wp_check_alternate_file_names
