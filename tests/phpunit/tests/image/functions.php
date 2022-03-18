@@ -304,32 +304,42 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Test that a passed mime type overrides the extension in the filename
 	 *
+	 * @dataProvider data_mime_overrides_filename
+	 * @covers       WP_Image_Editor::get_mime_type
+	 * @covers       WP_Image_Editor::get_output_format
+	 *
 	 * @ticket 6821
 	 * @requires extension fileinfo
+	 *
+	 * @param string $class_name Name of the image editor engine class to be tested.
 	 */
-	public function test_mime_overrides_filename() {
-		$classes = $this->get_image_editor_engine_classes();
+	public function test_mime_overrides_filename( $class_name ) {
+		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
+		$loaded = $img->load();
 
-		// Test each image editor engine.
-		foreach ( $classes as $class ) {
-			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
-			$loaded = $img->load();
+		// Save the file.
+		$mime_type = 'image/gif';
+		$file      = wp_tempnam( 'tmp.jpg' );
+		$ret       = $img->save( $file, $mime_type );
 
-			// Save the file.
-			$mime_type = 'image/gif';
-			$file      = wp_tempnam( 'tmp.jpg' );
-			$ret       = $img->save( $file, $mime_type );
+		// Make assertions.
+		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
+		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned' );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image did not override file name' );
 
-			// Make assertions.
-			$this->assertNotEmpty( $ret );
-			$this->assertNotWPError( $ret );
-			$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
+		// Clean up.
+		unlink( $file );
+		unlink( $ret['path'] );
+		unset( $img );
+	}
 
-			// Clean up.
-			unlink( $file );
-			unlink( $ret['path'] );
-			unset( $img );
-		}
+	/**
+	 * Data Provider.
+	 *
+	 * @return array
+	 */
+	public function data_mime_overrides_filename() {
+		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
 	}
 
 	/**
