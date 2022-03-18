@@ -79,7 +79,6 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		$mysql_version = 'N/A';
 	}
 
-	$user_count = get_user_count();
 	if ( is_multisite() ) {
 		$num_blogs         = get_blog_count();
 		$wp_install        = network_site_url();
@@ -97,7 +96,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'mysql'              => $mysql_version,
 		'local_package'      => isset( $wp_local_package ) ? $wp_local_package : '',
 		'blogs'              => $num_blogs,
-		'users'              => $user_count,
+		'users'              => get_user_count(),
 		'multisite_enabled'  => $multisite_enabled,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
 	);
