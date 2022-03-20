@@ -320,6 +320,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					if ( true === $rotated && ! empty( $image_meta['image_meta']['orientation'] ) ) {
 						$image_meta['image_meta']['orientation'] = 1;
 					}
+					wp_update_attachment_metadata( $attachment_id, $image_meta );
 				} else {
 					// TODO: Log errors.
 				}
@@ -336,6 +337,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					$saved = $editor->save( $editor->generate_filename( 'scaled', null, $mime_extension_map[ $output_mime_type ] ), $output_mime_type );
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
+						wp_update_attachment_metadata( $attachment_id, $image_meta );
 					}
 				}
 			} else {
@@ -367,6 +369,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					if ( ! empty( $image_meta['image_meta']['orientation'] ) ) {
 						$image_meta['image_meta']['orientation'] = 1;
 					}
+					wp_update_attachment_metadata( $attachment_id, $image_meta );
 				} else {
 					// TODO: Log errors.
 				}
@@ -382,6 +385,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					$saved = $editor->save( $editor->generate_filename( 'rotated', null, $mime_extension_map[ $output_mime_type ] ), $output_mime_type );
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
+						wp_update_attachment_metadata( $attachment_id, $image_meta );
 					}
 				}
 			}
