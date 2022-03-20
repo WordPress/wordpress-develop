@@ -1886,6 +1886,20 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 		return $image;
 	}
 
+	// Only alter images with a `sources` attribute
+	if ( empty( $metadata['sources'] ) ) {
+		return $image;
+	};
+
+	// Only transform jpeg images.
+	$source_mimes = array( 'image/jpeg' );
+
+	// If the image primary mime isn't in the source mimes skip this image.
+	$primary_mime = wp_get_image_mime( $metadata['sources'][0]['file'] );
+	if ( ! in_array( $primary_mime, $source_mimes, true ) ) {
+		return $image;
+	}
+
 	$target_mimes = array( 'image/webp', 'image/jpeg' );
 
 	/**
@@ -1904,25 +1918,31 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 	if ( false === $target_mimes ) {
 		return $image;
 	}
+
 	// Find the appropriate size for the provided URL in the first available mime type.
 	foreach ( $target_mimes as $target_mime ) {
 		if ( ! isset( $metadata['sources'][ $target_mime ] ) || empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
 			continue;
 		}
 
-		// Handle sub-sized image replacement.
+		// Go through each image and replace with the first available mime type version.
 		foreach ( $metadata['sizes'] as $name => $size_data ) {
-			// Not the size we are looking for.
+			// Check if size has a file.
 			if ( empty( $size_data['file'] ) ) {
 				continue;
 			}
+
+			// Check if size has a source in the desired mime type.
 			if ( empty( $size_data['sources'][ $target_mime ]['file'] ) ) {
 				continue;
 			}
+			$target_file = $size_data['sources'][ $target_mime ]['file'];
+
+			// Replace the existing output image for this size.
 			$src_filename = wp_basename( $size_data['file'] );
 
 			// This is the same as the file we want to replace nothing to do here.
-			if ( $size_data['sources'][ $target_mime ]['file'] === $src_filename ) {
+			if ( $target_file === $src_filename ) {
 				continue;
 			}
 
