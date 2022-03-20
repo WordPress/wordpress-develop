@@ -335,6 +335,11 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 						continue;
 					}
 
+					if ( empty( $mime_extension_map[ $output_mime_type ] ) ) {
+						// Skip mime types that are not supported.
+						continue;
+					}
+
 					$saved = $editor->save( $editor->generate_filename( 'scaled', null, $mime_extension_map[ $output_mime_type ] ), $output_mime_type );
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
@@ -380,6 +385,11 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 					if ( is_wp_error( $editor ) ) {
 						// This image cannot be edited.
+						continue;
+					}
+
+					if ( empty( $mime_extension_map[ $output_mime_type ] ) ) {
+						// Skip mime types that are not supported.
 						continue;
 					}
 
@@ -550,7 +560,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 			'file'     => wp_basename( $file ),
 			'filesize' => isset( $image_meta['filesize'] ) ? $image_meta['filesize'] : wp_filesize( $file ),
 		);
-		wp_update_attachment_metadata( $attachment_id, $metadata );
+		wp_update_attachment_metadata( $attachment_id, $image_meta );
 
 	} else {
 		// Fall back to `$editor->multi_resize()`.
