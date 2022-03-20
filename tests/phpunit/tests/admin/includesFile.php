@@ -11,7 +11,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_home_path
 	 */
-	function test_get_home_path() {
+	public function test_get_home_path() {
 		$home    = get_option( 'home' );
 		$siteurl = get_option( 'siteurl' );
 		$sfn     = $_SERVER['SCRIPT_FILENAME'];

@@ -4,14 +4,14 @@
  * This class is designed to make use of MockFS, a Virtual in-memory filesystem compatible with WP_Filesystem
  */
 abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		add_filter( 'filesystem_method_file', array( $this, 'filter_abstraction_file' ) );
 		add_filter( 'filesystem_method', array( $this, 'filter_fs_method' ) );
 		WP_Filesystem();
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		global $wp_filesystem;
 		remove_filter( 'filesystem_method_file', array( $this, 'filter_abstraction_file' ) );
 		remove_filter( 'filesystem_method', array( $this, 'filter_fs_method' ) );
@@ -20,14 +20,14 @@ abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	function filter_fs_method( $method ) {
+	public function filter_fs_method( $method ) {
 		return 'MockFS';
 	}
-	function filter_abstraction_file( $file ) {
+	public function filter_abstraction_file( $file ) {
 		return dirname( dirname( __DIR__ ) ) . '/includes/mock-fs.php';
 	}
 
-	function test_is_MockFS_sane() {
+	public function test_is_MockFS_sane() {
 		global $wp_filesystem;
 		$this->assertInstanceOf( 'WP_Filesystem_MockFS', $wp_filesystem );
 
