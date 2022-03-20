@@ -257,8 +257,9 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	$upload_mime_transforms = wp_upload_image_mime_transforms( $attachment_id );
 	$mime_type              = wp_get_image_mime( $file );
 	$mime_extension_map     = array_flip( wp_get_mime_types() );
-
-	extract( _wp_extract_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type ) );
+	$mimes_to_generate      = _wp_get_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type );
+	$primary_mime_type      = isset( $mimes_to_generate['primary_mime_type'] ) ? $mimes_to_generate['primary_mime_type'] : array();
+	$additional_mime_types  = isset( $mimes_to_generate['additional_mime_types'] ) ? $mimes_to_generate['additional_mime_types'] : array();
 
 	// Do not scale (large) PNG images. May result in sub-sizes that have greater file size than the original. See #48736.
 	if ( 'image/png' !== $imagesize['mime'] ) {
@@ -479,8 +480,9 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	// Calculate the primary and additional mime types to generate.
 	$upload_mime_transforms = wp_upload_image_mime_transforms( $attachment_id );
 	$mime_type              = wp_get_image_mime( $file );
-
-	extract( _wp_extract_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type ) );
+	$mimes_to_generate      = _wp_get_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type );
+	$primary_mime_type      = isset( $mimes_to_generate['primary_mime_type'] ) ? $mimes_to_generate['primary_mime_type'] : array();
+	$additional_mime_types  = isset( $mimes_to_generate['additional_mime_types'] ) ? $mimes_to_generate['additional_mime_types'] : array();
 
 	/*
 	 * Sort the image sub-sizes in order of priority when creating them.
@@ -1249,8 +1251,8 @@ function _copy_image_file( $attachment_id ) {
  */
 function wp_upload_image_mime_transforms( $attachment_id ) {
 	$image_mime_transforms = array(
-		'image/jpeg'      => array( 'image/jpeg', 'image/webp' ),
-		'image/webp'      => array( 'image/webp', 'image/jpeg' ),
+		'image/jpeg' => array( 'image/jpeg', 'image/webp' ),
+		'image/webp' => array( 'image/webp', 'image/jpeg' ),
 	);
 
 	/**
@@ -1273,7 +1275,7 @@ function wp_upload_image_mime_transforms( $attachment_id ) {
  * @param $attachment_id int The attachment ID.
  * @param $mime_type string The mime type of the image.
  */
-function _wp_extract_primary_and_additional_mime_types( $image_mime_transforms, $attachment_id, $mime_type ) {
+function _wp_get_primary_and_additional_mime_types( $image_mime_transforms, $attachment_id, $mime_type ) {
 	$mime_type         = get_post_mime_type( $attachment_id );
 	$output_mime_types = isset( $image_mime_transforms[ $mime_type ] ) ? $image_mime_transforms[ $mime_type ] : array( $mime_type );
 
