@@ -1844,7 +1844,9 @@ function wp_filter_content_tags( $content, $context = null ) {
 			}
 
 			// Use alternate mime types when specified and available.
-			$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $attachment_id );
+			if ( $attachment_id > 0 ) {
+				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $attachment_id );
+			}
 
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
