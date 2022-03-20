@@ -868,7 +868,7 @@ class WP_Upgrader {
 				 * so in case the failure was due to a PHP timeout,
 				 * it will still be able to properly restore the previous version.
 				 */
-				add_action( 'shutdown', array( $this, 'restore_temp_backup_callback' ) );
+				add_action( 'shutdown', array( $this, 'restore_temp_backup' ) );
 			}
 			$this->skin->error( $result );
 
@@ -885,7 +885,7 @@ class WP_Upgrader {
 		// Clean up the backup kept in the temp-backup directory.
 		if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
 			// Delete the backup on `shutdown` to avoid a PHP timeout.
-			add_action( 'shutdown', array( $this, 'delete_temp_backup_callback' ) );
+			add_action( 'shutdown', array( $this, 'delete_temp_backup' ) );
 		}
 
 		if ( ! $options['is_multi'] ) {
@@ -1089,18 +1089,12 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array|string $args {
-	 *     Array of data for the temp-backup.
-	 *
-	 *     @type string $slug Plugin slug.
-	 *     @type string $src  File path to directory.
-	 *     @type string $dir  Directory name.
-	 * }
-	 *
 	 * @return bool|WP_Error
 	 */
-	public function restore_temp_backup( $args ) {
+	public function restore_temp_backup() {
 		global $wp_filesystem;
+
+		$args = $this->options['hook_extra']['temp_backup'];
 
 		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
 			return false;
@@ -1136,18 +1130,12 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array|string $args {
-	 *     Array of data for the temp-backup.
-	 *
-	 *     @type string $slug Plugin slug.
-	 *     @type string $src  File path to directory.
-	 *     @type string $dir  Directory name.
-	 * }
-	 *
 	 * @return bool|WP_Error
 	 */
-	public function delete_temp_backup( $args ) {
+	public function delete_temp_backup() {
 		global $wp_filesystem;
+
+		$args = $this->options['hook_extra']['temp_backup'];
 
 		if ( empty( $args['slug'] ) || empty( $args['dir'] ) ) {
 			return false;
@@ -1161,28 +1149,6 @@ class WP_Upgrader {
 			$wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}",
 			true
 		);
-	}
-
-	/**
-	 * Callback to restore rollback.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @return void
-	 */
-	public function restore_temp_backup_callback() {
-		$this->restore_temp_backup( $this->options['hook_extra']['temp_backup'] );
-	}
-
-	/**
-	 * Callback to delete rollback files.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @return void
-	 */
-	public function delete_temp_backup_callback() {
-		$this->delete_temp_backup( $this->options['hook_extra']['temp_backup'] );
 	}
 }
 
