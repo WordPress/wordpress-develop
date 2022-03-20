@@ -3194,6 +3194,32 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'term_taxonomy_id' => array( 1 ),
 				),
 			),
+			'same arguments in a different order' => array(
+				array(
+					'fields'           => 'ids',
+					'taxonomy'         => self::$taxonomy,
+					'term_taxonomy_id' => 1,
+				),
+				array(
+					'term_taxonomy_id' => 1,
+					'taxonomy'         => self::$taxonomy,
+					'fields'           => 'ids',
+				),
+			),
+			'invalid arguments discarded in cache key' => array(
+				array(
+					'fields'           => 'ids',
+					'taxonomy'         => self::$taxonomy,
+					'term_taxonomy_id' => 1,
+					'ticket_number'    => '55352',
+				),
+				array(
+					'fields'           => 'all',
+					'taxonomy'         => self::$taxonomy,
+					'term_taxonomy_id' => array( 1 ),
+					'focus'            => 'performance',
+				),
+			),
 		);
 	}
 
