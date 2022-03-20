@@ -682,9 +682,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$del_nonce     = esc_html( '_wpnonce=' . wp_create_nonce( 'delete-comment_' . $comment->comment_ID ) );
 		$approve_nonce = esc_html( '_wpnonce=' . wp_create_nonce( 'approve-comment_' . $comment->comment_ID ) );
 
-		$url = "comment.php?c=$comment->comment_ID";
 		$action_string = 'comment.php?action=%s&c=' . $comment->comment_ID . '&%s';
-
 		$approve_url   = sprintf(
 			$action_string,
 			'approvecomment',
