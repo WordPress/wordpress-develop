@@ -379,6 +379,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 				} else {
 					// TODO: Log errors.
 				}
+
 				// Save additional mime types.
 				foreach ( $additional_mime_types as $output_mime_type ) {
 					$editor = wp_get_image_editor( $file );
@@ -1280,8 +1281,9 @@ function _copy_image_file( $attachment_id ) {
  */
 function wp_upload_image_mime_transforms( $attachment_id ) {
 	$image_mime_transforms = array(
-		'image/jpeg' => array( 'image/jpeg', 'image/webp' ),
-		'image/webp' => array( 'image/webp', 'image/jpeg' ),
+		'image/jpeg'      => array( 'image/jpeg', 'image/webp' ),
+		'image/webp'      => array( 'image/webp', 'image/jpeg' ),
+		'application/pdf' => array( 'image/jpeg' ),
 	);
 
 	/**
