@@ -710,7 +710,11 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		),
 	);
 	$args     = wp_parse_args( $args, $defaults );
-	$items    = get_posts( $args );
+	if ( $menu->count > 0 ) {
+		$items = get_posts( $args );
+	} else {
+		$items = array();
+	}
 
 	// Get all posts and terms at once to prime the caches.
 	if ( empty( $fetched[ $menu->term_id ] ) && ! wp_using_ext_object_cache() ) {
