@@ -674,7 +674,7 @@ class WP_Term_Query {
 
 		$join .= " INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id";
 
-		if ( ! empty( $this->query_vars['object_ids'] ) || $args['fields'] === 'object_id' ) {
+		if ( ! empty( $this->query_vars['object_ids'] ) || 'object_id' === $args['fields'] ) {
 			$join    .= " INNER JOIN {$wpdb->term_relationships} AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 			$distinct = 'DISTINCT';
 		}
