@@ -641,6 +641,9 @@ class WP_Term_Query {
 				$order   = '';
 				$selects = array( 'COUNT(*)' );
 				break;
+			case 'object_id':
+				$selects = array( 't.term_id', 'tr.object_id' );
+				break;
 			default:
 				$selects = array( 't.term_id' );
 				if ( 'all_with_object_id' === $args['fields'] && ! empty( $args['object_ids'] ) ) {
@@ -671,7 +674,7 @@ class WP_Term_Query {
 
 		$join .= " INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id";
 
-		if ( ! empty( $this->query_vars['object_ids'] ) ) {
+		if ( ! empty( $this->query_vars['object_ids'] ) || $args['fields'] === 'object_id' ) {
 			$join    .= " INNER JOIN {$wpdb->term_relationships} AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 			$distinct = 'DISTINCT';
 		}
@@ -735,6 +738,9 @@ class WP_Term_Query {
 		if ( false !== $cache ) {
 			if ( 'ids' === $_fields ) {
 				$term_ids = wp_list_pluck( $cache, 'term_id' );
+				$cache    = array_map( 'intval', $term_ids );
+			} elseif ( 'object_id' === $_fields ) {
+				$term_ids = wp_list_pluck( $cache, 'object_id' );
 				$cache    = array_map( 'intval', $term_ids );
 			} elseif ( 'count' !== $_fields ) {
 				$term_ids = wp_list_pluck( $cache, 'term_id' );
@@ -871,6 +877,8 @@ class WP_Term_Query {
 		} elseif ( 'slug__in' === $_orderby && ! empty( $this->query_vars['slug'] ) && is_array( $this->query_vars['slug'] ) ) {
 			$slugs   = implode( "', '", array_map( 'sanitize_title_for_query', $this->query_vars['slug'] ) );
 			$orderby = "FIELD( t.slug, '" . $slugs . "')";
+		} elseif ( 'object_id' === $_orderby ) {
+			$orderby = 'tr.object_id';
 		} elseif ( 'none' === $_orderby ) {
 			$orderby = '';
 		} elseif ( empty( $_orderby ) || 'id' === $_orderby || 'term_id' === $_orderby ) {
@@ -923,6 +931,10 @@ class WP_Term_Query {
 		} elseif ( 'ids' === $_fields ) {
 			foreach ( $term_objects as $term ) {
 				$_terms[] = (int) $term->term_id;
+			}
+		} elseif ( 'object_id' === $_fields ) {
+			foreach ( $term_objects as $term ) {
+				$_terms[] = (int) $term->object_id;
 			}
 		} elseif ( 'tt_ids' === $_fields ) {
 			foreach ( $term_objects as $term ) {
