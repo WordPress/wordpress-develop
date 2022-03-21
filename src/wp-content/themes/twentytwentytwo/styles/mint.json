@@ -46,14 +46,12 @@
 							"fontFamily": "Bodoni Moda",
 							"fontWeight": "200 900",
 							"fontStyle": "normal",
-							"fontStretch": "normal",
 							"src": [ "file:./assets/fonts/bodoni-moda/BodoniModa.ttf" ]
 						},
 						{
 							"fontFamily": "Bodoni Moda",
 							"fontWeight": "200 900",
 							"fontStyle": "italic",
-							"fontStretch": "normal",
 							"src": [ "file:./assets/fonts/bodoni-moda/BodoniModa-italic.ttf" ]
 						}
 					]

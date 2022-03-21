@@ -44,28 +44,24 @@
 							"fontFamily": "DM Sans",
 							"fontWeight": "400",
 							"fontStyle": "normal",
-							"fontStretch": "normal",
 							"src": [ "file:./assets/fonts/dm-sans/DMSans-Regular.ttf" ]
 						},
 						{
 							"fontFamily": "DM Sans",
 							"fontWeight": "400",
 							"fontStyle": "italic",
-							"fontStretch": "normal",
 							"src": [ "file:./assets/fonts/dm-sans/DMSans-Italic.ttf" ]
 						},
 						{
 							"fontFamily": "DM Sans",
 							"fontWeight": "700",
 							"fontStyle": "normal",
-							"fontStretch": "normal",
 							"src": [ "file:./assets/fonts/dm-sans/DMSans-Bold.ttf" ]
 						},
 						{
 							"fontFamily": "DM Sans",
 							"fontWeight": "700",
 							"fontStyle": "italic",
-							"fontStretch": "normal",
 							"src": [ "file:./assets/fonts/dm-sans/DMSans-BoldItalic.ttf" ]
 						}
 					]
