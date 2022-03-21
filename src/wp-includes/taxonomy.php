@@ -863,13 +863,7 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 
 	$args = wp_parse_args( $args, $defaults );
 
-	$object_ids = get_terms( $args );
-
-	if ( is_wp_error( $object_ids ) ) {
-		return $object_ids;
-	}
-
-	return $object_ids;
+	return get_terms( $args );
 }
 
 /**
