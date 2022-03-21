@@ -61,7 +61,7 @@ $discussion = twentynineteen_get_discussion_data();
 			get_template_part( 'template-parts/post/discussion', 'meta' );
 		}
 		?>
-	</div><!-- .comments-title-flex -->
+	</div><!-- .comments-title-wrap -->
 	<?php
 	if ( have_comments() ) :
 
