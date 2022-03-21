@@ -144,4 +144,41 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		unset( $GLOBALS['authordata'] );
 	}
 
+	/**
+	 * @ticket 51859
+	 */
+	public function test_get_author_url() {
+		$author_url          = get_the_author_meta( 'url' );
+		$author_display_name = get_the_author();
+
+		$author_url_link_html = sprintf(
+			'<a href="%1$s" title="%2$s" rel="author external">%2$s</a>',
+			esc_url( $author_url ),
+			esc_attr( sprintf( 'Visit %s&#8217;s website', $author_display_name ) ),
+		);
+
+		$this->assertSame( get_the_author_link(), $author_url_link_html );
+	}
+
+	public function filter_get_the_author_link( $link, $url, $author_data ) {
+		return '<a href="' . $url . '">' . $author_data->display_name . '</a>';
+	}
+
+	/**
+	 * @ticket 51859
+	 */
+	public function test_filtered_get_author_url() {
+		$author_url          = get_the_author_meta( 'url' );
+		$author_display_name = get_the_author();
+
+		$expected_filtered_author_url_link_html = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			esc_url( $author_url ),
+			$author_display_name
+		);
+
+		add_filter( 'author_url_link_html', array( $this, 'filter_get_the_author_link' ), 10, 3 );
+
+		$this->assertSame( get_the_author_link(), $expected_filtered_author_link_html );
+	}
 }
