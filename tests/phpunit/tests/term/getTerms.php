@@ -3099,7 +3099,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'fields'   => 'slugs',
 				),
 			),
-			'mete cache off, pad count on  vs mete cache on, pad count off' => array(
+			'meta cache off, pad count on  vs meta cache on, pad count off' => array(
 				array(
 					'taxonomy'               => self::$taxonomy,
 					'pad_counts'             => true,
