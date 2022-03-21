@@ -216,6 +216,49 @@ class Tests_Filters extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53218
+	 */
+	public function test_filter_with_ref_value() {
+		$obj = new stdClass();
+		$ref = &$obj;
+		$a   = new MockAction();
+		$tag = __FUNCTION__;
+
+		add_action( $tag, array( $a, 'filter' ) );
+
+		$filtered = apply_filters( $tag, $ref );
+
+		$args = $a->get_args();
+		$this->assertSame( $args[0][0], $obj );
+		$this->assertSame( $filtered, $obj );
+		// Just in case we don't trust assertSame().
+		$obj->foo = true;
+		$this->assertNotEmpty( $args[0][0]->foo );
+		$this->assertNotEmpty( $filtered->foo );
+	}
+
+	/**
+	 * @ticket 53218
+	 */
+	public function test_filter_with_ref_argument() {
+		$obj = new stdClass();
+		$ref = &$obj;
+		$a   = new MockAction();
+		$tag = __FUNCTION__;
+		$val = 'Hello';
+
+		add_action( $tag, array( $a, 'filter' ), 10, 2 );
+
+		apply_filters( $tag, $val, $ref );
+
+		$args = $a->get_args();
+		$this->assertSame( $args[0][1], $obj );
+		// Just in case we don't trust assertSame().
+		$obj->foo = true;
+		$this->assertNotEmpty( $args[0][1]->foo );
+	}
+
+	/**
 	 * @ticket 9886
 	 */
 	public function test_filter_ref_array() {
