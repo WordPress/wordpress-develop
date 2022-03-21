@@ -8520,8 +8520,9 @@ function wp_is_large_user_count( $network_id = null ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param bool   $is_large_user_count Whether the site has more than 10000 users.
-	 * @param int    $count               The count of items for the component.
+	 * @param bool     $is_large_user_count Whether the site has a large number of users.
+	 * @param int      $count               The count of items for the component.
+	 * @param int|null $network_id          ID of the network. `null` represents the current network.
 	 */
 	return apply_filters( 'wp_is_large_user_count', $count > 10000, $count );
 }
