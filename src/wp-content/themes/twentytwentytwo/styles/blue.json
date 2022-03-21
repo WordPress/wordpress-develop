@@ -1,0 +1,120 @@
+{
+	"version": 2,
+	"settings": {
+		"color": {
+			"palette": [
+				{
+					"slug": "foreground",
+					"color": "#3F67C6",
+					"name": "Foreground"
+				},
+				{
+					"slug": "background",
+					"color": "#FCF5ED",
+					"name": "Background"
+				},
+				{
+					"slug": "primary",
+					"color": "#385BAD",
+					"name": "Primary"
+				},
+				{
+					"slug": "secondary",
+					"color": "#F7EBDD",
+					"name": "Secondary"
+				},
+				{
+					"slug": "tertiary",
+					"color": "#ffffff",
+					"name": "Tertiary"
+				}
+			]
+		},
+		"layout": {
+			"wideSize": "1060px"
+		},
+		"typography": {
+			"fontFamilies": [
+				{
+					"fontFamily": "\"DM Sans\", serif",
+					"name": "DM Sans",
+					"slug": "dm-sans",
+					"fontFace": [
+						{
+							"fontFamily": "DM Sans",
+							"fontWeight": "400",
+							"fontStyle": "normal",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/dm-sans/DMSans-Regular.ttf" ]
+						},
+						{
+							"fontFamily": "DM Sans",
+							"fontWeight": "400",
+							"fontStyle": "italic",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/dm-sans/DMSans-Italic.ttf" ]
+						},
+						{
+							"fontFamily": "DM Sans",
+							"fontWeight": "700",
+							"fontStyle": "normal",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/dm-sans/DMSans-Bold.ttf" ]
+						},
+						{
+							"fontFamily": "DM Sans",
+							"fontWeight": "700",
+							"fontStyle": "italic",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/dm-sans/DMSans-BoldItalic.ttf" ]
+						}
+					]
+				}
+			]
+		}
+	},
+	"styles": {
+		"blocks": {
+			"core/post-title": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			}
+		},
+		"elements": {
+			"h1": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h2": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h3": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h4": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h5": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h6": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			}
+		},
+		"typography": {
+			"fontFamily": "var(--wp--preset--font-family--dm-sans)"
+		}
+	}
+}
