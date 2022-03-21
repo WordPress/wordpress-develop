@@ -8496,8 +8496,8 @@ function wp_schedule_update_user_counts() {
 		return;
 	}
 
-	if ( ! wp_next_scheduled( 'update_user_counts' ) && ! wp_installing() ) {
-		wp_schedule_event( time(), 'twicedaily', 'update_user_counts' );
+	if ( ! wp_next_scheduled( 'wp_update_user_counts' ) && ! wp_installing() ) {
+		wp_schedule_event( time(), 'twicedaily', 'wp_update_user_counts' );
 	}
 }
 

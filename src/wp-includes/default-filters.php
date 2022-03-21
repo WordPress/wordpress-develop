@@ -100,7 +100,7 @@ add_filter( 'register_meta_args', '_wp_register_meta_args_allowed_list', 10, 2 )
 
 // Counts.
 add_action( 'admin_init', 'wp_schedule_update_user_counts' );
-add_action( 'update_user_counts', 'wp_schedule_update_user_counts', 10, 0 );
+add_action( 'wp_update_user_counts', 'wp_schedule_update_user_counts', 10, 0 );
 foreach ( array( 'user_register', 'deleted_user' ) as $action ) {
 	add_action( $action, 'wp_maybe_update_user_counts', 10, 0 );
 }
