@@ -1891,15 +1891,6 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 		return $image;
 	};
 
-	// Only transform jpeg images.
-	$source_mimes = array( 'image/jpeg' );
-
-	// If the image primary mime isn't in the source mimes skip this image.
-	$primary_mime = wp_get_image_mime( $metadata['sources'][0]['file'] );
-	if ( ! in_array( $primary_mime, $source_mimes, true ) ) {
-		return $image;
-	}
-
 	$target_mimes = array( 'image/webp', 'image/jpeg' );
 
 	/**
