@@ -2,6 +2,7 @@
 
 /**
  * @group user
+ * @covers ::get_user_count
  */
 class Tests_User_GetUserCount extends WP_UnitTestCase {
 	/**
@@ -22,7 +23,7 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 
 		wp_update_network_counts( $different_network_id );
 
-		$user_count = (int) get_user_count( $different_network_id );
+		$user_count = get_user_count( $different_network_id );
 
 		$this->assertGreaterThan( 0, $user_count );
 	}
@@ -87,7 +88,7 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
+	 * @ticket 38741
 	 */
 	public function test_get_user_count_update() {
 		wp_update_user_counts();
@@ -102,6 +103,7 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-excluded
+	 * @ticket 38741
 	 */
 	public function test_get_user_count_update_on_delete() {
 		$this->skipWithMultisite();
@@ -123,6 +125,7 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 * @ticket 38741
 	 */
 	public function test_get_user_count_update_on_delete_multisite() {
 		$this->skipWithoutMultisite();
@@ -145,6 +148,7 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 	/**
 	 * @group multisite
 	 * @group ms-required
+	 * @ticket 38741
 	 */
 	public function test_get_user_count() {
 		$this->skipWithoutMultisite();
