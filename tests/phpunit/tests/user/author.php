@@ -153,9 +153,10 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$author_display_name = get_the_author();
 
 		$author_url_link_html = sprintf(
-			'<a href="%1$s" title="%2$s" rel="author external">%2$s</a>',
+			'<a href="%1$s" title="%2$s" rel="author external">%3$s</a>',
 			esc_url( $author_url ),
-			esc_attr( sprintf( 'Visit %s&#8217;s website', $author_display_name ) )
+			esc_attr( sprintf( 'Visit %s&#8217;s website', $author_display_name ) ),
+			$author_display_name
 		);
 
 		$this->assertSame( get_the_author_link(), $author_url_link_html );
