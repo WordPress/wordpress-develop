@@ -205,10 +205,10 @@ class WP_Users_List_Table extends WP_List_Table {
 			$all_text = sprintf(
 				/* translators: %s: Number of users. */
 				_nx(
-						'All <span class="count">(%s)</span>',
-						'All <span class="count">(%s)</span>',
-						$total_users,
-						'users'
+					'All <span class="count">(%s)</span>',
+					'All <span class="count">(%s)</span>',
+					$total_users,
+					'users'
 				),
 				number_format_i18n( $total_users )
 			);
