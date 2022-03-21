@@ -3069,7 +3069,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	 */
 	public function data_same_term_args() {
 		return array(
-			'all fields vs ids'                     => array(
+			'all fields vs ids'                        => array(
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'ids',
@@ -3079,7 +3079,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'fields'   => 'all',
 				),
 			),
-			'array taxonomy vs string taxonomy'     => array(
+			'array taxonomy vs string taxonomy'        => array(
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'all',
@@ -3089,7 +3089,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'fields'   => 'all',
 				),
 			),
-			'slug fields vs names fields'           => array(
+			'slug fields vs names fields'              => array(
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'names',
@@ -3110,7 +3110,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'fields'   => 'ids',
 				),
 			),
-			'array slug vs string slug'             => array(
+			'array slug vs string slug'                => array(
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'all',
@@ -3122,7 +3122,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'slug'     => array(),
 				),
 			),
-			'array object_ids vs string object_ids' => array(
+			'array object_ids vs string object_ids'    => array(
 				array(
 					'taxonomy'   => self::$taxonomy,
 					'fields'     => 'all',
@@ -3146,7 +3146,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'term_taxonomy_id' => array(),
 				),
 			),
-			'array 1 slug vs string slug'           => array(
+			'array 1 slug vs string slug'              => array(
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'ids',
@@ -3158,7 +3158,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'slug'     => array( 'bar' ),
 				),
 			),
-			'int object_ids vs array object_ids'    => array(
+			'int object_ids vs array object_ids'       => array(
 				array(
 					'taxonomy'   => self::$taxonomy,
 					'fields'     => 'ids',
@@ -3170,7 +3170,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'object_ids' => array( 1 ),
 				),
 			),
-			'string object_ids vs array object_ids' => array(
+			'string object_ids vs array object_ids'    => array(
 				array(
 					'taxonomy'   => self::$taxonomy,
 					'fields'     => 'ids',
@@ -3194,7 +3194,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'term_taxonomy_id' => array( 1 ),
 				),
 			),
-			'same arguments in a different order' => array(
+			'same arguments in a different order'      => array(
 				array(
 					'fields'           => 'ids',
 					'taxonomy'         => self::$taxonomy,
