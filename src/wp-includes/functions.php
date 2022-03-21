@@ -8422,7 +8422,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 /**
  * Returns the number of active users in your installation.
  *
- * The count is cached and updated twice daily. This is not a live count.
+ * Note that on a large site the count may be cached and only updated twice daily.
  *
  * @since MU (3.0.0)
  * @since 4.8.0 The `$network_id` parameter has been added.
@@ -8441,12 +8441,14 @@ function get_user_count( $network_id = null ) {
 /**
  * Updates the total count of users on the site if live user counting is enabled.
  *
+ * @since 6.0.0
+ *
  * @param int|null $network_id ID of the network. Default is the current network.
  * @return bool Whether the update was successful.
  */
 function wp_maybe_update_user_counts( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $network_id if not using multisite.' ), '6.0.0' );
 	}
 
 	$is_small_network = ! wp_is_large_user_count( $network_id );
@@ -8521,7 +8523,7 @@ function wp_is_large_user_count( $network_id = null ) {
 	 * @since 6.0.0
 	 *
 	 * @param bool     $is_large_user_count Whether the site has a large number of users.
-	 * @param int      $count               The count of items for the component.
+	 * @param int      $count               The total number of users.
 	 * @param int|null $network_id          ID of the network. `null` represents the current network.
 	 */
 	return apply_filters( 'wp_is_large_user_count', $count > 10000, $count );
