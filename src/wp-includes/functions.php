@@ -8452,7 +8452,7 @@ function wp_maybe_update_user_counts( $network_id = null ) {
 	$is_small_network = ! wp_is_large_user_count( $network_id );
 	/** This filter is documented in wp-includes/ms-functions.php */
 	if ( ! apply_filters( 'enable_live_network_counts', $is_small_network, 'users' ) ) {
-		return;
+		return false;
 	}
 
 	return wp_update_user_counts( $network_id );
