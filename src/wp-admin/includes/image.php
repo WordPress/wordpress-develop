@@ -545,7 +545,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 				$new_size_meta = $editor->make_subsize( $new_size_data, $output_mime_type );
 
 				if ( ! is_wp_error( $new_size_meta ) ) {
-					$image_meta['sizes'][ $new_size_name ]['sources'][ $primary_mime_type ] = _wp_get_sources_from_meta( $new_size_meta );
+					$image_meta['sizes'][ $new_size_name ]['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $new_size_meta );
 					wp_update_attachment_metadata( $attachment_id, $image_meta );
 				}
 			}
