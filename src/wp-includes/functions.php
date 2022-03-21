@@ -8420,7 +8420,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 }
 
 /**
- * The number of active users in your installation.
+ * Returns the number of active users in your installation.
  *
  * The count is cached and updated twice daily. This is not a live count.
  *
@@ -8439,11 +8439,10 @@ function get_user_count( $network_id = null ) {
 }
 
 /**
- * Update the site-wide users count.
+ * Updates the total count of users on the site if live user counting is enabled.
  *
  * @param int|null $network_id ID of the network. Default is the current network.
- *
- * @return bool
+ * @return bool Whether the update was successful.
  */
 function wp_maybe_update_user_counts( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
@@ -8460,13 +8459,13 @@ function wp_maybe_update_user_counts( $network_id = null ) {
 }
 
 /**
- * Update the site-wide user count.
+ * Updates the total count of users on the site.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  * @since 6.0.0
- * @param int|null $network_id ID of the network. Default is the current network.
  *
- * @return bool
+ * @param int|null $network_id ID of the network. Default is the current network.
+ * @return bool Whether the update was successful.
  */
 function wp_update_user_counts( $network_id = null ) {
 	global $wpdb;
@@ -8486,7 +8485,7 @@ function wp_update_user_counts( $network_id = null ) {
 }
 
 /**
- * Schedule update user counts.
+ * Schedules a recurring recalculation of the total count of users.
  *
  * @since 6.0.0
  */
@@ -8501,12 +8500,14 @@ function wp_schedule_update_user_counts() {
 }
 
 /**
- * Determine whether the site has a large number of users.
+ * Determines whether the site has a large number of users.
+ *
+ * The default criteria for a large site is more than 10,000 users.
  *
  * @since 6.0.0
  *
  * @param int|null $network_id ID of the network. Default is the current network.
- * @return bool
+ * @return bool Whether the site has a large number of users.
  */
 function wp_is_large_user_count( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
