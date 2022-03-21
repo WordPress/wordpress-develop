@@ -693,6 +693,10 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 
 	static $fetched = array();
 
+	if ( ! taxonomy_exists( 'nav_menu' ) ) {
+		return false;
+	}
+
 	$defaults = array(
 		'order'       => 'ASC',
 		'orderby'     => 'menu_order',
