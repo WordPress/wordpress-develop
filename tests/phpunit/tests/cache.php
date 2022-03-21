@@ -378,7 +378,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 20875
 	 */
-	public function test_get_multiple() {
+	public function test_wp_cache_get_multiple() {
 		wp_cache_set( 'foo1', 'bar', 'group1' );
 		wp_cache_set( 'foo2', 'bar', 'group1' );
 		wp_cache_set( 'foo1', 'bar', 'group2' );
@@ -471,19 +471,5 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $key, 'group-test' ), 'test_wp_cache_flush_groups: group-test should return false' );
 		$this->assertFalse( wp_cache_get( $key, 'group-test2' ), 'test_wp_cache_flush_groups: group-test2 should return false' );
 		$this->assertSame( $val, wp_cache_get( $key, 'group-kept' ), 'test_wp_cache_flush_groups: group-kept should still contain my-val' );
-	}
-}
-class WP_Object_Cache_dummy {
-	public function dummy_function() {
-		return true;
-	}
-	public function flush() {
-		return;
-	}
-	public function add_global_groups() {
-		return;
-	}
-	public function set() {
-		return;
 	}
 }
