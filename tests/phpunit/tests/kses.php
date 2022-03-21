@@ -494,9 +494,12 @@ EOF;
 
 		foreach ( $tags as $tag ) {
 			$this->assertTrue( $tag['class'] );
+			$this->assertTrue( $tag['dir'] );
 			$this->assertTrue( $tag['id'] );
+			$this->assertTrue( $tag['lang'] );
 			$this->assertTrue( $tag['style'] );
 			$this->assertTrue( $tag['title'] );
+			$this->assertTrue( $tag['xml:lang'] );
 		}
 
 		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
