@@ -8466,10 +8466,9 @@ function wp_update_user_counts( $network_id = null ) {
 		 _doing_it_wrong( __FUNCTION__, __( 'Unable to pass $network_id if not using multisite.' ), '6.0.0' );
 	}
 
+	$query = "SELECT COUNT(ID) as c FROM $wpdb->users";
 	if ( is_multisite() ) {
-		$query = "SELECT COUNT(ID) as c FROM $wpdb->users WHERE spam = '0' AND deleted = '0'";
-	} else {
-		$query = "SELECT COUNT(ID) as c FROM $wpdb->users";
+		$query .= " WHERE spam = '0' AND deleted = '0'";
 	}
 
 	$count = $wpdb->get_var( $query );
