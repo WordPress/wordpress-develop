@@ -19,6 +19,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 				'user_login'   => 'test_author',
 				'display_name' => 'Test Author',
 				'description'  => 'test_author',
+				'user_url'     => 'http://example.com',
 			)
 		);
 
@@ -147,7 +148,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 51859
 	 */
-	public function test_get_author_url() {
+	public function test_get_author_url_link() {
 		$author_url          = get_the_author_meta( 'url' );
 		$author_display_name = get_the_author();
 
@@ -160,14 +161,14 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$this->assertSame( get_the_author_link(), $author_url_link_html );
 	}
 
-	public function filter_get_the_author_link( $link, $url, $author_data ) {
+	public function filter_author_url_link_html( $link, $url, $author_data ) {
 		return '<a href="' . $url . '">' . $author_data->display_name . '</a>';
 	}
 
 	/**
 	 * @ticket 51859
 	 */
-	public function test_filtered_get_author_url() {
+	public function test_filtered_get_author_url_link() {
 		$author_url          = get_the_author_meta( 'url' );
 		$author_display_name = get_the_author();
 
@@ -177,8 +178,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 			$author_display_name
 		);
 
-		add_filter( 'author_url_link_html', array( $this, 'filter_get_the_author_link' ), 10, 3 );
+		add_filter( 'author_url_link_html', array( $this, 'filter_author_url_link_html' ), 10, 3 );
 
-		$this->assertSame( get_the_author_link(), $expected_filtered_author_link_html );
+		$this->assertSame( get_the_author_link(), $expected_filtered_author_url_link_html );
 	}
 }
