@@ -425,7 +425,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		// Populate the top level additional mime type data.
 		foreach ( $additional_mime_types as $output_mime_type ) {
 			if ( empty( $image_meta['sources'][ $output_mime_type ] ) ) {
-				$saved = $editor->save( $editor->generate_filename( '', null, $mime_extension_map[ $output_mime_type ] ), $output_mime_type );
+				$saved = $editor->save( $editor->generate_filename( str_replace( 'image/', '', $output_mime_type ) ), $output_mime_type );
 				if ( ! is_wp_error( $saved ) ) {
 					$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 					wp_update_attachment_metadata( $attachment_id, $image_meta );
@@ -559,14 +559,14 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		// Make the primarey mime type sub sized images
 		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
 			$new_size_meta = $editor->make_subsize( $new_size_data, $primary_mime_type );
-			if ( ! isset( $image_meta['sizes'][ $new_size_name ]['sources'] ) ) {
-				$image_meta['sizes'][ $new_size_name ]['sources'] = array();
-			}
 			if ( is_wp_error( $new_size_meta ) ) {
 				// TODO: Log errors.
 			} else {
 				// Save the size meta value.
 				$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+				if ( ! isset( $image_meta['sizes'][ $new_size_name ]['sources'] ) ) {
+					$image_meta['sizes'][ $new_size_name ]['sources'] = array();
+				}
 				$image_meta['sizes'][ $new_size_name ]['sources'][ $primary_mime_type ] = _wp_get_sources_from_meta( $new_size_meta );
 				wp_update_attachment_metadata( $attachment_id, $image_meta );
 			}
