@@ -734,7 +734,7 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		}
 
 		if ( ! empty( $posts ) ) {
-			_prime_post_caches( $posts );
+			_prime_post_caches( $posts, false );
 		}
 		unset( $posts );
 
