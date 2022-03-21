@@ -727,36 +727,19 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 			$type      = get_post_meta( $item->ID, '_menu_item_type', true );
 
 			if ( 'post_type' === $type ) {
-				$posts[ $object ][] = $object_id;
+				$posts[] = $object_id;
 			} elseif ( 'taxonomy' === $type ) {
-				$terms[ $object ][] = $object_id;
+				$terms[] = $object_id;
 			}
 		}
 
 		if ( ! empty( $posts ) ) {
-			foreach ( array_keys( $posts ) as $post_type ) {
-				get_posts(
-					array(
-						'post__in'               => $posts[ $post_type ],
-						'post_type'              => $post_type,
-						'nopaging'               => true,
-						'update_post_term_cache' => false,
-					)
-				);
-			}
+			_prime_post_caches( $posts );
 		}
 		unset( $posts );
 
 		if ( ! empty( $terms ) ) {
-			foreach ( array_keys( $terms ) as $taxonomy ) {
-				get_terms(
-					array(
-						'taxonomy'     => $taxonomy,
-						'include'      => $terms[ $taxonomy ],
-						'hierarchical' => false,
-					)
-				);
-			}
+			_prime_term_caches( $terms );
 		}
 		unset( $terms );
 	}
