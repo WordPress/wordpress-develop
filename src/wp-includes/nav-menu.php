@@ -719,29 +719,29 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 	// Get all posts and terms at once to prime the caches.
 	if ( empty( $fetched[ $menu->term_id ] ) && ! wp_using_ext_object_cache() ) {
 		$fetched[ $menu->term_id ] = true;
-		$posts                     = array();
-		$terms                     = array();
+		$post_ids                  = array();
+		$term_ids                  = array();
 		foreach ( $items as $item ) {
 			$object_id = get_post_meta( $item->ID, '_menu_item_object_id', true );
 			$object    = get_post_meta( $item->ID, '_menu_item_object', true );
 			$type      = get_post_meta( $item->ID, '_menu_item_type', true );
 
 			if ( 'post_type' === $type ) {
-				$posts[] = $object_id;
+				$post_ids[] = $object_id;
 			} elseif ( 'taxonomy' === $type ) {
-				$terms[] = $object_id;
+				$term_ids[] = $object_id;
 			}
 		}
 
-		if ( ! empty( $posts ) ) {
-			_prime_post_caches( $posts, false );
+		if ( ! empty( $post_ids ) ) {
+			_prime_post_caches( $post_ids, false );
 		}
-		unset( $posts );
+		unset( $post_ids );
 
-		if ( ! empty( $terms ) ) {
-			_prime_term_caches( $terms );
+		if ( ! empty( $term_ids ) ) {
+			_prime_term_caches( $term_ids );
 		}
-		unset( $terms );
+		unset( $term_ids );
 	}
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
