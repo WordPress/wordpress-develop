@@ -6449,7 +6449,6 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 
 	$uploadpath = wp_get_upload_dir();
 	$deleted    = true;
-	$mime_type  = wp_get_image_mime( $file );
 
 	if ( ! empty( $meta['thumb'] ) ) {
 		// Don't delete the thumb if another attachment uses it.
@@ -6482,10 +6481,11 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 				}
 			}
 			// Check for alternate size mime types in the sizeinfo['sources'] array to delete.
-			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) ) {
+			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) && 1 < sizeof( $sizeinfo['sources'] ) ) {
+				$index = 0;
 				foreach ( $sizeinfo['sources'] as $mime => $properties ) {
-					// Skip the default mime type.
-					if ( $mime_type === $mime ) {
+					// Skip the first mime type which was already deleted.
+					if ( 0 === $index++ ) {
 						continue;
 					}
 
@@ -6521,9 +6521,10 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 	// Check for alternate full size mime types in the root sources array to delete.
 	if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
 		if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
+			$index = 0;
 			foreach ( $meta['sources'] as $mime => $properties ) {
-				// Skip the default mime type.
-				if ( $mime_type === $mime ) {
+				// Skip the first (primary) large image which was already deleted.
+				if ( 0 === $index++ ) {
 					continue;
 				}
 
@@ -6576,7 +6577,7 @@ function _wp_delete_alternate_mime_sizes( $sources, $intermediate_dir, $file ) {
 	$deleted = true;
 	$index   = 0;
 	foreach ( $sources as $mime => $properties ) {
-		// Skip the default mime type.]
+		// Skip the first (primary) large image which was already deleted.
 		if ( 0 === $index++ ) {
 			continue;
 		}
