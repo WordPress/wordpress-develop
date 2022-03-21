@@ -50,7 +50,6 @@
 						{
 							"fontFamily": "Inter",
 							"fontWeight": "200 900",
-							"fontStyle": "normal",
 							"fontStretch": "normal",
 							"src": [ "file:./assets/fonts/inter/Inter.ttf" ]
 						}
