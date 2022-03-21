@@ -48,7 +48,7 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 
 		$user_count = get_user_count( $different_network_id );
 
-		$this->assertEquals( $current_network_user_count + 1, $user_count );
+		$this->assertSame( $current_network_user_count + 1, $user_count );
 	}
 
 	/**
@@ -79,10 +79,8 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 		self::factory()->user->create( array( 'role' => 'administrator' ) );
 
 		$count = get_user_count();
-		$this->assertEquals( $start_count + 1, $count );
+		$this->assertSame( $start_count + 1, $count );
 
-		remove_filter( 'enable_live_network_counts', '__return_false' );
-		remove_filter( 'enable_live_network_counts', '__return_true' );
 	}
 
 	/**
@@ -96,7 +94,7 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 
 		$user_count = get_user_count();
 
-		$this->assertEquals( $current_network_user_count + 1, $user_count );
+		$this->assertSame( $current_network_user_count + 1, $user_count );
 	}
 
 	/**
@@ -110,13 +108,13 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 
 		$user_count = get_user_count();
 
-		$this->assertEquals( $current_network_user_count + 1, $user_count );
+		$this->assertSame( $current_network_user_count + 1, $user_count );
 
 		wp_delete_user( $u1 );
 
 		$user_count_after_delete = get_user_count();
 
-		$this->assertEquals( $user_count - 1, $user_count_after_delete );
+		$this->assertSame( $user_count - 1, $user_count_after_delete );
 	}
 
 	/**
@@ -130,13 +128,13 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 
 		$user_count = get_user_count();
 
-		$this->assertEquals( $current_network_user_count + 1, $user_count );
+		$this->assertSame( $current_network_user_count + 1, $user_count );
 
 		wpmu_delete_user( $u1 );
 
 		$user_count_after_delete = get_user_count();
 
-		$this->assertEquals( $user_count - 1, $user_count_after_delete );
+		$this->assertSame( $user_count - 1, $user_count_after_delete );
 	}
 
 	/**
@@ -158,7 +156,6 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 		wp_update_network_counts(); // Magic happens here.
 
 		$count = get_user_count();
-		$this->assertEquals( $start_count + 1, $count );
-		remove_filter( 'enable_live_network_counts', '__return_false' );
+		$this->assertSame( $start_count + 1, $count );
 	}
 }

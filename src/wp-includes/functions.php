@@ -8411,21 +8411,20 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 }
 
 /**
- **
  * The number of active users in your installation.
  *
  * The count is cached and updated twice daily. This is not a live count.
  *
  * @since MU (3.0.0)
  * @since 4.8.0 The `$network_id` parameter has been added.
- * @since 6.0.0 Make to function.php.
+ * @since 6.0.0 Move to wp-includes/functions.php.
  *
  * @param int|null $network_id ID of the network. Default is the current network.
  * @return int Number of active users on the network.
  */
 function get_user_count( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $network_id if not using multisite.' ), '6.0.0' );
 	}
 	return (int) get_network_option( $network_id, 'user_count', -1 );
 }
@@ -8452,10 +8451,10 @@ function wp_maybe_update_user_counts( $network_id = null ) {
 }
 
 /**
- * Update the site widge user count.
+ * Update the site-wide user count.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
- *
+ * @since 6.0.0
  * @param int|null $network_id ID of the network. Default is the current network.
  *
  * @return bool
@@ -8479,7 +8478,7 @@ function wp_update_user_counts( $network_id = null ) {
 }
 
 /**
- * Schedule update users.
+ * Schedule update user counts.
  *
  * @since 6.0.0
  */
@@ -8494,16 +8493,16 @@ function wp_schedule_update_user_counts() {
 }
 
 /**
- * Determine
+ * Determine whether the site has a large number of users.
  *
  * @since 6.0.0
  *
  * @param int|null $network_id ID of the network. Default is the current network.
- * @return boolean
+ * @return bool
  */
 function wp_is_large_user_count( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $network_id if not using multisite.' ), '6.0.0' );
 	}
 	$count = get_user_count( $network_id );
 
