@@ -1845,7 +1845,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 
 			// Use alternate mime types when specified and available.
 			if ( $attachment_id > 0 ) {
-				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $attachment_id );
+				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
 			}
 
 			if ( $filtered_image !== $match[0] ) {
@@ -1877,10 +1877,11 @@ function wp_filter_content_tags( $content, $context = null ) {
  * @since 6.0.0
  *
  * @param string $image         The HTML `img` tag where the attribute should be added.
+ * @param string $context       Additional context to pass to the filters.
  * @param int    $attachment_id The attachment ID.
  * @return string Converted `img` tag with `loading` attribute added.
  */
-function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
+function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 	$metadata = wp_get_attachment_metadata( $attachment_id );
 	if ( empty( $metadata['file'] ) ) {
 		return $image;
@@ -1900,11 +1901,12 @@ function wp_image_use_alternate_mime_types( $image, $attachment_id ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param array $target_mimes  The image output mime type and order. Default is array( 'image/webp', 'image/jpeg' ).
-	 * @param int   $attachment_id The attachment ID.
+	 * @param array  $target_mimes  The image output mime type and order. Default is array( 'image/webp', 'image/jpeg' ).
+	 * @param int    $attachment_id The attachment ID.
+	 * @param string $context       Additional context to pass to the filters.
 	 * @return array The filtered output mime type and order. Return an empty array to skip mime type substitution.
 	 */
-	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes, $attachment_id );
+	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes, $attachment_id, $context );
 
 	if ( false === $target_mimes ) {
 		return $image;
