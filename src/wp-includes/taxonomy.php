@@ -1559,6 +1559,18 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 		$defaults['fields']   = 'all';
 	}
 
+	/**
+	 * Filter default arguments for checking if term exists.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array      $defaults An array of arguments for term_exists.
+	 * @param int|string $term     The term to check. Accepts term ID, slug, or name.
+	 * @param string     $taxonomy Optional. The taxonomy name to use.
+	 * @param int        $parent   Optional. ID of parent term under which to confine the exists search.
+	 */
+	$defaults = apply_filters( 'wp_term_exists_default_args', $defaults, $term, $taxonomy, $parent );
+
 	if ( is_int( $term ) ) {
 		if ( 0 === $term ) {
 			return 0;
