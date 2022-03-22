@@ -251,7 +251,7 @@ function get_the_author_link() {
 		 * @param string $author_url              Author's URL.
 		 * @param string $authordata              Author user data.
 		 */
-		return apply_filters( 'author_url_link_html', $author_url_link_html, $author_url, $authordata );
+		return apply_filters( 'the_author_link', $author_url_link_html, $author_url, $authordata );
 	} else {
 		return get_the_author();
 	}
