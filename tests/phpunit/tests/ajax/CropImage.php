@@ -136,8 +136,6 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @param array $response Response to validate.
-	 *
-	 * @return void
 	 */
 	private function validate_response( $response ) {
 		$this->assertArrayHasKey( 'success', $response, 'Response array must contain "success" key.' );
@@ -149,8 +147,6 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 	 * Prepares $_POST for crop-image ajax action.
 	 *
 	 * @param WP_Post $attachment
-	 *
-	 * @return void
 	 */
 	private function prepare_post( WP_Post $attachment ) {
 		$_POST = array(
