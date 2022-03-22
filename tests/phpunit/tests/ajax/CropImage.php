@@ -4,11 +4,12 @@
  * Admin Ajax functions to be tested.
  */
 require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
+
 require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
 require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 
 /**
- * Testing Add Meta AJAX functionality.
+ * Class for testing ajax crop image functionality.
  *
  * @group ajax
  */
