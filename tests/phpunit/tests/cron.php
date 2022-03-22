@@ -297,7 +297,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 18997
 	 *
-	 * @covers ::wp_clear_scheduled_hook
+	 * @covers ::wp_unschedule_hook
 	 */
 	public function test_unschedule_hook() {
 		$hook = __FUNCTION__;
@@ -320,7 +320,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::wp_clear_scheduled_hook
+	 * @covers ::wp_unschedule_hook
 	 */
 	public function test_unschedule_undefined_hook() {
 		$hook           = __FUNCTION__;
@@ -418,6 +418,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @ticket 32656
 	 *
 	 * @covers ::wp_schedule_single_event
+	 * @covers ::wp_schedule_event
 	 */
 	public function test_pre_schedule_event_filter() {
 		$hook = __FUNCTION__;
@@ -471,7 +472,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 *
 	 * @ticket 32656
 	 *
-	 * @covers ::wp_schedule_event
+	 * @covers ::wp_reschedule_event
 	 */
 	public function test_pre_reschedule_event_filter() {
 		$hook = __FUNCTION__;
@@ -524,6 +525,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @ticket 32656
 	 *
 	 * @covers ::wp_clear_scheduled_hook
+	 * @covers ::wp_unschedule_hook
 	 */
 	public function test_pre_clear_scheduled_hook_filters() {
 		$hook = __FUNCTION__;
@@ -557,6 +559,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @ticket 32656
 	 *
 	 * @covers ::wp_get_scheduled_event
+	 * @covers ::wp_next_scheduled
 	 */
 	public function test_pre_scheduled_event_hooks() {
 		add_filter( 'pre_get_scheduled_event', array( $this, 'filter_pre_scheduled_event_hooks' ) );
@@ -710,7 +713,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 *
 	 * @ticket 44818
 	 *
-	 * @covers ::wp_get_scheduled_event
+	 * @covers ::wp_schedule_single_event
 	 */
 	public function test_duplicate_past_event() {
 		$hook = __FUNCTION__;
@@ -739,7 +742,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 *
 	 * @ticket 44818
 	 *
-	 * @covers ::wp_get_scheduled_event
+	 * @covers ::wp_schedule_single_event
 	 */
 	public function test_duplicate_near_future_event() {
 		$hook = __FUNCTION__;
@@ -769,7 +772,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 *
 	 * @ticket 44818
 	 *
-	 * @covers ::wp_get_scheduled_event
+	 * @covers ::wp_schedule_single_event
 	 */
 	public function test_duplicate_future_event() {
 		$hook = __FUNCTION__;
@@ -795,7 +798,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 *
 	 * @ticket 44818
 	 *
-	 * @covers ::wp_get_scheduled_event
+	 * @covers ::wp_schedule_single_event
 	 */
 	public function test_not_duplicate_future_event() {
 		$hook = __FUNCTION__;
@@ -1229,7 +1232,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 49961
 	 *
-	 * @covers ::wp_schedule_event
+	 * @covers ::wp_unschedule_hook
 	 */
 	public function test_cron_array_error_is_returned_when_unscheduling_hook() {
 		// Schedule a valid event:
@@ -1255,7 +1258,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 49961
 	 *
-	 * @covers ::wp_schedule_event
+	 * @covers ::wp_unschedule_event
 	 */
 	public function test_cron_array_error_is_returned_when_unscheduling_event() {
 		// Schedule a valid event:
