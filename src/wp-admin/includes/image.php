@@ -326,13 +326,6 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 				// Save additional mime types.
 				foreach ( $additional_mime_types as $output_mime_type ) {
-					$editor = wp_get_image_editor( $file );
-
-					if ( is_wp_error( $editor ) ) {
-						// This image cannot be edited.
-						continue;
-					}
-
 					if ( empty( $mime_extension_map[ $output_mime_type ] ) ) {
 						// Skip mime types that are not supported.
 						continue;
