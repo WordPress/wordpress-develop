@@ -338,7 +338,8 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 				foreach ( $additional_mime_types as $output_mime_type ) {
 					$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
 					// @todo Correct issue where filename winds up with duplicate "-scaled" suffix added unless the editor is reset.
-					$saved = $editor->save( $editor->generate_filename( 'scaled', null, $extension ), $output_mime_type );
+					// adding extension to name for now.
+					$saved = $editor->save( $editor->generate_filename( $extension ), $output_mime_type );
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						wp_update_attachment_metadata( $attachment_id, $image_meta );
@@ -395,7 +396,8 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					foreach ( $additional_mime_types as $output_mime_type ) {
 						$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
 						// @todo Correct issue where filename winds up with duplicate "-rotated" suffix added unless the editor is reset.
-						$saved = $editor->save( $editor->generate_filename( 'rotated', null, $extension ), $output_mime_type );
+						// adding extension to name for now.
+						$saved = $editor->save( $editor->generate_filename( $extension ), $output_mime_type );
 						if ( ! is_wp_error( $saved ) ) {
 							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 							wp_update_attachment_metadata( $attachment_id, $image_meta );
