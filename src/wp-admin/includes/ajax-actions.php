@@ -3977,18 +3977,20 @@ function wp_ajax_crop_image() {
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 			/** @var WP_Post $original_attachment */
 			$original_attachment = get_post( $attachment_id );
-			$has_content = 0 < mb_strlen( trim( $original_attachment->post_content ) );
+			$has_title           = 0 < mb_strlen( trim( $original_attachment->post_title ) );
+			$has_description     = 0 < mb_strlen( trim( $original_attachment->post_content ) );
 
 			$object = array(
-				'post_title'     => wp_basename( $cropped ),
-				// Copy the image title (post_content field) from the original image.
-				'post_content'   => $has_content ? $original_attachment->post_content : $url,
+				// Copy the image title attribute (post_content field) from the original image.
+				'post_title'     => $has_title ? $original_attachment->post_title : wp_basename( $cropped ),
+				// Copy the image description attribute (post_content field) from the original image.
+				'post_content'   => $has_description ? $original_attachment->post_content : $url,
 				'post_mime_type' => $image_type,
 				'guid'           => $url,
 				'context'        => $context,
 			);
 
-			// Copy the image caption (post_excerpt field) from the original image.
+			// Copy the image caption attribute (post_excerpt field) from the original image.
 			if ( mb_strlen( trim( $original_attachment->post_excerpt ) ) ) {
 				$object['post_excerpt'] = $original_attachment->post_excerpt;
 			}
@@ -3996,7 +3998,7 @@ function wp_ajax_crop_image() {
 			$attachment_id = wp_insert_attachment( $object, $cropped );
 			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
 
-			// Copy the image alt text from the original image.
+			// Copy the image alt text attribute from the original image.
 			if ( mb_strlen( trim( $original_attachment->_wp_attachment_image_alt ) ) ) {
 				update_post_meta( $attachment_id, '_wp_attachment_image_alt', wp_slash( $original_attachment->_wp_attachment_image_alt ) );
 			}
