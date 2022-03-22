@@ -1462,7 +1462,7 @@ function wp_print_community_events_templates() {
 				<?php
 				printf(
 					/* translators: 1: The city the user searched for, 2: Meetup organization documentation URL. */
-					__( 'There are not any events scheduled near %1$s at the moment. Would you like to <a href="%2$s">organize a WordPress event</a>?' ),
+					__( 'There are no events scheduled near %1$s at the moment. Would you like to <a href="%2$s">organize a WordPress event</a>?' ),
 					'{{ data.location.description }}',
 					__( 'https://make.wordpress.org/community/handbook/meetup-organizer/welcome/' )
 				);
