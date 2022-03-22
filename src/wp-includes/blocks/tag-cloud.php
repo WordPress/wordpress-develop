@@ -26,7 +26,7 @@ function render_block_core_tag_cloud( $attributes ) {
 		$tag_cloud = esc_html(
 			sprintf(
 				/* translators: %s: taxonomy name */
-				__( 'Your site doesn&#8217;t have any %s, so there is nothing to display here at the moment.' ),
+				__( 'Your site doesn&#8217;t have any %s, so there&#8217;s nothing to display here at the moment.' ),
 				strtolower( $labels->name )
 			)
 		);
