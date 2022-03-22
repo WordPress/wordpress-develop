@@ -6,7 +6,8 @@
  * @group query
  */
 class Tests_Query_Stickies extends WP_UnitTestCase {
-	public static $posts = array();
+	public static $posts         = array();
+	protected $sticky_query_vars = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Set post times to get a reliable order.
@@ -103,5 +104,29 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 
 	public function set_post__not_in( $q ) {
 		$q->set( 'post__not_in', array( self::$posts[8] ) );
+	}
+
+	/**
+	 * @ticket 36907
+	 */
+	public function test_stickies_nest_query() {
+		add_filter( 'posts_pre_query', array( $this, 'get_query_from_filter' ), 10, 2 );
+		$this->go_to( '/' );
+
+		$q = $GLOBALS['wp_query'];
+		$this->assertNotEmpty( $this->sticky_query_vars['posts_per_page'] );
+		$this->assertSame( $q->query_vars['suppress_filters'], $this->sticky_query_vars['suppress_filters'] );
+		$this->assertSame( $q->query_vars['update_post_meta_cache'], $this->sticky_query_vars['update_post_meta_cache'] );
+		$this->assertSame( $q->query_vars['update_post_term_cache'], $this->sticky_query_vars['update_post_term_cache'] );
+		$this->assertSame( $q->query_vars['lazy_load_term_meta'], $this->sticky_query_vars['lazy_load_term_meta'] );
+		$this->assertSame( $q->query_vars['cache_results'], $this->sticky_query_vars['cache_results'] );
+	}
+
+	public function get_query_from_filter( $results, $query ) {
+		if ( ! empty( $query->query_vars['post__in'] ) && $query->query_vars['ignore_sticky_posts'] ) {
+			$this->sticky_query_vars = $query->query_vars;
+		}
+
+		return $results;
 	}
 }
