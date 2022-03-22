@@ -4,10 +4,10 @@
  * Tests related to sticky functionality in WP_Query.
  *
  * @group query
+ * @covers WP_Query::get_posts
  */
 class Tests_Query_Stickies extends WP_UnitTestCase {
-	public static $posts         = array();
-	protected $sticky_query_vars = array();
+	public static $posts = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Set post times to get a reliable order.
@@ -110,25 +110,20 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 	 * @ticket 36907
 	 */
 	public function test_stickies_nest_query() {
-		add_filter( 'posts_pre_query', array( $this, 'get_query_from_filter' ), 10, 2 );
+		$filter = new MockAction();
+		add_filter( 'posts_pre_query', array( $filter, 'filter' ), 10, 2 );
 		$this->go_to( '/' );
+		$filter_args       = $filter->get_args();
+		$query_vars        = $filter_args[0][1]->query_vars;
+		$sticky_query_vars = $filter_args[1][1]->query_vars;
 
-		$q = $GLOBALS['wp_query'];
-		$this->assertNotEmpty( $this->sticky_query_vars['posts_per_page'] );
-		$this->assertSame( $q->query_vars['suppress_filters'], $this->sticky_query_vars['suppress_filters'] );
-		$this->assertSame( $q->query_vars['update_post_meta_cache'], $this->sticky_query_vars['update_post_meta_cache'] );
-		$this->assertSame( $q->query_vars['update_post_term_cache'], $this->sticky_query_vars['update_post_term_cache'] );
-		$this->assertSame( $q->query_vars['lazy_load_term_meta'], $this->sticky_query_vars['lazy_load_term_meta'] );
-		$this->assertSame( $q->query_vars['cache_results'], $this->sticky_query_vars['cache_results'] );
-		$this->assertTrue( $this->sticky_query_vars['ignore_sticky_posts'] );
-		$this->assertTrue( $this->sticky_query_vars['no_found_rows'] );
-	}
-
-	public function get_query_from_filter( $results, $query ) {
-		if ( ! empty( $query->query_vars['post__in'] ) && $query->query_vars['ignore_sticky_posts'] ) {
-			$this->sticky_query_vars = $query->query_vars;
-		}
-
-		return $results;
+		$this->assertNotEmpty( $sticky_query_vars['posts_per_page'] );
+		$this->assertSame( $query_vars['suppress_filters'], $sticky_query_vars['suppress_filters'] );
+		$this->assertSame( $query_vars['update_post_meta_cache'], $sticky_query_vars['update_post_meta_cache'] );
+		$this->assertSame( $query_vars['update_post_term_cache'], $sticky_query_vars['update_post_term_cache'] );
+		$this->assertSame( $query_vars['lazy_load_term_meta'], $sticky_query_vars['lazy_load_term_meta'] );
+		$this->assertSame( $query_vars['cache_results'], $sticky_query_vars['cache_results'] );
+		$this->assertTrue( $sticky_query_vars['ignore_sticky_posts'] );
+		$this->assertTrue( $sticky_query_vars['no_found_rows'] );
 	}
 }

@@ -3271,7 +3271,6 @@ class WP_Query {
 						'post__in'               => $sticky_posts,
 						'post_type'              => $post_type,
 						'post_status'            => 'publish',
-						'posts_per_page'         => count( $sticky_posts ),
 						'suppress_filters'       => $q['suppress_filters'],
 						'update_post_meta_cache' => $q['update_post_meta_cache'],
 						'update_post_term_cache' => $q['update_post_term_cache'],
