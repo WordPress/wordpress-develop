@@ -256,10 +256,23 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	// Calculate the primary and additional mime types to generate.
 	$upload_mime_transforms = wp_upload_image_mime_transforms( $attachment_id );
 	$mime_type              = wp_get_image_mime( $file );
-	$mime_extension_map     = array_flip( wp_get_mime_types() );
 	list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type );
 	if ( empty( $primary_mime_type ) ) {
 		$primary_mime_type = $mime_type;
+	}
+
+	// Add a top level sources array for the full size images.
+	if ( ! isset( $image_meta['sources'] ) || ! is_array( $image_meta['sources'] ) ) {
+		$image_meta['sources'] = array();
+	}
+
+	// Populate the top level primary mime type data.
+	if ( empty( $image_meta['sources'][ $primary_mime_type ] ) ) {
+		$image_meta['sources'][ $primary_mime_type ] = array(
+			'file'     => wp_basename( $file ),
+			'filesize' => isset( $image_meta['filesize'] ) ? $image_meta['filesize'] : wp_filesize( $file ),
+		);
+		wp_update_attachment_metadata( $attachment_id, $image_meta );
 	}
 
 	// Do not scale (large) PNG images. May result in sub-sizes that have greater file size than the original. See #48736.
@@ -329,13 +342,9 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 				// Save additional mime types.
 				foreach ( $additional_mime_types as $output_mime_type ) {
-					if ( empty( $mime_extension_map[ $output_mime_type ] ) ) {
-						// Skip mime types that are not supported.
-						continue;
-					}
-
-					$extension = explode( '|', $mime_extension_map[ $output_mime_type ] )[0];
-					$saved     = $editor->save( $editor->generate_filename( 'scaled', null, $extension ), $output_mime_type );
+					$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
+					// @todo Correct issue where filename winds up with duplicate "-scaled" suffix added unless the editor is reset.
+					$saved = $editor->save( $editor->generate_filename( 'scaled', null, $extension ), $output_mime_type );
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						wp_update_attachment_metadata( $attachment_id, $image_meta );
@@ -377,47 +386,25 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 				// Save additional mime types.
 				foreach ( $additional_mime_types as $output_mime_type ) {
-					if ( empty( $mime_extension_map[ $output_mime_type ] ) ) {
-						// Skip mime types that are not supported.
-						continue;
-					}
-
-					$saved = $editor->save( $editor->generate_filename( 'rotated', null, $mime_extension_map[ $output_mime_type ] ), $output_mime_type );
+					$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
+					// @todo Correct issue where filename winds up with duplicate "-rotated" suffix added unless the editor is reset.
+					$saved = $editor->save( $editor->generate_filename( 'rotated', null, $extension ), $output_mime_type );
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						wp_update_attachment_metadata( $attachment_id, $image_meta );
 					}
 				}
 			}
-		}
-		// Ensure presence a top level sources array for the full size images.
-		if ( ! isset( $image_meta['sources'] ) || ! is_array( $image_meta['sources'] ) ) {
-			$image_meta['sources'] = array();
-		}
-
-		// Populate the top level primary mime type data.
-		if ( empty( $image_meta['sources'][ $primary_mime_type ] ) ) {
-			$image_meta['sources'][ $primary_mime_type ] = array(
-				'file'     => wp_basename( $file ),
-				'filesize' => isset( $image_meta['filesize'] ) ? $image_meta['filesize'] : wp_filesize( $file ),
-			);
-			wp_update_attachment_metadata( $attachment_id, $image_meta );
-		}
-
-		$editor = wp_get_image_editor( $file );
-
-		if ( is_wp_error( $editor ) ) {
-			// This image cannot be edited.
-			return $image_meta;
-		}
-
-		// Populate the top level additional mime type data.
-		foreach ( $additional_mime_types as $output_mime_type ) {
-			if ( empty( $image_meta['sources'][ $output_mime_type ] ) ) {
-				$saved = $editor->save( $editor->generate_filename( str_replace( 'image/', '', $output_mime_type ) ), $output_mime_type );
-				if ( ! is_wp_error( $saved ) ) {
-					$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
-					wp_update_attachment_metadata( $attachment_id, $image_meta );
+		} else {
+			// Populate the top level additional mime type data.
+			foreach ( $additional_mime_types as $output_mime_type ) {
+				if ( empty( $image_meta['sources'][ $output_mime_type ] ) ) {
+					$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
+					$saved     = $editor->save( $editor->generate_filename( null, null, $extension ), $output_mime_type );
+					if ( ! is_wp_error( $saved ) ) {
+						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
+						wp_update_attachment_metadata( $attachment_id, $image_meta );
+					}
 				}
 			}
 		}
@@ -1309,7 +1296,7 @@ function _wp_get_primary_and_additional_mime_types( $image_mime_transforms, $att
 	$additional_mime_types     = $output_mime_types;
 	list( $primary_mime_type ) = array_splice( $additional_mime_types, $primary_mime_type_key, 1 );
 	return array(
-		'primary_mime_type'     => $primary_mime_type,
-		'additional_mime_types' => $additional_mime_types,
+		$primary_mime_type,
+		$additional_mime_types,
 	);
 }
