@@ -298,11 +298,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		if ( is_wp_error( $resized ) ) {
 			$saved = $resized;
 		} else {
-			if ( $mime_type ) {
-				$saved = $this->_save( $resized, null, $mime_type );
-			} else {
-				$saved = $this->_save( $resized );
-			}
+			$saved = $this->_save( $resized, null, $mime_type );
 			imagedestroy( $resized );
 		}
 

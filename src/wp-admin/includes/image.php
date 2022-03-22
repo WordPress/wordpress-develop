@@ -257,9 +257,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	$upload_mime_transforms = wp_upload_image_mime_transforms( $attachment_id );
 	$mime_type              = wp_get_image_mime( $file );
 	$mime_extension_map     = array_flip( wp_get_mime_types() );
-	$mimes_to_generate      = _wp_get_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type );
-	$primary_mime_type      = isset( $mimes_to_generate['primary_mime_type'] ) ? $mimes_to_generate['primary_mime_type'] : array();
-	$additional_mime_types  = isset( $mimes_to_generate['additional_mime_types'] ) ? $mimes_to_generate['additional_mime_types'] : array();
+	list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type );
 
 	// Do not scale (large) PNG images. May result in sub-sizes that have greater file size than the original. See #48736.
 	if ( 'image/png' !== $imagesize['mime'] ) {
@@ -557,7 +555,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	}
 
 	if ( method_exists( $editor, 'make_subsize' ) ) {
-		// Make the primarey mime type sub sized images
+		// Make the primary mime type sub sized images
 		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
 			$new_size_meta = $editor->make_subsize( $new_size_data, $primary_mime_type );
 			if ( is_wp_error( $new_size_meta ) ) {
@@ -1301,6 +1299,7 @@ function wp_upload_image_mime_transforms( $attachment_id ) {
  * Extract the primary and additional mime output types for an image from the $image_mime_transforms.
  *
  * @since 6.0.0
+ * @access private
  *
  * @param $image_mime_transforms array<string, array<string>> An array of valid mime types, where the key is the mime type and the value is the extension type.
  * @param $attachment_id int The attachment ID.
