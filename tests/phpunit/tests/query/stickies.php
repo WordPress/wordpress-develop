@@ -120,6 +120,8 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 		$this->assertSame( $q->query_vars['update_post_term_cache'], $this->sticky_query_vars['update_post_term_cache'] );
 		$this->assertSame( $q->query_vars['lazy_load_term_meta'], $this->sticky_query_vars['lazy_load_term_meta'] );
 		$this->assertSame( $q->query_vars['cache_results'], $this->sticky_query_vars['cache_results'] );
+		$this->assertTrue( $this->sticky_query_vars['ignore_sticky_posts'] );
+		$this->assertTrue( $this->sticky_query_vars['no_found_rows'] );
 	}
 
 	public function get_query_from_filter( $results, $query ) {
