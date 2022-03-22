@@ -2271,11 +2271,11 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
 	 *
-	 *     @type int    $blog_id      Blog ID (unused).
-	 *     @type string $username     Username.
-	 *     @type string $password     Password.
-	 *     @type string $taxnomy_name Taxonomy name.
-	 *     @type int    $term_id      Term ID.
+	 *     @type int    $blog_id       Blog ID (unused).
+	 *     @type string $username      Username.
+	 *     @type string $password      Password.
+	 *     @type string $taxonomy_name Taxonomy name.
+	 *     @type int    $term_id       Term ID.
 	 * }
 	 * @return true|IXR_Error True on success, IXR_Error instance on failure.
 	 */
@@ -2344,7 +2344,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $blog_id  Blog ID (unused).
 	 *     @type string $username Username.
 	 *     @type string $password Password.
-	 *     @type string $taxnomy  Taxonomy name.
+	 *     @type string $taxonomy Taxonomy name.
 	 *     @type string $term_id  Term ID.
 	 * }
 	 * @return array|IXR_Error IXR_Error on failure, array on success, containing:
@@ -2417,7 +2417,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $blog_id  Blog ID (unused).
 	 *     @type string $username Username.
 	 *     @type string $password Password.
-	 *     @type string $taxnomy  Taxonomy name.
+	 *     @type string $taxonomy Taxonomy name.
 	 *     @type array  $filter   Optional. Modifies the query used to retrieve posts. Accepts 'number',
 	 *                            'offset', 'orderby', 'order', 'hide_empty', and 'search'. Default empty array.
 	 * }
@@ -2509,7 +2509,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $blog_id  Blog ID (unused).
 	 *     @type string $username Username.
 	 *     @type string $password Password.
-	 *     @type string $taxnomy  Taxonomy name.
+	 *     @type string $taxonomy Taxonomy name.
 	 *     @type array  $fields   Optional. Array of taxonomy fields to limit to in the return.
 	 *                            Accepts 'labels', 'cap', 'menu', and 'object_type'.
 	 *                            Default empty array.
@@ -6399,7 +6399,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		/**
 		 * Filters whether to preempt the XML-RPC media upload.
 		 *
-		 * Passing a truthy value will effectively short-circuit the media upload,
+		 * Returning a truthy value will effectively short-circuit the media upload,
 		 * returning that value as a 500 error instead.
 		 *
 		 * @since 2.1.0

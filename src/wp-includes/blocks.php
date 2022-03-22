@@ -20,10 +20,14 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
 	if ( 0 !== strpos( $asset_handle_or_path, $path_prefix ) ) {
 		return $asset_handle_or_path;
 	}
-	return substr(
+	$path = substr(
 		$asset_handle_or_path,
 		strlen( $path_prefix )
 	);
+	if ( strpos( $path, './' ) === 0 ) {
+		$path = substr( $path, 2 );
+	}
+	return $path;
 }
 
 /**
@@ -83,9 +87,11 @@ function register_block_script_handle( $metadata, $field_name ) {
 	}
 
 	$script_handle     = generate_block_asset_handle( $metadata['name'], $field_name );
-	$script_asset_path = realpath(
-		dirname( $metadata['file'] ) . '/' .
-		substr_replace( $script_path, '.asset.php', - strlen( '.js' ) )
+	$script_asset_path = wp_normalize_path(
+		realpath(
+			dirname( $metadata['file'] ) . '/' .
+			substr_replace( $script_path, '.asset.php', - strlen( '.js' ) )
+		)
 	);
 	if ( ! file_exists( $script_asset_path ) ) {
 		_doing_it_wrong(
@@ -100,9 +106,13 @@ function register_block_script_handle( $metadata, $field_name ) {
 		);
 		return false;
 	}
-	$is_core_block       = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
+	// Path needs to be normalized to work in Windows env.
+	$wpinc_path_norm  = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
+	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+
 	$script_uri          = $is_core_block ?
-		includes_url( str_replace( ABSPATH . WPINC, '', realpath( dirname( $metadata['file'] ) . '/' . $script_path ) ) ) :
+		includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) ) :
 		plugins_url( $script_path, $metadata['file'] );
 	$script_asset        = require $script_asset_path;
 	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
@@ -139,7 +149,8 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
-	$is_core_block = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
+	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
 	}
@@ -192,7 +203,7 @@ function register_block_style_handle( $metadata, $field_name ) {
  *
  * @since 5.9.0
  *
- * @return array The schema for block's metadata.
+ * @return object The schema for block's metadata.
  */
 function get_block_metadata_i18n_schema() {
 	static $i18n_block_schema;
@@ -232,7 +243,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
 		return false;
 	}
-	$metadata['file'] = $metadata_file;
+	$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
 
 	/**
 	 * Filters the metadata provided for registering a block type.
@@ -1157,7 +1168,7 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @since 5.9.0
  *
  * @param WP_Block $block   Block instance.
- * @param boolean  $is_next Flag for hanlding `next/previous` blocks.
+ * @param boolean  $is_next Flag for handling `next/previous` blocks.
  *
  * @return string|null Returns the constructed WP_Query arguments.
  */
@@ -1184,15 +1195,16 @@ function get_query_pagination_arrow( $block, $is_next ) {
 }
 
 /**
- * Enqueue a stylesheet for a specific block.
+ * Enqueues a stylesheet for a specific block.
  *
  * If the theme has opted-in to separate-styles loading,
  * then the stylesheet will be enqueued on-render,
  * otherwise when the block inits.
  *
+ * @since 5.9.0
+ *
  * @param string $block_name The block-name, including namespace.
  * @param array  $args       An array of arguments [handle,src,deps,ver,media].
- *
  * @return void
  */
 function wp_enqueue_block_style( $block_name, $args ) {
@@ -1213,8 +1225,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
 	 * @param string $content When the callback is used for the render_block filter,
 	 *                        the content needs to be returned so the function parameter
 	 *                        is to ensure the content exists.
-	 *
-	 * @return string
+	 * @return string Block content.
 	 */
 	$callback = static function( $content ) use ( $args ) {
 		// Register the stylesheet.
@@ -1231,7 +1242,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
 
 			// Add RTL stylesheet.
 			if ( file_exists( $rtl_file_path ) ) {
-				wp_style_add_data( $args['hanle'], 'rtl', 'replace' );
+				wp_style_add_data( $args['handle'], 'rtl', 'replace' );
 
 				if ( is_rtl() ) {
 					wp_style_add_data( $args['handle'], 'path', $rtl_file_path );
@@ -1247,7 +1258,31 @@ function wp_enqueue_block_style( $block_name, $args ) {
 
 	$hook = did_action( 'wp_enqueue_scripts' ) ? 'wp_footer' : 'wp_enqueue_scripts';
 	if ( wp_should_load_separate_core_block_assets() ) {
-		$hook = "render_block_$block_name";
+		/**
+		 * Callback function to register and enqueue styles.
+		 *
+		 * @param string $content The block content.
+		 * @param array  $block   The full block, including name and attributes.
+		 * @return string Block content.
+		 */
+		$callback_separate = static function( $content, $block ) use ( $block_name, $callback ) {
+			if ( ! empty( $block['blockName'] ) && $block_name === $block['blockName'] ) {
+				return $callback( $content );
+			}
+			return $content;
+		};
+
+		/*
+		 * The filter's callback here is an anonymous function because
+		 * using a named function in this case is not possible.
+		 *
+		 * The function cannot be unhooked, however, users are still able
+		 * to dequeue the stylesheets registered/enqueued by the callback
+		 * which is why in this case, using an anonymous function
+		 * was deemed acceptable.
+		 */
+		add_filter( 'render_block', $callback_separate, 10, 2 );
+		return;
 	}
 
 	/*
@@ -1268,9 +1303,10 @@ function wp_enqueue_block_style( $block_name, $args ) {
 /**
  * Allow multiple block styles.
  *
- * @param array $metadata Metadata for registering a block type.
+ * @since 5.9.0
  *
- * @return array
+ * @param array $metadata Metadata for registering a block type.
+ * @return array Metadata for registering a block type.
  */
 function _wp_multiple_block_styles( $metadata ) {
 	foreach ( array( 'style', 'editorStyle' ) as $key ) {

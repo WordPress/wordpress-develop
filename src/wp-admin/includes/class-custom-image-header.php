@@ -393,7 +393,7 @@ class Custom_Image_Header {
 		}
 	}
 
-	$(document).ready(function() {
+	$( function() {
 		var text_color = $('#text-color');
 		header_text_fields = $('.displaying-header-text');
 		text_color.wpColorPicker({
@@ -408,7 +408,7 @@ class Custom_Image_Header {
 		<?php if ( ! display_header_text() ) : ?>
 		toggle_text();
 		<?php endif; ?>
-	});
+	} );
 })(jQuery);
 </script>
 		<?php
@@ -430,7 +430,7 @@ class Custom_Image_Header {
 		jQuery( '#height' ).val(coords.h);
 	}
 
-	jQuery(document).ready(function() {
+	jQuery( function() {
 		var xinit = <?php echo absint( get_theme_support( 'custom-header', 'width' ) ); ?>;
 		var yinit = <?php echo absint( get_theme_support( 'custom-header', 'height' ) ); ?>;
 		var ratio = xinit / yinit;
@@ -485,7 +485,7 @@ class Custom_Image_Header {
 				jQuery('#height').val(c.height);
 			}
 		});
-	});
+	} );
 </script>
 		<?php
 	}
@@ -651,21 +651,19 @@ class Custom_Image_Header {
 			<?php submit_button( __( 'Upload' ), '', 'submit', false ); ?>
 	</p>
 			<?php
-				$modal_update_href = esc_url(
-					add_query_arg(
-						array(
-							'page' => 'custom-header',
-							'step' => 2,
-							'_wpnonce-custom-header-upload' => wp_create_nonce( 'custom-header-upload' ),
-						),
-						admin_url( 'themes.php' )
-					)
-				);
+			$modal_update_href = add_query_arg(
+				array(
+					'page'                          => 'custom-header',
+					'step'                          => 2,
+					'_wpnonce-custom-header-upload' => wp_create_nonce( 'custom-header-upload' ),
+				),
+				admin_url( 'themes.php' )
+			);
 			?>
 	<p>
 		<label for="choose-from-library-link"><?php _e( 'Or choose an image from your media library:' ); ?></label><br />
 		<button id="choose-from-library-link" class="button"
-			data-update-link="<?php echo esc_attr( $modal_update_href ); ?>"
+			data-update-link="<?php echo esc_url( $modal_update_href ); ?>"
 			data-choose="<?php esc_attr_e( 'Choose a Custom Header' ); ?>"
 			data-update="<?php esc_attr_e( 'Set as header' ); ?>"><?php _e( 'Choose Image' ); ?></button>
 	</p>
@@ -817,7 +815,7 @@ endif;
 		if ( ! current_theme_supports( 'custom-header', 'uploads' ) ) {
 			wp_die(
 				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The current theme does not support uploading a custom header image.' ) . '</p>',
+				'<p>' . __( 'The active theme does not support uploading a custom header image.' ) . '</p>',
 				403
 			);
 		}
@@ -975,8 +973,8 @@ endif;
 		$file     = $file['file'];
 		$filename = wp_basename( $file );
 
-		// Construct the object array.
-		$object = array(
+		// Construct the array with attachment object data.
+		$attachment = array(
 			'post_title'     => $filename,
 			'post_content'   => $url,
 			'post_mime_type' => $type,
@@ -985,7 +983,7 @@ endif;
 		);
 
 		// Save the data.
-		$attachment_id = wp_insert_attachment( $object, $file );
+		$attachment_id = wp_insert_attachment( $attachment, $file );
 
 		return compact( 'attachment_id', 'file', 'filename', 'url', 'type' );
 	}
@@ -1003,7 +1001,7 @@ endif;
 		if ( ! current_theme_supports( 'custom-header', 'uploads' ) ) {
 			wp_die(
 				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The current theme does not support uploading a custom header image.' ) . '</p>',
+				'<p>' . __( 'The active theme does not support uploading a custom header image.' ) . '</p>',
 				403
 			);
 		}
@@ -1014,7 +1012,7 @@ endif;
 		) {
 			wp_die(
 				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The current theme does not support a flexible sized header image.' ) . '</p>',
+				'<p>' . __( 'The active theme does not support a flexible sized header image.' ) . '</p>',
 				403
 			);
 		}
@@ -1061,14 +1059,14 @@ endif;
 		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 		$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-		$object = $this->create_attachment_object( $cropped, $attachment_id );
+		$attachment = $this->create_attachment_object( $cropped, $attachment_id );
 
 		if ( ! empty( $_POST['create-new-attachment'] ) ) {
-			unset( $object['ID'] );
+			unset( $attachment['ID'] );
 		}
 
 		// Update the attachment.
-		$attachment_id = $this->insert_attachment( $object, $cropped );
+		$attachment_id = $this->insert_attachment( $attachment, $cropped );
 
 		$url = wp_get_attachment_url( $attachment_id );
 		$this->set_header_image( compact( 'url', 'attachment_id', 'width', 'height' ) );
@@ -1300,7 +1298,7 @@ endif;
 	 *
 	 * @param string $cropped              Cropped image URL.
 	 * @param int    $parent_attachment_id Attachment ID of parent image.
-	 * @return array Attachment object.
+	 * @return array An array with attachment object data.
 	 */
 	final public function create_attachment_object( $cropped, $parent_attachment_id ) {
 		$parent     = get_post( $parent_attachment_id );
@@ -1310,7 +1308,7 @@ endif;
 		$size       = wp_getimagesize( $cropped );
 		$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 
-		$object = array(
+		$attachment = array(
 			'ID'             => $parent_attachment_id,
 			'post_title'     => wp_basename( $cropped ),
 			'post_mime_type' => $image_type,
@@ -1319,7 +1317,7 @@ endif;
 			'post_parent'    => $parent_attachment_id,
 		);
 
-		return $object;
+		return $attachment;
 	}
 
 	/**
@@ -1327,15 +1325,15 @@ endif;
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param array  $object  Attachment object.
-	 * @param string $cropped File path to cropped image.
+	 * @param array  $attachment An array with attachment object data.
+	 * @param string $cropped    File path to cropped image.
 	 * @return int Attachment ID.
 	 */
-	final public function insert_attachment( $object, $cropped ) {
-		$parent_id = isset( $object['post_parent'] ) ? $object['post_parent'] : null;
-		unset( $object['post_parent'] );
+	final public function insert_attachment( $attachment, $cropped ) {
+		$parent_id = isset( $attachment['post_parent'] ) ? $attachment['post_parent'] : null;
+		unset( $attachment['post_parent'] );
 
-		$attachment_id = wp_insert_attachment( $object, $cropped );
+		$attachment_id = wp_insert_attachment( $attachment, $cropped );
 		$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
 
 		// If this is a crop, save the original attachment ID as metadata.
@@ -1404,25 +1402,25 @@ endif;
 		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 		$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-		$object = $this->create_attachment_object( $cropped, $attachment_id );
+		$attachment = $this->create_attachment_object( $cropped, $attachment_id );
 
-		$previous = $this->get_previous_crop( $object );
+		$previous = $this->get_previous_crop( $attachment );
 
 		if ( $previous ) {
-			$object['ID'] = $previous;
+			$attachment['ID'] = $previous;
 		} else {
-			unset( $object['ID'] );
+			unset( $attachment['ID'] );
 		}
 
-		$new_attachment_id = $this->insert_attachment( $object, $cropped );
+		$new_attachment_id = $this->insert_attachment( $attachment, $cropped );
 
-		$object['attachment_id'] = $new_attachment_id;
-		$object['url']           = wp_get_attachment_url( $new_attachment_id );
+		$attachment['attachment_id'] = $new_attachment_id;
+		$attachment['url']           = wp_get_attachment_url( $new_attachment_id );
 
-		$object['width']  = $dimensions['dst_width'];
-		$object['height'] = $dimensions['dst_height'];
+		$attachment['width']  = $dimensions['dst_width'];
+		$attachment['height'] = $dimensions['dst_height'];
 
-		wp_send_json_success( $object );
+		wp_send_json_success( $attachment );
 	}
 
 	/**
@@ -1455,7 +1453,7 @@ endif;
 
 	/**
 	 * Given an attachment ID for a header image, unsets it as a user-uploaded
-	 * header image for the current theme.
+	 * header image for the active theme.
 	 *
 	 * Triggered when the user clicks the overlay "X" button next to each image
 	 * choice in the Customizer's Header tool.
@@ -1577,10 +1575,10 @@ endif;
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $object A crop attachment object.
+	 * @param array $attachment An array with a cropped attachment object data.
 	 * @return int|false An attachment ID if one exists. False if none.
 	 */
-	public function get_previous_crop( $object ) {
+	public function get_previous_crop( $attachment ) {
 		$header_images = $this->get_uploaded_header_images();
 
 		// Bail early if there are no header images.
@@ -1591,7 +1589,7 @@ endif;
 		$previous = false;
 
 		foreach ( $header_images as $image ) {
-			if ( $image['attachment_parent'] === $object['post_parent'] ) {
+			if ( $image['attachment_parent'] === $attachment['post_parent'] ) {
 				$previous = $image['attachment_id'];
 				break;
 			}

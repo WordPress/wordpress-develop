@@ -19,7 +19,7 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 	);
 }
 
-if ( ! wp_is_block_template_theme() ) {
+if ( ! wp_is_block_theme() ) {
 	wp_die( __( 'The theme you are currently using is not compatible with Full Site Editing.' ) );
 }
 
@@ -31,6 +31,10 @@ $parent_file = 'themes.php';
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( true );
 
+// Load block patterns from w.org.
+_load_remote_block_patterns();
+_load_remote_featured_patterns();
+
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
@@ -39,57 +43,60 @@ add_filter(
 	}
 );
 
-$block_editor_context = new WP_Block_Editor_Context();
+$indexed_template_types = array();
+foreach ( get_default_block_template_types() as $slug => $template_type ) {
+	$template_type['slug']    = (string) $slug;
+	$indexed_template_types[] = $template_type;
+}
 
-$active_global_styles_id = WP_Theme_JSON_Resolver::get_user_custom_post_type_id();
+$block_editor_context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
+$custom_settings      = array(
+	'siteUrl'                              => site_url(),
+	'postsPerPage'                         => get_option( 'posts_per_page' ),
+	'styles'                               => get_block_editor_theme_styles(),
+	'defaultTemplateTypes'                 => $indexed_template_types,
+	'defaultTemplatePartAreas'             => get_allowed_block_template_part_areas(),
+	'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
+	'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
+);
+$editor_settings      = get_block_editor_settings( $custom_settings, $block_editor_context );
+
+if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
+	$post_type = get_post_type_object( $_GET['postType'] );
+	if ( ! $post_type ) {
+		wp_die( __( 'Invalid post type.' ) );
+	}
+}
+
+$active_global_styles_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 $active_theme            = wp_get_theme()->get_stylesheet();
 $preload_paths           = array(
 	array( '/wp/v2/media', 'OPTIONS' ),
 	'/',
 	'/wp/v2/types?context=edit',
+	'/wp/v2/types/wp_template?context=edit',
+	'/wp/v2/types/wp_template-part?context=edit',
 	'/wp/v2/taxonomies?context=edit',
 	'/wp/v2/pages?context=edit',
 	'/wp/v2/categories?context=edit',
 	'/wp/v2/posts?context=edit',
 	'/wp/v2/tags?context=edit',
-	'/wp/v2/templates?context=edit',
-	'/wp/v2/template-parts?context=edit',
+	'/wp/v2/templates?context=edit&per_page=-1',
+	'/wp/v2/template-parts?context=edit&per_page=-1',
 	'/wp/v2/settings',
 	'/wp/v2/themes?context=edit&status=active',
 	'/wp/v2/global-styles/' . $active_global_styles_id . '?context=edit',
 	'/wp/v2/global-styles/' . $active_global_styles_id,
-	'/wp/v2/themes/' . $active_theme . '/global-styles',
-	'/wp/v2/block-navigation-areas?context=edit',
+	'/wp/v2/global-styles/themes/' . $active_theme,
 );
-
-$areas        = get_option( 'wp_navigation_areas', array() );
-$active_areas = array_intersect_key( $areas, get_navigation_areas() );
-foreach ( $active_areas as $post_id ) {
-	if ( $post_id ) {
-		$preload_paths[] = add_query_arg( 'context', 'edit', rest_get_route_for_post( $post_id ) );
-	}
-}
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
-
-$editor_settings = get_block_editor_settings(
-	array(
-		'siteUrl'                              => site_url(),
-		'postsPerPage'                         => get_option( 'posts_per_page' ),
-		'styles'                               => get_block_editor_theme_styles(),
-		'defaultTemplateTypes'                 => get_default_block_template_types(),
-		'defaultTemplatePartAreas'             => get_allowed_block_template_part_areas(),
-		'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
-		'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
-	),
-	$block_editor_context
-);
 
 wp_add_inline_script(
 	'wp-edit-site',
 	sprintf(
 		'wp.domReady( function() {
-			wp.editSite.initialize( "site-editor", %s );
+			wp.editSite.initializeEditor( "site-editor", %s );
 		} );',
 		wp_json_encode( $editor_settings )
 	)

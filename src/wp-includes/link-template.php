@@ -904,10 +904,10 @@ function get_author_feed_link( $author_id, $feed = '' ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Term|object $cat  The ID or term object whose feed link will be retrieved.
+ * @param int|WP_Term|object $cat  The ID or category object whose feed link will be retrieved.
  * @param string             $feed Optional. Feed type. Possible values include 'rss2', 'atom'.
  *                                 Default is the value of get_default_feed().
- * @return string Link to the feed for the category specified by $cat_id.
+ * @return string Link to the feed for the category specified by `$cat`.
  */
 function get_category_feed_link( $cat, $feed = '' ) {
 	return get_term_feed_link( $cat, 'category', $feed );
@@ -923,17 +923,13 @@ function get_category_feed_link( $cat, $feed = '' ) {
  *
  * @param int|WP_Term|object $term     The ID or term object whose feed link will be retrieved.
  * @param string             $taxonomy Optional. Taxonomy of `$term_id`.
- *                                     Defaults to 'category' if term ID or non WP_Term object is passed.
  * @param string             $feed     Optional. Feed type. Possible values include 'rss2', 'atom'.
  *                                     Default is the value of get_default_feed().
- * @return string|false Link to the feed for the term specified by $term_id and $taxonomy.
+ * @return string|false Link to the feed for the term specified by `$term` and `$taxonomy`.
  */
 function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
 	if ( ! is_object( $term ) ) {
-		$term     = (int) $term;
-		$taxonomy = 'category';
-	} elseif ( ! $term instanceof WP_Term ) {
-		$taxonomy = $term->taxonomy;
+		$term = (int) $term;
 	}
 
 	$term = get_term( $term, $taxonomy );
@@ -941,6 +937,8 @@ function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
 	if ( empty( $term ) || is_wp_error( $term ) ) {
 		return false;
 	}
+
+	$taxonomy = $term->taxonomy;
 
 	if ( empty( $feed ) ) {
 		$feed = get_default_feed();
@@ -1839,7 +1837,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
 		if ( $in_same_term ) {
-			$join  .= " INNER JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id INNER JOIN $wpdb->term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
+			$join  .= " INNER JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 			$where .= $wpdb->prepare( 'AND tt.taxonomy = %s', $taxonomy );
 
 			if ( ! is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
@@ -3989,7 +3987,7 @@ function rel_canonical() {
  * @since 3.0.0
  *
  * @param int    $id          Optional. A post or site ID. Default is 0, which means the current post or site.
- * @param string $context     Optional. Whether the ID is a 'site' id, 'post' id, or 'media' id. If 'post',
+ * @param string $context     Optional. Whether the ID is a 'site' ID, 'post' ID, or 'media' ID. If 'post',
  *                            the post_type of the post is consulted. If 'query', the current query is consulted
  *                            to determine the ID and context. Default 'post'.
  * @param bool   $allow_slugs Optional. Whether to allow post slugs in the shortlink. It is up to the plugin how

@@ -410,13 +410,15 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
  * to be pre-slashed since they are passed directly to APIs that expect slashed data.
  *
  * @since 3.0.0
+ * @since 5.9.0 Added the `$fire_after_hooks` parameter.
  *
- * @param int   $menu_id         The ID of the menu. Required. If "0", makes the menu item a draft orphan.
- * @param int   $menu_item_db_id The ID of the menu item. If "0", creates a new menu item.
- * @param array $menu_item_data  The menu item's data.
+ * @param int   $menu_id          The ID of the menu. If 0, makes the menu item a draft orphan.
+ * @param int   $menu_item_db_id  The ID of the menu item. If 0, creates a new menu item.
+ * @param array $menu_item_data   The menu item's data.
+ * @param bool  $fire_after_hooks Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The menu item's database ID or WP_Error object on failure.
  */
-function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item_data = array() ) {
+function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item_data = array(), $fire_after_hooks = true ) {
 	$menu_id         = (int) $menu_id;
 	$menu_item_db_id = (int) $menu_item_db_id;
 
@@ -526,7 +528,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	if ( ! $update ) {
 		$post['ID']          = 0;
 		$post['post_status'] = 'publish' === $args['menu-item-status'] ? 'publish' : 'draft';
-		$menu_item_db_id     = wp_insert_post( $post, true );
+		$menu_item_db_id     = wp_insert_post( $post, true, $fire_after_hooks );
 		if ( ! $menu_item_db_id || is_wp_error( $menu_item_db_id ) ) {
 			return $menu_item_db_id;
 		}
@@ -714,49 +716,31 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		$items = array();
 	}
 
-	// Get all posts and terms at once to prime the caches.
-	if ( empty( $fetched[ $menu->term_id ] ) && ! wp_using_ext_object_cache() ) {
+	// Prime posts and terms caches.
+	if ( empty( $fetched[ $menu->term_id ] ) ) {
 		$fetched[ $menu->term_id ] = true;
-		$posts                     = array();
-		$terms                     = array();
+		$post_ids                  = array();
+		$term_ids                  = array();
 		foreach ( $items as $item ) {
 			$object_id = get_post_meta( $item->ID, '_menu_item_object_id', true );
-			$object    = get_post_meta( $item->ID, '_menu_item_object', true );
 			$type      = get_post_meta( $item->ID, '_menu_item_type', true );
 
 			if ( 'post_type' === $type ) {
-				$posts[ $object ][] = $object_id;
+				$post_ids[] = (int) $object_id;
 			} elseif ( 'taxonomy' === $type ) {
-				$terms[ $object ][] = $object_id;
+				$term_ids[] = (int) $object_id;
 			}
 		}
 
-		if ( ! empty( $posts ) ) {
-			foreach ( array_keys( $posts ) as $post_type ) {
-				get_posts(
-					array(
-						'post__in'               => $posts[ $post_type ],
-						'post_type'              => $post_type,
-						'nopaging'               => true,
-						'update_post_term_cache' => false,
-					)
-				);
-			}
+		if ( ! empty( $post_ids ) ) {
+			_prime_post_caches( $post_ids, false );
 		}
-		unset( $posts );
+		unset( $post_ids );
 
-		if ( ! empty( $terms ) ) {
-			foreach ( array_keys( $terms ) as $taxonomy ) {
-				get_terms(
-					array(
-						'taxonomy'     => $taxonomy,
-						'include'      => $terms[ $taxonomy ],
-						'hierarchical' => false,
-					)
-				);
-			}
+		if ( ! empty( $term_ids ) ) {
+			_prime_term_caches( $term_ids );
 		}
-		unset( $terms );
+		unset( $term_ids );
 	}
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );

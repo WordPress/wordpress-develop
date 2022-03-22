@@ -61,6 +61,7 @@ jobs:
   prepare:
     name: Prepare notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
       previous_conclusion: ${{ steps.previous-conclusion.outputs.previous_conclusion }}
@@ -129,6 +130,7 @@ jobs:
   failure:
     name: Failure notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' || inputs.calling_status == 'failure' || failure() }}
 
@@ -144,6 +146,7 @@ jobs:
   fixed:
     name: Fixed notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ needs.prepare.outputs.previous_conclusion == 'failure' && ( github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || inputs.calling_status == 'success' ) && success() }}
 
@@ -159,6 +162,7 @@ jobs:
   success:
     name: Success notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || inputs.calling_status == 'success' && success() }}
 
@@ -174,6 +178,7 @@ jobs:
   cancelled:
     name: Cancelled notifications
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'cancelled' || inputs.calling_status == 'cancelled' || cancelled() }}
 

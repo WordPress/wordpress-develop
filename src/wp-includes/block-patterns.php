@@ -48,12 +48,17 @@ function _register_core_block_patterns_and_categories() {
  * Register Core's official patterns from wordpress.org/patterns.
  *
  * @since 5.8.0
+ * @since 5.9.0 The $current_screen argument was removed.
  *
- * @param WP_Screen $current_screen The screen that the current request was triggered from.
+ * @param WP_Screen $deprecated Unused. Formerly the screen that the current request was triggered from.
  */
-function _load_remote_block_patterns( $current_screen ) {
-	if ( ! $current_screen->is_block_editor ) {
-		return;
+function _load_remote_block_patterns( $deprecated = null ) {
+	if ( ! empty( $deprecated ) ) {
+		_deprecated_argument( __FUNCTION__, '5.9.0' );
+		$current_screen = $deprecated;
+		if ( ! $current_screen->is_block_editor ) {
+			return;
+		}
 	}
 
 	$supports_core_patterns = get_theme_support( 'core-block-patterns' );
@@ -80,6 +85,45 @@ function _load_remote_block_patterns( $current_screen ) {
 		foreach ( $patterns as $settings ) {
 			$pattern_name = 'core/' . sanitize_title( $settings['title'] );
 			register_block_pattern( $pattern_name, (array) $settings );
+		}
+	}
+}
+
+/**
+ * Register `Featured` (category) patterns from wordpress.org/patterns.
+ *
+ * @since 5.9.0
+ */
+function _load_remote_featured_patterns() {
+	$supports_core_patterns = get_theme_support( 'core-block-patterns' );
+
+	/** This filter is documented in wp-includes/block-patterns.php */
+	$should_load_remote = apply_filters( 'should_load_remote_block_patterns', true );
+
+	if ( ! $should_load_remote || ! $supports_core_patterns ) {
+		return;
+	}
+
+	if ( ! WP_Block_Pattern_Categories_Registry::get_instance()->is_registered( 'featured' ) ) {
+		register_block_pattern_category( 'featured', array( 'label' => __( 'Featured' ) ) );
+	}
+
+	$request         = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
+	$featured_cat_id = 26; // This is the `Featured` category id from pattern directory.
+	$request->set_param( 'category', $featured_cat_id );
+	$response = rest_do_request( $request );
+	if ( $response->is_error() ) {
+		return;
+	}
+	$patterns = $response->get_data();
+
+	foreach ( $patterns as $pattern ) {
+		$pattern_name = sanitize_title( $pattern['title'] );
+		$registry     = WP_Block_Patterns_Registry::get_instance();
+		// Some patterns might be already registered as core patterns with the `core` prefix.
+		$is_registered = $registry->is_registered( $pattern_name ) || $registry->is_registered( "core/$pattern_name" );
+		if ( ! $is_registered ) {
+			register_block_pattern( $pattern_name, (array) $pattern );
 		}
 	}
 }

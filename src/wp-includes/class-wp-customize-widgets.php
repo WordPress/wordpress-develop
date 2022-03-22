@@ -420,6 +420,7 @@ final class WP_Customize_Widgets {
 				'priority'                 => 110,
 				'active_callback'          => array( $this, 'is_panel_active' ),
 				'auto_expand_sole_section' => true,
+				'theme_supports'           => 'widgets',
 			)
 		);
 
@@ -837,7 +838,11 @@ final class WP_Customize_Widgets {
 		 */
 
 		if ( wp_use_widgets_block_editor() ) {
-			$block_editor_context = new WP_Block_Editor_Context();
+			$block_editor_context = new WP_Block_Editor_Context(
+				array(
+					'name' => 'core/customize-widgets',
+				)
+			);
 
 			$editor_settings = get_block_editor_settings(
 				get_legacy_widget_block_editor_settings(),
@@ -1421,9 +1426,8 @@ final class WP_Customize_Widgets {
 			if ( ! empty( $widget_object->widget_options['show_instance_in_rest'] ) ) {
 				if ( 'block' === $id_base && ! current_user_can( 'unfiltered_html' ) ) {
 					/*
-					 * The content of the 'block' widget is not filtered on the
-					 * fly while editing. Filter the content here to prevent
-					 * vulnerabilities.
+					 * The content of the 'block' widget is not filtered on the fly while editing.
+					 * Filter the content here to prevent vulnerabilities.
 					 */
 					$value['raw_instance']['content'] = wp_kses_post( $value['raw_instance']['content'] );
 				}

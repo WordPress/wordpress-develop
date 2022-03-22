@@ -4,10 +4,11 @@
  * Sets a custom slug when creating auto-draft template parts.
  *
  * This is only needed for auto-drafts created by the regular WP editor.
- * If this page is to be removed, this won't be necessary.
+ * If this page is to be removed, this will not be necessary.
  *
  * @since 5.9.0
  *
+ * @param int $post_id Post ID.
  */
 function wp_set_unique_slug_on_create_template_part( $post_id ) {
 	$post = get_post( $post_id );
@@ -98,7 +99,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 }
 
 /**
- * Print the skip-link script & styles.
+ * Prints the skip-link script & styles.
  *
  * @access private
  * @since 5.8.0
@@ -165,7 +166,7 @@ function the_block_template_skip_link() {
 	<script>
 	( function() {
 		var skipLinkTarget = document.querySelector( 'main' ),
-			parentEl,
+			sibling,
 			skipLinkTargetID,
 			skipLink;
 
@@ -176,10 +177,10 @@ function the_block_template_skip_link() {
 
 		// Get the site wrapper.
 		// The skip-link will be injected in the beginning of it.
-		parentEl = document.querySelector( '.wp-site-blocks' );
+		sibling = document.querySelector( '.wp-site-blocks' );
 
 		// Early exit if the root element was not found.
-		if ( ! parentEl ) {
+		if ( ! sibling ) {
 			return;
 		}
 
@@ -197,20 +198,20 @@ function the_block_template_skip_link() {
 		skipLink.innerHTML = '<?php esc_html_e( 'Skip to content' ); ?>';
 
 		// Inject the skip link.
-		parentEl.insertAdjacentElement( 'afterbegin', skipLink );
+		sibling.parentElement.insertBefore( skipLink, sibling );
 	}() );
 	</script>
 	<?php
 }
 
 /**
- * Enable the block templates (editor mode) for themes with theme.json by default.
+ * Enables the block templates (editor mode) for themes with theme.json by default.
  *
  * @access private
  * @since 5.8.0
  */
 function wp_enable_block_templates() {
-	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
+	if ( wp_is_block_theme() || WP_Theme_JSON_Resolver::theme_has_support() ) {
 		add_theme_support( 'block-templates' );
 	}
 }

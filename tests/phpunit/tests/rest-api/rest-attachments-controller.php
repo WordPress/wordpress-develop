@@ -522,8 +522,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_get_items_invalid_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		$request->set_param( 'after', rand_str() );
-		$request->set_param( 'before', rand_str() );
+		$request->set_param( 'after', 'foo' );
+		$request->set_param( 'before', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
@@ -570,8 +570,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_get_items_invalid_modified_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		$request->set_param( 'modified_after', rand_str() );
-		$request->set_param( 'modified_before', rand_str() );
+		$request->set_param( 'modified_after', 'foo' );
+		$request->set_param( 'modified_before', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}

@@ -28,6 +28,10 @@ $block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( true );
 
+// Load block patterns from w.org.
+_load_remote_block_patterns();
+_load_remote_featured_patterns();
+
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
@@ -77,16 +81,22 @@ wp_add_inline_script(
  * Assign initial edits, if applicable. These are not initially assigned to the persisted post,
  * but should be included in its save payload.
  */
-$initial_edits = null;
+$initial_edits = array();
 $is_new_post   = false;
 if ( 'auto-draft' === $post->post_status ) {
 	$is_new_post = true;
 	// Override "(Auto Draft)" new post default title with empty string, or filtered value.
-	$initial_edits = array(
-		'title'   => $post->post_title,
-		'content' => $post->post_content,
-		'excerpt' => $post->post_excerpt,
-	);
+	if ( post_type_supports( $post->post_type, 'title' ) ) {
+		$initial_edits['title'] = $post->post_title;
+	}
+
+	if ( post_type_supports( $post->post_type, 'editor' ) ) {
+		$initial_edits['content'] = $post->post_content;
+	}
+
+	if ( post_type_supports( $post->post_type, 'excerpt' ) ) {
+		$initial_edits['excerpt'] = $post->post_excerpt;
+	}
 }
 
 // Preload server-registered block schemas.
@@ -181,7 +191,6 @@ $editor_settings = array(
 	'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
 	'bodyPlaceholder'                      => $body_placeholder,
 	'autosaveInterval'                     => AUTOSAVE_INTERVAL,
-	'styles'                               => get_block_editor_theme_styles(),
 	'richEditingEnabled'                   => user_can_richedit(),
 	'postLock'                             => $lock_details,
 	'postLockUtils'                        => array(
@@ -221,6 +230,10 @@ if ( $is_new_post && ! isset( $editor_settings['template'] ) && 'post' === $post
 	if ( in_array( $post_format, array( 'audio', 'gallery', 'image', 'quote', 'video' ), true ) ) {
 		$editor_settings['template'] = array( array( "core/$post_format" ) );
 	}
+}
+
+if ( wp_is_block_theme() && $editor_settings['supportsTemplateMode'] ) {
+	$editor_settings['defaultTemplatePartAreas'] = get_allowed_block_template_part_areas();
 }
 
 /**
