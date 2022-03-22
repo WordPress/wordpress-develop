@@ -147,6 +147,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51859
+	 *
+	 * @covers ::get_the_author_link
 	 */
 	public function test_get_author_url_link() {
 		$author_url          = get_the_author_meta( 'url' );
@@ -173,6 +175,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51859
+	 *
+	 * @covers ::get_the_author_link
 	 */
 	public function test_filtered_get_author_url_link() {
 		$author_url          = get_the_author_meta( 'url' );
