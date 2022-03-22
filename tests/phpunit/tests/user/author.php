@@ -164,7 +164,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$this->assertSame( get_the_author_link(), $author_url_link_html );
 	}
 
-	public function filter_author_url_link_html( $link, $url, $author_data ) {
+	public function filter_the_author_link( $link, $url, $author_data ) {
 		return sprintf(
 			'<a href="%1$s" title="%2$s (%1$s)" rel="author external">%3$s (%1$s)</a>',
 			esc_url( $author_url ),
@@ -182,15 +182,15 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$author_url          = get_the_author_meta( 'url' );
 		$author_display_name = get_the_author();
 
-		$expected_filtered_author_url_link_html = sprintf(
+		$expected_filtered_the_author_link = sprintf(
 			'<a href="%1$s" title="%2$s (%1$s)" rel="author external">%3$s (%1$s)</a>',
 			esc_url( $author_url ),
 			esc_attr( sprintf( 'Visit %s&#8217;s website', $author_display_name ) ),
-			$author_data->display_name
+			$author_display_name
 		);
 
-		add_filter( 'author_url_link_html', array( $this, 'filter_author_url_link_html' ), 10, 3 );
+		add_filter( 'the_author_link', array( $this, 'filter_the_author_link' ), 10, 3 );
 
-		$this->assertSame( get_the_author_link(), $expected_filtered_author_url_link_html );
+		$this->assertSame( get_the_author_link(), $expected_filtered_the_author_link );
 	}
 }
