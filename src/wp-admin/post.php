@@ -140,7 +140,7 @@ switch ( $action ) {
 		}
 
 		if ( 'trash' === $post->post_status ) {
-			wp_die( __( 'You can not edit this item because it is in the Trash. Please restore it and try again.' ) );
+			wp_die( __( 'You cannot edit this item because it is in the Trash. Please restore it and try again.' ) );
 		}
 
 		if ( ! empty( $_GET['get-post-lock'] ) ) {

@@ -1182,7 +1182,7 @@ class wpdb {
 			if ( ! did_action( 'template_redirect' ) ) {
 				wp_load_translations_early();
 
-				$message = '<h1>' . __( 'Can not select database' ) . "</h1>\n";
+				$message = '<h1>' . __( 'Cannot select database' ) . "</h1>\n";
 
 				$message .= '<p>' . sprintf(
 					/* translators: %s: Database name. */
@@ -1802,7 +1802,7 @@ class wpdb {
 
 			$message .= '<p>' . sprintf(
 				/* translators: 1: wp-config.php, 2: Database host. */
-				__( 'This either means that the username and password information in your %1$s file is incorrect or we can not contact the database server at %2$s. This could mean your host&#8217;s database server is down.' ),
+				__( 'This either means that the username and password information in your %1$s file is incorrect or we cannot contact the database server at %2$s. This could mean your host&#8217;s database server is down.' ),
 				'<code>wp-config.php</code>',
 				'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
 			) . "</p>\n";

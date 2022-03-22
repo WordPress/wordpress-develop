@@ -71,7 +71,7 @@ switch ( $action ) {
 			wp_die( __( 'You attempted to edit an item that is not an attachment. Please go back and try again.' ) );
 		}
 		if ( 'trash' === $att->post_status ) {
-			wp_die( __( 'You can not edit this attachment because it is in the Trash. Please move it out of the Trash and try again.' ) );
+			wp_die( __( 'You cannot edit this attachment because it is in the Trash. Please move it out of the Trash and try again.' ) );
 		}
 
 		add_filter( 'attachment_fields_to_edit', 'media_single_attachment_fields_to_edit', 10, 2 );
