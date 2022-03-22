@@ -1560,7 +1560,7 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 	}
 
 	/**
-	 * Filter default arguments for checking if term exists.
+	 * Filters default arguments for checking if term exists.
 	 *
 	 * @since 6.0.0
 	 *
