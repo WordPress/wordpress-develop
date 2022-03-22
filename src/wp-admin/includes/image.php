@@ -555,7 +555,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	}
 
 	if ( method_exists( $editor, 'make_subsize' ) ) {
-		// Make the primarey mime type sub sized images
+		// Make the primary mime type sub sized images
 		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
 			$new_size_meta = $editor->make_subsize( $new_size_data, $primary_mime_type );
 			if ( is_wp_error( $new_size_meta ) ) {
