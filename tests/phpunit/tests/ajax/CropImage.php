@@ -11,6 +11,7 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 /**
  * Class for testing ajax crop image functionality.
  *
+ * @covers ::wp_ajax_crop_image
  * @group ajax
  */
 class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
@@ -25,8 +26,6 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 	 * Tests that attachment properties are copied over to the cropped image.
 	 *
 	 * @ticket 37750
-	 *
-	 * @covers ::wp_ajax_crop_image
 	 */
 	public function test_it_copies_metadata_from_original_image() {
 		$this->attachment = $this->create_attachment( true );
@@ -55,8 +54,6 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 	 * Tests that attachment properties are not auto-generated if they are not defined for the original image.
 	 *
 	 * @ticket 37750
-	 *
-	 * @covers ::wp_ajax_crop_image
 	 */
 	public function test_it_doesnt_generate_new_metadata_if_metadata_is_empty() {
 		$this->attachment = $this->create_attachment( false );
