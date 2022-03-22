@@ -16,7 +16,11 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 
 	/**
-	 * @covers wp_ajax_crop_image
+	 * Tests that attachment properties are copied over to the cropped image.
+	 *
+	 * @ticket 37750
+	 *
+	 * @covers ::wp_ajax_crop_image
 	 */
 	public function test_it_copies_metadata_from_original_image() {
 
@@ -49,7 +53,11 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * @covers wp_ajax_crop_image
+	 * Tests that attachment properties are not auto-generated if they are not defined for the original image.
+	 *
+	 * @ticket 37750
+	 *
+	 * @covers ::wp_ajax_crop_image
 	 */
 	public function test_it_doesnt_generate_new_metadata_if_metadata_is_empty() {
 		// Become an administrator.
