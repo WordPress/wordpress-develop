@@ -234,7 +234,7 @@ function get_the_author_link() {
 		$author_url          = get_the_author_meta( 'url' );
 		$author_display_name = get_the_author();
 
-		$author_url_link_html = sprintf(
+		$link = sprintf(
 			'<a href="%1$s" title="%2$s" rel="author external">%3$s</a>',
 			esc_url( $author_url ),
 			/* translators: %s: Author's display name. */
@@ -247,11 +247,11 @@ function get_the_author_link() {
 		 *
 		 * @since 6.0.0
 		 *
-		 * @param string $author_url_link_html    The default rendered author HTML link.
-		 * @param string $author_url              Author's URL.
-		 * @param string $authordata              Author user data.
+		 * @param string $link       The default rendered author HTML link.
+		 * @param string $author_url Author's URL.
+		 * @param string $authordata Author user data.
 		 */
-		return apply_filters( 'the_author_link', $author_url_link_html, $author_url, $authordata );
+		return apply_filters( 'the_author_link', $link, $author_url, $authordata );
 	} else {
 		return get_the_author();
 	}
