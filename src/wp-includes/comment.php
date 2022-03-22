@@ -393,22 +393,24 @@ function get_comment_count( $post_id = 0 ) {
 		'all'                 => 0,
 	);
 
-	$where = '';
-	if ( $post_id > 0 ) {
-		$where = $wpdb->prepare( ' AND comment_post_ID = %d', $post_id );
-	}
-	$comment_count = array(
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'approved'            => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = '1'{$where}" ),
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'awaiting_moderation' => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = '0'{$where}" ),
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'spam'                => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'spam'{$where}" ),
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'trash'               => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'trash'{$where}" ),
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		'post-trashed'        => $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->comments} WHERE comment_approved = 'post-trashed'{$where}" ),
+	$args = array(
+		'count'                     => true,
+		'update_comment_meta_cache' => false,
 	);
+	if ( $post_id > 0 ) {
+		$args['post_id'] = $post_id;
+	}
+	$mapping       = array(
+		'approved'            => 'approve',
+		'awaiting_moderation' => 'hold',
+		'spam'                => 'spam',
+		'trash'               => 'trash',
+		'post-trashed'        => 'post-trashed',
+	);
+	$comment_count = array();
+	foreach ( $mapping as $key => $value ) {
+		$comment_count[ $key ] = get_comments( array_merge( $args, array( 'status' => $value ) ) );
+	}
 
 	$comment_count['all']            = $comment_count['approved'] + $comment_count['awaiting_moderation'];
 	$comment_count['total_comments'] = $comment_count['all'] + $comment_count['spam'];
