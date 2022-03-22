@@ -963,8 +963,8 @@ function wp_clean_update_cache() {
  */
 function wp_delete_all_temp_backups() {
 	/*
-	 * Check if there's a lock, or if currently performing an Ajax request,
-	 * in which case there's a chance an update is running.
+	 * Check if there is a lock, or if currently performing an Ajax request,
+	 * in which case there is a chance an update is running.
 	 * Reschedule for an hour from now and exit early.
 	 */
 	if ( get_option( 'core_updater.lock' ) || get_option( 'auto_updater.lock' ) || wp_doing_ajax() ) {
@@ -972,7 +972,7 @@ function wp_delete_all_temp_backups() {
 		return;
 	}
 
-	// This action runs on shutdown to make sure there's no plugin updates currently running.
+	// This action runs on shutdown to make sure there is no plugin updates currently running.
 	add_action( 'shutdown', '_wp_delete_all_temp_backups' );
 }
 

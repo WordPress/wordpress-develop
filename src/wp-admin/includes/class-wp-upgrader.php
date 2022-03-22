@@ -1053,7 +1053,7 @@ class WP_Upgrader {
 		}
 
 		$dest_dir = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/';
-		// Create the temp-backup directory if it doesn't exist.
+		// Create the temp-backup directory if it does not exist.
 		if ( (
 				! $wp_filesystem->is_dir( $dest_dir )
 				&& ! $wp_filesystem->mkdir( $dest_dir )
