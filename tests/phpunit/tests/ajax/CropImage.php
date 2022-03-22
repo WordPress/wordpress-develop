@@ -23,7 +23,7 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		$attachment = $this->create_attachment();
+		$attachment = $this->create_attachment( true );
 		$this->prepare_post( $attachment );
 
 		// Make the request.
@@ -39,7 +39,7 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 		$this->assertInstanceOf( WP_Post::class, $cropped_attachment );
 		$this->assertNotEmpty( $attachment->post_title );
 		$this->assertNotEmpty( $cropped_attachment->post_title );
-		$this->assertNotSame( $attachment->post_title, $cropped_attachment->post_title );
+		$this->assertSame( $attachment->post_title, $cropped_attachment->post_title );
 		$this->assertSame( $attachment->post_content, $cropped_attachment->post_content );
 		$this->assertSame( $attachment->post_excerpt, $cropped_attachment->post_excerpt );
 		$this->assertSame( $attachment->_wp_attachment_image_alt, $cropped_attachment->_wp_attachment_image_alt );
@@ -70,9 +70,8 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 
 		$cropped_attachment = get_post( $response['data']['id'] );
 		$this->assertInstanceOf( WP_Post::class, $cropped_attachment );
-		$this->assertNotEmpty( $attachment->post_title );
+		$this->assertEmpty( $attachment->post_title );
 		$this->assertNotEmpty( $cropped_attachment->post_title );
-		$this->assertNotSame( $attachment->post_title, $cropped_attachment->post_title );
 		$this->assertStringStartsWith( 'http', $cropped_attachment->post_content );
 		$this->assertEmpty( $cropped_attachment->post_excerpt );
 		$this->assertEmpty( $cropped_attachment->_wp_attachment_image_alt );
@@ -87,9 +86,9 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 	 * @return WP_Post
 	 */
 	private function create_attachment( $with_metadata = true ) {
-		$uniq_id = uniqid();
+		$uniq_id = uniqid( 'crop-image-ajax-action-test-' );
 		$object  = array(
-			'post_title'     => 'Title ' . $uniq_id,
+			'post_title'     => $with_metadata ? 'Title ' . $uniq_id : '',
 			'post_content'   => $with_metadata ? 'Description ' . $uniq_id : '',
 			'post_mime_type' => 'image/jpg',
 			'guid'           => 'http://localhost/foo.jpg',
