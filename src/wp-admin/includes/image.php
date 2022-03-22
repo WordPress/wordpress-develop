@@ -347,48 +347,6 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			} else {
 				// TODO: Log errors.
 			}
-		} elseif ( ! empty( $exif_meta['orientation'] ) && 1 !== (int) $exif_meta['orientation'] ) {
-			// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
-
-			$editor = wp_get_image_editor( $file );
-
-			if ( is_wp_error( $editor ) ) {
-				// This image cannot be edited.
-				return $image_meta;
-			}
-
-			// Rotate the image.
-			$rotated = $editor->maybe_exif_rotate();
-
-			if ( true === $rotated ) {
-				// Append `-rotated` to the image file name.
-				$saved = $editor->save( $editor->generate_filename( 'rotated' ), $primary_mime_type );
-
-				if ( ! is_wp_error( $saved ) ) {
-					$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
-
-					$image_meta['sources'][ $primary_mime_type ] = _wp_get_sources_from_meta( $saved );
-
-					// Update the stored EXIF data.
-					if ( ! empty( $image_meta['image_meta']['orientation'] ) ) {
-						$image_meta['image_meta']['orientation'] = 1;
-					}
-					wp_update_attachment_metadata( $attachment_id, $image_meta );
-				} else {
-					// TODO: Log errors.
-				}
-
-				// Save additional mime types.
-				foreach ( $additional_mime_types as $output_mime_type ) {
-					$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
-					// @todo Correct issue where filename winds up with duplicate "-rotated" suffix added unless the editor is reset.
-					$saved = $editor->save( $editor->generate_filename( 'rotated', null, $extension ), $output_mime_type );
-					if ( ! is_wp_error( $saved ) ) {
-						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
-						wp_update_attachment_metadata( $attachment_id, $image_meta );
-					}
-				}
-			}
 		} else {
 			// Populate the top level additional mime type data.
 			foreach ( $additional_mime_types as $output_mime_type ) {
@@ -398,6 +356,50 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						wp_update_attachment_metadata( $attachment_id, $image_meta );
+					}
+				}
+			}
+
+			if ( ! empty( $exif_meta['orientation'] ) && 1 !== (int) $exif_meta['orientation'] ) {
+				// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
+
+				$editor = wp_get_image_editor( $file );
+
+				if ( is_wp_error( $editor ) ) {
+					// This image cannot be edited.
+					return $image_meta;
+				}
+
+				// Rotate the image.
+				$rotated = $editor->maybe_exif_rotate();
+
+				if ( true === $rotated ) {
+					// Append `-rotated` to the image file name.
+					$saved = $editor->save( $editor->generate_filename( 'rotated' ), $primary_mime_type );
+
+					if ( ! is_wp_error( $saved ) ) {
+						$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
+
+						$image_meta['sources'][ $primary_mime_type ] = _wp_get_sources_from_meta( $saved );
+
+						// Update the stored EXIF data.
+						if ( ! empty( $image_meta['image_meta']['orientation'] ) ) {
+							$image_meta['image_meta']['orientation'] = 1;
+						}
+						wp_update_attachment_metadata( $attachment_id, $image_meta );
+					} else {
+						// TODO: Log errors.
+					}
+
+					// Save additional mime types.
+					foreach ( $additional_mime_types as $output_mime_type ) {
+						$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
+						// @todo Correct issue where filename winds up with duplicate "-rotated" suffix added unless the editor is reset.
+						$saved = $editor->save( $editor->generate_filename( 'rotated', null, $extension ), $output_mime_type );
+						if ( ! is_wp_error( $saved ) ) {
+							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
+							wp_update_attachment_metadata( $attachment_id, $image_meta );
+						}
 					}
 				}
 			}
