@@ -224,6 +224,8 @@ function the_author_meta( $field = '', $user_id = false ) {
  *
  * @since 3.0.0
  *
+ * @global WP_User $authordata The current author's data.
+ *
  * @return string|null An HTML link if the author's url exist in user meta,
  *                     else the result of get_the_author().
  */
