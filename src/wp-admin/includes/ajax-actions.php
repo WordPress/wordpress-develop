@@ -3977,21 +3977,24 @@ function wp_ajax_crop_image() {
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 			/** @var WP_Post $original_attachment */
 			$original_attachment = get_post( $attachment_id );
-			$has_title           = mb_strlen( trim( $original_attachment->post_title ) ) > 0;
-			$has_description     = mb_strlen( trim( $original_attachment->post_content ) ) > 0;
+			$has_title           = '' !== trim( $original_attachment->post_title );
 
 			$object = array(
-				// Copy the image title attribute (post_content field) from the original image.
+				// Copy the image title attribute (post_title field) from the original image.
 				'post_title'     => $has_title ? $original_attachment->post_title : wp_basename( $cropped ),
-				// Copy the image description attribute (post_content field) from the original image.
-				'post_content'   => $has_description ? $original_attachment->post_content : $url,
+				'post_content'   => $url,
 				'post_mime_type' => $image_type,
 				'guid'           => $url,
 				'context'        => $context,
 			);
 
+			// Copy the image description attribute (post_content field) from the original image.
+			if ( '' !== trim( $original_attachment->post_content ) ) {
+				$object['post_content'] = $original_attachment->post_content;
+			}
+
 			// Copy the image caption attribute (post_excerpt field) from the original image.
-			if ( mb_strlen( trim( $original_attachment->post_excerpt ) ) ) {
+			if ( '' !== trim( $original_attachment->post_excerpt ) ) {
 				$object['post_excerpt'] = $original_attachment->post_excerpt;
 			}
 
@@ -3999,7 +4002,7 @@ function wp_ajax_crop_image() {
 			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
 
 			// Copy the image alt text attribute from the original image.
-			if ( mb_strlen( trim( $original_attachment->_wp_attachment_image_alt ) ) ) {
+			if ( '' !== trim( $original_attachment->_wp_attachment_image_alt ) ) {
 				update_post_meta( $attachment_id, '_wp_attachment_image_alt', wp_slash( $original_attachment->_wp_attachment_image_alt ) );
 			}
 
