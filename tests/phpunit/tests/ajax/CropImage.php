@@ -40,13 +40,13 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 		$this->validate_response( $response );
 
 		$cropped_attachment = get_post( $response['data']['id'] );
-		$this->assertInstanceOf( WP_Post::class, $cropped_attachment );
-		$this->assertNotEmpty( $attachment->post_title );
-		$this->assertNotEmpty( $cropped_attachment->post_title );
-		$this->assertSame( $attachment->post_title, $cropped_attachment->post_title );
-		$this->assertSame( $attachment->post_content, $cropped_attachment->post_content );
-		$this->assertSame( $attachment->post_excerpt, $cropped_attachment->post_excerpt );
-		$this->assertSame( $attachment->_wp_attachment_image_alt, $cropped_attachment->_wp_attachment_image_alt );
+		$this->assertInstanceOf( WP_Post::class, $cropped_attachment, 'get_post function must return an instance of WP_Post class' );
+		$this->assertNotEmpty( $attachment->post_title, 'post_title value must not be empty for testing purposes' );
+		$this->assertNotEmpty( $cropped_attachment->post_title, 'post_title value must not be empty for testing purposes' );
+		$this->assertSame( $attachment->post_title, $cropped_attachment->post_title, 'post_title value should be copied over to the cropped attachment' );
+		$this->assertSame( $attachment->post_content, $cropped_attachment->post_content, 'post_content value should be copied over to the cropped attachment' );
+		$this->assertSame( $attachment->post_excerpt, $cropped_attachment->post_excerpt, 'post_excerpt value should be copied over to the cropped attachment' );
+		$this->assertSame( $attachment->_wp_attachment_image_alt, $cropped_attachment->_wp_attachment_image_alt, '_wp_attachment_image_alt value should be copied over to the cropped attachment' );
 
 		wp_delete_attachment( $attachment->ID, true );
 		wp_delete_attachment( $cropped_attachment->ID, true );
@@ -76,12 +76,12 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 		$this->validate_response( $response );
 
 		$cropped_attachment = get_post( $response['data']['id'] );
-		$this->assertInstanceOf( WP_Post::class, $cropped_attachment );
-		$this->assertEmpty( $attachment->post_title );
-		$this->assertNotEmpty( $cropped_attachment->post_title );
-		$this->assertStringStartsWith( 'http', $cropped_attachment->post_content );
-		$this->assertEmpty( $cropped_attachment->post_excerpt );
-		$this->assertEmpty( $cropped_attachment->_wp_attachment_image_alt );
+		$this->assertInstanceOf( WP_Post::class, $cropped_attachment, 'get_post function must return an instance of WP_Post class' );
+		$this->assertEmpty( $attachment->post_title, 'post_title value must be empty for testing purposes' );
+		$this->assertNotEmpty( $cropped_attachment->post_title, 'post_title value must be auto-generated if it\'s empty in the original attachment' );
+		$this->assertStringStartsWith( 'http', $cropped_attachment->post_content, 'post_content value should contain an URL if it\'s empty in the original attachment' );
+		$this->assertEmpty( $cropped_attachment->post_excerpt, 'post_excerpt value must be empty if it\'s empty in the original attachment' );
+		$this->assertEmpty( $cropped_attachment->_wp_attachment_image_alt, '_wp_attachment_image_alt value must be empty if it\'s empty in the original attachment' );
 
 		wp_delete_attachment( $attachment->ID, true );
 		wp_delete_attachment( $cropped_attachment->ID, true );
@@ -123,9 +123,9 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 	 * @return void
 	 */
 	private function validate_response( $response ) {
-		$this->assertArrayHasKey( 'success', $response );
-		$this->assertArrayHasKey( 'data', $response );
-		$this->assertNotEmpty( $response['data']['id'] );
+		$this->assertArrayHasKey( 'success', $response, 'Response array must contain "success" key.' );
+		$this->assertArrayHasKey( 'data', $response, 'Response array must contain "data" key.' );
+		$this->assertNotEmpty( $response['data']['id'], 'Response array must contain "ID" value of the post entity.' );
 	}
 
 	/**
