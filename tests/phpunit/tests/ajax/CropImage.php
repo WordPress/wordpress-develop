@@ -16,7 +16,6 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @covers wp_ajax_crop_image
-	 * @covers wp_insert_attachment
 	 */
 	public function test_it_copies_metadata_from_original_image() {
 
@@ -50,7 +49,6 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @covers wp_ajax_crop_image
-	 * @covers wp_insert_attachment
 	 */
 	public function test_it_doesnt_generate_new_metadata_if_metadata_is_empty() {
 		// Become an administrator.
