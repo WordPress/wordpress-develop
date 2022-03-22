@@ -15,6 +15,12 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
  */
 class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 
+	/** @var WP_Post|null */
+	private $attachment;
+
+	/** @var WP_Post|null */
+	private $cropped_attachment;
+
 	/**
 	 * Tests that attachment properties are copied over to the cropped image.
 	 *
@@ -27,8 +33,8 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		$attachment = $this->create_attachment( true );
-		$this->prepare_post( $attachment );
+		$this->attachment = $this->create_attachment( true );
+		$this->prepare_post( $this->attachment );
 
 		// Make the request.
 		try {
@@ -39,17 +45,14 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 		$response = json_decode( $this->_last_response, true );
 		$this->validate_response( $response );
 
-		$cropped_attachment = get_post( $response['data']['id'] );
-		$this->assertInstanceOf( WP_Post::class, $cropped_attachment, 'get_post function must return an instance of WP_Post class' );
-		$this->assertNotEmpty( $attachment->post_title, 'post_title value must not be empty for testing purposes' );
-		$this->assertNotEmpty( $cropped_attachment->post_title, 'post_title value must not be empty for testing purposes' );
-		$this->assertSame( $attachment->post_title, $cropped_attachment->post_title, 'post_title value should be copied over to the cropped attachment' );
-		$this->assertSame( $attachment->post_content, $cropped_attachment->post_content, 'post_content value should be copied over to the cropped attachment' );
-		$this->assertSame( $attachment->post_excerpt, $cropped_attachment->post_excerpt, 'post_excerpt value should be copied over to the cropped attachment' );
-		$this->assertSame( $attachment->_wp_attachment_image_alt, $cropped_attachment->_wp_attachment_image_alt, '_wp_attachment_image_alt value should be copied over to the cropped attachment' );
-
-		wp_delete_attachment( $attachment->ID, true );
-		wp_delete_attachment( $cropped_attachment->ID, true );
+		$this->cropped_attachment = get_post( $response['data']['id'] );
+		$this->assertInstanceOf( WP_Post::class, $this->cropped_attachment, 'get_post function must return an instance of WP_Post class' );
+		$this->assertNotEmpty( $this->attachment->post_title, 'post_title value must not be empty for testing purposes' );
+		$this->assertNotEmpty( $this->cropped_attachment->post_title, 'post_title value must not be empty for testing purposes' );
+		$this->assertSame( $this->attachment->post_title, $this->cropped_attachment->post_title, 'post_title value should be copied over to the cropped attachment' );
+		$this->assertSame( $this->attachment->post_content, $this->cropped_attachment->post_content, 'post_content value should be copied over to the cropped attachment' );
+		$this->assertSame( $this->attachment->post_excerpt, $this->cropped_attachment->post_excerpt, 'post_excerpt value should be copied over to the cropped attachment' );
+		$this->assertSame( $this->attachment->_wp_attachment_image_alt, $this->cropped_attachment->_wp_attachment_image_alt, '_wp_attachment_image_alt value should be copied over to the cropped attachment' );
 	}
 
 	/**
@@ -63,8 +66,8 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		$attachment = $this->create_attachment( false );
-		$this->prepare_post( $attachment );
+		$this->attachment = $this->create_attachment( false );
+		$this->prepare_post( $this->attachment );
 
 		// Make the request.
 		try {
@@ -75,16 +78,30 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 		$response = json_decode( $this->_last_response, true );
 		$this->validate_response( $response );
 
-		$cropped_attachment = get_post( $response['data']['id'] );
-		$this->assertInstanceOf( WP_Post::class, $cropped_attachment, 'get_post function must return an instance of WP_Post class' );
-		$this->assertEmpty( $attachment->post_title, 'post_title value must be empty for testing purposes' );
-		$this->assertNotEmpty( $cropped_attachment->post_title, 'post_title value must be auto-generated if it\'s empty in the original attachment' );
-		$this->assertStringStartsWith( 'http', $cropped_attachment->post_content, 'post_content value should contain an URL if it\'s empty in the original attachment' );
-		$this->assertEmpty( $cropped_attachment->post_excerpt, 'post_excerpt value must be empty if it\'s empty in the original attachment' );
-		$this->assertEmpty( $cropped_attachment->_wp_attachment_image_alt, '_wp_attachment_image_alt value must be empty if it\'s empty in the original attachment' );
+		$this->cropped_attachment = get_post( $response['data']['id'] );
+		$this->assertInstanceOf( WP_Post::class, $this->cropped_attachment, 'get_post function must return an instance of WP_Post class' );
+		$this->assertEmpty( $this->attachment->post_title, 'post_title value must be empty for testing purposes' );
+		$this->assertNotEmpty( $this->cropped_attachment->post_title, 'post_title value must be auto-generated if it\'s empty in the original attachment' );
+		$this->assertStringStartsWith( 'http', $this->cropped_attachment->post_content, 'post_content value should contain an URL if it\'s empty in the original attachment' );
+		$this->assertEmpty( $this->cropped_attachment->post_excerpt, 'post_excerpt value must be empty if it\'s empty in the original attachment' );
+		$this->assertEmpty( $this->cropped_attachment->_wp_attachment_image_alt, '_wp_attachment_image_alt value must be empty if it\'s empty in the original attachment' );
+	}
 
-		wp_delete_attachment( $attachment->ID, true );
-		wp_delete_attachment( $cropped_attachment->ID, true );
+	/**
+	 * Deletes attachment files and post entities.
+	 */
+	public function tear_down() {
+		if ( $this->attachment instanceof WP_Post ) {
+			wp_delete_attachment( $this->attachment->ID, true );
+		}
+
+		if ( $this->cropped_attachment instanceof WP_Post ) {
+			wp_delete_attachment( $this->cropped_attachment->ID, true );
+		}
+		$this->attachment         = null;
+		$this->cropped_attachment = null;
+
+		parent::tear_down();
 	}
 
 	/**
