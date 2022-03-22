@@ -3977,8 +3977,8 @@ function wp_ajax_crop_image() {
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 			/** @var WP_Post $original_attachment */
 			$original_attachment = get_post( $attachment_id );
-			$has_title           = 0 < mb_strlen( trim( $original_attachment->post_title ) );
-			$has_description     = 0 < mb_strlen( trim( $original_attachment->post_content ) );
+			$has_title           = mb_strlen( trim( $original_attachment->post_title ) ) > 0;
+			$has_description     = mb_strlen( trim( $original_attachment->post_content ) ) > 0;
 
 			$object = array(
 				// Copy the image title attribute (post_content field) from the original image.
