@@ -6482,13 +6482,9 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 			}
 			// Check for alternate size mime types in the sizeinfo['sources'] array to delete.
 			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) && count( $sizeinfo['sources'] ) > 1 ) {
-				$index = 0;
-				foreach ( $sizeinfo['sources'] as $mime => $properties ) {
-					// Skip the first mime type which was already deleted.
-					if ( 0 === $index++ ) {
-						continue;
-					}
-
+				$sources = $sizeinfo['sources'];
+				array_shift( $sources );
+				foreach ( $sources as $mime => $properties ) {
 					if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
 						continue;
 					}
@@ -6520,22 +6516,16 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 
 	// Check for alternate full size mime types in the root sources array to delete.
 	if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
-		if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
-			$index = 0;
-			foreach ( $meta['sources'] as $mime => $properties ) {
-				// Skip the first (primary) large image which was already deleted.
-				if ( 0 === $index++ ) {
-					continue;
-				}
+		$sources = $meta['sources'];
+		array_shift( $sources );
+		foreach ( $sources as $mime => $properties ) {
+			if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
+				continue;
+			}
 
-				if ( empty( $properties['file'] ) ) {
-					continue;
-				}
-
-				$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
-				if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
-					$deleted = false;
-				}
+			$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
+			if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
+				$deleted = false;
 			}
 		}
 	}
