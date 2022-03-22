@@ -1299,6 +1299,7 @@ function wp_upload_image_mime_transforms( $attachment_id ) {
  * Extract the primary and additional mime output types for an image from the $image_mime_transforms.
  *
  * @since 6.0.0
+ * @access private
  *
  * @param $image_mime_transforms array<string, array<string>> An array of valid mime types, where the key is the mime type and the value is the extension type.
  * @param $attachment_id int The attachment ID.
