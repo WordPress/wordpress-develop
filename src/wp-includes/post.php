@@ -6564,37 +6564,6 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 }
 
 /**
- * Delete sources files from a directory, skipping default mime type.
- *
- * @since 6.0.0.
- *
- * @param array  $sources            The sources array to delete files from.
- * @param string $intermediate_dir   The directory to delete files from.
- * @param string $file               Absolute path to the attachment's file.
- * @return bool Whether deletion succeeded.
- */
-function _wp_delete_alternate_mime_sizes( $sources, $intermediate_dir, $file ) {
-	$deleted = true;
-	$index   = 0;
-	foreach ( $sources as $mime => $properties ) {
-		// Skip the first (primary) large image which was already deleted.
-		if ( 0 === $index++ ) {
-			continue;
-		}
-
-		if ( empty( $properties['file'] ) ) {
-			continue;
-		}
-
-		$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
-		if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
-			$deleted = false;
-		}
-	}
-	return $deleted;
-}
-
-/**
  * Retrieves attachment metadata for attachment ID.
  *
  * @since 2.1.0
