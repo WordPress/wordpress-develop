@@ -29,10 +29,6 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 	 * @covers ::wp_ajax_crop_image
 	 */
 	public function test_it_copies_metadata_from_original_image() {
-
-		// Become an administrator.
-		$this->_setRole( 'administrator' );
-
 		$this->attachment = $this->create_attachment( true );
 		$this->prepare_post( $this->attachment );
 
@@ -63,9 +59,6 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 	 * @covers ::wp_ajax_crop_image
 	 */
 	public function test_it_doesnt_generate_new_metadata_if_metadata_is_empty() {
-		// Become an administrator.
-		$this->_setRole( 'administrator' );
-
 		$this->attachment = $this->create_attachment( false );
 		$this->prepare_post( $this->attachment );
 
@@ -85,6 +78,13 @@ class Tests_Ajax_CropImage extends WP_Ajax_UnitTestCase {
 		$this->assertStringStartsWith( 'http', $this->cropped_attachment->post_content, 'post_content value should contain an URL if it\'s empty in the original attachment' );
 		$this->assertEmpty( $this->cropped_attachment->post_excerpt, 'post_excerpt value must be empty if it\'s empty in the original attachment' );
 		$this->assertEmpty( $this->cropped_attachment->_wp_attachment_image_alt, '_wp_attachment_image_alt value must be empty if it\'s empty in the original attachment' );
+	}
+
+	public function set_up() {
+		parent::set_up();
+
+		// Become an administrator.
+		$this->_setRole( 'administrator' );
 	}
 
 	/**
