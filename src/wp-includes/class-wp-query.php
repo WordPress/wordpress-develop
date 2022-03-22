@@ -3264,12 +3264,10 @@ class WP_Query {
 
 			// Fetch sticky posts that weren't in the query results.
 			if ( ! empty( $sticky_posts ) ) {
-				$sticky_query = new self(
+				$stickies = get_posts(
 					array(
 						'cache_results'          => $q['cache_results'],
-						'ignore_sticky_posts'    => true,
 						'lazy_load_term_meta'    => $q['lazy_load_term_meta'],
-						'no_found_rows'          => true,
 						'post__in'               => $sticky_posts,
 						'post_type'              => $post_type,
 						'post_status'            => 'publish',
@@ -3279,7 +3277,6 @@ class WP_Query {
 						'update_post_term_cache' => $q['update_post_term_cache'],
 					)
 				);
-				$stickies     = $sticky_query->get_posts();
 
 				foreach ( $stickies as $sticky_post ) {
 					array_splice( $this->posts, $sticky_offset, 0, array( $sticky_post ) );
