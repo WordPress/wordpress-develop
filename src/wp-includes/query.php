@@ -1124,7 +1124,7 @@ function _find_post_by_old_slug( $post_type ) {
 	}
 	$cache_key = "_find_post_by_old_slug:$key:$last_changed";
 	$cache     = wp_cache_get( $cache_key, 'posts' );
-	if ( $cache !== false ) {
+	if ( false !== $cache ) {
 		$id = $cache;
 	} else {
 		$id = (int) $wpdb->get_var( $query );
@@ -1171,7 +1171,7 @@ function _find_post_by_old_date( $post_type ) {
 		}
 		$cache_key = "_find_post_by_old_date:$key:$last_changed";
 		$cache     = wp_cache_get( $cache_key, 'posts' );
-		if ( $cache !== false ) {
+		if ( false !== $cache ) {
 			$id = $cache;
 		} else {
 			$id = (int) $wpdb->get_var( $query );
