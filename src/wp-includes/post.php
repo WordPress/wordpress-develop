@@ -6481,7 +6481,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 				}
 			}
 			// Check for alternate size mime types in the sizeinfo['sources'] array to delete.
-			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) && 1 < sizeof( $sizeinfo['sources'] ) ) {
+			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) && count( $sizeinfo['sources'] ) > 1 ) {
 				$index = 0;
 				foreach ( $sizeinfo['sources'] as $mime => $properties ) {
 					// Skip the first mime type which was already deleted.
