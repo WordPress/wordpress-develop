@@ -258,6 +258,9 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	$mime_type              = wp_get_image_mime( $file );
 	$mime_extension_map     = array_flip( wp_get_mime_types() );
 	list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type );
+	if ( empty( $primary_mime_type ) ) {
+		$primary_mime_type = $mime_type;
+	}
 
 	// Do not scale (large) PNG images. May result in sub-sizes that have greater file size than the original. See #48736.
 	if ( 'image/png' !== $imagesize['mime'] ) {
@@ -508,9 +511,10 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	$upload_mime_transforms = wp_upload_image_mime_transforms( $attachment_id );
 	$mime_type              = wp_get_image_mime( $file );
 	$mimes_to_generate      = _wp_get_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type );
-	$primary_mime_type      = isset( $mimes_to_generate['primary_mime_type'] ) ? $mimes_to_generate['primary_mime_type'] : array();
-	$additional_mime_types  = isset( $mimes_to_generate['additional_mime_types'] ) ? $mimes_to_generate['additional_mime_types'] : array();
-
+	list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $upload_mime_transforms, $attachment_id, $mime_type );
+	if ( empty( $primary_mime_type ) ) {
+		$primary_mime_type = $mime_type;
+	}
 	/*
 	 * Sort the image sub-sizes in order of priority when creating them.
 	 * This ensures there is an appropriate sub-size the user can access immediately
