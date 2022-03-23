@@ -652,7 +652,7 @@ class WP_Upgrader {
 	 *                                               destination folder. Default false.
 	 *     @type bool   $clear_working               Whether to delete the files from the working
 	 *                                               directory after copying them to the destination.
-	 *                                               Default false.
+	 *                                               Default true.
 	 *     @type bool   $abort_if_destination_exists Whether to abort the installation if the destination
 	 *                                               folder already exists. When true, `$clear_destination`
 	 *                                               should be false. Default true.
