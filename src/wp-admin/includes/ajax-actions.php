@@ -3970,28 +3970,29 @@ function wp_ajax_crop_image() {
 			/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 			$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-			$parent_url = wp_get_attachment_url( $attachment_id );
-			$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
+			$parent_url      = wp_get_attachment_url( $attachment_id );
+			$parent_basename = wp_basename( $parent_url );
+			$url             = str_replace( $parent_basename, wp_basename( $cropped ), $parent_url );
 
 			$size       = wp_getimagesize( $cropped );
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
-			/** @var WP_Post $original_attachment */
-			$original_attachment = get_post( $attachment_id );
-			$has_title           = '' !== trim( $original_attachment->post_title );
+
+			// Get the original image's post to pre-populate the cropped image.
+			$original_attachment      = get_post( $attachment_id );
+			$use_original_title       = (
+				'' !== trim( $original_attachment->post_title ) &&
+				// Check if the original image's title was edited.
+				pathinfo( $parent_basename, PATHINFO_FILENAME ) !== $original_attachment->post_title
+			);
+			$use_original_description = ( '' !== trim( $original_attachment->post_content ) );
 
 			$object = array(
-				// Copy the image title attribute (post_title field) from the original image.
-				'post_title'     => $has_title ? $original_attachment->post_title : wp_basename( $cropped ),
-				'post_content'   => $url,
+				'post_title'     => $use_original_title ? $original_attachment->post_title : wp_basename( $cropped ),
+				'post_content'   => $use_original_description ? $original_attachment->post_content : $url,
 				'post_mime_type' => $image_type,
 				'guid'           => $url,
 				'context'        => $context,
 			);
-
-			// Copy the image description attribute (post_content field) from the original image.
-			if ( '' !== trim( $original_attachment->post_content ) ) {
-				$object['post_content'] = $original_attachment->post_content;
-			}
 
 			// Copy the image caption attribute (post_excerpt field) from the original image.
 			if ( '' !== trim( $original_attachment->post_excerpt ) ) {
