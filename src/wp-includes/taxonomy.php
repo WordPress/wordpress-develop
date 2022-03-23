@@ -1569,7 +1569,7 @@ function term_exists( $term, $taxonomy = '', $parent = null ) {
 	 * @param string     $taxonomy The taxonomy name to use. An empty string indicates the search is against all taxonomies.
 	 * @param int|null   $parent   ID of parent term under which to confine the exists search. Null indicates the search is unconfined.
 	 */
-	$defaults = apply_filters( 'wp_term_exists_default_args', $defaults, $term, $taxonomy, $parent );
+	$defaults = apply_filters( 'term_exists_default_args', $defaults, $term, $taxonomy, $parent );
 
 	if ( is_int( $term ) ) {
 		if ( 0 === $term ) {
