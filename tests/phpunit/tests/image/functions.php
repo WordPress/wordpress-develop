@@ -53,16 +53,39 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	protected function get_mime_type( $filename ) {
 		$mime_type = '';
+var_dump(mime_content_type( $filename ));
+var_dump(image_type_to_mime_type( getimagesize( $filename )[2] ) );
+		if ( function_exists( 'mime_content_type' ) ) {
+			// Fileinfo extension is available.
+			return mime_content_type( $filename );
+		}
+
+		$image_info = getimagesize( $filename );
+		if ( isset( $image_info[2] ) ) {
+			return image_type_to_mime_type( $image_info[2] );
+		}
+/*
 		if ( extension_loaded( 'fileinfo' ) ) {
 			$finfo     = new finfo();
-			$mime_type = $finfo->file( $filename, FILEINFO_MIME );
+			$mime_type = $finfo->file( $filename, FILEINFO_MIME ); // If anything this should be changed to FILEINFO_MIME_TYPE
 		}
 		if ( false !== strpos( $mime_type, ';' ) ) {
 			list( $mime_type, $charset ) = explode( ';', $mime_type, 2 );
 		}
+*/
 		return $mime_type;
 	}
+/*
+//		$image_info = exif_imagetype
+		$real_mime_type = '';
+		$image_info     = getimagesize( $ret['path'] );
+		if ( isset( $image_info[2] ) ) {
+			$real_mime_type = image_type_to_mime_type( $image_info[2] );
+		}
 
+		$this->assertSame( $mime_type, $real_mime_type, 'Mime type of the saved image does not match' );
+//		$this->assertSame( $mime_type, mime_content_type( $ret['path'] ), 'Mime type of the saved image does not match' );
+*/
 	/**
 	 * @dataProvider data_is_image_positive
 	 *
@@ -234,7 +257,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @covers       ::wp_save_image_file
 	 *
 	 * @ticket 6821
-	 * @requires extension fileinfo
 	 *
 	 * @param string $class_name Name of the image editor engine class to be tested.
 	 * @param string $mime_type  The mime type to test.
@@ -260,7 +282,17 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned' );
-		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match' );
+
+//		$image_info = exif_imagetype
+		$real_mime_type = '';
+		$image_info     = getimagesize( $ret['path'] );
+		if ( isset( $image_info[2] ) ) {
+			$real_mime_type = image_type_to_mime_type( $image_info[2] );
+		}
+
+		$this->assertSame( $mime_type, $real_mime_type, 'Mime type of the saved image does not match' );
+//		$this->assertSame( $mime_type, mime_content_type( $ret['path'] ), 'Mime type of the saved image does not match' );
+//		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match' );
 
 		// Clean up.
 		unlink( $file );
@@ -309,7 +341,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @covers       WP_Image_Editor::get_output_format
 	 *
 	 * @ticket 6821
-	 * @requires extension fileinfo
 	 *
 	 * @param string $class_name Name of the image editor engine class to be tested.
 	 */
@@ -322,10 +353,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$file      = wp_tempnam( 'tmp.jpg' );
 		$ret       = $img->save( $file, $mime_type );
 
+		$expected_extension = 'gif';
+
 		// Make assertions.
 		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned' );
-		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image did not override file name' );
+		$this->assertStringEndsWith( $expected_extension, $ret['mime-type'], 'Mime type of the saved image did not override file name' );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the actual saved image does not match' );
 
 		// Clean up.
 		unlink( $file );
@@ -350,7 +384,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @covers       WP_Image_Editor::get_output_format
 	 *
 	 * @ticket 6821
-	 * @requires extension fileinfo
 	 *
 	 * @param string $class_name Name of the image editor engine class to be tested.
 	 * @param string $extension  File extension.
@@ -380,7 +413,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned' );
-		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image was not inferred correctly' );
+		$this->assertSame( $mime_type, $ret['mime-type'], 'Mime type of the saved image was not inferred correctly' );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the actual saved image does not match' );
 
 		// Clean up.
 		unlink( $ret['path'] );
