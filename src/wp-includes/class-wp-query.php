@@ -3000,17 +3000,14 @@ class WP_Query {
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
-		$old_request = implode(
-			' ',
-			array(
-				"SELECT $found_rows $distinct $fields",
-				"FROM {$wpdb->posts} $join",
-				"WHERE 1=1 $where",
-				$groupby,
-				$orderby,
-				$limits,
-			)
-		);
+		$old_request = "
+			SELECT $found_rows $distinct $fields
+			FROM {$wpdb->posts} $join
+			WHERE 1=1 $where
+			$groupby
+			$orderby
+			$limits
+		";
 
 		$this->request = $old_request;
 
@@ -3097,17 +3094,14 @@ class WP_Query {
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
 
-				$this->request = implode(
-					' ',
-					array(
-						"SELECT $found_rows $distinct {$wpdb->posts}.ID",
-						"FROM {$wpdb->posts} $join",
-						"WHERE 1=1 $where",
-						$groupby,
-						$orderby,
-						$limits,
-					)
-				);
+				$this->request = "
+					SELECT $found_rows $distinct {$wpdb->posts}.ID
+					FROM {$wpdb->posts} $join
+					WHERE 1=1 $where
+					$groupby
+					$orderby
+					$limits
+				";
 
 				/**
 				 * Filters the Post IDs SQL request before sending.
@@ -3266,10 +3260,14 @@ class WP_Query {
 			if ( ! empty( $sticky_posts ) ) {
 				$stickies = get_posts(
 					array(
-						'post__in'    => $sticky_posts,
-						'post_type'   => $post_type,
-						'post_status' => 'publish',
-						'nopaging'    => true,
+						'post__in'               => $sticky_posts,
+						'post_type'              => $post_type,
+						'post_status'            => 'publish',
+						'suppress_filters'       => $q['suppress_filters'],
+						'cache_results'          => $q['cache_results'],
+						'update_post_meta_cache' => $q['update_post_meta_cache'],
+						'update_post_term_cache' => $q['update_post_term_cache'],
+						'lazy_load_term_meta'    => $q['lazy_load_term_meta'],
 					)
 				);
 
