@@ -51,7 +51,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringNotContainsString( 'That embed cannot be found.', $actual );
 		$this->assertStringContainsString( 'Hello World', $actual );
 	}
 
@@ -86,7 +86,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringNotContainsString( 'That embed cannot be found.', $actual );
 		$this->assertStringContainsString( 'Hello World', $actual );
 		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
@@ -106,7 +106,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
 	/**
@@ -136,7 +136,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringNotContainsString( 'That embed cannot be found.', $actual );
 		$this->assertStringContainsString( 'Hello World', $actual );
 		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
@@ -164,7 +164,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
 	/**
@@ -191,7 +191,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
 	/**
@@ -217,7 +217,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
 	/**
@@ -247,7 +247,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringNotContainsString( 'That embed cannot be found.', $actual );
 		$this->assertStringContainsString( 'Hello World', $actual );
 	}
 
