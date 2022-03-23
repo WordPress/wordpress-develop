@@ -193,8 +193,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Cleans the global scope (e.g `$_GET` and `$_POST`).
 	 */
 	public function clean_up_global_scope() {
-		$_GET  = array();
-		$_POST = array();
+		$_GET     = array();
+		$_POST    = array();
+		$_REQUEST = array();
 		self::flush_cache();
 	}
 

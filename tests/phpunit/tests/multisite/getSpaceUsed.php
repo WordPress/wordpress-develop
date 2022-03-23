@@ -8,7 +8,7 @@ if ( is_multisite() ) :
 	 */
 	class Tests_Multisite_GetSpaceUsed extends WP_UnitTestCase {
 
-		function test_get_space_used_switched_site() {
+		public function test_get_space_used_switched_site() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -42,7 +42,7 @@ if ( is_multisite() ) :
 		 * Directories of sub sites on a network should not count against the same spaced used total for
 		 * the main site.
 		 */
-		function test_get_space_used_main_site() {
+		public function test_get_space_used_main_site() {
 			$space_used = get_space_used();
 
 			$blog_id = self::factory()->blog->create();
@@ -76,15 +76,15 @@ if ( is_multisite() ) :
 			restore_current_blog();
 		}
 
-		function test_get_space_used_pre_get_spaced_used_filter() {
-			add_filter( 'pre_get_space_used', array( $this, '_filter_space_used' ) );
+		public function test_get_space_used_pre_get_spaced_used_filter() {
+			add_filter( 'pre_get_space_used', array( $this, 'filter_space_used' ) );
 
 			$this->assertSame( 300, get_space_used() );
 
-			remove_filter( 'pre_get_space_used', array( $this, '_filter_space_used' ) );
+			remove_filter( 'pre_get_space_used', array( $this, 'filter_space_used' ) );
 		}
 
-		function _filter_space_used() {
+		public function filter_space_used() {
 			return 300;
 		}
 	}

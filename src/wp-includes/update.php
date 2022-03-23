@@ -143,7 +143,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		$query['channel'] = WP_AUTO_UPDATE_CORE;
 	}
 
-	$url      = 'http://api.wordpress.org/core/version-check/1.7/?' . http_build_query( $query, null, '&' );
+	$url      = 'http://api.wordpress.org/core/version-check/1.7/?' . http_build_query( $query, '', '&' );
 	$http_url = $url;
 	$ssl      = wp_http_supports( array( 'ssl' ) );
 
@@ -568,7 +568,7 @@ function wp_update_themes( $extra_stats = array() ) {
 	$checked = array();
 	$request = array();
 
-	// Put slug of current theme into request.
+	// Put slug of active theme into request.
 	$request['active'] = get_option( 'stylesheet' );
 
 	foreach ( $installed_themes as $theme ) {

@@ -189,7 +189,7 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	$templates[] = "{$slug}.php";
 
 	/**
-	 * Fires before a template part is loaded.
+	 * Fires before an attempt is made to locate and load a template part.
 	 *
 	 * @since 5.2.0
 	 * @since 5.5.0 The `$args` parameter was added.
@@ -1376,9 +1376,11 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	// If there's a month.
 	if ( is_archive() && ! empty( $m ) ) {
 		$my_year  = substr( $m, 0, 4 );
-		$my_month = $wp_locale->get_month( substr( $m, 4, 2 ) );
+		$my_month = substr( $m, 4, 2 );
 		$my_day   = (int) substr( $m, 6, 2 );
-		$title    = $my_year . ( $my_month ? $t_sep . $my_month : '' ) . ( $my_day ? $t_sep . $my_day : '' );
+		$title    = $my_year .
+			( $my_month ? $t_sep . $wp_locale->get_month( $my_month ) : '' ) .
+			( $my_day ? $t_sep . $my_day : '' );
 	}
 
 	// If there's a year.
@@ -3576,8 +3578,8 @@ function wp_enqueue_editor() {
  *
  *     @type string   $type       The MIME type of the file to be edited.
  *     @type string   $file       Filename to be edited. Extension is used to sniff the type. Can be supplied as alternative to `$type` param.
- *     @type WP_Theme $theme      Theme being edited when on theme editor.
- *     @type string   $plugin     Plugin being edited when on plugin editor.
+ *     @type WP_Theme $theme      Theme being edited when on the theme file editor.
+ *     @type string   $plugin     Plugin being edited when on the plugin file editor.
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
@@ -3667,8 +3669,8 @@ function wp_enqueue_code_editor( $args ) {
  *
  *     @type string   $type       The MIME type of the file to be edited.
  *     @type string   $file       Filename to be edited. Extension is used to sniff the type. Can be supplied as alternative to `$type` param.
- *     @type WP_Theme $theme      Theme being edited when on theme editor.
- *     @type string   $plugin     Plugin being edited when on plugin editor.
+ *     @type WP_Theme $theme      Theme being edited when on the theme file editor.
+ *     @type string   $plugin     Plugin being edited when on the plugin file editor.
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
@@ -4004,8 +4006,8 @@ function wp_get_code_editor_settings( $args ) {
 	 *
 	 *     @type string   $type       The MIME type of the file to be edited.
 	 *     @type string   $file       Filename being edited.
-	 *     @type WP_Theme $theme      Theme being edited when on theme editor.
-	 *     @type string   $plugin     Plugin being edited when on plugin editor.
+	 *     @type WP_Theme $theme      Theme being edited when on the theme file editor.
+	 *     @type string   $plugin     Plugin being edited when on the plugin file editor.
 	 *     @type array    $codemirror Additional CodeMirror setting overrides.
 	 *     @type array    $csslint    CSSLint rule overrides.
 	 *     @type array    $jshint     JSHint rule overrides.

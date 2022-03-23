@@ -372,14 +372,14 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		switch_to_locale( 'de_DE' );
 		switch_to_locale( $site_locale );
 
-		$expected = i18n_plugin_test();
+		$actual = i18n_plugin_test();
 
 		restore_current_locale();
 
 		$wp_locale_switcher = $locale_switcher;
 
 		$this->assertSame( 'en_US', get_locale() );
-		$this->assertSame( 'This is a dummy plugin', $expected );
+		$this->assertSame( 'This is a dummy plugin', $actual );
 	}
 
 	public function filter_locale() {
