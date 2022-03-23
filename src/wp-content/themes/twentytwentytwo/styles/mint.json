@@ -1,5 +1,6 @@
 {
 	"version": 2,
+	"name": "Mint",
 	"settings": {
 		"color": {
 			"palette": [
@@ -10,7 +11,7 @@
 				},
 				{
 					"slug": "background",
-					"color": "#FFFFFF",
+					"color": "#BDFFF3",
 					"name": "Background"
 				},
 				{
@@ -20,12 +21,12 @@
 				},
 				{
 					"slug": "secondary",
-					"color": "#BDFFF3",
+					"color": "#FFFFFF",
 					"name": "Secondary"
 				},
 				{
 					"slug": "tertiary",
-					"color": "#BDFFF3",
+					"color": "#FFFFFF",
 					"name": "Tertiary"
 				}
 			]

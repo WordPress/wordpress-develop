@@ -1,5 +1,6 @@
 {
 	"version": 2,
+	"name": "Red",
 	"settings": {
 		"color": {
 			"palette": [
@@ -15,7 +16,7 @@
 				},
 				{
 					"slug": "primary",
-					"color": "#000000",
+					"color": "#D42731",
 					"name": "Primary"
 				},
 				{
@@ -91,6 +92,11 @@
 			"h6": {
 				"typography": {
 					"fontWeight": "700"
+				}
+			},
+			"link": {
+				"color": {
+					"text": "var(--wp--preset--color--primary)"
 				}
 			}
 		},

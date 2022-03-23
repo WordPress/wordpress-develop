@@ -1,5 +1,6 @@
 {
 	"version": 2,
+	"name": "Swiss",
 	"settings": {
 		"color": {
 			"duotone": [
@@ -15,17 +16,17 @@
 			"palette": [
 				{
 					"slug": "foreground",
-					"color": "#000000",
+					"color": "#FFFFFF",
 					"name": "Foreground"
 				},
 				{
 					"slug": "background",
-					"color": "#FFFFFF",
+					"color": "#1A1A1A",
 					"name": "Background"
 				},
 				{
 					"slug": "primary",
-					"color": "#D42731",
+					"color": "#FF7179",
 					"name": "Primary"
 				},
 				{
@@ -35,7 +36,7 @@
 				},
 				{
 					"slug": "tertiary",
-					"color": "#FFFFFF",
+					"color": "#0000000",
 					"name": "Tertiary"
 				}
 			]
@@ -122,6 +123,11 @@
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--inter)",
 					"fontWeight": "700"
+				}
+			},
+			"link": {
+				"color": {
+					"text": "var(--wp--preset--color--primary)"
 				}
 			}
 		},

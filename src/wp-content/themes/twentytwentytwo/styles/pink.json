@@ -1,5 +1,6 @@
 {
 	"version": 2,
+	"name": "Pink",
 	"settings": {
 		"color": {
 			"duotone": [
@@ -20,7 +21,7 @@
 				},
 				{
 					"slug": "background",
-					"color": "#FFFFFF",
+					"color": "#FFCCCC",
 					"name": "Background"
 				},
 				{
@@ -30,12 +31,12 @@
 				},
 				{
 					"slug": "secondary",
-					"color": "#FFCCCC",
+					"color": "#FFFFFF",
 					"name": "Secondary"
 				},
 				{
 					"slug": "tertiary",
-					"color": "#FFCCCC",
+					"color": "#FFFFFF",
 					"name": "Tertiary"
 				}
 			]
