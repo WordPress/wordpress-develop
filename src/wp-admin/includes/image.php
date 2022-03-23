@@ -1258,7 +1258,7 @@ function wp_upload_image_mime_transforms( $attachment_id ) {
 	 * @since 6.0.0
 	 *
 	 * @param array $image_mime_transforms A map with the valid mime transforms.
-	 * @param int   $attachment_id The ID of the attachment where the hook was dispatched.
+	 * @param int   $attachment_id         The ID of the attachment where the hook was dispatched.
 	 */
 	return (array) apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id );
 }
