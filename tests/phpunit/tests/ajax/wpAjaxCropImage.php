@@ -28,7 +28,7 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 	 * @ticket 37750
 	 */
 	public function test_it_copies_metadata_from_original_image() {
-		$this->attachment = $this->create_attachment( true );
+		$this->attachment = $this->make_attachment( true );
 		$this->prepare_post( $this->attachment );
 
 		// Make the request.
@@ -56,7 +56,7 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 	 * @ticket 37750
 	 */
 	public function test_it_doesnt_generate_new_metadata_if_metadata_is_empty() {
-		$this->attachment = $this->create_attachment( false );
+		$this->attachment = $this->make_attachment( false );
 		$this->prepare_post( $this->attachment );
 
 		// Make the request.
@@ -106,23 +106,32 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return WP_Post
 	 */
-	private function create_attachment( $with_metadata = true ) {
+	private function make_attachment( $with_metadata = true ) {
 		$uniq_id = uniqid( 'crop-image-ajax-action-test-' );
-		$object  = array(
-			'post_title'     => $with_metadata ? 'Title ' . $uniq_id : '',
-			'post_content'   => $with_metadata ? 'Description ' . $uniq_id : '',
-			'post_mime_type' => 'image/jpg',
-			'guid'           => 'http://localhost/foo.jpg',
-			'context'        => 'custom-logo',
-			'post_excerpt'   => $with_metadata ? 'Caption ' . $uniq_id : '',
-		);
 
 		$test_file        = DIR_TESTDATA . '/images/test-image.jpg';
 		$upload_directory = wp_upload_dir();
 		$uploaded_file    = $upload_directory['path'] . '/' . $uniq_id . '.jpg';
 		$filesystem       = new WP_Filesystem_Direct( true );
 		$filesystem->copy( $test_file, $uploaded_file );
-		$attachment_id = wp_insert_attachment( $object, $uploaded_file );
+
+		$attachment_data = array(
+			'file' => $uploaded_file,
+			'type' => 'image/jpg',
+			'url'  => 'http://localhost/foo.jpg',
+		);
+
+		$attachment_id = $this->_make_attachment( $attachment_data );
+		$post_data     = array(
+			'ID'           => $attachment_id,
+			'post_title'   => $with_metadata ? 'Title ' . $uniq_id : '',
+			'post_content' => $with_metadata ? 'Description ' . $uniq_id : '',
+			'context'      => 'custom-logo',
+			'post_excerpt' => $with_metadata ? 'Caption ' . $uniq_id : '',
+		);
+
+		// Update the post because _make_attachment method doesn't support these arguments.
+		wp_update_post( $post_data );
 
 		if ( $with_metadata ) {
 			update_post_meta( $attachment_id, '_wp_attachment_image_alt', wp_slash( 'Alt ' . $uniq_id ) );
