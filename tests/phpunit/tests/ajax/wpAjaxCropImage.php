@@ -16,11 +16,36 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
  */
 class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 
-	/** @var WP_Post|null */
+	/**
+	 * @var WP_Post|null
+	 */
 	private $attachment;
 
-	/** @var WP_Post|null */
+	/**
+	 * @var WP_Post|null
+	 */
 	private $cropped_attachment;
+
+	public function set_up() {
+		parent::set_up();
+
+		// Become an administrator.
+		$this->_setRole( 'administrator' );
+	}
+
+	public function tear_down() {
+		if ( $this->attachment instanceof WP_Post ) {
+			wp_delete_attachment( $this->attachment->ID, true );
+		}
+
+		if ( $this->cropped_attachment instanceof WP_Post ) {
+			wp_delete_attachment( $this->cropped_attachment->ID, true );
+		}
+		$this->attachment         = null;
+		$this->cropped_attachment = null;
+
+		parent::tear_down();
+	}
 
 	/**
 	 * Tests that attachment properties are copied over to the cropped image.
@@ -75,30 +100,6 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 		$this->assertStringStartsWith( 'http', $this->cropped_attachment->post_content, 'post_content value should contain an URL if it\'s empty in the original attachment' );
 		$this->assertEmpty( $this->cropped_attachment->post_excerpt, 'post_excerpt value must be empty if it\'s empty in the original attachment' );
 		$this->assertEmpty( $this->cropped_attachment->_wp_attachment_image_alt, '_wp_attachment_image_alt value must be empty if it\'s empty in the original attachment' );
-	}
-
-	public function set_up() {
-		parent::set_up();
-
-		// Become an administrator.
-		$this->_setRole( 'administrator' );
-	}
-
-	/**
-	 * Deletes attachment files and post entities.
-	 */
-	public function tear_down() {
-		if ( $this->attachment instanceof WP_Post ) {
-			wp_delete_attachment( $this->attachment->ID, true );
-		}
-
-		if ( $this->cropped_attachment instanceof WP_Post ) {
-			wp_delete_attachment( $this->cropped_attachment->ID, true );
-		}
-		$this->attachment         = null;
-		$this->cropped_attachment = null;
-
-		parent::tear_down();
 	}
 
 	/**
