@@ -316,7 +316,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			if ( ! is_wp_error( $resized ) ) {
 				// Append "-scaled" to the image file name. It will look like "my_image-scaled.jpg".
 				// This doesn't affect the sub-sizes names as they are generated from the original image (for best quality).
-				$saved = $editor->save( $editor->generate_filename( 'scaled' ) );
+				$saved = $editor->save( $editor->generate_filename( 'scaled' ), $primary_mime_type );
 
 				if ( ! is_wp_error( $saved ) ) {
 					$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
@@ -334,7 +334,6 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 				// Save additional mime types.
 				foreach ( $additional_mime_types as $output_mime_type ) {
-					$editor->set_mime_type( $output_mime_type );
 					$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
 					// @todo Correct issue where filename winds up with duplicate "-scaled" suffix added unless the editor is reset.
 					// adding extension to name for now.
@@ -348,16 +347,8 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 				// TODO: Log errors.
 			}
 		} else {
-			$editor = wp_get_image_editor( $file );
-
-			if ( is_wp_error( $editor ) ) {
-				// This image cannot be edited.
-				return $image_meta;
-			}
-
 			// Populate the top level additional mime type data.
 			foreach ( $additional_mime_types as $output_mime_type ) {
-				$editor->set_mime_type( $output_mime_type );
 				if ( empty( $image_meta['sources'][ $output_mime_type ] ) ) {
 					$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
 					$saved     = $editor->save( $editor->generate_filename( null, null, $extension ), $output_mime_type );
@@ -367,10 +358,16 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					}
 				}
 			}
-			$editor->set_mime_type( $primary_mime_type );
 
-			// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
 			if ( ! empty( $exif_meta['orientation'] ) && 1 !== (int) $exif_meta['orientation'] ) {
+				// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
+
+				$editor = wp_get_image_editor( $file );
+
+				if ( is_wp_error( $editor ) ) {
+					// This image cannot be edited.
+					return $image_meta;
+				}
 
 				// Rotate the image.
 				$rotated = $editor->maybe_exif_rotate();
@@ -395,11 +392,10 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 					// Save additional mime types.
 					foreach ( $additional_mime_types as $output_mime_type ) {
-						$editor->set_mime_type( $output_mime_type );
 						$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
 						// @todo Correct issue where filename winds up with duplicate "-rotated" suffix added unless the editor is reset.
 						// adding extension to name for now.
-						$saved = $editor->save( $editor->generate_filename( $extension ) );
+						$saved = $editor->save( $editor->generate_filename( $extension ), $output_mime_type );
 						if ( ! is_wp_error( $saved ) ) {
 							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 							wp_update_attachment_metadata( $attachment_id, $image_meta );
@@ -526,10 +522,11 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 			// TODO: Log errors.
 		}
 	}
-	foreach ( $new_sizes as $new_size_name => $new_size_data ) {
-		// Make the primary mime type sub sized images.
-		if ( method_exists( $editor, 'make_subsize' ) ) {
-			$new_size_meta = $editor->make_subsize( $new_size_data );
+
+	if ( method_exists( $editor, 'make_subsize' ) ) {
+		// Make the primary mime type sub sized images
+		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
+			$new_size_meta = $editor->make_subsize( $new_size_data, $primary_mime_type );
 			if ( is_wp_error( $new_size_meta ) ) {
 				// TODO: Log errors.
 			} else {
@@ -541,35 +538,24 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 				$image_meta['sizes'][ $new_size_name ]['sources'][ $primary_mime_type ] = _wp_get_sources_from_meta( $new_size_meta );
 				wp_update_attachment_metadata( $attachment_id, $image_meta );
 			}
-		} else {
-			// Fall back to `$editor->multi_resize()`.
-			$created_sizes = $editor->multi_resize( $new_sizes );
 
-			if ( ! empty( $created_sizes ) ) {
-				$image_meta['sizes'] = array_merge( $image_meta['sizes'], $created_sizes );
-				wp_update_attachment_metadata( $attachment_id, $image_meta );
-			}
-		}
-
-		// Save additional mime types sub sizes.
-		foreach ( $additional_mime_types as $output_mime_type ) {
-			$editor->set_mime_type( $output_mime_type );
-			if ( method_exists( $editor, 'make_subsize' ) ) {
-				$new_size_meta = $editor->make_subsize( $new_size_data );
+			// Save additional mime types for this size.
+			foreach ( $additional_mime_types as $output_mime_type ) {
+				$new_size_meta = $editor->make_subsize( $new_size_data, $output_mime_type );
 
 				if ( ! is_wp_error( $new_size_meta ) ) {
 					$image_meta['sizes'][ $new_size_name ]['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $new_size_meta );
 					wp_update_attachment_metadata( $attachment_id, $image_meta );
 				}
-			} else {
-				// Fall back to `$editor->multi_resize()`.
-				$created_sizes = $editor->multi_resize( $new_sizes );
-
-				if ( ! empty( $created_sizes ) ) {
-					$image_meta['sizes'] = array_merge( $image_meta['sizes'], $created_sizes );
-					wp_update_attachment_metadata( $attachment_id, $image_meta );
-				}
 			}
+		}
+	} else {
+		// Fall back to `$editor->multi_resize()`.
+		$created_sizes = $editor->multi_resize( $new_sizes );
+
+		if ( ! empty( $created_sizes ) ) {
+			$image_meta['sizes'] = array_merge( $image_meta['sizes'], $created_sizes );
+			wp_update_attachment_metadata( $attachment_id, $image_meta );
 		}
 	}
 

@@ -627,16 +627,5 @@ abstract class WP_Image_Editor {
 
 		return wp_get_default_extension_for_mime_type( $mime_type );
 	}
-
-	/**
-	 * Set the editor mime type, useful when outputting alternate mime types.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @param string $mime_type The mime type to set.
-	 */
-	public function set_mime_type( $mime_type ) {
-		$this->mime_type = $mime_type;
-	}
 }
 
