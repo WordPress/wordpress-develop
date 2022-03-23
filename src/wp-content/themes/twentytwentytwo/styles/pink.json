@@ -1,0 +1,189 @@
+{
+	"version": 2,
+	"settings": {
+		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#000000",
+						"#FFFFFF"
+					],
+					"slug": "default-filter",
+					"name": "Default filter"
+				}
+			],
+			"palette": [
+				{
+					"slug": "foreground",
+					"color": "#000000",
+					"name": "Foreground"
+				},
+				{
+					"slug": "background",
+					"color": "#FFFFFF",
+					"name": "Background"
+				},
+				{
+					"slug": "primary",
+					"color": "#000000",
+					"name": "Primary"
+				},
+				{
+					"slug": "secondary",
+					"color": "#FFCCCC",
+					"name": "Secondary"
+				},
+				{
+					"slug": "tertiary",
+					"color": "#FFCCCC",
+					"name": "Tertiary"
+				}
+			]
+		},
+		"typography": {
+			"fontFamilies": [
+				{
+					"fontFamily": "\"IBM Plex Sans\", sans-serif",
+					"name": "IBM Plex Sans",
+					"slug": "ibm-plex-sans",
+					"fontFace": [
+						{
+							"fontFamily": "IBM Plex Sans",
+							"fontWeight": "300",
+							"fontStyle": "normal",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-Light.woff2" ]
+						},
+						{
+							"fontFamily": "IBM Plex Sans",
+							"fontWeight": "300",
+							"fontStyle": "italic",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-LightItalic.woff2" ]
+						},
+						{
+							"fontFamily": "IBM Plex Sans",
+							"fontWeight": "200",
+							"fontStyle": "normal",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-ExtraLight.woff2" ]
+						},
+						{
+							"fontFamily": "IBM Plex Sans",
+							"fontWeight": "200",
+							"fontStyle": "italic",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-ExtraLightItalic.woff2" ]
+						}
+					]
+				},
+				{
+					"fontFamily": "\"IBM Plex Mono\", monospace",
+					"name": "IBM Plex Mono",
+					"slug": "ibm-plex-mono",
+					"fontFace": [
+						{
+							"fontFamily": "IBM Plex Mono",
+							"fontWeight": "400",
+							"fontStyle": "normal",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexMono-Text.woff2" ]
+						},
+						{
+							"fontFamily": "IBM Plex Mono",
+							"fontWeight": "400",
+							"fontStyle": "italic",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-TextItalic.woff2" ]
+						},
+						{
+							"fontFamily": "IBM Plex Mono",
+							"fontWeight": "700",
+							"fontStyle": "normal",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexMono-Bold.woff2" ]
+						},
+						{
+							"fontFamily": "IBM Plex Mono",
+							"fontWeight": "700",
+							"fontStyle": "italic",
+							"fontStretch": "normal",
+							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-BoldItalic.woff2" ]
+						}
+					]
+				}
+			]
+		}
+	},
+	"styles": {
+		"blocks": {
+			"core/image": {
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			},
+			"core/post-featured-image": {
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			},
+			"core/post-title": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
+					"fontWeight": "300"
+				}
+			},
+			"core/query-title": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)"
+				}
+			},
+			"core/site-logo": {
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			}
+		},
+		"elements": {
+			"h1": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
+					"fontWeight": "200"
+				}
+			},
+			"h2": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
+					"fontWeight": "300"
+				}
+			},
+			"h3": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
+					"fontWeight": "300"
+				}
+			},
+			"h4": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
+					"fontWeight": "300"
+				}
+			},
+			"h5": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
+					"fontWeight": "300"
+				}
+			},
+			"h6": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
+					"fontWeight": "300"
+				}
+			}
+		},
+		"typography": {
+			"fontFamily": "var(--wp--preset--font-family--ibm-plex-mono)"
+		}
+	}
+}

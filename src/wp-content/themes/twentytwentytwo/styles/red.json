@@ -1,0 +1,101 @@
+{
+	"version": 2,
+	"settings": {
+		"color": {
+			"palette": [
+				{
+					"slug": "foreground",
+					"color": "#000000",
+					"name": "Foreground"
+				},
+				{
+					"slug": "background",
+					"color": "#F3F2EE",
+					"name": "Background"
+				},
+				{
+					"slug": "primary",
+					"color": "#000000",
+					"name": "Primary"
+				},
+				{
+					"slug": "secondary",
+					"color": "#F64A38",
+					"name": "Secondary"
+				},
+				{
+					"slug": "tertiary",
+					"color": "#ffffff",
+					"name": "Tertiary"
+				}
+			]
+		},
+		"typography": {
+			"fontFamilies": [
+				{
+					"fontFamily": "\"EB Garamond\", serif",
+					"name": "EB Garamond",
+					"slug": "eb-garamond",
+					"fontFace": [
+						{
+							"fontFamily": "EB Garamond",
+							"fontWeight": "400",
+							"fontStyle": "normal",
+							"src": [ "file:./assets/fonts/dm-sans/EBGaramond12-Regular.woff" ]
+						},
+						{
+							"fontFamily": "EB Garamond",
+							"fontWeight": "400",
+							"fontStyle": "italic",
+							"src": [ "file:./assets/fonts/dm-sans/EBGaramond12-Italic.woff" ]
+						}
+					]
+				}
+			]
+		}
+	},
+	"styles": {
+		"blocks": {
+			"core/post-title": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			}
+		},
+		"elements": {
+			"h1": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h2": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h3": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h4": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h5": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			},
+			"h6": {
+				"typography": {
+					"fontWeight": "700"
+				}
+			}
+		},
+		"typography": {
+			"fontFamily": "var(--wp--preset--font-family--eb-garamond)"
+		}
+	}
+}
