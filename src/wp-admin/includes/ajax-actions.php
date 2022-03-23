@@ -3980,12 +3980,11 @@ function wp_ajax_crop_image() {
 			// Get the original image's post to pre-populate the cropped image.
 			$original_attachment      = get_post( $attachment_id );
 			$sanitized_post_title     = sanitize_file_name( $original_attachment->post_title );
-			$attached_file_name       = pathinfo( $parent_basename, PATHINFO_FILENAME );
 			$use_original_title       = (
 				'' !== trim( $original_attachment->post_title ) &&
 				// Check if the original image's title was edited.
-				( $attached_file_name !== $sanitized_post_title ) &&
-				( $attached_file_name !== pathinfo( $sanitized_post_title, PATHINFO_FILENAME ) )
+				( $parent_basename !== $sanitized_post_title ) &&
+				( pathinfo( $parent_basename, PATHINFO_FILENAME ) !== $sanitized_post_title )
 			);
 			$use_original_description = ( '' !== trim( $original_attachment->post_content ) );
 
