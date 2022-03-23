@@ -164,33 +164,19 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$this->assertSame( get_the_author_link(), $link );
 	}
 
-	public function filter_the_author_link( $link, $url, $author_data ) {
-		return sprintf(
-			'<a href="%1$s" title="%2$s (%1$s)" rel="author external">%3$s (%1$s)</a>',
-			esc_url( $url ),
-			esc_attr( sprintf( 'Visit %s&#8217;s website', $author_data->display_name ) ),
-			$author_data->display_name
-		);
-	}
-
 	/**
 	 * @ticket 51859
 	 *
 	 * @covers ::get_the_author_link
 	 */
 	public function test_filtered_get_the_author_link() {
-		$author_url          = get_the_author_meta( 'url' );
-		$author_display_name = get_the_author();
+		$filter = new MockAction();
 
-		$link = sprintf(
-			'<a href="%1$s" title="%2$s (%1$s)" rel="author external">%3$s (%1$s)</a>',
-			esc_url( $author_url ),
-			esc_attr( sprintf( 'Visit %s&#8217;s website', $author_display_name ) ),
-			$author_display_name
-		);
+		add_filter( 'the_author_link', array( &$filter, 'filter' ) );
 
-		add_filter( 'the_author_link', array( $this, 'filter_the_author_link' ), 10, 3 );
+		get_the_author_link();
 
-		$this->assertSame( get_the_author_link(), $link );
+		$this->assertSame( 1, $filter->get_call_count() );
+		$this->assertSame( array( 'the_author_link' ), $filter->get_tags() );
 	}
 }
