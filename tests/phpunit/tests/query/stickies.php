@@ -109,7 +109,7 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 	/**
 	 * @ticket 36907
 	 */
-	public function test_stickies_nest_query() {
+	public function test_stickies_should_obey_parameters_from_the_main_query() {
 		$filter = new MockAction();
 		add_filter( 'posts_pre_query', array( $filter, 'filter' ), 10, 2 );
 		$this->go_to( '/' );
@@ -119,10 +119,10 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $sticky_query_vars['posts_per_page'] );
 		$this->assertSame( $query_vars['suppress_filters'], $sticky_query_vars['suppress_filters'] );
+		$this->assertSame( $query_vars['cache_results'], $sticky_query_vars['cache_results'] );
 		$this->assertSame( $query_vars['update_post_meta_cache'], $sticky_query_vars['update_post_meta_cache'] );
 		$this->assertSame( $query_vars['update_post_term_cache'], $sticky_query_vars['update_post_term_cache'] );
 		$this->assertSame( $query_vars['lazy_load_term_meta'], $sticky_query_vars['lazy_load_term_meta'] );
-		$this->assertSame( $query_vars['cache_results'], $sticky_query_vars['cache_results'] );
 		$this->assertTrue( $sticky_query_vars['ignore_sticky_posts'] );
 		$this->assertTrue( $sticky_query_vars['no_found_rows'] );
 	}
