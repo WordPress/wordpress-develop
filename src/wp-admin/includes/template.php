@@ -193,7 +193,7 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 /**
  * Retrieve a list of the most popular terms from the specified taxonomy.
  *
- * If the $echo argument is true then the elements for a list of checkbox
+ * If the $display argument is true then the elements for a list of checkbox
  * `<input>` elements labelled with the names of the selected terms is output.
  * If the $post_ID global is not empty then the terms associated with that
  * post will be marked as checked.
@@ -203,10 +203,10 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
  * @param string $taxonomy 		Taxonomy to retrieve terms from.
  * @param int    $default_term  Not used.
  * @param int    $number   		Number of terms to retrieve. Defaults to 10.
- * @param bool   $echo     		Optionally output the list as well. Defaults to true.
+ * @param bool   $display     	Optionally output the list as well. Defaults to true.
  * @return int[] Array of popular term IDs.
  */
-function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10, $echo = true ) {
+function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10, $display = true ) {
 	$post = get_post();
 
 	if ( $post && $post->ID ) {
@@ -231,7 +231,7 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
 
 	foreach ( (array) $terms as $term ) {
 		$popular_ids[] = $term->term_id;
-		if ( ! $echo ) { // Hack for Ajax use.
+		if ( ! $display ) { // Hack for Ajax use.
 			continue;
 		}
 		$id      = "popular-$taxonomy-$term->term_id";
@@ -2135,15 +2135,15 @@ function iframe_footer() {
  * Function to echo or return the post states as HTML.
  *
  * @since 2.7.0
- * @since 5.3.0 Added the `$echo` parameter and a return value.
+ * @since 5.3.0 Added the `$display` parameter and a return value.
  *
  * @see get_post_states()
  *
- * @param WP_Post $post The post to retrieve states for.
- * @param bool    $echo Optional. Whether to echo the post states as an HTML string. Default true.
+ * @param WP_Post $post		The post to retrieve states for.
+ * @param bool    $display	Optional. Whether to echo the post states as an HTML string. Default true.
  * @return string Post states string.
  */
-function _post_states( $post, $echo = true ) {
+function _post_states( $post, $display = true ) {
 	$post_states        = get_post_states( $post );
 	$post_states_string = '';
 
@@ -2163,7 +2163,7 @@ function _post_states( $post, $echo = true ) {
 		}
 	}
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $post_states_string;
 	}
 
@@ -2250,13 +2250,13 @@ function get_post_states( $post ) {
  * Outputs the attachment media states as HTML.
  *
  * @since 3.2.0
- * @since 5.6.0 Added the `$echo` parameter and a return value.
+ * @since 5.6.0 Added the `$display` parameter and a return value.
  *
- * @param WP_Post $post The attachment post to retrieve states for.
- * @param bool    $echo Optional. Whether to echo the post states as an HTML string. Default true.
+ * @param WP_Post $post		The attachment post to retrieve states for.
+ * @param bool    $display	Optional. Whether to echo the post states as an HTML string. Default true.
  * @return string Media states string.
  */
-function _media_states( $post, $echo = true ) {
+function _media_states( $post, $display = true ) {
 	$media_states        = get_media_states( $post );
 	$media_states_string = '';
 
@@ -2276,7 +2276,7 @@ function _media_states( $post, $echo = true ) {
 		}
 	}
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $media_states_string;
 	}
 
