@@ -202,7 +202,6 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function test_remove_all_filters_should_respect_the_priority_argument() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
-		$val = __FUNCTION__ . '_val';
 
 		add_filter( $tag, array( $a, 'filter' ), 12 );
 		$this->assertTrue( has_filter( $tag ) );
@@ -313,7 +312,6 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function test_has_filter_after_remove_all_filters() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
-		$val = __FUNCTION__ . '_val';
 
 		// No priority.
 		add_filter( $tag, array( $a, 'filter' ), 11 );
