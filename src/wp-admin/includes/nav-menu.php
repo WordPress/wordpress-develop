@@ -262,22 +262,22 @@ function wp_nav_menu_taxonomy_meta_boxes() {
  * Check whether to disable the Menu Locations meta box submit button and inputs.
  *
  * @since 3.6.0
- * @since 5.3.1 The `$echo` parameter was added.
+ * @since 5.3.1 The `$display` parameter was added.
  *
  * @global bool $one_theme_location_no_menus to determine if no menus exist
  *
  * @param int|string $nav_menu_selected_id ID, name, or slug of the currently selected menu.
- * @param bool       $echo                 Whether to echo or just return the string.
+ * @param bool       $display              Whether to echo or just return the string.
  * @return string|false Disabled attribute if at least one menu exists, false if not.
  */
-function wp_nav_menu_disabled_check( $nav_menu_selected_id, $echo = true ) {
+function wp_nav_menu_disabled_check( $nav_menu_selected_id, $display = true ) {
 	global $one_theme_location_no_menus;
 
 	if ( $one_theme_location_no_menus ) {
 		return false;
 	}
 
-	return disabled( $nav_menu_selected_id, 0, $echo );
+	return disabled( $nav_menu_selected_id, 0, $display );
 }
 
 /**
