@@ -1494,7 +1494,7 @@ class wpdb {
 		$placeholder_count = ( ( $split_query_count - 1 ) / 3 ); // Split always returns with 1 value before the first placeholder (even with $query = "%s"), then 3 additional values per placeholder.
 
 		// If args were passed as an array (as in vsprintf), move them up.
-		$passed_as_array = ( isset( $args[0] ) && is_array( $args[0] ) && count( $args ) === 1 );
+		$passed_as_array = ( isset( $args[0] ) && is_array( $args[0] ) && 1 === count( $args ) );
 		if ( $passed_as_array ) {
 			$args = $args[0];
 		}
