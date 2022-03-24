@@ -1373,6 +1373,7 @@ class wpdb {
 	 * @since 6.0.0
 	 *
 	 * @param string $identifier Identifier to escape.
+	 * @return string Escaped Identifier
 	 */
 	public function escape_identifier( $identifier ) {
 		return '`' . $this->_escape_identifier_value( $identifier ) . '`';
@@ -1391,6 +1392,7 @@ class wpdb {
 	 * @access private
 	 *
 	 * @param string $identifier Identifier to escape.
+	 * @return string Escaped Identifier
 	 */
 	private function _escape_identifier_value( $identifier ) {
 		return str_replace( '`', '``', $identifier );
@@ -1534,8 +1536,7 @@ class wpdb {
 				}
 			} // elseif ( 'd' === $type || 'F' === $type ), nothing needs to be done (keep $placeholder)
 
-			$new_query .= $split_query[ $key - 2 ] . $split_query[ $key - 1 ] . $placeholder;
-				// Glue (-2), any prefix characters (-1), then the new $placeholder.
+			$new_query .= $split_query[ $key - 2 ] . $split_query[ $key - 1 ] . $placeholder; // Glue (-2), any prefix characters (-1), then the new $placeholder.
 
 			$key += 3;
 			$arg_id++;
