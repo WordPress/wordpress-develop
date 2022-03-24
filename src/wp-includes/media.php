@@ -1848,11 +1848,9 @@ function wp_filter_content_tags( $content, $context = null ) {
 			 *
 			 * @since 6.0.0
 			 *
-			 * @param string $filtered_image  the img tag with attributes being created that will
-			 * 									replace the source img tag in the content.
-			 * @param string $context Optional. Additional context to pass to the filters.
-			 *                        Defaults to `current_filter()` when not set.
-			 * @param int    $attachment_id the ID of the image attachment.
+			 * @param string $filtered_image Full img tag with attributes that will replace the source img tag.
+			 * @param string $context        Additional context, like the current filter name or the function name from where this was called.
+			 * @param int    $attachment_id  The image attachment ID.
 			 */
 			$filtered_image = apply_filters( 'wp_img_tag_add_adjust', $filtered_image, $context, $attachment_id );
 
