@@ -5,8 +5,6 @@
  * @group taxonomy
  */
 class Tests_Query_TaxQuery extends WP_UnitTestCase {
-	protected $query = '';
-
 	public function test_tax_query_single_query_single_term_field_slug() {
 		$t  = self::factory()->term->create(
 			array(
@@ -1628,10 +1626,11 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 	 * @ticket 55360
 	 */
 	public function test_tax_terms_should_limit_query() {
-		$name = 'foobar';
-		add_filter( 'terms_pre_query', array( $this, 'get_query_from_filter' ), 10, 2 );
+		$filter = new MockAction();
+		add_filter( 'terms_pre_query', array( $filter, 'filter' ), 10, 2 );
 		register_taxonomy( 'wptests_tax', 'post' );
-		$t = self::factory()->term->create(
+		$name = 'foobar';
+		$t    = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
 				'name'     => $name,
@@ -1654,18 +1653,60 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
+		$filter_args = $filter->get_args();
+		$query       = $filter_args[1][1]->request;
+
 		$this->assertSameSets( array( $p ), $q->posts );
-		$this->assertStringContainsString( 'LIMIT 1', $this->query );
+		$this->assertStringContainsString( 'LIMIT 1', $query );
+	}
+
+	/**
+	 * @ticket 55360
+	 */
+	public function test_tax_terms_should_limit_query_to_one() {
+		$filter = new MockAction();
+		add_filter( 'terms_pre_query', array( $filter, 'filter' ), 10, 2 );
+		register_taxonomy( 'wptests_tax', 'post' );
+		$name = 'foobar';
+		$t    = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => $name,
+			)
+		);
+
+		$p = self::factory()->post->create();
+		wp_set_object_terms( $p, array( $t ), 'wptests_tax' );
+
+		$q = new WP_Query(
+			array(
+				'fields'    => 'ids',
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'wptests_tax',
+						'field'    => 'term_id',
+						'terms'    => array( $t, $t, $t ),
+					),
+				),
+			)
+		);
+
+		$filter_args = $filter->get_args();
+		$query       = $filter_args[1][1]->request;
+
+		$this->assertSameSets( array( $p ), $q->posts );
+		$this->assertStringContainsString( 'LIMIT 1', $query );
 	}
 
 	/**
 	 * @ticket 55360
 	 */
 	public function test_tax_terms_not_should_limit_query() {
-		$name = 'foobar';
-		add_filter( 'terms_pre_query', array( $this, 'get_query_from_filter' ), 10, 2 );
+		$filter = new MockAction();
+		add_filter( 'terms_pre_query', array( $filter, 'filter' ), 10, 2 );
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
-		$t = self::factory()->term->create(
+		$name = 'foobar';
+		$t    = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
 				'name'     => $name,
@@ -1688,13 +1729,10 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
+		$filter_args = $filter->get_args();
+		$query       = $filter_args[0][1]->request;
+
 		$this->assertSameSets( array( $p ), $q->posts );
-		$this->assertStringNotContainsString( 'LIMIT 1', $this->query );
-	}
-
-	public function get_query_from_filter( $terms, $wp_term_query ) {
-		$this->query = $wp_term_query->request;
-
-		return $terms;
+		$this->assertStringNotContainsString( 'LIMIT 1', $query );
 	}
 }
