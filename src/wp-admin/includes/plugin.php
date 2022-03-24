@@ -1820,10 +1820,10 @@ function remove_submenu_page( $menu_slug, $submenu_slug ) {
  * @global array $_parent_pages
  *
  * @param string $menu_slug The slug name to refer to this menu by (should be unique for this menu).
- * @param bool   $echo      Whether or not to echo the URL. Default true.
+ * @param bool   $display   Whether or not to echo the URL. Default true.
  * @return string The menu page URL.
  */
-function menu_page_url( $menu_slug, $echo = true ) {
+function menu_page_url( $menu_slug, $display = true ) {
 	global $_parent_pages;
 
 	if ( isset( $_parent_pages[ $menu_slug ] ) ) {
@@ -1840,7 +1840,7 @@ function menu_page_url( $menu_slug, $echo = true ) {
 
 	$url = esc_url( $url );
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $url;
 	}
 
