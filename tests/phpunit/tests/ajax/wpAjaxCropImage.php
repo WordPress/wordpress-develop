@@ -76,7 +76,38 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Tests that attachment properties are not auto-generated if they are not defined for the original image.
+	 * Tests that post_title gets populated if it wasn't modified.
+	 *
+	 * @ticket 37750
+	 */
+	public function test_it_populates_title_if_title_was_not_modified() {
+
+		$this->attachment = $this->make_attachment( true );
+		$filename         = $this->get_attachment_filename( $this->attachment );
+		$this->attachment = get_post( wp_update_post( array(
+			'ID'         => $this->attachment->ID,
+			'post_title' => $filename,
+		) ) );
+
+		$this->prepare_post( $this->attachment );
+
+		// Make the request.
+		try {
+			$this->_handleAjax( 'crop-image' );
+		} catch ( WPAjaxDieContinueException $e ) {
+		}
+
+		$response = json_decode( $this->_last_response, true );
+		$this->validate_response( $response );
+
+
+		$this->cropped_attachment = get_post( $response['data']['id'] );
+		$this->assertInstanceOf( WP_Post::class, $this->cropped_attachment, 'get_post function must return an instance of WP_Post class' );
+		$this->assertStringStartsWith( 'cropped-', $this->cropped_attachment->post_title, 'post_title attribute should start with "cropped-" prefix, i.e. it has to be populated' );
+	}
+
+	/**
+	 * Tests that attachment properties get populated if they are not defined (but specific logic depends on the actual property).
 	 *
 	 * @ticket 37750
 	 */
@@ -97,6 +128,8 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 		$this->assertInstanceOf( WP_Post::class, $this->cropped_attachment, 'get_post function must return an instance of WP_Post class' );
 		$this->assertEmpty( $this->attachment->post_title, 'post_title value must be empty for testing purposes' );
 		$this->assertNotEmpty( $this->cropped_attachment->post_title, 'post_title value must be auto-generated if it\'s empty in the original attachment' );
+		$this->assertSame( $this->get_attachment_filename( $this->cropped_attachment ), $this->cropped_attachment->post_title, 'post_title attribute should contain filename of the cropped image' );
+		$this->assertStringStartsWith( 'cropped-', $this->cropped_attachment->post_title, 'post_title attribute should start with "cropped-" prefix, i.e. it has to be populated' );
 		$this->assertStringStartsWith( 'http', $this->cropped_attachment->post_content, 'post_content value should contain an URL if it\'s empty in the original attachment' );
 		$this->assertEmpty( $this->cropped_attachment->post_excerpt, 'post_excerpt value must be empty if it\'s empty in the original attachment' );
 		$this->assertEmpty( $this->cropped_attachment->_wp_attachment_image_alt, '_wp_attachment_image_alt value must be empty if it\'s empty in the original attachment' );
@@ -174,5 +207,14 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 				),
 			'action'       => 'crop-image',
 		);
+	}
+
+	/**
+	 * @param WP_Post $attachment
+	 *
+	 * @return string
+	 */
+	private function get_attachment_filename( WP_Post $attachment ) {
+		return wp_basename( wp_get_attachment_url( $attachment->ID ) );
 	}
 }
