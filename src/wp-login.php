@@ -945,8 +945,8 @@ switch ( $action ) {
 
 					<div id="pass-strength-result" class="hide-if-no-js" aria-live="polite"><?php _e( 'Strength indicator' ); ?></div>
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0">
-						<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 						<span class="text"><?php _e( 'Hide password' ); ?></span>
+						<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 					</button>
 				</div>
 				<div class="pw-weak">
@@ -1396,8 +1396,8 @@ switch ( $action ) {
 				<div class="wp-pwd">
 					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby_error; ?> class="input password-input" value="" size="20" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0">
-						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 						<span class="text"><?php _e( 'Show password' ); ?></span>
+						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 					</button>
 				</div>
 			</div>
