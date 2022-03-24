@@ -135,17 +135,42 @@ function wp_default_packages_vendor( $scripts ) {
 	did_action( 'init' ) && $scripts->add_inline_script(
 		'moment',
 		sprintf(
-			"moment.updateLocale( '%s', %s );",
-			get_user_locale(),
+			"( function( settings ) {
+				moment.defineLocale( settings.locale, {
+					parentLocale: 'en', // We don't load moment-with-locales.js, so English is all there is.
+					months: settings.months,
+					monthsShort: settings.monthsShort,
+					weekdays: settings.weekdays,
+					weekdaysShort: settings.weekdaysShort,
+					week: {
+						dow: settings.dow,
+						doy: 7 + settings.dow - 1,
+					},
+					meridiem: function( hour, minute, isLowercase ) {
+						if ( hour < 12 ) {
+							return isLowercase ? settings.meridiem.am : settings.meridiem.AM;
+						}
+						return isLowercase ? settings.meridiem.pm : settings.meridiem.PM;
+					},
+					longDateFormat: {
+						LT: settings.longDateFormat.LT,
+						LTS: moment.localeData( 'en' ).longDateFormat( 'LTS' ),
+						L: moment.localeData( 'en' ).longDateFormat( 'L' ),
+						LL: settings.longDateFormat.LL,
+						LLL: settings.longDateFormat.LLL,
+						LLLL: moment.localeData( 'en' ).longDateFormat( 'LLLL' )
+					}
+				} );
+			} )( %s );",
 			wp_json_encode(
 				array(
+					'locale'         => get_user_locale(),
 					'months'         => array_values( $wp_locale->month ),
 					'monthsShort'    => array_values( $wp_locale->month_abbrev ),
 					'weekdays'       => array_values( $wp_locale->weekday ),
 					'weekdaysShort'  => array_values( $wp_locale->weekday_abbrev ),
-					'week'           => array(
-						'dow' => (int) get_option( 'start_of_week', 0 ),
-					),
+					'dow'            => (int) get_option( 'start_of_week', 0 ),
+					'meridiem'       => (object) $wp_locale->meridiem,
 					'longDateFormat' => array(
 						'LT'   => get_option( 'time_format', __( 'g:i a' ) ),
 						'LTS'  => null,
