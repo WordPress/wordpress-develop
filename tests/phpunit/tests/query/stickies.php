@@ -126,4 +126,27 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 		$this->assertTrue( $sticky_query_vars['ignore_sticky_posts'] );
 		$this->assertTrue( $sticky_query_vars['no_found_rows'] );
 	}
+
+	/**
+	 * @ticket 36907
+	 */
+	public function test_stickies_should_limit_query() {
+		$sticky_count = 5;
+		$post_date    = gmdate( 'Y-m-d H:i:s', time() - 10000 );
+		$post_ids     = self::factory()->post->create_many( $sticky_count, array( 'post_date' => $post_date ) );
+		add_filter(
+			'pre_option_sticky_posts',
+			function () use ( $post_ids ) {
+				return $post_ids;
+			}
+		);
+
+		$filter = new MockAction();
+		add_filter( 'posts_pre_query', array( $filter, 'filter' ), 10, 2 );
+		$this->go_to( '/' );
+		$filter_args       = $filter->get_args();
+		$sticky_query_vars = $filter_args[1][1]->query_vars;
+
+		$this->assertSame( $sticky_query_vars['posts_per_page'], $sticky_count );
+	}
 }
