@@ -249,9 +249,9 @@ function get_the_author_link() {
 		 *
 		 * @since 6.0.0
 		 *
-		 * @param string $link       The default rendered author HTML link.
-		 * @param string $author_url Author's URL.
-		 * @param string $authordata Author user data.
+		 * @param string  $link       The default rendered author HTML link.
+		 * @param string  $author_url Author's URL.
+		 * @param WP_User $authordata Author user data.
 		 */
 		return apply_filters( 'the_author_link', $link, $author_url, $authordata );
 	} else {
