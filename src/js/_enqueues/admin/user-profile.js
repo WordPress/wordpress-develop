@@ -69,13 +69,26 @@
 	}
 
 	function resetToggle( show ) {
-		$toggleButton
-			.find( '.text' )
-				.text( show ? __( 'Show password' ) : __( 'Hide password' ) )
-			.end()
-			.find( '.dashicons' )
-				.removeClass( show ? 'dashicons-hidden' : 'dashicons-visibility' )
-				.addClass( show ? 'dashicons-visibility' : 'dashicons-hidden' );
+		if ( $( 'body' ).hasClass( 'login' ) ) {
+			$toggleButton
+				.find( '.text' )
+					.text( show ? __( 'Show password' ) : __( 'Hide password' ) )
+				.end()
+				.find( '.dashicons' )
+					.removeClass( show ? 'dashicons-hidden' : 'dashicons-visibility' )
+					.addClass( show ? 'dashicons-visibility' : 'dashicons-hidden' );
+		} else {
+			$toggleButton
+				.attr({
+					'aria-label': show ? __( 'Show password' ) : __( 'Hide password' )
+				})
+				.find( '.text' )
+					.text( show ? __( 'Show' ) : __( 'Hide' ) )
+				.end()
+				.find( '.dashicons' )
+					.removeClass( show ? 'dashicons-hidden' : 'dashicons-visibility' )
+					.addClass( show ? 'dashicons-visibility' : 'dashicons-hidden' );
+		}
 	}
 
 	function bindToggleButton() {
