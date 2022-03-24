@@ -188,12 +188,12 @@ unset( $id, $data, $subs, $first_sub );
 
 /**
  * @param string $add
- * @param string $class
+ * @param string $css_class
  * @return string
  */
-function add_cssclass( $add, $class ) {
-	$class = empty( $class ) ? $add : $class .= ' ' . $add;
-	return $class;
+function add_cssclass( $add, $css_class ) {
+	$css_class = empty( $css_class ) ? $add : $css_class .= ' ' . $add;
+	return $css_class;
 }
 
 /**
