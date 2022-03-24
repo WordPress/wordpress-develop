@@ -1844,7 +1844,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			}
 
 			/**
-			 * Filters img tag that will be injected into the content.
+			 * Filters an img tag that within the content for a given context.
 			 *
 			 * @since 6.0.0
 			 *
