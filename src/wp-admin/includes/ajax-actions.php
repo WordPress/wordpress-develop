@@ -3981,7 +3981,7 @@ function wp_ajax_crop_image() {
 			$original_attachment      = get_post( $attachment_id );
 			$sanitized_post_title     = sanitize_file_name( $original_attachment->post_title );
 			$use_original_title       = (
-				'' !== trim( $original_attachment->post_title ) &&
+				( '' !== trim( $original_attachment->post_title ) ) &&
 				/*
 				 * Check if the original image has a title other than the "filename" default,
 				 * meaning the image had a title when originally uploaded or its title was edited.
