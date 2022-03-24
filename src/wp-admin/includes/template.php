@@ -1128,8 +1128,8 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
  *
  * @since 5.0.0
  *
- * @param mixed $object The data object being rendered on this screen.
- * @param array $box    {
+ * @param mixed $data_object	The data object being rendered on this screen.
+ * @param array $box			{
  *     Custom formats meta box arguments.
  *
  *     @type string   $id           Meta box 'id' attribute.
@@ -1138,7 +1138,7 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
  *     @type array    $args         Extra meta box arguments.
  * }
  */
-function do_block_editor_incompatible_meta_box( $object, $box ) {
+function do_block_editor_incompatible_meta_box( $data_object, $box ) {
 	$plugin  = _get_plugin_from_callback( $box['old_callback'] );
 	$plugins = get_plugins();
 	echo '<p>';
@@ -1174,13 +1174,13 @@ function do_block_editor_incompatible_meta_box( $object, $box ) {
 			printf( __( 'Please activate the <a href="%s">Classic Editor plugin</a> to use this meta box.' ), esc_url( $activate_url ) );
 			echo '</p>';
 		}
-	} elseif ( $object instanceof WP_Post ) {
+	} elseif ( $data_object instanceof WP_Post ) {
 		$edit_url = add_query_arg(
 			array(
 				'classic-editor'         => '',
 				'classic-editor__forget' => '',
 			),
-			get_edit_post_link( $object )
+			get_edit_post_link( $data_object )
 		);
 		echo '<p>';
 		/* translators: %s: A link to use the Classic Editor plugin. */
@@ -1244,17 +1244,17 @@ function _get_plugin_from_callback( $callback ) {
  *
  * @global array $wp_meta_boxes
  *
- * @param string|WP_Screen $screen  The screen identifier. If you have used add_menu_page() or
- *                                  add_submenu_page() to create a new screen (and hence screen_id)
- *                                  make sure your menu slug conforms to the limits of sanitize_key()
- *                                  otherwise the 'screen' menu may not correctly render on your page.
- * @param string           $context The screen context for which to display meta boxes.
- * @param mixed            $object  Gets passed to the meta box callback function as the first parameter.
- *                                  Often this is the object that's the focus of the current screen, for
- *                                  example a `WP_Post` or `WP_Comment` object.
+ * @param string|WP_Screen $screen		The screen identifier. If you have used add_menu_page() or
+ *                                  	add_submenu_page() to create a new screen (and hence screen_id)
+ *                                  	make sure your menu slug conforms to the limits of sanitize_key()
+ *                                  	otherwise the 'screen' menu may not correctly render on your page.
+ * @param string           $context		The screen context for which to display meta boxes.
+ * @param mixed            $data_object	Gets passed to the meta box callback function as the first parameter.
+ *                                  	Often this is the object that's the focus of the current screen, for
+ *                                  	example a `WP_Post` or `WP_Comment` object.
  * @return int Number of meta_boxes.
  */
-function do_meta_boxes( $screen, $context, $object ) {
+function do_meta_boxes( $screen, $context, $data_object ) {
 	global $wp_meta_boxes;
 	static $already_sorted = false;
 
@@ -1396,7 +1396,7 @@ function do_meta_boxes( $screen, $context, $object ) {
 						}
 					}
 
-					call_user_func( $box['callback'], $object, $box );
+					call_user_func( $box['callback'], $data_object, $box );
 					echo "</div>\n";
 					echo "</div>\n";
 				}
@@ -1473,12 +1473,12 @@ function remove_meta_box( $id, $screen, $context ) {
  *
  * @uses global $wp_meta_boxes Used to retrieve registered meta boxes.
  *
- * @param string|object $screen  The screen identifier.
- * @param string        $context The screen context for which to display accordion sections.
- * @param mixed         $object  Gets passed to the section callback function as the first parameter.
+ * @param string|object $screen      The screen identifier.
+ * @param string        $context     The screen context for which to display accordion sections.
+ * @param mixed         $data_object Gets passed to the section callback function as the first parameter.
  * @return int Number of meta boxes as accordion sections.
  */
-function do_accordion_sections( $screen, $context, $object ) {
+function do_accordion_sections( $screen, $context, $data_object ) {
 	global $wp_meta_boxes;
 
 	wp_enqueue_script( 'accordion' );
@@ -1523,7 +1523,7 @@ function do_accordion_sections( $screen, $context, $object ) {
 						</h3>
 						<div class="accordion-section-content <?php postbox_classes( $box['id'], $page ); ?>">
 							<div class="inside">
-								<?php call_user_func( $box['callback'], $object, $box ); ?>
+								<?php call_user_func( $box['callback'], $data_object, $box ); ?>
 							</div><!-- .inside -->
 						</div><!-- .accordion-section-content -->
 					</li><!-- .accordion-section -->
