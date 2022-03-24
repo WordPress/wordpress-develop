@@ -154,14 +154,10 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$author_url          = get_the_author_meta( 'url' );
 		$author_display_name = get_the_author();
 
-		$link = sprintf(
-			'<a href="%1$s" title="%2$s" rel="author external">%3$s</a>',
-			esc_url( $author_url ),
-			esc_attr( sprintf( 'Visit %s&#8217;s website', $author_display_name ) ),
-			$author_display_name
-		);
+		$link = get_the_author_link();
 
-		$this->assertSame( get_the_author_link(), $link );
+		$this->assertStringContainsString( $author_url, $link, 'The link does not contain the author URL' );
+		$this->assertStringContainsString( $author_display_name, $link, 'The link does not contain the author display name' );
 	}
 
 	/**
