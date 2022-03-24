@@ -70,11 +70,8 @@
 
 	function resetToggle( show ) {
 		$toggleButton
-			.attr({
-				'aria-label': show ? __( 'Show password' ) : __( 'Hide password' )
-			})
 			.find( '.text' )
-				.text( show ? __( 'Show' ) : __( 'Hide' ) )
+				.text( show ? __( 'Show password' ) : __( 'Hide password' ) )
 			.end()
 			.find( '.dashicons' )
 				.removeClass( show ? 'dashicons-hidden' : 'dashicons-visibility' )

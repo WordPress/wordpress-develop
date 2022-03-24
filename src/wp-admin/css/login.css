@@ -81,20 +81,17 @@ p {
 }
 
 .login .button.wp-hide-pw {
+	display: block;
 	background: transparent;
 	border: 1px solid transparent;
 	box-shadow: none;
-	font-size: 14px;
 	line-height: 2;
-	width: 2.5rem;
-	height: 2.5rem;
-	min-width: 40px;
-	min-height: 40px;
-	margin: 0;
-	padding: 5px 9px;
-	position: absolute;
-	right: 0;
-	top: 0;
+	font-size: 12px;
+	height: 1.25rem;
+	margin: -12px 0 12px auto;
+	padding: 0 2px;
+	position: relative;
+	z-index: 10;
 }
 
 .login .button.wp-hide-pw:hover {
@@ -116,13 +113,25 @@ p {
 }
 
 .login .button.wp-hide-pw .dashicons {
-	width: 1.25rem;
+	width: 1rem;
 	height: 1.25rem;
 	top: 0.25rem;
+	font-size: 16px;
 }
 
 .login .wp-pwd {
 	position: relative;
+}
+
+@media screen and (max-width: 782px) {
+	.login .button.wp-hide-pw {
+		right: auto;
+		width: auto;
+	}
+
+	.login .button.wp-hide-pw .text {
+		display: inline;
+	}
 }
 
 .no-js .hide-if-no-js {
@@ -340,12 +349,6 @@ p {
 
 .login input.password-input {
 	font-family: Consolas, Monaco, monospace;
-}
-
-.js.login input.password-input,
-.js.login-action-rp form .input,
-.js.login-action-rp input[type="text"] {
-	padding-right: 2.5rem;
 }
 
 .login form .input,
