@@ -1852,7 +1852,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			 * @param string $context        Additional context, like the current filter name or the function name from where this was called.
 			 * @param int    $attachment_id  The image attachment ID.
 			 */
-			$filtered_image = apply_filters( 'wp_img_tag_add_adjust', $filtered_image, $context, $attachment_id );
+			$filtered_image = apply_filters( 'wp_content_img_tag', $filtered_image, $context, $attachment_id );
 
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
