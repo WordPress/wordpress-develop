@@ -3983,8 +3983,8 @@ function wp_ajax_crop_image() {
 			$use_original_title       = (
 				'' !== trim( $original_attachment->post_title ) &&
 				// Check if the original image's title was edited.
-				$parent_basename !== $sanitized_post_title &&
-				pathinfo( $parent_basename, PATHINFO_FILENAME ) !== $sanitized_post_title
+				( $parent_basename !== $sanitized_post_title ) &&
+				( pathinfo( $parent_basename, PATHINFO_FILENAME ) !== $sanitized_post_title )
 			);
 			$use_original_description = ( '' !== trim( $original_attachment->post_content ) );
 

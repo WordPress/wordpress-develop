@@ -84,10 +84,14 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 
 		$this->attachment = $this->make_attachment( true );
 		$filename         = $this->get_attachment_filename( $this->attachment );
-		$this->attachment = get_post( wp_update_post( array(
-			'ID'         => $this->attachment->ID,
-			'post_title' => $filename,
-		) ) );
+		$this->attachment = get_post(
+			wp_update_post(
+				array(
+					'ID'         => $this->attachment->ID,
+					'post_title' => $filename,
+				)
+			)
+		);
 
 		$this->prepare_post( $this->attachment );
 
@@ -99,7 +103,6 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 
 		$response = json_decode( $this->_last_response, true );
 		$this->validate_response( $response );
-
 
 		$this->cropped_attachment = get_post( $response['data']['id'] );
 		$this->assertInstanceOf( WP_Post::class, $this->cropped_attachment, 'get_post function must return an instance of WP_Post class' );
