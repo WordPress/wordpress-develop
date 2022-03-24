@@ -80,8 +80,11 @@ p {
 	margin-bottom: 15px;
 }
 
-.login .button.wp-hide-pw {
+.login .wp-hide-pw {
 	display: block;
+}
+
+.login .button.wp-hide-pw {
 	background: transparent;
 	border: 1px solid transparent;
 	box-shadow: none;
