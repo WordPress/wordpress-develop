@@ -1865,20 +1865,20 @@ function menu_page_url( $menu_slug, $display = true ) {
  * @global array  $_wp_menu_nopriv
  * @global array  $_wp_submenu_nopriv
  *
- * @param string $parent The slug name for the parent menu (or the file name of a standard
- *                       WordPress admin page). Default empty string.
+ * @param string $parent_name The slug name for the parent menu (or the file name of a standard
+ *                            WordPress admin page). Default empty string.
  * @return string The parent file of the current admin page.
  */
-function get_admin_page_parent( $parent = '' ) {
+function get_admin_page_parent( $parent_name = '' ) {
 	global $parent_file, $menu, $submenu, $pagenow, $typenow,
 		$plugin_page, $_wp_real_parent_file, $_wp_menu_nopriv, $_wp_submenu_nopriv;
 
-	if ( ! empty( $parent ) && 'admin.php' !== $parent ) {
-		if ( isset( $_wp_real_parent_file[ $parent ] ) ) {
-			$parent = $_wp_real_parent_file[ $parent ];
+	if ( ! empty( $parent_name ) && 'admin.php' !== $parent_name ) {
+		if ( isset( $_wp_real_parent_file[ $parent_name ] ) ) {
+			$parent_name = $_wp_real_parent_file[ $parent_name ];
 		}
 
-		return $parent;
+		return $parent_name;
 	}
 
 	if ( 'admin.php' === $pagenow && isset( $plugin_page ) ) {
@@ -1914,23 +1914,23 @@ function get_admin_page_parent( $parent = '' ) {
 		return $parent_file;
 	}
 
-	foreach ( array_keys( (array) $submenu ) as $parent ) {
-		foreach ( $submenu[ $parent ] as $submenu_array ) {
-			if ( isset( $_wp_real_parent_file[ $parent ] ) ) {
-				$parent = $_wp_real_parent_file[ $parent ];
+	foreach ( array_keys( (array) $submenu ) as $parent_name ) {
+		foreach ( $submenu[ $parent_name ] as $submenu_array ) {
+			if ( isset( $_wp_real_parent_file[ $parent_name ] ) ) {
+				$parent_name = $_wp_real_parent_file[ $parent_name ];
 			}
 
 			if ( ! empty( $typenow ) && "$pagenow?post_type=$typenow" === $submenu_array[2] ) {
-				$parent_file = $parent;
-				return $parent;
+				$parent_file = $parent_name;
+				return $parent_name;
 			} elseif ( empty( $typenow ) && $pagenow === $submenu_array[2]
 				&& ( empty( $parent_file ) || false === strpos( $parent_file, '?' ) )
 			) {
-				$parent_file = $parent;
-				return $parent;
+				$parent_file = $parent_name;
+				return $parent_name;
 			} elseif ( isset( $plugin_page ) && $plugin_page === $submenu_array[2] ) {
-				$parent_file = $parent;
-				return $parent;
+				$parent_file = $parent_name;
+				return $parent_name;
 			}
 		}
 	}
