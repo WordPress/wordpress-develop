@@ -393,7 +393,7 @@ function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 	 */
 	$class = apply_filters( 'get_image_tag_class', $class, $id, $align, $size );
 
-	$html = '<img src="' . esc_attr( $img_src ) . '" alt="' . esc_attr( $alt ) . '" ' . $title . $hwstring . 'class="' . $class . '" />';
+	$html = '<img src="' . esc_url( $img_src ) . '" alt="' . esc_attr( $alt ) . '" ' . $title . $hwstring . 'class="' . $class . '" />';
 
 	/**
 	 * Filters the HTML content for the image tag.
@@ -1844,15 +1844,13 @@ function wp_filter_content_tags( $content, $context = null ) {
 			}
 
 			/**
-			 * Filters img tag that will be injected into the content.
+			 * Filters an img tag that within the content for a given context.
 			 *
 			 * @since 6.0.0
 			 *
-			 * @param string $filtered_image  the img tag with attributes being created that will
-			 * 									replace the source img tag in the content.
-			 * @param string $context Optional. Additional context to pass to the filters.
-			 *                        Defaults to `current_filter()` when not set.
-			 * @param int    $attachment_id the ID of the image attachment.
+			 * @param string $filtered_image Full img tag with attributes that will replace the source img tag.
+			 * @param string $context        Additional context, like the current filter name or the function name from where this was called.
+			 * @param int    $attachment_id  The image attachment ID.
 			 */
 			$filtered_image = apply_filters( 'wp_img_tag_add_adjust', $filtered_image, $context, $attachment_id );
 
@@ -4059,7 +4057,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	if ( isset( $meta['filesize'] ) ) {
 		$bytes = $meta['filesize'];
 	} elseif ( file_exists( $attached_file ) ) {
-		$bytes = filesize( $attached_file );
+		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
 	}

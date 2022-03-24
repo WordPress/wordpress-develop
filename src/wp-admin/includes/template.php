@@ -195,7 +195,7 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
  *
  * If the $echo argument is true then the elements for a list of checkbox
  * `<input>` elements labelled with the names of the selected terms is output.
- * If the $post_ID global isn't empty then the terms associated with that
+ * If the $post_ID global is not empty then the terms associated with that
  * post will be marked as checked.
  *
  * @since 2.5.0
@@ -344,7 +344,11 @@ function get_inline_data( $post ) {
 	foreach ( $taxonomy_names as $taxonomy_name ) {
 		$taxonomy = get_taxonomy( $taxonomy_name );
 
-		if ( $taxonomy->hierarchical && $taxonomy->show_ui ) {
+		if ( ! $taxonomy->show_in_quick_edit ) {
+			continue;
+		}
+
+		if ( $taxonomy->hierarchical ) {
 
 			$terms = get_object_term_cache( $post->ID, $taxonomy_name );
 			if ( false === $terms ) {
@@ -355,7 +359,7 @@ function get_inline_data( $post ) {
 
 			echo '<div class="post_category" id="' . $taxonomy_name . '_' . $post->ID . '">' . implode( ',', $term_ids ) . '</div>';
 
-		} elseif ( $taxonomy->show_ui ) {
+		} else {
 
 			$terms_to_edit = get_terms_to_edit( $post->ID, $taxonomy_name );
 			if ( ! is_string( $terms_to_edit ) ) {
@@ -1140,9 +1144,9 @@ function do_block_editor_incompatible_meta_box( $object, $box ) {
 	echo '<p>';
 	if ( $plugin ) {
 		/* translators: %s: The name of the plugin that generated this meta box. */
-		printf( __( "This meta box, from the %s plugin, isn't compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
+		printf( __( 'This meta box, from the %s plugin, is not compatible with the block editor.' ), "<strong>{$plugin['Name']}</strong>" );
 	} else {
-		_e( "This meta box isn't compatible with the block editor." );
+		_e( 'This meta box is not compatible with the block editor.' );
 	}
 	echo '</p>';
 
@@ -1384,7 +1388,7 @@ function do_meta_boxes( $screen, $context, $object ) {
 								<p>
 									<?php
 										/* translators: %s: The name of the plugin that generated this meta box. */
-										printf( __( "This meta box, from the %s plugin, isn't compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
+										printf( __( 'This meta box, from the %s plugin, is not compatible with the block editor.' ), "<strong>{$plugin['Name']}</strong>" );
 									?>
 								</p>
 							</div>
