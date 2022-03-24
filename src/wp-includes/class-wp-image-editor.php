@@ -15,6 +15,7 @@ abstract class WP_Image_Editor {
 	protected $file              = null;
 	protected $size              = null;
 	protected $mime_type         = null;
+	protected $mime_type_set     = false;
 	protected $output_mime_type  = null;
 	protected $default_mime_type = 'image/jpeg';
 	protected $quality           = false;
@@ -336,11 +337,17 @@ abstract class WP_Image_Editor {
 			// If no file specified, grab editor's current extension and mime-type.
 			$file_ext  = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
 			$file_mime = $this->mime_type;
+			// Favor the file mime extension.
+			$ext = $this->get_extension( $file_mime );
+			if ( $this->mime_type_set && $ext !== $file_ext ) {
+				$new_ext = $ext;
+				$mime_type = $file_mime;
+			}
 		}
 
 		// Check to see if specified mime-type is the same as type implied by
 		// file extension. If so, prefer extension from file.
-		if ( ! $mime_type || ( $file_mime == $mime_type ) ) {
+		if ( ! $this->mime_type_set && ( ! $mime_type || ( $file_mime == $mime_type ) ) ) {
 			$mime_type = $file_mime;
 			$new_ext   = $file_ext;
 		}
@@ -631,12 +638,24 @@ abstract class WP_Image_Editor {
 	/**
 	 * Set the editor mime type, useful when outputting alternate mime types.
 	 *
+	 * Track that the mime type is set with the mime type set flag.
+	 *
 	 * @since 6.0.0
 	 *
 	 * @param string $mime_type The mime type to set.
 	 */
 	public function set_mime_type( $mime_type ) {
-		$this->mime_type = $mime_type;
+		$this->mime_type     = $mime_type;
+		$this->mime_type_set = true;
+	}
+
+	/**
+	 * Reset the mime type to the original file mime type.
+	 *
+	 * Reset the mime type set flag.
+	 */
+	public function reset_mime_type() {
+		$this->mime_type     = wp_get_image_mime( $this->file );
+		$this->mime_type_set = false;
 	}
 }
-

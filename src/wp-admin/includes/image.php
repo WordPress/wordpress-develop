@@ -314,6 +314,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			}
 
 			if ( ! is_wp_error( $resized ) ) {
+				$editor->set_mime_type( $primary_mime_type );
 				// Append "-scaled" to the image file name. It will look like "my_image-scaled.jpg".
 				// This doesn't affect the sub-sizes names as they are generated from the original image (for best quality).
 				$saved = $editor->save( $editor->generate_filename( 'scaled' ) );
@@ -338,7 +339,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
 					// @todo Correct issue where filename winds up with duplicate "-scaled" suffix added unless the editor is reset.
 					// adding extension to name for now.
-					$saved = $editor->save( $editor->generate_filename( $extension ), $output_mime_type );
+					$saved = $editor->save( $editor->generate_filename( $extension ) );
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						wp_update_attachment_metadata( $attachment_id, $image_meta );
@@ -360,7 +361,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 				$editor->set_mime_type( $output_mime_type );
 				if ( empty( $image_meta['sources'][ $output_mime_type ] ) ) {
 					$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
-					$saved     = $editor->save( $editor->generate_filename( null, null, $extension ), $output_mime_type );
+					$saved     = $editor->save( $editor->generate_filename( null, null, $extension ) );
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						wp_update_attachment_metadata( $attachment_id, $image_meta );
@@ -377,7 +378,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 				if ( true === $rotated ) {
 					// Append `-rotated` to the image file name.
-					$saved = $editor->save( $editor->generate_filename( 'rotated' ), $primary_mime_type );
+					$saved = $editor->save( $editor->generate_filename( 'rotated' ) );
 
 					if ( ! is_wp_error( $saved ) ) {
 						$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
@@ -527,6 +528,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		}
 	}
 	foreach ( $new_sizes as $new_size_name => $new_size_data ) {
+		$editor->set_mime_type( $primary_mime_type );
 		// Make the primary mime type sub sized images.
 		if ( method_exists( $editor, 'make_subsize' ) ) {
 			$new_size_meta = $editor->make_subsize( $new_size_data );
