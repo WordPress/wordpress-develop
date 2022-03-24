@@ -1526,7 +1526,7 @@ class wpdb {
 				} else {
 					$arg_identifiers[] = $arg_id;
 				}
-			} elseif ( 's' === $type ) {
+			} elseif ( 'd' !== $type && 'F' !== $type ) { // i.e. ('s' === $type), where 'd' and 'F' keeps $placeholder unchanged, and we ensure string escaping is used as a safe default (e.g. even if 'x').
 				$argnum_pos = strpos( $format, '$' );
 				if ( false !== $argnum_pos ) {
 					$arg_strings[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
@@ -1534,7 +1534,7 @@ class wpdb {
 				if ( true !== $this->allow_unsafe_unquoted_parameters || '' === $format ) { // Unquoted strings for backwards compatibility (dangerous).
 					$placeholder = "'%" . $format . "s'";
 				}
-			} // elseif ( 'd' === $type || 'F' === $type ), nothing needs to be done (keep $placeholder)
+			}
 
 			$new_query .= $split_query[ $key - 2 ] . $split_query[ $key - 1 ] . $placeholder; // Glue (-2), any leading characters (-1), then the new $placeholder.
 
