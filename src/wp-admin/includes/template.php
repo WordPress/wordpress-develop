@@ -200,13 +200,13 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
  *
  * @since 2.5.0
  *
- * @param string $taxonomy Taxonomy to retrieve terms from.
- * @param int    $default  Not used.
- * @param int    $number   Number of terms to retrieve. Defaults to 10.
- * @param bool   $echo     Optionally output the list as well. Defaults to true.
+ * @param string $taxonomy 		Taxonomy to retrieve terms from.
+ * @param int    $default_term  Not used.
+ * @param int    $number   		Number of terms to retrieve. Defaults to 10.
+ * @param bool   $echo     		Optionally output the list as well. Defaults to true.
  * @return int[] Array of popular term IDs.
  */
-function wp_popular_terms_checklist( $taxonomy, $default = 0, $number = 10, $echo = true ) {
+function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10, $echo = true ) {
 	$post = get_post();
 
 	if ( $post && $post->ID ) {
@@ -874,16 +874,16 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
  * @since 1.5.0
  * @since 4.7.0 Added the `$post_type` parameter.
  *
- * @param string $default   Optional. The template file name. Default empty.
- * @param string $post_type Optional. Post type to get templates for. Default 'post'.
+ * @param string $default_template   Optional. The template file name. Default empty.
+ * @param string $post_type 		 Optional. Post type to get templates for. Default 'post'.
  */
-function page_template_dropdown( $default = '', $post_type = 'page' ) {
+function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
 	$templates = get_page_templates( null, $post_type );
 
 	ksort( $templates );
 
 	foreach ( array_keys( $templates ) as $template ) {
-		$selected = selected( $default, $templates[ $template ], false );
+		$selected = selected( $default_template, $templates[ $template ], false );
 		echo "\n\t<option value='" . esc_attr( $templates[ $template ] ) . "' $selected>" . esc_html( $template ) . '</option>';
 	}
 }
@@ -896,13 +896,13 @@ function page_template_dropdown( $default = '', $post_type = 'page' ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int         $default Optional. The default page ID to be pre-selected. Default 0.
- * @param int         $parent  Optional. The parent page ID. Default 0.
- * @param int         $level   Optional. Page depth level. Default 0.
- * @param int|WP_Post $post    Post ID or WP_Post object.
+ * @param int         $default_page Optional. The default page ID to be pre-selected. Default 0.
+ * @param int         $parent  		Optional. The parent page ID. Default 0.
+ * @param int         $level   		Optional. Page depth level. Default 0.
+ * @param int|WP_Post $post    		Post ID or WP_Post object.
  * @return void|false Void on success, false if the page has no children.
  */
-function parent_dropdown( $default = 0, $parent = 0, $level = 0, $post = null ) {
+function parent_dropdown( $default_page = 0, $parent = 0, $level = 0, $post = null ) {
 	global $wpdb;
 
 	$post  = get_post( $post );
@@ -916,10 +916,10 @@ function parent_dropdown( $default = 0, $parent = 0, $level = 0, $post = null ) 
 			}
 
 			$pad      = str_repeat( '&nbsp;', $level * 3 );
-			$selected = selected( $default, $item->ID, false );
+			$selected = selected( $default_page, $item->ID, false );
 
 			echo "\n\t<option class='level-$level' value='$item->ID' $selected>$pad " . esc_html( $item->post_title ) . '</option>';
-			parent_dropdown( $default, $item->ID, $level + 1 );
+			parent_dropdown( $default_page, $item->ID, $level + 1 );
 		}
 	} else {
 		return false;
