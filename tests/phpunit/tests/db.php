@@ -53,6 +53,8 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * Make sure $wpdb->version is available for plugins to check what features are available.
 	 *
+	 * @global mixed $wpdb
+	 *
 	 * @ticket 52506
 	 */
 	public function test_version() {
