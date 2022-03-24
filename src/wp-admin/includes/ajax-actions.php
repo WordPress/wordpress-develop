@@ -3982,7 +3982,10 @@ function wp_ajax_crop_image() {
 			$sanitized_post_title     = sanitize_file_name( $original_attachment->post_title );
 			$use_original_title       = (
 				'' !== trim( $original_attachment->post_title ) &&
-				// Check if the original image's title was edited.
+				/*
+				 * Check if the original image has a title other than the "filename" default,
+				 * meaning the image had a title when originally uploaded or its title was edited.
+				 */
 				( $parent_basename !== $sanitized_post_title ) &&
 				( pathinfo( $parent_basename, PATHINFO_FILENAME ) !== $sanitized_post_title )
 			);
