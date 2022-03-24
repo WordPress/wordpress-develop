@@ -88,8 +88,9 @@ p {
 	background: transparent;
 	border: 1px solid transparent;
 	box-shadow: none;
-	line-height: 2;
 	font-size: 12px;
+	line-height: 2;
+	width: auto;
 	height: 1.25rem;
 	margin: -12px 0 16px auto;
 	padding: 0 2px;
@@ -129,7 +130,6 @@ p {
 @media screen and (max-width: 782px) {
 	.login .button.wp-hide-pw {
 		right: auto;
-		width: auto;
 	}
 
 	.login .button.wp-hide-pw .text {
