@@ -1624,6 +1624,8 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55360
+	 *
+	 * @covers WP_Tax_Query::transform_query
 	 */
 	public function test_tax_terms_should_limit_query() {
 		$filter = new MockAction();
@@ -1662,6 +1664,8 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55360
+	 *
+	 * @covers WP_Tax_Query::transform_query
 	 */
 	public function test_tax_terms_should_limit_query_to_one() {
 		$filter = new MockAction();
@@ -1700,6 +1704,8 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55360
+	 *
+	 * @covers WP_Tax_Query::transform_query
 	 */
 	public function test_hierarchical_taxonomies_do_not_limit_query() {
 		$filter = new MockAction();
