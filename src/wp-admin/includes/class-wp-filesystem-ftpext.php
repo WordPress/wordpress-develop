@@ -514,10 +514,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to file.
-	 * @return int|false Size of the file in bytes on success, false on failure.
+	 * @return int Size of the file in bytes on success, -1 on failure.
 	 */
 	public function size( $file ) {
-		return ftp_size( $this->link, $file );
+		return -1 !== ftp_size( $this->link, $file );
 	}
 
 	/**
