@@ -423,9 +423,8 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		if ( $this->is_dir( $file ) ) {
 			return true;
 		}
-		$size = $this->size( $file );
 
-		return false !== $size && is_numeric( $size );
+		return is_numeric( $this->size( $file ) );
 	}
 
 	/**
