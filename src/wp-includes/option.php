@@ -1088,10 +1088,11 @@ function wp_user_settings() {
 	$settings = (string) get_user_option( 'user-settings', $user_id );
 
 	if ( isset( $_COOKIE[ 'wp-settings-' . $user_id ] ) ) {
-		$cookie = preg_replace( '/[^A-Za-z0-9=&_]/', '', $_COOKIE[ 'wp-settings-' . $user_id ] );
-
 		// Remove escaped ampersands
-		$cookie = preg_replace( '/&(amp)+/', '&', $cookie );
+		$cookie = preg_replace( '/&(amp)+;/', '&', $_COOKIE[ 'wp-settings-' . $user_id ] );
+
+		// Sanitize cookie
+		$cookie = preg_replace( '/[^A-Za-z0-9=&_]/', '',  $cookie );
 
 		// No change or both empty.
 		if ( $cookie == $settings ) {
