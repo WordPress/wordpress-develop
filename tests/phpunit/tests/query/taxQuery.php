@@ -1701,7 +1701,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 	/**
 	 * @ticket 55360
 	 */
-	public function test_tax_terms_not_should_limit_query() {
+	public function test_hierarchical_taxonomies_do_not_limit_query() {
 		$filter = new MockAction();
 		add_filter( 'terms_pre_query', array( $filter, 'filter' ), 10, 2 );
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
