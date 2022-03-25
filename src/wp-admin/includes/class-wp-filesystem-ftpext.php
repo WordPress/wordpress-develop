@@ -421,11 +421,8 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		if ( $this->is_dir( $file ) ) {
 			return true;
 		}
-		if ( is_callable( 'ftp_size' ) ) {
-			return -1 !== $this->size( $file );
-		}
 
-		return false;
+		return -1 !== $this->size( $file );
 	}
 
 	/**
