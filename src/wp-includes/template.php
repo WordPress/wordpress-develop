@@ -711,7 +711,25 @@ function locate_template( $template_names, $load = false, $require_once = true, 
 	}
 
 	if ( $load && '' !== $located ) {
+		/**
+		 * Fires before the located template is loaded
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string The template filename.
+		 */
+		do_action( 'before_load_template', $located );
+
 		load_template( $located, $require_once, $args );
+
+		/**
+		 * Fires after the located template is loaded
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string The template filename.
+		 */
+		do_action( 'after_load_template', $located );
 	}
 
 	return $located;
