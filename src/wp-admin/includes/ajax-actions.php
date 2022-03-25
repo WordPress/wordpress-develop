@@ -4004,13 +4004,15 @@ function wp_ajax_crop_image() {
 				$object['post_excerpt'] = $original_attachment->post_excerpt;
 			}
 
-			$attachment_id = wp_insert_attachment( $object, $cropped );
-			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
-
 			// Copy the image alt text attribute from the original image.
 			if ( '' !== trim( $original_attachment->_wp_attachment_image_alt ) ) {
-				update_post_meta( $attachment_id, '_wp_attachment_image_alt', wp_slash( $original_attachment->_wp_attachment_image_alt ) );
+				$object['meta_input'] = array(
+					'_wp_attachment_image_alt' => wp_slash( $original_attachment->_wp_attachment_image_alt ),
+				);
 			}
+
+			$attachment_id = wp_insert_attachment( $object, $cropped );
+			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
 
 			/**
 			 * Filters the cropped image attachment metadata.
