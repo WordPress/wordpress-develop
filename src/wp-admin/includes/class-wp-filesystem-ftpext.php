@@ -412,20 +412,20 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * Checks if a file or directory exists.
 	 *
 	 * @since 2.5.0
-	 * @since 6.0.0 Rewrite using 'ftp_size' instead of 'ftp_nlist'.
+	 * @since 6.0.0 Rewrite using file size.
 	 *
-	 * @param string $file   Path to file or directory.
-	 * @return bool|WP_Error Whether $file exists or not.
+	 * @param string $file Path to file or directory.
+	 * @return bool        Whether $file exists or not.
 	 */
 	public function exists( $file ) {
 		if ( $this->is_dir( $file ) ) {
 			return true;
 		}
-		if ( function_exists( 'ftp_size' ) ) {
-			return -1 !== ftp_size( $this->link, $file );
-		} else {
-			return new WP_Error( 'ftp_size_not_exists', __( 'ftp_size function does not exist on server.' ) );
+		if ( is_callable( 'ftp_size' ) ) {
+			return $this->size( $file );
 		}
+
+		return false;
 	}
 
 	/**
