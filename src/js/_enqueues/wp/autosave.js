@@ -541,7 +541,7 @@ window.autosave = function() {
 					lastCompareString = getCompareString( postData );
 
 					if ( $( '#title' ).val() !== postData.post_title ) {
-						$( '#title' ).focus().val( postData.post_title || '' );
+						$( '#title' ).trigger( 'focus' ).val( postData.post_title || '' );
 					}
 
 					$( '#excerpt' ).val( postData.excerpt || '' );
@@ -560,8 +560,8 @@ window.autosave = function() {
 					} else {
 
 						// Make sure the Text editor is selected.
-						$( '#content-html' ).click();
-						$( '#content' ).focus();
+						$( '#content-html' ).trigger( 'click' );
+						$( '#content' ).trigger( 'focus' );
 
 						// Using document.execCommand() will let the user undo.
 						document.execCommand( 'selectAll' );
@@ -582,7 +582,7 @@ window.autosave = function() {
 			 * Don't run if the post type supports neither 'editor' (textarea#content) nor 'excerpt'.
 			 */
 			if ( checkStorage() && blog_id && ( $('#content').length || $('#excerpt').length ) ) {
-				$document.ready( run );
+				$( run );
 			}
 
 			return {
@@ -710,7 +710,7 @@ window.autosave = function() {
 						var editor = window.tinymce.get( field );
 
 						if ( ! editor || editor.isHidden() ) {
-							if ( $( '#' + field ).val() !== initialCompareData[ field ] ) {
+							if ( ( $( '#' + field ).val() || '' ) !== initialCompareData[ field ] ) {
 								changed = true;
 								// Break.
 								return false;
@@ -721,7 +721,7 @@ window.autosave = function() {
 						}
 					} );
 
-					if ( $( '#title' ).val() !== initialCompareData.post_title ) {
+					if ( ( $( '#title' ).val() || '' ) !== initialCompareData.post_title ) {
 						changed = true;
 					}
 
@@ -798,7 +798,9 @@ window.autosave = function() {
 			 *
 			 * @return {void}
 			 */
-			$document.on( 'heartbeat-send.autosave', function( event, data ) {
+			$( function() {
+				_schedule();
+			}).on( 'heartbeat-send.autosave', function( event, data ) {
 				var autosaveData = save();
 
 				if ( autosaveData ) {
@@ -848,8 +850,6 @@ window.autosave = function() {
 			}).on( 'heartbeat-connection-restored.autosave', function() {
 				$('#lost-connection-notice').hide();
 				enableButtons();
-			}).ready( function() {
-				_schedule();
 			});
 
 			return {
@@ -873,7 +873,10 @@ window.autosave = function() {
 		 *
 		 * @return {void}
 		 */
-		$document.on( 'tinymce-editor-init.autosave', function( event, editor ) {
+		$( function() {
+			// Set the initial compare string in case TinyMCE is not used or not loaded first.
+			setInitialCompare();
+		}).on( 'tinymce-editor-init.autosave', function( event, editor ) {
 			// Reset the initialCompare data after the TinyMCE instances have been initialized.
 			if ( 'content' === editor.id || 'excerpt' === editor.id ) {
 				window.setTimeout( function() {
@@ -881,9 +884,6 @@ window.autosave = function() {
 					setInitialCompare();
 				}, 1000 );
 			}
-		}).ready( function() {
-			// Set the initial compare string in case TinyMCE is not used or not loaded first.
-			setInitialCompare();
 		});
 
 		return {

@@ -488,6 +488,7 @@ final class WP_Customize_Nav_Menus {
 		$temp_nav_menu_item_setting = new WP_Customize_Nav_Menu_Item_Setting( $this->manager, 'nav_menu_item[-1]' );
 
 		$num_locations = count( get_registered_nav_menus() );
+
 		if ( 1 === $num_locations ) {
 			$locations_description = __( 'Your theme can display menus in one location.' );
 		} else {
@@ -679,7 +680,8 @@ final class WP_Customize_Nav_Menus {
 		// Menu locations.
 		$locations     = get_registered_nav_menus();
 		$num_locations = count( $locations );
-		if ( 1 == $num_locations ) {
+
+		if ( 1 === $num_locations ) {
 			$description = '<p>' . __( 'Your theme can display menus in one location. Select which menu you would like to use.' ) . '</p>';
 		} else {
 			/* translators: %s: Number of menu locations. */
@@ -1117,7 +1119,7 @@ final class WP_Customize_Nav_Menus {
 
 		<script type="text/html" id="tmpl-nav-menu-create-menu-section-title">
 			<p class="add-new-menu-notice">
-				<?php _e( 'It doesn&#8217;t look like your site has any menus yet. Want to build one? Click the button to start.' ); ?>
+				<?php _e( 'It does not look like your site has any menus yet. Want to build one? Click the button to start.' ); ?>
 			</p>
 			<p class="add-new-menu-notice">
 				<?php _e( 'You&#8217;ll create a menu, assign it a location, and add menu items like links to pages and categories. If your theme has multiple menu areas, you might need to create more than one.' ); ?>
@@ -1332,7 +1334,7 @@ final class WP_Customize_Nav_Menus {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @global array $wp_post_statuses List of post statuses.
+	 * @global stdClass[] $wp_post_statuses List of post statuses.
 	 */
 	public function make_auto_draft_status_previewable() {
 		global $wp_post_statuses;

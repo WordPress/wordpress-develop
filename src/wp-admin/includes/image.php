@@ -11,15 +11,15 @@
  *
  * @since 2.1.0
  *
- * @param string|int $src      The source file or Attachment ID.
- * @param int        $src_x    The start x position to crop from.
- * @param int        $src_y    The start y position to crop from.
- * @param int        $src_w    The width to crop.
- * @param int        $src_h    The height to crop.
- * @param int        $dst_w    The destination width.
- * @param int        $dst_h    The destination height.
- * @param bool       $src_abs  Optional. If the source crop points are absolute.
- * @param string     $dst_file Optional. The destination file to write to.
+ * @param string|int   $src      The source file or Attachment ID.
+ * @param int          $src_x    The start x position to crop from.
+ * @param int          $src_y    The start y position to crop from.
+ * @param int          $src_w    The width to crop.
+ * @param int          $src_h    The height to crop.
+ * @param int          $dst_w    The destination width.
+ * @param int          $dst_h    The destination height.
+ * @param bool|false   $src_abs  Optional. If the source crop points are absolute.
+ * @param string|false $dst_file Optional. The destination file to write to.
  * @return string|WP_Error New filepath on success, WP_Error on failure.
  */
 function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs = false, $dst_file = false ) {
@@ -75,7 +75,8 @@ function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $s
  * @since 5.3.0
  *
  * @param int $attachment_id The image attachment post ID.
- * @return array An array of the image sub-sizes that are currently defined but don't exist for this image.
+ * @return array[] Associative array of arrays of image sub-size information for
+ *                 missing image sizes, keyed by image size name.
  */
 function wp_get_missing_image_subsizes( $attachment_id ) {
 	if ( ! wp_attachment_is_image( $attachment_id ) ) {
@@ -93,7 +94,7 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 	// Use the originally uploaded image dimensions as full_width and full_height.
 	if ( ! empty( $image_meta['original_image'] ) ) {
 		$image_file = wp_get_original_image_path( $attachment_id );
-		$imagesize  = @getimagesize( $image_file );
+		$imagesize  = wp_getimagesize( $image_file );
 	}
 
 	if ( ! empty( $imagesize ) ) {
@@ -131,9 +132,10 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param array $missing_sizes Array with the missing image sub-sizes.
-	 * @param array $image_meta    The image meta data.
-	 * @param int   $attachment_id The image attachment post ID.
+	 * @param array[] $missing_sizes Associative array of arrays of image sub-size information for
+	 *                               missing image sizes, keyed by image size name.
+	 * @param array   $image_meta    The image meta data.
+	 * @param int     $attachment_id The image attachment post ID.
 	 */
 	return apply_filters( 'wp_get_missing_image_subsizes', $missing_sizes, $image_meta, $attachment_id );
 }
@@ -208,6 +210,9 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 	// Store the original image file name in image_meta.
 	$image_meta['original_image'] = wp_basename( $original_file );
 
+	// Add image file size.
+	$image_meta['filesize'] = wp_filesize( $new_file );
+
 	return $image_meta;
 }
 
@@ -220,11 +225,11 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
  * @since 5.3.0
  *
  * @param string $file          Full path to the image file.
- * @param int    $attachment_id Attachment Id to process.
+ * @param int    $attachment_id Attachment ID to process.
  * @return array The image attachment meta data.
  */
 function wp_create_image_subsizes( $file, $attachment_id ) {
-	$imagesize = @getimagesize( $file );
+	$imagesize = wp_getimagesize( $file );
 
 	if ( empty( $imagesize ) ) {
 		// File is not an image.
@@ -233,10 +238,11 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 	// Default image meta.
 	$image_meta = array(
-		'width'  => $imagesize[0],
-		'height' => $imagesize[1],
-		'file'   => _wp_relative_upload_path( $file ),
-		'sizes'  => array(),
+		'width'    => $imagesize[0],
+		'height'   => $imagesize[1],
+		'file'     => _wp_relative_upload_path( $file ),
+		'filesize' => wp_filesize( $file ),
+		'sizes'    => array(),
 	);
 
 	// Fetch additional metadata from EXIF/IPTC.
@@ -378,7 +384,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
  * @param array  $new_sizes     Array defining what sizes to create.
  * @param string $file          Full path to the image file.
  * @param array  $image_meta    The attachment meta data array.
- * @param int    $attachment_id Attachment Id to process.
+ * @param int    $attachment_id Attachment ID to process.
  * @return array The attachment meta data with updated `sizes` array. Includes an array of errors encountered while resizing.
  */
 function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
@@ -468,9 +474,9 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
  *
  * @since 2.1.0
  *
- * @param int    $attachment_id Attachment Id to process.
- * @param string $file          Filepath of the Attached image.
- * @return mixed Metadata for attachment.
+ * @param int    $attachment_id Attachment ID to process.
+ * @param string $file          Filepath of the attached image.
+ * @return array Metadata for attachment.
  */
 function wp_generate_attachment_metadata( $attachment_id, $file ) {
 	$attachment = get_post( $attachment_id );
@@ -488,6 +494,15 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 	} elseif ( wp_attachment_is( 'audio', $attachment ) ) {
 		$metadata = wp_read_audio_metadata( $file );
 		$support  = current_theme_supports( 'post-thumbnails', 'attachment:audio' ) || post_type_supports( 'attachment:audio', 'thumbnail' );
+	}
+
+	/*
+	 * wp_read_video_metadata() and wp_read_audio_metadata() return `false`
+	 * if the attachment does not exist in the local filesystem,
+	 * so make sure to convert the value to an array.
+	 */
+	if ( ! is_array( $metadata ) ) {
+		$metadata = array();
 	}
 
 	if ( $support && ! empty( $metadata['image']['data'] ) ) {
@@ -516,6 +531,9 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 					break;
 				case 'image/png':
 					$ext = '.png';
+					break;
+				case 'image/webp':
+					$ext = '.webp';
 					break;
 			}
 			$basename = str_replace( '.', '-', wp_basename( $file ) ) . '-image' . $ext;
@@ -613,8 +631,11 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 	}
 
 	// Remove the blob of binary data from the array.
-	if ( $metadata ) {
-		unset( $metadata['image']['data'] );
+	unset( $metadata['image']['data'] );
+
+	// Capture file size for cases where it has not been captured yet, such as PDFs.
+	if ( ! isset( $metadata['filesize'] ) && file_exists( $file ) ) {
+		$metadata['filesize'] = wp_filesize( $file );
 	}
 
 	/**
@@ -636,19 +657,40 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
  *
  * @since 2.5.0
  *
- * @param string $str
- * @return int|float
+ * @param string $str Fraction string.
+ * @return int|float Returns calculated fraction or integer 0 on invalid input.
  */
 function wp_exif_frac2dec( $str ) {
-	if ( false === strpos( $str, '/' ) ) {
-		return $str;
+	if ( ! is_scalar( $str ) || is_bool( $str ) ) {
+		return 0;
+	}
+
+	if ( ! is_string( $str ) ) {
+		return $str; // This can only be an integer or float, so this is fine.
+	}
+
+	// Fractions passed as a string must contain a single `/`.
+	if ( substr_count( $str, '/' ) !== 1 ) {
+		if ( is_numeric( $str ) ) {
+			return (float) $str;
+		}
+
+		return 0;
 	}
 
 	list( $numerator, $denominator ) = explode( '/', $str );
-	if ( ! empty( $denominator ) ) {
-		return $numerator / $denominator;
+
+	// Both the numerator and the denominator must be numbers.
+	if ( ! is_numeric( $numerator ) || ! is_numeric( $denominator ) ) {
+		return 0;
 	}
-	return $str;
+
+	// The denominator must not be zero.
+	if ( 0 == $denominator ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- Deliberate loose comparison.
+		return 0;
+	}
+
+	return $numerator / $denominator;
 }
 
 /**
@@ -656,8 +698,8 @@ function wp_exif_frac2dec( $str ) {
  *
  * @since 2.5.0
  *
- * @param string $str
- * @return int
+ * @param string $str A date string expected to be in Exif format (Y:m:d H:i:s).
+ * @return int|false The unix timestamp, or false on failure.
  */
 function wp_exif_date2ts( $str ) {
 	list( $date, $time ) = explode( ' ', trim( $str ) );
@@ -680,14 +722,14 @@ function wp_exif_date2ts( $str ) {
  * @since 2.5.0
  *
  * @param string $file
- * @return bool|array False on failure. Image metadata array on success.
+ * @return array|false Image metadata array on success, false on failure.
  */
 function wp_read_image_metadata( $file ) {
 	if ( ! file_exists( $file ) ) {
 		return false;
 	}
 
-	list( , , $image_type ) = @getimagesize( $file );
+	list( , , $image_type ) = wp_getimagesize( $file );
 
 	/*
 	 * EXIF contains a bunch of data we'll probably never need formatted in ways
@@ -711,15 +753,24 @@ function wp_read_image_metadata( $file ) {
 	);
 
 	$iptc = array();
+	$info = array();
 	/*
 	 * Read IPTC first, since it might contain data not available in exif such
 	 * as caption, description etc.
 	 */
 	if ( is_callable( 'iptcparse' ) ) {
-		@getimagesize( $file, $info );
+		wp_getimagesize( $file, $info );
 
 		if ( ! empty( $info['APP13'] ) ) {
-			$iptc = @iptcparse( $info['APP13'] );
+			// Don't silence errors when in debug mode, unless running unit tests.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG
+				&& ! defined( 'WP_RUN_CORE_TESTS' )
+			) {
+				$iptc = iptcparse( $info['APP13'] );
+			} else {
+				// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+				$iptc = @iptcparse( $info['APP13'] );
+			}
 
 			// Headline, "A brief synopsis of the caption".
 			if ( ! empty( $iptc['2#105'][0] ) ) {
@@ -774,12 +825,21 @@ function wp_read_image_metadata( $file ) {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param array $image_types Image types to check for exif data.
+	 * @param int[] $image_types Array of image types to check for exif data. Each value
+	 *                           is usually one of the `IMAGETYPE_*` constants.
 	 */
 	$exif_image_types = apply_filters( 'wp_read_image_metadata_types', array( IMAGETYPE_JPEG, IMAGETYPE_TIFF_II, IMAGETYPE_TIFF_MM ) );
 
 	if ( is_callable( 'exif_read_data' ) && in_array( $image_type, $exif_image_types, true ) ) {
-		$exif = @exif_read_data( $file );
+		// Don't silence errors when in debug mode, unless running unit tests.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG
+			&& ! defined( 'WP_RUN_CORE_TESTS' )
+		) {
+			$exif = exif_read_data( $file );
+		} else {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+			$exif = @exif_read_data( $file );
+		}
 
 		if ( ! empty( $exif['ImageDescription'] ) ) {
 			mbstring_binary_safe_encoding();
@@ -813,7 +873,7 @@ function wp_read_image_metadata( $file ) {
 		if ( empty( $meta['copyright'] ) && ! empty( $exif['Copyright'] ) ) {
 			$meta['copyright'] = trim( $exif['Copyright'] );
 		}
-		if ( ! empty( $exif['FNumber'] ) ) {
+		if ( ! empty( $exif['FNumber'] ) && is_scalar( $exif['FNumber'] ) ) {
 			$meta['aperture'] = round( wp_exif_frac2dec( $exif['FNumber'] ), 2 );
 		}
 		if ( ! empty( $exif['Model'] ) ) {
@@ -823,14 +883,20 @@ function wp_read_image_metadata( $file ) {
 			$meta['created_timestamp'] = wp_exif_date2ts( $exif['DateTimeDigitized'] );
 		}
 		if ( ! empty( $exif['FocalLength'] ) ) {
-			$meta['focal_length'] = (string) wp_exif_frac2dec( $exif['FocalLength'] );
+			$meta['focal_length'] = (string) $exif['FocalLength'];
+			if ( is_scalar( $exif['FocalLength'] ) ) {
+				$meta['focal_length'] = (string) wp_exif_frac2dec( $exif['FocalLength'] );
+			}
 		}
 		if ( ! empty( $exif['ISOSpeedRatings'] ) ) {
 			$meta['iso'] = is_array( $exif['ISOSpeedRatings'] ) ? reset( $exif['ISOSpeedRatings'] ) : $exif['ISOSpeedRatings'];
 			$meta['iso'] = trim( $meta['iso'] );
 		}
 		if ( ! empty( $exif['ExposureTime'] ) ) {
-			$meta['shutter_speed'] = (string) wp_exif_frac2dec( $exif['ExposureTime'] );
+			$meta['shutter_speed'] = (string) $exif['ExposureTime'];
+			if ( is_scalar( $exif['ExposureTime'] ) ) {
+				$meta['shutter_speed'] = (string) wp_exif_frac2dec( $exif['ExposureTime'] );
+			}
 		}
 		if ( ! empty( $exif['Orientation'] ) ) {
 			$meta['orientation'] = $exif['Orientation'];
@@ -877,7 +943,7 @@ function wp_read_image_metadata( $file ) {
  * @return bool True if valid image, false if not valid image.
  */
 function file_is_valid_image( $path ) {
-	$size = @getimagesize( $path );
+	$size = wp_getimagesize( $path );
 	return ! empty( $size );
 }
 
@@ -890,9 +956,9 @@ function file_is_valid_image( $path ) {
  * @return bool True if suitable, false if not suitable.
  */
 function file_is_displayable_image( $path ) {
-	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO );
+	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP );
 
-	$info = @getimagesize( $path );
+	$info = wp_getimagesize( $path );
 	if ( empty( $info ) ) {
 		$result = false;
 	} elseif ( ! in_array( $info[2], $displayable_image_types, true ) ) {
@@ -939,6 +1005,12 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 			break;
 		case 'image/gif':
 			$image = imagecreatefromgif( $filepath );
+			break;
+		case 'image/webp':
+			$image = false;
+			if ( function_exists( 'imagecreatefromwebp' ) ) {
+				$image = imagecreatefromwebp( $filepath );
+			}
 			break;
 		default:
 			$image = false;
@@ -1014,7 +1086,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param string       $image_url     Current image URL.
+		 * @param string|false $image_url     Current image URL.
 		 * @param int          $attachment_id Attachment ID.
 		 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
 		 *                                    an array of width and height values in pixels (in that order).
@@ -1027,7 +1099,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param string|bool  $filepath      File path or URL to current image, or false.
+	 * @param string|false $filepath      File path or URL to current image, or false.
 	 * @param int          $attachment_id Attachment ID.
 	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
 	 *                                    an array of width and height values in pixels (in that order).

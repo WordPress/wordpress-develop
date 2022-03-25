@@ -125,7 +125,7 @@ class WP_Scripts extends WP_Dependencies {
 	/**
 	 * Holds a string which contains the type attribute for script tag.
 	 *
-	 * If the current theme does not declare HTML5 support for 'script',
+	 * If the active theme does not declare HTML5 support for 'script',
 	 * then it initializes as `type='text/javascript'`.
 	 *
 	 * @since 5.3.0
@@ -162,7 +162,7 @@ class WP_Scripts extends WP_Dependencies {
 		 *
 		 * @since 2.6.0
 		 *
-		 * @param WP_Scripts $this WP_Scripts instance (passed by reference).
+		 * @param WP_Scripts $wp_scripts WP_Scripts instance (passed by reference).
 		 */
 		do_action_ref_array( 'wp_default_scripts', array( &$this ) );
 	}
@@ -484,12 +484,29 @@ class WP_Scripts extends WP_Dependencies {
 			unset( $l10n['l10n_print_after'] );
 		}
 
-		foreach ( (array) $l10n as $key => $value ) {
-			if ( ! is_scalar( $value ) ) {
-				continue;
-			}
+		if ( ! is_array( $l10n ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: $l10n, 2: wp_add_inline_script() */
+					__( 'The %1$s parameter must be an array. To pass arbitrary data to scripts, use the %2$s function instead.' ),
+					'<code>$l10n</code>',
+					'<code>wp_add_inline_script()</code>'
+				),
+				'5.7.0'
+			);
+		}
 
-			$l10n[ $key ] = html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' );
+		if ( is_string( $l10n ) ) {
+			$l10n = html_entity_decode( $l10n, ENT_QUOTES, 'UTF-8' );
+		} else {
+			foreach ( (array) $l10n as $key => $value ) {
+				if ( ! is_scalar( $value ) ) {
+					continue;
+				}
+
+				$l10n[ $key ] = html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' );
+			}
 		}
 
 		$script = "var $object_name = " . wp_json_encode( $l10n ) . ';';
@@ -582,8 +599,7 @@ class WP_Scripts extends WP_Dependencies {
 		$json_translations = load_script_textdomain( $handle, $domain, $path );
 
 		if ( ! $json_translations ) {
-			// Register empty locale data object to ensure the domain still exists.
-			$json_translations = '{ "locale_data": { "messages": { "": {} } } }';
+			return false;
 		}
 
 		$output = <<<JS

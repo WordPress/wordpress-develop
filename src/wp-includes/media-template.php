@@ -28,7 +28,7 @@ function wp_underscore_audio_template() {
 	if ( ! _.isUndefined( data.model.<?php echo $attr; ?> ) && data.model.<?php echo $attr; ?> ) {
 		#> <?php echo $attr; ?><#
 	}
-	<?php endforeach ?>#>
+	<?php endforeach; ?>#>
 >
 	<# if ( ! _.isEmpty( data.model.src ) ) { #>
 	<source src="{{ data.model.src }}" type="{{ wp.media.view.settings.embedMimes[ data.model.src.split('.').pop() ] }}" />
@@ -123,7 +123,7 @@ function wp_underscore_video_template() {
 	if ( ! _.isUndefined( data.model.<?php echo $attr; ?> ) && data.model.<?php echo $attr; ?> ) {
 		#> <?php echo $attr; ?><#
 	}
-	<?php endforeach ?>#>
+	<?php endforeach; ?>#>
 >
 	<# if ( ! _.isEmpty( data.model.src ) ) {
 		if ( isYouTube ) { #>
@@ -158,7 +158,7 @@ function wp_print_media_templates() {
 
 	$alt_text_description = sprintf(
 		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
-		__( '<a href="%1$s" %2$s>Describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
+		__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 		esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
 		'target="_blank" rel="noopener"',
 		sprintf(
@@ -252,12 +252,12 @@ function wp_print_media_templates() {
 			<div class="upload-ui">
 				<h2 class="upload-instructions drop-instructions"><?php _e( 'Drop files to upload' ); ?></h2>
 				<p class="upload-instructions drop-instructions"><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files' ); ?></p>
-				<button type="button" class="browser button button-hero"><?php _e( 'Select Files' ); ?></button>
+				<button type="button" class="browser button button-hero" aria-labelledby="post-upload-info"><?php _e( 'Select Files' ); ?></button>
 			</div>
 
 			<div class="upload-inline-status"></div>
 
-			<div class="post-upload-ui">
+			<div class="post-upload-ui" id="post-upload-info">
 				<?php
 				/** This action is documented in wp-admin/includes/media.php */
 				do_action( 'pre-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
@@ -320,7 +320,6 @@ function wp_print_media_templates() {
 	<?php // Template for the uploading status UI. ?>
 	<script type="text/html" id="tmpl-uploader-status">
 		<h2><?php _e( 'Uploading' ); ?></h2>
-		<button type="button" class="button-link upload-dismiss-errors"><span class="screen-reader-text"><?php _e( 'Dismiss Errors' ); ?></span></button>
 
 		<div class="media-progress-bar"><div></div></div>
 		<div class="upload-details">
@@ -331,6 +330,7 @@ function wp_print_media_templates() {
 			<span class="upload-filename"></span>
 		</div>
 		<div class="upload-errors"></div>
+		<button type="button" class="button upload-dismiss-errors"><?php _e( 'Dismiss errors' ); ?></button>
 	</script>
 
 	<?php // Template for the uploading status errors. ?>
@@ -368,7 +368,7 @@ function wp_print_media_templates() {
 				<# if ( 'audio' === data.type ) { #>
 				<div class="wp-media-wrapper wp-audio">
 					<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
-						<source type="{{ data.mime }}" src="{{ data.url }}"/>
+						<source type="{{ data.mime }}" src="{{ data.url }}" />
 					</audio>
 				</div>
 				<# } else if ( 'video' === data.type ) {
@@ -384,7 +384,7 @@ function wp_print_media_templates() {
 						<# if ( data.width ) { #>width="{{ data.width }}"<# } #>
 						<# if ( data.height ) { #>height="{{ data.height }}"<# } #>
 						<# if ( data.image && data.image.src !== data.icon ) { #>poster="{{ data.image.src }}"<# } #>>
-						<source type="{{ data.mime }}" src="{{ data.url }}"/>
+						<source type="{{ data.mime }}" src="{{ data.url }}" />
 					</video>
 				</div>
 				<# } #>
@@ -614,7 +614,7 @@ function wp_print_media_templates() {
 			<# if ( 'audio' === data.type ) { #>
 				<div class="wp-media-wrapper wp-audio">
 					<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
-						<source type="{{ data.mime }}" src="{{ data.url }}"/>
+						<source type="{{ data.mime }}" src="{{ data.url }}" />
 					</audio>
 				</div>
 			<# } else if ( 'video' === data.type ) {
@@ -630,7 +630,7 @@ function wp_print_media_templates() {
 						<# if ( data.width ) { #>width="{{ data.width }}"<# } #>
 						<# if ( data.height ) { #>height="{{ data.height }}"<# } #>
 						<# if ( data.image && data.image.src !== data.icon ) { #>poster="{{ data.image.src }}"<# } #>>
-						<source type="{{ data.mime }}" src="{{ data.url }}"/>
+						<source type="{{ data.mime }}" src="{{ data.url }}" />
 					</video>
 				</div>
 			<# } else { #>
@@ -1277,7 +1277,7 @@ function wp_print_media_templates() {
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove audio source' ); ?></button>
 				</span>
 				<# } #>
-				<?php endforeach ?>
+				<?php endforeach; ?>
 
 				<# if ( ! _.isEmpty( html5types ) ) { #>
 				<fieldset class="setting-group">
@@ -1367,7 +1367,7 @@ function wp_print_media_templates() {
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove video source' ); ?></button>
 				</span>
 				<# } #>
-				<?php endforeach ?>
+				<?php endforeach; ?>
 				</div>
 
 				<# if ( ! _.isEmpty( html5types ) ) { #>
@@ -1479,7 +1479,7 @@ function wp_print_media_templates() {
 
 	<?php // Template for the Crop area layout, used for example in the Customizer. ?>
 	<script type="text/html" id="tmpl-crop-content">
-		<img class="crop-image" src="{{ data.url }}" alt="<?php esc_attr_e( 'Image crop area preview. Requires mouse interaction.' ); ?>">
+		<img class="crop-image" src="{{ data.url }}" alt="<?php esc_attr_e( 'Image crop area preview. Requires mouse interaction.' ); ?>" />
 		<div class="upload-errors"></div>
 	</script>
 
@@ -1491,14 +1491,14 @@ function wp_print_media_templates() {
 			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" height="" alt="" />
 
 			<div class="favicon">
-				<img id="preview-favicon" src="{{ data.url }}" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>"/>
+				<img id="preview-favicon" src="{{ data.url }}" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>" />
 			</div>
 			<span class="browser-title" aria-hidden="true"><# print( '<?php bloginfo( 'name' ); ?>' ) #></span>
 		</div>
 
 		<strong aria-hidden="true"><?php _e( 'As an app icon' ); ?></strong>
 		<div class="app-icon-preview">
-			<img id="preview-app-icon" src="{{ data.url }}" alt="<?php esc_attr_e( 'Preview as an app icon' ); ?>"/>
+			<img id="preview-app-icon" src="{{ data.url }}" alt="<?php esc_attr_e( 'Preview as an app icon' ); ?>" />
 		</div>
 	</script>
 

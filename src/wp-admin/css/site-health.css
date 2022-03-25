@@ -1,17 +1,6 @@
-.site-health #wpcontent,
-.site-health.auto-fold #wpcontent {
-	padding-left: 0;
-}
-
-/* Emulates .wrap h1 styling */
-.health-check-header h1 {
-	display: inline-block;
-	font-weight: 600;
-	margin: 0 0.8rem 1rem;
-	font-size: 23px;
-	padding: 9px 0 4px 0;
-	line-height: 1.3;
-}
+/* Note: Any Site Health selectors that use
+duplicate styling from the Privacy settings screen
+are styled in the Privacy section of edit.css */
 
 .health-check-body h2 {
 	line-height: 1.4;
@@ -22,18 +11,8 @@
 	font-weight: 400;
 }
 
-.health-check-header {
+.health-check-widget-title-section {
 	text-align: center;
-	margin: 0 0 1rem;
-	background: #fff;
-	border-bottom: 1px solid #e2e4e7;
-}
-
-.health-check-title-section {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	clear: both;
 }
 
 .site-health-progress-wrapper {
@@ -67,34 +46,34 @@
 
 .loading .site-health-progress svg #bar {
 	stroke-dashoffset: 0;
-	stroke: #adc5d2;
+	stroke: #c3c4c7;
 	animation: loadingPulse 3s infinite ease-in-out;
 }
 
 .site-health-progress svg circle {
 	stroke-dashoffset: 0;
 	transition: stroke-dashoffset 1s linear;
-	stroke: #ccc;
+	stroke: #c3c4c7;
 	stroke-width: 2em;
 }
 
 .site-health-progress svg #bar {
 	stroke-dashoffset: 565;
-	stroke: #dc3232;
+	stroke: #d63638;
 }
 
 .green .site-health-progress #bar {
-	stroke: #46b450;
+	stroke: #00a32a;
 }
 .green .site-health-progress .site-health-progress-label {
-	color: #46b450;
+	color: #00a32a;
 }
 
 .orange .site-health-progress #bar {
-	stroke: #ffb900;
+	stroke: #dba617;
 }
 .orange .site-health-progress .site-health-progress-label {
-	color: #ffb900;
+	color: #dba617;
 }
 
 .site-health-progress-label {
@@ -105,24 +84,34 @@
 
 @keyframes loadingPulse {
 	0% {
-		stroke: #adc5d2;
+		stroke: #c3c4c7;
 	}
 	50% {
-		stroke: #00a0d2;
+		stroke: #72aee6;
 	}
 	100% {
-		stroke: #adc5d2;
+		stroke: #c3c4c7;
 	}
 }
 
 .health-check-tabs-wrapper {
 	/* IE 11 */
 	display: -ms-inline-grid;
-	-ms-grid-columns: 1fr 1fr;
+	-ms-grid-columns: 1fr 1fr 1fr 1fr;
 	vertical-align: top;
 	/* modern browsers */
 	display: inline-grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+.health-check-tabs-wrapper.tab-count-1 {
+	grid-template-columns: 1fr;
+}
+.health-check-tabs-wrapper.tab-count-2 {
 	grid-template-columns: 1fr 1fr;
+}
+.health-check-tabs-wrapper.tab-count-3 {
+	grid-template-columns: 1fr 1fr 1fr;
 }
 
 .health-check-tab {
@@ -134,22 +123,45 @@
 	transition: box-shadow 0.5s ease-in-out;
 }
 
-.health-check-tab:nth-child(1) {
-	-ms-grid-column: 1; /* IE 11 */
+.health-check-offscreen-nav-wrapper {
+	position: relative;
+	background: transparent;
+	border: none;
+}
+.health-check-offscreen-nav-wrapper:focus .health-check-offscreen-nav {
+	left: initial;
 }
 
-.health-check-tab:nth-child(2) {
-	-ms-grid-column: 2; /* IE 11 */
+.health-check-offscreen-nav {
+	display: none;
+	position: absolute;
+	padding-top: 10px;
+	right: 0;
+	top: 100%;
+	width: 13rem;
+}
+.health-check-offscreen-nav-wrapper.visible .health-check-offscreen-nav {
+	display: inline-block;
+}
+.health-check-offscreen-nav:before {
+	position: absolute;
+	content: "";
+	width: 0;
+	height: 0;
+	border-style: solid;
+	border-width: 0 10px 5px;
+	border-color: transparent transparent #ffffff;
+	right: 20px;
+	top: 5px;
 }
 
-.health-check-tab:focus {
-	color: #191e23;
-	outline: 1px solid #6c7781;
-	box-shadow: none;
+.health-check-offscreen-nav .health-check-tab {
+	background: #fff;
+	box-shadow: 0 2px 5px 0 rgba( 0, 0, 0, 0.75 );
 }
 
-.health-check-tab.active {
-	box-shadow: inset 0 -3px #007cba;
+.health-check-offscreen-nav .health-check-tab.active {
+	box-shadow: inset 3px 0 #3582c4;
 	font-weight: 600;
 }
 
@@ -178,23 +190,23 @@
 .health-check-body .pass::before,
 .health-check-body .good::before {
 	content: "\f147";
-	color: #46b450;
+	color: #00a32a;
 }
 
 .health-check-body .warning::before {
 	content: "\f460";
-	color: #ffb900;
+	color: #dba617;
 }
 
 .health-check-body .info::before {
 	content: "\f348";
-	color: #00a0d2;
+	color: #72aee6;
 }
 
 .health-check-body .fail::before,
 .health-check-body .error::before {
 	content: "\f335";
-	color: #dc3232;
+	color: #d63638;
 }
 
 .site-health-copy-buttons {
@@ -208,7 +220,7 @@
 }
 
 .site-health-copy-buttons .success {
-	color: #40860a;
+	color: #008a20;
 	margin-left: 0.5rem;
 }
 
@@ -237,12 +249,12 @@
 	text-align: center;
 	height: 100%;
 	width: 100%;
-	margin-top: 0;
+	margin: 0 0 3rem;
 }
 
 @media all and (min-width: 784px) {
 	.site-status-all-clear {
-		margin: 5rem 0;
+		margin: 2rem 0 5rem;
 	}
 }
 
@@ -252,7 +264,8 @@
 
 .site-status-all-clear .dashicons {
 	font-size: 150px;
-	height: 130px;
+	height: 150px;
+	margin-bottom: 2rem;
 	width: 150px;
 }
 
@@ -265,132 +278,12 @@
 	margin: 0;
 }
 
-.health-check-accordion {
-	border: 1px solid #ccd0d4;
-}
-
-.health-check-accordion-heading {
-	margin: 0;
-	border-top: 1px solid #ccd0d4;
-	font-size: inherit;
-	line-height: inherit;
-	font-weight: 600;
-	color: inherit;
-}
-
-.health-check-accordion-heading:first-child {
-	border-top: none;
-}
-
-.health-check-accordion-trigger {
-	background: #fff;
-	border: 0;
-	color: #32373c;
-	cursor: pointer;
-	display: flex;
-	font-weight: 400;
-	margin: 0;
-	padding: 1em 3.5em 1em 1.5em;
-	min-height: 46px;
-	position: relative;
-	text-align: left;
-	width: 100%;
-	align-items: center;
-	justify-content: space-between;
-	-webkit-user-select: auto;
-	-moz-user-select: auto;
-	-ms-user-select: auto;
-	user-select: auto;
-}
-
 .wp-core-ui .button.site-health-view-passed {
 	position: relative;
 	padding-right: 40px;
 	padding-left: 20px;
 }
 
-.health-check-accordion-trigger:hover,
-.health-check-accordion-trigger:active {
-	background: #f8f9f9;
-}
-
-.health-check-accordion-trigger:focus {
-	color: #191e23;
-	border: none;
-	box-shadow: none;
-	outline-offset: -1px;
-	outline: 2px solid #0071a1;
-	background-color: #f8f9f9;
-}
-
-.health-check-accordion-trigger .title {
-	pointer-events: none;
-	font-weight: 600;
-	flex-grow: 1;
-}
-
-.health-check-accordion-trigger .icon,
-.site-health-view-passed .icon {
-	border: solid #555d66;
-	border-width: 0 2px 2px 0;
-	height: 0.5rem;
-	pointer-events: none;
-	position: absolute;
-	right: 1.5em;
-	top: 50%;
-	transform: translateY(-70%) rotate(45deg);
-	width: 0.5rem;
-}
-
-.health-check-accordion-trigger .badge {
-	padding: 0.1rem 0.5rem 0.15rem;
-	color: #32373c;
-	font-weight: 600;
-	margin-left: 0.5rem;
-}
-
-.health-check-accordion-trigger .badge.blue {
-	border: 1px solid #bfe7f3;
-}
-
-.health-check-accordion-trigger .badge.orange {
-	border: 1px solid #ffb900;
-}
-
-.health-check-accordion-trigger .badge.red {
-	border: 1px solid #dc3232;
-}
-
-.health-check-accordion-trigger .badge.green {
-	border: 1px solid #46b450;
-}
-
-.health-check-accordion-trigger .badge.purple {
-	border: 1px solid #826eb4;
-}
-
-.health-check-accordion-trigger .badge.gray {
-	border: 1px solid #ccd0d4;
-}
-
-.health-check-accordion-trigger[aria-expanded="true"] .icon,
-.site-health-view-passed[aria-expanded="true"] .icon {
-	transform: translateY(-30%) rotate(-135deg)
-}
-
-.health-check-accordion-panel {
-	margin: 0;
-	padding: 1em 1.5em;
-	background: #fff;
-}
-
-.health-check-accordion-panel[hidden] {
-	display: none;
-}
-
-.health-check-accordion-panel a .dashicons {
-	text-decoration: none;
-}
 
 /* Better position for the WordPress admin notices and update nag. */
 .site-health .notice {
@@ -409,20 +302,29 @@
 	flex-shrink: 0;
 }
 
+/* Styling unique to the dashboard widget. */
+#dashboard_site_health .site-health-details {
+	padding-left: 16px;
+}
+
+#dashboard_site_health .health-check-widget {
+	display: grid;
+	grid-template-columns: 1fr 2fr;
+	grid-auto-rows: minmax(64px, auto);
+	column-gap: 16px;
+	align-items: center;
+}
+#dashboard_site_health .site-health-progress-label {
+	margin-left: 0;
+}
+
+@media screen and (max-width: 480px) {
+	#dashboard_site_health .health-check-widget {
+		grid-template-columns: 100%;
+	}
+}
+
 @media screen and (max-width: 782px) {
-	.health-check-body {
-		margin: 0 12px;
-		width: auto;
-	}
-
-	.site-health .notice {
-		margin: 5px 10px 15px;
-	}
-
-	.site-health .update-nag {
-		margin-right: 10px;
-		margin-left: 10px;
-	}
 
 	.site-health-issues-wrapper .health-check-accordion-trigger {
 		flex-direction: column;
@@ -455,10 +357,3 @@
 	}
 }
 
-/* The breakpoint is usually at 960px, the additional space is to allow for the margin. */
-@media only screen and (max-width: 1004px) {
-	.health-check-body {
-		margin: 0 22px;
-		width: auto;
-	}
-}

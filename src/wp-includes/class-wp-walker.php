@@ -24,7 +24,7 @@ class Walker {
 	 * DB fields to use.
 	 *
 	 * @since 2.1.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $db_fields;
 
@@ -83,15 +83,16 @@ class Walker {
 	 * class methods. Includes the element output also.
 	 *
 	 * @since 2.1.0
+	 * @since 5.9.0 Renamed `$object` (a PHP reserved keyword) to `$data_object` for PHP 8 named parameter support.
 	 * @abstract
 	 *
 	 * @param string $output            Used to append additional content (passed by reference).
-	 * @param object $object            The data object.
+	 * @param object $data_object       The data object.
 	 * @param int    $depth             Depth of the item.
 	 * @param array  $args              An array of additional arguments.
-	 * @param int    $current_object_id ID of the current item.
+	 * @param int    $current_object_id Optional. ID of the current item. Default 0.
 	 */
-	public function start_el( &$output, $object, $depth = 0, $args = array(), $current_object_id = 0 ) {}
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {}
 
 	/**
 	 * Ends the element output, if needed.
@@ -99,14 +100,15 @@ class Walker {
 	 * The $args parameter holds additional values that may be used with the child class methods.
 	 *
 	 * @since 2.1.0
+	 * @since 5.9.0 Renamed `$object` (a PHP reserved keyword) to `$data_object` for PHP 8 named parameter support.
 	 * @abstract
 	 *
-	 * @param string $output Used to append additional content (passed by reference).
-	 * @param object $object The data object.
-	 * @param int    $depth  Depth of the item.
-	 * @param array  $args   An array of additional arguments.
+	 * @param string $output      Used to append additional content (passed by reference).
+	 * @param object $data_object The data object.
+	 * @param int    $depth       Depth of the item.
+	 * @param array  $args        An array of additional arguments.
 	 */
-	public function end_el( &$output, $object, $depth = 0, $args = array() ) {}
+	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {}
 
 	/**
 	 * Traverse elements to create list from elements.
@@ -207,7 +209,7 @@ class Walker {
 		/*
 		 * Need to display in hierarchical order.
 		 * Separate elements into two buckets: top level and children elements.
-		 * Children_elements is two dimensional array, eg.
+		 * Children_elements is two dimensional array. Example:
 		 * Children_elements[10][] contains all sub-elements whose parent is 10.
 		 */
 		$top_level_elements = array();
@@ -274,10 +276,10 @@ class Walker {
 	 * @since 5.3.0 Formalized the existing `...$args` parameter by adding it
 	 *              to the function signature.
 	 *
-	 * @param array $elements
+	 * @param array $elements  An array of elements.
 	 * @param int   $max_depth The maximum hierarchical depth.
 	 * @param int   $page_num  The specific page number, beginning with 1.
-	 * @param int   $per_page
+	 * @param int   $per_page  Number of elements per page.
 	 * @param mixed ...$args   Optional additional arguments.
 	 * @return string XHTML of the specified page of elements
 	 */
@@ -342,7 +344,7 @@ class Walker {
 		$top_level_elements = array();
 		$children_elements  = array();
 		foreach ( $elements as $e ) {
-			if ( 0 == $e->$parent_field ) {
+			if ( empty( $e->$parent_field ) ) {
 				$top_level_elements[] = $e;
 			} else {
 				$children_elements[ $e->$parent_field ][] = $e;
@@ -412,7 +414,7 @@ class Walker {
 		$parent_field = $this->db_fields['parent'];
 
 		foreach ( $elements as $e ) {
-			if ( 0 == $e->$parent_field ) {
+			if ( empty( $e->$parent_field ) ) {
 				$num++;
 			}
 		}

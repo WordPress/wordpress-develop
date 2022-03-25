@@ -157,7 +157,7 @@ switch ( $wp_list_table->current_action() ) {
 		$term    = get_term( $term_id );
 
 		if ( ! $term instanceof WP_Term ) {
-			wp_die( __( 'You attempted to edit an item that doesn&#8217;t exist. Perhaps it was deleted?' ) );
+			wp_die( __( 'You attempted to edit an item that does not exist. Perhaps it was deleted?' ) );
 		}
 
 		wp_redirect( esc_url_raw( get_edit_term_link( $term_id, $taxonomy, $post_type ) ) );
@@ -177,7 +177,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		$tag = get_term( $tag_ID, $taxonomy );
 		if ( ! $tag ) {
-			wp_die( __( 'You attempted to edit an item that doesn&#8217;t exist. Perhaps it was deleted?' ) );
+			wp_die( __( 'You attempted to edit an item that does not exist. Perhaps it was deleted?' ) );
 		}
 
 		$ret = wp_update_term( $tag_ID, $taxonomy, $_POST );
@@ -253,7 +253,7 @@ if ( 'category' === $taxonomy || 'link_category' === $taxonomy || 'post_tag' ===
 	} elseif ( 'link_category' === $taxonomy ) {
 		$help = '<p>' . __( 'You can create groups of links by using Link Categories. Link Category names must be unique and Link Categories are separate from the categories you use for posts.' ) . '</p>';
 	} else {
-		$help = '<p>' . __( 'You can assign keywords to your posts using <strong>tags</strong>. Unlike categories, tags have no hierarchy, meaning there&#8217;s no relationship from one tag to another.' ) . '</p>';
+		$help = '<p>' . __( 'You can assign keywords to your posts using <strong>tags</strong>. Unlike categories, tags have no hierarchy, meaning there is no relationship from one tag to another.' ) . '</p>';
 	}
 
 	if ( 'link_category' === $taxonomy ) {
@@ -320,7 +320,7 @@ if ( 'category' === $taxonomy || 'link_category' === $taxonomy || 'post_tag' ===
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
-/** Also used by the Edit Tag  form */
+// Also used by the Edit Tag form.
 require_once ABSPATH . 'wp-admin/includes/edit-tag-messages.php';
 
 $class = ( isset( $_REQUEST['error'] ) ) ? 'error' : 'updated';
@@ -414,6 +414,11 @@ if ( $can_edit_terms ) {
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `category_pre_add_form`
+	 *  - `post_tag_pre_add_form`
+	 *
 	 * @since 3.0.0
 	 *
 	 * @param string $taxonomy The taxonomy slug.
@@ -430,6 +435,11 @@ if ( $can_edit_terms ) {
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `category_term_new_form_tag`
+	 *  - `post_tag_term_new_form_tag`
+	 *
 	 * @since 3.7.0
 	 */
 	do_action( "{$taxonomy}_term_new_form_tag" );
@@ -444,13 +454,13 @@ if ( $can_edit_terms ) {
 <div class="form-field form-required term-name-wrap">
 	<label for="tag-name"><?php _ex( 'Name', 'term name' ); ?></label>
 	<input name="tag-name" id="tag-name" type="text" value="" size="40" aria-required="true" />
-	<p><?php _e( 'The name is how it appears on your site.' ); ?></p>
+	<p><?php echo $tax->labels->name_field_description; ?></p>
 </div>
 	<?php if ( ! global_terms_enabled() ) : ?>
 <div class="form-field term-slug-wrap">
 	<label for="tag-slug"><?php _e( 'Slug' ); ?></label>
 	<input name="slug" id="tag-slug" type="text" value="" size="40" />
-	<p><?php _e( 'The &#8220;slug&#8221; is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.' ); ?></p>
+	<p><?php echo $tax->labels->slug_field_description; ?></p>
 </div>
 <?php endif; // global_terms_enabled() ?>
 	<?php if ( is_taxonomy_hierarchical( $taxonomy ) ) : ?>
@@ -495,14 +505,14 @@ if ( $can_edit_terms ) {
 		<?php if ( 'category' === $taxonomy ) : ?>
 		<p><?php _e( 'Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.' ); ?></p>
 	<?php else : ?>
-		<p><?php _e( 'Assign a parent term to create a hierarchy. The term Jazz, for example, would be the parent of Bebop and Big Band.' ); ?></p>
+		<p><?php echo $tax->labels->parent_field_description; ?></p>
 	<?php endif; ?>
 </div>
 	<?php endif; // is_taxonomy_hierarchical() ?>
 <div class="form-field term-description-wrap">
 	<label for="tag-description"><?php _e( 'Description' ); ?></label>
 	<textarea name="description" id="tag-description" rows="5" cols="40"></textarea>
-	<p><?php _e( 'The description is not prominent by default; however, some themes may show it.' ); ?></p>
+	<p><?php echo $tax->labels->desc_field_description; ?></p>
 </div>
 
 	<?php
@@ -521,6 +531,11 @@ if ( $can_edit_terms ) {
 	 * Fires after the Add Term form fields.
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `category_add_form_fields`
+	 *  - `post_tag_add_form_fields`
 	 *
 	 * @since 3.0.0
 	 *
@@ -569,6 +584,11 @@ if ( $can_edit_terms ) {
 	 * Fires at the end of the Add Term form for all taxonomies.
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `category_add_form`
+	 *  - `post_tag_add_form`
 	 *
 	 * @since 3.0.0
 	 *
@@ -637,6 +657,11 @@ endif;
  * Fires after the taxonomy list table.
  *
  * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+ *
+ * Possible hook names include:
+ *
+ *  - `after-category-table`
+ *  - `after-post_tag-table`
  *
  * @since 3.0.0
  *

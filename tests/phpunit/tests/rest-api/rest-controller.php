@@ -11,52 +11,65 @@
  */
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Load the WP_REST_Test_Controller class if not already loaded.
+		require_once __DIR__ . '/rest-test-controller.php';
+	}
+
+	public function set_up() {
+		parent::set_up();
 		$this->request = new WP_REST_Request(
 			'GET',
 			'/wp/v2/testroute',
 			array(
 				'args' => array(
-					'someinteger' => array(
+					'someinteger'       => array(
 						'type' => 'integer',
 					),
-					'someboolean' => array(
+					'someboolean'       => array(
 						'type' => 'boolean',
 					),
-					'somestring'  => array(
+					'somestring'        => array(
 						'type' => 'string',
 					),
-					'somehex'     => array(
+					'somehex'           => array(
 						'type'   => 'string',
 						'format' => 'hex-color',
 					),
-					'someenum'    => array(
+					'someenum'          => array(
 						'type' => 'string',
 						'enum' => array( 'a' ),
 					),
-					'somedate'    => array(
+					'somedate'          => array(
 						'type'   => 'string',
 						'format' => 'date-time',
 					),
-					'someemail'   => array(
+					'someemail'         => array(
 						'type'   => 'string',
 						'format' => 'email',
 					),
-					'someuuid'    => array(
+					'someuuid'          => array(
 						'type'   => 'string',
 						'format' => 'uuid',
+					),
+					'sometextfield'     => array(
+						'type'   => 'string',
+						'format' => 'text-field',
+					),
+					'sometextareafield' => array(
+						'type'   => 'string',
+						'format' => 'textarea-field',
 					),
 				),
 			)
 		);
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-
+	public function tear_down() {
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
+
+		parent::tear_down();
 	}
 
 	public function test_validate_schema_type_integer() {
@@ -106,36 +119,28 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		// Check sanitize testing.
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( 'false', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( '0', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( 0, $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			false,
+		$this->assertFalse(
 			rest_sanitize_request_arg( 'FALSE', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( 'true', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( '1', $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( 1, $this->request, 'someboolean' )
 		);
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			rest_sanitize_request_arg( 'TRUE', $this->request, 'someboolean' )
 		);
 
@@ -164,7 +169,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		$this->assertErrorResponse(
-			'rest_invalid_param',
+			'rest_not_in_enum',
 			rest_validate_request_arg( 'd', $this->request, 'someenum' )
 		);
 	}
@@ -223,6 +228,52 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 49960
+	 */
+	public function test_validate_schema_format_text_field() {
+		$this->assertTrue(
+			rest_validate_request_arg( 'Hello World', $this->request, 'sometextfield' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_type',
+			rest_validate_request_arg( false, $this->request, 'sometextfield' )
+		);
+
+		$this->assertSame(
+			'Hello World',
+			rest_sanitize_request_arg( 'Hello World', $this->request, 'sometextfield' )
+		);
+		$this->assertSame(
+			'Hello World',
+			rest_sanitize_request_arg( '<p>Hello World</p>', $this->request, 'sometextfield' )
+		);
+	}
+
+	/**
+	 * @ticket 49960
+	 */
+	public function test_validate_schema_format_textarea_field() {
+		$this->assertTrue(
+			rest_validate_request_arg( "Hello\nWorld", $this->request, 'sometextareafield' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_type',
+			rest_validate_request_arg( false, $this->request, 'sometextareafield' )
+		);
+
+		$this->assertSame(
+			"Hello\nWorld",
+			rest_sanitize_request_arg( "Hello\nWorld", $this->request, 'sometextareafield' )
+		);
+		$this->assertSame(
+			"Hello\nWorld",
+			rest_sanitize_request_arg( "<p>Hello\nWorld</p>", $this->request, 'sometextareafield' )
+		);
+	}
+
+	/**
 	 * @ticket 50876
 	 */
 	public function test_get_endpoint_args_for_item_schema() {
@@ -237,6 +288,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'someemail', $args );
 		$this->assertArrayHasKey( 'somehex', $args );
 		$this->assertArrayHasKey( 'someuuid', $args );
+		$this->assertArrayHasKey( 'sometextfield', $args );
+		$this->assertArrayHasKey( 'sometextareafield', $args );
 		$this->assertArrayHasKey( 'someenum', $args );
 		$this->assertArrayHasKey( 'someargoptions', $args );
 		$this->assertArrayHasKey( 'somedefault', $args );
@@ -249,7 +302,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
 		$this->assertSame( 'A pretty string.', $args['somestring']['description'] );
-		$this->assertFalse( isset( $args['someinteger']['description'] ) );
+		$this->assertArrayNotHasKey( 'description', $args['someinteger'] );
 	}
 
 	public function test_get_endpoint_args_for_item_schema_arg_options() {
@@ -326,6 +379,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'someemail',
 				'somehex',
 				'someuuid',
+				'sometextfield',
+				'sometextareafield',
 				'someenum',
 				'someargoptions',
 				'somedefault',
@@ -359,6 +414,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'someemail',
 					'somehex',
 					'someuuid',
+					'sometextfield',
+					'sometextareafield',
 					'someenum',
 					'someargoptions',
 					'somedefault',
@@ -516,7 +573,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$first_call_count = $listener->get_call_count( $method );
 
-		$this->assertTrue( $first_call_count > 0 );
+		$this->assertGreaterThan( 0, $first_call_count );
 
 		$request->set_param( '_fields', 'somestring' );
 
@@ -528,7 +585,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller->prepare_item_for_response( $item, $request );
 
-		$this->assertTrue( $listener->get_call_count( $method ) > $first_call_count );
+		$this->assertGreaterThan( $first_call_count, $listener->get_call_count( $method ) );
 	}
 
 	/**

@@ -46,6 +46,13 @@ if ( version_compare( $GLOBALS['wp_version'], '3.6-alpha', '<' ) ) {
 }
 
 /**
+ * Block Patterns.
+ *
+ * @since Twenty Thirteen 3.4
+ */
+require get_template_directory() . '/inc/block-patterns.php';
+
+/**
  * Twenty Thirteen setup.
  *
  * Sets up theme defaults and registers the various WordPress features that
@@ -147,6 +154,33 @@ function twentythirteen_setup() {
 				'name'  => __( 'Off-white', 'twentythirteen' ),
 				'slug'  => 'off-white',
 				'color' => '#f7f5e7',
+			),
+		)
+	);
+
+	// Add support for block gradient colors.
+	add_theme_support(
+		'editor-gradient-presets',
+		array(
+			array(
+				'name'     => __( 'Autumn Brown', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg, rgba(226,45,15,1) 0%, rgba(158,25,13,1) 100%)',
+				'slug'     => 'autumn-brown',
+			),
+			array(
+				'name'     => __( 'Sunset Yellow', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg, rgba(233,139,41,1) 0%, rgba(238,179,95,1) 100%)',
+				'slug'     => 'sunset-yellow',
+			),
+			array(
+				'name'     => __( 'Light Sky', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg,rgba(228,228,228,1.0) 0%,rgba(208,225,252,1.0) 100%)',
+				'slug'     => 'light-sky',
+			),
+			array(
+				'name'     => __( 'Dark Sky', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg,rgba(0,0,0,1.0) 0%,rgba(56,61,69,1.0) 100%)',
+				'slug'     => 'dark-sky',
 			),
 		)
 	);
@@ -404,6 +438,20 @@ function twentythirteen_widgets_init() {
 }
 add_action( 'widgets_init', 'twentythirteen_widgets_init' );
 
+if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
+	/**
+	 * Retrieves the list item separator based on the locale.
+	 *
+	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
+	 *
+	 * @since 6.0.0
+	 */
+	function wp_get_list_item_separator() {
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ', 'twentythirteen' );
+	}
+endif;
+
 if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 	/**
 	 * Display navigation to next/previous set of posts when applicable.
@@ -418,7 +466,7 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 			return;
 		}
 		?>
-		<nav class="navigation paging-navigation" role="navigation">
+		<nav class="navigation paging-navigation">
 		<h1 class="screen-reader-text"><?php _e( 'Posts navigation', 'twentythirteen' ); ?></h1>
 		<div class="nav-links">
 
@@ -453,7 +501,7 @@ if ( ! function_exists( 'twentythirteen_post_nav' ) ) :
 			return;
 		}
 		?>
-		<nav class="navigation post-navigation" role="navigation">
+		<nav class="navigation post-navigation">
 		<h1 class="screen-reader-text"><?php _e( 'Post navigation', 'twentythirteen' ); ?></h1>
 		<div class="nav-links">
 
@@ -483,14 +531,12 @@ if ( ! function_exists( 'twentythirteen_entry_meta' ) ) :
 			twentythirteen_entry_date();
 		}
 
-		/* translators: Used between list items, there is a space after the comma. */
-		$categories_list = get_the_category_list( __( ', ', 'twentythirteen' ) );
+		$categories_list = get_the_category_list( wp_get_list_item_separator() );
 		if ( $categories_list ) {
 			echo '<span class="categories-links">' . $categories_list . '</span>';
 		}
 
-		/* translators: Used between list items, there is a space after the comma. */
-		$tags_list = get_the_tag_list( '', __( ', ', 'twentythirteen' ) );
+		$tags_list = get_the_tag_list( '', wp_get_list_item_separator() );
 		if ( $tags_list && ! is_wp_error( $tags_list ) ) {
 			echo '<span class="tags-links">' . $tags_list . '</span>';
 		}
@@ -828,3 +874,26 @@ if ( ! function_exists( 'wp_body_open' ) ) :
 		do_action( 'wp_body_open' );
 	}
 endif;
+
+/**
+ * Register Custom Block Styles
+ *
+ * @since Twenty Thirteen 3.4
+ */
+if ( function_exists( 'register_block_style' ) ) {
+	function twentythirteen_register_block_styles() {
+
+		/**
+		 * Register block style
+		 */
+		register_block_style(
+			'core/button',
+			array(
+				'name'         => 'no-shadow',
+				'label'        => __( 'No Shadow', 'twentythirteen' ),
+				'style_handle' => 'no-shadow',
+			)
+		);
+	}
+	add_action( 'init', 'twentythirteen_register_block_styles' );
+}

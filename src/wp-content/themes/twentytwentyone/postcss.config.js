@@ -7,6 +7,8 @@ module.exports = {
 		}),
 		require('postcss-calc')({
 			precision: 0
-		})
+		}),
+		require('postcss-discard-duplicates'),
+		require('postcss-merge-rules')
 	]
 };

@@ -36,8 +36,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		unregister_post_type( 'cpt' );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		register_meta(
 			'post',
@@ -290,7 +290,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$data = $response->get_data();
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_multi', $meta );
-		$this->assertInternalType( 'array', $meta['test_multi'] );
+		$this->assertIsArray( $meta['test_multi'] );
 		$this->assertContains( 'value1', $meta['test_multi'] );
 
 		// Check after an update.
@@ -395,15 +395,15 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = (array) $data['meta'];
 
 		$this->assertArrayHasKey( 'test_string', $meta );
-		$this->assertInternalType( 'string', $meta['test_string'] );
+		$this->assertIsString( $meta['test_string'] );
 		$this->assertSame( '42', $meta['test_string'] );
 
 		$this->assertArrayHasKey( 'test_number', $meta );
-		$this->assertInternalType( 'float', $meta['test_number'] );
+		$this->assertIsFloat( $meta['test_number'] );
 		$this->assertSame( 42.0, $meta['test_number'] );
 
 		$this->assertArrayHasKey( 'test_bool', $meta );
-		$this->assertInternalType( 'boolean', $meta['test_bool'] );
+		$this->assertIsBool( $meta['test_bool'] );
 		$this->assertTrue( $meta['test_bool'] );
 	}
 
@@ -891,8 +891,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_post_meta( self::$post_id, 'test_custom_schema_multi', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 2, $meta );
-		$this->assertContains( 2, $meta );
-		$this->assertContains( 8, $meta );
+		$this->assertContains( '2', $meta );
+		$this->assertContains( '8', $meta );
 	}
 
 	/**
@@ -1025,6 +1025,67 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		// Ensure the post content update was not processed.
 		$post_updated = get_post( self::$post_id );
 		$this->assertSame( $post_original->post_content, $post_updated->post_content );
+	}
+
+	/**
+	 * @ticket 50790
+	 */
+	public function test_remove_multi_value_with_empty_array() {
+		add_post_meta( self::$post_id, 'test_multi', 'val1' );
+		$values = get_post_meta( self::$post_id, 'test_multi', false );
+		$this->assertSame( array( 'val1' ), $values );
+
+		$this->grant_write_permission();
+
+		$data    = array(
+			'meta' => array(
+				'test_multi' => array(),
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( $data );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$meta = get_post_meta( self::$post_id, 'test_multi', false );
+		$this->assertEmpty( $meta );
+	}
+
+	/**
+	 * Ensure deleting non-existent meta data behaves gracefully.
+	 *
+	 * @ticket 52787
+	 * @dataProvider data_delete_does_not_trigger_error_if_no_meta_values
+	 *
+	 * @param array|null $delete_value Value used to delete meta data.
+	 */
+	public function test_delete_does_not_trigger_error_if_no_meta_values( $delete_value ) {
+		$this->grant_write_permission();
+
+		$data    = array(
+			'meta' => array(
+				'test_multi' => $delete_value,
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( $data );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * Data provider for test_delete_does_not_trigger_error_if_no_meta_values().
+	 *
+	 * @return array[] Array of test parameters.
+	 */
+	public function data_delete_does_not_trigger_error_if_no_meta_values() {
+		return array(
+			array( array() ),
+			array( null ),
+		);
 	}
 
 	public function test_remove_multi_value_db_error() {
@@ -1211,7 +1272,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$data = $response->get_data();
 
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertInternalType( 'array', $data['meta'] );
+		$this->assertIsArray( $data['meta'] );
 
 		if ( $in_post_type ) {
 			$expected_value = $meta_value;
@@ -1277,7 +1338,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertInternalType( 'array', $data['meta'] );
+		$this->assertIsArray( $data['meta'] );
 
 		if ( $in_post_type ) {
 			$expected_value = $meta_value;
@@ -2647,7 +2708,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'single'            => true,
 				'type'              => 'boolean',
 				'show_in_rest'      => true,
-				'sanitize_callback' => function( $value ) {
+				'sanitize_callback' => static function( $value ) {
 					return $value ? '1' : '0';
 				},
 			)

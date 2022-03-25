@@ -16,6 +16,8 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 		wpTooltips = false;
 
 	if ( $ ) {
+		// Runs as soon as TinyMCE has started initializing, while plugins are loading.
+		// Handlers attached after the `tinymce.init()` call may not get triggered for this instance.
 		$( document ).triggerHandler( 'tinymce-editor-setup', [ editor ] );
 	}
 
@@ -540,7 +542,11 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 		});
 
 		if ( $ ) {
-			$( document ).triggerHandler( 'tinymce-editor-init', [editor] );
+			// Run on DOM ready. Otherwise TinyMCE may initialize earlier and handlers attached
+			// on DOM ready of after the `tinymce.init()` call may not get triggered.
+			$( function() {
+				$( document ).triggerHandler( 'tinymce-editor-init', [editor] );
+			});
 		}
 
 		if ( window.tinyMCEPreInit && window.tinyMCEPreInit.dragDropUpload ) {
@@ -752,7 +758,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 				tooltip = getTooltip( button.settings.tooltip );
 				button.settings.tooltip = tooltip;
 
-				// Override the aria label wiht the translated tooltip + shortcut.
+				// Override the aria label with the translated tooltip + shortcut.
 				if ( button._aria && button._aria.label ) {
 					button._aria.label = tooltip;
 				}

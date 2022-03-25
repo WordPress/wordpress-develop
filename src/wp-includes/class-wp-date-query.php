@@ -53,7 +53,7 @@ class WP_Date_Query {
 	 * Supported time-related parameter keys.
 	 *
 	 * @since 4.1.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $time_keys = array( 'after', 'before', 'year', 'month', 'monthnum', 'week', 'w', 'dayofyear', 'day', 'dayofweek', 'dayofweek_iso', 'hour', 'minute', 'second' );
 
@@ -74,8 +74,8 @@ class WP_Date_Query {
 	 *
 	 *     @type array ...$0 {
 	 *         @type string $column   Optional. The column to query against. If undefined, inherits the value of
-	 *                                the `$default_column` parameter. Accepts 'post_date', 'post_date_gmt',
-	 *                                'post_modified','post_modified_gmt', 'comment_date', 'comment_date_gmt'.
+	 *                                the `$default_column` parameter. See WP_Date_Query::validate_column() and
+	 *                                the {@see 'date_query_valid_columns'} filter for the list of accepted values.
 	 *                                Default 'post_date'.
 	 *         @type string $compare  Optional. The comparison operator. Accepts '=', '!=', '>', '>=', '<', '<=',
 	 *                                'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN'. Default '='.
@@ -104,11 +104,11 @@ class WP_Date_Query {
 	 *                 @type string $day   Optional when passing array.The day of the month. Accepts numbers 1-31.
 	 *                                     Default (string:empty)|(array:last day of month).
 	 *             }
-	 *             @type string       $column        Optional. Used to add a clause comparing a column other than the
-	 *                                               column specified in the top-level `$column` parameter. Accepts
-	 *                                               'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt',
-	 *                                               'comment_date', 'comment_date_gmt'. Default is the value of
-	 *                                               top-level `$column`.
+	 *             @type string       $column        Optional. Used to add a clause comparing a column other than
+	 *                                               the column specified in the top-level `$column` parameter.
+	 *                                               See WP_Date_Query::validate_column() and
+	 *                                               the {@see 'date_query_valid_columns'} filter for the list
+	 *                                               of accepted values. Default is the value of top-level `$column`.
 	 *             @type string       $compare       Optional. The comparison operator. Accepts '=', '!=', '>', '>=',
 	 *                                               '<', '<=', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN'. 'IN',
 	 *                                               'NOT IN', 'BETWEEN', and 'NOT BETWEEN'. Comparisons support
@@ -133,16 +133,16 @@ class WP_Date_Query {
 	 *                                               Default empty.
 	 *             @type int|int[]    $hour          Optional. The hour of the day. Accepts numbers 0-23 or an array
 	 *                                               of valid numbers if `$compare` supports it. Default empty.
-	 *             @type int|int[]    $minute        Optional. The minute of the hour. Accepts numbers 0-60 or an array
+	 *             @type int|int[]    $minute        Optional. The minute of the hour. Accepts numbers 0-59 or an array
 	 *                                               of valid numbers if `$compare` supports it. Default empty.
-	 *             @type int|int[]    $second        Optional. The second of the minute. Accepts numbers 0-60 or an
+	 *             @type int|int[]    $second        Optional. The second of the minute. Accepts numbers 0-59 or an
 	 *                                               array of valid numbers if `$compare` supports it. Default empty.
 	 *         }
 	 *     }
 	 * }
-	 * @param string $default_column Optional. Default column to query against. Default 'post_date'.
-	 *                               Accepts 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt',
-	 *                               'comment_date', 'comment_date_gmt'.
+	 * @param string $default_column Optional. Default column to query against. See WP_Date_Query::validate_column()
+	 *                               and the {@see 'date_query_valid_columns'} filter for the list of accepted values.
+	 *                               Default 'post_date'.
 	 */
 	public function __construct( $date_query, $default_column = 'post_date' ) {
 		if ( empty( $date_query ) || ! is_array( $date_query ) ) {
@@ -494,11 +494,12 @@ class WP_Date_Query {
 			 *
 			 * @since 3.7.0
 			 * @since 4.1.0 Added 'user_registered' to the default recognized columns.
+			 * @since 4.6.0 Added 'registered' and 'last_updated' to the default recognized columns.
 			 *
 			 * @param string[] $valid_columns An array of valid date query columns. Defaults
 			 *                                are 'post_date', 'post_date_gmt', 'post_modified',
 			 *                                'post_modified_gmt', 'comment_date', 'comment_date_gmt',
-			 *                                'user_registered'
+			 *                                'user_registered', 'registered', 'last_updated'.
 			 */
 			if ( ! in_array( $column, apply_filters( 'date_query_valid_columns', $valid_columns ), true ) ) {
 				$column = 'post_date';
@@ -555,7 +556,7 @@ class WP_Date_Query {
 		 * @since 3.7.0
 		 *
 		 * @param string        $where WHERE clause of the date query.
-		 * @param WP_Date_Query $this  The WP_Date_Query instance.
+		 * @param WP_Date_Query $query The WP_Date_Query instance.
 		 */
 		return apply_filters( 'get_date_sql', $where, $this );
 	}
@@ -568,7 +569,7 @@ class WP_Date_Query {
 	 *
 	 * @since 4.1.0
 	 *
-	 * @return array {
+	 * @return string[] {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query.
 	 *
 	 *     @type string $join  SQL fragment to append to the main JOIN clause.
@@ -678,7 +679,7 @@ class WP_Date_Query {
 	 * @since 3.7.0
 	 *
 	 * @param array $query Date query arguments.
-	 * @return array {
+	 * @return string[] {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query.
 	 *
 	 *     @type string $join  SQL fragment to append to the main JOIN clause.
@@ -696,7 +697,7 @@ class WP_Date_Query {
 	 *
 	 * @param array $query        Date query clause.
 	 * @param array $parent_query Parent query of the current date query.
-	 * @return array {
+	 * @return string[] {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query.
 	 *
 	 *     @type string $join  SQL fragment to append to the main JOIN clause.

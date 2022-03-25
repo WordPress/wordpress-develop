@@ -34,6 +34,7 @@ class WP_Widget_Text extends WP_Widget {
 			'classname'                   => 'widget_text',
 			'description'                 => __( 'Arbitrary text.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		$control_ops = array(
 			'width'  => 400,
@@ -270,12 +271,12 @@ class WP_Widget_Text extends WP_Widget {
 		 * Filters the content of the Text widget.
 		 *
 		 * @since 2.3.0
-		 * @since 4.4.0 Added the `$this` parameter.
-		 * @since 4.8.1 The `$this` param may now be a `WP_Widget_Custom_HTML` object in addition to a `WP_Widget_Text` object.
+		 * @since 4.4.0 Added the `$widget` parameter.
+		 * @since 4.8.1 The `$widget` param may now be a `WP_Widget_Custom_HTML` object in addition to a `WP_Widget_Text` object.
 		 *
 		 * @param string                               $text     The widget content.
 		 * @param array                                $instance Array of settings for the current widget.
-		 * @param WP_Widget_Text|WP_Widget_Custom_HTML $this     Current Text widget instance.
+		 * @param WP_Widget_Text|WP_Widget_Custom_HTML $widget   Current text or HTML widget instance.
 		 */
 		$text = apply_filters( 'widget_text', $text, $instance, $this );
 
@@ -290,7 +291,7 @@ class WP_Widget_Text extends WP_Widget {
 			 *
 			 * @param string         $text     The widget content.
 			 * @param array          $instance Array of settings for the current widget.
-			 * @param WP_Widget_Text $this     Current Text widget instance.
+			 * @param WP_Widget_Text $widget   Current Text widget instance.
 			 */
 			$text = apply_filters( 'widget_text_content', $text, $instance, $this );
 		} else {
@@ -489,13 +490,13 @@ class WP_Widget_Text extends WP_Widget {
 			<input id="<?php echo $this->get_field_id( 'visual' ); ?>" name="<?php echo $this->get_field_name( 'visual' ); ?>" class="visual" type="hidden" value="">
 			<p>
 				<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
-				<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>"/>
+				<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
 			</p>
 			<div class="notice inline notice-info notice-alt">
 				<?php if ( ! isset( $instance['visual'] ) ) : ?>
 					<p><?php _e( 'This widget may contain code that may work better in the &#8220;Custom HTML&#8221; widget. How about trying that widget instead?' ); ?></p>
 				<?php else : ?>
-					<p><?php _e( 'This widget may have contained code that may work better in the &#8220;Custom HTML&#8221; widget. If you haven&#8217;t yet, how about trying that widget instead?' ); ?></p>
+					<p><?php _e( 'This widget may have contained code that may work better in the &#8220;Custom HTML&#8221; widget. If you have not yet, how about trying that widget instead?' ); ?></p>
 				<?php endif; ?>
 			</div>
 			<p>

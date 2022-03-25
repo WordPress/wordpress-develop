@@ -123,7 +123,7 @@ function wp_insert_site( array $data ) {
 		 * Fires immediately after a new site is created.
 		 *
 		 * @since MU (3.0.0)
-		 * @deprecated 5.1.0 Use {@see 'wp_insert_site'} instead.
+		 * @deprecated 5.1.0 Use {@see 'wp_initialize_site'} instead.
 		 *
 		 * @param int    $site_id    Site ID.
 		 * @param int    $user_id    User ID.
@@ -136,7 +136,7 @@ function wp_insert_site( array $data ) {
 			'wpmu_new_blog',
 			array( $new_site->id, $user_id, $new_site->domain, $new_site->path, $new_site->network_id, $meta ),
 			'5.1.0',
-			'wp_insert_site'
+			'wp_initialize_site'
 		);
 	}
 
@@ -371,12 +371,17 @@ function update_site_cache( $sites, $update_meta_cache = true ) {
 	if ( ! $sites ) {
 		return;
 	}
-	$site_ids = array();
+	$site_ids          = array();
+	$site_data         = array();
+	$blog_details_data = array();
 	foreach ( $sites as $site ) {
-		$site_ids[] = $site->blog_id;
-		wp_cache_add( $site->blog_id, $site, 'sites' );
-		wp_cache_add( $site->blog_id . 'short', $site, 'blog-details' );
+		$site_ids[]                                    = $site->blog_id;
+		$site_data[ $site->blog_id ]                   = $site;
+		$blog_details_data[ $site->blog_id . 'short' ] = $site;
+
 	}
+	wp_cache_add_multiple( $site_data, 'sites' );
+	wp_cache_add_multiple( $blog_details_data, 'blog-details' );
 
 	if ( $update_meta_cache ) {
 		update_sitemeta_cache( $site_ids );
@@ -410,51 +415,8 @@ function update_sitemeta_cache( $site_ids ) {
  *
  * @see WP_Site_Query::parse_query()
  *
- * @param string|array $args {
- *     Optional. Array or query string of site query parameters. Default empty.
- *
- *     @type int[]        $site__in          Array of site IDs to include. Default empty.
- *     @type int[]        $site__not_in      Array of site IDs to exclude. Default empty.
- *     @type bool         $count             Whether to return a site count (true) or array of site objects.
- *                                           Default false.
- *     @type array        $date_query        Date query clauses to limit sites by. See WP_Date_Query.
- *                                           Default null.
- *     @type string       $fields            Site fields to return. Accepts 'ids' (returns an array of site IDs)
- *                                           or empty (returns an array of complete site objects). Default empty.
- *     @type int          $ID                A site ID to only return that site. Default empty.
- *     @type int          $number            Maximum number of sites to retrieve. Default 100.
- *     @type int          $offset            Number of sites to offset the query. Used to build LIMIT clause.
- *                                           Default 0.
- *     @type bool         $no_found_rows     Whether to disable the `SQL_CALC_FOUND_ROWS` query. Default true.
- *     @type string|array $orderby           Site status or array of statuses. Accepts 'id', 'domain', 'path',
- *                                           'network_id', 'last_updated', 'registered', 'domain_length',
- *                                           'path_length', 'site__in' and 'network__in'. Also accepts false,
- *                                           an empty array, or 'none' to disable `ORDER BY` clause.
- *                                           Default 'id'.
- *     @type string       $order             How to order retrieved sites. Accepts 'ASC', 'DESC'. Default 'ASC'.
- *     @type int          $network_id        Limit results to those affiliated with a given network ID. If 0,
- *                                           include all networks. Default 0.
- *     @type int[]        $network__in       Array of network IDs to include affiliated sites for. Default empty.
- *     @type int[]        $network__not_in   Array of network IDs to exclude affiliated sites for. Default empty.
- *     @type string       $domain            Limit results to those affiliated with a given domain. Default empty.
- *     @type string[]     $domain__in        Array of domains to include affiliated sites for. Default empty.
- *     @type string[]     $domain__not_in    Array of domains to exclude affiliated sites for. Default empty.
- *     @type string       $path              Limit results to those affiliated with a given path. Default empty.
- *     @type string[]     $path__in          Array of paths to include affiliated sites for. Default empty.
- *     @type string[]     $path__not_in      Array of paths to exclude affiliated sites for. Default empty.
- *     @type int          $public            Limit results to public sites. Accepts '1' or '0'. Default empty.
- *     @type int          $archived          Limit results to archived sites. Accepts '1' or '0'. Default empty.
- *     @type int          $mature            Limit results to mature sites. Accepts '1' or '0'. Default empty.
- *     @type int          $spam              Limit results to spam sites. Accepts '1' or '0'. Default empty.
- *     @type int          $deleted           Limit results to deleted sites. Accepts '1' or '0'. Default empty.
- *     @type int          $lang_id           Limit results to a language ID. Default empty.
- *     @type string[]     $lang__in          Array of language IDs to include affiliated sites for. Default empty.
- *     @type string[]     $lang__not_in      Array of language IDs to exclude affiliated sites for. Default empty.
- *     @type string       $search            Search term(s) to retrieve matching sites for. Default empty.
- *     @type string[]     $search_columns    Array of column names to be searched. Accepts 'domain' and 'path'.
- *                                           Default empty array.
- *     @type bool         $update_site_cache Whether to prime the cache for found sites. Default true.
- * }
+ * @param string|array $args Optional. Array or string of arguments. See WP_Site_Query::__construct()
+ *                           for information on accepted arguments. Default empty array.
  * @return array|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
  *                   or the number of sites when 'count' is passed as a query var.
  */
@@ -668,7 +630,7 @@ function wp_validate_site_data( $errors, $data, $old_site = null ) {
  *     @type array  $meta    Custom site metadata $key => $value pairs to use.
  *                           Default empty array.
  * }
- * @return bool|WP_Error True on success, or error object on failure.
+ * @return true|WP_Error True on success, or error object on failure.
  */
 function wp_initialize_site( $site_id, array $args = array() ) {
 	global $wpdb, $wp_roles;
@@ -799,7 +761,7 @@ function wp_initialize_site( $site_id, array $args = array() ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Site $site_id Site ID or object.
- * @return bool|WP_Error True on success, or error object on failure.
+ * @return true|WP_Error True on success, or error object on failure.
  */
 function wp_uninitialize_site( $site_id ) {
 	global $wpdb;
@@ -1020,7 +982,7 @@ function clean_blog_cache( $blog ) {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param int     $id              Blog ID.
+	 * @param string  $id              Site ID as a numeric string.
 	 * @param WP_Site $blog            Site object.
 	 * @param string  $domain_path_key md5 hash of domain and path.
 	 */
@@ -1084,10 +1046,12 @@ function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
  * @param string $key     Optional. The meta key to retrieve. By default,
  *                        returns data for all keys. Default empty.
  * @param bool   $single  Optional. Whether to return a single value.
- *                        This parameter has no effect if $key is not specified.
+ *                        This parameter has no effect if `$key` is not specified.
  *                        Default false.
- * @return mixed An array if $single is false. The value of meta data field
- *               if $single is true. False for an invalid $site_id.
+ * @return mixed An array of values if `$single` is false.
+ *               The value of meta data field if `$single` is true.
+ *               False for an invalid `$site_id` (non-numeric, zero, or negative value).
+ *               An empty string if a valid but non-existing site ID is passed.
  */
 function get_site_meta( $site_id, $key = '', $single = false ) {
 	return get_metadata( 'blog', $site_id, $key, $single );

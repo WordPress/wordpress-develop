@@ -21,6 +21,7 @@ if ( is_multisite() && ! is_network_admin() ) {
 	exit;
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Add Themes' );
 $parent_file = 'themes.php';
 
@@ -34,9 +35,10 @@ if ( false === $installed_themes ) {
 	$installed_themes = array();
 }
 
-foreach ( $installed_themes as $k => $v ) {
-	if ( false !== strpos( $k, '/' ) ) {
-		unset( $installed_themes[ $k ] );
+foreach ( $installed_themes as $theme_slug => $theme_data ) {
+	// Ignore child themes.
+	if ( str_contains( $theme_slug, '/' ) ) {
+		unset( $installed_themes[ $theme_slug ] );
 	}
 }
 
@@ -84,8 +86,16 @@ if ( $tab ) {
 	 * Fires before each of the tabs are rendered on the Install Themes page.
 	 *
 	 * The dynamic portion of the hook name, `$tab`, refers to the current
-	 * theme installation tab. Possible values are 'dashboard', 'search', 'upload',
-	 * 'featured', 'new', or 'updated'.
+	 * theme installation tab.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `install_themes_pre_dashboard`
+	 *  - `install_themes_pre_featured`
+	 *  - `install_themes_pre_new`
+	 *  - `install_themes_pre_search`
+	 *  - `install_themes_pre_updated`
+	 *  - `install_themes_pre_upload`
 	 *
 	 * @since 2.8.0
 	 */
@@ -99,7 +109,7 @@ $help_overview =
 		__( 'https://wordpress.org/themes/' )
 	) . '</p>' .
 	'<p>' . __( 'You can Search for themes by keyword, author, or tag, or can get more specific and search by criteria listed in the feature filter.' ) . ' <span id="live-search-desc">' . __( 'The search results will be updated as you type.' ) . '</span></p>' .
-	'<p>' . __( 'Alternately, you can browse the themes that are Featured, Popular, or Latest. When you find a theme you like, you can preview it or install it.' ) . '</p>' .
+	'<p>' . __( 'Alternately, you can browse the themes that are Popular or Latest. When you find a theme you like, you can preview it or install it.' ) . '</p>' .
 	'<p>' . sprintf(
 		/* translators: %s: /wp-content/themes */
 		__( 'You can Upload a theme manually if you have already downloaded its ZIP archive onto your computer (make sure it is from a trusted and original source). You can also do it the old-fashioned way and copy a downloaded theme&#8217;s folder via FTP into your %s directory.' ),
@@ -115,7 +125,7 @@ get_current_screen()->add_help_tab(
 );
 
 $help_installing =
-	'<p>' . __( 'Once you have generated a list of themes, you can preview and install any of them. Click on the thumbnail of the theme you&#8217;re interested in previewing. It will open up in a full-screen Preview page to give you a better idea of how that theme will look.' ) . '</p>' .
+	'<p>' . __( 'Once you have generated a list of themes, you can preview and install any of them. Click on the thumbnail of the theme you are interested in previewing. It will open up in a full-screen Preview page to give you a better idea of how that theme will look.' ) . '</p>' .
 	'<p>' . __( 'To install the theme so you can preview it with your site&#8217;s content and customize its theme options, click the "Install" button at the top of the left-hand pane. The theme files will be downloaded to your website automatically. When this is complete, the theme is now available for activation, which you can do by clicking the "Activate" link, or by navigating to your Manage Themes screen and clicking the "Live Preview" link under any installed theme&#8217;s thumbnail image.' ) . '</p>';
 
 get_current_screen()->add_help_tab(
@@ -128,7 +138,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/using-themes/#adding-new-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/appearance-themes-screen/#install-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -173,7 +183,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<ul class="filter-links">
-			<li><a href="#" data-sort="featured"><?php _ex( 'Featured', 'themes' ); ?></a></li>
 			<li><a href="#" data-sort="popular"><?php _ex( 'Popular', 'themes' ); ?></a></li>
 			<li><a href="#" data-sort="new"><?php _ex( 'Latest', 'themes' ); ?></a></li>
 			<li><a href="#" data-sort="favorites"><?php _ex( 'Favorites', 'themes' ); ?></a></li>
@@ -213,15 +222,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		// and to ensure tags are translated.
 		$feature_list = get_theme_feature_list( false );
 
-		foreach ( $feature_list as $feature_name => $features ) {
+		foreach ( $feature_list as $feature_group => $features ) {
 			echo '<fieldset class="filter-group">';
-			$feature_name = esc_html( $feature_name );
-			echo '<legend>' . $feature_name . '</legend>';
+			echo '<legend>' . esc_html( $feature_group ) . '</legend>';
 			echo '<div class="filter-group-feature">';
 			foreach ( $features as $feature => $feature_name ) {
 				$feature = esc_attr( $feature );
 				echo '<input type="checkbox" id="filter-id-' . $feature . '" value="' . $feature . '" /> ';
-				echo '<label for="filter-id-' . $feature . '">' . $feature_name . '</label>';
+				echo '<label for="filter-id-' . $feature . '">' . esc_html( $feature_name ) . '</label>';
 			}
 			echo '</div>';
 			echo '</fieldset>';
@@ -251,8 +259,16 @@ if ( $tab ) {
 	 * Fires at the top of each of the tabs on the Install Themes page.
 	 *
 	 * The dynamic portion of the hook name, `$tab`, refers to the current
-	 * theme installation tab. Possible values are 'dashboard', 'search', 'upload',
-	 * 'featured', 'new', or 'updated'.
+	 * theme installation tab.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `install_themes_dashboard`
+	 *  - `install_themes_featured`
+	 *  - `install_themes_new`
+	 *  - `install_themes_search`
+	 *  - `install_themes_updated`
+	 *  - `install_themes_upload`
 	 *
 	 * @since 2.8.0
 	 *
@@ -266,7 +282,7 @@ if ( $tab ) {
 <script id="tmpl-theme" type="text/template">
 	<# if ( data.screenshot_url ) { #>
 		<div class="theme-screenshot">
-			<img src="{{ data.screenshot_url }}" alt="" />
+			<img src="{{ data.screenshot_url }}?ver={{ data.version }}" alt="" />
 		</div>
 	<# } else { #>
 		<div class="theme-screenshot blank"></div>
@@ -280,7 +296,7 @@ if ( $tab ) {
 		<div class="notice notice-error notice-alt"><p>
 			<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
 				<?php
-				_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+				_e( 'This theme does not work with your versions of WordPress and PHP.' );
 				if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 					printf(
 						/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -306,7 +322,7 @@ if ( $tab ) {
 				?>
 			<# } else if ( ! data.compatible_wp ) { #>
 				<?php
-				_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+				_e( 'This theme does not work with your version of WordPress.' );
 				if ( current_user_can( 'update_core' ) ) {
 					printf(
 						/* translators: %s: URL to WordPress Updates screen. */
@@ -317,7 +333,7 @@ if ( $tab ) {
 				?>
 			<# } else if ( ! data.compatible_php ) { #>
 				<?php
-				_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+				_e( 'This theme does not work with your version of PHP.' );
 				if ( current_user_can( 'update_php' ) ) {
 					printf(
 						/* translators: %s: URL to Update PHP page. */
@@ -358,7 +374,9 @@ if ( $tab ) {
 					<# } #>
 					<# if ( data.customize_url ) { #>
 						<# if ( ! data.active ) { #>
-							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<# if ( ! data.block_theme ) { #>
+								<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<# } #>
 						<# } else { #>
 							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Customize' ); ?></a>
 						<# } #>
@@ -438,7 +456,7 @@ if ( $tab ) {
 						?>
 					</span>
 
-					<img class="theme-screenshot" src="{{ data.screenshot_url }}" alt="" />
+					<img class="theme-screenshot" src="{{ data.screenshot_url }}?ver={{ data.version }}" alt="" />
 
 					<div class="theme-details">
 						<# if ( data.rating ) { #>
@@ -466,7 +484,7 @@ if ( $tab ) {
 							<div class="notice notice-error notice-alt notice-large"><p>
 								<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
 									<?php
-									_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+									_e( 'This theme does not work with your versions of WordPress and PHP.' );
 									if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 										printf(
 											/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -492,7 +510,7 @@ if ( $tab ) {
 									?>
 								<# } else if ( ! data.compatible_wp ) { #>
 									<?php
-									_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+									_e( 'This theme does not work with your version of WordPress.' );
 									if ( current_user_can( 'update_core' ) ) {
 										printf(
 											/* translators: %s: URL to WordPress Updates screen. */
@@ -503,7 +521,7 @@ if ( $tab ) {
 									?>
 								<# } else if ( ! data.compatible_php ) { #>
 									<?php
-									_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+									_e( 'This theme does not work with your version of PHP.' );
 									if ( current_user_can( 'update_php' ) ) {
 										printf(
 											/* translators: %s: URL to Update PHP page. */

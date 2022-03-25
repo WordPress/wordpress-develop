@@ -274,6 +274,11 @@ class WP_Users_List_Table extends WP_List_Table {
 			}
 		}
 
+		// Add a password reset link to the bulk actions dropdown.
+		if ( current_user_can( 'edit_users' ) ) {
+			$actions['resetpassword'] = __( 'Send password reset' );
+		}
+
 		return $actions;
 	}
 
@@ -295,6 +300,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		<select name="<?php echo $id; ?>" id="<?php echo $id; ?>">
 			<option value=""><?php _e( 'Change role to&hellip;' ); ?></option>
 			<?php wp_dropdown_roles(); ?>
+			<option value="none"><?php _e( '&mdash; No role for this site &mdash;' ); ?></option>
 		</select>
 			<?php
 			submit_button( __( 'Change' ), '', $button_id, false );
@@ -335,8 +341,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @return string The bulk action required.
 	 */
 	public function current_action() {
-		if ( ( isset( $_REQUEST['changeit'] ) || isset( $_REQUEST['changeit2'] ) ) &&
-			( ! empty( $_REQUEST['new_role'] ) || ! empty( $_REQUEST['new_role2'] ) ) ) {
+		if ( isset( $_REQUEST['changeit'] ) && ! empty( $_REQUEST['new_role'] ) ) {
 			return 'promote';
 		}
 
@@ -357,7 +362,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			'name'     => __( 'Name' ),
 			'email'    => __( 'Email' ),
 			'role'     => __( 'Role' ),
-			'posts'    => __( 'Posts' ),
+			'posts'    => _x( 'Posts', 'post type general name' ),
 		);
 
 		if ( $this->is_site_users ) {
@@ -442,7 +447,13 @@ class WP_Users_List_Table extends WP_List_Table {
 		// Check if the user for this row is editable.
 		if ( current_user_can( 'list_users' ) ) {
 			// Set up the user editing link.
-			$edit_link = esc_url( add_query_arg( 'wp_http_referer', urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ), get_edit_user_link( $user_object->ID ) ) );
+			$edit_link = esc_url(
+				add_query_arg(
+					'wp_http_referer',
+					urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ),
+					get_edit_user_link( $user_object->ID )
+				)
+			);
 
 			if ( current_user_can( 'edit_user', $user_object->ID ) ) {
 				$edit            = "<strong><a href=\"{$edit_link}\">{$user_object->user_login}</a>{$super_admin}</strong><br />";
@@ -451,10 +462,16 @@ class WP_Users_List_Table extends WP_List_Table {
 				$edit = "<strong>{$user_object->user_login}{$super_admin}</strong><br />";
 			}
 
-			if ( ! is_multisite() && get_current_user_id() != $user_object->ID && current_user_can( 'delete_user', $user_object->ID ) ) {
+			if ( ! is_multisite()
+				&& get_current_user_id() !== $user_object->ID
+				&& current_user_can( 'delete_user', $user_object->ID )
+			) {
 				$actions['delete'] = "<a class='submitdelete' href='" . wp_nonce_url( "users.php?action=delete&amp;user=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Delete' ) . '</a>';
 			}
-			if ( is_multisite() && current_user_can( 'remove_user', $user_object->ID ) ) {
+
+			if ( is_multisite()
+				&& current_user_can( 'remove_user', $user_object->ID )
+			) {
 				$actions['remove'] = "<a class='submitdelete' href='" . wp_nonce_url( $url . "action=remove&amp;user=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Remove' ) . '</a>';
 			}
 
@@ -468,6 +485,13 @@ class WP_Users_List_Table extends WP_List_Table {
 					esc_attr( sprintf( __( 'View posts by %s' ), $user_object->display_name ) ),
 					__( 'View' )
 				);
+			}
+
+			// Add a link to send the user a reset password link by email.
+			if ( get_current_user_id() !== $user_object->ID
+				&& current_user_can( 'edit_user', $user_object->ID )
+			) {
+				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( "users.php?action=resetpassword&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Send password reset' ) . '</a>';
 			}
 
 			/**
@@ -521,7 +545,7 @@ class WP_Users_List_Table extends WP_List_Table {
 				$classes .= ' hidden';
 			}
 
-			$data = 'data-colname="' . wp_strip_all_tags( $column_display_name ) . '"';
+			$data = 'data-colname="' . esc_attr( wp_strip_all_tags( $column_display_name ) ) . '"';
 
 			$attributes = "class='$classes' $data";
 
@@ -605,12 +629,12 @@ class WP_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Returns an array of user roles for a given user object.
+	 * Returns an array of translated user role names for a given user object.
 	 *
 	 * @since 4.4.0
 	 *
 	 * @param WP_User $user_object The WP_User object.
-	 * @return string[] An array of user roles.
+	 * @return string[] An array of user role names keyed by role.
 	 */
 	protected function get_role_list( $user_object ) {
 		$wp_roles = wp_roles();
@@ -628,11 +652,11 @@ class WP_Users_List_Table extends WP_List_Table {
 		}
 
 		/**
-		 * Filters the returned array of roles for a user.
+		 * Filters the returned array of translated role names for a user.
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param string[] $role_list   An array of user roles.
+		 * @param string[] $role_list   An array of translated user role names keyed by role.
 		 * @param WP_User  $user_object A WP_User object.
 		 */
 		return apply_filters( 'get_role_list', $role_list, $user_object );

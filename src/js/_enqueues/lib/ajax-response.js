@@ -11,14 +11,14 @@ window.wpAjax = jQuery.extend( {
 		q = s.split('?'); if ( q[1] ) { s = q[1]; }
 		pp = s.split('&');
 		for ( i in pp ) {
-			if ( jQuery.isFunction(pp.hasOwnProperty) && !pp.hasOwnProperty(i) ) { continue; }
+			if ( typeof pp.hasOwnProperty === 'function' && !pp.hasOwnProperty(i) ) { continue; }
 			p = pp[i].split('=');
 			r[p[0]] = p[1];
 		}
 		return r;
 	},
 	parseAjaxResponse: function( x, r, e ) { // 1 = good, 0 = strange (bad data?), -1 = you lack permission.
-		var parsed = {}, re = jQuery('#' + r).empty(), err = '';
+		var parsed = {}, re = jQuery('#' + r).empty(), err = '', successmsg = '';
 
 		if ( x && typeof x === 'object' && x.getElementsByTagName('wp_ajax') ) {
 			parsed.responses = [];
@@ -27,6 +27,9 @@ window.wpAjax = jQuery.extend( {
 				var th = jQuery(this), child = jQuery(this.firstChild), response;
 				response = { action: th.attr('action'), what: child.get(0).nodeName, id: child.attr('id'), oldId: child.attr('old_id'), position: child.attr('position') };
 				response.data = jQuery( 'response_data', child ).text();
+				if ( jQuery( 'body' ).hasClass( 'edit-tags-php' ) ) {
+					successmsg += response.data;
+				}
 				response.supplemental = {};
 				if ( !jQuery( 'supplemental', child ).children().each( function() {
 					response.supplemental[this.nodeName] = jQuery(this).text();
@@ -46,7 +49,14 @@ window.wpAjax = jQuery.extend( {
 				} ).length ) { response.errors = false; }
 				parsed.responses.push( response );
 			} );
-			if ( err.length ) { re.html( '<div class="error">' + err + '</div>' ); }
+			if ( err.length ) {
+				re.html( '<div class="error">' + err + '</div>' );
+				wp.a11y.speak( err );
+			} else if ( successmsg.length ) {
+				re.html( '<div class="updated notice is-dismissible"><p>' + successmsg + '</p></div>');
+				jQuery(document).trigger( 'wp-updates-notice-added' );
+				wp.a11y.speak( successmsg );
+			}
 			return parsed;
 		}
 		if ( isNaN(x) ) { return !re.html('<div class="error"><p>' + x + '</p></div>'); }
@@ -65,6 +75,6 @@ window.wpAjax = jQuery.extend( {
 }, wpAjax || { noPerm: 'Sorry, you are not allowed to do that.', broken: 'Something went wrong.' } );
 
 // Basic form validation.
-jQuery(document).ready( function($){
-	$('form.validate').submit( function() { return wpAjax.validateForm( $(this) ); } );
+jQuery( function($){
+	$('form.validate').on( 'submit', function() { return wpAjax.validateForm( $(this) ); } );
 });

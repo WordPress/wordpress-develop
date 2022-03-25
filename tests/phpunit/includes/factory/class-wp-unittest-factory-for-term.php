@@ -82,7 +82,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @param array $args                   Array or string of arguments for inserting a term.
 	 * @param null  $generation_definitions The default values.
 	 *
-	 * @return WP_Term|WP_Error|null WP_Term on success. WP_error if taxonomy does not exist. Null for miscellaneous failure.
+	 * @return WP_Term|WP_Error|null WP_Term on success. WP_Error if taxonomy does not exist. Null for miscellaneous failure.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
 		$term_id = $this->create( $args, $generation_definitions );
@@ -100,7 +100,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param int $term_id ID of the term to retrieve.
 	 *
-	 * @return WP_Term|WP_Error|null WP_Term on success. WP_error if taxonomy does not exist. Null for miscellaneous failure.
+	 * @return WP_Term|WP_Error|null WP_Term on success. WP_Error if taxonomy does not exist. Null for miscellaneous failure.
 	 */
 	public function get_object_by_id( $term_id ) {
 		return get_term( $term_id, $this->taxonomy );

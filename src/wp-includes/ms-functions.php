@@ -280,7 +280,6 @@ function remove_user_from_blog( $user_id, $blog_id = 0, $reassign = 0 ) {
 		update_user_meta( $user_id, 'source_domain', $new_domain );
 	}
 
-	// wp_revoke_user( $user_id );
 	$user = get_userdata( $user_id );
 	if ( ! $user ) {
 		restore_current_blog();
@@ -538,7 +537,14 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 
 	// Check if the email address has been used already.
 	if ( email_exists( $user_email ) ) {
-		$errors->add( 'user_email', __( 'Sorry, that email address is already used!' ) );
+		$errors->add(
+			'user_email',
+			sprintf(
+				/* translators: %s: Link to the login page. */
+				__( '<strong>Error:</strong> This email address is already registered. <a href="%s">Log in</a> with this address or choose another one.' ),
+				wp_login_url()
+			)
+		);
 	}
 
 	// Has someone already signed up for this username?
@@ -675,7 +681,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$errors->add( 'blogname', sprintf( _n( 'Site name must be at least %s character.', 'Site name must be at least %s characters.', $minimum_site_name_length ), number_format_i18n( $minimum_site_name_length ) ) );
 	}
 
-	// Do not allow users to create a blog that conflicts with a page on the main blog.
+	// Do not allow users to create a site that conflicts with a page on the main blog.
 	if ( ! is_subdomain_install() && $wpdb->get_var( $wpdb->prepare( 'SELECT post_name FROM ' . $wpdb->get_blog_prefix( $current_network->site_id ) . "posts WHERE post_type = 'page' AND post_name = %s", $blogname ) ) ) {
 		$errors->add( 'blogname', __( 'Sorry, you may not use that site name.' ) );
 	}
@@ -715,6 +721,10 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$errors->add( 'blogname', __( 'Sorry, that site already exists!' ) );
 	}
 
+	/*
+	 * Do not allow users to create a site that matches an existing user's login name,
+	 * unless it's the user's own username.
+	 */
 	if ( username_exists( $blogname ) ) {
 		if ( ! is_object( $user ) || ( is_object( $user ) && ( $user->user_login != $blogname ) ) ) {
 			$errors->add( 'blogname', __( 'Sorry, that site is reserved!' ) );
@@ -928,13 +938,13 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param string|bool $domain     Site domain.
-	 * @param string      $path       Site path.
-	 * @param string      $title      Site title.
-	 * @param string      $user_login User login name.
-	 * @param string      $user_email User email address.
-	 * @param string      $key        Activation key created in wpmu_signup_blog().
-	 * @param array       $meta       Signup meta data. By default, contains the requested privacy setting and lang_id.
+	 * @param string|false $domain     Site domain, or false to prevent the email from sending.
+	 * @param string       $path       Site path.
+	 * @param string       $title      Site title.
+	 * @param string       $user_login User login name.
+	 * @param string       $user_email User email address.
+	 * @param string       $key        Activation key created in wpmu_signup_blog().
+	 * @param array        $meta       Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
 	if ( ! apply_filters( 'wpmu_signup_blog_notification', $domain, $path, $title, $user_login, $user_email, $key, $meta ) ) {
 		return false;
@@ -981,7 +991,7 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 		apply_filters(
 			'wpmu_signup_blog_notification_email',
 			/* translators: New site notification email. 1: Activation URL, 2: New site URL. */
-			__( "To activate your blog, please click the following link:\n\n%1\$s\n\nAfter you activate, you will receive *another email* with your login.\n\nAfter you activate, you can visit your site here:\n\n%2\$s" ),
+			__( "To activate your site, please click the following link:\n\n%1\$s\n\nAfter you activate, you will receive *another email* with your login.\n\nAfter you activate, you can visit your site here:\n\n%2\$s" ),
 			$domain,
 			$path,
 			$title,
@@ -1264,7 +1274,7 @@ function wpmu_activate_signup( $key ) {
 	 *
 	 * @param int    $blog_id       Blog ID.
 	 * @param int    $user_id       User ID.
-	 * @param int    $password      User password.
+	 * @param string $password      User password.
 	 * @param string $signup_title  Site title.
 	 * @param array  $meta          Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
@@ -1300,7 +1310,7 @@ function wp_delete_signup_on_user_delete( $id, $reassign, $user ) {
  * This function runs when a user self-registers as well as when
  * a Super Admin creates a new user. Hook to {@see 'wpmu_new_user'} for events
  * that should affect all new users, but only on Multisite (otherwise
- * use {@see'user_register'}).
+ * use {@see 'user_register'}).
  *
  * @since MU (3.0.0)
  *
@@ -1462,8 +1472,8 @@ Disable these notifications: %4$s'
 	 * @since MU (3.0.0)
 	 * @since 5.4.0 The `$blog_id` parameter was added.
 	 *
-	 * @param string $msg     Email body.
-	 * @param int    $blog_id The new site's ID.
+	 * @param string     $msg     Email body.
+	 * @param int|string $blog_id The new site's ID as an integer or numeric string.
 	 */
 	$msg = apply_filters( 'newblog_notify_siteadmin', $msg, $blog_id );
 
@@ -1601,11 +1611,11 @@ function wpmu_welcome_notification( $blog_id, $user_id, $password, $title, $meta
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param int|bool $blog_id  Site ID.
-	 * @param int      $user_id  User ID of the site administrator.
-	 * @param string   $password User password, or "N/A" if the user account is not new.
-	 * @param string   $title    Site title.
-	 * @param array    $meta     Signup meta data. By default, contains the requested privacy setting and lang_id.
+	 * @param int|false $blog_id  Site ID, or false to prevent the email from sending.
+	 * @param int       $user_id  User ID of the site administrator.
+	 * @param string    $password User password, or "N/A" if the user account is not new.
+	 * @param string    $title    Site title.
+	 * @param array     $meta     Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
 	if ( ! apply_filters( 'wpmu_welcome_notification', $blog_id, $user_id, $password, $title, $meta ) ) {
 		return false;
@@ -2298,7 +2308,7 @@ function maybe_add_existing_user_to_blog() {
  *
  * @since MU (3.0.0)
  *
- * @param array $details {
+ * @param array|false $details {
  *     User details. Must at least contain values for the keys listed below.
  *
  *     @type int    $user_id The ID of the user being added to the current blog.

@@ -289,7 +289,7 @@ When seeking help with this issue, you may be asked for some of the following in
 	 * @since 5.3.0
 	 *
 	 * @param array $extension The extension that caused the error.
-	 * @return bool|array A plugin array {@see get_plugins()} or `false` if no plugin was found.
+	 * @return array|false A plugin array {@see get_plugins()} or `false` if no plugin was found.
 	 */
 	private function get_plugin( $extension ) {
 		if ( ! function_exists( 'get_plugins' ) ) {
@@ -331,14 +331,14 @@ When seeking help with this issue, you may be asked for some of the following in
 		}
 
 		$debug = array(
-			/* translators: %s: Current WordPress version number. */
 			'wp'    => sprintf(
+				/* translators: %s: Current WordPress version number. */
 				__( 'WordPress version %s' ),
 				$wp_version
 			),
 			'theme' => sprintf(
 				/* translators: 1: Current active theme name. 2: Current active theme version. */
-				__( 'Current theme: %1$s (version %2$s)' ),
+				__( 'Active theme: %1$s (version %2$s)' ),
 				$theme->get( 'Name' ),
 				$theme->get( 'Version' )
 			),

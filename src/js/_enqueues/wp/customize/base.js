@@ -197,7 +197,7 @@ window.wp = window.wp || {};
 
 			$.extend( this, options || {} );
 
-			this.set = $.proxy( this.set, this );
+			this.set = this.set.bind( this );
 		},
 
 		/*
@@ -501,7 +501,7 @@ window.wp = window.wp || {};
 				dfd  = $.Deferred();
 
 			// If the last argument is a callback, bind it to .done().
-			if ( $.isFunction( ids[ ids.length - 1 ] ) ) {
+			if ( typeof ids[ ids.length - 1 ] === 'function' ) {
 				dfd.done( ids.pop() );
 			}
 
@@ -609,7 +609,7 @@ window.wp = window.wp || {};
 			};
 
 			this.bind( this.update );
-			this.element.bind( this.events, this.refresh );
+			this.element.on( this.events, this.refresh );
 		},
 
 		find: function( selector ) {
@@ -734,7 +734,7 @@ window.wp = window.wp || {};
 			 * This will prevent every Messenger's receive function from being
 			 * unbound when calling $.off( 'message', this.receive );
 			 */
-			this.receive = $.proxy( this.receive, this );
+			this.receive = this.receive.bind( this );
 			this.receive.guid = $.guid++;
 
 			$( window ).on( 'message', this.receive );

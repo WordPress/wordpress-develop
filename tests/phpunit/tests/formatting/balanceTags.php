@@ -5,18 +5,23 @@
  */
 class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
-	function nestable_tags() {
+	public function nestable_tags() {
 		return array(
+			array( 'article' ),
+			array( 'aside' ),
 			array( 'blockquote' ),
+			array( 'details' ),
 			array( 'div' ),
+			array( 'figure' ),
 			array( 'object' ),
 			array( 'q' ),
+			array( 'section' ),
 			array( 'span' ),
 		);
 	}
 
 	// This is a complete(?) listing of valid single/self-closing tags.
-	function single_tags() {
+	public function single_tags() {
 		return array(
 			array( 'area' ),
 			array( 'base' ),
@@ -34,10 +39,12 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			array( 'meta' ),
 			array( 'param' ),
 			array( 'source' ),
+			array( 'track' ),
+			array( 'wbr' ),
 		);
 	}
 
-	function supported_traditional_tag_names() {
+	public function supported_traditional_tag_names() {
 		return array(
 			array( 'a' ),
 			array( 'div' ),
@@ -49,7 +56,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 	}
 
-	function supported_custom_element_tag_names() {
+	public function supported_custom_element_tag_names() {
 		return array(
 			array( 'custom-element' ),
 			array( 'my-custom-element' ),
@@ -61,7 +68,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 	}
 
-	function invalid_tag_names() {
+	public function invalid_tag_names() {
 		return array(
 			array( '<0-day>inside', '&lt;0-day>inside' ), // Can't start with a number - handled by the "<3" fix.
 			array( '<UPPERCASE-TAG>inside', '<UPPERCASE-TAG>inside' ), // Custom elements cannot be uppercase.
@@ -73,7 +80,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 *
 	 * @see https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
 	 */
-	function unsupported_valid_tag_names() {
+	public function unsupported_valid_tag_names() {
 		return array(
 			// We don't allow ending in a dash.
 			array( '<what->inside' ),
@@ -133,7 +140,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 *
 	 * @see https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
 	 */
-	function supported_invalid_tag_names() {
+	public function supported_invalid_tag_names() {
 		return array(
 			// Reserved names for custom elements.
 			array( 'annotation-xml' ),
@@ -151,7 +158,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @ticket 47014
 	 * @dataProvider supported_traditional_tag_names
 	 */
-	function test_detects_traditional_tag_names( $tag ) {
+	public function test_detects_traditional_tag_names( $tag ) {
 		$normalized = strtolower( $tag );
 
 		$this->assertSame( "<$normalized>inside</$normalized>", balanceTags( "<$tag>inside", true ) );
@@ -161,7 +168,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @ticket 47014
 	 * @dataProvider supported_custom_element_tag_names
 	 */
-	function test_detects_supported_custom_element_tag_names( $tag ) {
+	public function test_detects_supported_custom_element_tag_names( $tag ) {
 		$this->assertSame( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
 	}
 
@@ -169,7 +176,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @ticket 47014
 	 * @dataProvider invalid_tag_names
 	 */
-	function test_ignores_invalid_tag_names( $input, $output ) {
+	public function test_ignores_invalid_tag_names( $input, $output ) {
 		$this->assertSame( $output, balanceTags( $input, true ) );
 	}
 
@@ -177,7 +184,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @ticket 47014
 	 * @dataProvider unsupported_valid_tag_names
 	 */
-	function test_ignores_unsupported_custom_tag_names( $tag ) {
+	public function test_ignores_unsupported_custom_tag_names( $tag ) {
 		$this->assertSame( "<$tag>inside", balanceTags( "<$tag>inside", true ) );
 	}
 
@@ -185,7 +192,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @ticket 47014
 	 * @dataProvider supported_invalid_tag_names
 	 */
-	function test_detects_supported_invalid_tag_names( $tag ) {
+	public function test_detects_supported_invalid_tag_names( $tag ) {
 		$this->assertSame( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
 	}
 
@@ -195,7 +202,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @ticket 1597
 	 * @dataProvider single_tags
 	 */
-	function test_selfcloses_unclosed_known_single_tags( $tag ) {
+	public function test_selfcloses_unclosed_known_single_tags( $tag ) {
 		$this->assertSame( "<$tag />", balanceTags( "<$tag>", true ) );
 	}
 
@@ -206,14 +213,14 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @ticket 1597
 	 * @dataProvider single_tags
 	 */
-	function test_selfcloses_known_single_tags_having_closing_tag( $tag ) {
+	public function test_selfcloses_known_single_tags_having_closing_tag( $tag ) {
 		$this->assertSame( "<$tag />", balanceTags( "<$tag></$tag>", true ) );
 	}
 
 	/**
 	 * @ticket 1597
 	 */
-	function test_closes_unknown_single_tags_with_closing_tag() {
+	public function test_closes_unknown_single_tags_with_closing_tag() {
 
 		$inputs   = array(
 			'<strong/>',
@@ -236,7 +243,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
-	function test_closes_unclosed_single_tags_having_attributes() {
+	public function test_closes_unclosed_single_tags_having_attributes() {
 		$inputs   = array(
 			'<img src="/images/example.png">',
 			'<input type="text" name="example">',
@@ -251,7 +258,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
-	function test_allows_validly_closed_single_tags() {
+	public function test_allows_validly_closed_single_tags() {
 		$inputs = array(
 			'<br />',
 			'<hr />',
@@ -267,7 +274,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * @dataProvider nestable_tags
 	 */
-	function test_balances_nestable_tags( $tag ) {
+	public function test_balances_nestable_tags( $tag ) {
 		$inputs   = array(
 			"<$tag>Test<$tag>Test</$tag>",
 			"<$tag><$tag>Test",
@@ -284,7 +291,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
-	function test_allows_adjacent_nestable_tags() {
+	public function test_allows_adjacent_nestable_tags() {
 		$inputs = array(
 			'<blockquote><blockquote>Example quote</blockquote></blockquote>',
 			'<div class="container"><div>This is allowed></div></div>',
@@ -301,12 +308,12 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * @ticket 20401
 	 */
-	function test_allows_immediately_nested_object_tags() {
+	public function test_allows_immediately_nested_object_tags() {
 		$object = '<object id="obj1"><param name="param1"/><object id="obj2"><param name="param2"/></object></object>';
 		$this->assertSame( $object, balanceTags( $object, true ) );
 	}
 
-	function test_balances_nested_non_nestable_tags() {
+	public function test_balances_nested_non_nestable_tags() {
 		$inputs   = array(
 			'<b><b>This is bold</b></b>',
 			'<b>Some text here <b>This is bold</b></b>',
@@ -321,7 +328,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
-	function test_fixes_improper_closing_tag_sequence() {
+	public function test_fixes_improper_closing_tag_sequence() {
 		$inputs   = array(
 			'<p>Here is a <strong class="part">bold <em>and emphasis</p></em></strong>',
 			'<ul><li>Aaa</li><li>Bbb</ul></li>',
@@ -336,20 +343,20 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
-	function test_adds_missing_closing_tags() {
+	public function test_adds_missing_closing_tags() {
 		$inputs   = array(
 			'<b><i>Test</b>',
 			'<p>Test',
 			'<p>Test test</em> test</p>',
 			'</p>Test',
-			'<p>Here is a <strong class="part">Test</p>',
+			'<p>We are <strong class="wp">#WordPressStrong</p>',
 		);
 		$expected = array(
 			'<b><i>Test</i></b>',
 			'<p>Test</p>',
 			'<p>Test test test</p>',
 			'Test',
-			'<p>Here is a <strong class="part">Test</strong></p>',
+			'<p>We are <strong class="wp">#WordPressStrong</strong></p>',
 		);
 
 		foreach ( $inputs as $key => $input ) {
@@ -357,7 +364,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
-	function test_removes_extraneous_closing_tags() {
+	public function test_removes_extraneous_closing_tags() {
 		$inputs   = array(
 			'<b>Test</b></b>',
 			'<div>Test</div></div><div>Test',

@@ -27,7 +27,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for post statuses.
 	 *
 	 * @since 4.7.0
 	 *
@@ -213,13 +213,15 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * Prepares a post status object for serialization.
 	 *
 	 * @since 4.7.0
+	 * @since 5.9.0 Renamed `$status` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param stdClass        $status  Post status data.
+	 * @param stdClass        $item    Post status data.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Post status data.
 	 */
-	public function prepare_item_for_response( $status, $request ) {
-
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$status = $item;
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
 
@@ -261,21 +263,22 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $data );
 
+		$rest_url = rest_url( rest_get_route_for_post_type_items( 'post' ) );
 		if ( 'publish' === $status->name ) {
-			$response->add_link( 'archives', rest_url( 'wp/v2/posts' ) );
+			$response->add_link( 'archives', $rest_url );
 		} else {
-			$response->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( 'wp/v2/posts' ) ) );
+			$response->add_link( 'archives', add_query_arg( 'status', $status->name, $rest_url ) );
 		}
 
 		/**
-		 * Filters a status returned from the REST API.
+		 * Filters a post status returned from the REST API.
 		 *
 		 * Allows modification of the status data right before it is returned.
 		 *
 		 * @since 4.7.0
 		 *
 		 * @param WP_REST_Response $response The response object.
-		 * @param object           $status   The original status object.
+		 * @param object           $status   The original post status object.
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_status', $response, $status, $request );

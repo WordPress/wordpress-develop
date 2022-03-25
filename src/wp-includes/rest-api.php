@@ -118,8 +118,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  * @global array $wp_rest_additional_fields Holds registered fields, organized
  *                                          by object type.
  *
- * @param string|array $object_type Object(s) the field is being registered
- *                                  to, "post"|"term"|"comment" etc.
+ * @param string|array $object_type Object(s) the field is being registered to,
+ *                                  "post"|"term"|"comment" etc.
  * @param string       $attribute   The attribute name.
  * @param array        $args {
  *     Optional. An array of arguments used to handle the registered field.
@@ -135,6 +135,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  * }
  */
 function register_rest_field( $object_type, $attribute, $args = array() ) {
+	global $wp_rest_additional_fields;
+
 	$defaults = array(
 		'get_callback'    => null,
 		'update_callback' => null,
@@ -142,8 +144,6 @@ function register_rest_field( $object_type, $attribute, $args = array() ) {
 	);
 
 	$args = wp_parse_args( $args, $defaults );
-
-	global $wp_rest_additional_fields;
 
 	$object_types = (array) $object_type;
 
@@ -294,11 +294,15 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 	// Block Renderer.
-	$controller = new WP_REST_Block_Renderer_Controller;
+	$controller = new WP_REST_Block_Renderer_Controller();
 	$controller->register_routes();
 
 	// Block Types.
 	$controller = new WP_REST_Block_Types_Controller();
+	$controller->register_routes();
+
+	// Global Styles.
+	$controller = new WP_REST_Global_Styles_Controller;
 	$controller->register_routes();
 
 	// Settings.
@@ -313,13 +317,41 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Plugins_Controller();
 	$controller->register_routes();
 
+	// Sidebars.
+	$controller = new WP_REST_Sidebars_Controller();
+	$controller->register_routes();
+
+	// Widget Types.
+	$controller = new WP_REST_Widget_Types_Controller();
+	$controller->register_routes();
+
+	// Widgets.
+	$controller = new WP_REST_Widgets_Controller();
+	$controller->register_routes();
+
 	// Block Directory.
 	$controller = new WP_REST_Block_Directory_Controller();
+	$controller->register_routes();
+
+	// Pattern Directory.
+	$controller = new WP_REST_Pattern_Directory_Controller();
 	$controller->register_routes();
 
 	// Site Health.
 	$site_health = WP_Site_Health::get_instance();
 	$controller  = new WP_REST_Site_Health_Controller( $site_health );
+	$controller->register_routes();
+
+	// URL Details.
+	$controller = new WP_REST_URL_Details_Controller();
+	$controller->register_routes();
+
+	// Menu Locations.
+	$controller = new WP_REST_Menu_Locations_Controller();
+	$controller->register_routes();
+
+	// Site Editor Export.
+	$controller = new WP_REST_Edit_Site_Export_Controller();
 	$controller->register_routes();
 }
 
@@ -385,9 +417,9 @@ function rest_get_url_prefix() {
  * @todo Check if this is even necessary
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param int    $blog_id Optional. Blog ID. Default of null returns URL for current blog.
- * @param string $path    Optional. REST route. Default '/'.
- * @param string $scheme  Optional. Sanitization scheme. Default 'rest'.
+ * @param int|null $blog_id Optional. Blog ID. Default of null returns URL for current blog.
+ * @param string   $path    Optional. REST route. Default '/'.
+ * @param string   $scheme  Optional. Sanitization scheme. Default 'rest'.
  * @return string Full URL to the endpoint.
  */
 function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
@@ -441,10 +473,10 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $url     REST URL.
-	 * @param string $path    REST route.
-	 * @param int    $blog_id Blog ID.
-	 * @param string $scheme  Sanitization scheme.
+	 * @param string   $url     REST URL.
+	 * @param string   $path    REST route.
+	 * @param int|null $blog_id Blog ID.
+	 * @param string   $scheme  Sanitization scheme.
 	 */
 	return apply_filters( 'rest_url', $url, $path, $blog_id, $scheme );
 }
@@ -1012,7 +1044,7 @@ function rest_cookie_check_errors( $result ) {
 	$result = wp_verify_nonce( $nonce, 'wp_rest' );
 
 	if ( ! $result ) {
-		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
+		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie check failed' ), array( 'status' => 403 ) );
 	}
 
 	// Send a refreshed nonce in header.
@@ -1048,15 +1080,39 @@ function rest_cookie_collect_status() {
  * Collects the status of authenticating with an application password.
  *
  * @since 5.6.0
+ * @since 5.7.0 Added the `$app_password` parameter.
  *
  * @global WP_User|WP_Error|null $wp_rest_application_password_status
+ * @global string|null $wp_rest_application_password_uuid
  *
  * @param WP_Error $user_or_error The authenticated user or error instance.
+ * @param array    $app_password  The Application Password used to authenticate.
  */
-function rest_application_password_collect_status( $user_or_error ) {
-	global $wp_rest_application_password_status;
+function rest_application_password_collect_status( $user_or_error, $app_password = array() ) {
+	global $wp_rest_application_password_status, $wp_rest_application_password_uuid;
 
 	$wp_rest_application_password_status = $user_or_error;
+
+	if ( empty( $app_password['uuid'] ) ) {
+		$wp_rest_application_password_uuid = null;
+	} else {
+		$wp_rest_application_password_uuid = $app_password['uuid'];
+	}
+}
+
+/**
+ * Gets the Application Password used for authenticating the request.
+ *
+ * @since 5.7.0
+ *
+ * @global string|null $wp_rest_application_password_uuid
+ *
+ * @return string|null The Application Password UUID, or null if Application Passwords was not used.
+ */
+function rest_get_authenticated_app_password() {
+	global $wp_rest_application_password_uuid;
+
+	return $wp_rest_application_password_uuid;
 }
 
 /**
@@ -1681,7 +1737,7 @@ function rest_format_combining_operation_error( $param, $error ) {
 		$title = $error['schema']['title'];
 
 		return new WP_Error(
-			'rest_invalid_param',
+			'rest_no_matching_schema',
 			/* translators: 1: Parameter, 2: Schema title, 3: Reason. */
 			sprintf( __( '%1$s is not a valid %2$s. Reason: %3$s' ), $param, $title, $reason ),
 			array( 'position' => $position )
@@ -1689,7 +1745,7 @@ function rest_format_combining_operation_error( $param, $error ) {
 	}
 
 	return new WP_Error(
-		'rest_invalid_param',
+		'rest_no_matching_schema',
 		/* translators: 1: Parameter, 2: Reason. */
 		sprintf( __( '%1$s does not match the expected format. Reason: %2$s' ), $param, $reason ),
 		array( 'position' => $position )
@@ -1758,11 +1814,11 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 
 	if ( count( $schema_titles ) === count( $errors ) ) {
 		/* translators: 1: Parameter, 2: Schema titles. */
-		return new WP_Error( 'rest_invalid_param', wp_sprintf( __( '%1$s is not a valid %2$l.' ), $param, $schema_titles ) );
+		return new WP_Error( 'rest_no_matching_schema', wp_sprintf( __( '%1$s is not a valid %2$l.' ), $param, $schema_titles ) );
 	}
 
-	/* translators: 1: Parameter. */
-	return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any of the expected formats.' ), $param ) );
+	/* translators: %s: Parameter. */
+	return new WP_Error( 'rest_no_matching_schema', sprintf( __( '%s does not match any of the expected formats.' ), $param ) );
 }
 
 /**
@@ -1856,7 +1912,7 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 		// If each schema has a title, include those titles in the error message.
 		if ( count( $schema_titles ) === count( $matching_schemas ) ) {
 			return new WP_Error(
-				'rest_invalid_param',
+				'rest_one_of_multiple_matches',
 				/* translators: 1: Parameter, 2: Schema titles. */
 				wp_sprintf( __( '%1$s matches %2$l, but should match only one.' ), $param, $schema_titles ),
 				array( 'positions' => $schema_positions )
@@ -1864,14 +1920,87 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 		}
 
 		return new WP_Error(
-			'rest_invalid_param',
-			/* translators: 1: Parameter. */
-			sprintf( __( '%1$s matches more than one of the expected formats.' ), $param ),
+			'rest_one_of_multiple_matches',
+			/* translators: %s: Parameter. */
+			sprintf( __( '%s matches more than one of the expected formats.' ), $param ),
 			array( 'positions' => $schema_positions )
 		);
 	}
 
 	return $matching_schemas[0]['schema_object'];
+}
+
+/**
+ * Checks the equality of two values, following JSON Schema semantics.
+ *
+ * Property order is ignored for objects.
+ *
+ * Values must have been previously sanitized/coerced to their native types.
+ *
+ * @since 5.7.0
+ *
+ * @param mixed $value1 The first value to check.
+ * @param mixed $value2 The second value to check.
+ * @return bool True if the values are equal or false otherwise.
+ */
+function rest_are_values_equal( $value1, $value2 ) {
+	if ( is_array( $value1 ) && is_array( $value2 ) ) {
+		if ( count( $value1 ) !== count( $value2 ) ) {
+			return false;
+		}
+
+		foreach ( $value1 as $index => $value ) {
+			if ( ! array_key_exists( $index, $value2 ) || ! rest_are_values_equal( $value, $value2[ $index ] ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	if ( is_int( $value1 ) && is_float( $value2 )
+		|| is_float( $value1 ) && is_int( $value2 )
+	) {
+		return (float) $value1 === (float) $value2;
+	}
+
+	return $value1 === $value2;
+}
+
+/**
+ * Validates that the given value is a member of the JSON Schema "enum".
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value  The value to validate.
+ * @param array  $args   The schema array to use.
+ * @param string $param  The parameter name, used in error messages.
+ * @return true|WP_Error True if the "enum" contains the value or a WP_Error instance otherwise.
+ */
+function rest_validate_enum( $value, $args, $param ) {
+	$sanitized_value = rest_sanitize_value_from_schema( $value, $args, $param );
+	if ( is_wp_error( $sanitized_value ) ) {
+		return $sanitized_value;
+	}
+
+	foreach ( $args['enum'] as $enum_value ) {
+		if ( rest_are_values_equal( $sanitized_value, $enum_value ) ) {
+			return true;
+		}
+	}
+
+	$encoded_enum_values = array();
+	foreach ( $args['enum'] as $enum_value ) {
+		$encoded_enum_values[] = is_scalar( $enum_value ) ? $enum_value : wp_json_encode( $enum_value );
+	}
+
+	if ( count( $encoded_enum_values ) === 1 ) {
+		/* translators: 1: Parameter, 2: Valid values. */
+		return new WP_Error( 'rest_not_in_enum', wp_sprintf( __( '%1$s is not %2$s.' ), $param, $encoded_enum_values[0] ) );
+	}
+
+	/* translators: 1: Parameter, 2: List of valid values. */
+	return new WP_Error( 'rest_not_in_enum', wp_sprintf( __( '%1$s is not one of %2$l.' ), $param, $encoded_enum_values ) );
 }
 
 /**
@@ -1987,250 +2116,41 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		);
 	}
 
-	if ( 'array' === $args['type'] ) {
-		if ( ! rest_is_array( $value ) ) {
-			return new WP_Error(
-				'rest_invalid_type',
-				/* translators: 1: Parameter, 2: Type name. */
-				sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ),
-				array( 'param' => $param )
-			);
-		}
-
-		$value = rest_sanitize_array( $value );
-
-		if ( isset( $args['items'] ) ) {
-			foreach ( $value as $index => $v ) {
-				$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
-				if ( is_wp_error( $is_valid ) ) {
-					return $is_valid;
-				}
-			}
-		}
-
-		if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
-			return new WP_Error(
-				'rest_invalid_param',
-				sprintf(
-					/* translators: 1: Parameter, 2: Number. */
-					_n(
-						'%1$s must contain at least %2$s item.',
-						'%1$s must contain at least %2$s items.',
-						$args['minItems']
-					),
-					$param,
-					number_format_i18n( $args['minItems'] )
-				)
-			);
-		}
-
-		if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
-			return new WP_Error(
-				'rest_invalid_param',
-				sprintf(
-					/* translators: 1: Parameter, 2: Number. */
-					_n(
-						'%1$s must contain at most %2$s item.',
-						'%1$s must contain at most %2$s items.',
-						$args['maxItems']
-					),
-					$param,
-					number_format_i18n( $args['maxItems'] )
-				)
-			);
-		}
-
-		if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
-			/* translators: 1: Parameter. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
-		}
+	switch ( $args['type'] ) {
+		case 'null':
+			$is_valid = rest_validate_null_value_from_schema( $value, $param );
+			break;
+		case 'boolean':
+			$is_valid = rest_validate_boolean_value_from_schema( $value, $param );
+			break;
+		case 'object':
+			$is_valid = rest_validate_object_value_from_schema( $value, $args, $param );
+			break;
+		case 'array':
+			$is_valid = rest_validate_array_value_from_schema( $value, $args, $param );
+			break;
+		case 'number':
+			$is_valid = rest_validate_number_value_from_schema( $value, $args, $param );
+			break;
+		case 'string':
+			$is_valid = rest_validate_string_value_from_schema( $value, $args, $param );
+			break;
+		case 'integer':
+			$is_valid = rest_validate_integer_value_from_schema( $value, $args, $param );
+			break;
+		default:
+			$is_valid = true;
+			break;
 	}
 
-	if ( 'object' === $args['type'] ) {
-		if ( ! rest_is_object( $value ) ) {
-			return new WP_Error(
-				'rest_invalid_type',
-				/* translators: 1: Parameter, 2: Type name. */
-				sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ),
-				array( 'param' => $param )
-			);
-		}
-
-		$value = rest_sanitize_object( $value );
-
-		if ( isset( $args['required'] ) && is_array( $args['required'] ) ) { // schema version 4
-			foreach ( $args['required'] as $name ) {
-				if ( ! array_key_exists( $name, $value ) ) {
-					/* translators: 1: Property of an object, 2: Parameter. */
-					return new WP_Error( 'rest_property_required', sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param ) );
-				}
-			}
-		} elseif ( isset( $args['properties'] ) ) { // schema version 3
-			foreach ( $args['properties'] as $name => $property ) {
-				if ( isset( $property['required'] ) && true === $property['required'] && ! array_key_exists( $name, $value ) ) {
-					/* translators: 1: Property of an object, 2: Parameter. */
-					return new WP_Error( 'rest_property_required', sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param ) );
-				}
-			}
-		}
-
-		foreach ( $value as $property => $v ) {
-			if ( isset( $args['properties'][ $property ] ) ) {
-				$is_valid = rest_validate_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
-				if ( is_wp_error( $is_valid ) ) {
-					return $is_valid;
-				}
-				continue;
-			}
-
-			$pattern_property_schema = rest_find_matching_pattern_property_schema( $property, $args );
-			if ( null !== $pattern_property_schema ) {
-				$is_valid = rest_validate_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
-				if ( is_wp_error( $is_valid ) ) {
-					return $is_valid;
-				}
-				continue;
-			}
-
-			if ( isset( $args['additionalProperties'] ) ) {
-				if ( false === $args['additionalProperties'] ) {
-					/* translators: %s: Property of an object. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not a valid property of Object.' ), $property ) );
-				}
-
-				if ( is_array( $args['additionalProperties'] ) ) {
-					$is_valid = rest_validate_value_from_schema( $v, $args['additionalProperties'], $param . '[' . $property . ']' );
-					if ( is_wp_error( $is_valid ) ) {
-						return $is_valid;
-					}
-				}
-			}
-		}
-
-		if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
-			return new WP_Error(
-				'rest_invalid_param',
-				sprintf(
-					/* translators: 1: Parameter, 2: Number. */
-					_n(
-						'%1$s must contain at least %2$s property.',
-						'%1$s must contain at least %2$s properties.',
-						$args['minProperties']
-					),
-					$param,
-					number_format_i18n( $args['minProperties'] )
-				)
-			);
-		}
-
-		if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
-			return new WP_Error(
-				'rest_invalid_param',
-				sprintf(
-					/* translators: 1: Parameter, 2: Number. */
-					_n(
-						'%1$s must contain at most %2$s property.',
-						'%1$s must contain at most %2$s properties.',
-						$args['maxProperties']
-					),
-					$param,
-					number_format_i18n( $args['maxProperties'] )
-				)
-			);
-		}
-	}
-
-	if ( 'null' === $args['type'] ) {
-		if ( null !== $value ) {
-			return new WP_Error(
-				'rest_invalid_type',
-				/* translators: 1: Parameter, 2: Type name. */
-				sprintf( __( '%1$s is not of type %2$s.' ), $param, 'null' ),
-				array( 'param' => $param )
-			);
-		}
-
-		return true;
+	if ( is_wp_error( $is_valid ) ) {
+		return $is_valid;
 	}
 
 	if ( ! empty( $args['enum'] ) ) {
-		if ( ! in_array( $value, $args['enum'], true ) ) {
-			/* translators: 1: Parameter, 2: List of valid values. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not one of %2$s.' ), $param, implode( ', ', $args['enum'] ) ) );
-		}
-	}
-
-	if ( in_array( $args['type'], array( 'integer', 'number' ), true ) ) {
-		if ( ! is_numeric( $value ) ) {
-			return new WP_Error(
-				'rest_invalid_type',
-				/* translators: 1: Parameter, 2: Type name. */
-				sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ),
-				array( 'param' => $param )
-			);
-		}
-
-		if ( isset( $args['multipleOf'] ) && fmod( $value, $args['multipleOf'] ) !== 0.0 ) {
-			/* translators: 1: Parameter, 2: Multiplier. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be a multiple of %2$s.' ), $param, $args['multipleOf'] ) );
-		}
-	}
-
-	if ( 'integer' === $args['type'] && ! rest_is_integer( $value ) ) {
-		return new WP_Error(
-			'rest_invalid_type',
-			/* translators: 1: Parameter, 2: Type name. */
-			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'integer' ),
-			array( 'param' => $param )
-		);
-	}
-
-	if ( 'boolean' === $args['type'] && ! rest_is_boolean( $value ) ) {
-		return new WP_Error(
-			'rest_invalid_type',
-			/* translators: 1: Parameter, 2: Type name. */
-			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'boolean' ),
-			array( 'param' => $param )
-		);
-	}
-
-	if ( 'string' === $args['type'] ) {
-		if ( ! is_string( $value ) ) {
-			return new WP_Error(
-				'rest_invalid_type',
-				/* translators: 1: Parameter, 2: Type name. */
-				sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ),
-				array( 'param' => $param )
-			);
-		}
-
-		if ( isset( $args['minLength'] ) && mb_strlen( $value ) < $args['minLength'] ) {
-			return new WP_Error(
-				'rest_invalid_param',
-				sprintf(
-					/* translators: 1: Parameter, 2: Number of characters. */
-					_n( '%1$s must be at least %2$s character long.', '%1$s must be at least %2$s characters long.', $args['minLength'] ),
-					$param,
-					number_format_i18n( $args['minLength'] )
-				)
-			);
-		}
-
-		if ( isset( $args['maxLength'] ) && mb_strlen( $value ) > $args['maxLength'] ) {
-			return new WP_Error(
-				'rest_invalid_param',
-				sprintf(
-					/* translators: 1: Parameter, 2: Number of characters. */
-					_n( '%1$s must be at most %2$s character long.', '%1$s must be at most %2$s characters long.', $args['maxLength'] ),
-					$param,
-					number_format_i18n( $args['maxLength'] )
-				)
-			);
-		}
-
-		if ( isset( $args['pattern'] ) && ! rest_validate_json_schema_pattern( $args['pattern'], $value ) ) {
-			/* translators: 1: Parameter, 2: Pattern. */
-			return new WP_Error( 'rest_invalid_pattern', sprintf( __( '%1$s does not match pattern %2$s.' ), $param, $args['pattern'] ) );
+		$enum_contains_value = rest_validate_enum( $value, $args, $param );
+		if ( is_wp_error( $enum_contains_value ) ) {
+			return $enum_contains_value;
 		}
 	}
 
@@ -2260,7 +2180,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			case 'ip':
 				if ( ! rest_is_ip_address( $value ) ) {
 					/* translators: %s: IP address. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not a valid IP address.' ), $param ) );
+					return new WP_Error( 'rest_invalid_ip', sprintf( __( '%s is not a valid IP address.' ), $param ) );
 				}
 				break;
 			case 'uuid':
@@ -2272,46 +2192,454 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 	}
 
-	if ( in_array( $args['type'], array( 'number', 'integer' ), true ) && ( isset( $args['minimum'] ) || isset( $args['maximum'] ) ) ) {
-		if ( isset( $args['minimum'] ) && ! isset( $args['maximum'] ) ) {
-			if ( ! empty( $args['exclusiveMinimum'] ) && $value <= $args['minimum'] ) {
-				/* translators: 1: Parameter, 2: Minimum number. */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be greater than %2$d' ), $param, $args['minimum'] ) );
-			} elseif ( empty( $args['exclusiveMinimum'] ) && $value < $args['minimum'] ) {
-				/* translators: 1: Parameter, 2: Minimum number. */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be greater than or equal to %2$d' ), $param, $args['minimum'] ) );
+	return true;
+}
+
+/**
+ * Validates a null value based on a schema.
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value The value to validate.
+ * @param string $param The parameter name, used in error messages.
+ * @return true|WP_Error
+ */
+function rest_validate_null_value_from_schema( $value, $param ) {
+	if ( null !== $value ) {
+		return new WP_Error(
+			'rest_invalid_type',
+			/* translators: 1: Parameter, 2: Type name. */
+			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'null' ),
+			array( 'param' => $param )
+		);
+	}
+
+	return true;
+}
+
+/**
+ * Validates a boolean value based on a schema.
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value The value to validate.
+ * @param string $param The parameter name, used in error messages.
+ * @return true|WP_Error
+ */
+function rest_validate_boolean_value_from_schema( $value, $param ) {
+	if ( ! rest_is_boolean( $value ) ) {
+		return new WP_Error(
+			'rest_invalid_type',
+			/* translators: 1: Parameter, 2: Type name. */
+			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'boolean' ),
+			array( 'param' => $param )
+		);
+	}
+
+	return true;
+}
+
+/**
+ * Validates an object value based on a schema.
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value The value to validate.
+ * @param array  $args  Schema array to use for validation.
+ * @param string $param The parameter name, used in error messages.
+ * @return true|WP_Error
+ */
+function rest_validate_object_value_from_schema( $value, $args, $param ) {
+	if ( ! rest_is_object( $value ) ) {
+		return new WP_Error(
+			'rest_invalid_type',
+			/* translators: 1: Parameter, 2: Type name. */
+			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ),
+			array( 'param' => $param )
+		);
+	}
+
+	$value = rest_sanitize_object( $value );
+
+	if ( isset( $args['required'] ) && is_array( $args['required'] ) ) { // schema version 4
+		foreach ( $args['required'] as $name ) {
+			if ( ! array_key_exists( $name, $value ) ) {
+				return new WP_Error(
+					'rest_property_required',
+					/* translators: 1: Property of an object, 2: Parameter. */
+					sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param )
+				);
 			}
-		} elseif ( isset( $args['maximum'] ) && ! isset( $args['minimum'] ) ) {
-			if ( ! empty( $args['exclusiveMaximum'] ) && $value >= $args['maximum'] ) {
-				/* translators: 1: Parameter, 2: Maximum number. */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be less than %2$d' ), $param, $args['maximum'] ) );
-			} elseif ( empty( $args['exclusiveMaximum'] ) && $value > $args['maximum'] ) {
-				/* translators: 1: Parameter, 2: Maximum number. */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be less than or equal to %2$d' ), $param, $args['maximum'] ) );
+		}
+	} elseif ( isset( $args['properties'] ) ) { // schema version 3
+		foreach ( $args['properties'] as $name => $property ) {
+			if ( isset( $property['required'] ) && true === $property['required'] && ! array_key_exists( $name, $value ) ) {
+				return new WP_Error(
+					'rest_property_required',
+					/* translators: 1: Property of an object, 2: Parameter. */
+					sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param )
+				);
 			}
-		} elseif ( isset( $args['maximum'] ) && isset( $args['minimum'] ) ) {
-			if ( ! empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
-				if ( $value >= $args['maximum'] || $value <= $args['minimum'] ) {
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
-				}
-			} elseif ( empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
-				if ( $value >= $args['maximum'] || $value < $args['minimum'] ) {
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
-				}
-			} elseif ( ! empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
-				if ( $value > $args['maximum'] || $value <= $args['minimum'] ) {
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
-				}
-			} elseif ( empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
-				if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
-					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+		}
+	}
+
+	foreach ( $value as $property => $v ) {
+		if ( isset( $args['properties'][ $property ] ) ) {
+			$is_valid = rest_validate_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
+			if ( is_wp_error( $is_valid ) ) {
+				return $is_valid;
+			}
+			continue;
+		}
+
+		$pattern_property_schema = rest_find_matching_pattern_property_schema( $property, $args );
+		if ( null !== $pattern_property_schema ) {
+			$is_valid = rest_validate_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
+			if ( is_wp_error( $is_valid ) ) {
+				return $is_valid;
+			}
+			continue;
+		}
+
+		if ( isset( $args['additionalProperties'] ) ) {
+			if ( false === $args['additionalProperties'] ) {
+				return new WP_Error(
+					'rest_additional_properties_forbidden',
+					/* translators: %s: Property of an object. */
+					sprintf( __( '%1$s is not a valid property of Object.' ), $property )
+				);
+			}
+
+			if ( is_array( $args['additionalProperties'] ) ) {
+				$is_valid = rest_validate_value_from_schema( $v, $args['additionalProperties'], $param . '[' . $property . ']' );
+				if ( is_wp_error( $is_valid ) ) {
+					return $is_valid;
 				}
 			}
 		}
+	}
+
+	if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
+		return new WP_Error(
+			'rest_too_few_properties',
+			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
+				_n(
+					'%1$s must contain at least %2$s property.',
+					'%1$s must contain at least %2$s properties.',
+					$args['minProperties']
+				),
+				$param,
+				number_format_i18n( $args['minProperties'] )
+			)
+		);
+	}
+
+	if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
+		return new WP_Error(
+			'rest_too_many_properties',
+			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
+				_n(
+					'%1$s must contain at most %2$s property.',
+					'%1$s must contain at most %2$s properties.',
+					$args['maxProperties']
+				),
+				$param,
+				number_format_i18n( $args['maxProperties'] )
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
+ * Validates an array value based on a schema.
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value The value to validate.
+ * @param array  $args  Schema array to use for validation.
+ * @param string $param The parameter name, used in error messages.
+ * @return true|WP_Error
+ */
+function rest_validate_array_value_from_schema( $value, $args, $param ) {
+	if ( ! rest_is_array( $value ) ) {
+		return new WP_Error(
+			'rest_invalid_type',
+			/* translators: 1: Parameter, 2: Type name. */
+			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ),
+			array( 'param' => $param )
+		);
+	}
+
+	$value = rest_sanitize_array( $value );
+
+	if ( isset( $args['items'] ) ) {
+		foreach ( $value as $index => $v ) {
+			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
+			if ( is_wp_error( $is_valid ) ) {
+				return $is_valid;
+			}
+		}
+	}
+
+	if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
+		return new WP_Error(
+			'rest_too_few_items',
+			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
+				_n(
+					'%1$s must contain at least %2$s item.',
+					'%1$s must contain at least %2$s items.',
+					$args['minItems']
+				),
+				$param,
+				number_format_i18n( $args['minItems'] )
+			)
+		);
+	}
+
+	if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
+		return new WP_Error(
+			'rest_too_many_items',
+			sprintf(
+				/* translators: 1: Parameter, 2: Number. */
+				_n(
+					'%1$s must contain at most %2$s item.',
+					'%1$s must contain at most %2$s items.',
+					$args['maxItems']
+				),
+				$param,
+				number_format_i18n( $args['maxItems'] )
+			)
+		);
+	}
+
+	if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
+		/* translators: %s: Parameter. */
+		return new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
+	}
+
+	return true;
+}
+
+/**
+ * Validates a number value based on a schema.
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value The value to validate.
+ * @param array  $args  Schema array to use for validation.
+ * @param string $param The parameter name, used in error messages.
+ * @return true|WP_Error
+ */
+function rest_validate_number_value_from_schema( $value, $args, $param ) {
+	if ( ! is_numeric( $value ) ) {
+		return new WP_Error(
+			'rest_invalid_type',
+			/* translators: 1: Parameter, 2: Type name. */
+			sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ),
+			array( 'param' => $param )
+		);
+	}
+
+	if ( isset( $args['multipleOf'] ) && fmod( $value, $args['multipleOf'] ) !== 0.0 ) {
+		return new WP_Error(
+			'rest_invalid_multiple',
+			/* translators: 1: Parameter, 2: Multiplier. */
+			sprintf( __( '%1$s must be a multiple of %2$s.' ), $param, $args['multipleOf'] )
+		);
+	}
+
+	if ( isset( $args['minimum'] ) && ! isset( $args['maximum'] ) ) {
+		if ( ! empty( $args['exclusiveMinimum'] ) && $value <= $args['minimum'] ) {
+			return new WP_Error(
+				'rest_out_of_bounds',
+				/* translators: 1: Parameter, 2: Minimum number. */
+				sprintf( __( '%1$s must be greater than %2$d' ), $param, $args['minimum'] )
+			);
+		}
+
+		if ( empty( $args['exclusiveMinimum'] ) && $value < $args['minimum'] ) {
+			return new WP_Error(
+				'rest_out_of_bounds',
+				/* translators: 1: Parameter, 2: Minimum number. */
+				sprintf( __( '%1$s must be greater than or equal to %2$d' ), $param, $args['minimum'] )
+			);
+		}
+	}
+
+	if ( isset( $args['maximum'] ) && ! isset( $args['minimum'] ) ) {
+		if ( ! empty( $args['exclusiveMaximum'] ) && $value >= $args['maximum'] ) {
+			return new WP_Error(
+				'rest_out_of_bounds',
+				/* translators: 1: Parameter, 2: Maximum number. */
+				sprintf( __( '%1$s must be less than %2$d' ), $param, $args['maximum'] )
+			);
+		}
+
+		if ( empty( $args['exclusiveMaximum'] ) && $value > $args['maximum'] ) {
+			return new WP_Error(
+				'rest_out_of_bounds',
+				/* translators: 1: Parameter, 2: Maximum number. */
+				sprintf( __( '%1$s must be less than or equal to %2$d' ), $param, $args['maximum'] )
+			);
+		}
+	}
+
+	if ( isset( $args['minimum'], $args['maximum'] ) ) {
+		if ( ! empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
+			if ( $value >= $args['maximum'] || $value <= $args['minimum'] ) {
+				return new WP_Error(
+					'rest_out_of_bounds',
+					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+						__( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ),
+						$param,
+						$args['minimum'],
+						$args['maximum']
+					)
+				);
+			}
+		}
+
+		if ( ! empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
+			if ( $value > $args['maximum'] || $value <= $args['minimum'] ) {
+				return new WP_Error(
+					'rest_out_of_bounds',
+					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+						__( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ),
+						$param,
+						$args['minimum'],
+						$args['maximum']
+					)
+				);
+			}
+		}
+
+		if ( ! empty( $args['exclusiveMaximum'] ) && empty( $args['exclusiveMinimum'] ) ) {
+			if ( $value >= $args['maximum'] || $value < $args['minimum'] ) {
+				return new WP_Error(
+					'rest_out_of_bounds',
+					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+						__( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ),
+						$param,
+						$args['minimum'],
+						$args['maximum']
+					)
+				);
+			}
+		}
+
+		if ( empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
+			if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
+				return new WP_Error(
+					'rest_out_of_bounds',
+					sprintf(
+						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+						__( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ),
+						$param,
+						$args['minimum'],
+						$args['maximum']
+					)
+				);
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Validates a string value based on a schema.
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value The value to validate.
+ * @param array  $args  Schema array to use for validation.
+ * @param string $param The parameter name, used in error messages.
+ * @return true|WP_Error
+ */
+function rest_validate_string_value_from_schema( $value, $args, $param ) {
+	if ( ! is_string( $value ) ) {
+		return new WP_Error(
+			'rest_invalid_type',
+			/* translators: 1: Parameter, 2: Type name. */
+			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ),
+			array( 'param' => $param )
+		);
+	}
+
+	if ( isset( $args['minLength'] ) && mb_strlen( $value ) < $args['minLength'] ) {
+		return new WP_Error(
+			'rest_too_short',
+			sprintf(
+				/* translators: 1: Parameter, 2: Number of characters. */
+				_n(
+					'%1$s must be at least %2$s character long.',
+					'%1$s must be at least %2$s characters long.',
+					$args['minLength']
+				),
+				$param,
+				number_format_i18n( $args['minLength'] )
+			)
+		);
+	}
+
+	if ( isset( $args['maxLength'] ) && mb_strlen( $value ) > $args['maxLength'] ) {
+		return new WP_Error(
+			'rest_too_long',
+			sprintf(
+				/* translators: 1: Parameter, 2: Number of characters. */
+				_n(
+					'%1$s must be at most %2$s character long.',
+					'%1$s must be at most %2$s characters long.',
+					$args['maxLength']
+				),
+				$param,
+				number_format_i18n( $args['maxLength'] )
+			)
+		);
+	}
+
+	if ( isset( $args['pattern'] ) && ! rest_validate_json_schema_pattern( $args['pattern'], $value ) ) {
+		return new WP_Error(
+			'rest_invalid_pattern',
+			/* translators: 1: Parameter, 2: Pattern. */
+			sprintf( __( '%1$s does not match pattern %2$s.' ), $param, $args['pattern'] )
+		);
+	}
+
+	return true;
+}
+
+/**
+ * Validates an integer value based on a schema.
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value The value to validate.
+ * @param array  $args  Schema array to use for validation.
+ * @param string $param The parameter name, used in error messages.
+ * @return true|WP_Error
+ */
+function rest_validate_integer_value_from_schema( $value, $args, $param ) {
+	$is_valid_number = rest_validate_number_value_from_schema( $value, $args, $param );
+	if ( is_wp_error( $is_valid_number ) ) {
+		return $is_valid_number;
+	}
+
+	if ( ! rest_is_integer( $value ) ) {
+		return new WP_Error(
+			'rest_invalid_type',
+			/* translators: 1: Parameter, 2: Type name. */
+			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'integer' ),
+			array( 'param' => $param )
+		);
 	}
 
 	return true;
@@ -2323,6 +2651,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
  * @since 4.7.0
  * @since 5.5.0 Added the `$param` parameter.
  * @since 5.6.0 Support the "anyOf" and "oneOf" keywords.
+ * @since 5.9.0 Added `text-field` and `textarea-field` formats.
  *
  * @param mixed  $value The value to sanitize.
  * @param array  $args  Schema array to use for sanitization.
@@ -2392,8 +2721,8 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
-			/* translators: 1: Parameter. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
+			/* translators: %s: Parameter. */
+			return new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
 		}
 
 		return $value;
@@ -2465,6 +2794,12 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 
 			case 'uuid':
 				return sanitize_text_field( $value );
+
+			case 'text-field':
+				return sanitize_text_field( $value );
+
+			case 'textarea-field':
+				return sanitize_textarea_field( $value );
 		}
 	}
 
@@ -2506,6 +2841,11 @@ function rest_preload_api_request( $memo, $path ) {
 		}
 	}
 
+	$path = untrailingslashit( $path );
+	if ( empty( $path ) ) {
+		$path = '/';
+	}
+
 	$path_parts = parse_url( $path );
 	if ( false === $path_parts ) {
 		return $memo;
@@ -2520,11 +2860,8 @@ function rest_preload_api_request( $memo, $path ) {
 	$response = rest_do_request( $request );
 	if ( 200 === $response->status ) {
 		$server = rest_get_server();
-		$data   = (array) $response->get_data();
-		$links  = $server::get_compact_response_links( $response );
-		if ( ! empty( $links ) ) {
-			$data['_links'] = $links;
-		}
+		$embed  = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
+		$data   = (array) $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$response = rest_send_allow_header( $response, $server, $request );
@@ -2719,7 +3056,8 @@ function rest_default_additional_properties_to_false( $schema ) {
  * @since 5.5.0
  *
  * @param int|WP_Post $post Post ID or post object.
- * @return string The route path with a leading slash for the given post, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given post,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_post( $post ) {
 	$post = get_post( $post );
@@ -2728,24 +3066,12 @@ function rest_get_route_for_post( $post ) {
 		return '';
 	}
 
-	$post_type = get_post_type_object( $post->post_type );
-	if ( ! $post_type ) {
+	$post_type_route = rest_get_route_for_post_type_items( $post->post_type );
+	if ( ! $post_type_route ) {
 		return '';
 	}
 
-	$controller = $post_type->get_rest_controller();
-	if ( ! $controller ) {
-		return '';
-	}
-
-	$route = '';
-
-	// The only two controllers that we can detect are the Attachments and Posts controllers.
-	if ( in_array( get_class( $controller ), array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
-		$namespace = 'wp/v2';
-		$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
-		$route     = sprintf( '/%s/%s/%d', $namespace, $rest_base, $post->ID );
-	}
+	$route = sprintf( '%s/%d', $post_type_route, $post->ID );
 
 	/**
 	 * Filters the REST API route for a post.
@@ -2759,12 +3085,47 @@ function rest_get_route_for_post( $post ) {
 }
 
 /**
+ * Gets the REST API route for a post type.
+ *
+ * @since 5.9.0
+ *
+ * @param string $post_type The name of a registered post type.
+ * @return string The route path with a leading slash for the given post type,
+ *                or an empty string if there is not a route.
+ */
+function rest_get_route_for_post_type_items( $post_type ) {
+	$post_type = get_post_type_object( $post_type );
+	if ( ! $post_type ) {
+		return '';
+	}
+
+	if ( ! $post_type->show_in_rest ) {
+		return '';
+	}
+
+	$namespace = ! empty( $post_type->rest_namespace ) ? $post_type->rest_namespace : 'wp/v2';
+	$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
+	$route     = sprintf( '/%s/%s', $namespace, $rest_base );
+
+	/**
+	 * Filters the REST API route for a post type.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string       $route      The route path.
+	 * @param WP_Post_Type $post_type  The post type object.
+	 */
+	return apply_filters( 'rest_route_for_post_type_items', $route, $post_type );
+}
+
+/**
  * Gets the REST API route for a term.
  *
  * @since 5.5.0
  *
  * @param int|WP_Term $term Term ID or term object.
- * @return string The route path with a leading slash for the given term, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given term,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_term( $term ) {
 	$term = get_term( $term );
@@ -2773,24 +3134,12 @@ function rest_get_route_for_term( $term ) {
 		return '';
 	}
 
-	$taxonomy = get_taxonomy( $term->taxonomy );
-	if ( ! $taxonomy ) {
+	$taxonomy_route = rest_get_route_for_taxonomy_items( $term->taxonomy );
+	if ( ! $taxonomy_route ) {
 		return '';
 	}
 
-	$controller = $taxonomy->get_rest_controller();
-	if ( ! $controller ) {
-		return '';
-	}
-
-	$route = '';
-
-	// The only controller that works is the Terms controller.
-	if ( $controller instanceof WP_REST_Terms_Controller ) {
-		$namespace = 'wp/v2';
-		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-		$route     = sprintf( '/%s/%s/%d', $namespace, $rest_base, $term->term_id );
-	}
+	$route = sprintf( '%s/%d', $taxonomy_route, $term->term_id );
 
 	/**
 	 * Filters the REST API route for a term.
@@ -2801,6 +3150,39 @@ function rest_get_route_for_term( $term ) {
 	 * @param WP_Term $term  The term object.
 	 */
 	return apply_filters( 'rest_route_for_term', $route, $term );
+}
+
+/**
+ * Gets the REST API route for a taxonomy.
+ *
+ * @since 5.9.0
+ *
+ * @param string $taxonomy Name of taxonomy.
+ * @return string The route path with a leading slash for the given taxonomy.
+ */
+function rest_get_route_for_taxonomy_items( $taxonomy ) {
+	$taxonomy = get_taxonomy( $taxonomy );
+	if ( ! $taxonomy ) {
+		return '';
+	}
+
+	if ( ! $taxonomy->show_in_rest ) {
+		return '';
+	}
+
+	$namespace = ! empty( $taxonomy->rest_namespace ) ? $taxonomy->rest_namespace : 'wp/v2';
+	$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+	$route     = sprintf( '/%s/%s', $namespace, $rest_base );
+
+	/**
+	 * Filters the REST API route for a taxonomy.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string      $route    The route path.
+	 * @param WP_Taxonomy $taxonomy The taxonomy object.
+	 */
+	return apply_filters( 'rest_route_for_taxonomy_items', $route, $taxonomy );
 }
 
 /**
@@ -2894,4 +3276,58 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	}
 
 	return $endpoint_args;
+}
+
+
+/**
+ * Converts an error to a response object.
+ *
+ * This iterates over all error codes and messages to change it into a flat
+ * array. This enables simpler client behaviour, as it is represented as a
+ * list in JSON rather than an object/map.
+ *
+ * @since 5.7.0
+ *
+ * @param WP_Error $error WP_Error instance.
+ *
+ * @return WP_REST_Response List of associative arrays with code and message keys.
+ */
+function rest_convert_error_to_response( $error ) {
+	$status = array_reduce(
+		$error->get_all_error_data(),
+		static function ( $status, $error_data ) {
+			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
+		},
+		500
+	);
+
+	$errors = array();
+
+	foreach ( (array) $error->errors as $code => $messages ) {
+		$all_data  = $error->get_all_error_data( $code );
+		$last_data = array_pop( $all_data );
+
+		foreach ( (array) $messages as $message ) {
+			$formatted = array(
+				'code'    => $code,
+				'message' => $message,
+				'data'    => $last_data,
+			);
+
+			if ( $all_data ) {
+				$formatted['additional_data'] = $all_data;
+			}
+
+			$errors[] = $formatted;
+		}
+	}
+
+	$data = $errors[0];
+	if ( count( $errors ) > 1 ) {
+		// Remove the primary error.
+		array_shift( $errors );
+		$data['additional_errors'] = $errors;
+	}
+
+	return new WP_REST_Response( $data, $status );
 }

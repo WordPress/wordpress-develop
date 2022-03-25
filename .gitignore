@@ -6,9 +6,11 @@ wp-tests-config.php
 .htaccess
 
 # Files and folders related to build/test tools
+.phpunit.result.cache
 /phpunit.xml
 /.phpcs.xml
 /phpcs.xml
+.cache/*
 /tests/phpunit/data/plugins/wordpress-importer
 /tests/phpunit/data/.trac-ticket-cache*
 /tests/qunit/compiled.html
@@ -19,6 +21,7 @@ wp-tests-config.php
 /tests/phpunit/build
 /wp-cli.local.yml
 /jsdoc
+/composer.lock
 /vendor
 /src/wp-admin/css/*.min.css
 /src/wp-admin/css/*-rtl.css
@@ -28,7 +31,11 @@ wp-tests-config.php
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
 /src/wp-includes/css/*-rtl.css
+/src/wp-includes/blocks/**/*.css
+/src/wp-includes/blocks/**/*.js
+/src/wp-includes/blocks/**/*.js.map
 /packagehash.txt
+/artifacts
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
@@ -45,7 +52,9 @@ wp-tests-config.php
 !/src/wp-content/themes/twentysixteen
 !/src/wp-content/themes/twentyseventeen
 !/src/wp-content/themes/twentynineteen
+!/src/wp-content/themes/twentytwenty
 !/src/wp-content/themes/twentytwentyone
+!/src/wp-content/themes/twentytwentytwo
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
@@ -61,6 +70,11 @@ wp-tests-config.php
 /src/wp-content/object-cache.php
 /src/wp-content/php-error.php
 /src/wp-content/sunrise.php
+
+# Files and folders relating to wp-content build tools.
+/src/wp-content/themes/twentynineteen/node_modules
+/src/wp-content/themes/twentytwentyone/node_modules
+/src/wp-content/themes/twentytwenty/node_modules
 
 # Operating system specific files
 .DS_Store
@@ -78,3 +92,6 @@ wp-tests-config.php
 
 # Files for local environment config
 /docker-compose.override.yml
+
+# Visual regression test diffs
+tests/visual-regression/specs/__image_snapshots__

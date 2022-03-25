@@ -2,8 +2,8 @@
 
 class Tests_Query extends WP_UnitTestCase {
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
@@ -12,7 +12,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 24785
 	 */
-	function test_nested_loop_reset_postdata() {
+	public function test_nested_loop_reset_postdata() {
 		$post_id        = self::factory()->post->create();
 		$nested_post_id = self::factory()->post->create();
 
@@ -32,7 +32,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 16471
 	 */
-	function test_default_query_var() {
+	public function test_default_query_var() {
 		$query = new WP_Query;
 		$this->assertSame( '', $query->get( 'nonexistent' ) );
 		$this->assertFalse( $query->get( 'nonexistent', false ) );
@@ -42,7 +42,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 25380
 	 */
-	function test_pre_posts_per_page() {
+	public function test_pre_posts_per_page() {
 		self::factory()->post->create_many( 10 );
 
 		add_action( 'pre_get_posts', array( $this, 'filter_posts_per_page' ) );
@@ -52,19 +52,19 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertSame( 30, get_query_var( 'posts_per_page' ) );
 	}
 
-	function filter_posts_per_page( &$query ) {
+	public function filter_posts_per_page( &$query ) {
 		$query->set( 'posts_per_rss', 30 );
 	}
 
 	/**
 	 * @ticket 26627
 	 */
-	function test_tag_queried_object() {
+	public function test_tag_queried_object() {
 		$slug = 'tag-slug-26627';
 		self::factory()->tag->create( array( 'slug' => $slug ) );
 		$tag = get_term_by( 'slug', $slug, 'post_tag' );
 
-		add_action( 'pre_get_posts', array( $this, '_tag_queried_object' ), 11 );
+		add_action( 'pre_get_posts', array( $this, 'tag_queried_object' ), 11 );
 
 		$this->go_to( get_term_link( $tag ) );
 
@@ -75,10 +75,10 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertCount( 1, get_query_var( 'tag_slug__in' ) );
 		$this->assertEquals( get_queried_object(), $tag );
 
-		remove_action( 'pre_get_posts', array( $this, '_tag_queried_object' ), 11 );
+		remove_action( 'pre_get_posts', array( $this, 'tag_queried_object' ), 11 );
 	}
 
-	function _tag_queried_object( &$query ) {
+	public function tag_queried_object( &$query ) {
 		$tag = get_term_by( 'slug', 'tag-slug-26627', 'post_tag' );
 		$this->assertTrue( $query->is_tag() );
 		$this->assertTrue( $query->is_archive() );
@@ -154,7 +154,7 @@ class Tests_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "ORDER BY $wpdb->posts.post_title DESC, $wpdb->posts.post_date DESC", $q->request );
+		$this->assertStringContainsString( "ORDER BY $wpdb->posts.post_title DESC, $wpdb->posts.post_date DESC", $q->request );
 	}
 
 	public function test_cat_querystring_single_term() {
@@ -571,7 +571,7 @@ class Tests_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'LIMIT 0, 5', $q->request );
+		$this->assertStringContainsString( 'LIMIT 0, 5', $q->request );
 	}
 
 	/**
@@ -585,7 +585,7 @@ class Tests_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'LIMIT 5, 5', $q->request );
+		$this->assertStringContainsString( 'LIMIT 5, 5', $q->request );
 	}
 
 	/**
@@ -600,7 +600,7 @@ class Tests_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'LIMIT 5, 5', $q->request );
+		$this->assertStringContainsString( 'LIMIT 5, 5', $q->request );
 	}
 
 	/**
@@ -695,5 +695,28 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
+	}
+
+	/**
+	 * @ticket 55100
+	 */
+	public function test_get_queried_object_should_work_for_author_name_before_get_posts() {
+		$user_id = self::factory()->user->create();
+		$user    = get_user_by( 'ID', $user_id );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+			)
+		);
+
+		$this->go_to( home_url( '?author=' . $user_id ) );
+
+		$this->assertInstanceOf( 'WP_User', get_queried_object() );
+		$this->assertSame( get_queried_object_id(), $user_id );
+
+		$this->go_to( home_url( '?author_name=' . $user->user_nicename ) );
+
+		$this->assertInstanceOf( 'WP_User', get_queried_object() );
+		$this->assertSame( get_queried_object_id(), $user_id );
 	}
 }

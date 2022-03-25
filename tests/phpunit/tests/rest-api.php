@@ -14,23 +14,23 @@ require_once __DIR__ . '/../includes/class-jsonserializable-object.php';
  * @group restapi
  */
 class Tests_REST_API extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Override the normal server with our spying server.
 		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
 		do_action( 'rest_api_init', $GLOBALS['wp_rest_server'] );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
 	 * Checks that the main classes are loaded.
 	 */
-	function test_rest_api_active() {
+	public function test_rest_api_active() {
 		$this->assertTrue( class_exists( 'WP_REST_Server' ) );
 		$this->assertTrue( class_exists( 'WP_REST_Request' ) );
 		$this->assertTrue( class_exists( 'WP_REST_Response' ) );
@@ -41,7 +41,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * The rest_api_init hook should have been registered with init, and should
 	 * have a default priority of 10.
 	 */
-	function test_init_action_added() {
+	public function test_init_action_added() {
 		$this->assertSame( 10, has_action( 'init', 'rest_api_init' ) );
 	}
 
@@ -237,7 +237,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			true
 		);
 		$endpoints = $GLOBALS['wp_rest_server']->get_routes();
-		$this->assertFalse( isset( $endpoints['/test-empty-namespace'] ) );
+		$this->assertArrayNotHasKey( '/test-empty-namespace', $endpoints );
 	}
 
 	/**
@@ -257,15 +257,15 @@ class Tests_REST_API extends WP_UnitTestCase {
 			true
 		);
 		$endpoints = $GLOBALS['wp_rest_server']->get_routes();
-		$this->assertFalse( isset( $endpoints['/test-empty-route'] ) );
+		$this->assertArrayNotHasKey( '/test-empty-route', $endpoints );
 	}
 
 	/**
 	 * The rest_route query variable should be registered.
 	 */
-	function test_rest_route_query_var() {
+	public function test_rest_route_query_var() {
 		rest_api_init();
-		$this->assertTrue( in_array( 'rest_route', $GLOBALS['wp']->public_query_vars, true ) );
+		$this->assertContains( 'rest_route', $GLOBALS['wp']->public_query_vars );
 	}
 
 	public function test_route_method() {
@@ -789,12 +789,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 		// Test an HTTPS URL.
 		$_SERVER['HTTPS'] = 'on';
 		$url              = get_rest_url();
-		$this->assertSame( 'http', parse_url( $url, PHP_URL_SCHEME ) );
+		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
 
 		// Reset.
 		update_option( 'siteurl', $_siteurl );
-		set_current_screen( 'front' );
-
 	}
 
 	/**
@@ -935,7 +933,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
 	}
 
-	function test_rest_preload_api_request_with_method() {
+	public function test_rest_preload_api_request_with_method() {
 		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
 
@@ -951,7 +949,32 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS' ) );
-		$this->assertTrue( isset( $preload_data['OPTIONS']['/wp/v2/media'] ) );
+		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
+
+		$GLOBALS['wp_rest_server'] = $rest_server;
+	}
+
+	/**
+	 * @ticket 51636
+	 */
+	public function test_rest_preload_api_request_removes_trailing_slashes() {
+		$rest_server               = $GLOBALS['wp_rest_server'];
+		$GLOBALS['wp_rest_server'] = null;
+
+		$preload_paths = array(
+			'/wp/v2/types//',
+			array( '/wp/v2/media///', 'OPTIONS' ),
+			'////',
+		);
+
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS', '/' ) );
+		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;
 	}
@@ -959,7 +982,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 40614
 	 */
-	function test_rest_ensure_request_accepts_path_string() {
+	public function test_rest_ensure_request_accepts_path_string() {
 		$request = rest_ensure_request( '/wp/v2/posts' );
 		$this->assertInstanceOf( 'WP_REST_Request', $request );
 		$this->assertSame( '/wp/v2/posts', $request->get_route() );
@@ -967,13 +990,13 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider _dp_rest_parse_embed_param
+	 * @dataProvider data_rest_parse_embed_param
 	 */
 	public function test_rest_parse_embed_param( $expected, $embed ) {
 		$this->assertSame( $expected, rest_parse_embed_param( $embed ) );
 	}
 
-	public function _dp_rest_parse_embed_param() {
+	public function data_rest_parse_embed_param() {
 		return array(
 			array( true, '' ),
 			array( true, null ),
@@ -996,7 +1019,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 48819
 	 *
-	 * @dataProvider _dp_rest_filter_response_by_context
+	 * @dataProvider data_rest_filter_response_by_context
 	 */
 	public function test_rest_filter_response_by_context( $schema, $data, $expected ) {
 		$this->assertSame( $expected, rest_filter_response_by_context( $data, $schema, 'view' ) );
@@ -1083,7 +1106,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertTrue( $registered );
 	}
 
-	public function _dp_rest_filter_response_by_context() {
+	public function data_rest_filter_response_by_context() {
 		return array(
 			'default'                                      => array(
 				array(
@@ -1754,7 +1777,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 	}
 
-	function test_rest_ensure_response_accepts_wp_error_and_returns_wp_error() {
+	public function test_rest_ensure_response_accepts_wp_error_and_returns_wp_error() {
 		$response = rest_ensure_response( new WP_Error() );
 		$this->assertInstanceOf( 'WP_Error', $response );
 	}
@@ -1765,7 +1788,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @param mixed $response      The response passed to rest_ensure_response().
 	 * @param mixed $expected_data The expected data a response should include.
 	 */
-	function test_rest_ensure_response_returns_instance_of_wp_rest_response( $response, $expected_data ) {
+	public function test_rest_ensure_response_returns_instance_of_wp_rest_response( $response, $expected_data ) {
 		$response_object = rest_ensure_response( $response );
 		$this->assertInstanceOf( 'WP_REST_Response', $response_object );
 		$this->assertSame( $expected_data, $response_object->get_data() );
@@ -1776,7 +1799,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function rest_ensure_response_data_provider() {
+	public function rest_ensure_response_data_provider() {
 		return array(
 			array( null, null ),
 			array( array( 'chocolate' => 'cookies' ), array( 'chocolate' => 'cookies' ) ),
@@ -1807,6 +1830,48 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53656
+	 */
+	public function test_rest_get_route_for_post_custom_namespace() {
+		register_post_type(
+			'cpt',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'cpt',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'cpt' ) );
+
+		$this->assertSame( '/wordpress/v1/cpt/' . $post->ID, rest_get_route_for_post( $post ) );
+		unregister_post_type( 'cpt' );
+	}
+
+	/**
+	 * @ticket 53656
+	 */
+	public function test_rest_get_route_for_post_type_items() {
+		$this->assertSame( '/wp/v2/posts', rest_get_route_for_post_type_items( 'post' ) );
+	}
+
+	/**
+	 * @ticket 53656
+	 */
+	public function test_rest_get_route_for_post_type_items_custom_namespace() {
+		register_post_type(
+			'cpt',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'cpt',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+
+		$this->assertSame( '/wordpress/v1/cpt', rest_get_route_for_post_type_items( 'cpt' ) );
+		unregister_post_type( 'cpt' );
+	}
+
+	/**
 	 * @ticket 49116
 	 */
 	public function test_rest_get_route_for_post_non_rest() {
@@ -1816,10 +1881,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49116
+	 * @ticket 53656
 	 */
 	public function test_rest_get_route_for_post_custom_controller() {
 		$post = self::factory()->post->create_and_get( array( 'post_type' => 'wp_block' ) );
-		$this->assertSame( '', rest_get_route_for_post( $post ) );
+		$this->assertSame( '/wp/v2/blocks/' . $post->ID, rest_get_route_for_post( $post ) );
 	}
 
 	/**
@@ -1897,9 +1963,53 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54267
+	 */
+	public function test_rest_get_route_for_taxonomy_custom_namespace() {
+		register_taxonomy(
+			'ct',
+			'post',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'ct',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'ct' ) );
+
+		$this->assertSame( '/wordpress/v1/ct/' . $term->term_id, rest_get_route_for_term( $term ) );
+		unregister_taxonomy( 'ct' );
+	}
+
+	/**
+	 * @ticket 54267
+	 */
+	public function test_rest_get_route_for_taxonomy_items() {
+		$this->assertSame( '/wp/v2/categories', rest_get_route_for_taxonomy_items( 'category' ) );
+	}
+
+	/**
+	 * @ticket 54267
+	 */
+	public function test_rest_get_route_for_taxonomy_items_custom_namespace() {
+		register_taxonomy(
+			'ct',
+			'post',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'ct',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+
+		$this->assertSame( '/wordpress/v1/ct', rest_get_route_for_taxonomy_items( 'ct' ) );
+		unregister_post_type( 'ct' );
+	}
+
+	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_rest_is_object
+	 * @dataProvider data_rest_is_object
 	 *
 	 * @param bool  $expected Expected result of the check.
 	 * @param mixed $value    The value to check.
@@ -1914,7 +2024,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function _dp_rest_is_object() {
+	public function data_rest_is_object() {
 		return array(
 			array(
 				true,
@@ -1962,7 +2072,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_rest_sanitize_object
+	 * @dataProvider data_rest_sanitize_object
 	 *
 	 * @param array $expected Expected sanitized version.
 	 * @param mixed $value    The value to sanitize.
@@ -1972,7 +2082,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, $sanitized );
 	}
 
-	public function _dp_rest_sanitize_object() {
+	public function data_rest_sanitize_object() {
 		return array(
 			array(
 				array(),
@@ -2020,7 +2130,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_rest_is_array
+	 * @dataProvider data_rest_is_array
 	 *
 	 * @param bool  $expected Expected result of the check.
 	 * @param mixed $value    The value to check.
@@ -2035,7 +2145,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function _dp_rest_is_array() {
+	public function data_rest_is_array() {
 		return array(
 			array(
 				true,
@@ -2091,7 +2201,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_rest_sanitize_array
+	 * @dataProvider data_rest_sanitize_array
 	 *
 	 * @param array $expected Expected sanitized version.
 	 * @param mixed $value    The value to sanitize.
@@ -2101,7 +2211,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, $sanitized );
 	}
 
-	public function _dp_rest_sanitize_array() {
+	public function data_rest_sanitize_array() {
 		return array(
 			array(
 				array(),
@@ -2161,7 +2271,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 51146
 	 *
-	 * @dataProvider _dp_rest_is_integer
+	 * @dataProvider data_rest_is_integer
 	 *
 	 * @param bool  $expected Expected result of the check.
 	 * @param mixed $value    The value to check.
@@ -2176,7 +2286,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function _dp_rest_is_integer() {
+	public function data_rest_is_integer() {
 		return array(
 			array(
 				true,
@@ -2224,7 +2334,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 50300
 	 *
-	 * @dataProvider _dp_get_best_type_for_value
+	 * @dataProvider data_get_best_type_for_value
 	 *
 	 * @param string $expected The expected best type.
 	 * @param mixed  $value    The value to test.
@@ -2234,7 +2344,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, rest_get_best_type_for_value( $value, $types ) );
 	}
 
-	public function _dp_get_best_type_for_value() {
+	public function data_get_best_type_for_value() {
 		return array(
 			array(
 				'array',
@@ -2326,6 +2436,58 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'hello',
 				array( 'integer', 'string' ),
 			),
+		);
+	}
+
+	/**
+	 * @ticket 51722
+	 * @dataProvider data_rest_preload_api_request_embeds_links
+	 *
+	 * @param string   $embed        The embed parameter.
+	 * @param string[] $expected     The list of link relations that should be embedded.
+	 * @param string[] $not_expected The list of link relations that should not be embedded.
+	 */
+	public function test_rest_preload_api_request_embeds_links( $embed, $expected, $not_expected ) {
+		wp_set_current_user( 1 );
+		$post_id = self::factory()->post->create();
+		self::factory()->comment->create_post_comments( $post_id );
+
+		$url           = sprintf( '/wp/v2/posts/%d?%s', $post_id, $embed );
+		$preload_paths = array( $url );
+
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		$this->assertSame( array_keys( $preload_data ), $preload_paths );
+		$this->assertArrayHasKey( 'body', $preload_data[ $url ] );
+		$this->assertArrayHasKey( '_links', $preload_data[ $url ]['body'] );
+
+		if ( $expected ) {
+			$this->assertArrayHasKey( '_embedded', $preload_data[ $url ]['body'] );
+		} else {
+			$this->assertArrayNotHasKey( '_embedded', $preload_data[ $url ]['body'] );
+		}
+
+		foreach ( $expected as $rel ) {
+			$this->assertArrayHasKey( $rel, $preload_data[ $url ]['body']['_embedded'] );
+		}
+
+		foreach ( $not_expected as $rel ) {
+			$this->assertArrayNotHasKey( $rel, $preload_data[ $url ]['body']['_embedded'] );
+		}
+	}
+
+	public function data_rest_preload_api_request_embeds_links() {
+		return array(
+			array( '_embed=wp:term,author', array( 'wp:term', 'author' ), array( 'replies' ) ),
+			array( '_embed[]=wp:term&_embed[]=author', array( 'wp:term', 'author' ), array( 'replies' ) ),
+			array( '_embed', array( 'wp:term', 'author', 'replies' ), array() ),
+			array( '_embed=1', array( 'wp:term', 'author', 'replies' ), array() ),
+			array( '_embed=true', array( 'wp:term', 'author', 'replies' ), array() ),
+			array( '', array(), array() ),
 		);
 	}
 }

@@ -87,7 +87,8 @@ function post_submit_meta_box( $post, $args = array() ) {
 		endif;
 
 		/**
-		 * Fires before the post time/date setting in the Publish meta box.
+		 * Fires after the Save Draft (or Save as Pending) and Preview (or Preview Changes) buttons
+		 * in the Publish meta box.
 		 *
 		 * @since 4.4.0
 		 *
@@ -286,7 +287,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 					<?php
 					printf(
 						/* translators: %s: URL to the Customizer. */
-						__( 'This draft comes from your <a href="%s">unpublished customization changes</a>. You can edit, but there&#8217;s no need to publish now. It will be published automatically with those changes.' ),
+						__( 'This draft comes from your <a href="%s">unpublished customization changes</a>. You can edit, but there is no need to publish now. It will be published automatically with those changes.' ),
 						esc_url(
 							add_query_arg(
 								'changeset_uuid',
@@ -484,7 +485,7 @@ function post_format_meta_box( $post, $box ) {
 			if ( ! $post_format ) {
 				$post_format = '0';
 			}
-			// Add in the current one if it isn't there yet, in case the current theme doesn't support it.
+			// Add in the current one if it isn't there yet, in case the active theme doesn't support it.
 			if ( $post_format && ! in_array( $post_format, $post_formats[0], true ) ) {
 				$post_formats[0][] = $post_format;
 			}
@@ -638,7 +639,7 @@ function post_categories_meta_box( $post, $box ) {
 				</a>
 				<p id="<?php echo $tax_name; ?>-add" class="category-add wp-hidden-child">
 					<label class="screen-reader-text" for="new<?php echo $tax_name; ?>"><?php echo $taxonomy->labels->add_new_item; ?></label>
-					<input type="text" name="new<?php echo $tax_name; ?>" id="new<?php echo $tax_name; ?>" class="form-required form-input-tip" value="<?php echo esc_attr( $taxonomy->labels->new_item_name ); ?>" aria-required="true"/>
+					<input type="text" name="new<?php echo $tax_name; ?>" id="new<?php echo $tax_name; ?>" class="form-required form-input-tip" value="<?php echo esc_attr( $taxonomy->labels->new_item_name ); ?>" aria-required="true" />
 					<label class="screen-reader-text" for="new<?php echo $tax_name; ?>_parent">
 						<?php echo $taxonomy->labels->parent_item_colon; ?>
 					</label>
@@ -864,7 +865,7 @@ function post_comment_meta_box( $post ) {
 		$hidden = get_hidden_meta_boxes( get_current_screen() );
 		if ( ! in_array( 'commentsdiv', $hidden, true ) ) {
 			?>
-			<script type="text/javascript">jQuery(document).ready(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
+			<script type="text/javascript">jQuery(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
 			<?php
 		}
 
@@ -902,12 +903,14 @@ function post_slug_meta_box( $post ) {
  */
 function post_author_meta_box( $post ) {
 	global $user_ID;
+
+	$post_type_object = get_post_type_object( $post->post_type );
 	?>
 <label class="screen-reader-text" for="post_author_override"><?php _e( 'Author' ); ?></label>
 	<?php
 	wp_dropdown_users(
 		array(
-			'who'              => 'authors',
+			'capability'       => array( $post_type_object->cap->edit_posts ),
 			'name'             => 'post_author_override',
 			'selected'         => empty( $post->ID ) ? $user_ID : $post->post_author,
 			'include_selected' => true,
@@ -981,8 +984,8 @@ function page_attributes_meta_box( $post ) {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param string  $template The template used for the current post.
-		 * @param WP_Post $post     The current post.
+		 * @param string|false $template The template used for the current post.
+		 * @param WP_Post      $post     The current post.
 		 */
 		do_action( 'page_attributes_meta_box_template', $template, $post );
 		?>
@@ -1361,12 +1364,12 @@ function link_advanced_meta_box( $link ) {
 		<th scope="row"><label for="link_rating"><?php _e( 'Rating' ); ?></label></th>
 		<td><select name="link_rating" id="link_rating" size="1">
 		<?php
-		for ( $parsed_args = 0; $parsed_args <= 10; $parsed_args++ ) {
-			echo '<option value="' . $parsed_args . '"';
-			if ( isset( $link->link_rating ) && $link->link_rating == $parsed_args ) {
+		for ( $rating = 0; $rating <= 10; $rating++ ) {
+			echo '<option value="' . $rating . '"';
+			if ( isset( $link->link_rating ) && $link->link_rating == $rating ) {
 				echo ' selected="selected"';
 			}
-			echo( '>' . $parsed_args . '</option>' );
+			echo '>' . $rating . '</option>';
 		}
 		?>
 		</select>&nbsp;<?php _e( '(Leave at 0 for no rating.)' ); ?>
@@ -1580,7 +1583,13 @@ function register_and_do_post_meta_boxes( $post ) {
 	/**
 	 * Fires after all built-in meta boxes have been added, contextually for the given post type.
 	 *
-	 * The dynamic portion of the hook, `$post_type`, refers to the post type of the post.
+	 * The dynamic portion of the hook name, `$post_type`, refers to the post type of the post.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `add_meta_boxes_post`
+	 *  - `add_meta_boxes_page`
+	 *  - `add_meta_boxes_attachment`
 	 *
 	 * @since 3.0.0
 	 *

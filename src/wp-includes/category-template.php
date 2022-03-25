@@ -103,12 +103,12 @@ function get_the_category( $post_id = false ) {
  *
  * @since 0.71
  *
- * @param int $cat_ID Category ID.
+ * @param int $cat_id Category ID.
  * @return string|WP_Error Category name on success, WP_Error on failure.
  */
-function get_the_category_by_ID( $cat_ID ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	$cat_ID   = (int) $cat_ID;
-	$category = get_term( $cat_ID );
+function get_the_category_by_ID( $cat_id ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+	$cat_id   = (int) $cat_id;
+	$category = get_term( $cat_id );
 
 	if ( is_wp_error( $category ) ) {
 		return $category;
@@ -661,8 +661,9 @@ function wp_list_categories( $args = '' ) {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $output HTML output.
-	 * @param array  $args   An array of taxonomy-listing arguments.
+	 * @param string       $output HTML output.
+	 * @param array|string $args   An array or query string of taxonomy-listing arguments. See
+	 *                             wp_list_categories() for information on accepted arguments.
 	 */
 	$html = apply_filters( 'wp_list_categories', $output, $args );
 
@@ -688,7 +689,7 @@ function wp_list_categories( $args = '' ) {
  *     and get_terms() for the full lists of arguments that can be passed in `$args`.
  *
  *     @type int    $number    The number of tags to display. Accepts any positive integer
- *                             or zero to return all. Default 0 (all tags).
+ *                             or zero to return all. Default 45.
  *     @type string $link      Whether to display term editing links or term permalinks.
  *                             Accepts 'edit' and 'view'. Default 'view'.
  *     @type string $post_type The post type. Used to highlight the proper post type menu
@@ -736,9 +737,9 @@ function wp_tag_cloud( $args = '' ) {
 
 	foreach ( $tags as $key => $tag ) {
 		if ( 'edit' === $args['link'] ) {
-			$link = get_edit_term_link( $tag->term_id, $tag->taxonomy, $args['post_type'] );
+			$link = get_edit_term_link( $tag, $tag->taxonomy, $args['post_type'] );
 		} else {
-			$link = get_term_link( (int) $tag->term_id, $tag->taxonomy );
+			$link = get_term_link( $tag, $tag->taxonomy );
 		}
 
 		if ( is_wp_error( $link ) ) {
@@ -758,7 +759,8 @@ function wp_tag_cloud( $args = '' ) {
 	 * @since 2.3.0
 	 *
 	 * @param string|string[] $return Tag cloud as a string or an array, depending on 'format' argument.
-	 * @param array           $args   An array of tag cloud arguments.
+	 * @param array           $args   An array of tag cloud arguments. See wp_tag_cloud()
+	 *                                for information on accepted arguments.
 	 */
 	$return = apply_filters( 'wp_tag_cloud', $return, $args );
 
@@ -815,7 +817,7 @@ function default_topic_count_scale( $count ) {
  *     @type string   $order                      How to order the tags. Accepts 'ASC' (ascending),
  *                                                'DESC' (descending), or 'RAND' (random). Default 'ASC'.
  *     @type int|bool $filter                     Whether to enable filtering of the final output
- *                                                via {@see 'wp_generate_tag_cloud'}. Default 1|true.
+ *                                                via {@see 'wp_generate_tag_cloud'}. Default 1.
  *     @type string   $topic_count_text           Nooped plural text from _n_noop() to supply to
  *                                                tag counts. Default null.
  *     @type callable $topic_count_text_callback  Callback used to generate nooped plural text for
@@ -1341,8 +1343,14 @@ function get_the_term_list( $post_id, $taxonomy, $before = '', $sep = '', $after
 	/**
 	 * Filters the term links for a given taxonomy.
 	 *
-	 * The dynamic portion of the filter name, `$taxonomy`, refers
+	 * The dynamic portion of the hook name, `$taxonomy`, refers
 	 * to the taxonomy slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `term_links-category`
+	 *  - `term_links-post_tag`
+	 *  - `term_links-post_format`
 	 *
 	 * @since 2.5.0
 	 *

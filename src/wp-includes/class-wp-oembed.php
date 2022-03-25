@@ -102,6 +102,8 @@ class WP_oEmbed {
 			'#https?://www\.someecards\.com/usercards/viewcard/.+#i' => array( 'https://www.someecards.com/v2/oembed/', true ),
 			'#https?://some\.ly\/.+#i'                     => array( 'https://www.someecards.com/v2/oembed/', true ),
 			'#https?://(www\.)?tiktok\.com/.*/video/.*#i'  => array( 'https://www.tiktok.com/oembed', true ),
+			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
+			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -179,6 +181,8 @@ class WP_oEmbed {
 		 * | Someecards   | some.ly                                   | 4.9.0   |
 		 * | Crowdsignal  | survey.fm                                 | 5.1.0   |
 		 * | TikTok       | tiktok.com                                | 5.4.0   |
+		 * | Pinterest    | pinterest.com                             | 5.9.0   |
+		 * | WolframCloud | wolframcloud.com                          | 5.9.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -220,7 +224,7 @@ class WP_oEmbed {
 	 *
 	 * @param string $name      Method to call.
 	 * @param array  $arguments Arguments to pass when calling.
-	 * @return mixed|bool Return value of the callback, false otherwise.
+	 * @return mixed|false Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
 		if ( in_array( $name, $this->compat_methods, true ) ) {

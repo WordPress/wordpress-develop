@@ -339,7 +339,7 @@ class WP_REST_Request implements ArrayAccess {
 	/**
 	 * Retrieves the parameter priority order.
 	 *
-	 * Used when checking parameters in get_param().
+	 * Used when checking parameters in WP_REST_Request::get_param().
 	 *
 	 * @since 4.4.0
 	 *
@@ -371,15 +371,15 @@ class WP_REST_Request implements ArrayAccess {
 		$order[] = 'defaults';
 
 		/**
-		 * Filters the parameter order.
+		 * Filters the parameter priority order for a REST API request.
 		 *
-		 * The order affects which parameters are checked when using get_param() and family.
-		 * This acts similarly to PHP's `request_order` setting.
+		 * The order affects which parameters are checked when using WP_REST_Request::get_param()
+		 * and family. This acts similarly to PHP's `request_order` setting.
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param string[]        $order Array of types to check, in order of priority.
-		 * @param WP_REST_Request $this  The request object.
+		 * @param string[]        $order   Array of types to check, in order of priority.
+		 * @param WP_REST_Request $request The request object.
 		 */
 		return apply_filters( 'rest_request_parameter_order', $order, $this );
 	}
@@ -802,7 +802,8 @@ class WP_REST_Request implements ArrayAccess {
 
 		$order = $this->get_parameter_order();
 
-		$invalid_params = array();
+		$invalid_params  = array();
+		$invalid_details = array();
 
 		foreach ( $order as $type ) {
 			if ( empty( $this->params[ $type ] ) ) {
@@ -825,10 +826,12 @@ class WP_REST_Request implements ArrayAccess {
 					continue;
 				}
 
+				/** @var mixed|WP_Error $sanitized_value */
 				$sanitized_value = call_user_func( $param_args['sanitize_callback'], $value, $this, $key );
 
 				if ( is_wp_error( $sanitized_value ) ) {
-					$invalid_params[ $key ] = $sanitized_value->get_error_message();
+					$invalid_params[ $key ]  = implode( ' ', $sanitized_value->get_error_messages() );
+					$invalid_details[ $key ] = rest_convert_error_to_response( $sanitized_value )->get_data();
 				} else {
 					$this->params[ $type ][ $key ] = $sanitized_value;
 				}
@@ -841,8 +844,9 @@ class WP_REST_Request implements ArrayAccess {
 				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
 				array(
-					'status' => 400,
-					'params' => $invalid_params,
+					'status'  => 400,
+					'params'  => $invalid_params,
+					'details' => $invalid_details,
 				)
 			);
 		}
@@ -855,7 +859,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return bool|WP_Error True if there are no parameters to validate or if all pass validation,
+	 * @return true|WP_Error True if there are no parameters to validate or if all pass validation,
 	 *                       WP_Error if required parameters are missing.
 	 */
 	public function has_valid_params() {
@@ -894,13 +898,15 @@ class WP_REST_Request implements ArrayAccess {
 		 *
 		 * This is done after required checking as required checking is cheaper.
 		 */
-		$invalid_params = array();
+		$invalid_params  = array();
+		$invalid_details = array();
 
 		foreach ( $args as $key => $arg ) {
 
 			$param = $this->get_param( $key );
 
 			if ( null !== $param && ! empty( $arg['validate_callback'] ) ) {
+				/** @var bool|\WP_Error $valid_check */
 				$valid_check = call_user_func( $arg['validate_callback'], $param, $this, $key );
 
 				if ( false === $valid_check ) {
@@ -908,7 +914,8 @@ class WP_REST_Request implements ArrayAccess {
 				}
 
 				if ( is_wp_error( $valid_check ) ) {
-					$invalid_params[ $key ] = $valid_check->get_error_message();
+					$invalid_params[ $key ]  = implode( ' ', $valid_check->get_error_messages() );
+					$invalid_details[ $key ] = rest_convert_error_to_response( $valid_check )->get_data();
 				}
 			}
 		}
@@ -919,8 +926,9 @@ class WP_REST_Request implements ArrayAccess {
 				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
 				array(
-					'status' => 400,
-					'params' => $invalid_params,
+					'status'  => 400,
+					'params'  => $invalid_params,
+					'details' => $invalid_details,
 				)
 			);
 		}
@@ -949,6 +957,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param string $offset Parameter name.
 	 * @return bool Whether the parameter is set.
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetExists( $offset ) {
 		$order = $this->get_parameter_order();
 
@@ -969,6 +978,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param string $offset Parameter name.
 	 * @return mixed|null Value if set, null otherwise.
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
 		return $this->get_param( $offset );
 	}
@@ -981,6 +991,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param string $offset Parameter name.
 	 * @param mixed  $value  Parameter value.
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {
 		$this->set_param( $offset, $value );
 	}
@@ -992,6 +1003,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string $offset Parameter name.
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {
 		$order = $this->get_parameter_order();
 
@@ -1035,7 +1047,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		/**
-		 * Filters the request generated from a URL.
+		 * Filters the REST API request generated from a URL.
 		 *
 		 * @since 4.5.0
 		 *

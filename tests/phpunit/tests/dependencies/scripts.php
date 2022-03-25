@@ -2,14 +2,20 @@
 /**
  * @group dependencies
  * @group scripts
+ * @covers ::wp_enqueue_script
+ * @covers ::wp_register_script
+ * @covers ::wp_print_scripts
+ * @covers ::wp_script_add_data
+ * @covers ::wp_add_inline_script
+ * @covers ::wp_set_script_translations
  */
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_wp_scripts;
 
 	protected $wp_scripts_print_translations_output;
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
@@ -28,10 +34,10 @@ JS;
 		$this->wp_scripts_print_translations_output .= "\n";
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -39,7 +45,7 @@ JS;
 	 *
 	 * @ticket 11315
 	 */
-	function test_wp_enqueue_script() {
+	public function test_wp_enqueue_script() {
 		wp_enqueue_script( 'no-deps-no-version', 'example.com', array() );
 		wp_enqueue_script( 'empty-deps-no-version', 'example.com' );
 		wp_enqueue_script( 'empty-deps-version', 'example.com', array(), 1.2 );
@@ -60,7 +66,7 @@ JS;
 	/**
 	 * @ticket 42804
 	 */
-	function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
+	public function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
@@ -146,7 +152,7 @@ JS;
 	 *
 	 * @ticket 16024
 	 */
-	function test_wp_script_add_data_with_data_key() {
+	public function test_wp_script_add_data_with_data_key() {
 		// Enqueue and add data.
 		wp_enqueue_script( 'test-only-data', 'example.com', array(), null );
 		wp_script_add_data( 'test-only-data', 'data', 'testing' );
@@ -165,7 +171,7 @@ JS;
 	 *
 	 * @ticket 16024
 	 */
-	function test_wp_script_add_data_with_conditional_key() {
+	public function test_wp_script_add_data_with_conditional_key() {
 		// Enqueue and add conditional comments.
 		wp_enqueue_script( 'test-only-conditional', 'example.com', array(), null );
 		wp_script_add_data( 'test-only-conditional', 'conditional', 'gt IE 7' );
@@ -183,7 +189,7 @@ JS;
 	 *
 	 * @ticket 16024
 	 */
-	function test_wp_script_add_data_with_data_and_conditional_keys() {
+	public function test_wp_script_add_data_with_data_and_conditional_keys() {
 		// Enqueue and add data plus conditional comments for both.
 		wp_enqueue_script( 'test-conditional-with-data', 'example.com', array(), null );
 		wp_script_add_data( 'test-conditional-with-data', 'data', 'testing' );
@@ -203,7 +209,7 @@ JS;
 	 *
 	 * @ticket 16024
 	 */
-	function test_wp_script_add_data_with_invalid_key() {
+	public function test_wp_script_add_data_with_invalid_key() {
 		// Enqueue and add an invalid key.
 		wp_enqueue_script( 'test-invalid', 'example.com', array(), null );
 		wp_script_add_data( 'test-invalid', 'invalid', 'testing' );
@@ -221,7 +227,7 @@ JS;
 	 *
 	 * @ticket 31126
 	 */
-	function test_wp_register_script() {
+	public function test_wp_register_script() {
 		$this->assertTrue( wp_register_script( 'duplicate-handler', 'http://example.com' ) );
 		$this->assertFalse( wp_register_script( 'duplicate-handler', 'http://example.com' ) );
 	}
@@ -229,7 +235,7 @@ JS;
 	/**
 	 * @ticket 35229
 	 */
-	function test_wp_register_script_with_handle_without_source() {
+	public function test_wp_register_script_with_handle_without_source() {
 		$expected  = "<script type='text/javascript' src='http://example.com?ver=1' id='handle-one-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com?ver=2' id='handle-two-js'></script>\n";
 
@@ -245,7 +251,7 @@ JS;
 	/**
 	 * @ticket 35643
 	 */
-	function test_wp_enqueue_script_footer_alias() {
+	public function test_wp_enqueue_script_footer_alias() {
 		wp_register_script( 'foo', false, array( 'bar', 'baz' ), '1.0', true );
 		wp_register_script( 'bar', home_url( 'bar.js' ), array(), '1.0', true );
 		wp_register_script( 'baz', home_url( 'baz.js' ), array(), '1.0', true );
@@ -256,14 +262,18 @@ JS;
 		$footer = get_echo( 'wp_print_footer_scripts' );
 
 		$this->assertEmpty( $header );
-		$this->assertContains( home_url( 'bar.js' ), $footer );
-		$this->assertContains( home_url( 'baz.js' ), $footer );
+		$this->assertStringContainsString( home_url( 'bar.js' ), $footer );
+		$this->assertStringContainsString( home_url( 'baz.js' ), $footer );
 	}
 
 	/**
 	 * Test mismatch of groups in dependencies outputs all scripts in right order.
 	 *
 	 * @ticket 35873
+	 *
+	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::enqueue
+	 * @covers WP_Dependencies::do_items
 	 */
 	public function test_group_mismatch_in_deps() {
 		$scripts = new WP_Scripts;
@@ -309,7 +319,7 @@ JS;
 	/**
 	 * @ticket 35873
 	 */
-	function test_wp_register_script_with_dependencies_in_head_and_footer() {
+	public function test_wp_register_script_with_dependencies_in_head_and_footer() {
 		wp_register_script( 'parent', '/parent.js', array( 'child-head' ), null, true );            // In footer.
 		wp_register_script( 'child-head', '/child-head.js', array( 'child-footer' ), null, false ); // In head.
 		wp_register_script( 'child-footer', '/child-footer.js', array(), null, true );              // In footer.
@@ -330,7 +340,7 @@ JS;
 	/**
 	 * @ticket 35956
 	 */
-	function test_wp_register_script_with_dependencies_in_head_and_footer_in_reversed_order() {
+	public function test_wp_register_script_with_dependencies_in_head_and_footer_in_reversed_order() {
 		wp_register_script( 'child-head', '/child-head.js', array(), null, false );                      // In head.
 		wp_register_script( 'child-footer', '/child-footer.js', array(), null, true );                   // In footer.
 		wp_register_script( 'parent', '/parent.js', array( 'child-head', 'child-footer' ), null, true ); // In footer.
@@ -351,7 +361,7 @@ JS;
 	/**
 	 * @ticket 35956
 	 */
-	function test_wp_register_script_with_dependencies_in_head_and_footer_in_reversed_order_and_two_parent_scripts() {
+	public function test_wp_register_script_with_dependencies_in_head_and_footer_in_reversed_order_and_two_parent_scripts() {
 		wp_register_script( 'grandchild-head', '/grandchild-head.js', array(), null, false );             // In head.
 		wp_register_script( 'child-head', '/child-head.js', array(), null, false );                       // In head.
 		wp_register_script( 'child-footer', '/child-footer.js', array( 'grandchild-head' ), null, true ); // In footer.
@@ -382,7 +392,7 @@ JS;
 	/**
 	 * @ticket 14853
 	 */
-	function test_wp_add_inline_script_returns_bool() {
+	public function test_wp_add_inline_script_returns_bool() {
 		$this->assertFalse( wp_add_inline_script( 'test-example', 'console.log("before");', 'before' ) );
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		$this->assertTrue( wp_add_inline_script( 'test-example', 'console.log("before");', 'before' ) );
@@ -391,7 +401,7 @@ JS;
 	/**
 	 * @ticket 14853
 	 */
-	function test_wp_add_inline_script_unknown_handle() {
+	public function test_wp_add_inline_script_unknown_handle() {
 		$this->assertFalse( wp_add_inline_script( 'test-invalid', 'console.log("before");', 'before' ) );
 		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
@@ -399,7 +409,7 @@ JS;
 	/**
 	 * @ticket 14853
 	 */
-	function test_wp_add_inline_script_before() {
+	public function test_wp_add_inline_script_before() {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 
@@ -412,7 +422,7 @@ JS;
 	/**
 	 * @ticket 14853
 	 */
-	function test_wp_add_inline_script_after() {
+	public function test_wp_add_inline_script_after() {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 
@@ -425,7 +435,7 @@ JS;
 	/**
 	 * @ticket 14853
 	 */
-	function test_wp_add_inline_script_before_and_after() {
+	public function test_wp_add_inline_script_before_and_after() {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
@@ -440,7 +450,7 @@ JS;
 	/**
 	 * @ticket 44551
 	 */
-	function test_wp_add_inline_script_before_for_handle_without_source() {
+	public function test_wp_add_inline_script_before_for_handle_without_source() {
 		wp_register_script( 'test-example', '' );
 		wp_enqueue_script( 'test-example' );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
@@ -453,7 +463,7 @@ JS;
 	/**
 	 * @ticket 44551
 	 */
-	function test_wp_add_inline_script_after_for_handle_without_source() {
+	public function test_wp_add_inline_script_after_for_handle_without_source() {
 		wp_register_script( 'test-example', '' );
 		wp_enqueue_script( 'test-example' );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
@@ -466,7 +476,7 @@ JS;
 	/**
 	 * @ticket 44551
 	 */
-	function test_wp_add_inline_script_before_and_after_for_handle_without_source() {
+	public function test_wp_add_inline_script_before_and_after_for_handle_without_source() {
 		wp_register_script( 'test-example', '' );
 		wp_enqueue_script( 'test-example' );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
@@ -481,7 +491,7 @@ JS;
 	/**
 	 * @ticket 14853
 	 */
-	function test_wp_add_inline_script_multiple() {
+	public function test_wp_add_inline_script_multiple() {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
@@ -498,7 +508,7 @@ JS;
 	/**
 	 * @ticket 14853
 	 */
-	function test_wp_add_inline_script_localized_data_is_added_first() {
+	public function test_wp_add_inline_script_localized_data_is_added_first() {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_localize_script( 'test-example', 'testExample', array( 'foo' => 'bar' ) );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
@@ -711,23 +721,24 @@ JS;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$ver       = get_bloginfo( 'version' );
 		$suffix    = wp_scripts_get_suffix();
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$ver}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/vendor/wp-polyfill{$suffix}.js' id='wp-polyfill-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='wp-polyfill-js-after'>\n";
-		$expected .= "( 'fetch' in window ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-fetch{$suffix}.js\"></scr' + 'ipt>' );( document.contains ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-node-contains{$suffix}.js\"></scr' + 'ipt>' );( window.DOMRect ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-dom-rect{$suffix}.js\"></scr' + 'ipt>' );( window.URL && window.URL.prototype && window.URLSearchParams ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-url{$suffix}.js\"></scr' + 'ipt>' );( window.FormData && window.FormData.prototype.keys ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-formdata{$suffix}.js\"></scr' + 'ipt>' );( Element.prototype.matches && Element.prototype.closest ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-element-closest{$suffix}.js\"></scr' + 'ipt>' );\n";
-		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/dom-ready{$suffix}.js' id='wp-dom-ready-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n{$suffix}.js' id='wp-i18n-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='wp-a11y-js-translations'>\n";
-		$expected .= "( function( domain, translations ) {\n";
-		$expected .= "	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;\n";
-		$expected .= "	localeData[\"\"].domain = domain;\n";
-		$expected .= "	wp.i18n.setLocaleData( localeData, domain );\n";
-		$expected .= "} )( \"default\", { \"locale_data\": { \"messages\": { \"\": {} } } } );\n";
+		$expected .= "<script type='text/javascript' id='wp-i18n-js-after'>\n";
+		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
 		$expected .= "</script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y{$suffix}.js' id='wp-a11y-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example2.com' id='test-example2-js'></script>\n";
@@ -738,8 +749,12 @@ JS;
 		wp_enqueue_script( 'test-example2', 'http://example2.com', array( 'wp-a11y' ), null );
 		wp_add_inline_script( 'test-example2', 'console.log("after");', 'after' );
 
-		$print_scripts  = get_echo( 'wp_print_scripts' );
-		$print_scripts .= get_echo( '_print_scripts' );
+		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
+		$this->expectOutputRegex( '`.`' );
+
+		wp_print_scripts();
+		_print_scripts();
+		$print_scripts = $this->getActualOutput();
 
 		/*
 		 * We've replaced wp-a11y.js with @wordpress/a11y package (see #45066),
@@ -768,6 +783,16 @@ JS;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$expected_tail  = "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'></script>\n";
 		$expected_tail .= "<script type='text/javascript' id='customize-dependency-js-after'>\n";
 		$expected_tail .= "tryCustomizeDependency()\n";
@@ -777,8 +802,12 @@ JS;
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
 		wp_add_inline_script( $handle, 'tryCustomizeDependency()' );
 
-		$print_scripts  = get_echo( 'wp_print_scripts' );
-		$print_scripts .= get_echo( '_print_scripts' );
+		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
+		$this->expectOutputRegex( '`.`' );
+
+		wp_print_scripts();
+		_print_scripts();
+		$print_scripts = $this->getActualOutput();
 
 		$tail = substr( $print_scripts, strrpos( $print_scripts, "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'>" ) );
 		$this->assertSame( $expected_tail, $tail );
@@ -958,6 +987,7 @@ JS;
 
 	/**
 	 * @ticket 45103
+	 * @ticket 55250
 	 */
 	public function test_wp_set_script_translations_when_translation_file_does_not_exist() {
 		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
@@ -965,19 +995,6 @@ JS;
 		wp_set_script_translations( 'test-example', 'admin', DIR_TESTDATA . '/languages/' );
 
 		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js' id='wp-i18n-js'></script>\n";
-		$expected .= str_replace(
-			array(
-				'__DOMAIN__',
-				'__HANDLE__',
-				'__JSON_TRANSLATIONS__',
-			),
-			array(
-				'admin',
-				'test-example',
-				'{ "locale_data": { "messages": { "": {} } } }',
-			),
-			$this->wp_scripts_print_translations_output
-		);
 		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js' id='test-example-js'></script>\n";
 
 		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
@@ -1403,15 +1420,65 @@ JS;
 		);
 	}
 
-	function test_no_source_mapping() {
-		$all_files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( dirname( ABSPATH ) . '/build/' ) );
-		$js_files  = new RegexIterator( $all_files, '/\.js$/' );
-		foreach ( $js_files as $js_file ) {
-			$contents = trim( file_get_contents( $js_file ) );
-
-			// We allow data: URLs.
-			$found = preg_match( '/sourceMappingURL=((?!data:).)/', $contents );
-			$this->assertSame( $found, 0, "sourceMappingURL found in $js_file" );
+	/**
+	 * @ticket 52534
+	 * @covers ::wp_localize_script
+	 *
+	 * @dataProvider data_wp_localize_script_data_formats
+	 *
+	 * @param mixed  $l10n_data Localization data passed to wp_localize_script().
+	 * @param string $expected  Expected transformation of localization data.
+	 * @param string $warning   Optional. Whether a PHP native warning/error is expected. Default false.
+	 */
+	public function test_wp_localize_script_data_formats( $l10n_data, $expected, $warning = false ) {
+		if ( $warning ) {
+			if ( PHP_VERSION_ID < 80000 ) {
+				$this->expectWarning();
+			} else {
+				$this->expectError();
+			}
 		}
+
+		if ( ! is_array( $l10n_data ) ) {
+			$this->setExpectedIncorrectUsage( 'WP_Scripts::localize' );
+		}
+
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		wp_localize_script( 'test-example', 'testExample', $l10n_data );
+
+		$expected  = "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {$expected};\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * Data provider for test_wp_localize_script_data_formats().
+	 *
+	 * @return array[] {
+	 *     Array of arguments for test.
+	 *
+	 *     @type mixed  $l10n_data Localization data passed to wp_localize_script().
+	 *     @type string $expected  Expected transformation of localization data.
+	 *     @type string $warning   Optional. Whether a PHP native warning/error is expected.
+	 * }
+	 */
+	public function data_wp_localize_script_data_formats() {
+		return array(
+			// Officially supported formats.
+			array( array( 'array value, no key' ), '["array value, no key"]' ),
+			array( array( 'foo' => 'bar' ), '{"foo":"bar"}' ),
+			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
+			array( array( 'foo' => 6.6 ), '{"foo":"6.6"}' ),
+			array( array( 'foo' => 6 ), '{"foo":"6"}' ),
+
+			// Unofficially supported format.
+			array( 'string', '"string"' ),
+
+			// Unsupported formats.
+			array( 1.5, '1.5', true ),
+			array( 1, '1', true ),
+			array( false, '[""]' ),
+		);
 	}
 }

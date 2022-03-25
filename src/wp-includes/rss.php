@@ -403,8 +403,8 @@ if ( !function_exists('fetch_rss') ) :
  * @package External
  * @subpackage MagpieRSS
  *
- * @param string $url URL to retrieve feed
- * @return bool|MagpieRSS false on failure or MagpieRSS object on success.
+ * @param string $url URL to retrieve feed.
+ * @return MagpieRSS|false MagpieRSS object on success, false on failure.
  */
 function fetch_rss ($url) {
 	// initialize constants
@@ -761,7 +761,7 @@ class RSSCache {
 
 		if ( ! $rss = get_transient( $cache_option ) ) {
 			$this->debug(
-				"Cache doesn't contain: $url (cache option: $cache_option)"
+				"Cache does not contain: $url (cache option: $cache_option)"
 			);
 			return 0;
 		}

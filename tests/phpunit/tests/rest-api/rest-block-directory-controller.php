@@ -69,6 +69,11 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
+		$this->mock_remote_request(
+			array(
+				'body' => '{"info":{"page":1,"pages":0,"results":0},"plugins":[]}',
+			)
+		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
 		$request->set_query_params( array( 'term' => 'foo' ) );
@@ -89,7 +94,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 
 		$this->prevent_requests_to_host( 'api.wordpress.org' );
 
-		$this->expectException( 'PHPUnit_Framework_Error_Warning' );
+		$this->expectWarning();
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'plugins_api_failed', $response, 500 );
 	}
@@ -109,6 +114,11 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	 */
 	public function test_get_items_no_results() {
 		wp_set_current_user( self::$admin_id );
+		$this->mock_remote_request(
+			array(
+				'body' => '{"info":{"page":1,"pages":0,"results":0},"plugins":[]}',
+			)
+		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
 		$request->set_query_params( array( 'term' => '0c4549ee68f24eaaed46a49dc983ecde' ) );
@@ -285,6 +295,33 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 			),
 			'author_block_count'       => 1,
 			'author_block_rating'      => 0,
+		);
+	}
+
+	/**
+	 * Mocks the remote request via `'pre_http_request'` filter by
+	 * returning the expected response.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array $expected Expected response, which is merged with the default response.
+	 */
+	private function mock_remote_request( array $expected ) {
+		add_filter(
+			'pre_http_request',
+			static function() use ( $expected ) {
+				$default = array(
+					'headers'  => array(),
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'body'     => '',
+					'cookies'  => array(),
+					'filename' => null,
+				);
+				return array_merge( $default, $expected );
+			}
 		);
 	}
 }
