@@ -421,7 +421,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 */
 	public function exists( $file ) {
 		if ( $this->is_dir( $file ) ) {
-			return true; // File is an empty directory.
+			return true;
 		}
 
 		return 0 > $this->size( $file );
