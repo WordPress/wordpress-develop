@@ -1092,7 +1092,7 @@ function wp_user_settings() {
 		$cookie = preg_replace( '/&(amp)+;/', '&', $_COOKIE[ 'wp-settings-' . $user_id ] );
 
 		// Sanitize cookie
-		$cookie = preg_replace( '/[^A-Za-z0-9=&_]/', '',  $cookie );
+		$cookie = preg_replace( '/[^A-Za-z0-9=&_]/', '', $cookie );
 
 		// No change or both empty.
 		if ( $cookie == $settings ) {
