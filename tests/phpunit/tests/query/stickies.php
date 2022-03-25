@@ -131,7 +131,7 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 	 * @ticket 36907
 	 */
 	public function test_stickies_should_limit_query() {
-		$sticky_count = 5;
+		$sticky_count = 6;
 		$post_date    = gmdate( 'Y-m-d H:i:s', time() - 10000 );
 		$post_ids     = self::factory()->post->create_many( $sticky_count, array( 'post_date' => $post_date ) );
 		add_filter(
