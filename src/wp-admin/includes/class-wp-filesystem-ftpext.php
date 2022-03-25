@@ -415,7 +415,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @since 6.0.0 Rewrite using file size.
 	 *
 	 * @param string $file Path to file or directory.
-	 * @return bool        Whether $file exists or not.
+	 * @return bool Whether $file exists or not.
 	 */
 	public function exists( $file ) {
 		if ( $this->is_dir( $file ) ) {
