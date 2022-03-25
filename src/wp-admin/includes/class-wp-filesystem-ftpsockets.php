@@ -424,7 +424,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			return true;
 		}
 
-		return 0 > $this->size( $file );
+		return 0 < (int) $this->size( $file );
 	}
 
 	/**
