@@ -412,7 +412,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * Checks if a file or directory exists.
 	 *
 	 * @since 2.5.0
-	 * @since 6.0.0 Rewrite using file size.
+	 * @since 6.0.0 Rewrite using file size, ftp_nlist as fallback.
 	 *
 	 * @param string $file Path to file or directory.
 	 * @return bool Whether $file exists or not.
@@ -422,7 +422,17 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return true;
 		}
 
-		return -1 !== $this->size( $file );
+		// Use the ftp "SIZE" command, if available.
+		if ( -1 !== ftp_size( $this->link, __FILE__ ) ) {
+			return -1 !== ftp_size( $this->link, $file );
+		}
+
+		// Run NLST on the directory.
+		// TODO: Add support for hidden files.
+		$dir   = wp_normalize_path( dirname( $file ) );
+		$files = ftp_nlist( $this->link, $dir );
+
+		return $files && in_array( $file, $files, true );
 	}
 
 	/**
