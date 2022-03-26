@@ -5271,7 +5271,7 @@ function wp_widgets_add_menu() {
  */
 function wp_ob_end_flush_all() {
 	$levels = ob_get_level();
-	for ( $i = 0; $i < $levels; $i++ ) {
+	for ( $i = 1; $i < $levels; $i++ ) {
 		ob_end_flush();
 	}
 }
