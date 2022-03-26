@@ -807,17 +807,29 @@ class WP_User_Query {
 		}
 
 		if ( 'all_with_meta' === $qv['fields'] ) {
+			if ( is_multisite() ) {
+				switch_to_blog( $qv['blog_id'] );
+			}
 			cache_users( $this->results );
 
 			$r = array();
 			foreach ( $this->results as $userid ) {
-				$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
+				$r[ $userid ] = new WP_User( $userid );
 			}
 
 			$this->results = $r;
+			if ( is_multisite() ) {
+				restore_current_blog();
+			}
 		} elseif ( 'all' === $qv['fields'] ) {
+			if ( is_multisite() ) {
+				switch_to_blog( $qv['blog_id'] );
+			}
 			foreach ( $this->results as $key => $user ) {
-				$this->results[ $key ] = new WP_User( $user, '', $qv['blog_id'] );
+				$this->results[ $key ] = new WP_User( $user );
+			}
+			if ( is_multisite() ) {
+				restore_current_blog();
 			}
 		}
 	}
