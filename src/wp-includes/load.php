@@ -265,8 +265,7 @@ function wp_get_runtime_environment() {
 
 	// Fetch the runtime environment from a constant, this overrides the global system variable.
 	if ( defined( 'WP_RUNTIME_ENVIRONMENT' ) ) {
-		$current_runtime_env = WP_RUNTIME_ENVIRONMENT;
-		$runtime_constant    = $current_runtime_env;
+		$runtime_constant = WP_RUNTIME_ENVIRONMENT;
 	}
 
 	// Fetch the runtime environment from global system variable.
@@ -274,8 +273,7 @@ function wp_get_runtime_environment() {
 		// Check if the runtime environment variable has been set, if `getenv` is available on the system.
 		$has_runtime_env = getenv( 'WP_RUNTIME_ENVIRONMENT' );
 		if ( false !== $has_runtime_env ) {
-			$current_runtime_env = $has_runtime_env;
-			$runtime_getenv      = $current_runtime_env;
+			$runtime_getenv = $has_runtime_env;
 		}
 	}
 
