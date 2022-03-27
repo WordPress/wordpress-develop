@@ -70,7 +70,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			return;
 		} elseif ( ! version_compare( phpversion( 'ssh2' ), '0.12', '>=' ) ) {
 			/* translators: %s version number of the ssh2 PHP extension */
-			$this->errors->add( 'ssh2_ext_version_too_low', __( sprintf( 'The ssh2 PHP extension version must be greater than or equal to %s', '0.12' ) ) );
+			$this->errors->add( 'ssh2_ext_version_too_low', sprintf( _( 'The ssh2 PHP extension version must be greater than or equal to %s' ), '0.12' ) );
 			return;
 		}
 
