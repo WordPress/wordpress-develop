@@ -68,10 +68,6 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 		if ( ! extension_loaded( 'ssh2' ) ) {
 			$this->errors->add( 'no_ssh2_ext', __( 'The ssh2 PHP extension is not available' ) );
 			return;
-		} elseif ( ! version_compare( phpversion( 'ssh2' ), '0.12', '>=' ) ) {
-			/* translators: %s version number of the ssh2 PHP extension */
-			$this->errors->add( 'ssh2_ext_version_too_low', sprintf( __( 'The ssh2 PHP extension version must be greater than or equal to %s' ), '0.12' ) );
-			return;
 		}
 
 		// Set defaults:
@@ -360,6 +356,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function chmod( $file, $mode = false, $recursive = false ) {
+		static $supports_ssh2_sftp_chmod;
+
 		if ( ! $this->exists( $file ) ) {
 			return false;
 		}
@@ -374,16 +372,28 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			}
 		}
 
-		if ( ! $recursive || ! $this->is_dir( $file ) ) {
-			return ssh2_sftp_chmod( $this->sftp_link, $file, $mode );
+		if ( null === $supports_ssh2_sftp_chmod ) {
+			$supports_ssh2_sftp_chmod = function_exists( 'ssh2_sftp_chmod' );
 		}
 
-		// Is a directory, and we want recursive.
-		$file     = trailingslashit( $file );
-		$filelist = $this->dirlist( $file );
+		if ( $supports_ssh2_sftp_chmod ) {
+			if ( ! $recursive || ! $this->is_dir( $file ) ) {
+				return ssh2_sftp_chmod( $this->sftp_link, $file, $mode );
+			}
 
-		foreach ( (array) $filelist as $filename => $filemeta ) {
-			$this->chmod( $file . $filename, $mode, $recursive );
+			// Is a directory, and we want recursive.
+			$file     = trailingslashit( $file );
+			$filelist = $this->dirlist( $file );
+
+			foreach ( (array) $filelist as $filename => $filemeta ) {
+				$this->chmod( $file . $filename, $mode, $recursive );
+			}
+		} else {
+			if ( ! $recursive || ! $this->is_dir( $file ) ) {
+				return $this->run_command( sprintf( 'chmod %o %s', $mode, escapeshellarg( $file ) ), true );
+			}
+
+			return $this->run_command( sprintf( 'chmod -R %o %s', $mode, escapeshellarg( $file ) ), true );
 		}
 
 		return true;
