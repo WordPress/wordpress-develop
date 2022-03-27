@@ -44,6 +44,7 @@ class WP_Debug_Data {
 		$blog_public            = get_option( 'blog_public' );
 		$default_comment_status = get_option( 'default_comment_status' );
 		$environment_type       = wp_get_environment_type();
+		$runtime_environment    = wp_get_runtime_environment();
 		$core_version           = get_bloginfo( 'version' );
 		$core_updates           = get_core_updates();
 		$core_update_needed     = '';
@@ -126,6 +127,11 @@ class WP_Debug_Data {
 					'label' => __( 'Environment type' ),
 					'value' => $environment_type,
 					'debug' => $environment_type,
+				),
+				'runtime_environment'    => array(
+					'label' => __( 'Runtime Environment' ),
+					'value' => ! empty( $runtime_environment ) ? $runtime_environment : __( 'Undefined' ),
+					'debug' => $runtime_environment,
 				),
 			),
 		);
