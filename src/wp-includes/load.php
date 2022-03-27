@@ -279,18 +279,6 @@ function wp_get_runtime_environment() {
 		}
 	}
 
-	// If set to something in $wp_runtime_environments use it, default is ''.
-	switch ( true ) {
-		case in_array( $runtime_constant, $wp_runtime_environments, true ):
-			$current_runtime_env = $runtime_constant;
-			break;
-		case in_array( $runtime_getenv, $wp_runtime_environments, true ):
-			$current_runtime_env = $runtime_getenv;
-			break;
-		default:
-			$current_runtime_env = '';
-	}
-
 	// If WP_RUNTIME_ENVIRONMENT constant and environmental variable are different.
 	if ( ( ! empty( $runtime_constant ) && ! empty( $runtime_getenv ) )
 		&& $runtime_constant !== $runtime_getenv
@@ -304,8 +292,19 @@ function wp_get_runtime_environment() {
 		return false;
 	}
 
-	return $current_runtime_env;
+	// If set to something in $wp_runtime_environments use it, default is ''.
+	switch ( true ) {
+		case in_array( $runtime_constant, $wp_runtime_environments, true ):
+			$current_runtime_env = $runtime_constant;
+			break;
+		case in_array( $runtime_getenv, $wp_runtime_environments, true ):
+			$current_runtime_env = $runtime_getenv;
+			break;
+		default:
+			$current_runtime_env = '';
+	}
 
+	return $current_runtime_env;
 }
 
 /**
