@@ -250,10 +250,12 @@ function wp_get_environment_type() {
  *
  * @since 6.0.0
  *
- * @return string The current runtime environment.
+ * @return string|false The current runtime environment type. false on failure.
  */
 function wp_get_runtime_environment() {
 	static $current_runtime_env = '';
+	static $runtime_constant    = '';
+	static $runtime_getenv      = '';
 
 	if ( ! defined( 'WP_RUN_CORE_TESTS' ) && $current_runtime_env ) {
 		return $current_runtime_env;
@@ -264,20 +266,46 @@ function wp_get_runtime_environment() {
 	// Fetch the runtime environment from a constant, this overrides the global system variable.
 	if ( defined( 'WP_RUNTIME_ENVIRONMENT' ) ) {
 		$current_runtime_env = WP_RUNTIME_ENVIRONMENT;
-	} elseif ( function_exists( 'getenv' ) ) {
+		$runtime_constant    = $current_runtime_env;
+	}
+
+	// Fetch the runtime environment from global system variable.
+	if ( function_exists( 'getenv' ) ) {
 		// Check if the runtime environment variable has been set, if `getenv` is available on the system.
 		$has_runtime_env = getenv( 'WP_RUNTIME_ENVIRONMENT' );
 		if ( false !== $has_runtime_env ) {
 			$current_runtime_env = $has_runtime_env;
+			$runtime_getenv      = $current_runtime_env;
 		}
 	}
 
-	// Make sure the runtime environment is an allowed one, and not accidentally set to an invalid value.
-	if ( ! in_array( $current_runtime_env, $wp_runtime_environments, true ) ) {
-		$current_runtime_env = '';
+	// If set to something in $wp_runtime_environments use it, default is ''.
+	switch ( true ) {
+		case in_array( $runtime_constant, $wp_runtime_environments, true ):
+			$current_runtime_env = $runtime_constant;
+			break;
+		case in_array( $runtime_getenv, $wp_runtime_environments, true ):
+			$current_runtime_env = $runtime_getenv;
+			break;
+		default:
+			$current_runtime_env = '';
+	}
+
+	// If WP_RUNTIME_ENVIRONMENT constant and environmental variable are different.
+	if ( ( ! empty( $runtime_constant ) && ! empty( $runtime_getenv ) )
+		&& $runtime_constant !== $runtime_getenv
+	) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'The WP_RUNTIME_ENVIRONMENT environment variable and constant do not match. Fallbacks will be used, which may negatively impact performance.' ),
+			'6.0.0'
+		);
+
+		return false;
 	}
 
 	return $current_runtime_env;
+
 }
 
 /**
