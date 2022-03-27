@@ -263,7 +263,7 @@ function wp_get_runtime_environment() {
 
 	$wp_runtime_environments = array( 'virtualbox' );
 
-	// Fetch the runtime environment from a constant, this overrides the global system variable.
+	// Fetch the runtime environment from a constant.
 	if ( defined( 'WP_RUNTIME_ENVIRONMENT' ) ) {
 		$runtime_constant = WP_RUNTIME_ENVIRONMENT;
 	}
@@ -291,6 +291,7 @@ function wp_get_runtime_environment() {
 	}
 
 	// If set to something in $wp_runtime_environments use it, default is ''.
+	// Preference to a set constant.
 	switch ( true ) {
 		case in_array( $runtime_constant, $wp_runtime_environments, true ):
 			$current_runtime_env = $runtime_constant;
