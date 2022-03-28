@@ -761,7 +761,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -785,7 +785,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -809,7 +809,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -839,7 +839,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -872,7 +872,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -906,7 +906,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -939,7 +939,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -973,7 +973,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1039,7 +1039,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1060,7 +1060,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1082,7 +1082,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1104,7 +1104,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1126,7 +1126,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1161,7 +1161,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *  - `post_type` not specified
 	 *
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1197,7 +1197,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1225,7 +1225,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1253,7 +1253,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 47280
 	 * @group ms-required
-	 * @dataProvider dataFields
+	 * @dataProvider data_fields
 	 *
 	 * @param string $fields
 	 */
@@ -1330,7 +1330,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertEquals( 5, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
-	public function dataFields() {
+	public function data_fields() {
 		return array(
 			'posts'   => array(
 				'',
