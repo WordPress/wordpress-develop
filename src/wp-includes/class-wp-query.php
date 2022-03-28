@@ -3024,13 +3024,8 @@ class WP_Query implements JsonSerializable, Serializable {
 			$orderby = 'ORDER BY ' . $orderby;
 		}
 
-		$found_rows = '';
-		if ( ! $q['no_found_rows'] && ! empty( $limits ) ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS';
-		}
-
 		$old_request = "
-			SELECT $found_rows $distinct $fields
+			SELECT $distinct $fields
 			FROM {$wpdb->posts} $join
 			WHERE 1=1 $where
 			$groupby
@@ -3133,7 +3128,7 @@ class WP_Query implements JsonSerializable, Serializable {
 				// First get the IDs and then fill in the objects.
 
 				$this->request = "
-					SELECT $found_rows $distinct {$wpdb->posts}.ID
+					SELECT $distinct {$wpdb->posts}.ID
 					FROM {$wpdb->posts} $join
 					WHERE 1=1 $where
 					$groupby
