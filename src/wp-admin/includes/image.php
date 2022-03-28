@@ -254,6 +254,31 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		$image_meta['image_meta'] = $exif_meta;
 	}
 
+	/**
+	 * Filters the "BIG image" threshold value.
+	 *
+	 * If the original image width or height is above the threshold, it will be scaled down. The threshold is
+	 * used as max width and max height. The scaled down image will be used as the largest available size, including
+	 * the `_wp_attached_file` post meta value.
+	 *
+	 * Returning `false` from the filter callback will disable the scaling.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param int    $threshold     The threshold value in pixels. Default 2560.
+	 * @param array  $imagesize     {
+	 *     Indexed array of the image width and height in pixels.
+	 *
+	 *     @type int $0 The image width.
+	 *     @type int $1 The image height.
+	 * }
+	 * @param string $file          Full path to the uploaded image file.
+	 * @param int    $attachment_id Attachment post ID.
+	 */
+	$threshold = (int) apply_filters( 'big_image_size_threshold', 2560, $imagesize, $file, $attachment_id );
+
+	$over_threshold = $threshold && ( $image_meta['width'] > $threshold || $image_meta['height'] > $threshold );
+
 	// Calculate the primary (first) and additional mime types to generate.
 	$mime_types_to_generate = _wp_get_primary_and_additional_mime_types( $file, $attachment_id );
 	foreach ( $mime_types_to_generate as $output_index => $output_mime_type ) {
@@ -273,32 +298,9 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			}
 			$editor->set_mime_type( $output_mime_type );
 
-			/**
-			 * Filters the "BIG image" threshold value.
-			 *
-			 * If the original image width or height is above the threshold, it will be scaled down. The threshold is
-			 * used as max width and max height. The scaled down image will be used as the largest available size, including
-			 * the `_wp_attached_file` post meta value.
-			 *
-			 * Returning `false` from the filter callback will disable the scaling.
-			 *
-			 * @since 5.3.0
-			 *
-			 * @param int    $threshold     The threshold value in pixels. Default 2560.
-			 * @param array  $imagesize     {
-			 *     Indexed array of the image width and height in pixels.
-			 *
-			 *     @type int $0 The image width.
-			 *     @type int $1 The image height.
-			 * }
-			 * @param string $file          Full path to the uploaded image file.
-			 * @param int    $attachment_id Attachment post ID.
-			 */
-			$threshold = (int) apply_filters( 'big_image_size_threshold', 2560, $imagesize, $file, $attachment_id );
-
 			// If the original image's dimensions are over the threshold,
 			// scale the image and use it as the "full" size.
-			if ( $threshold && ( $image_meta['width'] > $threshold || $image_meta['height'] > $threshold ) ) {
+			if ( $over_threshold ) {
 
 				// Resize the image.
 				$resized = $editor->resize( $threshold, $threshold );
