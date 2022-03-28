@@ -74,13 +74,13 @@ abstract class WP_Widget_Media extends WP_Widget {
 			'add_to_widget'              => __( 'Add to Widget' ),
 			'missing_attachment'         => sprintf(
 				/* translators: %s: URL to media library. */
-				__( 'We can&#8217;t find that file. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
+				__( 'We cannot find that file. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
 				esc_url( admin_url( 'upload.php' ) )
 			),
 			/* translators: %d: Widget count. */
 			'media_library_state_multi'  => _n_noop( 'Media Widget (%d)', 'Media Widget (%d)' ),
 			'media_library_state_single' => __( 'Media Widget' ),
-			'unsupported_file_type'      => __( 'Looks like this isn&#8217;t the correct kind of file. Please link to an appropriate file instead.' ),
+			'unsupported_file_type'      => __( 'Looks like this is not the correct kind of file. Please link to an appropriate file instead.' ),
 		);
 		$this->l10n    = array_merge( $l10n_defaults, array_filter( $this->l10n ) );
 
@@ -259,16 +259,18 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * Sanitizes the widget form values as they are saved.
 	 *
 	 * @since 4.8.0
+	 * @since 5.9.0 Renamed `$instance` to `$old_instance` to match parent class
+	 *              for PHP 8 named parameter support.
 	 *
 	 * @see WP_Widget::update()
 	 * @see WP_REST_Request::has_valid_params()
 	 * @see WP_REST_Request::sanitize_params()
 	 *
 	 * @param array $new_instance Values just sent to be saved.
-	 * @param array $instance     Previously saved values from database.
+	 * @param array $old_instance Previously saved values from database.
 	 * @return array Updated safe values to be saved.
 	 */
-	public function update( $new_instance, $instance ) {
+	public function update( $new_instance, $old_instance ) {
 
 		$schema = $this->get_instance_schema();
 		foreach ( $schema as $field => $field_schema ) {
@@ -303,10 +305,10 @@ abstract class WP_Widget_Media extends WP_Widget {
 			if ( is_wp_error( $value ) ) {
 				continue;
 			}
-			$instance[ $field ] = $value;
+			$old_instance[ $field ] = $value;
 		}
 
-		return $instance;
+		return $old_instance;
 	}
 
 	/**
@@ -315,7 +317,6 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @since 4.8.0
 	 *
 	 * @param array $instance Widget instance props.
-	 * @return string
 	 */
 	abstract public function render_media( $instance );
 
