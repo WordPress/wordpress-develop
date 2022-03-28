@@ -1847,7 +1847,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 
 			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
 			if ( false === strpos( $filtered_image, ' decoding=' ) ) {
-				$filtered_image = wp_img_tag_add_decoding_async_attr( $filtered_image, $context, $attachment_id );
+				$filtered_image = wp_img_tag_add_decoding_async_attr( $filtered_image, $context );
 			}
 
 			if ( $filtered_image !== $match[0] ) {
@@ -1925,10 +1925,9 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  *
  * @param string $image         The HTML `img` tag where the attribute should be added.
  * @param string $context       Additional context to pass to the filters.
- * @param int    $attachment_id Image attachment ID.
  * @return string Converted `img` tag with `decoding` attribute added.
  */
-function wp_img_tag_add_decoding_async_attr( $image, $context, $attachment_id ) {
+function wp_img_tag_add_decoding_async_attr( $image, $context ) {
 	/**
 	 * Filters the `decoding` attribute value to add to an image. Default `async`.
 	 *
@@ -1940,10 +1939,9 @@ function wp_img_tag_add_decoding_async_attr( $image, $context, $attachment_id ) 
 	 *                                   the attribute being omitted for the image. Otherwise, it may be:
 	 *                                   'async' (default), 'sync', or 'auto'.
 	 * @param string      $image         The HTML `img` tag to be filtered.
-	 * @param int         $attachment_id Image attachment ID.
 	 * @param string      $context Additional context about how the function was called or where the img tag is.
 	 */
-	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context, $attachment_id );
+	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
 	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
 		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
 	}
