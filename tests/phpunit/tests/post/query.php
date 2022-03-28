@@ -763,7 +763,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_property_is_present_with_no_found_rows_false( $fields ) {
 		$q = new WP_Query(
@@ -787,7 +787,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_property_is_present_with_no_found_rows_true( $fields ) {
 		$q = new WP_Query(
@@ -811,7 +811,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_property_can_be_set_externally( $fields ) {
 		add_filter(
@@ -841,7 +841,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_property_is_present_in_php_serialized_query( $fields ) {
 		self::factory()->post->create_many( 5 );
@@ -874,7 +874,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_property_is_present_in_php_serialized_query_with_no_found_rows( $fields ) {
 		self::factory()->post->create_many( 5 );
@@ -908,7 +908,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_property_is_present_in_json_serialized_query( $fields ) {
 		self::factory()->post->create_many( 5 );
@@ -941,7 +941,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_property_is_present_in_json_serialized_query_with_no_found_rows( $fields ) {
 		self::factory()->post->create_many( 5 );
@@ -975,7 +975,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_should_be_lazily_loaded( $fields ) {
 		global $wpdb;
@@ -1041,7 +1041,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_are_correct_for_basic_query( $fields ) {
 		self::factory()->post->create_many( 5 );
@@ -1062,7 +1062,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_are_correct_for_query_with_no_limit( $fields ) {
 		self::factory()->post->create_many( 5 );
@@ -1084,7 +1084,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_are_correct_for_query_with_no_paging( $fields ) {
 		self::factory()->post->create_many( 5 );
@@ -1106,7 +1106,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_are_correct_for_paged_query( $fields ) {
 		self::factory()->post->create_many( 5 );
@@ -1128,7 +1128,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_are_correct_for_author_queries( $fields ) {
 		$author = self::factory()->user->create();
@@ -1163,7 +1163,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_are_correct_for_query_that_performs_post_status_join( $fields ) {
 		$taxonomy = 'post_status_join_tax';
@@ -1199,7 +1199,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_are_correct_for_tax_queries( $fields ) {
 		$term = self::factory()->term->create_and_get();
@@ -1227,7 +1227,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 47280
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_are_correct_for_meta_queries( $fields ) {
 		self::factory()->post->create_many( 5 );
@@ -1255,7 +1255,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @group ms-required
 	 * @dataProvider data_fields
 	 *
-	 * @param string $fields
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
 	public function test_found_posts_are_correct_when_switching_between_sites( $fields ) {
 		$blog = self::factory()->blog->create();
@@ -1330,6 +1330,11 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertEquals( 5, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
+	/**
+	 * Data provider for tests which need to run once for each possible value of the fields argument.
+	 *
+	 * @return array Test data.
+	 */
 	public function data_fields() {
 		return array(
 			'posts'   => array(
@@ -1344,6 +1349,12 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Helper method which returns a readable representation of the SQL queries performed.
+	 *
+	 * @param WP_Query $query The current query instance.
+	 * @return string The formatted message.
+	 */
 	protected static function get_count_message( WP_Query $query ) {
 		return sprintf(
 			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
