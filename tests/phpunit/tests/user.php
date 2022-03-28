@@ -1160,9 +1160,8 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_search_users_email() {
 		$users = get_users(
 			array(
-				'search'         => '*battle*',
-				'search_columns' => array( 'user_email' ),
-				'fields'         => 'ID',
+				'search' => '*battle*',
+				'fields' => 'ID',
 			)
 		);
 
