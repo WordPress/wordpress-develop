@@ -6466,6 +6466,8 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		}
 	}
 
+	$primary_mime = isset( $meta['mime_type'] ) ? $meta['mime_type'] : false;
+
 	// Remove intermediate and backup images if there are any.
 	if ( isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
 		$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
@@ -6481,11 +6483,9 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 				}
 			}
 			// Check for alternate size mime types in the sizeinfo['sources'] array to delete.
-			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) && count( $sizeinfo['sources'] ) > 1 ) {
-				$sources = $sizeinfo['sources'];
-				array_shift( $sources );
-				foreach ( $sources as $mime => $properties ) {
-					if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
+			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) && $primary_mime ) {
+				foreach (  $sizeinfo['sources'] as $mime => $properties ) {
+					if ( $mime === $primary_mime || ! is_array( $properties ) || empty( $properties['file'] ) ) {
 						continue;
 					}
 
@@ -6519,7 +6519,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		$sources = $meta['sources'];
 		array_shift( $sources );
 		foreach ( $sources as $mime => $properties ) {
-			if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
+			if ( $mime === $primary_mime || ! is_array( $properties ) || empty( $properties['file'] ) ) {
 				continue;
 			}
 
