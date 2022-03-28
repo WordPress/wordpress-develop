@@ -442,19 +442,21 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	$mime_types_to_generate = _wp_get_primary_and_additional_mime_types( $file, $attachment_id );
 	foreach ( $mime_types_to_generate as $output_index => $output_mime_type ) {
 		// For the primary image, check if any of the new sizes already exist.
-		if ( 0 === $output_index && isset( $image_meta['sizes'] ) && is_array( $image_meta['sizes'] ) ) {
-			foreach ( $image_meta['sizes'] as $size_name => $size_meta ) {
-				/*
-				* Only checks "size name" so we don't override existing images even if the dimensions
-				* don't match the currently defined size with the same name.
-				* To change the behavior, unset changed/mismatched sizes in the `sizes` array in image meta.
-				*/
-				if ( array_key_exists( $size_name, $new_sizes ) ) {
-					unset( $new_sizes[ $size_name ] );
+		if ( 0 === $output_index ) {
+			if ( isset( $image_meta['sizes'] ) && is_array( $image_meta['sizes'] ) ) {
+				foreach ( $image_meta['sizes'] as $size_name => $size_meta ) {
+					/*
+					* Only checks "size name" so we don't override existing images even if the dimensions
+					* don't match the currently defined size with the same name.
+					* To change the behavior, unset changed/mismatched sizes in the `sizes` array in image meta.
+					*/
+					if ( array_key_exists( $size_name, $new_sizes ) ) {
+						unset( $new_sizes[ $size_name ] );
+					}
 				}
+			} else {
+				$image_meta['sizes'] = array();
 			}
-		} else {
-			$image_meta['sizes'] = array();
 		}
 
 		if ( empty( $new_sizes ) ) {
