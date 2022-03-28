@@ -250,7 +250,7 @@ function wp_get_environment_type() {
  *
  * @since 6.0.0
  *
- * @return string|false The current runtime environment type. false on failure.
+ * @return string|false The current runtime environment type, default is ''. false on failure.
  */
 function wp_get_runtime_environment() {
 	static $current_runtime_env = '';
