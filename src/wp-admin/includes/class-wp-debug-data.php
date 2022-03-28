@@ -44,7 +44,6 @@ class WP_Debug_Data {
 		$blog_public            = get_option( 'blog_public' );
 		$default_comment_status = get_option( 'default_comment_status' );
 		$environment_type       = wp_get_environment_type();
-		$runtime_environment    = wp_get_runtime_environment();
 		$core_version           = get_bloginfo( 'version' );
 		$core_updates           = get_core_updates();
 		$core_update_needed     = '';
@@ -127,11 +126,6 @@ class WP_Debug_Data {
 					'label' => __( 'Environment type' ),
 					'value' => $environment_type,
 					'debug' => $environment_type,
-				),
-				'runtime_environment'    => array(
-					'label' => __( 'Runtime Environment' ),
-					'value' => ! empty( $runtime_environment ) ? $runtime_environment : __( 'Undefined' ),
-					'debug' => $runtime_environment,
 				),
 			),
 		);
@@ -727,10 +721,17 @@ class WP_Debug_Data {
 			$php_sapi = 'unknown';
 		}
 
+		$runtime_environment = wp_get_runtime_environment();
+
 		$info['wp-server']['fields']['server_architecture'] = array(
 			'label' => __( 'Server architecture' ),
 			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
 			'debug' => $server_architecture,
+		);
+		$info['wp-server']['fields']['runtime_environment'] = array(
+			'label' => __( 'Runtime Environment' ),
+			'value' => ! empty( $runtime_environment ) ? $runtime_environment : __( 'Undefined' ),
+			'debug' => $runtime_environment,
 		);
 		$info['wp-server']['fields']['httpd_software']      = array(
 			'label' => __( 'Web server' ),
