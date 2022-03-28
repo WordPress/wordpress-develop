@@ -425,8 +425,11 @@ abstract class WP_Image_Editor {
 	 * Builds an output filename based on current file, and adding proper suffix
 	 *
 	 * @since 3.5.0
+	 * @since 6.0.0 Skips adding a suffix when set to an empty string.
 	 *
-	 * @param string $suffix
+	 * @param string $suffix Optional. Suffix to add to the filename. Passing null
+	 *                       will result in a 'widthxheight' suffix. Passing
+	 *                       an empty string will result in no suffix.
 	 * @param string $dest_path
 	 * @param string $extension
 	 * @return string filename
@@ -452,6 +455,10 @@ abstract class WP_Image_Editor {
 			} else {
 				$dir = $dest_path;
 			}
+		}
+
+		if ( '' === $suffix ) {
+			return trailingslashit( $dir ) . "{$name}.{$new_ext}";
 		}
 
 		return trailingslashit( $dir ) . "{$name}-{$suffix}.{$new_ext}";
