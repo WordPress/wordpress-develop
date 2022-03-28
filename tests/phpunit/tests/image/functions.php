@@ -460,6 +460,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
 
+		// Use legacy JPEG output.
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
+
 		$orig_file = DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf';
 		$test_file = get_temp_dir() . 'wordpress-gsoc-flyer.pdf';
 		copy( $orig_file, $test_file );
@@ -541,6 +544,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
+		remove_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 	}
 
 	/**
@@ -554,6 +558,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 
 		update_option( 'medium_crop', 1 );
+
+		// Use legacy JPEG output.
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 
 		$orig_file = DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf';
 		$test_file = get_temp_dir() . 'wordpress-gsoc-flyer.pdf';
@@ -636,6 +643,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
+		remove_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
+
 	}
 
 	/**
@@ -645,6 +654,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
+
+		// Use legacy JPEG output.
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 
 		$orig_file = DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf';
 		$test_file = get_temp_dir() . 'wordpress-gsoc-flyer.pdf';
@@ -699,6 +711,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
+		remove_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 	}
 
 	public function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {
