@@ -319,11 +319,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $prepared_args['search'] ) ) {
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
-			/**
-			 * Specifying search fields directly, excluding user_email field for unlogged users, to avoid unwanted data exposure for public endpoint.
-			 * @link https://core.trac.wordpress.org/ticket/53784
-			 */
-			$prepared_args['search_columns'] = array( 'ID', 'user_login', 'user_url', 'user_nicename', 'display_name' );
+			// Some fields contain sensitive information, and can only be queried by privileged users.
+			$prepared_args['search_columns'] = array( 'ID', 'user_url', 'user_nicename', 'display_name' );
+			if ( current_user_can( 'list_users' ) ) {
+				$prepared_args['search_columns'] = 'user_login';
+				$prepared_args['search_columns'] = 'user_email';
+			}
 		}
 		/**
 		 * Filters WP_User_Query arguments when querying users via the REST API.
