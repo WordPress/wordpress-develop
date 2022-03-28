@@ -1977,9 +1977,6 @@ function wp_insert_user( $userdata ) {
 	 */
 	if ( ! empty( $userdata['user_nicename'] ) ) {
 		$user_nicename = sanitize_user( $userdata['user_nicename'], true );
-		if ( mb_strlen( $user_nicename ) > 50 ) {
-			return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
-		}
 	} else {
 		$user_nicename = mb_substr( $user_login, 0, 50 );
 	}
@@ -1994,6 +1991,10 @@ function wp_insert_user( $userdata ) {
 	 * @param string $user_nicename The user's nicename.
 	 */
 	$user_nicename = apply_filters( 'pre_user_nicename', $user_nicename );
+
+	if ( mb_strlen( $user_nicename ) > 50 ) {
+		return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
+	}
 
 	$user_nicename_check = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_nicename = %s AND user_login != %s LIMIT 1", $user_nicename, $user_login ) );
 
@@ -2042,6 +2043,10 @@ function wp_insert_user( $userdata ) {
 	 * @param string $raw_user_url The user's URL.
 	 */
 	$user_url = apply_filters( 'pre_user_url', $raw_user_url );
+
+	if ( mb_strlen( $user_url ) > 100 ) {
+		return new WP_Error( 'user_url_too_long', __( 'User URL may not be longer than 100 characters.' ) );
+	}
 
 	$user_registered = empty( $userdata['user_registered'] ) ? gmdate( 'Y-m-d H:i:s' ) : $userdata['user_registered'];
 
@@ -3172,7 +3177,7 @@ function register_new_user( $user_login, $user_email ) {
 	if ( '' === $user_email ) {
 		$errors->add( 'empty_email', __( '<strong>Error</strong>: Please type your email address.' ) );
 	} elseif ( ! is_email( $user_email ) ) {
-		$errors->add( 'invalid_email', __( '<strong>Error</strong>: The email address isn&#8217;t correct.' ) );
+		$errors->add( 'invalid_email', __( '<strong>Error</strong>: The email address is not correct.' ) );
 		$user_email = '';
 	} elseif ( email_exists( $user_email ) ) {
 		$errors->add(
@@ -3227,7 +3232,7 @@ function register_new_user( $user_login, $user_email ) {
 			'registerfail',
 			sprintf(
 				/* translators: %s: Admin email address. */
-				__( '<strong>Error</strong>: Couldn&#8217;t register you&hellip; please contact the <a href="mailto:%s">site admin</a>!' ),
+				__( '<strong>Error</strong>: Could not register you&hellip; please contact the <a href="mailto:%s">site admin</a>!' ),
 				get_option( 'admin_email' )
 			)
 		);
@@ -3470,7 +3475,7 @@ function send_confirmation_on_profile_email() {
 		if ( ! is_email( $_POST['email'] ) ) {
 			$errors->add(
 				'user_email',
-				__( '<strong>Error</strong>: The email address isn&#8217;t correct.' ),
+				__( '<strong>Error</strong>: The email address is not correct.' ),
 				array(
 					'form-field' => 'email',
 				)

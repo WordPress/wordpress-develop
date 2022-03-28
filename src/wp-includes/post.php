@@ -356,7 +356,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_theme(),
+			'show_ui'               => false,
 			'show_in_menu'          => false,
 			'show_in_rest'          => true,
 			'rewrite'               => false,
@@ -416,7 +416,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_theme(),
+			'show_ui'               => false,
 			'show_in_menu'          => false,
 			'show_in_rest'          => true,
 			'rewrite'               => false,
@@ -503,7 +503,7 @@ function create_initial_post_types() {
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
-			'show_ui'               => wp_is_block_theme(),
+			'show_ui'               => true,
 			'show_in_menu'          => false,
 			'show_in_admin_bar'     => false,
 			'show_in_rest'          => true,
@@ -520,6 +520,7 @@ function create_initial_post_types() {
 				'delete_others_posts'    => 'edit_theme_options',
 				'edit_private_posts'     => 'edit_theme_options',
 				'edit_published_posts'   => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
 			),
 			'rest_base'             => 'navigation',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
@@ -1712,7 +1713,7 @@ function register_post_type( $post_type, $args = array() ) {
 /**
  * Unregisters a post type.
  *
- * Can not be used to unregister built-in post types.
+ * Cannot be used to unregister built-in post types.
  *
  * @since 4.5.0
  *
@@ -2291,7 +2292,7 @@ function is_post_type_viewable( $post_type ) {
 /**
  * Determine whether a post status is considered "viewable".
  *
- * For built-in post statuses such as publish and private, the 'public' value will be evaluted.
+ * For built-in post statuses such as publish and private, the 'public' value will be evaluated.
  * For all others, the 'publicly_queryable' value will be used.
  *
  * @since 5.7.0
@@ -2475,7 +2476,7 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  * @return bool True on success, false on failure.
  */
 function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
-	// Make sure meta is added to the post, not a revision.
+	// Make sure meta is deleted from the post, not from a revision.
 	$the_post = wp_is_post_revision( $post_id );
 	if ( $the_post ) {
 		$post_id = $the_post;
@@ -2527,7 +2528,7 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  *                  is the same as the one that is already in the database.
  */
 function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
-	// Make sure meta is added to the post, not a revision.
+	// Make sure meta is updated for the post, not for a revision.
 	$the_post = wp_is_post_revision( $post_id );
 	if ( $the_post ) {
 		$post_id = $the_post;
@@ -2590,7 +2591,9 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array Post meta for the given post.
+ * @return mixed An array of values.
+ *               False for an invalid `$post_id` (non-numeric, zero, or negative value).
+ *               An empty string if a valid but non-existing post ID is passed.
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
@@ -4364,27 +4367,31 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		 * Filters attachment post data before it is updated in or added to the database.
 		 *
 		 * @since 3.9.0
-		 * @since 5.4.1 `$unsanitized_postarr` argument added.
+		 * @since 5.4.1 The `$unsanitized_postarr` parameter was added.
+		 * @since 6.0.0 The `$update` parameter was added.
 		 *
 		 * @param array $data                An array of slashed, sanitized, and processed attachment post data.
 		 * @param array $postarr             An array of slashed and sanitized attachment post data, but not processed.
 		 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data
 		 *                                   as originally passed to wp_insert_post().
+		 * @param bool  $update              Whether this is an existing attachment post being updated.
 		 */
-		$data = apply_filters( 'wp_insert_attachment_data', $data, $postarr, $unsanitized_postarr );
+		$data = apply_filters( 'wp_insert_attachment_data', $data, $postarr, $unsanitized_postarr, $update );
 	} else {
 		/**
 		 * Filters slashed post data just before it is inserted into the database.
 		 *
 		 * @since 2.7.0
-		 * @since 5.4.1 `$unsanitized_postarr` argument added.
+		 * @since 5.4.1 The `$unsanitized_postarr` parameter was added.
+		 * @since 6.0.0 The `$update` parameter was added.
 		 *
 		 * @param array $data                An array of slashed, sanitized, and processed post data.
 		 * @param array $postarr             An array of sanitized (and slashed) but otherwise unmodified post data.
 		 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
 		 *                                   originally passed to wp_insert_post().
+		 * @param bool  $update              Whether this is an existing post being updated.
 		 */
-		$data = apply_filters( 'wp_insert_post_data', $data, $postarr, $unsanitized_postarr );
+		$data = apply_filters( 'wp_insert_post_data', $data, $postarr, $unsanitized_postarr, $update );
 	}
 
 	$data  = wp_unslash( $data );
@@ -6531,6 +6538,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *     @type array  $sizes      Keys are size slugs, each value is an array containing
  *                              'file', 'width', 'height', and 'mime-type'.
  *     @type array  $image_meta Image metadata.
+ *     @type int    $filesize   File size of the attachment.
  * }
  */
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
@@ -7364,9 +7372,11 @@ function update_post_cache( &$posts ) {
 		return;
 	}
 
+	$data = array();
 	foreach ( $posts as $post ) {
-		wp_cache_add( $post->ID, $post, 'posts' );
+		$data[ $post->ID ] = $post;
 	}
+	wp_cache_add_multiple( $data, 'posts' );
 }
 
 /**

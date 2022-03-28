@@ -54,9 +54,8 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		$wide_max_width_value = $wide_size ? $wide_size : $content_size;
 
 		// Make sure there is a single CSS rule, and all tags are stripped for security.
-		// TODO: Use `safecss_filter_attr` instead - once https://core.trac.wordpress.org/ticket/46197 is patched.
-		$all_max_width_value  = wp_strip_all_tags( explode( ';', $all_max_width_value )[0] );
-		$wide_max_width_value = wp_strip_all_tags( explode( ';', $wide_max_width_value )[0] );
+		$all_max_width_value  = safecss_filter_attr( explode( ';', $all_max_width_value )[0] );
+		$wide_max_width_value = safecss_filter_attr( explode( ';', $wide_max_width_value )[0] );
 
 		$style = '';
 		if ( $content_size || $wide_size ) {
@@ -175,17 +174,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		1
 	);
 
-	/*
-	 * Ideally styles should be loaded in the head, but blocks may be parsed
-	 * after that, so loading in the footer for now.
-	 * See https://core.trac.wordpress.org/ticket/53494.
-	 */
-	add_action(
-		'wp_footer',
-		static function () use ( $style ) {
-			echo '<style>' . $style . '</style>';
-		}
-	);
+	wp_enqueue_block_support_styles( $style );
 
 	return $content;
 }

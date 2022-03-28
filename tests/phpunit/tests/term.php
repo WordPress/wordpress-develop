@@ -123,7 +123,7 @@ class Tests_Term extends WP_UnitTestCase {
 		}
 
 		foreach ( $posts as $post_id ) {
-			$this->assertTrue( (bool) wp_delete_post( $post_id ) );
+			$this->assertInstanceOf( 'WP_Post', wp_delete_post( $post_id ) );
 		}
 	}
 
@@ -250,6 +250,51 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertSame( 1, sanitize_term_field( 'parent', 1, $term['term_id'], $this->taxonomy, 'raw' ) );
 		$this->assertSame( 0, sanitize_term_field( 'parent', -1, $term['term_id'], $this->taxonomy, 'raw' ) );
 		$this->assertSame( 0, sanitize_term_field( 'parent', '', $term['term_id'], $this->taxonomy, 'raw' ) );
+	}
+
+	/**
+	 * @ticket 53152
+	 * @dataProvider data_wp_set_term_objects_finds_term_name_with_special_characters
+	 *
+	 * @param string $name  A term name containing special characters.
+	 */
+	public function test_wp_set_term_objects_finds_term_name_with_special_characters( $name ) {
+		$post_id  = self::$post_ids[0];
+		$expected = wp_set_object_terms( $post_id, $name, 'category', false );
+		$actual   = wp_set_object_terms( $post_id, $name, 'category', false );
+		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_set_term_objects_finds_term_name_with_special_characters() {
+		return array(
+			'ampersand'               => array( 'name' => 'Foo & Bar' ),
+			'ndash and mdash'         => array( 'name' => 'Foo – Bar' ),
+			'trademark'               => array( 'name' => 'Foo Bar™' ),
+			'copyright'               => array( 'name' => 'Foo Bar©' ),
+			'registered'              => array( 'name' => 'Foo Bar®' ),
+			'degree'                  => array( 'name' => 'Foo ° Bar' ),
+			'forward slash'           => array( 'name' => 'Fo/o Ba/r' ),
+			'back slash'              => array( 'name' => 'F\oo \Bar' ),
+			'multiply'                => array( 'name' => 'Foo × Bar' ),
+			'standalone diacritic'    => array( 'name' => 'Foo Bāáǎàr' ),
+			'acute accents'           => array( 'name' => 'ááa´aˊ' ),
+			'iexcel and iquest'       => array( 'name' => '¡Foo ¿Bar' ),
+			'angle quotes'            => array( 'name' => '‹Foo« »Bar›' ),
+			'curly quotes'            => array( 'name' => '“F‘o„o‚ „ ‟ ‛B“a’r”' ),
+			'bullet'                  => array( 'name' => 'Foo • Bar' ),
+			'unencoded percent'       => array( 'name' => 'Foo % Bar' ),
+			'encoded ampersand'       => array( 'name' => 'Foo &amp; Bar' ),
+			'encoded ndash and mdash' => array( 'name' => 'Foo &mdash; &ndash; Bar' ),
+			'encoded trademark'       => array( 'name' => 'Foo Bar &trade;' ),
+			'encoded copyright'       => array( 'name' => 'Foo Bar &copy;' ),
+			'encoded registered'      => array( 'name' => 'Foo Bar &reg;' ),
+			'encoded bullet'          => array( 'name' => 'Foo &bullet; Bar' ),
+		);
 	}
 
 	/**

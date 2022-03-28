@@ -833,9 +833,9 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'jquery-form', "/wp-includes/js/jquery/jquery.form$suffix.js", array( 'jquery' ), '4.3.0', 1 );
 
 	// jQuery plugins.
-	$scripts->add( 'jquery-color', '/wp-includes/js/jquery/jquery.color.min.js', array( 'jquery' ), '2.1.2', 1 );
+	$scripts->add( 'jquery-color', '/wp-includes/js/jquery/jquery.color.min.js', array( 'jquery' ), '2.2.0', 1 );
 	$scripts->add( 'schedule', '/wp-includes/js/jquery/jquery.schedule.js', array( 'jquery' ), '20m', 1 );
-	$scripts->add( 'jquery-query', '/wp-includes/js/jquery/jquery.query.js', array( 'jquery' ), '2.1.7', 1 );
+	$scripts->add( 'jquery-query', '/wp-includes/js/jquery/jquery.query.js', array( 'jquery' ), '2.2.3', 1 );
 	$scripts->add( 'jquery-serialize-object', '/wp-includes/js/jquery/jquery.serialize-object.js', array( 'jquery' ), '0.2-wp', 1 );
 	$scripts->add( 'jquery-hotkeys', "/wp-includes/js/jquery/jquery.hotkeys$suffix.js", array( 'jquery' ), '0.0.2m', 1 );
 	$scripts->add( 'jquery-table-hotkeys', "/wp-includes/js/jquery/jquery.table-hotkeys$suffix.js", array( 'jquery', 'jquery-hotkeys' ), false, 1 );
@@ -865,7 +865,8 @@ function wp_default_scripts( $scripts ) {
 		)
 	);
 
-	$scripts->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.js', array( 'jquery' ), '0.9.12' );
+	// Not used in core, replaced by imgAreaSelect.
+	$scripts->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.js', array( 'jquery' ), '0.9.15' );
 
 	$scripts->add( 'swfobject', '/wp-includes/js/swfobject.js', array(), '2.2-20120417' );
 
@@ -1142,7 +1143,7 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'media-upload', "/wp-admin/js/media-upload$suffix.js", array( 'thickbox', 'shortcode' ), false, 1 );
 
-	$scripts->add( 'hoverIntent', "/wp-includes/js/hoverIntent$suffix.js", array( 'jquery' ), '1.10.1', 1 );
+	$scripts->add( 'hoverIntent', "/wp-includes/js/hoverIntent$suffix.js", array( 'jquery' ), '1.10.2', 1 );
 
 	// JS-only version of hoverintent (no dependencies).
 	$scripts->add( 'hoverintent-js', '/wp-includes/js/hoverintent-js.min.js', array(), '2.2.1', 1 );
@@ -1192,7 +1193,7 @@ function wp_default_scripts( $scripts ) {
 			'takenOverMessage'        => __( '%s has taken over and is currently customizing.' ),
 			/* translators: %s: URL to the Customizer to load the autosaved version. */
 			'autosaveNotice'          => __( 'There is a more recent autosave of your changes than the one you are previewing. <a href="%s">Restore the autosave</a>' ),
-			'videoHeaderNotice'       => __( 'This theme doesn&#8217;t support video headers on this page. Navigate to the front page or another page that supports video headers.' ),
+			'videoHeaderNotice'       => __( 'This theme does not support video headers on this page. Navigate to the front page or another page that supports video headers.' ),
 			// Used for overriding the file types allowed in Plupload.
 			'allowedFiles'            => __( 'Allowed Files' ),
 			'customCssError'          => array(
@@ -1211,10 +1212,10 @@ function wp_default_scripts( $scripts ) {
 				// @todo This is lacking, as some languages have a dedicated dual form. For proper handling of plurals in JS, see #20491.
 			),
 			'scheduleDescription'     => __( 'Schedule your customization changes to publish ("go live") at a future date.' ),
-			'themePreviewUnavailable' => __( 'Sorry, you can&#8217;t preview new themes when you have changes scheduled or saved as a draft. Please publish your changes, or wait until they publish to preview new themes.' ),
+			'themePreviewUnavailable' => __( 'Sorry, you cannot preview new themes when you have changes scheduled or saved as a draft. Please publish your changes, or wait until they publish to preview new themes.' ),
 			'themeInstallUnavailable' => sprintf(
 				/* translators: %s: URL to Add Themes admin screen. */
-				__( 'You won&#8217;t be able to install new themes from here yet since your install requires SFTP credentials. For now, please <a href="%s">add themes in the admin</a>.' ),
+				__( 'You will not be able to install new themes from here yet since your install requires SFTP credentials. For now, please <a href="%s">add themes in the admin</a>.' ),
 				esc_url( admin_url( 'theme-install.php' ) )
 			),
 			'publishSettings'         => __( 'Publish Settings' ),
@@ -1351,7 +1352,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'list-revisions', "/wp-includes/js/wp-list-revisions$suffix.js" );
 
 		$scripts->add( 'media-grid', "/wp-includes/js/media-grid$suffix.js", array( 'media-editor' ), false, 1 );
-		$scripts->add( 'media', "/wp-admin/js/media$suffix.js", array( 'jquery' ), false, 1 );
+		$scripts->add( 'media', "/wp-admin/js/media$suffix.js", array( 'jquery', 'clipboard', 'wp-i18n', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'media' );
 
 		$scripts->add( 'image-edit', "/wp-admin/js/image-edit$suffix.js", array( 'jquery', 'jquery-ui-core', 'json2', 'imgareaselect', 'wp-a11y' ), false, 1 );
@@ -1499,7 +1500,7 @@ function wp_default_styles( $styles ) {
 	// Deprecated CSS.
 	$styles->add( 'deprecated-media', "/wp-admin/css/deprecated-media$suffix.css" );
 	$styles->add( 'farbtastic', "/wp-admin/css/farbtastic$suffix.css", array(), '1.3u1' );
-	$styles->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.css', array(), '0.9.12' );
+	$styles->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.css', array(), '0.9.15' );
 	$styles->add( 'colors-fresh', false, array( 'wp-admin', 'buttons' ) ); // Old handle.
 	$styles->add( 'open-sans', $open_sans_font_url ); // No longer used in core as of 4.6.
 
@@ -2307,7 +2308,9 @@ function wp_common_block_scripts_and_styles() {
  * @since 5.8.0
  */
 function wp_enqueue_global_styles() {
-	$separate_assets = wp_should_load_separate_core_block_assets();
+	$separate_assets  = wp_should_load_separate_core_block_assets();
+	$is_block_theme   = wp_is_block_theme();
+	$is_classic_theme = ! $is_block_theme;
 
 	/*
 	 * Global styles should be printed in the head when loading all styles combined.
@@ -2315,7 +2318,11 @@ function wp_enqueue_global_styles() {
 	 *
 	 * See https://core.trac.wordpress.org/ticket/53494.
 	 */
-	if ( ( ! $separate_assets && doing_action( 'wp_footer' ) ) || ( $separate_assets && doing_action( 'wp_enqueue_scripts' ) ) ) {
+	if (
+		( $is_block_theme && doing_action( 'wp_footer' ) ) ||
+		( $is_classic_theme && doing_action( 'wp_footer' ) && ! $separate_assets ) ||
+		( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $separate_assets )
+	) {
 		return;
 	}
 
@@ -2328,6 +2335,34 @@ function wp_enqueue_global_styles() {
 	wp_register_style( 'global-styles', false, array(), true, true );
 	wp_add_inline_style( 'global-styles', $stylesheet );
 	wp_enqueue_style( 'global-styles' );
+}
+
+/**
+ * Render the SVG filters supplied by theme.json.
+ *
+ * Note that this doesn't render the per-block user-defined
+ * filters which are handled by wp_render_duotone_support,
+ * but it should be rendered before the filtered content
+ * in the body to satisfy Safari's rendering quirks.
+ *
+ * @since 5.9.1
+ */
+function wp_global_styles_render_svg_filters() {
+	/*
+	 * When calling via the in_admin_header action, we only want to render the
+	 * SVGs on block editor pages.
+	 */
+	if (
+		is_admin() &&
+		! get_current_screen()->is_block_editor()
+	) {
+		return;
+	}
+
+	$filters = wp_get_global_styles_svg_filters();
+	if ( ! empty( $filters ) ) {
+		echo $filters;
+	}
 }
 
 /**
@@ -2770,6 +2805,16 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
 				continue;
 			}
 
+			// Skip if the URL is an HTML ID.
+			if ( str_starts_with( $src_result, '#' ) ) {
+				continue;
+			}
+
+			// Skip if the URL is a data URI.
+			if ( str_starts_with( $src_result, 'data:' ) ) {
+				continue;
+			}
+
 			// Build the absolute URL.
 			$absolute_url = dirname( $stylesheet_url ) . '/' . $src_result;
 			$absolute_url = str_replace( '/./', '/', $absolute_url );
@@ -2871,4 +2916,32 @@ function wp_enqueue_global_styles_css_custom_properties() {
 	wp_register_style( 'global-styles-css-custom-properties', false, array(), true, true );
 	wp_add_inline_style( 'global-styles-css-custom-properties', wp_get_global_stylesheet( array( 'variables' ) ) );
 	wp_enqueue_style( 'global-styles-css-custom-properties' );
+}
+
+/**
+ * This function takes care of adding inline styles
+ * in the proper place, depending on the theme in use.
+ *
+ * @since 5.9.1
+ *
+ * For block themes, it's loaded in the head.
+ * For classic ones, it's loaded in the body
+ * because the wp_head action (and wp_enqueue_scripts)
+ * happens before the render_block.
+ *
+ * @link https://core.trac.wordpress.org/ticket/53494.
+ *
+ * @param string $style String containing the CSS styles to be added.
+ */
+function wp_enqueue_block_support_styles( $style ) {
+	$action_hook_name = 'wp_footer';
+	if ( wp_is_block_theme() ) {
+		$action_hook_name = 'wp_enqueue_scripts';
+	}
+	add_action(
+		$action_hook_name,
+		static function () use ( $style ) {
+			echo "<style>$style</style>\n";
+		}
+	);
 }
