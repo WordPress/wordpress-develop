@@ -784,9 +784,9 @@ class WP_User_Query {
 
 				/**
 				 * Return a total count of users.
-				 * Historically this ran SELECT FOUND_ROWS() after issuing the main query,
-				 * but since SQL_CALC_FOUND_ROWS is now deprecated from MySQL, it instead repeats
-				 * the same query with COUNT(*) instead of $this->query_fields.
+				 * Historically this ran `SELECT FOUND_ROWS()` after issuing the main query,
+				 * but since `SQL_CALC_FOUND_ROWS` is now deprecated from MySQL, it instead repeats
+				 * the same query with `COUNT(*)` instead of `$this->query_fields`.
 				 *
 				 * @since 3.2.0
 				 * @since 5.1.0 Added the `$this` parameter.

@@ -1001,25 +1001,25 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
-		// Count the queries after fetching found posts
+		// Count the queries after fetching found posts.
 		$after_found_posts = ( $wpdb->num_queries - $start );
 
 		// Repeat
 		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
-		// Count the queries after fetching found posts a second time
+		// Count the queries after fetching found posts a second time.
 		$after_found_posts_again = ( $wpdb->num_queries - $start );
 
-		// Ensure the posts were not initially counted
+		// Ensure the posts were not initially counted.
 		$this->assertSame( 1, $before_found_posts );
 
-		// Ensure the counts are correct
+		// Ensure the counts are correct.
 		$this->assertSame( 2, $post_count );
 		$this->assertSame( 5, $found_posts );
 		$this->assertEquals( 3, $max_num_pages );
 
-		// Ensure subsequent counts only triggered one query
+		// Ensure subsequent counts only triggered one query.
 		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts );
 		$this->assertSame( ( $before_found_posts + 1 ), $after_found_posts_again );
 	}
@@ -1076,7 +1076,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->assertSame( 5, $q->post_count, self::get_count_message( $q ) );
 		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
-		// You would expect this to be 1 but historically it's 0 for posts without paging
+		// You would expect this to be 1 but historically it's 0 for posts without paging.
 		$this->assertSame( 0, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
@@ -1098,7 +1098,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->assertSame( 5, $q->post_count, self::get_count_message( $q ) );
 		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
-		// You would expect this to be 1 but historically it's 0 for posts without paging
+		// You would expect this to be 1 but historically it's 0 for posts without paging.
 		$this->assertSame( 0, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
@@ -1323,7 +1323,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		// These results should now reflect the results for draft posts, as set by the filter
+		// These results should now reflect the results for draft posts, as set by the filter.
 		$this->assertStringContainsString( 'SELECT FOUND_ROWS()', $q->count_request );
 		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
 		$this->assertSame( 10, $q->found_posts, self::get_count_message( $q ) );
@@ -1355,8 +1355,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * Applies some basic formatting to an SQL query to make it more readable during a test failure.
 	 *
-	 * @param string $sql
-	 * @return string
+	 * @param string $sql The SQL query to be formatted.
+	 * @return string     The formatted SQL query.
 	 */
 	protected static function format_sql( $sql ) {
 		return preg_replace(
