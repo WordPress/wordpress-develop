@@ -816,7 +816,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	public function test_found_posts_property_can_be_set_externally( $fields ) {
 		add_filter(
 			'posts_request',
-			function( $request, $query ) {
+			static function( $request, $query ) {
 				$query->found_posts   = 123;
 				$query->max_num_pages = 456;
 
@@ -1302,7 +1302,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		add_filter(
 			'posts_request',
-			function( $request ) {
+			static function( $request ) {
 				global $wpdb;
 
 				return "
