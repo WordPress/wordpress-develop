@@ -11,7 +11,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	protected static $users;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$post_id = $factory->post->create();
+		self::$post_id        = $factory->post->create();
 		self::$users['admin'] = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
