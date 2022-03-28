@@ -321,6 +321,8 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					if ( ! is_wp_error( $saved ) ) {
 						if ( 0 === $output_index ) {
 							$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
+						} else {
+							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 						}
 						// If the image was rotated update the stored EXIF data.
 						if ( true === $rotated && ! empty( $image_meta['image_meta']['orientation'] ) ) {
