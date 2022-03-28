@@ -277,7 +277,7 @@ function wp_get_runtime_environment() {
 		}
 	}
 
-	// If WP_RUNTIME_ENVIRONMENT constant and environmental variable are both set and are different.
+	// If WP_RUNTIME_ENVIRONMENT constant and environment variable are both set and are different.
 	if ( ( ! empty( $runtime_constant ) && ! empty( $runtime_getenv ) )
 		&& $runtime_constant !== $runtime_getenv
 	) {
