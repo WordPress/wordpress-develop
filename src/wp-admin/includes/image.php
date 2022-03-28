@@ -285,6 +285,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		// Populate the top level primary mime type data.
 		if ( 0 === $output_index ) {
 			$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $image_meta );
+			$image_meta['mime_type']                    = $output_mime_type;
 			wp_update_attachment_metadata( $attachment_id, $image_meta );
 		}
 
