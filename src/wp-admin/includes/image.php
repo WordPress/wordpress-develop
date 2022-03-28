@@ -265,6 +265,14 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 		// Do not scale (large) PNG images. May result in sub-sizes that have greater file size than the original. See #48736.
 		if ( 'image/png' !== $imagesize['mime'] ) {
+			$editor = wp_get_image_editor( $file, array( 'mime_type' => $output_mime_type ) );
+
+			if ( is_wp_error( $editor ) ) {
+				// This image cannot be edited.
+				continue;
+			}
+			$editor->set_mime_type( $output_mime_type );
+
 			/**
 			 * Filters the "BIG image" threshold value.
 			 *
@@ -291,13 +299,6 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			// If the original image's dimensions are over the threshold,
 			// scale the image and use it as the "full" size.
 			if ( $threshold && ( $image_meta['width'] > $threshold || $image_meta['height'] > $threshold ) ) {
-				$editor = wp_get_image_editor( $file, array( 'mime_type' => $output_mime_type ) );
-
-				if ( is_wp_error( $editor ) ) {
-					// This image cannot be edited.
-					return $image_meta;
-				}
-				$editor->set_mime_type( $output_mime_type );
 
 				// Resize the image.
 				$resized = $editor->resize( $threshold, $threshold );
