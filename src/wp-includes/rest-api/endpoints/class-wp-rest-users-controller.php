@@ -322,8 +322,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			// Some fields contain sensitive information, and can only be queried by privileged users.
 			$prepared_args['search_columns'] = array( 'ID', 'user_url', 'user_nicename', 'display_name' );
 			if ( current_user_can( 'list_users' ) ) {
-				$prepared_args['search_columns'] = 'user_login';
-				$prepared_args['search_columns'] = 'user_email';
+				$prepared_args['search_columns'][] = 'user_login';
+				$prepared_args['search_columns'][] = 'user_email';
 			}
 		}
 		/**
