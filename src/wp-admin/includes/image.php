@@ -334,7 +334,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 				if ( $output_index > 0 ) {
 					if ( empty( $image_meta['sources'][ $output_mime_type ] ) ) {
 						$extension = wp_get_default_extension_for_mime_type( $output_mime_type );
-						$saved     = $editor->save( $editor->generate_filename( '', null, $extension ) );
+						$saved     = $editor->save( $editor->generate_filename( '', null, $extension ), $output_mime_type );
 						if ( ! is_wp_error( $saved ) ) {
 							$image_meta['sources'][ $output_mime_type ] = _wp_get_sources_from_meta( $saved );
 							wp_update_attachment_metadata( $attachment_id, $image_meta );
