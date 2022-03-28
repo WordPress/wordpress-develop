@@ -1211,7 +1211,8 @@ function _copy_image_file( $attachment_id ) {
  * @since 6.0.0
  *
  * @param $attachment_id int The attachment ID.
- * @return array<string, array<string>> An array of valid mime types, where the key is the mime type and the value is the extension type.
+ * @return array<string, array<string>> An array of valid mime types, where the key is the source file mime type and the
+ *                                      value is one or more mime file types to generate.
  */
 function wp_upload_image_mime_transforms( $attachment_id ) {
 	$image_mime_transforms = array(
@@ -1224,7 +1225,8 @@ function wp_upload_image_mime_transforms( $attachment_id ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param array $image_mime_transforms A map with the valid mime transforms.
+	 * @param array $image_mime_transforms A map with the valid mime transforms where the key is the source file mime type
+	 *                                     and the value is one or more mime file types to generate.
 	 * @param int   $attachment_id         The ID of the attachment where the hook was dispatched.
 	 */
 	return (array) apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id );
