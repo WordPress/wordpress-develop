@@ -27,6 +27,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		},
 		optimization: {
 			minimize: true,
+			moduleIds: 'hashed',
 			minimizer: [
 				new UglifyJsPlugin( {
 					include: /\.min\.js$/,

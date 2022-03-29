@@ -4,8 +4,9 @@
  * Test the Iterator implementation of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::add_filter
  */
-class Tests_WP_Hook_Iterator extends WP_UnitTestCase {
+class Tests_Hooks_Iterator extends WP_UnitTestCase {
 
 	public function test_foreach() {
 		$callback_one  = '__return_null';
@@ -26,7 +27,7 @@ class Tests_WP_Hook_Iterator extends WP_UnitTestCase {
 				$functions[] = $the_['function'];
 			}
 		}
-		$this->assertEqualSets( array( $priority, $priority + 1 ), $priorities );
-		$this->assertEqualSets( array( $callback_one, $callback_two ), $functions );
+		$this->assertSameSets( array( $priority, $priority + 1 ), $priorities );
+		$this->assertSameSets( array( $callback_one, $callback_two ), $functions );
 	}
 }

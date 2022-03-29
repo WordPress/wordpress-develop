@@ -13,8 +13,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		'args'        => array(),
 	);
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
@@ -66,7 +66,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			'foo1' => array( 'baz' ),
 		);
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_with_key_should_fetch_all_for_key() {
@@ -78,7 +78,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$found    = get_term_meta( $t, 'foo' );
 		$expected = array( 'bar', 'baz' );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_should_respect_single_true() {
@@ -94,7 +94,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
 		$actual = update_term_meta( $t, 'foo', 'bar' );
-		$this->assertInternalType( 'int', $actual );
+		$this->assertIsInt( $actual );
 		$this->assertNotEmpty( $actual );
 
 		$meta = get_term_meta( $t, 'foo', true );
@@ -245,7 +245,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 
 		add_term_meta( $terms[1], 'foo', 'bar' );
 
@@ -263,7 +263,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 	}
 
 	public function test_updating_term_meta_should_bust_get_terms_cache() {
@@ -287,7 +287,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 
 		update_term_meta( $terms[1], 'foo', 'bar' );
 
@@ -305,7 +305,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 	}
 
 	public function test_deleting_term_meta_should_bust_get_terms_cache() {
@@ -329,7 +329,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 
 		delete_term_meta( $terms[1], 'foo', 'bar' );
 
@@ -347,7 +347,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 	}
 
 	/**
@@ -455,7 +455,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$term_meta_id = add_term_meta( $t, 'foo', 'bar' );
 		$meta         = has_term_meta( $t );
 
-		$this->assertSame( 1, count( $meta ) );
+		$this->assertCount( 1, $meta );
 
 		$expected = array(
 			'meta_key'   => 'foo',
@@ -549,7 +549,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		wp_cache_delete( 'last_changed', 'terms' );
 
-		$this->assertInternalType( 'integer', add_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertIsInt( add_metadata( 'term', $term_id, 'foo', 'bar' ) );
 		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
 	}
 
@@ -561,7 +561,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		wp_cache_delete( 'last_changed', 'terms' );
 
-		$this->assertInternalType( 'integer', update_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertIsInt( update_metadata( 'term', $term_id, 'foo', 'bar' ) );
 		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
 	}
 

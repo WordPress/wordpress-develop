@@ -46,6 +46,13 @@ if ( version_compare( $GLOBALS['wp_version'], '3.6-alpha', '<' ) ) {
 }
 
 /**
+ * Block Patterns.
+ *
+ * @since Twenty Thirteen 3.4
+ */
+require get_template_directory() . '/inc/block-patterns.php';
+
+/**
  * Twenty Thirteen setup.
  *
  * Sets up theme defaults and registers the various WordPress features that
@@ -168,6 +175,7 @@ function twentythirteen_setup() {
 			'caption',
 			'script',
 			'style',
+			'navigation-widgets',
 		)
 	);
 
@@ -284,7 +292,7 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20190507' );
+	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20201208' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20190102' );
@@ -327,7 +335,7 @@ add_filter( 'wp_resource_hints', 'twentythirteen_resource_hints', 10, 2 );
  */
 function twentythirteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentythirteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190102' );
+	wp_enqueue_style( 'twentythirteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), null );
 }
@@ -417,7 +425,7 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 			return;
 		}
 		?>
-		<nav class="navigation paging-navigation" role="navigation">
+		<nav class="navigation paging-navigation">
 		<h1 class="screen-reader-text"><?php _e( 'Posts navigation', 'twentythirteen' ); ?></h1>
 		<div class="nav-links">
 
@@ -452,7 +460,7 @@ if ( ! function_exists( 'twentythirteen_post_nav' ) ) :
 			return;
 		}
 		?>
-		<nav class="navigation post-navigation" role="navigation">
+		<nav class="navigation post-navigation">
 		<h1 class="screen-reader-text"><?php _e( 'Post navigation', 'twentythirteen' ); ?></h1>
 		<div class="nav-links">
 
@@ -515,7 +523,7 @@ if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 	 *
 	 * @since Twenty Thirteen 1.0
 	 *
-	 * @param boolean $echo (optional) Whether to echo the date. Default true.
+	 * @param bool $echo (optional) Whether to echo the date. Default true.
 	 * @return string The HTML-formatted post date.
 	 */
 	function twentythirteen_entry_date( $echo = true ) {
@@ -757,7 +765,7 @@ function twentythirteen_customize_partial_blogdescription() {
 }
 
 /**
- * Enqueue Javascript postMessage handlers for the Customizer.
+ * Enqueue JavaScript postMessage handlers for the Customizer.
  *
  * Binds JavaScript handlers to make the Customizer preview
  * reload changes asynchronously.
@@ -827,3 +835,26 @@ if ( ! function_exists( 'wp_body_open' ) ) :
 		do_action( 'wp_body_open' );
 	}
 endif;
+
+/**
+ * Register Custom Block Styles
+ *
+ * @since Twenty Thirteen 3.4
+ */
+if ( function_exists( 'register_block_style' ) ) {
+	function twentythirteen_register_block_styles() {
+
+		/**
+		 * Register block style
+		 */
+		register_block_style(
+			'core/button',
+			array(
+				'name'         => 'no-shadow',
+				'label'        => __( 'No Shadow', 'twentythirteen' ),
+				'style_handle' => 'no-shadow',
+			)
+		);
+	}
+	add_action( 'init', 'twentythirteen_register_block_styles' );
+}

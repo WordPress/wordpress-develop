@@ -22,7 +22,7 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		$taxonomy_object = new WP_Taxonomy( $taxonomy, 'post' );
 
 		$taxonomy_object->add_rewrite_rules();
-		$this->assertFalse( in_array( 'foobar', $wp->public_query_vars, true ) );
+		$this->assertNotContains( 'foobar', $wp->public_query_vars );
 	}
 
 	public function test_adds_query_var_if_public() {

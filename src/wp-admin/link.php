@@ -60,7 +60,7 @@ switch ( $action ) {
 			wp_redirect( $this_file );
 			exit;
 		}
-		$all_links = join( ',', $linkcheck );
+		$all_links = implode( ',', $linkcheck );
 		/*
 		 * Should now have an array of links we can change:
 		 *     $q = $wpdb->query("update $wpdb->links SET link_category='$category' WHERE link_id IN ($all_links)");
@@ -108,7 +108,8 @@ switch ( $action ) {
 
 		$parent_file  = 'link-manager.php';
 		$submenu_file = 'link-manager.php';
-		$title        = __( 'Edit Link' );
+		// Used in the HTML title tag.
+		$title = __( 'Edit Link' );
 
 		$link_id = (int) $_GET['link_id'];
 

@@ -69,7 +69,7 @@ abstract class WP_Test_XML_TestCase extends WP_UnitTestCase {
 	 * @param string $message   Optional. Message to display when the assertion fails.
 	 */
 	public function assertXMLEquals( $expectedXml, $actualXml, $message = '' ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
-		$this->assertEquals( $this->normalizeXML( $expectedXml ), $this->normalizeXML( $actualXml ), $message ); //phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+		$this->assertSame( $this->normalizeXML( $expectedXml ), $this->normalizeXML( $actualXml ), $message ); //phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 	}
 
 	/**

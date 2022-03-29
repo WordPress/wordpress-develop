@@ -10,7 +10,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 	 *
 	 * @ticket 19500
 	 */
-	function test_get_blogs_of_user() {
+	public function test_get_blogs_of_user() {
 		// Logged out users don't have blogs.
 		$this->assertSame( array(), get_blogs_of_user( 0 ) );
 
@@ -31,7 +31,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 	 *
 	 * @ticket 19500
 	 */
-	function test_is_user_member_of_blog() {
+	public function test_is_user_member_of_blog() {
 		$old_current = get_current_user_id();
 
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
@@ -53,7 +53,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 		wp_set_current_user( $old_current );
 	}
 
-	function test_delete_user() {
+	public function test_delete_user() {
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		$user    = new WP_User( $user_id );
 
@@ -67,8 +67,8 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 
 		// Insert a post and make sure the ID is OK.
 		$post_id = wp_insert_post( $post );
-		$this->assertTrue( is_numeric( $post_id ) );
-		$this->assertTrue( $post_id > 0 );
+		$this->assertIsNumeric( $post_id );
+		$this->assertGreaterThan( 0, $post_id );
 
 		$post = get_post( $post_id );
 		$this->assertSame( $post_id, $post->ID );
@@ -83,8 +83,8 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 
 		// Insert a post and make sure the ID is OK.
 		$nav_id = wp_insert_post( $post );
-		$this->assertTrue( is_numeric( $nav_id ) );
-		$this->assertTrue( $nav_id > 0 );
+		$this->assertIsNumeric( $nav_id );
+		$this->assertGreaterThan( 0, $nav_id );
 
 		$post = get_post( $nav_id );
 		$this->assertSame( $nav_id, $post->ID );
@@ -111,7 +111,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 	/**
 	 * @ticket 20447
 	 */
-	function test_wp_delete_user_reassignment_clears_post_caches() {
+	public function test_wp_delete_user_reassignment_clears_post_caches() {
 		$user_id  = self::factory()->user->create();
 		$reassign = self::factory()->user->create();
 		$post_id  = self::factory()->post->create( array( 'post_author' => $user_id ) );

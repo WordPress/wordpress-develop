@@ -31,15 +31,15 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 
 	protected static $comment_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$comment_post = $factory->post->create_and_get();
 		self::$comment_ids  = $factory->comment->create_post_comments( self::$comment_post->ID, 5 );
 		self::$draft_post   = $factory->post->create_and_get( array( 'post_status' => 'draft' ) );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		remove_filter( 'query', array( $this, '_block_comments' ) );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -113,7 +113,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -142,7 +143,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -162,7 +164,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = 123456789;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -182,7 +185,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = self::$draft_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'Error: You can&#8217;t reply to a comment on a draft post.' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( 'Error: You can&#8217;t reply to a comment on a draft post.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -215,7 +219,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 			$this->fail();
 		} catch ( WPAjaxDieStopException $e ) {
 			$wpdb->suppress_errors( false );
-			$this->assertContains( '1', $e->getMessage() );
+			$this->assertStringContainsString( '1', $e->getMessage() );
 		}
 	}
 
@@ -252,14 +256,15 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		add_filter( 'pre_comment_approved', array( $this, '_pre_comment_approved_filter' ), 10, 2 );
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'pre_comment_approved filter fails for new comment' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( 'pre_comment_approved filter fails for new comment.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
 	/**
 	 * Blocks comments from being saved on 'pre_comment_approved', by returning WP_Error.
 	 */
-	function _pre_comment_approved_filter( $approved, $commentdata ) {
-		return new WP_Error( 'comment_wrong', 'pre_comment_approved filter fails for new comment', 403 );
+	public function _pre_comment_approved_filter( $approved, $commentdata ) {
+		return new WP_Error( 'comment_wrong', 'pre_comment_approved filter fails for new comment.', 403 );
 	}
 }

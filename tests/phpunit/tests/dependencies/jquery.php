@@ -6,49 +6,47 @@
  */
 class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 
-	function test_location_of_jquery() {
+	/**
+	 * @covers WP_Scripts::query
+	 */
+	public function test_location_of_jquery() {
 		$scripts = new WP_Scripts;
 		wp_default_scripts( $scripts );
 
-		$jquery_scripts = array(
-			'jquery-core' => '/wp-includes/js/jquery/jquery.js',
-		);
 		if ( SCRIPT_DEBUG ) {
-			$jquery_scripts['jquery-migrate'] = '/wp-includes/js/jquery/jquery-migrate.js';
+			$jquery_scripts = array(
+				'jquery-core'    => '/wp-includes/js/jquery/jquery.js',
+				'jquery-migrate' => '/wp-includes/js/jquery/jquery-migrate.js',
+			);
 		} else {
-			$jquery_scripts['jquery-migrate'] = '/wp-includes/js/jquery/jquery-migrate.min.js';
+			$jquery_scripts = array(
+				'jquery-core'    => '/wp-includes/js/jquery/jquery.min.js',
+				'jquery-migrate' => '/wp-includes/js/jquery/jquery-migrate.min.js',
+			);
 		}
 
 		$object = $scripts->query( 'jquery', 'registered' );
 		$this->assertInstanceOf( '_WP_Dependency', $object );
 
-		// As of 5.5 jQuery 1.12.4 is loaded without Migrate 1.4.1.
-		// Disable, but keep the following test for 5.6 when jQuery would be updated to 3.5.1+ and
-		// the latest Migrate will be used.
-		/*
-		$this->assertEqualSets( $object->deps, array_keys( $jquery_scripts ) );
+		// The following test is disabled in WP 5.5 as jQuery 1.12.4 is loaded without jQuery Migrate 1.4.1,
+		// and reenabled in 5.6 when jQuery 3.5.1 is loaded with jQuery Migrate 3.3.1.
+		$this->assertSameSets( $object->deps, array_keys( $jquery_scripts ) );
 		foreach ( $object->deps as $dep ) {
 			$o = $scripts->query( $dep, 'registered' );
 			$this->assertInstanceOf( '_WP_Dependency', $object );
-			$this->assertTrue( isset( $jquery_scripts[ $dep ] ) );
+			$this->assertArrayHasKey( $dep, $jquery_scripts );
 			$this->assertSame( $jquery_scripts[ $dep ], $o->src );
 		}
-		*/
-	}
-
-	function test_presence_of_jquery_no_conflict() {
-		$contents   = trim( file_get_contents( ABSPATH . WPINC . '/js/jquery/jquery.js' ) );
-		$noconflict = 'jQuery.noConflict();';
-		$end        = substr( $contents, - strlen( $noconflict ) );
-		$this->assertSame( $noconflict, $end );
 	}
 
 	/**
 	 * @ticket 22896
 	 *
 	 * @expectedIncorrectUsage wp_deregister_script
+	 *
+	 * @covers ::wp_script_is
 	 */
-	function test_dont_allow_deregister_core_scripts_in_admin() {
+	public function test_dont_allow_deregister_core_scripts_in_admin() {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( is_admin() );
 		$libraries = array(
@@ -84,14 +82,14 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 			wp_deregister_script( $library );
 			$this->assertTrue( wp_script_is( $library, 'registered' ) );
 		}
-
-		set_current_screen( 'front' );
 	}
 
 	/**
 	 * @ticket 28404
+	 *
+	 * @covers ::wp_script_is
 	 */
-	function test_wp_script_is_dep_enqueued() {
+	public function test_wp_script_is_dep_enqueued() {
 		wp_enqueue_script( 'jquery-ui-accordion' );
 
 		$this->assertTrue( wp_script_is( 'jquery', 'enqueued' ) );
@@ -104,8 +102,10 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 * Test placing of jQuery in footer.
 	 *
 	 * @ticket 25247
+	 *
+	 * @covers WP_Scripts::do_items
 	 */
-	function test_jquery_in_footer() {
+	public function test_jquery_in_footer() {
 		$scripts = new WP_Scripts;
 		$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ) );
 		$scripts->add( 'jquery-core', '/jquery.js', array() );
@@ -120,7 +120,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 		}
 
 		// Match only one script tag for 5.5, revert to `{2}` for 5.6.
-		$this->expectOutputRegex( '/^(?:<script[^>]+><\/script>\\n){1}$/' );
+		$this->expectOutputRegex( '/^(?:<script[^>]+><\/script>\\n){2}$/' );
 
 		$scripts->do_items( false, 0 );
 		$this->assertNotContains( 'jquery', $scripts->done );
@@ -130,10 +130,9 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 		$scripts->do_items( false, 1 );
 		$this->assertContains( 'jquery', $scripts->done );
 
-		// Disable for 5.5 but keep for use in 5.6. See test_location_of_jquery() above.
-		/*
+		// The following test is disabled in WP 5.5 as jQuery 1.12.4 is loaded without jQuery Migrate 1.4.1,
+		// and reenabled in 5.6 when jQuery 3.5.1 is loaded with Migrate 3.3.1.
 		$this->assertContains( 'jquery-core', $scripts->done, 'jquery-core in footer' );
 		$this->assertContains( 'jquery-migrate', $scripts->done, 'jquery-migrate in footer' );
-		*/
 	}
 }

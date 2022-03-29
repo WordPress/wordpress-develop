@@ -3,7 +3,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
+class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 
 	private static $options;
 	private static $blogmeta;
@@ -12,7 +12,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 	/**
 	 * Make sure the schema code is loaded before the tests are run.
 	 */
-	public static function wpSetUpBeforeClass() {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
 
 		self::$options  = 'testprefix_options';
@@ -91,7 +91,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 	 * @ticket 44893
 	 * @dataProvider data_populate_options
 	 */
-	function test_populate_options( $options, $expected ) {
+	public function test_populate_options( $options, $expected ) {
 		global $wpdb;
 
 		$orig_options  = $wpdb->options;
@@ -183,7 +183,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 	 * @group ms-required
 	 * @dataProvider data_populate_site_meta
 	 */
-	function test_populate_site_meta( $meta, $expected ) {
+	public function test_populate_site_meta( $meta, $expected ) {
 		global $wpdb;
 
 		$orig_blogmeta  = $wpdb->blogmeta;
@@ -227,7 +227,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 	 * @group multisite
 	 * @dataProvider data_populate_network_meta
 	 */
-	function test_populate_network_meta( $meta, $expected ) {
+	public function test_populate_network_meta( $meta, $expected ) {
 		global $wpdb;
 
 		$orig_sitemeta  = $wpdb->sitemeta;

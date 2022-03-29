@@ -9,7 +9,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	protected static $comment_id;
 	protected static $user_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id    = $factory->post->create( array( 'post_type' => 'page' ) );
 		self::$term_id    = $factory->term->create( array( 'taxonomy' => 'category' ) );
 		self::$comment_id = $factory->comment->create();

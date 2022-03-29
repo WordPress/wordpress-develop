@@ -12,8 +12,8 @@
 class Tests_REST_Request extends WP_UnitTestCase {
 	public $request;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->request = new WP_REST_Request();
 	}
@@ -83,10 +83,10 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	/**
 	 * @dataProvider content_type_provider
 	 *
-	 * @param string $header Header value.
-	 * @param string $value Full type value.
-	 * @param string $type Main type (application, text, etc).
-	 * @param string $subtype Subtype (json, etc).
+	 * @param string $header     Header value.
+	 * @param string $value      Full type value.
+	 * @param string $type       Main type (application, text, etc).
+	 * @param string $subtype    Subtype (json, etc).
 	 * @param string $parameters Parameters (charset=utf-8, etc).
 	 */
 	public function test_content_type_parsing( $header, $value, $type, $subtype, $parameters ) {
@@ -176,6 +176,87 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		// JSON shouldn't be parsed.
 		$this->assertEmpty( $this->request->get_param( 'has_json_params' ) );
+	}
+
+	public static function alternate_json_content_type_provider() {
+		return array(
+			array( 'application/ld+json', 'json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', 'json', true ),
+			array( 'application/activity+json', 'json', true ),
+			array( 'application/json+oembed', 'json', true ),
+			array( 'application/nojson', 'body', false ),
+			array( 'application/no.json', 'body', false ),
+		);
+	}
+
+	/**
+	 * @ticket 49404
+	 * @dataProvider alternate_json_content_type_provider
+	 *
+	 * @param string $content_type The content-type header.
+	 * @param string $source       The source value.
+	 * @param bool   $accept_json  The accept_json value.
+	 */
+	public function test_alternate_json_content_type( $content_type, $source, $accept_json ) {
+		$this->request_with_parameters();
+
+		$this->request->set_method( 'POST' );
+		$this->request->set_header( 'Content-Type', $content_type );
+		$this->request->set_attributes( array( 'accept_json' => true ) );
+
+		// Check that JSON takes precedence.
+		$this->assertSame( $source, $this->request->get_param( 'source' ) );
+		$this->assertEquals( $accept_json, $this->request->get_param( 'has_json_params' ) );
+	}
+
+	public static function is_json_content_type_provider() {
+		return array(
+			array( 'application/ld+json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
+			array( 'application/activity+json', true ),
+			array( 'application/json+oembed', true ),
+			array( 'application/nojson', false ),
+			array( 'application/no.json', false ),
+		);
+	}
+
+	/**
+	 * @ticket 49404
+	 * @dataProvider is_json_content_type_provider
+	 *
+	 * @param string $content_type The content-type header.
+	 * @param bool   $is_json      The is_json value.
+	 */
+	public function test_is_json_content_type( $content_type, $is_json ) {
+		$this->request_with_parameters();
+
+		$this->request->set_header( 'Content-Type', $content_type );
+
+		// Check for JSON content-type.
+		$this->assertSame( $is_json, $this->request->is_json_content_type() );
+	}
+
+	/**
+	 * @ticket 49404
+	 */
+	public function test_content_type_cache() {
+		$this->request_with_parameters();
+		$this->assertFalse( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/json' );
+		$this->assertTrue( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/activity+json' );
+		$this->assertTrue( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/nojson' );
+		$this->assertFalse( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/json' );
+		$this->assertTrue( $this->request->is_json_content_type() );
+
+		$this->request->remove_header( 'Content-Type' );
+		$this->assertFalse( $this->request->is_json_content_type() );
 	}
 
 	public function test_parameter_order_json() {
@@ -381,6 +462,78 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertSame( 'rest_invalid_param', $valid->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46191
+	 */
+	public function test_sanitize_params_error_multiple_messages() {
+		$this->request->set_url_params(
+			array(
+				'failparam' => '123',
+			)
+		);
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'failparam' => array(
+						'sanitize_callback' => static function () {
+							$error = new WP_Error( 'invalid', 'Invalid.' );
+							$error->add( 'invalid', 'Super Invalid.' );
+							$error->add( 'broken', 'Broken.' );
+
+							return $error;
+						},
+					),
+				),
+			)
+		);
+
+		$valid = $this->request->sanitize_params();
+		$this->assertWPError( $valid );
+		$data = $valid->get_error_data();
+
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'params', $data );
+		$this->assertArrayHasKey( 'failparam', $data['params'] );
+		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
+	}
+
+	/**
+	 * @ticket 46191
+	 */
+	public function test_sanitize_params_provides_detailed_errors() {
+		$this->request->set_url_params(
+			array(
+				'failparam' => '123',
+			)
+		);
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'failparam' => array(
+						'sanitize_callback' => static function () {
+							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
+						},
+					),
+				),
+			)
+		);
+
+		$valid = $this->request->sanitize_params();
+		$this->assertWPError( $valid );
+
+		$data = $valid->get_error_data();
+		$this->assertArrayHasKey( 'details', $data );
+		$this->assertArrayHasKey( 'failparam', $data['details'] );
+		$this->assertSame(
+			array(
+				'code'    => 'invalid',
+				'message' => 'Invalid.',
+				'data'    => 'mydata',
+			),
+			$data['details']['failparam']
+		);
+	}
+
 	public function test_sanitize_params_with_null_callback() {
 		$this->request->set_url_params(
 			array(
@@ -463,8 +616,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$data = $valid->get_error_data( 'rest_missing_callback_param' );
 
-		$this->assertTrue( in_array( 'someinteger', $data['params'], true ) );
-		$this->assertTrue( in_array( 'someotherinteger', $data['params'], true ) );
+		$this->assertContains( 'someinteger', $data['params'] );
+		$this->assertContains( 'someotherinteger', $data['params'] );
 	}
 
 	public function test_has_valid_params_validate_callback() {
@@ -571,6 +724,79 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertSame( 'This is not valid!', $error_data['params']['someotherparams'] );
 	}
 
+
+	/**
+	 * @ticket 46191
+	 */
+	public function test_invalid_params_error_multiple_messages() {
+		$this->request->set_url_params(
+			array(
+				'failparam' => '123',
+			)
+		);
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'failparam' => array(
+						'validate_callback' => static function () {
+							$error = new WP_Error( 'invalid', 'Invalid.' );
+							$error->add( 'invalid', 'Super Invalid.' );
+							$error->add( 'broken', 'Broken.' );
+
+							return $error;
+						},
+					),
+				),
+			)
+		);
+
+		$valid = $this->request->has_valid_params();
+		$this->assertWPError( $valid );
+		$data = $valid->get_error_data();
+
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'params', $data );
+		$this->assertArrayHasKey( 'failparam', $data['params'] );
+		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
+	}
+
+	/**
+	 * @ticket 46191
+	 */
+	public function test_invalid_params_provides_detailed_errors() {
+		$this->request->set_url_params(
+			array(
+				'failparam' => '123',
+			)
+		);
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'failparam' => array(
+						'validate_callback' => static function () {
+							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
+						},
+					),
+				),
+			)
+		);
+
+		$valid = $this->request->has_valid_params();
+		$this->assertWPError( $valid );
+
+		$data = $valid->get_error_data();
+		$this->assertArrayHasKey( 'details', $data );
+		$this->assertArrayHasKey( 'failparam', $data['details'] );
+		$this->assertSame(
+			array(
+				'code'    => 'invalid',
+				'message' => 'Invalid.',
+				'data'    => 'mydata',
+			),
+			$data['details']['failparam']
+		);
+	}
+
 	public function _return_wp_error_on_validate_callback() {
 		return new WP_Error( 'some-error', 'This is not valid!' );
 	}
@@ -598,7 +824,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request = WP_REST_Request::from_url( $url );
 		$this->assertInstanceOf( 'WP_REST_Request', $request );
 		$this->assertSame( '/wp/v2/posts/1', $request->get_route() );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'foo' => 'bar',
 			),
@@ -778,5 +1004,73 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$this->assertTrue( $request->has_param( 'param' ) );
 		$this->assertSame( 'value', $request->get_param( 'param' ) );
+	}
+
+	/**
+	 * @ticket 51255
+	 */
+	public function test_route_level_validate_callback() {
+		$request = new WP_REST_Request();
+		$request->set_query_params( array( 'test' => 'value' ) );
+
+		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
+		$request->set_attributes(
+			array(
+				'args'              => array(
+					'test' => array(
+						'validate_callback' => '__return_true',
+					),
+				),
+				'validate_callback' => $callback,
+			)
+		);
+
+		$this->assertSame( $error, $request->has_valid_params() );
+	}
+
+	/**
+	 * @ticket 51255
+	 */
+	public function test_route_level_validate_callback_no_parameter_callbacks() {
+		$request = new WP_REST_Request();
+		$request->set_query_params( array( 'test' => 'value' ) );
+
+		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
+		$request->set_attributes(
+			array(
+				'validate_callback' => $callback,
+			)
+		);
+
+		$this->assertSame( $error, $request->has_valid_params() );
+	}
+
+	/**
+	 * @ticket 51255
+	 */
+	public function test_route_level_validate_callback_is_not_executed_if_parameter_validation_fails() {
+		$request = new WP_REST_Request();
+		$request->set_query_params( array( 'test' => 'value' ) );
+
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback->expects( self::never() )->method( '__invoke' );
+		$request->set_attributes(
+			array(
+				'validate_callback' => $callback,
+				'args'              => array(
+					'test' => array(
+						'validate_callback' => '__return_false',
+					),
+				),
+			)
+		);
+
+		$valid = $request->has_valid_params();
+		$this->assertWPError( $valid );
+		$this->assertSame( 'rest_invalid_param', $valid->get_error_code() );
 	}
 }

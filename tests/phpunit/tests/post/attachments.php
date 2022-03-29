@@ -7,28 +7,28 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
-	function tearDown() {
+	public function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
-	function test_insert_bogus_image() {
+	public function test_insert_bogus_image() {
 		$filename = rand_str() . '.jpg';
 		$contents = rand_str();
 
 		$upload = wp_upload_bits( $filename, null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 	}
 
-	function test_insert_image_no_thumb() {
+	public function test_insert_image_no_thumb() {
 
 		// This image is smaller than the thumbnail size so it won't have one.
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id = $this->_make_attachment( $upload );
 
@@ -54,11 +54,10 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertSame( 50, $downsize[2] );
 	}
 
-	function test_insert_image_thumb_only() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
+	/**
+	 * @requires function imagejpeg
+	 */
+	public function test_insert_image_thumb_only() {
 		update_option( 'medium_size_w', 0 );
 		update_option( 'medium_size_h', 0 );
 
@@ -66,7 +65,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id = $this->_make_attachment( $upload );
 
@@ -106,11 +105,10 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertSame( 300, $downsize[2] );
 	}
 
-	function test_insert_image_medium_sizes() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
+	/**
+	 * @requires function imagejpeg
+	 */
+	public function test_insert_image_medium_sizes() {
 		update_option( 'medium_size_w', 400 );
 		update_option( 'medium_size_h', 0 );
 
@@ -121,7 +119,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id      = $this->_make_attachment( $upload );
 		$uploads = wp_upload_dir();
@@ -164,12 +162,10 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertSame( 1024, $downsize[2] );
 	}
 
-
-	function test_insert_image_delete() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
+	/**
+	 * @requires function imagejpeg
+	 */
+	public function test_insert_image_delete() {
 		update_option( 'medium_size_w', 400 );
 		update_option( 'medium_size_h', 0 );
 
@@ -180,7 +176,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id      = $this->_make_attachment( $upload );
 		$uploads = wp_upload_dir();
@@ -217,30 +213,30 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 18310
 	 * @ticket 21963
 	 */
-	function test_insert_image_without_guid() {
+	public function test_insert_image_without_guid() {
 		// This image is smaller than the thumbnail size so it won't have one.
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$upload['url'] = '';
 		$id            = $this->_make_attachment( $upload );
 
 		$guid = get_the_guid( $id );
-		$this->assertFalse( empty( $guid ) );
+		$this->assertNotEmpty( $guid );
 	}
 
 	/**
 	 * @ticket 21963
 	 */
-	function test_update_attachment_fields() {
+	public function test_update_attachment_fields() {
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id = $this->_make_attachment( $upload );
 
@@ -261,12 +257,12 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	/**
 	 * @ticket 29646
 	 */
-	function test_update_orphan_attachment_parent() {
+	public function test_update_orphan_attachment_parent() {
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$attachment_id = $this->_make_attachment( $upload );
 
@@ -298,7 +294,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -323,7 +319,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -348,7 +344,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -376,7 +372,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -404,7 +400,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -413,9 +409,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		set_current_screen( 'dashboard' );
 
 		$url = wp_get_attachment_url( $attachment_id );
-
-		// Cleanup.
-		set_current_screen( 'front' );
 
 		$this->assertSame( set_url_scheme( $url, 'http' ), $url );
 	}
@@ -431,7 +424,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -442,7 +435,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$url = wp_get_attachment_url( $attachment_id );
 
 		// Cleanup.
-		set_current_screen( 'front' );
 		remove_filter( 'upload_dir', '_upload_dir_https' );
 
 		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
@@ -516,7 +508,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	public function test_wp_mime_type_icon() {
 		$icon = wp_mime_type_icon();
 
-		$this->assertContains( 'images/media/default.png', $icon );
+		$this->assertStringContainsString( 'images/media/default.png', $icon );
 	}
 
 	/**
@@ -525,6 +517,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	public function test_wp_mime_type_icon_video() {
 		$icon = wp_mime_type_icon( 'video/mp4' );
 
-		$this->assertContains( 'images/media/video.png', $icon );
+		$this->assertStringContainsString( 'images/media/video.png', $icon );
 	}
 }

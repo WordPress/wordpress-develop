@@ -11,7 +11,7 @@
  *
  * @since 3.1.0
  *
- * @param int|object|null $post Optional. Post ID or post object. Defaults to the current post in the loop.
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to the current post in the loop.
  * @return string|false The format if successful. False otherwise.
  */
 function get_post_format( $post = null ) {
@@ -41,7 +41,7 @@ function get_post_format( $post = null ) {
  *
  * @since 3.1.0
  *
- * @param string|array     $format Optional. The format or formats to check.
+ * @param string|string[]  $format Optional. The format or formats to check.
  * @param WP_Post|int|null $post   Optional. The post to check. Defaults to the current post in the loop.
  * @return bool True if the post has any of the given formats (or any format, if no format specified),
  *              false otherwise.
@@ -186,9 +186,9 @@ function _post_format_request( $qvs ) {
  *
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param string $link
- * @param object $term
- * @param string $taxonomy
+ * @param string  $link
+ * @param WP_Term $term
+ * @param string  $taxonomy
  * @return string
  */
 function _post_format_link( $link, $term, $taxonomy ) {

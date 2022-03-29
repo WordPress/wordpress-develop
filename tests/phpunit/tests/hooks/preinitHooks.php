@@ -4,8 +4,9 @@
  * Test the IteratorAggregate implementation of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::build_preinitialized_hooks
  */
-class Tests_WP_Hook_Preinit_Hooks extends WP_UnitTestCase {
+class Tests_Hooks_PreinitHooks extends WP_UnitTestCase {
 
 	public function test_array_to_hooks() {
 		$tag1      = __FUNCTION__ . '_1';

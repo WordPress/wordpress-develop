@@ -9,7 +9,7 @@
 
  /* global ajaxurl, wpAjax, showNotice, validateForm */
 
-jQuery(document).ready(function($) {
+jQuery( function($) {
 
 	var addingTerm = false;
 
@@ -98,7 +98,7 @@ jQuery(document).ready(function($) {
 	 *
 	 * @return {boolean} Always returns false to cancel the default event handling.
 	 */
-	$('#submit').click(function(){
+	$('#submit').on( 'click', function(){
 		var form = $(this).parents('form');
 
 		if ( ! validateForm( form ) )

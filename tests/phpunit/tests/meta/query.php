@@ -146,7 +146,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		$query = new WP_Meta_Query();
 		$query->parse_query_vars( $qv );
 
-		$this->assertTrue( ! isset( $query->queries[0]['value'] ) );
+		$this->assertArrayNotHasKey( 'value', $query->queries[0] );
 	}
 
 	/**
@@ -163,7 +163,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		$query = new WP_Meta_Query();
 		$query->parse_query_vars( $qv );
 
-		$this->assertTrue( ! isset( $query->queries[0]['value'] ) );
+		$this->assertArrayNotHasKey( 'value', $query->queries[0] );
 	}
 
 	/**
@@ -758,7 +758,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0], $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
 
 		$q = new WP_Query(
 			array(
@@ -766,11 +766,10 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 				'meta_compare_key' => 'REGEXP',
 				'meta_type_key'    => 'BINARY',
 				'fields'           => 'ids',
-				'fields'           => 'ids',
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0] ), $q->posts );
+		$this->assertSameSets( array( $posts[0] ), $q->posts );
 	}
 
 	/**
@@ -901,8 +900,8 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		);
 
 		$sql = $query->get_sql( 'post', $wpdb->posts, 'ID', $this );
-		$this->assertNotContains( "{$wpdb->postmeta}.meta_key = 'exclude'\nOR", $sql['where'] );
-		$this->assertContains( "{$wpdb->postmeta}.post_id IS NULL", $sql['where'] );
+		$this->assertStringNotContainsString( "{$wpdb->postmeta}.meta_key = 'exclude'\nOR", $sql['where'] );
+		$this->assertStringContainsString( "{$wpdb->postmeta}.post_id IS NULL", $sql['where'] );
 	}
 
 	public function test_empty_compare() {
@@ -926,8 +925,8 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		$sql = $query->get_sql( 'post', $wpdb->posts, 'ID', $this );
 
 		// Use regex because we don't care about the whitespace before OR.
-		$this->assertRegExp( "/{$wpdb->postmeta}\.meta_key = \'exclude\'\s+OR/", $sql['where'] );
-		$this->assertNotContains( "{$wpdb->postmeta}.post_id IS NULL", $sql['where'] );
+		$this->assertMatchesRegularExpression( "/{$wpdb->postmeta}\.meta_key = \'exclude\'\s+OR/", $sql['where'] );
+		$this->assertStringNotContainsString( "{$wpdb->postmeta}.post_id IS NULL", $sql['where'] );
 	}
 
 	/**
