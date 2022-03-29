@@ -2596,8 +2596,7 @@ function wp_update_network_site_counts( $network_id = null ) {
  *
  * @since 3.7.0
  * @since 4.8.0 The `$network_id` parameter has been added.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @since 6.0.0 This function is now a wrapper for wp_update_user_counts().
  *
  * @param int|null $network_id ID of the network. Default is the current network.
  */
@@ -2737,8 +2736,7 @@ function wp_is_large_network( $using = 'sites', $network_id = null ) {
 	if ( 'users' === $using ) {
 		$count = get_user_count( $network_id );
 
-		/** This filter is documented in wp-includes/functions.php */
-		$is_large_network = apply_filters( 'wp_is_large_user_count', $count > 10000, $count );
+		$is_large_network = wp_is_large_user_count( $network_id );
 
 		/**
 		 * Filters whether the network is considered large.

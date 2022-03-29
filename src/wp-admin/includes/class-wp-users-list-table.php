@@ -189,6 +189,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		$avail_roles             = array();
 		$all_text                = __( 'All' );
 		$current_link_attributes = empty( $role ) ? ' class="current" aria-current="page"' : '';
+
 		if ( $count_users ) {
 			if ( $this->is_site_users ) {
 				switch_to_blog( $this->site_id );
@@ -230,7 +231,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			$name = translate_user_role( $name );
 			if ( $count_users ) {
 				$name = sprintf(
-				/* translators: 1: User role name, 2: Number of users. */
+					/* translators: 1: User role name, 2: Number of users. */
 					__( '%1$s <span class="count">(%2$s)</span>' ),
 					$name,
 					number_format_i18n( $avail_roles[ $this_role ] )

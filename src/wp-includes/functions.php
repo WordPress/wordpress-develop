@@ -8420,9 +8420,9 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 }
 
 /**
- * The number of active users in your installation.
+ * Returns the number of active users in your installation.
  *
- * The count is cached and updated twice daily. This is not a live count.
+ * Note that on a large site the count may be cached and only updated twice daily.
  *
  * @since MU (3.0.0)
  * @since 4.8.0 The `$network_id` parameter has been added.
@@ -8439,40 +8439,41 @@ function get_user_count( $network_id = null ) {
 }
 
 /**
- * Update the site-wide users count.
+ * Updates the total count of users on the site if live user counting is enabled.
+ *
+ * @since 6.0.0
  *
  * @param int|null $network_id ID of the network. Default is the current network.
- *
- * @return bool
+ * @return bool Whether the update was successful.
  */
 function wp_maybe_update_user_counts( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $nework_id if not using multisite.' ), '6.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $network_id if not using multisite.' ), '6.0.0' );
 	}
 
 	$is_small_network = ! wp_is_large_user_count( $network_id );
 	/** This filter is documented in wp-includes/ms-functions.php */
 	if ( ! apply_filters( 'enable_live_network_counts', $is_small_network, 'users' ) ) {
-		return;
+		return false;
 	}
 
 	return wp_update_user_counts( $network_id );
 }
 
 /**
- * Update the site-wide user count.
+ * Updates the total count of users on the site.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  * @since 6.0.0
- * @param int|null $network_id ID of the network. Default is the current network.
  *
- * @return bool
+ * @param int|null $network_id ID of the network. Default is the current network.
+ * @return bool Whether the update was successful.
  */
 function wp_update_user_counts( $network_id = null ) {
 	global $wpdb;
 
 	if ( ! is_multisite() && null !== $network_id ) {
-		 _doing_it_wrong( __FUNCTION__, __( 'Unable to pass $network_id if not using multisite.' ), '6.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Unable to pass $network_id if not using multisite.' ), '6.0.0' );
 	}
 
 	$query = "SELECT COUNT(ID) as c FROM $wpdb->users";
@@ -8486,7 +8487,7 @@ function wp_update_user_counts( $network_id = null ) {
 }
 
 /**
- * Schedule update user counts.
+ * Schedules a recurring recalculation of the total count of users.
  *
  * @since 6.0.0
  */
@@ -8495,18 +8496,20 @@ function wp_schedule_update_user_counts() {
 		return;
 	}
 
-	if ( ! wp_next_scheduled( 'update_user_counts' ) && ! wp_installing() ) {
-		wp_schedule_event( time(), 'twicedaily', 'update_user_counts' );
+	if ( ! wp_next_scheduled( 'wp_update_user_counts' ) && ! wp_installing() ) {
+		wp_schedule_event( time(), 'twicedaily', 'wp_update_user_counts' );
 	}
 }
 
 /**
- * Determine whether the site has a large number of users.
+ * Determines whether the site has a large number of users.
+ *
+ * The default criteria for a large site is more than 10,000 users.
  *
  * @since 6.0.0
  *
  * @param int|null $network_id ID of the network. Default is the current network.
- * @return bool
+ * @return bool Whether the site has a large number of users.
  */
 function wp_is_large_user_count( $network_id = null ) {
 	if ( ! is_multisite() && null !== $network_id ) {
@@ -8519,8 +8522,9 @@ function wp_is_large_user_count( $network_id = null ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param bool   $is_large_user_count Whether the site has more than 10000 users.
-	 * @param int    $count               The count of items for the component.
+	 * @param bool     $is_large_user_count Whether the site has a large number of users.
+	 * @param int      $count               The total number of users.
+	 * @param int|null $network_id          ID of the network. `null` represents the current network.
 	 */
-	return apply_filters( 'wp_is_large_user_count', $count > 10000, $count );
+	return apply_filters( 'wp_is_large_user_count', $count > 10000, $count, $network_id );
 }
