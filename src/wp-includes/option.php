@@ -328,7 +328,7 @@ function wp_load_alloptions( $force_cache = false ) {
  * @param int $network_id Optional site ID for which to query the options. Defaults to the current site.
  */
 function wp_load_core_site_options( $network_id = null ) {
-	if ( ! is_multisite() || wp_using_ext_object_cache() || wp_installing() ) {
+	if ( ! is_multisite() || wp_installing() ) {
 		return;
 	}
 
