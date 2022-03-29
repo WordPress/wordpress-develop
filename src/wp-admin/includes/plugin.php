@@ -1325,25 +1325,15 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
 
 	if ( null === $position ) {
 		$menu[] = $new_menu;
-	} elseif ( isset( $menu[ "$position" ] ) ) {
-		$position            = $position + substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
-		$menu[ "$position" ] = $new_menu;
 	} else {
-		if ( ! is_int( $position ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: add_menu_page() */
-					__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
-					'<code>add_menu_page()</code>'
-				),
-				'6.0.0'
-			);
-			// If the position is not a string (i.e. float), convert it to string.
-			if ( ! is_string( $position ) ) {
-				$position = (string) $position;
-			}
+		$position = (string) (float) $position;
+
+		if ( isset( $menu[ $position ] ) ) {
+			$position += substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
+			// Convert back to string because PHP converts floats to ints in array indexes.
+			$position = (string) $position;
 		}
+
 		$menu[ $position ] = $new_menu;
 	}
 
@@ -1418,45 +1408,21 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	}
 
 	$new_sub_menu = array( $menu_title, $capability, $menu_slug, $page_title );
-	if ( ! is_int( $position ) ) {
-		if ( null !== $position ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: add_submenu_page() */
-					__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
-					'<code>add_submenu_page()</code>'
-				),
-				'5.3.0'
-			);
-		}
-
+	if ( null === $position ) {
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
-		// Append the submenu if the parent item is not present in the submenu,
-		// or if position is equal or higher than the number of items in the array.
-		if ( ! isset( $submenu[ $parent_slug ] ) || $position >= count( $submenu[ $parent_slug ] ) ) {
-			$submenu[ $parent_slug ][] = $new_sub_menu;
-		} else {
-			// Test for a negative position.
-			$position = max( $position, 0 );
-			if ( 0 === $position ) {
-				// For negative or `0` positions, prepend the submenu.
-				array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
-			} else {
-				// Grab all of the items before the insertion point.
-				$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
-				// Grab all of the items after the insertion point.
-				$after_items = array_slice( $submenu[ $parent_slug ], $position, null, true );
-				// Add the new item.
-				$before_items[] = $new_sub_menu;
-				// Merge the items.
-				$submenu[ $parent_slug ] = array_merge( $before_items, $after_items );
-			}
+		$position = (string) (float) $position;
+
+		if ( isset( $menu[ $position ] ) ) {
+			$position += substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
+			// Convert back to string because PHP converts floats to ints in array indexes.
+			$position = (string) $position;
 		}
+
+		$submenu[ $parent_slug ][ $position ] = $new_sub_menu;
 	}
 	// Sort the parent array.
-	ksort( $submenu[ $parent_slug ] );
+	uksort( $submenu[ $parent_slug ], 'strnatcasecmp' );
 
 	$hookname = get_plugin_page_hookname( $menu_slug, $parent_slug );
 	if ( ! empty( $function ) && ! empty( $hookname ) ) {
