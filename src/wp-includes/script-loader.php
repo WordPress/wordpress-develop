@@ -1223,7 +1223,7 @@ function wp_default_scripts( $scripts ) {
 			'invalidValue'            => __( 'Invalid value.' ),
 			'blockThemeNotification'  => sprintf(
 				/* translators: 1: URL to the localized version of https://wordpress.org/support/article/site-editor/, 2: HTML Button. */
-				__( 'Hurray! Your theme supports Full Site Editing with blocks. <a href="%1$s" target="_blank">Tell me more</a>. %2$s' ),
+				__( 'Hurray! Your theme supports Full Site Editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
 				__( 'https://wordpress.org/support/article/site-editor/' ),
 				sprintf(
 					'<button type="button" data-action="%1$s" class="button switch-to-editor">%2$s</button>',
