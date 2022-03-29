@@ -1154,7 +1154,6 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'customize-models', '/wp-includes/js/customize-models.js', array( 'underscore', 'backbone' ), false, 1 );
 	$scripts->add( 'customize-views', '/wp-includes/js/customize-views.js', array( 'jquery', 'underscore', 'imgareaselect', 'customize-models', 'media-editor', 'media-views' ), false, 1 );
 	$scripts->add( 'customize-controls', "/wp-admin/js/customize-controls$suffix.js", array( 'customize-base', 'wp-a11y', 'wp-util', 'jquery-ui-core' ), false, 1 );
-	$switch_to_site_editor_label = __( 'Use Site Editor' );
 	did_action( 'init' ) && $scripts->localize(
 		'customize-controls',
 		'_wpCustomizeControlsL10n',
@@ -1229,7 +1228,7 @@ function wp_default_scripts( $scripts ) {
 				sprintf(
 					'<button type="button" data-action="%1$s" class="button switch-to-editor">%2$s</button>',
 					esc_url( admin_url( 'site-editor.php' ) ),
-					$switch_to_site_editor_label
+					__( 'Use Site Editor' )
 				)
 			),
 		)
