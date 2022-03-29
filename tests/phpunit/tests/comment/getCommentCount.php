@@ -124,7 +124,7 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 	 *
 	 * @covers get_comment_count
 	 */
-	public function test_get_comment_count_validate_cache_post_post_deleted() {
+	public function test_get_comment_count_validate_cache_post_deleted() {
 
 		$post_id = self::factory()->post->create();
 
