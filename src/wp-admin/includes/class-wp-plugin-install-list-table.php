@@ -514,6 +514,15 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 			// Remove any HTML from the description.
 			$description = strip_tags( $plugin['short_description'] );
+
+			/**
+			 * Filter the plugin card description.
+			 *
+			 * @since 6.0.0
+			 * @param string $decription Plugin card description.
+			 * @param array  $plugin     Array of plugin data.
+			 */
+			$description = apply_filters( 'plugin_install_description', $description, $plugin );
 			$version     = wp_kses( $plugin['version'], $plugins_allowedtags );
 
 			$name = strip_tags( $title . ' ' . $version );
