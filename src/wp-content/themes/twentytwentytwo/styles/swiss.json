@@ -61,7 +61,17 @@
 	},
 	"styles": {
 		"blocks": {
+			"core/cover": {
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			},
 			"core/image": {
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			},
+			"core/post-author": {
 				"filter": {
 					"duotone": "var(--wp--preset--duotone--default-filter)"
 				}
