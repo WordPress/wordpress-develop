@@ -3034,7 +3034,11 @@ class WP_Query implements JsonSerializable, Serializable {
 		";
 
 		$this->request = $old_request;
-		$this->count_request = "SELECT COUNT($distinct {$wpdb->posts}.ID) FROM {$wpdb->posts} $join WHERE 1=1 $where";
+		$this->count_request = "
+			SELECT COUNT($distinct {$wpdb->posts}.ID)
+			FROM {$wpdb->posts} $join
+			WHERE 1=1 $where
+		";
 
 		if ( ! $q['suppress_filters'] ) {
 			/**
