@@ -2248,7 +2248,7 @@ EOF;
 			$respimg_xhtml,
 			$respimg_html5
 		);
-		$content_filtered = wp_img_tag_add_decoding_async_attr( $content_filtered );
+		$content_filtered = wp_img_tag_add_decoding_async_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
