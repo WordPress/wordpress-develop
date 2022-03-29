@@ -28,17 +28,26 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'calendar',
 		'categories',
 		'file',
+		'gallery',
+		'image',
 		'latest-comments',
 		'latest-posts',
 		'loginout',
+		'navigation',
+		'navigation-link',
+		'navigation-submenu',
 		'page-list',
+		'pattern',
+		'post-author',
+		'post-comments',
 		'post-content',
 		'post-date',
 		'post-excerpt',
 		'post-featured-image',
+		'post-navigation-link',
+		'post-template',
 		'post-terms',
 		'post-title',
-		'post-template',
 		'query',
 		'query-pagination',
 		'query-pagination-next',
@@ -53,6 +62,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'site-title',
 		'social-link',
 		'tag-cloud',
+		'template-part',
+		'term-description',
 	];
 	const blockFolders = [
 		'audio',
@@ -64,11 +75,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'cover',
 		'embed',
 		'freeform',
-		'gallery',
 		'group',
 		'heading',
 		'html',
-		'image',
 		'list',
 		'media-text',
 		'missing',
@@ -89,6 +98,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	];
 	const blockPHPFiles = {
 		'widgets/src/blocks/legacy-widget/index.php': 'wp-includes/blocks/legacy-widget.php',
+		'widgets/src/blocks/widget-group/index.php': 'wp-includes/blocks/widget-group.php',
 		...dynamicBlockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
 			return files;
@@ -96,6 +106,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	};
 	const blockMetadataFiles = {
 		'widgets/src/blocks/legacy-widget/block.json': 'wp-includes/blocks/legacy-widget/block.json',
+		'widgets/src/blocks/widget-group/block.json': 'wp-includes/blocks/widget-group/block.json',
 		...blockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
 			return files;
@@ -142,6 +153,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		mode,
 		entry: {
 			'file/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/file/view` ),
+			'navigation/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view` ),
 		},
 		output: {
 			devtoolNamespace: 'wp',

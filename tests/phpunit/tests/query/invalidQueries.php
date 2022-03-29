@@ -91,11 +91,10 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 		global $wpdb;
 
 		$query = new WP_Query( array( 'post_type' => 'unregistered_cpt' ) );
-		$posts = $query->get_posts();
 
 		$this->assertStringContainsString( "{$wpdb->posts}.post_type = 'unregistered_cpt'", self::$last_posts_request );
 		$this->assertStringContainsString( "{$wpdb->posts}.post_status = 'publish'", self::$last_posts_request );
-		$this->assertCount( 0, $posts );
+		$this->assertCount( 0, $query->posts );
 	}
 
 	/**
@@ -111,10 +110,9 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 				'post_type' => array( 'unregistered_cpt', 'page' ),
 			)
 		);
-		$posts = $query->get_posts();
 
 		$this->assertStringContainsString( "{$wpdb->posts}.post_type = 'unregistered_cpt'", self::$last_posts_request );
-		$this->assertCount( 1, $posts, 'the valid `page` post type should still return one post' );
+		$this->assertCount( 1, $query->posts, 'the valid `page` post type should still return one post' );
 	}
 
 	/**
@@ -143,10 +141,9 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 				'post_type' => 'page',
 			)
 		);
-		$posts = $query->get_posts();
 
 		// Only the published page should be returned.
-		$this->assertCount( 1, $posts );
+		$this->assertCount( 1, $query->posts );
 	}
 
 	/**
@@ -158,9 +155,8 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 				'static' => 'a',
 			)
 		);
-		$posts = $query->get_posts();
 
 		// Only the published post should be returned.
-		$this->assertCount( 1, $posts );
+		$this->assertCount( 1, $query->posts );
 	}
 }

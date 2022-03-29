@@ -39,20 +39,21 @@ class Spy_REST_Server extends WP_REST_Server {
 	}
 
 	/**
-	 * Stores last set status.
-	 * @param int $code HTTP status.
-	 */
-	public function set_status( $status ) {
-		$this->status = $status;
-	}
-
-	/**
 	 * Removes a header from the list of sent headers.
 	 *
 	 * @param string $header Header name.
 	 */
 	public function remove_header( $header ) {
 		unset( $this->sent_headers[ $header ] );
+	}
+
+	/**
+	 * Stores last set status.
+	 *
+	 * @param int $code HTTP status.
+	 */
+	public function set_status( $status ) {
+		$this->status = $status;
 	}
 
 	/**

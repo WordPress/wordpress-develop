@@ -6,14 +6,6 @@
  */
 
 ( function() {
-	function domReady( callback ) {
-		if ( document.readyState === 'complete' || document.readyState === 'interactive' ) {
-			callback();
-		} else {
-			document.addEventListener( 'DOMContentLoaded', callback );
-		}
-	}
-
 	var sidebar, resizeTimer, secondary, button;
 
 	function initMainNavigation( container ) {
@@ -135,7 +127,7 @@
 		}
 	}
 
-	domReady( function() {
+	( function() {
 		sidebar = document.getElementById( 'sidebar' );
 
 		window.addEventListener( 'scroll', resizeAndScroll );
@@ -153,6 +145,6 @@
 		for ( var i = 0; i < 6; i++ ) {
 			setTimeout( resizeAndScroll, 100 * i );
 		}
-	} );
+	} )();
 
 } )();

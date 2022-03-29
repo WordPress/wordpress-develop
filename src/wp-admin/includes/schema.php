@@ -964,7 +964,7 @@ endif;
  * @global WP_Rewrite $wp_rewrite   WordPress rewrite component.
  *
  * @param int    $network_id        ID of network to populate.
- * @param string $domain            The domain name for the network (eg. "example.com").
+ * @param string $domain            The domain name for the network. Example: "example.com".
  * @param string $email             Email address for the network administrator.
  * @param string $site_name         The name of the network.
  * @param string $path              Optional. The path to append to the network's domain name. Default '/'.
@@ -1267,6 +1267,7 @@ We hope you enjoy your new site. Thanks!
 		'subdomain_install'           => $subdomain_install,
 		'global_terms_enabled'        => global_terms_enabled() ? '1' : '0',
 		'ms_files_rewriting'          => is_multisite() ? get_site_option( 'ms_files_rewriting' ) : '0',
+		'user_count'                  => get_site_option( 'user_count' ),
 		'initial_db_version'          => get_option( 'initial_db_version' ),
 		'active_sitewide_plugins'     => array(),
 		'WPLANG'                      => get_locale(),

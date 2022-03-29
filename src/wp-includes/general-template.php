@@ -1376,9 +1376,11 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	// If there's a month.
 	if ( is_archive() && ! empty( $m ) ) {
 		$my_year  = substr( $m, 0, 4 );
-		$my_month = $wp_locale->get_month( substr( $m, 4, 2 ) );
+		$my_month = substr( $m, 4, 2 );
 		$my_day   = (int) substr( $m, 6, 2 );
-		$title    = $my_year . ( $my_month ? $t_sep . $my_month : '' ) . ( $my_day ? $t_sep . $my_day : '' );
+		$title    = $my_year .
+			( $my_month ? $t_sep . $wp_locale->get_month( $my_month ) : '' ) .
+			( $my_day ? $t_sep . $my_day : '' );
 	}
 
 	// If there's a year.
@@ -2553,7 +2555,7 @@ function the_date( $format = '', $before = '', $after = '', $echo = true ) {
  *
  * @param string      $format Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
- * @return string|false Date the current post was written. False on failure.
+ * @return string|int|false Date the current post was written. False on failure.
  */
 function get_the_date( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -2571,9 +2573,9 @@ function get_the_date( $format = '', $post = null ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string      $the_date The formatted date.
+	 * @param string|int  $the_date Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
 	 * @param string      $format   PHP date format.
-	 * @param int|WP_Post $post     The post object or ID.
+	 * @param WP_Post     $post     The post object.
 	 */
 	return apply_filters( 'get_the_date', $the_date, $format, $post );
 }
@@ -2697,10 +2699,10 @@ function get_the_time( $format = '', $post = null ) {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string      $the_time The formatted time.
+	 * @param string|int  $the_time Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
 	 * @param string      $format   Format to use for retrieving the time the post
 	 *                              was written. Accepts 'G', 'U', or PHP date format.
-	 * @param int|WP_Post $post     WP_Post object or ID.
+	 * @param WP_Post     $post     Post object.
 	 */
 	return apply_filters( 'get_the_time', $the_time, $format, $post );
 }
@@ -2754,10 +2756,10 @@ function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = 
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param string $time   The formatted time.
-	 * @param string $format Format to use for retrieving the time the post was written.
-	 *                       Accepts 'G', 'U', or PHP date format. Default 'U'.
-	 * @param bool   $gmt    Whether to retrieve the GMT time. Default false.
+	 * @param string|int $time   Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+	 * @param string     $format Format to use for retrieving the time the post was written.
+	 *                           Accepts 'G', 'U', or PHP date format.
+	 * @param bool       $gmt    Whether to retrieve the GMT time.
 	 */
 	return apply_filters( 'get_post_time', $time, $format, $gmt );
 }
@@ -3576,8 +3578,8 @@ function wp_enqueue_editor() {
  *
  *     @type string   $type       The MIME type of the file to be edited.
  *     @type string   $file       Filename to be edited. Extension is used to sniff the type. Can be supplied as alternative to `$type` param.
- *     @type WP_Theme $theme      Theme being edited when on theme editor.
- *     @type string   $plugin     Plugin being edited when on plugin editor.
+ *     @type WP_Theme $theme      Theme being edited when on the theme file editor.
+ *     @type string   $plugin     Plugin being edited when on the plugin file editor.
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
@@ -3667,8 +3669,8 @@ function wp_enqueue_code_editor( $args ) {
  *
  *     @type string   $type       The MIME type of the file to be edited.
  *     @type string   $file       Filename to be edited. Extension is used to sniff the type. Can be supplied as alternative to `$type` param.
- *     @type WP_Theme $theme      Theme being edited when on theme editor.
- *     @type string   $plugin     Plugin being edited when on plugin editor.
+ *     @type WP_Theme $theme      Theme being edited when on the theme file editor.
+ *     @type string   $plugin     Plugin being edited when on the plugin file editor.
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
@@ -4004,8 +4006,8 @@ function wp_get_code_editor_settings( $args ) {
 	 *
 	 *     @type string   $type       The MIME type of the file to be edited.
 	 *     @type string   $file       Filename being edited.
-	 *     @type WP_Theme $theme      Theme being edited when on theme editor.
-	 *     @type string   $plugin     Plugin being edited when on plugin editor.
+	 *     @type WP_Theme $theme      Theme being edited when on the theme file editor.
+	 *     @type string   $plugin     Plugin being edited when on the plugin file editor.
 	 *     @type array    $codemirror Additional CodeMirror setting overrides.
 	 *     @type array    $csslint    CSSLint rule overrides.
 	 *     @type array    $jshint     JSHint rule overrides.

@@ -23,8 +23,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$author->ID,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 			)
 		);
 
@@ -32,8 +32,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$author->ID,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 			)
 		);
 	}

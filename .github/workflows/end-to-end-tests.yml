@@ -4,7 +4,6 @@ on:
   # The end to end test suite was introduced in WordPress 5.3.
   push:
     branches:
-      - master
       - trunk
       - '5.[3-9]'
       - '[6-9].[0-9]'
@@ -13,7 +12,6 @@ on:
       - '[6-9].[0-9]*'
   pull_request:
     branches:
-      - master
       - trunk
       - '5.[3-9]'
       - '[6-9].[0-9]'
@@ -49,6 +47,7 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
@@ -58,7 +57,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
 
       - name: Log debug information
         run: |
@@ -72,7 +71,7 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
+        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
         with:
           node-version: 14
           cache: npm
@@ -119,7 +118,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ e2e-tests ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
