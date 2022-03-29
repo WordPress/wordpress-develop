@@ -2923,7 +2923,7 @@ EOF;
 			%2$s';
 
 		$content_unfiltered = sprintf( $content, $img, $iframe );
-		$content_filtered   = sprintf( $content, wp_img_tag_add_decoding_async_attr( $lazy_img ), $lazy_iframe, 'the_content' );
+		$content_filtered   = sprintf( $content, wp_img_tag_add_decoding_async_attr( $lazy_img, 'the_content' ), $lazy_iframe );
 
 		// Do not add srcset and sizes while testing.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
