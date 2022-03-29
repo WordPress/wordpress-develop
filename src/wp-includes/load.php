@@ -268,10 +268,7 @@ function wp_get_runtime_environment() {
 
 	// Fetch the runtime environment from global system variable.
 	if ( false !== getenv( 'WP_RUNTIME_ENVIRONMENT' ) ) {
-		$has_runtime_env = getenv( 'WP_RUNTIME_ENVIRONMENT' );
-		if ( false !== $has_runtime_env ) {
-			$current_runtime_env = $has_runtime_env;
-		}
+		$current_runtime_env = getenv( 'WP_RUNTIME_ENVIRONMENT' );
 	}
 
 	// If set to something in $wp_runtime_environments use it, default is ''.
