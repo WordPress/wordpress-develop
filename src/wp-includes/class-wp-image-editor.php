@@ -457,11 +457,13 @@ abstract class WP_Image_Editor {
 			}
 		}
 
-		if ( '' === $suffix ) {
-			return trailingslashit( $dir ) . "{$name}.{$new_ext}";
+		if ( empty( $suffix ) ) {
+			$suffix = "";
+		} else {
+			$suffix = "-{$suffix}";
 		}
 
-		return trailingslashit( $dir ) . "{$name}-{$suffix}.{$new_ext}";
+		return trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}";
 	}
 
 	/**
