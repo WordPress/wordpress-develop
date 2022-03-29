@@ -2,18 +2,22 @@
 
 /**
  * @group query
+ * @group comments
+ * @group feeds
  */
 class Tests_Query_CommentFeed extends WP_UnitTestCase {
-	public static $post_type = 'post'; // Can be anything.
+	public static $post_type   = 'post';
+	protected static $post_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		for ( $i = 0; $i < 10; $i ++ ) {
-			$post_id = $factory->post->create(
-				array(
-					'post_type'   => self::$post_type,
-					'post_status' => 'publish',
-				)
-			);
+		self::$post_ids = $factory->post->create_many(
+			3,
+			array(
+				'post_type'   => self::$post_type,
+				'post_status' => 'publish',
+			)
+		);
+		foreach ( self::$post_ids as $post_id ) {
 			$factory->comment->create_post_comments( $post_id, 5 );
 		}
 
@@ -60,7 +64,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		);
 		$q1->query( $args );
 		$comment_count = $q1->comment_count;
-		$this->assertSame( 50, $comment_count );
+		$this->assertSame( 15, $comment_count );
 
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -75,7 +79,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$this->assertFalse( $q2->is_singular() );
 
 		$comment_count = $q2->comment_count;
-		$this->assertSame( 55, $comment_count );
+		$this->assertSame( 20, $comment_count );
 	}
 
 	/**
@@ -83,14 +87,13 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	 */
 	public function test_single_comment_feed() {
 		global $wpdb;
-		$post = self::factory()->post->create_and_get( array( 'post_type' => self::$post_type ) );
-		self::factory()->comment->create_post_comments( $post->ID, 5 );
+		$post = get_post( self::$post_ids[0] );
 
 		$q1   = new WP_Query();
 		$args = array(
 			'withcomments'           => 1,
 			'feed'                   => 'comments-rss',
-			'post_type'              => self::$post_type,
+			'post_type'              => $post->post_type,
 			'name'                   => $post->post_name,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
