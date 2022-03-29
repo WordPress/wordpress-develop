@@ -1252,6 +1252,41 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_multiple_meta_queries( $fields ) {
+		self::factory()->post->create_many( 5 );
+		$ids = self::factory()->post->create_many( 5 );
+
+		foreach ( $ids as $id ) {
+			add_post_meta( $id, 'field_1', 'foo' );
+			add_post_meta( $id, 'field_2', 'bar' );
+		}
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'meta_query'     => array(
+					array(
+						'key' => 'field_1',
+					),
+					array(
+						'key' => 'field_2',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
 	 * @group ms-required
 	 * @dataProvider data_fields
 	 *
