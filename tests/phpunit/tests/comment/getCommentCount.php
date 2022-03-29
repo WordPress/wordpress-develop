@@ -102,7 +102,7 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 	/**
 	 * @ticket 19901
 	 *
-	 * @covers get_comment_count
+	 * @covers ::get_comment_count
 	 */
 	public function test_get_comment_count_validate_cache_comment_deleted() {
 
@@ -122,7 +122,7 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 	/**
 	 * @ticket 19901
 	 *
-	 * @covers get_comment_count
+	 * @covers ::get_comment_count
 	 */
 	public function test_get_comment_count_validate_cache_post_deleted() {
 
@@ -148,7 +148,7 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 	/**
 	 * @ticket 19901
 	 *
-	 * @covers get_comment_count
+	 * @covers ::get_comment_count
 	 */
 	public function test_get_comment_count_validate_cache_comment_status() {
 		$comment_id = self::factory()->comment->create();
