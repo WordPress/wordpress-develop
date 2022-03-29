@@ -504,7 +504,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 						'image/jpeg' => array(
 							'file'     => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
 							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-232x300.jpg' ),
-
 						),
 					),
 				),
