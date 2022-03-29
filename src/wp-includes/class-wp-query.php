@@ -1344,38 +1344,6 @@ class WP_Query {
 		do_action( 'parse_tax_query', $this );
 	}
 
-
-	/**
-	 * Load comments from cache where possible, else make query and cache.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @param string $comments_request SQL query.
-	 * @return WP_Comment[] Array of `WP_Comment` objects.
-	 */
-	protected function get_comments( $comments_request ) {
-		global $wpdb;
-
-		$key          = md5( $comments_request );
-		$last_changed = wp_cache_get_last_changed( 'comment' );
-		if ( str_contains( $comments_request, $wpdb->posts ) ) {
-			$last_changed .= wp_cache_get_last_changed( 'posts' );
-		}
-
-		$cache_key   = "comment_feed:$key:$last_changed";
-		$comment_ids = wp_cache_get( $cache_key, 'comment' );
-		if ( false === $comment_ids ) {
-			$comments    = (array) $wpdb->get_results( $comments_request );
-			$comment_ids = wp_list_pluck( $comments, 'comment_ID' );
-			wp_cache_add( $cache_key, $comment_ids, 'comment' );
-		}
-		_prime_comment_caches( $comment_ids, false );
-
-		return array_map( 'get_comment', $comment_ids );
-	}
-
 	/**
 	 * Generates SQL for the WHERE clause based on passed search terms.
 	 *
@@ -2752,8 +2720,23 @@ class WP_Query {
 			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
 			$climits  = ( ! empty( $climits ) ) ? $climits : '';
 
-			$comments_request    = "SELECT $distinct {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
-			$this->comments      = $this->get_comments( $comments_request );
+			$comments_request = "SELECT $distinct {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
+
+			$key          = md5( $comments_request );
+			$last_changed = wp_cache_get_last_changed( 'comment' ) . ':' . wp_cache_get_last_changed( 'posts' );
+
+			$cache_key   = "comment_feed:$key:$last_changed";
+			$comment_ids = wp_cache_get( $cache_key, 'comment' );
+			if ( false === $comment_ids ) {
+				$comments    = (array) $wpdb->get_results( $comments_request );
+				$comment_ids = wp_list_pluck( $comments, 'comment_ID' );
+				wp_cache_add( $cache_key, $comment_ids, 'comment' );
+			}
+			_prime_comment_caches( $comment_ids, false );
+
+			// Convert to WP_Comment.
+			/** @var WP_Comment[] */
+			$this->comments      = array_map( 'get_comment', $comment_ids );
 			$this->comment_count = count( $this->comments );
 
 			$post_ids = array();
@@ -3195,7 +3178,22 @@ class WP_Query {
 			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
 
 			$comments_request    = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
-			$this->comments      = $this->get_comments( $comments_request );
+
+			$key          = md5( $comments_request );
+			$last_changed = wp_cache_get_last_changed( 'comment' );
+
+			$cache_key   = "comment_feed:$key:$last_changed";
+			$comment_ids = wp_cache_get( $cache_key, 'comment' );
+			if ( false === $comment_ids ) {
+				$comments    = (array) $wpdb->get_results( $comments_request );
+				$comment_ids = wp_list_pluck( $comments, 'comment_ID' );
+				wp_cache_add( $cache_key, $comment_ids, 'comment' );
+			}
+			_prime_comment_caches( $comment_ids, false );
+
+			// Convert to WP_Comment.
+			/** @var WP_Comment[] */
+			$this->comments      = array_map( 'get_comment', $comment_ids );
 			$this->comment_count = count( $this->comments );
 		}
 
