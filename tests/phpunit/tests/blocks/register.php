@@ -8,7 +8,7 @@
  */
 
 /**
- * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names().
+ * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names(), and register_block_style().
  *
  * @since 5.0.0
  *
@@ -122,9 +122,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 50263
 	 */
 	public function test_removes_block_asset_path_prefix() {
+		$result = remove_block_asset_path_prefix( 'file:block.js' );
+
+		$this->assertSame( 'block.js', $result );
+	}
+
+	/**
+	 * @ticket 54797
+	 */
+	public function test_removes_block_asset_path_prefix_and_current_directory() {
 		$result = remove_block_asset_path_prefix( 'file:./block.js' );
 
-		$this->assertSame( './block.js', $result );
+		$this->assertSame( 'block.js', $result );
 	}
 
 	/**
@@ -558,5 +567,62 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		remove_filter( 'block_type_metadata_settings', $filter_metadata_registration );
 
 		$this->assertSame( 3, $result->api_version );
+	}
+
+	/**
+	 * Test case to validate `_doing_it_wrong()` when block style name attribute
+	 * contains one or more spaces.
+	 *
+	 * @dataProvider data_register_block_style_name_contains_spaces
+	 *
+	 * @ticket 54296
+	 *
+	 * @covers ::register_block_style
+	 *
+	 * @expectedIncorrectUsage WP_Block_Styles_Registry::register
+	 * @param array $block_styles Array of block styles to test.
+	 */
+	public function test_register_block_style_name_contains_spaces( array $block_styles ) {
+		register_block_style( 'core/query', $block_styles );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_register_block_style_name_contains_spaces() {
+		return array(
+			'multiple spaces' => array(
+				array(
+					'name'  => 'style-class-1    style-class-2',
+					'label' => 'Custom Style Label',
+				),
+			),
+			'single space'    => array(
+				array(
+					'name'  => 'style-class-1 style-class-2',
+					'label' => 'Custom Style Label',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Test case to validate no `_doing_it_wrong()` happens when there is
+	 * no empty space.
+	 *
+	 * @ticket 54296
+	 *
+	 * @covers ::register_block_style
+	 */
+	public function test_register_block_style_name_without_spaces() {
+		$block_styles = array(
+			'name'  => 'style-class-1',
+			'label' => 'Custom Style Label',
+		);
+
+		$actual = register_block_style( 'core/query', $block_styles );
+		$this->assertTrue( $actual );
 	}
 }

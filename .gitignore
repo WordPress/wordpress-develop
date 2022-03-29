@@ -10,6 +10,7 @@ wp-tests-config.php
 /phpunit.xml
 /.phpcs.xml
 /phpcs.xml
+.cache/*
 /tests/phpunit/data/plugins/wordpress-importer
 /tests/phpunit/data/.trac-ticket-cache*
 /tests/qunit/compiled.html
@@ -53,6 +54,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentynineteen
 !/src/wp-content/themes/twentytwenty
 !/src/wp-content/themes/twentytwentyone
+!/src/wp-content/themes/twentytwentytwo
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
