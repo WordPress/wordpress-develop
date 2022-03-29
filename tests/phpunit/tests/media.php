@@ -2941,7 +2941,7 @@ EOF;
 	 * @ticket 50756
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_out() {
-		$img    = wp_img_tag_add_decoding_async_attr( get_image_tag( self::$large_id, '', '', '', 'medium' ) );
+		$img    = wp_img_tag_add_decoding_async_attr( get_image_tag( self::$large_id, '', '', '', 'medium' ), 'the_content' );
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 
 		$content = '
