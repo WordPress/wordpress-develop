@@ -1846,7 +1846,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			}
 
 			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
-			if ( false === strpos( $filtered_image, ' decoding=' ) ) {
+			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
 				$filtered_image = wp_img_tag_add_decoding_async_attr( $filtered_image, $context );
 			}
 
