@@ -1963,10 +1963,7 @@ function move_dir( $from, $to ) {
 	global $wp_filesystem;
 
 	$result           = false;
-	$envs_skip_rename = array( false, 'virtualbox' );
-
-	// Skip if the runtime environment is in the $envs_skip_rename array.
-	$skip_rename = in_array( wp_get_runtime_environment(), $envs_skip_rename, true );
+	$envs_skip_rename = array( 'virtualbox' );
 
 	/*
 	 * Skip the rename() call on VirtualBox environments.
@@ -1977,7 +1974,9 @@ function move_dir( $from, $to ) {
 	 * - https://www.virtualbox.org/ticket/8761#comment:24
 	 * - https://www.virtualbox.org/ticket/17971
 	 */
-	if ( 'direct' === $wp_filesystem->method && ! $skip_rename ) {
+	if ( 'direct' === $wp_filesystem->method
+		&& ! in_array( wp_get_runtime_environment(), $envs_skip_rename, true )
+	) {
 		$wp_filesystem->rmdir( $to );
 
 		$result = @rename( $from, $to );
