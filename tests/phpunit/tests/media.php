@@ -2289,7 +2289,7 @@ EOF;
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
-		$img = wp_img_tag_add_decoding_async_attr( $img );
+		$img = wp_img_tag_add_decoding_async_attr( $img, 'the_content' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
 
 		// The content filter should return the image unchanged.
