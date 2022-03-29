@@ -2728,8 +2728,7 @@ class WP_Query {
 			$cache_key   = "comment_feed:$key:$last_changed";
 			$comment_ids = wp_cache_get( $cache_key, 'comment' );
 			if ( false === $comment_ids ) {
-				$comments    = (array) $wpdb->get_results( $comments_request );
-				$comment_ids = wp_list_pluck( $comments, 'comment_ID' );
+				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_add( $cache_key, $comment_ids, 'comment' );
 			}
 			_prime_comment_caches( $comment_ids, false );
@@ -3185,8 +3184,7 @@ class WP_Query {
 			$cache_key   = "comment_feed:$key:$last_changed";
 			$comment_ids = wp_cache_get( $cache_key, 'comment' );
 			if ( false === $comment_ids ) {
-				$comments    = (array) $wpdb->get_results( $comments_request );
-				$comment_ids = wp_list_pluck( $comments, 'comment_ID' );
+				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_add( $cache_key, $comment_ids, 'comment' );
 			}
 			_prime_comment_caches( $comment_ids, false );
