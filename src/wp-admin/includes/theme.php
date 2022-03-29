@@ -7,7 +7,7 @@
  */
 
 /**
- * Remove a theme
+ * Removes a theme.
  *
  * @since 2.8.0
  *
@@ -175,7 +175,7 @@ function theme_update_available( $theme ) {
 }
 
 /**
- * Retrieve the update link if there is a theme update available.
+ * Retrieves the update link if there is a theme update available.
  *
  * Will return a link if there is an update available.
  *
@@ -271,7 +271,7 @@ function get_theme_update_available( $theme ) {
 }
 
 /**
- * Retrieve list of WordPress theme features (aka theme tags).
+ * Retrieves list of WordPress theme features (aka theme tags).
  *
  * @since 3.1.0
  * @since 3.2.0 Added 'Gray' color and 'Featured Image Header', 'Featured Images',
@@ -631,7 +631,7 @@ function themes_api( $action, $args = array() ) {
 }
 
 /**
- * Prepare themes for JavaScript.
+ * Prepares themes for JavaScript.
  *
  * @since 3.8.0
  *
@@ -806,7 +806,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 }
 
 /**
- * Print JS templates for the theme-browsing UI in the Customizer.
+ * Prints JS templates for the theme-browsing UI in the Customizer.
  *
  * @since 4.2.0
  */
@@ -877,7 +877,7 @@ function customize_themes_print_templates() {
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+											__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
 											'{{{ data.name }}}'
 										);
 										if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
@@ -907,7 +907,7 @@ function customize_themes_print_templates() {
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
+											__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
 											'{{{ data.name }}}'
 										);
 										if ( current_user_can( 'update_core' ) ) {
@@ -922,7 +922,7 @@ function customize_themes_print_templates() {
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
+											__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
 											'{{{ data.name }}}'
 										);
 										if ( current_user_can( 'update_php' ) ) {
@@ -956,7 +956,7 @@ function customize_themes_print_templates() {
 						<div class="notice notice-error notice-alt notice-large"><p>
 							<# if ( ! data.compatibleWP && ! data.compatiblePHP ) { #>
 								<?php
-								_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+								_e( 'This theme does not work with your versions of WordPress and PHP.' );
 								if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 									printf(
 										/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -982,7 +982,7 @@ function customize_themes_print_templates() {
 								?>
 							<# } else if ( ! data.compatibleWP ) { #>
 								<?php
-								_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+								_e( 'This theme does not work with your version of WordPress.' );
 								if ( current_user_can( 'update_core' ) ) {
 									printf(
 										/* translators: %s: URL to WordPress Updates screen. */
@@ -993,7 +993,7 @@ function customize_themes_print_templates() {
 								?>
 							<# } else if ( ! data.compatiblePHP ) { #>
 								<?php
-								_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+								_e( 'This theme does not work with your version of PHP.' );
 								if ( current_user_can( 'update_php' ) ) {
 									printf(
 										/* translators: %s: URL to Update PHP page. */
