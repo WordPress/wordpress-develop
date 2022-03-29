@@ -72,7 +72,7 @@ class WP_Sitemaps_Stylesheet {
 		exclude-result-prefixes="sitemap"
 		>
 
-	<xsl:output method="html" encoding="UTF-8" indent="yes"/>
+	<xsl:output method="html" encoding="UTF-8" indent="yes" />
 
 	<!--
 	  Set variables for whether lastmod, changefreq or priority occur for any url in the sitemap.
@@ -265,7 +265,13 @@ XSL;
 						color: #444;
 					}
 
+					#sitemap {
+						max-width: 980px;
+						margin: 0 auto;
+					}
+
 					#sitemap__table {
+						width: 100%;
 						border: solid 1px #ccc;
 						border-collapse: collapse;
 					}

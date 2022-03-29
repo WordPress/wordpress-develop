@@ -62,8 +62,7 @@ if ( ! function_exists( 'twentyseventeen_entry_footer' ) ) :
 	 */
 	function twentyseventeen_entry_footer() {
 
-		/* translators: Used between list items, there is a space after the comma. */
-		$separate_meta = __( ', ', 'twentyseventeen' );
+		$separate_meta = wp_get_list_item_separator();
 
 		// Get Categories for posts.
 		$categories_list = get_the_category_list( $separate_meta );
@@ -127,7 +126,7 @@ endif;
  * Display a front page section.
  *
  * @param WP_Customize_Partial $partial Partial associated with a selective refresh request.
- * @param integer              $id Front page section to display.
+ * @param int                  $id Front page section to display.
  */
 function twentyseventeen_front_page_section( $partial = null, $id = 0 ) {
 	if ( is_a( $partial, 'WP_Customize_Partial' ) ) {

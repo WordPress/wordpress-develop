@@ -390,7 +390,7 @@ function populate_options( array $options = array() ) {
 	 * or a valid timezone string (America/New_York). See https://www.php.net/manual/en/timezones.php
 	 * for all timezone strings supported by PHP.
 	 */
-	$offset_or_tz = _x( '0', 'default GMT offset or timezone string' ); // phpcs:ignore WordPress.WP.I18n.NoEmptyStrings
+	$offset_or_tz = _x( '0', 'default GMT offset or timezone string' );
 	if ( is_numeric( $offset_or_tz ) ) {
 		$gmt_offset = $offset_or_tz;
 	} elseif ( $offset_or_tz && in_array( $offset_or_tz, timezone_identifiers_list(), true ) ) {
@@ -422,11 +422,11 @@ function populate_options( array $options = array() ) {
 		'default_ping_status'             => 'open',
 		'default_pingback_flag'           => 1,
 		'posts_per_page'                  => 10,
-		/* translators: Default date format, see https://www.php.net/date */
+		/* translators: Default date format, see https://www.php.net/manual/datetime.format.php */
 		'date_format'                     => __( 'F j, Y' ),
-		/* translators: Default time format, see https://www.php.net/date */
+		/* translators: Default time format, see https://www.php.net/manual/datetime.format.php */
 		'time_format'                     => __( 'g:i a' ),
-		/* translators: Links last updated date format, see https://www.php.net/date */
+		/* translators: Links last updated date format, see https://www.php.net/manual/datetime.format.php */
 		'links_updated_date_format'       => __( 'F j, Y g:i a' ),
 		'comment_moderation'              => 0,
 		'moderation_notify'               => 1,
@@ -535,6 +535,16 @@ function populate_options( array $options = array() ) {
 		'disallowed_keys'                 => '',
 		'comment_previously_approved'     => 1,
 		'auto_plugin_theme_update_emails' => array(),
+
+		// 5.6.0
+		'auto_update_core_dev'            => 'enabled',
+		'auto_update_core_minor'          => 'enabled',
+		// Default to enabled for new installs.
+		// See https://core.trac.wordpress.org/ticket/51742.
+		'auto_update_core_major'          => 'enabled',
+
+		// 5.8.0
+		'wp_force_deactivated_plugins'    => array(),
 	);
 
 	// 3.3.0
@@ -954,7 +964,7 @@ endif;
  * @global WP_Rewrite $wp_rewrite   WordPress rewrite component.
  *
  * @param int    $network_id        ID of network to populate.
- * @param string $domain            The domain name for the network (eg. "example.com").
+ * @param string $domain            The domain name for the network. Example: "example.com".
  * @param string $email             Email address for the network administrator.
  * @param string $site_name         The name of the network.
  * @param string $path              Optional. The path to append to the network's domain name. Default '/'.
@@ -1208,6 +1218,7 @@ We hope you enjoy your new site. Thanks!
 		'jpeg',
 		'png',
 		'gif',
+		'webp',
 		// Video.
 		'mov',
 		'avi',
@@ -1256,6 +1267,7 @@ We hope you enjoy your new site. Thanks!
 		'subdomain_install'           => $subdomain_install,
 		'global_terms_enabled'        => global_terms_enabled() ? '1' : '0',
 		'ms_files_rewriting'          => is_multisite() ? get_site_option( 'ms_files_rewriting' ) : '0',
+		'user_count'                  => get_site_option( 'user_count' ),
 		'initial_db_version'          => get_option( 'initial_db_version' ),
 		'active_sitewide_plugins'     => array(),
 		'WPLANG'                      => get_locale(),

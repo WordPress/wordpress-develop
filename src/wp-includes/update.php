@@ -80,13 +80,10 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	}
 
 	if ( is_multisite() ) {
-		$user_count        = get_user_count();
 		$num_blogs         = get_blog_count();
 		$wp_install        = network_site_url();
 		$multisite_enabled = 1;
 	} else {
-		$user_count        = count_users();
-		$user_count        = $user_count['total_users'];
 		$multisite_enabled = 0;
 		$num_blogs         = 1;
 		$wp_install        = home_url( '/' );
@@ -99,7 +96,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'mysql'              => $mysql_version,
 		'local_package'      => isset( $wp_local_package ) ? $wp_local_package : '',
 		'blogs'              => $num_blogs,
-		'users'              => $user_count,
+		'users'              => get_user_count(),
 		'multisite_enabled'  => $multisite_enabled,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
 	);
@@ -136,7 +133,14 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		$post_body = array_merge( $post_body, $extra_stats );
 	}
 
-	$url      = 'http://api.wordpress.org/core/version-check/1.7/?' . http_build_query( $query, null, '&' );
+	// Allow for WP_AUTO_UPDATE_CORE to specify beta/RC/development releases.
+	if ( defined( 'WP_AUTO_UPDATE_CORE' )
+		&& in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
+	) {
+		$query['channel'] = WP_AUTO_UPDATE_CORE;
+	}
+
+	$url      = 'http://api.wordpress.org/core/version-check/1.7/?' . http_build_query( $query, '', '&' );
 	$http_url = $url;
 	$ssl      = wp_http_supports( array( 'ssl' ) );
 
@@ -289,8 +293,11 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$current = new stdClass;
 	}
 
-	$new_option               = new stdClass;
-	$new_option->last_checked = time();
+	$updates               = new stdClass;
+	$updates->last_checked = time();
+	$updates->response     = array();
+	$updates->translations = array();
+	$updates->no_update    = array();
 
 	$doing_cron = wp_doing_cron();
 
@@ -320,9 +327,9 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$plugin_changed = false;
 
 		foreach ( $plugins as $file => $p ) {
-			$new_option->checked[ $file ] = $p['Version'];
+			$updates->checked[ $file ] = $p['Version'];
 
-			if ( ! isset( $current->checked[ $file ] ) || strval( $current->checked[ $file ] ) !== strval( $p['Version'] ) ) {
+			if ( ! isset( $current->checked[ $file ] ) || (string) $current->checked[ $file ] !== (string) $p['Version'] ) {
 				$plugin_changed = true;
 			}
 		}
@@ -411,38 +418,114 @@ function wp_update_plugins( $extra_stats = array() ) {
 
 	$response = json_decode( wp_remote_retrieve_body( $raw_response ), true );
 
-	foreach ( $response['plugins'] as &$plugin ) {
-		$plugin = (object) $plugin;
+	if ( $response && is_array( $response ) ) {
+		$updates->response     = $response['plugins'];
+		$updates->translations = $response['translations'];
+		$updates->no_update    = $response['no_update'];
+	}
 
-		if ( isset( $plugin->compatibility ) ) {
-			$plugin->compatibility = (object) $plugin->compatibility;
+	// Support updates for any plugins using the `Update URI` header field.
+	foreach ( $plugins as $plugin_file => $plugin_data ) {
+		if ( ! $plugin_data['UpdateURI'] || isset( $updates->response[ $plugin_file ] ) ) {
+			continue;
+		}
 
-			foreach ( $plugin->compatibility as &$data ) {
-				$data = (object) $data;
+		$hostname = wp_parse_url( esc_url_raw( $plugin_data['UpdateURI'] ), PHP_URL_HOST );
+
+		/**
+		 * Filters the update response for a given plugin hostname.
+		 *
+		 * The dynamic portion of the hook name, `$hostname`, refers to the hostname
+		 * of the URI specified in the `Update URI` header field.
+		 *
+		 * @since 5.8.0
+		 *
+		 * @param array|false $update {
+		 *     The plugin update data with the latest details. Default false.
+		 *
+		 *     @type string $id           Optional. ID of the plugin for update purposes, should be a URI
+		 *                                specified in the `Update URI` header field.
+		 *     @type string $slug         Slug of the plugin.
+		 *     @type string $version      The version of the plugin.
+		 *     @type string $url          The URL for details of the plugin.
+		 *     @type string $package      Optional. The update ZIP for the plugin.
+		 *     @type string $tested       Optional. The version of WordPress the plugin is tested against.
+		 *     @type string $requires_php Optional. The version of PHP which the plugin requires.
+		 *     @type bool   $autoupdate   Optional. Whether the plugin should automatically update.
+		 *     @type array  $icons        Optional. Array of plugin icons.
+		 *     @type array  $banners      Optional. Array of plugin banners.
+		 *     @type array  $banners_rtl  Optional. Array of plugin RTL banners.
+		 *     @type array  $translations {
+		 *         Optional. List of translation updates for the plugin.
+		 *
+		 *         @type string $language   The language the translation update is for.
+		 *         @type string $version    The version of the plugin this translation is for.
+		 *                                  This is not the version of the language file.
+		 *         @type string $updated    The update timestamp of the translation file.
+		 *                                  Should be a date in the `YYYY-MM-DD HH:MM:SS` format.
+		 *         @type string $package    The ZIP location containing the translation update.
+		 *         @type string $autoupdate Whether the translation should be automatically installed.
+		 *     }
+		 * }
+		 * @param array       $plugin_data      Plugin headers.
+		 * @param string      $plugin_file      Plugin filename.
+		 * @param array       $locales          Installed locales to look translations for.
+		 */
+		$update = apply_filters( "update_plugins_{$hostname}", false, $plugin_data, $plugin_file, $locales );
+
+		if ( ! $update ) {
+			continue;
+		}
+
+		$update = (object) $update;
+
+		// Is it valid? We require at least a version.
+		if ( ! isset( $update->version ) ) {
+			continue;
+		}
+
+		// These should remain constant.
+		$update->id     = $plugin_data['UpdateURI'];
+		$update->plugin = $plugin_file;
+
+		// WordPress needs the version field specified as 'new_version'.
+		if ( ! isset( $update->new_version ) ) {
+			$update->new_version = $update->version;
+		}
+
+		// Handle any translation updates.
+		if ( ! empty( $update->translations ) ) {
+			foreach ( $update->translations as $translation ) {
+				if ( isset( $translation['language'], $translation['package'] ) ) {
+					$translation['type'] = 'plugin';
+					$translation['slug'] = isset( $update->slug ) ? $update->slug : $update->id;
+
+					$updates->translations[] = $translation;
+				}
 			}
+		}
+
+		unset( $updates->no_update[ $plugin_file ], $updates->response[ $plugin_file ] );
+
+		if ( version_compare( $update->new_version, $plugin_data['Version'], '>' ) ) {
+			$updates->response[ $plugin_file ] = $update;
+		} else {
+			$updates->no_update[ $plugin_file ] = $update;
 		}
 	}
 
-	unset( $plugin, $data );
+	$sanitize_plugin_update_payload = static function( &$item ) {
+		$item = (object) $item;
 
-	foreach ( $response['no_update'] as &$plugin ) {
-		$plugin = (object) $plugin;
-	}
+		unset( $item->translations, $item->compatibility );
 
-	unset( $plugin );
+		return $item;
+	};
 
-	if ( is_array( $response ) ) {
-		$new_option->response     = $response['plugins'];
-		$new_option->translations = $response['translations'];
-		// TODO: Perhaps better to store no_update in a separate transient with an expiry?
-		$new_option->no_update = $response['no_update'];
-	} else {
-		$new_option->response     = array();
-		$new_option->translations = array();
-		$new_option->no_update    = array();
-	}
+	array_walk( $updates->response, $sanitize_plugin_update_payload );
+	array_walk( $updates->no_update, $sanitize_plugin_update_payload );
 
-	set_site_transient( 'update_plugins', $new_option );
+	set_site_transient( 'update_plugins', $updates );
 }
 
 /**
@@ -482,7 +565,7 @@ function wp_update_themes( $extra_stats = array() ) {
 	$checked = array();
 	$request = array();
 
-	// Put slug of current theme into request.
+	// Put slug of active theme into request.
 	$request['active'] = get_option( 'stylesheet' );
 
 	foreach ( $installed_themes as $theme ) {
@@ -527,7 +610,7 @@ function wp_update_themes( $extra_stats = array() ) {
 		$theme_changed = false;
 
 		foreach ( $checked as $slug => $v ) {
-			if ( ! isset( $last_update->checked[ $slug ] ) || strval( $last_update->checked[ $slug ] ) !== strval( $v ) ) {
+			if ( ! isset( $last_update->checked[ $slug ] ) || (string) $last_update->checked[ $slug ] !== (string) $v ) {
 				$theme_changed = true;
 			}
 		}

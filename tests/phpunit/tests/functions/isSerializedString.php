@@ -3,8 +3,10 @@
 /**
  * Tests for `is_serialized_string()`.
  *
- * @group functions.php
  * @ticket 42870
+ *
+ * @group functions.php
+ * @covers ::is_serialized_string
  */
 class Tests_Functions_IsSerializedString extends WP_UnitTestCase {
 

@@ -27,7 +27,7 @@ class WP_Site_Health_Auto_Updates {
 	 */
 	public function run_tests() {
 		$tests = array(
-			$this->test_constants( 'WP_AUTO_UPDATE_CORE', array( true, 'minor' ) ),
+			$this->test_constants( 'WP_AUTO_UPDATE_CORE', array( true, 'beta', 'rc', 'development', 'branch-development', 'minor' ) ),
 			$this->test_wp_version_check_attached(),
 			$this->test_filters_automatic_updater_disabled(),
 			$this->test_wp_automatic_updates_disabled(),
@@ -41,7 +41,7 @@ class WP_Site_Health_Auto_Updates {
 
 		$tests = array_filter( $tests );
 		$tests = array_map(
-			function( $test ) {
+			static function( $test ) {
 				$test = (object) $test;
 
 				if ( empty( $test->severity ) ) {
@@ -90,46 +90,9 @@ class WP_Site_Health_Auto_Updates {
 	 * @return array The test results.
 	 */
 	public function test_wp_version_check_attached() {
-		if ( ! is_main_site() ) {
-			return;
-		}
-
-		$cookies = wp_unslash( $_COOKIE );
-		$timeout = 10;
-		$headers = array(
-			'Cache-Control' => 'no-cache',
-		);
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
-
-		// Include Basic auth in loopback requests.
-		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
-			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
-		}
-
-		$url = add_query_arg(
-			array(
-				'health-check-test-wp_version_check' => true,
-			),
-			admin_url( 'site-health.php' )
-		);
-
-		$test = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
-
-		if ( is_wp_error( $test ) ) {
-			return array(
-				'description' => sprintf(
-					/* translators: %s: Name of the filter used. */
-					__( 'Could not confirm that the %s filter is available.' ),
-					'<code>wp_version_check()</code>'
-				),
-				'severity'    => 'warning',
-			);
-		}
-
-		$response = wp_remote_retrieve_body( $test );
-
-		if ( 'yes' !== $response ) {
+		if ( ( ! is_multisite() || is_main_site() && is_network_admin() )
+			&& ! has_filter( 'wp_version_check', 'wp_version_check' )
+		) {
 			return array(
 				'description' => sprintf(
 					/* translators: %s: Name of the filter used. */
@@ -167,7 +130,7 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @return array|bool The test results. False if auto-updates are enabled.
+	 * @return array|false The test results. False if auto-updates are enabled.
 	 */
 	public function test_wp_automatic_updates_disabled() {
 		if ( ! class_exists( 'WP_Automatic_Updater' ) ) {
@@ -191,9 +154,9 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array|bool The test results. False if the auto-updates failed.
+	 * @return array|false The test results. False if the auto-updates failed.
 	 */
-	function test_if_failed_update() {
+	public function test_if_failed_update() {
 		$failed = get_site_option( 'auto_core_update_failed' );
 
 		if ( ! $failed ) {
@@ -203,7 +166,7 @@ class WP_Site_Health_Auto_Updates {
 		if ( ! empty( $failed['critical'] ) ) {
 			$description  = __( 'A previous automatic background update ended with a critical failure, so updates are now disabled.' );
 			$description .= ' ' . __( 'You would have received an email because of this.' );
-			$description .= ' ' . __( "When you've been able to update using the \"Update Now\" button on Dashboard > Updates, we'll clear this error for future update attempts." );
+			$description .= ' ' . __( "When you've been able to update using the \"Update now\" button on Dashboard > Updates, we'll clear this error for future update attempts." );
 			$description .= ' ' . sprintf(
 				/* translators: %s: Code of error shown. */
 				__( 'The error code was %s.' ),
@@ -263,7 +226,7 @@ class WP_Site_Health_Auto_Updates {
 		// Search all directories we've found for evidence of version control.
 		foreach ( $vcs_dirs as $vcs_dir ) {
 			foreach ( $check_dirs as $check_dir ) {
-				// phpcs:ignore
+				// phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition,Squiz.PHP.DisallowMultipleAssignments
 				if ( $checkout = @is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" ) ) {
 					break 2;
 				}
@@ -309,7 +272,12 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @return array The test results.
 	 */
-	function test_check_wp_filesystem_method() {
+	public function test_check_wp_filesystem_method() {
+		// Make sure the `request_filesystem_credentials()` function is available during our REST API call.
+		if ( ! function_exists( 'request_filesystem_credentials' ) ) {
+			require_once ABSPATH . '/wp-admin/includes/file.php';
+		}
+
 		$skin    = new Automatic_Upgrader_Skin;
 		$success = $skin->request_filesystem_credentials( false, ABSPATH );
 
@@ -324,7 +292,7 @@ class WP_Site_Health_Auto_Updates {
 		}
 
 		return array(
-			'description' => __( "Your installation of WordPress doesn't require FTP credentials to perform updates." ),
+			'description' => __( 'Your installation of WordPress does not require FTP credentials to perform updates.' ),
 			'severity'    => 'pass',
 		);
 	}
@@ -336,9 +304,9 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @return array|bool The test results. False if they're not writeable.
+	 * @return array|false The test results. False if they're not writeable.
 	 */
-	function test_all_files_writable() {
+	public function test_all_files_writable() {
 		global $wp_filesystem;
 
 		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
@@ -354,6 +322,11 @@ class WP_Site_Health_Auto_Updates {
 
 		if ( 'direct' !== $wp_filesystem->method ) {
 			return false;
+		}
+
+		// Make sure the `get_core_checksums()` function is available during our REST API call.
+		if ( ! function_exists( 'get_core_checksums' ) ) {
+			require_once ABSPATH . '/wp-admin/includes/update.php';
 		}
 
 		$checksums = get_core_checksums( $wp_version, 'en_US' );
@@ -416,9 +389,9 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array|bool The test results. False if it isn't a development version.
+	 * @return array|false The test results. False if it isn't a development version.
 	 */
-	function test_accepts_dev_updates() {
+	public function test_accepts_dev_updates() {
 		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
 		// Only for dev versions.
 		if ( false === strpos( $wp_version, '-' ) ) {
@@ -456,7 +429,7 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @return array The test results.
 	 */
-	function test_accepts_minor_updates() {
+	public function test_accepts_minor_updates() {
 		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && false === WP_AUTO_UPDATE_CORE ) {
 			return array(
 				'description' => sprintf(

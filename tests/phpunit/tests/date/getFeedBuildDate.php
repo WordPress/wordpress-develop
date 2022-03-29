@@ -4,17 +4,18 @@
  * @group date
  * @group datetime
  * @group feed
+ * @covers ::get_feed_build_date
  */
-class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
+class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 
-	function tearDown() {
+	public function tear_down() {
 		global $wp_query;
 
 		update_option( 'timezone_string', 'UTC' );
 
 		unset( $wp_query );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -60,11 +61,11 @@ class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertEqualsWithDelta(
 			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
 			strtotime( get_feed_build_date( DATE_RFC3339 ) ),
-			'Fall back to time of last post modified with no posts',
-			2
+			2,
+			'Fall back to time of last post modified with no posts'
 		);
 
 		$post_id_broken = $this->factory->post->create();
@@ -74,11 +75,11 @@ class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
 
 		$wp_query->posts = array( $post_broken );
 
-		$this->assertEquals(
+		$this->assertEqualsWithDelta(
 			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
 			strtotime( get_feed_build_date( DATE_RFC3339 ) ),
-			'Fall back to time of last post modified with broken post object',
-			2
+			2,
+			'Fall back to time of last post modified with broken post object'
 		);
 	}
 }

@@ -76,7 +76,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <div id="page" class="hfeed">
-	<header id="branding" role="banner">
+	<header id="branding">
 			<hgroup>
 				<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></span></h1>
 				<h2 id="site-description"><?php bloginfo( 'description' ); ?></h2>
@@ -103,12 +103,13 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 				 * The header image.
 				 * Check if this is a post or page, if it has a thumbnail, and if it's a big one
 				 */
+				$image = false;
 				if ( is_singular() && has_post_thumbnail( $post->ID ) ) {
 					$image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), array( $header_image_width, $header_image_width ) );
-					if ( $image && $image[1] >= $header_image_width ) {
-						// Houston, we have a new header image!
-						echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
-					}
+				}
+				if ( $image && $image[1] >= $header_image_width ) {
+					// Houston, we have a new header image!
+					echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
 				} else {
 					// Compatibility with versions of WordPress prior to 3.4.
 					if ( function_exists( 'get_custom_header' ) ) {
@@ -143,7 +144,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					<?php get_search_form(); ?>
 			<?php endif; ?>
 
-			<nav id="access" role="navigation">
+			<nav id="access">
 				<h3 class="assistive-text"><?php _e( 'Main menu', 'twentyeleven' ); ?></h3>
 				<?php
 				/*

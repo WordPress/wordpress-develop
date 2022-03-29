@@ -153,6 +153,7 @@ if ( $action ) {
 				$plugins = array();
 			}
 
+			// Used in the HTML title tag.
 			$title       = __( 'Update Plugins' );
 			$parent_file = 'plugins.php';
 
@@ -162,7 +163,7 @@ if ( $action ) {
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html( $title ) . '</h1>';
 
-			$url = self_admin_url( 'update.php?action=update-selected&amp;plugins=' . urlencode( join( ',', $plugins ) ) );
+			$url = self_admin_url( 'update.php?action=update-selected&amp;plugins=' . urlencode( implode( ',', $plugins ) ) );
 			$url = wp_nonce_url( $url, 'bulk-update-plugins' );
 
 			echo "<iframe src='$url' style='width: 100%; height:100%; min-height:850px;'></iframe>";
@@ -559,7 +560,7 @@ get_current_screen()->add_help_tab(
 				'<p>' . __( 'Most of the time, plugins play nicely with the core of WordPress and with other plugins. Sometimes, though, a plugin&#8217;s code will get in the way of another plugin, causing compatibility issues. If your site starts doing strange things, this may be the problem. Try deactivating all your plugins and re-activating them in various combinations until you isolate which one(s) caused the issue.' ) . '</p>' .
 				'<p>' . sprintf(
 					/* translators: %s: WP_PLUGIN_DIR constant value. */
-					__( 'If something goes wrong with a plugin and you can&#8217;t use WordPress, delete or rename that file in the %s directory and it will be automatically deactivated.' ),
+					__( 'If something goes wrong with a plugin and you cannot use WordPress, delete or rename that file in the %s directory and it will be automatically deactivated.' ),
 					'<code>' . WP_PLUGIN_DIR . '</code>'
 				) . '</p>',
 	)
@@ -597,6 +598,7 @@ get_current_screen()->set_screen_reader_content(
 	)
 );
 
+// Used in the HTML title tag.
 $title       = __( 'Plugins' );
 $parent_file = 'plugins.php';
 
@@ -641,7 +643,9 @@ if ( isset( $_GET['error'] ) ) :
 	<div id="message" class="error"><p><?php echo $errmsg; ?></p>
 	<?php
 
-	if ( ! isset( $_GET['main'] ) && ! isset( $_GET['charsout'] ) && wp_verify_nonce( $_GET['_error_nonce'], 'plugin-activation-error_' . $plugin ) ) {
+	if ( ! isset( $_GET['main'] ) && ! isset( $_GET['charsout'] )
+		&& isset( $_GET['_error_nonce'] ) && wp_verify_nonce( $_GET['_error_nonce'], 'plugin-activation-error_' . $plugin )
+	) {
 		$iframe_url = add_query_arg(
 			array(
 				'action'   => 'error_scrape',
@@ -727,8 +731,13 @@ if ( ( ! is_multisite() || is_network_admin() ) && current_user_can( 'install_pl
 }
 
 if ( strlen( $s ) ) {
-	/* translators: %s: Search query. */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( urldecode( $s ) ) );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( urldecode( $s ) ) . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 

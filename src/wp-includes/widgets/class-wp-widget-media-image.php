@@ -41,7 +41,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 				'edit_media'                 => _x( 'Edit Image', 'label for button in the image widget; should preferably not be longer than ~13 characters long' ),
 				'missing_attachment'         => sprintf(
 					/* translators: %s: URL to media library. */
-					__( 'We can&#8217;t find that image. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
+					__( 'We cannot find that image. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
 				/* translators: %d: Widget count. */
@@ -219,7 +219,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 				$width        = empty( $caption_size[0] ) ? 0 : $caption_size[0];
 			}
 
-			$image_attributes['class'] .= sprintf( ' attachment-%1$s size-%1$s', is_array( $size ) ? join( 'x', $size ) : $size );
+			$image_attributes['class'] .= sprintf( ' attachment-%1$s size-%1$s', is_array( $size ) ? implode( 'x', $size ) : $size );
 
 			$image = wp_get_attachment_image( $attachment->ID, $size, false, $image_attributes );
 

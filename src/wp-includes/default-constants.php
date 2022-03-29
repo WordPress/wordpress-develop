@@ -16,17 +16,22 @@
  * @global string $wp_version The WordPress version string.
  */
 function wp_initial_constants() {
-	global $blog_id;
+	global $blog_id, $wp_version;
 
 	/**#@+
 	 * Constants for expressing human-readable data sizes in their respective number of bytes.
 	 *
 	 * @since 4.4.0
+	 * @since 6.0.0 `PB_IN_BYTES`, `EB_IN_BYTES`, `ZB_IN_BYTES`, and `YB_IN_BYTES` were added.
 	 */
 	define( 'KB_IN_BYTES', 1024 );
 	define( 'MB_IN_BYTES', 1024 * KB_IN_BYTES );
 	define( 'GB_IN_BYTES', 1024 * MB_IN_BYTES );
 	define( 'TB_IN_BYTES', 1024 * GB_IN_BYTES );
+	define( 'PB_IN_BYTES', 1024 * TB_IN_BYTES );
+	define( 'EB_IN_BYTES', 1024 * PB_IN_BYTES );
+	define( 'ZB_IN_BYTES', 1024 * EB_IN_BYTES );
+	define( 'YB_IN_BYTES', 1024 * ZB_IN_BYTES );
 	/**#@-*/
 
 	// Start of run timestamp.
@@ -99,8 +104,8 @@ function wp_initial_constants() {
 	// Add define( 'SCRIPT_DEBUG', true ); to wp-config.php to enable loading of non-minified,
 	// non-concatenated scripts and stylesheets.
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
-		if ( ! empty( $GLOBALS['wp_version'] ) ) {
-			$develop_src = false !== strpos( $GLOBALS['wp_version'], '-src' );
+		if ( ! empty( $wp_version ) ) {
+			$develop_src = false !== strpos( $wp_version, '-src' );
 		} else {
 			$develop_src = false;
 		}
@@ -402,14 +407,14 @@ function wp_templating_constants() {
 	/**
 	 * Slug of the default theme for this installation.
 	 * Used as the default theme when installing new sites.
-	 * It will be used as the fallback if the current theme doesn't exist.
+	 * It will be used as the fallback if the active theme doesn't exist.
 	 *
 	 * @since 3.0.0
 	 *
 	 * @see WP_Theme::get_core_default_theme()
 	 */
 	if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
-		define( 'WP_DEFAULT_THEME', 'twentytwenty' );
+		define( 'WP_DEFAULT_THEME', 'twentytwentytwo' );
 	}
 
 }

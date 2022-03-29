@@ -50,7 +50,7 @@ abstract class WP_REST_Controller {
 			'WP_REST_Controller::register_routes',
 			/* translators: %s: register_routes() */
 			sprintf( __( "Method '%s' must be overridden." ), __METHOD__ ),
-			'4.7'
+			'4.7.0'
 		);
 	}
 
@@ -443,7 +443,7 @@ abstract class WP_REST_Controller {
 	 *
 	 * @param object          $object  Data model like WP_Term or WP_Post.
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True on success, WP_Error object if a field cannot be updated.
+	 * @return true|WP_Error True on success, WP_Error object if a field cannot be updated.
 	 */
 	protected function update_additional_fields_for_object( $object, $request ) {
 		$additional_fields = $this->get_additional_fields();
@@ -504,11 +504,14 @@ abstract class WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
+	 * @global array $wp_rest_additional_fields Holds registered fields, organized by object type.
+	 *
 	 * @param string $object_type Optional. The object type.
-	 * @return array Registered additional fields (if any), empty array if none or if the object type could
-	 *               not be inferred.
+	 * @return array Registered additional fields (if any), empty array if none or if the object type
+	 *               could not be inferred.
 	 */
 	protected function get_additional_fields( $object_type = null ) {
+		global $wp_rest_additional_fields;
 
 		if ( ! $object_type ) {
 			$object_type = $this->get_object_type();
@@ -517,8 +520,6 @@ abstract class WP_REST_Controller {
 		if ( ! $object_type ) {
 			return array();
 		}
-
-		global $wp_rest_additional_fields;
 
 		if ( ! $wp_rest_additional_fields || ! isset( $wp_rest_additional_fields[ $object_type ] ) ) {
 			return array();
@@ -552,7 +553,7 @@ abstract class WP_REST_Controller {
 	 * @since 4.9.6
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return array Fields to be included in the response.
+	 * @return string[] Fields to be included in the response.
 	 */
 	public function get_fields_for_response( $request ) {
 		$schema     = $this->get_item_schema();
@@ -596,7 +597,7 @@ abstract class WP_REST_Controller {
 		// Return the list of all requested fields which appear in the schema.
 		return array_reduce(
 			$requested_fields,
-			function( $response_fields, $field ) use ( $fields ) {
+			static function( $response_fields, $field ) use ( $fields ) {
 				if ( in_array( $field, $fields, true ) ) {
 					$response_fields[] = $field;
 					return $response_fields;
@@ -625,78 +626,7 @@ abstract class WP_REST_Controller {
 	 * @return array Endpoint arguments.
 	 */
 	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
-
-		$schema                  = $this->get_item_schema();
-		$schema_properties       = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
-		$endpoint_args           = array();
-		$valid_schema_properties = array(
-			'type',
-			'format',
-			'enum',
-			'items',
-			'properties',
-			'additionalProperties',
-			'minimum',
-			'maximum',
-			'exclusiveMinimum',
-			'exclusiveMaximum',
-			'minLength',
-			'maxLength',
-			'pattern',
-			'minItems',
-			'maxItems',
-			'uniqueItems',
-		);
-
-		foreach ( $schema_properties as $field_id => $params ) {
-
-			// Arguments specified as `readonly` are not allowed to be set.
-			if ( ! empty( $params['readonly'] ) ) {
-				continue;
-			}
-
-			$endpoint_args[ $field_id ] = array(
-				'validate_callback' => 'rest_validate_request_arg',
-				'sanitize_callback' => 'rest_sanitize_request_arg',
-			);
-
-			if ( isset( $params['description'] ) ) {
-				$endpoint_args[ $field_id ]['description'] = $params['description'];
-			}
-
-			if ( WP_REST_Server::CREATABLE === $method && isset( $params['default'] ) ) {
-				$endpoint_args[ $field_id ]['default'] = $params['default'];
-			}
-
-			if ( WP_REST_Server::CREATABLE === $method && ! empty( $params['required'] ) ) {
-				$endpoint_args[ $field_id ]['required'] = true;
-			}
-
-			foreach ( $valid_schema_properties as $schema_prop ) {
-				if ( isset( $params[ $schema_prop ] ) ) {
-					$endpoint_args[ $field_id ][ $schema_prop ] = $params[ $schema_prop ];
-				}
-			}
-
-			// Merge in any options provided by the schema property.
-			if ( isset( $params['arg_options'] ) ) {
-
-				// Only use required / default from arg_options on CREATABLE endpoints.
-				if ( WP_REST_Server::CREATABLE !== $method ) {
-					$params['arg_options'] = array_diff_key(
-						$params['arg_options'],
-						array(
-							'required' => '',
-							'default'  => '',
-						)
-					);
-				}
-
-				$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
-			}
-		}
-
-		return $endpoint_args;
+		return rest_get_endpoint_args_for_schema( $this->get_item_schema(), $method );
 	}
 
 	/**

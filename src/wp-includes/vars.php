@@ -65,7 +65,7 @@ $is_edge   = false;
 if ( isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
 	if ( strpos( $_SERVER['HTTP_USER_AGENT'], 'Lynx' ) !== false ) {
 		$is_lynx = true;
-	} elseif ( strpos( $_SERVER['HTTP_USER_AGENT'], 'Edge' ) !== false ) {
+	} elseif ( strpos( $_SERVER['HTTP_USER_AGENT'], 'Edg' ) !== false ) {
 		$is_edge = true;
 	} elseif ( stripos( $_SERVER['HTTP_USER_AGENT'], 'chrome' ) !== false ) {
 		if ( stripos( $_SERVER['HTTP_USER_AGENT'], 'chromeframe' ) !== false ) {
@@ -134,7 +134,7 @@ $is_IIS = ! $is_apache && ( strpos( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS'
  *
  * @global bool $is_iis7
  */
-$is_iis7 = $is_IIS && intval( substr( $_SERVER['SERVER_SOFTWARE'], strpos( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS/' ) + 14 ) ) >= 7;
+$is_iis7 = $is_IIS && (int) substr( $_SERVER['SERVER_SOFTWARE'], strpos( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS/' ) + 14 ) >= 7;
 
 /**
  * Test if the current browser runs on a mobile device (smart phone, tablet, etc.)

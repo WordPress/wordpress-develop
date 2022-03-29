@@ -28,7 +28,7 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param array $args Array with elements for the post.
 	 *
-	 * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
+	 * @return int The post ID on success. The value 0 on failure.
 	 */
 	public function create_object( $args ) {
 		return wp_insert_post( $args );
@@ -40,7 +40,7 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * @param int   $post_id ID of the post to update.
 	 * @param array $fields  Post data.
 	 *
-	 * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
+	 * @return int The post ID on success. The value 0 on failure.
 	 */
 	public function update_object( $post_id, $fields ) {
 		$fields['ID'] = $post_id;

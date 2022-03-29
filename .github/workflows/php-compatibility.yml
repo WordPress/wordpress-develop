@@ -1,0 +1,114 @@
+name: PHP Compatibility
+
+on:
+  # PHP compatibility testing was introduced in WordPress 5.5.
+  push:
+    branches:
+      - trunk
+      - '5.[5-9]'
+      - '[6-9].[0-9]'
+    tags:
+      - '5.[5-9]*'
+      - '[6-9].[0-9]*'
+  pull_request:
+    branches:
+      - trunk
+      - '5.[5-9]'
+      - '[6-9].[0-9]'
+    paths:
+      # This workflow only scans PHP files.
+      - '**.php'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This file configures PHP compatibility scanning. Changes could affect the outcome.
+      - 'phpcompat.xml.dist'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+
+  # Runs PHP compatibility testing.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up PHP.
+  # - Logs debug information.
+  # - Configures caching for PHP compatibility scans.
+  # - Installs Composer dependencies (use cache if possible).
+  # - Make Composer packages available globally.
+  # - Logs PHP_CodeSniffer debug information.
+  # - Runs the PHP compatibility tests.
+  # - Ensures version-controlled files are not modified or deleted.
+  php-compatibility:
+    name: Check PHP compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@ac7d3d7f84d81a029c20ab72d60264bdb7535831 # v2.15.0
+        with:
+          php-version: '7.4'
+          coverage: none
+          tools: composer, cs2pr
+
+      - name: Log debug information
+        run: |
+          php --version
+          composer --version
+
+      # This date is used to ensure that the PHP compatibility cache is cleared at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+
+      - name: Cache PHP compatibility scan cache
+        uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353 # v2.1.6
+        with:
+          path: .cache/phpcompat.json
+          key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json', 'phpcompat.xml.dist') }}
+
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@a7320a0581dcd0432930c48a0e7ced67e6ec17e8 # v1.3.0
+        with:
+          composer-options: "--no-progress --no-ansi --no-interaction"
+
+      - name: Make Composer packages available globally
+        run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
+
+      - name: Log PHPCS debug information
+        run: phpcs -i
+
+      - name: Run PHP compatibility tests
+        run: phpcs --standard=phpcompat.xml.dist -q --report=checkstyle | cs2pr
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    needs: [ php-compatibility ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.php-compatibility.result == 'success' && 'success' || needs.php-compatibility.result == 'cancelled' && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}

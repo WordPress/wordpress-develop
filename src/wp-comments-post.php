@@ -7,7 +7,7 @@
 
 if ( 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
 	$protocol = $_SERVER['SERVER_PROTOCOL'];
-	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ), true ) ) {
+	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3' ), true ) ) {
 		$protocol = 'HTTP/1.0';
 	}
 
@@ -24,7 +24,7 @@ nocache_headers();
 
 $comment = wp_handle_comment_submission( wp_unslash( $_POST ) );
 if ( is_wp_error( $comment ) ) {
-	$data = intval( $comment->get_error_data() );
+	$data = (int) $comment->get_error_data();
 	if ( ! empty( $data ) ) {
 		wp_die(
 			'<p>' . $comment->get_error_message() . '</p>',

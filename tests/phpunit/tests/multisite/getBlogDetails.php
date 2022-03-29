@@ -7,11 +7,11 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_Get_Blog_Details extends WP_UnitTestCase {
+	class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 		protected static $network_ids;
 		protected static $site_ids;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$site_ids = array(
 				WP_TESTS_DOMAIN . '/foo/'      => array(
 					'domain' => WP_TESTS_DOMAIN,
@@ -168,7 +168,7 @@ if ( is_multisite() ) :
 
 			$result = array_keys( get_object_vars( $site ) );
 
-			$this->assertEqualSets( $this->get_fields( $get_all ), $result );
+			$this->assertSameSets( $this->get_fields( $get_all ), $result );
 		}
 
 		/**
@@ -190,7 +190,7 @@ if ( is_multisite() ) :
 				$result[] = $key;
 			}
 
-			$this->assertEqualSets( $this->get_fields( $get_all ), $result );
+			$this->assertSameSets( $this->get_fields( $get_all ), $result );
 		}
 
 		public function data_get_all() {

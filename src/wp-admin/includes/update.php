@@ -120,7 +120,7 @@ function find_core_auto_update() {
  * @return array|false An array of checksums on success, false on failure.
  */
 function get_core_checksums( $version, $locale ) {
-	$http_url = 'http://api.wordpress.org/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), null, '&' );
+	$http_url = 'http://api.wordpress.org/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), '', '&' );
 	$url      = $http_url;
 
 	$ssl = wp_http_supports( array( 'ssl' ) );
@@ -240,23 +240,25 @@ function core_update_footer( $msg = '' ) {
 		$cur->current = '';
 	}
 
-	if ( ! isset( $cur->url ) ) {
-		$cur->url = '';
-	}
-
 	if ( ! isset( $cur->response ) ) {
 		$cur->response = '';
 	}
 
-	switch ( $cur->response ) {
-		case 'development':
-			return sprintf(
-				/* translators: 1: WordPress version number, 2: URL to WordPress Updates screen. */
-				__( 'You are using a development version (%1$s). Cool! Please <a href="%2$s">stay updated</a>.' ),
-				get_bloginfo( 'version', 'display' ),
-				network_admin_url( 'update-core.php' )
-			);
+	// Include an unmodified $wp_version.
+	require ABSPATH . WPINC . '/version.php';
 
+	$is_development_version = preg_match( '/alpha|beta|RC/', $wp_version );
+
+	if ( $is_development_version ) {
+		return sprintf(
+			/* translators: 1: WordPress version number, 2: URL to WordPress Updates screen. */
+			__( 'You are using a development version (%1$s). Cool! Please <a href="%2$s">stay updated</a>.' ),
+			get_bloginfo( 'version', 'display' ),
+			network_admin_url( 'update-core.php' )
+		);
+	}
+
+	switch ( $cur->response ) {
 		case 'upgrade':
 			return sprintf(
 				'<strong><a href="%s">%s</a></strong>',
@@ -433,7 +435,24 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 	);
 
 	$plugin_name = wp_kses( $plugin_data['Name'], $plugins_allowedtags );
-	$details_url = self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . $response->slug . '&section=changelog&TB_iframe=true&width=600&height=800' );
+	$plugin_slug = isset( $response->slug ) ? $response->slug : $response->id;
+
+	if ( isset( $response->slug ) ) {
+		$details_url = self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . $plugin_slug . '&section=changelog' );
+	} elseif ( isset( $response->url ) ) {
+		$details_url = $response->url;
+	} else {
+		$details_url = $plugin_data['PluginURI'];
+	}
+
+	$details_url = add_query_arg(
+		array(
+			'TB_iframe' => 'true',
+			'width'     => 600,
+			'height'    => 800,
+		),
+		$details_url
+	);
 
 	/** @var WP_Plugins_List_Table $wp_list_table */
 	$wp_list_table = _get_list_table(
@@ -459,8 +478,8 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 			'<td colspan="%s" class="plugin-update colspanchange">' .
 			'<div class="update-message notice inline %s notice-alt"><p>',
 			$active_class,
-			esc_attr( $response->slug . '-update' ),
-			esc_attr( $response->slug ),
+			esc_attr( $plugin_slug . '-update' ),
+			esc_attr( $plugin_slug ),
 			esc_attr( $file ),
 			esc_attr( $wp_list_table->get_column_count() ),
 			$notice_type
@@ -515,7 +534,7 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 			} else {
 				printf(
 					/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number 5: URL to Update PHP page. */
-					__( 'There is a new version of %1$s available, but it doesn&#8217;t work with your version of PHP. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s">learn more about updating PHP</a>.' ),
+					__( 'There is a new version of %1$s available, but it does not work with your version of PHP. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s">learn more about updating PHP</a>.' ),
 					$plugin_name,
 					esc_url( $details_url ),
 					sprintf(
@@ -539,30 +558,24 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param array $plugin_data {
-		 *     An array of plugin metadata.
+		 * @param array  $plugin_data An array of plugin metadata. See get_plugin_data()
+		 *                            and the {@see 'plugin_row_meta'} filter for the list
+		 *                            of possible values.
+		 * @param object $response {
+		 *     An object of metadata about the available plugin update.
 		 *
-		 *     @type string $name        The human-readable name of the plugin.
-		 *     @type string $plugin_uri  Plugin URI.
-		 *     @type string $version     Plugin version.
-		 *     @type string $description Plugin description.
-		 *     @type string $author      Plugin author.
-		 *     @type string $author_uri  Plugin author URI.
-		 *     @type string $text_domain Plugin text domain.
-		 *     @type string $domain_path Relative path to the plugin's .mo file(s).
-		 *     @type bool   $network     Whether the plugin can only be activated network wide.
-		 *     @type string $title       The human-readable title of the plugin.
-		 *     @type string $author_name Plugin author's name.
-		 *     @type bool   $update      Whether there's an available update. Default null.
-		 * }
-		 * @param array $response {
-		 *     An array of metadata about the available plugin update.
-		 *
-		 *     @type int    $id          Plugin ID.
-		 *     @type string $slug        Plugin slug.
-		 *     @type string $new_version New plugin version.
-		 *     @type string $url         Plugin URL.
-		 *     @type string $package     Plugin update package URL.
+		 *     @type string   $id           Plugin ID, e.g. `w.org/plugins/[plugin-name]`.
+		 *     @type string   $slug         Plugin slug.
+		 *     @type string   $plugin       Plugin basename.
+		 *     @type string   $new_version  New plugin version.
+		 *     @type string   $url          Plugin URL.
+		 *     @type string   $package      Plugin update package URL.
+		 *     @type string[] $icons        An array of plugin icon URLs.
+		 *     @type string[] $banners      An array of plugin banner URLs.
+		 *     @type string[] $banners_rtl  An array of plugin RTL banner URLs.
+		 *     @type string   $requires     The version of WordPress which the plugin requires.
+		 *     @type string   $tested       The version of WordPress the plugin is tested against.
+		 *     @type string   $requires_php The version of PHP which the plugin requires.
 		 * }
 		 */
 		do_action( "in_plugin_update_message-{$file}", $plugin_data, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
@@ -709,7 +722,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		if ( ! $compatible_wp && ! $compatible_php ) {
 			printf(
 				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+				__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
 				$theme['Name']
 			);
 			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
@@ -737,7 +750,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		} elseif ( ! $compatible_wp ) {
 			printf(
 				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
+				__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
 				$theme['Name']
 			);
 			if ( current_user_can( 'update_core' ) ) {
@@ -750,7 +763,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		} elseif ( ! $compatible_php ) {
 			printf(
 				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
+				__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
 				$theme['Name']
 			);
 			if ( current_user_can( 'update_php' ) ) {
@@ -1046,6 +1059,22 @@ function wp_is_auto_update_enabled_for_type( $type ) {
 }
 
 /**
+ * Checks whether auto-updates are forced for an item.
+ *
+ * @since 5.6.0
+ *
+ * @param string    $type   The type of update being checked: 'theme' or 'plugin'.
+ * @param bool|null $update Whether to update. The value of null is internally used
+ *                          to detect whether nothing has hooked into this filter.
+ * @param object    $item   The update offer.
+ * @return bool True if auto-updates are forced for `$item`, false otherwise.
+ */
+function wp_is_auto_update_forced_for_item( $type, $update, $item ) {
+	/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
+	return apply_filters( "auto_update_{$type}", $update, $item );
+}
+
+/**
  * Determines the appropriate auto-update message to be displayed.
  *
  * @since 5.5.0
@@ -1059,7 +1088,7 @@ function wp_get_auto_update_message() {
 	if ( false === $next_update_time ) {
 		$message = __( 'Automatic update not scheduled. There may be a problem with WP-Cron.' );
 	} else {
-		$time_to_next_update = human_time_diff( intval( $next_update_time ) );
+		$time_to_next_update = human_time_diff( (int) $next_update_time );
 
 		// See if cron is overdue.
 		$overdue = ( time() - $next_update_time ) > 0;

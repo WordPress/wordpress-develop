@@ -364,11 +364,12 @@ class SimplePie_Misc
 		}
 
 		// Check that the encoding is supported
-		if (@mb_convert_encoding("\x80", 'UTF-16BE', $input) === "\x00\x80")
+		if (!in_array($input, mb_list_encodings()))
 		{
 			return false;
 		}
-		if (!in_array($input, mb_list_encodings()))
+
+		if (@mb_convert_encoding("\x80", 'UTF-16BE', $input) === "\x00\x80")
 		{
 			return false;
 		}
@@ -2258,5 +2259,15 @@ function embed_wmedia(width, height, link) {
 	public static function silence_errors($num, $str)
 	{
 		// No-op
+	}
+
+	/**
+	 * Sanitize a URL by removing HTTP credentials.
+	 * @param string $url the URL to sanitize.
+	 * @return string the same URL without HTTP credentials.
+	 */
+	public static function url_remove_credentials($url)
+	{
+		return preg_replace('#^(https?://)[^/:@]+:[^/:@]+@#i', '$1', $url);
 	}
 }

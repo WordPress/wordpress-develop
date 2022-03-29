@@ -14,10 +14,10 @@ class WP_Importer {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $importer_name
-	 * @param string $bid
+	 * @param string $blog_id
 	 * @return array
 	 */
-	public function get_imported_posts( $importer_name, $bid ) {
+	public function get_imported_posts( $importer_name, $blog_id ) {
 		global $wpdb;
 
 		$hashtable = array();
@@ -27,7 +27,7 @@ class WP_Importer {
 
 		// Grab all posts in chunks.
 		do {
-			$meta_key = $importer_name . '_' . $bid . '_permalink';
+			$meta_key = $importer_name . '_' . $blog_id . '_permalink';
 			$sql      = $wpdb->prepare( "SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = %s LIMIT %d,%d", $meta_key, $offset, $limit );
 			$results  = $wpdb->get_results( $sql );
 
@@ -37,13 +37,10 @@ class WP_Importer {
 			if ( ! empty( $results ) ) {
 				foreach ( $results as $r ) {
 					// Set permalinks into array.
-					$hashtable[ $r->meta_value ] = intval( $r->post_id );
+					$hashtable[ $r->meta_value ] = (int) $r->post_id;
 				}
 			}
 		} while ( count( $results ) == $limit );
-
-		// Unset to save memory.
-		unset( $results, $r );
 
 		return $hashtable;
 	}
@@ -54,26 +51,23 @@ class WP_Importer {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $importer_name
-	 * @param string $bid
+	 * @param string $blog_id
 	 * @return int
 	 */
-	public function count_imported_posts( $importer_name, $bid ) {
+	public function count_imported_posts( $importer_name, $blog_id ) {
 		global $wpdb;
 
 		$count = 0;
 
 		// Get count of permalinks.
-		$meta_key = $importer_name . '_' . $bid . '_permalink';
+		$meta_key = $importer_name . '_' . $blog_id . '_permalink';
 		$sql      = $wpdb->prepare( "SELECT COUNT( post_id ) AS cnt FROM $wpdb->postmeta WHERE meta_key = %s", $meta_key );
 
 		$result = $wpdb->get_results( $sql );
 
 		if ( ! empty( $result ) ) {
-			$count = intval( $result[0]->cnt );
+			$count = (int) $result[0]->cnt;
 		}
-
-		// Unset to save memory.
-		unset( $results );
 
 		return $count;
 	}
@@ -83,10 +77,10 @@ class WP_Importer {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $bid
+	 * @param string $blog_id
 	 * @return array
 	 */
-	public function get_imported_comments( $bid ) {
+	public function get_imported_comments( $blog_id ) {
 		global $wpdb;
 
 		$hashtable = array();
@@ -105,19 +99,17 @@ class WP_Importer {
 			if ( ! empty( $results ) ) {
 				foreach ( $results as $r ) {
 					// Explode comment_agent key.
-					list ( $ca_bid, $source_comment_id ) = explode( '-', $r->comment_agent );
-					$source_comment_id                   = intval( $source_comment_id );
+					list ( $comment_agent_blog_id, $source_comment_id ) = explode( '-', $r->comment_agent );
+
+					$source_comment_id = (int) $source_comment_id;
 
 					// Check if this comment came from this blog.
-					if ( $bid == $ca_bid ) {
-						$hashtable[ $source_comment_id ] = intval( $r->comment_ID );
+					if ( $blog_id == $comment_agent_blog_id ) {
+						$hashtable[ $source_comment_id ] = (int) $r->comment_ID;
 					}
 				}
 			}
 		} while ( count( $results ) == $limit );
-
-		// Unset to save memory.
-		unset( $results, $r );
 
 		return $hashtable;
 	}
@@ -261,7 +253,7 @@ class WP_Importer {
 	 * @since 3.0.0
 	 *
 	 * @global wpdb  $wpdb       WordPress database abstraction object.
-	 * @global array $wp_actions
+	 * @global int[] $wp_actions
 	 */
 	public function stop_the_insanity() {
 		global $wpdb, $wp_actions;
@@ -291,7 +283,7 @@ function get_cli_args( $param, $required = false ) {
 	$last_arg = null;
 	$return   = null;
 
-	$il = sizeof( $args );
+	$il = count( $args );
 
 	for ( $i = 1, $il; $i < $il; $i++ ) {
 		if ( (bool) preg_match( '/^--(.+)/', $args[ $i ], $match ) ) {

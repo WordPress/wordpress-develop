@@ -101,7 +101,7 @@ wp.themePluginEditor = (function( $ ) {
 		// Reveal the modal and set focus on the go back button.
 		component.warning
 			.removeClass( 'hidden' )
-			.find( '.file-editor-warning-go-back' ).focus();
+			.find( '.file-editor-warning-go-back' ).trigger( 'focus' );
 		// Get the links and buttons within the modal.
 		component.warningTabbables = component.warning.find( 'a, button' );
 		// Attach event handlers.
@@ -328,7 +328,7 @@ wp.themePluginEditor = (function( $ ) {
 		 * @return {void}
 		 */
 		codeEditorSettings.onTabPrevious = function() {
-			$( '#templateside' ).find( ':tabbable' ).last().focus();
+			$( '#templateside' ).find( ':tabbable' ).last().trigger( 'focus' );
 		};
 
 		/**
@@ -339,7 +339,7 @@ wp.themePluginEditor = (function( $ ) {
 		 * @return {void}
 		 */
 		codeEditorSettings.onTabNext = function() {
-			$( '#template' ).find( ':tabbable:not(.CodeMirror-code)' ).first().focus();
+			$( '#template' ).find( ':tabbable:not(.CodeMirror-code)' ).first().trigger( 'focus' );
 		};
 
 		/**
@@ -1023,4 +1023,4 @@ wp.themePluginEditor.l10n = wp.themePluginEditor.l10n || {
 	}
 };
 
-wp.themePluginEditor.l10n = window.wp.deprecateL10nObject( 'wp.themePluginEditor.l10n', wp.themePluginEditor.l10n );
+wp.themePluginEditor.l10n = window.wp.deprecateL10nObject( 'wp.themePluginEditor.l10n', wp.themePluginEditor.l10n, '5.5.0' );

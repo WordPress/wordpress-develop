@@ -297,7 +297,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p2 ), $q->posts );
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
 	}
 
 	public function test_tax_query_single_query_multiple_terms_operator_not_in() {
@@ -464,7 +464,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p3 ), $q->posts );
+		$this->assertSameSets( array( $p1, $p3 ), $q->posts );
 	}
 
 	/**
@@ -511,7 +511,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		unregister_taxonomy( 'wptests_tax1' );
 		unregister_taxonomy( 'wptests_tax2' );
 
-		$this->assertEqualSets( array( $p1, $p3, $p4 ), $q->posts );
+		$this->assertSameSets( array( $p1, $p3, $p4 ), $q->posts );
 	}
 
 	/**
@@ -545,7 +545,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p2 ), $q->posts );
+		$this->assertSameSets( array( $p2 ), $q->posts );
 	}
 
 	/**
@@ -580,7 +580,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p2 ), $q->posts );
+		$this->assertSameSets( array( $p2 ), $q->posts );
 	}
 
 	/**
@@ -705,7 +705,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p2 ), $q->posts );
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
 	}
 
 	public function test_tax_query_multiple_queries_different_taxonomies() {
@@ -751,7 +751,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p2 ), $q->posts );
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
 	}
 
 	/**
@@ -833,7 +833,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		_unregister_taxonomy( 'foo' );
 		_unregister_taxonomy( 'bar' );
 
-		$this->assertEqualSets( array( $p1, $p2 ), $q->posts );
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
 	}
 
 	/**
@@ -907,7 +907,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		_unregister_taxonomy( 'foo' );
 		_unregister_taxonomy( 'bar' );
 
-		$this->assertEqualSets( array( $p1, $p2 ), $q->posts );
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
 	}
 
 	/**
@@ -990,7 +990,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		_unregister_taxonomy( 'foo' );
 		_unregister_taxonomy( 'bar' );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), $q->posts );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), $q->posts );
 	}
 
 	/**
@@ -1024,8 +1024,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$posts = $query->get_posts();
-		$this->assertSame( 0, count( $posts ) );
+		$this->assertCount( 0, $query->posts );
 	}
 
 	/**
@@ -1059,8 +1058,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$posts = $query->get_posts();
-		$this->assertSame( 0, count( $posts ) );
+		$this->assertCount( 0, $query->posts );
 	}
 
 	public function test_tax_query_include_children() {
@@ -1112,7 +1110,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 4, count( $posts ) );
+		$this->assertCount( 4, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1130,7 +1128,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $posts ) );
+		$this->assertCount( 1, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1147,7 +1145,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 3, count( $posts ) );
+		$this->assertCount( 3, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1165,7 +1163,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $posts ) );
+		$this->assertCount( 1, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1182,7 +1180,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $posts ) );
+		$this->assertCount( 1, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1200,7 +1198,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $posts ) );
+		$this->assertCount( 1, $posts );
 	}
 
 	public function test_tax_query_taxonomy_with_attachments() {
@@ -1209,8 +1207,8 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		register_taxonomy_for_object_type( 'post_tag', 'attachment:image' );
 		$tag_id   = self::factory()->term->create(
 			array(
-				'slug' => rand_str(),
-				'name' => rand_str(),
+				'slug' => 'foo-bar',
+				'name' => 'Foo Bar',
 			)
 		);
 		$image_id = self::factory()->attachment->create_object(
@@ -1621,6 +1619,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p ), $q->posts );
+		$this->assertSameSets( array( $p ), $q->posts );
 	}
 }

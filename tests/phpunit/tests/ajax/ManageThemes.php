@@ -13,8 +13,8 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 	private $orig_theme_dir;
 	private $theme_root;
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->theme_root     = DIR_TESTDATA . '/themedir1';
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
@@ -30,7 +30,7 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
@@ -38,7 +38,7 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -70,7 +70,7 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
 	public function test_missing_capability() {
@@ -92,15 +92,18 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 			'data'    => array(
 				'update'       => 'theme',
 				'slug'         => 'foo',
-				'errorMessage' => 'Sorry, you are not allowed to update themes for this site.',
 				'oldVersion'   => '',
 				'newVersion'   => '',
+				'errorMessage' => 'Sorry, you are not allowed to update themes for this site.',
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
+	/**
+	 * @group ms-excluded
+	 */
 	public function test_update_theme() {
 		$this->_setRole( 'administrator' );
 
@@ -128,17 +131,20 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 			'data'    => array(
 				'update'       => 'theme',
 				'slug'         => 'twentyten',
-				'errorMessage' => 'The theme is at the latest version.',
 				'oldVersion'   => $theme->get( 'Version' ),
 				'newVersion'   => '',
 				'debug'        => array( 'The theme is at the latest version.' ),
+				'errorMessage' => 'The theme is at the latest version.',
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
-	function test_uppercase_theme_slug() {
+	/**
+	 * @group ms-excluded
+	 */
+	public function test_uppercase_theme_slug() {
 		$this->_setRole( 'administrator' );
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
@@ -161,11 +167,11 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 				'slug'         => 'camelCase',
 				'oldVersion'   => '1.0',
 				'newVersion'   => '',
-				'errorMessage' => 'The theme is at the latest version.',
 				'debug'        => array( 'The theme is at the latest version.' ),
+				'errorMessage' => 'The theme is at the latest version.',
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 }

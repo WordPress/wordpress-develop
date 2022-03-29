@@ -8,7 +8,7 @@
  */
 
 /**
- * Core class used to implement SimpliePie feed sanitization.
+ * Core class used to implement SimplePie feed sanitization.
  *
  * Extends the SimplePie_Sanitize class to use KSES, because
  * we cannot universally count on DOMDocument being available.
@@ -27,7 +27,7 @@ class WP_SimplePie_Sanitize_KSES extends SimplePie_Sanitize {
 	 * @since 3.5.0
 	 *
 	 * @param mixed   $data The data that needs to be sanitized.
-	 * @param integer $type The type of data that it's supposed to be.
+	 * @param int     $type The type of data that it's supposed to be.
 	 * @param string  $base Optional. The `xml:base` value to use when converting relative
 	 *                      URLs to absolute ones. Default empty.
 	 * @return mixed Sanitized data.

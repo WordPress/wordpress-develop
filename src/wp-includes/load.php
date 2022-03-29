@@ -14,7 +14,7 @@
  */
 function wp_get_server_protocol() {
 	$protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : '';
-	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ), true ) ) {
+	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3' ), true ) ) {
 		$protocol = 'HTTP/1.0';
 	}
 	return $protocol;
@@ -76,7 +76,7 @@ function wp_fix_server_vars() {
 	}
 
 	// Fix for Dreamhost and other PHP as CGI hosts.
-	if ( strpos( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) !== false ) {
+	if ( isset( $_SERVER['SCRIPT_NAME'] ) && ( strpos( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) !== false ) ) {
 		unset( $_SERVER['PATH_INFO'] );
 	}
 
@@ -86,6 +86,47 @@ function wp_fix_server_vars() {
 		$_SERVER['PHP_SELF'] = preg_replace( '/(\?.*)?$/', '', $_SERVER['REQUEST_URI'] );
 		$PHP_SELF            = $_SERVER['PHP_SELF'];
 	}
+
+	wp_populate_basic_auth_from_authorization_header();
+}
+
+/**
+ * Populates the Basic Auth server details from the Authorization header.
+ *
+ * Some servers running in CGI or FastCGI mode don't pass the Authorization
+ * header on to WordPress.  If it's been rewritten to the `HTTP_AUTHORIZATION` header,
+ * fill in the proper $_SERVER variables instead.
+ *
+ * @since 5.6.0
+ */
+function wp_populate_basic_auth_from_authorization_header() {
+	// If we don't have anything to pull from, return early.
+	if ( ! isset( $_SERVER['HTTP_AUTHORIZATION'] ) && ! isset( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ) {
+		return;
+	}
+
+	// If either PHP_AUTH key is already set, do nothing.
+	if ( isset( $_SERVER['PHP_AUTH_USER'] ) || isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+		return;
+	}
+
+	// From our prior conditional, one of these must be set.
+	$header = isset( $_SERVER['HTTP_AUTHORIZATION'] ) ? $_SERVER['HTTP_AUTHORIZATION'] : $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+
+	// Test to make sure the pattern matches expected.
+	if ( ! preg_match( '%^Basic [a-z\d/+]*={0,2}$%i', $header ) ) {
+		return;
+	}
+
+	// Removing `Basic ` the token would start six characters in.
+	$token    = substr( $header, 6 );
+	$userpass = base64_decode( $token );
+
+	list( $user, $pass ) = explode( ':', $userpass );
+
+	// Now shove them in the proper keys where we're expecting later on.
+	$_SERVER['PHP_AUTH_USER'] = $user;
+	$_SERVER['PHP_AUTH_PW']   = $pass;
 }
 
 /**
@@ -112,7 +153,11 @@ function wp_check_php_mysql_versions() {
 		exit( 1 );
 	}
 
-	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' ) ) {
+	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' )
+		// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
+		&& ( defined( 'WP_CONTENT_DIR' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' )
+			|| ! file_exists( ABSPATH . 'wp-content/db.php' ) )
+	) {
 		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
 		$args = array(
@@ -134,7 +179,7 @@ function wp_check_php_mysql_versions() {
  * The type can be set via the `WP_ENVIRONMENT_TYPE` global system variable,
  * or a constant of the same name.
  *
- * Possible values include 'local', 'development', 'staging', 'production'.
+ * Possible values are 'local', 'development', 'staging', and 'production'.
  * If not set, the type defaults to 'production'.
  *
  * @since 5.5.0
@@ -146,7 +191,7 @@ function wp_check_php_mysql_versions() {
 function wp_get_environment_type() {
 	static $current_env = '';
 
-	if ( $current_env ) {
+	if ( ! defined( 'WP_RUN_CORE_TESTS' ) && $current_env ) {
 		return $current_env;
 	}
 
@@ -289,6 +334,19 @@ function wp_is_maintenance_mode() {
 }
 
 /**
+ * Get the time elapsed so far during this PHP script.
+ *
+ * Uses REQUEST_TIME_FLOAT that appeared in PHP 5.4.0.
+ *
+ * @since 5.8.0
+ *
+ * @return float Seconds since the PHP script started.
+ */
+function timer_float() {
+	return microtime( true ) - $_SERVER['REQUEST_TIME_FLOAT'];
+}
+
+/**
  * Start the WordPress micro-timer.
  *
  * @since 0.71
@@ -357,7 +415,7 @@ function timer_stop( $display = 0, $precision = 3 ) {
  * When `WP_DEBUG_LOG` is true, errors will be logged to `wp-content/debug.log`.
  * When `WP_DEBUG_LOG` is a valid path, errors will be logged to the specified file.
  *
- * Errors are never displayed for XML-RPC, REST, and Ajax requests.
+ * Errors are never displayed for XML-RPC, REST, `ms-files.php`, and Ajax requests.
  *
  * @since 3.0.0
  * @since 5.1.0 `WP_DEBUG_LOG` can be a file path.
@@ -368,9 +426,27 @@ function wp_debug_mode() {
 	 * Filters whether to allow the debug mode check to occur.
 	 *
 	 * This filter runs before it can be used by plugins. It is designed for
-	 * non-web run-times. Returning false causes the `WP_DEBUG` and related
+	 * non-web runtimes. Returning false causes the `WP_DEBUG` and related
 	 * constants to not be checked and the default PHP values for errors
 	 * will be used unless you take care to update them yourself.
+	 *
+	 * To use this filter you must define a `$wp_filter` global before
+	 * WordPress loads, usually in `wp-config.php`.
+	 *
+	 * Example:
+	 *
+	 *     $GLOBALS['wp_filter'] = array(
+	 *         'enable_wp_debug_mode_checks' => array(
+	 *             10 => array(
+	 *                 array(
+	 *                     'accepted_args' => 0,
+	 *                     'function'      => function() {
+	 *                         return false;
+	 *                     },
+	 *                 ),
+	 *             ),
+	 *         ),
+	 *     );
 	 *
 	 * @since 4.6.0
 	 *
@@ -405,7 +481,10 @@ function wp_debug_mode() {
 		error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 	}
 
-	if ( defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) || wp_doing_ajax() || wp_is_json_request() ) {
+	if (
+		defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || defined( 'MS_FILES_REQUEST' ) ||
+		( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) ||
+		wp_doing_ajax() || wp_is_json_request() ) {
 		ini_set( 'display_errors', 0 );
 	}
 }
@@ -589,7 +668,19 @@ function wp_start_object_cache() {
 	static $first_init = true;
 
 	// Only perform the following checks once.
-	if ( $first_init ) {
+
+	/**
+	 * Filters whether to enable loading of the object-cache.php drop-in.
+	 *
+	 * This filter runs before it can be used by plugins. It is designed for non-web
+	 * runtimes. If false is returned, object-cache.php will never be loaded.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param bool $enable_object_cache Whether to enable loading object-cache.php (if present).
+	 *                                  Default true.
+	 */
+	if ( $first_init && apply_filters( 'enable_loading_object_cache_dropin', true ) ) {
 		if ( ! function_exists( 'wp_cache_init' ) ) {
 			/*
 			 * This is the normal situation. First-run of this function. No
@@ -874,6 +965,8 @@ function wp_is_recovery_mode() {
  * Determines whether we are currently on an endpoint that should be protected against WSODs.
  *
  * @since 5.2.0
+ *
+ * @global string $pagenow
  *
  * @return bool True if the current endpoint should be protected.
  */
@@ -1446,17 +1539,30 @@ function wp_doing_cron() {
 }
 
 /**
- * Check whether variable is a WordPress Error.
+ * Checks whether the given variable is a WordPress Error.
  *
- * Returns true if $thing is an object of the WP_Error class.
+ * Returns whether `$thing` is an instance of the `WP_Error` class.
  *
  * @since 2.1.0
  *
- * @param mixed $thing Check if unknown variable is a WP_Error object.
- * @return bool True, if WP_Error. False, if not WP_Error.
+ * @param mixed $thing The variable to check.
+ * @return bool Whether the variable is an instance of WP_Error.
  */
 function is_wp_error( $thing ) {
-	return ( $thing instanceof WP_Error );
+	$is_wp_error = ( $thing instanceof WP_Error );
+
+	if ( $is_wp_error ) {
+		/**
+		 * Fires when `is_wp_error()` is called and its parameter is an instance of `WP_Error`.
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param WP_Error $thing The error object passed to `is_wp_error()`.
+		 */
+		do_action( 'is_wp_error_instance', $thing );
+	}
+
+	return $is_wp_error;
 }
 
 /**
@@ -1496,7 +1602,7 @@ function wp_start_scraping_edited_file_errors() {
 		echo wp_json_encode(
 			array(
 				'code'    => 'scrape_nonce_failure',
-				'message' => __( 'Scrape nonce check failed. Please try again.' ),
+				'message' => __( 'Scrape key check failed. Please try again.' ),
 			)
 		);
 		echo "###### wp_scraping_result_end:$key ######";
@@ -1537,11 +1643,11 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  */
 function wp_is_json_request() {
 
-	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && false !== strpos( $_SERVER['HTTP_ACCEPT'], 'application/json' ) ) {
+	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && wp_is_json_media_type( $_SERVER['HTTP_ACCEPT'] ) ) {
 		return true;
 	}
 
-	if ( isset( $_SERVER['CONTENT_TYPE'] ) && 'application/json' === $_SERVER['CONTENT_TYPE'] ) {
+	if ( isset( $_SERVER['CONTENT_TYPE'] ) && wp_is_json_media_type( $_SERVER['CONTENT_TYPE'] ) ) {
 		return true;
 	}
 
@@ -1578,6 +1684,24 @@ function wp_is_jsonp_request() {
 }
 
 /**
+ * Checks whether a string is a valid JSON Media Type.
+ *
+ * @since 5.6.0
+ *
+ * @param string $media_type A Media Type string to check.
+ * @return bool True if string is a valid JSON Media Type.
+ */
+function wp_is_json_media_type( $media_type ) {
+	static $cache = array();
+
+	if ( ! isset( $cache[ $media_type ] ) ) {
+		$cache[ $media_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $media_type );
+	}
+
+	return $cache[ $media_type ];
+}
+
+/**
  * Checks whether current request is an XML request, or is expecting an XML response.
  *
  * @since 5.2.0
@@ -1608,4 +1732,48 @@ function wp_is_xml_request() {
 	}
 
 	return false;
+}
+
+/**
+ * Checks if this site is protected by HTTP Basic Auth.
+ *
+ * At the moment, this merely checks for the present of Basic Auth credentials. Therefore, calling
+ * this function with a context different from the current context may give inaccurate results.
+ * In a future release, this evaluation may be made more robust.
+ *
+ * Currently, this is only used by Application Passwords to prevent a conflict since it also utilizes
+ * Basic Auth.
+ *
+ * @since 5.6.1
+ *
+ * @global string $pagenow The current page.
+ *
+ * @param string $context The context to check for protection. Accepts 'login', 'admin', and 'front'.
+ *                        Defaults to the current context.
+ * @return bool Whether the site is protected by Basic Auth.
+ */
+function wp_is_site_protected_by_basic_auth( $context = '' ) {
+	global $pagenow;
+
+	if ( ! $context ) {
+		if ( 'wp-login.php' === $pagenow ) {
+			$context = 'login';
+		} elseif ( is_admin() ) {
+			$context = 'admin';
+		} else {
+			$context = 'front';
+		}
+	}
+
+	$is_protected = ! empty( $_SERVER['PHP_AUTH_USER'] ) || ! empty( $_SERVER['PHP_AUTH_PW'] );
+
+	/**
+	 * Filters whether a site is protected by HTTP Basic Auth.
+	 *
+	 * @since 5.6.1
+	 *
+	 * @param bool $is_protected Whether the site is protected by Basic Auth.
+	 * @param string $context    The context to check for protection. One of 'login', 'admin', or 'front'.
+	 */
+	return apply_filters( 'wp_is_site_protected_by_basic_auth', $is_protected, $context );
 }

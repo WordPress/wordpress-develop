@@ -12,6 +12,7 @@ require_once __DIR__ . '/admin.php';
 
 require_once ABSPATH . WPINC . '/http.php';
 
+// Used in the HTML title tag.
 $title       = __( 'Upgrade Network' );
 $parent_file = 'upgrade.php';
 
@@ -21,7 +22,7 @@ get_current_screen()->add_help_tab(
 		'title'   => __( 'Overview' ),
 		'content' =>
 			'<p>' . __( 'Only use this screen once you have updated to a new version of WordPress through Updates/Available Updates (via the Network Administration navigation menu or the Toolbar). Clicking the Upgrade Network button will step through each site in the network, five at a time, and make sure any database updates are applied.' ) . '</p>' .
-			'<p>' . __( 'If a version update to core has not happened, clicking this button won&#8217;t affect anything.' ) . '</p>' .
+			'<p>' . __( 'If a version update to core has not happened, clicking this button will not affect anything.' ) . '</p>' .
 			'<p>' . __( 'If this process fails for any reason, users logging in to their sites will force the same update.' ) . '</p>',
 	)
 );
@@ -45,7 +46,7 @@ $action = isset( $_GET['action'] ) ? $_GET['action'] : 'show';
 
 switch ( $action ) {
 	case 'upgrade':
-		$n = ( isset( $_GET['n'] ) ) ? intval( $_GET['n'] ) : 0;
+		$n = ( isset( $_GET['n'] ) ) ? (int) $_GET['n'] : 0;
 
 		if ( $n < 5 ) {
 			/**
@@ -107,7 +108,7 @@ switch ( $action ) {
 			 *
 			 * @since MU (3.0.0)
 			 *
-			 * @param array|WP_Error $response The upgrade response array or WP_Error on failure.
+			 * @param array $response The upgrade response array.
 			 */
 			do_action( 'after_mu_upgrade', $response );
 
@@ -121,7 +122,7 @@ switch ( $action ) {
 			do_action( 'wpmu_upgrade_site', $site_id );
 		}
 		echo '</ul>';
-		?><p><?php _e( 'If your browser doesn&#8217;t start loading the next page automatically, click this link:' ); ?> <a class="button" href="upgrade.php?action=upgrade&amp;n=<?php echo ( $n + 5 ); ?>"><?php _e( 'Next Sites' ); ?></a></p>
+		?><p><?php _e( 'If your browser does not start loading the next page automatically, click this link:' ); ?> <a class="button" href="upgrade.php?action=upgrade&amp;n=<?php echo ( $n + 5 ); ?>"><?php _e( 'Next Sites' ); ?></a></p>
 		<script type="text/javascript">
 		<!--
 		function nextpage() {

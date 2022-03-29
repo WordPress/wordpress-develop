@@ -82,10 +82,12 @@ function clean_network_cache( $ids ) {
 		return;
 	}
 
-	foreach ( (array) $ids as $id ) {
-		wp_cache_delete( $id, 'networks' );
-		wp_cache_delete( $id, 'site_meta' );
 
+	$network_ids = (array) $ids;
+	wp_cache_delete_multiple( $network_ids, 'networks' );
+	wp_cache_delete_multiple( $network_ids, 'site_meta' );
+
+	foreach ( $network_ids as $id ) {
 		/**
 		 * Fires immediately after a network has been removed from the object cache.
 		 *
@@ -113,12 +115,14 @@ function clean_network_cache( $ids ) {
  * @param bool  $update_meta_cache Whether to update sitemeta cache. Default true.
  */
 function update_network_cache( $networks, $update_meta_cache = true ) {
+	$data = array();
 	$network_ids = array();
 	foreach ( (array) $networks as $network ) {
 		$network_ids[] = $network->id;
-		wp_cache_add( $network->id, $network, 'networks' );
+		$data[ $network->id ] = $network;
 	}
-	if ( $update_meta_cache ) {
+	wp_cache_add_multiple( $data, 'networks' );
+    if ( $update_meta_cache ) {
 		update_meta_cache( 'site', $network_ids );
 	}
 }
@@ -141,7 +145,7 @@ function _prime_network_caches( $network_ids, $update_meta_cache = true ) {
 
 	$non_cached_ids = _get_non_cached_ids( $network_ids, 'networks' );
 	if ( ! empty( $non_cached_ids ) ) {
-		$fresh_networks = $wpdb->get_results( sprintf( "SELECT $wpdb->site.* FROM $wpdb->site WHERE id IN (%s)", join( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$fresh_networks = $wpdb->get_results( sprintf( "SELECT $wpdb->site.* FROM $wpdb->site WHERE id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		update_network_cache( $fresh_networks, $update_meta_cache );
 	}

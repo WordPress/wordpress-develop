@@ -29,7 +29,7 @@ class Tests_Term_WpDeleteTerm extends WP_UnitTestCase {
 
 		wp_delete_term( $terms[0], 'wptests_tax' );
 		$this->assertSame( 1, $this->deleted_term->count );
-		$this->assertSame( $this->object_ids, array( "$post_id" ) );
+		$this->assertSame( $this->object_ids, array( (string) $post_id ) );
 
 		wp_delete_term( $terms[1], 'wptests_tax' );
 		$this->assertSame( 0, $this->deleted_term->count );

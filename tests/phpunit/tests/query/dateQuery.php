@@ -13,8 +13,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 
 	public $q;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		unset( $this->q );
 		$this->q = new WP_Query();
 	}
@@ -54,7 +54,7 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p2 ), wp_list_pluck( $posts, 'ID' ) );
+		$this->assertSameSets( array( $p1, $p2 ), wp_list_pluck( $posts, 'ID' ) );
 	}
 
 	/**
@@ -77,7 +77,7 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1 ), wp_list_pluck( $posts, 'ID' ) );
+		$this->assertSameSets( array( $p1 ), wp_list_pluck( $posts, 'ID' ) );
 	}
 
 	public function test_date_query_before_string() {
@@ -118,7 +118,7 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p3 ), wp_list_pluck( $posts, 'ID' ) );
+		$this->assertSameSets( array( $p3 ), wp_list_pluck( $posts, 'ID' ) );
 	}
 
 	/**
@@ -290,8 +290,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p2 ), $before_posts );
-		$this->assertEqualSets( array( $p1, $p2 ), $after_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $before_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $after_posts );
 	}
 
 	/**
@@ -374,8 +374,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p2 ), $before_posts );
-		$this->assertEqualSets( array( $p1, $p2 ), $after_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $before_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $after_posts );
 	}
 
 	/**
@@ -458,8 +458,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p2 ), $before_posts );
-		$this->assertEqualSets( array( $p1, $p2 ), $after_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $before_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $after_posts );
 	}
 
 	/**
@@ -542,8 +542,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p2 ), $before_posts );
-		$this->assertEqualSets( array( $p1, $p2 ), $after_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $before_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $after_posts );
 	}
 
 	/**
@@ -626,8 +626,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1, $p2 ), $before_posts );
-		$this->assertEqualSets( array( $p1, $p2 ), $after_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $before_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $after_posts );
 	}
 
 	/**
@@ -867,7 +867,7 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p2, $p3, $p4 ), wp_list_pluck( $posts, 'ID' ) );
+		$this->assertSameSets( array( $p2, $p3, $p4 ), wp_list_pluck( $posts, 'ID' ) );
 	}
 
 	public function test_date_query_relation_or() {
@@ -931,8 +931,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 
 		$this->assertSame( array( $p1 ), wp_list_pluck( $posts, 'ID' ) );
 
-		$this->assertContains( "MONTH( $wpdb->posts.post_date ) = 5", $this->q->request );
-		$this->assertNotContains( "MONTH( $wpdb->posts.post_date ) = 9", $this->q->request );
+		$this->assertStringContainsString( "MONTH( $wpdb->posts.post_date ) = 5", $this->q->request );
+		$this->assertStringNotContainsString( "MONTH( $wpdb->posts.post_date ) = 9", $this->q->request );
 	}
 
 	public function test_date_params_week_w_duplicate() {
@@ -953,8 +953,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 
 		$this->assertSame( array( $p2 ), wp_list_pluck( $posts, 'ID' ) );
 
-		$this->assertContains( "WEEK( $wpdb->posts.post_date, 1 ) = 43", $this->q->request );
-		$this->assertNotContains( "WEEK( $wpdb->posts.post_date, 1 ) = 42", $this->q->request );
+		$this->assertStringContainsString( "WEEK( $wpdb->posts.post_date, 1 ) = 43", $this->q->request );
+		$this->assertStringNotContainsString( "WEEK( $wpdb->posts.post_date, 1 ) = 42", $this->q->request );
 	}
 
 	/**
@@ -1084,7 +1084,7 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 
 		$expected = array( $p1, $p2 );
 
-		$this->assertEqualSets( $expected, $q->posts );
+		$this->assertSameSets( $expected, $q->posts );
 	}
 
 	/**
@@ -1163,6 +1163,6 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1, $p4, $p5 );
-		$this->assertEqualSets( $expected, $q->posts );
+		$this->assertSameSets( $expected, $q->posts );
 	}
 }

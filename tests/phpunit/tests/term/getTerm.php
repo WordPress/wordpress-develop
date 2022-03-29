@@ -4,8 +4,8 @@
  * @group taxonomy
  */
 class Tests_Term_GetTerm extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
@@ -30,6 +30,8 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 			array( '%d' ),
 			array( '%d' )
 		);
+
+		clean_term_cache( $t1['term_id'] );
 
 		return array(
 			array(
@@ -97,33 +99,34 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 
 	public function test_output_object() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
-		$this->assertInternalType( 'object', get_term( $t, 'wptests_tax', OBJECT ) );
+		$this->assertIsObject( get_term( $t, 'wptests_tax', OBJECT ) );
 	}
 
 	public function test_output_array_a() {
 		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_A );
-		$this->assertInternalType( 'array', $term );
-		$this->assertTrue( isset( $term['term_id'] ) );
+		$this->assertIsArray( $term );
+		$this->assertArrayHasKey( 'term_id', $term );
 	}
 
 	public function test_output_array_n() {
 		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_N );
-		$this->assertInternalType( 'array', $term );
-		$this->assertFalse( isset( $term['term_id'] ) );
+		$this->assertIsArray( $term );
+		$this->assertArrayNotHasKey( 'term_id', $term );
 		foreach ( $term as $k => $v ) {
-			$this->assertInternalType( 'integer', $k );
+			$this->assertIsInt( $k );
 		}
 	}
 
 	public function test_output_should_fall_back_to_object_for_invalid_input() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
-		$this->assertInternalType( 'object', get_term( $t, 'wptests_tax', 'foo' ) );
+		$this->assertIsObject( get_term( $t, 'wptests_tax', 'foo' ) );
 	}
 
 	/**
 	 * @ticket 14162
+	 * @ticket 53235
 	 */
 	public function test_numeric_properties_should_be_cast_to_ints() {
 		global $wpdb;
@@ -133,14 +136,18 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		// Get raw data from the database.
 		$term_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms t JOIN $wpdb->term_taxonomy tt ON ( t.term_id = tt.term_id ) WHERE t.term_id = %d", $t ) );
 
-		$found = get_term( $term_data );
+		$contexts = array( 'raw', 'edit', 'db', 'display', 'rss', 'attribute', 'js' );
 
-		$this->assertTrue( $found instanceof WP_Term );
-		$this->assertInternalType( 'int', $found->term_id );
-		$this->assertInternalType( 'int', $found->term_taxonomy_id );
-		$this->assertInternalType( 'int', $found->parent );
-		$this->assertInternalType( 'int', $found->count );
-		$this->assertInternalType( 'int', $found->term_group );
+		foreach ( $contexts as $context ) {
+			$found = get_term( $term_data, '', OBJECT, $context );
+
+			$this->assertInstanceOf( 'WP_Term', $found );
+			$this->assertIsInt( $found->term_id );
+			$this->assertIsInt( $found->term_taxonomy_id );
+			$this->assertIsInt( $found->parent );
+			$this->assertIsInt( $found->count );
+			$this->assertIsInt( $found->term_group );
+		}
 	}
 
 	/**

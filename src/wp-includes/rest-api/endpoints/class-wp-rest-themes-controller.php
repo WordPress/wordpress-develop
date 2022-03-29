@@ -17,6 +17,12 @@
 class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 	/**
+	 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+	 * Excludes invalid directory name characters: `/:<>*?"|`.
+	 */
+	const PATTERN = '[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?';
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 5.0.0
@@ -27,7 +33,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for themes.
 	 *
 	 * @since 5.0.0
 	 *
@@ -47,6 +53,38 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			sprintf( '/%s/(?P<stylesheet>%s)', $this->rest_base, self::PATTERN ),
+			array(
+				'args'   => array(
+					'stylesheet' => array(
+						'description'       => __( "The theme's stylesheet. This uniquely identifies the theme." ),
+						'type'              => 'string',
+						'sanitize_callback' => array( $this, '_sanitize_stylesheet_callback' ),
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_item' ),
+					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
+	}
+
+	/**
+	 * Sanitize the stylesheet to decode endpoint.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $stylesheet The stylesheet name.
+	 * @return string Sanitized stylesheet.
+	 */
+	public function _sanitize_stylesheet_callback( $stylesheet ) {
+		return urldecode( $stylesheet );
 	}
 
 	/**
@@ -58,6 +96,57 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_items_permissions_check( $request ) {
+		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
+			return true;
+		}
+
+		$registered = $this->get_collection_params();
+		if ( isset( $registered['status'], $request['status'] ) && is_array( $request['status'] ) && array( 'active' ) === $request['status'] ) {
+			return $this->check_read_active_theme_permission();
+		}
+
+		return new WP_Error(
+			'rest_cannot_view_themes',
+			__( 'Sorry, you are not allowed to view themes.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	/**
+	 * Checks if a given request has access to read the theme.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return bool|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+	 */
+	public function get_item_permissions_check( $request ) {
+		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
+			return true;
+		}
+
+		$wp_theme      = wp_get_theme( $request['stylesheet'] );
+		$current_theme = wp_get_theme();
+
+		if ( $this->is_same_theme( $wp_theme, $current_theme ) ) {
+			return $this->check_read_active_theme_permission();
+		}
+
+		return new WP_Error(
+			'rest_cannot_view_themes',
+			__( 'Sorry, you are not allowed to view themes.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	/**
+	 * Checks if a theme can be read.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @return bool|WP_Error Whether the theme can be read.
+	 */
+	protected function check_read_active_theme_permission() {
 		if ( current_user_can( 'edit_posts' ) ) {
 			return true;
 		}
@@ -69,10 +158,32 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_Error(
-			'rest_user_cannot_view',
-			__( 'Sorry, you are not allowed to view themes.' ),
+			'rest_cannot_view_active_theme',
+			__( 'Sorry, you are not allowed to view the active theme.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
+	}
+
+	/**
+	 * Retrieves a single theme.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function get_item( $request ) {
+		$wp_theme = wp_get_theme( $request['stylesheet'] );
+		if ( ! $wp_theme->exists() ) {
+			return new WP_Error(
+				'rest_theme_not_found',
+				__( 'Theme not found.' ),
+				array( 'status' => 404 )
+			);
+		}
+		$data = $this->prepare_item_for_response( $wp_theme, $request );
+
+		return rest_ensure_response( $data );
 	}
 
 	/**
@@ -84,20 +195,26 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		// Retrieve the list of registered collection query parameters.
-		$registered = $this->get_collection_params();
-		$themes     = array();
+		$themes = array();
 
-		if ( isset( $registered['status'], $request['status'] ) && in_array( 'active', $request['status'], true ) ) {
-			$active_theme = wp_get_theme();
-			$active_theme = $this->prepare_item_for_response( $active_theme, $request );
-			$themes[]     = $this->prepare_response_for_collection( $active_theme );
+		$active_themes = wp_get_themes();
+		$current_theme = wp_get_theme();
+		$status        = $request['status'];
+
+		foreach ( $active_themes as $theme_name => $theme ) {
+			$theme_status = ( $this->is_same_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
+			if ( is_array( $status ) && ! in_array( $theme_status, $status, true ) ) {
+				continue;
+			}
+
+			$prepared = $this->prepare_item_for_response( $theme, $request );
+			$themes[] = $this->prepare_response_for_collection( $prepared );
 		}
 
 		$response = rest_ensure_response( $themes );
 
 		$response->header( 'X-WP-Total', count( $themes ) );
-		$response->header( 'X-WP-TotalPages', count( $themes ) );
+		$response->header( 'X-WP-TotalPages', 1 );
 
 		return $response;
 	}
@@ -106,12 +223,15 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * Prepares a single theme output for response.
 	 *
 	 * @since 5.0.0
+	 * @since 5.9.0 Renamed `$theme` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Theme        $theme   Theme object.
+	 * @param WP_Theme        $item    Theme object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $theme, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$theme  = $item;
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
@@ -166,7 +286,12 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( rest_is_field_included( 'theme_supports', $fields ) ) {
+		$current_theme = wp_get_theme();
+		if ( rest_is_field_included( 'status', $fields ) ) {
+			$data['status'] = ( $this->is_same_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
+		}
+
+		if ( rest_is_field_included( 'theme_supports', $fields ) && $this->is_same_theme( $theme, $current_theme ) ) {
 			foreach ( get_registered_theme_features() as $feature => $config ) {
 				if ( ! is_array( $config['show_in_rest'] ) ) {
 					continue;
@@ -206,6 +331,23 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
+		$response->add_links( $this->prepare_links( $theme ) );
+
+		if ( $theme->get_stylesheet() === wp_get_theme()->get_stylesheet() ) {
+			// This creates a record for the active theme if not existent.
+			$id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
+		} else {
+			$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
+			$id       = isset( $user_cpt['ID'] ) ? $user_cpt['ID'] : null;
+		}
+
+		if ( $id ) {
+			$response->add_link(
+				'https://api.w.org/user-global-styles',
+				rest_url( 'wp/v2/global-styles/' . $id )
+			);
+		}
+
 		/**
 		 * Filters theme data returned from the REST API.
 		 *
@@ -216,6 +358,38 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request  $request  Request object.
 		 */
 		return apply_filters( 'rest_prepare_theme', $response, $theme, $request );
+	}
+
+	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_Theme $theme Theme data.
+	 * @return array Links for the given block type.
+	 */
+	protected function prepare_links( $theme ) {
+		return array(
+			'self'       => array(
+				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $theme->get_stylesheet() ) ),
+			),
+			'collection' => array(
+				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
+			),
+		);
+	}
+
+	/**
+	 * Helper function to compare two themes.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_Theme $theme_a First theme to compare.
+	 * @param WP_Theme $theme_b Second theme to compare.
+	 * @return bool
+	 */
+	protected function is_same_theme( $theme_a, $theme_b ) {
+		return $theme_a->get_stylesheet() === $theme_b->get_stylesheet();
 	}
 
 	/**
@@ -399,6 +573,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'readonly'    => true,
 				),
+				'status'         => array(
+					'description' => __( 'A named status for the theme.' ),
+					'type'        => 'string',
+					'enum'        => array( 'inactive', 'active' ),
+				),
 			),
 		);
 
@@ -425,21 +604,19 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		$query_params = parent::get_collection_params();
-
-		$query_params['status'] = array(
-			'description'       => __( 'Limit result set to themes assigned one or more statuses.' ),
-			'type'              => 'array',
-			'items'             => array(
-				'enum' => array( 'active' ),
-				'type' => 'string',
+		$query_params = array(
+			'status' => array(
+				'description' => __( 'Limit result set to themes assigned one or more statuses.' ),
+				'type'        => 'array',
+				'items'       => array(
+					'enum' => array( 'active', 'inactive' ),
+					'type' => 'string',
+				),
 			),
-			'required'          => true,
-			'sanitize_callback' => array( $this, 'sanitize_theme_status' ),
 		);
 
 		/**
-		 * Filters collection parameters for the themes controller.
+		 * Filters REST API collection parameters for the themes controller.
 		 *
 		 * @since 5.0.0
 		 *
@@ -452,6 +629,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * Sanitizes and validates the list of theme status.
 	 *
 	 * @since 5.0.0
+	 * @deprecated 5.7.0
 	 *
 	 * @param string|array    $statuses  One or more theme statuses.
 	 * @param WP_REST_Request $request   Full details about the request.
@@ -459,6 +637,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error A list of valid statuses, otherwise WP_Error object.
 	 */
 	public function sanitize_theme_status( $statuses, $request, $parameter ) {
+		_deprecated_function( __METHOD__, '5.7.0' );
+
 		$statuses = wp_parse_slug_list( $statuses );
 
 		foreach ( $statuses as $status ) {

@@ -7,7 +7,7 @@
  * @param string $expression
  */
 function tests_make_plural_form_function( $nplurals, $expression ) {
-	$closure = function ( $n ) use ( $nplurals, $expression ) {
+	$closure = static function ( $n ) use ( $nplurals, $expression ) {
 		$expression = str_replace( 'n', $n, $expression );
 
 		// phpcs:ignore Squiz.PHP.Eval -- This is test code, not production.

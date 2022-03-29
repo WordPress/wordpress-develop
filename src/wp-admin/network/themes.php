@@ -81,6 +81,7 @@ if ( $action ) {
 				$themes = array();
 			}
 
+			// Used in the HTML title tag.
 			$title       = __( 'Update Themes' );
 			$parent_file = 'themes.php';
 
@@ -89,7 +90,7 @@ if ( $action ) {
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html( $title ) . '</h1>';
 
-			$url = self_admin_url( 'update.php?action=update-selected-themes&amp;themes=' . urlencode( join( ',', $themes ) ) );
+			$url = self_admin_url( 'update.php?action=update-selected-themes&amp;themes=' . urlencode( implode( ',', $themes ) ) );
 			$url = wp_nonce_url( $url, 'bulk-update-themes' );
 
 			echo "<iframe src='$url' style='width: 100%; height:100%; min-height:850px;'></iframe>";
@@ -333,6 +334,7 @@ get_current_screen()->set_screen_reader_content(
 	)
 );
 
+// Used in the HTML title tag.
 $title       = __( 'Themes' );
 $parent_file = 'themes.php';
 
@@ -352,8 +354,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <?php
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: Search query. */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( $s ) );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( $s ) . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 

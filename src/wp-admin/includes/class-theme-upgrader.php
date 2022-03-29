@@ -92,7 +92,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		/* translators: %s: Theme name. */
 		$this->strings['parent_theme_not_found'] = sprintf( __( '<strong>The parent theme could not be found.</strong> You will need to install the parent theme, %s, before you can use this child theme.' ), '<strong>%s</strong>' );
 		/* translators: %s: Theme error. */
-		$this->strings['current_theme_has_errors'] = __( 'The current theme has the following error: "%s".' );
+		$this->strings['current_theme_has_errors'] = __( 'The active theme has the following error: "%s".' );
 
 		if ( ! empty( $this->skin->overwrite ) ) {
 			if ( 'update-theme' === $this->skin->overwrite ) {
@@ -270,16 +270,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		wp_clean_themes_cache( $parsed_args['clear_update_cache'] );
 
 		if ( $parsed_args['overwrite_package'] ) {
-			/**
-			 * Fires when the upgrader has successfully overwritten a currently installed
-			 * plugin or theme with an uploaded zip package.
-			 *
-			 * @since 5.5.0
-			 *
-			 * @param string  $package        The package file.
-			 * @param array   $new_theme_data The new theme data.
-			 * @param string  $package_type   The package type (plugin or theme).
-			 */
+			/** This action is documented in wp-admin/includes/class-plugin-upgrader.php */
 			do_action( 'upgrader_overwrote_package', $package, $this->new_theme_data, 'theme' );
 		}
 
@@ -457,7 +448,7 @@ class Theme_Upgrader extends WP_Upgrader {
 				)
 			);
 
-			$results[ $theme ] = $this->result;
+			$results[ $theme ] = $result;
 
 			// Prevent credentials auth screen from displaying multiple times.
 			if ( false === $result ) {
@@ -510,21 +501,20 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Check that the package source contains a valid theme.
+	 * Checks that the package source contains a valid theme.
 	 *
 	 * Hooked to the {@see 'upgrader_source_selection'} filter by Theme_Upgrader::install().
-	 * It will return an error if the theme doesn't have style.css or index.php
-	 * files.
 	 *
 	 * @since 3.3.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 * @global string             $wp_version    The WordPress version string.
 	 *
-	 * @param string $source The full path to the package source.
-	 * @return string|WP_Error The source or a WP_Error.
+	 * @param string $source The path to the downloaded package source.
+	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
 	 */
 	public function check_package( $source ) {
-		global $wp_filesystem;
+		global $wp_filesystem, $wp_version;
 
 		$this->new_theme_data = array();
 
@@ -570,7 +560,7 @@ class Theme_Upgrader extends WP_Upgrader {
 				$this->strings['incompatible_archive'],
 				sprintf(
 					/* translators: %s: style.css */
-					__( 'The %s stylesheet doesn&#8217;t contain a valid theme header.' ),
+					__( 'The %s stylesheet does not contain a valid theme header.' ),
 					'<code>style.css</code>'
 				)
 			);
@@ -606,7 +596,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			$error = sprintf(
 				/* translators: 1: Current WordPress version, 2: Version required by the uploaded theme. */
 				__( 'Your WordPress version is %1$s, however the uploaded theme requires %2$s.' ),
-				$GLOBALS['wp_version'],
+				$wp_version,
 				$requires_wp
 			);
 
@@ -619,27 +609,27 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Turn on maintenance mode before attempting to upgrade the current theme.
+	 * Turn on maintenance mode before attempting to upgrade the active theme.
 	 *
 	 * Hooked to the {@see 'upgrader_pre_install'} filter by Theme_Upgrader::upgrade() and
 	 * Theme_Upgrader::bulk_upgrade().
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param bool|WP_Error $return Upgrade offer return.
-	 * @param array         $theme  Theme arguments.
-	 * @return bool|WP_Error The passed in $return param or WP_Error.
+	 * @param bool|WP_Error $response The installation response before the installation has started.
+	 * @param array         $theme    Theme arguments.
+	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
 	 */
-	public function current_before( $return, $theme ) {
-		if ( is_wp_error( $return ) ) {
-			return $return;
+	public function current_before( $response, $theme ) {
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
 
 		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
 
-		// Only run if current theme
+		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
-			return $return;
+			return $response;
 		}
 
 		// Change to maintenance mode. Bulk edit handles this separately.
@@ -647,31 +637,31 @@ class Theme_Upgrader extends WP_Upgrader {
 			$this->maintenance_mode( true );
 		}
 
-		return $return;
+		return $response;
 	}
 
 	/**
-	 * Turn off maintenance mode after upgrading the current theme.
+	 * Turn off maintenance mode after upgrading the active theme.
 	 *
 	 * Hooked to the {@see 'upgrader_post_install'} filter by Theme_Upgrader::upgrade()
 	 * and Theme_Upgrader::bulk_upgrade().
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param bool|WP_Error $return Upgrade offer return.
-	 * @param array         $theme  Theme arguments.
-	 * @return bool|WP_Error The passed in $return param or WP_Error.
+	 * @param bool|WP_Error $response The installation response after the installation has finished.
+	 * @param array         $theme    Theme arguments.
+	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
 	 */
-	public function current_after( $return, $theme ) {
-		if ( is_wp_error( $return ) ) {
-			return $return;
+	public function current_after( $response, $theme ) {
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
 
 		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
 
-		// Only run if current theme.
+		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
-			return $return;
+			return $response;
 		}
 
 		// Ensure stylesheet name hasn't changed after the upgrade:
@@ -685,7 +675,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		if ( ! $this->bulk ) {
 			$this->maintenance_mode( false );
 		}
-		return $return;
+		return $response;
 	}
 
 	/**

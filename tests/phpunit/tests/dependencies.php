@@ -4,7 +4,7 @@
  * @group scripts
  */
 class Tests_Dependencies extends WP_UnitTestCase {
-	function test_add() {
+	public function test_add() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -17,7 +17,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertFalse( $dep->add( 'one', '' ) );
 	}
 
-	function test_remove() {
+	public function test_remove() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -30,7 +30,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 	}
 
-	function test_enqueue() {
+	public function test_enqueue() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -46,7 +46,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertTrue( $dep->query( 'two', 'queue' ) );
 	}
 
-	function test_dequeue() {
+	public function test_dequeue() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -66,7 +66,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertFalse( $dep->query( 'two', 'queue' ) );
 	}
 
-	function test_enqueue_args() {
+	public function test_enqueue_args() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -84,7 +84,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertSame( 'arg', $dep->args['two'] );
 	}
 
-	function test_dequeue_args() {
+	public function test_dequeue_args() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -100,18 +100,18 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$dep->dequeue( 'one' );
 		$this->assertFalse( $dep->query( 'one', 'queue' ) );
 		$this->assertTrue( $dep->query( 'two', 'queue' ) );
-		$this->assertFalse( isset( $dep->args['one'] ) );
+		$this->assertArrayNotHasKey( 'one', $dep->args );
 
 		$dep->dequeue( 'two' );
 		$this->assertFalse( $dep->query( 'one', 'queue' ) );
 		$this->assertFalse( $dep->query( 'two', 'queue' ) );
-		$this->assertFalse( isset( $dep->args['two'] ) );
+		$this->assertArrayNotHasKey( 'two', $dep->args );
 	}
 
 	/**
 	 * @ticket 21741
 	 */
-	function test_query_and_registered_enqueued() {
+	public function test_query_and_registered_enqueued() {
 		$dep = new WP_Dependencies;
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
@@ -135,5 +135,19 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$dep->remove( 'one' );
 		$this->assertFalse( $dep->query( 'one' ) );
 
+	}
+
+	function test_enqueue_before_register() {
+		$dep = new WP_Dependencies;
+
+		$this->assertArrayNotHasKey( 'one', $dep->registered );
+
+		$dep->enqueue( 'one' );
+
+		$this->assertNotContains( 'one', $dep->queue );
+
+		$this->assertTrue( $dep->add( 'one', '' ) );
+
+		$this->assertContains( 'one', $dep->queue );
 	}
 }

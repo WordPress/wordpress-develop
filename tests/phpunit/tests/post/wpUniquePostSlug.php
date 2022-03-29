@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_Post_WpUniquePostSlug extends WP_UnitTestCase {
+class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	protected $post_ids = array();
 
 	/**
@@ -92,7 +92,7 @@ class Tests_Post_WpUniquePostSlug extends WP_UnitTestCase {
 	/**
 	 * @ticket 18962
 	 */
-	function test_wp_unique_post_slug_with_hierarchy_and_attachments() {
+	public function test_wp_unique_post_slug_with_hierarchy_and_attachments() {
 		register_post_type( 'post-type-1', array( 'hierarchical' => true ) );
 
 		$args = array(
