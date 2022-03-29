@@ -340,7 +340,7 @@ abstract class WP_Image_Editor {
 			// Favor the file mime extension.
 			$ext = $this->get_extension( $file_mime );
 			if ( $this->mime_type_set && $ext !== $file_ext ) {
-				$new_ext = $ext;
+				$new_ext   = $ext;
 				$mime_type = $file_mime;
 			}
 		}
@@ -458,7 +458,7 @@ abstract class WP_Image_Editor {
 		}
 
 		if ( empty( $suffix ) ) {
-			$suffix = "";
+			$suffix = '';
 		} else {
 			$suffix = "-{$suffix}";
 		}
