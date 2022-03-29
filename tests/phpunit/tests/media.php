@@ -3405,7 +3405,7 @@ EOF;
 
 		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
-		$content_expected   = wp_img_tag_add_decoding_async_attr( $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2 );
+		$content_expected   = wp_img_tag_add_decoding_async_attr( $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2, 'the_content' );
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
