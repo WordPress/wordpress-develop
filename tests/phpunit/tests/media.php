@@ -2836,7 +2836,7 @@ EOF;
 			%4$s';
 
 		$content_unfiltered = sprintf( $content, $img, $img_no_width_height, $img_no_width, $img_no_height );
-		$content_filtered   = wp_img_tag_add_decoding_async_attr( sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height ) );
+		$content_filtered   = wp_img_tag_add_decoding_async_attr( sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height ), 'the_content' );
 
 		// Do not add loading, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
