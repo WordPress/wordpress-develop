@@ -1926,6 +1926,10 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  * @return string Converted `img` tag with `decoding` attribute added.
  */
 function wp_img_tag_add_decoding_async_attr( $image, $context ) {
+	if ( str_contains( $image, ' decoding=' ) ) {
+		return $image;
+	}
+
 	/**
 	 * Filters the `decoding` attribute value to add to an image. Default `async`.
 	 *
