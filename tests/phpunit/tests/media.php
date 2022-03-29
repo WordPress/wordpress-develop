@@ -2386,7 +2386,7 @@ EOF;
 			$respimg_https,
 			$respimg_relative
 		);
-		$expected = wp_img_tag_add_decoding_async_attr( $expected );
+		$expected = wp_img_tag_add_decoding_async_attr( $expected, 'the_content' );
 
 		$actual = wp_filter_content_tags( $unfiltered );
 
