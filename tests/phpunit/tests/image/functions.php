@@ -55,6 +55,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$mime_type = '';
 var_dump(mime_content_type( $filename ));
 var_dump(image_type_to_mime_type( getimagesize( $filename )[2] ) );
+$finfo     = new finfo();
+var_dump($finfo->file( $filename, FILEINFO_MIME ));
+var_dump($finfo->file( $filename, FILEINFO_MIME_TYPE ));
 		if ( function_exists( 'mime_content_type' ) ) {
 			// Fileinfo extension is available.
 			return mime_content_type( $filename );
@@ -66,7 +69,6 @@ var_dump(image_type_to_mime_type( getimagesize( $filename )[2] ) );
 		}
 /*
 		if ( extension_loaded( 'fileinfo' ) ) {
-			$finfo     = new finfo();
 			$mime_type = $finfo->file( $filename, FILEINFO_MIME ); // If anything this should be changed to FILEINFO_MIME_TYPE
 		}
 		if ( false !== strpos( $mime_type, ';' ) ) {
@@ -279,6 +281,8 @@ var_dump(image_type_to_mime_type( getimagesize( $filename )[2] ) );
 
 		$file = wp_tempnam();
 		$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
+var_dump($file);
+var_dump($ret);
 
 		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned' );
@@ -290,13 +294,13 @@ var_dump(image_type_to_mime_type( getimagesize( $filename )[2] ) );
 			$real_mime_type = image_type_to_mime_type( $image_info[2] );
 		}
 
-		$this->assertSame( $mime_type, $real_mime_type, 'Mime type of the saved image does not match' );
+//		$this->assertSame( $mime_type, $real_mime_type, 'Mime type of the saved image does not match' );
 //		$this->assertSame( $mime_type, mime_content_type( $ret['path'] ), 'Mime type of the saved image does not match' );
-//		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match' );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match' );
 
 		// Clean up.
-		unlink( $file );
-		unlink( $ret['path'] );
+//		unlink( $file );
+//		unlink( $ret['path'] );
 		unset( $img );
 	}
 
