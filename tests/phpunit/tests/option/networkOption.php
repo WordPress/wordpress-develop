@@ -123,86 +123,52 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 43506
+	 * @ticket 37181
 	 * @group ms-required
 	 */
-	public function test_get_network_option_sets_notoptions_if_option_found() {
-		$network_id     = get_current_network_id();
-		$notoptions_key = "$network_id:notoptions";
+	public function test_meta_api_use_values_in_network_option() {
+		$network_id = self::factory()->network->create();
+		$option     = __FUNCTION__;
+		$value      = __FUNCTION__;
 
-		$original_cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
-			wp_cache_delete( $notoptions_key, 'site-options' );
-		}
-
-		// Retrieve any existing option.
-		get_network_option( $network_id, 'site_name' );
-
-		$cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
-			wp_cache_set( $notoptions_key, $original_cache, 'site-options' );
-		}
-
-		$this->assertSame( array(), $cache );
+		add_metadata( 'site', $network_id, $option, $value, true );
+		$this->assertEquals( get_metadata( 'site', $network_id, $option ), array( get_network_option( $network_id, $option, true ) ) );
 	}
 
 	/**
-	 * @ticket 43506
+	 * @ticket 37181
 	 * @group ms-required
 	 */
-	public function test_get_network_option_sets_notoptions_if_option_not_found() {
-		$network_id     = get_current_network_id();
-		$notoptions_key = "$network_id:notoptions";
+	function test_funky_post_meta() {
+		$network_id      = self::factory()->network->create();
+		$option          = __FUNCTION__;
+		$classy          = new StdClass();
+		$classy->ID      = 1;
+		$classy->stringy = 'I love slashes\\\\';
+		$funky_meta[]    = $classy;
 
-		$original_cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
-			wp_cache_delete( $notoptions_key, 'site-options' );
-		}
+		$classy          = new StdClass();
+		$classy->ID      = 2;
+		$classy->stringy = 'I love slashes\\\\ more';
+		$funky_meta[]    = $classy;
 
-		// Retrieve any non-existing option.
-		get_network_option( $network_id, 'this_does_not_exist' );
+		// Add a network meta item
+		$this->assertIsInt( add_metadata( 'site', $network_id, $option, $funky_meta, true ) );
 
-		$cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
-			wp_cache_set( $notoptions_key, $original_cache, 'site-options' );
-		}
-
-		$this->assertSame( array( 'this_does_not_exist' => true ), $cache );
+		//Check they exists
+		$this->assertEquals( $funky_meta, get_network_option( $network_id, $option ) );
 	}
 
 	/**
-	 * Ensure updating network options containing an object do not result in unneeded database calls.
-	 *
-	 * @ticket 44956
+	 * @ticket 37181
+	 * @group ms-required
 	 */
-	public function test_update_network_option_array_with_object() {
-		$array_w_object = array(
-			'url'       => 'http://src.wordpress-develop.dev/wp-content/uploads/2016/10/cropped-Blurry-Lights.jpg',
-			'meta_data' => (object) array(
-				'attachment_id' => 292,
-				'height'        => 708,
-				'width'         => 1260,
-			),
-		);
-
-		$array_w_object_2 = array(
-			'url'       => 'http://src.wordpress-develop.dev/wp-content/uploads/2016/10/cropped-Blurry-Lights.jpg',
-			'meta_data' => (object) array(
-				'attachment_id' => 292,
-				'height'        => 708,
-				'width'         => 1260,
-			),
-		);
-
-		// Add the option, it did not exist before this.
-		add_network_option( null, 'array_w_object', $array_w_object );
-
-		$num_queries_pre_update = get_num_queries();
-
-		// Update the option using the same array with an object for the value.
-		$this->assertFalse( update_network_option( null, 'array_w_object', $array_w_object_2 ) );
-
-		// Check that no new database queries were performed.
-		$this->assertSame( $num_queries_pre_update, get_num_queries() );
+	public function test_meta_api_multiple_values_in_network_option() {
+		$network_id = self::factory()->network->create();
+		$option     = __FUNCTION__;
+		add_metadata( 'site', $network_id, $option, 'monday', true );
+		add_metadata( 'site', $network_id, $option, 'tuesday', true );
+		add_metadata( 'site', $network_id, $option, 'wednesday', true );
+		$this->assertEquals( 'monday', get_network_option( $network_id, $option, true ) );
 	}
 }
