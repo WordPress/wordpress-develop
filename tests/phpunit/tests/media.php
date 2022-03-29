@@ -2274,7 +2274,7 @@ EOF;
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
-		$img = wp_img_tag_add_decoding_async_attr( $img );
+		$img = wp_img_tag_add_decoding_async_attr( $img, 'the_content' );
 
 		// Replace the src URL.
 		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $img );
