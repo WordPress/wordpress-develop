@@ -1846,9 +1846,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			}
 
 			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
-			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
-				$filtered_image = wp_img_tag_add_decoding_async_attr( $filtered_image, $context );
-			}
+			$filtered_image = wp_img_tag_add_decoding_async_attr( $filtered_image, $context );
 
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
