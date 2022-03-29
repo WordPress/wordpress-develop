@@ -3,6 +3,16 @@
 	"title": "Mint",
 	"settings": {
 		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#000000",
+						"#FFFFFF"
+					],
+					"slug": "default-filter",
+					"name": "Default filter"
+				}
+			],
 			"palette": [
 				{
 					"slug": "foreground",
@@ -62,6 +72,26 @@
 	},
 	"styles": {
 		"blocks": {
+			"core/cover": {
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			},
+			"core/image": {
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			},
+			"core/post-author": {
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			},
+			"core/post-featured-image": {
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			},
 			"core/post-title": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--bodoni-moda)",
