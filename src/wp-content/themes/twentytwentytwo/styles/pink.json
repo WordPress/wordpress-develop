@@ -3,25 +3,15 @@
 	"title": "Pink",
 	"settings": {
 		"color": {
-			"duotone": [
-				{
-					"colors": [
-						"#000000",
-						"#FFFFFF"
-					],
-					"slug": "default-filter",
-					"name": "Default filter"
-				}
-			],
 			"palette": [
 				{
 					"slug": "foreground",
-					"color": "#000000",
+					"color": "#CA2315",
 					"name": "Foreground"
 				},
 				{
 					"slug": "background",
-					"color": "#FFCCCC",
+					"color": "#FFF6F6",
 					"name": "Background"
 				},
 				{
@@ -36,10 +26,28 @@
 				},
 				{
 					"slug": "tertiary",
-					"color": "#FFFFFF",
+					"color": "#F5F5F5",
 					"name": "Tertiary"
 				}
 			]
+		},
+		"custom": {
+			"spacing": {
+				"small": "max(0.75rem, 4vw)",
+				"medium": "clamp(2rem, 8vw, calc(4 * var(--wp--style--block-gap)))",
+				"large": "clamp(4rem, 10vw, 8rem)",
+				"outer": "var(--wp--custom--spacing--small, 0.75rem)"
+			},
+			"typography": {
+				"font-size": {
+					"huge": "clamp(2rem, 4vw, 2.25rem)",
+					"gigantic": "clamp(2.25rem, 6vw, 2.75rem)",
+					"colossal": "clamp(2.75rem, 8vw, 3.25rem)"
+				}
+			},
+			"line-height": {
+				"normal": 1.7
+			}
 		},
 		"typography": {
 			"fontFamilies": [
@@ -113,21 +121,33 @@
 						}
 					]
 				}
+			],
+			"fontSizes": [
+				{
+					"size": "0.875rem",
+					"slug": "small"
+				},
+				{
+					"size": "1rem",
+					"slug": "medium"
+				},
+				{
+					"size": "1.25rem",
+					"slug": "large"
+				},
+				{
+					"size": "clamp(1.5rem, 3vw, 2rem)",
+					"slug": "x-large"
+				}
 			]
+		},
+		"layout": {
+			"contentSize": "600px",
+			"wideSize": "900px"
 		}
 	},
 	"styles": {
 		"blocks": {
-			"core/image": {
-				"filter": {
-					"duotone": "var(--wp--preset--duotone--default-filter)"
-				}
-			},
-			"core/post-featured-image": {
-				"filter": {
-					"duotone": "var(--wp--preset--duotone--default-filter)"
-				}
-			},
 			"core/post-title": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
@@ -137,11 +157,6 @@
 			"core/query-title": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)"
-				}
-			},
-			"core/site-logo": {
-				"filter": {
-					"duotone": "var(--wp--preset--duotone--default-filter)"
 				}
 			}
 		},
@@ -182,6 +197,9 @@
 					"fontWeight": "300"
 				}
 			}
+		},
+		"spacing": {
+			"blockGap": "2rem"
 		},
 		"typography": {
 			"fontFamily": "var(--wp--preset--font-family--ibm-plex-mono)"
