@@ -8345,7 +8345,7 @@
 			{
 				api.notifications.add( new api.Notification( 'site_editor_block_theme_notice', {
 					message: notification,
-					type: 'warning',
+					type: 'info',
 					dismissible: false,
 					render: function() {
 						var notification = api.Notification.prototype.render.call( this ),
