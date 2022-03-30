@@ -3861,7 +3861,7 @@ class wpdb {
 	 * @param string $db_cap The feature to check for. Accepts 'collation', 'group_concat',
 	 *                       'subqueries', 'set_charset', 'utf8mb4', 'utf8mb4_520',
 	 *                       or 'identifier_placeholders'.
-	 * @return int|false Whether the database feature is supported, false otherwise.
+	 * @return bool True when the database feature is supported, false otherwise.
 	 */
 	public function has_cap( $db_cap ) {
 		$version = $this->db_version();
