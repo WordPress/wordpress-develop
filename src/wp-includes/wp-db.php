@@ -1499,7 +1499,6 @@ class wpdb {
 		$arg_identifiers = array();
 		$arg_strings     = array();
 		while ( $key < $split_query_count ) {
-
 			$placeholder = $split_query[ $key ];
 
 			$format = substr( $placeholder, 1, -1 );
@@ -1532,13 +1531,11 @@ class wpdb {
 
 			$key += 3;
 			$arg_id++;
-
 		}
 		$query = $new_query . $split_query[ $key - 2 ]; // Replace $query; and add remaining $query characters, or index 0 if there were no placeholders.
 
 		$dual_use = array_intersect( $arg_identifiers, $arg_strings );
 		if ( count( $dual_use ) ) {
-
 			wp_load_translations_early();
 			_doing_it_wrong(
 				'wpdb::prepare',
