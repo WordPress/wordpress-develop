@@ -388,11 +388,6 @@ class WP_Debug_Data {
 				$site_count += get_blog_count( $network_id );
 			}
 
-			$info['wp-core']['fields']['user_count'] = array(
-				'label' => __( 'User count' ),
-				'value' => get_user_count(),
-			);
-
 			$info['wp-core']['fields']['site_count'] = array(
 				'label' => __( 'Site count' ),
 				'value' => $site_count,
@@ -402,14 +397,12 @@ class WP_Debug_Data {
 				'label' => __( 'Network count' ),
 				'value' => $network_query->found_networks,
 			);
-		} else {
-			$user_count = count_users();
-
-			$info['wp-core']['fields']['user_count'] = array(
-				'label' => __( 'User count' ),
-				'value' => $user_count['total_users'],
-			);
 		}
+
+		$info['wp-core']['fields']['user_count'] = array(
+			'label' => __( 'User count' ),
+			'value' => get_user_count(),
+		);
 
 		// WordPress features requiring processing.
 		$wp_dotorg = wp_remote_get( 'https://wordpress.org', array( 'timeout' => 10 ) );
@@ -1500,7 +1493,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array  $info_array Information gathered from the `WP_Debug_Data::debug_data` function.
+	 * @param array  $info_array Information gathered from the `WP_Debug_Data::debug_data()` function.
 	 * @param string $data_type  The data type to return, either 'info' or 'debug'.
 	 * @return string The formatted data.
 	 */

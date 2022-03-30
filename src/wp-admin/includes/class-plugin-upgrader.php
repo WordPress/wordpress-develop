@@ -592,7 +592,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		$plugin = isset( $plugin['plugin'] ) ? $plugin['plugin'] : '';
 
-		// Only run if plugin is active
+		// Only run if plugin is active.
 		if ( ! is_plugin_active( $plugin ) ) {
 			return $response;
 		}

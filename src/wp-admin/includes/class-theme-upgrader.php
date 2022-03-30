@@ -627,7 +627,7 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
 
-		// Only run if active theme
+		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
 			return $response;
 		}
