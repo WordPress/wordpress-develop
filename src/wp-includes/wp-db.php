@@ -3849,7 +3849,15 @@ class wpdb {
 	}
 
 	/**
-	 * Determines if a database supports a particular feature.
+	 * Determine DB or WPDB support for a particular feature.
+	 *
+	 * Capability sniffs for the database server and current version of wpdb.
+	 *
+	 * Database sniffs test based on the version of MySQL the site is using.
+	 *
+	 * WPDB sniffs are added as new features are introduced to allow theme and plugin
+	 * developers to determine feature support. This is to account for drop-ins which may
+	 * introduce feature support at a different time to WordPress.
 	 *
 	 * @since 2.7.0
 	 * @since 4.1.0 Added support for the 'utf8mb4' feature.
