@@ -200,6 +200,29 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 			// Call the helper function, passing the desired position.
 			call_user_func_array( $helper_function['callback'], array( $test, $test, 'manage_options', 'custom-position', '', $position ) );
 
+			$this->assertArrayHasKey(
+				$helper_function['menu_root'],
+				$submenu,
+				'The submenu does not have the ' . $helper_function['menu_root'] . ' key'
+			);
+
+			$this->assertArrayHasKey(
+				$expected_position,
+				$submenu[ $helper_function['menu_root'] ],
+				'The ' . $expected_position . ' key does not exist'
+			);
+
+			$this->assertIsArray(
+				$submenu[ $helper_function['menu_root'] ][ $expected_position ],
+				'The ' . $expected_position . ' array does not exist'
+			);
+
+			$this->assertArrayHasKey(
+				2,
+				$submenu[ $helper_function['menu_root'] ][ $expected_position ],
+				'The ' . $expected_position . ' array does not have a slug'
+			);
+
 			$actual_positions[ $test ] = $submenu[ $helper_function['menu_root'] ][ $expected_position ][2];
 		}
 
