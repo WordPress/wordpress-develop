@@ -329,8 +329,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *
 	 * @ticket 54798
 	 */
-	public function test_passing_string_as_position_fires_doing_it_wrong_menu() {
-		$this->setExpectedIncorrectUsage( 'add_menu_page' );
+	public function test_passing_float_as_position_does_not_override_int() {
 		global $submenu, $menu;
 
 		// Reset menus.
@@ -342,17 +341,19 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		set_current_screen( 'dashboard' );
 
 		// Setup a menu with some items.
-		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback', 'icon_url', '1' );
-		add_menu_page( 'Main Menu 1', 'Main Menu 1', 'manage_options', 'main1_slug', 'main1_page_callback', 'icon_url1', 1.5 );
+		add_menu_page( 'Main Menu 1', 'Main Menu 1', 'manage_options', 'main_slug_1', 'main_page_callback_1', 'icon_url_1', 1 );
+		add_menu_page( 'Main Menu 2', 'Main Menu 2', 'manage_options', 'main_slug_2', 'main_page_callback_2', 'icon_url_2', 2 );
+		add_menu_page( 'Main Menu 1.5', 'Main Menu 1.5', 'manage_options', 'main_slug_15', 'main_page_callback_15', 'icon_url_15', 1.5 );
 
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
 		wp_delete_user( $admin_user );
 
-		// Verify the menu was inserted.
-		$this->assertSame( 'main_slug', $menu[1][2] );
+		// Verify the menus were inserted.
+		$this->assertSame( 'main_slug_1', $menu[1][2] );
+		$this->assertSame( 'main_slug_2', $menu[2][2] );
 		// Verify the menu was inserted correctly on passing float as position.
-		$this->assertSame( 'main1_slug', $menu['1.5'][2] );
+		$this->assertSame( 'main_slug_15', $menu['1.5'][2] );
 	}
 
 	public function test_is_plugin_active_true() {
