@@ -1408,18 +1408,66 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	}
 
 	$new_sub_menu = array( $menu_title, $capability, $menu_slug, $page_title );
-	if ( null === $position ) {
+
+	if (
+		null === $position
+		// BC: `$position` is invalid.
+		|| ( ! is_string( $position ) && ! is_int( $position ) && ! is_float( $position ) )
+		// BC: The parent does not exist.
+		|| ! isset( $submenu[ $parent_slug ] )
+		// BC: `$position` is greater than or equal to the number of items.
+		|| (int) $position >= count( $submenu[ $parent_slug ] )
+	) {
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
-		$position = (string) (float) $position;
-
-		if ( isset( $menu[ $position ] ) ) {
-			$position += substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
-			// Convert back to string because PHP converts floats to ints in array indexes.
-			$position = (string) $position;
+		// BC: Test for a negative position.
+		if ( 0 > (int) $position ) {
+			$position = 0;
 		}
 
-		$submenu[ $parent_slug ][ $position ] = $new_sub_menu;
+		// BC: Handle a `$position` of `0`.
+		if ( 0 === $position ) {
+			/*
+			 * BC:
+			 *
+			 * == TODO ==
+			 *
+			 * Add $new_sub_menu to the start of $submenu[ $parent_slug ].
+			 *
+			 * Must preserve the keys in $submenu[ $parent_slug ].
+			 * For BC, should ensure the new item is first, regardless of sort.
+			 *
+			 * This current version increments all existing keys between 0 and 1.
+			 *
+			 * 1. Should this mechanism be kept for BC?
+			 * 2. Does this mechanism defeat the purpose of consistent ordering?
+			 *
+			 * Once these are answered, the code block below either needs
+			 * to removed or evaluated/improved.
+			 */
+			$current_first_key = array_key_first( $submenu[ $parent_slug ] );
+			$new_menu          = array( $current_first_key => $new_sub_menu );
+
+			foreach ( $submenu[ $parent_slug ] as $k => $item ) {
+				if ( 1 <= $k ) {
+					break;
+				}
+				$k              = (string) ( $k + 0.01 );
+				$new_menu[ $k ] = $item;
+			}
+
+			$submenu[ $parent_slug ] = $new_menu;
+		} else {
+			$position = (string) (float) $position;
+
+			if ( isset( $submenu[ $parent_slug ][ $position ] ) ) {
+				$position += substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
+				// Convert back to string because PHP converts floats to ints in array indexes.
+				$position = (string) $position;
+			}
+
+			$submenu[ $parent_slug ][ $position ] = $new_sub_menu;
+		}
 	}
 	// Sort the parent array.
 	uksort( $submenu[ $parent_slug ], 'strnatcasecmp' );
