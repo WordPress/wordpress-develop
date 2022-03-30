@@ -849,7 +849,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$number_of_queries = $wpdb->num_queries;
+			$number_of_queries = get_num_queries();
 
 			$query_2 = $q->query(
 				array(
@@ -867,7 +867,6 @@ if ( is_multisite() ) :
 		 * @ticket 55462
 		 */
 		public function test_wp_site_query_cache_with_same_fields_same_cache_fields() {
-			global $wpdb;
 			$q = new WP_Site_Query();
 
 			$query_1 = $q->query(
@@ -881,7 +880,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$number_of_queries = $wpdb->num_queries;
+			$number_of_queries = get_num_queries();
 
 			$query_2 = $q->query(
 				array(
@@ -893,14 +892,13 @@ if ( is_multisite() ) :
 					'update_site_meta_cache' => true,
 				)
 			);
-			$this->assertSame( $number_of_queries, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries, get_num_queries() );
 		}
 
 		/**
 		 * @ticket 55462
 		 */
 		public function test_wp_site_query_cache_with_same_fields_different_cache_fields() {
-			global $wpdb;
 			$q = new WP_Site_Query();
 
 			$query_1 = $q->query(
@@ -914,7 +912,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$number_of_queries = $wpdb->num_queries;
+			$number_of_queries = get_num_queries();
 
 			$query_2 = $q->query(
 				array(
@@ -926,7 +924,7 @@ if ( is_multisite() ) :
 					'update_site_meta_cache' => false,
 				)
 			);
-			$this->assertSame( $number_of_queries, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries, get_num_queries() );
 		}
 
 		/**
