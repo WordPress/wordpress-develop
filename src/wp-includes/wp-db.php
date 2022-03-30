@@ -54,15 +54,6 @@ define( 'ARRAY_N', 'ARRAY_N' );
 class wpdb {
 
 	/**
-	 * Version number, to check what features are available.
-	 *
-	 * @since 6.0.0 - V2: wbdb::prepare() supports Identifiers via 'SELECT * FROM %i', and Variadics via 'IN (%...d)'
-	 *
-	 * @var int
-	 */
-	public $version = 2;
-
-	/**
 	 * Whether to show SQL/DB errors.
 	 *
 	 * Default is to show errors if both WP_DEBUG and WP_DEBUG_DISPLAY evaluate to true.
@@ -1433,6 +1424,7 @@ class wpdb {
 	 *              by updating the function signature. The second parameter was changed
 	 *              from `$args` to `...$args`.
 	 * @since 6.0.0 Added %i for Identifiers, e.g. table or field names.
+	 *              Check support via `wpdb::has_cap( 'identifier_placeholders' )`
 	 *              This preserves compatibility with sprinf, as the C version uses %d and $i
 	 *              as a signed integer, whereas PHP only supports %d.
 	 *
@@ -3862,11 +3854,13 @@ class wpdb {
 	 * @since 2.7.0
 	 * @since 4.1.0 Added support for the 'utf8mb4' feature.
 	 * @since 4.6.0 Added support for the 'utf8mb4_520' feature.
+	 * @since 6.0.0 Added support for the 'identifier_placeholders' feature.
 	 *
 	 * @see wpdb::db_version()
 	 *
 	 * @param string $db_cap The feature to check for. Accepts 'collation', 'group_concat',
-	 *                       'subqueries', 'set_charset', 'utf8mb4', or 'utf8mb4_520'.
+	 *                       'subqueries', 'set_charset', 'utf8mb4', 'utf8mb4_520',
+	 *                       or 'identifier_placeholders'.
 	 * @return int|false Whether the database feature is supported, false otherwise.
 	 */
 	public function has_cap( $db_cap ) {
@@ -3901,6 +3895,8 @@ class wpdb {
 				}
 			case 'utf8mb4_520': // @since 4.6.0
 				return version_compare( $version, '5.6', '>=' );
+			case 'identifier_placeholders': // @since 6.0.0, wpdb::prepare() supports identifiers via %i (e.g. table/field names).
+				return true;
 		}
 
 		return false;
