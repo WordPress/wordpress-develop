@@ -180,11 +180,15 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$network_id = self::factory()->network->create();
 		$option     = __FUNCTION__;
 		$value      = __FUNCTION__;
-		register_meta( 'site', $option, array(
-			'type'    => 'string',
-			'default' => $value,
-			'single'  => false,
-		) );
+		register_meta(
+			'site',
+			$option,
+			array(
+				'type'    => 'string',
+				'default' => $value,
+				'single'  => false,
+			)
+		);
 
 		$this->assertSame( $value, get_network_option( $network_id, $option ) );
 	}
@@ -197,11 +201,15 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$network_id = self::factory()->network->create();
 		$option     = __FUNCTION__;
 		$value      = __FUNCTION__;
-		register_meta( 'site', $option, array(
-			'type'    => 'string',
-			'default' => $value,
-			'single'  => true,
-		) );
+		register_meta(
+			'site',
+			$option,
+			array(
+				'type'    => 'string',
+				'default' => $value,
+				'single'  => true,
+			)
+		);
 
 		$this->assertSame( $value, get_network_option( $network_id, $option ) );
 	}
@@ -214,11 +222,15 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$network_id = self::factory()->network->create();
 		$option     = __FUNCTION__;
 		$value      = __FUNCTION__;
-		register_meta( 'site', $option, array(
-			'type'    => 'string',
-			'default' => $value,
-			'single'  => true,
-		) );
+		register_meta(
+			'site',
+			$option,
+			array(
+				'type'    => 'string',
+				'default' => $value,
+				'single'  => true,
+			)
+		);
 
 		add_metadata( 'site', $network_id, $option, 'monday', true );
 		$this->assertSame( 'monday', get_network_option( $network_id, $option ) );
