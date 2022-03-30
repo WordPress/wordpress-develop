@@ -49,20 +49,6 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test Version number is accessible
-	 *
-	 * Make sure $wpdb->version is available for plugins to check what features are available.
-	 *
-	 * @global mixed $wpdb
-	 *
-	 * @ticket 52506
-	 */
-	public function test_version() {
-		global $wpdb;
-		$this->assertGreaterThan( 1, $wpdb->version );
-	}
-
-	/**
 	 * Test that WPDB will reconnect when the DB link dies
 	 *
 	 * @ticket 5932
