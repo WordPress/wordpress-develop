@@ -1792,6 +1792,12 @@ class Tests_DB extends WP_UnitTestCase {
 				'WHERE ``` AND true -- `` = 321;', // Won't run (SQL parse error: "Unclosed quote").
 			),
 			array(
+				'WHERE %2$i = %1$d;',
+				array( '1', 'two' ),
+				false,
+				'WHERE `two` = 1;',
+			),
+			array(
 				'WHERE \'%i\' = 1 AND "%i" = 2 AND `%i` = 3 AND ``%i`` = 4 AND %15i = 5',
 				array( 'my_field1', 'my_field2', 'my_field3', 'my_field4', 'my_field5' ),
 				false,
