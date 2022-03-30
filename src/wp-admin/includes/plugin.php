@@ -1325,11 +1325,19 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
 
 	if ( null === $position ) {
 		$menu[] = $new_menu;
-	} elseif ( isset( $menu[ "$position" ] ) ) {
-		$collision_avoider   = base_convert( substr( md5( $menu_slug . $menu_title ), -4 ), 16, 10 ) * 0.00001;
-		$position            = $position + $collision_avoider;
-		$menu[ "$position" ] = $new_menu;
+	} elseif ( isset( $menu[ (string) $position ] ) ) {
+		$collision_avoider = base_convert( substr( md5( $menu_slug . $menu_title ), -4 ), 16, 10 ) * 0.00001;
+		$position          = (string) ( $position + $collision_avoider );
+		$menu[ $position ] = $new_menu;
 	} else {
+		/*
+		 * Cast menu position to a string.
+		 *
+		 * This allows for floats to be passed as the position. PHP will normally cast a float to an
+		 * integer value, this ensures the float retains its mantissa (positive fractional part).
+		 *
+		 * A string containing an integer value, eg "10", is treated as a numeric index.
+		 */
 		$position          = (string) $position;
 		$menu[ $position ] = $new_menu;
 	}
