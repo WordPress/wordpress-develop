@@ -6,7 +6,7 @@
  * @group functions.php
  * @covers ::wp_fuzzy_number_match
  */
-class Tests_wpFuzzyNumberMatch extends WP_UnitTestCase {
+class Tests_Functions_WpFuzzyNumberMatch extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_wp_fuzzy_number_match
