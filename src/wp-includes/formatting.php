@@ -2251,13 +2251,11 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	// Restore octets.
 	$title = preg_replace( '|---([a-fA-F0-9][a-fA-F0-9])---|', '%$1', $title );
 
-	$title_seems_utf8 = seems_utf8( $title );
-
-	if ( $title_seems_utf8 ) {
+	if ( seems_utf8( $title ) ) {
 		if ( function_exists( 'mb_strtolower' ) ) {
 			$title = mb_strtolower( $title, 'UTF-8' );
 		}
-		$title = utf8_uri_encode( $title, max( 200, strlen( $title ) ) );
+		$title = utf8_uri_encode( $title );
 	}
 
 	$title = strtolower( $title );
@@ -2361,7 +2359,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = preg_replace( '|-+|', '-', $title );
 	$title = trim( $title, '-' );
 
-	if ( $title_seems_utf8 && strlen( $title ) > 200 ) {
+	if ( seems_utf8( $title ) ) {
 		$title = substr( $title, 0, 200 );
 	}
 
