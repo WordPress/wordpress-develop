@@ -243,10 +243,10 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @since 2.6.0
 	 *
 	 * @param array $orig
-	 * @param array $final
+	 * @param array $modified
 	 * @return string
 	 */
-	public function _changed( $orig, $final ) {
+	public function _changed( $orig, $modified ) {
 		$r = '';
 
 		/*
@@ -255,10 +255,10 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		 * - match is numeric: an index in other column.
 		 * - match is 'X': no match. It is a new row.
 		 * *_rows are column vectors for the orig column and the final column.
-		 * - row >= 0: an index of the $orig or $final array.
+		 * - row >= 0: an index of the $orig or $modified array.
 		 * - row < 0: a blank row for that column.
 		 */
-		list($orig_matches, $final_matches, $orig_rows, $final_rows) = $this->interleave_changed_lines( $orig, $final );
+		list($orig_matches, $final_matches, $orig_rows, $final_rows) = $this->interleave_changed_lines( $orig, $modified );
 
 		// These will hold the word changes as determined by an inline diff.
 		$orig_diffs  = array();
@@ -267,7 +267,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		// Compute word diffs for each matched pair using the inline diff.
 		foreach ( $orig_matches as $o => $f ) {
 			if ( is_numeric( $o ) && is_numeric( $f ) ) {
-				$text_diff = new Text_Diff( 'auto', array( array( $orig[ $o ] ), array( $final[ $f ] ) ) );
+				$text_diff = new Text_Diff( 'auto', array( array( $orig[ $o ] ), array( $modified[ $f ] ) ) );
 				$renderer  = new $this->inline_diff_renderer;
 				$diff      = $renderer->render( $text_diff );
 
@@ -307,15 +307,15 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 
 			if ( isset( $final_diffs[ $final_rows[ $row ] ] ) ) {
 				$final_line = $final_diffs[ $final_rows[ $row ] ];
-			} elseif ( isset( $final[ $final_rows[ $row ] ] ) ) {
-				$final_line = htmlspecialchars( $final[ $final_rows[ $row ] ] );
+			} elseif ( isset( $modified[ $final_rows[ $row ] ] ) ) {
+				$final_line = htmlspecialchars( $modified[ $final_rows[ $row ] ] );
 			} else {
 				$final_line = '';
 			}
 
 			if ( $orig_rows[ $row ] < 0 ) { // Orig is blank. This is really an added row.
 				$r .= $this->_added( array( $final_line ), false );
-			} elseif ( $final_rows[ $row ] < 0 ) { // Final is blank. This is really a deleted row.
+			} elseif ( $final_rows[ $row ] < 0 ) { // Modified is blank. This is really a deleted row.
 				$r .= $this->_deleted( array( $orig_line ), false );
 			} else { // A true changed row.
 				if ( $this->_show_split_view ) {
@@ -334,36 +334,36 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param array $orig  Lines of the original version of the text.
-	 * @param array $final Lines of the final version of the text.
+	 * @param array $orig     Lines of the original version of the text.
+	 * @param array $modified Lines of the final version of the text.
 	 * @return array {
 	 *     Array containing results of comparing the original text to the final text.
 	 *
 	 *     @type array $orig_matches  Associative array of original matches. Index == row
 	 *                                number of `$orig`, value == corresponding row number
-	 *                                of that same line in `$final` or 'x' if there is no
+	 *                                of that same line in `$modified` or 'x' if there is no
 	 *                                corresponding row (indicating it is a deleted line).
 	 *     @type array $final_matches Associative array of final matches. Index == row
-	 *                                number of `$final`, value == corresponding row number
+	 *                                number of `$modified`, value == corresponding row number
 	 *                                of that same line in `$orig` or 'x' if there is no
 	 *                                corresponding row (indicating it is a new line).
 	 *     @type array $orig_rows     Associative array of interleaved rows of `$orig` with
 	 *                                blanks to keep matches aligned with side-by-side diff
-	 *                                of `$final`. A value >= 0 corresponds to index of `$orig`.
+	 *                                of `$modified`. A value >= 0 corresponds to index of `$orig`.
 	 *                                Value < 0 indicates a blank row.
-	 *     @type array $final_rows    Associative array of interleaved rows of `$final` with
+	 *     @type array $final_rows    Associative array of interleaved rows of `$modified` with
 	 *                                blanks to keep matches aligned with side-by-side diff
-	 *                                of `$orig`. A value >= 0 corresponds to index of `$final`.
+	 *                                of `$orig`. A value >= 0 corresponds to index of `$modified`.
 	 *                                Value < 0 indicates a blank row.
 	 * }
 	 */
-	public function interleave_changed_lines( $orig, $final ) {
+	public function interleave_changed_lines( $orig, $modified ) {
 
 		// Contains all pairwise string comparisons. Keys are such that this need only be a one dimensional array.
 		$matches = array();
 		foreach ( array_keys( $orig ) as $o ) {
-			foreach ( array_keys( $final ) as $f ) {
-				$matches[ "$o,$f" ] = $this->compute_string_distance( $orig[ $o ], $final[ $f ] );
+			foreach ( array_keys( $modified ) as $f ) {
+				$matches[ "$o,$f" ] = $this->compute_string_distance( $orig[ $o ], $modified[ $f ] );
 			}
 		}
 		asort( $matches ); // Order by string distance.
