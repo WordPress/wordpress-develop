@@ -21,7 +21,7 @@ class Tests_DB_RealEscape extends WP_UnitTestCase {
 	 * @param mixed  $input    The input to escape.
 	 * @param string $expected The expected function output.
 	 */
-	function test_real_escape_input_type_handling( $input, $expected ) {
+	public function test_real_escape_input_type_handling( $input, $expected ) {
 		global $wpdb;
 
 		$this->assertSame( $expected, $wpdb->_real_escape( $input ) );

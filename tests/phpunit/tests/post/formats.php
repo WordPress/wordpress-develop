@@ -4,7 +4,7 @@
  * @group post
  */
 class Tests_Post_Formats extends WP_UnitTestCase {
-	function test_set_get_post_format_for_post() {
+	public function test_set_get_post_format_for_post() {
 		$post_id = self::factory()->post->create();
 
 		$format = get_post_format( $post_id );
@@ -32,7 +32,7 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 	/**
 	 * @ticket 22473
 	 */
-	function test_set_get_post_format_for_page() {
+	public function test_set_get_post_format_for_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		$format = get_post_format( $post_id );
@@ -64,7 +64,7 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 		remove_post_type_support( 'page', 'post-formats' );
 	}
 
-	function test_has_format() {
+	public function test_has_format() {
 		$post_id = self::factory()->post->create();
 
 		$this->assertFalse( has_post_format( 'standard', $post_id ) );
@@ -93,7 +93,7 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 	/**
 	 * @ticket 23570
 	 */
-	function test_get_url_in_content() {
+	public function test_get_url_in_content() {
 		$link                 = 'http://nytimes.com';
 		$commentary           = 'This is my favorite link';
 		$link_with_commentary = <<<DATA
