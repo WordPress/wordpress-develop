@@ -547,11 +547,11 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param mixed $default A default value which is used as a fallback. Default null.
+	 * @param mixed $default_value A default value which is used as a fallback. Default null.
 	 * @return mixed The default value on failure, otherwise the sanitized and validated value.
 	 */
-	final public function post_value( $default = null ) {
-		return $this->manager->post_value( $this, $default );
+	final public function post_value( $default_value = null ) {
+		return $this->manager->post_value( $this, $default_value );
 	}
 
 	/**
@@ -621,22 +621,22 @@ class WP_Customize_Setting {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param mixed $default Value to return if root does not exist.
+	 * @param mixed $default_value Value to return if root does not exist.
 	 * @return mixed
 	 */
-	protected function get_root_value( $default = null ) {
+	protected function get_root_value( $default_value = null ) {
 		$id_base = $this->id_data['base'];
 		if ( 'option' === $this->type ) {
-			return get_option( $id_base, $default );
+			return get_option( $id_base, $default_value );
 		} elseif ( 'theme_mod' === $this->type ) {
-			return get_theme_mod( $id_base, $default );
+			return get_theme_mod( $id_base, $default_value );
 		} else {
 			/*
 			 * Any WP_Customize_Setting subclass implementing aggregate multidimensional
 			 * will need to override this method to obtain the data from the appropriate
 			 * location.
 			 */
-			return $default;
+			return $default_value;
 		}
 	}
 
@@ -930,16 +930,16 @@ class WP_Customize_Setting {
 	 *
 	 * @param array $root
 	 * @param array $keys
-	 * @param mixed $default A default value which is used as a fallback. Default null.
+	 * @param mixed $default_value A default value which is used as a fallback. Default null.
 	 * @return mixed The requested value or the default value.
 	 */
-	final protected function multidimensional_get( $root, $keys, $default = null ) {
+	final protected function multidimensional_get( $root, $keys, $default_value = null ) {
 		if ( empty( $keys ) ) { // If there are no keys, test the root.
-			return isset( $root ) ? $root : $default;
+			return isset( $root ) ? $root : $default_value;
 		}
 
 		$result = $this->multidimensional( $root, $keys );
-		return isset( $result ) ? $result['node'][ $result['key'] ] : $default;
+		return isset( $result ) ? $result['node'][ $result['key'] ] : $default_value;
 	}
 
 	/**
