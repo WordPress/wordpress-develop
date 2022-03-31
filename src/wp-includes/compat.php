@@ -8,8 +8,8 @@
 
 // If gettext isn't available.
 if ( ! function_exists( '_' ) ) {
-	function _( $string ) {
-		return $string;
+	function _( $text ) {
+		return $text;
 	}
 }
 
