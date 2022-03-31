@@ -3820,13 +3820,13 @@ function get_paged_template() {
  * @since 1.0.0
  * @deprecated 4.7.0 Officially dropped security support for Netscape 4.
  *
- * @param string $string
+ * @param string $content
  * @return string
  */
-function wp_kses_js_entities( $string ) {
+function wp_kses_js_entities( $content ) {
 	_deprecated_function( __FUNCTION__, '4.7.0' );
 
-	return preg_replace( '%&\s*\{[^}]*(\}\s*;?|$)%', '', $string );
+	return preg_replace( '%&\s*\{[^}]*(\}\s*;?|$)%', '', $content );
 }
 
 /**
