@@ -2070,18 +2070,18 @@ function js_escape( $text ) {
  * @deprecated 2.8.0 Use esc_html()
  * @see esc_html()
  *
- * @param string       $string        String to escape.
+ * @param string       $text          String to escape.
  * @param string       $quote_style   Unused.
  * @param false|string $charset       Unused.
  * @param false        $double_encode Whether to double encode. Unused.
- * @return string Escaped `$string`.
+ * @return string Escaped `$text`.
  */
-function wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
+function wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'esc_html()' );
 	if ( func_num_args() > 1 ) { // Maintain back-compat for people passing additional arguments.
-		return _wp_specialchars( $string, $quote_style, $charset, $double_encode );
+		return _wp_specialchars( $text, $quote_style, $charset, $double_encode );
 	} else {
-		return esc_html( $string );
+		return esc_html( $text );
 	}
 }
 
