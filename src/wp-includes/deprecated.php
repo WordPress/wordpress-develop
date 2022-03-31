@@ -76,17 +76,17 @@ function start_wp() {
  * @deprecated 0.71 Use get_the_category()
  * @see get_the_category()
  *
- * @param bool $echo Optional. Whether to echo the output. Default true.
+ * @param bool $display Optional. Whether to echo the output. Default true.
  * @return int Category ID.
  */
-function the_category_ID($echo = true) {
+function the_category_ID($display = true) {
 	_deprecated_function( __FUNCTION__, '0.71', 'get_the_category()' );
 
 	// Grab the first cat in the list.
 	$categories = get_the_category();
 	$cat = $categories[0]->term_id;
 
-	if ( $echo )
+	if ( $display )
 		echo $cat;
 
 	return $cat;
@@ -795,17 +795,17 @@ function get_archives($type='', $limit='', $format='html', $before = '', $after 
  * @deprecated 2.1.0 Use get_author_posts_url()
  * @see get_author_posts_url()
  *
- * @param bool $echo
+ * @param bool $display
  * @param int $author_id
  * @param string $author_nicename Optional.
  * @return string|null
  */
-function get_author_link($echo, $author_id, $author_nicename = '') {
+function get_author_link($display, $author_id, $author_nicename = '') {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_author_posts_url()' );
 
 	$link = get_author_posts_url($author_id, $author_nicename);
 
-	if ( $echo )
+	if ( $display )
 		echo $link;
 	return $link;
 }
@@ -939,11 +939,11 @@ function wp_get_links($args = '') {
  * @param int    $limit            Optional. Limit to X entries. If not specified, all entries are shown.
  *                                 Default -1.
  * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 1.
- * @param bool   $echo             Whether to echo the results, or return them instead.
+ * @param bool   $display          Whether to echo the results, or return them instead.
  * @return null|string
  */
 function get_links($category = -1, $before = '', $after = '<br />', $between = ' ', $show_images = true, $orderby = 'name',
-			$show_description = true, $show_rating = false, $limit = -1, $show_updated = 1, $echo = true) {
+			$show_description = true, $show_rating = false, $limit = -1, $show_updated = 1, $display = true) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
 
 	$order = 'ASC';
@@ -1018,7 +1018,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$output .= "$after\n";
 	} // End while.
 
-	if ( !$echo )
+	if ( !$display )
 		return $output;
 	echo $output;
 }
@@ -1149,16 +1149,16 @@ function comments_rss_link($link_text = 'Comments RSS') {
  * @deprecated 2.5.0 Use get_category_feed_link()
  * @see get_category_feed_link()
  *
- * @param bool $echo
+ * @param bool $display
  * @param int $cat_ID
  * @return string
  */
-function get_category_rss_link($echo = false, $cat_ID = 1) {
+function get_category_rss_link($display = false, $cat_ID = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_category_feed_link()' );
 
 	$link = get_category_feed_link($cat_ID, 'rss2');
 
-	if ( $echo )
+	if ( $display )
 		echo $link;
 	return $link;
 }
@@ -1170,15 +1170,15 @@ function get_category_rss_link($echo = false, $cat_ID = 1) {
  * @deprecated 2.5.0 Use get_author_feed_link()
  * @see get_author_feed_link()
  *
- * @param bool $echo
+ * @param bool $display
  * @param int $author_id
  * @return string
  */
-function get_author_rss_link($echo = false, $author_id = 1) {
+function get_author_rss_link($display = false, $author_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_author_feed_link()' );
 
 	$link = get_author_feed_link($author_id);
-	if ( $echo )
+	if ( $display )
 		echo $link;
 	return $link;
 }
