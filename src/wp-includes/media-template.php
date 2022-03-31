@@ -357,8 +357,23 @@ function wp_print_media_templates() {
 			<div class="thumbnail thumbnail-{{ data.type }}">
 				<# if ( data.uploading ) { #>
 					<div class="media-progress-bar"><div></div></div>
-				<# } else if ( data.sizes && data.sizes.large ) { #>
-					<img class="details-image" src="{{ data.sizes.large.url }}" draggable="false" alt="" />
+				<# } else if ( data.sizes && data.sizes.large ) {
+					var large_image_preview_url = data.sizes.large.url;
+					if ( data.sizes.full ) {
+						var full_image_crop_id = data.sizes.full.url.match(/^.+-(e[0-9]{13})\.[^\\/]+$/)?.[1],
+							large_image_crop_id = data.sizes.large.url.match(/^.+-(e[0-9]{13})-[^\\/]+$/)?.[1];
+						<?php
+							// A cropped image should be used if the "large" image hasn't been updated during cropping.
+							// It can happen if the original image is larger than the cropped image and
+							// the cropped image is smaller than 1024x1024 pixels (the size of a "large" image).
+							// See https://core.trac.wordpress.org/ticket/55070.
+						?>
+						if ( full_image_crop_id && ( ! large_image_crop_id || full_image_crop_id !== large_image_crop_id ) ) {
+							large_image_preview_url = data.sizes.full.url;
+						}
+					}
+				#>
+					<img class="details-image" src="{{ large_image_preview_url }}" draggable="false" alt="" />
 				<# } else if ( data.sizes && data.sizes.full ) { #>
 					<img class="details-image" src="{{ data.sizes.full.url }}" draggable="false" alt="" />
 				<# } else if ( -1 === jQuery.inArray( data.type, [ 'audio', 'video' ] ) ) { #>
