@@ -41,6 +41,10 @@
 				}
 			]
 		},
+		"layout": {
+			"contentSize": "700px",
+			"wideSize": "1200px"
+		},
 		"typography": {
 			"fontFamilies": [
 				{
@@ -82,6 +86,11 @@
 					"duotone": "var(--wp--preset--duotone--default-filter)"
 				}
 			},
+			"core/navigation": {
+				"typography": {
+					"fontSize": "var(--wp--preset--font-size--small)"
+				}
+			},
 			"core/post-author": {
 				"filter": {
 					"duotone": "var(--wp--preset--duotone--default-filter)"
@@ -106,6 +115,15 @@
 			"core/site-logo": {
 				"filter": {
 					"duotone": "var(--wp--preset--duotone--default-filter)"
+				}
+			},
+			"core/site-title": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--bodoni-moda)",
+					"fontSize": "var(--wp--preset--font-size--large)",
+					"fontStyle":"normal",
+					"fontWeight": "700",
+					"textTransform": "uppercase"
 				}
 			}
 		},

@@ -96,7 +96,10 @@
 			},
 			"core/site-title": {
 				"typography": {
-					"fontFamily": "var(--wp--preset--font-family--eb-garamond)"
+					"fontFamily": "var(--wp--preset--font-family--eb-garamond)",
+					"textTransform":"uppercase",
+					"letterSpacing":"0.05em",
+					"fontStyle":"normal"
 				}
 			}
 		},
