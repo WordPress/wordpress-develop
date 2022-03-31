@@ -236,6 +236,10 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 				'css'      => 'clip-path: url(#image1);',
 				'expected' => 'clip-path: url(#image1);',
 			),
+			'Data URIs, shouldn\'t change'                 => array(
+				'css'      => 'img {mask-image: url(\'data:image/svg+xml;utf8,<svg></svg>\');}',
+				'expected' => 'img {mask-image: url(\'data:image/svg+xml;utf8,<svg></svg>\');}',
+			),
 		);
 	}
 

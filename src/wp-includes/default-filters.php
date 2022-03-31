@@ -98,6 +98,13 @@ add_filter( 'post_mime_type', 'sanitize_mime_type' );
 // Meta.
 add_filter( 'register_meta_args', '_wp_register_meta_args_allowed_list', 10, 2 );
 
+// Counts.
+add_action( 'admin_init', 'wp_schedule_update_user_counts' );
+add_action( 'wp_update_user_counts', 'wp_schedule_update_user_counts', 10, 0 );
+foreach ( array( 'user_register', 'deleted_user' ) as $action ) {
+	add_action( $action, 'wp_maybe_update_user_counts', 10, 0 );
+}
+
 // Post meta.
 add_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
 add_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' );
@@ -573,6 +580,10 @@ add_action( 'admin_head', 'wp_check_widget_editor_deps' );
 // Global styles can be enqueued in both the header and the footer. See https://core.trac.wordpress.org/ticket/53494.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
+
+// SVG filters like duotone have to be loaded at the beginning of the body in both admin and the front-end.
+add_action( 'wp_body_open', 'wp_global_styles_render_svg_filters' );
+add_action( 'in_admin_header', 'wp_global_styles_render_svg_filters' );
 
 add_action( 'wp_default_styles', 'wp_default_styles' );
 add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );
