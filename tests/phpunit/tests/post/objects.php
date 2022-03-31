@@ -5,7 +5,7 @@
  */
 class Tests_Post_Objects extends WP_UnitTestCase {
 
-	function test_get_post() {
+	public function test_get_post() {
 		$id = self::factory()->post->create();
 
 		$post = get_post( $id );
@@ -66,7 +66,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertNull( get_post( false ) );
 	}
 
-	function test_get_post_ancestors() {
+	public function test_get_post_ancestors() {
 		$parent_id     = self::factory()->post->create();
 		$child_id      = self::factory()->post->create();
 		$grandchild_id = self::factory()->post->create();
@@ -101,14 +101,14 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @ticket 22882
 	 */
-	function test_get_post_ancestors_with_falsey_values() {
+	public function test_get_post_ancestors_with_falsey_values() {
 		foreach ( array( null, 0, false, '0', '' ) as $post_id ) {
 			$this->assertIsArray( get_post_ancestors( $post_id ) );
 			$this->assertSame( array(), get_post_ancestors( $post_id ) );
 		}
 	}
 
-	function test_get_post_category_property() {
+	public function test_get_post_category_property() {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
 
@@ -127,7 +127,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post['post_category'] );
 	}
 
-	function test_get_tags_input_property() {
+	public function test_get_tags_input_property() {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
 
@@ -144,7 +144,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( array( 'Bar', 'Baz', 'Foo' ), $post['tags_input'] );
 	}
 
-	function test_get_page_template_property() {
+	public function test_get_page_template_property() {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
 
@@ -157,7 +157,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( $template, $post->page_template );
 	}
 
-	function test_get_post_filter() {
+	public function test_get_post_filter() {
 		$post = get_post(
 			self::factory()->post->create(
 				array(
@@ -200,7 +200,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		}
 	}
 
-	function test_get_post_identity() {
+	public function test_get_post_identity() {
 		$post = get_post( self::factory()->post->create() );
 
 		$post->foo = 'bar';
@@ -209,7 +209,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( 'bar', get_post( $post, OBJECT, 'display' )->foo );
 	}
 
-	function test_get_post_array() {
+	public function test_get_post_array() {
 		$id = self::factory()->post->create();
 
 		$post = get_post( $id, ARRAY_A );
@@ -222,7 +222,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	/**
 	 * @ticket 22223
 	 */
-	function test_get_post_cache() {
+	public function test_get_post_cache() {
 		global $wpdb;
 
 		$id = self::factory()->post->create();

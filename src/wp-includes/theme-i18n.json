@@ -1,9 +1,15 @@
 {
+	"title": "Style variation name",
 	"settings": {
 		"typography": {
 				"fontSizes": [
 					{
 						"name": "Font size name"
+					}
+				],
+				"fontFamilies": [
+					{
+						"name": "Font family name"
 					}
 				]
 		},
@@ -31,6 +37,11 @@
 						{
 							"name": "Font size name"
 						}
+					],
+					"fontFamilies": [
+						{
+							"name": "Font family name"
+						}
 					]
 				},
 				"color": {
@@ -47,5 +58,15 @@
 				}
 			}
 		}
-	}
+	},
+	"customTemplates": [
+		{
+			"title": "Custom template name"
+		}
+	],
+	"templateParts": [
+		{
+			"title": "Template part name"
+		}
+	]
 }
