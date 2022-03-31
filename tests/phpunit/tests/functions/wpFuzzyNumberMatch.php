@@ -15,8 +15,6 @@ class Tests_Functions_WpFuzzyNumberMatch extends WP_UnitTestCase {
 	 * @param $actual
 	 * @param $precision
 	 * @param $result
-	 *
-	 * @return void
 	 */
 	public function test_wp_fuzzy_number_match( $expected, $actual, $precision, $result ) {
 		$this->assertEquals( $result, wp_fuzzy_number_match( $expected, $actual, $precision ) );
