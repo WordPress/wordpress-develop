@@ -96,6 +96,12 @@
 				"filter": {
 					"duotone": "var(--wp--preset--duotone--default-filter)"
 				}
+			},
+			"core/site-title": {
+				"typography": {
+					"fontWeight": "700",
+					"fontStyle":"normal"
+				}
 			}
 		},
 		"elements": {
