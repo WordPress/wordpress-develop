@@ -6,7 +6,7 @@
  * @group functions.php
  * @covers ::wp_fuzzy_number_match
  */
-class Tests_wpFuzzyNumberMatch extends WP_UnitTestCase {
+class Tests_Functions_WpFuzzyNumberMatch extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_wp_fuzzy_number_match
@@ -23,6 +23,8 @@ class Tests_wpFuzzyNumberMatch extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
 	 * @return array[]
 	 */
 	public function data_wp_fuzzy_number_match() {
@@ -34,31 +36,31 @@ class Tests_wpFuzzyNumberMatch extends WP_UnitTestCase {
 				'precision' => 1,
 				'result'    => true,
 			),
-			'2 int'                                  => array(
+			2            => array(
 				'expected'  => 1,
 				'actual'    => 2,
 				'precision' => 1,
 				'result'    => true,
 			),
-			'3 int'                                  => array(
+			3            => array(
 				'expected'  => 1,
 				'actual'    => 3,
 				'precision' => 1,
 				'result'    => false,
 			),
-			'1 string'                               => array(
+			'1 string'   => array(
 				'expected'  => 1,
 				'actual'    => '1',
 				'precision' => 1,
 				'result'    => true,
 			),
-			'11 with 10'                             => array(
+			'11 with 10' => array(
 				'expected'  => 1,
 				'actual'    => 11,
 				'precision' => 10,
 				'result'    => true,
 			),
-			'12 with 10'                             => array(
+			'12 with 10' => array(
 				'expected'  => 1,
 				'actual'    => 12,
 				'precision' => 10,
@@ -104,23 +106,6 @@ class Tests_wpFuzzyNumberMatch extends WP_UnitTestCase {
 			),
 
 		);
-		// previously, underscores have not been allowed in the precision value.
-		if ( phpversion() >= '7.4.0' ) {
-			$tests['7E-10(seven ten-billionths) to 998E-10(0.0 000 000 998) float']    = array(
-				'expected'  => 7E-10,
-				'actual'    => 998E-10,
-				'precision' => 1,
-				'result'    => true,
-			);
-			$tests['7E-10(seven ten-billionths) to 8E-10(0.0 000 000 008) float  001'] = array(
-				'expected'  => 7E-10,
-				'actual'    => 8E-10,
-				'precision' => 1,
-				'result'    => true,
-			);
-		}
-
-		return $tests;
 
 	}
 
