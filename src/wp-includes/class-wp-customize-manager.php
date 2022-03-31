@@ -2232,13 +2232,13 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 * @deprecated 4.7.0
 	 *
-	 * @param mixed $return Value passed through for {@see 'wp_die_handler'} filter.
+	 * @param mixed $returned_value Value passed through for {@see 'wp_die_handler'} filter.
 	 * @return mixed Value passed through for {@see 'wp_die_handler'} filter.
 	 */
-	public function remove_preview_signature( $return = null ) {
+	public function remove_preview_signature( $returned_value = null ) {
 		_deprecated_function( __METHOD__, '4.7.0' );
 
-		return $return;
+		return $returned_value;
 	}
 
 	/**
