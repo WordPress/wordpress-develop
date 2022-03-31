@@ -536,10 +536,10 @@ class WP_Query {
 	 * @since 2.1.0
 	 * @since 4.5.0 Removed the `comments_popup` public query variable.
 	 *
-	 * @param array $array Defined query variables.
+	 * @param array $query_vars Defined query variables.
 	 * @return array Complete query variables with undefined ones filled in empty.
 	 */
-	public function fill_query_vars( $array ) {
+	public function fill_query_vars( $query_vars ) {
 		$keys = array(
 			'error',
 			'm',
@@ -580,8 +580,8 @@ class WP_Query {
 		);
 
 		foreach ( $keys as $key ) {
-			if ( ! isset( $array[ $key ] ) ) {
-				$array[ $key ] = '';
+			if ( ! isset( $query_vars[ $key ] ) ) {
+				$query_vars[ $key ] = '';
 			}
 		}
 
@@ -604,11 +604,11 @@ class WP_Query {
 		);
 
 		foreach ( $array_keys as $key ) {
-			if ( ! isset( $array[ $key ] ) ) {
-				$array[ $key ] = array();
+			if ( ! isset( $query_vars[ $key ] ) ) {
+				$query_vars[ $key ] = array();
 			}
 		}
-		return $array;
+		return $query_vars;
 	}
 
 	/**
