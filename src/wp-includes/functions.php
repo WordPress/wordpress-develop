@@ -5226,6 +5226,7 @@ function wp_maybe_load_widgets() {
  * Append the Widgets menu to the themes main menu.
  *
  * @since 2.2.0
+ * @since 5.9.3 Don't specify menu order when the active theme is a block theme.
  *
  * @global array $submenu
  */
@@ -5236,7 +5237,13 @@ function wp_widgets_add_menu() {
 		return;
 	}
 
-	$submenu['themes.php'][7] = array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' );
+	$menu_name = __( 'Widgets' );
+	if ( wp_is_block_theme() ) {
+		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+	} else {
+		$submenu['themes.php'][7] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+	}
+
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
 }
 
@@ -8404,7 +8411,7 @@ function is_php_version_compatible( $required ) {
 }
 
 /**
- * Check if two numbers are nearly the same.
+ * Checks if two numbers are nearly the same.
  *
  * This is similar to using `round()` but the precision is more fine-grained.
  *
@@ -8413,7 +8420,7 @@ function is_php_version_compatible( $required ) {
  * @param int|float $expected  The expected value.
  * @param int|float $actual    The actual number.
  * @param int|float $precision The allowed variation.
- * @return bool Whether the numbers match whithin the specified precision.
+ * @return bool Whether the numbers match within the specified precision.
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
