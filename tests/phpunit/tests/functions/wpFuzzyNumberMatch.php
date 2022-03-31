@@ -21,6 +21,8 @@ class Tests_Functions_WpFuzzyNumberMatch extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
 	 * @return array[]
 	 */
 	public function data_wp_fuzzy_number_match() {
