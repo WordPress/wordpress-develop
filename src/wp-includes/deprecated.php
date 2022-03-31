@@ -2858,13 +2858,13 @@ function debug_fopen( $filename, $mode ) {
  *
  * @link https://www.php.net/manual/en/function.error-log.php
  *
- * @param mixed  $fp     Unused.
- * @param string $string Message to log.
+ * @param mixed  $fp      Unused.
+ * @param string $message Message to log.
  */
-function debug_fwrite( $fp, $string ) {
+function debug_fwrite( $fp, $message ) {
 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
 	if ( ! empty( $GLOBALS['debug'] ) )
-		error_log( $string );
+		error_log( $message );
 }
 
 /**
