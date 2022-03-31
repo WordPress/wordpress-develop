@@ -1749,16 +1749,16 @@ class WP_Query {
 	 * @since 1.5.0
 	 * @since 3.9.0 The `$default` argument was introduced.
 	 *
-	 * @param string $query_var Query variable key.
-	 * @param mixed  $default   Optional. Value to return if the query variable is not set. Default empty string.
+	 * @param string $query_var     Query variable key.
+	 * @param mixed  $default_value Optional. Value to return if the query variable is not set. Default empty string.
 	 * @return mixed Contents of the query variable.
 	 */
-	public function get( $query_var, $default = '' ) {
+	public function get( $query_var, $default_value = '' ) {
 		if ( isset( $this->query_vars[ $query_var ] ) ) {
 			return $this->query_vars[ $query_var ];
 		}
 
-		return $default;
+		return $default_value;
 	}
 
 	/**
