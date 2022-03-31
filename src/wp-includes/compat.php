@@ -346,14 +346,14 @@ if ( ! function_exists( 'is_countable' ) ) {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param mixed $var The value to check.
-	 * @return bool True if `$var` is countable, false otherwise.
+	 * @param mixed $value The value to check.
+	 * @return bool True if `$value` is countable, false otherwise.
 	 */
-	function is_countable( $var ) {
-		return ( is_array( $var )
-			|| $var instanceof Countable
-			|| $var instanceof SimpleXMLElement
-			|| $var instanceof ResourceBundle
+	function is_countable( $value ) {
+		return ( is_array( $value )
+			|| $value instanceof Countable
+			|| $value instanceof SimpleXMLElement
+			|| $value instanceof ResourceBundle
 		);
 	}
 }
@@ -367,11 +367,11 @@ if ( ! function_exists( 'is_iterable' ) ) {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param mixed $var The value to check.
-	 * @return bool True if `$var` is iterable, false otherwise.
+	 * @param mixed $value The value to check.
+	 * @return bool True if `$value` is iterable, false otherwise.
 	 */
-	function is_iterable( $var ) {
-		return ( is_array( $var ) || $var instanceof Traversable );
+	function is_iterable( $value ) {
+		return ( is_array( $value ) || $value instanceof Traversable );
 	}
 }
 
