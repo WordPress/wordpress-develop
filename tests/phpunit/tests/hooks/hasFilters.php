@@ -12,8 +12,8 @@ class Tests_Hooks_HasFilters extends WP_UnitTestCase {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
@@ -29,8 +29,8 @@ class Tests_Hooks_HasFilters extends WP_UnitTestCase {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$hook->remove_filter( $tag, $callback, $priority );
@@ -41,8 +41,8 @@ class Tests_Hooks_HasFilters extends WP_UnitTestCase {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$function_key = _wp_filter_build_unique_id( $tag, $callback, $priority );

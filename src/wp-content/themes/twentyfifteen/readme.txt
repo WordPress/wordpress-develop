@@ -1,8 +1,8 @@
 === Twenty Fifteen ===
 Contributors: wordpressdotorg
 Requires at least: WordPress 4.1
-Tested up to: 5.8
-Version: 3.0
+Tested up to: 5.9
+Version: 3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, two-columns, left-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-logo, custom-menu, editor-style, featured-images, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
@@ -30,7 +30,7 @@ For more information about Twenty Fifteen please go to https://wordpress.org/sup
 
 == Copyright ==
 
-Twenty Fifteen WordPress Theme, Copyright 2014-2021 WordPress.org & Automattic.com
+Twenty Fifteen WordPress Theme, Copyright 2014-2022 WordPress.org & Automattic.com
 Twenty Fifteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -60,6 +60,11 @@ Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
         https://stocksnap.io/photo/sunset-pier-77F43EA43C
 
 == Changelog ==
+
+= 3.1 =
+* Released: January 25, 2022
+
+https://codex.wordpress.org/Twenty_Fifteen_Theme_Changelog#Version_3.1
 
 = 3.0 =
 * Released: July 20, 2021

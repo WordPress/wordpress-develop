@@ -947,6 +947,86 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_supported
+	 */
+	public function test_wp_is_application_passwords_supported_with_https_only() {
+		$_SERVER['HTTPS'] = 'on';
+		$this->assertTrue( wp_is_application_passwords_supported() );
+	}
+
+	/**
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_supported
+	 */
+	public function test_wp_is_application_passwords_supported_with_local_environment_only() {
+		putenv( 'WP_ENVIRONMENT_TYPE=local' );
+
+		$actual = wp_is_application_passwords_supported();
+
+		// Revert to default behaviour so that other tests are not affected.
+		putenv( 'WP_ENVIRONMENT_TYPE' );
+
+		$this->assertTrue( $actual );
+	}
+
+	/**
+	 * @dataProvider data_wp_is_application_passwords_available
+	 *
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_available
+	 *
+	 * @param bool|string $expected The expected value.
+	 * @param string|null $callback Optional. The callback for the `wp_is_application_passwords_available` hook.
+	 *                              Default: null.
+	 */
+	public function test_wp_is_application_passwords_available( $expected, $callback = null ) {
+		remove_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		if ( $callback ) {
+			add_filter( 'wp_is_application_passwords_available', $callback );
+		}
+
+		if ( 'default' === $expected ) {
+			putenv( 'WP_ENVIRONMENT_TYPE=local' );
+			$expected = wp_is_application_passwords_supported();
+		}
+
+		$actual = wp_is_application_passwords_available();
+
+		if ( 'default' === $expected ) {
+			// Revert to default behaviour so that other tests are not affected.
+			putenv( 'WP_ENVIRONMENT_TYPE' );
+		}
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_is_application_passwords_available() {
+		return array(
+			'availability not forced'   => array(
+				'expected' => 'default',
+			),
+			'availability forced true'  => array(
+				'expected' => true,
+				'callback' => '__return_true',
+			),
+			'availability forced false' => array(
+				'expected' => false,
+				'callback' => '__return_false',
+			),
+		);
+	}
+
+	/**
 	 * Sets up a REST API request to be authenticated using an App Password.
 	 *
 	 * @since 5.7.0

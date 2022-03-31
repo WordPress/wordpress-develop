@@ -73,7 +73,7 @@ if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', '
 <input name="show_on_front" type="hidden" value="posts" />
 <table class="form-table" role="presentation">
 	<?php
-	if ( 'posts' != get_option( 'show_on_front' ) ) :
+	if ( 'posts' !== get_option( 'show_on_front' ) ) :
 		update_option( 'show_on_front', 'posts' );
 	endif;
 
@@ -191,6 +191,7 @@ else :
 	 *
 	 * By default the privacy options form displays a single checkbox to 'discourage' search
 	 * engines from indexing the site. Hooking to this action serves a dual purpose:
+	 *
 	 * 1. Disable the single checkbox in favor of a multiple-choice list of radio buttons.
 	 * 2. Open the door to adding additional radio button choices to the list.
 	 *

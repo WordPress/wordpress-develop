@@ -10,6 +10,13 @@
  * @group restapi
  */
 class Tests_REST_Server extends WP_Test_REST_TestCase {
+	protected static $icon_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		$filename      = DIR_TESTDATA . '/images/test-image-large.jpg';
+		self::$icon_id = $factory->attachment->create_upload_object( $filename );
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -26,6 +33,16 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		unset( $_REQUEST['_wpnonce'] );
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Called before setting up all tests.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Require files that need to load once.
+		require_once DIR_TESTROOT . '/includes/mock-invokable.php';
 	}
 
 	public function test_envelope() {
@@ -368,6 +385,38 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$sent_headers = $result->get_headers();
 		$this->assertSame( $sent_headers['Allow'], 'POST' );
+	}
+
+	/**
+	 * @ticket 53063
+	 */
+	public function test_batched_options() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				array(
+					'methods'             => array( 'GET' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
+				),
+				array(
+					'methods'             => array( 'POST' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_null',
+					'allow_batch'         => false,
+				),
+				'allow_batch' => array( 'v1' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/test-ns/test' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$data = $response->get_data();
+
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
+		$this->assertArrayNotHasKey( 'allow_batch', $data['endpoints'][1] );
 	}
 
 	public function test_allow_header_sent_on_options_request() {
@@ -975,6 +1024,38 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertArrayHasKey( 'help', $index->get_links() );
 		$this->assertArrayNotHasKey( 'wp:active-theme', $index->get_links() );
+
+		// Check site logo and icon.
+		$this->assertArrayHasKey( 'site_logo', $data );
+		$this->assertArrayHasKey( 'site_icon', $data );
+	}
+
+	/**
+	 * @ticket 50152
+	 */
+	public function test_index_includes_link_to_active_theme_if_authenticated() {
+		$server = new WP_REST_Server();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+
+		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
+	}
+
+	/**
+	 * @ticket 52321
+	 */
+	public function test_index_includes_site_icon() {
+		$server = new WP_REST_Server();
+		update_option( 'site_icon', self::$icon_id );
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertArrayHasKey( 'site_icon', $data );
+		$this->assertSame( self::$icon_id, $data['site_icon'] );
 	}
 
 	public function test_get_namespace_index() {
@@ -1573,9 +1654,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 50244
 	 */
 	public function test_callbacks_are_not_executed_if_request_validation_fails() {
-		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$callback->expects( self::never() )->method( '__invoke' );
-		$permission_callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$permission_callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$permission_callback->expects( self::never() )->method( '__invoke' );
 
 		register_rest_route(
@@ -2010,16 +2091,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$args     = $response->get_data()['endpoints'][0]['args'];
 
 		$this->assertSameSetsWithIndex( $expected, $args['param'] );
-	}
-
-	/**
-	 * @ticket 50152
-	 */
-	public function test_index_includes_link_to_active_theme_if_authenticated() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$index = rest_do_request( '/' );
-		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
 	}
 
 	/**
