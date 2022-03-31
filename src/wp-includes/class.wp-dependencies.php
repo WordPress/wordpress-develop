@@ -437,11 +437,11 @@ class WP_Dependencies {
 	 * @since 2.6.0 Moved from `WP_Scripts`.
 	 *
 	 * @param string $handle Name of the item. Should be unique.
-	 * @param string $list   Optional. Property name of list array. Default 'registered'.
+	 * @param string $status Optional. Property name of list array. Default 'registered'.
 	 * @return bool|_WP_Dependency Found, or object Item data.
 	 */
-	public function query( $handle, $list = 'registered' ) {
-		switch ( $list ) {
+	public function query( $handle, $status = 'registered' ) {
+		switch ( $status ) {
 			case 'registered':
 			case 'scripts': // Back compat.
 				if ( isset( $this->registered[ $handle ] ) ) {
