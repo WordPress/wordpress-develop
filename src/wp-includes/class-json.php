@@ -126,9 +126,9 @@ class Services_JSON
     *
     * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
-    * @param    int     $use    object behavior flags; combine with boolean-OR
+    * @param    int     $flags  Object behavior flags; combine with boolean-OR
     *
-    *                           possible values:
+    *                           Possible values:
     *                           - SERVICES_JSON_LOOSE_TYPE:  loose typing.
     *                                   "{...}" syntax creates associative arrays
     *                                   instead of objects in decode().
@@ -144,11 +144,11 @@ class Services_JSON
     *                                   strings or numbers, if you return an object, make sure it does
     *                                   not have a toJSON method, otherwise an error will occur.
     */
-    function __construct( $use = 0 )
+    function __construct( $flags = 0 )
     {
         _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
-        $this->use = $use;
+        $this->use = $flags;
         $this->_mb_strlen            = function_exists('mb_strlen');
         $this->_mb_convert_encoding  = function_exists('mb_convert_encoding');
         $this->_mb_substr            = function_exists('mb_substr');
@@ -161,9 +161,9 @@ class Services_JSON
      *
      * @see Services_JSON::__construct()
 	 */
-	public function Services_JSON( $use = 0 ) {
+	public function Services_JSON( $flags = 0 ) {
 		_deprecated_constructor( 'Services_JSON', '5.3.0', get_class( $this ) );
-		self::__construct( $use );
+		self::__construct( $flags );
 	}
     // private - cache the mbstring lookup results..
     var $_mb_strlen = false;
@@ -267,46 +267,46 @@ class Services_JSON
     }
 
    /**
-    * encodes an arbitrary variable into JSON format (and sends JSON Header)
+    * Encodes an arbitrary variable into JSON format (and sends JSON Header)
     *
     * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
-    * @param    mixed   $var    any number, boolean, string, array, or object to be encoded.
-    *                           see argument 1 to Services_JSON() above for array-parsing behavior.
-    *                           if var is a string, note that encode() always expects it
-    *                           to be in ASCII or UTF-8 format!
+    * @param    mixed   $variable Any number, boolean, string, array, or object to be encoded.
+    *                             See argument 1 to Services_JSON() above for array-parsing behavior.
+    *                             If $variable is a string, note that encode() always expects it
+    *                             to be in ASCII or UTF-8 format!
     *
     * @return   mixed   JSON string representation of input var or an error if a problem occurs
     * @access   public
     */
-    function encode($var)
+    function encode($variable)
     {
         _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         header('Content-type: application/json');
-        return $this->encodeUnsafe($var);
+        return $this->encodeUnsafe($variable);
     }
     /**
-    * encodes an arbitrary variable into JSON format without JSON Header - warning - may allow XSS!!!!)
+    * Encodes an arbitrary variable into JSON format without JSON Header - warning - may allow XSS!!!!)
     *
     * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
-    * @param    mixed   $var    any number, boolean, string, array, or object to be encoded.
-    *                           see argument 1 to Services_JSON() above for array-parsing behavior.
-    *                           if var is a string, note that encode() always expects it
-    *                           to be in ASCII or UTF-8 format!
+    * @param    mixed   $variable Any number, boolean, string, array, or object to be encoded.
+    *                             See argument 1 to Services_JSON() above for array-parsing behavior.
+    *                             If $variable is a string, note that encode() always expects it
+    *                             to be in ASCII or UTF-8 format!
     *
     * @return   mixed   JSON string representation of input var or an error if a problem occurs
     * @access   public
     */
-    function encodeUnsafe($var)
+    function encodeUnsafe($variable)
     {
         _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         // see bug #16908 - regarding numeric locale printing
         $lc = setlocale(LC_NUMERIC, 0);
         setlocale(LC_NUMERIC, 'C');
-        $ret = $this->_encode($var);
+        $ret = $this->_encode($variable);
         setlocale(LC_NUMERIC, $lc);
         return $ret;
         
@@ -316,36 +316,36 @@ class Services_JSON
     *
     * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
-    * @param    mixed   $var    any number, boolean, string, array, or object to be encoded.
-    *                           see argument 1 to Services_JSON() above for array-parsing behavior.
-    *                           if var is a string, note that encode() always expects it
-    *                           to be in ASCII or UTF-8 format!
+    * @param    mixed   $variable Any number, boolean, string, array, or object to be encoded.
+    *                             See argument 1 to Services_JSON() above for array-parsing behavior.
+    *                             If $variable is a string, note that encode() always expects it
+    *                             to be in ASCII or UTF-8 format!
     *
     * @return   mixed   JSON string representation of input var or an error if a problem occurs
     * @access   public
     */
-    function _encode($var) 
+    function _encode($variable) 
     {
         _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
-        switch (gettype($var)) {
+        switch (gettype($variable)) {
             case 'boolean':
-                return $var ? 'true' : 'false';
+                return $variable ? 'true' : 'false';
 
             case 'NULL':
                 return 'null';
 
             case 'integer':
-                return (int) $var;
+                return (int) $variable;
 
             case 'double':
             case 'float':
-                return  (float) $var;
+                return  (float) $variable;
 
             case 'string':
                 // STRINGS ARE EXPECTED TO BE IN ASCII OR UTF-8 FORMAT
                 $ascii = '';
-                $strlen_var = $this->strlen8($var);
+                $strlen_var = $this->strlen8($variable);
 
                /*
                 * Iterate over every character in the string,
@@ -353,7 +353,7 @@ class Services_JSON
                 */
                 for ($c = 0; $c < $strlen_var; ++$c) {
 
-                    $ord_var_c = ord($var[$c]);
+                    $ord_var_c = ord($variable[$c]);
 
                     switch (true) {
                         case $ord_var_c == 0x08:
@@ -376,12 +376,12 @@ class Services_JSON
                         case $ord_var_c == 0x2F:
                         case $ord_var_c == 0x5C:
                             // double quote, slash, slosh
-                            $ascii .= '\\'.$var[$c];
+                            $ascii .= '\\'.$variable[$c];
                             break;
 
                         case (($ord_var_c >= 0x20) && ($ord_var_c <= 0x7F)):
                             // characters U-00000000 - U-0000007F (same as ASCII)
-                            $ascii .= $var[$c];
+                            $ascii .= $variable[$c];
                             break;
 
                         case (($ord_var_c & 0xE0) == 0xC0):
@@ -393,7 +393,7 @@ class Services_JSON
                                 break;
                             }
                             
-                            $char = pack('C*', $ord_var_c, ord($var[$c + 1]));
+                            $char = pack('C*', $ord_var_c, ord($variable[$c + 1]));
                             $c += 1;
                             $utf16 = $this->utf82utf16($char);
                             $ascii .= sprintf('\u%04s', bin2hex($utf16));
@@ -408,8 +408,8 @@ class Services_JSON
                             // characters U-00000800 - U-0000FFFF, mask 1110XXXX
                             // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                             $char = pack('C*', $ord_var_c,
-                                         @ord($var[$c + 1]),
-                                         @ord($var[$c + 2]));
+                                         @ord($variable[$c + 1]),
+                                         @ord($variable[$c + 2]));
                             $c += 2;
                             $utf16 = $this->utf82utf16($char);
                             $ascii .= sprintf('\u%04s', bin2hex($utf16));
@@ -424,9 +424,9 @@ class Services_JSON
                             // characters U-00010000 - U-001FFFFF, mask 11110XXX
                             // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                             $char = pack('C*', $ord_var_c,
-                                         ord($var[$c + 1]),
-                                         ord($var[$c + 2]),
-                                         ord($var[$c + 3]));
+                                         ord($variable[$c + 1]),
+                                         ord($variable[$c + 2]),
+                                         ord($variable[$c + 3]));
                             $c += 3;
                             $utf16 = $this->utf82utf16($char);
                             $ascii .= sprintf('\u%04s', bin2hex($utf16));
@@ -441,10 +441,10 @@ class Services_JSON
                                 break;
                             }
                             $char = pack('C*', $ord_var_c,
-                                         ord($var[$c + 1]),
-                                         ord($var[$c + 2]),
-                                         ord($var[$c + 3]),
-                                         ord($var[$c + 4]));
+                                         ord($variable[$c + 1]),
+                                         ord($variable[$c + 2]),
+                                         ord($variable[$c + 3]),
+                                         ord($variable[$c + 4]));
                             $c += 4;
                             $utf16 = $this->utf82utf16($char);
                             $ascii .= sprintf('\u%04s', bin2hex($utf16));
@@ -459,11 +459,11 @@ class Services_JSON
                             // characters U-04000000 - U-7FFFFFFF, mask 1111110X
                             // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                             $char = pack('C*', $ord_var_c,
-                                         ord($var[$c + 1]),
-                                         ord($var[$c + 2]),
-                                         ord($var[$c + 3]),
-                                         ord($var[$c + 4]),
-                                         ord($var[$c + 5]));
+                                         ord($variable[$c + 1]),
+                                         ord($variable[$c + 2]),
+                                         ord($variable[$c + 3]),
+                                         ord($variable[$c + 4]),
+                                         ord($variable[$c + 5]));
                             $c += 5;
                             $utf16 = $this->utf82utf16($char);
                             $ascii .= sprintf('\u%04s', bin2hex($utf16));
@@ -492,10 +492,10 @@ class Services_JSON
                 */
 
                 // treat as a JSON object
-                if (is_array($var) && count($var) && (array_keys($var) !== range(0, sizeof($var) - 1))) {
+                if (is_array($variable) && count($variable) && (array_keys($variable) !== range(0, sizeof($variable) - 1))) {
                     $properties = array_map(array($this, 'name_value'),
-                                            array_keys($var),
-                                            array_values($var));
+                                            array_keys($variable),
+                                            array_values($variable));
 
                     foreach($properties as $property) {
                         if(Services_JSON::isError($property)) {
@@ -507,7 +507,7 @@ class Services_JSON
                 }
 
                 // treat it like a regular array
-                $elements = array_map(array($this, '_encode'), $var);
+                $elements = array_map(array($this, '_encode'), $variable);
 
                 foreach($elements as $element) {
                     if(Services_JSON::isError($element)) {
@@ -520,16 +520,16 @@ class Services_JSON
             case 'object':
             
                 // support toJSON methods.
-                if (($this->use & SERVICES_JSON_USE_TO_JSON) && method_exists($var, 'toJSON')) {
+                if (($this->use & SERVICES_JSON_USE_TO_JSON) && method_exists($variable, 'toJSON')) {
                     // this may end up allowing unlimited recursion
                     // so we check the return value to make sure it's not got the same method.
-                    $recode = $var->toJSON();
+                    $recode = $variable->toJSON();
                     
                     if (method_exists($recode, 'toJSON')) {
                         
                         return ($this->use & SERVICES_JSON_SUPPRESS_ERRORS)
                         ? 'null'
-                        : new Services_JSON_Error(get_class($var).
+                        : new Services_JSON_Error(get_class($variable).
                             " toJSON returned an object with a toJSON method.");
                             
                     }
@@ -537,7 +537,7 @@ class Services_JSON
                     return $this->_encode( $recode );
                 } 
                 
-                $vars = get_object_vars($var);
+                $vars = get_object_vars($variable);
                 
                 $properties = array_map(array($this, 'name_value'),
                                         array_keys($vars),
@@ -554,7 +554,7 @@ class Services_JSON
             default:
                 return ($this->use & SERVICES_JSON_SUPPRESS_ERRORS)
                     ? 'null'
-                    : new Services_JSON_Error(gettype($var)." can not be encoded as JSON string");
+                    : new Services_JSON_Error(gettype($variable)." can not be encoded as JSON string");
         }
     }
 
