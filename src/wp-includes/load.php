@@ -240,46 +240,6 @@ function wp_get_environment_type() {
 }
 
 /**
- * Retrieves the current runtime environment.
- *
- * The value can be set via the `WP_RUNTIME_ENVIRONMENT` global system variable,
- * or a constant of the same name.
- *
- * The only value currently supported is 'virtualbox'. If not set, the value
- * defaults to an empty string.
- *
- * @since 6.0.0
- *
- * @return string The current runtime environment type, default is ''.
- */
-function wp_get_runtime_environment() {
-	static $current_runtime_env = '';
-
-	if ( ! defined( 'WP_RUN_CORE_TESTS' ) && $current_runtime_env ) {
-		return $current_runtime_env;
-	}
-
-	$wp_runtime_environments = array( 'virtualbox' );
-
-	// Fetch the runtime environment from a constant.
-	if ( defined( 'WP_RUNTIME_ENVIRONMENT' ) ) {
-		$current_runtime_env = WP_RUNTIME_ENVIRONMENT;
-	}
-
-	// Fetch the runtime environment from global system variable.
-	if ( false !== getenv( 'WP_RUNTIME_ENVIRONMENT' ) ) {
-		$current_runtime_env = getenv( 'WP_RUNTIME_ENVIRONMENT' );
-	}
-
-	// If set to something in $wp_runtime_environments use it, default is ''.
-	if ( ! in_array( $current_runtime_env, $wp_runtime_environments, true ) ) {
-		$current_runtime_env = '';
-	}
-
-	return $current_runtime_env;
-}
-
-/**
  * Don't load all of WordPress when handling a favicon.ico request.
  *
  * Instead, send the headers for a zero-length favicon and bail.

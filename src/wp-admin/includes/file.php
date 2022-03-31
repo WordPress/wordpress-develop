@@ -1962,8 +1962,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 function move_dir( $from, $to ) {
 	global $wp_filesystem;
 
-	$result           = false;
-	$envs_skip_rename = array( 'virtualbox' );
+	$result = false;
 
 	/*
 	 * Skip the rename() call on VirtualBox environments.
