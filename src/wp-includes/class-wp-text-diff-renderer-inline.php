@@ -19,14 +19,14 @@ class WP_Text_Diff_Renderer_inline extends Text_Diff_Renderer_inline {
 	 * @ignore
 	 * @since 2.6.0
 	 *
-	 * @param string $string
+	 * @param string $content
 	 * @param string $newlineEscape
 	 * @return string
 	 */
-	public function _splitOnWords( $string, $newlineEscape = "\n" ) {
-		$string = str_replace( "\0", '', $string );
-		$words  = preg_split( '/([^\w])/u', $string, -1, PREG_SPLIT_DELIM_CAPTURE );
-		$words  = str_replace( "\n", $newlineEscape, $words );
+	public function _splitOnWords( $content, $newlineEscape = "\n" ) {
+		$content = str_replace( "\0", '', $content );
+		$words   = preg_split( '/([^\w])/u', $content, -1, PREG_SPLIT_DELIM_CAPTURE );
+		$words   = str_replace( "\n", $newlineEscape, $words );
 		return $words;
 	}
 
