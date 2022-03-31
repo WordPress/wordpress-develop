@@ -8501,5 +8501,5 @@ function is_virtualbox() {
 	// Give up.
 	$is_virtualbox = false;
 
-	return $virtualbox;
+	return $is_virtualbox;
 }
