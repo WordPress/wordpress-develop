@@ -949,22 +949,22 @@ class Services_JSON
      *
      * @deprecated 5.3.0 Use the PHP native JSON extension instead.
      *
-     * @param string
-     * @param integer start
-     * @param integer length
+     * @param string  $content
+     * @param integer $start
+     * @param integer $length
      * @return integer length
      */
-    function substr8( $string, $start, $length=false ) 
+    function substr8( $content, $start, $length=false ) 
     {
         _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         if ( $length === false ) {
-            $length = $this->strlen8( $string ) - $start;
+            $length = $this->strlen8( $content ) - $start;
         }
         if ( $this->_mb_substr ) {
-            return mb_substr( $string, $start, $length, "8bit" );
+            return mb_substr( $content, $start, $length, "8bit" );
         }
-        return substr( $string, $start, $length );
+        return substr( $content, $start, $length );
     }
 
 }
