@@ -1973,9 +1973,7 @@ function move_dir( $from, $to ) {
 	 * - https://www.virtualbox.org/ticket/8761#comment:24
 	 * - https://www.virtualbox.org/ticket/17971
 	 */
-	if ( 'direct' === $wp_filesystem->method
-		&& ! in_array( wp_get_runtime_environment(), $envs_skip_rename, true )
-	) {
+	if ( 'direct' === $wp_filesystem->method && ! is_virtualbox() ) {
 		$wp_filesystem->rmdir( $to );
 
 		$result = @rename( $from, $to );

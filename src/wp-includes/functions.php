@@ -8371,3 +8371,68 @@ function is_php_version_compatible( $required ) {
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
+
+/**
+ * Attempt to detect a VirtualBox environment.
+ *
+ * This attempts all known methods of detecting VirtualBox.
+ *
+ * @global $wp_filesystem The filesystem.
+ *
+ * @since 6.1.0
+ *
+ * @return bool Whether or not VirtualBox was detected.
+ */
+function is_virtualbox() {
+	global $wp_filesystem;
+
+	// Detection via filter.
+	if ( apply_filters( 'is_virtualbox', false ) ) {
+		return true;
+	}
+
+	// Detection via Composer.
+	if ( function_exists( 'getenv' ) && 'virtualbox' === getenv( 'COMPOSER_RUNTIME_ENV' ) ) {
+		return true;
+	}
+
+	$virtualbox_unames = array( 'vvv' );
+
+	// Detection via `php_uname()`.
+	if ( function_exists( 'php_uname' ) && in_array( php_uname( 'n' ), $virtualbox_unames, true ) ) {
+		return true;
+	}
+
+	/*
+	 * Vagrant can use alternative providers.
+	 * This isn't reliable without some additional check(s).
+	 */
+	$virtualbox_usernames = array( 'vagrant' );
+
+	// Detection via user name with POSIX.
+	if ( function_exists( 'posix_getpwuid' ) && function_exists( 'posix_geteuid' ) ) {
+		$user = posix_getpwuid( posix_geteuid() );
+		if ( $user && in_array( $user['name'], $virtualbox_usernames, true ) ) {
+			return true;
+		}
+	}
+
+	// Initialize the filesystem if not set.
+	if ( ! $wp_filesystem ) {
+		require_once ABSPATH . '/wp-admin/includes/file.php';
+		WP_Filesystem();
+	}
+
+	// Detection via file owner.
+	if ( in_array( $wp_filesystem->owner( __FILE__ ), $virtualbox_usernames, true ) ) {
+		return true;
+	}
+
+	// Detection via file group.
+	if ( in_array( $wp_filesystem->group( __FILE__ ), $virtualbox_usernames, true ) ) {
+		return true;
+	}
+
+	// Give up.
+	return false;
+}
