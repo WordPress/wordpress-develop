@@ -633,7 +633,8 @@ class WP_Tax_Query {
 				$args['term_taxonomy_id'] = $terms;
 				break;
 			default:
-				$args['include'] = wp_parse_id_list( $terms );
+				$terms           = wp_parse_id_list( $terms );
+				$args['include'] = $terms;
 				break;
 		}
 
