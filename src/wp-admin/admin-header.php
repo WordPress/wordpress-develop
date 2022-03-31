@@ -216,6 +216,7 @@ if ( $error_get_last && WP_DEBUG && WP_DEBUG_DISPLAY && ini_get( 'display_errors
 	// Don't print the class for PHP notices in wp-config.php, as they happen before WP_DEBUG takes effect,
 	// and should not be displayed with the `error_reporting` level previously set in wp-load.php.
 	&& ( E_NOTICE !== $error_get_last['type'] || 'wp-config.php' !== wp_basename( $error_get_last['file'] ) )
+	&& ( E_WARNING !== $error_get_last['type'] )
 ) {
 	$admin_body_class .= ' php-error';
 }
