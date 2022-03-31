@@ -441,11 +441,11 @@ function number_format_i18n( $number, $decimals = 0 ) {
 }
 
 /**
- * Convert number of bytes largest unit bytes will fit into.
+ * Converts a number of bytes to the largest unit the bytes will fit into.
  *
  * It is easier to read 1 KB than 1024 bytes and 1 MB than 1048576 bytes. Converts
  * number of bytes to human readable number by taking the number of that unit
- * that the bytes will go into it. Supports TB value.
+ * that the bytes will go into it. Supports YB value.
  *
  * Please note that integers in PHP are limited to 32 bits, unless they are on
  * 64 bit architecture, then they have 64 bit size. If you need to place the
@@ -455,6 +455,7 @@ function number_format_i18n( $number, $decimals = 0 ) {
  * Technically the correct unit names for powers of 1024 are KiB, MiB etc.
  *
  * @since 2.3.0
+ * @since 6.0.0 Support for PB, EB, ZB, and YB was added.
  *
  * @param int|string $bytes    Number of bytes. Note max integer size for integers.
  * @param int        $decimals Optional. Precision of number of decimal places. Default 0.
@@ -462,6 +463,14 @@ function number_format_i18n( $number, $decimals = 0 ) {
  */
 function size_format( $bytes, $decimals = 0 ) {
 	$quant = array(
+		/* translators: Unit symbol for yottabyte. */
+		_x( 'YB', 'unit symbol' ) => YB_IN_BYTES,
+		/* translators: Unit symbol for zettabyte. */
+		_x( 'ZB', 'unit symbol' ) => ZB_IN_BYTES,
+		/* translators: Unit symbol for exabyte. */
+		_x( 'EB', 'unit symbol' ) => EB_IN_BYTES,
+		/* translators: Unit symbol for petabyte. */
+		_x( 'PB', 'unit symbol' ) => PB_IN_BYTES,
 		/* translators: Unit symbol for terabyte. */
 		_x( 'TB', 'unit symbol' ) => TB_IN_BYTES,
 		/* translators: Unit symbol for gigabyte. */
@@ -3459,6 +3468,44 @@ function wp_get_ext_types() {
 }
 
 /**
+ * Wrapper for PHP filesize with filters and casting the result as an integer.
+ *
+ * @since 6.0.0
+ *
+ * @link https://www.php.net/manual/en/function.filesize.php
+ *
+ * @param string $path Path to the file.
+ * @return int The size of the file in bytes, or 0 in the event of an error.
+ */
+function wp_filesize( $path ) {
+	/**
+	 * Filters the result of wp_filesize before the PHP function is run.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param null|int $size The unfiltered value. Returning an int from the callback bypasses the filesize call.
+	 * @param string   $path Path to the file.
+	 */
+	$size = apply_filters( 'pre_wp_filesize', null, $path );
+
+	if ( is_int( $size ) ) {
+		return $size;
+	}
+
+	$size = (int) @filesize( $path );
+
+	/**
+	 * Filters the size of the file.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param int    $size The result of PHP filesize on the file.
+	 * @param string $path Path to the file.
+	 */
+	return (int) apply_filters( 'wp_filesize', $size, $path );
+}
+
+/**
  * Retrieve list of allowed mime types and file extensions.
  *
  * @since 2.8.6
@@ -5179,6 +5226,7 @@ function wp_maybe_load_widgets() {
  * Append the Widgets menu to the themes main menu.
  *
  * @since 2.2.0
+ * @since 5.9.3 Don't specify menu order when the active theme is a block theme.
  *
  * @global array $submenu
  */
@@ -5189,7 +5237,13 @@ function wp_widgets_add_menu() {
 		return;
 	}
 
-	$submenu['themes.php'][7] = array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' );
+	$menu_name = __( 'Widgets' );
+	if ( wp_is_block_theme() ) {
+		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+	} else {
+		$submenu['themes.php'][7] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+	}
+
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
 }
 
@@ -8357,7 +8411,7 @@ function is_php_version_compatible( $required ) {
 }
 
 /**
- * Check if two numbers are nearly the same.
+ * Checks if two numbers are nearly the same.
  *
  * This is similar to using `round()` but the precision is more fine-grained.
  *
@@ -8366,7 +8420,7 @@ function is_php_version_compatible( $required ) {
  * @param int|float $expected  The expected value.
  * @param int|float $actual    The actual number.
  * @param int|float $precision The allowed variation.
- * @return bool Whether the numbers match whithin the specified precision.
+ * @return bool Whether the numbers match within the specified precision.
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;

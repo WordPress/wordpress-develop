@@ -570,7 +570,7 @@ class Theme_Upgrader extends WP_Upgrader {
 				$this->strings['incompatible_archive'],
 				sprintf(
 					/* translators: %s: style.css */
-					__( 'The %s stylesheet doesn&#8217;t contain a valid theme header.' ),
+					__( 'The %s stylesheet does not contain a valid theme header.' ),
 					'<code>style.css</code>'
 				)
 			);
@@ -626,20 +626,20 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param bool|WP_Error $return Upgrade offer return.
-	 * @param array         $theme  Theme arguments.
-	 * @return bool|WP_Error The passed in $return param or WP_Error.
+	 * @param bool|WP_Error $response The installation response before the installation has started.
+	 * @param array         $theme    Theme arguments.
+	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
 	 */
-	public function current_before( $return, $theme ) {
-		if ( is_wp_error( $return ) ) {
-			return $return;
+	public function current_before( $response, $theme ) {
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
 
 		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
 
-		// Only run if active theme
+		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
-			return $return;
+			return $response;
 		}
 
 		// Change to maintenance mode. Bulk edit handles this separately.
@@ -647,7 +647,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			$this->maintenance_mode( true );
 		}
 
-		return $return;
+		return $response;
 	}
 
 	/**
@@ -658,20 +658,20 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param bool|WP_Error $return Upgrade offer return.
-	 * @param array         $theme  Theme arguments.
-	 * @return bool|WP_Error The passed in $return param or WP_Error.
+	 * @param bool|WP_Error $response The installation response after the installation has finished.
+	 * @param array         $theme    Theme arguments.
+	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
 	 */
-	public function current_after( $return, $theme ) {
-		if ( is_wp_error( $return ) ) {
-			return $return;
+	public function current_after( $response, $theme ) {
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
 
 		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
 
 		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
-			return $return;
+			return $response;
 		}
 
 		// Ensure stylesheet name hasn't changed after the upgrade:
@@ -685,7 +685,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		if ( ! $this->bulk ) {
 			$this->maintenance_mode( false );
 		}
-		return $return;
+		return $response;
 	}
 
 	/**
