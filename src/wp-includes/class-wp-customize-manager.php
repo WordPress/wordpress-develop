@@ -1806,31 +1806,31 @@ final class WP_Customize_Manager {
 	 * from the current changeset post and from the incoming post data.
 	 *
 	 * @since 3.4.0
-	 * @since 4.1.1 Introduced the `$default` parameter.
-	 * @since 4.6.0 `$default` is now returned early when the setting post value is invalid.
+	 * @since 4.1.1 Introduced the `$default_value` parameter.
+	 * @since 4.6.0 `$default_value` is now returned early when the setting post value is invalid.
 	 *
 	 * @see WP_REST_Server::dispatch()
 	 * @see WP_REST_Request::sanitize_params()
 	 * @see WP_REST_Request::has_valid_params()
 	 *
-	 * @param WP_Customize_Setting $setting A WP_Customize_Setting derived object.
-	 * @param mixed                $default Value returned $setting has no post value (added in 4.2.0)
-	 *                                      or the post value is invalid (added in 4.6.0).
-	 * @return string|mixed Sanitized value or the $default provided.
+	 * @param WP_Customize_Setting $setting       A WP_Customize_Setting derived object.
+	 * @param mixed                $default_value Value returned $setting has no post value (added in 4.2.0)
+	 *                                            or the post value is invalid (added in 4.6.0).
+	 * @return string|mixed Sanitized value or the $default_value provided.
 	 */
-	public function post_value( $setting, $default = null ) {
+	public function post_value( $setting, $default_value = null ) {
 		$post_values = $this->unsanitized_post_values();
 		if ( ! array_key_exists( $setting->id, $post_values ) ) {
-			return $default;
+			return $default_value;
 		}
 		$value = $post_values[ $setting->id ];
 		$valid = $setting->validate( $value );
 		if ( is_wp_error( $valid ) ) {
-			return $default;
+			return $default_value;
 		}
 		$value = $setting->sanitize( $value );
 		if ( is_null( $value ) || is_wp_error( $value ) ) {
-			return $default;
+			return $default_value;
 		}
 		return $value;
 	}
