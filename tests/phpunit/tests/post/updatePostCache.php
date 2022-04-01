@@ -71,37 +71,6 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure filter = raw is always set via get_post called with a non-WP_Post object.
-	 *
-	 * @ticket 50567
-	 */
-	public function test_get_post_caches_post_filter_with_object() {
-		$post_id = self::$post_ids[0];
-		$post    = (object) array( 'ID' => $post_id );
-
-		get_post( $post );
-
-		$cached_post = wp_cache_get( $post_id, 'posts' );
-		var_dump( $cached_post );
-		$this->assertIsObject(
-			$cached_post,
-			'The cached post is not an object'
-		);
-
-		$this->assertObjectHasAttribute(
-			'filter',
-			$cached_post,
-			'The cached post does not have a "filter" property'
-		);
-
-		$this->assertSame(
-			'raw',
-			$cached_post->filter,
-			'The filter is not set to "raw"'
-		);
-	}
-
-	/**
 	 * Ensure filter = raw is always set via get_post.
 	 *
 	 * @ticket 50567
