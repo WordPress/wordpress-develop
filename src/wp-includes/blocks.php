@@ -108,12 +108,20 @@ function register_block_script_handle( $metadata, $field_name ) {
 	}
 	// Path needs to be normalized to work in Windows env.
 	$wpinc_path_norm  = wp_normalize_path( ABSPATH . WPINC );
+	$theme_path_norm  = wp_normalize_path( get_theme_file_path() );
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
 	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+	$is_theme_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $theme_path_norm );
 
-	$script_uri          = $is_core_block ?
-		includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) ) :
-		plugins_url( $script_path, $metadata['file'] );
+	$script_uri;
+	if ( $is_core_block ) {
+		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
+	} elseif ( $is_theme_block ) {
+		$script_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $script_path_norm ) );
+	} else {
+		$script_uri = plugins_url( $script_path, $metadata['file'] );
+	}
+
 	$script_asset        = require $script_asset_path;
 	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
 	$result              = wp_register_script(
