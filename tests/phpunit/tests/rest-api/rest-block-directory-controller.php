@@ -218,7 +218,12 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	public function test_get_items_response_conforms_to_schema() {
 		wp_set_current_user( self::$admin_id );
 		$plugin = $this->get_mock_plugin();
-		$cb     = function () use ( $plugin ) {
+
+		// Fetch the block directory schema.
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-directory/search' );
+		$schema  = rest_get_server()->dispatch( $request )->get_data()['schema'];
+
+		add_filter( 'plugins_api', static function () use ( $plugin ) {
 			return (object) array(
 				'info'    =>
 					array(
@@ -230,50 +235,18 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 					$plugin,
 				),
 			);
-		};
-		add_filter( 'plugins_api', $cb );
+		} );
 
+		// Fetch a block plugin.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
 		$request->set_query_params( array( 'term' => 'cache' ) );
 
-		$expected = array(
-			array(
-				'name'                => 'sortabrilliant/guidepost',
-				'title'               => 'Guidepost',
-				'description'         => 'A guidepost gives you directions. It lets you know where you’re going. It gives you a preview of what’s to come.',
-				'id'                  => 'guidepost',
-				'rating'              => 4.3,
-				'rating_count'        => 90,
-				'active_installs'     => 100,
-				'author_block_rating' => 0,
-				'author_block_count'  => 1,
-				'author'              => 'sorta brilliant',
-				'icon'                => 'https://ps.w.org/guidepost/assets/icon-128x128.jpg?rev=2235512',
-				'last_updated'        => gmdate( 'Y-m-d\TH:i:s', strtotime( $plugin['last_updated'] ) ),
-				'humanized_updated'   => sprintf( '%s ago', human_time_diff( strtotime( $plugin['last_updated'] ) ) ),
-				'_links'              => array(
-					'wp:install-plugin' => array(
-						array(
-							'href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fplugins&slug=guidepost',
-						),
-					),
-					'curies'            => array(
-						array(
-							'name'      => 'wp',
-							'href'      => 'https://api.w.org/{rel}',
-							'templated' => true,
-						),
-					),
-				),
-			),
-		);
+		$result = rest_get_server()->dispatch( $request );
+		$data   = $result->get_data();
 
-		$result = rest_do_request( $request );
-		remove_filter( 'plugins_api', $cb );
+		$valid = rest_validate_value_from_schema( $data[0], $schema );
 
-		$this->assertNotWPError( $result->as_error() );
-		$this->assertSame( 200, $result->status );
-		$this->assertSame( $expected, $result->get_data() );
+		$this->assertNotWPError( $valid );
 	}
 
 	/**
