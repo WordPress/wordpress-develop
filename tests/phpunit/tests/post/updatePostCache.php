@@ -1,22 +1,54 @@
 <?php
 /**
+ * Test `wp_update_cache()`.
+ *
+ * @package WordPress
+ */
+
+/**
+ * Test class for `wp_update_cache()`.
+ *
+ * @ticket 50567
+ *
  * @group post
  * @group query
+ *
+ * @covers ::update_post_cache
  */
 class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 
 	/**
 	 * Post IDs from the shared fixture.
+	 *
 	 * @var array
 	 */
-	static public $post_ids;
+	public static $post_ids;
 
+	/**
+	 * Set up test resources before the class.
+	 *
+	 * @param WP_UnitTest_Factory $factory The unit test factory.
+	 */
 	public static function wpSetupBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many( 1 );
 	}
 
+	/**
+	 * Set up test resources before each test.
+	 */
 	public function set_up() {
 		wp_cache_set( 'last_changed', microtime(), 'posts' );
+	}
+
+	/**
+	 * Ensure that `update_post_cache()` returns `null` when
+	 * `$posts` is empty.
+	 *
+	 * @ticket 50567
+	 */
+	public function test_should_return_null_with_an_empty_array() {
+		$posts = array();
+		$this->assertNull( update_post_cache( $posts ) );
 	}
 
 	/**
@@ -27,6 +59,21 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 	public function test_query_caches_post_filter() {
 		$post_id = self::$post_ids[0];
 		$this->go_to( '/' );
+
+		$cached_post = wp_cache_get( $post_id, 'posts' );
+		$this->assertSame( 'raw', $cached_post->filter );
+	}
+
+	/**
+	 * Ensure filter = raw is always set via get_post called with a non-WP_Post object.
+	 *
+	 * @ticket 50567
+	 */
+	public function test_get_post_caches_post_filter_with_object() {
+		$post_id = self::$post_ids[0];
+		$post    = (object) array( 'ID' => $post_id );
+
+		get_post( $post );
 
 		$cached_post = wp_cache_get( $post_id, 'posts' );
 		$this->assertSame( 'raw', $cached_post->filter );
