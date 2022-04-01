@@ -368,7 +368,7 @@ function wp_print_media_templates() {
 							// the cropped image is smaller than 1024x1024 pixels (the size of a "large" image).
 							// See https://core.trac.wordpress.org/ticket/55070.
 						?>
-						if ( full_image_crop_id && ( ! large_image_crop_id || full_image_crop_id !== large_image_crop_id ) ) {
+						if ( full_image_crop_id && ( full_image_crop_id !== large_image_crop_id ) ) {
 							large_image_preview_url = data.sizes.full.url;
 						}
 					}
