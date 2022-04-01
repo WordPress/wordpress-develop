@@ -52,7 +52,22 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 		$this->go_to( '/' );
 
 		$cached_post = wp_cache_get( $post_id, 'posts' );
-		$this->assertSame( 'raw', $cached_post->filter );
+		$this->assertIsObject(
+			$cached_post,
+			'The cached post is not an object'
+		);
+
+		$this->assertObjectHasAttribute(
+			'filter',
+			$cached_post,
+			'The cached post does not have a "filter" property'
+		);
+
+		$this->assertSame(
+			'raw',
+			$cached_post->filter,
+			'The filter is not set to "raw"'
+		);
 	}
 
 	/**
@@ -67,17 +82,18 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 		get_post( $post );
 
 		$cached_post = wp_cache_get( $post_id, 'posts' );
+		var_dump( $cached_post );
 		$this->assertIsObject(
 			$cached_post,
 			'The cached post is not an object'
 		);
-		
+
 		$this->assertObjectHasAttribute(
 			'filter',
 			$cached_post,
 			'The cached post does not have a "filter" property'
 		);
-		
+
 		$this->assertSame(
 			'raw',
 			$cached_post->filter,
@@ -108,7 +124,22 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 		get_post( $post_id, OBJECT, 'display' );
 
 		$cached_post = wp_cache_get( $post_id, 'posts' );
-		$this->assertSame( 'raw', $cached_post->filter );
+		$this->assertIsObject(
+			$cached_post,
+			'The cached post is not an object'
+		);
+
+		$this->assertObjectHasAttribute(
+			'filter',
+			$cached_post,
+			'The cached post does not have a "filter" property'
+		);
+
+		$this->assertSame(
+			'raw',
+			$cached_post->filter,
+			'The filter is not set to "raw"'
+		);
 	}
 
 	/**
@@ -121,6 +152,21 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 		get_posts( array( 'includes' => $post_id ) );
 
 		$cached_post = wp_cache_get( $post_id, 'posts' );
-		$this->assertSame( 'raw', $cached_post->filter );
+		$this->assertIsObject(
+			$cached_post,
+			'The cached post is not an object'
+		);
+
+		$this->assertObjectHasAttribute(
+			'filter',
+			$cached_post,
+			'The cached post does not have a "filter" property'
+		);
+
+		$this->assertSame(
+			'raw',
+			$cached_post->filter,
+			'The filter is not set to "raw"'
+		);
 	}
 }
