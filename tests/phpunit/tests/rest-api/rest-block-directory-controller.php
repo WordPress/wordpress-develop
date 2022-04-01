@@ -223,19 +223,22 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-directory/search' );
 		$schema  = rest_get_server()->dispatch( $request )->get_data()['schema'];
 
-		add_filter( 'plugins_api', static function () use ( $plugin ) {
-			return (object) array(
-				'info'    =>
-					array(
-						'page'    => 1,
-						'pages'   => 1,
-						'results' => 1,
+		add_filter(
+			'plugins_api',
+			static function () use ( $plugin ) {
+				return (object) array(
+					'info'    =>
+						array(
+							'page'    => 1,
+							'pages'   => 1,
+							'results' => 1,
+						),
+					'plugins' => array(
+						$plugin,
 					),
-				'plugins' => array(
-					$plugin,
-				),
-			);
-		} );
+				);
+			}
+		);
 
 		// Fetch a block plugin.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
