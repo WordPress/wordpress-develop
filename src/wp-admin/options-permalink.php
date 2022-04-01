@@ -430,7 +430,7 @@ else :
 			'<code>.htaccess</code>',
 			__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
 			'<kbd>Ctrl + A</kbd>'
-			'<kbd>⌘ + a</kbd>'
+			'<kbd>⌘ + A</kbd>'
 		);
 		?>
 </p>
