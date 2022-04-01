@@ -8,8 +8,6 @@
 /**
  * Test class for `wp_update_cache()`.
  *
- * @ticket 50567
- *
  * @group post
  * @group query
  *
@@ -31,13 +29,6 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 	 */
 	public static function wpSetupBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many( 1 );
-	}
-
-	/**
-	 * Set up test resources before each test.
-	 */
-	public function set_up() {
-		wp_cache_set( 'last_changed', microtime(), 'posts' );
 	}
 
 	/**
