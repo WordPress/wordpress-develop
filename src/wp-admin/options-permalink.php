@@ -238,100 +238,101 @@ $structures = array(
 ?>
 <h2 class="title"><?php _e( 'Common Settings' ); ?></h2>
 <table class="form-table permalink-structure">
-	<tr>
-		<th scope="row"><label><input name="selection" type="radio" value="" <?php checked( '', $permalink_structure ); ?> /> <?php _e( 'Plain' ); ?></label></th>
-		<td><code><?php echo get_option( 'home' ); ?>/?p=123</code></td>
-	</tr>
-	<tr>
-		<th scope="row"><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[1] ); ?>" <?php checked( $structures[1], $permalink_structure ); ?> /> <?php _e( 'Day and name' ); ?></label></th>
-		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . gmdate( 'd' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></td>
-	</tr>
-	<tr>
-		<th scope="row"><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[2] ); ?>" <?php checked( $structures[2], $permalink_structure ); ?> /> <?php _e( 'Month and name' ); ?></label></th>
-		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></td>
-	</tr>
-	<tr>
-		<th scope="row"><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[3] ); ?>" <?php checked( $structures[3], $permalink_structure ); ?> /> <?php _e( 'Numeric' ); ?></label></th>
-		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'archives', 'sample permalink base' ) . '/123'; ?></code></td>
-	</tr>
-	<tr>
-		<th scope="row"><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[4] ); ?>" <?php checked( $structures[4], $permalink_structure ); ?> /> <?php _e( 'Post name' ); ?></label></th>
-		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></td>
-	</tr>
-	<tr>
-		<th scope="row">
-			<label><input name="selection" id="custom_selection" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures, true ) ); ?> />
-			<?php _e( 'Custom Structure' ); ?>
-			</label>
-		</th>
-		<td>
-			<code><?php echo get_option( 'home' ) . $blog_prefix; ?></code>
-			<input name="permalink_structure" id="permalink_structure" type="text" value="<?php echo esc_attr( $permalink_structure ); ?>" class="regular-text code" />
-			<div class="available-structure-tags hide-if-no-js">
-				<div id="custom_selection_updated" aria-live="assertive" class="screen-reader-text"></div>
-				<?php
-				$available_tags = array(
-					/* translators: %s: Permalink structure tag. */
-					'year'     => __( '%s (The year of the post, four digits, for example 2004.)' ),
-					/* translators: %s: Permalink structure tag. */
-					'monthnum' => __( '%s (Month of the year, for example 05.)' ),
-					/* translators: %s: Permalink structure tag. */
-					'day'      => __( '%s (Day of the month, for example 28.)' ),
-					/* translators: %s: Permalink structure tag. */
-					'hour'     => __( '%s (Hour of the day, for example 15.)' ),
-					/* translators: %s: Permalink structure tag. */
-					'minute'   => __( '%s (Minute of the hour, for example 43.)' ),
-					/* translators: %s: Permalink structure tag. */
-					'second'   => __( '%s (Second of the minute, for example 33.)' ),
-					/* translators: %s: Permalink structure tag. */
-					'post_id'  => __( '%s (The unique ID of the post, for example 423.)' ),
-					/* translators: %s: Permalink structure tag. */
-					'postname' => __( '%s (The sanitized post title (slug).)' ),
-					/* translators: %s: Permalink structure tag. */
-					'category' => __( '%s (Category slug. Nested sub-categories appear as nested directories in the URL.)' ),
-					/* translators: %s: Permalink structure tag. */
-					'author'   => __( '%s (A sanitized version of the author name.)' ),
-				);
-
-				/**
-				 * Filters the list of available permalink structure tags on the Permalinks settings page.
-				 *
-				 * @since 4.9.0
-				 *
-				 * @param string[] $available_tags An array of key => value pairs of available permalink structure tags.
-				 */
-				$available_tags = apply_filters( 'available_permalink_structure_tags', $available_tags );
-
-				/* translators: %s: Permalink structure tag. */
-				$structure_tag_added = __( '%s added to permalink structure' );
-
-				/* translators: %s: Permalink structure tag. */
-				$structure_tag_already_used = __( '%s (already used in permalink structure)' );
-
-				if ( ! empty( $available_tags ) ) :
-					?>
-					<p><?php _e( 'Available tags:' ); ?></p>
-					<ul role="list">
-						<?php
-						foreach ( $available_tags as $tag => $explanation ) {
-							?>
-							<li>
-								<button type="button"
-										class="button button-secondary"
-										aria-label="<?php echo esc_attr( sprintf( $explanation, $tag ) ); ?>"
-										data-added="<?php echo esc_attr( sprintf( $structure_tag_added, $tag ) ); ?>"
-										data-used="<?php echo esc_attr( sprintf( $structure_tag_already_used, $tag ) ); ?>">
-									<?php echo '%' . $tag . '%'; ?>
-								</button>
-							</li>
+	<tbody>
+		<tr class="structure-selection">
+			<th scope="row"><?php _e( 'Select permalink structure'); ?></th>
+			<td>
+				<fieldset>
+					<legend class="screen-reader-text"><span><?php _e( 'Select permalink structure'); ?></span></legend>
+					<label for="permalink-input-plain">
+						<input id="permalink-input-plain" name="selection" aria-describedby="permalink-plain" type="radio" value="" <?php checked( '', $permalink_structure ); ?> /> <?php _e( 'Plain' ); ?>
+						<p class="description"><code id="permalink-plain"><?php echo get_option( 'home' ); ?>/?p=123</code></p>
+					</label><br />
+					<label for="permalink-input-day-name">
+						<input id="permalink-input-day-name" name="selection" aria-describedby="permalink-day-name" type="radio" value="<?php echo esc_attr( $structures[1] ); ?>" <?php checked( $structures[1], $permalink_structure ); ?> /> <?php _e( 'Day and name' ); ?>
+						<p class="description"><code id="permalink-day-name"><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . gmdate( 'd' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></p>
+						</label><br />
+					<label for="permalink-input-month-name">
+						<input id="permalink-input-month-name" name="selection" aria-describedby="permalink-month-name" type="radio" value="<?php echo esc_attr( $structures[2] ); ?>" <?php checked( $structures[2], $permalink_structure ); ?> /> <?php _e( 'Month and name' ); ?>
+						<p class="description"><code id="permalink-month-name"><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></p>
+					</label><br />
+					<label for="permalink-input-numeric">
+						<input id="permalink-input-numeric" name="selection" aria-describedby="permalink-numeric" type="radio" value="<?php echo esc_attr( $structures[3] ); ?>" <?php checked( $structures[3], $permalink_structure ); ?> /> <?php _e( 'Numeric' ); ?>
+						<p class="description"><code id="permalink-numeric"><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'archives', 'sample permalink base' ) . '/123'; ?></code></p>
+					</label><br />
+					<label for="permalink-input-post-name">
+						<input id="permalink-input-post-name" name="selection" aria-describedby="permalink-post-name" type="radio" value="<?php echo esc_attr( $structures[4] ); ?>" <?php checked( $structures[4], $permalink_structure ); ?> /> <?php _e( 'Post name' ); ?>
+						<p class="description"><code id="permalink-post-name"><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></p>
+					</label><br />
+					<label for="custom_selection">
+						<input id="custom_selection" name="selection" aria-describedby="permalink-custom" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures, true ) ); ?> /> <?php _e( 'Custom Structure' ); ?><br/>
+						<p class="description"><code id="permalink-custom"><?php echo get_option( 'home' ) . $blog_prefix; ?></code><input name="permalink_structure" id="permalink_structure" type="text" value="<?php echo esc_attr( $permalink_structure ); ?>" class="regular-text code" /></p>
+						<div class="available-structure-tags hide-if-no-js">
+							<div id="custom_selection_updated" aria-live="assertive" class="screen-reader-text"></div>
 							<?php
-						}
-						?>
-					</ul>
-				<?php endif; ?>
-			</div>
-		</td>
-	</tr>
+							$available_tags = array(
+								/* translators: %s: Permalink structure tag. */
+								'year'     => __( '%s (The year of the post, four digits, for example 2004.)' ),
+								/* translators: %s: Permalink structure tag. */
+								'monthnum' => __( '%s (Month of the year, for example 05.)' ),
+								/* translators: %s: Permalink structure tag. */
+								'day'      => __( '%s (Day of the month, for example 28.)' ),
+								/* translators: %s: Permalink structure tag. */
+								'hour'     => __( '%s (Hour of the day, for example 15.)' ),
+								/* translators: %s: Permalink structure tag. */
+								'minute'   => __( '%s (Minute of the hour, for example 43.)' ),
+								/* translators: %s: Permalink structure tag. */
+								'second'   => __( '%s (Second of the minute, for example 33.)' ),
+								/* translators: %s: Permalink structure tag. */
+								'post_id'  => __( '%s (The unique ID of the post, for example 423.)' ),
+								/* translators: %s: Permalink structure tag. */
+								'postname' => __( '%s (The sanitized post title (slug).)' ),
+								/* translators: %s: Permalink structure tag. */
+								'category' => __( '%s (Category slug. Nested sub-categories appear as nested directories in the URL.)' ),
+								/* translators: %s: Permalink structure tag. */
+								'author'   => __( '%s (A sanitized version of the author name.)' ),
+							);
+
+							/**
+							 * Filters the list of available permalink structure tags on the Permalinks settings page.
+							 *
+							 * @since 4.9.0
+							 *
+							 * @param string[] $available_tags An array of key => value pairs of available permalink structure tags.
+							 */
+							$available_tags = apply_filters( 'available_permalink_structure_tags', $available_tags );
+
+							/* translators: %s: Permalink structure tag. */
+							$structure_tag_added = __( '%s added to permalink structure' );
+
+							/* translators: %s: Permalink structure tag. */
+							$structure_tag_already_used = __( '%s (already used in permalink structure)' );
+
+							if ( ! empty( $available_tags ) ) :
+								?>
+								<legend><?php _e( 'Available tags:' ); ?></legend>
+								<fieldset>
+									<?php
+									foreach ( $available_tags as $tag => $explanation ) {
+										?>
+										<button type="button"
+												class="button button-secondary"
+												aria-label="<?php echo esc_attr( sprintf( $explanation, $tag ) ); ?>"
+												data-added="<?php echo esc_attr( sprintf( $structure_tag_added, $tag ) ); ?>"
+												data-used="<?php echo esc_attr( sprintf( $structure_tag_already_used, $tag ) ); ?>">
+											<?php echo '%' . $tag . '%'; ?>
+										</button>
+										<?php
+									}
+									?>
+								</fieldset>
+							<?php endif; ?>
+						</div>
+					</label><br />
+				</fieldset>
+			</td>
+		</tr>
+	</tbody>
 </table>
 
 <h2 class="title"><?php _e( 'Optional' ); ?></h2>
