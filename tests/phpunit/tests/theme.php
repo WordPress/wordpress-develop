@@ -20,9 +20,10 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentynineteen',
 		'twentytwenty',
 		'twentytwentyone',
+		'twentytwentytwo',
 	);
 
-	function set_up() {
+	public function set_up() {
 		global $wp_theme_directories;
 
 		parent::set_up();
@@ -30,12 +31,12 @@ class Tests_Theme extends WP_UnitTestCase {
 		$backup_wp_theme_directories = $wp_theme_directories;
 		$wp_theme_directories        = array( WP_CONTENT_DIR . '/themes' );
 
-		add_filter( 'extra_theme_headers', array( $this, '_theme_data_extra_headers' ) );
+		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		global $wp_theme_directories;
 
 		$wp_theme_directories = $this->wp_theme_directories;
@@ -46,7 +47,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	function test_wp_get_themes_default() {
+	public function test_wp_get_themes_default() {
 		$themes = wp_get_themes();
 		$this->assertInstanceOf( 'WP_Theme', $themes[ $this->theme_slug ] );
 		$this->assertSame( $this->theme_name, $themes[ $this->theme_slug ]->get( 'Name' ) );
@@ -60,7 +61,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @expectedDeprecated get_theme
 	 * @expectedDeprecated get_themes
 	 */
-	function test_get_themes_default() {
+	public function test_get_themes_default() {
 		$themes = get_themes();
 		$this->assertInstanceOf( 'WP_Theme', $themes[ $this->theme_name ] );
 		$this->assertSame( $themes[ $this->theme_name ], get_theme( $this->theme_name ) );
@@ -74,7 +75,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @expectedDeprecated get_theme
 	 * @expectedDeprecated get_themes
 	 */
-	function test_get_theme() {
+	public function test_get_theme() {
 		$themes = get_themes();
 		foreach ( array_keys( $themes ) as $name ) {
 			$theme = get_theme( $name );
@@ -85,7 +86,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		}
 	}
 
-	function test_wp_get_theme() {
+	public function test_wp_get_theme() {
 		$themes = wp_get_themes();
 		foreach ( $themes as $theme ) {
 			$this->assertInstanceOf( 'WP_Theme', $theme );
@@ -100,7 +101,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * @expectedDeprecated get_themes
 	 */
-	function test_get_themes_contents() {
+	public function test_get_themes_contents() {
 		$themes = get_themes();
 		// Generic tests that should hold true for any theme.
 		foreach ( $themes as $k => $theme ) {
@@ -166,7 +167,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		}
 	}
 
-	function test_wp_get_theme_contents() {
+	public function test_wp_get_theme_contents() {
 		$theme = wp_get_theme( $this->theme_slug );
 
 		$this->assertSame( $this->theme_name, $theme->get( 'Name' ) );
@@ -191,7 +192,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @ticket 29925
 	 */
-	function test_default_theme_in_default_theme_list() {
+	public function test_default_theme_in_default_theme_list() {
 		$latest_default_theme = WP_Theme::get_core_default_theme();
 		if ( ! $latest_default_theme->exists() || 'twenty' !== substr( $latest_default_theme->get_stylesheet(), 0, 6 ) ) {
 			$this->fail( 'No Twenty* series default themes are installed.' );
@@ -199,7 +200,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertContains( $latest_default_theme->get_stylesheet(), $this->default_themes );
 	}
 
-	function test_default_themes_have_textdomain() {
+	public function test_default_themes_have_textdomain() {
 		foreach ( $this->default_themes as $theme ) {
 			if ( wp_get_theme( $theme )->exists() ) {
 				$this->assertSame( $theme, wp_get_theme( $theme )->get( 'TextDomain' ) );
@@ -210,7 +211,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * @ticket 48566
 	 */
-	function test_year_in_readme() {
+	public function test_year_in_readme() {
 		// This test is designed to only run on trunk/master.
 		$this->skipOnAutomatedBranches();
 
@@ -238,7 +239,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @ticket 20897
 	 * @expectedDeprecated get_theme_data
 	 */
-	function test_extra_theme_headers() {
+	public function test_extra_theme_headers() {
 		$wp_theme = wp_get_theme( $this->theme_slug );
 		$this->assertNotEmpty( $wp_theme->get( 'License' ) );
 		$path_to_style_css = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/style.css';
@@ -250,7 +251,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertSame( $theme_data['License'], $wp_theme->get( 'License' ) );
 	}
 
-	function _theme_data_extra_headers() {
+	public function theme_data_extra_headers() {
 		return array( 'License' );
 	}
 
@@ -258,7 +259,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @expectedDeprecated get_themes
 	 * @expectedDeprecated get_current_theme
 	 */
-	function test_switch_theme() {
+	public function test_switch_theme() {
 		$themes = get_themes();
 
 		// Switch to each theme in sequence.
@@ -297,7 +298,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				// get_query_template()
 
 				// Template file that doesn't exist.
-				$this->assertSame( '', get_query_template( rand_str() ) );
+				$this->assertSame( '', get_query_template( 'nonexistant' ) );
 
 				// Template files that do exist.
 				/*
@@ -329,10 +330,10 @@ class Tests_Theme extends WP_UnitTestCase {
 		}
 	}
 
-	function test_switch_theme_bogus() {
+	public function test_switch_theme_bogus() {
 		// Try switching to a theme that doesn't exist.
-		$template = rand_str();
-		$style    = rand_str();
+		$template = 'some_template';
+		$style    = 'some_style';
 		update_option( 'template', $template );
 		update_option( 'stylesheet', $style );
 
@@ -351,7 +352,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts
 	 */
-	function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
+	public function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
 		$nav_created_post_ids = $this->factory()->post->create_many(
 			2,
 			array(
@@ -620,7 +621,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * @ticket 49406
 	 *
-	 * @dataProvider _dp_register_theme_support_validation
+	 * @dataProvider data_register_theme_support_validation
 	 *
 	 * @param string $error_code The error code expected.
 	 * @param array  $args       The args to register.
@@ -632,7 +633,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertSame( $error_code, $registered->get_error_code() );
 	}
 
-	public function _dp_register_theme_support_validation() {
+	public function data_register_theme_support_validation() {
 		return array(
 			array(
 				'invalid_type',
@@ -697,5 +698,169 @@ class Tests_Theme extends WP_UnitTestCase {
 				),
 			),
 		);
+	}
+
+
+	/**
+	 * Tests that block themes support a feature by default.
+	 *
+	 * @ticket 54597
+	 * @ticket 54731
+	 *
+	 * @dataProvider data_block_theme_has_default_support
+	 *
+	 * @covers ::_add_default_theme_supports
+	 *
+	 * @param array $support {
+	 *     The feature to check.
+	 *
+	 *     @type string $feature     The feature to check.
+	 *     @type string $sub_feature Optional. The sub-feature to check.
+	 * }
+	 */
+	public function test_block_theme_has_default_support( $support ) {
+		$this->helper_requires_block_theme();
+
+		$support_data     = array_values( $support );
+		$support_data_str = implode( ': ', $support_data );
+
+		// Remove existing support.
+		if ( current_theme_supports( ...$support_data ) ) {
+			remove_theme_support( ...$support_data );
+		}
+
+		$this->assertFalse(
+			current_theme_supports( ...$support_data ),
+			"Could not remove support for $support_data_str."
+		);
+
+		do_action( 'setup_theme' );
+
+		$this->assertTrue(
+			current_theme_supports( ...$support_data ),
+			"Does not have default support for $support_data_str."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_block_theme_has_default_support() {
+		return array(
+			'post-thumbnails'      => array(
+				'support' => array(
+					'feature' => 'post-thumbnails',
+				),
+			),
+			'responsive-embeds'    => array(
+				'support' => array(
+					'feature' => 'responsive-embeds',
+				),
+			),
+			'editor-styles'        => array(
+				'support' => array(
+					'feature' => 'editor-styles',
+				),
+			),
+			'html5: comment-list'  => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'comment-list',
+				),
+			),
+			'html5: comment-form'  => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'comment-form',
+				),
+			),
+			'html5: search-form'   => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'search-form',
+				),
+			),
+			'html5: gallery'       => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'gallery',
+				),
+			),
+			'html5: caption'       => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'caption',
+				),
+			),
+			'html5: style'         => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'style',
+				),
+			),
+			'html5: script'        => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'script',
+				),
+			),
+			'automatic-feed-links' => array(
+				'support' => array(
+					'feature' => 'automatic-feed-links',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that block themes load separate core block assets by default.
+	 *
+	 * @ticket 54597
+	 *
+	 * @covers ::_add_default_theme_supports
+	 * @covers ::wp_should_load_separate_core_block_assets
+	 */
+	public function test_block_theme_should_load_separate_core_block_assets_by_default() {
+		$this->helper_requires_block_theme();
+
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
+		$this->assertFalse(
+			wp_should_load_separate_core_block_assets(),
+			'Could not disable loading separate core block assets.'
+		);
+
+		do_action( 'setup_theme' );
+
+		$this->assertTrue(
+			wp_should_load_separate_core_block_assets(),
+			'Block themes do not load separate core block assets by default.'
+		);
+	}
+
+	/**
+	 * Helper function to ensure that a block theme is available and active.
+	 */
+	private function helper_requires_block_theme() {
+		// No need to switch if we're already on a block theme.
+		if ( wp_is_block_theme() ) {
+			return;
+		}
+
+		$block_theme = 'twentytwentytwo';
+
+		// Skip if the block theme is not available.
+		if ( ! wp_get_theme( $block_theme )->exists() ) {
+			$this->markTestSkipped( "$block_theme must be available." );
+		}
+
+		switch_theme( $block_theme );
+
+		// Skip if we could not switch to the block theme.
+		if ( wp_get_theme()->stylesheet !== $block_theme ) {
+			$this->markTestSkipped( "Could not switch to $block_theme." );
+		}
 	}
 }

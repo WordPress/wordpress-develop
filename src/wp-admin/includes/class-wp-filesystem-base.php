@@ -129,14 +129,13 @@ class WP_Filesystem_Base {
 	 * @see WP_Filesystem_Base::wp_themes_dir()
 	 * @see WP_Filesystem_Base::wp_lang_dir()
 	 *
-	 * @param string $base The folder to start searching from.
-	 * @param bool   $echo True to display debug information.
-	 *                     Default false.
+	 * @param string $base    Optional. The folder to start searching from. Default '.'.
+	 * @param bool   $verbose Optional. True to display debug information. Default false.
 	 * @return string The location of the remote path.
 	 */
-	public function find_base_dir( $base = '.', $echo = false ) {
+	public function find_base_dir( $base = '.', $verbose = false ) {
 		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
-		$this->verbose = $echo;
+		$this->verbose = $verbose;
 		return $this->abspath();
 	}
 
@@ -151,13 +150,13 @@ class WP_Filesystem_Base {
 	 * @see WP_Filesystem_Base::wp_themes_dir()
 	 * @see WP_Filesystem_Base::wp_lang_dir()
 	 *
-	 * @param string $base The folder to start searching from.
-	 * @param bool   $echo True to display debug information.
+	 * @param string $base    Optional. The folder to start searching from. Default '.'.
+	 * @param bool   $verbose Optional. True to display debug information. Default false.
 	 * @return string The location of the remote path.
 	 */
-	public function get_base_dir( $base = '.', $echo = false ) {
+	public function get_base_dir( $base = '.', $verbose = false ) {
 		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
-		$this->verbose = $echo;
+		$this->verbose = $verbose;
 		return $this->abspath();
 	}
 
@@ -838,7 +837,7 @@ class WP_Filesystem_Base {
 	 *     @type mixed  $lastmod     Last modified month (3 letter) and day (without leading 0).
 	 *     @type int    $time        Last modified time.
 	 *     @type string $type        Type of resource. 'f' for file, 'd' for directory.
-	 *     @type mixed  $files       If a directory and $recursive is true, contains another array of files.
+	 *     @type mixed  $files       If a directory and `$recursive` is true, contains another array of files.
 	 * }
 	 */
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {

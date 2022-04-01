@@ -10,7 +10,7 @@
  * @group formatting
  */
 class Tests_Post_Filtering extends WP_UnitTestCase {
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		update_option( 'use_balanceTags', 1 );
 		kses_init_filters();
@@ -18,7 +18,7 @@ class Tests_Post_Filtering extends WP_UnitTestCase {
 	}
 
 	// A simple test to make sure unclosed tags are fixed.
-	function test_post_content_unknown_tag() {
+	public function test_post_content_unknown_tag() {
 
 		$content = <<<EOF
 <foobar>no such tag</foobar>
@@ -35,7 +35,7 @@ EOF;
 	}
 
 	// A simple test to make sure unbalanced tags are fixed.
-	function test_post_content_unbalanced_tag() {
+	public function test_post_content_unbalanced_tag() {
 
 		$content = <<<EOF
 <i>italics
@@ -52,7 +52,7 @@ EOF;
 	}
 
 	// Test KSES filtering of disallowed attribute.
-	function test_post_content_disallowed_attr() {
+	public function test_post_content_disallowed_attr() {
 
 		$content = <<<EOF
 <img src='foo' width='500' href='shlorp' />
@@ -73,7 +73,7 @@ EOF;
 	 *
 	 * @ticket 12394
 	 */
-	function test_post_content_xhtml_empty_elem() {
+	public function test_post_content_xhtml_empty_elem() {
 		$content = <<<EOF
 <img src='foo' width='500' height='300'/>
 EOF;
@@ -89,7 +89,7 @@ EOF;
 	}
 
 	// Make sure unbalanced tags are untouched when the balance option is off.
-	function test_post_content_nobalance_nextpage_more() {
+	public function test_post_content_nobalance_nextpage_more() {
 
 		update_option( 'use_balanceTags', 0 );
 

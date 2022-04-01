@@ -155,7 +155,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		),
 	);
 
-	function test_set_current_screen_with_hook_suffix() {
+	public function test_set_current_screen_with_hook_suffix() {
 		global $current_screen;
 
 		foreach ( $this->core_screens as $hook_name => $screen ) {
@@ -223,7 +223,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		}
 	}
 
-	function test_post_type_as_hookname() {
+	public function test_post_type_as_hookname() {
 		$screen = convert_to_screen( 'page' );
 		$this->assertSame( $screen->post_type, 'page' );
 		$this->assertSame( $screen->base, 'post' );
@@ -231,7 +231,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertTrue( $screen->is_block_editor );
 	}
 
-	function test_post_type_with_special_suffix_as_hookname() {
+	public function test_post_type_with_special_suffix_as_hookname() {
 		register_post_type( 'value-add' );
 		$screen = convert_to_screen( 'value-add' ); // The '-add' part is key.
 		$this->assertSame( $screen->post_type, 'value-add' );
@@ -246,7 +246,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertFalse( $screen->is_block_editor ); // Post types do not support `show_in_rest` by default.
 	}
 
-	function test_taxonomy_with_special_suffix_as_hookname() {
+	public function test_taxonomy_with_special_suffix_as_hookname() {
 		register_taxonomy( 'old-or-new', 'post' );
 		$screen = convert_to_screen( 'edit-old-or-new' ); // The '-new' part is key.
 		$this->assertSame( $screen->taxonomy, 'old-or-new' );
@@ -255,7 +255,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertFalse( $screen->is_block_editor );
 	}
 
-	function test_post_type_with_edit_prefix() {
+	public function test_post_type_with_edit_prefix() {
 		register_post_type( 'edit-some-thing' );
 		$screen = convert_to_screen( 'edit-some-thing' );
 		$this->assertSame( $screen->post_type, 'edit-some-thing' );
@@ -270,7 +270,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertFalse( $screen->is_block_editor ); // Post types do not support `show_in_rest` by default.
 	}
 
-	function test_post_type_edit_collisions() {
+	public function test_post_type_edit_collisions() {
 		register_post_type( 'comments' );
 		register_post_type( 'tags' );
 
@@ -290,7 +290,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertSame( $screen->base, 'post' );
 	}
 
-	function test_help_tabs() {
+	public function test_help_tabs() {
 		$tab      = __FUNCTION__;
 		$tab_args = array(
 			'title'    => 'Help!',
@@ -326,7 +326,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 	/**
 	 * @ticket 19828
 	 */
-	function test_help_tabs_priority() {
+	public function test_help_tabs_priority() {
 		$tab_1      = 'tab1';
 		$tab_1_args = array(
 			'title'    => 'Help!',
@@ -422,7 +422,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 	/**
 	 * @ticket 25799
 	 */
-	function test_options() {
+	public function test_options() {
 		$option      = __FUNCTION__;
 		$option_args = array(
 			'label'   => 'Option',
@@ -446,7 +446,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertSame( $screen->get_options(), array() );
 	}
 
-	function test_in_admin() {
+	public function test_in_admin() {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( get_current_screen()->in_admin() );
 		$this->assertTrue( get_current_screen()->in_admin( 'site' ) );

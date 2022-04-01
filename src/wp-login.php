@@ -58,7 +58,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param array $shake_error_codes Error codes that shake the login form.
+	 * @param string[] $shake_error_codes Error codes that shake the login form.
 	 */
 	$shake_error_codes = apply_filters( 'shake_error_codes', $shake_error_codes );
 
@@ -185,8 +185,8 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array  $classes An array of body classes.
-	 * @param string $action  The action that brought the visitor to the login page.
+	 * @param string[] $classes An array of body classes.
+	 * @param string   $action  The action that brought the visitor to the login page.
 	 */
 	$classes = apply_filters( 'login_body_class', $classes, $action );
 
@@ -312,6 +312,68 @@ function login_footer( $input_id = '' ) {
 	</div><?php // End of <div id="login">. ?>
 
 	<?php
+	if (
+		! $interim_login &&
+		/**
+		 * Filters the Languages select input activation on the login screen.
+		 *
+		 * @since 5.9.0
+		 *
+		 * @param bool Whether to display the Languages select input on the login screen.
+		 */
+		apply_filters( 'login_display_language_dropdown', true )
+	) {
+		$languages = get_available_languages();
+
+		if ( ! empty( $languages ) ) {
+			?>
+			<div class="language-switcher">
+				<form id="language-switcher" action="" method="get">
+
+					<label for="language-switcher-locales">
+						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
+						<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
+					</label>
+
+					<?php
+					$args = array(
+						'id'                          => 'language-switcher-locales',
+						'name'                        => 'wp_lang',
+						'selected'                    => determine_locale(),
+						'show_available_translations' => false,
+						'explicit_option_en_us'       => true,
+						'languages'                   => $languages,
+					);
+
+					/**
+					 * Filters default arguments for the Languages select input on the login screen.
+					 *
+					 * @since 5.9.0
+					 *
+					 * @param array $args Arguments for the Languages select input on the login screen.
+					 */
+					wp_dropdown_languages( apply_filters( 'login_language_dropdown_args', $args ) );
+					?>
+
+					<?php if ( $interim_login ) { ?>
+						<input type="hidden" name="interim-login" value="1" />
+					<?php } ?>
+
+					<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
+						<input type="hidden" name="redirect_to" value="<?php echo esc_url_raw( $_GET['redirect_to'] ); ?>" />
+					<?php } ?>
+
+					<?php if ( isset( $_GET['action'] ) && '' !== $_GET['action'] ) { ?>
+						<input type="hidden" name="action" value="<?php echo esc_attr( $_GET['action'] ); ?>" />
+					<?php } ?>
+
+						<input type="submit" class="button" value="<?php esc_attr_e( 'Change' ); ?>">
+
+					</form>
+				</div>
+		<?php } ?>
+	<?php } ?>
+	<?php
 
 	if ( ! empty( $input_id ) ) {
 		?>
@@ -360,10 +422,7 @@ function wp_login_viewport_meta() {
 	<?php
 }
 
-//
-// Main.
-//
-
+// Check request and redirect.
 $action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'login';
 $errors = new WP_Error();
 
@@ -419,6 +478,10 @@ if ( SITECOOKIEPATH !== COOKIEPATH ) {
 	setcookie( TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure );
 }
 
+if ( isset( $_GET['wp_lang'] ) ) {
+	setcookie( 'wp_lang', sanitize_text_field( $_GET['wp_lang'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure );
+}
+
 /**
  * Fires when the login form is initialized.
  *
@@ -434,18 +497,18 @@ do_action( 'login_init' );
  *
  * Possible hook names include:
  *
- *  - 'login_form_checkemail'
- *  - 'login_form_confirm_admin_email'
- *  - 'login_form_confirmaction'
- *  - 'login_form_entered_recovery_mode'
- *  - 'login_form_login'
- *  - 'login_form_logout'
- *  - 'login_form_lostpassword'
- *  - 'login_form_postpass'
- *  - 'login_form_register'
- *  - 'login_form_resetpass'
- *  - 'login_form_retrievepassword'
- *  - 'login_form_rp'
+ *  - `login_form_checkemail`
+ *  - `login_form_confirm_admin_email`
+ *  - `login_form_confirmaction`
+ *  - `login_form_entered_recovery_mode`
+ *  - `login_form_login`
+ *  - `login_form_logout`
+ *  - `login_form_lostpassword`
+ *  - `login_form_postpass`
+ *  - `login_form_register`
+ *  - `login_form_resetpass`
+ *  - `login_form_retrievepassword`
+ *  - `login_form_rp`
  *
  * @since 2.8.0
  */
@@ -764,7 +827,7 @@ switch ( $action ) {
 		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" />
+				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" />
 			</p>
 			<?php
 
@@ -913,7 +976,7 @@ switch ( $action ) {
 			?>
 			<input type="hidden" name="rp_key" value="<?php echo esc_attr( $rp_key ); ?>" />
 			<p class="submit reset-pass-submit">
-				<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="true"><?php _e( 'Generate Password' ); ?></button>
+				<button type="button" class="button wp-generate-pw hide-if-no-js skip-aria-expanded"><?php _e( 'Generate Password' ); ?></button>
 				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Save Password' ); ?>" />
 			</p>
 		</form>
@@ -935,7 +998,7 @@ switch ( $action ) {
 		</p>
 		<?php
 
-		login_footer( 'user_pass' );
+		login_footer( 'pass1' );
 		break;
 
 	case 'register':
@@ -983,10 +1046,13 @@ switch ( $action ) {
 		 * Filters the registration redirect URL.
 		 *
 		 * @since 3.0.0
+		 * @since 5.9.0 Added the `$errors` parameter.
 		 *
-		 * @param string $registration_redirect The redirect destination URL.
+		 * @param string       $registration_redirect The redirect destination URL.
+		 * @param int|WP_Error $errors                User id if registration was successful,
+		 *                                            WP_Error object otherwise.
 		 */
-		$redirect_to = apply_filters( 'registration_redirect', $registration_redirect );
+		$redirect_to = apply_filters( 'registration_redirect', $registration_redirect, $errors );
 
 		login_header( __( 'Registration Form' ), '<p class="message register">' . __( 'Register For This Site' ) . '</p>', $errors );
 
@@ -994,11 +1060,11 @@ switch ( $action ) {
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
 			<p>
 				<label for="user_login"><?php _e( 'Username' ); ?></label>
-				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( wp_unslash( $user_login ) ); ?>" size="20" autocapitalize="off" />
+				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( wp_unslash( $user_login ) ); ?>" size="20" autocapitalize="off" autocomplete="username" />
 			</p>
 			<p>
 				<label for="user_email"><?php _e( 'Email' ); ?></label>
-				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr( wp_unslash( $user_email ) ); ?>" size="25" />
+				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr( wp_unslash( $user_email ) ); ?>" size="25" autocomplete="email" />
 			</p>
 			<?php
 
@@ -1207,8 +1273,10 @@ switch ( $action ) {
 			if ( is_a( $user, 'WP_User' ) && $user->exists() && $user->has_cap( 'manage_options' ) ) {
 				$admin_email_lifespan = (int) get_option( 'admin_email_lifespan' );
 
-				// If `0` (or anything "falsey" as it is cast to int) is returned, the user will not be redirected
-				// to the admin email confirmation screen.
+				/*
+				 * If `0` (or anything "falsey" as it is cast to int) is returned, the user will not be redirected
+				 * to the admin email confirmation screen.
+				 */
 				/** This filter is documented in wp-login.php */
 				$admin_email_check_interval = (int) apply_filters( 'admin_email_check_interval', 6 * MONTH_IN_SECONDS );
 
@@ -1267,7 +1335,10 @@ switch ( $action ) {
 				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
 			} elseif ( isset( $_GET['redirect_to'] ) && false !== strpos( $_GET['redirect_to'], 'wp-admin/authorize-application.php' ) ) {
 				$query_component = wp_parse_url( $_GET['redirect_to'], PHP_URL_QUERY );
-				parse_str( $query_component, $query );
+				$query           = array();
+				if ( $query_component ) {
+					parse_str( $query_component, $query );
+				}
 
 				if ( ! empty( $query['app_name'] ) ) {
 					/* translators: 1: Website name, 2: Application name. */
@@ -1316,13 +1387,13 @@ switch ( $action ) {
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="log" id="user_login"<?php echo $aria_describedby_error; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" />
+				<input type="text" name="log" id="user_login"<?php echo $aria_describedby_error; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" />
 			</p>
 
 			<div class="user-pass-wrap">
 				<label for="user_pass"><?php _e( 'Password' ); ?></label>
 				<div class="wp-pwd">
-					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby_error; ?> class="input password-input" value="" size="20" />
+					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby_error; ?> class="input password-input" value="" size="20" autocomplete="current-password" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 					</button>
