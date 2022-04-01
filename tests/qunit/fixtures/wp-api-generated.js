@@ -18,7 +18,13 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1"
     ],
-    "authentication": [],
+    "authentication": {
+        "application-passwords": {
+            "endpoints": {
+                "authorization": "http://example.org/wp-admin/authorize-application.php"
+            }
+        }
+    },
     "routes": {
         "/": {
             "namespace": "",
@@ -3755,7 +3761,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -3943,7 +3949,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -4128,7 +4134,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -5029,7 +5035,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
@@ -5134,7 +5140,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/templates/(?P<id>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)": {
+        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5183,7 +5189,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -5497,7 +5503,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -5676,7 +5682,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
@@ -5786,7 +5792,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/template-parts/(?P<id>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)": {
+        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5835,7 +5841,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -6154,7 +6160,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -9418,7 +9424,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/themes/(?P<stylesheet>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)": {
+        "/wp/v2/global-styles/themes/(?P<stylesheet>[^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -9438,7 +9444,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/(?P<id>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)": {
+        "/wp/v2/global-styles/(?P<id>[\\/\\w-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -9624,6 +9630,11 @@ mockedApiResponse.Schema = {
                             "description": "Site logo.",
                             "type": "integer",
                             "required": false
+                        },
+                        "site_icon": {
+                            "description": "Site icon.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -9662,7 +9673,7 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/themes"
             }
         },
-        "/wp/v2/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
+        "/wp/v2/themes/(?P<stylesheet>[^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -12206,5 +12217,6 @@ mockedApiResponse.settings = {
     "posts_per_page": 10,
     "default_ping_status": "open",
     "default_comment_status": "open",
-    "site_logo": null
+    "site_logo": null,
+    "site_icon": 0
 };

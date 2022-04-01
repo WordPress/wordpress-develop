@@ -26,8 +26,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 				'post_type'    => 'post',
 			)
 		);

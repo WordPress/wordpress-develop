@@ -31,6 +31,10 @@ $parent_file = 'themes.php';
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( true );
 
+// Load block patterns from w.org.
+_load_remote_block_patterns();
+_load_remote_featured_patterns();
+
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
@@ -45,7 +49,7 @@ foreach ( get_default_block_template_types() as $slug => $template_type ) {
 	$indexed_template_types[] = $template_type;
 }
 
-$block_editor_context = new WP_Block_Editor_Context();
+$block_editor_context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
 $custom_settings      = array(
 	'siteUrl'                              => site_url(),
 	'postsPerPage'                         => get_option( 'posts_per_page' ),
@@ -68,7 +72,6 @@ $active_global_styles_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_i
 $active_theme            = wp_get_theme()->get_stylesheet();
 $preload_paths           = array(
 	array( '/wp/v2/media', 'OPTIONS' ),
-	'/',
 	'/wp/v2/types?context=edit',
 	'/wp/v2/types/wp_template?context=edit',
 	'/wp/v2/types/wp_template-part?context=edit',

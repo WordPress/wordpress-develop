@@ -20,10 +20,14 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
 	if ( 0 !== strpos( $asset_handle_or_path, $path_prefix ) ) {
 		return $asset_handle_or_path;
 	}
-	return substr(
+	$path = substr(
 		$asset_handle_or_path,
 		strlen( $path_prefix )
 	);
+	if ( strpos( $path, './' ) === 0 ) {
+		$path = substr( $path, 2 );
+	}
+	return $path;
 }
 
 /**
@@ -103,7 +107,7 @@ function register_block_script_handle( $metadata, $field_name ) {
 		return false;
 	}
 	// Path needs to be normalized to work in Windows env.
-	$wpinc_path_norm  = wp_normalize_path( ABSPATH . WPINC );
+	$wpinc_path_norm  = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
 	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 
@@ -145,7 +149,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
-	$wpinc_path_norm = wp_normalize_path( ABSPATH . WPINC );
+	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
@@ -199,7 +203,7 @@ function register_block_style_handle( $metadata, $field_name ) {
  *
  * @since 5.9.0
  *
- * @return array The schema for block's metadata.
+ * @return object The schema for block's metadata.
  */
 function get_block_metadata_i18n_schema() {
 	static $i18n_block_schema;
@@ -239,7 +243,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
 		return false;
 	}
-	$metadata['file'] = wp_normalize_path( $metadata_file );
+	$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
 
 	/**
 	 * Filters the metadata provided for registering a block type.
@@ -1164,7 +1168,7 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @since 5.9.0
  *
  * @param WP_Block $block   Block instance.
- * @param boolean  $is_next Flag for hanlding `next/previous` blocks.
+ * @param boolean  $is_next Flag for handling `next/previous` blocks.
  *
  * @return string|null Returns the constructed WP_Query arguments.
  */
@@ -1238,7 +1242,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
 
 			// Add RTL stylesheet.
 			if ( file_exists( $rtl_file_path ) ) {
-				wp_style_add_data( $args['hanle'], 'rtl', 'replace' );
+				wp_style_add_data( $args['handle'], 'rtl', 'replace' );
 
 				if ( is_rtl() ) {
 					wp_style_add_data( $args['handle'], 'path', $rtl_file_path );
@@ -1254,7 +1258,31 @@ function wp_enqueue_block_style( $block_name, $args ) {
 
 	$hook = did_action( 'wp_enqueue_scripts' ) ? 'wp_footer' : 'wp_enqueue_scripts';
 	if ( wp_should_load_separate_core_block_assets() ) {
-		$hook = "render_block_$block_name";
+		/**
+		 * Callback function to register and enqueue styles.
+		 *
+		 * @param string $content The block content.
+		 * @param array  $block   The full block, including name and attributes.
+		 * @return string Block content.
+		 */
+		$callback_separate = static function( $content, $block ) use ( $block_name, $callback ) {
+			if ( ! empty( $block['blockName'] ) && $block_name === $block['blockName'] ) {
+				return $callback( $content );
+			}
+			return $content;
+		};
+
+		/*
+		 * The filter's callback here is an anonymous function because
+		 * using a named function in this case is not possible.
+		 *
+		 * The function cannot be unhooked, however, users are still able
+		 * to dequeue the stylesheets registered/enqueued by the callback
+		 * which is why in this case, using an anonymous function
+		 * was deemed acceptable.
+		 */
+		add_filter( 'render_block', $callback_separate, 10, 2 );
+		return;
 	}
 
 	/*

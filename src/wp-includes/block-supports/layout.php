@@ -37,11 +37,12 @@ function wp_register_layout_support( $block_type ) {
  *
  * @param string $selector              CSS selector.
  * @param array  $layout                Layout object. The one that is passed has already checked
- *                                      the existance of default block layout.
+ *                                      the existence of default block layout.
  * @param bool   $has_block_gap_support Whether the theme has support for the block gap.
+ * @param string $gap_value             The block gap value to apply.
  * @return string CSS style.
  */
-function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false ) {
+function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false, $gap_value = null ) {
 	$layout_type = isset( $layout['type'] ) ? $layout['type'] : 'default';
 
 	$style = '';
@@ -53,9 +54,8 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		$wide_max_width_value = $wide_size ? $wide_size : $content_size;
 
 		// Make sure there is a single CSS rule, and all tags are stripped for security.
-		// TODO: Use `safecss_filter_attr` instead - once https://core.trac.wordpress.org/ticket/46197 is patched.
-		$all_max_width_value  = wp_strip_all_tags( explode( ';', $all_max_width_value )[0] );
-		$wide_max_width_value = wp_strip_all_tags( explode( ';', $wide_max_width_value )[0] );
+		$all_max_width_value  = safecss_filter_attr( explode( ';', $all_max_width_value )[0] );
+		$wide_max_width_value = safecss_filter_attr( explode( ';', $wide_max_width_value )[0] );
 
 		$style = '';
 		if ( $content_size || $wide_size ) {
@@ -72,8 +72,9 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		$style .= "$selector .alignleft { float: left; margin-right: 2em; }";
 		$style .= "$selector .alignright { float: right; margin-left: 2em; }";
 		if ( $has_block_gap_support ) {
-			$style .= "$selector > * { margin-top: 0; margin-bottom: 0; }";
-			$style .= "$selector > * + * { margin-top: var( --wp--style--block-gap ); margin-bottom: 0; }";
+			$gap_style = $gap_value ? $gap_value : 'var( --wp--style--block-gap )';
+			$style    .= "$selector > * { margin-top: 0; margin-bottom: 0; }";
+			$style    .= "$selector > * + * { margin-top: $gap_style;  margin-bottom: 0; }";
 		}
 	} elseif ( 'flex' === $layout_type ) {
 		$layout_orientation = isset( $layout['orientation'] ) ? $layout['orientation'] : 'horizontal';
@@ -96,7 +97,8 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		$style  = "$selector {";
 		$style .= 'display: flex;';
 		if ( $has_block_gap_support ) {
-			$style .= 'gap: var( --wp--style--block-gap, 0.5em );';
+			$gap_style = $gap_value ? $gap_value : 'var( --wp--style--block-gap, 0.5em )';
+			$style    .= "gap: $gap_style;";
 		} else {
 			$style .= 'gap: 0.5em;';
 		}
@@ -104,9 +106,6 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		$style .= 'align-items: center;';
 		if ( 'horizontal' === $layout_orientation ) {
 			$style .= 'align-items: center;';
-			if ( ! empty( $layout['setCascadingProperties'] ) && $layout['setCascadingProperties'] ) {
-				$style .= '--layout-direction: row;';
-			}
 			/**
 			 * Add this style only if is not empty for backwards compatibility,
 			 * since we intend to convert blocks that had flex layout implemented
@@ -114,27 +113,11 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			 */
 			if ( ! empty( $layout['justifyContent'] ) && array_key_exists( $layout['justifyContent'], $justify_content_options ) ) {
 				$style .= "justify-content: {$justify_content_options[ $layout['justifyContent'] ]};";
-				if ( ! empty( $layout['setCascadingProperties'] ) && $layout['setCascadingProperties'] ) {
-					// --layout-justification-setting allows children to inherit the value regardless or row or column direction.
-					$style .= "--layout-justification-setting: {$justify_content_options[ $layout['justifyContent'] ]};";
-					$style .= "--layout-wrap: $flex_wrap;";
-					$style .= "--layout-justify: {$justify_content_options[ $layout['justifyContent'] ]};";
-					$style .= '--layout-align: center;';
-				}
 			}
 		} else {
 			$style .= 'flex-direction: column;';
 			if ( ! empty( $layout['justifyContent'] ) && array_key_exists( $layout['justifyContent'], $justify_content_options ) ) {
 				$style .= "align-items: {$justify_content_options[ $layout['justifyContent'] ]};";
-				if ( ! empty( $layout['setCascadingProperties'] ) && $layout['setCascadingProperties'] ) {
-					$style .= '--layout-direction: column;';
-				}
-				if ( ! empty( $layout['setCascadingProperties'] ) && $layout['setCascadingProperties'] ) {
-					// --layout-justification-setting allows children to inherit the value regardless or row or column direction.
-					$style .= "--layout-justification-setting: {$justify_content_options[ $layout['justifyContent'] ]};";
-					$style .= '--layout-justify: initial;';
-					$style .= "--layout-align: {$justify_content_options[ $layout['justifyContent'] ]};";
-				}
 			}
 		}
 		$style .= '}';
@@ -175,28 +158,23 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$used_layout = $default_layout;
 	}
 
-	$id    = uniqid();
-	$style = wp_get_layout_style( ".wp-container-$id", $used_layout, $has_block_gap_support );
+	$class_name = wp_unique_id( 'wp-container-' );
+	$gap_value  = _wp_array_get( $block, array( 'attrs', 'style', 'spacing', 'blockGap' ) );
+	// Skip if gap value contains unsupported characters.
+	// Regex for CSS value borrowed from `safecss_filter_attr`, and used here
+	// because we only want to match against the value, not the CSS attribute.
+	$gap_value = preg_match( '%[\\\(&=}]|/\*%', $gap_value ) ? null : $gap_value;
+	$style     = wp_get_layout_style( ".$class_name", $used_layout, $has_block_gap_support, $gap_value );
 	// This assumes the hook only applies to blocks with a single wrapper.
 	// I think this is a reasonable limitation for that particular hook.
 	$content = preg_replace(
 		'/' . preg_quote( 'class="', '/' ) . '/',
-		'class="wp-container-' . $id . ' ',
+		'class="' . esc_attr( $class_name ) . ' ',
 		$block_content,
 		1
 	);
 
-	/*
-	 * Ideally styles should be loaded in the head, but blocks may be parsed
-	 * after that, so loading in the footer for now.
-	 * See https://core.trac.wordpress.org/ticket/53494.
-	 */
-	add_action(
-		'wp_footer',
-		static function () use ( $style ) {
-			echo '<style>' . $style . '</style>';
-		}
-	);
+	wp_enqueue_block_support_styles( $style );
 
 	return $content;
 }

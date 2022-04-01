@@ -98,7 +98,7 @@ function block_core_navigation_submenu_build_css_font_sizes( $context ) {
 		$font_sizes['css_classes'][] = sprintf( 'has-%s-font-size', $context['fontSize'] );
 	} elseif ( $has_custom_font_size ) {
 		// Add the custom font size inline style.
-		$font_sizes['inline_styles'] = sprintf( 'font-size: %spx;', $context['style']['typography']['fontSize'] );
+		$font_sizes['inline_styles'] = sprintf( 'font-size: %s;', $context['style']['typography']['fontSize'] );
 	}
 
 	return $font_sizes;
@@ -191,7 +191,7 @@ function render_block_core_navigation_submenu( $attributes, $content, $block ) {
 	$aria_label = sprintf(
 		/* translators: Accessibility text. %s: Parent page title. */
 		__( '%s submenu' ),
-		$label
+		wp_strip_all_tags( $label )
 	);
 
 	$html = '<li ' . $wrapper_attributes . '>';
@@ -231,7 +231,7 @@ function render_block_core_navigation_submenu( $attributes, $content, $block ) {
 
 		if ( $show_submenu_indicators ) {
 			// The submenu icon is rendered in a button here
-			// so that there's a clickable elment to open the submenu.
+			// so that there's a clickable element to open the submenu.
 			$html .= '<button aria-label="' . $aria_label . '" class="wp-block-navigation__submenu-icon wp-block-navigation-submenu__toggle" aria-expanded="false">' . block_core_navigation_submenu_render_submenu_icon() . '</button>';
 		}
 	} else {

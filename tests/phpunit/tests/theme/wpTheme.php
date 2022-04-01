@@ -273,11 +273,11 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'expected'  => false,
 			),
 			'parent block theme'        => array(
-				'theme_dir' => 'test-block-theme',
+				'theme_dir' => 'block-theme',
 				'expected'  => true,
 			),
 			'child block theme'         => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'expected'  => true,
 			),
 		);
@@ -312,14 +312,14 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'expected'  => '/nonexistent',
 			),
 			'parent theme: no file given'       => array(
-				'theme_dir' => 'test-block-theme',
+				'theme_dir' => 'block-theme',
 				'file'      => '',
-				'expected'  => '/test-block-theme',
+				'expected'  => '/block-theme',
 			),
 			'child theme: no file given'        => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'file'      => '',
-				'expected'  => '/test-block-child-theme',
+				'expected'  => '/block-theme-child',
 			),
 			'nonexistent theme: file given'     => array(
 				'theme_dir' => 'nonexistent',
@@ -327,29 +327,29 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'expected'  => '/nonexistent/templates/page.html',
 			),
 			'parent theme: file exists'         => array(
-				'theme_dir' => 'test-block-theme',
+				'theme_dir' => 'block-theme',
 				'file'      => '/templates/page-home.html',
-				'expected'  => '/test-block-theme/templates/page-home.html',
+				'expected'  => '/block-theme/templates/page-home.html',
 			),
 			'parent theme: file does not exist' => array(
-				'theme_dir' => 'test-block-theme',
+				'theme_dir' => 'block-theme',
 				'file'      => '/templates/nonexistent.html',
-				'expected'  => '/test-block-theme/templates/nonexistent.html',
+				'expected'  => '/block-theme/templates/nonexistent.html',
 			),
 			'child theme: file exists'          => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'file'      => '/templates/page-1.html',
-				'expected'  => '/test-block-child-theme/templates/page-1.html',
+				'expected'  => '/block-theme-child/templates/page-1.html',
 			),
 			'child theme: file does not exist'  => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'file'      => '/templates/nonexistent.html',
-				'expected'  => '/test-block-theme/templates/nonexistent.html',
+				'expected'  => '/block-theme/templates/nonexistent.html',
 			),
 			'child theme: file exists in parent, not in child' => array(
-				'theme_dir' => 'test-block-child-theme',
+				'theme_dir' => 'block-theme-child',
 				'file'      => '/templates/page.html',
-				'expected'  => '/test-block-theme/templates/page.html',
+				'expected'  => '/block-theme/templates/page.html',
 			),
 		);
 	}

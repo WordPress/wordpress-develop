@@ -1508,7 +1508,7 @@ function wp_get_pomo_file_data( $po_file ) {
  *     @type bool     $show_available_translations  Whether to show available translations. Default true.
  *     @type bool     $show_option_site_default     Whether to show an option to fall back to the site's locale. Default false.
  *     @type bool     $show_option_en_us            Whether to show an option for English (United States). Default true.
- *     @type bool     $explicit_option_en_us        Whether the English (United States) option uses an explict value of en_US
+ *     @type bool     $explicit_option_en_us        Whether the English (United States) option uses an explicit value of en_US
  *                                                  instead of an empty value. Default false.
  * }
  * @return string HTML dropdown list of languages.
@@ -1769,4 +1769,19 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 		return $translated_settings;
 	}
 	return $settings;
+}
+
+/**
+ * Retrieves the list item separator based on the locale.
+ *
+ * @since 6.0.0
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
+ *
+ * @return string Locale-specific list item separator.
+ */
+function wp_get_list_item_separator() {
+	global $wp_locale;
+
+	return $wp_locale->get_list_item_separator();
 }
