@@ -41,6 +41,13 @@
 				}
 			]
 		},
+		"custom": {
+			"typography": {
+				"font-size": {
+					"colossal": "clamp(3.5rem, 8vw, 5rem)"
+				}
+			}
+		},
 		"typography": {
 			"fontFamilies": [
 				{
