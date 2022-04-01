@@ -429,7 +429,7 @@ else :
 			__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it is not so these are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all.' ),
 			'<code>.htaccess</code>',
 			__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
-			'<kbd>Ctrl + A</kbd>'
+			'<kbd>Ctrl + A</kbd>',
 			'<kbd>⌘ + A</kbd>'
 		);
 		?>
