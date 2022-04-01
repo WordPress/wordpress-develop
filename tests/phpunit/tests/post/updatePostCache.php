@@ -67,7 +67,22 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 		get_post( $post );
 
 		$cached_post = wp_cache_get( $post_id, 'posts' );
-		$this->assertSame( 'raw', $cached_post->filter );
+		$this->assertIsObject(
+			$cached_post,
+			'The cached post is not an object'
+		);
+		
+		$this->assertObjectHasAttribute(
+			'filter',
+			$cached_post,
+			'The cached post does not have a "filter" property'
+		);
+		
+		$this->assertSame(
+			'raw',
+			$cached_post->filter,
+			'The filter is not set to "raw"'
+		);
 	}
 
 	/**
