@@ -1221,6 +1221,16 @@ function wp_default_scripts( $scripts ) {
 			'publishSettings'         => __( 'Publish Settings' ),
 			'invalidDate'             => __( 'Invalid date.' ),
 			'invalidValue'            => __( 'Invalid value.' ),
+			'blockThemeNotification'  => sprintf(
+				/* translators: 1: Link to Site Editor documentation on HelpHub, 2: HTML button. */
+				__( 'Hurray! Your theme supports Full Site Editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
+				__( 'https://wordpress.org/support/article/site-editor/' ),
+				sprintf(
+					'<button type="button" data-action="%1$s" class="button switch-to-editor">%2$s</button>',
+					esc_url( admin_url( 'site-editor.php' ) ),
+					__( 'Use Site Editor' )
+				)
+			),
 		)
 	);
 	$scripts->add( 'customize-selective-refresh', "/wp-includes/js/customize-selective-refresh$suffix.js", array( 'jquery', 'wp-util', 'customize-preview' ), false, 1 );
@@ -2926,8 +2936,8 @@ function wp_enqueue_global_styles_css_custom_properties() {
  *
  * For block themes, it's loaded in the head.
  * For classic ones, it's loaded in the body
- * because the wp_head action (and wp_enqueue_scripts)
- * happens before the render_block.
+ * because the wp_head action happens before
+ * the render_block.
  *
  * @link https://core.trac.wordpress.org/ticket/53494.
  *
@@ -2936,7 +2946,7 @@ function wp_enqueue_global_styles_css_custom_properties() {
 function wp_enqueue_block_support_styles( $style ) {
 	$action_hook_name = 'wp_footer';
 	if ( wp_is_block_theme() ) {
-		$action_hook_name = 'wp_enqueue_scripts';
+		$action_hook_name = 'wp_head';
 	}
 	add_action(
 		$action_hook_name,
