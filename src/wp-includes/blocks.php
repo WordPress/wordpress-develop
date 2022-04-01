@@ -1330,10 +1330,20 @@ function _wp_multiple_block_styles( $metadata ) {
 			foreach ( $metadata[ $key ] as $handle ) {
 				$args = array( 'handle' => $handle );
 				if ( 0 === strpos( $handle, 'file:' ) && isset( $metadata['file'] ) ) {
-					$style_path = remove_block_asset_path_prefix( $handle );
+					$style_path      = remove_block_asset_path_prefix( $handle );
+					$theme_path_norm = wp_normalize_path( get_theme_file_path() );
+					$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
+					$is_theme_block  = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $theme_path_norm );
+
+					$style_uri = plugins_url( $style_path, $metadata['file'] );
+
+					if ( $is_theme_block ) {
+						$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
+					}
+
 					$args       = array(
 						'handle' => sanitize_key( "{$metadata['name']}-{$style_path}" ),
-						'src'    => plugins_url( $style_path, $metadata['file'] ),
+						'src'    => $style_uri,
 					);
 				}
 
