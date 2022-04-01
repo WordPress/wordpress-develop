@@ -58,14 +58,14 @@
 					"fontFace": [
 						{
 							"fontFamily": "IBM Plex Sans",
-							"fontWeight": "300",
+							"fontWeight": "400",
 							"fontStyle": "normal",
 							"fontStretch": "normal",
 							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-Light.woff2" ]
 						},
 						{
 							"fontFamily": "IBM Plex Sans",
-							"fontWeight": "300",
+							"fontWeight": "400",
 							"fontStyle": "italic",
 							"fontStretch": "normal",
 							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-LightItalic.woff2" ]
@@ -151,7 +151,12 @@
 			"core/post-title": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
-					"fontWeight": "300"
+					"fontWeight": "400"
+				}
+			},
+			"core/site-title": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)"
 				}
 			},
 			"core/query-title": {
@@ -170,31 +175,31 @@
 			"h2": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
-					"fontWeight": "300"
+					"fontWeight": "400"
 				}
 			},
 			"h3": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
-					"fontWeight": "300"
+					"fontWeight": "400"
 				}
 			},
 			"h4": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
-					"fontWeight": "300"
+					"fontWeight": "400"
 				}
 			},
 			"h5": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
-					"fontWeight": "300"
+					"fontWeight": "400"
 				}
 			},
 			"h6": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
-					"fontWeight": "300"
+					"fontWeight": "400"
 				}
 			}
 		},
