@@ -41,9 +41,24 @@
 				}
 			]
 		},
+		"custom": {
+			"spacing": {
+				"small": "max(1.25rem, 5vw)",
+				"medium": "clamp(1.75rem, 8vw, calc(3 * var(--wp--style--block-gap)))",
+				"large": "clamp(2rem, 10vw, 4rem)",
+				"outer": "var(--wp--custom--spacing--small, 1.25rem)"
+			},
+			"typography": {
+				"font-size": {
+					"huge": "clamp(2.5rem, 4vw, 3rem)",
+					"gigantic": "clamp(3rem, 6vw, 3.5rem)",
+					"colossal": "clamp(3.5rem, 8vw, 6.25rem)"
+				}
+			}
+		},
 		"layout": {
 			"contentSize": "700px",
-			"wideSize": "1200px"
+			"wideSize": "960px"
 		},
 		"typography": {
 			"fontFamilies": [
@@ -70,6 +85,24 @@
 							"src": [ "file:./assets/fonts/bodoni-moda/BodoniModa-italic.ttf" ]
 						}
 					]
+				}
+			],
+			"fontSizes": [
+				{
+					"size": "1rem",
+					"slug": "small"
+				},
+				{
+					"size": "1.125rem",
+					"slug": "medium"
+				},
+				{
+					"size": "1.25rem",
+					"slug": "large"
+				},
+				{
+					"size": "clamp(1.75rem, 3vw, 2.25rem)",
+					"slug": "x-large"
 				}
 			]
 		}
@@ -104,6 +137,7 @@
 			"core/post-title": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--bodoni-moda)",
+					"fontSize": "var(--wp--custom--typography--font-size--huge)",
 					"fontWeight": "600"
 				}
 			},
