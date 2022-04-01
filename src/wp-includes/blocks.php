@@ -158,7 +158,9 @@ function register_block_style_handle( $metadata, $field_name ) {
 		return false;
 	}
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	$theme_path_norm  = wp_normalize_path( get_theme_file_path() );
 	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+	$is_theme_block  = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $theme_path_norm );
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
 	}
@@ -177,6 +179,10 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( $is_core_block ) {
 		$style_path = "style$suffix.css";
 		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
+	}
+
+	if ( $is_theme_block ) {
+		$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path ) );
 	}
 
 	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
