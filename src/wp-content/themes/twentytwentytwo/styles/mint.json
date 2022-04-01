@@ -52,7 +52,7 @@
 				"font-size": {
 					"huge": "clamp(2.5rem, 4vw, 3rem)",
 					"gigantic": "clamp(3rem, 6vw, 3.5rem)",
-					"colossal": "clamp(3.5rem, 8vw, 6.25rem)"
+					"colossal": "clamp(3.5rem, 8vw, 5rem)"
 				}
 			}
 		},
