@@ -6,8 +6,8 @@
 class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	protected $q;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		unset( $this->q );
 		$this->q = new WP_Query();
 	}

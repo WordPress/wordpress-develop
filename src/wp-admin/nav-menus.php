@@ -316,6 +316,7 @@ switch ( $action ) {
 		check_admin_referer( 'update-nav_menu', 'update-nav-menu-nonce' );
 
 		// Merge new and existing menu locations if any new ones are set.
+		$new_menu_locations = array();
 		if ( isset( $_POST['menu-locations'] ) ) {
 			$new_menu_locations = array_map( 'absint', $_POST['menu-locations'] );
 			$menu_locations     = array_merge( $menu_locations, $new_menu_locations );
@@ -351,6 +352,15 @@ switch ( $action ) {
 						foreach ( $locations as $location => $menu_id ) {
 								$locations[ $location ] = $nav_menu_selected_id;
 								break; // There should only be 1.
+						}
+
+						set_theme_mod( 'nav_menu_locations', $locations );
+					} elseif ( count( $new_menu_locations ) > 0 ) {
+						// If locations have been selected for the new menu, save those.
+						$locations = get_nav_menu_locations();
+
+						foreach ( array_keys( $new_menu_locations ) as $location ) {
+							$locations[ $location ] = $nav_menu_selected_id;
 						}
 
 						set_theme_mod( 'nav_menu_locations', $locations );
@@ -489,6 +499,13 @@ $nav_menus_l10n = array(
 	'menuItemDeletion'        => __( 'item %s' ),
 	/* translators: %s: Item name. */
 	'itemsDeleted'            => __( 'Deleted menu item: %s.' ),
+	'itemAdded'               => __( 'Menu item added' ),
+	'itemRemoved'             => __( 'Menu item removed' ),
+	'movedUp'                 => __( 'Menu item moved up' ),
+	'movedDown'               => __( 'Menu item moved down' ),
+	'movedTop'                => __( 'Menu item moved to the top' ),
+	'movedLeft'               => __( 'Menu item moved out of submenu' ),
+	'movedRight'              => __( 'Menu item is now a sub-item' ),
 );
 wp_localize_script( 'nav-menu', 'menus', $nav_menus_l10n );
 
@@ -608,7 +625,7 @@ if ( ! $locations_screen ) : // Main tab.
 
 	$menu_management  = '<p>' . __( 'The menu management box at the top of the screen is used to control which menu is opened in the editor below.' ) . '</p>';
 	$menu_management .= '<ul><li>' . __( 'To edit an existing menu, <strong>choose a menu from the drop down and click Select</strong>' ) . '</li>';
-	$menu_management .= '<li>' . __( 'If you haven&#8217;t yet created any menus, <strong>click the &#8217;create a new menu&#8217; link</strong> to get started' ) . '</li></ul>';
+	$menu_management .= '<li>' . __( 'If you have not yet created any menus, <strong>click the &#8217;create a new menu&#8217; link</strong> to get started' ) . '</li></ul>';
 	$menu_management .= '<p>' . __( 'You can assign theme locations to individual menus by <strong>selecting the desired settings</strong> at the bottom of the menu editor. To assign menus to all theme locations at once, <strong>visit the Manage Locations tab</strong> at the top of the screen.' ) . '</p>';
 
 	get_current_screen()->add_help_tab(
@@ -635,7 +652,7 @@ if ( ! $locations_screen ) : // Main tab.
 	);
 else : // Locations tab.
 	$locations_overview  = '<p>' . __( 'This screen is used for globally assigning menus to locations defined by your theme.' ) . '</p>';
-	$locations_overview .= '<ul><li>' . __( 'To assign menus to one or more theme locations, <strong>select a menu from each location&#8217;s drop down.</strong> When you&#8217;re finished, <strong>click Save Changes</strong>' ) . '</li>';
+	$locations_overview .= '<ul><li>' . __( 'To assign menus to one or more theme locations, <strong>select a menu from each location&#8217;s drop down.</strong> When you are finished, <strong>click Save Changes</strong>' ) . '</li>';
 	$locations_overview .= '<li>' . __( 'To edit a menu currently assigned to a theme location, <strong>click the adjacent &#8217;Edit&#8217; link</strong>' ) . '</li>';
 	$locations_overview .= '<li>' . __( 'To add a new menu instead of assigning an existing one, <strong>click the &#8217;Use new menu&#8217; link</strong>. Your new menu will be automatically assigned to that theme location' ) . '</li></ul>';
 
@@ -825,7 +842,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<?php
 			printf(
 				/* translators: %s: URL to create a new menu. */
-				__( 'Edit your menu below, or <a href="%s">create a new menu</a>. Don&#8217;t forget to save your changes!' ),
+				__( 'Edit your menu below, or <a href="%s">create a new menu</a>. Do not forget to save your changes!' ),
 				esc_url(
 					add_query_arg(
 						array(
@@ -890,7 +907,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php
 				printf(
 					/* translators: %s: URL to create a new menu. */
-					__( 'or <a href="%s">create a new menu</a>. Don&#8217;t forget to save your changes!' ),
+					__( 'or <a href="%s">create a new menu</a>. Do not forget to save your changes!' ),
 					esc_url(
 						add_query_arg(
 							array(
@@ -981,12 +998,16 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 								<div class="drag-instructions post-body-plain" <?php echo $hide_style; ?>>
 									<p><?php echo $starter_copy; ?></p>
 								</div>
-								<div id="nav-menu-bulk-actions-top" class="bulk-actions">
-									<label class="bulk-select-button" for="bulk-select-switcher-top">
-										<input type="checkbox" id="bulk-select-switcher-top" name="bulk-select-switcher-top" class="bulk-select-switcher">
-										<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
-									</label>
-								</div>
+
+								<?php if ( ! $add_new_screen ) : ?>
+									<div id="nav-menu-bulk-actions-top" class="bulk-actions">
+										<label class="bulk-select-button" for="bulk-select-switcher-top">
+											<input type="checkbox" id="bulk-select-switcher-top" name="bulk-select-switcher-top" class="bulk-select-switcher">
+											<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
+										</label>
+									</div>
+								<?php endif; ?>
+
 								<?php
 								if ( isset( $edit_markup ) && ! is_wp_error( $edit_markup ) ) {
 									echo $edit_markup;
@@ -1012,17 +1033,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 								$no_menus_style = 'style="display: none;"';
 							}
 							?>
-							<div id="nav-menu-bulk-actions-bottom" class="bulk-actions">
-								<label class="bulk-select-button" for="bulk-select-switcher-bottom">
-									<input type="checkbox" id="bulk-select-switcher-bottom" name="bulk-select-switcher-top" class="bulk-select-switcher">
-									<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
-								</label>
-								<input type="button" class="deletion menu-items-delete disabled" value="<?php _e( 'Remove Selected Items' ); ?>">
-								<div id="pending-menu-items-to-delete">
-									<p><?php _e( 'List of menu items selected for deletion:' ); ?></p>
-									<ul></ul>
+
+							<?php if ( ! $add_new_screen ) : ?>
+								<div id="nav-menu-bulk-actions-bottom" class="bulk-actions">
+									<label class="bulk-select-button" for="bulk-select-switcher-bottom">
+										<input type="checkbox" id="bulk-select-switcher-bottom" name="bulk-select-switcher-top" class="bulk-select-switcher">
+										<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
+									</label>
+									<input type="button" class="deletion menu-items-delete disabled" value="<?php _e( 'Remove Selected Items' ); ?>">
+									<div id="pending-menu-items-to-delete">
+										<p><?php _e( 'List of menu items selected for deletion:' ); ?></p>
+										<ul></ul>
+									</div>
 								</div>
-							</div>
+							<?php endif; ?>
+
 							<div class="menu-settings" <?php echo $no_menus_style; ?>>
 								<h3><?php _e( 'Menu Settings' ); ?></h3>
 								<?php

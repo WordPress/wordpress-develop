@@ -82,7 +82,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		unset( $_REQUEST['orderby'] );
 		unset( $_REQUEST['s'] );
 
-		$this->assertContains( "ORDER BY {$wpdb->posts}.{$expected}", $this->sql );
+		$this->assertStringContainsString( "ORDER BY {$wpdb->posts}.{$expected}", $this->sql );
 	}
 
 	/**

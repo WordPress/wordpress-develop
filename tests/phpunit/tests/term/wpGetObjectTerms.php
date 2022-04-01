@@ -7,8 +7,8 @@
 class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	private $taxonomy = 'wptests_tax';
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
@@ -447,6 +447,8 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$wpdb->update( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => 100006 ), array( 'term_taxonomy_id' => $term_2->term_taxonomy_id ) );
 		$wpdb->update( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => 100005 ), array( 'term_taxonomy_id' => $term_3->term_taxonomy_id ) );
 
+		clean_term_cache( array( $t1, $t2, $t3 ), $this->taxonomy );
+
 		$set = wp_set_object_terms( $p, array( $t1, $t2, $t3 ), $this->taxonomy );
 
 		$found = wp_get_object_terms(
@@ -838,7 +840,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		}
 
 		$term = get_term( $t );
-		$this->assertFalse( isset( $term->object_id ) );
+		$this->assertObjectNotHasAttribute( 'object_id', $term );
 	}
 
 	/**
@@ -953,7 +955,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$this->assertSame( implode( ',', $terms ), $terms_to_edit );
 	}
 
-	function filter_wp_get_object_terms_args( $args, $object_ids, $taxonomies ) {
+	public function filter_wp_get_object_terms_args( $args, $object_ids, $taxonomies ) {
 		$args['orderby'] = 'term_order';
 		return $args;
 	}

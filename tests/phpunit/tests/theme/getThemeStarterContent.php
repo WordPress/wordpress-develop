@@ -10,7 +10,7 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 	/**
 	 * Testing passing an empty array as starter content.
 	 */
-	function test_add_theme_support_empty() {
+	public function test_add_theme_support_empty() {
 		add_theme_support( 'starter-content', array() );
 		$starter_content = get_theme_starter_content();
 
@@ -20,7 +20,7 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 	/**
 	 * Testing passing nothing as starter content.
 	 */
-	function test_add_theme_support_single_param() {
+	public function test_add_theme_support_single_param() {
 		add_theme_support( 'starter-content' );
 		$starter_content = get_theme_starter_content();
 
@@ -30,7 +30,7 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 	/**
 	 * Testing that placeholder starter content gets expanded, that unrecognized placeholders are discarded, and that custom items are recognized.
 	 */
-	function test_default_content_sections() {
+	public function test_default_content_sections() {
 		/*
 		 * All placeholder identifiers should be referenced in this sample starter
 		 * content and then tested to ensure they get hydrated in the call to
@@ -159,7 +159,7 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 
 		foreach ( $hydrated_starter_content['posts'] as $key => $post ) {
 			$this->assertIsString( $key );
-			$this->assertFalse( is_numeric( $key ) );
+			$this->assertIsNotNumeric( $key );
 			$this->assertIsArray( $post );
 			$this->assertArrayHasKey( 'post_type', $post );
 			$this->assertArrayHasKey( 'post_title', $post );
@@ -172,7 +172,7 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 	/**
 	 * Testing the filter with the text_credits widget.
 	 */
-	function test_get_theme_starter_content_filter() {
+	public function test_get_theme_starter_content_filter() {
 
 		add_theme_support(
 			'starter-content',

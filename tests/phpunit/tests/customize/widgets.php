@@ -20,8 +20,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	protected $backup_registered_sidebars;
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
 		add_theme_support( 'customize-selective-refresh-widgets' );
@@ -78,7 +78,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		WP_Customize_Setting::reset_aggregated_multidimensionals();
 	}
 
-	function clean_up_global_scope() {
+	public function clean_up_global_scope() {
 		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
 
 		$wp_registered_sidebars        = array();
@@ -90,15 +90,15 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		parent::clean_up_global_scope();
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );
 		$GLOBALS['wp_registered_sidebars'] = $this->backup_registered_sidebars;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
-	function set_customized_post_data( $customized ) {
+	private function set_customized_post_data( $customized ) {
 		$_POST['customized'] = wp_slash( wp_json_encode( $customized ) );
 		if ( $this->manager ) {
 			foreach ( $customized as $id => $value ) {
@@ -107,7 +107,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		}
 	}
 
-	function do_customize_boot_actions() {
+	private function do_customize_boot_actions() {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_REQUEST['nonce']         = wp_create_nonce( 'preview-customize_' . $this->manager->theme()->get_stylesheet() );
 		do_action( 'setup_theme' );
@@ -117,14 +117,14 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		do_action( 'wp', $GLOBALS['wp'] );
 	}
 
-	function remove_widgets_block_editor() {
+	public function remove_widgets_block_editor() {
 		remove_theme_support( 'widgets-block-editor' );
 	}
 
 	/**
 	 * Test WP_Customize_Widgets::__construct()
 	 */
-	function test_construct() {
+	public function test_construct() {
 		$this->assertInstanceOf( 'WP_Customize_Widgets', $this->manager->widgets );
 		$this->assertSame( $this->manager, $this->manager->widgets->manager );
 	}
@@ -136,7 +136,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @see WP_Customize_Widgets::preview_sidebars_widgets()
 	 * @ticket 36660
 	 */
-	function test_customize_register_with_deleted_sidebars() {
+	public function test_customize_register_with_deleted_sidebars() {
 		$sidebar_id = 'sidebar-1';
 		delete_option( 'sidebars_widgets' );
 		register_sidebar( array( 'id' => $sidebar_id ) );
@@ -228,7 +228,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::get_selective_refreshable_widgets()
 	 */
-	function test_get_selective_refreshable_widgets_when_theme_supports() {
+	public function test_get_selective_refreshable_widgets_when_theme_supports() {
 		global $wp_widget_factory;
 		add_action( 'widgets_init', array( $this, 'override_search_widget_customize_selective_refresh' ), 90 );
 		add_theme_support( 'customize-selective-refresh-widgets' );
@@ -248,7 +248,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::get_selective_refreshable_widgets()
 	 */
-	function test_get_selective_refreshable_widgets_when_no_theme_supports() {
+	public function test_get_selective_refreshable_widgets_when_no_theme_supports() {
 		add_action( 'widgets_init', array( $this, 'override_search_widget_customize_selective_refresh' ), 90 );
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$this->do_customize_boot_actions();
@@ -262,7 +262,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @see Tests_WP_Customize_Widgets::test_get_selective_refreshable_widgets_when_theme_supports()
 	 * @see Tests_WP_Customize_Widgets::test_get_selective_refreshable_widgets_when_no_theme_supports()
 	 */
-	function override_search_widget_customize_selective_refresh() {
+	public function override_search_widget_customize_selective_refresh() {
 		global $wp_widget_factory;
 		$wp_widget_factory->widgets['WP_Widget_Search']->widget_options['customize_selective_refresh'] = false;
 	}
@@ -272,7 +272,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::is_widget_selective_refreshable()
 	 */
-	function test_is_widget_selective_refreshable() {
+	public function test_is_widget_selective_refreshable() {
 		add_action( 'widgets_init', array( $this, 'override_search_widget_customize_selective_refresh' ), 90 );
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$this->do_customize_boot_actions();
@@ -288,7 +288,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @ticket 30988
 	 * @ticket 36389
 	 */
-	function test_register_settings() {
+	public function test_register_settings() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 
 		$raw_widget_customized = array(
@@ -340,7 +340,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @ticket 36389
 	 */
-	function test_register_settings_without_selective_refresh() {
+	public function test_register_settings_without_selective_refresh() {
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$this->test_register_settings();
 	}
@@ -350,7 +350,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @ticket 36389
 	 */
-	function test_register_settings_with_late_theme_support_added() {
+	public function test_register_settings_with_late_theme_support_added() {
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		add_action( 'after_setup_theme', array( $this, 'add_customize_selective_refresh_theme_support' ), 100 );
 		$this->test_register_settings();
@@ -359,14 +359,14 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * Add customize-selective-refresh-widgets theme support.
 	 */
-	function add_customize_selective_refresh_theme_support() {
+	public function add_customize_selective_refresh_theme_support() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 	}
 
 	/**
 	 * Test WP_Customize_Widgets::get_setting_args()
 	 */
-	function test_get_setting_args() {
+	public function test_get_setting_args() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$this->do_customize_boot_actions();
 
@@ -447,7 +447,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( 'SIDEBARS_WIDGETS[SIDEBAR-2]', $args['uppercase_id_set_by_filter'] );
 	}
 
-	function filter_widget_customizer_setting_args( $args, $id ) {
+	public function filter_widget_customizer_setting_args( $args, $id ) {
 		$args['uppercase_id_set_by_filter'] = strtoupper( $id );
 		return $args;
 	}
@@ -455,7 +455,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * Test WP_Customize_Widgets::sanitize_widget_js_instance() and WP_Customize_Widgets::sanitize_widget_instance()
 	 */
-	function test_sanitize_widget_js_instance() {
+	public function test_sanitize_widget_js_instance() {
 		$this->do_customize_boot_actions();
 
 		$new_categories_instance = array(
@@ -486,7 +486,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @ticket 53489
 	 */
-	function test_sanitize_widget_instance_raw_instance() {
+	public function test_sanitize_widget_instance_raw_instance() {
 		remove_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
 		$this->do_customize_boot_actions();
 
@@ -513,7 +513,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @ticket 53489
 	 */
-	function test_sanitize_widget_instance_with_no_show_instance_in_rest() {
+	public function test_sanitize_widget_instance_with_no_show_instance_in_rest() {
 		global $wp_widget_factory;
 
 		remove_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
@@ -544,7 +544,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @ticket 53479
 	 */
-	function test_sanitize_widget_instance_empty_instance() {
+	public function test_sanitize_widget_instance_empty_instance() {
 		$this->do_customize_boot_actions();
 		$this->assertSame( $this->manager->widgets->sanitize_widget_instance( array() ), array() );
 	}
@@ -554,7 +554,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function get_test_widget_control_args() {
+	private function get_test_widget_control_args() {
 		global $wp_registered_widgets;
 		require_once ABSPATH . '/wp-admin/includes/widgets.php';
 		$widget_id = 'search-2';
@@ -575,46 +575,46 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * @see WP_Customize_Widgets::get_widget_control()
 	 */
-	function test_get_widget_control() {
+	public function test_get_widget_control() {
 		$this->do_customize_boot_actions();
 		$widget_control = $this->manager->widgets->get_widget_control( $this->get_test_widget_control_args() );
 
-		$this->assertContains( '<div class="form">', $widget_control );
-		$this->assertContains( '<div class="widget-content">', $widget_control );
-		$this->assertContains( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control );
-		$this->assertContains( '<input class="widefat"', $widget_control );
+		$this->assertStringContainsString( '<div class="form">', $widget_control );
+		$this->assertStringContainsString( '<div class="widget-content">', $widget_control );
+		$this->assertStringContainsString( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control );
+		$this->assertStringContainsString( '<input class="widefat"', $widget_control );
 	}
 
 	/**
 	 * @see WP_Customize_Widgets::get_widget_control_parts()
 	 */
-	function test_get_widget_control_parts() {
+	public function test_get_widget_control_parts() {
 		$this->do_customize_boot_actions();
 		$widget_control_parts = $this->manager->widgets->get_widget_control_parts( $this->get_test_widget_control_args() );
 		$this->assertArrayHasKey( 'content', $widget_control_parts );
 		$this->assertArrayHasKey( 'control', $widget_control_parts );
 
-		$this->assertContains( '<div class="form">', $widget_control_parts['control'] );
-		$this->assertContains( '<div class="widget-content">', $widget_control_parts['control'] );
-		$this->assertContains( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control_parts['control'] );
-		$this->assertNotContains( '<input class="widefat"', $widget_control_parts['control'] );
-		$this->assertContains( '<input class="widefat"', $widget_control_parts['content'] );
+		$this->assertStringContainsString( '<div class="form">', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<div class="widget-content">', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control_parts['control'] );
+		$this->assertStringNotContainsString( '<input class="widefat"', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<input class="widefat"', $widget_control_parts['content'] );
 	}
 
 	/**
 	 * @see WP_Widget_Form_Customize_Control::json()
 	 */
-	function test_wp_widget_form_customize_control_json() {
+	public function test_wp_widget_form_customize_control_json() {
 		$this->do_customize_boot_actions();
 		$control = $this->manager->get_control( 'widget_search[2]' );
 		$params  = $control->json();
 
 		$this->assertSame( 'widget_form', $params['type'] );
-		$this->assertRegExp( '#^<li[^>]+>\s*</li>$#', $params['content'] );
-		$this->assertRegExp( '#^<div[^>]*class=\'widget\'[^>]*#s', $params['widget_control'] );
-		$this->assertContains( '<div class="widget-content"></div>', $params['widget_control'] );
-		$this->assertNotContains( '<input class="widefat"', $params['widget_control'] );
-		$this->assertContains( '<input class="widefat"', $params['widget_content'] );
+		$this->assertMatchesRegularExpression( '#^<li[^>]+>\s*</li>$#', $params['content'] );
+		$this->assertMatchesRegularExpression( '#^<div[^>]*class=\'widget\'[^>]*#s', $params['widget_control'] );
+		$this->assertStringContainsString( '<div class="widget-content"></div>', $params['widget_control'] );
+		$this->assertStringNotContainsString( '<input class="widefat"', $params['widget_control'] );
+		$this->assertStringContainsString( '<input class="widefat"', $params['widget_content'] );
 		$this->assertSame( 'search-2', $params['widget_id'] );
 		$this->assertSame( 'search', $params['widget_id_base'] );
 		$this->assertArrayHasKey( 'sidebar_id', $params );
@@ -626,7 +626,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * @see WP_Customize_Widgets::is_panel_active()
 	 */
-	function test_is_panel_active() {
+	public function test_is_panel_active() {
 		global $wp_registered_sidebars;
 		$this->do_customize_boot_actions();
 
@@ -643,7 +643,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @ticket 34738
 	 * @see WP_Customize_Widgets::call_widget_update()
 	 */
-	function test_call_widget_update() {
+	public function test_call_widget_update() {
 
 		$widget_number = 2;
 		$widget_id     = "search-{$widget_number}";
@@ -681,7 +681,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'instance', $result );
 		$this->assertArrayHasKey( 'form', $result );
 		$this->assertSame( $instance, $result['instance'] );
-		$this->assertContains( sprintf( 'value="%s"', esc_attr( $instance['title'] ) ), $result['form'] );
+		$this->assertStringContainsString( sprintf( 'value="%s"', esc_attr( $instance['title'] ) ), $result['form'] );
 
 		$post_values = $this->manager->unsanitized_post_values();
 		$this->assertArrayHasKey( $setting_id, $post_values );
@@ -699,7 +699,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::customize_dynamic_partial_args()
 	 */
-	function test_customize_dynamic_partial_args() {
+	public function test_customize_dynamic_partial_args() {
 		do_action( 'customize_register', $this->manager );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', false, 'widget[search-2]' );
@@ -725,7 +725,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::selective_refresh_init()
 	 */
-	function test_selective_refresh_init_with_theme_support() {
+	public function test_selective_refresh_init_with_theme_support() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$this->manager->widgets->selective_refresh_init();
 		$this->assertSame( 10, has_action( 'dynamic_sidebar_before', array( $this->manager->widgets, 'start_dynamic_sidebar' ) ) );
@@ -739,7 +739,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::selective_refresh_init()
 	 */
-	function test_selective_refresh_init_without_theme_support() {
+	public function test_selective_refresh_init_without_theme_support() {
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$this->manager->widgets->selective_refresh_init();
 		$this->assertFalse( has_action( 'dynamic_sidebar_before', array( $this->manager->widgets, 'start_dynamic_sidebar' ) ) );
@@ -753,7 +753,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::customize_preview_enqueue()
 	 */
-	function test_customize_preview_enqueue() {
+	public function test_customize_preview_enqueue() {
 		$this->manager->widgets->customize_preview_enqueue();
 		$this->assertTrue( wp_script_is( 'customize-preview-widgets', 'enqueued' ) );
 		$this->assertTrue( wp_style_is( 'customize-preview', 'enqueued' ) );
@@ -768,7 +768,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @see WP_Customize_Widgets::start_dynamic_sidebar()
 	 * @see WP_Customize_Widgets::end_dynamic_sidebar()
 	 */
-	function test_filter_dynamic_sidebar_params() {
+	public function test_filter_dynamic_sidebar_params() {
 		global $wp_registered_sidebars;
 		register_sidebar(
 			array(
@@ -814,8 +814,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( '<!--dynamic_sidebar_after:foo:1-->', trim( $output ) );
 
 		$output = wp_kses_post( $filtered_params[0]['before_widget'] );
-		$this->assertContains( 'data-customize-partial-id="widget[search-2]"', $output );
-		$this->assertContains( 'data-customize-partial-type="widget"', $output );
+		$this->assertStringContainsString( 'data-customize-partial-id="widget[search-2]"', $output );
+		$this->assertStringContainsString( 'data-customize-partial-type="widget"', $output );
 	}
 
 	/**
@@ -823,7 +823,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::render_widget_partial()
 	 */
-	function test_render_widget_partial() {
+	public function test_render_widget_partial() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$this->do_customize_boot_actions();
 		$this->manager->widgets->selective_refresh_init();
@@ -841,7 +841,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 		$this->assertSame( 1, substr_count( $output, 'data-customize-partial-id' ) );
 		$this->assertSame( 1, substr_count( $output, 'data-customize-partial-type="widget"' ) );
-		$this->assertContains( ' id="search-2"', $output );
+		$this->assertStringContainsString( ' id="search-2"', $output );
 	}
 
 	/**

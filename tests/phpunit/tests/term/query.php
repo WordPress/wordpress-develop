@@ -146,8 +146,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 		remove_filter( 'terms_clauses', array( $this, 'filter_terms_clauses' ) );
 
-		$this->assertContains( 'ORDER BY tt.term_id', $q->request );
-		$this->assertNotContains( 'ORDER BY ORDER BY', $q->request );
+		$this->assertStringContainsString( 'ORDER BY tt.term_id', $q->request );
+		$this->assertStringNotContainsString( 'ORDER BY ORDER BY', $q->request );
 	}
 
 	public function filter_terms_clauses( $clauses ) {

@@ -191,8 +191,8 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @since 5.2.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Avoid writing export files to disk. Using `WP_Filesystem_MockFS` is blocked by #44204.
 		remove_action( 'wp_privacy_personal_data_export_file', 'wp_privacy_generate_personal_data_export_file', 10 );
@@ -218,10 +218,10 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @since 5.2.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		error_reporting( $this->_error_level );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

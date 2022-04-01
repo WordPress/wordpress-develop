@@ -2,6 +2,7 @@
 
 /**
  * @group xmlrpc
+ * @requires function imagejpeg
  */
 class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 	protected static $post_id;
@@ -13,8 +14,8 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		add_theme_support( 'post-thumbnails' );
 
@@ -28,21 +29,21 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		set_post_thumbnail( self::$post_id, $this->attachment_id );
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		remove_theme_support( 'post-thumbnails' );
 
 		$this->remove_added_uploads();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getMediaItem( array( 1, 'username', 'password', 0 ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_valid_media_item() {
+	public function test_valid_media_item() {
 		$this->make_user_by_role( 'author' );
 
 		$fields = array( 'post' );

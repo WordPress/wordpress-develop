@@ -5,8 +5,8 @@
  */
 class Tests_Rewrite_Permastructs extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->set_permalink_structure( '/%postname%/' );
 	}
@@ -38,6 +38,6 @@ class Tests_Rewrite_Permastructs extends WP_UnitTestCase {
 		$this->assertSame( '/bar/%foo%', $wp_rewrite->extra_permastructs['foo']['struct'] );
 
 		remove_permastruct( 'foo' );
-		$this->assertFalse( isset( $wp_rewrite->extra_permastructs['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $wp_rewrite->extra_permastructs );
 	}
 }

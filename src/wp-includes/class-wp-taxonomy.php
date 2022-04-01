@@ -144,7 +144,7 @@ final class WP_Taxonomy {
 	 * An array of object types this taxonomy is registered for.
 	 *
 	 * @since 4.7.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $object_type = null;
 
@@ -198,6 +198,14 @@ final class WP_Taxonomy {
 	 * @var string|bool $rest_base
 	 */
 	public $rest_base;
+
+	/**
+	 * The namespace for this taxonomy's REST API endpoints.
+	 *
+	 * @since 5.9.0
+	 * @var string|bool $rest_namespace
+	 */
+	public $rest_namespace;
 
 	/**
 	 * The controller for this taxonomy's REST API endpoints.
@@ -281,8 +289,8 @@ final class WP_Taxonomy {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array|string $object_type Name of the object type for the taxonomy object.
-	 * @param array|string $args        Array or query string of arguments for registering a taxonomy.
+	 * @param string|string[] $object_type Name or array of names of the object types for the taxonomy.
+	 * @param array|string    $args        Array or query string of arguments for registering a taxonomy.
 	 */
 	public function set_props( $object_type, $args ) {
 		$args = wp_parse_args( $args );
@@ -319,6 +327,7 @@ final class WP_Taxonomy {
 			'update_count_callback' => '',
 			'show_in_rest'          => false,
 			'rest_base'             => false,
+			'rest_namespace'        => false,
 			'rest_controller_class' => false,
 			'default_term'          => null,
 			'sort'                  => null,
@@ -382,6 +391,11 @@ final class WP_Taxonomy {
 		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_quick_edit'] ) {
 			$args['show_in_quick_edit'] = $args['show_ui'];
+		}
+
+		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
+		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
+			$args['rest_namespace'] = 'wp/v2';
 		}
 
 		$default_caps = array(

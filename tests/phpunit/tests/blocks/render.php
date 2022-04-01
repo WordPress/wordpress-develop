@@ -1,6 +1,6 @@
 <?php
 /**
- * Block rendering tests.
+ * Block rendering tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for block rendering functions
+ * Tests for block rendering functions.
  *
  * @since 5.0.0
  *
  * @group blocks
  */
-class WP_Test_Block_Render extends WP_UnitTestCase {
+class Tests_Blocks_Render extends WP_UnitTestCase {
 	/**
 	 * The location of the fixtures to test with.
 	 *
@@ -37,7 +37,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		$this->test_block_instance_number = 0;
 
 		$registry = WP_Block_Type_Registry::get_instance();
@@ -48,7 +48,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 			$registry->unregister( 'core/dynamic' );
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -83,14 +83,14 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertSame( trim( $classic_filtered_content ), trim( $block_filtered_content ) );
 	}
 
-	function handle_shortcode( $atts, $content ) {
+	public function handle_shortcode( $atts, $content ) {
 		return $content;
 	}
 
 	/**
 	 * @ticket 45495
 	 */
-	function test_nested_calls_to_the_content() {
+	public function test_nested_calls_to_the_content() {
 		register_block_type(
 			'core/test',
 			array(
@@ -108,7 +108,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertSame( $content, $the_content );
 	}
 
-	function dynamic_the_content_call( $attrs, $content ) {
+	public function dynamic_the_content_call( $attrs, $content ) {
 		apply_filters( 'the_content', '' );
 		return $content;
 	}
@@ -304,7 +304,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		);
 		$comments = do_blocks( '<!-- wp:latest-comments {"commentsToShow":1,"displayExcerpt":true} /-->' );
 
-		$this->assertNotContains( $comment_text, $comments );
+		$this->assertStringNotContainsString( $comment_text, $comments );
 	}
 
 	/**

@@ -21,18 +21,20 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	protected static $_wpdb;
 
-	public static function setUpBeforeClass() {
-		parent::setUpBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 		self::$_wpdb = new WpdbExposedMethodsForTesting();
 	}
 
 	/**
 	 * Set up the test fixture
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->_queries = array();
 		add_filter( 'query', array( $this, 'query_filter' ) );
+		self::$_wpdb->last_error     = null;
+		$GLOBALS['wpdb']->last_error = null;
 	}
 
 	/**
@@ -99,11 +101,11 @@ class Tests_DB extends WP_UnitTestCase {
 		$wpdb->suppress_errors( false );
 
 		// Ensure the float isn't 0,700.
-		$this->assertContains( '0.700', array_pop( $this->_queries ) );
+		$this->assertStringContainsString( '0.700', array_pop( $this->_queries ) );
 
 		// Try a prepare.
 		$sql = $wpdb->prepare( 'UPDATE test_table SET float_column = %f AND meta_id = %d', 0.7, 5 );
-		$this->assertContains( '0.700', $sql );
+		$this->assertStringContainsString( '0.700', $sql );
 
 		// Restore locale settings.
 		foreach ( $current_locales as $locale_setting ) {
@@ -121,7 +123,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 10041
 	 */
-	function test_esc_like() {
+	public function test_esc_like() {
 		global $wpdb;
 
 		$inputs   = array(
@@ -157,12 +159,12 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @param $like string The like phrase, raw.
 	 * @param $result string The expected comparison result; '1' = true, '0' = false
 	 */
-	function test_like_query( $data, $like, $result ) {
+	public function test_like_query( $data, $like, $result ) {
 		global $wpdb;
 		return $this->assertSame( $result, $wpdb->get_var( $wpdb->prepare( 'SELECT %s LIKE %s', $data, $wpdb->esc_like( $like ) ) ) );
 	}
 
-	function data_like_query() {
+	public function data_like_query() {
 		return array(
 			array(
 				'aaa',
@@ -220,7 +222,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 18510
 	 */
-	function test_wpdb_supposedly_protected_properties() {
+	public function test_wpdb_supposedly_protected_properties() {
 		global $wpdb;
 
 		$this->assertNotEmpty( $wpdb->dbh );
@@ -236,7 +238,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	function test_wpdb_actually_protected_properties() {
+	public function test_wpdb_actually_protected_properties() {
 		global $wpdb;
 
 		$new_meta = "HAHA I HOPE THIS DOESN'T WORK";
@@ -251,7 +253,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 18510
 	 */
-	function test_wpdb_nonexistent_properties() {
+	public function test_wpdb_nonexistent_properties() {
 		global $wpdb;
 
 		$this->assertTrue( empty( $wpdb->nonexistent_property ) );
@@ -270,7 +272,7 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_double_escaped_placeholders() {
 		global $wpdb;
 		$sql = $wpdb->prepare( "UPDATE test_table SET string_column = '%%f is a float, %%d is an int %d, %%s is a string', field = %s", 3, '4' );
-		$this->assertContains( $wpdb->placeholder_escape(), $sql );
+		$this->assertStringContainsString( $wpdb->placeholder_escape(), $sql );
 
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 		$this->assertSame( "UPDATE test_table SET string_column = '%f is a float, %d is an int 3, %s is a string', field = '4'", $sql );
@@ -282,7 +284,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @ticket 26847
 	 */
-	function test_set_sql_mode() {
+	public function test_set_sql_mode() {
 		global $wpdb;
 
 		$current_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
@@ -302,7 +304,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @ticket 26847
 	 */
-	function test_set_incompatible_sql_mode() {
+	public function test_set_incompatible_sql_mode() {
 		global $wpdb;
 
 		$current_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
@@ -320,7 +322,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @ticket 26847
 	 */
-	function test_set_allowed_incompatible_sql_mode() {
+	public function test_set_allowed_incompatible_sql_mode() {
 		global $wpdb;
 
 		$current_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
@@ -353,7 +355,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @ticket 25604
 	 * @expectedIncorrectUsage wpdb::prepare
 	 */
-	function test_prepare_without_arguments() {
+	public function test_prepare_without_arguments() {
 		global $wpdb;
 		$id = 0;
 		// This, obviously, is an incorrect prepare.
@@ -362,7 +364,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( "SELECT * FROM $wpdb->users WHERE id = 0", $prepared );
 	}
 
-	function test_prepare_sprintf() {
+	public function test_prepare_sprintf() {
 		global $wpdb;
 
 		$prepared = $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE id = %d AND user_login = %s", 1, 'admin' );
@@ -372,7 +374,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
 	 */
-	function test_prepare_sprintf_invalid_args() {
+	public function test_prepare_sprintf_invalid_args() {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
@@ -384,7 +386,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( "SELECT * FROM $wpdb->users WHERE id = 0 AND user_login = 'admin'", $prepared );
 	}
 
-	function test_prepare_vsprintf() {
+	public function test_prepare_vsprintf() {
 		global $wpdb;
 
 		$prepared = $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE id = %d AND user_login = %s", array( 1, 'admin' ) );
@@ -394,7 +396,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
 	 */
-	function test_prepare_vsprintf_invalid_args() {
+	public function test_prepare_vsprintf_invalid_args() {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
@@ -471,13 +473,13 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 	}
 
-	function test_db_version() {
+	public function test_db_version() {
 		global $wpdb;
 
 		$this->assertTrue( version_compare( $wpdb->db_version(), '5.0', '>=' ) );
 	}
 
-	function test_get_caller() {
+	public function test_get_caller() {
 		global $wpdb;
 		$str    = $wpdb->get_caller();
 		$calls  = explode( ', ', $str );
@@ -485,7 +487,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $called, end( $calls ) );
 	}
 
-	function test_has_cap() {
+	public function test_has_cap() {
 		global $wpdb;
 		$this->assertTrue( $wpdb->has_cap( 'collation' ) );
 		$this->assertTrue( $wpdb->has_cap( 'group_concat' ) );
@@ -506,24 +508,24 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @expectedDeprecated supports_collation
 	 */
-	function test_supports_collation() {
+	public function test_supports_collation() {
 		global $wpdb;
 		$this->assertTrue( $wpdb->supports_collation() );
 	}
 
-	function test_check_database_version() {
+	public function test_check_database_version() {
 		global $wpdb;
 		$this->assertEmpty( $wpdb->check_database_version() );
 	}
 
-	function test_bail() {
+	public function test_bail() {
 		global $wpdb;
 
 		$this->expectException( 'WPDieException' );
 		$wpdb->bail( 'Database is dead.' );
 	}
 
-	function test_timers() {
+	public function test_timers() {
 		global $wpdb;
 
 		$wpdb->timer_start();
@@ -534,7 +536,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertGreaterThan( $stop, $wpdb->time_start );
 	}
 
-	function test_get_col_info() {
+	public function test_get_col_info() {
 		global $wpdb;
 
 		$wpdb->get_results( "SELECT ID FROM $wpdb->users" );
@@ -544,7 +546,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $wpdb->users, $wpdb->get_col_info( 'table', 0 ) );
 	}
 
-	function test_query_and_delete() {
+	public function test_query_and_delete() {
 		global $wpdb;
 		$rows = $wpdb->query( "INSERT INTO $wpdb->users (display_name) VALUES ('Walter Sobchak')" );
 		$this->assertSame( 1, $rows );
@@ -553,7 +555,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( 1, $d_rows );
 	}
 
-	function test_get_row() {
+	public function test_get_row() {
 		global $wpdb;
 		$rows = $wpdb->query( "INSERT INTO $wpdb->users (display_name) VALUES ('Walter Sobchak')" );
 		$this->assertSame( 1, $rows );
@@ -576,7 +578,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @ticket 45299
 	 */
-	function test_get_col( $query, $expected, $last_result, $column ) {
+	public function test_get_col( $query, $expected, $last_result, $column ) {
 		global $wpdb;
 
 		$wpdb->last_result = $last_result;
@@ -606,7 +608,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *     @type arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
 	 *     @type int|string         $column      The column index to retrieve.
 	 */
-	function data_test_get_col() {
+	public function data_test_get_col() {
 		global $wpdb;
 
 		return array(
@@ -655,7 +657,7 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 	}
 
-	function test_replace() {
+	public function test_replace() {
 		global $wpdb;
 		$rows1 = $wpdb->insert( $wpdb->users, array( 'display_name' => 'Walter Sobchak' ) );
 		$this->assertSame( 1, $rows1 );
@@ -683,7 +685,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @ticket 26106
 	 */
-	function test_empty_where_on_update() {
+	public function test_empty_where_on_update() {
 		global $wpdb;
 		$suppress = $wpdb->suppress_errors( true );
 		$wpdb->update( $wpdb->posts, array( 'post_name' => 'burrito' ), array() );
@@ -705,7 +707,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @ticket 28155
 	 */
-	function test_mysqli_flush_sync() {
+	public function test_mysqli_flush_sync() {
 		global $wpdb;
 		if ( ! $wpdb->use_mysqli ) {
 			$this->markTestSkipped( 'mysqli not being used.' );
@@ -741,7 +743,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @ticket 21212
 	 * @ticket 32763
 	 */
-	function data_get_table_from_query() {
+	public function data_get_table_from_query() {
 		$table       = 'a_test_table_name';
 		$more_tables = array(
 			// table_name => expected_value
@@ -865,11 +867,11 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @dataProvider data_get_table_from_query
 	 * @ticket 21212
 	 */
-	function test_get_table_from_query( $query, $table ) {
+	public function test_get_table_from_query( $query, $table ) {
 		$this->assertSame( $table, self::$_wpdb->get_table_from_query( $query ) );
 	}
 
-	function data_get_table_from_query_false() {
+	public function data_get_table_from_query_false() {
 		$table = 'a_test_table_name';
 		return array(
 			array( "LOL THIS ISN'T EVEN A QUERY $table" ),
@@ -880,14 +882,14 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @dataProvider data_get_table_from_query_false
 	 * @ticket 21212
 	 */
-	function test_get_table_from_query_false( $query ) {
+	public function test_get_table_from_query_false( $query ) {
 		$this->assertFalse( self::$_wpdb->get_table_from_query( $query ) );
 	}
 
 	/**
 	 * @ticket 38751
 	 */
-	function data_get_escaped_table_from_show_query() {
+	public function data_get_escaped_table_from_show_query() {
 		return array(
 			// Equality.
 			array( "SHOW TABLE STATUS WHERE Name = 'test_name'", 'test_name' ),
@@ -907,14 +909,14 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @dataProvider data_get_escaped_table_from_show_query
 	 * @ticket 38751
 	 */
-	function test_get_escaped_table_from_show_query( $query, $table ) {
+	public function test_get_escaped_table_from_show_query( $query, $table ) {
 		$this->assertSame( $table, self::$_wpdb->get_table_from_query( $query ) );
 	}
 
 	/**
 	 * @ticket 21212
 	 */
-	function data_process_field_formats() {
+	public function data_process_field_formats() {
 		$core_db_fields_no_format_specified = array(
 			array(
 				'post_content' => 'foo',
@@ -1022,7 +1024,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @dataProvider data_process_field_formats
 	 * @ticket 21212
 	 */
-	function test_process_field_formats( $data, $format, $expected, $message ) {
+	public function test_process_field_formats( $data, $format, $expected, $message ) {
 		$actual = self::$_wpdb->process_field_formats( $data, $format );
 		$this->assertSame( $expected, $actual, $message );
 	}
@@ -1030,7 +1032,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	function test_process_fields() {
+	public function test_process_fields() {
 		global $wpdb;
 
 		if ( $wpdb->charset ) {
@@ -1060,7 +1062,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @ticket 21212
 	 * @depends test_process_fields
 	 */
-	function test_process_fields_on_nonexistent_table( $data ) {
+	public function test_process_fields_on_nonexistent_table( $data ) {
 		self::$_wpdb->suppress_errors( true );
 		$data = array( 'post_content' => '¡foo foo foo!' );
 		$this->assertFalse( self::$_wpdb->process_fields( 'nonexistent_table', $data, null ) );
@@ -1070,35 +1072,199 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	function test_pre_get_table_charset_filter() {
+	public function test_pre_get_table_charset_filter() {
 		add_filter( 'pre_get_table_charset', array( $this, 'filter_pre_get_table_charset' ), 10, 2 );
 		$charset = self::$_wpdb->get_table_charset( 'some_table' );
 		remove_filter( 'pre_get_table_charset', array( $this, 'filter_pre_get_table_charset' ), 10 );
 
 		$this->assertSame( $charset, 'fake_charset' );
 	}
-	function filter_pre_get_table_charset( $charset, $table ) {
+	public function filter_pre_get_table_charset( $charset, $table ) {
 		return 'fake_charset';
 	}
 
 	/**
 	 * @ticket 21212
 	 */
-	function test_pre_get_col_charset_filter() {
+	public function test_pre_get_col_charset_filter() {
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset' ), 10, 3 );
 		$charset = self::$_wpdb->get_col_charset( 'some_table', 'some_col' );
 		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset' ), 10 );
 
 		$this->assertSame( $charset, 'fake_col_charset' );
 	}
-	function filter_pre_get_col_charset( $charset, $table, $column ) {
+	public function filter_pre_get_col_charset( $charset, $table, $column ) {
 		return 'fake_col_charset';
+	}
+
+	/**
+	 * @dataProvider data_process_single_field_invalid_data
+	 * @dataProvider data_process_multiple_fields_invalid_data
+	 *
+	 * @ticket 32315
+	 *
+	 * @covers wpdb::process_fields
+	 *
+	 * @param array  $data           Data to process.
+	 * @param string $errored_fields Expected fields in the error message.
+	 */
+	public function test_process_fields_value_too_long_for_field( array $data, $errored_fields ) {
+		global $wpdb;
+
+		$this->assertFalse( self::$_wpdb->process_fields( $wpdb->posts, $data, null ) );
+		$this->assertSame( $this->get_db_error_value_too_long( $errored_fields ), self::$_wpdb->last_error );
+	}
+
+	/**
+	 * @dataProvider data_process_single_field_invalid_data
+	 *
+	 * @ticket 32315
+	 *
+	 * @covers wpdb::insert
+	 *
+	 * @param array  $data           Data to process.
+	 * @param string $errored_fields Expected fields in the error message.
+	 */
+	public function test_insert_value_too_long_for_field( array $data, $errored_fields ) {
+		global $wpdb;
+
+		$this->assertFalse( $wpdb->insert( $wpdb->posts, $data ) );
+		$this->assertSame( $this->get_db_error_value_too_long( $errored_fields ), $wpdb->last_error );
+	}
+
+	/**
+	 * @dataProvider data_process_single_field_invalid_data
+	 *
+	 * @ticket 32315
+	 *
+	 * @covers wpdb::replace
+	 *
+	 * @param array  $data           Data to process.
+	 * @param string $errored_fields Expected fields in the error message.
+	 */
+	public function test_replace_value_too_long_for_field( array $data, $errored_fields ) {
+		global $wpdb;
+
+		$this->assertFalse( $wpdb->replace( $wpdb->posts, $data ) );
+		$this->assertSame( $this->get_db_error_value_too_long( $errored_fields ), $wpdb->last_error );
+	}
+
+	/**
+	 * @dataProvider data_process_single_field_invalid_data
+	 *
+	 * @ticket 32315
+	 *
+	 * @covers wpdb::update
+	 *
+	 * @param array  $data           Data to process.
+	 * @param string $errored_fields Expected fields in the error message.
+	 */
+	public function test_update_value_too_long_for_field( array $data, $errored_fields ) {
+		global $wpdb;
+
+		$this->assertFalse( $wpdb->update( $wpdb->posts, $data, array() ) );
+		$this->assertSame( $this->get_db_error_value_too_long( $errored_fields ), $wpdb->last_error );
+	}
+
+	/**
+	 * @dataProvider data_process_single_field_invalid_data
+	 *
+	 * @ticket 32315
+	 *
+	 * @covers wpdb::delete
+	 *
+	 * @param array  $data           Data to process.
+	 * @param string $errored_fields Expected fields in the error message.
+	 */
+	public function test_delete_value_too_long_for_field( array $data, $errored_fields ) {
+		global $wpdb;
+
+		$this->assertFalse( $wpdb->delete( $wpdb->posts, $data, array() ) );
+		$this->assertSame( $this->get_db_error_value_too_long( $errored_fields ), $wpdb->last_error );
+	}
+
+	/**
+	 * Assert the error message matches the fields.
+	 *
+	 * @param string $errored_fields Expected fields in the error message.
+	 */
+	private function get_db_error_value_too_long( $errored_fields ) {
+		if ( str_contains( $errored_fields, ', ' ) ) {
+			return sprintf(
+				'WordPress database error: Processing the values for the following fields failed: %s. ' .
+				'The supplied values may be too long or contain invalid data.',
+				$errored_fields
+			);
+		}
+		return sprintf(
+			'WordPress database error: Processing the value for the following field failed: %s. ' .
+			'The supplied value may be too long or contains invalid data.',
+			$errored_fields
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_process_single_field_invalid_data() {
+		return array(
+			'too long'      => array(
+				'data'           => array( 'post_status' => str_repeat( 'a', 21 ) ),
+				'errored_fields' => 'post_status',
+			),
+			'invalid chars' => array(
+				'data'           => array( 'post_status' => "\xF5" ),
+				'errored_fields' => 'post_status',
+			),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_process_multiple_fields_invalid_data() {
+		return array(
+			'too long'      => array(
+				'data'           => array(
+					'post_status'  => str_repeat( 'a', 21 ),
+					'post_content' => "\xF5",
+				),
+				'errored_fields' => 'post_status, post_content',
+			),
+			'invalid chars' => array(
+				'data'           => array(
+					'post_status' => "\xF5",
+					'post_name'   => str_repeat( "\xF5", 21 ),
+				),
+				'errored_fields' => 'post_status, post_name',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 32315
+	 */
+	public function test_query_value_contains_invalid_chars() {
+		global $wpdb;
+
+		$this->assertFalse(
+			$wpdb->query( "INSERT INTO {$wpdb->posts} (post_status) VALUES ('\xF5')" )
+		);
+
+		$this->assertSame(
+			'WordPress database error: Could not perform query because it contains invalid data.',
+			$wpdb->last_error
+		);
 	}
 
 	/**
 	 * @ticket 15158
 	 */
-	function test_null_insert() {
+	public function test_null_insert() {
 		global $wpdb;
 
 		$key = 'null_insert_key';
@@ -1120,7 +1286,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 15158
 	 */
-	function test_null_update_value() {
+	public function test_null_update_value() {
 		global $wpdb;
 
 		$key   = 'null_update_value_key';
@@ -1158,7 +1324,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 15158
 	 */
-	function test_null_update_where() {
+	public function test_null_update_where() {
 		global $wpdb;
 
 		$key   = 'null_update_where_key';
@@ -1196,7 +1362,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 15158
 	 */
-	function test_null_delete() {
+	public function test_null_delete() {
 		global $wpdb;
 
 		$key   = 'null_update_where_key';
@@ -1232,7 +1398,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 34903
 	 */
-	function test_close() {
+	public function test_close() {
 		global $wpdb;
 
 		$this->assertTrue( $wpdb->close() );
@@ -1251,7 +1417,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 36917
 	 */
-	function test_charset_not_determined_when_disconnected() {
+	public function test_charset_not_determined_when_disconnected() {
 		global $wpdb;
 
 		$charset = 'utf8';
@@ -1269,7 +1435,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 36917
 	 */
-	function test_charset_switched_to_utf8mb4() {
+	public function test_charset_switched_to_utf8mb4() {
 		global $wpdb;
 
 		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
@@ -1288,7 +1454,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @ticket 32105
 	 * @ticket 36917
 	 */
-	function test_collate_switched_to_utf8mb4_520() {
+	public function test_collate_switched_to_utf8mb4_520() {
 		global $wpdb;
 
 		if ( ! $wpdb->has_cap( 'utf8mb4_520' ) ) {
@@ -1307,7 +1473,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @ticket 32405
 	 * @ticket 36917
 	 */
-	function test_non_unicode_collations() {
+	public function test_non_unicode_collations() {
 		global $wpdb;
 
 		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
@@ -1325,7 +1491,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 37982
 	 */
-	function test_charset_switched_to_utf8() {
+	public function test_charset_switched_to_utf8() {
 		global $wpdb;
 
 		if ( $wpdb->has_cap( 'utf8mb4' ) ) {
@@ -1344,7 +1510,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_prepare_with_placeholders
 	 */
-	function test_prepare_with_placeholders_and_individual_args( $sql, $values, $incorrect_usage, $expected ) {
+	public function test_prepare_with_placeholders_and_individual_args( $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
 
 		if ( $incorrect_usage ) {
@@ -1363,7 +1529,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_prepare_with_placeholders
 	 */
-	function test_prepare_with_placeholders_and_array_args( $sql, $values, $incorrect_usage, $expected ) {
+	public function test_prepare_with_placeholders_and_array_args( $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
 
 		if ( $incorrect_usage ) {
@@ -1379,7 +1545,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $expected, $sql );
 	}
 
-	function data_prepare_with_placeholders() {
+	public function data_prepare_with_placeholders() {
 		global $wpdb;
 
 		return array(
@@ -1557,7 +1723,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_escape_and_prepare
 	 */
-	function test_escape_and_prepare( $escape, $sql, $values, $incorrect_usage, $expected ) {
+	public function test_escape_and_prepare( $escape, $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
 
 		if ( $incorrect_usage ) {
@@ -1574,7 +1740,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	function data_escape_and_prepare() {
+	public function data_escape_and_prepare() {
 		global $wpdb;
 		return array(
 			array(
@@ -1604,17 +1770,17 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
 	 */
-	function test_double_prepare() {
+	public function test_double_prepare() {
 		global $wpdb;
 
 		$part = $wpdb->prepare( ' AND meta_value = %s', ' %s ' );
-		$this->assertNotContains( '%s', $part );
+		$this->assertStringNotContainsString( '%s', $part );
 		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$query = $wpdb->prepare( 'SELECT * FROM {$wpdb->postmeta} WHERE meta_key = %s $part', array( 'foo', 'bar' ) );
 		$this->assertNull( $query );
 	}
 
-	function test_prepare_numeric_placeholders_float_args() {
+	public function test_prepare_numeric_placeholders_float_args() {
 		global $wpdb;
 
 		$actual = $wpdb->prepare(
@@ -1625,11 +1791,11 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 
 		/* Floats can be right padded, need to assert differently */
-		$this->assertContains( ' first=1.1', $actual );
-		$this->assertContains( ' second=2.2', $actual );
+		$this->assertStringContainsString( ' first=1.1', $actual );
+		$this->assertStringContainsString( ' second=2.2', $actual );
 	}
 
-	function test_prepare_numeric_placeholders_float_array() {
+	public function test_prepare_numeric_placeholders_float_array() {
 		global $wpdb;
 
 		$actual = $wpdb->prepare(
@@ -1639,11 +1805,11 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 
 		/* Floats can be right padded, need to assert differently */
-		$this->assertContains( ' first=1.1', $actual );
-		$this->assertContains( ' second=2.2', $actual );
+		$this->assertStringContainsString( ' first=1.1', $actual );
+		$this->assertStringContainsString( ' second=2.2', $actual );
 	}
 
-	function test_query_unescapes_placeholders() {
+	public function test_query_unescapes_placeholders() {
 		global $wpdb;
 
 		$value = ' %s ';
@@ -1658,11 +1824,11 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$wpdb->query( "DROP TABLE {$wpdb->prefix}test_placeholder" );
 
-		$this->assertNotContains( '%s', $sql );
+		$this->assertStringNotContainsString( '%s', $sql );
 		$this->assertSame( $value, $actual );
 	}
 
-	function test_esc_sql_with_unsupported_placeholder_type() {
+	public function test_esc_sql_with_unsupported_placeholder_type() {
 		global $wpdb;
 
 		$sql = $wpdb->prepare( ' %s %1$c ', 'foo' );

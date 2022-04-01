@@ -215,6 +215,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'category'         => true,
 			'editor_script'    => true,
 			'script'           => true,
+			'view_script'      => true,
 			'editor_style'     => true,
 			'style'            => true,
 			'keywords'         => 'invalid_keywords',
@@ -237,6 +238,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['icon'] );
 		$this->assertNull( $data['editor_script'] );
 		$this->assertNull( $data['script'] );
+		$this->assertNull( $data['view_script'] );
 		$this->assertNull( $data['editor_style'] );
 		$this->assertNull( $data['style'] );
 		$this->assertSameSets( array(), $data['provides_context'] );
@@ -268,6 +270,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'category'         => false,
 			'editor_script'    => false,
 			'script'           => false,
+			'view_script'      => false,
 			'editor_style'     => false,
 			'style'            => false,
 			'keywords'         => false,
@@ -290,6 +293,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['icon'] );
 		$this->assertNull( $data['editor_script'] );
 		$this->assertNull( $data['script'] );
+		$this->assertNull( $data['view_script'] );
 		$this->assertNull( $data['editor_style'] );
 		$this->assertNull( $data['style'] );
 		$this->assertSameSets( array(), $data['attributes'] );
@@ -374,7 +378,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 21, $properties );
+		$this->assertCount( 22, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
@@ -389,6 +393,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'is_dynamic', $properties );
 		$this->assertArrayHasKey( 'editor_script', $properties );
 		$this->assertArrayHasKey( 'script', $properties );
+		$this->assertArrayHasKey( 'view_script', $properties );
 		$this->assertArrayHasKey( 'editor_style', $properties );
 		$this->assertArrayHasKey( 'style', $properties );
 		$this->assertArrayHasKey( 'parent', $properties );
@@ -500,6 +505,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'category',
 			'editor_script',
 			'script',
+			'view_script',
 			'editor_style',
 			'style',
 			'title',

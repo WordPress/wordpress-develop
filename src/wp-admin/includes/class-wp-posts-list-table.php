@@ -817,8 +817,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		/*
-		 * Arrange pages into two parts: top level pages and children_pages
-		 * children_pages is two dimensional array, eg.
+		 * Arrange pages into two parts: top level pages and children_pages.
+		 * children_pages is two dimensional array. Example:
 		 * children_pages[10][] contains all sub-pages whose parent is 10.
 		 * It only takes O( N ) to arrange this and it takes O( 1 ) for subsequent lookup operations
 		 * If searching, ignore hierarchy and treat everything as top level
@@ -971,10 +971,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Handles the checkbox column output.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post $post The current WP_Post object.
+	 * @param WP_Post $item The current WP_Post object.
 	 */
-	public function column_cb( $post ) {
+	public function column_cb( $item ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$post = $item;
 		$show = current_user_can( 'edit_post', $post->ID );
 
 		/**
@@ -1235,11 +1238,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Handles the default column output.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post $post        The current WP_Post object.
+	 * @param WP_Post $item        The current WP_Post object.
 	 * @param string  $column_name The current column name.
 	 */
-	public function column_default( $post, $column_name ) {
+	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$post = $item;
+
 		if ( 'categories' === $column_name ) {
 			$taxonomy = 'category';
 		} elseif ( 'tags' === $column_name ) {
@@ -1287,8 +1294,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				 */
 				$term_links = apply_filters( 'post_column_taxonomy_links', $term_links, $taxonomy, $terms );
 
-				/* translators: Used between list items, there is a space after the comma. */
-				echo implode( __( ', ' ), $term_links );
+				echo implode( wp_get_list_item_separator(), $term_links );
 			} else {
 				echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . $taxonomy_object->labels->no_terms . '</span>';
 			}
@@ -1395,18 +1401,21 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Generates and displays row action links.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post $post        Post being acted upon.
+	 * @param WP_Post $item        Post being acted upon.
 	 * @param string  $column_name Current column name.
 	 * @param string  $primary     Primary column name.
 	 * @return string Row actions output for posts, or an empty string
 	 *                if the current column is not the primary column.
 	 */
-	protected function handle_row_actions( $post, $column_name, $primary ) {
+	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
 		}
 
+		// Restores the more descriptive, specific name for use within this method.
+		$post             = $item;
 		$post_type_object = get_post_type_object( $post->post_type );
 		$can_edit_post    = current_user_can( 'edit_post', $post->ID );
 		$actions          = array();
@@ -1626,7 +1635,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 							<label>
 								<span class="title"><?php _e( 'Slug' ); ?></span>
-								<span class="input-text-wrap"><input type="text" name="post_name" value="" /></span>
+								<span class="input-text-wrap"><input type="text" name="post_name" value="" autocomplete="off" spellcheck="false" /></span>
 							</label>
 
 						<?php endif; // is_post_type_viewable() ?>
@@ -1644,13 +1653,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<?php endif; // $bulk ?>
 
 				<?php
-				if ( post_type_supports( $screen->post_type, 'author' ) ) {
+				if ( post_type_supports( $screen->post_type, 'author' ) && ! wp_is_large_user_count() ) {
 					$authors_dropdown = '';
 
 					if ( current_user_can( $post_type_object->cap->edit_others_posts ) ) {
 						$users_opt = array(
 							'hide_if_only_one_author' => false,
-							'who'                     => 'authors',
+							'capability'              => array( $post_type_object->cap->edit_posts ),
 							'name'                    => 'post_author',
 							'class'                   => 'authors',
 							'multi'                   => 1,
@@ -1725,7 +1734,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						<span class="title inline-edit-categories-label"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
 						<input type="hidden" name="<?php echo ( 'category' === $taxonomy->name ) ? 'post_category[]' : 'tax_input[' . esc_attr( $taxonomy->name ) . '][]'; ?>" value="0" />
 						<ul class="cat-checklist <?php echo esc_attr( $taxonomy->name ); ?>-checklist">
-							<?php wp_terms_checklist( null, array( 'taxonomy' => $taxonomy->name ) ); ?>
+							<?php wp_terms_checklist( 0, array( 'taxonomy' => $taxonomy->name ) ); ?>
 						</ul>
 
 					<?php endforeach; // $hierarchical_taxonomies as $taxonomy ?>
@@ -1739,7 +1748,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<div class="inline-edit-col">
 
 				<?php
-				if ( post_type_supports( $screen->post_type, 'author' ) && $bulk ) {
+				if ( post_type_supports( $screen->post_type, 'author' ) && ! wp_is_large_user_count() && $bulk ) {
 					echo $authors_dropdown;
 				}
 				?>
@@ -1998,14 +2007,17 @@ class WP_Posts_List_Table extends WP_List_Table {
 			?>
 
 			<div class="submit inline-edit-save">
-				<button type="button" class="button cancel alignleft"><?php _e( 'Cancel' ); ?></button>
-
 				<?php if ( ! $bulk ) : ?>
 					<?php wp_nonce_field( 'inlineeditnonce', '_inline_edit', false ); ?>
-					<button type="button" class="button button-primary save alignright"><?php _e( 'Update' ); ?></button>
-					<span class="spinner"></span>
+					<button type="button" class="button button-primary save"><?php _e( 'Update' ); ?></button>
 				<?php else : ?>
-					<?php submit_button( __( 'Update' ), 'primary alignright', 'bulk_edit', false ); ?>
+					<?php submit_button( __( 'Update' ), 'primary', 'bulk_edit', false ); ?>
+				<?php endif; ?>
+
+				<button type="button" class="button cancel"><?php _e( 'Cancel' ); ?></button>
+
+				<?php if ( ! $bulk ) : ?>
+					<span class="spinner"></span>
 				<?php endif; ?>
 
 				<input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
@@ -2013,7 +2025,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<?php if ( ! $bulk && ! post_type_supports( $screen->post_type, 'author' ) ) : ?>
 					<input type="hidden" name="post_author" value="<?php echo esc_attr( $post->post_author ); ?>" />
 				<?php endif; ?>
-				<br class="clear" />
 
 				<div class="notice notice-error notice-alt inline hidden">
 					<p class="error"></p>

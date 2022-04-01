@@ -420,6 +420,7 @@ final class WP_Customize_Widgets {
 				'priority'                 => 110,
 				'active_callback'          => array( $this, 'is_panel_active' ),
 				'auto_expand_sole_section' => true,
+				'theme_supports'           => 'widgets',
 			)
 		);
 
@@ -746,7 +747,7 @@ final class WP_Customize_Widgets {
 		 */
 		$some_non_rendered_areas_messages    = array();
 		$some_non_rendered_areas_messages[1] = html_entity_decode(
-			__( 'Your theme has 1 other widget area, but this particular page doesn&#8217;t display it.' ),
+			__( 'Your theme has 1 other widget area, but this particular page does not display it.' ),
 			ENT_QUOTES,
 			get_bloginfo( 'charset' )
 		);
@@ -756,8 +757,8 @@ final class WP_Customize_Widgets {
 				sprintf(
 					/* translators: %s: The number of other widget areas registered but not rendered. */
 					_n(
-						'Your theme has %s other widget area, but this particular page doesn&#8217;t display it.',
-						'Your theme has %s other widget areas, but this particular page doesn&#8217;t display them.',
+						'Your theme has %s other widget area, but this particular page does not display it.',
+						'Your theme has %s other widget areas, but this particular page does not display them.',
 						$non_rendered_count
 					),
 					number_format_i18n( $non_rendered_count )
@@ -770,7 +771,7 @@ final class WP_Customize_Widgets {
 		if ( 1 === $registered_sidebar_count ) {
 			$no_areas_shown_message = html_entity_decode(
 				sprintf(
-					__( 'Your theme has 1 widget area, but this particular page doesn&#8217;t display it.' )
+					__( 'Your theme has 1 widget area, but this particular page does not display it.' )
 				),
 				ENT_QUOTES,
 				get_bloginfo( 'charset' )
@@ -780,8 +781,8 @@ final class WP_Customize_Widgets {
 				sprintf(
 					/* translators: %s: The total number of widget areas registered. */
 					_n(
-						'Your theme has %s widget area, but this particular page doesn&#8217;t display it.',
-						'Your theme has %s widget areas, but this particular page doesn&#8217;t display them.',
+						'Your theme has %s widget area, but this particular page does not display it.',
+						'Your theme has %s widget areas, but this particular page does not display them.',
 						$registered_sidebar_count
 					),
 					number_format_i18n( $registered_sidebar_count )
@@ -837,7 +838,11 @@ final class WP_Customize_Widgets {
 		 */
 
 		if ( wp_use_widgets_block_editor() ) {
-			$block_editor_context = new WP_Block_Editor_Context();
+			$block_editor_context = new WP_Block_Editor_Context(
+				array(
+					'name' => 'core/customize-widgets',
+				)
+			);
 
 			$editor_settings = get_block_editor_settings(
 				get_legacy_widget_block_editor_settings(),
@@ -862,7 +867,7 @@ final class WP_Customize_Widgets {
 
 			wp_add_inline_script(
 				'wp-blocks',
-				sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( 'widgets-customizer' ) ) ),
+				sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( $block_editor_context ) ) ),
 				'after'
 			);
 
@@ -1419,6 +1424,14 @@ final class WP_Customize_Widgets {
 		if ( isset( $value['raw_instance'] ) && $id_base && wp_use_widgets_block_editor() ) {
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 			if ( ! empty( $widget_object->widget_options['show_instance_in_rest'] ) ) {
+				if ( 'block' === $id_base && ! current_user_can( 'unfiltered_html' ) ) {
+					/*
+					 * The content of the 'block' widget is not filtered on the fly while editing.
+					 * Filter the content here to prevent vulnerabilities.
+					 */
+					$value['raw_instance']['content'] = wp_kses_post( $value['raw_instance']['content'] );
+				}
+
 				return $value['raw_instance'];
 			}
 		}

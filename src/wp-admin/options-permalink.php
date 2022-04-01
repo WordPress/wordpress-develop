@@ -13,6 +13,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Permalink Settings' );
 $parent_file = 'options-general.php';
 
@@ -55,12 +56,18 @@ get_current_screen()->add_help_tab(
 	)
 );
 
-get_current_screen()->set_help_sidebar(
-	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-permalinks-screen/">Documentation on Permalinks Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/using-permalinks/">Documentation on Using Permalinks</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
-);
+$help_sidebar_content = '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
+						'<p>' . __( '<a href="https://wordpress.org/support/article/settings-permalinks-screen/">Documentation on Permalinks Settings</a>' ) . '</p>' .
+						'<p>' . __( '<a href="https://wordpress.org/support/article/using-permalinks/">Documentation on Using Permalinks</a>' ) . '</p>';
+
+if ( $is_nginx ) {
+	$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/article/nginx/">Documentation on Nginx configuration</a>.' ) . '</p>';
+}
+
+$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>';
+
+get_current_screen()->set_help_sidebar( $help_sidebar_content );
+unset( $help_sidebar_content );
 
 $home_path           = get_home_path();
 $iis7_permalinks     = iis7_supports_permalinks();
@@ -360,11 +367,12 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 <p id="iis-description-a">
 				<?php
 				printf(
-					/* translators: 1: web.config, 2: Documentation URL, 3: CTRL + a, 4: Element code. */
-					__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it isn&#8217;t so this is the url rewrite rule you should have in your %1$s file. Click in the field and press %3$s to select all. Then insert this rule inside of the %4$s element in %1$s file.' ),
+					/* translators: 1: web.config, 2: Documentation URL, 3: Ctrl + A, 4: ⌘ + A, 5: Element code. */
+					__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it is not so this is the url rewrite rule you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this rule inside of the %5$s element in %1$s file.' ),
 					'<code>web.config</code>',
 					__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
-					'<kbd>CTRL + a</kbd>',
+					'<kbd>Ctrl + A</kbd>',
+					'<kbd>⌘ + A</kbd>',
 					'<code>/&lt;configuration&gt;/&lt;system.webServer&gt;/&lt;rewrite&gt;/&lt;rules&gt;</code>'
 				);
 				?>
@@ -386,11 +394,12 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 <p id="iis-description-b">
 			<?php
 			printf(
-				/* translators: 1: Documentation URL, 2: web.config, 3: CTRL + a */
-				__( 'If the root directory of your site was <a href="%1$s">writable</a>, we could do this automatically, but it isn&#8217;t so this is the url rewrite rule you should have in your %2$s file. Create a new file, called %2$s in the root directory of your site. Click in the field and press %3$s to select all. Then insert this code into the %2$s file.' ),
+				/* translators: 1: Documentation URL, 2: web.config, 3: Ctrl + A, 4: ⌘ + A */
+				__( 'If the root directory of your site was <a href="%1$s">writable</a>, we could do this automatically, but it is not so this is the url rewrite rule you should have in your %2$s file. Create a new file, called %2$s in the root directory of your site. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this code into the %2$s file.' ),
 				__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
 				'<code>web.config</code>',
-				'<kbd>CTRL + a</kbd>'
+				'<kbd>Ctrl + A</kbd>',
+				'<kbd>⌘ + A</kbd>'
 			);
 			?>
 </p>
@@ -409,20 +418,19 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 </p>
 		<?php endif; ?>
 	<?php endif; ?>
-<?php elseif ( $is_nginx ) : ?>
-	<p><?php _e( '<a href="https://wordpress.org/support/article/nginx/">Documentation on Nginx configuration</a>.' ); ?></p>
-	<?php
+		<?php
 else :
 	if ( $permalink_structure && ! $using_index_permalinks && ! $writable && $htaccess_update_required ) :
 		?>
 <p id="htaccess-description">
 		<?php
 		printf(
-			/* translators: 1: .htaccess, 2: Documentation URL, 3: CTRL + a */
-			__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it isn&#8217;t so these are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s to select all.' ),
+			/* translators: 1: .htaccess, 2: Documentation URL, 3: Ctrl + A, 4: ⌘ + A */
+			__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it is not so these are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all.' ),
 			'<code>.htaccess</code>',
 			__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
-			'<kbd>CTRL + a</kbd>'
+			'<kbd>Ctrl + A</kbd>',
+			'<kbd>⌘ + A</kbd>'
 		);
 		?>
 </p>

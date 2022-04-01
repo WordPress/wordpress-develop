@@ -86,7 +86,7 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 	/**
 	 * @ticket 29614
 	 */
-	function test_wp_update_term_parent_does_not_exist() {
+	public function test_wp_update_term_parent_does_not_exist() {
 		register_taxonomy(
 			'wptests_tax',
 			array(
@@ -685,7 +685,7 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 
 		$cached_children = get_option( 'wptests_tax_children' );
 		$this->assertNotEmpty( $cached_children[ $t2 ] );
-		$this->assertTrue( in_array( $found['term_id'], $cached_children[ $t2 ], true ) );
+		$this->assertContains( $found['term_id'], $cached_children[ $t2 ] );
 	}
 
 	/**

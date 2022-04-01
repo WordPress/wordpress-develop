@@ -5,14 +5,14 @@
  * @group upload
  */
 class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
-	function tearDown() {
+	public function tear_down() {
 		$this->remove_added_uploads();
 
 		remove_image_size( 'test-size' );
 		remove_image_size( 'false-height' );
 		remove_image_size( 'false-width' );
 		remove_image_size( 'off-by-one' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function _make_attachment( $file, $parent_post_id = 0 ) {
@@ -22,7 +22,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		return parent::_make_attachment( $upload, $parent_post_id );
 	}
 
-	function test_make_intermediate_size_no_size() {
+	public function test_make_intermediate_size_no_size() {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 0, false );
 
 		$this->assertFalse( $image );
@@ -31,7 +31,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	/**
 	 * @requires function imagejpeg
 	 */
-	function test_make_intermediate_size_width() {
+	public function test_make_intermediate_size_width() {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 0, false );
 
 		$this->assertIsArray( $image );
@@ -40,7 +40,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	/**
 	 * @requires function imagejpeg
 	 */
-	function test_make_intermediate_size_height() {
+	public function test_make_intermediate_size_height() {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 75, false );
 
 		$this->assertIsArray( $image );
@@ -49,7 +49,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	/**
 	 * @requires function imagejpeg
 	 */
-	function test_make_intermediate_size_successful() {
+	public function test_make_intermediate_size_successful() {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 75, true );
 
 		unlink( DIR_TESTDATA . '/images/a2-small-100x75.jpg' );
@@ -59,17 +59,17 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$this->assertSame( 75, $image['height'] );
 		$this->assertSame( 'image/jpeg', $image['mime-type'] );
 
-		$this->assertFalse( isset( $image['path'] ) );
+		$this->assertArrayNotHasKey( 'path', $image );
 	}
 
 	/**
 	 * @ticket 52867
 	 * @requires function imagejpeg
 	 */
-	function test_image_editor_output_format_filter() {
+	public function test_image_editor_output_format_filter() {
 		add_filter(
 			'image_editor_output_format',
-			function() {
+			static function() {
 				return array( 'image/jpeg' => 'image/webp' );
 			}
 		);
@@ -92,7 +92,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 * @ticket 17626
 	 * @requires function imagejpeg
 	 */
-	function test_get_intermediate_sizes_by_name() {
+	public function test_get_intermediate_sizes_by_name() {
 		add_image_size( 'test-size', 330, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -106,14 +106,14 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], '330x220' ) > 0 );
+		$this->assertStringContainsString( '330x220', $image['file'] );
 	}
 
 	/**
 	 * @ticket 17626
 	 * @requires function imagejpeg
 	 */
-	function test_get_intermediate_sizes_by_array_exact() {
+	public function test_get_intermediate_sizes_by_array_exact() {
 		// Only one dimention match shouldn't return false positive (see: #17626).
 		add_image_size( 'test-size', 330, 220, true );
 		add_image_size( 'false-height', 330, 400, true );
@@ -128,14 +128,14 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], '330x220' ) > 0 );
+		$this->assertStringContainsString( '330x220', $image['file'] );
 	}
 
 	/**
 	 * @ticket 17626
 	 * @requires function imagejpeg
 	 */
-	function test_get_intermediate_sizes_by_array_nearest() {
+	public function test_get_intermediate_sizes_by_array_nearest() {
 		// If an exact size is not found, it should be returned.
 		// If not, find nearest size that is larger (see: #17626).
 		add_image_size( 'test-size', 450, 300, true );
@@ -151,13 +151,14 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], '450x300' ) > 0 );
+		$this->assertStringContainsString( '450x300', $image['file'] );
 	}
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
-	function test_get_intermediate_sizes_by_array_nearest_false() {
+	public function test_get_intermediate_sizes_by_array_nearest_false() {
 		// If an exact size is not found, it should be returned.
 		// If not, find nearest size that is larger, otherwise return false (see: #17626).
 		add_image_size( 'false-height', 330, 100, true );
@@ -179,28 +180,28 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 * @ticket 17626
 	 * @requires function imagejpeg
 	 */
-	function test_get_intermediate_sizes_by_array_zero_height() {
-		// Generate random width.
-		$random_w = rand( 300, 400 );
+	public function test_get_intermediate_sizes_by_array_zero_height() {
+		// Use this width.
+		$width = 300;
 
 		// Only one dimention match shouldn't return false positive (see: #17626).
-		add_image_size( 'test-size', $random_w, 0, false );
-		add_image_size( 'false-height', $random_w, 100, true );
+		add_image_size( 'test-size', $width, 0, false );
+		add_image_size( 'false-height', $width, 100, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );
 
 		$original = wp_get_attachment_metadata( $id );
-		$image_w  = $random_w;
+		$image_w  = $width;
 		$image_h  = round( ( $image_w / $original['width'] ) * $original['height'] );
 
 		// Look for a size by array that exists.
 		// Note: Staying larger than 300px to miss default medium crop.
-		$image = image_get_intermediate_size( $id, array( $random_w, 0 ) );
+		$image = image_get_intermediate_size( $id, array( $width, 0 ) );
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], $image_w . 'x' . $image_h ) > 0 );
+		$this->assertStringContainsString( $image_w . 'x' . $image_h, $image['file'] );
 	}
 
 	/**
@@ -208,7 +209,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 * @ticket 34087
 	 * @requires function imagejpeg
 	 */
-	function test_get_intermediate_sizes_by_array_zero_width() {
+	public function test_get_intermediate_sizes_by_array_zero_width() {
 		// 202 is the smallest height that will trigger a miss for 'false-height'.
 		$height = 202;
 
@@ -229,7 +230,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		// Test for the expected string because the array will by definition
 		// return with the correct height and width attributes.
-		$this->assertTrue( strpos( $image['file'], $image_w . 'x' . $image_h ) > 0 );
+		$this->assertStringContainsString( $image_w . 'x' . $image_h, $image['file'] );
 	}
 
 	/**
@@ -254,7 +255,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		// Note: Staying larger than 300px to miss default medium crop.
 		$image = image_get_intermediate_size( $id, array( 0, $height ) );
 
-		$this->assertTrue( strpos( $image['file'], $width . 'x' . $height ) > 0 );
+		$this->assertStringContainsString( $width . 'x' . $height, $image['file'] );
 	}
 
 	/**
@@ -272,7 +273,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$image = image_get_intermediate_size( $id, array( 50, 25 ) );
 
 		// We should get the 'test-size' file and not the thumbnail.
-		$this->assertTrue( strpos( $image['file'], '200x100' ) > 0 );
+		$this->assertStringContainsString( '200x100', $image['file'] );
 	}
 
 	/**

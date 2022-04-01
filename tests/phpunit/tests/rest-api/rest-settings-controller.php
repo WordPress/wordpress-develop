@@ -33,12 +33,12 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		self::delete_user( self::$author );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->endpoint = new WP_REST_Settings_Controller();
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		$settings_to_unregister = array(
 			'mycustomsetting',
 			'mycustomsetting1',
@@ -54,7 +54,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			}
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function test_register_routes() {
@@ -108,6 +108,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'posts_per_page',
 			'default_ping_status',
 			'default_comment_status',
+			'site_icon', // Registered in wp-includes/blocks/site-logo.php
 		);
 
 		if ( ! is_multisite() ) {

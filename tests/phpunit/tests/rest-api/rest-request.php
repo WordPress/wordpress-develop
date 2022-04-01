@@ -12,10 +12,20 @@
 class Tests_REST_Request extends WP_UnitTestCase {
 	public $request;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->request = new WP_REST_Request();
+	}
+
+	/**
+	 * Called before setting up all tests.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Require files that need to load once.
+		require_once DIR_TESTROOT . '/includes/mock-invokable.php';
 	}
 
 	public function test_header() {
@@ -475,7 +485,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'sanitize_callback' => function () {
+						'sanitize_callback' => static function () {
 							$error = new WP_Error( 'invalid', 'Invalid.' );
 							$error->add( 'invalid', 'Super Invalid.' );
 							$error->add( 'broken', 'Broken.' );
@@ -510,7 +520,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'sanitize_callback' => function () {
+						'sanitize_callback' => static function () {
 							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
 						},
 					),
@@ -616,8 +626,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$data = $valid->get_error_data( 'rest_missing_callback_param' );
 
-		$this->assertTrue( in_array( 'someinteger', $data['params'], true ) );
-		$this->assertTrue( in_array( 'someotherinteger', $data['params'], true ) );
+		$this->assertContains( 'someinteger', $data['params'] );
+		$this->assertContains( 'someotherinteger', $data['params'] );
 	}
 
 	public function test_has_valid_params_validate_callback() {
@@ -738,7 +748,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'validate_callback' => function () {
+						'validate_callback' => static function () {
 							$error = new WP_Error( 'invalid', 'Invalid.' );
 							$error->add( 'invalid', 'Super Invalid.' );
 							$error->add( 'broken', 'Broken.' );
@@ -773,7 +783,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'validate_callback' => function () {
+						'validate_callback' => static function () {
 							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
 						},
 					),
@@ -1008,14 +1018,13 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51255
-	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_route_level_validate_callback() {
 		$request = new WP_REST_Request();
 		$request->set_query_params( array( 'test' => 'value' ) );
 
 		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
-		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
 		$request->set_attributes(
 			array(
@@ -1033,14 +1042,13 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51255
-	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_route_level_validate_callback_no_parameter_callbacks() {
 		$request = new WP_REST_Request();
 		$request->set_query_params( array( 'test' => 'value' ) );
 
 		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
-		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
 		$request->set_attributes(
 			array(
@@ -1053,13 +1061,12 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51255
-	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_route_level_validate_callback_is_not_executed_if_parameter_validation_fails() {
 		$request = new WP_REST_Request();
 		$request->set_query_params( array( 'test' => 'value' ) );
 
-		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$callback->expects( self::never() )->method( '__invoke' );
 		$request->set_attributes(
 			array(

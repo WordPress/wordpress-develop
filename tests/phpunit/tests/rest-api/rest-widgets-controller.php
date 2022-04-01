@@ -94,10 +94,10 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 	}
 
-	public function setUp() {
+	public function set_up() {
 		global $wp_widget_factory;
 
-		parent::setUp();
+		parent::set_up();
 
 		wp_set_current_user( self::$admin_id );
 
@@ -108,11 +108,11 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_register_widget_control(
 			'testwidget',
 			'WP test widget',
-			function () {
-				$settings = get_option( 'widget_testwidget' );
-
+			static function () {
 				// check if anything's been sent.
 				if ( isset( $_POST['update_testwidget'] ) ) {
+					$settings = get_option( 'widget_testwidget', array() );
+
 					$settings['id']    = $_POST['test_id'];
 					$settings['title'] = $_POST['test_title'];
 
@@ -127,9 +127,9 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_register_sidebar_widget(
 			'testwidget',
 			'WP test widget',
-			function () {
+			static function () {
 				$settings = wp_parse_args(
-					get_option( 'widget_testwidget' ),
+					get_option( 'widget_testwidget', array() ),
 					array(
 						'id'    => 'Default id',
 						'title' => 'Default text',
@@ -241,6 +241,100 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 53915
+	 */
+	public function test_get_items_no_permission_show_in_rest() {
+		$this->setup_widget(
+			'text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name'         => 'Test sidebar',
+				'show_in_rest' => true,
+			),
+			array( 'text-1', 'testwidget' )
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+		$this->assertSameIgnoreEOL(
+			array(
+				array(
+					'id'       => 'text-1',
+					'id_base'  => 'text',
+					'sidebar'  => 'sidebar-1',
+					'rendered' => '<div class="textwidget">Custom text test</div>',
+				),
+				array(
+					'id'       => 'testwidget',
+					'id_base'  => 'testwidget',
+					'sidebar'  => 'sidebar-1',
+					'rendered' => '<h1>Default id</h1><span>Default text</span>',
+				),
+			),
+			$data
+		);
+	}
+
+	/**
+	 * @ticket 53915
+	 */
+	public function test_get_items_without_show_in_rest_are_removed_from_the_list() {
+		wp_set_current_user( self::$author_id );
+		$this->setup_widget(
+			'text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name'         => 'Test sidebar 1',
+				'show_in_rest' => true,
+			),
+			array( 'text-1', 'testwidget' )
+		);
+		$this->setup_sidebar(
+			'sidebar-2',
+			array(
+				'name'         => 'Test sidebar 2',
+				'show_in_rest' => false,
+			),
+			array( 'text-1', 'testwidget' )
+		);
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+		$this->assertSameIgnoreEOL(
+			array(
+				array(
+					'id'       => 'text-1',
+					'id_base'  => 'text',
+					'sidebar'  => 'sidebar-1',
+					'rendered' => '<div class="textwidget">Custom text test</div>',
+				),
+				array(
+					'id'       => 'testwidget',
+					'id_base'  => 'testwidget',
+					'sidebar'  => 'sidebar-1',
+					'rendered' => '<h1>Default id</h1><span>Default text</span>',
+				),
+			),
+			$data
+		);
+	}
+
+	/**
 	 * @ticket 41683
 	 */
 	public function test_get_items_wrong_permission_author() {
@@ -295,56 +389,18 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 					'id_base'  => 'block',
 					'sidebar'  => 'sidebar-1',
 					'rendered' => '<p>Block test</p>',
-					'instance' => array(
-						'encoded' => base64_encode(
-							serialize(
-								array(
-									'content' => $block_content,
-								)
-							)
-						),
-						'hash'    => wp_hash(
-							serialize(
-								array(
-									'content' => $block_content,
-								)
-							)
-						),
-						'raw'     => array(
-							'content' => $block_content,
-						),
-					),
 				),
 				array(
 					'id'       => 'rss-1',
 					'id_base'  => 'rss',
 					'sidebar'  => 'sidebar-1',
-					'rendered' => '<a class="rsswidget" href="https://wordpress.org/news/feed"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="http://example.org/wp-includes/images/rss.png" alt="RSS" /></a> <a class="rsswidget" href="https://wordpress.org/news">RSS test</a><ul><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/introducing-learn-wordpress/\'>Introducing Learn WordPress</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/simone/\'>WordPress 5.6 “Simone”</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/state-of-the-word-2020/\'>State of the Word 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/the-month-in-wordpress-november-2020/\'>The Month in WordPress: November 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/wordpress-5-6-release-candidate-2/\'>WordPress 5.6 Release Candidate 2</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-release-candidate/\'>WordPress 5.6 Release Candidate</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-4/\'>WordPress 5.6 Beta 4</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-3/\'>WordPress 5.6 Beta 3</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/the-month-in-wordpress-october-2020/\'>The Month in WordPress: October 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/10/wordpress-5-5-3-maintenance-release/\'>WordPress 5.5.3 Maintenance Release</a></li></ul>',
-					'instance' => array(
-						'encoded' => base64_encode(
-							serialize(
-								array(
-									'title' => 'RSS test',
-									'url'   => 'https://wordpress.org/news/feed',
-								)
-							)
-						),
-						'hash'    => wp_hash(
-							serialize(
-								array(
-									'title' => 'RSS test',
-									'url'   => 'https://wordpress.org/news/feed',
-								)
-							)
-						),
-					),
+					'rendered' => '<a class="rsswidget rss-widget-feed" href="https://wordpress.org/news/feed"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="http://example.org/wp-includes/images/rss.png" alt="RSS" loading="lazy" /></a> <a class="rsswidget rss-widget-title" href="https://wordpress.org/news">RSS test</a><ul><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/introducing-learn-wordpress/\'>Introducing Learn WordPress</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/simone/\'>WordPress 5.6 “Simone”</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/state-of-the-word-2020/\'>State of the Word 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/the-month-in-wordpress-november-2020/\'>The Month in WordPress: November 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/wordpress-5-6-release-candidate-2/\'>WordPress 5.6 Release Candidate 2</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-release-candidate/\'>WordPress 5.6 Release Candidate</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-4/\'>WordPress 5.6 Beta 4</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-3/\'>WordPress 5.6 Beta 3</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/the-month-in-wordpress-october-2020/\'>The Month in WordPress: October 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/10/wordpress-5-5-3-maintenance-release/\'>WordPress 5.5.3 Maintenance Release</a></li></ul>',
 				),
 				array(
 					'id'       => 'testwidget',
 					'id_base'  => 'testwidget',
 					'sidebar'  => 'sidebar-1',
 					'rendered' => '<h1>Default id</h1><span>Default text</span>',
-					'instance' => null,
 				),
 			),
 			$data
@@ -469,25 +525,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'rendered' => '<div class="textwidget">Custom text test</div>',
-				'instance' => array(
-					'encoded' => base64_encode(
-						serialize(
-							array(
-								'text' => 'Custom text test',
-							)
-						)
-					),
-					'hash'    => wp_hash(
-						serialize(
-							array(
-								'text' => 'Custom text test',
-							)
-						)
-					),
-					'raw'     => array(
-						'text' => 'Custom text test',
-					),
-				),
 			),
 			$data
 		);
@@ -541,6 +578,42 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets/text-1' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_widgets', $response, 403 );
+	}
+
+	/**
+	 * @ticket 53915
+	 */
+	public function test_get_item_no_permission_show_in_rest() {
+		wp_set_current_user( 0 );
+
+		$this->setup_widget(
+			'text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name'         => 'Test sidebar',
+				'show_in_rest' => true,
+			),
+			array( 'text-1' )
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets/text-1' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSameSets(
+			array(
+				'id'       => 'text-1',
+				'id_base'  => 'text',
+				'sidebar'  => 'sidebar-1',
+				'rendered' => '<div class="textwidget">Custom text test</div>',
+			),
+			$data
+		);
 	}
 
 	/**
@@ -1449,6 +1522,8 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
+
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 
 		$this->assertCount( 7, $properties );
 		$this->assertArrayHasKey( 'id', $properties );

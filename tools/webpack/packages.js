@@ -106,85 +106,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 	};
 
-	const dynamicBlockFolders = [
-		'archives',
-		'block',
-		'calendar',
-		'categories',
-		'file',
-		'latest-comments',
-		'latest-posts',
-		'loginout',
-		'page-list',
-		'post-content',
-		'post-date',
-		'post-excerpt',
-		'post-featured-image',
-		'post-terms',
-		'post-title',
-		'post-template',
-		'query',
-		'query-pagination',
-		'query-pagination-next',
-		'query-pagination-numbers',
-		'query-pagination-previous',
-		'query-title',
-		'rss',
-		'search',
-		'shortcode',
-		'site-logo',
-		'site-tagline',
-		'site-title',
-		'social-link',
-		'tag-cloud',
-	];
-	const blockFolders = [
-		'audio',
-		'button',
-		'buttons',
-		'code',
-		'column',
-		'columns',
-		'cover',
-		'embed',
-		'freeform',
-		'gallery',
-		'group',
-		'heading',
-		'html',
-		'image',
-		'list',
-		'media-text',
-		'missing',
-		'more',
-		'nextpage',
-		'paragraph',
-		'preformatted',
-		'pullquote',
-		'quote',
-		'separator',
-		'social-links',
-		'spacer',
-		'table',
-		'text-columns',
-		'verse',
-		'video',
-		...dynamicBlockFolders,
-	];
 	const phpFiles = {
 		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
-		'widgets/src/blocks/legacy-widget/index.php': 'wp-includes/blocks/legacy-widget.php',
-		...dynamicBlockFolders.reduce( ( files, blockName ) => {
-			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
-			return files;
-		} , {} ),
-	};
-	const blockMetadataFiles = {
-		'widgets/src/blocks/legacy-widget/block.json': 'wp-includes/blocks/legacy-widget/block.json',
-		...blockFolders.reduce( ( files, blockName ) => {
-			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
-			return files;
-		} , {} ),
 	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
@@ -229,37 +152,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const phpCopies = Object.keys( phpFiles ).map( ( filename ) => ( {
 		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
 		to: join( baseDir, `src/${ phpFiles[ filename ] }` ),
-	} ) );
-
-	const blockMetadataCopies = Object.keys( blockMetadataFiles ).map( ( filename ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
-	} ) );
-
-	const blockStylesheetCopies = blockFolders.map( ( blockName ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
-		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/` ),
-		flatten: true,
-		transform: ( content ) => {
-			if ( mode === 'production' ) {
-				return postcss( [
-					require( 'cssnano' )( {
-						preset: 'default',
-					} ),
-				] )
-					.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
-					.then( ( result ) => result.css );
-			}
-
-			return content;
-		},
-		transformPath: ( targetPath, sourcePath ) => {
-			if ( mode === 'production' ) {
-				return targetPath.replace( /\.css$/, '.min.css' );
-			}
-
-			return targetPath;
-		}
 	} ) );
 
 	const config = {
@@ -352,8 +244,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...vendorCopies,
 					...cssCopies,
 					...phpCopies,
-					...blockMetadataCopies,
-					...blockStylesheetCopies,
 				],
 			),
 		],

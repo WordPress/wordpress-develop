@@ -8,6 +8,7 @@ jobs:
   # Comments on a pull request when the author is a new contributor.
   post-welcome-message:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
 
     steps:

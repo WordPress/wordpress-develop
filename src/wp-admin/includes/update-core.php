@@ -804,6 +804,12 @@ $_old_files = array(
 	// 5.7
 	'wp-includes/blocks/classic/block.json',
 	// 5.8
+	'wp-admin/images/freedoms.png',
+	'wp-admin/images/privacy.png',
+	'wp-admin/images/about-badge.svg',
+	'wp-admin/images/about-color-palette.svg',
+	'wp-admin/images/about-color-palette-vert.svg',
+	'wp-admin/images/about-header-brushes.svg',
 	'wp-includes/block-patterns/large-header.php',
 	'wp-includes/block-patterns/heading-paragraph.php',
 	'wp-includes/block-patterns/quote.php',
@@ -816,6 +822,27 @@ $_old_files = array(
 	'wp-includes/block-patterns/large-header-button.php',
 	'wp-includes/blocks/subhead/block.json',
 	'wp-includes/blocks/subhead',
+	'wp-includes/css/dist/editor/editor-styles.css',
+	'wp-includes/css/dist/editor/editor-styles.min.css',
+	'wp-includes/css/dist/editor/editor-styles-rtl.css',
+	'wp-includes/css/dist/editor/editor-styles-rtl.min.css',
+	// 5.9
+	'wp-includes/blocks/heading/editor.css',
+	'wp-includes/blocks/heading/editor.min.css',
+	'wp-includes/blocks/heading/editor-rtl.css',
+	'wp-includes/blocks/heading/editor-rtl.min.css',
+	'wp-includes/blocks/post-content/editor.css',
+	'wp-includes/blocks/post-content/editor.min.css',
+	'wp-includes/blocks/post-content/editor-rtl.css',
+	'wp-includes/blocks/post-content/editor-rtl.min.css',
+	'wp-includes/blocks/query-title/editor.css',
+	'wp-includes/blocks/query-title/editor.min.css',
+	'wp-includes/blocks/query-title/editor-rtl.css',
+	'wp-includes/blocks/query-title/editor-rtl.min.css',
+	'wp-includes/blocks/tag-cloud/editor.css',
+	'wp-includes/blocks/tag-cloud/editor.min.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
 );
 
 /**
@@ -854,6 +881,7 @@ $_new_bundled_files = array(
 	'themes/twentynineteen/'  => '5.0',
 	'themes/twentytwenty/'    => '5.3',
 	'themes/twentytwentyone/' => '5.6',
+	'themes/twentytwentytwo/' => '5.9',
 );
 
 /**
@@ -955,7 +983,7 @@ function update_core( $from, $to ) {
 
 	/*
 	 * Import $wp_version, $required_php_version, and $required_mysql_version from the new version.
-	 * DO NOT globalise any variables imported from `version-current.php` in this function.
+	 * DO NOT globalize any variables imported from `version-current.php` in this function.
 	 *
 	 * BC Note: $wp_filesystem->wp_content_dir() returned unslashed pre-2.8.
 	 */
@@ -1231,7 +1259,7 @@ function update_core( $from, $to ) {
 
 		// If we don't have enough free space, it isn't worth trying again.
 		// Unlikely to be hit due to the check in unzip_file().
-		$available_space = @disk_free_space( ABSPATH );
+		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( ABSPATH ) : false;
 
 		if ( $available_space && $total_size >= $available_space ) {
 			$result = new WP_Error( 'disk_full', __( 'There is not enough free disk space to complete the update.' ) );
@@ -1387,8 +1415,8 @@ function update_core( $from, $to ) {
 	// Deactivate the REST API plugin if its version is 2.0 Beta 4 or lower.
 	_upgrade_440_force_deactivate_incompatible_plugins();
 
-	// Deactivate the Gutenberg plugin if its version is 10.7 or lower.
-	_upgrade_580_force_deactivate_incompatible_plugins();
+	// Deactivate the Gutenberg plugin if its version is 11.8 or lower.
+	_upgrade_590_force_deactivate_incompatible_plugins();
 
 	// Upgrade DB with separate request.
 	/** This filter is documented in wp-admin/includes/update-core.php */
@@ -1646,6 +1674,13 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	}
 
 	$dirs = glob( $directory . '*', GLOB_ONLYDIR );
+	$dirs = array_filter(
+		$dirs,
+		static function( $dir ) {
+			// Skip any node_modules directories.
+			return false === strpos( $dir, 'node_modules' );
+		}
+	);
 
 	if ( $dirs ) {
 		foreach ( $dirs as $dir ) {
@@ -1667,15 +1702,16 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
 }
 
 /**
+ * @access private
  * @ignore
- * @since 5.8.0
+ * @since 5.9.0
  */
-function _upgrade_580_force_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '10.7', '<=' ) ) {
+function _upgrade_590_force_deactivate_incompatible_plugins() {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '11.9', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
 			'version_deactivated' => GUTENBERG_VERSION,
-			'version_compatible'  => '10.8',
+			'version_compatible'  => '11.9',
 		);
 		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
 			$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );

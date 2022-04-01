@@ -11,7 +11,7 @@
  *
  * @group widgets
  */
-class Test_Widgets_wpWidgetRss extends WP_UnitTestCase {
+class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53278
@@ -87,14 +87,14 @@ class Test_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 		$actual = ob_get_clean();
 
-		$this->assertContains( $expected, $actual );
+		$this->assertStringContainsString( $expected, $actual );
 	}
 
 	public function data_url_happy_path() {
 		return array(
 			'when url is given' => array(
 				'url' => 'https://wordpress.org/news/feed/',
-				'<section id="widget_rss-5" class="widget widget_rss"><h2><a class="rsswidget" href="https://wordpress.org/news/feed/">',
+				'<section id="widget_rss-5" class="widget widget_rss"><h2><a class="rsswidget rss-widget-feed" href="https://wordpress.org/news/feed/">',
 			),
 		);
 	}

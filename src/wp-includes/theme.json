@@ -1,9 +1,20 @@
 {
-	"version": 1,
+	"version": 2,
 	"settings": {
+		"appearanceTools": false,
+		"border": {
+			"color": false,
+			"radius": false,
+			"style": false,
+			"width": false
+		},
 		"color": {
+			"background": true,
 			"custom": true,
-			"customGradient": true,
+			"customDuotone": true,
+ 			"customGradient": true,
+			"defaultGradients": true,
+			"defaultPalette": true,
 			"duotone": [
 				{
 					"name":  "Dark grayscale" ,
@@ -170,27 +181,23 @@
 					"slug": "vivid-purple",
 					"color": "#9b51e0"
 				}
-			]
+			],
+			"text": true
 		},
 		"spacing": {
-			"customMargin": false,
-			"customPadding": false,
-			"units": [ "px", "em", "rem", "vh", "vw" ]
+			"blockGap": null,
+			"margin": false,
+			"padding": false,
+			"units": [ "px", "em", "rem", "vh", "vw", "%" ]
 		},
 		"typography": {
 			"customFontSize": true,
-			"customLineHeight": false,
 			"dropCap": true,
 			"fontSizes": [
 				{
 					"name": "Small",
 					"slug": "small",
 					"size": "13px"
-				},
-				{
-					"name": "Normal",
-					"slug": "normal",
-					"size": "16px"
 				},
 				{
 					"name": "Medium",
@@ -203,11 +210,35 @@
 					"size": "36px"
 				},
 				{
-					"name": "Huge",
-					"slug": "huge",
+					"name": "Extra Large",
+					"slug": "x-large",
 					"size": "42px"
 				}
-			]
+			],
+			"fontStyle": true,
+			"fontWeight": true,
+			"letterSpacing": true,
+			"lineHeight": false,
+			"textDecoration": true,
+			"textTransform": true
+		},
+		"blocks": {
+			"core/button": {
+				"border": {
+					"radius": true
+				}
+			},
+			"core/pullquote": {
+				"border": {
+					"color": true,
+					"radius": true,
+					"style": true,
+					"width": true
+				}
+			}
 		}
+	},
+	"styles": {
+		"spacing": { "blockGap": "24px" }
 	}
 }

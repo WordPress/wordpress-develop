@@ -1,5 +1,5 @@
 /*!
- * jQuery UI Droppable 1.12.1
+ * jQuery UI Droppable 1.13.1
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -14,6 +14,8 @@
 //>>demos: http://jqueryui.com/droppable/
 
 ( function( factory ) {
+	"use strict";
+
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
@@ -28,10 +30,11 @@
 		// Browser globals
 		factory( jQuery );
 	}
-}( function( $ ) {
+} )( function( $ ) {
+"use strict";
 
 $.widget( "ui.droppable", {
-	version: "1.12.1",
+	version: "1.13.1",
 	widgetEventPrefix: "drop",
 	options: {
 		accept: "*",
@@ -56,7 +59,7 @@ $.widget( "ui.droppable", {
 		this.isover = false;
 		this.isout = true;
 
-		this.accept = $.isFunction( accept ) ? accept : function( d ) {
+		this.accept = typeof accept === "function" ? accept : function( d ) {
 			return d.is( accept );
 		};
 
@@ -79,7 +82,9 @@ $.widget( "ui.droppable", {
 
 		this._addToManager( o.scope );
 
-		o.addClasses && this._addClass( "ui-droppable" );
+		if ( o.addClasses ) {
+			this._addClass( "ui-droppable" );
+		}
 
 	},
 
@@ -108,7 +113,7 @@ $.widget( "ui.droppable", {
 	_setOption: function( key, value ) {
 
 		if ( key === "accept" ) {
-			this.accept = $.isFunction( value ) ? value : function( d ) {
+			this.accept = typeof value === "function" ? value : function( d ) {
 				return d.is( value );
 			};
 		} else if ( key === "scope" ) {
@@ -145,12 +150,12 @@ $.widget( "ui.droppable", {
 
 		// Bail if draggable and droppable are same element
 		if ( !draggable || ( draggable.currentItem ||
-				draggable.element )[ 0 ] === this.element[ 0 ] ) {
+			draggable.element )[ 0 ] === this.element[ 0 ] ) {
 			return;
 		}
 
 		if ( this.accept.call( this.element[ 0 ], ( draggable.currentItem ||
-				draggable.element ) ) ) {
+			draggable.element ) ) ) {
 			this._addHoverClass();
 			this._trigger( "over", event, this.ui( draggable ) );
 		}
@@ -163,12 +168,12 @@ $.widget( "ui.droppable", {
 
 		// Bail if draggable and droppable are same element
 		if ( !draggable || ( draggable.currentItem ||
-				draggable.element )[ 0 ] === this.element[ 0 ] ) {
+			draggable.element )[ 0 ] === this.element[ 0 ] ) {
 			return;
 		}
 
 		if ( this.accept.call( this.element[ 0 ], ( draggable.currentItem ||
-				draggable.element ) ) ) {
+			draggable.element ) ) ) {
 			this._removeHoverClass();
 			this._trigger( "out", event, this.ui( draggable ) );
 		}
@@ -182,7 +187,7 @@ $.widget( "ui.droppable", {
 
 		// Bail if draggable and droppable are same element
 		if ( !draggable || ( draggable.currentItem ||
-				draggable.element )[ 0 ] === this.element[ 0 ] ) {
+			draggable.element )[ 0 ] === this.element[ 0 ] ) {
 			return false;
 		}
 
@@ -198,21 +203,22 @@ $.widget( "ui.droppable", {
 					inst.accept.call(
 						inst.element[ 0 ], ( draggable.currentItem || draggable.element )
 					) &&
-					intersect(
+					$.ui.intersect(
 						draggable,
 						$.extend( inst, { offset: inst.element.offset() } ),
 						inst.options.tolerance, event
 					)
 				) {
 					childrenIntersection = true;
-					return false; }
+					return false;
+				}
 			} );
 		if ( childrenIntersection ) {
 			return false;
 		}
 
 		if ( this.accept.call( this.element[ 0 ],
-				( draggable.currentItem || draggable.element ) ) ) {
+			( draggable.currentItem || draggable.element ) ) ) {
 			this._removeActiveClass();
 			this._removeHoverClass();
 
@@ -234,7 +240,7 @@ $.widget( "ui.droppable", {
 	},
 
 	// Extension points just to make backcompat sane and avoid duplicating logic
-	// TODO: Remove in 1.13 along with call to it below
+	// TODO: Remove in 1.14 along with call to it below
 	_addHoverClass: function() {
 		this._addClass( "ui-droppable-hover" );
 	},
@@ -252,7 +258,7 @@ $.widget( "ui.droppable", {
 	}
 } );
 
-var intersect = $.ui.intersect = ( function() {
+$.ui.intersect = ( function() {
 	function isOverAxis( x, reference, size ) {
 		return ( x >= reference ) && ( x < ( reference + size ) );
 	}
@@ -275,28 +281,28 @@ var intersect = $.ui.intersect = ( function() {
 			b = t + droppable.proportions().height;
 
 		switch ( toleranceMode ) {
-		case "fit":
-			return ( l <= x1 && x2 <= r && t <= y1 && y2 <= b );
-		case "intersect":
-			return ( l < x1 + ( draggable.helperProportions.width / 2 ) && // Right Half
-				x2 - ( draggable.helperProportions.width / 2 ) < r && // Left Half
-				t < y1 + ( draggable.helperProportions.height / 2 ) && // Bottom Half
-				y2 - ( draggable.helperProportions.height / 2 ) < b ); // Top Half
-		case "pointer":
-			return isOverAxis( event.pageY, t, droppable.proportions().height ) &&
-				isOverAxis( event.pageX, l, droppable.proportions().width );
-		case "touch":
-			return (
-				( y1 >= t && y1 <= b ) || // Top edge touching
-				( y2 >= t && y2 <= b ) || // Bottom edge touching
-				( y1 < t && y2 > b ) // Surrounded vertically
-			) && (
-				( x1 >= l && x1 <= r ) || // Left edge touching
-				( x2 >= l && x2 <= r ) || // Right edge touching
-				( x1 < l && x2 > r ) // Surrounded horizontally
-			);
-		default:
-			return false;
+			case "fit":
+				return ( l <= x1 && x2 <= r && t <= y1 && y2 <= b );
+			case "intersect":
+				return ( l < x1 + ( draggable.helperProportions.width / 2 ) && // Right Half
+					x2 - ( draggable.helperProportions.width / 2 ) < r && // Left Half
+					t < y1 + ( draggable.helperProportions.height / 2 ) && // Bottom Half
+					y2 - ( draggable.helperProportions.height / 2 ) < b ); // Top Half
+			case "pointer":
+				return isOverAxis( event.pageY, t, droppable.proportions().height ) &&
+					isOverAxis( event.pageX, l, droppable.proportions().width );
+			case "touch":
+				return (
+					( y1 >= t && y1 <= b ) || // Top edge touching
+					( y2 >= t && y2 <= b ) || // Bottom edge touching
+					( y1 < t && y2 > b ) // Surrounded vertically
+				) && (
+					( x1 >= l && x1 <= r ) || // Left edge touching
+					( x2 >= l && x2 <= r ) || // Right edge touching
+					( x1 < l && x2 > r ) // Surrounded horizontally
+				);
+			default:
+				return false;
 		}
 	};
 } )();
@@ -318,7 +324,7 @@ $.ui.ddmanager = {
 
 			// No disabled and non-accepted
 			if ( m[ i ].options.disabled || ( t && !m[ i ].accept.call( m[ i ].element[ 0 ],
-					( t.currentItem || t.element ) ) ) ) {
+				( t.currentItem || t.element ) ) ) ) {
 				continue;
 			}
 
@@ -360,12 +366,12 @@ $.ui.ddmanager = {
 				return;
 			}
 			if ( !this.options.disabled && this.visible &&
-					intersect( draggable, this, this.options.tolerance, event ) ) {
+				$.ui.intersect( draggable, this, this.options.tolerance, event ) ) {
 				dropped = this._drop.call( this, event ) || dropped;
 			}
 
 			if ( !this.options.disabled && this.visible && this.accept.call( this.element[ 0 ],
-					( draggable.currentItem || draggable.element ) ) ) {
+				( draggable.currentItem || draggable.element ) ) ) {
 				this.isout = true;
 				this.isover = false;
 				this._deactivate.call( this, event );
@@ -401,7 +407,7 @@ $.ui.ddmanager = {
 			}
 
 			var parentInstance, scope, parent,
-				intersects = intersect( draggable, this, this.options.tolerance, event ),
+				intersects = $.ui.intersect( draggable, this, this.options.tolerance, event ),
 				c = !intersects && this.isover ?
 					"isout" :
 					( intersects && !this.isover ? "isover" : null );
@@ -493,4 +499,4 @@ if ( $.uiBackCompat !== false ) {
 
 return $.ui.droppable;
 
-} ) );
+} );
