@@ -1071,7 +1071,7 @@ table.form-table td .updated p {
 
 .form-table.permalink-structure .available-structure-tags fieldset {
 	display: flex;
-	flex-wrap: wrap;;
+	flex-wrap: wrap;
 }
 
 .form-table.permalink-structure .available-structure-tags legend {
