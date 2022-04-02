@@ -843,7 +843,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
-	public function test_found_posts_property_is_present_in_php_serialized_query( $fields ) {
+	public function test_found_posts_property_is_present_when_calculated_after_php_unserialization( $fields ) {
 		self::factory()->post->create_many( 5 );
 
 		$q = new WP_Query(
@@ -876,7 +876,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
-	public function test_found_posts_property_is_present_in_php_serialized_query_with_no_found_rows( $fields ) {
+	public function test_found_posts_property_is_present_when_calculated_after_php_unserialization_with_no_found_rows( $fields ) {
 		self::factory()->post->create_many( 5 );
 
 		$q = new WP_Query(
@@ -910,7 +910,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
-	public function test_found_posts_property_is_present_in_json_serialized_query( $fields ) {
+	public function test_found_posts_property_is_present_when_calculated_after_json_unserialization( $fields ) {
 		self::factory()->post->create_many( 5 );
 
 		$q = new WP_Query(
@@ -943,7 +943,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
-	public function test_found_posts_property_is_present_in_json_serialized_query_with_no_found_rows( $fields ) {
+	public function test_found_posts_property_is_present_when_calculated_after_json_unserialization_with_no_found_rows( $fields ) {
 		self::factory()->post->create_many( 5 );
 
 		$q = new WP_Query(
