@@ -366,26 +366,11 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Display admin notices if dependencies not installed.
+	 * Display admin notice if dependencies not installed.
 	 *
 	 * @return void
 	 */
 	public function admin_notices() {
-		// More dependencies to install.
-		$installed_slugs = array_map( 'dirname', array_keys( $this->plugins ) );
-		$intersect       = array_intersect( $this->slugs, $installed_slugs );
-		asort( $intersect );
-		if ( $intersect !== $this->slugs ) {
-			printf(
-				'<div class="notice-warning notice is-dismissible"><p>'
-					/* translators: 1: opening tag and link to Dependencies install page, 2: closing tag */
-					. esc_html__( 'There are additional plugins that must be installed. Go to the %1$sDependencies%2$s install page.' )
-					. '</p></div>',
-				'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
-				'</a>'
-			);
-		}
-
 		// Plugin deactivated if dependencies not met.
 		// Transient on a 10 second timeout.
 		$deactivate_requires = get_site_transient( 'wp_plugin_dependencies_deactivate_plugins' );
@@ -403,6 +388,21 @@ class WP_Plugin_Dependencies {
 				'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
 				'</a>'
 			);
+		} else {
+			// More dependencies to install.
+			$installed_slugs = array_map( 'dirname', array_keys( $this->plugins ) );
+			$intersect       = array_intersect( $this->slugs, $installed_slugs );
+			asort( $intersect );
+			if ( $intersect !== $this->slugs ) {
+				printf(
+					'<div class="notice-warning notice is-dismissible"><p>'
+					/* translators: 1: opening tag and link to Dependencies install page, 2:closing tag */
+					. esc_html__( 'There are additional plugins that must be installed. Go to the%1$sDependencies%2$s install page.' )
+					. '</p></div>',
+					'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
+					'</a>'
+				);
+			}
 		}
 	}
 
