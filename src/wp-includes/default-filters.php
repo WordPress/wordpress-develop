@@ -543,7 +543,7 @@ add_action( 'init', 'create_initial_post_types', 0 ); // Highest priority.
 add_action( 'admin_menu', '_add_post_type_submenus' );
 add_action( 'before_delete_post', '_reset_front_page_settings_for_post' );
 add_action( 'wp_trash_post', '_reset_front_page_settings_for_post' );
-add_action( 'change_locale', 'create_initial_post_types', 0 );
+add_action( 'change_locale', 'create_initial_post_types' );
 
 // Post Formats.
 add_filter( 'request', '_post_format_request' );
@@ -609,7 +609,7 @@ add_filter( 'theme_wp_navigation_templates', '__return_empty_array' );
 
 // Taxonomy.
 add_action( 'init', 'create_initial_taxonomies', 0 ); // Highest priority.
-add_action( 'change_locale', 'create_initial_taxonomies', 0 );
+add_action( 'change_locale', 'create_initial_taxonomies' );
 
 // Canonical.
 add_action( 'template_redirect', 'redirect_canonical' );
