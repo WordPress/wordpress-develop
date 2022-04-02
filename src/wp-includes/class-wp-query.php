@@ -86,7 +86,7 @@ class WP_Query implements JsonSerializable, Serializable {
 	/**
 	 * Get post database count query
 	 *
-	 * @since xxx
+	 * @since x.x.x
 	 * @var string
 	 */
 	public $count_request;
@@ -3053,7 +3053,16 @@ class WP_Query implements JsonSerializable, Serializable {
 			$this->request = apply_filters_ref_array( 'posts_request', array( $this->request, &$this ) );
 
 			if ( false !== strpos( $this->request, 'SQL_CALC_FOUND_ROWS' ) ) {
-				_deprecated_argument( 'The posts_request filter', 'x.x.x', '...' );
+				_deprecated_argument(
+					'The posts_request filter',
+					'x.x.x',
+					sprintf(
+						/* translators: 1: SQL query modifier 2: SQL query */
+						__( 'The %1$s query modifier should no longer be added to queries because results are no longer counted with %2$s by default.' ),
+						'<code>SQL_CALC_FOUND_ROWS</code>',
+						'<code>SELECT FOUND_ROWS()</code>'
+					)
+				);
 
 				$this->use_calc_found_rows = true;
 				$this->count_request       = 'SELECT FOUND_ROWS()';
