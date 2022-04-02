@@ -977,6 +977,164 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
+	public function test_found_posts_property_is_present_when_calculated_before_php_unserialization( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'post_type'      => 'post',
+			)
+		);
+
+		// Fetch found_posts and max_num_pages here so the values are populated when serialized.
+		$found_posts = $q->found_posts;
+		$max_num_pages = $q->max_num_pages;
+
+		$serialized = serialize( $q );
+
+		// Create more matching posts to simulate unserialization occuring at a later date.
+		self::factory()->post->create_many( 5 );
+
+		$unserialized = unserialize( $serialized );
+
+		$this->assertSame( 5, $found_posts );
+		$this->assertTrue( property_exists( $unserialized, 'found_posts' ) );
+		$this->assertTrue( isset( $unserialized->found_posts ) );
+		$this->assertSame( 5, $unserialized->found_posts );
+
+		$this->assertEquals( 3, $max_num_pages );
+		$this->assertTrue( property_exists( $unserialized, 'max_num_pages' ) );
+		$this->assertTrue( isset( $unserialized->max_num_pages ) );
+		$this->assertEquals( 3, $unserialized->max_num_pages );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_property_is_present_when_calculated_before_php_unserialization_with_no_found_rows( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'post_type'      => 'post',
+				'no_found_rows'  => true,
+			)
+		);
+
+		// Fetch found_posts and max_num_pages here so the values are populated when serialized.
+		$found_posts = $q->found_posts;
+		$max_num_pages = $q->max_num_pages;
+
+		$serialized = serialize( $q );
+
+		// Create more matching posts to simulate unserialization occuring at a later date.
+		self::factory()->post->create_many( 5 );
+
+		$unserialized = unserialize( $serialized );
+
+		$this->assertSame( 0, $found_posts );
+		$this->assertTrue( property_exists( $unserialized, 'found_posts' ) );
+		$this->assertTrue( isset( $unserialized->found_posts ) );
+		$this->assertSame( 0, $unserialized->found_posts );
+
+		$this->assertSame( 0, $max_num_pages );
+		$this->assertTrue( property_exists( $unserialized, 'max_num_pages' ) );
+		$this->assertTrue( isset( $unserialized->max_num_pages ) );
+		$this->assertSame( 0, $unserialized->max_num_pages );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_property_is_present_when_calculated_before_json_unserialization( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'post_type'      => 'post',
+			)
+		);
+
+		// Fetch found_posts and max_num_pages here so the values are populated when serialized.
+		$found_posts = $q->found_posts;
+		$max_num_pages = $q->max_num_pages;
+
+		$serialized = json_encode( $q );
+
+		// Create more matching posts to simulate unserialization occuring at a later date.
+		self::factory()->post->create_many( 5 );
+
+		$unserialized = json_decode( $serialized );
+
+		$this->assertSame( 5, $found_posts );
+		$this->assertTrue( property_exists( $unserialized, 'found_posts' ) );
+		$this->assertTrue( isset( $unserialized->found_posts ) );
+		$this->assertSame( 5, $unserialized->found_posts );
+
+		$this->assertEquals( 3, $max_num_pages );
+		$this->assertTrue( property_exists( $unserialized, 'max_num_pages' ) );
+		$this->assertTrue( isset( $unserialized->max_num_pages ) );
+		$this->assertEquals( 3, $unserialized->max_num_pages );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_property_is_present_when_calculated_before_json_unserialization_with_no_found_rows( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'post_type'      => 'post',
+				'no_found_rows'  => true,
+			)
+		);
+
+		// Fetch found_posts and max_num_pages here so the values are populated when serialized.
+		$found_posts = $q->found_posts;
+		$max_num_pages = $q->max_num_pages;
+
+		$serialized = json_encode( $q );
+
+		// Create more matching posts to simulate unserialization occuring at a later date.
+		self::factory()->post->create_many( 5 );
+
+		$unserialized = json_decode( $serialized );
+
+		$this->assertSame( 0, $found_posts );
+		$this->assertTrue( property_exists( $unserialized, 'found_posts' ) );
+		$this->assertTrue( isset( $unserialized->found_posts ) );
+		$this->assertSame( 0, $unserialized->found_posts );
+
+		$this->assertSame( 0, $max_num_pages );
+		$this->assertTrue( property_exists( $unserialized, 'max_num_pages' ) );
+		$this->assertTrue( isset( $unserialized->max_num_pages ) );
+		$this->assertSame( 0, $unserialized->max_num_pages );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
 	public function test_found_posts_should_be_lazily_loaded( $fields ) {
 		global $wpdb;
 
