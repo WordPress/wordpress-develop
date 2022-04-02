@@ -397,7 +397,7 @@ class WP_Plugin_Dependencies {
 				printf(
 					'<div class="notice-warning notice is-dismissible"><p>'
 					/* translators: 1: opening tag and link to Dependencies install page, 2:closing tag */
-					. esc_html__( 'There are additional plugins that must be installed. Go to the%1$sDependencies%2$s install page.' )
+					. esc_html__( 'There are additional plugins that must be installed. Go to the %1$sDependencies%2$s install page.' )
 					. '</p></div>',
 					'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
 					'</a>'
