@@ -189,7 +189,9 @@ class WP_Query implements JsonSerializable, Serializable {
 	private $max_num_pages = 0;
 
 	/**
-	 * Undocumented variable
+	 * Whether the SQL query to count the results should use `SQL_CALC_FOUND_ROWS`.
+	 *
+	 * Used only as a fallback if a filter on the main query reinstates `SELECT FOUND_ROWS()`.
 	 *
 	 * @since x.x.x
 	 *
