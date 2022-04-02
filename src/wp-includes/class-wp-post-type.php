@@ -45,10 +45,10 @@ final class WP_Post_Type {
 	public $labels;
 
 	/**
-	 * Default labels
+	 * Default labels.
 	 *
 	 * @since 6.0.0
-	 * @var (string|null)[][]
+	 * @var (string|null)[][] $default_labels
 	 */
 	protected static $default_labels = array();
 
@@ -799,7 +799,7 @@ final class WP_Post_Type {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @return (string|null)[][]
+	 * @return (string|null)[][] The default labels for post types.
 	 */
 	public static function get_default_labels() {
 		if ( ! empty( self::$default_labels ) ) {
