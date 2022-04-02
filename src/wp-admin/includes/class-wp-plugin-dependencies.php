@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Administration
- * @since 6.0.0
+ * @since 6.1.0
  */
 
 /**
@@ -220,6 +220,9 @@ class WP_Plugin_Dependencies {
 				$this->modify_plugin_row( $plugin_file );
 			}
 		}
+		foreach ( array_keys( $this->requires_plugins ) as $plugin_file ) {
+			$this->modify_requires_plugin_row( $plugin_file );
+		}
 	}
 
 	/**
@@ -232,7 +235,7 @@ class WP_Plugin_Dependencies {
 			return;
 		}
 
-		$this->plugin_data = get_site_transient( 'wp_plugin_dependencies_plugin_data' );
+		$this->plugin_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_data' );
 		foreach ( $this->slugs as $key => $slug ) {
 			// Don't hit plugins API if data exists.
 			if ( array_key_exists( $slug, (array) $this->plugin_data ) ) {
@@ -284,6 +287,17 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
+	 * Actually make modifications to plugin row of requiring plugin.
+	 *
+	 * @param string $plugin_file Plugin file.
+	 *
+	 * @return void
+	 */
+	public function modify_requires_plugin_row( $plugin_file ) {
+		add_action( 'after_plugin_row_' . $plugin_file, array( $this, 'modify_plugin_row_elements_requires' ), 10, 1 );
+	}
+
+	/**
 	 * Unset plugin action links so required plugins can't be removed or deactivated.
 	 * Only when the requiring plugin is active.
 	 *
@@ -322,6 +336,32 @@ class WP_Plugin_Dependencies {
 		print '<script>';
 		print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $this->get_dependency_sources( $plugin_data ) ) . '");';
 		print 'jQuery(".active[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .check-column input").remove();';
+		print '</script>';
+	}
+
+	/**
+	 * Modify the plugin row elements.
+	 * Add `Requires: ...` information
+	 *
+	 * @param string $plugin_file Plugin file.
+	 *
+	 * @return void
+	 */
+	public function modify_plugin_row_elements_requires( $plugin_file ) {
+		$this->plugin_data = get_site_transient( 'wp_plugin_dependencies_plugin_data' );
+
+		// Exit if no plugin data found.
+		if ( empty( $this->plugin_data ) ) {
+			return;
+		}
+
+		$requires = $this->plugins[ $plugin_file ]['RequiresPlugins'];
+		foreach ( $requires as $require ) {
+			$names[] = $this->plugin_data[ $require ]['name'];
+		}
+		$names = implode( ', ', $names );
+		print '<script>';
+		print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Requires:' ) . '</strong> ' . esc_html( $names ) . '");';
 		print '</script>';
 	}
 
