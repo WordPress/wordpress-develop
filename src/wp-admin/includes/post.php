@@ -1506,7 +1506,7 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 		if ( ! get_option( 'permalink_structure' ) && current_user_can( 'manage_options' )
 			&& ! ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $id )
 		) {
-			$return .= '<span id="change-permalinks"><a href="options-permalink.php" class="button button-small" target="_blank">' . __( 'Change Permalinks' ) . "</a></span>\n";
+			$return .= '<span id="change-permalinks"><a href="options-permalink.php" class="button button-small">' . __( 'Change Permalink Structure' ) . "</a></span>\n";
 		}
 	} else {
 		if ( mb_strlen( $post_name ) > 34 ) {
@@ -2337,7 +2337,7 @@ function the_block_editor_meta_boxes() {
 	}
 
 	/**
-	 * Sadly we probably can not add this data directly into editor settings.
+	 * Sadly we probably cannot add this data directly into editor settings.
 	 *
 	 * Some meta boxes need admin_head to fire for meta box registry.
 	 * admin_head fires after admin_enqueue_scripts, which is where we create our

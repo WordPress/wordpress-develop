@@ -1715,7 +1715,7 @@ function register_post_type( $post_type, $args = array() ) {
 /**
  * Unregisters a post type.
  *
- * Can not be used to unregister built-in post types.
+ * Cannot be used to unregister built-in post types.
  *
  * @since 4.5.0
  *
@@ -7337,6 +7337,9 @@ function update_post_cache( &$posts ) {
 
 	$data = array();
 	foreach ( $posts as $post ) {
+		if ( empty( $post->filter ) || 'raw' !== $post->filter ) {
+			$post = sanitize_post( $post, 'raw' );
+		}
 		$data[ $post->ID ] = $post;
 	}
 	wp_cache_add_multiple( $data, 'posts' );

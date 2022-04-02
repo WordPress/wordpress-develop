@@ -494,9 +494,12 @@ EOF;
 
 		foreach ( $tags as $tag ) {
 			$this->assertTrue( $tag['class'] );
+			$this->assertTrue( $tag['dir'] );
 			$this->assertTrue( $tag['id'] );
+			$this->assertTrue( $tag['lang'] );
 			$this->assertTrue( $tag['style'] );
 			$this->assertTrue( $tag['title'] );
+			$this->assertTrue( $tag['xml:lang'] );
 		}
 
 		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
@@ -858,7 +861,7 @@ EOF;
 	/**
 	 * @ticket 34063
 	 */
-	public function test_bdo() {
+	public function test_bdo_tag_allowed() {
 		global $allowedposttags;
 
 		$input = '<p>This is <bdo dir="rtl">a BDO tag</bdo>. Weird, <bdo dir="ltr">right?</bdo></p>';
@@ -867,9 +870,20 @@ EOF;
 	}
 
 	/**
+	 * @ticket 54698
+	 */
+	public function test_ruby_tag_allowed() {
+		global $allowedposttags;
+
+		$input = '<ruby>✶<rp>: </rp><rt>Star</rt><rp>, </rp><rt lang="fr">Étoile</rt><rp>.</rp></ruby>';
+
+		$this->assertSame( $input, wp_kses( $input, $allowedposttags ) );
+	}
+
+	/**
 	 * @ticket 35079
 	 */
-	public function test_ol_reversed() {
+	public function test_ol_reversed_attribute_allowed() {
 		global $allowedposttags;
 
 		$input = '<ol reversed="reversed"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ol>';
