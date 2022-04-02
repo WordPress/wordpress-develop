@@ -43,10 +43,10 @@ final class WP_Taxonomy {
 	public $labels;
 
 	/**
-	 * Default labels
+	 * Default labels.
 	 *
 	 * @since 6.0.0
-	 * @var (string|null)[][]
+	 * @var (string|null)[][] $default_labels
 	 */
 	protected static $default_labels = array();
 
@@ -576,7 +576,7 @@ final class WP_Taxonomy {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @return (string|null)[][]
+	 * @return (string|null)[][] The default labels for taxonomies.
 	 */
 	public static function get_default_labels() {
 		if ( ! empty( self::$default_labels ) ) {
