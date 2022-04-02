@@ -11,7 +11,7 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 	 * @return string                String where the unique id classes were replaced with "wp-elements-1".
 	 */
 	private static function make_unique_id_one( $string ) {
-		return preg_replace( '/wp-elements-.{13}/', 'wp-elements-1', $string );
+		return preg_replace( '/wp-elements-\d+/', 'wp-elements-1', $string );
 	}
 
 	/**
