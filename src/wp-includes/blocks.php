@@ -168,9 +168,8 @@ function register_block_style_handle( $metadata, $field_name ) {
 	// Check whether styles should have a ".min" suffix or not.
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 
-	$style_handle    = $metadata[ $field_name ];
-	$style_path      = remove_block_asset_path_prefix( $metadata[ $field_name ] );
-	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
+	$style_handle = $metadata[ $field_name ];
+	$style_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
 
 	if ( $style_handle === $style_path && ! $is_core_block ) {
 		return $style_handle;
@@ -183,7 +182,8 @@ function register_block_style_handle( $metadata, $field_name ) {
 	}
 
 	if ( $is_theme_block ) {
-		$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
+		$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
+		$style_uri       = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 	}
 
 	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
