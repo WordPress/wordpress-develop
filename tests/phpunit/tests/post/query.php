@@ -989,7 +989,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		// Fetch found_posts and max_num_pages here so the values are populated when serialized.
-		$found_posts = $q->found_posts;
+		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
 		$serialized = serialize( $q );
@@ -1029,7 +1029,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		// Fetch found_posts and max_num_pages here so the values are populated when serialized.
-		$found_posts = $q->found_posts;
+		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
 		$serialized = serialize( $q );
@@ -1068,7 +1068,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		// Fetch found_posts and max_num_pages here so the values are populated when serialized.
-		$found_posts = $q->found_posts;
+		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
 		$serialized = json_encode( $q );
@@ -1108,7 +1108,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		// Fetch found_posts and max_num_pages here so the values are populated when serialized.
-		$found_posts = $q->found_posts;
+		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
 
 		$serialized = json_encode( $q );
