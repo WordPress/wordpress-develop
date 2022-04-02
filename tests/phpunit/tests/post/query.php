@@ -1127,6 +1127,27 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
 	 */
+	public function test_found_posts_are_correct_for_query_with_no_found_rows( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'        => $fields,
+				'no_found_rows' => true,
+			)
+		);
+
+		$this->assertSame( 5, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 0, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertSame( 0, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
 	public function test_found_posts_are_correct_for_paged_query( $fields ) {
 		self::factory()->post->create_many( 5 );
 
