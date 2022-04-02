@@ -127,7 +127,7 @@ class WP_Site_Query {
 	 *     @type int             $number                 Maximum number of sites to retrieve. Default 100.
 	 *     @type int             $offset                 Number of sites to offset the query. Used to build LIMIT clause.
 	 *                                                   Default 0.
-	 *     @type bool            $no_found_rows          Whether to disable the query to count found rows. Default true.
+	 *     @type bool            $no_found_rows          Whether to disable the `SQL_CALC_FOUND_ROWS` query. Default true.
 	 *     @type string|array    $orderby                Site status or array of statuses. Accepts:
 	 *                                                   - 'id'
 	 *                                                   - 'domain'
@@ -674,7 +674,7 @@ class WP_Site_Query {
 
 		$found_rows = '';
 		if ( ! $this->query_vars['no_found_rows'] ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS'; // @TODO
+			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
 		$this->sql_clauses['select']  = "SELECT $found_rows $fields";

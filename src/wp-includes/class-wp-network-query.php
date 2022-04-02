@@ -98,7 +98,7 @@ class WP_Network_Query {
 	 *     @type int          $number               Maximum number of networks to retrieve. Default empty (no limit).
 	 *     @type int          $offset               Number of networks to offset the query. Used to build LIMIT clause.
 	 *                                              Default 0.
-	 *     @type bool         $no_found_rows        Whether to disable the query to count found rows. Default true.
+	 *     @type bool         $no_found_rows        Whether to disable the `SQL_CALC_FOUND_ROWS` query. Default true.
 	 *     @type string|array $orderby              Network status or array of statuses. Accepts 'id', 'domain', 'path',
 	 *                                              'domain_length', 'path_length' and 'network__in'. Also accepts false,
 	 *                                              an empty array, or 'none' to disable `ORDER BY` clause. Default 'id'.
@@ -471,7 +471,7 @@ class WP_Network_Query {
 
 		$found_rows = '';
 		if ( ! $this->query_vars['no_found_rows'] ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS'; // @TODO
+			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
 		$this->sql_clauses['select']  = "SELECT $found_rows $fields";

@@ -183,7 +183,7 @@ class WP_Comment_Query {
 	 *                                                      When used with `$offset`, `$offset` takes precedence. Default 1.
 	 *     @type int             $offset                    Number of comments to offset the query. Used to build
 	 *                                                      LIMIT clause. Default 0.
-	 *     @type bool            $no_found_rows             Whether to disable the query to count found rows.
+	 *     @type bool            $no_found_rows             Whether to disable the `SQL_CALC_FOUND_ROWS` query.
 	 *                                                      Default: true.
 	 *     @type string|array    $orderby                   Comment status or array of statuses. To use 'meta_value'
 	 *                                                      or 'meta_value_num', `$meta_key` must also be defined.
@@ -952,7 +952,7 @@ class WP_Comment_Query {
 
 		$found_rows = '';
 		if ( ! $this->query_vars['no_found_rows'] ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS'; // @TODO
+			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
 		$this->sql_clauses['select']  = "SELECT $found_rows $fields";
