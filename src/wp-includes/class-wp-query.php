@@ -474,7 +474,7 @@ class WP_Query implements JsonSerializable, Serializable {
 	private $stopwords;
 
 	/**
-	 * Undocumented variable
+	 * The LIMIT clause of the query, used only during counting of results.
 	 *
 	 * @since x.x.x
 	 * @var string
@@ -3402,7 +3402,10 @@ class WP_Query implements JsonSerializable, Serializable {
 			 * Filters the query to run for retrieving the found posts.
 			 *
 			 * @since 2.1.0
-			 * @since x.x.x This query was changed...
+			 * @since x.x.x This query was changed from `SELECT FOUND_ROWS()` to a more
+			 *              efficient `COUNT` query which only runs when the `found_posts`
+			 *              or `max_num_pages` properties are first accessed. This allows
+			 *              for lazy population of the result count.
 			 *
 			 * @param string   $found_posts_query The query to run to find the found posts.
 			 * @param WP_Query $query             The WP_Query instance (passed by reference).
@@ -3426,7 +3429,9 @@ class WP_Query implements JsonSerializable, Serializable {
 		 * Filters the number of found posts for the query.
 		 *
 		 * @since 2.1.0
-		 * @since x.x.x This filter now only runs after the value is lazily loaded...
+		 * @since x.x.x By default this filter now only runs when the `found_posts` or
+		 *              `max_num_pages` properties are first accessed. This allows for
+		 *              lazy population of the result count.
 		 *
 		 * @param int      $found_posts The number of posts found.
 		 * @param WP_Query $query       The WP_Query instance (passed by reference).
@@ -3439,11 +3444,11 @@ class WP_Query implements JsonSerializable, Serializable {
 	}
 
 	/**
-	 * Undocumented function
+	 * Stores the LIMIT clause of the query for later use.
 	 *
 	 * @since x.x.x
 	 *
-	 * @param string $limits ...
+	 * @param string $limits The LIMIT clause of the query.
 	 */
 	private function set_limits( $limits ) {
 		$this->limits = $limits;
