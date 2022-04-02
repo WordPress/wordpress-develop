@@ -357,12 +357,16 @@ class WP_Plugin_Dependencies {
 
 		$requires = $this->plugins[ $plugin_file ]['RequiresPlugins'];
 		foreach ( $requires as $require ) {
-			$names[] = $this->plugin_data[ $require ]['name'];
+			if ( isset( $this->plugin_data[ $require ] ) ) {
+				$names[] = $this->plugin_data[ $require ]['name'];
+			}
 		}
-		$names = implode( ', ', $names );
-		print '<script>';
-		print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Requires:' ) . '</strong> ' . esc_html( $names ) . '");';
-		print '</script>';
+		if ( ! empty( $names ) ) {
+			$names = implode( ', ', $names );
+			print '<script>';
+			print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Requires:' ) . '</strong> ' . esc_html( $names ) . '");';
+			print '</script>';
+		}
 	}
 
 	/**
