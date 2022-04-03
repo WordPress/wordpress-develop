@@ -312,12 +312,12 @@ function wp_dashboard_right_now() {
 
 			$text             = sprintf( $text, number_format_i18n( $num_posts->publish ) );
 			$post_type_object = get_post_type_object( $post_type );
-			$icon_class = 'dashicons-admin-' . $post_type;
+			$icon_class       = 'dashicons-before dashicons-admin-' . $post_type;
 
 			if ( $post_type_object && current_user_can( $post_type_object->cap->edit_posts ) ) {
-				printf( '<li class="%1$s-count"><a class="dashicons-before %3$s" href="edit.php?post_type=%1$s">%2$s</a></li>', $post_type, $text, esc_attr( $icon_class ) );
+				printf( '<li class="%1$s-count"><a class="%3$s" href="edit.php?post_type=%1$s">%2$s</a></li>', $post_type, $text, esc_attr( $icon_class ) );
 			} else {
-				printf( '<li class="%1$s-count"><span class="dashicons-before %3$s">%2$s</span></li>', $post_type, $text, esc_attr( $icon_class ) );
+				printf( '<li class="%1$s-count"><span class="%3$s">%2$s</span></li>', $post_type, $text, esc_attr( $icon_class ) );
 			}
 		}
 	}
