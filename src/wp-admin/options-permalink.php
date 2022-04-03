@@ -266,7 +266,7 @@ $structures = array(
 					</div>
 					<div>
 						<input id="custom_selection" name="selection" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures, true ) ); ?> /> <label for="custom_selection"><?php _e( 'Custom Structure' ); ?></label>
-						<p class="permalink-description"><label for="permalink_structure" class="screen-reader-text"><?php _e( 'Custom Permalink Structure Tags' ); ?></label><code id="permalink-custom"><?php echo get_option( 'home' ) . $blog_prefix; ?></code><input name="permalink_structure" id="permalink_structure" type="text" value="<?php echo esc_attr( $permalink_structure ); ?>" aria-describedby="permalink-custom" class="regular-text code" /></p>
+						<p class="permalink-description"><label for="permalink_structure" class="screen-reader-text"><?php _e( 'Custom Permalink Structure Tags' ); ?></label><span class="code"><code id="permalink-custom"><?php echo get_option( 'home' ) . $blog_prefix; ?></code><input name="permalink_structure" id="permalink_structure" type="text" value="<?php echo esc_attr( $permalink_structure ); ?>" aria-describedby="permalink-custom" class="regular-text code" /></span></p>
 						<div class="available-structure-tags hide-if-no-js">
 							<div id="custom_selection_updated" aria-live="assertive" class="screen-reader-text"></div>
 							<?php
