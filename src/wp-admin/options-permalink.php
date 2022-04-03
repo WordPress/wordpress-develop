@@ -237,7 +237,7 @@ $structures = array(
 );
 ?>
 <h2 class="title"><?php _e( 'Common Settings' ); ?></h2>
-<table class="form-table permalink-structure">
+<table class="form-table permalink-structure" role="presentation">
 	<tbody>
 		<tr class="structure-selection">
 			<th scope="row"><?php _e( 'Select permalink structure' ); ?></th>
