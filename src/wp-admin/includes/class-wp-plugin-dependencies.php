@@ -195,10 +195,12 @@ class WP_Plugin_Dependencies {
 	 * @return string
 	 */
 	public function plugin_install_description( $description, $plugin ) {
-		$required    = null;
-		$dependents  = $this->get_dependency_sources( $plugin );
-		$required    = '<strong>' . __( 'Required by:' ) . '</strong> ' . $dependents;
-		$description = $description . '<p>' . $required . '</p>';
+		$required = null;
+		if ( in_array( $plugin['slug'], array_keys( $this->plugin_data ), true ) ) {
+			$dependents  = $this->get_dependency_sources( $plugin );
+			$required    = '<strong>' . __( 'Required by:' ) . '</strong> ' . $dependents;
+			$description = $description . '<p>' . $required . '</p>';
+		}
 
 		return $description;
 	}
@@ -217,7 +219,7 @@ class WP_Plugin_Dependencies {
 		$dependency_paths = $this->get_dependency_filepaths();
 		foreach ( $dependency_paths as $plugin_file ) {
 			if ( $plugin_file ) {
-				$this->modify_plugin_row( $plugin_file );
+				$this->modify_dependency_plugin_row( $plugin_file );
 			}
 		}
 		foreach ( array_keys( $this->requires_plugins ) as $plugin_file ) {
@@ -231,7 +233,8 @@ class WP_Plugin_Dependencies {
 	 */
 	public function get_dot_org_data() {
 		global $pagenow;
-		if ( 'plugin-install.php' !== $pagenow ) {
+		$pages = array( 'plugin-install.php', 'plugins.php' );
+		if ( ! in_array( $pagenow, $pages, true ) ) {
 			return;
 		}
 
@@ -276,11 +279,11 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Actually make modifications to plugin row.
+	 * Actually make modifications to plugin row of plugin dependencies.
 	 *
 	 * @param string $plugin_file Plugin file.
 	 */
-	public function modify_plugin_row( $plugin_file ) {
+	public function modify_dependency_plugin_row( $plugin_file ) {
 		add_filter( 'network_admin_plugin_action_links_' . $plugin_file, array( $this, 'unset_action_links' ), 10, 2 );
 		add_filter( 'plugin_action_links_' . $plugin_file, array( $this, 'unset_action_links' ), 10, 2 );
 		add_action( 'after_plugin_row_' . $plugin_file, array( $this, 'modify_plugin_row_elements' ), 10, 2 );
