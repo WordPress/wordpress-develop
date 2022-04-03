@@ -3978,9 +3978,9 @@ function wp_ajax_crop_image() {
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 
 			// Get the original image's post to pre-populate the cropped image.
-			$original_attachment  = get_post( $attachment_id );
-			$sanitized_post_title = sanitize_file_name( $original_attachment->post_title );
-			$use_original_title   = (
+			$original_attachment      = get_post( $attachment_id );
+			$sanitized_post_title     = sanitize_file_name( $original_attachment->post_title );
+			$use_original_title       = (
 				( '' !== trim( $original_attachment->post_title ) ) &&
 				/*
 				 * Check if the original image has a title other than the "filename" default,
