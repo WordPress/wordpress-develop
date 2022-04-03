@@ -239,10 +239,10 @@ $structures = array(
 <h2 class="title"><?php _e( 'Common Settings' ); ?></h2>
 <table class="form-table permalink-structure" role="presentation">
 	<tbody>
-		<tr class="structure-selection">
+		<tr>
 			<th scope="row"><?php _e( 'Select permalink structure' ); ?></th>
 			<td>
-				<fieldset>
+				<fieldset class="structure-selection">
 					<legend class="screen-reader-text"><span><?php _e( 'Select permalink structure' ); ?></span></legend>
 					<label for="permalink-input-plain">
 						<input id="permalink-input-plain" name="selection" aria-describedby="permalink-plain" type="radio" value="" <?php checked( '', $permalink_structure ); ?> /> <?php _e( 'Plain' ); ?>
