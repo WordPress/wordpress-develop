@@ -243,7 +243,7 @@ $structures = array(
 			<th scope="row"><?php _e( 'Select permalink structure' ); ?></th>
 			<td>
 				<fieldset class="structure-selection">
-					<legend class="screen-reader-text"><span><?php _e( 'Select permalink structure' ); ?></span></legend>
+					<legend class="screen-reader-text"><?php _e( 'Select permalink structure' ); ?></legend>
 					<label for="permalink-input-plain">
 						<input id="permalink-input-plain" name="selection" aria-describedby="permalink-plain" type="radio" value="" <?php checked( '', $permalink_structure ); ?> /> <?php _e( 'Plain' ); ?>
 						<p class="description"><code id="permalink-plain"><?php echo get_option( 'home' ); ?>/?p=123</code></p>
