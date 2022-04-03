@@ -310,8 +310,8 @@ $structures = array(
 
 							if ( ! empty( $available_tags ) ) :
 								?>
-								<legend><?php _e( 'Available tags:' ); ?></legend>
 								<fieldset>
+									<legend><?php _e( 'Available tags:' ); ?></legend>
 									<?php
 									foreach ( $available_tags as $tag => $explanation ) {
 										?>
