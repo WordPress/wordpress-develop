@@ -2,7 +2,7 @@
 /**
  * @group block-supports
  */
-class WP_Block_Supports_Spacing_Test extends WP_UnitTestCase {
+class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 
 	function test_spacing_style_is_applied() {
 		$block_name = 'test/spacing-style-is-applied';
