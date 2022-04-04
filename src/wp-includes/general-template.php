@@ -3414,6 +3414,83 @@ function wp_resource_hints() {
 }
 
 /**
+ * Prints resource preloads directives to browsers.
+ * https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types/preload
+ *
+ * Gives directive to browsers to preload specific resources that website will
+ * need very soon, this ensures that they are available earlier and are less
+ * likely to block the page's render.
+ *
+ * These performance improving indicators work by using `<link rel"preload">`.
+ *
+ * @since 6.x.x
+ */
+function wp_preload_links() {
+	/**
+	 * Filters domains and URLs for resource preloads.
+	 *
+	 * @since 6.x.x
+	 *
+	 * @param array  $urls {
+	 *     Array of resources and their attributes, or URLs to print for resource preloads.
+	 *
+	 *     @type array|string ...$0 {
+	 *         Array of resource attributes, or a URL string.
+	 *
+	 *         @type string $href        URL to include in resource preloads. Required.
+	 *         @type string $as          How the browser should treat the resource
+	 *                                   (`script`, `style`, `image`, `document`, etc).
+	 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
+	 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
+	 *         @type string $media       Accepts media types or media queries. Allows responsive preloading.
+	 *     }
+	 * }
+	 */
+	$urls = apply_filters( 'wp_preload_links', array() );
+
+	foreach ( $urls as $url ) {
+		if ( is_array( $url ) ) {
+			if ( isset( $url['href'] ) ) {
+				$atts = array_merge( array( 'rel' => 'preload' ), $url );
+				$url  = $url['href'];
+			} else {
+				continue;
+			}
+		}
+
+		$url = esc_url( $url, array( 'http', 'https' ) );
+		if ( ! $url ) {
+			continue;
+		}
+
+
+		$atts['href'] = $url;
+
+		foreach ( $atts as $attr => $value ) {
+			if ( ! is_scalar( $value )
+				 || ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'rel', 'type', 'media' ), true ) && ! is_numeric( $attr ) )
+			) {
+
+				continue;
+			}
+
+			$value = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
+
+			if ( ! is_string( $attr ) ) {
+				$html .= " $value";
+			} else {
+				$html .= " $attr='$value'";
+			}
+		}
+
+		$html = trim( $html );
+
+		echo "<link $html />\n";
+	}
+
+}
+
+/**
  * Retrieves a list of unique hosts of all enqueued scripts and styles.
  *
  * @since 4.6.0
