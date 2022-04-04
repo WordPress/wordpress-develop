@@ -253,6 +253,22 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55513
+	 */
+	public function test_success_register_block_script_handle_in_theme() {
+		switch_theme( 'block-theme' );
+
+		$metadata = array(
+			'file'   => DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json',
+			'name'   => 'block-theme/example-block',
+			'script' => 'file:./index.js',
+		);
+		$result   = register_block_script_handle( $metadata, 'script' );
+
+		$this->assertSame( 'block-theme-example-block-script', $result );
+	}
+
+	/**
 	 * @ticket 50263
 	 */
 	public function test_field_not_found_register_block_style_handle() {
@@ -302,6 +318,29 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
+	}
+
+	/**
+	 * @ticket 55513
+	 */
+	public function test_success_register_block_style_handle_in_theme() {
+		switch_theme( 'block-theme' );
+
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json',
+			'name'  => 'block-theme/example-block',
+			'style' => 'file:./style.css',
+		);
+		$result   = register_block_style_handle( $metadata, 'style' );
+
+		$this->assertSame( 'block-theme-example-block-style', $result );
+		$this->assertSame( 'replace', wp_styles()->get_data( 'block-theme-example-block-style', 'rtl' ) );
+
+		// @ticket 50328
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/style.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'block-theme-example-block-style', 'path' ) )
 		);
 	}
 
