@@ -464,8 +464,8 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 
 	public function test_get_theme_items() {
 		wp_set_current_user( self::$admin_id );
-		switch_theme( 'theme1' );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/theme1/variations' );
+		switch_theme( 'block-theme' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/block-theme/variations' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$expected = array(
@@ -493,6 +493,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 						),
 					),
 				),
+				'title' => 'variation',
 			),
 		);
 		$this->assertSameSetsWithIndex( $data, $expected );

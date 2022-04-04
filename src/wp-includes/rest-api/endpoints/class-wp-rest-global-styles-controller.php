@@ -38,6 +38,24 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return void
 	 */
 	public function register_routes() {
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)/variations',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_theme_items' ),
+					'permission_callback' => array( $this, 'get_theme_items_permissions_check' ),
+					'args'                => array(
+						'stylesheet' => array(
+							'description' => __( 'The theme identifier' ),
+							'type'        => 'string',
+						),
+					),
+				),
+			)
+		);
+
 		// List themes global styles.
 		register_rest_route(
 			$this->namespace,
@@ -59,24 +77,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 							'description'       => __( 'The theme identifier' ),
 							'type'              => 'string',
 							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
-						),
-					),
-				),
-			)
-		);
-
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)/variations',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_theme_items' ),
-					'permission_callback' => array( $this, 'get_theme_items_permissions_check' ),
-					'args'                => array(
-						'stylesheet' => array(
-							'description' => __( 'The theme identifier', 'gutenberg' ),
-							'type'        => 'string',
 						),
 					),
 				),
