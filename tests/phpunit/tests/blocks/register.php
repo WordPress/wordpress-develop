@@ -337,7 +337,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame( 'block-theme-example-block-style', $result );
 		$this->assertSame( 'replace', wp_styles()->get_data( 'block-theme-example-block-style', 'rtl' ) );
 
-		// @ticket 50328
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/style.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'block-theme-example-block-style', 'path' ) )
