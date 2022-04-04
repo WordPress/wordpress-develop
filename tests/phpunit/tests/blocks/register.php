@@ -261,11 +261,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$metadata = array(
 			'file'   => DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json',
 			'name'   => 'block-theme/example-block',
-			'script' => 'file:./index.js',
+			'viewScript' => 'file:./view.js',
 		);
-		$result   = register_block_script_handle( $metadata, 'script' );
+		$result   = register_block_script_handle( $metadata, 'viewScript' );
 
-		$this->assertSame( 'block-theme-example-block-script', $result );
+		$this->assertSame( 'block-theme-example-block-view-script', $result );
 	}
 
 	/**
@@ -330,16 +330,16 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$metadata = array(
 			'file'  => DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json',
 			'name'  => 'block-theme/example-block',
-			'style' => 'file:./style.css',
+			'editorStyle' => 'file:./editor-style.css',
 		);
-		$result   = register_block_style_handle( $metadata, 'style' );
+		$result   = register_block_style_handle( $metadata, 'editorStyle' );
 
-		$this->assertSame( 'block-theme-example-block-style', $result );
-		$this->assertSame( 'replace', wp_styles()->get_data( 'block-theme-example-block-style', 'rtl' ) );
+		$this->assertSame( 'block-theme-example-block-editor-style', $result );
+		$this->assertSame( 'replace', wp_styles()->get_data( 'block-theme-example-block-editor-style', 'rtl' ) );
 
 		$this->assertSame(
-			wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/style.css' ) ),
-			wp_normalize_path( wp_styles()->get_data( 'block-theme-example-block-style', 'path' ) )
+			wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/editor-style.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'block-theme-example-block-editor-style', 'path' ) )
 		);
 	}
 
