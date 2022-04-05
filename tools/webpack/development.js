@@ -20,8 +20,8 @@ module.exports = function( env = { environment: 'production', buildTarget: false
 		mode: 'development',
 		target: 'browserslist',
 		output: {
-			filename: `[name]/index${ suffix }.js`,
-			path: join( baseDir, `${ buildTarget }/js/dist` ),
+			filename: `[name]${ suffix }.js`,
+			path: join( baseDir, `${ buildTarget }/js/dist/development` ),
 		},
 	};
 
