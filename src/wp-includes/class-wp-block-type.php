@@ -59,6 +59,14 @@ class WP_Block_Type {
 	public $parent = null;
 
 	/**
+	 * Setting ancestor makes a block available inside the specified
+	 * block types at any position of the ancestor block subtree.
+	 *
+	 * @var array|null
+	 */
+	public $ancestor = null;
+
+	/**
 	 * Block type icon.
 	 *
 	 * @since 5.5.0
@@ -221,6 +229,8 @@ class WP_Block_Type {
 	 *                                           search interfaces to arrange block types by category.
 	 *     @type array|null    $parent           Setting parent lets a block require that it is only
 	 *                                           available when nested within the specified blocks.
+	 *     @type array|null    $ancestor         Setting ancestor makes a block available inside the specified
+	 *                                           block types at any position of the ancestor block subtree.
 	 *     @type string|null   $icon             Block type icon.
 	 *     @type string        $description      A detailed block type description.
 	 *     @type string[]      $keywords         Additional keywords to produce block type as
