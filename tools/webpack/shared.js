@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+const TerserPlugin = require( 'terser-webpack-plugin' );
 const postcss = require( 'postcss' );
 const { join } = require( 'path' );
 
@@ -14,6 +15,11 @@ const baseConfig = ( env ) => {
 		mode,
 		optimization: {
 			moduleIds: mode === 'production' ? 'deterministic' : 'named',
+			minimizer: [
+				new TerserPlugin( {
+					extractComments: false,
+				} ),
+			]
 		},
 		module: {
 			rules: [

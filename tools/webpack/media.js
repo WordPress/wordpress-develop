@@ -35,6 +35,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			minimizer: [
 				new TerserPlugin( {
 					include: /\.min\.js$/,
+					extractComments: false,
 				} ),
 			]
 		},
