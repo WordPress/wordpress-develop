@@ -519,6 +519,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			 * Filter the plugin card description.
 			 *
 			 * @since 6.0.0
+			 *
 			 * @param string $description Plugin card description.
 			 * @param array  $plugin      Array of plugin data.
 			 */
