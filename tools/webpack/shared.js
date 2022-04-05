@@ -39,9 +39,7 @@ const baseConfig = ( env ) => {
 				'lodash-es': 'lodash',
 			},
 		},
-		stats: {
-			children: false,
-		},
+		stats: 'errors-only',
 		watch: env.watch,
 	};
 
