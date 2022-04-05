@@ -25,7 +25,7 @@
 	],
 	"devDependencies": {
 		"@wordpress/babel-preset-default": "6.4.1",
-		"@wordpress/dependency-extraction-webpack-plugin": "3.3.0",
+		"@wordpress/dependency-extraction-webpack-plugin": "3.4.1",
 		"@wordpress/e2e-test-utils": "5.4.10",
 		"@wordpress/scripts": "20.0.2",
 		"autoprefixer": "^9.8.8",
@@ -70,7 +70,7 @@
 		"uglify-js": "^3.14.3",
 		"uuid": "8.3.2",
 		"wait-on": "6.0.0",
-		"webpack": "5.68.0",
+		"webpack": "5.71.0",
 		"webpack-livereload-plugin": "3.0.2"
 	},
 	"dependencies": {
