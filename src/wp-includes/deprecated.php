@@ -3192,7 +3192,7 @@ function wp_load_image( $file ) {
 
 	if ( ! is_file( $file ) ) {
 		/* translators: %s: File name. */
-		return sprintf( __( 'File &#8220;%s&#8221; doesn&#8217;t exist?' ), $file );
+		return sprintf( __( 'File &#8220;%s&#8221; does not exist?' ), $file );
 	}
 
 	if ( ! function_exists('imagecreatefromstring') )
@@ -4207,4 +4207,21 @@ function wp_sensitive_page_meta() {
 function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
 	_deprecated_function( __FUNCTION__, '5.8.0', '_excerpt_render_inner_blocks()' );
 	return _excerpt_render_inner_blocks( $columns, $allowed_blocks );
+}
+
+/**
+ * Renders the duotone filter SVG and returns the CSS filter property to
+ * reference the rendered SVG.
+ *
+ * @since 5.9.0
+ * @deprecated 5.9.1 Use `wp_get_duotone_filter_property` introduced in 5.9.1.
+ *
+ * @see wp_get_duotone_filter_property()
+ *
+ * @param array $preset Duotone preset value as seen in theme.json.
+ * @return string Duotone CSS filter property.
+ */
+function wp_render_duotone_filter_preset( $preset ) {
+	_deprecated_function( __FUNCTION__, '5.9.1', 'wp_get_duotone_filter_property()' );
+	return wp_get_duotone_filter_property( $preset );
 }
