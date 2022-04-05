@@ -2163,9 +2163,14 @@ class WP_Object_Cache {
 	 * @return true Always returns true.
 	 */
 	public function flush_group( $group ) {
-		unset( $this->global_groups[ $group ] );
+		if ( in_array( $group, $this->global_groups, true ) ) {
 
-		return true;
+			unset( $this->global_groups[ $group ] );
+
+			return true;
+		}
+
+		return false;
 	}
 
 
