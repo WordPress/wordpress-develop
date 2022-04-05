@@ -510,10 +510,11 @@ function default_password_nag_edit_user( $user_ID, $old_data ) {
 /**
  * @since 2.8.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  */
 function default_password_nag() {
 	global $pagenow;
+
 	// Short-circuit it.
 	if ( 'profile.php' === $pagenow || ! get_user_option( 'default_password_nag' ) ) {
 		return;
@@ -577,6 +578,12 @@ function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();
 	$role  = $roles[ $_REQUEST['role'] ];
 
+	if ( '' !== get_bloginfo( 'name' ) ) {
+		$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+	} else {
+		$site_title = parse_url( home_url(), PHP_URL_HOST );
+	}
+
 	return sprintf(
 		/* translators: 1: Site title, 2: Site URL, 3: User role. */
 		__(
@@ -589,7 +596,7 @@ this email. This invitation will expire in a few days.
 Please click the following link to activate your user account:
 %%s'
 		),
-		wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ),
+		$site_title,
 		home_url(),
 		wp_specialchars_decode( translate_user_role( $role['name'] ) )
 	);
