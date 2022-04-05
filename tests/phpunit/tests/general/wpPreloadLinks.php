@@ -58,13 +58,13 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 		$expected = "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous' />\n" .
 					"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
 					"<link rel='preload' href='https://example.com/main.js' as='script' />\n" .
-					"<link rel='preload' href='https://example.com/font.woff2' as='font' type='font/woff2' crossorigin />\n";
-					"<link rel='preload' href='https://example.com/image-narrow.png' as='image' media='(max-width: 600px)' />\n";
-					"<link rel='preload' href='https://example.com/image-wide.png' as='image' (min-width: 601px) />\n";
+					"<link rel='preload' href='https://example.com/font.woff2' as='font' type='font/woff2' crossorigin />\n" .
+					"<link rel='preload' href='https://example.com/image-narrow.png' as='image' media='(max-width: 600px)' />\n" .
+					"<link rel='preload' href='https://example.com/image-wide.png' as='image' media='(min-width: 601px)' />\n";
 
-		add_filter( 'wp_preload_links', array( $this, 'add_url_preload_link_with_CORS' ), 10 );
+		add_filter( 'wp_preload_links', array( $this, 'add_url_preload_link_with_media' ), 10 );
 		$actual = get_echo( 'wp_preload_links' );
-		remove_filter( 'wp_preload_links', array( $this, 'add_url_preload_link_with_CORS' ) );
+		remove_filter( 'wp_preload_links', array( $this, 'add_url_preload_link_with_media' ) );
 
 		$this->assertSame( $expected, $actual );
 	}
