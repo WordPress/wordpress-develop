@@ -1951,7 +1951,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * Assumes that WP_Filesystem() has already been called and setup.
  *
- * @since 6.0.0
+ * @since 6.1.0
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
@@ -1987,11 +1987,6 @@ function move_dir( $from, $to ) {
 		}
 
 		$result = copy_dir( $from, $to );
-
-		if ( ! is_wp_error( $result ) ) {
-			// Clear the source directory.
-			$wp_filesystem->delete( $from, true );
-		}
 	}
 
 	return $result;
