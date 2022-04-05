@@ -378,7 +378,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 22, $properties );
+		$this->assertCount( 23, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
@@ -401,6 +401,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'uses_context', $properties );
 		$this->assertArrayHasKey( 'provides_context', $properties );
 		$this->assertArrayHasKey( 'variations', $properties );
+		$this->assertArrayHasKey( 'ancestor', $properties );
 	}
 
 	/**
