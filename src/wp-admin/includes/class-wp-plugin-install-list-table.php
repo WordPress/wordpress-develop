@@ -516,15 +516,17 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			$description = strip_tags( $plugin['short_description'] );
 
 			/**
-			 * Filter the plugin card description.
+			 * Filters the plugin card description on the Add Plugins screen.
 			 *
 			 * @since 6.0.0
 			 *
 			 * @param string $description Plugin card description.
-			 * @param array  $plugin      Array of plugin data.
+			 * @param array  $plugin      An array of plugin data. See the {@see 'plugin_row_meta'} filter
+			 *                            for the list of possible values.
 			 */
 			$description = apply_filters( 'plugin_install_description', $description, $plugin );
-			$version     = wp_kses( $plugin['version'], $plugins_allowedtags );
+
+			$version = wp_kses( $plugin['version'], $plugins_allowedtags );
 
 			$name = strip_tags( $title . ' ' . $version );
 
@@ -670,7 +672,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			 * @since 2.7.0
 			 *
 			 * @param string[] $action_links An array of plugin action links. Defaults are links to Details and Install Now.
-			 * @param array    $plugin       The plugin currently being listed.
+			 * @param array    $plugin       An array of plugin data. See the {@see 'plugin_row_meta'} filter
+			 *                               for the list of possible values.
 			 */
 			$action_links = apply_filters( 'plugin_install_action_links', $action_links, $plugin );
 
