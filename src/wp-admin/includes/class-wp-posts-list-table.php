@@ -1679,13 +1679,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 							/**
 							 * Filters the arguments used to generate the Quick Edit authors drop-down.
 							 *
-							 * @param array $users_opt An array of arguments passed to wp_dropdown_users().
-							 * @param bool $bulk A flag to denote if it's a bulk action.
-							 *
 							 * @since 5.6.0
 							 *
 							 * @see wp_dropdown_users()
 							 *
+							 * @param array $users_opt An array of arguments passed to wp_dropdown_users().
+							 * @param bool $bulk A flag to denote if it's a bulk action.
 							 */
 							$users_opt = apply_filters( 'quick_edit_dropdown_authors_args', $users_opt, $bulk );
 
