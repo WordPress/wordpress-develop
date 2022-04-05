@@ -3451,7 +3451,7 @@ function wp_preload_links() {
 	foreach ( $urls as $url ) {
 		if ( is_array( $url ) ) {
 			if ( isset( $url['href'] ) ) {
-				$atts = array_merge( array( 'rel' => 'preload' ), $url );
+				$atts = $url;
 				$url  = $url['href'];
 			} else {
 				continue;
@@ -3463,12 +3463,12 @@ function wp_preload_links() {
 			continue;
 		}
 
-
 		$atts['href'] = $url;
 
+		$html = '';
 		foreach ( $atts as $attr => $value ) {
 			if ( ! is_scalar( $value )
-				 || ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'rel', 'type', 'media' ), true ) && ! is_numeric( $attr ) )
+				 || ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'type', 'media' ), true ) && ! is_numeric( $attr ) )
 			) {
 
 				continue;
@@ -3485,7 +3485,7 @@ function wp_preload_links() {
 
 		$html = trim( $html );
 
-		echo "<link $html />\n";
+		echo "<link rel='preload' $html />\n";
 	}
 
 }
