@@ -40,7 +40,7 @@ class Tests_Functions_isPhpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Test wp_validate_boolean().
 	 *
-	 * @dataProvider data_provider
+	 * @dataProvider data_php_version_compatible
 	 *
 	 * @param mixed $test_value
 	 * @param bool $expected
