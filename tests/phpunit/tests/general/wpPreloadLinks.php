@@ -221,10 +221,10 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 		);
 		// imagesizes only possible when using image, ignore.
 		$urls[] = array(
-			'href'        => 'https://example.com/font.woff2',
-			'as'          => 'font',
-			'type'        => 'font/woff2',
-			'imagesizes'  => '100vw',
+			'href'       => 'https://example.com/font.woff2',
+			'as'         => 'font',
+			'type'       => 'font/woff2',
+			'imagesizes' => '100vw',
 		);
 		// Duplicated href should be ignored.
 		$urls[] = array(
@@ -269,9 +269,9 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 		);
 		// imagesizes should be ignored since imagesrcset not present.
 		$urls[] = array(
-			'href'        => 'https://example.com/image-640.png',
-			'as'          => 'image',
-			'imagesizes'  => '100vw',
+			'href'       => 'https://example.com/image-640.png',
+			'as'         => 'image',
+			'imagesizes' => '100vw',
 		);
 		return $urls;
 	}
