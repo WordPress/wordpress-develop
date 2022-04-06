@@ -7,7 +7,7 @@
  * @since 6.0.0
  */
 
- /**
+/**
  * Tests for block supports related to layout.
  *
  * @since 6.0.0
