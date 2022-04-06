@@ -2156,25 +2156,6 @@ class WP_Object_Cache {
 	}
 
 	/**
-	 * Clears the object cache of all data for the given group.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @return true Always returns true.
-	 */
-	public function flush_group( $group ) {
-		if ( in_array( $group, $this->global_groups, true ) ) {
-
-			unset( $this->global_groups[ $group ] );
-
-			return true;
-		}
-
-		return false;
-	}
-
-
-	/**
 	 * Gets a value specifically from the internal, run-time cache, not memcached.
 	 *
 	 * @param int|string $key   Key value.

@@ -154,9 +154,10 @@ function wp_cache_flush_group( $group ) {
 	if ( $wp_object_cache && method_exists( $wp_object_cache, 'flush_group' ) ) {
 
 		return $wp_object_cache->flush_group( $group );
-	}
+	} else {
 
-	return false;
+		return $wp_object_cache->flush();
+	}
 }
 
 /**
