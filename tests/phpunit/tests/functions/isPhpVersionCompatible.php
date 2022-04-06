@@ -12,7 +12,7 @@ class Tests_Functions_isPhpVersionCompatible extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_provider() {
+	function data_php_version_compatible() {
 		$php_version = phpversion();
 
 		$more = explode( '.', $php_version );
