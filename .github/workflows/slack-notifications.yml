@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Get the workflow ID
-        id: current-workflow-id
+        id: previous-attempt-result
         if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         uses: actions/github-script@9ac08808f993958e9de277fe43a64532a609130e # v6.0.0
         with:
@@ -79,32 +79,24 @@ jobs:
               repo: context.repo.repo,
               run_id: ${{ github.run_id }},
             });
-            return workflow_run.data.workflow_id;
 
-      - name: Get details about the previous workflow run
-        id: previous-result
-        uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
-        with:
-          script: |
-            const previous_runs = await github.rest.actions.listWorkflowRuns({
+            // The first workflow run attempt does not have a previous attempt.
+            if ( workflow_run.data.run_attempt == 1 ) {
+              return 'none';
+            }
+
+            const previous_run = await github.rest.actions.getWorkflowRunAttempt({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.workflow_id || steps.current-workflow-id.outputs.result }},
-              branch: '${{ env.CURRENT_BRANCH }}',
-              per_page: 1,
-              page: 2,
+              run_id: ${{ github.run_id }},
+              attempt_number: workflow_run.data.run_attempt - 1
             });
 
-            if ( previous_runs.data.total_count > 0 ) {
-              return previous_runs.data.workflow_runs[0].conclusion;
-            } else {
-              // Use failure so all first time runs for a branch or tag are reported to Slack.
-              return 'failure';
-            }
+            return previous_run.data.conclusion;
 
       - name: Store previous conclusion as an output
         id: previous-conclusion
-        run: echo "::set-output name=previous_conclusion::${{ steps.previous-result.outputs.result }}"
+        run: echo "::set-output name=previous_conclusion::${{ steps.previous-attempt-result.outputs.result }}"
 
       - name: Get the commit message
         id: current-commit-message
