@@ -68,7 +68,7 @@ jobs:
       payload: ${{ steps.create-payload.outputs.payload }}
 
     steps:
-      - name: Get the workflow ID
+      - name: Determine the status of the previous attempt
         id: previous-attempt-result
         if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         uses: actions/github-script@9ac08808f993958e9de277fe43a64532a609130e # v6.0.0
