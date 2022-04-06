@@ -80,6 +80,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * Search and retrieve block patterns metadata
 	 *
 	 * @since 5.8.0
+	 * @since 6.0.0 Added 'slug' to request.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -100,6 +101,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 		$category_id = $request['category'];
 		$keyword_id  = $request['keyword'];
 		$search_term = $request['search'];
+		$slug        = $request['slug'];
 
 		if ( $category_id ) {
 			$query_args['pattern-categories'] = $category_id;
@@ -111,6 +113,10 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 
 		if ( $search_term ) {
 			$query_args['search'] = $search_term;
+		}
+
+		if ( $slug ) {
+			$query_args['slug'] = $slug;
 		}
 
 		/*
@@ -159,7 +165,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 				$raw_patterns = new WP_Error(
 					'pattern_api_failed',
 					sprintf(
-					/* translators: %s: Support forums URL. */
+						/* translators: %s: Support forums URL. */
 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 						__( 'https://wordpress.org/support/forums/' )
 					),
