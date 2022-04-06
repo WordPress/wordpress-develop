@@ -129,7 +129,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		if ( ! is_file( $this->file ) && ! wp_is_stream( $this->file ) ) {
-			return new WP_Error( 'error_loading_image', __( 'File doesn&#8217;t exist?' ), $this->file );
+			return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
 		}
 
 		/*
@@ -589,7 +589,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		try {
 			$this->image->rotateImage( new ImagickPixel( 'none' ), 360 - $angle );
 
-			// Normalise EXIF orientation data so that display is consistent across devices.
+			// Normalize EXIF orientation data so that display is consistent across devices.
 			if ( is_callable( array( $this->image, 'setImageOrientation' ) ) && defined( 'Imagick::ORIENTATION_TOPLEFT' ) ) {
 				$this->image->setImageOrientation( Imagick::ORIENTATION_TOPLEFT );
 			}
@@ -627,7 +627,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->flopImage();
 			}
 
-			// Normalise EXIF orientation data so that display is consistent across devices.
+			// Normalize EXIF orientation data so that display is consistent across devices.
 			if ( is_callable( array( $this->image, 'setImageOrientation' ) ) && defined( 'Imagick::ORIENTATION_TOPLEFT' ) ) {
 				$this->image->setImageOrientation( Imagick::ORIENTATION_TOPLEFT );
 			}
@@ -729,6 +729,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			'width'     => $this->size['width'],
 			'height'    => $this->size['height'],
 			'mime-type' => $mime_type,
+			'filesize'  => wp_filesize( $filename ),
 		);
 	}
 

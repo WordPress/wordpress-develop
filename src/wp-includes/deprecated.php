@@ -3192,7 +3192,7 @@ function wp_load_image( $file ) {
 
 	if ( ! is_file( $file ) ) {
 		/* translators: %s: File name. */
-		return sprintf( __( 'File &#8220;%s&#8221; doesn&#8217;t exist?' ), $file );
+		return sprintf( __( 'File &#8220;%s&#8221; does not exist?' ), $file );
 	}
 
 	if ( ! function_exists('imagecreatefromstring') )
@@ -3325,7 +3325,7 @@ function gd_edit_image_support($mime_type) {
 			case 'image/gif':
 				return (imagetypes() & IMG_GIF) != 0;
 			case 'image/webp':
-				return (imagetypes() & IMG_WEBP) != 0; // phpcs:ignore PHPCompatibility.Constants.NewConstants.img_webpFound
+				return (imagetypes() & IMG_WEBP) != 0;
 		}
 	} else {
 		switch( $mime_type ) {
@@ -4207,4 +4207,81 @@ function wp_sensitive_page_meta() {
 function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
 	_deprecated_function( __FUNCTION__, '5.8.0', '_excerpt_render_inner_blocks()' );
 	return _excerpt_render_inner_blocks( $columns, $allowed_blocks );
+}
+
+/**
+ * Renders the duotone filter SVG and returns the CSS filter property to
+ * reference the rendered SVG.
+ *
+ * @since 5.9.0
+ * @deprecated 5.9.1 Use `wp_get_duotone_filter_property` introduced in 5.9.1.
+ *
+ * @see wp_get_duotone_filter_property()
+ *
+ * @param array $preset Duotone preset value as seen in theme.json.
+ * @return string Duotone CSS filter property.
+ */
+function wp_render_duotone_filter_preset( $preset ) {
+	_deprecated_function( __FUNCTION__, '5.9.1', 'wp_get_duotone_filter_property()' );
+	return wp_get_duotone_filter_property( $preset );
+}
+
+/**
+ * Checks whether serialization of the current block's border properties should
+ * occur.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.0.0 Use `wp_should_skip_block_supports_serialization` introduced in 6.0.0.
+ *
+ * @param WP_Block_Type $block_type Block type.
+ * @return bool Whether serialization of the current block's border properties
+ *              should occur.
+ */
+function wp_skip_border_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+	$border_support = _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), false );
+
+	return is_array( $border_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
+		$border_support['__experimentalSkipSerialization'];
+}
+
+/**
+ * Checks whether serialization of the current block's dimensions properties
+ * should occur.
+ *
+ * @since 5.9.0
+ * @access private
+ * @deprecated 6.0.0 Use `wp_should_skip_block_supports_serialization` introduced in 6.0.0.
+ *
+ * @param WP_Block_type $block_type Block type.
+ * @return bool Whether to serialize spacing support styles & classes.
+ */
+function wp_skip_dimensions_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+	$dimensions_support = _wp_array_get( $block_type->supports, array( '__experimentalDimensions' ), false );
+	return is_array( $dimensions_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
+		$dimensions_support['__experimentalSkipSerialization'];
+}
+
+/**
+ * Checks whether serialization of the current block's spacing properties should
+ * occur.
+ *
+ * @since 5.9.0
+ * @access private
+ * @deprecated 6.0.0 Use `wp_should_skip_block_supports_serialization` introduced in 6.0.0.
+ *
+ * @param WP_Block_Type $block_type Block type.
+ * @return bool Whether to serialize spacing support styles & classes.
+ */
+function wp_skip_spacing_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+	$spacing_support = _wp_array_get( $block_type->supports, array( 'spacing' ), false );
+
+	return is_array( $spacing_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
+		$spacing_support['__experimentalSkipSerialization'];
 }

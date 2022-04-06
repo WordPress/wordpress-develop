@@ -14,7 +14,7 @@ class Tests_Actions_Closures extends WP_UnitTestCase {
 	 * @covers ::has_action
 	 * @covers ::do_action
 	 */
-	function test_action_closure() {
+	public function test_action_closure() {
 		$tag     = 'test_action_closure';
 		$closure = static function( $a, $b ) {
 			$GLOBALS[ $a ] = $b;
