@@ -931,7 +931,7 @@ $( function() {
 			adjustment = maxtop;
 		}
 
-		if ( adjustment > 1 && $window.width() > 783 ) {
+		if ( adjustment > 1 && $window.width() > 782 ) {
 			$submenu.css( 'margin-top', '-' + adjustment + 'px' );
 		} else {
 			$submenu.css( 'margin-top', '' );
