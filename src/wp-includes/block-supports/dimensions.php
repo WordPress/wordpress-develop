@@ -63,6 +63,25 @@ function wp_apply_dimensions_support( $block_type, $block_attributes ) { // phpc
 	return empty( $styles ) ? array() : array( 'style' => implode( ' ', $styles ) );
 }
 
+/**
+ * Checks whether serialization of the current block's dimensions properties
+ * should occur.
+ *
+ * @since 5.9.0
+ * @access private
+ * @deprecated 6.0.0
+ *
+ * @param WP_Block_type $block_type Block type.
+ * @return bool Whether to serialize spacing support styles & classes.
+ */
+function wp_skip_dimensions_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0' );
+	$dimensions_support = _wp_array_get( $block_type->supports, array( '__experimentalDimensions' ), false );
+	return is_array( $dimensions_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
+		$dimensions_support['__experimentalSkipSerialization'];
+}
+
 // Register the block support.
 WP_Block_Supports::get_instance()->register(
 	'dimensions',
