@@ -143,27 +143,6 @@ function wp_apply_border_support( $block_type, $block_attributes ) {
 }
 
 /**
- * Checks whether serialization of the current block's border properties should
- * occur.
- *
- * @since 5.8.0
- * @access private
- * @deprecated 6.0.0
- *
- * @param WP_Block_Type $block_type Block type.
- * @return bool Whether serialization of the current block's border properties
- *              should occur.
- */
-function wp_skip_border_serialization( $block_type ) {
-	_deprecated_function( __FUNCTION__, '6.0.0' );
-	$border_support = _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), false );
-
-	return is_array( $border_support ) &&
-		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
-		$border_support['__experimentalSkipSerialization'];
-}
-
-/**
  * Checks whether the current block type supports the border feature requested.
  *
  * If the `__experimentalBorder` support flag is a boolean `true` all border

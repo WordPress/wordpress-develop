@@ -79,26 +79,6 @@ function wp_apply_spacing_support( $block_type, $block_attributes ) {
 	return empty( $styles ) ? array() : array( 'style' => implode( ' ', $styles ) );
 }
 
-/**
- * Checks whether serialization of the current block's spacing properties should
- * occur.
- *
- * @since 5.9.0
- * @access private
- * @deprecated 6.0.0
- *
- * @param WP_Block_Type $block_type Block type.
- * @return bool Whether to serialize spacing support styles & classes.
- */
-function wp_skip_spacing_serialization( $block_type ) {
-	_deprecated_function( __FUNCTION__, '6.0.0' );
-	$spacing_support = _wp_array_get( $block_type->supports, array( 'spacing' ), false );
-
-	return is_array( $spacing_support ) &&
-		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
-		$spacing_support['__experimentalSkipSerialization'];
-}
-
 // Register the block support.
 WP_Block_Supports::get_instance()->register(
 	'spacing',
