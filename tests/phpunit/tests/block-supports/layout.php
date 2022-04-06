@@ -3,13 +3,14 @@
  * @group block-supports
  */
 class Test_Block_Supports_Layout extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		$this->theme_root     = realpath( DIR_TESTDATA . '/themedir1' );
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
+
 		// Set up the new root.
 		add_filter( 'theme_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
@@ -21,7 +22,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 
 		// Clear up the filters to modify the theme root.
@@ -31,7 +32,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	function filter_set_theme_root() {
