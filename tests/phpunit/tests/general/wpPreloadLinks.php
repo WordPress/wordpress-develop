@@ -69,6 +69,23 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	public function test_preload_link_with_media_extra_attributes() {
+		$expected = "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous' />\n" .
+					"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
+					"<link rel='preload' href='https://example.com/main.js' as='script' />\n" .
+					"<link rel='preload' href='https://example.com/font.woff2' as='font' type='font/woff2' crossorigin />\n" .
+					"<link rel='preload' href='https://example.com/image-640.png' as='image' imagesrcset='640.png 640w, 800.png 800w, 1024.png 1024w' imagesizes='100vw' />\n" .
+					"<link rel='preload' as='image' imagesrcset='640.png 640w, 800.png 800w, 1024.png 1024w' imagesizes='100vw' />\n" .
+					"<link rel='preload' href='https://example.com/image-wide.png' as='image' media='(min-width: 601px)' />\n" .
+					"<link rel='preload' href='https://example.com/image-800.png' as='image' imagesrcset='640.png 640w, 800.png 800w, 1024.png 1024w' />\n";
+
+		add_filter( 'wp_preload_links', array( $this, 'add_url_preload_link_with_media_extra_attributes' ), 10 );
+		$actual = get_echo( 'wp_preload_links' );
+		remove_filter( 'wp_preload_links', array( $this, 'add_url_preload_link_with_media_extra_attributes' ) );
+
+		$this->assertSame( $expected, $actual );
+	}
+
 	public function add_url_basic_preload( $urls ) {
 		$urls[] = array(
 			'href' => 'https://example.com/style.css',
@@ -145,6 +162,12 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 			'as'   => 'video',
 			'type' => 'video/mp4',
 		);
+		// Duplicated href should be ignored.
+		$urls[] = array(
+			'href' => 'https://example.com/video.mp4',
+			'as'   => 'video',
+			'type' => 'video/mp4',
+		);
 		$urls[] = array(
 			'href' => 'https://example.com/main.js',
 			'as'   => 'script',
@@ -164,6 +187,91 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 			'href'  => 'https://example.com/image-wide.png',
 			'as'    => 'image',
 			'media' => '(min-width: 601px)',
+		);
+		return $urls;
+	}
+
+	public function add_url_preload_link_with_media_extra_attributes( $urls ) {
+		$urls[] = array(
+			'href'        => 'https://example.com/style.css',
+			'as'          => 'style',
+			'crossorigin' => 'anonymous',
+		);
+		$urls[] = array(
+			'href' => 'https://example.com/video.mp4',
+			'as'   => 'video',
+			'type' => 'video/mp4',
+		);
+		$urls[] = array(
+			'href' => 'https://example.com/main.js',
+			'as'   => 'script',
+		);
+		$urls[] = array(
+			'href' => 'https://example.com/font.woff2',
+			'as'   => 'font',
+			'type' => 'font/woff2',
+			'crossorigin',
+		);
+		// imagesrcset only possible when using image, ignore.
+		$urls[] = array(
+			'href'        => 'https://example.com/font.woff2',
+			'as'          => 'font',
+			'type'        => 'font/woff2',
+			'imagesrcset' => '640.png 640w, 800.png 800w, 1024.png 1024w',
+		);
+		// imagesizes only possible when using image, ignore.
+		$urls[] = array(
+			'href'        => 'https://example.com/font.woff2',
+			'as'          => 'font',
+			'type'        => 'font/woff2',
+			'imagesizes'  => '100vw',
+		);
+		// Duplicated href should be ignored.
+		$urls[] = array(
+			'href' => 'https://example.com/font.woff2',
+			'as'   => 'font',
+			'type' => 'font/woff2',
+			'crossorigin',
+		);
+		$urls[] = array(
+			'href'        => 'https://example.com/image-640.png',
+			'as'          => 'image',
+			'imagesrcset' => '640.png 640w, 800.png 800w, 1024.png 1024w',
+			'imagesizes'  => '100vw',
+		);
+		// Omit href so that unsupporting browsers won't request a useless image.
+		$urls[] = array(
+			'as'          => 'image',
+			'imagesrcset' => '640.png 640w, 800.png 800w, 1024.png 1024w',
+			'imagesizes'  => '100vw',
+		);
+		// Duplicated imagesrcset should be ignored.
+		$urls[] = array(
+			'as'          => 'image',
+			'imagesrcset' => '640.png 640w, 800.png 800w, 1024.png 1024w',
+			'imagesizes'  => '100vw',
+		);
+		$urls[] = array(
+			'href'  => 'https://example.com/image-wide.png',
+			'as'    => 'image',
+			'media' => '(min-width: 601px)',
+		);
+		// No href but not imagesrcset, should be ignored
+		$urls[] = array(
+			'as'    => 'image',
+			'media' => '(min-width: 601px)',
+		);
+		// imagesizes is optional
+		$urls[] = array(
+			'href'        => 'https://example.com/image-800.png',
+			'as'          => 'image',
+			'imagesrcset' => '640.png 640w, 800.png 800w, 1024.png 1024w',
+		);
+		// imagesizes should be ignored since imagesrcset not present.
+		$urls[] = array(
+			'href'        => 'https://example.com/image-640.png',
+			'as'          => 'image',
+			'imagesizes'  => '100vw',
 		);
 		return $urls;
 	}
