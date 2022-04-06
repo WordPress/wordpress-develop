@@ -259,13 +259,15 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		switch_theme( 'block-theme' );
 
 		$metadata = array(
-			'file'       => DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json',
+			'file'       => wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json' ) ),
 			'name'       => 'block-theme/example-block',
 			'viewScript' => 'file:./view.js',
 		);
 		$result   = register_block_script_handle( $metadata, 'viewScript' );
 
-		$this->assertSame( 'block-theme-example-block-view-script', $result );
+		$expected_script_handle = 'block-theme-example-block-view-script';
+		$this->assertSame( $expected_script_handle, $result );
+		$this->assertSame( 'http://example.org/wp-content/themes/block-theme/blocks/example-block/view.js', wp_scripts()->query( $expected_script_handle )->src );
 	}
 
 	/**
@@ -328,18 +330,19 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		switch_theme( 'block-theme' );
 
 		$metadata = array(
-			'file'        => DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json',
+			'file'        => wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json' ) ),
 			'name'        => 'block-theme/example-block',
 			'editorStyle' => 'file:./editor-style.css',
 		);
 		$result   = register_block_style_handle( $metadata, 'editorStyle' );
 
-		$this->assertSame( 'block-theme-example-block-editor-style', $result );
-		$this->assertSame( 'replace', wp_styles()->get_data( 'block-theme-example-block-editor-style', 'rtl' ) );
-
+		$expected_style_handle = 'block-theme-example-block-editor-style';
+		$this->assertSame( $expected_style_handle, $result );
+		$this->assertSame( 'http://example.org/wp-content/themes/block-theme/blocks/example-block/editor-style.css', wp_styles()->query( $expected_style_handle )->src );
+		$this->assertSame( 'replace', wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/editor-style.css' ) ),
-			wp_normalize_path( wp_styles()->get_data( 'block-theme-example-block-editor-style', 'path' ) )
+			wp_normalize_path( wp_styles()->get_data( $expected_style_handle, 'path' ) )
 		);
 	}
 
