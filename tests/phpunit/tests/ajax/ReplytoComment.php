@@ -186,7 +186,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( 'Error: You can&#8217;t reply to a comment on a draft post.' );
+		$this->expectExceptionMessage( 'Error: You cannot reply to a comment on a draft post.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 

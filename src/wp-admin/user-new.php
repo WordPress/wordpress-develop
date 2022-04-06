@@ -112,6 +112,12 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 
 			$switched_locale = switch_to_locale( get_user_locale( $user_details ) );
 
+			if ( '' !== get_option( 'blogname' ) ) {
+				$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+			} else {
+				$site_title = parse_url( home_url(), PHP_URL_HOST );
+			}
+
 			/* translators: 1: Site title, 2: Site URL, 3: User role, 4: Activation URL. */
 			$message = __(
 				'Hi,
@@ -127,7 +133,7 @@ Please click the following link to confirm the invite:
 			$new_user_email['subject'] = sprintf(
 				/* translators: Joining confirmation notification email subject. %s: Site title. */
 				__( '[%s] Joining Confirmation' ),
-				wp_specialchars_decode( get_option( 'blogname' ) )
+				$site_title
 			);
 			$new_user_email['message'] = sprintf(
 				$message,
@@ -258,11 +264,11 @@ $help = '<p>' . __( 'To add a new user to your site, fill in the form on this sc
 
 if ( is_multisite() ) {
 	$help .= '<p>' . __( 'Because this is a multisite installation, you may add accounts that already exist on the Network by specifying a username or email, and defining a role. For more options, such as specifying a password, you have to be a Network Administrator and use the hover link under an existing user&#8217;s name to Edit the user profile under Network Admin > All Users.' ) . '</p>' .
-	'<p>' . __( 'New users will receive an email letting them know they&#8217;ve been added as a user for your site. This email will also contain their password. Check the box if you don&#8217;t want the user to receive a welcome email.' ) . '</p>';
+	'<p>' . __( 'New users will receive an email letting them know they&#8217;ve been added as a user for your site. This email will also contain their password. Check the box if you do not want the user to receive a welcome email.' ) . '</p>';
 } else {
 	$help .= '<p>' . __( 'New users are automatically assigned a password, which they can change after logging in. You can view or edit the assigned password by clicking the Show Password button. The username cannot be changed once the user has been added.' ) . '</p>' .
 
-	'<p>' . __( 'By default, new users will receive an email letting them know they&#8217;ve been added as a user for your site. This email will also contain a password reset link. Uncheck the box if you don&#8217;t want to send the new user a welcome email.' ) . '</p>';
+	'<p>' . __( 'By default, new users will receive an email letting them know they&#8217;ve been added as a user for your site. This email will also contain a password reset link. Uncheck the box if you do not want to send the new user a welcome email.' ) . '</p>';
 }
 
 $help .= '<p>' . __( 'Remember to click the Add New User button at the bottom of this screen when you are finished.' ) . '</p>';

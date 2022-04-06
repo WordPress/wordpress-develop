@@ -2294,6 +2294,17 @@ EOF;
 	}
 
 	/**
+	 * @ticket 55347
+	 */
+	public function test_wp_filter_content_tags_has_filter() {
+		$filter = new MockAction();
+		add_filter( 'wp_content_img_tag', array( &$filter, 'filter' ) );
+		$img_tag_1 = get_image_tag( self::$large_id, '', '', '', 'medium' );
+
+		wp_filter_content_tags( $img_tag_1 );
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+	/**
 	 * @ticket 33641
 	 * @ticket 34528
 	 */

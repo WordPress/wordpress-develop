@@ -346,5 +346,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_template_part' );
 	remove_action( 'init', 'register_block_core_term_description' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+	remove_action( 'init', 'register_block_core_widget_group' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
