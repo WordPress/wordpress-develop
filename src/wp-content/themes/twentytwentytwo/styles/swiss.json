@@ -42,6 +42,12 @@
 			]
 		},
 		"custom": {
+			"spacing": {
+				"small": "max(1.25rem, 5vw)",
+				"medium": "clamp(1.75rem, 6vw, calc(3 * var(--wp--style--block-gap)))",
+				"large": "clamp(3.5rem, 8vw, 6rem)",
+				"outer": "var(--wp--custom--spacing--small, 1.25rem)"
+			},
 			"typography": {
 				"font-size": {
 					"colossal": "clamp(3.5rem, 8vw, 5rem)"

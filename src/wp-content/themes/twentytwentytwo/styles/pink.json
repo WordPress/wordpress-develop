@@ -34,8 +34,8 @@
 		"custom": {
 			"spacing": {
 				"small": "max(0.75rem, 4vw)",
-				"medium": "clamp(2rem, 8vw, calc(4 * var(--wp--style--block-gap)))",
-				"large": "clamp(4rem, 10vw, 8rem)",
+				"medium": "clamp(1.75rem, 6vw, calc(1.5 * var(--wp--style--block-gap)))",
+				"large": "clamp(3rem, 8vw, 5rem)",
 				"outer": "var(--wp--custom--spacing--small, 0.75rem)"
 			},
 			"typography": {
@@ -156,7 +156,9 @@
 			},
 			"core/site-title": {
 				"typography": {
-					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)"
+					"fontFamily": "var(--wp--preset--font-family--ibm-plex-sans)",
+					"fontStyle": "normal",
+					"textTransform": "uppercase"
 				}
 			},
 			"core/query-title": {
