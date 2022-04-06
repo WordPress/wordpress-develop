@@ -38,7 +38,7 @@ class Tests_Functions_isPhpVersionCompatible extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test wp_validate_boolean().
+	 * Tests is_php_version_compatible().
 	 *
 	 * @dataProvider data_php_version_compatible
 	 *
