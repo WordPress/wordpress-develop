@@ -365,7 +365,7 @@ function wp_print_media_templates() {
 						<?php
 							// A cropped image should be used if the "large" image hasn't been updated during cropping.
 							// It can happen if the original image is larger than the cropped image and
-							// the cropped image is smaller than 1024x1024 pixels (the size of a "large" image).
+							// the cropped image is smaller than the "Large" image.
 							// See https://core.trac.wordpress.org/ticket/55070.
 						?>
 						if ( full_image_crop_id && ( full_image_crop_id !== large_image_crop_id ) ) {
