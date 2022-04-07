@@ -62,7 +62,7 @@ jobs:
     name: Prepare notifications
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
+#    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
       previous_conclusion: ${{ steps.previous-conclusion.outputs.previous_conclusion }}
       payload: ${{ steps.create-payload.outputs.payload }}
@@ -75,9 +75,9 @@ jobs:
         with:
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.run_id }},
+              owner: 'WordPress',
+              repo: 'wordpress-develop',
+              run_id: 2108723308,
             });
 
             // The first workflow run attempt does not have a previous attempt.
@@ -86,9 +86,9 @@ jobs:
             }
 
             const previous_run = await github.rest.actions.getWorkflowRunAttempt({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.run_id }},
+              owner: 'WordPress',
+              repo: 'wordpress-develop',
+              run_id: 2108723308,
               attempt_number: workflow_run.data.run_attempt - 1
             });
 
@@ -105,9 +105,9 @@ jobs:
         with:
           script: |
             const commit_details = await github.rest.repos.getCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: '${{ github.sha }}'
+              owner: 'WordPress',
+              repo: 'wordpress-develop',
+              ref: '9a7a11a74f0bba15cc36243b2e24a10fc4736401'
             });
             return commit_details.data.commit.message;
 

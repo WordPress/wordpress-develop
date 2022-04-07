@@ -53,7 +53,7 @@ jobs:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+#    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
