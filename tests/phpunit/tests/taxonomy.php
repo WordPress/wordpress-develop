@@ -227,7 +227,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_register_taxonomy_fires_registered_actions() {
 		$taxonomy = 'taxonomy53212';
-		$action    = new MockAction();
+		$action   = new MockAction();
 
 		add_action( 'registered_taxonomy', array( $action, 'action' ) );
 		add_action( "registered_taxonomy_{$taxonomy}", array( $action, 'action' ) );

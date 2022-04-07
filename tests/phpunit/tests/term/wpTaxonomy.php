@@ -102,7 +102,7 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 
 	public function test_applies_registration_args_filters() {
 		$taxonomy = 'taxonomy5';
-		$action    = new MockAction();
+		$action   = new MockAction();
 
 		add_filter( 'register_taxonomy_args', array( $action, 'filter' ) );
 		add_filter( "register_{$taxonomy}_taxonomy_args", array( $action, 'filter' ) );
