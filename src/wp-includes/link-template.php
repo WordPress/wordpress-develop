@@ -1487,15 +1487,15 @@ function get_edit_post_link( $id = 0, $context = 'display' ) {
  * Displays the edit post link for post.
  *
  * @since 1.0.0
- * @since 4.4.0 The `$class` argument was added.
+ * @since 4.4.0 The `$css_class` argument was added.
  *
- * @param string      $text   Optional. Anchor text. If null, default is 'Edit This'. Default null.
- * @param string      $before Optional. Display before edit link. Default empty.
- * @param string      $after  Optional. Display after edit link. Default empty.
- * @param int|WP_Post $id     Optional. Post ID or post object. Default is the global `$post`.
- * @param string      $class  Optional. Add custom class to link. Default 'post-edit-link'.
+ * @param string      $text      Optional. Anchor text. If null, default is 'Edit This'. Default null.
+ * @param string      $before    Optional. Display before edit link. Default empty.
+ * @param string      $after     Optional. Display after edit link. Default empty.
+ * @param int|WP_Post $id        Optional. Post ID or post object. Default is the global `$post`.
+ * @param string      $css_class Optional. Add custom class to link. Default 'post-edit-link'.
  */
-function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $class = 'post-edit-link' ) {
+function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $css_class = 'post-edit-link' ) {
 	$post = get_post( $id );
 	if ( ! $post ) {
 		return;
@@ -1510,7 +1510,7 @@ function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $clas
 		$text = __( 'Edit This' );
 	}
 
-	$link = '<a class="' . esc_attr( $class ) . '" href="' . esc_url( $url ) . '">' . $text . '</a>';
+	$link = '<a class="' . esc_attr( $css_class ) . '" href="' . esc_url( $url ) . '">' . $text . '</a>';
 
 	/**
 	 * Filters the post edit link anchor tag.
@@ -2889,7 +2889,7 @@ function the_posts_pagination( $args = array() ) {
  * @access private
  *
  * @param string $links              Navigational links.
- * @param string $class              Optional. Custom class for the nav element.
+ * @param string $css_class          Optional. Custom class for the nav element.
  *                                   Default 'posts-navigation'.
  * @param string $screen_reader_text Optional. Screen reader text for the nav element.
  *                                   Default 'Posts navigation'.
@@ -2897,7 +2897,7 @@ function the_posts_pagination( $args = array() ) {
  *                                   Defaults to the value of `$screen_reader_text`.
  * @return string Navigation template tag.
  */
-function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader_text = '', $aria_label = '' ) {
+function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_reader_text = '', $aria_label = '' ) {
 	if ( empty( $screen_reader_text ) ) {
 		$screen_reader_text = __( 'Posts navigation' );
 	}
@@ -2925,13 +2925,13 @@ function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $template The default template.
-	 * @param string $class    The class passed by the calling function.
+	 * @param string $template  The default template.
+	 * @param string $css_class The class passed by the calling function.
 	 * @return string Navigation template.
 	 */
-	$template = apply_filters( 'navigation_markup_template', $template, $class );
+	$template = apply_filters( 'navigation_markup_template', $template, $css_class );
 
-	return sprintf( $template, sanitize_html_class( $class ), esc_html( $screen_reader_text ), $links, esc_html( $aria_label ) );
+	return sprintf( $template, sanitize_html_class( $css_class ), esc_html( $screen_reader_text ), $links, esc_html( $aria_label ) );
 }
 
 /**
