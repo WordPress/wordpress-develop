@@ -1267,21 +1267,21 @@ function wp_removable_query_args() {
  * @since 0.71
  * @since 5.5.0 Non-string values are left untouched.
  *
- * @param array $array Array to walk while sanitizing contents.
- * @return array Sanitized $array.
+ * @param array $input_array Array to walk while sanitizing contents.
+ * @return array Sanitized $input_array.
  */
-function add_magic_quotes( $array ) {
-	foreach ( (array) $array as $k => $v ) {
+function add_magic_quotes( $input_array ) {
+	foreach ( (array) $input_array as $k => $v ) {
 		if ( is_array( $v ) ) {
-			$array[ $k ] = add_magic_quotes( $v );
+			$input_array[ $k ] = add_magic_quotes( $v );
 		} elseif ( is_string( $v ) ) {
-			$array[ $k ] = addslashes( $v );
+			$input_array[ $k ] = addslashes( $v );
 		} else {
 			continue;
 		}
 	}
 
-	return $array;
+	return $input_array;
 }
 
 /**
@@ -4854,16 +4854,16 @@ function wp_parse_slug_list( $list ) {
  *
  * @since 3.1.0
  *
- * @param array $array The original array.
- * @param array $keys  The list of keys.
+ * @param array $input_array The original array.
+ * @param array $keys        The list of keys.
  * @return array The array slice.
  */
-function wp_array_slice_assoc( $array, $keys ) {
+function wp_array_slice_assoc( $input_array, $keys ) {
 	$slice = array();
 
 	foreach ( $keys as $key ) {
-		if ( isset( $array[ $key ] ) ) {
-			$slice[ $key ] = $array[ $key ];
+		if ( isset( $input_array[ $key ] ) ) {
+			$slice[ $key ] = $input_array[ $key ];
 		}
 	}
 
@@ -4878,27 +4878,27 @@ function wp_array_slice_assoc( $array, $keys ) {
  *
  * Example usage:
  *
- *     $array = array(
+ *     $input_array = array(
  *         'a' => array(
  *             'b' => array(
  *                 'c' => 1,
  *             ),
  *         ),
  *     );
- *     _wp_array_get( $array, array( 'a', 'b', 'c' ) );
+ *     _wp_array_get( $input_array, array( 'a', 'b', 'c' ) );
  *
  * @internal
  *
  * @since 5.6.0
  * @access private
  *
- * @param array $array   An array from which we want to retrieve some information.
- * @param array $path    An array of keys describing the path with which to retrieve information.
- * @param mixed $default The return value if the path does not exist within the array,
- *                       or if `$array` or `$path` are not arrays.
+ * @param array $input_array An array from which we want to retrieve some information.
+ * @param array $path        An array of keys describing the path with which to retrieve information.
+ * @param mixed $default     The return value if the path does not exist within the array,
+ *                           or if `$input_array` or `$path` are not arrays.
  * @return mixed The value from the path specified.
  */
-function _wp_array_get( $array, $path, $default = null ) {
+function _wp_array_get( $input_array, $path, $default = null ) {
 	// Confirm $path is valid.
 	if ( ! is_array( $path ) || 0 === count( $path ) ) {
 		return $default;
@@ -4906,16 +4906,16 @@ function _wp_array_get( $array, $path, $default = null ) {
 
 	foreach ( $path as $path_element ) {
 		if (
-			! is_array( $array ) ||
+			! is_array( $input_array ) ||
 			( ! is_string( $path_element ) && ! is_integer( $path_element ) && ! is_null( $path_element ) ) ||
-			! array_key_exists( $path_element, $array )
+			! array_key_exists( $path_element, $input_array )
 		) {
 			return $default;
 		}
-		$array = $array[ $path_element ];
+		$input_array = $input_array[ $path_element ];
 	}
 
-	return $array;
+	return $input_array;
 }
 
 /**
@@ -4926,10 +4926,10 @@ function _wp_array_get( $array, $path, $default = null ) {
  *
  * Example usage:
  *
- *     $array = array();
- *     _wp_array_set( $array, array( 'a', 'b', 'c', 1 ) );
+ *     $input_array = array();
+ *     _wp_array_set( $input_array, array( 'a', 'b', 'c', 1 ) );
  *
- *     $array becomes:
+ *     $input_array becomes:
  *     array(
  *         'a' => array(
  *             'b' => array(
@@ -4943,13 +4943,13 @@ function _wp_array_get( $array, $path, $default = null ) {
  * @since 5.8.0
  * @access private
  *
- * @param array $array An array that we want to mutate to include a specific value in a path.
- * @param array $path  An array of keys describing the path that we want to mutate.
- * @param mixed $value The value that will be set.
+ * @param array $input_array An array that we want to mutate to include a specific value in a path.
+ * @param array $path        An array of keys describing the path that we want to mutate.
+ * @param mixed $value       The value that will be set.
  */
-function _wp_array_set( &$array, $path, $value = null ) {
-	// Confirm $array is valid.
-	if ( ! is_array( $array ) ) {
+function _wp_array_set( &$input_array, $path, $value = null ) {
+	// Confirm $input_array is valid.
+	if ( ! is_array( $input_array ) ) {
 		return;
 	}
 
@@ -4976,15 +4976,15 @@ function _wp_array_set( &$array, $path, $value = null ) {
 	for ( $i = 0; $i < $path_length - 1; ++$i ) {
 		$path_element = $path[ $i ];
 		if (
-			! array_key_exists( $path_element, $array ) ||
-			! is_array( $array[ $path_element ] )
+			! array_key_exists( $path_element, $input_array ) ||
+			! is_array( $input_array[ $path_element ] )
 		) {
-			$array[ $path_element ] = array();
+			$input_array[ $path_element ] = array();
 		}
-		$array = &$array[ $path_element ]; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.VariableRedeclaration
+		$input_array = &$input_array[ $path_element ]; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.VariableRedeclaration
 	}
 
-	$array[ $path[ $i ] ] = $value;
+	$input_array[ $path[ $i ] ] = $value;
 }
 
 /**
