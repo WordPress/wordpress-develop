@@ -1660,7 +1660,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						$dropdown_name  = 'post_author';
 						$dropdown_class = 'authors';
 						if ( wp_is_large_user_count() ) {
-							$authors_dropdown = sprintf( '<select name="%s" class="%s hidden"></select>', $dropdown_name, $dropdown_class );
+							$authors_dropdown = sprintf( '<select name="%s" class="%s hidden"></select>', esc_attr( $dropdown_name ), esc_attr( $dropdown_class ) );
 						} else {
 							$users_opt = array(
 								'hide_if_only_one_author' => false,
