@@ -4808,15 +4808,15 @@ function wp_parse_args( $args, $defaults = array() ) {
  *
  * @since 5.1.0
  *
- * @param array|string $list List of values.
+ * @param array|string $input_list List of values.
  * @return array Array of values.
  */
-function wp_parse_list( $list ) {
-	if ( ! is_array( $list ) ) {
-		return preg_split( '/[\s,]+/', $list, -1, PREG_SPLIT_NO_EMPTY );
+function wp_parse_list( $input_list ) {
+	if ( ! is_array( $input_list ) ) {
+		return preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
 	}
 
-	return $list;
+	return $input_list;
 }
 
 /**
@@ -4825,13 +4825,13 @@ function wp_parse_list( $list ) {
  * @since 3.0.0
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
- * @param array|string $list List of IDs.
+ * @param array|string $input_list List of IDs.
  * @return int[] Sanitized array of IDs.
  */
-function wp_parse_id_list( $list ) {
-	$list = wp_parse_list( $list );
+function wp_parse_id_list( $input_list ) {
+	$input_list = wp_parse_list( $input_list );
 
-	return array_unique( array_map( 'absint', $list ) );
+	return array_unique( array_map( 'absint', $input_list ) );
 }
 
 /**
@@ -4840,13 +4840,13 @@ function wp_parse_id_list( $list ) {
  * @since 4.7.0
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
- * @param array|string $list List of slugs.
+ * @param array|string $input_list List of slugs.
  * @return string[] Sanitized array of slugs.
  */
-function wp_parse_slug_list( $list ) {
-	$list = wp_parse_list( $list );
+function wp_parse_slug_list( $input_list ) {
+	$input_list = wp_parse_list( $input_list );
 
-	return array_unique( array_map( 'sanitize_title', $list ) );
+	return array_unique( array_map( 'sanitize_title', $input_list ) );
 }
 
 /**
@@ -5100,23 +5100,23 @@ function wp_is_numeric_array( $data ) {
  * @since 3.0.0
  * @since 4.7.0 Uses `WP_List_Util` class.
  *
- * @param array       $list     An array of objects to filter.
- * @param array       $args     Optional. An array of key => value arguments to match
- *                              against each object. Default empty array.
- * @param string      $operator Optional. The logical operation to perform. 'AND' means
- *                              all elements from the array must match. 'OR' means only
- *                              one element needs to match. 'NOT' means no elements may
- *                              match. Default 'AND'.
- * @param bool|string $field    Optional. A field from the object to place instead
- *                              of the entire object. Default false.
+ * @param array       $input_list An array of objects to filter.
+ * @param array       $args       Optional. An array of key => value arguments to match
+ *                                against each object. Default empty array.
+ * @param string      $operator   Optional. The logical operation to perform. 'AND' means
+ *                                all elements from the array must match. 'OR' means only
+ *                                one element needs to match. 'NOT' means no elements may
+ *                                match. Default 'AND'.
+ * @param bool|string $field      Optional. A field from the object to place instead
+ *                                of the entire object. Default false.
  * @return array A list of objects or object fields.
  */
-function wp_filter_object_list( $list, $args = array(), $operator = 'and', $field = false ) {
-	if ( ! is_array( $list ) ) {
+function wp_filter_object_list( $input_list, $args = array(), $operator = 'and', $field = false ) {
+	if ( ! is_array( $input_list ) ) {
 		return array();
 	}
 
-	$util = new WP_List_Util( $list );
+	$util = new WP_List_Util( $input_list );
 
 	$util->filter( $args, $operator );
 
@@ -5144,17 +5144,17 @@ function wp_filter_object_list( $list, $args = array(), $operator = 'and', $fiel
  * @since 4.7.0 Uses `WP_List_Util` class.
  * @since 5.9.0 Converted into a wrapper for `wp_filter_object_list()`.
  *
- * @param array  $list     An array of objects to filter.
- * @param array  $args     Optional. An array of key => value arguments to match
- *                         against each object. Default empty array.
- * @param string $operator Optional. The logical operation to perform. 'AND' means
- *                         all elements from the array must match. 'OR' means only
- *                         one element needs to match. 'NOT' means no elements may
- *                         match. Default 'AND'.
+ * @param array  $input_list An array of objects to filter.
+ * @param array  $args       Optional. An array of key => value arguments to match
+ *                           against each object. Default empty array.
+ * @param string $operator   Optional. The logical operation to perform. 'AND' means
+ *                           all elements from the array must match. 'OR' means only
+ *                           one element needs to match. 'NOT' means no elements may
+ *                           match. Default 'AND'.
  * @return array Array of found values.
  */
-function wp_list_filter( $list, $args = array(), $operator = 'AND' ) {
-	return wp_filter_object_list( $list, $args, $operator );
+function wp_list_filter( $input_list, $args = array(), $operator = 'AND' ) {
+	return wp_filter_object_list( $input_list, $args, $operator );
 }
 
 /**
@@ -5167,20 +5167,20 @@ function wp_list_filter( $list, $args = array(), $operator = 'AND' ) {
  * @since 4.0.0 $index_key parameter added.
  * @since 4.7.0 Uses `WP_List_Util` class.
  *
- * @param array      $list      List of objects or arrays.
- * @param int|string $field     Field from the object to place instead of the entire object.
- * @param int|string $index_key Optional. Field from the object to use as keys for the new array.
- *                              Default null.
+ * @param array      $input_list List of objects or arrays.
+ * @param int|string $field      Field from the object to place instead of the entire object.
+ * @param int|string $index_key  Optional. Field from the object to use as keys for the new array.
+ *                               Default null.
  * @return array Array of found values. If `$index_key` is set, an array of found values with keys
  *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
- *               `$list` will be preserved in the results.
+ *               `$input_list` will be preserved in the results.
  */
-function wp_list_pluck( $list, $field, $index_key = null ) {
-	if ( ! is_array( $list ) ) {
+function wp_list_pluck( $input_list, $field, $index_key = null ) {
+	if ( ! is_array( $input_list ) ) {
 		return array();
 	}
 
-	$util = new WP_List_Util( $list );
+	$util = new WP_List_Util( $input_list );
 
 	return $util->pluck( $field, $index_key );
 }
@@ -5190,7 +5190,7 @@ function wp_list_pluck( $list, $field, $index_key = null ) {
  *
  * @since 4.7.0
  *
- * @param array        $list          An array of objects to sort.
+ * @param array        $input_list    An array of objects to sort.
  * @param string|array $orderby       Optional. Either the field name to order by or an array
  *                                    of multiple orderby fields as $orderby => $order.
  * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby
@@ -5198,12 +5198,12 @@ function wp_list_pluck( $list, $field, $index_key = null ) {
  * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
  * @return array The sorted array.
  */
-function wp_list_sort( $list, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
-	if ( ! is_array( $list ) ) {
+function wp_list_sort( $input_list, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
+	if ( ! is_array( $input_list ) ) {
 		return array();
 	}
 
-	$util = new WP_List_Util( $list );
+	$util = new WP_List_Util( $input_list );
 
 	return $util->sort( $orderby, $order, $preserve_keys );
 }
