@@ -2385,7 +2385,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_export_data() {
-		$theme = new WP_Theme_JSON_Gutenberg(
+		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
 				'settings' => array(
@@ -2406,7 +2406,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			)
 		);
-		$user  = new WP_Theme_JSON_Gutenberg(
+		$user  = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
 				'settings' => array(
@@ -2460,7 +2460,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_export_data_deals_with_empty_user_data() {
-		$theme = new WP_Theme_JSON_Gutenberg(
+		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
 				'settings' => array(
@@ -2507,7 +2507,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_export_data_deals_with_empty_theme_data() {
-		$user = new WP_Theme_JSON_Gutenberg(
+		$user = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
 				'settings' => array(
@@ -2555,7 +2555,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_export_data_deals_with_empty_data() {
-		$theme_v2    = new WP_Theme_JSON_Gutenberg(
+		$theme_v2    = new WP_Theme_JSON(
 			array(
 				'version' => 2,
 			),
@@ -2565,7 +2565,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected_v2 = array( 'version' => 2 );
 		$this->assertEqualSetsWithIndex( $expected_v2, $actual_v2 );
 
-		$theme_v1    = new WP_Theme_JSON_Gutenberg(
+		$theme_v1    = new WP_Theme_JSON(
 			array(
 				'version' => 1,
 			),
@@ -2577,7 +2577,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_export_data_sets_appearance_tools() {
-		$theme = new WP_Theme_JSON_Gutenberg(
+		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
 				'settings' => array(
