@@ -5429,12 +5429,12 @@ function _deprecated_function( $function_name, $version, $replacement = '' ) {
  * @since 5.4.0 This function is no longer marked as "private".
  * @since 5.4.0 The error type is now classified as E_USER_DEPRECATED (used to default to E_USER_NOTICE).
  *
- * @param string $class        The class containing the deprecated constructor.
+ * @param string $class_name   The class containing the deprecated constructor.
  * @param string $version      The version of WordPress that deprecated the function.
  * @param string $parent_class Optional. The parent class calling the deprecated constructor.
  *                             Default empty string.
  */
-function _deprecated_constructor( $class, $version, $parent_class = '' ) {
+function _deprecated_constructor( $class_name, $version, $parent_class = '' ) {
 
 	/**
 	 * Fires when a deprecated constructor is called.
@@ -5442,11 +5442,11 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
 	 * @since 4.3.0
 	 * @since 4.5.0 Added the `$parent_class` parameter.
 	 *
-	 * @param string $class        The class containing the deprecated constructor.
+	 * @param string $class_name   The class containing the deprecated constructor.
 	 * @param string $version      The version of WordPress that deprecated the function.
 	 * @param string $parent_class The parent class calling the deprecated constructor.
 	 */
-	do_action( 'deprecated_constructor_run', $class, $version, $parent_class );
+	do_action( 'deprecated_constructor_run', $class_name, $version, $parent_class );
 
 	/**
 	 * Filters whether to trigger an error for deprecated functions.
@@ -5464,7 +5464,7 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
 					sprintf(
 						/* translators: 1: PHP class name, 2: PHP parent class name, 3: Version number, 4: __construct() method. */
 						__( 'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.' ),
-						$class,
+						$class_name,
 						$parent_class,
 						$version,
 						'<code>__construct()</code>'
@@ -5476,7 +5476,7 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
 					sprintf(
 						/* translators: 1: PHP class name, 2: Version number, 3: __construct() method. */
 						__( 'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$class,
+						$class_name,
 						$version,
 						'<code>__construct()</code>'
 					),
@@ -5488,7 +5488,7 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
 				trigger_error(
 					sprintf(
 						'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.',
-						$class,
+						$class_name,
 						$parent_class,
 						$version,
 						'<code>__construct()</code>'
@@ -5499,7 +5499,7 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
 				trigger_error(
 					sprintf(
 						'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$class,
+						$class_name,
 						$version,
 						'<code>__construct()</code>'
 					),
