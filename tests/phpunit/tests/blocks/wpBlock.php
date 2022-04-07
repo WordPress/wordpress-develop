@@ -439,11 +439,11 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->assertSame(
 			$query,
 			array(
-				'post_type'        => 'page',
-				'order'            => 'DESC',
-				'orderby'          => 'title',
-				'post__not_in'     => array( 1, 2 ),
-				'tax_query'        => array(
+				'post_type'    => 'page',
+				'order'        => 'DESC',
+				'orderby'      => 'title',
+				'post__not_in' => array( 1, 2 ),
+				'tax_query'    => array(
 					array(
 						'taxonomy'         => 'category',
 						'terms'            => array( 56 ),
