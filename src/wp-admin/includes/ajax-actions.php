@@ -158,6 +158,7 @@ function wp_ajax_ajax_tag_search() {
 			'name__like' => $s,
 			'fields'     => 'names',
 			'hide_empty' => false,
+			'number'     => isset( $_GET['number'] ) ? (int) $_GET['number'] : 0,
 		)
 	);
 
@@ -1071,16 +1072,21 @@ function wp_ajax_add_tag() {
 	}
 
 	if ( ! $tag || is_wp_error( $tag ) ) {
-		$message = __( 'An error has occurred. Please reload the page and try again.' );
+		$message    = __( 'An error has occurred. Please reload the page and try again.' );
+		$error_code = 'error';
 
 		if ( is_wp_error( $tag ) && $tag->get_error_message() ) {
 			$message = $tag->get_error_message();
 		}
 
+		if ( is_wp_error( $tag ) && $tag->get_error_code() ) {
+			$error_code = $tag->get_error_code();
+		}
+
 		$x->add(
 			array(
 				'what' => 'taxonomy',
-				'data' => new WP_Error( 'error', $message ),
+				'data' => new WP_Error( $error_code, $message ),
 			)
 		);
 		$x->send();
