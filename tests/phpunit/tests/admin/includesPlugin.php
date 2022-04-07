@@ -257,7 +257,13 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 			array( -1, 0 ),                    // Negative numbers are treated the same as passing 0.
 			array( -7, 0 ),                    // Negative numbers are treated the same as passing 0.
 			array( 1, 1 ),                     // Insert as the second item.
+			array( '1', 1 ),                   // Insert as the second item.
+			array( 1.5, 1 ),                   // Insert as the second item.
+			array( '1.5', 1 ),                 // Insert as the second item.
 			array( 3, 3 ),                     // Insert as the 4th item.
+			array( '3', 3 ),                   // Insert as the 4th item.
+			array( 3.5, 3 ),                   // Insert as the 4th item.
+			array( '3.5', 3 ),                 // Insert as the 4th item.
 			array( $menu_count, $menu_count ), // Numbers equal to the number of items are added at the end.
 			array( 123456, $menu_count ),      // Numbers higher than the number of items are added at the end.
 		);
@@ -314,7 +320,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Setup a menu with some items.
 		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback' );
-		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'submenu_page_1', 'submenu_callback_1', '2' );
+		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'submenu_page_1', 'submenu_callback_1', 'First' );
 
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
