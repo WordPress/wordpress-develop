@@ -5341,22 +5341,22 @@ function absint( $maybeint ) {
  * @since 5.4.0 This function is no longer marked as "private".
  * @since 5.4.0 The error type is now classified as E_USER_DEPRECATED (used to default to E_USER_NOTICE).
  *
- * @param string $function    The function that was called.
- * @param string $version     The version of WordPress that deprecated the function.
- * @param string $replacement Optional. The function that should have been called. Default empty.
+ * @param string $function_name The function that was called.
+ * @param string $version       The version of WordPress that deprecated the function.
+ * @param string $replacement   Optional. The function that should have been called. Default empty.
  */
-function _deprecated_function( $function, $version, $replacement = '' ) {
+function _deprecated_function( $function_name, $version, $replacement = '' ) {
 
 	/**
 	 * Fires when a deprecated function is called.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $function    The function that was called.
-	 * @param string $replacement The function that should have been called.
-	 * @param string $version     The version of WordPress that deprecated the function.
+	 * @param string $function_name The function that was called.
+	 * @param string $replacement   The function that should have been called.
+	 * @param string $version       The version of WordPress that deprecated the function.
 	 */
-	do_action( 'deprecated_function_run', $function, $replacement, $version );
+	do_action( 'deprecated_function_run', $function_name, $replacement, $version );
 
 	/**
 	 * Filters whether to trigger an error for deprecated functions.
@@ -5372,7 +5372,7 @@ function _deprecated_function( $function, $version, $replacement = '' ) {
 					sprintf(
 						/* translators: 1: PHP function name, 2: Version number, 3: Alternative function name. */
 						__( 'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$function,
+						$function_name,
 						$version,
 						$replacement
 					),
@@ -5383,7 +5383,7 @@ function _deprecated_function( $function, $version, $replacement = '' ) {
 					sprintf(
 						/* translators: 1: PHP function name, 2: Version number. */
 						__( 'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$function,
+						$function_name,
 						$version
 					),
 					E_USER_DEPRECATED
@@ -5394,7 +5394,7 @@ function _deprecated_function( $function, $version, $replacement = '' ) {
 				trigger_error(
 					sprintf(
 						'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$function,
+						$function_name,
 						$version,
 						$replacement
 					),
@@ -5404,7 +5404,7 @@ function _deprecated_function( $function, $version, $replacement = '' ) {
 				trigger_error(
 					sprintf(
 						'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$function,
+						$function_name,
 						$version
 					),
 					E_USER_DEPRECATED
@@ -5625,22 +5625,22 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
  * @since 5.4.0 This function is no longer marked as "private".
  * @since 5.4.0 The error type is now classified as E_USER_DEPRECATED (used to default to E_USER_NOTICE).
  *
- * @param string $function The function that was called.
- * @param string $version  The version of WordPress that deprecated the argument used.
- * @param string $message  Optional. A message regarding the change. Default empty.
+ * @param string $function_name The function that was called.
+ * @param string $version       The version of WordPress that deprecated the argument used.
+ * @param string $message       Optional. A message regarding the change. Default empty.
  */
-function _deprecated_argument( $function, $version, $message = '' ) {
+function _deprecated_argument( $function_name, $version, $message = '' ) {
 
 	/**
 	 * Fires when a deprecated argument is called.
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string $function The function that was called.
-	 * @param string $message  A message regarding the change.
-	 * @param string $version  The version of WordPress that deprecated the argument used.
+	 * @param string $function_name The function that was called.
+	 * @param string $message       A message regarding the change.
+	 * @param string $version       The version of WordPress that deprecated the argument used.
 	 */
-	do_action( 'deprecated_argument_run', $function, $message, $version );
+	do_action( 'deprecated_argument_run', $function_name, $message, $version );
 
 	/**
 	 * Filters whether to trigger an error for deprecated arguments.
@@ -5656,7 +5656,7 @@ function _deprecated_argument( $function, $version, $message = '' ) {
 					sprintf(
 						/* translators: 1: PHP function name, 2: Version number, 3: Optional message regarding the change. */
 						__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s' ),
-						$function,
+						$function_name,
 						$version,
 						$message
 					),
@@ -5667,7 +5667,7 @@ function _deprecated_argument( $function, $version, $message = '' ) {
 					sprintf(
 						/* translators: 1: PHP function name, 2: Version number. */
 						__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$function,
+						$function_name,
 						$version
 					),
 					E_USER_DEPRECATED
@@ -5678,7 +5678,7 @@ function _deprecated_argument( $function, $version, $message = '' ) {
 				trigger_error(
 					sprintf(
 						'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s',
-						$function,
+						$function_name,
 						$version,
 						$message
 					),
@@ -5688,7 +5688,7 @@ function _deprecated_argument( $function, $version, $message = '' ) {
 				trigger_error(
 					sprintf(
 						'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$function,
+						$function_name,
 						$version
 					),
 					E_USER_DEPRECATED
@@ -5779,35 +5779,35 @@ function _deprecated_hook( $hook, $version, $replacement = '', $message = '' ) {
  * @since 3.1.0
  * @since 5.4.0 This function is no longer marked as "private".
  *
- * @param string $function The function that was called.
- * @param string $message  A message explaining what has been done incorrectly.
- * @param string $version  The version of WordPress where the message was added.
+ * @param string $function_name The function that was called.
+ * @param string $message       A message explaining what has been done incorrectly.
+ * @param string $version       The version of WordPress where the message was added.
  */
-function _doing_it_wrong( $function, $message, $version ) {
+function _doing_it_wrong( $function_name, $message, $version ) {
 
 	/**
 	 * Fires when the given function is being used incorrectly.
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param string $function The function that was called.
-	 * @param string $message  A message explaining what has been done incorrectly.
-	 * @param string $version  The version of WordPress where the message was added.
+	 * @param string $function_name The function that was called.
+	 * @param string $message       A message explaining what has been done incorrectly.
+	 * @param string $version       The version of WordPress where the message was added.
 	 */
-	do_action( 'doing_it_wrong_run', $function, $message, $version );
+	do_action( 'doing_it_wrong_run', $function_name, $message, $version );
 
 	/**
 	 * Filters whether to trigger an error for _doing_it_wrong() calls.
 	 *
 	 * @since 3.1.0
-	 * @since 5.1.0 Added the $function, $message and $version parameters.
+	 * @since 5.1.0 Added the $function_name, $message and $version parameters.
 	 *
-	 * @param bool   $trigger  Whether to trigger the error for _doing_it_wrong() calls. Default true.
-	 * @param string $function The function that was called.
-	 * @param string $message  A message explaining what has been done incorrectly.
-	 * @param string $version  The version of WordPress where the message was added.
+	 * @param bool   $trigger       Whether to trigger the error for _doing_it_wrong() calls. Default true.
+	 * @param string $function_name The function that was called.
+	 * @param string $message       A message explaining what has been done incorrectly.
+	 * @param string $version       The version of WordPress where the message was added.
 	 */
-	if ( WP_DEBUG && apply_filters( 'doing_it_wrong_trigger_error', true, $function, $message, $version ) ) {
+	if ( WP_DEBUG && apply_filters( 'doing_it_wrong_trigger_error', true, $function_name, $message, $version ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $version ) {
 				/* translators: %s: Version number. */
@@ -5824,7 +5824,7 @@ function _doing_it_wrong( $function, $message, $version ) {
 				sprintf(
 					/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: WordPress version number. */
 					__( 'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s' ),
-					$function,
+					$function_name,
 					$message,
 					$version
 				),
@@ -5843,7 +5843,7 @@ function _doing_it_wrong( $function, $message, $version ) {
 			trigger_error(
 				sprintf(
 					'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s',
-					$function,
+					$function_name,
 					$message,
 					$version
 				),
