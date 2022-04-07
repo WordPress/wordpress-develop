@@ -160,6 +160,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/plugins',
 			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/block-directory/search',
+			'/wp/v2/block-patterns/categories',
+			'/wp/v2/block-patterns/patterns',
 			'/wp/v2/sidebars',
 			'/wp/v2/sidebars/(?P<id>[\w-]+)',
 			'/wp/v2/widget-types',
