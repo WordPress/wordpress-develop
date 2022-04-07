@@ -37,6 +37,15 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 	protected static $orig_registry;
 
 	/**
+	 * Instance of the reflected `instance` property.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @var ReflectionProperty
+	 */
+	private static $registry_instance_property;
+
+	/**
 	 * The REST API route.
 	 *
 	 * @since 6.0.0
@@ -56,11 +65,11 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 
 		// Setup an empty testing instance of `WP_Block_Pattern_Categories_Registry` and save the original.
-		$reflection = new ReflectionClass( 'WP_Block_Pattern_Categories_Registry' );
-		$reflection->getProperty( 'instance' )->setAccessible( true );
-		self::$orig_registry = $reflection->getStaticPropertyValue( 'instance' );
-		$test_registry       = new WP_Block_Pattern_Categories_Registry();
-		$reflection->setStaticPropertyValue( 'instance', $test_registry );
+		self::$orig_registry              = WP_Block_Pattern_Categories_Registry::get_instance();
+		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Pattern_Categories_Registry', 'instance' );
+		self::$registry_instance_property->setAccessible( true );
+		$test_registry = new WP_Block_Pattern_Categories_Registry();
+		self::$registry_instance_property->setValue( $test_registry );
 
 		// Register some categories in the test registry.
 		$test_registry->register( 'test', array( 'label' => 'Test' ) );
@@ -71,8 +80,10 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::delete_user( self::$admin_id );
 
 		// Restore the original registry instance.
-		$reflection = new ReflectionClass( 'WP_Block_Pattern_Categories_Registry' );
-		$reflection->setStaticPropertyValue( 'instance', self::$orig_registry );
+		self::$registry_instance_property->setValue( self::$orig_registry );
+		self::$registry_instance_property->setAccessible( false );
+		self::$registry_instance_property = null;
+		self::$orig_registry              = null;
 	}
 
 	public function set_up() {
