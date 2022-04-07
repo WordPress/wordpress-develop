@@ -1261,16 +1261,16 @@ function wp_maybe_clean_new_site_cache_on_update( $new_site, $old_site ) {
  * @since 5.1.0
  *
  * @param int    $site_id Site ID.
- * @param string $public  The value of the site status.
+ * @param string $status  The value of the site status.
  */
-function wp_update_blog_public_option_on_site_update( $site_id, $public ) {
+function wp_update_blog_public_option_on_site_update( $site_id, $status ) {
 
 	// Bail if the site's database tables do not exist (yet).
 	if ( ! wp_is_site_initialized( $site_id ) ) {
 		return;
 	}
 
-	update_blog_option( $site_id, 'blog_public', $public );
+	update_blog_option( $site_id, 'blog_public', $status );
 }
 
 /**
