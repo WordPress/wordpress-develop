@@ -4334,24 +4334,24 @@ function _wp_json_sanity_check( $data, $depth ) {
  *
  * @see _wp_json_sanity_check()
  *
- * @param string $string The string which is to be converted.
+ * @param string $text The string which is to be converted.
  * @return string The checked string.
  */
-function _wp_json_convert_string( $string ) {
+function _wp_json_convert_string( $text ) {
 	static $use_mb = null;
 	if ( is_null( $use_mb ) ) {
 		$use_mb = function_exists( 'mb_convert_encoding' );
 	}
 
 	if ( $use_mb ) {
-		$encoding = mb_detect_encoding( $string, mb_detect_order(), true );
+		$encoding = mb_detect_encoding( $text, mb_detect_order(), true );
 		if ( $encoding ) {
-			return mb_convert_encoding( $string, 'UTF-8', $encoding );
+			return mb_convert_encoding( $text, 'UTF-8', $encoding );
 		} else {
-			return mb_convert_encoding( $string, 'UTF-8', 'UTF-8' );
+			return mb_convert_encoding( $text, 'UTF-8', 'UTF-8' );
 		}
 	} else {
-		return wp_check_invalid_utf8( $string, true );
+		return wp_check_invalid_utf8( $text, true );
 	}
 }
 
@@ -5008,11 +5008,11 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
  * @link https://github.com/lodash-php/lodash-php/blob/master/src/String/kebabCase.php
  * @link https://github.com/lodash-php/lodash-php/blob/master/src/internal/unicodeWords.php
  *
- * @param string $string The string to kebab-case.
+ * @param string $text The string to kebab-case.
  *
  * @return string kebab-cased-string.
  */
-function _wp_to_kebab_case( $string ) {
+function _wp_to_kebab_case( $text ) {
 	//phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 	// ignore the camelCase names for variables so the names are the same as lodash
 	// so comparing and porting new changes is easier.
@@ -5059,7 +5059,7 @@ function _wp_to_kebab_case( $string ) {
 		)
 	) . '/u';
 
-	preg_match_all( $regexp, str_replace( "'", '', $string ), $matches );
+	preg_match_all( $regexp, str_replace( "'", '', $text ), $matches );
 	return strtolower( implode( '-', $matches[0] ) );
 	//phpcs:enable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 }
