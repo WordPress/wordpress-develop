@@ -43,7 +43,7 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 	 *
 	 * @var string
 	 */
-	const REQUEST_ROUTE = '/__experimental/block-patterns/categories';
+	const REQUEST_ROUTE = '/wp/v2/block-patterns/categories';
 
 	/**
 	 * Set up class test fixtures.
