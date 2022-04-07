@@ -1121,14 +1121,14 @@ function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
  *
  * @since 3.1.0
  *
- * @param string           $link   Optional. Anchor text. If empty, default is 'Edit This'. Default empty.
- * @param string           $before Optional. Display before edit link. Default empty.
- * @param string           $after  Optional. Display after edit link. Default empty.
- * @param int|WP_Term|null $term   Optional. Term ID or object. If null, the queried object will be inspected. Default null.
- * @param bool             $echo   Optional. Whether or not to echo the return. Default true.
+ * @param string           $link    Optional. Anchor text. If empty, default is 'Edit This'. Default empty.
+ * @param string           $before  Optional. Display before edit link. Default empty.
+ * @param string           $after   Optional. Display after edit link. Default empty.
+ * @param int|WP_Term|null $term    Optional. Term ID or object. If null, the queried object will be inspected. Default null.
+ * @param bool             $display Optional. Whether or not to echo the return. Default true.
  * @return string|void HTML content.
  */
-function edit_term_link( $link = '', $before = '', $after = '', $term = null, $echo = true ) {
+function edit_term_link( $link = '', $before = '', $after = '', $term = null, $display = true ) {
 	if ( is_null( $term ) ) {
 		$term = get_queried_object();
 	} else {
@@ -1160,7 +1160,7 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $e
 	 */
 	$link = $before . apply_filters( 'edit_term_link', $link, $term->term_id ) . $after;
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $link;
 	} else {
 		return $link;
@@ -2446,13 +2446,13 @@ function get_next_posts_page_link( $max_page = 0 ) {
  * @since 0.71
  *
  * @param int  $max_page Optional. Max pages. Default 0.
- * @param bool $echo     Optional. Whether to echo the link. Default true.
- * @return string|void The link URL for next posts page if `$echo = false`.
+ * @param bool $display  Optional. Whether to echo the link. Default true.
+ * @return string|void The link URL for next posts page if `$display = false`.
  */
-function next_posts( $max_page = 0, $echo = true ) {
+function next_posts( $max_page = 0, $display = true ) {
 	$output = esc_url( get_next_posts_page_link( $max_page ) );
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $output;
 	} else {
 		return $output;
@@ -2544,13 +2544,13 @@ function get_previous_posts_page_link() {
  *
  * @since 0.71
  *
- * @param bool $echo Optional. Whether to echo the link. Default true.
- * @return string|void The previous posts page link if `$echo = false`.
+ * @param bool $display Optional. Whether to echo the link. Default true.
+ * @return string|void The previous posts page link if `$display = false`.
  */
-function previous_posts( $echo = true ) {
+function previous_posts( $display = true ) {
 	$output = esc_url( get_previous_posts_page_link() );
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $output;
 	} else {
 		return $output;
