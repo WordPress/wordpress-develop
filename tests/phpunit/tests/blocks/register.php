@@ -259,7 +259,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		switch_theme( 'block-theme' );
 
 		$metadata = array(
-			'file'       => wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json' ) ),
+			'file'       => wp_normalize_path( get_theme_file_path( 'blocks/example-block/block.json' ) ),
 			'name'       => 'block-theme/example-block',
 			'viewScript' => 'file:./view.js',
 		);
@@ -330,7 +330,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		switch_theme( 'block-theme' );
 
 		$metadata = array(
-			'file'        => wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/block.json' ) ),
+			'file'        => wp_normalize_path( get_theme_file_path( 'blocks/example-block/block.json' ) ),
 			'name'        => 'block-theme/example-block',
 			'editorStyle' => 'file:./editor-style.css',
 		);
