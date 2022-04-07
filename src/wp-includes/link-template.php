@@ -39,17 +39,17 @@ function the_permalink( $post = 0 ) {
  *
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param string $string      URL with or without a trailing slash.
+ * @param string $text        URL with or without a trailing slash.
  * @param string $type_of_url Optional. The type of URL being considered (e.g. single, category, etc)
  *                            for use in the filter. Default empty string.
  * @return string The URL with the trailing slash appended or stripped.
  */
-function user_trailingslashit( $string, $type_of_url = '' ) {
+function user_trailingslashit( $text, $type_of_url = '' ) {
 	global $wp_rewrite;
 	if ( $wp_rewrite->use_trailing_slashes ) {
-		$string = trailingslashit( $string );
+		$text = trailingslashit( $text );
 	} else {
-		$string = untrailingslashit( $string );
+		$text = untrailingslashit( $text );
 	}
 
 	/**
@@ -57,12 +57,12 @@ function user_trailingslashit( $string, $type_of_url = '' ) {
 	 *
 	 * @since 2.2.0
 	 *
-	 * @param string $string      URL with or without a trailing slash.
+	 * @param string $text        URL with or without a trailing slash.
 	 * @param string $type_of_url The type of URL being considered. Accepts 'single', 'single_trackback',
 	 *                            'single_feed', 'single_paged', 'commentpaged', 'paged', 'home', 'feed',
 	 *                            'category', 'page', 'year', 'month', 'day', 'post_type_archive'.
 	 */
-	return apply_filters( 'user_trailingslashit', $string, $type_of_url );
+	return apply_filters( 'user_trailingslashit', $text, $type_of_url );
 }
 
 /**
