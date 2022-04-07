@@ -5022,19 +5022,19 @@ function map_deep( $value, $callback ) {
  * @since 2.2.1
  *
  * @param string $text   The string to be parsed.
- * @param array  $array  Variables will be stored in this array.
+ * @param array  $result Variables will be stored in this array.
  */
-function wp_parse_str( $text, &$array ) {
-	parse_str( (string) $text, $array );
+function wp_parse_str( $text, &$result ) {
+	parse_str( (string) $text, $result );
 
 	/**
 	 * Filters the array of variables derived from a parsed string.
 	 *
 	 * @since 2.2.1
 	 *
-	 * @param array $array The array populated with variables.
+	 * @param array $result The array populated with variables.
 	 */
-	$array = apply_filters( 'wp_parse_str', $array );
+	$result = apply_filters( 'wp_parse_str', $result );
 }
 
 /**
