@@ -1872,10 +1872,10 @@ function wp_nonce_url( $actionurl, $action = -1, $name = '_wpnonce' ) {
  * @param int|string $action  Optional. Action name. Default -1.
  * @param string     $name    Optional. Nonce name. Default '_wpnonce'.
  * @param bool       $referer Optional. Whether to set the referer field for validation. Default true.
- * @param bool       $echo    Optional. Whether to display or return hidden form field. Default true.
+ * @param bool       $display Optional. Whether to display or return hidden form field. Default true.
  * @return string Nonce field HTML markup.
  */
-function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $echo = true ) {
+function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $display = true ) {
 	$name        = esc_attr( $name );
 	$nonce_field = '<input type="hidden" id="' . $name . '" name="' . $name . '" value="' . wp_create_nonce( $action ) . '" />';
 
@@ -1883,7 +1883,7 @@ function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $ech
 		$nonce_field .= wp_referer_field( false );
 	}
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $nonce_field;
 	}
 
@@ -1898,13 +1898,13 @@ function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $ech
  *
  * @since 2.0.4
  *
- * @param bool $echo Optional. Whether to echo or return the referer field. Default true.
+ * @param bool $display Optional. Whether to echo or return the referer field. Default true.
  * @return string Referer field HTML markup.
  */
-function wp_referer_field( $echo = true ) {
+function wp_referer_field( $display = true ) {
 	$referer_field = '<input type="hidden" name="_wp_http_referer" value="' . esc_attr( wp_unslash( $_SERVER['REQUEST_URI'] ) ) . '" />';
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $referer_field;
 	}
 
@@ -1920,12 +1920,12 @@ function wp_referer_field( $echo = true ) {
  *
  * @since 2.0.4
  *
- * @param bool   $echo         Optional. Whether to echo the original http referer. Default true.
+ * @param bool   $display      Optional. Whether to echo the original http referer. Default true.
  * @param string $jump_back_to Optional. Can be 'previous' or page you want to jump back to.
  *                             Default 'current'.
  * @return string Original referer field.
  */
-function wp_original_referer_field( $echo = true, $jump_back_to = 'current' ) {
+function wp_original_referer_field( $display = true, $jump_back_to = 'current' ) {
 	$ref = wp_get_original_referer();
 
 	if ( ! $ref ) {
@@ -1934,7 +1934,7 @@ function wp_original_referer_field( $echo = true, $jump_back_to = 'current' ) {
 
 	$orig_referer_field = '<input type="hidden" name="_wp_original_http_referer" value="' . esc_attr( $ref ) . '" />';
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $orig_referer_field;
 	}
 
