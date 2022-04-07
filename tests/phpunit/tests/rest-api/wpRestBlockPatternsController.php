@@ -116,19 +116,29 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
 
-		$expected_names  = array( 'test/one', 'test/two' );
-		$expected_fields = array( 'name', 'content' );
-
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$request['_fields'] = 'name,content';
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 
-		$this->assertCount( count( $expected_names ), $data );
-		foreach ( $data as $idx => $item ) {
-			$this->assertSame( $expected_names[ $idx ], $item['name'] );
-			$this->assertSame( $expected_fields, array_keys( $item ) );
-		}
+		$this->assertIsArray( $data, 'WP_REST_Block_Patterns_Controller::get_items() should return an array' );
+		$this->assertGreaterThanOrEqual( 2, count( $data ), 'WP_REST_Block_Patterns_Controller::get_items() should return at least 2 items' );
+		$this->assertSame(
+			array(
+				'name'    => 'test/one',
+				'content' => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
+			),
+			$data[0],
+			'WP_REST_Block_Patterns_Controller::get_items() should return test/one'
+		);
+		$this->assertSame(
+			array(
+				'name'    => 'test/two',
+				'content' => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+			),
+			$data[1],
+			'WP_REST_Block_Patterns_Controller::get_items() should return test/two'
+		);
 	}
 
 	public function test_context_param() {
