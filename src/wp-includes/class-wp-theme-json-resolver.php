@@ -159,7 +159,7 @@ class WP_Theme_JSON_Resolver {
 	 */
 	public static function get_theme_data( $deprecated = array(), $settings = array( 'with_supports' => true ) ) {
 		if ( ! empty( $deprecated ) ) {
-			_deprecated_argument( __METHOD__, '5.9' );
+			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
 
 		if ( null === static::$theme ) {
