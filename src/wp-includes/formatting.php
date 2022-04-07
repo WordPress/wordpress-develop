@@ -3542,13 +3542,13 @@ function is_email( $email, $deprecated = false ) {
  *
  * @since 1.2.0
  *
- * @param string $string Subject line.
+ * @param string $subject Subject line.
  * @return string Converted string to ASCII.
  */
-function wp_iso_descrambler( $string ) {
+function wp_iso_descrambler( $subject ) {
 	/* this may only work with iso-8859-1, I'm afraid */
-	if ( ! preg_match( '#\=\?(.+)\?Q\?(.+)\?\=#i', $string, $matches ) ) {
-		return $string;
+	if ( ! preg_match( '#\=\?(.+)\?Q\?(.+)\?\=#i', $subject, $matches ) ) {
+		return $subject;
 	} else {
 		$subject = str_replace( '_', ' ', $matches[2] );
 		return preg_replace_callback( '#\=([0-9a-f]{2})#i', '_wp_iso_convert', $subject );
@@ -3576,12 +3576,12 @@ function _wp_iso_convert( $match ) {
  *
  * @since 1.2.0
  *
- * @param string $string The date to be converted, in the timezone of the site.
- * @param string $format The format string for the returned date. Default 'Y-m-d H:i:s'.
+ * @param string $date_string The date to be converted, in the timezone of the site.
+ * @param string $format      The format string for the returned date. Default 'Y-m-d H:i:s'.
  * @return string Formatted version of the date, in UTC.
  */
-function get_gmt_from_date( $string, $format = 'Y-m-d H:i:s' ) {
-	$datetime = date_create( $string, wp_timezone() );
+function get_gmt_from_date( $date_string, $format = 'Y-m-d H:i:s' ) {
+	$datetime = date_create( $date_string, wp_timezone() );
 
 	if ( false === $datetime ) {
 		return gmdate( $format, 0 );
@@ -3598,12 +3598,12 @@ function get_gmt_from_date( $string, $format = 'Y-m-d H:i:s' ) {
  *
  * @since 1.2.0
  *
- * @param string $string The date to be converted, in UTC or GMT timezone.
- * @param string $format The format string for the returned date. Default 'Y-m-d H:i:s'.
+ * @param string $date_string The date to be converted, in UTC or GMT timezone.
+ * @param string $format      The format string for the returned date. Default 'Y-m-d H:i:s'.
  * @return string Formatted version of the date, in the site's timezone.
  */
-function get_date_from_gmt( $string, $format = 'Y-m-d H:i:s' ) {
-	$datetime = date_create( $string, new DateTimeZone( 'UTC' ) );
+function get_date_from_gmt( $date_string, $format = 'Y-m-d H:i:s' ) {
+	$datetime = date_create( $date_string, new DateTimeZone( 'UTC' ) );
 
 	if ( false === $datetime ) {
 		return gmdate( $format, 0 );
