@@ -3561,11 +3561,11 @@ function wp_iso_descrambler( $subject ) {
  * @since 3.1.0
  * @access private
  *
- * @param array $match The preg_replace_callback matches array.
+ * @param array $matches The preg_replace_callback matches array.
  * @return string Converted chars.
  */
-function _wp_iso_convert( $match ) {
-	return chr( hexdec( strtolower( $match[1] ) ) );
+function _wp_iso_convert( $matches ) {
+	return chr( hexdec( strtolower( $matches[1] ) ) );
 }
 
 /**
