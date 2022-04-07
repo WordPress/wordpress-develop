@@ -760,6 +760,21 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Returns the current theme's wanted patterns(slugs) to be registered from
+	 * Pattern Directory.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @return array Array of patterns if configured, else empty array.
+	 */
+	public function get_patterns() {
+		if ( isset( $this->theme_json['patterns'] ) && is_array( $this->theme_json['patterns'] ) ) {
+			return $this->theme_json['patterns'];
+		}
+		return array();
+	}
+
+	/**
 	 * Converts each style section into a list of rulesets
 	 * containing the block styles to be appended to the stylesheet.
 	 *
