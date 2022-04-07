@@ -940,7 +940,7 @@ function do_blocks( $content ) {
  * for subsequent `the_content` usage.
  *
  * @since 5.0.0
- * @access private 
+ * @access private
  *
  * @param string $content The post content running through this filter.
  * @return string The unmodified content.
