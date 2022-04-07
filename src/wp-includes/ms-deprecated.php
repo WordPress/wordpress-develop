@@ -334,18 +334,18 @@ function wpmu_admin_redirect_add_updated_param( $url = '' ) {
  * @deprecated 3.6.0 Use get_user_by()
  * @see get_user_by()
  *
- * @param string $string Either an email address or a login.
+ * @param string $input_string Either an email address or a login.
  * @return int
  */
-function get_user_id_from_string( $string ) {
+function get_user_id_from_string( $input_string ) {
 	_deprecated_function( __FUNCTION__, '3.6.0', 'get_user_by()' );
 
-	if ( is_email( $string ) )
-		$user = get_user_by( 'email', $string );
-	elseif ( is_numeric( $string ) )
-		return $string;
+	if ( is_email( $input_string ) )
+		$user = get_user_by( 'email', $input_string );
+	elseif ( is_numeric( $input_string ) )
+		return $input_string;
 	else
-		$user = get_user_by( 'login', $string );
+		$user = get_user_by( 'login', $input_string );
 
 	if ( $user )
 		return $user->ID;
