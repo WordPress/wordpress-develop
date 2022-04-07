@@ -1008,13 +1008,13 @@ function wp_kses_uri_attributes() {
  *                                                or a context name such as 'post'.
  * @global string[]       $pass_allowed_protocols Array of allowed URL protocols.
  *
- * @param array $match preg_replace regexp matches
+ * @param array $matches preg_replace regexp matches
  * @return string
  */
-function _wp_kses_split_callback( $match ) {
+function _wp_kses_split_callback( $matches ) {
 	global $pass_allowed_html, $pass_allowed_protocols;
 
-	return wp_kses_split2( $match[0], $pass_allowed_html, $pass_allowed_protocols );
+	return wp_kses_split2( $matches[0], $pass_allowed_html, $pass_allowed_protocols );
 }
 
 /**
@@ -1996,11 +1996,11 @@ function wp_kses_decode_entities( $content ) {
  * @access private
  * @ignore
  *
- * @param array $match preg match
+ * @param array $matches preg match
  * @return string
  */
-function _wp_kses_decode_entities_chr( $match ) {
-	return chr( $match[1] );
+function _wp_kses_decode_entities_chr( $matches ) {
+	return chr( $matches[1] );
 }
 
 /**
@@ -2010,11 +2010,11 @@ function _wp_kses_decode_entities_chr( $match ) {
  * @access private
  * @ignore
  *
- * @param array $match preg match
+ * @param array $matches preg match
  * @return string
  */
-function _wp_kses_decode_entities_chr_hexdec( $match ) {
-	return chr( hexdec( $match[1] ) );
+function _wp_kses_decode_entities_chr_hexdec( $matches ) {
+	return chr( hexdec( $matches[1] ) );
 }
 
 /**
