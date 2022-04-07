@@ -108,7 +108,7 @@ function register_block_script_handle( $metadata, $field_name ) {
 	}
 	// Path needs to be normalized to work in Windows env.
 	$wpinc_path_norm  = wp_normalize_path( realpath( ABSPATH . WPINC ) );
-	$theme_path_norm  = wp_normalize_path( realpath( get_theme_file_path() ) );
+	$theme_path_norm  = wp_normalize_path(get_theme_file_path() );
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
 	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 	$is_theme_block   = 0 === strpos( $script_path_norm, $theme_path_norm );
@@ -158,7 +158,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 		return false;
 	}
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
-	$theme_path_norm  = wp_normalize_path( realpath( get_theme_file_path() ) );
+	$theme_path_norm  = wp_normalize_path( get_theme_file_path() );
 	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 	$is_theme_block  = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $theme_path_norm );
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
