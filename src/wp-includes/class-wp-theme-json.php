@@ -2013,7 +2013,7 @@ class WP_Theme_JSON {
 			if ( ! isset( $theme_settings['settings']['spacing'] ) ) {
 				$theme_settings['settings']['spacing'] = array();
 			}
-		$theme_settings['settings']['spacing']['units'] = ( true === $settings['enableCustomUnits'] ) ?
+			$theme_settings['settings']['spacing']['units'] = ( true === $settings['enableCustomUnits'] ) ?
 			array( 'px', 'em', 'rem', 'vh', 'vw', '%' ) :
 			$settings['enableCustomUnits'];
 	}
