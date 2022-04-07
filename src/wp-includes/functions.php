@@ -4892,16 +4892,16 @@ function wp_array_slice_assoc( $input_array, $keys ) {
  * @since 5.6.0
  * @access private
  *
- * @param array $input_array An array from which we want to retrieve some information.
- * @param array $path        An array of keys describing the path with which to retrieve information.
- * @param mixed $default     The return value if the path does not exist within the array,
- *                           or if `$input_array` or `$path` are not arrays.
+ * @param array $input_array   An array from which we want to retrieve some information.
+ * @param array $path          An array of keys describing the path with which to retrieve information.
+ * @param mixed $default_value The return value if the path does not exist within the array,
+ *                             or if `$input_array` or `$path` are not arrays.
  * @return mixed The value from the path specified.
  */
-function _wp_array_get( $input_array, $path, $default = null ) {
+function _wp_array_get( $input_array, $path, $default_value = null ) {
 	// Confirm $path is valid.
 	if ( ! is_array( $path ) || 0 === count( $path ) ) {
-		return $default;
+		return $default_value;
 	}
 
 	foreach ( $path as $path_element ) {
@@ -4910,7 +4910,7 @@ function _wp_array_get( $input_array, $path, $default = null ) {
 			( ! is_string( $path_element ) && ! is_integer( $path_element ) && ! is_null( $path_element ) ) ||
 			! array_key_exists( $path_element, $input_array )
 		) {
-			return $default;
+			return $default_value;
 		}
 		$input_array = $input_array[ $path_element ];
 	}
@@ -5874,11 +5874,11 @@ function is_lighttpd_before_150() {
  *
  * @global bool $is_apache
  *
- * @param string $mod     The module, e.g. mod_rewrite.
- * @param bool   $default Optional. The default return value if the module is not found. Default false.
+ * @param string $mod           The module, e.g. mod_rewrite.
+ * @param bool   $default_value Optional. The default return value if the module is not found. Default false.
  * @return bool Whether the specified module is loaded.
  */
-function apache_mod_loaded( $mod, $default = false ) {
+function apache_mod_loaded( $mod, $default_value = false ) {
 	global $is_apache;
 
 	if ( ! $is_apache ) {
@@ -5899,7 +5899,7 @@ function apache_mod_loaded( $mod, $default = false ) {
 		}
 	}
 
-	return $default;
+	return $default_value;
 }
 
 /**
