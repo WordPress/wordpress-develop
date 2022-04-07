@@ -341,7 +341,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame( 'http://example.org/wp-content/themes/block-theme/blocks/example-block/editor-style.css', wp_styles()->query( $expected_style_handle )->src );
 		$this->assertSame( 'replace', wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
 		$this->assertSame(
-			wp_normalize_path( realpath( DIR_TESTDATA . '/themedir1/block-theme/blocks/example-block/editor-style.css' ) ),
+			wp_normalize_path( get_theme_file_path( '/blocks/example-block/editor-style.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( $expected_style_handle, 'path' ) )
 		);
 	}
