@@ -338,10 +338,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$expected_style_handle = 'block-theme-example-block-editor-style';
 		$this->assertSame( $expected_style_handle, $result );
 		$this->assertSame( 'replace', wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
-		$this->assertSame(
-			wp_normalize_path( get_theme_file_path( '/blocks/example-block/editor-style.css' ) ),
-			wp_normalize_path( wp_styles()->get_data( $expected_style_handle, 'path' ) )
-		);
 	}
 
 	/**
