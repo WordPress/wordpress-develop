@@ -34,11 +34,11 @@ function wp_scripts() {
  * @since 4.2.0
  * @since 5.5.0 Added the `$handle` parameter.
  *
- * @param string $function Function name.
- * @param string $handle   Optional. Name of the script or stylesheet that was
- *                         registered or enqueued too early. Default empty.
+ * @param string $function_name Function name.
+ * @param string $handle        Optional. Name of the script or stylesheet that was
+ *                              registered or enqueued too early. Default empty.
  */
-function _wp_scripts_maybe_doing_it_wrong( $function, $handle = '' ) {
+function _wp_scripts_maybe_doing_it_wrong( $function_name, $handle = '' ) {
 	if ( did_action( 'init' ) || did_action( 'wp_enqueue_scripts' )
 		|| did_action( 'admin_enqueue_scripts' ) || did_action( 'login_enqueue_scripts' )
 	) {
@@ -62,7 +62,7 @@ function _wp_scripts_maybe_doing_it_wrong( $function, $handle = '' ) {
 	}
 
 	_doing_it_wrong(
-		$function,
+		$function_name,
 		$message,
 		'3.3.0'
 	);
