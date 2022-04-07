@@ -113,6 +113,25 @@ function register_block_script_handle( $metadata, $field_name ) {
 	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 	$is_theme_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $theme_path_norm );
 
+
+	echo "metadata['file']";
+	var_dump( $metadata['file'] );
+
+	echo "wpinc_path_norm";
+	var_dump( $wpinc_path_norm );
+
+	echo "theme_path_norm";
+	var_dump( $theme_path_norm );
+
+	echo "script_path_norm";
+	var_dump( $script_path_norm );
+
+	echo "is_core_block";
+	var_dump( $is_core_block );
+
+	echo "is_theme_block";
+	var_dump( $is_theme_block );
+
 	$script_uri;
 	if ( $is_core_block ) {
 		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
