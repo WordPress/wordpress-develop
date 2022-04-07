@@ -1137,6 +1137,7 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 
 				if ( $user && current_user_can( 'edit_post', $post_id ) ) {
 					$send = array(
+						'name' => $user->display_name,
 						/* translators: %s: User's display name. */
 						'text' => sprintf( __( '%s is currently editing' ), $user->display_name ),
 					);
@@ -1276,7 +1277,7 @@ function wp_refresh_heartbeat_nonces( $response ) {
  *
  * @since 3.8.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @param array $settings An array of Heartbeat settings.
  * @return array Filtered Heartbeat settings.
@@ -1472,12 +1473,18 @@ All at ###SITENAME###
 	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $content );
 	$content      = str_replace( '###SITEURL###', home_url(), $content );
 
+	if ( '' !== get_option( 'blogname' ) ) {
+		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_title = parse_url( home_url(), PHP_URL_HOST );
+	}
+
 	wp_mail(
 		$value,
 		sprintf(
 			/* translators: New admin email address notification email subject. %s: Site title. */
 			__( '[%s] New Admin Email Address' ),
-			wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES )
+			$site_title
 		),
 		$content
 	);

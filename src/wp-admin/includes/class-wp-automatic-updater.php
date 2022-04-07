@@ -23,7 +23,7 @@ class WP_Automatic_Updater {
 	protected $update_results = array();
 
 	/**
-	 * Whether the entire automatic updater is disabled.
+	 * Determines whether the entire automatic updater is disabled.
 	 *
 	 * @since 3.7.0
 	 */
@@ -56,7 +56,7 @@ class WP_Automatic_Updater {
 	}
 
 	/**
-	 * Check for version control checkouts.
+	 * Checks for version control checkouts.
 	 *
 	 * Checks for Subversion, Git, Mercurial, and Bazaar. It recursively looks up the
 	 * filesystem to the top of the drive, erring on the side of detecting a VCS
@@ -295,7 +295,7 @@ class WP_Automatic_Updater {
 	}
 
 	/**
-	 * Update an item, if appropriate.
+	 * Updates an item, if appropriate.
 	 *
 	 * @since 3.7.0
 	 *
@@ -1236,9 +1236,15 @@ class WP_Automatic_Updater {
 		$body[] = __( 'https://wordpress.org/support/forums/' );
 		$body[] = "\n" . __( 'The WordPress Team' );
 
+		if ( '' !== get_option( 'blogname' ) ) {
+			$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		} else {
+			$site_title = parse_url( home_url(), PHP_URL_HOST );
+		}
+
 		$body    = implode( "\n", $body );
 		$to      = get_site_option( 'admin_email' );
-		$subject = sprintf( $subject, wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) );
+		$subject = sprintf( $subject, $site_title );
 		$headers = '';
 
 		$email = compact( 'to', 'subject', 'body', 'headers' );
@@ -1347,7 +1353,11 @@ class WP_Automatic_Updater {
 			$body[] = '';
 		}
 
-		$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		if ( '' !== get_bloginfo( 'name' ) ) {
+			$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		} else {
+			$site_title = parse_url( home_url(), PHP_URL_HOST );
+		}
 
 		if ( $failures ) {
 			$body[] = trim(

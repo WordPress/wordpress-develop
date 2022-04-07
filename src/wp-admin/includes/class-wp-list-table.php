@@ -823,7 +823,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param string $option        Option name.
+	 * @param string $option        User option name.
 	 * @param int    $default_value Optional. The number of items to display. Default 20.
 	 * @return int
 	 */
