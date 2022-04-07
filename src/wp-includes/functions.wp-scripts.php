@@ -389,14 +389,14 @@ function wp_dequeue_script( $handle ) {
  * @since 3.5.0 'enqueued' added as an alias of the 'queue' list.
  *
  * @param string $handle Name of the script.
- * @param string $list   Optional. Status of the script to check. Default 'enqueued'.
+ * @param string $status Optional. Status of the script to check. Default 'enqueued'.
  *                       Accepts 'enqueued', 'registered', 'queue', 'to_do', and 'done'.
  * @return bool Whether the script is queued.
  */
-function wp_script_is( $handle, $list = 'enqueued' ) {
+function wp_script_is( $handle, $status = 'enqueued' ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
-	return (bool) wp_scripts()->query( $handle, $list );
+	return (bool) wp_scripts()->query( $handle, $status );
 }
 
 /**
