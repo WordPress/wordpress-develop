@@ -7298,23 +7298,23 @@ function reset_mbstring_encoding() {
 /**
  * Filter/validate a variable as a boolean.
  *
- * Alternative to `filter_var( $var, FILTER_VALIDATE_BOOLEAN )`.
+ * Alternative to `filter_var( $value, FILTER_VALIDATE_BOOLEAN )`.
  *
  * @since 4.0.0
  *
- * @param mixed $var Boolean value to validate.
+ * @param mixed $value Boolean value to validate.
  * @return bool Whether the value is validated.
  */
-function wp_validate_boolean( $var ) {
-	if ( is_bool( $var ) ) {
-		return $var;
+function wp_validate_boolean( $value ) {
+	if ( is_bool( $value ) ) {
+		return $value;
 	}
 
-	if ( is_string( $var ) && 'false' === strtolower( $var ) ) {
+	if ( is_string( $value ) && 'false' === strtolower( $value ) ) {
 		return false;
 	}
 
-	return (bool) $var;
+	return (bool) $value;
 }
 
 /**
