@@ -80,19 +80,49 @@ jobs:
               run_id: ${{ github.run_id }},
             });
 
-            // The first workflow run attempt does not have a previous attempt.
-            if ( workflow_run.data.run_attempt == 1 ) {
+            // When a workflow has been restarted to fix a failure, check the previous run attempt.
+            if ( workflow_run.data.run_attempt > 1 ) {
+              const previous_run = await github.rest.actions.getWorkflowRunAttempt({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: ${{ github.run_id }},
+                attempt_number: workflow_run.data.run_attempt - 1
+              });
+
+              return previous_run.data.conclusion;
+            }
+
+            let workflow_id = '';
+            if ( ${{ github.event_name == 'workflow_run' }} ) {
+              workflow_id = '${{ github.event.workflow_run.workflow_id }}';
+            } else {
+              workflow_id = workflow_run.data.workflow_id;
+            }
+
+            // Otherwise, check the previous workflow run.
+            const previous_runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: workflow_id,
+              branch: '${{ env.CURRENT_BRANCH }}',
+              exclude_pull_requests: true,
+            });
+
+            // This is the first workflow run for this branch or tag.
+            if ( previous_runs.data.workflow_runs.length == 0 ) {
               return 'none';
             }
 
-            const previous_run = await github.rest.actions.getWorkflowRunAttempt({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.run_id }},
-              attempt_number: workflow_run.data.run_attempt - 1
-            });
+            // Find the workflow run for the commit that immediately preceded this one.
+            for ( let i = 0; i < previous_runs.data.workflow_runs.length; i++ ) {
+              if ( previous_runs.data.workflow_runs[ i ].run_number == workflow_run.data.run_number ) {
+                return previous_runs.data.workflow_runs[ i + 1 ].conclusion;
+              }
+            }
 
-            return previous_run.data.conclusion;
+            // Can't determine previous workflow conclusion.
+            return 'unknown';
+
 
       - name: Store previous conclusion as an output
         id: previous-conclusion
@@ -146,7 +176,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [ prepare ]
-    if: ${{ needs.prepare.outputs.previous_conclusion == 'failure' && ( github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || inputs.calling_status == 'success' ) && success() }}
+    if: ${{ contains( fromJson( '["failure", "none"]' ), needs.prepare.outputs.previous_conclusion ) && ( github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || inputs.calling_status == 'success' ) && success() }}
 
     steps:
       - name: Post failure notifications to Slack
