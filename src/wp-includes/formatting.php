@@ -3549,10 +3549,10 @@ function wp_iso_descrambler( $subject ) {
 	/* this may only work with iso-8859-1, I'm afraid */
 	if ( ! preg_match( '#\=\?(.+)\?Q\?(.+)\?\=#i', $subject, $matches ) ) {
 		return $subject;
-	} else {
-		$subject = str_replace( '_', ' ', $matches[2] );
-		return preg_replace_callback( '#\=([0-9a-f]{2})#i', '_wp_iso_convert', $subject );
 	}
+
+	$subject = str_replace( '_', ' ', $matches[2] );
+	return preg_replace_callback( '#\=([0-9a-f]{2})#i', '_wp_iso_convert', $subject );
 }
 
 /**
