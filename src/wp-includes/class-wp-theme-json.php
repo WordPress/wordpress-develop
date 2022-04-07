@@ -2013,193 +2013,195 @@ class WP_Theme_JSON {
 			if ( ! isset( $theme_settings['settings']['spacing'] ) ) {
 				$theme_settings['settings']['spacing'] = array();
 			}
-			$theme_settings['settings']['spacing']['units'] = ( true === $settings['enableCustomUnits'] ) ?
-				array( 'px', 'em', 'rem', 'vh', 'vw', '%' ) :
-				$settings['enableCustomUnits'];
-		}
-
-		if ( isset( $settings['colors'] ) ) {
-			if ( ! isset( $theme_settings['settings']['color'] ) ) {
-				$theme_settings['settings']['color'] = array();
-			}
-			$theme_settings['settings']['color']['palette'] = $settings['colors'];
-		}
-
-		if ( isset( $settings['gradients'] ) ) {
-			if ( ! isset( $theme_settings['settings']['color'] ) ) {
-				$theme_settings['settings']['color'] = array();
-			}
-			$theme_settings['settings']['color']['gradients'] = $settings['gradients'];
-		}
-
-		if ( isset( $settings['fontSizes'] ) ) {
-			$font_sizes = $settings['fontSizes'];
-			// Back-compatibility for presets without units.
-			foreach ( $font_sizes as $key => $font_size ) {
-				if ( is_numeric( $font_size['size'] ) ) {
-					$font_sizes[ $key ]['size'] = $font_size['size'] . 'px';
-				}
-			}
-			if ( ! isset( $theme_settings['settings']['typography'] ) ) {
-				$theme_settings['settings']['typography'] = array();
-			}
-			$theme_settings['settings']['typography']['fontSizes'] = $font_sizes;
-		}
-
-		if ( isset( $settings['enableCustomSpacing'] ) ) {
-			if ( ! isset( $theme_settings['settings']['spacing'] ) ) {
-				$theme_settings['settings']['spacing'] = array();
-			}
-			$theme_settings['settings']['spacing']['padding'] = $settings['enableCustomSpacing'];
-		}
-
-		return $theme_settings;
+		$theme_settings['settings']['spacing']['units'] = ( true === $settings['enableCustomUnits'] ) ?
+			array( 'px', 'em', 'rem', 'vh', 'vw', '%' ) :
+			$settings['enableCustomUnits'];
 	}
 
-	/**
-	 * Returns the current theme's wanted patterns(slugs) to be
-	 * registered from Pattern Directory.
-	 *
-	 * @return array
-	 */
-	public function get_patterns() {
-		if ( isset( $this->theme_json['patterns'] ) && is_array( $this->theme_json['patterns'] ) ) {
-			return $this->theme_json['patterns'];
+	if ( isset( $settings['colors'] ) ) {
+		if ( ! isset( $theme_settings['settings']['color'] ) ) {
+			$theme_settings['settings']['color'] = array();
 		}
-		return array();
+		$theme_settings['settings']['color']['palette'] = $settings['colors'];
 	}
 
+	if ( isset( $settings['gradients'] ) ) {
+		if ( ! isset( $theme_settings['settings']['color'] ) ) {
+			$theme_settings['settings']['color'] = array();
+		}
+		$theme_settings['settings']['color']['gradients'] = $settings['gradients'];
+	}
+
+	if ( isset( $settings['fontSizes'] ) ) {
+		$font_sizes = $settings['fontSizes'];
+		// Back-compatibility for presets without units.
+		foreach ( $font_sizes as $key => $font_size ) {
+			if ( is_numeric( $font_size['size'] ) ) {
+				$font_sizes[ $key ]['size'] = $font_size['size'] . 'px';
+			}
+		}
+		if ( ! isset( $theme_settings['settings']['typography'] ) ) {
+			$theme_settings['settings']['typography'] = array();
+		}
+		$theme_settings['settings']['typography']['fontSizes'] = $font_sizes;
+	}
+
+	if ( isset( $settings['enableCustomSpacing'] ) ) {
+		if ( ! isset( $theme_settings['settings']['spacing'] ) ) {
+			$theme_settings['settings']['spacing'] = array();
+		}
+		$theme_settings['settings']['spacing']['padding'] = $settings['enableCustomSpacing'];
+	}
+
+	return $theme_settings;
+}
+
+/**
+ * Returns the current theme's wanted patterns(slugs) to be
+ * registered from Pattern Directory.
+ *
+ * @since 6.0.0
+ *
+ * @return array
+ */
+public function get_patterns() {
+	if ( isset( $this->theme_json['patterns'] ) && is_array( $this->theme_json['patterns'] ) ) {
+		return $this->theme_json['patterns'];
+	}
+	return array();
+}
+
+/**
+ * Returns a valid theme.json as provided by a theme.
+ *
+ * Unlike get_raw_data() this returns the presets flattened,
+ * as provided by a theme. This also uses appearanceTools
+ * instead of their opt-ins if all of them are true.
+ *
+ * @since 6.0.0
+ *
+ * @return array
+ */
+public function get_data() {
+	$output = $this->theme_json;
+	$nodes  = static::get_setting_nodes( $output );
+
 	/**
-	 * Returns a valid theme.json as provided by a theme.
+	 * Flatten the theme & custom origins into a single one.
 	 *
-	 * Unlike get_raw_data() this returns the presets flattened,
-	 * as provided by a theme. This also uses appearanceTools
-	 * instead of their opt-ins if all of them are true.
+	 * For example, the following:
 	 *
-	 * @since 6.0.0
+	 * {
+	 *   "settings": {
+	 *     "color": {
+	 *       "palette": {
+	 *         "theme": [ {} ],
+	 *         "custom": [ {} ]
+	 *       }
+	 *     }
+	 *   }
+	 * }
 	 *
-	 * @return array
+	 * will be converted to:
+	 *
+	 * {
+	 *   "settings": {
+	 *     "color": {
+	 *       "palette": [ {} ]
+	 *     }
+	 *   }
+	 * }
 	 */
-	public function get_data() {
-		$output = $this->theme_json;
-		$nodes  = static::get_setting_nodes( $output );
+	foreach ( $nodes as $node ) {
+		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+			$path   = array_merge( $node['path'], $preset_metadata['path'] );
+			$preset = _wp_array_get( $output, $path, null );
+			if ( null === $preset ) {
+				continue;
+			}
 
-		/**
-		 * Flatten the theme & custom origins into a single one.
-		 *
-		 * For example, the following:
-		 *
-		 * {
-		 *   "settings": {
-		 *     "color": {
-		 *       "palette": {
-		 *         "theme": [ {} ],
-		 *         "custom": [ {} ]
-		 *       }
-		 *     }
-		 *   }
-		 * }
-		 *
-		 * will be converted to:
-		 *
-		 * {
-		 *   "settings": {
-		 *     "color": {
-		 *       "palette": [ {} ]
-		 *     }
-		 *   }
-		 * }
-		 */
-		foreach ( $nodes as $node ) {
-			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
-				$path   = array_merge( $node['path'], $preset_metadata['path'] );
-				$preset = _wp_array_get( $output, $path, null );
-				if ( null === $preset ) {
-					continue;
+			$items = array();
+			if ( isset( $preset['theme'] ) ) {
+				foreach ( $preset['theme'] as $item ) {
+					$slug = $item['slug'];
+					unset( $item['slug'] );
+					$items[ $slug ] = $item;
 				}
+			}
+			if ( isset( $preset['custom'] ) ) {
+				foreach ( $preset['custom'] as $item ) {
+					$slug = $item['slug'];
+					unset( $item['slug'] );
+					$items[ $slug ] = $item;
+				}
+			}
+			$flattened_preset = array();
+			foreach ( $items as $slug => $value ) {
+				$flattened_preset[] = array_merge( array( 'slug' => $slug ), $value );
+			}
+			_wp_array_set( $output, $path, $flattened_preset );
+		}
+	}
 
-				$items = array();
-				if ( isset( $preset['theme'] ) ) {
-					foreach ( $preset['theme'] as $item ) {
-						$slug = $item['slug'];
-						unset( $item['slug'] );
-						$items[ $slug ] = $item;
-					}
-				}
-				if ( isset( $preset['custom'] ) ) {
-					foreach ( $preset['custom'] as $item ) {
-						$slug = $item['slug'];
-						unset( $item['slug'] );
-						$items[ $slug ] = $item;
-					}
-				}
-				$flattened_preset = array();
-				foreach ( $items as $slug => $value ) {
-					$flattened_preset[] = array_merge( array( 'slug' => $slug ), $value );
-				}
-				_wp_array_set( $output, $path, $flattened_preset );
+	// If all of the static::APPEARANCE_TOOLS_OPT_INS are true,
+	// this code unsets them and sets 'appearanceTools' instead.
+	foreach ( $nodes as $node ) {
+		$all_opt_ins_are_set = true;
+		foreach ( static::APPEARANCE_TOOLS_OPT_INS as $opt_in_path ) {
+			$full_path = array_merge( $node['path'], $opt_in_path );
+			// Use "unset prop" as a marker instead of "null" because
+			// "null" can be a valid value for some props (e.g. blockGap).
+			$opt_in_value = _wp_array_get( $output, $full_path, 'unset prop' );
+			if ( 'unset prop' === $opt_in_value ) {
+				$all_opt_ins_are_set = false;
+				break;
 			}
 		}
 
-		// If all of the static::APPEARANCE_TOOLS_OPT_INS are true,
-		// this code unsets them and sets 'appearanceTools' instead.
-		foreach ( $nodes as $node ) {
-			$all_opt_ins_are_set = true;
+		if ( $all_opt_ins_are_set ) {
+			_wp_array_set( $output, array_merge( $node['path'], array( 'appearanceTools' ) ), true );
 			foreach ( static::APPEARANCE_TOOLS_OPT_INS as $opt_in_path ) {
 				$full_path = array_merge( $node['path'], $opt_in_path );
 				// Use "unset prop" as a marker instead of "null" because
 				// "null" can be a valid value for some props (e.g. blockGap).
 				$opt_in_value = _wp_array_get( $output, $full_path, 'unset prop' );
-				if ( 'unset prop' === $opt_in_value ) {
-					$all_opt_ins_are_set = false;
-					break;
+				if ( true !== $opt_in_value ) {
+					continue;
 				}
-			}
 
-			if ( $all_opt_ins_are_set ) {
-				_wp_array_set( $output, array_merge( $node['path'], array( 'appearanceTools' ) ), true );
-				foreach ( static::APPEARANCE_TOOLS_OPT_INS as $opt_in_path ) {
-					$full_path = array_merge( $node['path'], $opt_in_path );
-					// Use "unset prop" as a marker instead of "null" because
-					// "null" can be a valid value for some props (e.g. blockGap).
-					$opt_in_value = _wp_array_get( $output, $full_path, 'unset prop' );
-					if ( true !== $opt_in_value ) {
-						continue;
+				// The following could be improved to be path independent.
+				// At the moment it relies on a couple of assumptions:
+				//
+				// - all opt-ins having a path of size 2.
+				// - there's two sources of settings: the top-level and the block-level.
+				if (
+					( 1 === count( $node['path'] ) ) &&
+					( 'settings' === $node['path'][0] )
+				) {
+					// Top-level settings.
+					unset( $output['settings'][ $opt_in_path[0] ][ $opt_in_path[1] ] );
+					if ( empty( $output['settings'][ $opt_in_path[0] ] ) ) {
+						unset( $output['settings'][ $opt_in_path[0] ] );
 					}
-
-					// The following could be improved to be path independent.
-					// At the moment it relies on a couple of assumptions:
-					//
-					// - all opt-ins having a path of size 2.
-					// - there's two sources of settings: the top-level and the block-level.
-					if (
-						( 1 === count( $node['path'] ) ) &&
-						( 'settings' === $node['path'][0] )
-					) {
-						// Top-level settings.
-						unset( $output['settings'][ $opt_in_path[0] ][ $opt_in_path[1] ] );
-						if ( empty( $output['settings'][ $opt_in_path[0] ] ) ) {
-							unset( $output['settings'][ $opt_in_path[0] ] );
-						}
-					} elseif (
-						( 3 === count( $node['path'] ) ) &&
-						( 'settings' === $node['path'][0] ) &&
-						( 'blocks' === $node['path'][1] )
-					) {
-						// Block-level settings.
-						$block_name = $node['path'][2];
-						unset( $output['settings']['blocks'][ $block_name ][ $opt_in_path[0] ][ $opt_in_path[1] ] );
-						if ( empty( $output['settings']['blocks'][ $block_name ][ $opt_in_path[0] ] ) ) {
-							unset( $output['settings']['blocks'][ $block_name ][ $opt_in_path[0] ] );
-						}
+				} elseif (
+					( 3 === count( $node['path'] ) ) &&
+					( 'settings' === $node['path'][0] ) &&
+					( 'blocks' === $node['path'][1] )
+				) {
+					// Block-level settings.
+					$block_name = $node['path'][2];
+					unset( $output['settings']['blocks'][ $block_name ][ $opt_in_path[0] ][ $opt_in_path[1] ] );
+					if ( empty( $output['settings']['blocks'][ $block_name ][ $opt_in_path[0] ] ) ) {
+						unset( $output['settings']['blocks'][ $block_name ][ $opt_in_path[0] ] );
 					}
 				}
 			}
 		}
+	}
 
-		wp_recursive_ksort( $output );
+	wp_recursive_ksort( $output );
 
-		return $output;
+	return $output;
 	}
 
 }
