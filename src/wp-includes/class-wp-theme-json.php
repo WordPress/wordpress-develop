@@ -1550,7 +1550,7 @@ class WP_Theme_JSON {
 
 		if ( is_array( $path ) ) {
 			$value = _wp_array_get( $data, $path );
-			if ( isset( $value ) ) {
+			if ( null !== $value ) {
 				return $value;
 			}
 		}
@@ -2079,7 +2079,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @return array
+	 * @return string[]
 	 */
 	public function get_patterns() {
 		if ( isset( $this->theme_json['patterns'] ) && is_array( $this->theme_json['patterns'] ) ) {
