@@ -3858,7 +3858,7 @@ function human_time_diff( $from, $to = 0 ) {
  *
  * @since 1.5.0
  * @since 5.2.0 Added the `$post` parameter.
- * @since 5.8.0 Send the correct `$raw_excerpt` parameter.
+ * @since 6.0.0 Send the correct `$raw_excerpt` parameter.
  *
  * @param string             $text Optional. The excerpt. If set to empty, an excerpt is generated.
  * @param WP_Post|object|int $post Optional. WP_Post instance or Post ID/object. Default null.
