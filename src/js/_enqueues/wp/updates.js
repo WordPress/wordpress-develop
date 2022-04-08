@@ -34,6 +34,7 @@
 		__ = wp.i18n.__,
 		_x = wp.i18n._x,
 		_n = wp.i18n._n,
+		_nx = wp.i18n._nx,
 		sprintf = wp.i18n.sprintf;
 
 	wp = wp || {};
@@ -979,7 +980,7 @@
 				 *
 				 * @type {Object}
 				 */
-				plugins          = settings.plugins
+				plugins          = settings.plugins,
 				remainingCount;
 
 			// Add a success message after deleting a plugin.
