@@ -1689,7 +1689,7 @@ class WP_Theme_JSON {
 	 * @return boolean
 	 */
 	protected static function should_override_preset( $theme_json, $path, $override ) {
-		_deprecated_function( __METHOD__, '6.0.0' );
+		_deprecated_function( __METHOD__, '6.0.0', 'get_metadata_boolean' );
 
 		if ( is_bool( $override ) ) {
 			return $override;
