@@ -256,12 +256,14 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 			array( 0, 0 ),                     // Insert at the beginning of the menu if 0 is passed.
 			array( -1, 0 ),                    // Negative numbers are treated the same as passing 0.
 			array( -7, 0 ),                    // Negative numbers are treated the same as passing 0.
+			array( '-7', 0 ),                  // Negative numbers are treated the same as passing 0.
 			array( 1, 1 ),                     // Insert as the second item.
 			array( '1', 1 ),                   // Insert as the second item.
 			array( 1.5, 1 ),                   // Insert as the second item.
 			array( '1.5', 1 ),                 // Insert as the second item.
 			array( 3, 3 ),                     // Insert as the 4th item.
 			array( '3', 3 ),                   // Insert as the 4th item.
+			array( '3e0', 3 ),                 // Insert as the 4th item.
 			array( 3.5, 3 ),                   // Insert as the 4th item.
 			array( '3.5', 3 ),                 // Insert as the 4th item.
 			array( $menu_count, $menu_count ), // Numbers equal to the number of items are added at the end.
