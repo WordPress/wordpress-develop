@@ -381,12 +381,14 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	$global_styles = array();
 	$presets       = array(
 		array(
-			'css'            => 'variables',
-			'__unstableType' => 'presets',
+			'css'              => 'variables',
+			'__unstableType'   => 'presets',
+			'__unstableSource' => 'theme_json',
 		),
 		array(
-			'css'            => 'presets',
-			'__unstableType' => 'presets',
+			'css'              => 'presets',
+			'__unstableType'   => 'presets',
+			'__unstableSource' => 'theme_json',
 		),
 	);
 	foreach ( $presets as $preset_style ) {
@@ -399,8 +401,9 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 
 	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
 		$block_classes = array(
-			'css'            => 'styles',
-			'__unstableType' => 'theme',
+			'css'              => 'styles',
+			'__unstableType'   => 'styles',
+			'__unstableSource' => 'theme_json',
 		);
 		$actual_css    = wp_get_global_stylesheet( array( $block_classes['css'] ) );
 		if ( '' !== $actual_css ) {
@@ -626,17 +629,19 @@ function get_block_editor_theme_styles() {
 				$response = wp_remote_get( $style );
 				if ( ! is_wp_error( $response ) ) {
 					$styles[] = array(
-						'css'            => wp_remote_retrieve_body( $response ),
-						'__unstableType' => 'theme',
+						'css'              => wp_remote_retrieve_body( $response ),
+						'__unstableType'   => 'styles',
+						'__unstableSource' => 'css',
 					);
 				}
 			} else {
 				$file = get_theme_file_path( $style );
 				if ( is_file( $file ) ) {
 					$styles[] = array(
-						'css'            => file_get_contents( $file ),
-						'baseURL'        => get_theme_file_uri( $style ),
-						'__unstableType' => 'theme',
+						'css'              => file_get_contents( $file ),
+						'baseURL'          => get_theme_file_uri( $style ),
+						'__unstableType'   => 'styles',
+						'__unstableSource' => 'css',
 					);
 				}
 			}
