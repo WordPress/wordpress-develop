@@ -139,6 +139,11 @@ class WP_Site_Query {
 	 *                                                   - 'path_length'
 	 *                                                   - 'site__in'
 	 *                                                   - 'network__in'
+	 *                                                   - 'deleted'
+	 *                                                   - 'mature'
+	 *                                                   - 'spam'
+	 *                                                   - 'archived'
+	 *                                                   - 'public'
 	 *                                                   - false, an empty array, or 'none' to disable `ORDER BY` clause.
 	 *                                                   Default 'id'.
 	 *     @type string          $order                  How to order retrieved sites. Accepts 'ASC', 'DESC'. Default 'ASC'.
