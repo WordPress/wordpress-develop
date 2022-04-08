@@ -118,14 +118,27 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 
 		// Default behavior
 		add_filter( 'excerpt_more', array( $this, 'remove_excerpt_more' ) );
-		$this->assertSame( $words_55, wp_trim_excerpt( '', $post ) );
-		$this->assertSame( 'Overwrite', wp_trim_excerpt( 'Overwrite', $post ) );
+		$this->assertSame(
+			$words_55,
+			wp_trim_excerpt( '', $post ),
+			'The trimmed excerpt does not have 55 words'
+		);
+
+		$this->assertSame(
+			'Overwrite',
+			wp_trim_excerpt( 'Overwrite', $post ),
+			'The trimmed excerpt is not the word "Overwrite"'
+		);
 
 		// This filter will make use of `$raw_excerpt` as the excerpt.
 		add_filter( 'wp_trim_excerpt', array( $this, 'return_raw_excerpt' ), 10, 2 );
 		remove_filter( 'the_content', 'wpautop' );
 
-		$this->assertSame( $words_60, wp_trim_excerpt( '', $post ) );
+		$this->assertSame(
+			$words_60,
+			wp_trim_excerpt( '', $post ),
+			'The trimmed excerpt does not have 60 words'
+		);
 	}
 
 	/**
