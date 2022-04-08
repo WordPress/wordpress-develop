@@ -94,7 +94,13 @@ jobs:
               per_page: 1,
               page: 2,
             });
-            return previous_runs.data.workflow_runs[0].conclusion;
+
+            if ( previous_runs.data.total_count > 0 ) {
+              return previous_runs.data.workflow_runs[0].conclusion;
+            } else {
+              // Use failure so all first time runs for a branch or tag are reported to Slack.
+              return 'failure';
+            }
 
       - name: Store previous conclusion as an output
         id: previous-conclusion

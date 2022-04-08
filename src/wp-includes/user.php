@@ -1305,6 +1305,150 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	return $result;
 }
 
+/**
+ * Returns the number of active users in your installation.
+ *
+ * Note that on a large site the count may be cached and only updated twice daily.
+ *
+ * @since MU (3.0.0)
+ * @since 4.8.0 The `$network_id` parameter has been added.
+ * @since 6.0.0 Moved to wp-includes/user.php.
+ *
+ * @param int|null $network_id ID of the network. Defaults to the current network.
+ * @return int Number of active users on the network.
+ */
+function get_user_count( $network_id = null ) {
+	if ( ! is_multisite() && null !== $network_id ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: $network_id */
+				__( 'Unable to pass %s if not using multisite.' ),
+				'<code>$network_id</code>'
+			),
+			'6.0.0'
+		);
+	}
+
+	return (int) get_network_option( $network_id, 'user_count', -1 );
+}
+
+/**
+ * Updates the total count of users on the site if live user counting is enabled.
+ *
+ * @since 6.0.0
+ *
+ * @param int|null $network_id ID of the network. Defaults to the current network.
+ * @return bool Whether the update was successful.
+ */
+function wp_maybe_update_user_counts( $network_id = null ) {
+	if ( ! is_multisite() && null !== $network_id ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: $network_id */
+				__( 'Unable to pass %s if not using multisite.' ),
+				'<code>$network_id</code>'
+			),
+			'6.0.0'
+		);
+	}
+
+	$is_small_network = ! wp_is_large_user_count( $network_id );
+	/** This filter is documented in wp-includes/ms-functions.php */
+	if ( ! apply_filters( 'enable_live_network_counts', $is_small_network, 'users' ) ) {
+		return false;
+	}
+
+	return wp_update_user_counts( $network_id );
+}
+
+/**
+ * Updates the total count of users on the site.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ * @since 6.0.0
+ *
+ * @param int|null $network_id ID of the network. Defaults to the current network.
+ * @return bool Whether the update was successful.
+ */
+function wp_update_user_counts( $network_id = null ) {
+	global $wpdb;
+
+	if ( ! is_multisite() && null !== $network_id ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: $network_id */
+				__( 'Unable to pass %s if not using multisite.' ),
+				'<code>$network_id</code>'
+			),
+			'6.0.0'
+		);
+	}
+
+	$query = "SELECT COUNT(ID) as c FROM $wpdb->users";
+	if ( is_multisite() ) {
+		$query .= " WHERE spam = '0' AND deleted = '0'";
+	}
+
+	$count = $wpdb->get_var( $query );
+
+	return update_network_option( $network_id, 'user_count', $count );
+}
+
+/**
+ * Schedules a recurring recalculation of the total count of users.
+ *
+ * @since 6.0.0
+ */
+function wp_schedule_update_user_counts() {
+	if ( ! is_main_site() ) {
+		return;
+	}
+
+	if ( ! wp_next_scheduled( 'wp_update_user_counts' ) && ! wp_installing() ) {
+		wp_schedule_event( time(), 'twicedaily', 'wp_update_user_counts' );
+	}
+}
+
+/**
+ * Determines whether the site has a large number of users.
+ *
+ * The default criteria for a large site is more than 10,000 users.
+ *
+ * @since 6.0.0
+ *
+ * @param int|null $network_id ID of the network. Defaults to the current network.
+ * @return bool Whether the site has a large number of users.
+ */
+function wp_is_large_user_count( $network_id = null ) {
+	if ( ! is_multisite() && null !== $network_id ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: $network_id */
+				__( 'Unable to pass %s if not using multisite.' ),
+				'<code>$network_id</code>'
+			),
+			'6.0.0'
+		);
+	}
+
+	$count = get_user_count( $network_id );
+
+	/**
+	 * Filters whether the site is considered large, based on its number of users.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param bool     $is_large_user_count Whether the site has a large number of users.
+	 * @param int      $count               The total number of users.
+	 * @param int|null $network_id          ID of the network. `null` represents the current network.
+	 */
+	return apply_filters( 'wp_is_large_user_count', $count > 10000, $count, $network_id );
+}
+
 //
 // Private helper functions.
 //
@@ -1977,9 +2121,6 @@ function wp_insert_user( $userdata ) {
 	 */
 	if ( ! empty( $userdata['user_nicename'] ) ) {
 		$user_nicename = sanitize_user( $userdata['user_nicename'], true );
-		if ( mb_strlen( $user_nicename ) > 50 ) {
-			return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
-		}
 	} else {
 		$user_nicename = mb_substr( $user_login, 0, 50 );
 	}
@@ -1994,6 +2135,10 @@ function wp_insert_user( $userdata ) {
 	 * @param string $user_nicename The user's nicename.
 	 */
 	$user_nicename = apply_filters( 'pre_user_nicename', $user_nicename );
+
+	if ( mb_strlen( $user_nicename ) > 50 ) {
+		return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
+	}
 
 	$user_nicename_check = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_nicename = %s AND user_login != %s LIMIT 1", $user_nicename, $user_login ) );
 
@@ -3176,7 +3321,7 @@ function register_new_user( $user_login, $user_email ) {
 	if ( '' === $user_email ) {
 		$errors->add( 'empty_email', __( '<strong>Error</strong>: Please type your email address.' ) );
 	} elseif ( ! is_email( $user_email ) ) {
-		$errors->add( 'invalid_email', __( '<strong>Error</strong>: The email address isn&#8217;t correct.' ) );
+		$errors->add( 'invalid_email', __( '<strong>Error</strong>: The email address is not correct.' ) );
 		$user_email = '';
 	} elseif ( email_exists( $user_email ) ) {
 		$errors->add(
@@ -3231,7 +3376,7 @@ function register_new_user( $user_login, $user_email ) {
 			'registerfail',
 			sprintf(
 				/* translators: %s: Admin email address. */
-				__( '<strong>Error</strong>: Couldn&#8217;t register you&hellip; please contact the <a href="mailto:%s">site admin</a>!' ),
+				__( '<strong>Error</strong>: Could not register you&hellip; please contact the <a href="mailto:%s">site admin</a>!' ),
 				get_option( 'admin_email' )
 			)
 		);
@@ -3474,7 +3619,7 @@ function send_confirmation_on_profile_email() {
 		if ( ! is_email( $_POST['email'] ) ) {
 			$errors->add(
 				'user_email',
-				__( '<strong>Error</strong>: The email address isn&#8217;t correct.' ),
+				__( '<strong>Error</strong>: The email address is not correct.' ),
 				array(
 					'form-field' => 'email',
 				)
@@ -3567,7 +3712,7 @@ All at ###SITENAME###
  * @since 3.0.0
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  */
 function new_user_email_admin_notice() {
 	global $pagenow;
