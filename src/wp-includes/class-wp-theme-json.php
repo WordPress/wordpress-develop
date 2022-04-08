@@ -1550,7 +1550,7 @@ class WP_Theme_JSON {
 
 		if ( is_array( $path ) ) {
 			$value = _wp_array_get( $data, $path );
-			if ( isset( $value ) ) {
+			if ( null !== $value ) {
 				return $value;
 			}
 		}
