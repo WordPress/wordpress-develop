@@ -1066,7 +1066,7 @@
 				$itemsCount.text(
 					sprintf(
 						/* translators: %s: The remaining number of plugins. */
-						_n( '%s item', '%s items', 'plugin/plugins', remainingCount ),
+						_nx( '%s item', '%s items', 'plugin/plugins', remainingCount ),
 						remainingCount
 					)
 				);
