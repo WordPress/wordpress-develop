@@ -731,7 +731,7 @@ class WP_REST_Server {
 	 * data instead.
 	 *
 	 * @since 4.4.0
-	 * @since 5.9.0 The $embed parameter can now contain a list of link relations to include
+	 * @since 6.0.0 The $embed parameter can now contain a list of link relations to include
 	 *
 	 * @param WP_REST_Response $response Response object.
 	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.

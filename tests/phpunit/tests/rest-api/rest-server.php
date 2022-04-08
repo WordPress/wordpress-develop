@@ -78,7 +78,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @dataProvider data_embed_params
+	 * @dataProvider data_envelope_params
 	 * @ticket 54015
 	 */
 	public function test_envelope_param( $_embed ) {
@@ -114,7 +114,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$envelope_response = rest_get_server()->envelope_response( $response, $embed );
 
 		// The envelope should still be a response, but with defaults.
-		$this->assertInstanceOf( 'WP_REST_Response', $envelope_response );
+		$this->assertInstanceOf( WP_REST_Response::class, $envelope_response );
 		$this->assertSame( 200, $envelope_response->get_status() );
 		$this->assertEmpty( $envelope_response->get_headers() );
 		$this->assertEmpty( $envelope_response->get_links() );
@@ -2235,7 +2235,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *
 	 * @return array
 	 */
-	public function data_embed_params() {
+	public function data_envelope_params() {
 		return array(
 			array( '1' ),
 			array( 'true' ),
