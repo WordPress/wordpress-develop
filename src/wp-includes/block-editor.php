@@ -379,36 +379,37 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	);
 
 	$global_styles = array();
-	$presets       = array(
-		array(
-			'css'            => 'variables',
-			'__unstableType' => 'presets',
-		),
-		array(
-			'css'            => 'presets',
-			'__unstableType' => 'presets',
-		),
-	);
-	foreach ( $presets as $preset_style ) {
-		$actual_css = wp_get_global_stylesheet( array( $preset_style['css'] ) );
-		if ( '' !== $actual_css ) {
-			$preset_style['css'] = $actual_css;
-			$global_styles[]     = $preset_style;
-		}
-	}
-
-	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$block_classes = array(
-			'css'            => 'styles',
-			'__unstableType' => 'theme',
+	if ( ! empty( $block_editor_context->post ) ) {
+		$presets       = array(
+			array(
+				'css'            => 'variables',
+				'__unstableType' => 'presets',
+			),
+			array(
+				'css'            => 'presets',
+				'__unstableType' => 'presets',
+			),
 		);
-		$actual_css    = wp_get_global_stylesheet( array( $block_classes['css'] ) );
-		if ( '' !== $actual_css ) {
-			$block_classes['css'] = $actual_css;
-			$global_styles[]      = $block_classes;
+		foreach ( $presets as $preset_style ) {
+			$actual_css = wp_get_global_stylesheet( array( $preset_style['css'] ) );
+			if ( '' !== $actual_css ) {
+				$preset_style['css'] = $actual_css;
+				$global_styles[]     = $preset_style;
+			}
+		}
+
+		if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
+			$block_classes = array(
+				'css'            => 'styles',
+				'__unstableType' => 'theme',
+			);
+			$actual_css    = wp_get_global_stylesheet( array( $block_classes['css'] ) );
+			if ( '' !== $actual_css ) {
+				$block_classes['css'] = $actual_css;
+				$global_styles[]      = $block_classes;
+			}
 		}
 	}
-
 	$editor_settings['styles'] = array_merge( $global_styles, get_block_editor_theme_styles() );
 
 	$editor_settings['__experimentalFeatures'] = wp_get_global_settings();
