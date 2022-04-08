@@ -1235,13 +1235,15 @@ final class WP_Theme implements ArrayAccess {
 			$files = (array) $this->get_files( 'php', 1, true );
 
 			foreach ( $files as $file => $full_path ) {
-				if ( ! preg_match( '|Template Name:(.*)$|mi', file_get_contents( $full_path ), $header ) ) {
+				$header = get_file_data( $full_path, array( 'Template Name' => 'Template Name' ) );
+				if ( empty( $header['Template Name'] ) ) {
 					continue;
 				}
 
 				$types = array( 'page' );
-				if ( preg_match( '|Template Post Type:(.*)$|mi', file_get_contents( $full_path ), $type ) ) {
-					$types = explode( ',', _cleanup_header_comment( $type[1] ) );
+				$type  = get_file_data( $full_path, array( 'Template Post Type' => 'Template Post Type' ) );
+				if ( empty( $header['Template Post Type'] ) ) {
+					$types = explode( ',', $type['Template Post Type'] );
 				}
 
 				foreach ( $types as $type ) {
@@ -1250,7 +1252,7 @@ final class WP_Theme implements ArrayAccess {
 						$post_templates[ $type ] = array();
 					}
 
-					$post_templates[ $type ][ $file ] = _cleanup_header_comment( $header[1] );
+					$post_templates[ $type ][ $file ] = $header['Template Name'];
 				}
 			}
 
