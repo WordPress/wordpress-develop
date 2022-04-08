@@ -74,9 +74,9 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
+        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
         with:
-          node-version: 14
+          node-version-file: '.nvmrc'
           cache: npm
 
       - name: Install Dependencies
@@ -153,9 +153,9 @@ jobs:
         run: unzip built-wp-${{ github.sha }}.zip
 
       - name: Install NodeJS
-        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
+        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
         with:
-          node-version: 14
+          node-version-file: '.nvmrc'
           cache: npm
 
       - name: Install Dependencies
@@ -163,7 +163,7 @@ jobs:
 
       - name: Cache Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
-        uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353 # v2.1.6
+        uses: actions/cache@136d96b4aee02b1f0de3ba493b1d47135042d9c0 # v3.0.1
         env:
           cache-name: cache-composer-dependencies
         with:
