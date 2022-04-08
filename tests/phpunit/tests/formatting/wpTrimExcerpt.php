@@ -94,6 +94,8 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52820
+	 *
+	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_raw_excerpt_should_return_untrimmed() {
 		$words_60 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ' .
