@@ -1667,6 +1667,7 @@ class WP_Theme_JSON {
 	 * Returns whether a presets should be overridden or not.
 	 *
 	 * @since 5.9.0
+	 * @deprecated 6.0.0 Use {@see 'get_metadata_boolean'} instead.
 	 *
 	 * @param array      $theme_json The theme.json like structure to inspect.
 	 * @param array      $path Path to inspect.
@@ -1674,6 +1675,8 @@ class WP_Theme_JSON {
 	 * @return boolean
 	 */
 	protected static function should_override_preset( $theme_json, $path, $override ) {
+		_deprecated_function( __METHOD__, '6.0.0' );
+
 		if ( is_bool( $override ) ) {
 			return $override;
 		}
