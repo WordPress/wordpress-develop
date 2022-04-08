@@ -2079,7 +2079,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @return array
+	 * @return string[]
 	 */
 	public function get_patterns() {
 		if ( isset( $this->theme_json['patterns'] ) && is_array( $this->theme_json['patterns'] ) ) {
