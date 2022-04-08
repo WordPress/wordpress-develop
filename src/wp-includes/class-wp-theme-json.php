@@ -2091,9 +2091,8 @@ class WP_Theme_JSON {
 	/**
 	 * Returns a valid theme.json as provided by a theme.
 	 *
-	 * Unlike get_raw_data() this returns the presets flattened,
-	 * as provided by a theme. This also uses appearanceTools
-	 * instead of their opt-ins if all of them are true.
+	 * Unlike get_raw_data() this returns the presets flattened, as provided by a theme.
+	 * This also uses appearanceTools instead of their opt-ins if all of them are true.
 	 *
 	 * @since 6.0.0
 	 *
