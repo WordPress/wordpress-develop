@@ -1684,8 +1684,8 @@ class WP_Theme_JSON {
 	 * @deprecated 6.0.0 Use {@see 'get_metadata_boolean'} instead.
 	 *
 	 * @param array      $theme_json The theme.json like structure to inspect.
-	 * @param array      $path Path to inspect.
-	 * @param bool|array $override Data to compute whether to override the preset.
+	 * @param array      $path       Path to inspect.
+	 * @param bool|array $override   Data to compute whether to override the preset.
 	 * @return boolean
 	 */
 	protected static function should_override_preset( $theme_json, $path, $override ) {
