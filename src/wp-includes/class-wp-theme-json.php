@@ -105,6 +105,13 @@ class WP_Theme_JSON {
 	 * - properties       => array of CSS properties to be used by kses to
 	 *                       validate the content of each preset
 	 *                       by means of the remove_insecure_properties method.
+	 *
+	 * @since 5.8.0
+	 * @since 5.9.0 Added the `color.duotone` and `typography.fontFamilies` presets,
+	 *              `use_default_names` preset key, and simplified the metadata structure.
+	 * @since 6.0.0 Replaced `override` with `prevent_override` and updated the
+	 *              `prevent_overried` value for `color.duotone` to use `color.defaultDuotone`.
+	 * @var array
 	 */
 	const PRESETS_METADATA = array(
 		array(
@@ -245,6 +252,7 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Renamed from `ALLOWED_SETTINGS` to `VALID_SETTINGS`,
 	 *              added new properties for `border`, `color`, `spacing`,
 	 *              and `typography`, and renamed others according to the new schema.
+	 * @since 6.0.0 Added `color.defaultDuotone`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -351,6 +359,12 @@ class WP_Theme_JSON {
 		'h6'   => 'h6',
 	);
 
+	/**
+	 * Options that settings.appearanceTools enables.
+	 *
+	 * @since 6.0.0
+	 * @var array
+	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
 		array( 'border', 'color' ),
 		array( 'border', 'radius' ),
