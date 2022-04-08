@@ -440,6 +440,8 @@ final class WP_Post_Type {
 		 */
 		$args = apply_filters( 'register_post_type_args', $args, $this->name );
 
+		$post_type = $this->name;
+
 		/**
 		 * Filters the arguments for registering a specific post type.
 		 *
@@ -451,7 +453,7 @@ final class WP_Post_Type {
 		 *                          See the register_post_type() function for accepted arguments.
 		 * @param string $post_type Post type key.
 		 */
-		$args = apply_filters( "register_{$this->name}_post_type_args", $args, $this->name );
+		$args = apply_filters( "register_{$post_type}_post_type_args", $args, $this->name );
 
 		$has_edit_link = ! empty( $args['_edit_link'] );
 
