@@ -144,16 +144,23 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	}
 
 	/**
-	 * This filter removes the excerpt more.
+	 * This callback removes the excerpt more.
+	 *
+	 * @return string An empty string.
 	 */
 	public function remove_excerpt_more() {
 		return '';
 	}
 
 	/**
+	 * This callback returns the raw excerpt.
+	 *
+	 * @see {wp_trim_excerpt}
+	 *
 	 * @param string $trimmed The trimmed text.
 	 * @param string $raw     The text prior to trimming.
-	 * @see {wp_trim_excerpt}
+	 *
+	 * @return string The raw excerpt.
 	 */
 	public function return_raw_excerpt( $trimmed, $raw ) {
 		return $raw;
