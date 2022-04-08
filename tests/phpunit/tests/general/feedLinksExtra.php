@@ -514,7 +514,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	/**
 	 * @ticket 54703
 	 */
-	public function test_feed_links_extra_should_return_empty_when_show_comments_feed_filter_returns_false() {
+	public function test_feed_links_extra_should_output_nothing_when_show_comments_feed_filter_returns_false() {
 		add_filter( 'feed_links_show_comments_feed', '__return_false' );
 
 		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
@@ -524,7 +524,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	/**
 	 * @ticket 54703
 	 */
-	public function test_feed_links_extra_should_not_return_empty_when_show_comments_feed_filter_returns_true() {
+	public function test_feed_links_extra_should_output_the_comments_feed_link_when_show_comments_feed_filter_returns_true() {
 		add_filter( 'feed_links_show_comments_feed', '__return_true' );
 
 		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
