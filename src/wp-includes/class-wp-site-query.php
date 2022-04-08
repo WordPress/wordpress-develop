@@ -784,6 +784,10 @@ class WP_Site_Query {
 			case 'path':
 			case 'registered':
 			case 'deleted':
+			case 'spam':
+			case 'mature':
+			case 'archived':
+			case 'public':
 				$parsed = $orderby;
 				break;
 			case 'network_id':
