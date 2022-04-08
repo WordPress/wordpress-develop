@@ -528,7 +528,6 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 		add_filter( 'feed_links_show_comments_feed', '__return_true' );
 
 		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
-		$actual = get_echo( 'feed_links_extra' );
-		$this->assertNotEmpty( $actual );
+		$this->assertNotEmpty( get_echo( 'feed_links_extra' ) );
 	}
 }
