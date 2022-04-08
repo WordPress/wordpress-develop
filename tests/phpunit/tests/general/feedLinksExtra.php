@@ -510,4 +510,25 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 		$expected .= ' href="http://example.org/?feed=foo&#038;p=' . self::$post_with_comment_id . '" />' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
+
+	/**
+	 * @ticket 54703
+	 */
+	public function test_feed_links_extra_should_return_empty_when_show_comments_feed_filter_returns_false() {
+		add_filter( 'feed_links_show_comments_feed', '__return_false' );
+
+		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
+		$this->assertEmpty( get_echo( 'feed_links_extra' ) );
+	}
+
+	/**
+	 * @ticket 54703
+	 */
+	public function test_feed_links_extra_should_not_return_empty_when_show_comments_feed_filter_returns_true() {
+		add_filter( 'feed_links_show_comments_feed', '__return_true' );
+
+		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
+		$actual = get_echo( 'feed_links_extra' );
+		$this->assertNotEmpty( $actual );
+	}
 }
