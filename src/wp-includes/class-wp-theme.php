@@ -1209,7 +1209,7 @@ final class WP_Theme implements ArrayAccess {
 			$files += (array) self::scandir( $this->get_template_directory(), $type, $depth );
 		}
 
-		return $files;
+		return array_filter( $files );
 	}
 
 	/**
