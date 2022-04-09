@@ -1957,9 +1957,11 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @param string $from Source directory.
  * @param string $to   Destination directory.
+ * @param string $working_dir Optional. Remote file source directory.
+ *                            Default empty string.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
-function move_dir( $from, $to ) {
+function move_dir( $from, $to, $working_dir = '' ) {
 	global $wp_filesystem;
 
 	$result = false;
@@ -1987,6 +1989,11 @@ function move_dir( $from, $to ) {
 		}
 
 		$result = copy_dir( $from, $to );
+	}
+
+	// Clear the working directory?
+	if ( ! empty( $working_dir ) ) {
+		$wp_filesystem->delete( $working_dir, true );
 	}
 
 	return $result;

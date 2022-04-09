@@ -642,12 +642,7 @@ class WP_Upgrader {
 		}
 
 		// Move new version of item into place.
-		$result = move_dir( $source, $remote_destination );
-
-		// Clear the working directory?
-		if ( $args['clear_working'] ) {
-			$wp_filesystem->delete( $remote_source, true );
-		}
+		$result = move_dir( $source, $remote_destination, $remote_source );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
