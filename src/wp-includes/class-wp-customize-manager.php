@@ -6041,7 +6041,7 @@ final class WP_Customize_Manager {
 	public function _validate_header_video( $validity, $value ) {
 		$video = get_attached_file( absint( $value ) );
 		if ( $video ) {
-			$size = filesize( $video );
+			$size = wp_filesize( $video );
 			if ( $size > 8 * MB_IN_BYTES ) {
 				$validity->add(
 					'size_too_large',

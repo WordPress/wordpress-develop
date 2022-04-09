@@ -84,7 +84,7 @@ class WP_REST_Edit_Site_Export_Controller extends WP_REST_Controller {
 
 		header( 'Content-Type: application/zip' );
 		header( 'Content-Disposition: attachment; filename=edit-site-export.zip' );
-		header( 'Content-Length: ' . filesize( $filename ) );
+		header( 'Content-Length: ' . wp_filesize( $filename ) );
 		flush();
 		readfile( $filename );
 		unlink( $filename );

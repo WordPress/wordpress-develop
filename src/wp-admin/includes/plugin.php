@@ -398,7 +398,7 @@ function get_mu_plugins() {
 		$wp_plugins[ $plugin_file ] = $plugin_data;
 	}
 
-	if ( isset( $wp_plugins['index.php'] ) && filesize( WPMU_PLUGIN_DIR . '/index.php' ) <= 30 ) {
+	if ( isset( $wp_plugins['index.php'] ) && wp_filesize( WPMU_PLUGIN_DIR . '/index.php' ) <= 30 ) {
 		// Silence is golden.
 		unset( $wp_plugins['index.php'] );
 	}

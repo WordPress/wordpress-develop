@@ -1253,7 +1253,7 @@ function update_core( $from, $to ) {
 
 		foreach ( $failed as $file ) {
 			if ( file_exists( $working_dir_local . $file ) ) {
-				$total_size += filesize( $working_dir_local . $file );
+				$total_size += wp_filesize( $working_dir_local . $file );
 			}
 		}
 
