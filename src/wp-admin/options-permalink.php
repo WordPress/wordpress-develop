@@ -240,10 +240,10 @@ $structures = array(
 <table class="form-table permalink-structure" role="presentation">
 	<tbody>
 		<tr>
-			<th scope="row"><?php _e( 'Select permalink structure' ); ?></th>
+			<th scope="row"><?php _e( 'Permalink structure' ); ?></th>
 			<td>
 				<fieldset class="structure-selection">
-					<legend class="screen-reader-text"><?php _e( 'Select permalink structure' ); ?></legend>
+					<legend class="screen-reader-text"><?php _e( 'Permalink structure' ); ?></legend>
 					<div>
 						<input id="permalink-input-plain" name="selection" aria-describedby="permalink-plain" type="radio" value="" <?php checked( '', $permalink_structure ); ?> /> <label for="permalink-input-plain"><?php _e( 'Plain' ); ?></label>
 						<p class="permalink-description"><code id="permalink-plain"><?php echo get_option( 'home' ); ?>/?p=123</code></p>
