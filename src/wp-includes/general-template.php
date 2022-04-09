@@ -3157,8 +3157,12 @@ function feed_links_extra( $args = array() ) {
 		$show_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
 
 		if ( $show_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
-			$title = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
-			$href  = get_post_comments_feed_link( $post->ID );
+			$title     = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
+			$feed_link = get_post_comments_feed_link( $post->ID );
+
+			if ( $feed_link ) {
+				$href = $feed_link;
+			}
 		}
 	} elseif ( is_post_type_archive() ) {
 		$post_type = get_query_var( 'post_type' );
