@@ -847,11 +847,17 @@ function _remove_qs_args_if_not_in_url( $query_string, array $args_to_check, $ur
  * @return string The altered URL.
  */
 function strip_fragment_from_url( $url ) {
-	$parsed_url = parse_url( $url );
+	$parsed_url = wp_parse_url( $url );
 
 	if ( ! empty( $parsed_url['host'] ) ) {
-		// This mirrors code in redirect_canonical(). It does not handle every case.
-		$url = $parsed_url['scheme'] . '://' . $parsed_url['host'];
+		$url = '';
+
+		if ( ! empty( $parsed_url['scheme'] ) ) {
+			$url = $parsed_url['scheme'] . ':';
+		}
+
+		$url .= '//' . $parsed_url['host'];
+
 		if ( ! empty( $parsed_url['port'] ) ) {
 			$url .= ':' . $parsed_url['port'];
 		}
@@ -951,8 +957,9 @@ function redirect_guess_404_permalink() {
 			$where .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
 		}
 
+		$publicly_viewable_statuses = array_filter( get_post_stati(), 'is_post_status_viewable' );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status = 'publish'" );
+		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')" );
 
 		if ( ! $post_id ) {
 			return false;

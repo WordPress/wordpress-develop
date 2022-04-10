@@ -477,14 +477,14 @@ class WP_Upgrader {
 		$this->skin->feedback( 'installing_package' );
 
 		/**
-		 * Filters the install response before the installation has started.
+		 * Filters the installation response before the installation has started.
 		 *
 		 * Returning a value that could be evaluated as a `WP_Error` will effectively
 		 * short-circuit the installation, returning that value instead.
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param bool|WP_Error $response   Response.
+		 * @param bool|WP_Error $response   Installation response.
 		 * @param array         $hook_extra Extra arguments passed to hooked filters.
 		 */
 		$res = apply_filters( 'upgrader_pre_install', true, $args['hook_extra'] );
@@ -652,7 +652,7 @@ class WP_Upgrader {
 	 *                                               destination folder. Default false.
 	 *     @type bool   $clear_working               Whether to delete the files from the working
 	 *                                               directory after copying them to the destination.
-	 *                                               Default false.
+	 *                                               Default true.
 	 *     @type bool   $abort_if_destination_exists Whether to abort the installation if the destination
 	 *                                               folder already exists. When true, `$clear_destination`
 	 *                                               should be false. Default true.
@@ -672,8 +672,8 @@ class WP_Upgrader {
 			'package'                     => '', // Please always pass this.
 			'destination'                 => '', // ...and this.
 			'clear_destination'           => false,
-			'abort_if_destination_exists' => true, // Abort if the destination directory exists. Pass clear_destination as false please.
 			'clear_working'               => true,
+			'abort_if_destination_exists' => true, // Abort if the destination directory exists. Pass clear_destination as false please.
 			'is_multi'                    => false,
 			'hook_extra'                  => array(), // Pass any extra $hook_extra args here, this will be passed to any hooked filters.
 		);

@@ -917,16 +917,17 @@ class WP_Comment_Query {
 
 		$where = implode( ' AND ', $this->sql_clauses['where'] );
 
-		$pieces = array( 'fields', 'join', 'where', 'orderby', 'limits', 'groupby' );
+		$clauses = compact( 'fields', 'join', 'where', 'orderby', 'limits', 'groupby' );
+
 		/**
 		 * Filters the comment query clauses.
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param string[]         $pieces An associative array of comment query clauses.
-		 * @param WP_Comment_Query $query  Current instance of WP_Comment_Query (passed by reference).
+		 * @param string[]         $clauses An associative array of comment query clauses.
+		 * @param WP_Comment_Query $query   Current instance of WP_Comment_Query (passed by reference).
 		 */
-		$clauses = apply_filters_ref_array( 'comments_clauses', array( compact( $pieces ), &$this ) );
+		$clauses = apply_filters_ref_array( 'comments_clauses', array( $clauses, &$this ) );
 
 		$fields  = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
 		$join    = isset( $clauses['join'] ) ? $clauses['join'] : '';
@@ -960,7 +961,14 @@ class WP_Comment_Query {
 		$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
 
-		$this->request = "{$this->sql_clauses['select']} {$this->sql_clauses['from']} {$where} {$this->sql_clauses['groupby']} {$this->sql_clauses['orderby']} {$this->sql_clauses['limits']}";
+		$this->request = "
+			{$this->sql_clauses['select']}
+			{$this->sql_clauses['from']}
+			{$where}
+			{$this->sql_clauses['groupby']}
+			{$this->sql_clauses['orderby']}
+			{$this->sql_clauses['limits']}
+		";
 
 		if ( $this->query_vars['count'] ) {
 			return (int) $wpdb->get_var( $this->request );

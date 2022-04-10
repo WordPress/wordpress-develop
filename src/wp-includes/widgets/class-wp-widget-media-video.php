@@ -41,7 +41,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				'edit_media'                 => _x( 'Edit Video', 'label for button in the video widget; should preferably not be longer than ~13 characters long' ),
 				'missing_attachment'         => sprintf(
 					/* translators: %s: URL to media library. */
-					__( 'That video can not be found. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
+					__( 'That video can not be found. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
 				/* translators: %d: Widget count. */
