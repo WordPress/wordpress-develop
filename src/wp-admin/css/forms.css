@@ -1591,8 +1591,11 @@ table.form-table td .updated p {
 	}
 
 	.form-table.permalink-structure td code {
-		margin-left: 8px;
 		display: inline-block;
+	}
+
+	.form-table.permalink-structure .structure-selection .row div {
+		width: calc(100% - 40px);
 	}
 
 	.form-table.permalink-structure td input[type="text"] {
