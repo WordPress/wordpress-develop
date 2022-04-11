@@ -116,6 +116,7 @@
 		"@wordpress/notices": "3.6.0",
 		"@wordpress/nux": "5.4.0",
 		"@wordpress/plugins": "4.4.0",
+		"@wordpress/preferences": "1.2.0",
 		"@wordpress/primitives": "3.4.0",
 		"@wordpress/priority-queue": "2.6.0",
 		"@wordpress/redux-routine": "4.6.0",
