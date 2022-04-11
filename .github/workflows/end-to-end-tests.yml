@@ -57,7 +57,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # v2.4.0
 
       - name: Log debug information
         run: |
