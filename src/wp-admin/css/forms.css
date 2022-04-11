@@ -1069,6 +1069,10 @@ table.form-table td .updated p {
 	vertical-align: middle;
 }
 
+.form-table.permalink-structure .available-structure-tags {
+	margin-top: 8px;
+}
+
 .form-table.permalink-structure .available-structure-tags li {
 	float: left;
 	margin-right: 5px;
@@ -1594,8 +1598,17 @@ table.form-table td .updated p {
 		display: inline-block;
 	}
 
+	.form-table.permalink-structure .structure-selection {
+		margin-top: 8px;
+	}
+
 	.form-table.permalink-structure .structure-selection .row div {
-		width: calc(100% - 40px);
+		max-width: calc(100% - 36px);
+		width: 100%;
+	}
+
+	.form-table.permalink-structure .structure-selection .row label {
+		font-weight: 700;
 	}
 
 	.form-table.permalink-structure td input[type="text"] {
