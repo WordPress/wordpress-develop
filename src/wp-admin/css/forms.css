@@ -503,7 +503,6 @@ input[type="number"].tiny-text {
 }
 
 .tablenav .actions select {
-	float: left;
 	margin-right: 6px;
 	max-width: 12.5rem;
 }
@@ -646,7 +645,7 @@ fieldset label,
 	display: inline-block;
 }
 
-p.search-box {
+div.search-box {
 	float: right;
 	margin: 0;
 }
@@ -655,8 +654,6 @@ p.search-box {
 	clear: left;
 }
 
-.search-box input[name="s"],
-.tablenav .search-plugins input[name="s"],
 .tagsdiv .newtag {
 	float: left;
 	margin: 0 4px 0 0;
