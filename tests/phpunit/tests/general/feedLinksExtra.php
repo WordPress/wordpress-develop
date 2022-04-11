@@ -529,10 +529,6 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 * @param string $callback The callback to use for the 'post_comments_feed_link' filter.
 	 */
 	public function test_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy( $callback ) {
-		if ( ! str_starts_with( $callback, '__return' ) ) {
-			$callback = array( $this, $callback );
-		}
-
 		add_filter( 'post_comments_feed_link', $callback );
 
 		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
@@ -549,8 +545,8 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 			'empty string' => array( 'callback' => '__return_empty_string' ),
 			'empty array'  => array( 'callback' => '__return_empty_array' ),
 			'zero int'     => array( 'callback' => '__return_zero' ),
-			'zero float'   => array( 'callback' => 'cb_return_zero_float' ),
-			'zero string'  => array( 'callback' => 'cb_return_zero_string' ),
+			'zero float'   => array( 'callback' => array( $this, 'cb_return_zero_float' ) ),
+			'zero string'  => array( 'callback' => array( $this, 'cb_return_zero_string' ) ),
 			'null'         => array( 'callback' => '__return_null' ),
 			'false'        => array( 'callback' => '__return_false' ),
 		);
