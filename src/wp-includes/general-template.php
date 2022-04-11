@@ -3415,7 +3415,6 @@ function wp_resource_hints() {
 
 /**
  * Prints resource preloads directives to browsers.
- * https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types/preload
  *
  * Gives directive to browsers to preload specific resources that website will
  * need very soon, this ensures that they are available earlier and are less
@@ -3423,13 +3422,16 @@ function wp_resource_hints() {
  *
  * These performance improving indicators work by using `<link rel"preload">`.
  *
- * @since 6.x.x
+ * @link https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types/preload
+ * @link https://web.dev/preload-responsive-images/
+ *
+ * @since 6.0.0
  */
 function wp_preload_links() {
 	/**
 	 * Filters domains and URLs for resource preloads.
 	 *
-	 * @since 6.x.x
+	 * @since 6.0.0
 	 *
 	 * @param array  $urls {
 	 *     Array of resources and their attributes, or URLs to print for resource preloads.
@@ -3443,6 +3445,8 @@ function wp_preload_links() {
 	 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
 	 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
 	 *         @type string $media       Accepts media types or media queries. Allows responsive preloading.
+	 *         @type string $imagesizes  Responsive source size to the source Set.
+	 *         @type string $imagesrcset Responsive image sources to the source set.
 	 *     }
 	 * }
 	 */
@@ -3460,14 +3464,17 @@ function wp_preload_links() {
 
 		$atts = $url;
 		if ( isset( $url['href'] ) ) {
-			$url          = esc_url( $url['href'], array( 'http', 'https' ) );
+			$url          = $url['href'];
 			$atts['href'] = $url;
 			if ( isset( $unique_urls[ $url ] ) ) {
 				continue;
 			}
 			$unique_urls[ $url ] = $atts;
 			// Media can use imagesrcset and not href.
-		} elseif ( ! isset( $url['href'] ) && ( 'image' === $url['as'] ) && ( isset( $url['imagesrcset'] ) || isset( $url['imagesizes'] ) ) ) {
+		} elseif ( ! isset( $url['href'] )
+				&& ( 'image' === $url['as'] )
+				&& ( isset( $url['imagesrcset'] ) || isset( $url['imagesizes'] ) )
+		) {
 			if ( isset( $unique_urls[ $url['imagesrcset'] ] ) ) {
 				continue;
 			}
@@ -3481,7 +3488,7 @@ function wp_preload_links() {
 
 			foreach ( $atts as $attr => $value ) {
 				if ( ! is_scalar( $value )
-					 || ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' ), true ) && ! is_numeric( $attr ) )
+					|| ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' ), true ) && ! is_numeric( $attr ) )
 				) {
 
 					continue;
@@ -3493,11 +3500,13 @@ function wp_preload_links() {
 				}
 
 				// imagesizes only usable when preloading image and imagesrcset present, ignore otherwise.
-				if ( ( 'imagesizes' === $attr ) && ( ! isset( $atts['as'] ) || ( 'image' !== $atts['as'] ) || ! isset( $atts['imagesrcset'] ) ) ) {
+				if ( ( 'imagesizes' === $attr )
+					&& ( ! isset( $atts['as'] ) || ( 'image' !== $atts['as'] ) || ! isset( $atts['imagesrcset'] ) )
+				) {
 					continue;
 				}
 
-				$value = ( 'href' !== $attr ) ? esc_attr( $value ) : $value;
+				$value = ( 'href' === $attr ) ? esc_url( $value, array( 'http', 'https' ) ) : esc_attr( $value );
 
 				if ( ! is_string( $attr ) ) {
 					$html .= " $value";
