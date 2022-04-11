@@ -261,21 +261,21 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 					'description' => __( 'The pattern ID.' ),
 					'type'        => 'integer',
 					'minimum'     => 1,
-					'context'     => array( 'view', 'embed' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 
 				'title'          => array(
 					'description' => __( 'The pattern title, in human readable format.' ),
 					'type'        => 'string',
 					'minLength'   => 1,
-					'context'     => array( 'view', 'embed' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 
 				'content'        => array(
 					'description' => __( 'The pattern content.' ),
 					'type'        => 'string',
 					'minLength'   => 1,
-					'context'     => array( 'view', 'embed' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 
 				'categories'     => array(
@@ -283,7 +283,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 					'type'        => 'array',
 					'uniqueItems' => true,
 					'items'       => array( 'type' => 'string' ),
-					'context'     => array( 'view', 'embed' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 
 				'keywords'       => array(
@@ -291,20 +291,20 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 					'type'        => 'array',
 					'uniqueItems' => true,
 					'items'       => array( 'type' => 'string' ),
-					'context'     => array( 'view', 'embed' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 
 				'description'    => array(
 					'description' => __( 'A description of the pattern.' ),
 					'type'        => 'string',
 					'minLength'   => 1,
-					'context'     => array( 'view', 'embed' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 
 				'viewport_width' => array(
 					'description' => __( 'The preferred width of the viewport when previewing a pattern, in pixels.' ),
 					'type'        => 'integer',
-					'context'     => array( 'view', 'embed' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
