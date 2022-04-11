@@ -645,12 +645,11 @@ fieldset label,
 	display: inline-block;
 }
 
-div.search-box {
+fieldset.search-box {
 	float: right;
-	margin: 0;
 }
 
-.network-admin.themes-php p.search-box {
+.network-admin.themes-php fieldset.search-box {
 	clear: left;
 }
 
