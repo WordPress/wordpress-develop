@@ -311,23 +311,21 @@ $structures = array(
 				if ( ! empty( $available_tags ) ) :
 					?>
 					<p><?php _e( 'Available tags:' ); ?></p>
-					<ul role="list">
+					<div class="available-structure-tag-buttons" role="list">
 						<?php
 						foreach ( $available_tags as $tag => $explanation ) {
 							?>
-							<li>
-								<button type="button"
-										class="button button-secondary"
-										aria-label="<?php echo esc_attr( sprintf( $explanation, $tag ) ); ?>"
-										data-added="<?php echo esc_attr( sprintf( $structure_tag_added, $tag ) ); ?>"
-										data-used="<?php echo esc_attr( sprintf( $structure_tag_already_used, $tag ) ); ?>">
-									<?php echo '%' . $tag . '%'; ?>
-								</button>
-							</li>
+							<button type="button"
+									class="button button-secondary"
+									aria-label="<?php echo esc_attr( sprintf( $explanation, $tag ) ); ?>"
+									data-added="<?php echo esc_attr( sprintf( $structure_tag_added, $tag ) ); ?>"
+									data-used="<?php echo esc_attr( sprintf( $structure_tag_already_used, $tag ) ); ?>">
+								<?php echo '%' . $tag . '%'; ?>
+							</button>
 							<?php
 						}
 						?>
-					</ul>
+					</div>
 				<?php endif; ?>
 			</div>
 		</td>
