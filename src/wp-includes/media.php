@@ -393,7 +393,7 @@ function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 	 */
 	$class = apply_filters( 'get_image_tag_class', $class, $id, $align, $size );
 
-	$html = '<img src="' . esc_attr( $img_src ) . '" alt="' . esc_attr( $alt ) . '" ' . $title . $hwstring . 'class="' . $class . '" />';
+	$html = '<img src="' . esc_url( $img_src ) . '" alt="' . esc_attr( $alt ) . '" ' . $title . $hwstring . 'class="' . $class . '" />';
 
 	/**
 	 * Filters the HTML content for the image tag.
@@ -1842,6 +1842,17 @@ function wp_filter_content_tags( $content, $context = null ) {
 			if ( $add_img_loading_attr && false === strpos( $filtered_image, ' loading=' ) ) {
 				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
 			}
+
+			/**
+			 * Filters an img tag within the content for a given context.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $filtered_image Full img tag with attributes that will replace the source img tag.
+			 * @param string $context        Additional context, like the current filter name or the function name from where this was called.
+			 * @param int    $attachment_id  The image attachment ID. May be 0 in case the image is not an attachment.
+			 */
+			$filtered_image = apply_filters( 'wp_content_img_tag', $filtered_image, $context, $attachment_id );
 
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );

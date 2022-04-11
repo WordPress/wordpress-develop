@@ -715,7 +715,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
 			wp_die( __( 'Sorry, that file cannot be edited.' ) );
 
 			// case 2 :
-			// wp_die( __('Sorry, can&#8217;t call files with their real path.' ));
+			// wp_die( __('Sorry, cannot call files with their real path.' ));
 
 		case 3:
 			wp_die( __( 'Sorry, that file cannot be edited.' ) );
@@ -2146,7 +2146,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
  * @since 2.5.0
  * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @param string        $form_post                    The URL to post the form to.
  * @param string        $type                         Optional. Chosen type of filesystem. Default empty.
@@ -2554,42 +2554,4 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 	}
 
 	return false;
-}
-
-/**
- * Wrapper for PHP filesize with filters and casting the result as an integer.
- *
- * @since 6.0.0
- *
- * @link https://www.php.net/manual/en/function.filesize.php
- *
- * @param string $path Path to the file.
- * @return int The size of the file in bytes, or 0 in the event of an error.
- */
-function wp_filesize( $path ) {
-	/**
-	 * Filters the result of wp_filesize before the PHP function is run.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @param null|int $size The unfiltered value. Returning an int from the callback bypasses the filesize call.
-	 * @param string   $path Path to the file.
-	 */
-	$size = apply_filters( 'pre_wp_filesize', null, $path );
-
-	if ( is_int( $size ) ) {
-		return $size;
-	}
-
-	$size = (int) @filesize( $path );
-
-	/**
-	 * Filters the size of the file.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @param int    $size The result of PHP filesize on the file.
-	 * @param string $path Path to the file.
-	 */
-	return (int) apply_filters( 'wp_filesize', $size, $path );
 }

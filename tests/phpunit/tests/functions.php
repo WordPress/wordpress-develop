@@ -990,6 +990,10 @@ class Tests_Functions extends WP_UnitTestCase {
 			'ftp://127.0.0.1/',
 			'http://www.woo.com/video?v=exvUH2qKLTU',
 			'http://taco.com?burrito=enchilada#guac',
+			'http://example.org/?post_type=post&p=4',
+			'http://example.org/?post_type=post&p=5',
+			'http://example.org/?post_type=post&p=6',
+			'http://typo-in-query.org/?foo=bar&ampbaz=missing_semicolon',
 		);
 
 		$blob = '
@@ -1052,6 +1056,12 @@ class Tests_Functions extends WP_UnitTestCase {
 			http://www.woo.com/video?v=exvUH2qKLTU
 
 			http://taco.com?burrito=enchilada#guac
+
+			http://example.org/?post_type=post&amp;p=4
+			http://example.org/?post_type=post&#038;p=5
+			http://example.org/?post_type=post&p=6
+
+			http://typo-in-query.org/?foo=bar&ampbaz=missing_semicolon
 		';
 
 		$urls = wp_extract_urls( $blob );
@@ -1094,6 +1104,28 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertIsArray( $urls );
 		$this->assertCount( 8, $urls );
 		$this->assertSame( array_slice( $original_urls, 0, 8 ), $urls );
+	}
+
+	/**
+	 * Tests for backward compatibility of `wp_extract_urls` to remove unused semicolons.
+	 *
+	 * @ticket 30580
+	 *
+	 * @covers ::wp_extract_urls
+	 */
+	public function test_wp_extract_urls_remove_semicolon() {
+		$expected = array(
+			'http://typo.com',
+			'http://example.org/?post_type=post&p=8',
+		);
+		$actual   = wp_extract_urls(
+			'
+				http://typo.com;
+				http://example.org/?post_type=;p;o;s;t;&amp;p=8;
+			'
+		);
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -2105,5 +2137,40 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 123 ), 'false not returned when int as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( null ), 'false not returned when null as mime type supplied' );
+	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize_with_nonexistent_file() {
+		$file = 'nonexistent/file.jpg';
+		$this->assertEquals( 0, wp_filesize( $file ) );
+	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize() {
+		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
+
+		$this->assertEquals( filesize( $file ), wp_filesize( $file ) );
+
+		$filter = function() {
+			return 999;
+		};
+
+		add_filter( 'wp_filesize', $filter );
+
+		$this->assertEquals( 999, wp_filesize( $file ) );
+
+		$pre_filter = function() {
+			return 111;
+		};
+
+		add_filter( 'pre_wp_filesize', $pre_filter );
+
+		$this->assertEquals( 111, wp_filesize( $file ) );
 	}
 }
