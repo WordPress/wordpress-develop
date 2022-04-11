@@ -694,7 +694,7 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'clipboard', "/wp-includes/js/clipboard$suffix.js", array(), false, 1 );
 
-	$scripts->add( 'wp-ajax-response', "/wp-includes/js/wp-ajax-response$suffix.js", array( 'jquery' ), false, 1 );
+	$scripts->add( 'wp-ajax-response', "/wp-includes/js/wp-ajax-response$suffix.js", array( 'jquery', 'wp-a11y' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize(
 		'wp-ajax-response',
 		'wpAjax',
@@ -865,7 +865,8 @@ function wp_default_scripts( $scripts ) {
 		)
 	);
 
-	$scripts->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.js', array( 'jquery' ), '0.9.12' );
+	// Not used in core, replaced by imgAreaSelect.
+	$scripts->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.js', array( 'jquery' ), '0.9.15' );
 
 	$scripts->add( 'swfobject', '/wp-includes/js/swfobject.js', array(), '2.2-20120417' );
 
@@ -1192,7 +1193,7 @@ function wp_default_scripts( $scripts ) {
 			'takenOverMessage'        => __( '%s has taken over and is currently customizing.' ),
 			/* translators: %s: URL to the Customizer to load the autosaved version. */
 			'autosaveNotice'          => __( 'There is a more recent autosave of your changes than the one you are previewing. <a href="%s">Restore the autosave</a>' ),
-			'videoHeaderNotice'       => __( 'This theme doesn&#8217;t support video headers on this page. Navigate to the front page or another page that supports video headers.' ),
+			'videoHeaderNotice'       => __( 'This theme does not support video headers on this page. Navigate to the front page or another page that supports video headers.' ),
 			// Used for overriding the file types allowed in Plupload.
 			'allowedFiles'            => __( 'Allowed Files' ),
 			'customCssError'          => array(
@@ -1211,15 +1212,25 @@ function wp_default_scripts( $scripts ) {
 				// @todo This is lacking, as some languages have a dedicated dual form. For proper handling of plurals in JS, see #20491.
 			),
 			'scheduleDescription'     => __( 'Schedule your customization changes to publish ("go live") at a future date.' ),
-			'themePreviewUnavailable' => __( 'Sorry, you can&#8217;t preview new themes when you have changes scheduled or saved as a draft. Please publish your changes, or wait until they publish to preview new themes.' ),
+			'themePreviewUnavailable' => __( 'Sorry, you cannot preview new themes when you have changes scheduled or saved as a draft. Please publish your changes, or wait until they publish to preview new themes.' ),
 			'themeInstallUnavailable' => sprintf(
 				/* translators: %s: URL to Add Themes admin screen. */
-				__( 'You won&#8217;t be able to install new themes from here yet since your install requires SFTP credentials. For now, please <a href="%s">add themes in the admin</a>.' ),
+				__( 'You will not be able to install new themes from here yet since your install requires SFTP credentials. For now, please <a href="%s">add themes in the admin</a>.' ),
 				esc_url( admin_url( 'theme-install.php' ) )
 			),
 			'publishSettings'         => __( 'Publish Settings' ),
 			'invalidDate'             => __( 'Invalid date.' ),
 			'invalidValue'            => __( 'Invalid value.' ),
+			'blockThemeNotification'  => sprintf(
+				/* translators: 1: Link to Site Editor documentation on HelpHub, 2: HTML button. */
+				__( 'Hurray! Your theme supports Full Site Editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
+				__( 'https://wordpress.org/support/article/site-editor/' ),
+				sprintf(
+					'<button type="button" data-action="%1$s" class="button switch-to-editor">%2$s</button>',
+					esc_url( admin_url( 'site-editor.php' ) ),
+					__( 'Use Site Editor' )
+				)
+			),
 		)
 	);
 	$scripts->add( 'customize-selective-refresh', "/wp-includes/js/customize-selective-refresh$suffix.js", array( 'jquery', 'wp-util', 'customize-preview' ), false, 1 );
@@ -1329,7 +1340,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'privacy-tools', "/wp-admin/js/privacy-tools$suffix.js", array( 'jquery', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'privacy-tools' );
 
-		$scripts->add( 'updates', "/wp-admin/js/updates$suffix.js", array( 'common', 'jquery', 'wp-util', 'wp-a11y', 'wp-sanitize' ), false, 1 );
+		$scripts->add( 'updates', "/wp-admin/js/updates$suffix.js", array( 'common', 'jquery', 'wp-util', 'wp-a11y', 'wp-sanitize', 'wp-i18n' ), false, 1 );
 		$scripts->set_translations( 'updates' );
 		did_action( 'init' ) && $scripts->localize(
 			'updates',
@@ -1499,7 +1510,7 @@ function wp_default_styles( $styles ) {
 	// Deprecated CSS.
 	$styles->add( 'deprecated-media', "/wp-admin/css/deprecated-media$suffix.css" );
 	$styles->add( 'farbtastic', "/wp-admin/css/farbtastic$suffix.css", array(), '1.3u1' );
-	$styles->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.css', array(), '0.9.12' );
+	$styles->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.css', array(), '0.9.15' );
 	$styles->add( 'colors-fresh', false, array( 'wp-admin', 'buttons' ) ); // Old handle.
 	$styles->add( 'open-sans', $open_sans_font_url ); // No longer used in core as of 4.6.
 
@@ -2836,6 +2847,8 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
  * Inject the block editor assets that need to be loaded into the editor's iframe as an inline script.
  *
  * @since 5.8.0
+ *
+ * @global string $pagenow The filename of the current screen.
  */
 function wp_add_iframed_editor_assets_html() {
 	global $pagenow;
@@ -2925,8 +2938,8 @@ function wp_enqueue_global_styles_css_custom_properties() {
  *
  * For block themes, it's loaded in the head.
  * For classic ones, it's loaded in the body
- * because the wp_head action (and wp_enqueue_scripts)
- * happens before the render_block.
+ * because the wp_head action happens before
+ * the render_block.
  *
  * @link https://core.trac.wordpress.org/ticket/53494.
  *
@@ -2935,7 +2948,7 @@ function wp_enqueue_global_styles_css_custom_properties() {
 function wp_enqueue_block_support_styles( $style ) {
 	$action_hook_name = 'wp_footer';
 	if ( wp_is_block_theme() ) {
-		$action_hook_name = 'wp_enqueue_scripts';
+		$action_hook_name = 'wp_head';
 	}
 	add_action(
 		$action_hook_name,

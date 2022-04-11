@@ -994,7 +994,7 @@ function update_core( $from, $to ) {
 
 		return new WP_Error(
 			'copy_failed_for_version_file',
-			__( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ),
+			__( 'The update cannot be installed because some files could not be copied. This is usually due to inconsistent file permissions.' ),
 			'wp-includes/version.php'
 		);
 	}
@@ -1554,7 +1554,7 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
  * @since 3.3.0
  *
  * @global string $wp_version The WordPress version string.
- * @global string $pagenow
+ * @global string $pagenow    The filename of the current screen.
  * @global string $action
  *
  * @param string $new_version

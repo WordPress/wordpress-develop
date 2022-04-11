@@ -11,11 +11,14 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 	 * @return string                String where the unique id classes were replaced with "wp-elements-1".
 	 */
 	private static function make_unique_id_one( $string ) {
-		return preg_replace( '/wp-elements-.{13}/', 'wp-elements-1', $string );
+		return preg_replace( '/wp-elements-\d+/', 'wp-elements-1', $string );
 	}
 
 	/**
 	 * Test wp_render_elements_support() with a simple paragraph and link color preset.
+	 * @ticket 54337
+	 *
+	 * @covers ::wp_render_elements_support
 	 */
 	public function test_simple_paragraph_link_color() {
 		$result = self::make_unique_id_one(
@@ -45,6 +48,9 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 
 	/**
 	 * Test wp_render_elements_support() with a paragraph containing a class.
+	 * @ticket 54337
+	 *
+	 * @covers ::wp_render_elements_support
 	 */
 	public function test_class_paragraph_link_color() {
 		$result = self::make_unique_id_one(
@@ -75,6 +81,9 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 
 	/**
 	 * Test wp_render_elements_support() with a paragraph containing a anchor.
+	 * @ticket 54337
+	 *
+	 * @covers ::wp_render_elements_support
 	 */
 	public function test_anchor_paragraph_link_color() {
 		$result = self::make_unique_id_one(

@@ -221,6 +221,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'keywords'         => 'invalid_keywords',
 			'example'          => 'invalid_example',
 			'parent'           => 'invalid_parent',
+			'ancestor'         => 'invalid_ancestor',
 			'supports'         => 'invalid_supports',
 			'styles'           => 'invalid_styles',
 			'render_callback'  => 'invalid_callback',
@@ -246,6 +247,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array( 'invalid_uses_context' ), $data['uses_context'] );
 		$this->assertSameSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertSameSets( array( 'invalid_parent' ), $data['parent'] );
+		$this->assertSameSets( array( 'invalid_ancestor' ), $data['ancestor'] );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
@@ -275,6 +277,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'style'            => false,
 			'keywords'         => false,
 			'parent'           => false,
+			'ancestor'         => false,
 			'supports'         => false,
 			'styles'           => false,
 			'render_callback'  => false,
@@ -301,6 +304,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array(), $data['uses_context'] );
 		$this->assertSameSets( array(), $data['keywords'] );
 		$this->assertSameSets( array(), $data['parent'] );
+		$this->assertSameSets( array(), $data['ancestor'] );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
@@ -378,7 +382,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 22, $properties );
+		$this->assertCount( 23, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
@@ -401,6 +405,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'uses_context', $properties );
 		$this->assertArrayHasKey( 'provides_context', $properties );
 		$this->assertArrayHasKey( 'variations', $properties );
+		$this->assertArrayHasKey( 'ancestor', $properties );
 	}
 
 	/**
