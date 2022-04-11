@@ -237,7 +237,7 @@ function wp_register_development_scripts( $scripts ) {
 	);
 
 	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . '/assets/development/' . $script_name . '.php';
+		$assets = include ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
 		if ( ! is_array( $assets ) ) {
 			return;
 		}
