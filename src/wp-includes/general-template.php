@@ -3488,7 +3488,10 @@ function wp_preload_links() {
 
 			foreach ( $atts as $attr => $value ) {
 				if ( ! is_scalar( $value )
-					|| ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' ), true ) && ! is_numeric( $attr ) )
+					|| (
+							! in_array( $attr, array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' ), true )
+							&& ! is_numeric( $attr )
+					)
 				) {
 
 					continue;
