@@ -224,7 +224,10 @@ function wp_get_script_polyfill( $scripts, $tests ) {
  * @param WP_Scripts $scripts WP_Scripts object.
  */
 function wp_register_development_scripts( $scripts ) {
-	if ( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) {
+	if (
+		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
+		|| empty( $scripts->registered['react'] )
+	) {
 		return;
 	}
 
@@ -234,7 +237,10 @@ function wp_register_development_scripts( $scripts ) {
 	);
 
 	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . "/js/dist/development/$script_name.php";
+		$assets = include ABSPATH . WPINC . "/assets/development/$script_name.php";
+		if ( ! is_array( $assets ) ) {
+			return;
+		}
 		$scripts->add(
 			'wp-' . $script_name,
 			"/wp-includes/js/dist/development/$script_name.js",
@@ -244,7 +250,7 @@ function wp_register_development_scripts( $scripts ) {
 	}
 
 	// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
-	$scripts->query( 'react' )->deps[] = 'wp-react-refresh-entry';
+	$scripts->registered['react']->deps[] = 'wp-react-refresh-entry';
 }
 
 /**
