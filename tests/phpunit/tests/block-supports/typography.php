@@ -4,6 +4,8 @@
  */
 class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	/**
+	 * @ticket 54337
+	 *
 	 * @covers ::wp_apply_typography_support
 	 */
 	function test_font_size_slug_with_numbers_is_kebab_cased_properly() {
@@ -35,6 +37,8 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		unregister_block_type( 'test/font-size-slug-with-numbers' );
 	}
 	/**
+	 * @ticket 54337
+	 *
 	 * @covers ::wp_apply_typography_support
 	 */
 	function test_font_family_with_legacy_inline_styles_using_a_value() {
@@ -150,6 +154,8 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		unregister_block_type( $block_name );
 	}
 	/**
+	 * @ticket 54337
+	 *
 	 * @covers ::wp_apply_typography_support
 	 */
 	function test_font_family_with_legacy_inline_styles_using_a_css_var() {
@@ -181,6 +187,8 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		unregister_block_type( $block_name );
 	}
 	/**
+	 * @ticket 54337
+	 *
 	 * @covers ::wp_apply_typography_support
 	 */
 	function test_font_family_with_class() {

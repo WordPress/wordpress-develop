@@ -4,6 +4,8 @@
  */
 class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 	/**
+	 * @ticket 54337
+	 *
 	 * @covers ::wp_apply_colors_support
 	 */
 	function test_color_slugs_with_numbers_are_kebab_cased_properly() {
