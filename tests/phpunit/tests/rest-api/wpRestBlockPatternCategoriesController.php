@@ -115,6 +115,34 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		}
 	}
 
+	/**
+	 * Verify capability check for unauthorized request (not logged in).
+	 */
+	public function test_get_items_unauthorized() {
+		// Ensure current user is logged out.
+		wp_logout();
+
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$response = rest_do_request( $request );
+
+		$this->assertWPError( $response->as_error() );
+		$this->assertSame( 401, $response->get_status() );
+	}
+
+	/**
+	 * Verify capability check for forbidden request (insufficient capability).
+	 */
+	public function test_get_items_forbidden() {
+		// Set current user without `edit_posts` capability.
+		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$response = rest_do_request( $request );
+
+		$this->assertWPError( $response->as_error() );
+		$this->assertSame( 403, $response->get_status() );
+	}
+
 	public function test_context_param() {
 		$this->markTestSkipped( 'Controller does not use context_param.' );
 	}
