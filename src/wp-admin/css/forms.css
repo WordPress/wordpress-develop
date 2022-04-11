@@ -1074,8 +1074,19 @@ table.form-table td .updated p {
 	margin-right: 5px;
 }
 
-.form-table.permalink-structure .structure-selection .permalink-description {
-	margin: 0 0 12px 24px;
+.form-table.permalink-structure .structure-selection .row {
+	margin-bottom: 16px;
+}
+
+.form-table.permalink-structure .structure-selection .row div{
+	margin-left: 4px;
+	display: inline-flex;
+	flex-direction: column;
+}
+
+.form-table.permalink-structure .structure-selection .row label {
+	margin-top: 0!important;
+	margin-bottom: 2px!important;
 }
 
 /*------------------------------------------------------------------------------

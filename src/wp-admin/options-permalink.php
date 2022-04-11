@@ -235,6 +235,39 @@ $structures = array(
 	3 => $prefix . '/' . _x( 'archives', 'sample permalink base' ) . '/%post_id%',
 	4 => $prefix . '/%postname%/',
 );
+
+$inputs = array(
+	0 => array(
+		'id'      => 'plain',
+		'label'   => __( 'Plain' ),
+		'example' => get_option( 'home' ) . '/?p=123',
+		'value'   => $structures[0],
+	),
+	1 => array(
+		'id'      => 'day-name',
+		'label'   => __( 'Day and name' ),
+		'example' => get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . gmdate( 'd' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/',
+		'value'   => $structures[1],
+	),
+	2 => array(
+		'id'      => 'month-name',
+		'label'   => __( 'Month and name' ),
+		'example' => get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/',
+		'value'   => $structures[2],
+	),
+	3 => array(
+		'id'      => 'day-numeric',
+		'label'   => __( 'Numeric' ),
+		'example' => get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'archives', 'sample permalink base' ) . '/123',
+		'value'   => $structures[3],
+	),
+	4 => array(
+		'id'      => 'post-name',
+		'label'   => __( 'Post name' ),
+		'example' => get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/',
+		'value'   => $structures[4],
+	),
+);
 ?>
 <h2 class="title"><?php _e( 'Common Settings' ); ?></h2>
 <table class="form-table permalink-structure" role="presentation">
@@ -244,26 +277,17 @@ $structures = array(
 			<td>
 				<fieldset class="structure-selection">
 					<legend class="screen-reader-text"><?php _e( 'Permalink structure' ); ?></legend>
-					<div>
-						<input id="permalink-input-plain" name="selection" aria-describedby="permalink-plain" type="radio" value="" <?php checked( '', $permalink_structure ); ?> /> <label for="permalink-input-plain"><?php _e( 'Plain' ); ?></label>
-						<p class="permalink-description"><code id="permalink-plain"><?php echo get_option( 'home' ); ?>/?p=123</code></p>
-					</div>
-					<div>
-						<input id="permalink-input-day-name" name="selection" aria-describedby="permalink-day-name" type="radio" value="<?php echo esc_attr( $structures[1] ); ?>" <?php checked( $structures[1], $permalink_structure ); ?> /> <label for="permalink-input-day-name"><?php _e( 'Day and name' ); ?></label>
-						<p class="permalink-description"><code id="permalink-day-name"><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . gmdate( 'd' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></p>
-					</div>
-					<div>
-						<input id="permalink-input-month-name" name="selection" aria-describedby="permalink-month-name" type="radio" value="<?php echo esc_attr( $structures[2] ); ?>" <?php checked( $structures[2], $permalink_structure ); ?> /> <label for="permalink-input-month-name"><?php _e( 'Month and name' ); ?></label>
-						<p class="permalink-description"><code id="permalink-month-name"><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></p>
-					</div>
-					<div>
-						<input id="permalink-input-numeric" name="selection" aria-describedby="permalink-numeric" type="radio" value="<?php echo esc_attr( $structures[3] ); ?>" <?php checked( $structures[3], $permalink_structure ); ?> /> <label for="permalink-input-numeric"><?php _e( 'Numeric' ); ?></label>
-						<p class="permalink-description"><code id="permalink-numeric"><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'archives', 'sample permalink base' ) . '/123'; ?></code></p>
-					</div>
-					<div>
-						<input id="permalink-input-post-name" name="selection" aria-describedby="permalink-post-name" type="radio" value="<?php echo esc_attr( $structures[4] ); ?>" <?php checked( $structures[4], $permalink_structure ); ?> /> <label for="permalink-input-post-name"><?php _e( 'Post name' ); ?></label>
-						<p class="permalink-description"><code id="permalink-post-name"><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></p>
-					</div>
+					<?php foreach ( $inputs as $structure_id => $structure_values ) {
+						$input_markup  = '<div class="row">';
+						$input_markup .= '<input id="permalink-input-' . $structure_values["id"] . '" name="selection" aria-describedby="permalink-' . $structure_values["id"] . '" type="radio" value="' . $structure_values["value"] . '" ' . checked( ' . $structure_values["value"] . ', $permalink_structure, false  ) . ' />';
+						$input_markup .= '<div><label for="permalink-input-' . $structure_values["id"] . '">' . $structure_values["label"] . '</label>';
+						$input_markup .= '<p><code id="permalink-' . $structure_values["id"] . '">' . $structure_values["example"] . '</code></p>';
+						$input_markup .= '</div>';
+						$input_markup .= '</div>';
+
+						echo $input_markup;
+					}
+					?>
 					<div>
 						<input id="custom_selection" name="selection" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures, true ) ); ?> /> <label for="custom_selection"><?php _e( 'Custom Structure' ); ?></label>
 						<p class="permalink-description"><label for="permalink_structure" class="screen-reader-text"><?php _e( 'Customize permalink structure by selecting available tags' ); ?></label><span class="code"><code id="permalink-custom"><?php echo get_option( 'home' ) . $blog_prefix; ?></code><input name="permalink_structure" id="permalink_structure" type="text" value="<?php echo esc_attr( $permalink_structure ); ?>" aria-describedby="permalink-custom" class="regular-text code" /></span></p>
