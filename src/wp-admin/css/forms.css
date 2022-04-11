@@ -1668,6 +1668,11 @@ table.form-table td .updated p {
 		padding-right: 5rem;
 	}
 
+	body.user-new-php .wp-pwd [type="text"],
+	body.user-new-php .wp-pwd [type="password"] {
+		padding-right: 2.5rem;
+	}
+
 	.wp-cancel-pw .dashicons-no {
 		display: inline-block;
 	}
