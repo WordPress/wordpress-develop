@@ -237,13 +237,13 @@ function wp_register_development_scripts( $scripts ) {
 	);
 
 	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . "/assets/development/$script_name.php";
+		$assets = include ABSPATH . WPINC . '/assets/development/' . $script_name . '.php';
 		if ( ! is_array( $assets ) ) {
 			return;
 		}
 		$scripts->add(
 			'wp-' . $script_name,
-			"/wp-includes/js/dist/development/$script_name.js",
+			'/wp-includes/js/dist/development/' . $script_name . '.js',
 			$assets['dependencies'],
 			$assets['version']
 		);
