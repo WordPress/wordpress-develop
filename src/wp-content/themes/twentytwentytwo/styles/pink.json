@@ -61,28 +61,28 @@
 							"fontWeight": "400",
 							"fontStyle": "normal",
 							"fontStretch": "normal",
-							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-Light.woff2" ]
+							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexSans-Light.woff2" ]
 						},
 						{
 							"fontFamily": "IBM Plex Sans",
 							"fontWeight": "400",
 							"fontStyle": "italic",
 							"fontStretch": "normal",
-							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-LightItalic.woff2" ]
+							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexSans-LightItalic.woff2" ]
 						},
 						{
 							"fontFamily": "IBM Plex Sans",
 							"fontWeight": "200",
 							"fontStyle": "normal",
 							"fontStretch": "normal",
-							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-ExtraLight.woff2" ]
+							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexSans-ExtraLight.woff2" ]
 						},
 						{
 							"fontFamily": "IBM Plex Sans",
 							"fontWeight": "200",
 							"fontStyle": "italic",
 							"fontStretch": "normal",
-							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-ExtraLightItalic.woff2" ]
+							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexSans-ExtraLightItalic.woff2" ]
 						}
 					]
 				},
@@ -96,28 +96,28 @@
 							"fontWeight": "400",
 							"fontStyle": "normal",
 							"fontStretch": "normal",
-							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexMono-Text.woff2" ]
+							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexMono-Text.woff2" ]
 						},
 						{
 							"fontFamily": "IBM Plex Mono",
 							"fontWeight": "400",
 							"fontStyle": "italic",
 							"fontStretch": "normal",
-							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-TextItalic.woff2" ]
+							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexSans-TextItalic.woff2" ]
 						},
 						{
 							"fontFamily": "IBM Plex Mono",
 							"fontWeight": "700",
 							"fontStyle": "normal",
 							"fontStretch": "normal",
-							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexMono-Bold.woff2" ]
+							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexMono-Bold.woff2" ]
 						},
 						{
 							"fontFamily": "IBM Plex Mono",
 							"fontWeight": "700",
 							"fontStyle": "italic",
 							"fontStretch": "normal",
-							"src": [ "file:./assets/fonts/ibm-plex-sans/IBMPlexSans-BoldItalic.woff2" ]
+							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexSans-BoldItalic.woff2" ]
 						}
 					]
 				}
