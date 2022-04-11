@@ -1639,8 +1639,12 @@ table.form-table td .updated p {
 		min-height: 40px;
 	}
 
-	body:not(.user-new-php) .wp-pwd button.wp-hide-pw {
+	.wp-pwd button.wp-hide-pw {
 		right: 2.5rem;
+	}
+
+	body.user-new-php .wp-pwd button.wp-hide-pw {
+		right: 0;
 	}
 
 	.wp-pwd button.button:hover,
