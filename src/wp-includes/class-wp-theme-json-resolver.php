@@ -154,13 +154,15 @@ class WP_Theme_JSON_Resolver {
 	 * @since 6.0.0 Adds a second parameter to allow the theme data to be returned without theme supports.
 	 *
 	 * @param array $deprecated Deprecated. Not used.
-	 * @param array $settings Contains a key called with_supports to determine whether to include theme supports in the data.
+	 * @param array $options Contains a key called with_supports to determine whether to include theme supports in the data.
 	 * @return WP_Theme_JSON Entity that holds theme data.
 	 */
-	public static function get_theme_data( $deprecated = array(), $settings = array( 'with_supports' => true ) ) {
+	public static function get_theme_data( $deprecated = array(), $options = array() ) {
 		if ( ! empty( $deprecated ) ) {
 			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
+
+		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
 		if ( null === static::$theme ) {
 			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
@@ -180,7 +182,7 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 
-		if ( ! $settings['with_supports'] ) {
+		if ( ! $options['with_supports'] ) {
 			return static::$theme;
 		}
 
