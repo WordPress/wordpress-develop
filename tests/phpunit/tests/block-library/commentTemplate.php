@@ -117,7 +117,7 @@ class Test_Block_Library_CommentTemplate extends WP_UnitTestCase {
 		// Here we use the function prefixed with 'gutenberg_*' because it's added
 		// in the build step.
 		$this->assertEquals(
-			gutenberg_render_block_core_comment_template( null, null, $block ),
+			render_block_core_comment_template( null, null, $block ),
 			'<ol ><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div></li></ol>'
 		);
 	}
@@ -164,7 +164,7 @@ class Test_Block_Library_CommentTemplate extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals(
-			gutenberg_render_block_core_comment_template( null, null, $block ),
+			render_block_core_comment_template( null, null, $block ),
 			'<ol ><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div><ol><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div><ol><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div></li></ol></li></ol></li></ol>'
 		);
 	}
