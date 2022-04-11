@@ -289,73 +289,75 @@ $inputs = array(
 						echo $input_markup;
 					}
 					?>
-					<div>
-						<input id="custom_selection" name="selection" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures, true ) ); ?> /> <label for="custom_selection"><?php _e( 'Custom Structure' ); ?></label>
+					<div class="row">
+						<input id="custom_selection" name="selection" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures, true ) ); ?> />
+						<div><label for="custom_selection"><?php _e( 'Custom Structure' ); ?></label>
 						<p class="permalink-description"><label for="permalink_structure" class="screen-reader-text"><?php _e( 'Customize permalink structure by selecting available tags' ); ?></label><span class="code"><code id="permalink-custom"><?php echo get_option( 'home' ) . $blog_prefix; ?></code><input name="permalink_structure" id="permalink_structure" type="text" value="<?php echo esc_attr( $permalink_structure ); ?>" aria-describedby="permalink-custom" class="regular-text code" /></span></p>
-						<div class="available-structure-tags hide-if-no-js">
-							<div id="custom_selection_updated" aria-live="assertive" class="screen-reader-text"></div>
-							<?php
-							$available_tags = array(
-								/* translators: %s: Permalink structure tag. */
-								'year'     => __( '%s (The year of the post, four digits, for example 2004.)' ),
-								/* translators: %s: Permalink structure tag. */
-								'monthnum' => __( '%s (Month of the year, for example 05.)' ),
-								/* translators: %s: Permalink structure tag. */
-								'day'      => __( '%s (Day of the month, for example 28.)' ),
-								/* translators: %s: Permalink structure tag. */
-								'hour'     => __( '%s (Hour of the day, for example 15.)' ),
-								/* translators: %s: Permalink structure tag. */
-								'minute'   => __( '%s (Minute of the hour, for example 43.)' ),
-								/* translators: %s: Permalink structure tag. */
-								'second'   => __( '%s (Second of the minute, for example 33.)' ),
-								/* translators: %s: Permalink structure tag. */
-								'post_id'  => __( '%s (The unique ID of the post, for example 423.)' ),
-								/* translators: %s: Permalink structure tag. */
-								'postname' => __( '%s (The sanitized post title (slug).)' ),
-								/* translators: %s: Permalink structure tag. */
-								'category' => __( '%s (Category slug. Nested sub-categories appear as nested directories in the URL.)' ),
-								/* translators: %s: Permalink structure tag. */
-								'author'   => __( '%s (A sanitized version of the author name.)' ),
-							);
+							<div class="available-structure-tags hide-if-no-js">
+								<div id="custom_selection_updated" aria-live="assertive" class="screen-reader-text"></div>
+								<?php
+								$available_tags = array(
+									/* translators: %s: Permalink structure tag. */
+									'year'     => __( '%s (The year of the post, four digits, for example 2004.)' ),
+									/* translators: %s: Permalink structure tag. */
+									'monthnum' => __( '%s (Month of the year, for example 05.)' ),
+									/* translators: %s: Permalink structure tag. */
+									'day'      => __( '%s (Day of the month, for example 28.)' ),
+									/* translators: %s: Permalink structure tag. */
+									'hour'     => __( '%s (Hour of the day, for example 15.)' ),
+									/* translators: %s: Permalink structure tag. */
+									'minute'   => __( '%s (Minute of the hour, for example 43.)' ),
+									/* translators: %s: Permalink structure tag. */
+									'second'   => __( '%s (Second of the minute, for example 33.)' ),
+									/* translators: %s: Permalink structure tag. */
+									'post_id'  => __( '%s (The unique ID of the post, for example 423.)' ),
+									/* translators: %s: Permalink structure tag. */
+									'postname' => __( '%s (The sanitized post title (slug).)' ),
+									/* translators: %s: Permalink structure tag. */
+									'category' => __( '%s (Category slug. Nested sub-categories appear as nested directories in the URL.)' ),
+									/* translators: %s: Permalink structure tag. */
+									'author'   => __( '%s (A sanitized version of the author name.)' ),
+								);
 
-							/**
-							 * Filters the list of available permalink structure tags on the Permalinks settings page.
-							 *
-							 * @since 4.9.0
-							 *
-							 * @param string[] $available_tags An array of key => value pairs of available permalink structure tags.
-							 */
-							$available_tags = apply_filters( 'available_permalink_structure_tags', $available_tags );
+								/**
+								 * Filters the list of available permalink structure tags on the Permalinks settings page.
+								 *
+								 * @since 4.9.0
+								 *
+								 * @param string[] $available_tags An array of key => value pairs of available permalink structure tags.
+								 */
+								$available_tags = apply_filters( 'available_permalink_structure_tags', $available_tags );
 
-							/* translators: %s: Permalink structure tag. */
-							$structure_tag_added = __( '%s added to permalink structure' );
+								/* translators: %s: Permalink structure tag. */
+								$structure_tag_added = __( '%s added to permalink structure' );
 
-							/* translators: %s: Permalink structure tag. */
-							$structure_tag_already_used = __( '%s (already used in permalink structure)' );
+								/* translators: %s: Permalink structure tag. */
+								$structure_tag_already_used = __( '%s (already used in permalink structure)' );
 
-							if ( ! empty( $available_tags ) ) :
-								?>
-								<fieldset>
-									<legend><?php _e( 'Available tags:' ); ?></legend>
-									<ul role="list">
-										<?php
-										foreach ( $available_tags as $tag => $explanation ) {
-											?>
-											<li>
-												<button type="button"
-														class="button button-secondary"
-														aria-label="<?php echo esc_attr( sprintf( $explanation, $tag ) ); ?>"
-														data-added="<?php echo esc_attr( sprintf( $structure_tag_added, $tag ) ); ?>"
-														data-used="<?php echo esc_attr( sprintf( $structure_tag_already_used, $tag ) ); ?>">
-													<?php echo '%' . $tag . '%'; ?>
-												</button>
-											</li>
+								if ( ! empty( $available_tags ) ) :
+									?>
+									<fieldset>
+										<legend><?php _e( 'Available tags:' ); ?></legend>
+										<ul role="list">
 											<?php
-										}
-										?>
-									</ul>
-								</fieldset>
-							<?php endif; ?>
+											foreach ( $available_tags as $tag => $explanation ) {
+												?>
+												<li>
+													<button type="button"
+															class="button button-secondary"
+															aria-label="<?php echo esc_attr( sprintf( $explanation, $tag ) ); ?>"
+															data-added="<?php echo esc_attr( sprintf( $structure_tag_added, $tag ) ); ?>"
+															data-used="<?php echo esc_attr( sprintf( $structure_tag_already_used, $tag ) ); ?>">
+														<?php echo '%' . $tag . '%'; ?>
+													</button>
+												</li>
+												<?php
+											}
+											?>
+										</ul>
+									</fieldset>
+								<?php endif; ?>
+							</div>
 						</div>
 					</div>
 				</fieldset>
