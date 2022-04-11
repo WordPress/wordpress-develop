@@ -98,6 +98,13 @@ add_filter( 'post_mime_type', 'sanitize_mime_type' );
 // Meta.
 add_filter( 'register_meta_args', '_wp_register_meta_args_allowed_list', 10, 2 );
 
+// Counts.
+add_action( 'admin_init', 'wp_schedule_update_user_counts' );
+add_action( 'wp_update_user_counts', 'wp_schedule_update_user_counts', 10, 0 );
+foreach ( array( 'user_register', 'deleted_user' ) as $action ) {
+	add_action( $action, 'wp_maybe_update_user_counts', 10, 0 );
+}
+
 // Post meta.
 add_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
 add_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' );
@@ -332,8 +339,6 @@ add_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 add_action( 'template_redirect', 'wp_shortlink_header', 11, 0 );
 add_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 add_action( 'init', '_register_core_block_patterns_and_categories' );
-add_action( 'current_screen', '_load_remote_block_patterns' );
-add_action( 'current_screen', '_load_remote_featured_patterns' );
 add_action( 'init', 'check_theme_switched', 99 );
 add_action( 'init', array( 'WP_Block_Supports', 'init' ), 22 );
 add_action( 'switch_theme', array( 'WP_Theme_JSON_Resolver', 'clean_cached_data' ) );
@@ -575,6 +580,10 @@ add_action( 'admin_head', 'wp_check_widget_editor_deps' );
 // Global styles can be enqueued in both the header and the footer. See https://core.trac.wordpress.org/ticket/53494.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
+
+// SVG filters like duotone have to be loaded at the beginning of the body in both admin and the front-end.
+add_action( 'wp_body_open', 'wp_global_styles_render_svg_filters' );
+add_action( 'in_admin_header', 'wp_global_styles_render_svg_filters' );
 
 add_action( 'wp_default_styles', 'wp_default_styles' );
 add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );

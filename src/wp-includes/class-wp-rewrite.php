@@ -275,7 +275,7 @@ class WP_Rewrite {
 	 * Additional tags can be added with add_rewrite_tag().
 	 *
 	 * @since 1.5.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $rewritecode = array(
 		'%year%',
@@ -296,7 +296,7 @@ class WP_Rewrite {
 	 * of rewrite tags, see WP_Rewrite::$rewritecode.
 	 *
 	 * @since 1.5.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $rewritereplace = array(
 		'([0-9]{4})',
@@ -316,7 +316,7 @@ class WP_Rewrite {
 	 * Query variables that rewrite tags map to, see WP_Rewrite::$rewritecode.
 	 *
 	 * @since 1.5.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $queryreplace = array(
 		'year=',
@@ -336,7 +336,7 @@ class WP_Rewrite {
 	 * Supported default feeds.
 	 *
 	 * @since 1.5.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $feeds = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
 
@@ -1173,7 +1173,7 @@ class WP_Rewrite {
 
 					// Not matching a permalink so this is a lot simpler.
 				} else {
-					// Close the match and finalise the query.
+					// Close the match and finalize the query.
 					$match .= '?$';
 					$query  = $index . '?' . $query;
 				}

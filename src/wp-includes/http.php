@@ -240,7 +240,7 @@ function wp_remote_retrieve_header( $response, $header ) {
 /**
  * Retrieve only the response code from the raw response.
  *
- * Will return an empty array if incorrect parameter value is given.
+ * Will return an empty string if incorrect parameter value is given.
  *
  * @since 2.7.0
  *
@@ -258,7 +258,7 @@ function wp_remote_retrieve_response_code( $response ) {
 /**
  * Retrieve only the response message from the raw response.
  *
- * Will return an empty array if incorrect parameter value is given.
+ * Will return an empty string if incorrect parameter value is given.
  *
  * @since 2.7.0
  *
@@ -654,16 +654,15 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
 }
 
 /**
- * A wrapper for PHP's parse_url() function that handles consistency in the return
- * values across PHP versions.
+ * A wrapper for PHP's parse_url() function that handles consistency in the return values
+ * across PHP versions.
  *
- * PHP 5.4.7 expanded parse_url()'s ability to handle non-absolute url's, including
- * schemeless and relative url's with :// in the path. This function works around
+ * PHP 5.4.7 expanded parse_url()'s ability to handle non-absolute URLs, including
+ * schemeless and relative URLs with "://" in the path. This function works around
  * those limitations providing a standard output on PHP 5.2~5.4+.
  *
- * Secondly, across various PHP versions, schemeless URLs starting containing a ":"
- * in the query are being handled inconsistently. This function works around those
- * differences as well.
+ * Secondly, across various PHP versions, schemeless URLs containing a ":" in the query
+ * are being handled inconsistently. This function works around those differences as well.
  *
  * @since 4.4.0
  * @since 4.7.0 The `$component` parameter was added for parity with PHP's `parse_url()`.

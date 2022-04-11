@@ -488,13 +488,13 @@ abstract class WP_Widget_Media extends WP_Widget {
 			'add_to_widget'              => __( 'Add to Widget' ),
 			'missing_attachment'         => sprintf(
 				/* translators: %s: URL to media library. */
-				__( 'We can&#8217;t find that file. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
+				__( 'That file cannot be found. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
 				esc_url( admin_url( 'upload.php' ) )
 			),
 			/* translators: %d: Widget count. */
 			'media_library_state_multi'  => _n_noop( 'Media Widget (%d)', 'Media Widget (%d)' ),
 			'media_library_state_single' => __( 'Media Widget' ),
-			'unsupported_file_type'      => __( 'Looks like this isn&#8217;t the correct kind of file. Please link to an appropriate file instead.' ),
+			'unsupported_file_type'      => __( 'Looks like this is not the correct kind of file. Please link to an appropriate file instead.' ),
 		);
 
 		return self::$l10n_defaults;

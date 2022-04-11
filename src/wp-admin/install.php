@@ -140,7 +140,7 @@ function display_setup_form( $error = null ) {
 			<td>
 				<div class="wp-pwd">
 					<?php $initial_password = isset( $_POST['admin_password'] ) ? stripslashes( $_POST['admin_password'] ) : wp_generate_password( 18 ); ?>
-					<input type="password" name="admin_password" id="pass1" class="regular-text" autocomplete="off" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
+					<input type="password" name="admin_password" id="pass1" class="regular-text" autocomplete="new-password" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
 					<button type="button" class="button wp-hide-pw hide-if-no-js" data-start-masked="<?php echo (int) isset( $_POST['admin_password'] ); ?>" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden"></span>
 						<span class="text"><?php _e( 'Hide' ); ?></span>
@@ -160,7 +160,7 @@ function display_setup_form( $error = null ) {
 				</label>
 			</th>
 			<td>
-				<input name="admin_password2" type="password" id="pass2" autocomplete="off" />
+				<input name="admin_password2" type="password" id="pass2" autocomplete="new-password" />
 			</td>
 		</tr>
 		<tr class="pw-weak">
@@ -358,7 +358,7 @@ switch ( $step ) {
 <p><?php _e( 'Welcome to the famous five-minute WordPress installation process! Just fill in the information below and you&#8217;ll be on your way to using the most extendable and powerful personal publishing platform in the world.' ); ?></p>
 
 <h2><?php _e( 'Information needed' ); ?></h2>
-<p><?php _e( 'Please provide the following information. Don&#8217;t worry, you can always change these settings later.' ); ?></p>
+<p><?php _e( 'Please provide the following information. Do not worry, you can always change these settings later.' ); ?></p>
 
 		<?php
 		display_setup_form();
@@ -405,7 +405,7 @@ switch ( $step ) {
 			$error = true;
 		} elseif ( ! is_email( $admin_email ) ) {
 			// TODO: Poka-yoke.
-			display_setup_form( __( 'Sorry, that isn&#8217;t a valid email address. Email addresses look like <code>username@example.com</code>.' ) );
+			display_setup_form( __( 'Sorry, that is not a valid email address. Email addresses look like <code>username@example.com</code>.' ) );
 			$error = true;
 		}
 
