@@ -277,11 +277,12 @@ $inputs = array(
 			<td>
 				<fieldset class="structure-selection">
 					<legend class="screen-reader-text"><?php _e( 'Permalink structure' ); ?></legend>
-					<?php foreach ( $inputs as $structure_id => $structure_values ) {
+					<?php
+					foreach ( $inputs as $structure_id => $structure_values ) {
 						$input_markup  = '<div class="row">';
-						$input_markup .= '<input id="permalink-input-' . $structure_values["id"] . '" name="selection" aria-describedby="permalink-' . $structure_values["id"] . '" type="radio" value="' . $structure_values["value"] . '" ' . checked( ' . $structure_values["value"] . ', $permalink_structure, false  ) . ' />';
-						$input_markup .= '<div><label for="permalink-input-' . $structure_values["id"] . '">' . $structure_values["label"] . '</label>';
-						$input_markup .= '<p><code id="permalink-' . $structure_values["id"] . '">' . $structure_values["example"] . '</code></p>';
+						$input_markup .= '<input id="permalink-input-' . $structure_values['id'] . '" name="selection" aria-describedby="permalink-' . $structure_values['id'] . '" type="radio" value="' . $structure_values['value'] . '" ' . checked( $structure_values['value'], $permalink_structure, false ) . ' />';
+						$input_markup .= '<div><label for="permalink-input-' . $structure_values['id'] . '">' . $structure_values['label'] . '</label>';
+						$input_markup .= '<p><code id="permalink-' . $structure_values['id'] . '">' . $structure_values['example'] . '</code></p>';
 						$input_markup .= '</div>';
 						$input_markup .= '</div>';
 
