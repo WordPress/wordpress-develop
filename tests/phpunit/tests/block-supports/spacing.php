@@ -3,9 +3,10 @@
  * @group block-supports
  */
 class Test_Block_Supports_Spacing extends WP_UnitTestCase {
-
 	/**
 	 * @ticket 55505
+	 *
+	 * @covers ::wp_apply_spacing_support
 	 */
 	function test_spacing_style_is_applied() {
 		$block_name = 'test/spacing-style-is-applied';
@@ -55,6 +56,8 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
+	 * @covers ::wp_apply_spacing_support
 	 */
 	function test_spacing_with_skipped_serialization_block_supports() {
 		$block_name = 'test/spacing-with-skipped-serialization-block-supports';
@@ -103,6 +106,8 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
+	 * @covers ::wp_apply_spacing_support
 	 */
 	function test_margin_with_individual_skipped_serialization_block_supports() {
 		$block_name = 'test/margin-with-individual-skipped-serialization-block-supports';

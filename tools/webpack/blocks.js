@@ -3,18 +3,17 @@
  */
 const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
-const postcss = require( 'postcss' );
-const UglifyJS = require( 'uglify-js' );
-
-const { join, basename } = require( 'path' );
-const { get } = require( 'lodash' );
+const { join } = require( 'path' );
 
 /**
  * WordPress dependencies
  */
 const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
 
-const baseDir = join( __dirname, '../../' );
+/**
+ * Internal dependencies
+ */
+const { stylesTransform, baseConfig, baseDir } = require( './shared' );
 
 module.exports = function( env = { environment: 'production', watch: false, buildTarget: false } ) {
 	const mode = env.environment;
@@ -125,32 +124,13 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const blockStylesheetCopies = blockFolders.map( ( blockName ) => ( {
 		from: join( baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
-		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/` ),
-		flatten: true,
-		transform: ( content ) => {
-			if ( mode === 'production' ) {
-				return postcss( [
-					require( 'cssnano' )( {
-						preset: 'default',
-					} ),
-				] )
-					.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
-					.then( ( result ) => result.css );
-			}
-
-			return content;
-		},
-		transformPath: ( targetPath, sourcePath ) => {
-			if ( mode === 'production' ) {
-				return targetPath.replace( /\.css$/, '.min.css' );
-			}
-
-			return targetPath;
-		}
+		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/[name]${ suffix }.css` ),
+		transform: stylesTransform( mode ),
+		noErrorOnMissing: true,
 	} ) );
 
 	const config = {
-		mode,
+		...baseConfig( env ),
 		entry: {
 			'file/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/file/view` ),
 			'navigation/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view` ),
@@ -159,27 +139,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			devtoolNamespace: 'wp',
 			filename: `[name]${ suffix }.js`,
 			path: join( baseDir, `${ buildTarget }/blocks` ),
-		},
-		resolve: {
-			modules: [
-				baseDir,
-				'node_modules',
-			],
-			alias: {
-				'lodash-es': 'lodash',
-			},
-		},
-		module: {
-			rules: [
-				{
-					test: /\.js$/,
-					use: [ 'source-map-loader' ],
-					enforce: 'pre',
-				},
-			],
-		},
-		optimization: {
-			moduleIds: mode === 'production' ? 'hashed' : 'named',
 		},
 		plugins: [
 			new DefinePlugin( {
@@ -192,33 +151,15 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			new DependencyExtractionPlugin( {
 				injectPolyfill: false,
 			} ),
-			new CopyWebpackPlugin(
-				[
+			new CopyWebpackPlugin( {
+				patterns: [
 					...blockPHPCopies,
 					...blockMetadataCopies,
 					...blockStylesheetCopies,
 				],
-			),
+			} ),
 		],
-		stats: {
-			children: false,
-		},
-
-		watch: env.watch,
 	};
-
-	if ( config.mode !== 'production' ) {
-		config.devtool = process.env.SOURCEMAP || 'source-map';
-	}
-
-	if ( mode === 'development' && env.buildTarget === 'build/' ) {
-		delete config.devtool;
-		config.mode = 'production';
-		config.optimization = {
-			minimize: false,
-			moduleIds: 'hashed',
-		};
-	}
 
 	return config;
 };
