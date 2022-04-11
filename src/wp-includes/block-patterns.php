@@ -140,6 +140,7 @@ function _register_remote_theme_patterns() {
 		return;
 	}
 
+	/** This filter is documented in wp-includes/block-patterns.php */
 	if ( ! apply_filters( 'should_load_remote_block_patterns', true ) ) {
 		return;
 	}
