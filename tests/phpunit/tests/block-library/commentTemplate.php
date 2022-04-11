@@ -62,7 +62,6 @@ class Test_Block_Library_CommentTemplate extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals(
-			build_comment_query_vars_from_block( $block ),
 			array(
 				'orderby'                   => 'comment_date_gmt',
 				'order'                     => 'ASC',
@@ -73,7 +72,8 @@ class Test_Block_Library_CommentTemplate extends WP_UnitTestCase {
 				'hierarchical'              => 'threaded',
 				'number'                    => 5,
 				'paged'                     => 1,
-			)
+			),
+			build_comment_query_vars_from_block( $block )
 		);
 	}
 
@@ -85,7 +85,6 @@ class Test_Block_Library_CommentTemplate extends WP_UnitTestCase {
 		$block = new WP_Block( $parsed_blocks[0] );
 
 		$this->assertEquals(
-			build_comment_query_vars_from_block( $block ),
 			array(
 				'orderby'                   => 'comment_date_gmt',
 				'order'                     => 'ASC',
@@ -95,7 +94,8 @@ class Test_Block_Library_CommentTemplate extends WP_UnitTestCase {
 				'hierarchical'              => 'threaded',
 				'number'                    => 5,
 				'paged'                     => 1,
-			)
+			),
+			build_comment_query_vars_from_block( $block )
 		);
 	}
 
@@ -117,8 +117,8 @@ class Test_Block_Library_CommentTemplate extends WP_UnitTestCase {
 		// Here we use the function prefixed with 'gutenberg_*' because it's added
 		// in the build step.
 		$this->assertEquals(
-			render_block_core_comment_template( null, null, $block ),
-			'<ol ><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div></li></ol>'
+			'<ol ><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div></li></ol>',
+			render_block_core_comment_template( null, null, $block )
 		);
 	}
 
@@ -164,8 +164,8 @@ class Test_Block_Library_CommentTemplate extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals(
-			render_block_core_comment_template( null, null, $block ),
-			'<ol ><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div><ol><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div><ol><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div></li></ol></li></ol></li></ol>'
+			'<ol ><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div><ol><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div><ol><li><div class="wp-block-comment-author-name">Test</div><div class="wp-block-comment-content">Hello world</div></li></ol></li></ol></li></ol>',
+			render_block_core_comment_template( null, null, $block )
 		);
 	}
 	/**
@@ -200,7 +200,7 @@ class Test_Block_Library_CommentTemplate extends WP_UnitTestCase {
 			)
 		);
 		$actual = build_comment_query_vars_from_block( $block );
-		$this->assertEquals( $actual['paged'], $comment_query_max_num_pages );
-		$this->assertEquals( get_query_var( 'cpage' ), $comment_query_max_num_pages );
+		$this->assertEquals( $comment_query_max_num_pages, $actual['paged'] );
+		$this->assertEquals( $comment_query_max_num_pages, get_query_var( 'cpage' ) );
 	}
 }
