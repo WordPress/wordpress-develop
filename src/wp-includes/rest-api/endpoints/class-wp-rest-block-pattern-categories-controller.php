@@ -134,13 +134,13 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 					'description' => __( 'The category name.' ),
 					'type'        => 'string',
 					'readonly'    => true,
-					'context'     => array( 'view', 'embed' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'label' => array(
 					'description' => __( 'The category label, in human readable format.' ),
 					'type'        => 'string',
 					'readonly'    => true,
-					'context'     => array( 'view', 'embed' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
