@@ -4946,8 +4946,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 55460
 	 */
 	public function test_comment_cache_key_should_ignore_unset_params() {
-		global $wpdb;
-
 		$p = self::factory()->post->create();
 		$c = self::factory()->comment->create( array( 'comment_post_ID' => $p ) );
 
@@ -4961,33 +4959,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$q1 = new WP_Comment_Query();
 		$q1->query( $_args );
 
-		$num_queries_all_args = $wpdb->num_queries;
+		$num_queries_all_args = get_num_queries();
 
-		// Unset 'fields'.
-		unset( $_args['fields'] );
+		// Ignore 'fields', 'update_comment_meta_cache', 'update_comment_post_cache'.
+		unset( $_args['fields'], $_args['update_comment_meta_cache'], $_args['update_comment_post_cache'] );
 		$q2 = new WP_Comment_Query();
 		$q2->query( $_args );
 
-		$num_queries_skip_fields = $wpdb->num_queries;
-
-		$this->assertSame( $num_queries_all_args, $num_queries_skip_fields );
-
-		// Unset 'update_comment_meta_cache'.
-		unset( $_args['update_comment_meta_cache'] );
-		$q3 = new WP_Comment_Query();
-		$q3->query( $_args );
-
-		$num_queries_skip_meta_cache = $wpdb->num_queries;
-
-		$this->assertSame( $num_queries_all_args, $num_queries_skip_meta_cache );
-
-		// Unset 'update_comment_post_cache'.
-		unset( $_args['update_comment_post_cache'] );
-		$q3 = new WP_Comment_Query();
-		$q3->query( $_args );
-
-		$num_queries_skip_post_cache = $wpdb->num_queries;
-
-		$this->assertSame( $num_queries_all_args, $num_queries_skip_post_cache );
+		$this->assertSame( $num_queries_all_args, get_num_queries() );
 	}
 }
