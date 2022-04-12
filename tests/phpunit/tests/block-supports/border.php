@@ -4,14 +4,30 @@
  */
 class Test_Block_Supports_Border extends WP_UnitTestCase {
 	/**
+	 * @var string|null
+	 */
+	private $test_block_name;
+
+	function set_up() {
+		parent::set_up();
+		$this->test_block_name = null;
+	}
+
+	function tear_down() {
+		unregister_block_type( $this->test_block_name );
+		$this->test_block_name = null;
+		parent::set_up();
+	}
+
+	/**
 	 * @ticket 55505
 	 *
 	 * @covers ::wp_apply_border_support
 	 */
 	function test_border_color_slug_with_numbers_is_kebab_cased_properly() {
-		$block_name = 'test/border-color-slug-with-numbers-is-kebab-cased-properly';
+		$this->test_block_name = 'test/border-color-slug-with-numbers-is-kebab-cased-properly';
 		register_block_type(
-			$block_name,
+			$this->test_block_name,
 			array(
 				'api_version' => 2,
 				'attributes'  => array(
@@ -33,7 +49,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 			)
 		);
 		$registry   = WP_Block_Type_Registry::get_instance();
-		$block_type = $registry->get_registered( $block_name );
+		$block_type = $registry->get_registered( $this->test_block_name );
 		$block_atts = array(
 			'borderColor' => 'red',
 			'style'       => array(
@@ -52,7 +68,6 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $actual );
-		unregister_block_type( $block_name );
 	}
 
 	/**
@@ -61,9 +76,9 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 	 * @covers ::wp_apply_border_support
 	 */
 	function test_border_with_skipped_serialization_block_supports() {
-		$block_name = 'test/border-with-skipped-serialization-block-supports';
+		$this->test_block_name = 'test/border-with-skipped-serialization-block-supports';
 		register_block_type(
-			$block_name,
+			$this->test_block_name,
 			array(
 				'api_version' => 2,
 				'attributes'  => array(
@@ -83,7 +98,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 			)
 		);
 		$registry   = WP_Block_Type_Registry::get_instance();
-		$block_type = $registry->get_registered( $block_name );
+		$block_type = $registry->get_registered( $this->test_block_name );
 		$block_atts = array(
 			'style' => array(
 				'border' => array(
@@ -99,7 +114,6 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 		$expected = array();
 
 		$this->assertSame( $expected, $actual );
-		unregister_block_type( $block_name );
 	}
 
 	/**
@@ -108,9 +122,9 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 	 * @covers ::wp_apply_border_support
 	 */
 	function test_radius_with_individual_skipped_serialization_block_supports() {
-		$block_name = 'test/radius-with-individual-skipped-serialization-block-supports';
+		$this->test_block_name = 'test/radius-with-individual-skipped-serialization-block-supports';
 		register_block_type(
-			$block_name,
+			$this->test_block_name,
 			array(
 				'api_version' => 2,
 				'attributes'  => array(
@@ -130,7 +144,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 			)
 		);
 		$registry   = WP_Block_Type_Registry::get_instance();
-		$block_type = $registry->get_registered( $block_name );
+		$block_type = $registry->get_registered( $this->test_block_name );
 		$block_atts = array(
 			'style' => array(
 				'border' => array(
@@ -148,6 +162,5 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $actual );
-		unregister_block_type( $block_name );
 	}
 }
