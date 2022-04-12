@@ -219,12 +219,16 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 			}
 		}
 
-		$html          = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
-		$expected_html = self::strip_r( file_get_contents( $server_html_path ) );
+		$html = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
+		// If blocks opt into Gutenberg's layout implementation
+		// the container will receive an added classname of `wp_unique_id( 'wp-container-' )`
+		// so we need to normalize the random id.
+		$normalized_html = preg_replace( '/wp-container-\d+/', 'wp-container-1', $html );
+		$expected_html   = self::strip_r( file_get_contents( $server_html_path ) );
 
 		$this->assertSame(
 			$expected_html,
-			$html,
+			$normalized_html,
 			"File '$html_path' does not match expected value"
 		);
 	}
