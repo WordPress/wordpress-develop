@@ -4,14 +4,30 @@
  */
 class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 	/**
+	 * @var string|null
+	 */
+	private $test_block_name;
+
+	function set_up() {
+		parent::set_up();
+		$this->test_block_name = null;
+	}
+
+	function tear_down() {
+		unregister_block_type( $this->test_block_name );
+		$this->test_block_name = null;
+		parent::set_up();
+	}
+
+	/**
 	 * @ticket 55505
 	 *
 	 * @covers ::wp_apply_spacing_support
 	 */
 	function test_spacing_style_is_applied() {
-		$block_name = 'test/spacing-style-is-applied';
+		$this->test_block_name = 'test/spacing-style-is-applied';
 		register_block_type(
-			$block_name,
+			$this->test_block_name,
 			array(
 				'api_version' => 2,
 				'attributes'  => array(
@@ -29,7 +45,7 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 			)
 		);
 		$registry   = WP_Block_Type_Registry::get_instance();
-		$block_type = $registry->get_registered( $block_name );
+		$block_type = $registry->get_registered( $this->test_block_name );
 		$block_atts = array(
 			'style' => array(
 				'spacing' => array(
@@ -51,7 +67,6 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $actual );
-		unregister_block_type( $block_name );
 	}
 
 	/**
@@ -60,9 +75,9 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 	 * @covers ::wp_apply_spacing_support
 	 */
 	function test_spacing_with_skipped_serialization_block_supports() {
-		$block_name = 'test/spacing-with-skipped-serialization-block-supports';
+		$this->test_block_name = 'test/spacing-with-skipped-serialization-block-supports';
 		register_block_type(
-			$block_name,
+			$this->test_block_name,
 			array(
 				'api_version' => 2,
 				'attributes'  => array(
@@ -81,7 +96,7 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 			)
 		);
 		$registry   = WP_Block_Type_Registry::get_instance();
-		$block_type = $registry->get_registered( $block_name );
+		$block_type = $registry->get_registered( $this->test_block_name );
 		$block_atts = array(
 			'style' => array(
 				'spacing' => array(
@@ -101,7 +116,6 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 		$expected = array();
 
 		$this->assertSame( $expected, $actual );
-		unregister_block_type( $block_name );
 	}
 
 	/**
@@ -110,9 +124,9 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 	 * @covers ::wp_apply_spacing_support
 	 */
 	function test_margin_with_individual_skipped_serialization_block_supports() {
-		$block_name = 'test/margin-with-individual-skipped-serialization-block-supports';
+		$this->test_block_name = 'test/margin-with-individual-skipped-serialization-block-supports';
 		register_block_type(
-			$block_name,
+			$this->test_block_name,
 			array(
 				'api_version' => 2,
 				'attributes'  => array(
@@ -131,7 +145,7 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 			)
 		);
 		$registry   = WP_Block_Type_Registry::get_instance();
-		$block_type = $registry->get_registered( $block_name );
+		$block_type = $registry->get_registered( $this->test_block_name );
 		$block_atts = array(
 			'style' => array(
 				'spacing' => array(
@@ -153,6 +167,5 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $actual );
-		unregister_block_type( $block_name );
 	}
 }
