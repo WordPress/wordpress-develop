@@ -47,7 +47,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @since 6.0.0
 	 * @var string
 	 */
-	protected static $default_description;
+	protected static $default_description = '';
 
 	/**
 	 * The default localized strings used by the widget.
@@ -55,7 +55,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @since 6.0.0
 	 * @var string[]
 	 */
-	protected static $l10n_defaults;
+	protected static $l10n_defaults = array();
 
 	/**
 	 * Constructor.
