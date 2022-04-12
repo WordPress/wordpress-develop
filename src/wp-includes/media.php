@@ -1077,6 +1077,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			}
 		}
 
+		// Add a `decoding` attribute.
 		$attr['decoding'] = 'async';
 
 		/**

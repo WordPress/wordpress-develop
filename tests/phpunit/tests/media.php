@@ -2337,7 +2337,7 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_filter_with_identical_image_tags_custom_attributes() {
 		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
-		$img     = str_replace( '<img ', '<img srcset="custom" sizes="custom" loading="custom" ', $img );
+		$img     = str_replace( '<img ', '<img srcset="custom" sizes="custom" loading="custom" decoding="custom"', $img );
 		$content = "$img\n$img";
 
 		add_filter(
@@ -2362,6 +2362,7 @@ EOF;
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		add_filter(
 			'wp_content_img_tag',
