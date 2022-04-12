@@ -79,7 +79,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$patterns = $response->get_data();
 
 		$this->assertSame( 'view', $patterns['endpoints'][0]['args']['context']['default'] );
-		$this->assertSame( array( 'view', 'edit', 'embed' ), $patterns['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $patterns['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
