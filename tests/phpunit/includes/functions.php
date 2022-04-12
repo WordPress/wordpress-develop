@@ -311,6 +311,8 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_comment_content' );
 	remove_action( 'init', 'register_block_core_comment_date' );
 	remove_action( 'init', 'register_block_core_comment_edit_link' );
+	remove_action( 'init', 'register_block_core_comment_reply_link' );
+	remove_action( 'init', 'register_block_core_comment_template' );
 	remove_action( 'init', 'register_block_core_comments_pagination' );
 	remove_action( 'init', 'register_block_core_comments_pagination_next' );
 	remove_action( 'init', 'register_block_core_comments_pagination_numbers' );
