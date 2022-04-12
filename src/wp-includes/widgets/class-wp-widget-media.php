@@ -470,22 +470,6 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @var string
 	 */
 	protected static function get_default_description() {
-		if ( ! empty( self::$default_description ) ) {
-			return self::$default_description;
-		}
-
-		self::$default_description = __( 'A media item.' );
-		return self::$default_description;
-	}
-
-	/**
-	 * Returns the default description of the widget.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @var string
-	 */
-	protected static function get_default_description() {
 		if ( self::$default_description ) {
 			return self::$default_description;
 		}
