@@ -441,6 +441,16 @@ abstract class WP_Widget_Media extends WP_Widget {
 	}
 
 	/**
+	 * Resets the cache for the default labels.
+	 *
+	 * @since 6.0.0
+	 */
+	public static function reset_default_labels() {
+		self::$default_description = '';
+		self::$l10n_defaults       = array();
+	}
+
+	/**
 	 * Whether the widget has content to show.
 	 *
 	 * @since 4.8.0
@@ -450,6 +460,22 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 */
 	protected function has_content( $instance ) {
 		return ( $instance['attachment_id'] && 'attachment' === get_post_type( $instance['attachment_id'] ) ) || $instance['url'];
+	}
+
+	/**
+	 * Returns the default description of the widget.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @var string
+	 */
+	protected static function get_default_description() {
+		if ( ! empty( self::$default_description ) ) {
+			return self::$default_description;
+		}
+
+		self::$default_description = __( 'A media item.' );
+		return self::$default_description;
 	}
 
 	/**
@@ -476,7 +502,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @return string[]
 	 */
 	protected static function get_l10n_defaults() {
-		if ( self::$l10n_defaults ) {
+		if ( ! empty( self::$l10n_defaults ) ) {
 			return self::$l10n_defaults;
 		}
 
