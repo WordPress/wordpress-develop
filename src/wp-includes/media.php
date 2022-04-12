@@ -1077,8 +1077,6 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			}
 		}
 
-		$attr['decoding'] = 'async';
-
 		/**
 		 * Filters the list of attachment image attributes.
 		 *
@@ -1845,12 +1843,26 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
 			}
 
-			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
-			$filtered_image = wp_img_tag_add_decoding_async_attr( $filtered_image, $context );
+			/**
+			 * Filters an img tag within the content for a given context.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $filtered_image Full img tag with attributes that will replace the source img tag.
+			 * @param string $context        Additional context, like the current filter name or the function name from where this was called.
+			 * @param int    $attachment_id  The image attachment ID. May be 0 in case the image is not an attachment.
+			 */
+			$filtered_image = apply_filters( 'wp_content_img_tag', $filtered_image, $context, $attachment_id );
 
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
 			}
+
+			/*
+			 * Unset image lookup to not run the same logic again unnecessarily if the same image tag is used more than
+			 * once in the same blob of content.
+			 */
+			unset( $images[ $match[0] ] );
 		}
 
 		// Filter an iframe match.
@@ -1865,6 +1877,12 @@ function wp_filter_content_tags( $content, $context = null ) {
 			if ( $filtered_iframe !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_iframe, $content );
 			}
+
+			/*
+			 * Unset iframe lookup to not run the same logic again unnecessarily if the same iframe tag is used more
+			 * than once in the same blob of content.
+			 */
+			unset( $iframes[ $match[0] ] );
 		}
 	}
 
@@ -1911,41 +1929,6 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 		}
 
 		return str_replace( '<img', '<img loading="' . esc_attr( $value ) . '"', $image );
-	}
-
-	return $image;
-}
-
-/**
- * Adds `decoding=async` attribute to an `img` HTML tag.
- *
- * @since 6.0.0
- *
- * @param string $image         The HTML `img` tag where the attribute should be added.
- * @param string $context       Additional context to pass to the filters.
- * @return string Converted `img` tag with `decoding` attribute added.
- */
-function wp_img_tag_add_decoding_async_attr( $image, $context ) {
-	if ( str_contains( $image, ' decoding=' ) ) {
-		return $image;
-	}
-
-	/**
-	 * Filters the `decoding` attribute value to add to an image. Default `async`.
-	 *
-	 * Returning `false` or an empty string will not add the attribute.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @param string|bool $value         The `decoding` attribute value. Returning a falsey value will result in
-	 *                                   the attribute being omitted for the image. Otherwise, it may be:
-	 *                                   'async' (default), 'sync', or 'auto'.
-	 * @param string      $image         The HTML `img` tag to be filtered.
-	 * @param string      $context Additional context about how the function was called or where the img tag is.
-	 */
-	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
-	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
-		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
 	}
 
 	return $image;
