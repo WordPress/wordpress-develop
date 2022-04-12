@@ -2307,6 +2307,7 @@ EOF;
 
 	/**
 	 * @ticket 55510
+	 * @covers ::wp_filter_content_tags
 	 */
 	public function test_wp_filter_content_tags_handles_duplicate_img_and_iframe_tags_once() {
 		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -2329,6 +2330,7 @@ EOF;
 
 	/**
 	 * @ticket 55510
+	 * @covers ::wp_filter_content_tags
 	 */
 	public function test_wp_filter_content_tags_filter_with_identical_image_tags_custom_attributes() {
 		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -2348,6 +2350,7 @@ EOF;
 
 	/**
 	 * @ticket 55510
+	 * @covers ::wp_filter_content_tags
 	 */
 	public function test_wp_filter_content_tags_filter_with_identical_image_tags_disabled_core_filters() {
 		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
