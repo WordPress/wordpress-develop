@@ -224,6 +224,10 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		// the container will receive an added classname of `wp_unique_id( 'wp-container-' )`
 		// so we need to normalize the random id.
 		$normalized_html = preg_replace( '/wp-container-\d+/', 'wp-container-1', $html );
+
+		// The gallery block uses a unique class name of `wp_unique_id( 'wp-block-gallery-' )`
+		// so we need to normalize the random id.
+		$normalized_html = preg_replace( '/wp-block-gallery-\d+\s/', 'wp-block-gallery-1', $normalized_html );
 		$expected_html   = self::strip_r( file_get_contents( $server_html_path ) );
 
 		$this->assertSame(
