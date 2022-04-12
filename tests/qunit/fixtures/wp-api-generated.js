@@ -10342,7 +10342,8 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "enum": [
                                 "view",
-                                "embed"
+                                "embed",
+                                "edit"
                             ],
                             "default": "view",
                             "required": false
