@@ -2054,7 +2054,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 *
 		 * @since 6.0.0
 		 *
-		 * @param WP_User $user     User object for new user.
+		 * @param WP_User $user User object for new user.
 		 */
 		$send_notification_to_admin = apply_filters( 'send_new_user_notification_email_to_admin', true, $user );
 
