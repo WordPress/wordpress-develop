@@ -33,6 +33,7 @@
 	],
 	"settings": {
 		"appearanceTools": true,
+		"useRootVariables": true,
 		"color": {
 			"duotone": [
 				{
@@ -323,7 +324,13 @@
 			}
 		},
 		"spacing": {
-			"blockGap": "1.5rem"
+			"blockGap": "1.5rem",
+			"padding": {
+				"top": "0",
+				"right": "var(--wp--custom--spacing--outer)",
+				"bottom": "0",
+				"left": "var(--wp--custom--spacing--outer)"
+			}
 		},
 		"typography": {
 			"fontFamily": "var(--wp--preset--font-family--system-font)",
