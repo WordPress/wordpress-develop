@@ -1077,6 +1077,8 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			}
 		}
 
+		$attr['decoding'] = 'async';
+
 		/**
 		 * Filters the list of attachment image attributes.
 		 *
@@ -1854,6 +1856,11 @@ function wp_filter_content_tags( $content, $context = null ) {
 			 */
 			$filtered_image = apply_filters( 'wp_content_img_tag', $filtered_image, $context, $attachment_id );
 
+			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
+			if ( false === strpos( $filtered_image, ' decoding=' ) ) {
+				$filtered_image = wp_img_tag_add_decoding_async_attr( $filtered_image, $context );
+			}
+
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
 			}
@@ -1929,6 +1936,45 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 		}
 
 		return str_replace( '<img', '<img loading="' . esc_attr( $value ) . '"', $image );
+	}
+
+	return $image;
+}
+
+/**
+ * Add `decoding` attribute to an `img` HTML tag.
+ *
+ * The `decoding` attribute allows developers to indicate whether the
+ * browser can decode the image off the main thread (`async`), on the
+ * main thread (`sync`) or as determined by the browser (`auto`).
+ *
+ * By default WordPress adds `decoding="async"` to images but developers
+ * can use the {@see 'wp_img_tag_add_decoding_attr'} filter to modify this
+ * to remove the attribute or set it to another accepted value.
+ *
+ * @since 6.0.0
+ *
+ * @param string $image   The HTML `img` tag where the attribute should be added.
+ * @param string $context Additional context to pass to the filters.
+ * @return string Converted `img` tag with `decoding` attribute added.
+ */
+function wp_img_tag_add_decoding_async_attr( $image, $context ) {
+	/**
+	 * Filters the `decoding` attribute value to add to an image. Default `async`.
+	 *
+	 * Returning `false` or an empty string will not add the attribute.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param string|bool $value The `decoding` attribute value. Returning a falsey value will result in
+	 *                           the attribute being omitted for the image. Otherwise, it may be:
+	 *                           'async' (default), 'sync', or 'auto'.
+	 * @param string      $image The HTML `img` tag to be filtered.
+	 * @param string      $context Additional context about how the function was called or where the img tag is.
+	 */
+	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
+		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
 	}
 
 	return $image;
