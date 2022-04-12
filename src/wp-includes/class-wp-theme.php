@@ -1481,6 +1481,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @return bool
 	 */
 	public function is_block_theme() {
+		$is_block_theme = false;
+
 		$paths_to_index_block_template = array(
 			$this->get_file_path( '/block-templates/index.html' ),
 			$this->get_file_path( '/templates/index.html' ),
@@ -1488,11 +1490,18 @@ final class WP_Theme implements ArrayAccess {
 
 		foreach ( $paths_to_index_block_template as $path_to_index_block_template ) {
 			if ( is_file( $path_to_index_block_template ) && is_readable( $path_to_index_block_template ) ) {
-				return true;
+				$is_block_theme = true;
 			}
 		}
 
-		return false;
+		/**
+		 * Filters whether the theme is a block theme.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param bool $is_block_theme Whether the theme is a block theme.
+		 */
+		return apply_filters( 'is_block_theme', $is_block_theme );
 	}
 
 	/**

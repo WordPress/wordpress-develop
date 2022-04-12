@@ -262,6 +262,35 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_is_block_theme
+	 * @ticket 54829
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 *
+	 * @param string $theme_dir Directory of the theme to test.
+	 * @param bool   $expected  Expected result of `is_block_theme()`
+	 *                          before filtering.
+	 */
+	public function test_is_block_theme_filter( $theme_dir, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+
+		$this->assertSame(
+			$expected,
+			$theme->is_block_theme(),
+			'`is_block_theme()` did not return the expected result'
+		);
+
+		$expected = ! $expected;
+		add_filter( 'is_block_theme', '__return_' . ( $expected ? 'true' : 'false' ) );
+
+		$this->assertSame(
+			$expected,
+			$theme->is_block_theme(),
+			"The 'is_block_theme' filter was not applied"
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
