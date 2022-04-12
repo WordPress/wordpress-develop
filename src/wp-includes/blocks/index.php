@@ -23,6 +23,7 @@ require ABSPATH . WPINC . '/blocks/navigation.php';
 require ABSPATH . WPINC . '/blocks/page-list.php';
 require ABSPATH . WPINC . '/blocks/pattern.php';
 require ABSPATH . WPINC . '/blocks/post-author.php';
+require ABSPATH . WPINC . '/blocks/post-author-biography.php';
 require ABSPATH . WPINC . '/blocks/post-comments.php';
 require ABSPATH . WPINC . '/blocks/post-content.php';
 require ABSPATH . WPINC . '/blocks/post-date.php';

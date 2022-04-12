@@ -50,6 +50,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'page-list',
 		'pattern',
 		'post-author',
+		'post-author-biography',
 		'post-comments',
 		'post-content',
 		'post-date',
