@@ -25,7 +25,6 @@ require ABSPATH . WPINC . '/blocks/file.php';
 require ABSPATH . WPINC . '/blocks/gallery.php';
 require ABSPATH . WPINC . '/blocks/home-link.php';
 require ABSPATH . WPINC . '/blocks/image.php';
-require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/blocks/latest-comments.php';
 require ABSPATH . WPINC . '/blocks/latest-posts.php';
 require ABSPATH . WPINC . '/blocks/legacy-widget.php';
