@@ -845,6 +845,10 @@ function upgrade_all() {
 		upgrade_590();
 	}
 
+	if ( $wp_current_db_version < 53011 ) {
+		upgrade_600();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2273,9 +2277,28 @@ function upgrade_590() {
 
 	if ( $wp_current_db_version < 51917 ) {
 		$crons = _get_cron_array();
-		// Remove errant `false` values, see #53950.
-		$crons = array_filter( $crons );
-		_set_cron_array( $crons );
+
+		if ( $crons && is_array( $crons ) ) {
+			// Remove errant `false` values, see #53950, #54906.
+			$crons = array_filter( $crons );
+			_set_cron_array( $crons );
+		}
+	}
+}
+
+/**
+ * Executes changes made in WordPress 6.0.0.
+ *
+ * @ignore
+ * @since 6.0.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_600() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 53011 ) {
+		wp_update_user_counts();
 	}
 }
 

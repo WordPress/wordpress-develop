@@ -53,16 +53,23 @@ $rest_path = rest_get_route_for_post( $post );
 
 // Preload common data.
 $preload_paths = array(
-	'/',
-	'/wp/v2/types?context=edit',
-	'/wp/v2/taxonomies?per_page=-1&context=edit',
-	'/wp/v2/themes?status=active',
+	'/wp/v2/types?context=view',
+	'/wp/v2/taxonomies?context=view',
+	add_query_arg(
+		array(
+			'context' => 'edit',
+			'per_page' => -1,
+		),
+		rest_get_route_for_post_type_items( 'wp_block' )
+	),
 	add_query_arg( 'context', 'edit', $rest_path ),
 	sprintf( '/wp/v2/types/%s?context=edit', $post_type ),
-	sprintf( '/wp/v2/users/me?post_type=%s&context=edit', $post_type ),
+	'/wp/v2/users/me',
 	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'wp_block' ), 'OPTIONS' ),
 	sprintf( '%s/autosaves?context=edit', $rest_path ),
+	'/wp/v2/settings',
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
@@ -147,9 +154,9 @@ if ( $user_id ) {
 	if ( $locked ) {
 		$user         = get_userdata( $user_id );
 		$user_details = array(
-			'name' => $user->display_name,
+			'avatar' => get_avatar_url( $user_id, array( 'size' => 128 ) ),
+			'name'   => $user->display_name,
 		);
-		$avatar       = get_avatar_url( $user_id, array( 'size' => 64 ) );
 	}
 
 	$lock_details = array(
@@ -187,7 +194,6 @@ $editor_settings = array(
 	'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
 	'bodyPlaceholder'                      => $body_placeholder,
 	'autosaveInterval'                     => AUTOSAVE_INTERVAL,
-	'styles'                               => get_block_editor_theme_styles(),
 	'richEditingEnabled'                   => user_can_richedit(),
 	'postLock'                             => $lock_details,
 	'postLockUtils'                        => array(
@@ -196,8 +202,6 @@ $editor_settings = array(
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
 	'supportsLayout'                       => WP_Theme_JSON_Resolver::theme_has_support(),
-	'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
-	'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
 	'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta

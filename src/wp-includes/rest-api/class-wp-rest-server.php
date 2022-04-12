@@ -438,7 +438,8 @@ class WP_REST_Server {
 
 		// Wrap the response in an envelope if asked for.
 		if ( isset( $_GET['_envelope'] ) ) {
-			$result = $this->envelope_response( $result, isset( $_GET['_embed'] ) );
+			$embed  = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
+			$result = $this->envelope_response( $result, $embed );
 		}
 
 		// Send extra data from response objects.
@@ -730,9 +731,10 @@ class WP_REST_Server {
 	 * data instead.
 	 *
 	 * @since 4.4.0
+	 * @since 6.0.0 The $embed parameter can now contain a list of link relations to include
 	 *
 	 * @param WP_REST_Response $response Response object.
-	 * @param bool             $embed    Whether links should be embedded.
+	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
 	 * @return WP_REST_Response New response with wrapped data
 	 */
 	public function envelope_response( $response, $embed ) {
@@ -849,7 +851,7 @@ class WP_REST_Server {
 		 */
 		$endpoints = apply_filters( 'rest_endpoints', $endpoints );
 
-		// Normalise the endpoints.
+		// Normalize the endpoints.
 		$defaults = array(
 			'methods'       => '',
 			'accept_json'   => false,
@@ -1239,10 +1241,12 @@ class WP_REST_Server {
 		 * available on the API, and a small amount of data about the site.
 		 *
 		 * @since 4.4.0
+		 * @since 6.0.0 Added `$request` parameter.
 		 *
 		 * @param WP_REST_Response $response Response data.
+		 * @param WP_REST_Request  $request  Request data.
 		 */
-		return apply_filters( 'rest_index', $response );
+		return apply_filters( 'rest_index', $response, $request );
 	}
 
 	/**

@@ -510,6 +510,60 @@ if ( is_multisite() ) :
 		}
 
 		/**
+		 * @ticket 55461
+		 */
+		public function test_wp_network_query_cache_with_same_fields_same_cache_field() {
+			$q                 = new WP_Network_Query();
+			$query_1           = $q->query(
+				array(
+					'fields'               => 'all',
+					'number'               => 3,
+					'order'                => 'ASC',
+					'update_network_cache' => true,
+				)
+			);
+			$number_of_queries = get_num_queries();
+
+			$query_2 = $q->query(
+				array(
+					'fields'               => 'all',
+					'number'               => 3,
+					'order'                => 'ASC',
+					'update_network_cache' => true,
+				)
+			);
+
+			$this->assertSame( $number_of_queries, get_num_queries() );
+		}
+
+		/**
+		 * @ticket 55461
+		 */
+		public function test_wp_network_query_cache_with_same_fields_different_cache_field() {
+			$q                 = new WP_Network_Query();
+			$query_1           = $q->query(
+				array(
+					'fields'               => 'all',
+					'number'               => 3,
+					'order'                => 'ASC',
+					'update_network_cache' => true,
+				)
+			);
+			$number_of_queries = get_num_queries();
+
+			$query_2 = $q->query(
+				array(
+					'fields'               => 'all',
+					'number'               => 3,
+					'order'                => 'ASC',
+					'update_network_cache' => false,
+				)
+			);
+
+			$this->assertSame( $number_of_queries, get_num_queries() );
+		}
+
+		/**
 		 * @ticket 45749
 		 * @ticket 47599
 		 */
