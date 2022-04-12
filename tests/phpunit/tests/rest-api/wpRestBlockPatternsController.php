@@ -12,6 +12,8 @@
  *
  * @since 6.0.0
  *
+ * @ticket 55505
+ *
  * @covers WP_REST_Block_Patterns_Controller
  *
  * @group restapi
