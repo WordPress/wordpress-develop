@@ -68,8 +68,9 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 				'post_type'  => 'page',
 			)
 		);
+		
 		$bad_title = 'xxx';
-		$page = get_page_by_title( $bad_title );
+		$page      = get_page_by_title( $bad_title );
 		$this->assertNull( $page );
 
 		$num_queries = get_num_queries();
