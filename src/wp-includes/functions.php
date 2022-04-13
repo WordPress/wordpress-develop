@@ -441,11 +441,11 @@ function number_format_i18n( $number, $decimals = 0 ) {
 }
 
 /**
- * Convert number of bytes largest unit bytes will fit into.
+ * Converts a number of bytes to the largest unit the bytes will fit into.
  *
  * It is easier to read 1 KB than 1024 bytes and 1 MB than 1048576 bytes. Converts
  * number of bytes to human readable number by taking the number of that unit
- * that the bytes will go into it. Supports TB value.
+ * that the bytes will go into it. Supports YB value.
  *
  * Please note that integers in PHP are limited to 32 bits, unless they are on
  * 64 bit architecture, then they have 64 bit size. If you need to place the
@@ -455,6 +455,7 @@ function number_format_i18n( $number, $decimals = 0 ) {
  * Technically the correct unit names for powers of 1024 are KiB, MiB etc.
  *
  * @since 2.3.0
+ * @since 6.0.0 Support for PB, EB, ZB, and YB was added.
  *
  * @param int|string $bytes    Number of bytes. Note max integer size for integers.
  * @param int        $decimals Optional. Precision of number of decimal places. Default 0.
@@ -462,6 +463,14 @@ function number_format_i18n( $number, $decimals = 0 ) {
  */
 function size_format( $bytes, $decimals = 0 ) {
 	$quant = array(
+		/* translators: Unit symbol for yottabyte. */
+		_x( 'YB', 'unit symbol' ) => YB_IN_BYTES,
+		/* translators: Unit symbol for zettabyte. */
+		_x( 'ZB', 'unit symbol' ) => ZB_IN_BYTES,
+		/* translators: Unit symbol for exabyte. */
+		_x( 'EB', 'unit symbol' ) => EB_IN_BYTES,
+		/* translators: Unit symbol for petabyte. */
+		_x( 'PB', 'unit symbol' ) => PB_IN_BYTES,
 		/* translators: Unit symbol for terabyte. */
 		_x( 'TB', 'unit symbol' ) => TB_IN_BYTES,
 		/* translators: Unit symbol for gigabyte. */
@@ -811,6 +820,7 @@ function xmlrpc_removepostdata( $content ) {
  * Use RegEx to extract URLs from arbitrary content.
  *
  * @since 3.7.0
+ * @since 6.0.0 Fixes support for HTML entities (Trac 30580).
  *
  * @param string $content Content to extract URLs from.
  * @return string[] Array of URLs found in passed string.
@@ -824,7 +834,7 @@ function wp_extract_urls( $content ) {
 			. '(?:'
 				. '\([\w\d]+\)|'
 				. '(?:'
-					. "[^`!()\[\]{};:'\".,<>«»“”‘’\s]|"
+					. "[^`!()\[\]{}:'\".,<>«»“”‘’\s]|"
 					. '(?:[:]\d+)?/?'
 				. ')+'
 			. ')'
@@ -833,7 +843,17 @@ function wp_extract_urls( $content ) {
 		$post_links
 	);
 
-	$post_links = array_unique( array_map( 'html_entity_decode', $post_links[2] ) );
+	$post_links = array_unique(
+		array_map(
+			static function( $link ) {
+				// Decode to replace valid entities, like &amp;.
+				$link = html_entity_decode( $link );
+				// Maintain backward compatibility by removing extraneous semi-colons (`;`).
+				return str_replace( ';', '', $link );
+			},
+			$post_links[2]
+		)
+	);
 
 	return array_values( $post_links );
 }
@@ -1580,7 +1600,7 @@ function do_feed() {
 	}
 
 	if ( ! has_action( "do_feed_{$feed}" ) ) {
-		wp_die( __( 'Error: This is not a valid feed template.' ), '', array( 'response' => 404 ) );
+		wp_die( __( '<strong>Error</strong>: This is not a valid feed template.' ), '', array( 'response' => 404 ) );
 	}
 
 	/**
@@ -5156,6 +5176,10 @@ function wp_list_filter( $list, $args = array(), $operator = 'AND' ) {
  *               `$list` will be preserved in the results.
  */
 function wp_list_pluck( $list, $field, $index_key = null ) {
+	if ( ! is_array( $list ) ) {
+		return array();
+	}
+
 	$util = new WP_List_Util( $list );
 
 	return $util->pluck( $field, $index_key );
@@ -5217,6 +5241,7 @@ function wp_maybe_load_widgets() {
  * Append the Widgets menu to the themes main menu.
  *
  * @since 2.2.0
+ * @since 5.9.3 Don't specify menu order when the active theme is a block theme.
  *
  * @global array $submenu
  */
@@ -5227,7 +5252,13 @@ function wp_widgets_add_menu() {
 		return;
 	}
 
-	$submenu['themes.php'][7] = array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' );
+	$menu_name = __( 'Widgets' );
+	if ( wp_is_block_theme() ) {
+		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+	} else {
+		$submenu['themes.php'][7] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+	}
+
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
 }
 
@@ -8368,7 +8399,7 @@ function clean_dirsize_cache( $path ) {
  *
  * @since 5.2.0
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  *
  * @param string $required Minimum required WordPress version.
  * @return bool True if required version is compatible or empty, false if not.
@@ -8395,7 +8426,7 @@ function is_php_version_compatible( $required ) {
 }
 
 /**
- * Check if two numbers are nearly the same.
+ * Checks if two numbers are nearly the same.
  *
  * This is similar to using `round()` but the precision is more fine-grained.
  *
@@ -8404,8 +8435,26 @@ function is_php_version_compatible( $required ) {
  * @param int|float $expected  The expected value.
  * @param int|float $actual    The actual number.
  * @param int|float $precision The allowed variation.
- * @return bool Whether the numbers match whithin the specified precision.
+ * @return bool Whether the numbers match within the specified precision.
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
+}
+
+/**
+ * Sorts the keys of an array alphabetically.
+ * The array is passed by reference so it doesn't get returned
+ * which mimics the behaviour of ksort.
+ *
+ * @since 6.0.0
+ *
+ * @param array $array The array to sort, passed by reference.
+ */
+function wp_recursive_ksort( &$array ) {
+	foreach ( $array as &$value ) {
+		if ( is_array( $value ) ) {
+			wp_recursive_ksort( $value );
+		}
+	}
+	ksort( $array );
 }

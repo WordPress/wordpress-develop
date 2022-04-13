@@ -21,6 +21,13 @@ function wp_render_elements_support( $block_content, $block ) {
 		return $block_content;
 	}
 
+	$block_type                    = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+	$skip_link_color_serialization = wp_should_skip_block_supports_serialization( $block_type, 'color', 'link' );
+
+	if ( $skip_link_color_serialization ) {
+		return $block_content;
+	}
+
 	$link_color = null;
 	if ( ! empty( $block['attrs'] ) ) {
 		$link_color = _wp_array_get( $block['attrs'], array( 'style', 'elements', 'link', 'color', 'text' ), null );
@@ -36,7 +43,7 @@ function wp_render_elements_support( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$class_name = 'wp-elements-' . uniqid();
+	$class_name = wp_unique_id( 'wp-elements-' );
 
 	if ( strpos( $link_color, 'var:preset|color|' ) !== false ) {
 		// Get the name from the string and add proper styles.

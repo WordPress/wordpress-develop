@@ -2720,10 +2720,22 @@ class WP_Query {
 			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
 			$climits  = ( ! empty( $climits ) ) ? $climits : '';
 
-			$comments = (array) $wpdb->get_results( "SELECT $distinct {$wpdb->comments}.* FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits" );
+			$comments_request = "SELECT $distinct {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
+
+			$key          = md5( $comments_request );
+			$last_changed = wp_cache_get_last_changed( 'comment' ) . ':' . wp_cache_get_last_changed( 'posts' );
+
+			$cache_key   = "comment_feed:$key:$last_changed";
+			$comment_ids = wp_cache_get( $cache_key, 'comment' );
+			if ( false === $comment_ids ) {
+				$comment_ids = $wpdb->get_col( $comments_request );
+				wp_cache_add( $cache_key, $comment_ids, 'comment' );
+			}
+			_prime_comment_caches( $comment_ids, false );
+
 			// Convert to WP_Comment.
 			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comments );
+			$this->comments      = array_map( 'get_comment', $comment_ids );
 			$this->comment_count = count( $this->comments );
 
 			$post_ids = array();
@@ -2741,7 +2753,7 @@ class WP_Query {
 			}
 		}
 
-		$pieces = array( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
+		$clauses = compact( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
 
 		/*
 		 * Apply post-paging filters on where and join. Only plugins that
@@ -2843,7 +2855,7 @@ class WP_Query {
 			 * }
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
 			 */
-			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $pieces ), &$this ) );
+			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( $clauses, &$this ) );
 
 			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
 			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
@@ -2964,7 +2976,7 @@ class WP_Query {
 			 *
 			 * @since 3.1.0
 			 *
-			 * @param string[] $pieces {
+			 * @param string[] $clauses {
 			 *     Associative array of the clauses for the query.
 			 *
 			 *     @type string $where    The WHERE clause of the query.
@@ -2977,7 +2989,7 @@ class WP_Query {
 			 * }
 			 * @param WP_Query $query  The WP_Query instance (passed by reference).
 			 */
-			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
+			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( $clauses, &$this ) );
 
 			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
 			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
@@ -3000,7 +3012,15 @@ class WP_Query {
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
-		$old_request   = "SELECT $found_rows $distinct $fields FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits";
+		$old_request = "
+			SELECT $found_rows $distinct $fields
+			FROM {$wpdb->posts} $join
+			WHERE 1=1 $where
+			$groupby
+			$orderby
+			$limits
+		";
+
 		$this->request = $old_request;
 
 		if ( ! $q['suppress_filters'] ) {
@@ -3086,7 +3106,14 @@ class WP_Query {
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
 
-				$this->request = "SELECT $found_rows $distinct {$wpdb->posts}.ID FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits";
+				$this->request = "
+					SELECT $found_rows $distinct {$wpdb->posts}.ID
+					FROM {$wpdb->posts} $join
+					WHERE 1=1 $where
+					$groupby
+					$orderby
+					$limits
+				";
 
 				/**
 				 * Filters the Post IDs SQL request before sending.
@@ -3149,11 +3176,22 @@ class WP_Query {
 			/** This filter is documented in wp-includes/query.php */
 			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
 
-			$comments_request = "SELECT {$wpdb->comments}.* FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
-			$comments         = $wpdb->get_results( $comments_request );
+			$comments_request = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
+
+			$key          = md5( $comments_request );
+			$last_changed = wp_cache_get_last_changed( 'comment' );
+
+			$cache_key   = "comment_feed:$key:$last_changed";
+			$comment_ids = wp_cache_get( $cache_key, 'comment' );
+			if ( false === $comment_ids ) {
+				$comment_ids = $wpdb->get_col( $comments_request );
+				wp_cache_add( $cache_key, $comment_ids, 'comment' );
+			}
+			_prime_comment_caches( $comment_ids, false );
+
 			// Convert to WP_Comment.
 			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comments );
+			$this->comments      = array_map( 'get_comment', $comment_ids );
 			$this->comment_count = count( $this->comments );
 		}
 
@@ -3245,10 +3283,15 @@ class WP_Query {
 			if ( ! empty( $sticky_posts ) ) {
 				$stickies = get_posts(
 					array(
-						'post__in'    => $sticky_posts,
-						'post_type'   => $post_type,
-						'post_status' => 'publish',
-						'nopaging'    => true,
+						'post__in'               => $sticky_posts,
+						'post_type'              => $post_type,
+						'post_status'            => 'publish',
+						'posts_per_page'         => count( $sticky_posts ),
+						'suppress_filters'       => $q['suppress_filters'],
+						'cache_results'          => $q['cache_results'],
+						'update_post_meta_cache' => $q['update_post_meta_cache'],
+						'update_post_term_cache' => $q['update_post_term_cache'],
+						'lazy_load_term_meta'    => $q['lazy_load_term_meta'],
 					)
 				);
 
