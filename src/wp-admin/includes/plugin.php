@@ -1284,20 +1284,20 @@ function uninstall_plugin( $plugin ) {
  * @global array $_registered_pages
  * @global array $_parent_pages
  *
- * @param string   $page_title The text to be displayed in the title tags of the page when the menu is selected.
- * @param string   $menu_title The text to be used for the menu.
- * @param string   $capability The capability required for this menu to be displayed to the user.
- * @param string   $menu_slug  The slug name to refer to this menu by. Should be unique for this menu page and only
- *                             include lowercase alphanumeric, dashes, and underscores characters to be compatible
- *                             with sanitize_key().
- * @param callable $function   Optional. The function to be called to output the content for this page.
- * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
- *                             * Pass a base64-encoded SVG using a data URI, which will be colored to match
- *                               the color scheme. This should begin with 'data:image/svg+xml;base64,'.
- *                             * Pass the name of a Dashicons helper class to use a font icon,
- *                               e.g. 'dashicons-chart-pie'.
- *                             * Pass 'none' to leave div.wp-menu-image empty so an icon can be added via CSS.
- * @param int      $position   Optional. The position in the menu order this item should appear.
+ * @param string    $page_title The text to be displayed in the title tags of the page when the menu is selected.
+ * @param string    $menu_title The text to be used for the menu.
+ * @param string    $capability The capability required for this menu to be displayed to the user.
+ * @param string    $menu_slug  The slug name to refer to this menu by. Should be unique for this menu page and only
+ *                              include lowercase alphanumeric, dashes, and underscores characters to be compatible
+ *                              with sanitize_key().
+ * @param callable  $function   Optional. The function to be called to output the content for this page.
+ * @param string    $icon_url   Optional. The URL to the icon to be used for this menu.
+ *                              * Pass a base64-encoded SVG using a data URI, which will be colored to match
+ *                                the color scheme. This should begin with 'data:image/svg+xml;base64,'.
+ *                              * Pass the name of a Dashicons helper class to use a font icon,
+ *                                e.g. 'dashicons-chart-pie'.
+ *                              * Pass 'none' to leave div.wp-menu-image empty so an icon can be added via CSS.
+ * @param int|float $position   Optional. The position in the menu order this item should appear.
  * @return string The resulting page's hook_suffix.
  */
 function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $icon_url = '', $position = null ) {
@@ -1323,27 +1323,22 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
 
 	$new_menu = array( $menu_title, $capability, $menu_slug, $page_title, 'menu-top ' . $icon_class . $hookname, $hookname, $icon_url );
 
-	if ( null === $position ) {
+	if ( null === $position || ! is_numeric( $position ) ) {
 		$menu[] = $new_menu;
-	} elseif ( isset( $menu[ "$position" ] ) ) {
-		$position            = $position + substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
-		$menu[ "$position" ] = $new_menu;
+	} elseif ( isset( $menu[ (string) $position ] ) ) {
+		$collision_avoider = base_convert( substr( md5( $menu_slug . $menu_title ), -4 ), 16, 10 ) * 0.00001;
+		$position          = (string) ( $position + $collision_avoider );
+		$menu[ $position ] = $new_menu;
 	} else {
-		if ( ! is_int( $position ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: add_menu_page() */
-					__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
-					'<code>add_menu_page()</code>'
-				),
-				'6.0.0'
-			);
-			// If the position is not a string (i.e. float), convert it to string.
-			if ( ! is_string( $position ) ) {
-				$position = (string) $position;
-			}
-		}
+		/*
+		 * Cast menu position to a string.
+		 *
+		 * This allows for floats to be passed as the position. PHP will normally cast a float to an
+		 * integer value, this ensures the float retains its mantissa (positive fractional part).
+		 *
+		 * A string containing an integer value, eg "10", is treated as a numeric index.
+		 */
+		$position          = (string) $position;
 		$menu[ $position ] = $new_menu;
 	}
 
@@ -1374,17 +1369,17 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
  * @global array $_registered_pages
  * @global array $_parent_pages
  *
- * @param string   $parent_slug The slug name for the parent menu (or the file name of a standard
- *                              WordPress admin page).
- * @param string   $page_title  The text to be displayed in the title tags of the page when the menu
- *                              is selected.
- * @param string   $menu_title  The text to be used for the menu.
- * @param string   $capability  The capability required for this menu to be displayed to the user.
- * @param string   $menu_slug   The slug name to refer to this menu by. Should be unique for this menu
- *                              and only include lowercase alphanumeric, dashes, and underscores characters
- *                              to be compatible with sanitize_key().
- * @param callable $function    Optional. The function to be called to output the content for this page.
- * @param int      $position    Optional. The position in the menu order this item should appear.
+ * @param string         $parent_slug The slug name for the parent menu (or the file name of a standard
+ *                                    WordPress admin page).
+ * @param string         $page_title  The text to be displayed in the title tags of the page when the menu
+ *                                    is selected.
+ * @param string         $menu_title  The text to be used for the menu.
+ * @param string         $capability  The capability required for this menu to be displayed to the user.
+ * @param string         $menu_slug   The slug name to refer to this menu by. Should be unique for this menu
+ *                                    and only include lowercase alphanumeric, dashes, and underscores characters
+ *                                    to be compatible with sanitize_key().
+ * @param callable       $function    Optional. The function to be called to output the content for this page.
+ * @param int|float      $position    Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
@@ -1418,43 +1413,43 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	}
 
 	$new_sub_menu = array( $menu_title, $capability, $menu_slug, $page_title );
-	if ( ! is_int( $position ) ) {
-		if ( null !== $position ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: add_submenu_page() */
-					__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
-					'<code>add_submenu_page()</code>'
-				),
-				'5.3.0'
-			);
-		}
 
+	if ( null !== $position && ! is_numeric( $position ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: add_submenu_page() */
+				__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
+				'<code>add_submenu_page()</code>'
+			),
+			'5.3.0'
+		);
+		$position = null;
+	}
+
+	if (
+		null === $position ||
+		( ! isset( $submenu[ $parent_slug ] ) || $position >= count( $submenu[ $parent_slug ] ) )
+	) {
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
-		// Append the submenu if the parent item is not present in the submenu,
-		// or if position is equal or higher than the number of items in the array.
-		if ( ! isset( $submenu[ $parent_slug ] ) || $position >= count( $submenu[ $parent_slug ] ) ) {
-			$submenu[ $parent_slug ][] = $new_sub_menu;
+		// Test for a negative position.
+		$position = max( $position, 0 );
+		if ( 0 === $position ) {
+			// For negative or `0` positions, prepend the submenu.
+			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
 		} else {
-			// Test for a negative position.
-			$position = max( $position, 0 );
-			if ( 0 === $position ) {
-				// For negative or `0` positions, prepend the submenu.
-				array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
-			} else {
-				// Grab all of the items before the insertion point.
-				$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
-				// Grab all of the items after the insertion point.
-				$after_items = array_slice( $submenu[ $parent_slug ], $position, null, true );
-				// Add the new item.
-				$before_items[] = $new_sub_menu;
-				// Merge the items.
-				$submenu[ $parent_slug ] = array_merge( $before_items, $after_items );
-			}
+			// Grab all of the items before the insertion point.
+			$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
+			// Grab all of the items after the insertion point.
+			$after_items = array_slice( $submenu[ $parent_slug ], $position, null, true );
+			// Add the new item.
+			$before_items[] = $new_sub_menu;
+			// Merge the items.
+			$submenu[ $parent_slug ] = array_merge( $before_items, $after_items );
 		}
 	}
+
 	// Sort the parent array.
 	ksort( $submenu[ $parent_slug ] );
 
@@ -1858,8 +1853,8 @@ function menu_page_url( $menu_slug, $echo = true ) {
  * @global string $parent_file
  * @global array  $menu
  * @global array  $submenu
- * @global string $pagenow
- * @global string $typenow
+ * @global string $pagenow              The filename of the current screen.
+ * @global string $typenow              The post type of the current screen.
  * @global string $plugin_page
  * @global array  $_wp_real_parent_file
  * @global array  $_wp_menu_nopriv
@@ -1947,16 +1942,16 @@ function get_admin_page_parent( $parent = '' ) {
  * @since 1.5.0
  *
  * @global string $title
- * @global array $menu
- * @global array $submenu
- * @global string $pagenow
+ * @global array  $menu
+ * @global array  $submenu
+ * @global string $pagenow     The filename of the current screen.
+ * @global string $typenow     The post type of the current screen.
  * @global string $plugin_page
- * @global string $typenow
  *
  * @return string The title of the current admin page.
  */
 function get_admin_page_title() {
-	global $title, $menu, $submenu, $pagenow, $plugin_page, $typenow;
+	global $title, $menu, $submenu, $pagenow, $typenow, $plugin_page;
 
 	if ( ! empty( $title ) ) {
 		return $title;
@@ -2084,7 +2079,7 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  *
  * @since 1.5.0
  *
- * @global string $pagenow
+ * @global string $pagenow            The filename of the current screen.
  * @global array  $menu
  * @global array  $submenu
  * @global array  $_wp_menu_nopriv
@@ -2467,7 +2462,7 @@ function resume_plugin( $plugin, $redirect = '' ) {
  *
  * @since 5.2.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  */
 function paused_plugins_notice() {
 	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
@@ -2500,8 +2495,8 @@ function paused_plugins_notice() {
  * @since 5.8.0
  * @access private
  *
- * @global string $pagenow
- * @global string $wp_version
+ * @global string $pagenow    The filename of the current screen.
+ * @global string $wp_version The WordPress version string.
  */
 function deactivated_plugins_notice() {
 	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {

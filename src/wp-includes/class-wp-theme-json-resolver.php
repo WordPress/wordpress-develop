@@ -151,14 +151,19 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Theme supports have been inlined and the `$theme_support_data` argument removed.
+	 * @since 6.0.0 Adds a second parameter to allow the theme data to be returned without theme supports.
 	 *
 	 * @param array $deprecated Deprecated. Not used.
+	 * @param array $options Contains a key called with_supports to determine whether to include theme supports in the data.
 	 * @return WP_Theme_JSON Entity that holds theme data.
 	 */
-	public static function get_theme_data( $deprecated = array() ) {
+	public static function get_theme_data( $deprecated = array(), $options = array() ) {
 		if ( ! empty( $deprecated ) ) {
 			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
+
+		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
+
 		if ( null === static::$theme ) {
 			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
 			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
@@ -175,6 +180,10 @@ class WP_Theme_JSON_Resolver {
 				$parent_theme->merge( static::$theme );
 				static::$theme = $parent_theme;
 			}
+		}
+
+		if ( ! $options['with_supports'] ) {
+			return static::$theme;
 		}
 
 		/*
@@ -208,6 +217,9 @@ class WP_Theme_JSON_Resolver {
 				$default_gradients = true;
 			}
 			$theme_support_data['settings']['color']['defaultGradients'] = $default_gradients;
+
+			// Classic themes without a theme.json don't support global duotone.
+			$theme_support_data['settings']['color']['defaultDuotone'] = false;
 		}
 		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
 		$with_theme_supports->merge( static::$theme );
@@ -447,6 +459,35 @@ class WP_Theme_JSON_Resolver {
 		static::$user_custom_post_type_id = null;
 		static::$theme_has_support        = null;
 		static::$i18n_schema              = null;
+	}
+
+	/**
+	 * Returns the style variations defined by the theme.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @return array
+	 */
+	public static function get_style_variations() {
+		$variations     = array();
+		$base_directory = get_stylesheet_directory() . '/styles';
+		if ( is_dir( $base_directory ) ) {
+			$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
+			$nested_html_files = iterator_to_array( new RegexIterator( $nested_files, '/^.+\.json$/i', RecursiveRegexIterator::GET_MATCH ) );
+			ksort( $nested_html_files );
+			foreach ( $nested_html_files as $path => $file ) {
+				$decoded_file = wp_json_file_decode( $path, array( 'associative' => true ) );
+				if ( is_array( $decoded_file ) ) {
+					$translated = static::translate( $decoded_file, wp_get_theme()->get( 'TextDomain' ) );
+					$variation  = ( new WP_Theme_JSON( $translated ) )->get_raw_data();
+					if ( empty( $variation['title'] ) ) {
+						$variation['title'] = basename( $path, '.json' );
+					}
+					$variations[] = $variation;
+				}
+			}
+		}
+		return $variations;
 	}
 
 }
