@@ -13,9 +13,9 @@
 					"linkDestination": "none"
 				},
 				"innerBlocks": [],
-				"innerHTML": "\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img\n\t\t\tsrc=\"https://cldup.com/uuUqE_dXzy.jpg\"\n\t\t\talt=\"Image gallery image\"\n\t\t\t/>\n\t</figure>\n\t",
+				"innerHTML": "\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img src=\"https://cldup.com/uuUqE_dXzy.jpg\" alt=\"Image gallery image\" />\n\t</figure>\n\t",
 				"innerContent": [
-					"\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img\n\t\t\tsrc=\"https://cldup.com/uuUqE_dXzy.jpg\"\n\t\t\talt=\"Image gallery image\"\n\t\t\t/>\n\t</figure>\n\t"
+					"\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img src=\"https://cldup.com/uuUqE_dXzy.jpg\" alt=\"Image gallery image\" />\n\t</figure>\n\t"
 				]
 			},
 			{
@@ -25,15 +25,15 @@
 					"linkDestination": "none"
 				},
 				"innerBlocks": [],
-				"innerHTML": "\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img\n\t\t\tsrc=\"http://google.com/hi.png\"\n\t\t\talt=\"Image gallery image\"\n\t\t/>\n\t</figure>\n\t",
+				"innerHTML": "\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img src=\"http://google.com/hi.png\" alt=\"Image gallery image\" />\n\t</figure>\n\t",
 				"innerContent": [
-					"\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img\n\t\t\tsrc=\"http://google.com/hi.png\"\n\t\t\talt=\"Image gallery image\"\n\t\t\t/>\n\t</figure>\n\t"
+					"\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img src=\"http://google.com/hi.png\" alt=\"Image gallery image\" />\n\t</figure>\n\t"
 				]
 			}
 		],
-		"innerHTML": "\n<figure\n\tclass=\"wp-block-gallery has-nested-images columns-default is-cropped columns-2\"\n>\n\t\n\n\t\n</figure>\n",
+		"innerHTML": "\n<figure class=\"wp-block-gallery has-nested-images is-cropped columns-1\" >\n\t\n\n\t\n</figure>\n",
 		"innerContent": [
-			"\n<figure\n\tclass=\"wp-block-gallery has-nested-images is-cropped columns-1\"\n>\n\t",
+			"\n<figure class=\"wp-block-gallery has-nested-images is-cropped columns-1\" >\n\t",
 			null,
 			"\n\n\t",
 			null,
@@ -41,4 +41,3 @@
 		]
 	}
 ]
-
