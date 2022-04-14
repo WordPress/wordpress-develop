@@ -2074,7 +2074,6 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 				'subject' => __( '[%s] New User Registration' ),
 				'message' => $message,
 				'headers' => '',
-				'send'    => true,
 			);
 
 			/**
@@ -2141,7 +2140,6 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			'subject' => __( '[%s] Login Details' ),
 			'message' => $message,
 			'headers' => '',
-			'send'    => true,
 		);
 
 		/**
