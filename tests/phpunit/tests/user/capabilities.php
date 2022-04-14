@@ -981,9 +981,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Update role.
+	 * @covers ::update_role
+	 * @ticket 54572
 	 */
-	public function test_update_role() {
+	public function test_update_role_creates_non_existent_roles() {
 		global $wp_roles;
 
 		// Create role if it does not exist.
@@ -998,6 +999,18 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		update_role( $role_name, 'Janitor', $expected_caps );
 		$this->flush_roles();
 		$this->assertTrue( $wp_roles->is_role( $role_name ) );
+	}
+
+	/**
+	 * @covers ::update_role
+	 * @ticket 54572
+	 */
+	function test_update_role_changes_role() {
+		global $wp_roles;
+		$role_name = 'janitor';
+
+		add_role( $role_name, 'Janitor', array( 'level_1' => true ) );
+		$this->flush_roles();
 
 		// Update both role name and capabilities.
 		$expected_display_name = 'Janitor Manager';
@@ -1008,22 +1021,84 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		update_role( $role_name, $expected_display_name, $new_expected_caps );
 		$this->flush_roles();
 
-		$this->assertEquals( $expected_display_name, $wp_roles->roles[ $role_name ]['name'] );
-		$this->assertEquals( $new_expected_caps, $wp_roles->roles[ $role_name ]['capabilities'] );
+		$this->assertSame( $expected_display_name, $wp_roles->roles[ $role_name ]['name'] );
+		$this->assertSame( $new_expected_caps, $wp_roles->roles[ $role_name ]['capabilities'] );
+
+		// Clean up.
+		remove_role( $role_name );
+		$this->flush_roles();
+		$this->assertFalse( $wp_roles->is_role( $role_name ) );
+	}
+
+	/**
+	 * @covers ::update_role
+	 * @ticket 54572
+	 */
+	function test_update_role_changes_role_display_name() {
+		global $wp_roles;
+		$role_name = 'janitor';
+
+		add_role( $role_name, 'Janitor', array( 'level_1' => true ) );
+		$this->flush_roles();
 
 		// Update role name only.
 		$expected_display_name = 'Janitor Executive';
 		update_role( $role_name, $expected_display_name );
 		$this->flush_roles();
 
-		$this->assertEquals( $expected_display_name, $wp_roles->roles[ $role_name ]['name'] );
-		$this->assertEquals( $new_expected_caps, $wp_roles->roles[ $role_name ]['capabilities'] );
+		$this->assertSame( $expected_display_name, $wp_roles->roles[ $role_name ]['name'] );
+		$this->assertSame( array( 'level_1' => true ), $wp_roles->roles[ $role_name ]['capabilities'] );
 
-		// Update empty capabilities only (proper null vs empty array handling).
-		update_role( $role_name, null, array() );
+		// Clean up.
+		remove_role( $role_name );
+		$this->flush_roles();
+		$this->assertFalse( $wp_roles->is_role( $role_name ) );
+	}
+
+	/**
+	 * @covers ::update_role
+	 * @ticket 54572
+	 */
+	function test_update_role_changes_role_capabilities() {
+		global $wp_roles;
+		$role_name = 'janitor';
+
+		add_role( $role_name, 'Janitor', array( 'level_1' => true ) );
 		$this->flush_roles();
 
-		$this->assertEmpty( $wp_roles->roles[ $role_name ]['capabilities'] );
+		// Update empty capabilities only (proper null vs empty array handling).
+		update_role( $role_name, null, array( 'level_2' => true ) );
+		$this->flush_roles();
+
+		$this->assertSame( 'Janitor', $wp_roles->roles[ $role_name ]['name'] );
+		$this->assertSame( array( 'level_2' => true ), $wp_roles->roles[ $role_name ]['capabilities'] );
+
+		// Clean up.
+		remove_role( $role_name );
+		$this->flush_roles();
+		$this->assertFalse( $wp_roles->is_role( $role_name ) );
+	}
+
+	/**
+	 * @covers ::update_role
+	 * @ticket 54572
+	 */
+	function test_update_role_changes_users_capabilities() {
+		global $wp_roles;
+		$role_name = 'janitor';
+
+		add_role( $role_name, 'Janitor', array( 'level_1' => true ) );
+		$this->flush_roles();
+
+		// Assign a user to the role.
+		$id = self::factory()->user->create( array( 'role' => $role_name ) );
+
+		// Update empty capabilities.
+		update_role( $role_name, null, array( 'level_2' => true ) );
+		$this->flush_roles();
+
+		$this->assertTrue( user_can( $id, 'level_2' ) );
+		$this->assertFalse( user_can( $id, 'level_1' ) );
 
 		// Clean up.
 		remove_role( $role_name );
