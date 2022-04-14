@@ -171,24 +171,28 @@ class WP_Roles {
 	}
 
 	/**
-	 * Update the existing role. If the role doesn't exist, add a new role.
+	 * Update an existing role. Create a new role if it doesn't exist.
 	 *
-	 * Updates the list of roles, if the role doesn't already exist.
+	 * Modify the display name and/or capabilities for an existing role. If the
+	 * role doesn't exist then a new role is created.
 	 *
-	 * For the capabilities format, @param string $role Role name.
+	 * The capabilities are defined in the following format `array( 'read' => true );`
+	 * To explicitly deny a role a capability you set the value for that capability to false.
 	 *
-	 * @param string|null $display_name Role display name.
+	 * @param string      $role         Role name.
+	 * @param string|null $display_name Role display name. If null, the display name is not modified. Optional, default null.
 	 * @param bool[]|null $capabilities List of capabilities keyed by the capability name,
 	 *                                  e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
 	 *                                  If null, don't alter capabilities for the existing role and make
-	 *                                  empty capabilities for the new one.
+	 *                                  empty capabilities for the new one. Optional, default null.
 	 *
-	 * @return WP_Role|void             WP_Role object, if role is added.
-	 * @see WP_Roles::add_role()
-	 *
+	 * @return WP_Role|void             WP_Role object.
 	 */
 	public function update_role( $role, $display_name = null, $capabilities = null ) {
-		if ( empty( $role ) || ( null === $display_name && null === $capabilities ) ) {
+		if ( null === $display_name && null === $capabilities ) {
+			if ( isset( $this->role_objects[ $role ] ) ) {
+				return $this->role_objects[ $role ];
+			}
 			return;
 		}
 
@@ -218,6 +222,7 @@ class WP_Roles {
 			unset( $this->roles[ $role ] );
 		}
 
+		// The roles database option will be updated in add_role();
 		return $this->add_role( $role, $display_name, $capabilities );
 	}
 

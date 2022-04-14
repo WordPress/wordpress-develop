@@ -850,18 +850,24 @@ function add_role( $role, $display_name, $capabilities = array() ) {
 }
 
 /**
- * Add role, if it does not exist. Update, if exists.
+ * Update an existing role. Create a new role if it doesn't exist.
  *
- * @param string $role Role name.
- * @param string|null $display_name Role display name.
+ * Modify the display name and/or capabilities for an existing role. If the
+ * role doesn't exist then a new role is created.
+ *
+ * The capabilities are defined in the following format `array( 'read' => true );`
+ * To explicitly deny a role a capability you set the value for that capability to false.
+ *
+ * @param string      $role         Role name.
+ * @param string|null $display_name Role display name. If null, the display name is not modified. Optional, default null.
  * @param bool[]|null $capabilities List of capabilities keyed by the capability name,
  *                                  e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
  *                                  If null, don't alter capabilities for the existing role and make
- *                                  empty capabilities for the new one.
+ *                                  empty capabilities for the new one. Optional, default null.
  *
- * @return WP_Role|null WP_Role object if role is added, null if already exists.
+ * @return WP_Role|void             WP_Role object.
  */
-function update_role( $role, $display_name, $capabilities = null ) {
+function update_role( $role, $display_name = null, $capabilities = null ) {
 	if ( empty( $role ) ) {
 		return;
 	}
