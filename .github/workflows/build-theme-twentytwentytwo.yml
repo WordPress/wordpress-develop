@@ -24,7 +24,7 @@ jobs:
   upload:
     name: Upload Twenty Twenty Two
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
