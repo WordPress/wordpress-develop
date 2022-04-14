@@ -1986,7 +1986,7 @@ function move_dir( $from, $to ) {
 			}
 		}
 
-		$result = copy_dir( $from, $to );
+		$result = copy_dir( $from, $to, array( basename( $to ) ) );
 	}
 
 	return $result;
