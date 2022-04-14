@@ -34,12 +34,12 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  *
  * @since 0.71
  *
- * @param string $before Optional. Markup to prepend to the title. Default empty.
- * @param string $after  Optional. Markup to append to the title. Default empty.
- * @param bool   $echo   Optional. Whether to echo or return the title. Default true for echo.
- * @return void|string Void if `$echo` argument is true, current post title if `$echo` is false.
+ * @param string $before  Optional. Markup to prepend to the title. Default empty.
+ * @param string $after   Optional. Markup to append to the title. Default empty.
+ * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
+ * @return void|string Void if `$display` argument is true, current post title if `$display` is false.
  */
-function the_title( $before = '', $after = '', $echo = true ) {
+function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
 	if ( strlen( $title ) == 0 ) {
@@ -48,7 +48,7 @@ function the_title( $before = '', $after = '', $echo = true ) {
 
 	$title = $before . $title . $after;
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $title;
 	} else {
 		return $title;
@@ -451,12 +451,12 @@ function has_excerpt( $post = 0 ) {
  *
  * @since 2.7.0
  *
- * @param string|string[] $class   One or more classes to add to the class list.
- * @param int|WP_Post     $post_id Optional. Post ID or post object. Defaults to the global `$post`.
+ * @param string|string[] $css_class One or more classes to add to the class list.
+ * @param int|WP_Post     $post_id   Optional. Post ID or post object. Defaults to the global `$post`.
  */
-function post_class( $class = '', $post_id = null ) {
+function post_class( $css_class = '', $post_id = null ) {
 	// Separates classes with a single space, collates classes for post DIV.
-	echo 'class="' . esc_attr( implode( ' ', get_post_class( $class, $post_id ) ) ) . '"';
+	echo 'class="' . esc_attr( implode( ' ', get_post_class( $css_class, $post_id ) ) ) . '"';
 }
 
 /**
@@ -471,28 +471,28 @@ function post_class( $class = '', $post_id = null ) {
  * The 'post_tag' taxonomy is a special
  * case; the class has the 'tag-' prefix instead of 'post_tag-'. All class names are
  * passed through the filter, {@see 'post_class'}, with the list of class names, followed by
- * $class parameter value, with the post ID as the last parameter.
+ * $css_class parameter value, with the post ID as the last parameter.
  *
  * @since 2.7.0
  * @since 4.2.0 Custom taxonomy class names were added.
  *
- * @param string|string[] $class   Space-separated string or array of class names to add to the class list.
- * @param int|WP_Post     $post_id Optional. Post ID or post object.
+ * @param string|string[] $css_class Space-separated string or array of class names to add to the class list.
+ * @param int|WP_Post     $post_id   Optional. Post ID or post object.
  * @return string[] Array of class names.
  */
-function get_post_class( $class = '', $post_id = null ) {
+function get_post_class( $css_class = '', $post_id = null ) {
 	$post = get_post( $post_id );
 
 	$classes = array();
 
-	if ( $class ) {
-		if ( ! is_array( $class ) ) {
-			$class = preg_split( '#\s+#', $class );
+	if ( $css_class ) {
+		if ( ! is_array( $css_class ) ) {
+			$css_class = preg_split( '#\s+#', $css_class );
 		}
-		$classes = array_map( 'esc_attr', $class );
+		$classes = array_map( 'esc_attr', $css_class );
 	} else {
 		// Ensure that we always coerce class to being an array.
-		$class = array();
+		$css_class = array();
 	}
 
 	if ( ! $post ) {
@@ -574,11 +574,11 @@ function get_post_class( $class = '', $post_id = null ) {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string[] $classes An array of post class names.
-	 * @param string[] $class   An array of additional class names added to the post.
-	 * @param int      $post_id The post ID.
+	 * @param string[] $classes   An array of post class names.
+	 * @param string[] $css_class An array of additional class names added to the post.
+	 * @param int      $post_id   The post ID.
 	 */
-	$classes = apply_filters( 'post_class', $classes, $class, $post->ID );
+	$classes = apply_filters( 'post_class', $classes, $css_class, $post->ID );
 
 	return array_unique( $classes );
 }
@@ -588,11 +588,11 @@ function get_post_class( $class = '', $post_id = null ) {
  *
  * @since 2.8.0
  *
- * @param string|string[] $class Space-separated string or array of class names to add to the class list.
+ * @param string|string[] $css_class Space-separated string or array of class names to add to the class list.
  */
-function body_class( $class = '' ) {
+function body_class( $css_class = '' ) {
 	// Separates class names with a single space, collates class names for body element.
-	echo 'class="' . esc_attr( implode( ' ', get_body_class( $class ) ) ) . '"';
+	echo 'class="' . esc_attr( implode( ' ', get_body_class( $css_class ) ) ) . '"';
 }
 
 /**
@@ -602,10 +602,10 @@ function body_class( $class = '' ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @param string|string[] $class Space-separated string or array of class names to add to the class list.
+ * @param string|string[] $css_class Space-separated string or array of class names to add to the class list.
  * @return string[] Array of class names.
  */
-function get_body_class( $class = '' ) {
+function get_body_class( $css_class = '' ) {
 	global $wp_query;
 
 	$classes = array();
@@ -813,14 +813,14 @@ function get_body_class( $class = '' ) {
 		}
 	}
 
-	if ( ! empty( $class ) ) {
-		if ( ! is_array( $class ) ) {
-			$class = preg_split( '#\s+#', $class );
+	if ( ! empty( $css_class ) ) {
+		if ( ! is_array( $css_class ) ) {
+			$css_class = preg_split( '#\s+#', $css_class );
 		}
-		$classes = array_merge( $classes, $class );
+		$classes = array_merge( $classes, $css_class );
 	} else {
 		// Ensure that we always coerce class to being an array.
-		$class = array();
+		$css_class = array();
 	}
 
 	$classes = array_map( 'esc_attr', $classes );
@@ -830,10 +830,10 @@ function get_body_class( $class = '' ) {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param string[] $classes An array of body class names.
-	 * @param string[] $class   An array of additional class names added to the body.
+	 * @param string[] $classes   An array of body class names.
+	 * @param string[] $css_class An array of additional class names added to the body.
 	 */
-	$classes = apply_filters( 'body_class', $classes, $class );
+	$classes = apply_filters( 'body_class', $classes, $css_class );
 
 	return array_unique( $classes );
 }
