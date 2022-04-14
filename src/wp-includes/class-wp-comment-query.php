@@ -444,10 +444,10 @@ class WP_Comment_Query {
 
 		/*
 		 * Only use the args defined in the query_var_defaults to compute the key,
-		 * but ignore 'fields', which does not affect query results.
+		 * but ignore 'fields', 'update_comment_meta_cache', 'update_comment_post_cache' which does not affect query results.
 		 */
 		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
-		unset( $_args['fields'] );
+		unset( $_args['fields'], $_args['update_comment_meta_cache'], $_args['update_comment_post_cache'] );
 
 		$key          = md5( serialize( $_args ) );
 		$last_changed = wp_cache_get_last_changed( 'comment' );
@@ -917,7 +917,7 @@ class WP_Comment_Query {
 
 		$where = implode( ' AND ', $this->sql_clauses['where'] );
 
-		$clauses = compact( 'fields', 'join', 'where', 'orderby', 'limits', 'groupby' );
+		$clauses = array( 'fields', 'join', 'where', 'orderby', 'limits', 'groupby' );
 
 		/**
 		 * Filters the comment query clauses.
@@ -927,7 +927,7 @@ class WP_Comment_Query {
 		 * @param string[]         $clauses An associative array of comment query clauses.
 		 * @param WP_Comment_Query $query   Current instance of WP_Comment_Query (passed by reference).
 		 */
-		$clauses = apply_filters_ref_array( 'comments_clauses', array( $clauses, &$this ) );
+		$clauses = apply_filters_ref_array( 'comments_clauses', array( compact( $clauses ), &$this ) );
 
 		$fields  = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
 		$join    = isset( $clauses['join'] ) ? $clauses['join'] : '';
