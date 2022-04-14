@@ -53,6 +53,8 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
+	 * @covers ::wp_restore_image_outer_container
 	 */
 	function test_outer_container_not_restored_for_non_aligned_image_block_with_non_themejson_theme() {
 		// The "default" theme doesn't have theme.json support.
@@ -69,6 +71,8 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
+	 * @covers ::wp_restore_image_outer_container
 	 */
 	function test_outer_container_restored_for_aligned_image_block_with_non_themejson_theme() {
 		// The "default" theme doesn't have theme.json support.
@@ -85,6 +89,8 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
+	 * @covers ::wp_restore_image_outer_container
 	 *
 	 * @dataProvider data_block_image_html_restored_outer_container
 	 *
@@ -143,6 +149,8 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
+	 * @covers ::wp_restore_image_outer_container
 	 */
 	function test_outer_container_not_restored_for_aligned_image_block_with_themejson_theme() {
 		switch_theme( 'block-theme' );

@@ -443,8 +443,18 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'order'        => 'DESC',
 				'orderby'      => 'title',
 				'post__not_in' => array( 1, 2 ),
-				'category__in' => array( 56 ),
-				'tag__in'      => array( 3, 11, 10 ),
+				'tax_query'    => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 56 ),
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 3, 11, 10 ),
+						'include_children' => false,
+					),
+				),
 			)
 		);
 	}
