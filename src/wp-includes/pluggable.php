@@ -2118,7 +2118,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		$send_notification_to_user = apply_filters( 'wp_send_new_user_notification_to_user', true, $user );
 
 		// `$deprecated` was pre-4.3 `$plaintext_pass`. An empty `$plaintext_pass` didn't sent a user notification.
-		if ( 'admin' === $notify || false === $send_notification_to_user || ( empty( $deprecated ) && empty( $notify ) ) ) {
+		if ( 'admin' === $notify || true !== $send_notification_to_user || ( empty( $deprecated ) && empty( $notify ) ) ) {
 			return;
 		}
 
