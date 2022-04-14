@@ -1892,6 +1892,9 @@ class wpdb {
 			}
 		}
 
+		// MySQLi port cannot be a string; must be null or an integer.
+		$port = $port ? absint( $port ) : null;
+
 		return array( $host, $port, $socket, $is_ipv6 );
 	}
 
