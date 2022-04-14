@@ -16,7 +16,7 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 	public function test_wp_referer_field() {
 
 		$_SERVER['REQUEST_URI'] = '/test/';
-		 ();
+		wp_referer_field();
 		$this->expectOutputRegex( '#^<input type="hidden" name="_wp_http_referer" value="/test/" />$#' );
 	}
 
