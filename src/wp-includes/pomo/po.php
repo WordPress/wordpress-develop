@@ -110,10 +110,10 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Formats a string in PO-style
 		 *
-		 * @param string $string the string to format
+		 * @param string $text the string to format
 		 * @return string the poified string
 		 */
-		public static function poify( $string ) {
+		public static function poify( $text ) {
 			$quote   = '"';
 			$slash   = '\\';
 			$newline = "\n";
@@ -124,12 +124,12 @@ if ( ! class_exists( 'PO', false ) ) :
 				"\t"     => '\t',
 			);
 
-			$string = str_replace( array_keys( $replaces ), array_values( $replaces ), $string );
+			$text = str_replace( array_keys( $replaces ), array_values( $replaces ), $text );
 
-			$po = $quote . implode( "${slash}n$quote$newline$quote", explode( $newline, $string ) ) . $quote;
+			$po = $quote . implode( "${slash}n$quote$newline$quote", explode( $newline, $text ) ) . $quote;
 			// Add empty string on first line for readbility.
-			if ( false !== strpos( $string, $newline ) &&
-				( substr_count( $string, $newline ) > 1 || substr( $string, -strlen( $newline ) ) !== $newline ) ) {
+			if ( false !== strpos( $text, $newline ) &&
+				( substr_count( $text, $newline ) > 1 || substr( $text, -strlen( $newline ) ) !== $newline ) ) {
 				$po = "$quote$quote$newline$po";
 			}
 			// Remove empty strings.
@@ -140,17 +140,17 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Gives back the original string from a PO-formatted string
 		 *
-		 * @param string $string PO-formatted string
+		 * @param string $text PO-formatted string
 		 * @return string enascaped string
 		 */
-		public static function unpoify( $string ) {
+		public static function unpoify( $text ) {
 			$escapes               = array(
 				't'  => "\t",
 				'n'  => "\n",
 				'r'  => "\r",
 				'\\' => '\\',
 			);
-			$lines                 = array_map( 'trim', explode( "\n", $string ) );
+			$lines                 = array_map( 'trim', explode( "\n", $text ) );
 			$lines                 = array_map( array( 'PO', 'trim_quotes' ), $lines );
 			$unpoified             = '';
 			$previous_is_backslash = false;
@@ -178,18 +178,18 @@ if ( ! class_exists( 'PO', false ) ) :
 		}
 
 		/**
-		 * Inserts $with in the beginning of every new line of $string and
+		 * Inserts $with in the beginning of every new line of $text and
 		 * returns the modified string
 		 *
-		 * @param string $string prepend lines in this string
+		 * @param string $text prepend lines in this string
 		 * @param string $with prepend lines with this string
 		 */
-		public static function prepend_each_line( $string, $with ) {
-			$lines  = explode( "\n", $string );
+		public static function prepend_each_line( $text, $with ) {
+			$lines  = explode( "\n", $text );
 			$append = '';
-			if ( "\n" === substr( $string, -1 ) && '' === end( $lines ) ) {
+			if ( "\n" === substr( $text, -1 ) && '' === end( $lines ) ) {
 				/*
-				 * Last line might be empty because $string was terminated
+				 * Last line might be empty because $text was terminated
 				 * with a newline, remove it from the $lines array,
 				 * we'll restore state by re-terminating the string at the end.
 				 */

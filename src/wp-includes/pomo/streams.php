@@ -83,46 +83,46 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		}
 
 		/**
-		 * @param string $string
+		 * @param string $text
 		 * @param int    $start
 		 * @param int    $length
 		 * @return string
 		 */
-		public function substr( $string, $start, $length ) {
+		public function substr( $text, $start, $length ) {
 			if ( $this->is_overloaded ) {
-				return mb_substr( $string, $start, $length, 'ascii' );
+				return mb_substr( $text, $start, $length, 'ascii' );
 			} else {
-				return substr( $string, $start, $length );
+				return substr( $text, $start, $length );
 			}
 		}
 
 		/**
-		 * @param string $string
+		 * @param string $text
 		 * @return int
 		 */
-		public function strlen( $string ) {
+		public function strlen( $text ) {
 			if ( $this->is_overloaded ) {
-				return mb_strlen( $string, 'ascii' );
+				return mb_strlen( $text, 'ascii' );
 			} else {
-				return strlen( $string );
+				return strlen( $text );
 			}
 		}
 
 		/**
-		 * @param string $string
+		 * @param string $text
 		 * @param int    $chunk_size
 		 * @return array
 		 */
-		public function str_split( $string, $chunk_size ) {
+		public function str_split( $text, $chunk_size ) {
 			if ( ! function_exists( 'str_split' ) ) {
-				$length = $this->strlen( $string );
+				$length = $this->strlen( $text );
 				$out    = array();
 				for ( $i = 0; $i < $length; $i += $chunk_size ) {
-					$out[] = $this->substr( $string, $i, $chunk_size );
+					$out[] = $this->substr( $text, $i, $chunk_size );
 				}
 				return $out;
 			} else {
-				return str_split( $string, $chunk_size );
+				return str_split( $text, $chunk_size );
 			}
 		}
 
