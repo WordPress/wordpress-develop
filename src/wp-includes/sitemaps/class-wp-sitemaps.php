@@ -250,11 +250,11 @@ class WP_Sitemaps {
 	 * @since 5.5.0
 	 *
 	 * @param string $output robots.txt output.
-	 * @param bool   $public Whether the site is public.
+	 * @param bool   $status Whether the site is public.
 	 * @return string The robots.txt output.
 	 */
-	public function add_robots( $output, $public ) {
-		if ( $public ) {
+	public function add_robots( $output, $status ) {
+		if ( $status ) {
 			$output .= "\nSitemap: " . esc_url( $this->index->get_index_url() ) . "\n";
 		}
 
