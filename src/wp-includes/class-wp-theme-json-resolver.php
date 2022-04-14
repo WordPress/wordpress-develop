@@ -123,7 +123,7 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Return core's origin config.
+	 * Returns core's origin config.
 	 *
 	 * @since 5.8.0
 	 *
@@ -350,12 +350,13 @@ class WP_Theme_JSON_Resolver {
 	 * default, theme, and custom. The custom's has higher priority
 	 * than the theme's, and the theme's higher than default's.
 	 *
-	 * Unlike the getters {@link get_core_data},
-	 * {@link get_theme_data}, and {@link get_user_data},
-	 * this method returns data after it has been merged
-	 * with the previous origins. This means that if the same piece of data
-	 * is declared in different origins (user, theme, and core),
-	 * the last origin overrides the previous.
+	 * Unlike the getters
+	 * {@link https://developer.wordpress.org/reference/classes/wp_theme_json_resolver/get_core_data/ get_core_data},
+	 * {@link https://developer.wordpress.org/reference/classes/wp_theme_json_resolver/get_theme_data/ get_theme_data},
+	 * and {@link https://developer.wordpress.org/reference/classes/wp_theme_json_resolver/get_user_data/ get_user_data},
+	 * this method returns data after it has been merged with the previous origins.
+	 * This means that if the same piece of data is declared in different origins
+	 * (user, theme, and core), the last origin overrides the previous.
 	 *
 	 * For example, if the user has set a background color
 	 * for the paragraph block, and the theme has done it as well,
@@ -408,7 +409,7 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Whether the active theme has a theme.json file.
+	 * Determines whether the active theme has a theme.json file.
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added a check in the parent theme.

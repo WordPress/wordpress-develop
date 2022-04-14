@@ -38,7 +38,10 @@ class Tests_Ajax_AddTag extends WP_Ajax_UnitTestCase {
 			unset( $e );
 		}
 
+		// The response message is in the `data` property in WP 5.9.
 		$this->assertSame( $expected, (string) $this->get_xml_response_taxonomy()->response_data );
+		// The response message is in the `supplemental->notice` property in WP 6.0+.
+		$this->assertSame( $expected, (string) $this->get_xml_response_taxonomy()->supplemental->notice );
 	}
 
 	/**
