@@ -31,11 +31,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
 
-      - name: Generate zip
-        run: zip -r 'src/wp-content/themes/twentytwentytwo.zip' 'src/wp-content/themes/twentytwentytwo'
-
       - name: Upload artifact
         uses: actions/upload-artifact@e448a9b857ee2131e752b06002bf0e093c65e571 # v2.2.2
         with:
-          name: Twenty Twenty Two
-          path: 'src/wp-content/themes/twentytwentytwo.zip'
+          name: twentytwentytwo
+          path: 'src/wp-content/themes/twentytwentytwo'
