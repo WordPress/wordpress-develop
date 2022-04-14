@@ -2054,6 +2054,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 *
 		 * @since 6.0.0
 		 *
+		 * @param bool    $send Whether to send the email. Default true.
 		 * @param WP_User $user User object for new user.
 		 */
 		$send_notification_to_admin = apply_filters( 'wp_send_new_user_notification_to_admin', true, $user );
@@ -2111,6 +2112,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 *
 		 * @since 6.0.0
 		 *
+		 * @param bool    $send Whether to send the email. Default true.
 		 * @param WP_User $user User object for new user.
 		 */
 		$send_notification_to_user = apply_filters( 'wp_send_new_user_notification_to_user', true, $user );
