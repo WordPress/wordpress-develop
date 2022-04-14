@@ -185,7 +185,6 @@ class WP_Roles {
 	 *                                  e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
 	 *                                  If null, don't alter capabilities for the existing role and make
 	 *                                  empty capabilities for the new one. Optional, default null.
-	 *
 	 * @return WP_Role|void             WP_Role object.
 	 */
 	public function update_role( $role, $display_name = null, $capabilities = null ) {
