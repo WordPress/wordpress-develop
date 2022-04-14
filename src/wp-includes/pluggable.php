@@ -2056,7 +2056,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 *
 		 * @param WP_User $user User object for new user.
 		 */
-		$send_notification_to_admin = apply_filters( 'send_new_user_notification_email_to_admin', true, $user );
+		$send_notification_to_admin = apply_filters( 'wp_send_new_user_notification_to_admin', true, $user );
 
 		if ( 'user' !== $notify && true === $send_notification_to_admin ) {
 			$switched_locale = switch_to_locale( get_locale() );
@@ -2114,7 +2114,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 *
 		 * @param WP_User $user User object for new user.
 		 */
-		$send_notification_to_user = apply_filters( 'send_new_user_notification_email_to_user', true, $user );
+		$send_notification_to_user = apply_filters( 'wp_send_new_user_notification_to_user', true, $user );
 
 		// `$deprecated` was pre-4.3 `$plaintext_pass`. An empty `$plaintext_pass` didn't sent a user notification.
 		if ( 'admin' === $notify || false === $send_notification_to_user || ( empty( $deprecated ) && empty( $notify ) ) ) {
