@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for the wp_referer_field() function.
+ * Tests for the wp_nonce_field() function.
  *
  * @since 6.0.0
  *
