@@ -38,6 +38,19 @@ npm run env:install
 
 Your WordPress site will accessible at http://localhost:8889. You can see or change configurations in the `.env` file located at the root of the project directory.
 
+#### For Mac M1 users and ARM architectures
+
+You can add a new file named `docker-compose.override.yml` at the root of the installation to customize the docker-compose configuration:
+
+```
+# docker-compose.override.yml
+services:
+  mysql:
+    platform: linux/amd64
+```
+
+This pulls the appropriate mysql image to run the local environnment.
+
 #### To watch for changes
 
 If you're making changes to WordPress core files, you should start the file watcher in order to build or copy the files as necessary:
