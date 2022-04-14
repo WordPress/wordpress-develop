@@ -2050,7 +2050,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
 		/**
-		 * Filters whether the Admin notification about a new user registration should be send or not.
+		 * Filters whether the Admin is notified of a new user registration.
 		 *
 		 * @since 6.0.0
 		 *
@@ -2108,7 +2108,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		}
 
 		/**
-		 * Filters whether the User notification about a new user registration should be send or not.
+		 * Filters whether the User is notified of a new user registration.
 		 *
 		 * @since 6.0.0
 		 *
