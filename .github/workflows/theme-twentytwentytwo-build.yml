@@ -1,0 +1,41 @@
+name: Package Twenty Twenty Two
+
+on:
+  pull_request:
+    branches:
+      - trunk
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    paths:
+      - 'src/wp-content/themes/twentytwentytwo/'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  # If Twenty Twenty Two theme is modified, build a .zip for easy testing.
+  upload:
+    name: Upload Twenty Twenty Two
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+
+      - name: Generate zip
+        run: zip -r 'src/wp-content/themes/twentytwentytwo.zip' 'src/wp-content/themes/twentytwentytwo'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@e448a9b857ee2131e752b06002bf0e093c65e571 # v2.2.2
+        with:
+          name: Twenty Twenty Two
+          path: 'src/wp-content/themes/twentytwentytwo.zip'
