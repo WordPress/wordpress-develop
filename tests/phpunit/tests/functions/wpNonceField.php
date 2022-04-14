@@ -26,7 +26,7 @@ class Tests_Functions_wpNonceField extends WP_UnitTestCase {
 	 */
 	public function test_wp_nonce_field_return( $action, $name, $referer, $expected_reg_exp ) {
 
-		$this->assertMatchesRegularExpression( $expected_reg_exp, wp_nonce_field( $action, $name, $referer, false )	);
+		$this->assertMatchesRegularExpression( $expected_reg_exp, wp_nonce_field( $action, $name, $referer, false ) );
 	}
 
 	/**
