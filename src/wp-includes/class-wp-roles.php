@@ -171,6 +171,57 @@ class WP_Roles {
 	}
 
 	/**
+	 * Update the existing role. If the role doesn't exist, add a new role.
+	 *
+	 * Updates the list of roles, if the role doesn't already exist.
+	 *
+	 * For the capabilities format, @param string $role Role name.
+	 *
+	 * @param string|null $display_name Role display name.
+	 * @param bool[]|null $capabilities List of capabilities keyed by the capability name,
+	 *                                  e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
+	 *                                  If null, don't alter capabilities for the existing role and make
+	 *                                  empty capabilities for the new one.
+	 *
+	 * @return WP_Role|void             WP_Role object, if role is added.
+	 * @see WP_Roles::add_role()
+	 *
+	 */
+	public function update_role( $role, $display_name = null, $capabilities = null ) {
+		if ( empty( $role ) || ( null === $display_name && null === $capabilities ) ) {
+			return;
+		}
+
+		if ( null === $display_name ) {
+			if ( isset( $this->role_objects[ $role ] ) ) {
+				$display_name = $this->roles[ $role ]['name'];
+			} else {
+				return;
+			}
+		}
+
+		if ( null === $capabilities ) {
+			if ( isset( $this->role_objects[ $role ] ) ) {
+				$capabilities = $this->role_objects[ $role ]->capabilities;
+			} else {
+				$capabilities = array();
+			}
+		}
+
+		if ( isset( $this->roles[ $role ] ) ) {
+			if ( null === $capabilities ) {
+				$capabilities = $this->role_objects[ $role ]->capabilities;
+			}
+
+			unset( $this->role_objects[ $role ] );
+			unset( $this->role_names[ $role ] );
+			unset( $this->roles[ $role ] );
+		}
+
+		return $this->add_role( $role, $display_name, $capabilities );
+	}
+
+	/**
 	 * Remove role by name.
 	 *
 	 * @since 2.0.0

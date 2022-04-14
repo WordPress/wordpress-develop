@@ -981,6 +981,57 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Update role.
+	 */
+	public function test_update_role() {
+		global $wp_roles;
+
+		// Create role if it does not exist.
+		$role_name     = 'janitor';
+		$expected_caps = array(
+			'edit_posts' => true,
+			'edit_pages' => true,
+			'level_0'    => true,
+			'level_1'    => true,
+			'level_2'    => true,
+		);
+		update_role( $role_name, 'Janitor', $expected_caps );
+		$this->flush_roles();
+		$this->assertTrue( $wp_roles->is_role( $role_name ) );
+
+		// Update both role name and capabilities.
+		$expected_display_name = 'Janitor Manager';
+		$new_expected_caps     = array(
+			'level_3' => true,
+			'level_4' => true,
+		);
+		update_role( $role_name, $expected_display_name, $new_expected_caps );
+		$this->flush_roles();
+
+		$this->assertEquals( $expected_display_name, $wp_roles->roles[ $role_name ]['name'] );
+		$this->assertEquals( $new_expected_caps, $wp_roles->roles[ $role_name ]['capabilities'] );
+
+		// Update role name only.
+		$expected_display_name = 'Janitor Executive';
+		update_role( $role_name, $expected_display_name );
+		$this->flush_roles();
+
+		$this->assertEquals( $expected_display_name, $wp_roles->roles[ $role_name ]['name'] );
+		$this->assertEquals( $new_expected_caps, $wp_roles->roles[ $role_name ]['capabilities'] );
+
+		// Update empty capabilities only (proper null vs empty array handling).
+		update_role( $role_name, null, array() );
+		$this->flush_roles();
+
+		$this->assertEmpty( $wp_roles->roles[ $role_name ]['capabilities'] );
+
+		// Clean up.
+		remove_role( $role_name );
+		$this->flush_roles();
+		$this->assertFalse( $wp_roles->is_role( $role_name ) );
+	}
+
+	/**
 	 * Change the capabilites associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */
