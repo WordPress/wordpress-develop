@@ -1,12 +1,23 @@
 name: Package Twenty Twenty Two
 
 on:
+  push:
+    branches:
+      - trunk
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    paths:
+      # Twenty Twenty Two theme path
+      - 'src/wp-content/themes/twentytwentytwo/'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
   pull_request:
     branches:
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
     paths:
+      # Twenty Twenty Two theme path
       - 'src/wp-content/themes/twentytwentytwo/'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/*.yml'
