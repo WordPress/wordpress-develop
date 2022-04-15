@@ -1846,6 +1846,11 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
 			}
 
+			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
+			if ( false === strpos( $filtered_image, ' decoding=' ) ) {
+				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
+			}
+
 			/**
 			 * Filters an img tag within the content for a given context.
 			 *
@@ -1856,11 +1861,6 @@ function wp_filter_content_tags( $content, $context = null ) {
 			 * @param int    $attachment_id  The image attachment ID. May be 0 in case the image is not an attachment.
 			 */
 			$filtered_image = apply_filters( 'wp_content_img_tag', $filtered_image, $context, $attachment_id );
-
-			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
-			if ( false === strpos( $filtered_image, ' decoding=' ) ) {
-				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
-			}
 
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
