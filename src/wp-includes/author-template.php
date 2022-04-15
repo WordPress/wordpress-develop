@@ -99,7 +99,7 @@ function get_the_modified_author() {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $display_name The author's display name.
+		 * @param string $display_name The author's display name, empty string if unkown.
 		 */
 		return apply_filters( 'the_modified_author', $last_user ? $last_user->display_name : '' );
 	}
