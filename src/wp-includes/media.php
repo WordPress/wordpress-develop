@@ -1859,7 +1859,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 
 			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
 			if ( false === strpos( $filtered_image, ' decoding=' ) ) {
-				$filtered_image = wp_img_tag_add_decoding_async_attr( $filtered_image, $context );
+				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
 			}
 
 			if ( $filtered_image !== $match[0] ) {
@@ -1959,7 +1959,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  * @param string $context Additional context to pass to the filters.
  * @return string Converted `img` tag with `decoding` attribute added.
  */
-function wp_img_tag_add_decoding_async_attr( $image, $context ) {
+function wp_img_tag_add_decoding_attr( $image, $context ) {
 	/**
 	 * Filters the `decoding` attribute value to add to an image. Default `async`.
 	 *
