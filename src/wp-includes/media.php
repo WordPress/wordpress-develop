@@ -1011,16 +1011,18 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  * @param string|array $attr {
  *     Optional. Attributes for the image markup.
  *
- *     @type string       $src     Image attachment URL.
- *     @type string       $class   CSS class name or space-separated list of classes.
- *                                 Default `attachment-$size_class size-$size_class`,
- *                                 where `$size_class` is the image size being requested.
- *     @type string       $alt     Image description for the alt attribute.
- *     @type string       $srcset  The 'srcset' attribute value.
- *     @type string       $sizes   The 'sizes' attribute value.
- *     @type string|false $loading The 'loading' attribute value. Passing a value of false
- *                                 will result in the attribute being omitted for the image.
- *                                 Defaults to 'lazy', depending on wp_lazy_loading_enabled().
+ *     @type string       $src      Image attachment URL.
+ *     @type string       $class    CSS class name or space-separated list of classes.
+ *                                  Default `attachment-$size_class size-$size_class`,
+ *                                  where `$size_class` is the image size being requested.
+ *     @type string       $alt      Image description for the alt attribute.
+ *     @type string       $srcset   The 'srcset' attribute value.
+ *     @type string       $sizes    The 'sizes' attribute value.
+ *     @type string|false $loading  The 'loading' attribute value. Passing a value of false
+ *                                  will result in the attribute being omitted for the image.
+ *                                  Defaults to 'lazy', depending on wp_lazy_loading_enabled().
+ *     @type string       $decoding The 'decoding' attribute value. Possible values are
+ *                                  'async' (default), 'sync', or 'auto'.
  * }
  * @return string HTML img element or empty string on failure.
  */
@@ -1040,9 +1042,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 
 		$default_attr = array(
-			'src'   => $src,
-			'class' => "attachment-$size_class size-$size_class",
-			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
+			'src'      => $src,
+			'class'    => "attachment-$size_class size-$size_class",
+			'alt'      => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
+			'decoding' => 'async',
 		);
 
 		// Add `loading` attribute.
@@ -1076,9 +1079,6 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 				}
 			}
 		}
-
-		// Add a `decoding` attribute.
-		$attr['decoding'] = 'async';
 
 		/**
 		 * Filters the list of attachment image attributes.
