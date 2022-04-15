@@ -822,11 +822,20 @@ switch ( $action ) {
 			$user_login = wp_unslash( $_POST['user_login'] );
 		}
 
+		/**
+		 * Filters the label for the "Username or Email Address" field on the login page.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string $username_label The label for the "Username or Email Address" field.
+		 */
+		$username_label = apply_filters( 'lostpassword_username_label', __( 'Username or Email Address' ) );
+
 		?>
 
 		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
 			<p>
-				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
+				<label for="user_login"><?php echo esc_html( $username_label ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" />
 			</p>
 			<?php
@@ -838,19 +847,46 @@ switch ( $action ) {
 			 */
 			do_action( 'lostpassword_form' );
 
+			/**
+			 * Filters the label for the "Get New Password" button on the lost password page.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $new_password_label The label for the "Get New Password" button.
+			 */
+			$new_password_label = apply_filters( 'lostpassword_new_password_label', __( 'Get New Password' ) );
+
+			/**
+			 * Filters the label for the "Log in" link on the lost password page.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $log_in_link_label The label for the "Log in" link.
+			 */
+			$log_in_link_label = apply_filters( 'lostpassword_log_in_link_label', __( 'Log in' ) );
+
+			/**
+			 * Filters the label for the "Register" link on the lost password page.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $register_link_label The label for the "Log in" link.
+			 */
+			$register_link_label = apply_filters( 'lostpassword_register_link_label', __( 'Register' ) );
+
 			?>
 			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Get New Password' ); ?>" />
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php echo esc_attr( $new_password_label ); ?>" />
 			</p>
 		</form>
 
 		<p id="nav">
-			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php echo esc_html( $log_in_link_label ); ?></a>
 			<?php
 
 			if ( get_option( 'users_can_register' ) ) {
-				$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+				$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), esc_html( $register_link_label ) );
 
 				echo esc_html( $login_link_separator );
 
@@ -1064,16 +1100,70 @@ switch ( $action ) {
 		 */
 		$redirect_to = apply_filters( 'registration_redirect', $registration_redirect, $errors );
 
+		/**
+		 * Filters the label for the label for the "Username" field the register page.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string $username_label The label for the "Username" field.
+		 */
+		$username_label = apply_filters( 'register_username_label', __( 'Username' ) );
+
+		/**
+		 * Filters the label for the label for the "Email" field the register page.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string $email_label The label for the "Email" field.
+		 */
+		$email_label = apply_filters( 'register_email_label', __( 'Email' ) );
+
+		/**
+		 * Filters the label for the label for the "Register" button the register page.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string $register_button_label The label for the "Register" button.
+		 */
+		$register_button_label = apply_filters( 'register_button_label', __( 'Register' ) );
+
+		/**
+		 * Filters the registration confirmation message the register page.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string $confirmation_message The registration confirmation message.
+		 */
+		$confirmation_message = apply_filters( 'register_confirmation_message', __( 'Registration confirmation will be emailed to you.' ) );
+
+				/**
+		 * Filters the label for the "Log in" link on the register page.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string $log_in_link_label The label for the "Log in" link.
+		 */
+		$log_in_link_label = apply_filters( 'register_log_in_link_label', __( 'Log in' ) );
+
+		/**
+		 * Filters the label for the label for the "Lost your password?" link on the register page.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string $lost_password_link_label The label for the "Lost your password?" link.
+		 */
+		$lost_password_link_label = apply_filters( 'register_lost_password_link_label', __( 'Lost your password?' ) );
+
 		login_header( __( 'Registration Form' ), '<p class="message register">' . __( 'Register For This Site' ) . '</p>', $errors );
 
 		?>
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
 			<p>
-				<label for="user_login"><?php _e( 'Username' ); ?></label>
+				<label for="user_login"><?php echo esc_html( $username_label ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( wp_unslash( $user_login ) ); ?>" size="20" autocapitalize="off" autocomplete="username" />
 			</p>
 			<p>
-				<label for="user_email"><?php _e( 'Email' ); ?></label>
+				<label for="user_email"><?php echo esc_html( $email_label ); ?></label>
 				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr( wp_unslash( $user_email ) ); ?>" size="25" autocomplete="email" />
 			</p>
 			<?php
@@ -1087,19 +1177,19 @@ switch ( $action ) {
 
 			?>
 			<p id="reg_passmail">
-				<?php _e( 'Registration confirmation will be emailed to you.' ); ?>
+				<?php echo esc_html( $confirmation_message ); ?>
 			</p>
 			<br class="clear" />
 			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Register' ); ?>" />
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php echo esc_attr( $register_button_label ); ?>" />
 			</p>
 		</form>
 
 		<p id="nav">
-			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php echo esc_html( $log_in_link_label ); ?></a>
 				<?php echo esc_html( $login_link_separator ); ?>
-			<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php _e( 'Lost your password?' ); ?></a>
+			<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php echo esc_html( $lost_password_link_label ); ?></a>
 		</p>
 		<?php
 
@@ -1391,17 +1481,35 @@ switch ( $action ) {
 			$aria_describedby_error = '';
 		}
 
+		/**
+		 * Filters the label for the "Username or Email Address" field on the login page.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string $username_label The label for the "Username or Email Address" field.
+		 */
+		$username_label = apply_filters( 'login_username_label', __( 'Username or Email Address' ) );
+
+		/**
+		 * Filters the label for the "Password" field on the login page.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string $password_label The label for the "Password" field.
+		 */
+		$password_label = apply_filters( 'login_password_label', __( 'Password' ) );
+
 		wp_enqueue_script( 'user-profile' );
 		?>
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
 			<p>
-				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
+				<label for="user_login"><?php echo esc_html( $username_label ); ?></label>
 				<input type="text" name="log" id="user_login"<?php echo $aria_describedby_error; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" />
 			</p>
 
 			<div class="user-pass-wrap">
-				<label for="user_pass"><?php _e( 'Password' ); ?></label>
+				<label for="user_pass"><?php echo esc_html( $password_label ); ?></label>
 				<div class="wp-pwd">
 					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby_error; ?> class="input password-input" value="" size="20" autocomplete="current-password" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
@@ -1418,10 +1526,28 @@ switch ( $action ) {
 			 */
 			do_action( 'login_form' );
 
+			/**
+			 * Filters the label for the "Remember Me" checkbox on the login page.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $remember_me_label The label for the "Remember Me" checkbox.
+			 */
+			$remember_me_label = apply_filters( 'login_remember_me_label', __( 'Remember Me' ) );
+
+			/**
+			 * Filters the label for the "Log In" button on the login page.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $log_in_button_label The label for the "Log In" button.
+			 */
+			$log_in_button_label = apply_filters( 'login_log_in_button_label', __( 'Log In' ) );
+
 			?>
-			<p class="forgetmenot"><input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked( $rememberme ); ?> /> <label for="rememberme"><?php esc_html_e( 'Remember Me' ); ?></label></p>
+			<p class="forgetmenot"><input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked( $rememberme ); ?> /> <label for="rememberme"><?php echo esc_html( $remember_me_label ); ?></label></p>
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Log In' ); ?>" />
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php echo esc_attr( $log_in_button_label ); ?>" />
 				<?php
 
 				if ( $interim_login ) {
@@ -1448,12 +1574,29 @@ switch ( $action ) {
 		<?php
 
 		if ( ! $interim_login ) {
+			/**
+			 * Filters the label for the label for the "Register" link on the login page.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $register_link_label The label for the "Register" link.
+			 */
+			$register_link_label = apply_filters( 'login_register_link_label', __( 'Register' ) );
+
+			/**
+			 * Filters the label for the label for the "Lost your password?" link on the login page.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $lost_password_link_label The label for the "Lost your password?" link.
+			 */
+			$lost_password_link_label = apply_filters( 'login_lost_password_link_label', __( 'Lost your password?' ) );
 			?>
 			<p id="nav">
 				<?php
 
 				if ( get_option( 'users_can_register' ) ) {
-					$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+					$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), esc_html( $register_link_label ) );
 
 					/** This filter is documented in wp-includes/general-template.php */
 					echo apply_filters( 'register', $registration_url );
@@ -1462,7 +1605,7 @@ switch ( $action ) {
 				}
 
 				?>
-				<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php _e( 'Lost your password?' ); ?></a>
+				<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php echo esc_html( $lost_password_link_label ); ?></a>
 			</p>
 			<?php
 		}
