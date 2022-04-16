@@ -4,11 +4,38 @@
  * @group taxonomy
  */
 class Tests_Term_getTerms extends WP_UnitTestCase {
+
+	protected static $taxonomy = 'wptests_tax_3';
+
 	public function set_up() {
 		parent::set_up();
 
+		register_taxonomy( self::$taxonomy, 'post', array( 'hierarchical' => true ) );
+
 		_clean_term_filters();
 		wp_cache_delete( 'last_changed', 'terms' );
+	}
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		register_taxonomy( self::$taxonomy, 'page', array( 'hierarchical' => true ) );
+		$term_id1 = $factory->term->create(
+			array(
+				'name'     => 'Foo',
+				'slug'     => 'Foo',
+				'taxonomy' => self::$taxonomy,
+			)
+		);
+		$term_id2 = $factory->term->create(
+			array(
+				'name'     => 'Bar',
+				'slug'     => 'bar',
+				'taxonomy' => self::$taxonomy,
+			)
+		);
+		$posts    = $factory->post->create_many( 3, array( 'post_type' => 'page' ) );
+		foreach ( $posts as $i => $post ) {
+			wp_set_object_terms( $post, array( $term_id1, $term_id2 ), self::$taxonomy );
+		}
 	}
 
 	/**
@@ -2986,6 +3013,214 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( array( $term_id ), wp_list_pluck( $found, 'term_id' ) );
+	}
+
+
+	/**
+	 * @ticket 55352
+	 */
+	public function test_cache_key_generation_cache_domain() {
+		$args_1        = array(
+			'taxonomy' => self::$taxonomy,
+			'fields'   => 'ids',
+		);
+		$args_2        = array_merge( $args_1, array( 'cache_domain' => microtime() ) );
+		$query1        = get_terms( $args_1 );
+		$num_queries_1 = get_num_queries();
+		$query2        = get_terms( $args_2 );
+		$this->assertNotSame( $num_queries_1, get_num_queries() );
+		$this->assertSameSets( $query1, $query2 );
+	}
+
+	/**
+	 * @ticket 55352
+	 */
+	public function test_cache_key_generation_all_with_object_id() {
+		$args_1        = array(
+			'taxonomy' => self::$taxonomy,
+			'fields'   => 'ids',
+		);
+		$args_2        = array_merge( $args_1, array( 'fields' => 'all_with_object_id' ) );
+		$query1        = get_terms( $args_1 );
+		$num_queries_1 = get_num_queries();
+		$query2        = get_terms( $args_2 );
+		$this->assertNotSame( $num_queries_1, get_num_queries() );
+		$this->assertSameSets( $query1, wp_list_pluck( $query2, 'term_id' ) );
+	}
+
+
+	/**
+	 * @ticket 55352
+	 *
+	 * @dataProvider data_same_term_args
+	 */
+	public function test_cache_key_generation( $args_1, $args_2 ) {
+		$query1        = get_terms( $args_1 );
+		$num_queries_1 = get_num_queries();
+		$query2        = get_terms( $args_2 );
+		$this->assertSame( $num_queries_1, get_num_queries() );
+		$this->assertSame( count( $query1 ), count( $query2 ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_same_term_args() {
+		return array(
+			'all fields vs ids'                        => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'ids',
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+				),
+			),
+			'array taxonomy vs string taxonomy'        => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+				),
+				array(
+					'taxonomy' => array( self::$taxonomy ),
+					'fields'   => 'all',
+				),
+			),
+			'slug fields vs names fields'              => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'names',
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'slugs',
+				),
+			),
+			'meta cache off, pad count on  vs meta cache on, pad count off' => array(
+				array(
+					'taxonomy'               => self::$taxonomy,
+					'pad_counts'             => true,
+					'update_term_meta_cache' => false,
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'ids',
+				),
+			),
+			'array slug vs string slug'                => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+					'slug'     => '',
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+					'slug'     => array(),
+				),
+			),
+			'array object_ids vs string object_ids'    => array(
+				array(
+					'taxonomy'   => self::$taxonomy,
+					'fields'     => 'all',
+					'object_ids' => '',
+				),
+				array(
+					'taxonomy'   => self::$taxonomy,
+					'fields'     => 'all',
+					'object_ids' => array(),
+				),
+			),
+			'array term_taxonomy_id vs string term_taxonomy_id' => array(
+				array(
+					'taxonomy'         => self::$taxonomy,
+					'fields'           => 'ids',
+					'term_taxonomy_id' => '',
+				),
+				array(
+					'taxonomy'         => self::$taxonomy,
+					'fields'           => 'all',
+					'term_taxonomy_id' => array(),
+				),
+			),
+			'array 1 slug vs string slug'              => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'ids',
+					'slug'     => 'bar',
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+					'slug'     => array( 'bar' ),
+				),
+			),
+			'int object_ids vs array object_ids'       => array(
+				array(
+					'taxonomy'   => self::$taxonomy,
+					'fields'     => 'ids',
+					'object_ids' => 1,
+				),
+				array(
+					'taxonomy'   => self::$taxonomy,
+					'fields'     => 'all',
+					'object_ids' => array( 1 ),
+				),
+			),
+			'string object_ids vs array object_ids'    => array(
+				array(
+					'taxonomy'   => self::$taxonomy,
+					'fields'     => 'ids',
+					'object_ids' => '1',
+				),
+				array(
+					'taxonomy'   => self::$taxonomy,
+					'fields'     => 'all',
+					'object_ids' => array( 1 ),
+				),
+			),
+			'int term_taxonomy_id vs array term_taxonomy_id and fields different' => array(
+				array(
+					'taxonomy'         => self::$taxonomy,
+					'fields'           => 'ids',
+					'term_taxonomy_id' => 1,
+				),
+				array(
+					'taxonomy'         => self::$taxonomy,
+					'fields'           => 'all',
+					'term_taxonomy_id' => array( 1 ),
+				),
+			),
+			'same arguments in a different order'      => array(
+				array(
+					'fields'           => 'ids',
+					'taxonomy'         => self::$taxonomy,
+					'term_taxonomy_id' => 1,
+				),
+				array(
+					'term_taxonomy_id' => 1,
+					'taxonomy'         => self::$taxonomy,
+					'fields'           => 'ids',
+				),
+			),
+			'invalid arguments discarded in cache key' => array(
+				array(
+					'fields'           => 'ids',
+					'taxonomy'         => self::$taxonomy,
+					'term_taxonomy_id' => 1,
+					'ticket_number'    => '55352',
+				),
+				array(
+					'fields'           => 'all',
+					'taxonomy'         => self::$taxonomy,
+					'term_taxonomy_id' => array( 1 ),
+					'focus'            => 'performance',
+				),
+			),
+		);
 	}
 
 	/**

@@ -276,6 +276,67 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Ensure public posts with custom public statuses are guessed.
+	 *
+	 * @ticket 47911
+	 * @dataProvider data_redirect_guess_404_permalink_with_custom_statuses
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_with_custom_statuses( $status_args, $redirects ) {
+		register_post_status( 'custom', $status_args );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_title'  => 'custom-status-public-guess-404-permalink',
+				'post_status' => 'custom',
+			)
+		);
+
+		$this->go_to( 'custom-status-public-guess-404-permalink' );
+
+		$expected = $redirects ? get_permalink( $post ) : false;
+
+		$this->assertSame( $expected, redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * Data provider for test_redirect_guess_404_permalink_with_custom_statuses().
+	 *
+	 * return array[] {
+	 *    array Arguments used to register custom status
+	 *    bool  Whether the 404 link is expected to redirect
+	 * }
+	 */
+	public function data_redirect_guess_404_permalink_with_custom_statuses() {
+		return array(
+			'public status'                      => array(
+				'status_args' => array( 'public' => true ),
+				'redirects'   => true,
+			),
+			'private status'                     => array(
+				'status_args' => array( 'public' => false ),
+				'redirects'   => false,
+			),
+			'internal status'                    => array(
+				'status_args' => array( 'internal' => true ),
+				'redirects'   => false,
+			),
+			'protected status'                   => array(
+				'status_args' => array( 'protected' => true ),
+				'redirects'   => false,
+			),
+			'protected status flagged as public' => array(
+				'status_args' => array(
+					'protected' => true,
+					'public'    => true,
+				),
+				'redirects'   => false,
+			),
+		);
+	}
+
+	/**
 	 * Ensure multiple post types do not throw a notice.
 	 *
 	 * @ticket 43056

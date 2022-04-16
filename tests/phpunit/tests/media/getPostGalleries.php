@@ -16,7 +16,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that an empty array is returned for a post that does not exist.
+	 * Tests that an empty array is returned for a post that does not exist.
 	 *
 	 * @ticket 43826
 	 */
@@ -26,7 +26,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that an empty array is returned for a post that has no gallery.
+	 * Tests that an empty array is returned for a post that has no gallery.
 	 *
 	 * @ticket 43826
 	 */
@@ -42,7 +42,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that only galleries are returned.
+	 * Tests that only galleries are returned.
 	 *
 	 * @dataProvider data_returns_only_galleries
 	 *
@@ -118,7 +118,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that no srcs are returned for a shortcode gallery
+	 * Tests that no srcs are returned for a shortcode gallery
 	 * in a post with no attached images.
 	 *
 	 * @ticket 39304
@@ -150,8 +150,10 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 			'The galleries array is empty.'
 		);
 
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
+		/*
+		 * This prevents future changes from causing
+		 * backwards compatibility breaks.
+		 */
 		$this->assertArrayHasKey(
 			'src',
 			$galleries[0],
@@ -165,7 +167,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that no srcs are returned for a gallery block
+	 * Tests that no srcs are returned for a gallery block
 	 * in a post with no attached images.
 	 *
 	 * @ticket 43826
@@ -197,15 +199,19 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 			'The galleries array is empty.'
 		);
 
-		// The method can return an array of strings
-		// instead of an array of arrays.
+		/*
+		 * The method can return an array of strings
+		 * instead of an array of arrays.
+		 */
 		$this->assertIsArray(
 			$galleries[0],
 			'The returned data does not contain an array.'
 		);
 
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
+		/*
+		 * This prevents future changes from causing
+		 * backwards compatibility breaks.
+		 */
 		$this->assertArrayHasKey(
 			'src',
 			$galleries[0],
@@ -219,7 +225,7 @@ class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that no srcs are returned for a gallery block v2
+	 * Tests that no srcs are returned for a gallery block v2
 	 * in a post with no attached images.
 	 *
 	 * @ticket 43826
@@ -272,15 +278,19 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// The method can return an array of strings
-		// instead of an array of arrays.
+		/*
+		 * The method can return an array of strings
+		 * instead of an array of arrays.
+		 */
 		$this->assertIsArray(
 			$galleries[0],
 			'The returned data does not contain an array.'
 		);
 
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
+		/*
+		 * This prevents future changes from causing
+		 * backwards compatibility breaks.
+		 */
 		$this->assertArrayHasKey(
 			'src',
 			$galleries[0],
@@ -295,7 +305,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that HTML is returned for a shortcode gallery.
+	 * Tests that HTML is returned for a shortcode gallery.
 	 *
 	 * @ticket 43826
 	 *
@@ -332,8 +342,10 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// The method can return an array of arrays
-		// instead of an array of strings.
+		/*
+		 * The method can return an array of arrays
+		 * instead of an array of strings.
+		 */
 		$this->assertIsString(
 			$galleries[0],
 			'Did not return the data as a string.'
@@ -347,7 +359,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that HTML is returned for a block gallery.
+	 * Tests that HTML is returned for a block gallery.
 	 *
 	 * @ticket 43826
 	 *
@@ -393,8 +405,10 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// The method can return an array of arrays
-		// instead of an array of strings.
+		/*
+		 * The method can return an array of arrays
+		 * instead of an array of strings.
+		 */
 		$this->assertIsString(
 			$galleries[0],
 			'Did not return the data as a string.'
@@ -408,7 +422,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that HTML is returned for a block gallery v2.
+	 * Tests that HTML is returned for a block gallery v2.
 	 *
 	 * @ticket 43826
 	 *
@@ -459,8 +473,10 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// The method can return an array of arrays
-		// instead of an array of strings.
+		/*
+		 * The method can return an array of arrays
+		 * instead of an array of strings.
+		 */
 		$this->assertIsString(
 			$galleries[0],
 			'Did not return the data as a string.'
@@ -474,7 +490,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that the global post object does not override
+	 * Tests that the global post object does not override
 	 * a provided post ID with a shortcode gallery.
 	 *
 	 * @ticket 39304
@@ -515,8 +531,10 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
+		/*
+		 * This prevents future changes from causing
+		 * backwards compatibility breaks.
+		 */
 		$this->assertArrayHasKey(
 			'src',
 			$galleries[0],
@@ -531,7 +549,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that the global post object does not override
+	 * Tests that the global post object does not override
 	 * a provided post ID with a block gallery.
 	 *
 	 * @ticket 43826
@@ -601,8 +619,10 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
+		/*
+		 * This prevents future changes from causing
+		 * backwards compatibility breaks.
+		 */
 		$this->assertArrayHasKey(
 			'src',
 			$galleries[0],
@@ -622,7 +642,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that the global post object does not override
+	 * Tests that the global post object does not override
 	 * a provided post ID with a block gallery v2.
 	 *
 	 * @ticket 43826
@@ -694,8 +714,10 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
+		/*
+		 * This prevents future changes from causing
+		 * backwards compatibility breaks.
+		 */
 		$this->assertArrayHasKey(
 			'src',
 			$galleries[0],
@@ -715,7 +737,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that the gallery only contains images specified in
+	 * Tests that the gallery only contains images specified in
 	 * the shortcode's id attribute.
 	 *
 	 * @ticket 39304
@@ -764,15 +786,19 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// The method can return an array of strings
-		// instead of an array of arrays.
+		/*
+		 * The method can return an array of strings
+		 * instead of an array of arrays.
+		 */
 		$this->assertIsArray(
 			$galleries[0],
 			'The returned data does not contain an array.'
 		);
 
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
+		/*
+		 * This prevents future changes from causing
+		 * backwards compatibility breaks.
+		 */
 		$this->assertArrayHasKey(
 			'src',
 			$galleries[0],
@@ -787,7 +813,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that galleries only contain images specified in the
+	 * Tests that galleries only contain images specified in the
 	 * id attribute of their respective shortcode and block.
 	 *
 	 * @ticket 43826
@@ -796,7 +822,10 @@ BLOB;
 	 * @group shortcode
 	 */
 	public function test_respects_shortcode_and_block_id_attributes() {
-		// Test the get_post_galleries() function in $html=false mode, with both shortcode and block galleries
+		/*
+		 * Test the get_post_galleries() function in `$html = false` mode,
+		 * with both shortcode and block galleries.
+		 */
 		$ids      = array();
 		$imgs     = array();
 		$ids_srcs = array();
@@ -848,7 +877,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that galleries contain the additional attributes
+	 * Tests that galleries contain the additional attributes
 	 * specified for their respective shortcode and block.
 	 *
 	 * @ticket 43826
@@ -857,7 +886,10 @@ BLOB;
 	 * @group shortcode
 	 */
 	public function test_respects_additional_shortcode_and_block_attributes() {
-		// Test attributes returned by get_post_galleries() function in $html=false mode, with both shortcode and block galleries
+		/*
+		 * Test attributes returned by get_post_galleries() function in `$html = false` mode,
+		 * with both shortcode and block galleries.
+		 */
 		$ids      = array();
 		$imgs     = array();
 		$ids_srcs = array();
@@ -895,14 +927,14 @@ BLOB;
 			array(
 				array(
 					'ids'  => $ids1_joined,
-					// The shortcode code passes arbitrary attributes
+					// The shortcode code passes arbitrary attributes.
 					'type' => 'type',
 					'foo'  => 'bar',
 					'src'  => array_slice( $ids_srcs, 0, 3 ),
 				),
 				array(
 					'ids' => $ids2_joined,
-					// The block only passes ids, no other attributes
+					// The block only passes ids, no other attributes.
 					'src' => array_slice( $ids_srcs, 3, 3 ),
 				),
 			),
@@ -912,7 +944,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that srcs are retrieved from the HTML of a block gallery
+	 * Tests that srcs are retrieved from the HTML of a block gallery
 	 * that has no JSON blob.
 	 *
 	 * @ticket 43826
@@ -958,15 +990,19 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// The method can return an array of strings
-		// instead of an array of arrays.
+		/*
+		 * The method can return an array of strings
+		 * instead of an array of arrays.
+		 */
 		$this->assertIsArray(
 			$galleries[0],
 			'The returned data does not contain an array.'
 		);
 
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
+		/*
+		 * This prevents future changes from causing
+		 * backwards compatibility breaks.
+		 */
 		$this->assertArrayHasKey(
 			'src',
 			$galleries[0],
@@ -981,7 +1017,7 @@ BLOB;
 	}
 
 	/**
-	 * Test that srcs are returned for a block gallery nested within
+	 * Tests that srcs are returned for a block gallery nested within
 	 * other blocks.
 	 *
 	 * @ticket 43826
@@ -1022,15 +1058,19 @@ BLOB;
 			'The galleries array is empty.'
 		);
 
-		// The method can return an array of strings
-		// instead of an array of arrays.
+		/*
+		 * The method can return an array of strings
+		 * instead of an array of arrays.
+		 */
 		$this->assertIsArray(
 			$galleries[0],
 			'The returned data does not contain an array.'
 		);
 
-		// This prevents future changes from causing
-		// backwards compatibility breaks.
+		/*
+		 * This prevents future changes from causing
+		 * backwards compatibility breaks.
+		 */
 		$this->assertArrayHasKey(
 			'src',
 			$galleries[0],
