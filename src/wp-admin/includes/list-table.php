@@ -16,7 +16,7 @@
  * @global string $hook_suffix
  *
  * @param string $class_name The type of the list table, which is the class name.
- * @param array  $args  	 Optional. Arguments to pass to the class. Accepts 'screen'.
+ * @param array  $args       Optional. Arguments to pass to the class. Accepts 'screen'.
  * @return WP_List_Table|false List table object on success, false if the class does not exist.
  */
 function _get_list_table( $class_name, $args = array() ) {
