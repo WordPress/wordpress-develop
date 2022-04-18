@@ -282,7 +282,7 @@ function media_send_to_editor( $html ) {
  *
  * @since 2.5.0
  *
- * @param string $file_id   Index of the `$_FILES` array that the file was sent. Required.
+ * @param string $file_id   Index of the `$_FILES` array that the file was sent.
  * @param int    $post_id   The post ID of a post to attach the media item to. Required, but can
  *                          be set to 0, creating a media item that has no relationship to a post.
  * @param array  $post_data Optional. Overwrite some of the attachment.
@@ -533,7 +533,7 @@ function wp_iframe( $content_func, ...$args ) {
 
 	?>
 	<script type="text/javascript">
-	addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(document).ready(func);else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+	addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 	var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>', pagenow = 'media-upload-popup', adminpage = 'media-upload-popup',
 	isRtl = <?php echo (int) is_rtl(); ?>;
 	</script>
@@ -974,21 +974,21 @@ function wp_media_upload_handler() {
  * Downloads an image from the specified URL, saves it as an attachment, and optionally attaches it to a post.
  *
  * @since 2.6.0
- * @since 4.2.0 Introduced the `$return` parameter.
- * @since 4.8.0 Introduced the 'id' option for the `$return` parameter.
+ * @since 4.2.0 Introduced the `$return_type` parameter.
+ * @since 4.8.0 Introduced the 'id' option for the `$return_type` parameter.
  * @since 5.3.0 The `$post_id` parameter was made optional.
  * @since 5.4.0 The original URL of the attachment is stored in the `_source_url`
  *              post meta value.
  *
- * @param string $file    The URL of the image to download.
- * @param int    $post_id Optional. The post ID the media is to be associated with.
- * @param string $desc    Optional. Description of the image.
- * @param string $return  Optional. Accepts 'html' (image tag html) or 'src' (URL),
- *                        or 'id' (attachment ID). Default 'html'.
+ * @param string $file        The URL of the image to download.
+ * @param int    $post_id     Optional. The post ID the media is to be associated with.
+ * @param string $desc        Optional. Description of the image.
+ * @param string $return_type Optional. Accepts 'html' (image tag html) or 'src' (URL),
+ *                            or 'id' (attachment ID). Default 'html'.
  * @return string|int|WP_Error Populated HTML img tag, attachment ID, or attachment source
  *                             on success, WP_Error object otherwise.
  */
-function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'html' ) {
+function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type = 'html' ) {
 	if ( ! empty( $file ) ) {
 
 		$allowed_extensions = array( 'jpg', 'jpeg', 'jpe', 'png', 'gif', 'webp' );
@@ -1043,7 +1043,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'htm
 		add_post_meta( $id, '_source_url', $file );
 
 		// If attachment ID was requested, return it.
-		if ( 'id' === $return ) {
+		if ( 'id' === $return_type ) {
 			return $id;
 		}
 
@@ -1052,7 +1052,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'htm
 
 	// Finally, check to make sure the file has been saved, then return the HTML.
 	if ( ! empty( $src ) ) {
-		if ( 'src' === $return ) {
+		if ( 'src' === $return_type ) {
 			return $src;
 		}
 
@@ -2501,11 +2501,11 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 	}
 	};
 
-	jQuery(document).ready( function($) {
+	jQuery( function($) {
 		$('.media-types input').click( function() {
 			$('table.describe').toggleClass('not-image', $('#not-image').prop('checked') );
 		});
-	});
+	} );
 	</script>
 
 	<div id="media-items">
@@ -3228,7 +3228,7 @@ function edit_form_image_editor( $post ) {
 
 		printf(
 			/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
-			__( '<a href="%1$s" %2$s>Describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
+			__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 			esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
 			'target="_blank" rel="noopener"',
 			sprintf(
@@ -3378,7 +3378,7 @@ function attachment_submitbox_metadata() {
 	if ( isset( $meta['filesize'] ) ) {
 		$file_size = $meta['filesize'];
 	} elseif ( file_exists( $file ) ) {
-		$file_size = filesize( $file );
+		$file_size = wp_filesize( $file );
 	}
 
 	if ( ! empty( $file_size ) ) {
@@ -3558,7 +3558,10 @@ function wp_read_video_metadata( $file ) {
 		require ABSPATH . WPINC . '/ID3/getid3.php';
 	}
 
-	$id3  = new getID3();
+	$id3 = new getID3();
+	// Required to get the `created_timestamp` value.
+	$id3->options_audiovideo_quicktime_ReturnAtomData = true; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
+
 	$data = $id3->analyze( $file );
 
 	if ( isset( $data['video']['lossless'] ) ) {
@@ -3641,7 +3644,7 @@ function wp_read_video_metadata( $file ) {
 	 * @param array  $metadata       Filtered Video metadata.
 	 * @param string $file           Path to video file.
 	 * @param string $file_format    File format of video, as analyzed by getID3.
-	 * @param string $data           Raw metadata from getID3.
+	 * @param array  $data           Raw metadata from getID3.
 	 */
 	return apply_filters( 'wp_read_video_metadata', $metadata, $file, $file_format, $data );
 }
@@ -3669,7 +3672,10 @@ function wp_read_audio_metadata( $file ) {
 		require ABSPATH . WPINC . '/ID3/getid3.php';
 	}
 
-	$id3  = new getID3();
+	$id3 = new getID3();
+	// Required to get the `created_timestamp` value.
+	$id3->options_audiovideo_quicktime_ReturnAtomData = true; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
+
 	$data = $id3->analyze( $file );
 
 	if ( ! empty( $data['audio'] ) ) {
@@ -3740,17 +3746,17 @@ function wp_get_media_creation_timestamp( $metadata ) {
 
 		case 'matroska':
 		case 'webm':
-			if ( isset( $metadata['matroska']['comments']['creation_time']['0'] ) ) {
-				$creation_date = strtotime( $metadata['matroska']['comments']['creation_time']['0'] );
-			} elseif ( isset( $metadata['matroska']['info']['0']['DateUTC_unix'] ) ) {
-				$creation_date = (int) $metadata['matroska']['info']['0']['DateUTC_unix'];
+			if ( isset( $metadata['matroska']['comments']['creation_time'][0] ) ) {
+				$creation_date = strtotime( $metadata['matroska']['comments']['creation_time'][0] );
+			} elseif ( isset( $metadata['matroska']['info'][0]['DateUTC_unix'] ) ) {
+				$creation_date = (int) $metadata['matroska']['info'][0]['DateUTC_unix'];
 			}
 			break;
 
 		case 'quicktime':
 		case 'mp4':
-			if ( isset( $metadata['quicktime']['moov']['subatoms']['0']['creation_time_unix'] ) ) {
-				$creation_date = (int) $metadata['quicktime']['moov']['subatoms']['0']['creation_time_unix'];
+			if ( isset( $metadata['quicktime']['moov']['subatoms'][0]['creation_time_unix'] ) ) {
+				$creation_date = (int) $metadata['quicktime']['moov']['subatoms'][0]['creation_time_unix'];
 			}
 			break;
 	}

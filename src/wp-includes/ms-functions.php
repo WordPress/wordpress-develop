@@ -101,21 +101,6 @@ function get_active_blog_for_user( $user_id ) {
 }
 
 /**
- * The number of active users in your installation.
- *
- * The count is cached and updated twice daily. This is not a live count.
- *
- * @since MU (3.0.0)
- * @since 4.8.0 The `$network_id` parameter has been added.
- *
- * @param int|null $network_id ID of the network. Default is the current network.
- * @return int Number of active users on the network.
- */
-function get_user_count( $network_id = null ) {
-	return get_network_option( $network_id, 'user_count' );
-}
-
-/**
  * The number of active sites on your installation.
  *
  * The count is cached and updated twice daily. This is not a live count.
@@ -280,7 +265,6 @@ function remove_user_from_blog( $user_id, $blog_id = 0, $reassign = 0 ) {
 		update_user_meta( $user_id, 'source_domain', $new_domain );
 	}
 
-	// wp_revoke_user( $user_id );
 	$user = get_userdata( $user_id );
 	if ( ! $user ) {
 		restore_current_blog();
@@ -506,7 +490,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	if ( ! is_email( $user_email ) ) {
 		$errors->add( 'user_email', __( 'Please enter a valid email address.' ) );
 	} elseif ( is_email_address_unsafe( $user_email ) ) {
-		$errors->add( 'user_email', __( 'You cannot use that email address to signup. We are having problems with them blocking some of our email. Please use another email provider.' ) );
+		$errors->add( 'user_email', __( 'You cannot use that email address to signup. There are problems with them blocking some emails from WordPress. Please use another email provider.' ) );
 	}
 
 	if ( strlen( $user_name ) < 4 ) {
@@ -538,7 +522,14 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 
 	// Check if the email address has been used already.
 	if ( email_exists( $user_email ) ) {
-		$errors->add( 'user_email', __( 'Sorry, that email address is already used!' ) );
+		$errors->add(
+			'user_email',
+			sprintf(
+				/* translators: %s: Link to the login page. */
+				__( '<strong>Error:</strong> This email address is already registered. <a href="%s">Log in</a> with this address or choose another one.' ),
+				wp_login_url()
+			)
+		);
 	}
 
 	// Has someone already signed up for this username?
@@ -675,7 +666,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$errors->add( 'blogname', sprintf( _n( 'Site name must be at least %s character.', 'Site name must be at least %s characters.', $minimum_site_name_length ), number_format_i18n( $minimum_site_name_length ) ) );
 	}
 
-	// Do not allow users to create a blog that conflicts with a page on the main blog.
+	// Do not allow users to create a site that conflicts with a page on the main blog.
 	if ( ! is_subdomain_install() && $wpdb->get_var( $wpdb->prepare( 'SELECT post_name FROM ' . $wpdb->get_blog_prefix( $current_network->site_id ) . "posts WHERE post_type = 'page' AND post_name = %s", $blogname ) ) ) {
 		$errors->add( 'blogname', __( 'Sorry, you may not use that site name.' ) );
 	}
@@ -715,6 +706,10 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$errors->add( 'blogname', __( 'Sorry, that site already exists!' ) );
 	}
 
+	/*
+	 * Do not allow users to create a site that matches an existing user's login name,
+	 * unless it's the user's own username.
+	 */
 	if ( username_exists( $blogname ) ) {
 		if ( ! is_object( $user ) || ( is_object( $user ) && ( $user->user_login != $blogname ) ) ) {
 			$errors->add( 'blogname', __( 'Sorry, that site is reserved!' ) );
@@ -1264,7 +1259,7 @@ function wpmu_activate_signup( $key ) {
 	 *
 	 * @param int    $blog_id       Blog ID.
 	 * @param int    $user_id       User ID.
-	 * @param int    $password      User password.
+	 * @param string $password      User password.
 	 * @param string $signup_title  Site title.
 	 * @param array  $meta          Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
@@ -1300,7 +1295,7 @@ function wp_delete_signup_on_user_delete( $id, $reassign, $user ) {
  * This function runs when a user self-registers as well as when
  * a Super Admin creates a new user. Hook to {@see 'wpmu_new_user'} for events
  * that should affect all new users, but only on Multisite (otherwise
- * use {@see'user_register'}).
+ * use {@see 'user_register'}).
  *
  * @since MU (3.0.0)
  *
@@ -1462,8 +1457,8 @@ Disable these notifications: %4$s'
 	 * @since MU (3.0.0)
 	 * @since 5.4.0 The `$blog_id` parameter was added.
 	 *
-	 * @param string $msg     Email body.
-	 * @param int    $blog_id The new site's ID.
+	 * @param string     $msg     Email body.
+	 * @param int|string $blog_id The new site's ID as an integer or numeric string.
 	 */
 	$msg = apply_filters( 'newblog_notify_siteadmin', $msg, $blog_id );
 
@@ -2601,16 +2596,12 @@ function wp_update_network_site_counts( $network_id = null ) {
  *
  * @since 3.7.0
  * @since 4.8.0 The `$network_id` parameter has been added.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @since 6.0.0 This function is now a wrapper for wp_update_user_counts().
  *
  * @param int|null $network_id ID of the network. Default is the current network.
  */
 function wp_update_network_user_counts( $network_id = null ) {
-	global $wpdb;
-
-	$count = $wpdb->get_var( "SELECT COUNT(ID) as c FROM $wpdb->users WHERE spam = '0' AND deleted = '0'" );
-	update_network_option( $network_id, 'user_count', $count );
+	wp_update_user_counts( $network_id );
 }
 
 /**
@@ -2744,6 +2735,9 @@ function wp_is_large_network( $using = 'sites', $network_id = null ) {
 
 	if ( 'users' === $using ) {
 		$count = get_user_count( $network_id );
+
+		$is_large_network = wp_is_large_user_count( $network_id );
+
 		/**
 		 * Filters whether the network is considered large.
 		 *
@@ -2755,7 +2749,7 @@ function wp_is_large_network( $using = 'sites', $network_id = null ) {
 		 * @param int    $count            The count of items for the component.
 		 * @param int    $network_id       The ID of the network being checked.
 		 */
-		return apply_filters( 'wp_is_large_network', $count > 10000, 'users', $count, $network_id );
+		return apply_filters( 'wp_is_large_network', $is_large_network, 'users', $count, $network_id );
 	}
 
 	$count = get_blog_count( $network_id );
