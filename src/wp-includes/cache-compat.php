@@ -156,14 +156,14 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	 * @return bool|Array True or array of bool in array passed on success, false on failure group not found.
 	 */
 	function wp_cache_flush_group( $group ) {
-		global $wp_object_cache;
-
-		if ( $wp_object_cache && method_exists( $wp_object_cache, 'flush_group' ) ) {
+		if ( WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH ) {
 			return $wp_object_cache->flush_group( $group );
 		}
 
-		_doing_it_wrong( __FUNCTION__, __( 'Your implementation of object caching does not support flush by group.' ), '6.0.0' );
+		$error = new WP_Error( 'unsupported', __( 'Your object cache implementation does not support flushing individual groups.' ) );
 
-		return wp_cache_flush();
+		_doing_it_wrong( __FUNCTION__, $error->get_error_message() , '6.0.0' );
+
+		return $error;
 	}
 endif;
