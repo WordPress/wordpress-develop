@@ -151,6 +151,7 @@ function wp_cache_flush_group( $group ) {
 	if ( is_array( $group ) ) {
 		return array_map( 'wp_cache_flush_group', array_values( $group ) );
 	}
+
 	return $wp_object_cache->flush_group( $group );
 }
 
