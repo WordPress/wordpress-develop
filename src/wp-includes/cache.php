@@ -133,16 +133,17 @@ function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
 }
 
 /**
- * Removes all cache items in a group.
- *
- * @param string|array $group name(s) of group to remove from cache.
- *
- * @return bool|Array True or array of bool in array passed on success, false on failure group not found.
- * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+ * Removes all cache items in a group, if the object cache implementation supports it.
+ * Before calling this method, always check for group flushing support using the
+ * `WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH` constant.
  *
  * @since 6.0.0
  *
  * @see WP_Object_Cache::flush_group()
+ * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+ *
+ * @param string|array $group name(s) of group to remove from cache.
+ * @return bool|array|WP_Error Bool or array of bool if array passed, WP_Error if not supported.
  */
 function wp_cache_flush_group( $group ) {
 	global $wp_object_cache;
