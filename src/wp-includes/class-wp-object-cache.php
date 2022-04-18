@@ -291,7 +291,7 @@ class WP_Object_Cache {
 	}
 
 	/**
-	 * Clears the object cache of all data for the given group.
+	 * Removes all cache items in a group.
 	 *
 	 * @since 6.0.0
 	 *
