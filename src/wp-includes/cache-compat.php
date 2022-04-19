@@ -157,7 +157,7 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	 * @return bool|array|WP_Error Bool or array of bool if array passed, WP_Error if not supported.
 	 */
 	function wp_cache_flush_group( $group ) {
-		if ( WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH ) {
+		if ( defined( 'WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH' ) && WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH ) {
 			return $wp_object_cache->flush_group( $group );
 		}
 
