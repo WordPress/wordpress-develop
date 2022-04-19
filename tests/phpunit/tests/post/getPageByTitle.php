@@ -68,7 +68,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 				'post_type'  => 'page',
 			)
 		);
-		
+
 		$bad_title = 'xxx';
 		$page      = get_page_by_title( $bad_title );
 		$this->assertNull( $page );
@@ -171,29 +171,35 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		$post      = get_page_by_title( 'Some Page', OBJECT, array( 'my-cpt', 'page' ) );
 		$this->assertEquals( $post_id_2, $post->ID );
 
-		$post      = get_page_by_title( 'Some CPT', OBJECT, array( 'my-cpt', 'page' ) );
+		$post = get_page_by_title( 'Some CPT', OBJECT, array( 'my-cpt', 'page' ) );
 		$this->assertEquals( $post_id_1, $post->ID );
 	}
 
 	/**
 	 * @ticket 36905
+	 *
+	 * @dataProvider data_should_get_different_post_statuses
 	 */
-	public function test_should_get_different_post_statuses() {
-		register_post_type( 'my-cpt' );
+	public function test_should_get_different_post_statuses( $title, $post_id ) {
+			$found = get_page_by_title( $title );
+			$this->assertEquals( $post_id, $found->ID );
+	}
 
+	public function data_should_get_different_post_statuses() {
 		$post_statuses = get_post_stati();
+		$data          = array();
 		foreach ( $post_statuses as $post_status ) {
-			$title   = sprintf( 'Some %s post', $post_status );
-			$post_id = self::factory()->post->create_object(
+			$data[ $post_status ]['title']   = sprintf( 'Some %s post', $post_status );
+			$data[ $post_status ]['post_id'] = self::factory()->post->create_object(
 				array(
-					'post_title'  => $title,
+					'post_title'  => $data[ $post_status ]['title'],
 					'post_type'   => 'page',
 					'post_status' => $post_status,
 				)
 			);
-			$found   = get_page_by_title( $title );
-			$this->assertEquals( $post_id, $found->ID );
 		}
+
+		return $data;
 	}
 
 	/**
