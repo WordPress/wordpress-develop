@@ -1569,7 +1569,7 @@ function _wp_privacy_requests_screen_options() {
 }
 
 /**
- * Was used to filter input from media_upload_form_handler() and assigns a default
+ * Was used to filter input from media_upload_form_handler() and to assign a default
  * post_title from the file name if none supplied.
  *
  * @since 2.5.0
@@ -1577,7 +1577,7 @@ function _wp_privacy_requests_screen_options() {
  *
  * @param array $post       The WP_Post attachment object converted to an array.
  * @param array $attachment An array of attachment metadata.
- * @return array Attachment post object.
+ * @return array Attachment post object converted to an array.
  */
 function image_attachment_fields_to_save( $post, $attachment ) {
 	_deprecated_function( __FUNCTION__, '6.0.0' );
