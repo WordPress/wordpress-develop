@@ -1,5 +1,9 @@
 <?php
 /**
+ * Indicate that this object cache implementation does not support group flushing.
+ */
+define( 'WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH', false );
+/**
  * Adds a value to cache.
  *
  * If the specified key already exists, the value is not stored and the function
