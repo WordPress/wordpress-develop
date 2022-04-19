@@ -317,6 +317,7 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_comments_pagination_next' );
 	remove_action( 'init', 'register_block_core_comments_pagination_numbers' );
 	remove_action( 'init', 'register_block_core_comments_pagination_previous' );
+	remove_action( 'init', 'register_block_core_cover' );
 	remove_action( 'init', 'register_block_core_file' );
 	remove_action( 'init', 'register_block_core_gallery' );
 	remove_action( 'init', 'register_block_core_home_link' );
