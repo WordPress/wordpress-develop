@@ -1474,7 +1474,7 @@ EOF;
 	public function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" decoding="async" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -1512,7 +1512,7 @@ EOF;
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" decoding="async" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" decoding="async" loading="lazy" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -2248,7 +2248,7 @@ EOF;
 			$respimg_xhtml,
 			$respimg_html5
 		);
-		$content_filtered = wp_img_tag_add_decoding_async_attr( $content_filtered, 'the_content' );
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2274,7 +2274,7 @@ EOF;
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
-		$img = wp_img_tag_add_decoding_async_attr( $img, 'the_content' );
+		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 
 		// Replace the src URL.
 		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $img );
@@ -2289,7 +2289,7 @@ EOF;
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
-		$img = wp_img_tag_add_decoding_async_attr( $img, 'the_content' );
+		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
 
 		// The content filter should return the image unchanged.
@@ -2465,7 +2465,7 @@ EOF;
 			$respimg_https,
 			$respimg_relative
 		);
-		$expected = wp_img_tag_add_decoding_async_attr( $expected, 'the_content' );
+		$expected = wp_img_tag_add_decoding_attr( $expected, 'the_content' );
 
 		$actual = wp_filter_content_tags( $unfiltered );
 
@@ -2608,9 +2608,9 @@ EOF;
 
 		$expected = '<img width="999" height="999" ' .
 			'src="' . $uploads_url . 'test-image-testsize-999x999.jpg" ' .
-			'class="attachment-testsize size-testsize" alt="" loading="lazy" ' .
+			'class="attachment-testsize size-testsize" alt="" decoding="async" loading="lazy" ' .
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
-			'sizes="(max-width: 999px) 100vw, 999px" decoding="async" />';
+			'sizes="(max-width: 999px) 100vw, 999px" />';
 
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
 
@@ -2915,7 +2915,7 @@ EOF;
 			%4$s';
 
 		$content_unfiltered = sprintf( $content, $img, $img_no_width_height, $img_no_width, $img_no_height );
-		$content_filtered   = wp_img_tag_add_decoding_async_attr( sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height ), 'the_content' );
+		$content_filtered   = wp_img_tag_add_decoding_attr( sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height ), 'the_content' );
 
 		// Do not add loading, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
@@ -2973,7 +2973,7 @@ EOF;
 			%8$s';
 
 		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe, $iframe_eager, $iframe_no_width_height );
-		$content_filtered   = wp_img_tag_add_decoding_async_attr( sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $lazy_iframe, $iframe_eager, $iframe_no_width_height ), 'the_content' );
+		$content_filtered   = wp_img_tag_add_decoding_attr( sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $lazy_iframe, $iframe_eager, $iframe_no_width_height ), 'the_content' );
 
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -3002,7 +3002,7 @@ EOF;
 			%2$s';
 
 		$content_unfiltered = sprintf( $content, $img, $iframe );
-		$content_filtered   = sprintf( $content, wp_img_tag_add_decoding_async_attr( $lazy_img ), $lazy_iframe, 'the_content' );
+		$content_filtered   = sprintf( $content, wp_img_tag_add_decoding_attr( $lazy_img, 'the_content' ), $lazy_iframe, 'the_content' );
 
 		// Do not add srcset and sizes while testing.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -3020,7 +3020,7 @@ EOF;
 	 * @ticket 50756
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_out() {
-		$img    = wp_img_tag_add_decoding_async_attr( get_image_tag( self::$large_id, '', '', '', 'medium' ), 'the_content' );
+		$img    = wp_img_tag_add_decoding_attr( get_image_tag( self::$large_id, '', '', '', 'medium' ), 'the_content' );
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 
 		$content = '
@@ -3484,7 +3484,7 @@ EOF;
 
 		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
-		$content_expected   = wp_img_tag_add_decoding_async_attr( $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2, 'the_content' );
+		$content_expected   = wp_img_tag_add_decoding_attr( $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2, 'the_content' );
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;

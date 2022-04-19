@@ -1847,7 +1847,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			}
 
 			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
-			if ( false === strpos( $filtered_image, ' decoding=' ) ) {
+			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
 				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
 			}
 
@@ -1957,21 +1957,22 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  *
  * @param string $image   The HTML `img` tag where the attribute should be added.
  * @param string $context Additional context to pass to the filters.
+ *
  * @return string Converted `img` tag with `decoding` attribute added.
  */
 function wp_img_tag_add_decoding_attr( $image, $context ) {
 	/**
 	 * Filters the `decoding` attribute value to add to an image. Default `async`.
 	 *
-	 * Returning `false` or an empty string will not add the attribute.
+	 * Returning a falsey value will not add the attribute.
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param string|bool $value The `decoding` attribute value. Returning a falsey value will result in
-	 *                           the attribute being omitted for the image. Otherwise, it may be:
-	 *                           'async' (default), 'sync', or 'auto'.
-	 * @param string      $image The HTML `img` tag to be filtered.
-	 * @param string      $context Additional context about how the function was called or where the img tag is.
+	 * @param string|false|null $value   The `decoding` attribute value. Returning a falsey value will result in
+	 *                                   the attribute being omitted for the image. Otherwise, it may be:
+	 *                                   'async' (default), 'sync', or 'auto'.
+	 * @param string            $image   The HTML `img` tag to be filtered.
+	 * @param string            $context Additional context about how the function was called or where the img tag is.
 	 */
 	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
 	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
