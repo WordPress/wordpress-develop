@@ -1817,7 +1817,7 @@ function remove_submenu_page( $menu_slug, $submenu_slug ) {
  * @global array $_parent_pages
  *
  * @param string $menu_slug The slug name to refer to this menu by (should be unique for this menu).
- * @param bool   $display   Whether or not to echo the URL. Default true.
+ * @param bool   $display   Optional. Whether or not to display the URL. Default true.
  * @return string The menu page URL.
  */
 function menu_page_url( $menu_slug, $display = true ) {
@@ -1862,20 +1862,20 @@ function menu_page_url( $menu_slug, $display = true ) {
  * @global array  $_wp_menu_nopriv
  * @global array  $_wp_submenu_nopriv
  *
- * @param string $parent_name The slug name for the parent menu (or the file name of a standard
- *                            WordPress admin page). Default empty string.
+ * @param string $parent_page Optional. The slug name for the parent menu (or the file name
+ *                            of a standard WordPress admin page). Default empty string.
  * @return string The parent file of the current admin page.
  */
-function get_admin_page_parent( $parent_name = '' ) {
+function get_admin_page_parent( $parent_page = '' ) {
 	global $parent_file, $menu, $submenu, $pagenow, $typenow,
 		$plugin_page, $_wp_real_parent_file, $_wp_menu_nopriv, $_wp_submenu_nopriv;
 
-	if ( ! empty( $parent_name ) && 'admin.php' !== $parent_name ) {
-		if ( isset( $_wp_real_parent_file[ $parent_name ] ) ) {
-			$parent_name = $_wp_real_parent_file[ $parent_name ];
+	if ( ! empty( $parent_page ) && 'admin.php' !== $parent_page ) {
+		if ( isset( $_wp_real_parent_file[ $parent_page ] ) ) {
+			$parent_page = $_wp_real_parent_file[ $parent_page ];
 		}
 
-		return $parent_name;
+		return $parent_page;
 	}
 
 	if ( 'admin.php' === $pagenow && isset( $plugin_page ) ) {
@@ -1911,23 +1911,23 @@ function get_admin_page_parent( $parent_name = '' ) {
 		return $parent_file;
 	}
 
-	foreach ( array_keys( (array) $submenu ) as $parent_name ) {
-		foreach ( $submenu[ $parent_name ] as $submenu_array ) {
-			if ( isset( $_wp_real_parent_file[ $parent_name ] ) ) {
-				$parent_name = $_wp_real_parent_file[ $parent_name ];
+	foreach ( array_keys( (array) $submenu ) as $parent_page ) {
+		foreach ( $submenu[ $parent_page ] as $submenu_array ) {
+			if ( isset( $_wp_real_parent_file[ $parent_page ] ) ) {
+				$parent_page = $_wp_real_parent_file[ $parent_page ];
 			}
 
 			if ( ! empty( $typenow ) && "$pagenow?post_type=$typenow" === $submenu_array[2] ) {
-				$parent_file = $parent_name;
-				return $parent_name;
+				$parent_file = $parent_page;
+				return $parent_page;
 			} elseif ( empty( $typenow ) && $pagenow === $submenu_array[2]
 				&& ( empty( $parent_file ) || false === strpos( $parent_file, '?' ) )
 			) {
-				$parent_file = $parent_name;
-				return $parent_name;
+				$parent_file = $parent_page;
+				return $parent_page;
 			} elseif ( isset( $plugin_page ) && $plugin_page === $submenu_array[2] ) {
-				$parent_file = $parent_name;
-				return $parent_name;
+				$parent_file = $parent_page;
+				return $parent_page;
 			}
 		}
 	}
