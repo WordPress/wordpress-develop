@@ -11,6 +11,8 @@
 /** WP_Object_Cache class */
 require_once ABSPATH . WPINC . '/class-wp-object-cache.php';
 
+define( 'WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH', false );
+
 /**
  * Sets up Object Cache Global and assigns it.
  *
