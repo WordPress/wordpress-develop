@@ -163,7 +163,7 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 
 		$error = new WP_Error( 'unsupported', __( 'Your object cache implementation does not support flushing individual groups.' ) );
 
-		_doing_it_wrong( __FUNCTION__, $error->get_error_message() , '6.0.0' );
+		_doing_it_wrong( __FUNCTION__, $error->get_error_message(), '6.0.0' );
 
 		return $error;
 	}
