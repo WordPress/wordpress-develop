@@ -180,8 +180,8 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_should_get_different_post_statuses
 	 */
-	public function test_should_get_different_post_statuses( $title, $post_id ) {
-			$found = get_page_by_title( $title );
+	public function test_should_get_different_post_statuses( $title, $post_id, $found ) {
+
 			$this->assertEquals( $post_id, $found->ID );
 	}
 
@@ -197,6 +197,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 					'post_status' => $post_status,
 				)
 			);
+			$data[ $post_status ]['found'] = get_page_by_title( $data[ $post_status ]['title'] );
 		}
 
 		return $data;
