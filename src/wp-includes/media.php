@@ -1964,7 +1964,7 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
 	/**
 	 * Filters the `decoding` attribute value to add to an image. Default `async`.
 	 *
-	 * Returning a falsey value will not add the attribute.
+	 * Returning a falsey value will omit the attribute.
 	 *
 	 * @since 6.0.0
 	 *
