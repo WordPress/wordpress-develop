@@ -514,7 +514,7 @@ switch ( $action ) {
 							<input type="email" name="email" id="email" aria-describedby="email-description" value="<?php echo esc_attr( $profile_user->user_email ); ?>" class="regular-text ltr" />
 							<?php if ( $profile_user->ID === $current_user->ID ) : ?>
 								<p class="description" id="email-description">
-									<?php _e( 'If you change this, we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
+									<?php _e( 'If you change this, an email will be sent at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
 								</p>
 							<?php endif; ?>
 
@@ -638,7 +638,7 @@ switch ( $action ) {
 									<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="false"><?php _e( 'Set New Password' ); ?></button>
 									<div class="wp-pwd hide-if-js">
 										<span class="password-input-wrapper">
-											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="off" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
+											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
 										</span>
 										<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 											<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
@@ -655,7 +655,7 @@ switch ( $action ) {
 							<tr class="user-pass2-wrap hide-if-js">
 								<th scope="row"><label for="pass2"><?php _e( 'Repeat New Password' ); ?></label></th>
 								<td>
-								<input name="pass2" type="password" id="pass2" class="regular-text" value="" autocomplete="off" aria-describedby="pass2-desc" />
+								<input name="pass2" type="password" id="pass2" class="regular-text" value="" autocomplete="new-password" aria-describedby="pass2-desc" />
 									<?php if ( IS_PROFILE_PAGE ) : ?>
 										<p class="description" id="pass2-desc"><?php _e( 'Type your new password again.' ); ?></p>
 									<?php else : ?>
@@ -742,17 +742,29 @@ switch ( $action ) {
 								if ( is_multisite() ) :
 									$blogs       = get_blogs_of_user( $user_id, true );
 									$blogs_count = count( $blogs );
+
 									if ( $blogs_count > 1 ) :
 										?>
 										<p>
 											<?php
-											printf(
+											/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
+											$message = _n(
+												'Application passwords grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
+												'Application passwords grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
+												$blogs_count
+											);
+
+											if ( is_super_admin( $user_id ) ) {
 												/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
-												_n(
-													'Application passwords grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
-													'Application passwords grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
+												$message = _n(
+													'Application passwords grant access to <a href="%1$s">the %2$s site on the network as you have Super Admin rights</a>.',
+													'Application passwords grant access to <a href="%1$s">all %2$s sites on the network as you have Super Admin rights</a>.',
 													$blogs_count
-												),
+												);
+											}
+
+											printf(
+												$message,
 												admin_url( 'my-sites.php' ),
 												number_format_i18n( $blogs_count )
 											);
