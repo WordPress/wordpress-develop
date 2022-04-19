@@ -67,15 +67,14 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 		$this->assertEquals(
 			array(
-				'orderby'                   => 'comment_date_gmt',
-				'order'                     => 'ASC',
-				'status'                    => 'approve',
-				'no_found_rows'             => false,
-				'update_comment_meta_cache' => false,
-				'post_id'                   => self::$custom_post->ID,
-				'hierarchical'              => 'threaded',
-				'number'                    => 5,
-				'paged'                     => 1,
+				'orderby'       => 'comment_date_gmt',
+				'order'         => 'ASC',
+				'status'        => 'approve',
+				'no_found_rows' => false,
+				'post_id'       => self::$custom_post->ID,
+				'hierarchical'  => 'threaded',
+				'number'        => 5,
+				'paged'         => 1,
 			),
 			build_comment_query_vars_from_block( $block )
 		);
@@ -94,14 +93,13 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 		$this->assertEquals(
 			array(
-				'orderby'                   => 'comment_date_gmt',
-				'order'                     => 'ASC',
-				'status'                    => 'approve',
-				'no_found_rows'             => false,
-				'update_comment_meta_cache' => false,
-				'hierarchical'              => 'threaded',
-				'number'                    => 5,
-				'paged'                     => 1,
+				'orderby'       => 'comment_date_gmt',
+				'order'         => 'ASC',
+				'status'        => 'approve',
+				'no_found_rows' => false,
+				'hierarchical'  => 'threaded',
+				'number'        => 5,
+				'paged'         => 1,
 			),
 			build_comment_query_vars_from_block( $block )
 		);
