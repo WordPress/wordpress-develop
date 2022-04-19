@@ -5651,7 +5651,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
 	$hash      = md5( $page_path . serialize( $post_type ) );
-	$cache_key = "get_page_by_path:$hash:$last_changed";
+	$cache_key = "get_page_by_path:$hash";
 	$cached    = wp_cache_get( $cache_key, 'posts' );
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
@@ -5673,8 +5673,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 
 	if ( is_array( $post_type ) ) {
 		$post_types = $post_type;
-	} else {
-		$post_types = array( $post_type, 'attachment' );
+	} elseif ( isset( $cached[ $last_changed ] ) ) {
+		return get_post( $cached[ $last_changed ], $output );
 	}
 
 	$post_types          = esc_sql( $post_types );
@@ -5719,7 +5719,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	}
 
 	// We cache misses as well as hits.
-	wp_cache_set( $cache_key, $foundid, 'posts' );
+	wp_cache_set( $cache_key, array( $last_changed => $foundid ) , 'posts' );
 
 	if ( $foundid ) {
 		return get_post( $foundid, $output );
@@ -5756,15 +5756,15 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 
 	$post_type = (array) $post_type;
 	$hash      = md5( $page_title . serialize( $post_type ) );
-	$cache_key = "get_page_by_title:$hash:$last_changed";
+	$cache_key = "get_page_by_title:$hash";
 	$cached    = wp_cache_get( $cache_key, 'posts' );
 
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( 0 === $cached ) {
 			return null;
-		} else {
-			return get_post( $cached, $output );
+		} elseif ( isset( $cached[ $last_changed ] ) ) {
+			return get_post( $cached[ $last_changed ], $output );
 		}
 	}
 
@@ -5782,14 +5782,15 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 		)
 	);
 
+	$last_changed = wp_cache_get_last_changed( 'posts' );
 	if ( $posts ) {
-		wp_cache_set( $cache_key, (int) $posts[0], 'posts' );
+		wp_cache_set( $cache_key, array( $last_changed => (int) $posts[0] ), 'posts' );
 
 		return get_post( $posts[0], $output );
 	}
 
 	// Cache a miss as well.
-	wp_cache_set( $cache_key, 0, 'posts' );
+	wp_cache_set( $cache_key, array( $last_changed => 0 ), 'posts' );
 
 	return null;
 }
