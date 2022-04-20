@@ -60,6 +60,14 @@ class _WP_Dependency {
 	public $args = null;  // Custom property, such as $in_footer or $media.
 
 	/**
+	 * Defer the loading of a stylesheet by using a temporary 'print' media until the
+     * page loads. Default false.
+	 *
+	 * @var array
+	 */
+	public $async = false;  // Custom property, such as $in_footer or $media.
+
+	/**
 	 * Extra data to supply to the handle.
 	 *
 	 * @since 2.6.0
@@ -93,7 +101,7 @@ class _WP_Dependency {
 	 * @param mixed ...$args Dependency information.
 	 */
 	public function __construct( ...$args ) {
-		list( $this->handle, $this->src, $this->deps, $this->ver, $this->args ) = $args;
+		list( $this->handle, $this->src, $this->deps, $this->ver, $this->args, $this->async ) = $args;
 		if ( ! is_array( $this->deps ) ) {
 			$this->deps = array();
 		}

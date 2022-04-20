@@ -124,12 +124,14 @@ function wp_add_inline_style( $handle, $data ) {
  * @param string           $media  Optional. The media for which this stylesheet has been defined.
  *                                 Default 'all'. Accepts media types like 'all', 'print' and 'screen', or media queries like
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
+ * @param bool             $async  Optional. Defer the loading of a stylesheet by using a temporary 'print' media until the
+ *                                 page loads. Default false.
  * @return bool Whether the style has been registered. True on success, false on failure.
  */
-function wp_register_style( $handle, $src, $deps = array(), $ver = false, $media = 'all' ) {
+function wp_register_style( $handle, $src, $deps = array(), $ver = false, $media = 'all', $async = false ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
-	return wp_styles()->add( $handle, $src, $deps, $ver, $media );
+	return wp_styles()->add( $handle, $src, $deps, $ver, $media, $async );
 }
 
 /**
@@ -169,15 +171,17 @@ function wp_deregister_style( $handle ) {
  * @param string           $media  Optional. The media for which this stylesheet has been defined.
  *                                 Default 'all'. Accepts media types like 'all', 'print' and 'screen', or media queries like
  *                                 '(orientation: portrait)' and '(max-width: 640px)'.
+ * @param bool             $async  Optional. Defer the loading of the stylesheet by using a temporary 'print' media until the
+ *                                 page loads. Default false.
  */
-function wp_enqueue_style( $handle, $src = '', $deps = array(), $ver = false, $media = 'all' ) {
+function wp_enqueue_style( $handle, $src = '', $deps = array(), $ver = false, $media = 'all', $async = false ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_styles = wp_styles();
 
 	if ( $src ) {
 		$_handle = explode( '?', $handle );
-		$wp_styles->add( $_handle[0], $src, $deps, $ver, $media );
+		$wp_styles->add( $_handle[0], $src, $deps, $ver, $media, $async );
 	}
 
 	$wp_styles->enqueue( $handle );

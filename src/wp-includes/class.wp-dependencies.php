@@ -250,13 +250,15 @@ class WP_Dependencies {
 	 *                                 If set to null, no version is added.
 	 * @param mixed            $args   Optional. Custom property of the item. NOT the class property $args.
 	 *                                 Examples: $media, $in_footer.
+	 * @param bool             $async  Optional. Defer the loading of a stylesheet by using a temporary 'print' media until the
+     *                                 page loads. Default false.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function add( $handle, $src, $deps = array(), $ver = false, $args = null ) {
+	public function add( $handle, $src, $deps = array(), $ver = false, $args = null, $async = false ) {
 		if ( isset( $this->registered[ $handle ] ) ) {
 			return false;
 		}
-		$this->registered[ $handle ] = new _WP_Dependency( $handle, $src, $deps, $ver, $args );
+		$this->registered[ $handle ] = new _WP_Dependency( $handle, $src, $deps, $ver, $args, $async );
 
 		// If the item was enqueued before the details were registered, enqueue it now.
 		if ( array_key_exists( $handle, $this->queued_before_register ) ) {

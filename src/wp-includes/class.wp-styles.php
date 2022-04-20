@@ -278,6 +278,12 @@ class WP_Styles extends WP_Dependencies {
 			}
 		}
 
+		if ( $obj->async && ( false === strpos( $tag, "media='print'" ) ) ) {
+			$async_tag  = '<noscript>' . str_replace( " id='", " id='no-js-fallback-", $tag ) . '</noscript>';
+			$async_tag .= str_replace( " media='{$media}'", " media='print' onload='this.media=\"all\"'", $tag );
+			$tag = $async_tag;
+		}
+
 		if ( $this->do_concat ) {
 			$this->print_html .= $cond_before;
 			$this->print_html .= $tag;
