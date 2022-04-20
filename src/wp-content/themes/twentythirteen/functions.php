@@ -562,7 +562,7 @@ if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 	 *
 	 * @since Twenty Thirteen 1.0
 	 *
-	 * @param bool $display (optional) Whether to echo the date. Default true.
+	 * @param bool $display (optional) Whether to display the date. Default true.
 	 * @return string The HTML-formatted post date.
 	 */
 	function twentythirteen_entry_date( $display = true ) {

@@ -161,16 +161,16 @@ if ( ! function_exists( 'twentysixteen_excerpt' ) ) :
 	 *
 	 * @since Twenty Sixteen 1.0
 	 *
-	 * @param string $class_name Optional. Class string of the div element. Defaults to 'entry-summary'.
+	 * @param string $css_class Optional. Class string of the div element. Defaults to 'entry-summary'.
 	 */
-	function twentysixteen_excerpt( $class_name = 'entry-summary' ) {
-		$class_name = esc_attr( $class_name );
+	function twentysixteen_excerpt( $css_class = 'entry-summary' ) {
+		$css_class = esc_attr( $css_class );
 
 		if ( has_excerpt() || is_search() ) :
 			?>
-			<div class="<?php echo $class_name; ?>">
+			<div class="<?php echo $css_class; ?>">
 				<?php the_excerpt(); ?>
-			</div><!-- .<?php echo $class_name; ?> -->
+			</div><!-- .<?php echo $css_class; ?> -->
 			<?php
 		endif;
 	}
