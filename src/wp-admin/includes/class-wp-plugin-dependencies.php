@@ -63,6 +63,7 @@ class WP_Plugin_Dependencies {
 			add_action( 'admin_init', array( $this, 'modify_plugin_row' ) );
 			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 			add_action( 'network_admin_notices', array( $this, 'admin_notices' ) );
+			add_action( 'in_admin_header', array( $this, 'hide_action_links' ) );
 
 			$required_headers = $this->parse_headers();
 			$this->slugs      = $this->sanitize_required_headers( $required_headers );
@@ -214,6 +215,10 @@ class WP_Plugin_Dependencies {
 				),
 			);
 			$response = plugins_api( 'plugin_information', $args );
+
+			// If a proper slug is present but has no plugin data, generic data will be returned.
+			$response = $this->get_empty_plugins_api_response( $response, $args );
+
 			if ( is_wp_error( $response ) ) {
 				continue;
 			}
@@ -388,9 +393,9 @@ class WP_Plugin_Dependencies {
 			$deactivated_plugins = implode( ', ', $deactivated_plugins );
 			printf(
 				'<div class="notice-error notice is-dismissible"><p>'
-				/* translators: 1: plugin names, 2: opening tag and link to Dependencies install page, 3: closing tag */
-				. esc_html__( '%1$s plugin(s) could not be activated. There are uninstalled or inactive dependencies. Go to the %2$sDependencies%3$s install page.' )
-				. '</p></div>',
+					/* translators: 1: plugin names, 2: opening tag and link to Dependencies install page, 3: closing tag */
+					. esc_html__( '%1$s plugin(s) could not be activated. There are uninstalled or inactive dependencies. Go to the %2$sDependencies%3$s install page.' )
+					. '</p></div>',
 				'<strong>' . esc_html( $deactivated_plugins ) . '</strong>',
 				'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
 				'</a>'
@@ -403,9 +408,9 @@ class WP_Plugin_Dependencies {
 			if ( $intersect !== $this->slugs ) {
 				printf(
 					'<div class="notice-warning notice is-dismissible"><p>'
-					/* translators: 1: opening tag and link to Dependencies install page, 2:closing tag */
-					. esc_html__( 'There are additional plugins that must be installed. Go to the %1$sDependencies%2$s install page.' )
-					. '</p></div>',
+						/* translators: 1: opening tag and link to Dependencies install page, 2:closing tag */
+						. esc_html__( 'There are additional plugins that must be installed. Go to the %1$sDependencies%2$s install page.' )
+						. '</p></div>',
 					'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
 					'</a>'
 				);
@@ -444,12 +449,13 @@ class WP_Plugin_Dependencies {
 	 */
 	private function get_dependency_sources( $plugin_data ) {
 		$sources = array();
+		if ( ! isset( $plugin_data['slug'] ) ) {
+			return __( 'Data unavailable' );
+		}
 		foreach ( $this->plugins as $plugin ) {
 			if ( ! empty( $plugin['RequiresPlugins'] ) ) {
-				foreach ( $plugin['RequiresPlugins'] as $dependent ) {
-					if ( in_array( $plugin_data['slug'], $plugin['RequiresPlugins'], true ) ) {
-						$sources[] = $plugin['Name'];
-					}
+				if ( in_array( $plugin_data['slug'], $plugin['RequiresPlugins'], true ) ) {
+					$sources[] = $plugin['Name'];
 				}
 			}
 		}
@@ -458,6 +464,66 @@ class WP_Plugin_Dependencies {
 		$sources = implode( ', ', $sources );
 
 		return $sources;
+	}
+
+	/**
+	 * Return empty plugins_api() response.
+	 *
+	 * @param \stdClass|WP_Error $response Response from plugins_api().
+	 * @param array              $args     Array of arguments passed to plugins_api().
+	 *
+	 * @return \stdClass
+	 */
+	public function get_empty_plugins_api_response( $response, $args ) {
+		if ( is_wp_error( $response ) ) {
+			$response = array(
+				'name'              => $args['slug'],
+				'slug'              => $args['slug'],
+				'version'           => '',
+				'author'            => '',
+				'contributors'      => '',
+				'requires'          => '',
+				'tested'            => '',
+				'requires_php'      => '',
+				'sections'          => array( 'description' => '' ),
+				'short_description' => __( 'This plugin has no API data. Please contact the plugin developer and ask them to integrate with plugin dependencies.' ),
+				'download_link'     => '',
+				'banners'           => array(),
+				'icons'             => array( 'default' => "https://s.w.org/plugins/geopattern-icon/{$args['slug']}.svg" ),
+				'last_updated'      => '',
+				'num_ratings'       => 0,
+				'rating'            => 0,
+				'active_installs'   => 0,
+			);
+			$response = (object) $response;
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Hide plugin card action links for plugins with no API data.
+	 *
+	 * @global $pagenow Current page.
+	 * @return void
+	 */
+	public function hide_action_links() {
+		global $pagenow;
+
+		if ( 'plugin-install.php' !== $pagenow ) {
+			return;
+		}
+
+		$hide_selectors = array();
+		foreach ( $this->plugin_data as $plugin_data ) {
+			if ( empty( $plugin_data['version'] ) ) {
+				$hide_selectors[] = sprintf( '.plugin-card-%1$s .action-links, .plugin-card-%1$s .plugin-card-bottom', $plugin_data['slug'] );
+			}
+		}
+		if ( ! empty( $hide_selectors ) ) {
+			$hide_selectors = implode( ', ', $hide_selectors );
+			printf( '<style>%s { display: none; }</style>', esc_attr( $hide_selectors ) );
+		}
 	}
 }
 
