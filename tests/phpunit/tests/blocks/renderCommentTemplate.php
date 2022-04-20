@@ -214,7 +214,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 		// This could be any number, we set a fixed one instead of a random for better performance.
 		$comment_query_max_num_pages = 5;
-		// We substract 1 because we created 1 comment at the beggining.
+		// We substract 1 because we created 1 comment at the beginning.
 		$post_comments_numbers = ( self::$per_page * $comment_query_max_num_pages ) - 1;
 		self::factory()->comment->create_post_comments(
 			self::$custom_post->ID,
