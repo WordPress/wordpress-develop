@@ -113,13 +113,11 @@ function register_block_script_handle( $metadata, $field_name ) {
 	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 	$is_theme_block   = 0 === strpos( $script_path_norm, $theme_path_norm );
 
-	$script_uri;
+	$script_uri = plugins_url( $script_path, $metadata['file'] );
 	if ( $is_core_block ) {
 		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
 	} elseif ( $is_theme_block ) {
 		$script_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $script_path_norm ) );
-	} else {
-		$script_uri = plugins_url( $script_path, $metadata['file'] );
 	}
 
 	$script_asset        = require $script_asset_path;
@@ -1362,7 +1360,7 @@ function _wp_multiple_block_styles( $metadata ) {
 						$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 					}
 
-					$args       = array(
+					$args = array(
 						'handle' => sanitize_key( "{$metadata['name']}-{$style_path}" ),
 						'src'    => $style_uri,
 					);
@@ -1399,7 +1397,6 @@ function build_comment_query_vars_from_block( $block ) {
 		'order'                     => 'ASC',
 		'status'                    => 'approve',
 		'no_found_rows'             => false,
-		'update_comment_meta_cache' => false, // We lazy-load comment meta for performance.
 	);
 
 	if ( ! empty( $block->context['postId'] ) ) {
