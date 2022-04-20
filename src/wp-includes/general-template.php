@@ -3464,8 +3464,7 @@ function wp_preload_links() {
 
 		$atts = $url;
 		if ( isset( $url['href'] ) ) {
-			$url          = $url['href'];
-			$atts['href'] = $url;
+			$url = $url['href'];
 			if ( isset( $unique_urls[ $url ] ) ) {
 				continue;
 			}
@@ -3487,6 +3486,9 @@ function wp_preload_links() {
 			$html = '';
 
 			foreach ( $atts as $attr => $value ) {
+				/**
+				 * Ignore not supported attributes.
+				 */
 				if ( ! is_scalar( $value )
 					|| (
 							! in_array( $attr, array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' ), true )
