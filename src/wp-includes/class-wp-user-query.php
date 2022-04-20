@@ -283,8 +283,6 @@ class WP_User_Query {
 				$this->query_fields[] = "$wpdb->users.$field";
 			}
 			$this->query_fields = implode( ',', $this->query_fields );
-		} elseif ( 'all' === $qv['fields'] ) {
-			$this->query_fields = "$wpdb->users.*";
 		} else {
 			$this->query_fields = "$wpdb->users.ID";
 		}
@@ -806,7 +804,7 @@ class WP_User_Query {
 			return;
 		}
 
-		if ( 'all_with_meta' === $qv['fields'] ) {
+		if ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
 			cache_users( $this->results );
 
 			$r = array();
@@ -815,10 +813,6 @@ class WP_User_Query {
 			}
 
 			$this->results = $r;
-		} elseif ( 'all' === $qv['fields'] ) {
-			foreach ( $this->results as $key => $user ) {
-				$this->results[ $key ] = new WP_User( $user, '', $qv['blog_id'] );
-			}
 		}
 	}
 
