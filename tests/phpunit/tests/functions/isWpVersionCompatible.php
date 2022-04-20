@@ -8,11 +8,25 @@
  */
 class Tests_Functions_isWpVersionCompatible extends WP_UnitTestCase {
 	/**
-	 * Provides test scenarios for all possible scenarios in wp_validate_boolean().
+	 * Test test_is_wp_version_compatible().
+	 *
+	 * @dataProvider data_is_wp_version_compatible
+	 *
+	 * @param mixed $test_value
+	 * @param bool $expected
+	 *
+	 * @ticket 54257
+	 */
+	public function test_is_wp_version_compatible( $test_value, $expected ) {
+		$this->assertSame( is_wp_version_compatible( $test_value ), $expected );
+	}
+
+	/**
+	 * Provides test scenarios test_is_wp_version_compatible.
 	 *
 	 * @return array
 	 */
-	function data_provider() {
+	function data_is_wp_version_compatible() {
 		$wp_version = get_bloginfo( 'version' );
 
 		$more = explode( '.', $wp_version );
@@ -35,20 +49,5 @@ class Tests_Functions_isWpVersionCompatible extends WP_UnitTestCase {
 				'expected'   => true,
 			),
 		);
-	}
-
-	/**
-	 * Test wp_validate_boolean().
-	 *
-	 * @dataProvider data_provider
-	 *
-	 * @param mixed $test_value
-	 * @param bool $expected
-	 *
-	 * @ticket 30238
-	 * @ticket 39868
-	 */
-	public function test_php_version_compatible( $test_value, $expected ) {
-		$this->assertSame( is_wp_version_compatible( $test_value ), $expected );
 	}
 }
