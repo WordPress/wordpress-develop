@@ -193,17 +193,17 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 /**
  * Retrieves a list of the most popular terms from the specified taxonomy.
  *
- * If the $display argument is true then the elements for a list of checkbox
+ * If the `$display` argument is true then the elements for a list of checkbox
  * `<input>` elements labelled with the names of the selected terms is output.
- * If the $post_ID global is not empty then the terms associated with that
+ * If the `$post_ID` global is not empty then the terms associated with that
  * post will be marked as checked.
  *
  * @since 2.5.0
  *
- * @param string $taxonomy 		Taxonomy to retrieve terms from.
- * @param int    $default_term  Not used.
- * @param int    $number   		Number of terms to retrieve. Defaults to 10.
- * @param bool   $display     	Optionally output the list as well. Defaults to true.
+ * @param string $taxonomy     Taxonomy to retrieve terms from.
+ * @param int    $default_term Optional. Not used.
+ * @param int    $number       Optional. Number of terms to retrieve. Default 10.
+ * @param bool   $display      Optional. Whether to display the list as well. Default true.
  * @return int[] Array of popular term IDs.
  */
 function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10, $display = true ) {
@@ -231,9 +231,11 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
 
 	foreach ( (array) $terms as $term ) {
 		$popular_ids[] = $term->term_id;
+
 		if ( ! $display ) { // Hack for Ajax use.
 			continue;
 		}
+
 		$id      = "popular-$taxonomy-$term->term_id";
 		$checked = in_array( $term->term_id, $checked_terms, true ) ? 'checked="checked"' : '';
 		?>
@@ -874,8 +876,8 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
  * @since 1.5.0
  * @since 4.7.0 Added the `$post_type` parameter.
  *
- * @param string $default_template   Optional. The template file name. Default empty.
- * @param string $post_type 		 Optional. Post type to get templates for. Default 'post'.
+ * @param string $default_template Optional. The template file name. Default empty.
+ * @param string $post_type        Optional. Post type to get templates for. Default 'post'.
  */
 function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
 	$templates = get_page_templates( null, $post_type );
@@ -897,9 +899,9 @@ function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int         $default_page Optional. The default page ID to be pre-selected. Default 0.
- * @param int         $parent  		Optional. The parent page ID. Default 0.
- * @param int         $level   		Optional. Page depth level. Default 0.
- * @param int|WP_Post $post    		Post ID or WP_Post object.
+ * @param int         $parent       Optional. The parent page ID. Default 0.
+ * @param int         $level        Optional. Page depth level. Default 0.
+ * @param int|WP_Post $post         Post ID or WP_Post object.
  * @return void|false Void on success, false if the page has no children.
  */
 function parent_dropdown( $default_page = 0, $parent = 0, $level = 0, $post = null ) {
@@ -1128,8 +1130,8 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
  *
  * @since 5.0.0
  *
- * @param mixed $data_object	The data object being rendered on this screen.
- * @param array $box			{
+ * @param mixed $data_object The data object being rendered on this screen.
+ * @param array $box         {
  *     Custom formats meta box arguments.
  *
  *     @type string   $id           Meta box 'id' attribute.
@@ -1244,14 +1246,14 @@ function _get_plugin_from_callback( $callback ) {
  *
  * @global array $wp_meta_boxes
  *
- * @param string|WP_Screen $screen		The screen identifier. If you have used add_menu_page() or
- *                                  	add_submenu_page() to create a new screen (and hence screen_id)
- *                                  	make sure your menu slug conforms to the limits of sanitize_key()
- *                                  	otherwise the 'screen' menu may not correctly render on your page.
- * @param string           $context		The screen context for which to display meta boxes.
- * @param mixed            $data_object	Gets passed to the meta box callback function as the first parameter.
- *                                  	Often this is the object that's the focus of the current screen, for
- *                                  	example a `WP_Post` or `WP_Comment` object.
+ * @param string|WP_Screen $screen      The screen identifier. If you have used add_menu_page() or
+ *                                      add_submenu_page() to create a new screen (and hence screen_id)
+ *                                      make sure your menu slug conforms to the limits of sanitize_key()
+ *                                      otherwise the 'screen' menu may not correctly render on your page.
+ * @param string           $context     The screen context for which to display meta boxes.
+ * @param mixed            $data_object Gets passed to the meta box callback function as the first parameter.
+ *                                      Often this is the object that's the focus of the current screen,
+ *                                      for example a `WP_Post` or `WP_Comment` object.
  * @return int Number of meta_boxes.
  */
 function do_meta_boxes( $screen, $context, $data_object ) {
@@ -2139,8 +2141,9 @@ function iframe_footer() {
  *
  * @see get_post_states()
  *
- * @param WP_Post $post		The post to retrieve states for.
- * @param bool    $display	Optional. Whether to echo the post states as an HTML string. Default true.
+ * @param WP_Post $post    The post to retrieve states for.
+ * @param bool    $display Optional. Whether to display the post states as an HTML string.
+ *                         Default true.
  * @return string Post states string.
  */
 function _post_states( $post, $display = true ) {
@@ -2252,8 +2255,9 @@ function get_post_states( $post ) {
  * @since 3.2.0
  * @since 5.6.0 Added the `$display` parameter and a return value.
  *
- * @param WP_Post $post		The attachment post to retrieve states for.
- * @param bool    $display	Optional. Whether to echo the post states as an HTML string. Default true.
+ * @param WP_Post $post    The attachment post to retrieve states for.
+ * @param bool    $display Optional. Whether to display the post states as an HTML string.
+ *                         Default true.
  * @return string Media states string.
  */
 function _media_states( $post, $display = true ) {
