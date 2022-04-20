@@ -8,7 +8,7 @@
  */
 class Tests_Functions_isWpVersionCompatible extends WP_UnitTestCase {
 	/**
-	 * Test test_is_wp_version_compatible().
+	 * Test is_wp_version_compatible().
 	 *
 	 * @dataProvider data_is_wp_version_compatible
 	 *
