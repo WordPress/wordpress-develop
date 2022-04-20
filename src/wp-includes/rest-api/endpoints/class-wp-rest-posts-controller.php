@@ -367,6 +367,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
+		$parent_ids = array();
+		foreach ( $query_result as $post ) {
+			if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
+				$parent_ids[] = $post->post_parent;
+			}
+		}
+		if ( ! empty( $parent_ids ) ) {
+			_prime_post_caches( $parent_ids, false, false );
+		}
 		$posts = array();
 
 		foreach ( $query_result as $post ) {
