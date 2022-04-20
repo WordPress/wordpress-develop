@@ -31,7 +31,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 * @param string $blog_title    Site title.
 	 * @param string $user_name     User's username.
 	 * @param string $user_email    User's email.
-	 * @param bool   $is_public     Whether site is public.
+	 * @param bool   $is_public     Whether the site is public.
 	 * @param string $deprecated    Optional. Not used.
 	 * @param string $user_password Optional. User's chosen password. Default empty (random password).
 	 * @param string $language      Optional. Language chosen. Default empty.
