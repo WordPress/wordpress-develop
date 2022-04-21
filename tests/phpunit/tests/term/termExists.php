@@ -256,7 +256,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$this->assertEquals( $t, $found );
 	}
 
-	function test_term_exists_known() {
+	public function test_term_exists_known() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		// Insert a term.
@@ -271,7 +271,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 		_unregister_taxonomy( 'wptests_tax' );
 	}
 
-	function test_term_exists_unknown() {
+	public function test_term_exists_unknown() {
 		$this->assertNull( term_exists( rand_str() ) );
 		$this->assertSame( 0, term_exists( 0 ) );
 		$this->assertNull( term_exists( '' ) );

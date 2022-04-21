@@ -49,7 +49,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 	}
 
-	function test_get_and_set() {
+	public function test_get_and_set() {
 		$users = new WP_User_Query();
 
 		$this->assertEquals( '', $users->get( 'fields' ) );
@@ -498,7 +498,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 28631
 	 */
-	function test_number() {
+	public function test_number() {
 		// +1 for the default user created by the test suite.
 		$users = new WP_User_Query( array( 'blog_id' => get_current_blog_id() ) );
 		$users = $users->get_results();
@@ -535,7 +535,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 21119
 	 */
-	function test_prepare_query() {
+	public function test_prepare_query() {
 		$query = new WP_User_Query();
 		$this->assertEmpty( $query->query_fields );
 		$this->assertEmpty( $query->query_from );
@@ -600,7 +600,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 23849
 	 */
-	function test_meta_query_with_role() {
+	public function test_meta_query_with_role() {
 		add_user_meta( self::$author_ids[0], 'foo', 'bar' );
 		add_user_meta( self::$author_ids[1], 'foo', 'baz' );
 
@@ -730,6 +730,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 32019
 	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
 	 */
 	public function test_who_authors() {
 		$b = self::factory()->blog->create();
@@ -755,6 +756,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 32019
 	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
 	 */
 	public function test_who_authors_should_work_alongside_meta_query() {
 		$b = self::factory()->blog->create();
@@ -789,6 +791,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 36724
 	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
 	 */
 	public function test_who_authors_should_work_alongside_meta_params() {
 		$b = self::factory()->blog->create();
@@ -1724,5 +1727,243 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$query->total_users = 1;
 
 		return array( 555 );
+	}
+
+	/**
+	 * @ticket 16841
+	 * @group ms-excluded
+	 */
+	public function test_get_single_capability_by_string() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'install_plugins' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			// User has the capability, but on Multisite they would also need to be a super admin.
+			// Hence using get_role_caps() instead of has_cap().
+			$role_caps = $user->get_role_caps();
+			$this->assertArrayHasKey( 'install_plugins', $role_caps );
+			$this->assertTrue( $role_caps['install_plugins'] );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 * @group ms-required
+	 */
+	public function test_get_single_capability_by_string_multisite() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'install_plugins' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$role_caps = $user->get_role_caps();
+			$this->assertArrayHasKey( 'install_plugins', $role_caps );
+			$this->assertTrue( $role_caps['install_plugins'] );
+			// While the user can have the capability, on Multisite they also need to be a super admin.
+			if ( is_super_admin( $user->ID ) ) {
+				$this->assertTrue( $user->has_cap( 'install_plugins' ) );
+			} else {
+				$this->assertFalse( $user->has_cap( 'install_plugins' ) );
+			}
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_invalid() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'foo_bar' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertEmpty( $users );
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_by_array() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'install_plugins' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			// User has the capability, but on Multisite they would also need to be a super admin.
+			// Hence using get_role_caps() instead of has_cap().
+			$role_caps = $user->get_role_caps();
+			$this->assertArrayHasKey( 'install_plugins', $role_caps );
+			$this->assertTrue( $role_caps['install_plugins'] );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_added_to_user() {
+		foreach ( self::$sub_ids as $subscriber ) {
+			$subscriber = get_user_by( 'ID', $subscriber );
+			$subscriber->add_cap( 'custom_cap' );
+		}
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'custom_cap' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertCount( 2, $users );
+		$this->assertEqualSets( self::$sub_ids, wp_list_pluck( $users, 'ID' ) );
+
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_should_only_match_users_who_have_each_capability_test() {
+		wp_roles()->add_role( 'role_1', 'Role 1', array( 'role_1_cap' => true ) );
+		wp_roles()->add_role( 'role_2', 'Role 2', array( 'role_2_cap' => true ) );
+
+		$subscriber1 = get_user_by( 'ID', self::$sub_ids[0] );
+		$subscriber1->add_role( 'role_1' );
+
+		$subscriber2 = get_user_by( 'ID', self::$sub_ids[1] );
+		$subscriber2->add_role( 'role_1' );
+		$subscriber2->add_role( 'role_2' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'role_1_cap', 'role_2_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertCount( 1, $users );
+		$this->assertSame( $users[0]->ID, $subscriber2->ID );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'role_1_cap' ) );
+			$this->assertTrue( $user->has_cap( 'role_2_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_should_only_match_users_who_have_each_capability_added_to_user() {
+		$admin1 = get_user_by( 'ID', self::$admin_ids[0] );
+		$admin1->add_cap( 'custom_cap' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'manage_options', 'custom_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertCount( 1, $users );
+		$this->assertSame( $users[0]->ID, $admin1->ID );
+		$this->assertTrue( $users[0]->has_cap( 'custom_cap' ) );
+		$this->assertTrue( $users[0]->has_cap( 'manage_options' ) );
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_or() {
+		$wp_user_search = new WP_User_Query( array( 'capability__in' => array( 'publish_posts', 'edit_posts' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'publish_posts' ) || $user->has_cap( 'edit_posts' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_or_added_to_user() {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( 'custom_cap' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability__in' => array( 'publish_posts', 'custom_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'publish_posts' ) || $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_capability_exclusion() {
+		$wp_user_search = new WP_User_Query( array( 'capability__not_in' => array( 'publish_posts', 'edit_posts' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertFalse( $user->has_cap( 'publish_posts' ) );
+			$this->assertFalse( $user->has_cap( 'edit_posts' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_capability_exclusion_added_to_user() {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( 'custom_cap' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability__not_in' => array( 'publish_posts', 'custom_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertFalse( $user->has_cap( 'publish_posts' ) );
+			$this->assertFalse( $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_capability__in_capability__not_in_combined() {
+		$wp_user_search = new WP_User_Query(
+			array(
+				'capability__in'     => array( 'read' ),
+				'capability__not_in' => array( 'manage_options' ),
+			)
+		);
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'read' ) );
+			$this->assertFalse( $user->has_cap( 'manage_options' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 * @group ms-required
+	 */
+	public function test_get_single_capability_multisite_blog_id() {
+		$blog_id = self::factory()->blog->create();
+
+		add_user_to_blog( $blog_id, self::$author_ids[0], 'subscriber' );
+		add_user_to_blog( $blog_id, self::$author_ids[1], 'author' );
+		add_user_to_blog( $blog_id, self::$author_ids[2], 'editor' );
+
+		$wp_user_search = new WP_User_Query(
+			array(
+				'capability' => 'publish_posts',
+				'blog_id'    => $blog_id,
+			)
+		);
+		$users          = $wp_user_search->get_results();
+
+		$found = wp_list_pluck( $wp_user_search->get_results(), 'ID' );
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'publish_posts' ) );
+		}
+
+		$this->assertNotContains( self::$author_ids[0], $found );
+		$this->assertContains( self::$author_ids[1], $found );
+		$this->assertContains( self::$author_ids[2], $found );
 	}
 }

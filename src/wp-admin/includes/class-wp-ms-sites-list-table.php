@@ -643,11 +643,16 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 
 		if ( ! empty( $site_states ) ) {
 			$state_count = count( $site_states );
-			$i           = 0;
+
+			$i = 0;
+
 			echo ' &mdash; ';
+
 			foreach ( $site_states as $state ) {
 				++$i;
-				( $i == $state_count ) ? $sep = '' : $sep = ', ';
+
+				$sep = ( $i < $state_count ) ? ', ' : '';
+
 				echo "<span class='post-state'>{$state}{$sep}</span>";
 			}
 		}
@@ -668,18 +673,21 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * Generates and displays row action links.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$blog` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param array  $blog        Site being acted upon.
+	 * @param array  $item        Site being acted upon.
 	 * @param string $column_name Current column name.
 	 * @param string $primary     Primary column name.
 	 * @return string Row actions output for sites in Multisite, or an empty string
 	 *                if the current column is not the primary column.
 	 */
-	protected function handle_row_actions( $blog, $column_name, $primary ) {
+	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
 		}
 
+		// Restores the more descriptive, specific name for use within this method.
+		$blog     = $item;
 		$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
 
 		// Preordered.

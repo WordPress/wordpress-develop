@@ -2288,8 +2288,42 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 				'%cc%80',
 				'%cc%84',
 				'%cc%8c',
+				// Non-visible characters that display without a width.
+				'%e2%80%8b',
+				'%e2%80%8c',
+				'%e2%80%8d',
+				'%e2%80%8e',
+				'%e2%80%8f',
+				'%e2%80%aa',
+				'%e2%80%ab',
+				'%e2%80%ac',
+				'%e2%80%ad',
+				'%e2%80%ae',
+				'%ef%bb%bf',
 			),
 			'',
+			$title
+		);
+
+		// Convert non-visible characters that display with a width to hyphen.
+		$title = str_replace(
+			array(
+				'%e2%80%80',
+				'%e2%80%81',
+				'%e2%80%82',
+				'%e2%80%83',
+				'%e2%80%84',
+				'%e2%80%85',
+				'%e2%80%86',
+				'%e2%80%87',
+				'%e2%80%88',
+				'%e2%80%89',
+				'%e2%80%8a',
+				'%e2%80%a8',
+				'%e2%80%a9',
+				'%e2%80%af',
+			),
+			'-',
 			$title
 		);
 
@@ -3539,8 +3573,8 @@ function get_gmt_from_date( $string, $format = 'Y-m-d H:i:s' ) {
 /**
  * Given a date in UTC or GMT timezone, returns that date in the timezone of the site.
  *
- * Requires and returns a date in the Y-m-d H:i:s format.
- * Return format can be overridden using the $format parameter.
+ * Requires a date in the Y-m-d H:i:s format.
+ * Default return format of 'Y-m-d H:i:s' can be overridden using the `$format` parameter.
  *
  * @since 1.2.0
  *
@@ -4995,7 +5029,7 @@ function wp_pre_kses_less_than( $text ) {
  *
  * @since 2.3.0
  *
- * @param array $matches Populated by matches to preg_replace.
+ * @param string[] $matches Populated by matches to preg_replace.
  * @return string The text returned after esc_html if needed.
  */
 function wp_pre_kses_less_than_callback( $matches ) {
@@ -5650,7 +5684,7 @@ img.emoji {
 	box-shadow: none !important;
 	height: 1em !important;
 	width: 1em !important;
-	margin: 0 .07em !important;
+	margin: 0 0.07em !important;
 	vertical-align: -0.1em !important;
 	background: none !important;
 	padding: 0 !important;

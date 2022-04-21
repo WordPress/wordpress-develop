@@ -11,27 +11,15 @@ if ( is_multisite() ) :
 	 * @group ms-files
 	 * @group multisite
 	 */
-	class Tests_Multisite_MS_Files_Rewriting extends WP_UnitTestCase {
-		protected $suppress = false;
+	class Tests_Multisite_msFilesRewriting extends WP_UnitTestCase {
 
-		function set_up() {
-			global $wpdb;
+		public function set_up() {
 			parent::set_up();
-			$this->suppress = $wpdb->suppress_errors();
-
 			update_site_option( 'ms_files_rewriting', 1 );
 			ms_upload_constants();
 		}
 
-		function tear_down() {
-			global $wpdb;
-
-			$wpdb->suppress_errors( $this->suppress );
-
-			parent::tear_down();
-		}
-
-		function test_switch_upload_dir() {
+		public function test_switch_upload_dir() {
 			$this->assertTrue( is_main_site() );
 
 			$site = get_current_site();
@@ -60,7 +48,7 @@ if ( is_multisite() ) :
 		 * that site should be removed. When wpmu_delete_blog() is run a second time, nothing
 		 * should change with upload directories.
 		 */
-		function test_upload_directories_after_multiple_wpmu_delete_blog_with_ms_files() {
+		public function test_upload_directories_after_multiple_wpmu_delete_blog_with_ms_files() {
 			$filename = __FUNCTION__ . '.jpg';
 			$contents = __FUNCTION__ . '_contents';
 

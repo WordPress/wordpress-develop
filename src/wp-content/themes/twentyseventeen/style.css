@@ -2662,7 +2662,7 @@ h2.widget-title {
 
 /* RSS Widget */
 
-.widget_rss .widget-title .rsswidget:first-child {
+.widget_rss .widget-title .rsswidget:first-child:not(.rss-widget-title) {
 	float: right;
 }
 
@@ -3822,7 +3822,7 @@ p > object:only-child {
 		width: 100%;
 	}
 
-	.panel-content .recent-posts .entry-header {
+	.twentyseventeen-front-page .panel-content .recent-posts .entry-header {
 		margin-bottom: 1.5em;
 	}
 

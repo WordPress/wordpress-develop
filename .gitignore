@@ -90,3 +90,6 @@ wp-tests-config.php
 
 # Files for local environment config
 /docker-compose.override.yml
+
+# Visual regression test diffs
+tests/visual-regression/specs/__image_snapshots__

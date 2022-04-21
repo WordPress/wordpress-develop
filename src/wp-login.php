@@ -434,18 +434,18 @@ do_action( 'login_init' );
  *
  * Possible hook names include:
  *
- *  - 'login_form_checkemail'
- *  - 'login_form_confirm_admin_email'
- *  - 'login_form_confirmaction'
- *  - 'login_form_entered_recovery_mode'
- *  - 'login_form_login'
- *  - 'login_form_logout'
- *  - 'login_form_lostpassword'
- *  - 'login_form_postpass'
- *  - 'login_form_register'
- *  - 'login_form_resetpass'
- *  - 'login_form_retrievepassword'
- *  - 'login_form_rp'
+ *  - `login_form_checkemail`
+ *  - `login_form_confirm_admin_email`
+ *  - `login_form_confirmaction`
+ *  - `login_form_entered_recovery_mode`
+ *  - `login_form_login`
+ *  - `login_form_logout`
+ *  - `login_form_lostpassword`
+ *  - `login_form_postpass`
+ *  - `login_form_register`
+ *  - `login_form_resetpass`
+ *  - `login_form_retrievepassword`
+ *  - `login_form_rp`
  *
  * @since 2.8.0
  */
@@ -1267,7 +1267,10 @@ switch ( $action ) {
 				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
 			} elseif ( isset( $_GET['redirect_to'] ) && false !== strpos( $_GET['redirect_to'], 'wp-admin/authorize-application.php' ) ) {
 				$query_component = wp_parse_url( $_GET['redirect_to'], PHP_URL_QUERY );
-				parse_str( $query_component, $query );
+				$query           = array();
+				if ( $query_component ) {
+					parse_str( $query_component, $query );
+				}
 
 				if ( ! empty( $query['app_name'] ) ) {
 					/* translators: 1: Website name, 2: Application name. */

@@ -1402,18 +1402,21 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Generates and displays row action links.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post $post        Post being acted upon.
+	 * @param WP_Post $item        Post being acted upon.
 	 * @param string  $column_name Current column name.
 	 * @param string  $primary     Primary column name.
 	 * @return string Row actions output for posts, or an empty string
 	 *                if the current column is not the primary column.
 	 */
-	protected function handle_row_actions( $post, $column_name, $primary ) {
+	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
 		}
 
+		// Restores the more descriptive, specific name for use within this method.
+		$post             = $item;
 		$post_type_object = get_post_type_object( $post->post_type );
 		$can_edit_post    = current_user_can( 'edit_post', $post->ID );
 		$actions          = array();
@@ -1657,7 +1660,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					if ( current_user_can( $post_type_object->cap->edit_others_posts ) ) {
 						$users_opt = array(
 							'hide_if_only_one_author' => false,
-							'who'                     => 'authors',
+							'capability'              => array( $post_type_object->cap->edit_posts ),
 							'name'                    => 'post_author',
 							'class'                   => 'authors',
 							'multi'                   => 1,
