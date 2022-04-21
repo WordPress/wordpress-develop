@@ -188,6 +188,18 @@ class WP_Roles {
 	 * @return WP_Role|void             WP_Role object.
 	 */
 	public function update_role( $role, $display_name = null, $capabilities = null ) {
+		if ( ! is_string( $role ) || '' === trim( $role ) ) {
+			return;
+		}
+
+		if ( null !== $display_name && ( ! is_string( $display_name ) || '' === trim( $display_name ) ) ) {
+			return;
+		}
+
+		if ( null !== $capabilities && ! is_array( $capabilities ) ) {
+			return;
+		}
+
 		if ( null === $display_name && null === $capabilities ) {
 			if ( isset( $this->role_objects[ $role ] ) ) {
 				return $this->role_objects[ $role ];
@@ -196,11 +208,11 @@ class WP_Roles {
 		}
 
 		if ( null === $display_name ) {
-			if ( isset( $this->role_objects[ $role ] ) ) {
-				$display_name = $this->roles[ $role ]['name'];
-			} else {
+			if ( ! isset( $this->role_objects[ $role ] ) ) {
 				return;
 			}
+
+			$display_name = $this->roles[ $role ]['name'];
 		}
 
 		if ( null === $capabilities ) {

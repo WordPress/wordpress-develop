@@ -867,10 +867,6 @@ function add_role( $role, $display_name, $capabilities = array() ) {
  * @return WP_Role|void             WP_Role object.
  */
 function update_role( $role, $display_name = null, $capabilities = null ) {
-	if ( empty( $role ) ) {
-		return;
-	}
-
 	return wp_roles()->update_role( $role, $display_name, $capabilities );
 }
 
