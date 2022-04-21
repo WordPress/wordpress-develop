@@ -1686,7 +1686,7 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures sticking a post after delete 'sticky_posts' option.
+	 * Ensures sticking a post succeeds after deleting the 'sticky_posts' option.
 	 *
 	 * @ticket 52007
 	 * @ticket 55176
@@ -1707,7 +1707,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * @covers ::stick_post
 	 * @dataProvider data_stick_post_with_unexpected_sticky_posts_option
 	 *
-	 * @param mixed $stick Value to pass to stick_post().
+	 * @param mixed $starting_option Starting value for sticky_posts option.
 	 */
 	public function test_stick_post_with_unexpected_sticky_posts_option( $starting_option ) {
 		update_option( 'sticky_posts', $starting_option );
@@ -1717,13 +1717,9 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_stick_post_after_delete_sticky_posts_option().
+	 * Data provider.
 	 *
-	 * @return array[] {
-	 *     Arguments passed to test.
-	 *
-	 *     @type mixed $stick Value to pass to stick_post().
-	 * }
+	 * @return array
 	 */
 	public function data_stick_post_with_unexpected_sticky_posts_option() {
 		return array(
