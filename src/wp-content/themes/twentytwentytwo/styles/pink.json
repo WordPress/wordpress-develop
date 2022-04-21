@@ -103,7 +103,7 @@
 							"fontWeight": "400",
 							"fontStyle": "italic",
 							"fontStretch": "normal",
-							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexSans-TextItalic.woff2" ]
+							"src": [ "file:./assets/fonts/ibm-plex/IBMPlexMono-TextItalic.woff2" ]
 						},
 						{
 							"fontFamily": "IBM Plex Mono",
