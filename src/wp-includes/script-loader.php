@@ -647,7 +647,7 @@ function wp_scripts_get_suffix( $type = '' ) {
 }
 
 /**
- * Register all WordPress scripts.
+ * Registers all WordPress scripts.
  *
  * Localizes some of them.
  * args order: `$scripts->add( 'handle', 'url', 'dependencies', 'query-string', 1 );`
@@ -1427,7 +1427,7 @@ function wp_default_scripts( $scripts ) {
 }
 
 /**
- * Assign default styles to $styles object.
+ * Assigns default styles to $styles object.
  *
  * Nothing is returned, because the $styles parameter is passed by reference.
  * Meaning that whatever object is passed will be updated without having to
@@ -1733,7 +1733,7 @@ function wp_default_styles( $styles ) {
 }
 
 /**
- * Reorder JavaScript scripts array to place prototype before jQuery.
+ * Reorders JavaScript scripts array to place prototype before jQuery.
  *
  * @since 2.3.1
  *
@@ -1765,7 +1765,7 @@ function wp_prototype_before_jquery( $js_array ) {
 }
 
 /**
- * Load localized data on print rather than initialization.
+ * Loads localized data on print rather than initialization.
  *
  * These localizations require information that may not be loaded even by init.
  *
@@ -2045,7 +2045,7 @@ function print_footer_scripts() {
 }
 
 /**
- * Print scripts (internal use only)
+ * Prints scripts (internal use only)
  *
  * @ignore
  *
@@ -2226,7 +2226,7 @@ function print_late_styles() {
 }
 
 /**
- * Print styles (internal use only)
+ * Prints styles (internal use only).
  *
  * @ignore
  * @since 3.3.0
@@ -2273,7 +2273,7 @@ function _print_styles() {
 }
 
 /**
- * Determine the concatenation and compression settings for scripts and styles.
+ * Determines the concatenation and compression settings for scripts and styles.
  *
  * @since 2.8.0
  *
@@ -2388,7 +2388,7 @@ function wp_enqueue_global_styles() {
 }
 
 /**
- * Render the SVG filters supplied by theme.json.
+ * Renders the SVG filters supplied by theme.json.
  *
  * Note that this doesn't render the per-block user-defined
  * filters which are handled by wp_render_duotone_support,
@@ -2835,7 +2835,7 @@ function wp_maybe_inline_styles() {
 }
 
 /**
- * Make URLs relative to the WordPress installation.
+ * Makes URLs relative to the WordPress installation.
  *
  * @since 5.9.0
  * @access private
@@ -2920,4 +2920,110 @@ function wp_enqueue_block_support_styles( $style ) {
 			echo "<style>$style</style>\n";
 		}
 	);
+}
+
+/**
+ * Enqueues a stylesheet for a specific block.
+ *
+ * If the theme has opted-in to separate-styles loading,
+ * then the stylesheet will be enqueued on-render,
+ * otherwise when the block inits.
+ *
+ * @since 5.9.0
+ *
+ * @param string $block_name The block-name, including namespace.
+ * @param array  $args       An array of arguments [handle,src,deps,ver,media].
+ * @return void
+ */
+function wp_enqueue_block_style( $block_name, $args ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'handle' => '',
+			'src'    => '',
+			'deps'   => array(),
+			'ver'    => false,
+			'media'  => 'all',
+		)
+	);
+
+	/**
+	 * Callback function to register and enqueue styles.
+	 *
+	 * @param string $content When the callback is used for the render_block filter,
+	 *                        the content needs to be returned so the function parameter
+	 *                        is to ensure the content exists.
+	 * @return string Block content.
+	 */
+	$callback = static function( $content ) use ( $args ) {
+		// Register the stylesheet.
+		if ( ! empty( $args['src'] ) ) {
+			wp_register_style( $args['handle'], $args['src'], $args['deps'], $args['ver'], $args['media'] );
+		}
+
+		// Add `path` data if provided.
+		if ( isset( $args['path'] ) ) {
+			wp_style_add_data( $args['handle'], 'path', $args['path'] );
+
+			// Get the RTL file path.
+			$rtl_file_path = str_replace( '.css', '-rtl.css', $args['path'] );
+
+			// Add RTL stylesheet.
+			if ( file_exists( $rtl_file_path ) ) {
+				wp_style_add_data( $args['handle'], 'rtl', 'replace' );
+
+				if ( is_rtl() ) {
+					wp_style_add_data( $args['handle'], 'path', $rtl_file_path );
+				}
+			}
+		}
+
+		// Enqueue the stylesheet.
+		wp_enqueue_style( $args['handle'] );
+
+		return $content;
+	};
+
+	$hook = did_action( 'wp_enqueue_scripts' ) ? 'wp_footer' : 'wp_enqueue_scripts';
+	if ( wp_should_load_separate_core_block_assets() ) {
+		/**
+		 * Callback function to register and enqueue styles.
+		 *
+		 * @param string $content The block content.
+		 * @param array  $block   The full block, including name and attributes.
+		 * @return string Block content.
+		 */
+		$callback_separate = static function( $content, $block ) use ( $block_name, $callback ) {
+			if ( ! empty( $block['blockName'] ) && $block_name === $block['blockName'] ) {
+				return $callback( $content );
+			}
+			return $content;
+		};
+
+		/*
+		 * The filter's callback here is an anonymous function because
+		 * using a named function in this case is not possible.
+		 *
+		 * The function cannot be unhooked, however, users are still able
+		 * to dequeue the stylesheets registered/enqueued by the callback
+		 * which is why in this case, using an anonymous function
+		 * was deemed acceptable.
+		 */
+		add_filter( 'render_block', $callback_separate, 10, 2 );
+		return;
+	}
+
+	/*
+	 * The filter's callback here is an anonymous function because
+	 * using a named function in this case is not possible.
+	 *
+	 * The function cannot be unhooked, however, users are still able
+	 * to dequeue the stylesheets registered/enqueued by the callback
+	 * which is why in this case, using an anonymous function
+	 * was deemed acceptable.
+	 */
+	add_filter( $hook, $callback );
+
+	// Enqueue assets in the editor.
+	add_action( 'enqueue_block_assets', $callback );
 }
