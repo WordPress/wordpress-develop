@@ -83,7 +83,13 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( WP_Block_Type::class, $block->block_type );
 		$this->assertSame(
-			$block_type_settings['attributes'],
+			array(
+				'defaulted' => array(
+					'type'    => 'number',
+					'default' => 10,
+				),
+				'lock' => array( 'type' => 'object' ),
+			),
 			$block->block_type->attributes
 		);
 	}

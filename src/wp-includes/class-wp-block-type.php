@@ -380,7 +380,7 @@ class WP_Block_Type {
 		}
 
 		// Setup attributes if needed.
-		if ( ! $this->attributes ) {
+		if ( ! is_array( $this->attributes ) ) {
 			$this->attributes = array();
 		}
 
