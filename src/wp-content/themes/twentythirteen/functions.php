@@ -158,6 +158,33 @@ function twentythirteen_setup() {
 		)
 	);
 
+	// Add support for block gradient colors.
+	add_theme_support(
+		'editor-gradient-presets',
+		array(
+			array(
+				'name'     => __( 'Autumn Brown', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg, rgba(226,45,15,1) 0%, rgba(158,25,13,1) 100%)',
+				'slug'     => 'autumn-brown',
+			),
+			array(
+				'name'     => __( 'Sunset Yellow', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg, rgba(233,139,41,1) 0%, rgba(238,179,95,1) 100%)',
+				'slug'     => 'sunset-yellow',
+			),
+			array(
+				'name'     => __( 'Light Sky', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg,rgba(228,228,228,1.0) 0%,rgba(208,225,252,1.0) 100%)',
+				'slug'     => 'light-sky',
+			),
+			array(
+				'name'     => __( 'Dark Sky', 'twentythirteen' ),
+				'gradient' => 'linear-gradient(135deg,rgba(0,0,0,1.0) 0%,rgba(56,61,69,1.0) 100%)',
+				'slug'     => 'dark-sky',
+			),
+		)
+	);
+
 	// Adds RSS feed links to <head> for posts and comments.
 	add_theme_support( 'automatic-feed-links' );
 
@@ -411,6 +438,20 @@ function twentythirteen_widgets_init() {
 }
 add_action( 'widgets_init', 'twentythirteen_widgets_init' );
 
+if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
+	/**
+	 * Retrieves the list item separator based on the locale.
+	 *
+	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
+	 *
+	 * @since 6.0.0
+	 */
+	function wp_get_list_item_separator() {
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ', 'twentythirteen' );
+	}
+endif;
+
 if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 	/**
 	 * Display navigation to next/previous set of posts when applicable.
@@ -490,14 +531,12 @@ if ( ! function_exists( 'twentythirteen_entry_meta' ) ) :
 			twentythirteen_entry_date();
 		}
 
-		/* translators: Used between list items, there is a space after the comma. */
-		$categories_list = get_the_category_list( __( ', ', 'twentythirteen' ) );
+		$categories_list = get_the_category_list( wp_get_list_item_separator() );
 		if ( $categories_list ) {
 			echo '<span class="categories-links">' . $categories_list . '</span>';
 		}
 
-		/* translators: Used between list items, there is a space after the comma. */
-		$tags_list = get_the_tag_list( '', __( ', ', 'twentythirteen' ) );
+		$tags_list = get_the_tag_list( '', wp_get_list_item_separator() );
 		if ( $tags_list && ! is_wp_error( $tags_list ) ) {
 			echo '<span class="tags-links">' . $tags_list . '</span>';
 		}
@@ -523,10 +562,10 @@ if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 	 *
 	 * @since Twenty Thirteen 1.0
 	 *
-	 * @param bool $echo (optional) Whether to echo the date. Default true.
+	 * @param bool $display (optional) Whether to display the date. Default true.
 	 * @return string The HTML-formatted post date.
 	 */
-	function twentythirteen_entry_date( $echo = true ) {
+	function twentythirteen_entry_date( $display = true ) {
 		if ( has_post_format( array( 'chat', 'status' ) ) ) {
 			/* translators: 1: Post format name, 2: Date. */
 			$format_prefix = _x( '%1$s on %2$s', '1: post format name. 2: date', 'twentythirteen' );
@@ -543,7 +582,7 @@ if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 			esc_html( sprintf( $format_prefix, get_post_format_string( get_post_format() ), get_the_date() ) )
 		);
 
-		if ( $echo ) {
+		if ( $display ) {
 			echo $date;
 		}
 

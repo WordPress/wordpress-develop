@@ -358,11 +358,7 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 /**
  * Retrieves the total comment counts for the whole site or a single post.
  *
- * Unlike wp_count_comments(), this function always returns the live comment counts without caching.
- *
  * @since 2.0.0
- *
- * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $post_id Optional. Restrict the comment counts to the given post. Default 0, which indicates that
  *                     comment counts for the whole site will be retrieved.
@@ -379,24 +375,7 @@ function get_lastcommentmodified( $timezone = 'server' ) {
  * }
  */
 function get_comment_count( $post_id = 0 ) {
-	global $wpdb;
-
 	$post_id = (int) $post_id;
-
-	$where = '';
-	if ( $post_id > 0 ) {
-		$where = $wpdb->prepare( 'WHERE comment_post_ID = %d', $post_id );
-	}
-
-	$totals = (array) $wpdb->get_results(
-		"
-		SELECT comment_approved, COUNT( * ) AS total
-		FROM {$wpdb->comments}
-		{$where}
-		GROUP BY comment_approved
-	",
-		ARRAY_A
-	);
 
 	$comment_count = array(
 		'approved'            => 0,
@@ -408,32 +387,27 @@ function get_comment_count( $post_id = 0 ) {
 		'all'                 => 0,
 	);
 
-	foreach ( $totals as $row ) {
-		switch ( $row['comment_approved'] ) {
-			case 'trash':
-				$comment_count['trash'] = $row['total'];
-				break;
-			case 'post-trashed':
-				$comment_count['post-trashed'] = $row['total'];
-				break;
-			case 'spam':
-				$comment_count['spam']            = $row['total'];
-				$comment_count['total_comments'] += $row['total'];
-				break;
-			case '1':
-				$comment_count['approved']        = $row['total'];
-				$comment_count['total_comments'] += $row['total'];
-				$comment_count['all']            += $row['total'];
-				break;
-			case '0':
-				$comment_count['awaiting_moderation'] = $row['total'];
-				$comment_count['total_comments']     += $row['total'];
-				$comment_count['all']                += $row['total'];
-				break;
-			default:
-				break;
-		}
+	$args = array(
+		'count'                     => true,
+		'update_comment_meta_cache' => false,
+	);
+	if ( $post_id > 0 ) {
+		$args['post_id'] = $post_id;
 	}
+	$mapping       = array(
+		'approved'            => 'approve',
+		'awaiting_moderation' => 'hold',
+		'spam'                => 'spam',
+		'trash'               => 'trash',
+		'post-trashed'        => 'post-trashed',
+	);
+	$comment_count = array();
+	foreach ( $mapping as $key => $value ) {
+		$comment_count[ $key ] = get_comments( array_merge( $args, array( 'status' => $value ) ) );
+	}
+
+	$comment_count['all']            = $comment_count['approved'] + $comment_count['awaiting_moderation'];
+	$comment_count['total_comments'] = $comment_count['all'] + $comment_count['spam'];
 
 	return array_map( 'intval', $comment_count );
 }
