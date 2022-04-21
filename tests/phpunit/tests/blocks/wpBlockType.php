@@ -84,6 +84,38 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		$this->assertSame( $args['foo'], $block_type->foo );
 	}
 
+	public function test_core_attributes() {
+		$block_type = new WP_Block_Type( 'core/fake', array() );
+
+		$this->assertEquals(
+			array(
+				'lock' => array( 'type' => 'object' ),
+			),
+			$block_type->attributes
+		);
+	}
+
+	public function test_core_attributes_matches_custom() {
+		$block_type = new WP_Block_Type(
+			'core/fake',
+			array(
+				'attributes' => array(
+					'lock' => array(
+						'type' => 'string',
+					),
+				),
+			)
+		);
+
+		// Backward compatibility: Don't override attributes with the same name.
+		$this->assertEquals(
+			array(
+				'lock' => array( 'type' => 'string' ),
+			),
+			$block_type->attributes
+		);
+	}
+
 	/**
 	 * @ticket 45097
 	 */

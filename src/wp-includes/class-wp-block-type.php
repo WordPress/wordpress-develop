@@ -205,6 +205,16 @@ class WP_Block_Type {
 	public $style = null;
 
 	/**
+	 * Attributes supported by every block.
+	 *
+	 * @since 6.0.0
+	 * @var array
+	 */
+	const CORE_ATTRIBUTES = array(
+		'lock' => array( 'type' => 'object' ),
+	);
+
+	/**
 	 * Constructor.
 	 *
 	 * Will populate object properties from the provided arguments.
@@ -367,6 +377,18 @@ class WP_Block_Type {
 
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;
+		}
+
+		// Setup attributes if needed.
+		if ( ! $this->attributes ) {
+			$this->attributes = array();
+		}
+
+		// Register core attributes.
+		foreach ( static::CORE_ATTRIBUTES as $attr_key => $attr_schema ) {
+			if ( ! array_key_exists( $attr_key, $this->attributes ) ) {
+				$this->attributes[ $attr_key ] = $attr_schema;
+			}
 		}
 	}
 
