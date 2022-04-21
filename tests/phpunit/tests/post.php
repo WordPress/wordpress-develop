@@ -1727,12 +1727,12 @@ class Tests_Post extends WP_UnitTestCase {
 	 */
 	public function data_stick_post_with_unexpected_sticky_posts_option() {
 		return array(
-			array( false ),
-			array( 'string' ),
-			array( 1 ),
-			array( null ),
-			array( true ),
-			array( new stdClass ),
+			'false'     => array( false ),
+			'a string'  => array( 'string' ),
+			'1 int'     => array( 1 ),
+			'null'      => array( null ),
+			'true'      => array( true ),
+			'an object' => array( new stdClass ),
 		);
 	}
 
