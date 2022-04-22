@@ -63,7 +63,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$single_theme = wp_get_theme( $this->theme_slug );
 		$this->assertSame( $single_theme->get( 'Name' ), $themes[ $this->theme_slug ]->get( 'Name' ) );
-		$this->assertEquals( $themes[ $this->theme_slug ], $single_theme );
+		$this->assertSimilarObject( $themes[ $this->theme_slug ], $single_theme );
 	}
 
 	/**
@@ -103,7 +103,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			$_theme = wp_get_theme( $theme->get_stylesheet() );
 			// This primes internal WP_Theme caches for the next assertion (headers_sanitized, textdomain_loaded).
 			$this->assertSame( $theme->get( 'Name' ), $_theme->get( 'Name' ) );
-			$this->assertEquals( $theme, $_theme );
+			$this->assertSimilarObject( $theme, $_theme );
 		}
 	}
 

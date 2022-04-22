@@ -43,7 +43,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 		}
 
 		if ( is_object( $expected ) ) {
-			$this->assertEquals( $expected, maybe_unserialize( $value ) );
+			$this->assertSimilarObject( $expected, maybe_unserialize( $value ) );
 		} else {
 			$this->assertSame( $expected, maybe_unserialize( $value ) );
 		}

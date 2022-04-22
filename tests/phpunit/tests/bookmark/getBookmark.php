@@ -143,7 +143,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( $bookmark->link_id, 'bookmark' );
-		$this->assertEquals( $bookmark, $actual_cache );
+		$this->assertSimilarObject( $bookmark, $actual_cache );
 	}
 
 	/**
@@ -228,18 +228,18 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$actual_bookmark = get_bookmark( ...$args );
 
 		/*
-		 * For non-array output type, use assertEquals(). Why? The object pulled from the cache
+		 * For non-array output type, use assertSimilarObject(). Why? The object pulled from the cache
 		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
-			$this->assertEquals( $expected, $actual_bookmark );
+			$this->assertSimilarObject( $expected, $actual_bookmark );
 		} else {
 			$this->assertSameSets( $expected, $actual_bookmark );
 		}
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
-		$this->assertEquals( self::$bookmark, $actual_cache );
+		$this->assertSimilarObject( self::$bookmark, $actual_cache );
 	}
 
 	/**
@@ -286,18 +286,18 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$actual_bookmark = get_bookmark( ...$args );
 
 		/*
-		 * For non-array output type, use assertEquals(). Why? The object pulled from the database
+		 * For non-array output type, use assertSimilarObject(). Why? The object pulled from the database
 		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
-			$this->assertEquals( $expected, $actual_bookmark );
+			$this->assertSimilarObject( $expected, $actual_bookmark );
 		} else {
 			$this->assertSameSets( $expected, $actual_bookmark );
 		}
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
-		$this->assertEquals( self::$bookmark, $actual_cache );
+		$this->assertSimilarObject( self::$bookmark, $actual_cache );
 	}
 
 	/**

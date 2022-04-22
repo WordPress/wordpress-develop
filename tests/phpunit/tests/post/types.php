@@ -275,7 +275,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$after = get_post_type_object( 'foo' )->labels;
 
-		$this->assertEquals( $before, $after );
+		$this->assertSimilarObject( $before, $after );
 
 		_unregister_post_type( 'foo' );
 	}

@@ -2490,7 +2490,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$role = $wp_roles->get_role( $this->role_test_wp_roles_init['role'] );
 
-		$this->assertEquals( $expected, $role );
+		$this->assertSimilarObject( $expected, $role );
 		$this->assertContains( $this->role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
 	}
 

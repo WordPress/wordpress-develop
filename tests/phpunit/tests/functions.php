@@ -1177,7 +1177,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertIsString( $date_return, 'The date return must be a string' );
 		$this->assertNotEmpty( $date_return, 'The date return could not be an empty string' );
 		$this->assertSame( $expected, $date_return, 'The date does not match' );
-		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
+		$this->assertSimilarObject( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
 	}
 
 	public function datetime_provider() {
@@ -2072,7 +2072,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	function test_wp_filesize_with_nonexistent_file() {
 		$file = 'nonexistent/file.jpg';
-		$this->assertEquals( 0, wp_filesize( $file ) );
+		$this->assertSame( 0, wp_filesize( $file ) );
 	}
 
 	/**
@@ -2082,7 +2082,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_wp_filesize() {
 		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
 
-		$this->assertEquals( filesize( $file ), wp_filesize( $file ) );
+		$this->assertSame( filesize( $file ), wp_filesize( $file ) );
 
 		$filter = function() {
 			return 999;
@@ -2090,7 +2090,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		add_filter( 'wp_filesize', $filter );
 
-		$this->assertEquals( 999, wp_filesize( $file ) );
+		$this->assertSame( 999, wp_filesize( $file ) );
 
 		$pre_filter = function() {
 			return 111;
@@ -2098,7 +2098,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		add_filter( 'pre_wp_filesize', $pre_filter );
 
-		$this->assertEquals( 111, wp_filesize( $file ) );
+		$this->assertSame( 111, wp_filesize( $file ) );
 	}
 
 	/**

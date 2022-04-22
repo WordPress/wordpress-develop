@@ -51,7 +51,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 
 		$value = (object) $value;
 		$this->assertTrue( set_transient( $key, $value ) );
-		$this->assertEquals( $value, get_transient( $key ) );
+		$this->assertSimilarObject( $value, get_transient( $key ) );
 		$this->assertTrue( delete_transient( $key ) );
 	}
 

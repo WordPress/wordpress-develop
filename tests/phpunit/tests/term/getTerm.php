@@ -94,7 +94,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		// Second call shouldn't require a database query.
 		$term_b = get_term( $t, 'wptests_tax' );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEquals( $term_a, $term_b );
+		$this->assertSimilarObject( $term_a, $term_b );
 	}
 
 	public function test_output_object() {

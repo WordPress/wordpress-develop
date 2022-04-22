@@ -158,7 +158,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		_unregister_post_type( $post_type );
 		$count = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( new stdClass, $count );
+		$this->assertSimilarObject( new stdClass, $count );
 	}
 
 	public function test_wp_count_posts_filtered() {

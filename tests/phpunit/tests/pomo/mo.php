@@ -58,7 +58,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 				'context'      => 'dragonland',
 			)
 		);
-		$this->assertEquals( $plural_entry, $mo->entries[ $plural_entry->key() ] );
+		$this->assertSimilarObject( $plural_entry, $mo->entries[ $plural_entry->key() ] );
 		$this->assertSame( 'dragonland', $mo->entries[ $plural_entry->key() ]->context );
 
 		$single_entry = new Translation_Entry(
@@ -68,7 +68,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 				'context'      => 'not so dragon',
 			)
 		);
-		$this->assertEquals( $single_entry, $mo->entries[ $single_entry->key() ] );
+		$this->assertSimilarObject( $single_entry, $mo->entries[ $single_entry->key() ] );
 		$this->assertSame( 'not so dragon', $mo->entries[ $single_entry->key() ]->context );
 
 	}
@@ -139,7 +139,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 
 		$this->assertSame( count( $entries ), count( $again->entries ) );
 		foreach ( $entries as $entry ) {
-			$this->assertEquals( $entry, $again->entries[ $entry->key() ] );
+			$this->assertSimilarObject( $entry, $again->entries[ $entry->key() ] );
 		}
 	}
 

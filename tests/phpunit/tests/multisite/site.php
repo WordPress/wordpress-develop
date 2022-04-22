@@ -150,7 +150,7 @@ if ( is_multisite() ) :
 			// Combine domain and path for a site specific cache key.
 			$key = md5( $details->domain . $details->path );
 
-			$this->assertEquals( $details, wp_cache_get( $blog_id . 'short', 'blog-details' ) );
+			$this->assertSimilarObject( $details, wp_cache_get( $blog_id . 'short', 'blog-details' ) );
 
 			// get_blogaddress_by_name().
 			$this->assertSame( 'http://' . $details->domain . $details->path, get_blogaddress_by_name( trim( $details->path, '/' ) ) );
@@ -161,8 +161,8 @@ if ( is_multisite() ) :
 
 			// $get_all = true, populate the full blog-details cache and the blog slug lookup cache.
 			$details = get_blog_details( $blog_id, true );
-			$this->assertEquals( $details, wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertEquals( $details, wp_cache_get( $key, 'blog-lookup' ) );
+			$this->assertSimilarObject( $details, wp_cache_get( $blog_id, 'blog-details' ) );
+			$this->assertSimilarObject( $details, wp_cache_get( $key, 'blog-lookup' ) );
 
 			// Check existence of each database table for the created site.
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
@@ -445,7 +445,7 @@ if ( is_multisite() ) :
 			$blog = get_blog_details( $blog_id );
 
 			// When the cache is refreshed, it should now equal the site data.
-			$this->assertEquals( $blog, wp_cache_get( $blog_id, 'blog-details' ) );
+			$this->assertSimilarObject( $blog, wp_cache_get( $blog_id, 'blog-details' ) );
 		}
 
 		/**
@@ -874,7 +874,7 @@ if ( is_multisite() ) :
 			switch_to_blog( $blog_id );
 
 			// The post created and retrieved on the main site should match the one retrieved "remotely".
-			$this->assertEquals( $post, get_blog_post( 1, $post_id ) );
+			$this->assertSimilarObject( $post, get_blog_post( 1, $post_id ) );
 
 			restore_current_blog();
 		}
@@ -885,7 +885,7 @@ if ( is_multisite() ) :
 		public function test_get_blog_post_from_same_site() {
 			$post_id = self::factory()->post->create();
 
-			$this->assertEquals( get_blog_post( 1, $post_id ), get_post( $post_id ) );
+			$this->assertSimilarObject( get_blog_post( 1, $post_id ), get_post( $post_id ) );
 		}
 
 		/**
