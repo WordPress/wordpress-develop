@@ -140,8 +140,8 @@
 			messages: {
 				noResults: __( 'No results found.' ),
 				results: function( number ) {
-					/* translators: %d: Number of results found when using jQuery UI Autocomplete. */
 					return sprintf(
+						/* translators: %d: Number of search results found. */
 						_n(
 							'%d result found. Use up and down arrow keys to navigate.',
 							'%d results found. Use up and down arrow keys to navigate.',
