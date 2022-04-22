@@ -2864,7 +2864,8 @@ mockedApiResponse.Schema = {
                                 "video",
                                 "text",
                                 "application",
-                                "audio"
+                                "audio",
+                                "font"
                             ],
                             "required": false
                         },
