@@ -371,7 +371,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$data     = $response->get_data();
 		$links    = $response->get_links();
 
-		$this->assertEquals(
+		$this->assertArrayEqualsWithObject(
 			array(
 				'id'       => self::$global_styles_id,
 				'title'    => array(

@@ -176,7 +176,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$this->assertIsInt( add_metadata( 'site', $network_id, $option, $funky_meta, true ) );
 
 		// Check they exists.
-		$this->assertEquals( $funky_meta, get_network_option( $network_id, $option ) );
+		$this->assertArrayEqualsWithObject( $funky_meta, get_network_option( $network_id, $option ) );
 	}
 
 	/**
@@ -279,7 +279,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		);
 
 		add_metadata( 'site', $network_id, $option, $array_w_object, true );
-		$this->assertEquals( $array_w_object, get_network_option( $network_id, $option ) );
+		$this->assertArrayEqualsWithObject( $array_w_object, get_network_option( $network_id, $option ) );
 	}
 
 	/**

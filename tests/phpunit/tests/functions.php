@@ -2184,7 +2184,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			),
 			'version'  => 1,
 		);
-		$this->assertEquals( $theme_json, $expected_theme_json );
+		$this->assertSameSetsWithIndex( $theme_json, $expected_theme_json );
 	}
 
 }

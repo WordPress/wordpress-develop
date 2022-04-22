@@ -242,7 +242,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 		$terms = $query->get_terms();
 
-		$this->assertEquals( array( $t1, $t2 ), $terms );
+		$this->assertArrayEqualsWithObject( array( $t1, $t2 ), $terms );
 	}
 
 	/**
