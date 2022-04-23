@@ -116,7 +116,7 @@ class WP_Upgrader {
 	 *
 	 * Used by rollback functions.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 * @var array
 	 */
 	private $options = array();
@@ -146,7 +146,7 @@ class WP_Upgrader {
 	 * Additionally, it will schedule a weekly task to clean up the temp-backup directory.
 	 *
 	 * @since 2.8.0
-	 * @since 6.0.0 Added the `schedule_temp_backup_cleanup()` task.
+	 * @since 6.1.0 Added the `schedule_temp_backup_cleanup()` task.
 	 */
 	public function init() {
 		$this->skin->set_upgrader( $this );
@@ -160,7 +160,7 @@ class WP_Upgrader {
 	/**
 	 * Schedule cleanup of the temp-backup directory.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 */
 	protected function schedule_temp_backup_cleanup() {
 		if ( false === wp_next_scheduled( 'wp_delete_temp_updater_backups' ) ) {
@@ -1016,7 +1016,7 @@ class WP_Upgrader {
 	/**
 	 * Moves the plugin/theme being updated into a temp-backup directory.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
@@ -1085,7 +1085,7 @@ class WP_Upgrader {
 	/**
 	 * Restores the plugin/theme from the temp-backup directory.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
@@ -1126,7 +1126,7 @@ class WP_Upgrader {
 	/**
 	 * Deletes a temp-backup.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
