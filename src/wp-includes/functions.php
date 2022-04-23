@@ -1600,7 +1600,7 @@ function do_feed() {
 	}
 
 	if ( ! has_action( "do_feed_{$feed}" ) ) {
-		wp_die( __( 'Error: This is not a valid feed template.' ), '', array( 'response' => 404 ) );
+		wp_die( __( '<strong>Error</strong>: This is not a valid feed template.' ), '', array( 'response' => 404 ) );
 	}
 
 	/**
@@ -3656,36 +3656,36 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param callable $function Callback function name.
+		 * @param callable $callback Callback function name.
 		 */
-		$function = apply_filters( 'wp_die_ajax_handler', '_ajax_wp_die_handler' );
+		$callback = apply_filters( 'wp_die_ajax_handler', '_ajax_wp_die_handler' );
 	} elseif ( wp_is_json_request() ) {
 		/**
 		 * Filters the callback for killing WordPress execution for JSON requests.
 		 *
 		 * @since 5.1.0
 		 *
-		 * @param callable $function Callback function name.
+		 * @param callable $callback Callback function name.
 		 */
-		$function = apply_filters( 'wp_die_json_handler', '_json_wp_die_handler' );
+		$callback = apply_filters( 'wp_die_json_handler', '_json_wp_die_handler' );
 	} elseif ( defined( 'REST_REQUEST' ) && REST_REQUEST && wp_is_jsonp_request() ) {
 		/**
 		 * Filters the callback for killing WordPress execution for JSONP REST requests.
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param callable $function Callback function name.
+		 * @param callable $callback Callback function name.
 		 */
-		$function = apply_filters( 'wp_die_jsonp_handler', '_jsonp_wp_die_handler' );
+		$callback = apply_filters( 'wp_die_jsonp_handler', '_jsonp_wp_die_handler' );
 	} elseif ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
 		/**
 		 * Filters the callback for killing WordPress execution for XML-RPC requests.
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param callable $function Callback function name.
+		 * @param callable $callback Callback function name.
 		 */
-		$function = apply_filters( 'wp_die_xmlrpc_handler', '_xmlrpc_wp_die_handler' );
+		$callback = apply_filters( 'wp_die_xmlrpc_handler', '_xmlrpc_wp_die_handler' );
 	} elseif ( wp_is_xml_request()
 		|| isset( $wp_query ) &&
 			( function_exists( 'is_feed' ) && is_feed()
@@ -3696,21 +3696,21 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param callable $function Callback function name.
+		 * @param callable $callback Callback function name.
 		 */
-		$function = apply_filters( 'wp_die_xml_handler', '_xml_wp_die_handler' );
+		$callback = apply_filters( 'wp_die_xml_handler', '_xml_wp_die_handler' );
 	} else {
 		/**
 		 * Filters the callback for killing WordPress execution for all non-Ajax, non-JSON, non-XML requests.
 		 *
 		 * @since 3.0.0
 		 *
-		 * @param callable $function Callback function name.
+		 * @param callable $callback Callback function name.
 		 */
-		$function = apply_filters( 'wp_die_handler', '_default_wp_die_handler' );
+		$callback = apply_filters( 'wp_die_handler', '_default_wp_die_handler' );
 	}
 
-	call_user_func( $function, $message, $title, $args );
+	call_user_func( $callback, $message, $title, $args );
 }
 
 /**
@@ -4589,7 +4589,7 @@ function _config_wp_home( $url = '' ) {
  * @see WP_SITEURL
  *
  * @param string $url URL to set the WordPress site location.
- * @return string The WordPress Site URL.
+ * @return string The WordPress site URL.
  */
 function _config_wp_siteurl( $url = '' ) {
 	if ( defined( 'WP_SITEURL' ) ) {
@@ -6872,7 +6872,7 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
  *
  * @since 3.1.3
  *
- * @see https://developer.mozilla.org/en/the_x-frame-options_response_header
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
  */
 function send_frame_options_header() {
 	header( 'X-Frame-Options: SAMEORIGIN' );
@@ -8439,4 +8439,22 @@ function is_php_version_compatible( $required ) {
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
+}
+
+/**
+ * Sorts the keys of an array alphabetically.
+ * The array is passed by reference so it doesn't get returned
+ * which mimics the behaviour of ksort.
+ *
+ * @since 6.0.0
+ *
+ * @param array $array The array to sort, passed by reference.
+ */
+function wp_recursive_ksort( &$array ) {
+	foreach ( $array as &$value ) {
+		if ( is_array( $value ) ) {
+			wp_recursive_ksort( $value );
+		}
+	}
+	ksort( $array );
 }
