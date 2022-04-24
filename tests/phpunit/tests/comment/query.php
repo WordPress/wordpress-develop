@@ -4941,4 +4941,31 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		return array( get_comment( $c ) );
 	}
+
+	/**
+	 * @ticket 55460
+	 */
+	public function test_comment_cache_key_should_ignore_unset_params() {
+		$p = self::factory()->post->create();
+		$c = self::factory()->comment->create( array( 'comment_post_ID' => $p ) );
+
+		$_args = array(
+			'post_id'                   => $p,
+			'fields'                    => 'ids',
+			'update_comment_meta_cache' => true,
+			'update_comment_post_cache' => false,
+		);
+
+		$q1 = new WP_Comment_Query();
+		$q1->query( $_args );
+
+		$num_queries_all_args = get_num_queries();
+
+		// Ignore 'fields', 'update_comment_meta_cache', 'update_comment_post_cache'.
+		unset( $_args['fields'], $_args['update_comment_meta_cache'], $_args['update_comment_post_cache'] );
+		$q2 = new WP_Comment_Query();
+		$q2->query( $_args );
+
+		$this->assertSame( $num_queries_all_args, get_num_queries() );
+	}
 }
