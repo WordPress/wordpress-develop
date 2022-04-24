@@ -162,7 +162,15 @@ function wp_ajax_ajax_tag_search() {
 		)
 	);
 
-	$results = apply_filters( 'wp_after_tag_search', $results );
+	/**
+	 * Filters the tag results.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array       $results  The terms array.
+	 * @param WP_Taxonomy $taxonomy The taxonomy object.
+	 * @param string      $s        The search term.
+	 */
 	$results = apply_filters( 'wp_after_tag_search', $results, $taxonomy, $s );
 
 	echo implode( "\n", $results );
