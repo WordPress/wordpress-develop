@@ -167,11 +167,11 @@ function wp_ajax_ajax_tag_search() {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array       $results  The terms array.
-	 * @param WP_Taxonomy $taxonomy The taxonomy object.
-	 * @param string      $s        The search term.
+	 * @param array       $results The terms array.
+	 * @param WP_Taxonomy $tax     The taxonomy object.
+	 * @param string      $s       The search term.
 	 */
-	$results = apply_filters( 'wp_after_tag_search', $results, $taxonomy, $s );
+	$results = apply_filters( 'wp_after_tag_search', $results, $tax, $s );
 
 	echo implode( "\n", $results );
 	wp_die();
