@@ -262,7 +262,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test get_files.
+	 * Test get_files for an existing theme.
 	 *
 	 * @ticket 53599
 	 */
@@ -278,7 +278,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test get_files for a non-existent theme.
+	 * Test get_files for a non-existing theme.
 	 *
 	 * @ticket 53599
 	 */
