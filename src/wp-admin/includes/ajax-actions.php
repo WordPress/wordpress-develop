@@ -163,6 +163,7 @@ function wp_ajax_ajax_tag_search() {
 	);
 
 	$results = apply_filters( 'wp_after_tag_search', $results );
+	$results = apply_filters( 'wp_after_tag_search', $results, $taxonomy, $s );
 
 	echo implode( "\n", $results );
 	wp_die();
