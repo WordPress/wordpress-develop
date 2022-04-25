@@ -454,7 +454,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				array(
 					'parameter_1' => 1,
 				),
-				'Empty slugs should not affect the transient key.'
+				'Empty slugs should not affect the transient key.',
 			),
 			array(
 				array(
@@ -464,7 +464,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				array(
 					'parameter_1' => 1,
 				),
-				'Empty slugs should not affect the transient key.'
+				'Empty slugs should not affect the transient key.',
 			),
 			array(
 				array(
@@ -475,7 +475,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 					'parameter_1' => 1,
 					'slug'        => '2,1',
 				),
-				'message' => 'The order of slugs should not affect transient key.'
+				'message' => 'The order of slugs should not affect transient key.',
 			),
 			array(
 				array(
@@ -558,17 +558,17 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	/**
 	 * Returns a reflection method and changes its scope.
 	 *
-	 * @since 6.0.0
-	 *
 	 * @param $object An object that has a private method that has to be called.
 	 * @param $method Name of the method.
 	 *
 	 * @return ReflectionMethod
+	 * @since 6.0.0
+	 *
 	 */
-	private function get_reflection_method($object, $method)
-	{
-		$reflection_method = new ReflectionMethod($object, $method);
-		$reflection_method->setAccessible(true);
+	private function get_reflection_method( $object, $method ) {
+		$reflection_method = new ReflectionMethod( $object, $method );
+		$reflection_method->setAccessible( true );
+
 		return $reflection_method;
 	}
 }
