@@ -9,6 +9,11 @@
  *
  * Not all of the default hooks are found in default-filters.php
  *
+ * Please note that this file registers default hooks only.
+ * If your hook has to be called from some specific context
+ * (e.g., admin area or multisite environment), please move
+ * it to a more appropriate file.
+ *
  * @package WordPress
  */
 
