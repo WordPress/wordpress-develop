@@ -243,7 +243,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['editor_style'] );
 		$this->assertNull( $data['style'] );
 		$this->assertSameSets( array(), $data['provides_context'] );
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'lock' => array( 'type' => 'object' ),
 			),
@@ -304,7 +304,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['view_script'] );
 		$this->assertNull( $data['editor_style'] );
 		$this->assertNull( $data['style'] );
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'lock' => array( 'type' => 'object' ),
 			),
