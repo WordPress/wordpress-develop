@@ -181,7 +181,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		try {
-			$this->_handleAjax( 'ajax-tag-search' );
+			$this->_handleAjax( 'ajax-tag-search', $_GET['tax'], $_GET['q'] );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
