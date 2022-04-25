@@ -3081,12 +3081,6 @@ function _wp_theme_json_webfonts_handler() {
 				}
 
 				// Initialize the array structure.
-				if ( empty( $settings['typography'] ) ) {
-					$settings['typography'] = array();
-				}
-				if ( empty( $settings['typography']['fontFamilies'] ) ) {
-					$settings['typography']['fontFamilies'] = array();
-				}
 				if ( empty( $settings['typography']['fontFamilies']['theme'] ) ) {
 					$settings['typography']['fontFamilies']['theme'] = array();
 				}
