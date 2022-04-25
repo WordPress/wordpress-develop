@@ -4,7 +4,7 @@
  * @group xmlrpc
  * @ticket 53490
  */
-class Tests_function_xmlrpc extends WP_UnitTestCase {
+class Tests_Functions_XMLRPC extends WP_UnitTestCase {
 
 	private $test_content = '
 	<title>title</title>
