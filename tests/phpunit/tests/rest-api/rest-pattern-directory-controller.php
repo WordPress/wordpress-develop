@@ -417,6 +417,8 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 *
 	 * @covers WP_REST_Pattern_Directory_Controller::get_transient_key
 	 *
+	 * @since 6.0.0
+	 *
 	 * @ticket 55617
 	 *
 	 * @param array     $parameters_1   Expected query arguments.
@@ -444,6 +446,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 
 	}
 
+	/**
+	 * @since 6.0.0
+	 *
+	 * @ticket 55617
+	 */
 	public function data_get_query_parameters() {
 		return array(
 			array(
@@ -558,12 +565,12 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	/**
 	 * Returns a reflection method and changes its scope.
 	 *
+	 * @since 6.0.0
+	 *
 	 * @param $object An object that has a private method that has to be called.
 	 * @param $method Name of the method.
 	 *
 	 * @return ReflectionMethod
-	 * @since 6.0.0
-	 *
 	 */
 	private function get_reflection_method( $object, $method ) {
 		$reflection_method = new ReflectionMethod( $object, $method );
