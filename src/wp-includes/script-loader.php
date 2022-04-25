@@ -3092,7 +3092,7 @@ function _wp_theme_json_webfonts_handler() {
 		}
 
 		// Bail out early if there are no settings for webfonts.
-		if ( empty( $settings['typography'] ) || empty( $settings['typography']['fontFamilies'] ) ) {
+		if ( empty( $settings['typography']['fontFamilies'] ) ) {
 			return array();
 		}
 
