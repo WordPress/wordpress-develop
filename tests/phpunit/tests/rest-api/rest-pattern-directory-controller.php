@@ -417,7 +417,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 *
 	 * @covers WP_REST_Pattern_Directory_Controller::get_transient_key
 	 *
-	 * @ticket xxxxx
+	 * @ticket 55617
 	 *
 	 * @param array     $parameters_1   Expected query arguments.
 	 * @param array     $parameters_2   Actual query arguments.
