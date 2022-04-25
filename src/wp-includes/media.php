@@ -3778,7 +3778,7 @@ function wp_get_image_editor( $path, $args = array() ) {
 	/** This filter is documented in wp-includes/class-wp-image-editor.php */
 	$output_format = apply_filters( 'image_editor_output_format', array(), $path, $args['mime_type'] );
 	if ( isset( $output_format[ $args['mime_type'] ] ) ) {
-		$args['output_mime'] = $output_format[ $mime_type ];
+		$args['output_mime_type'] = $output_format[ $mime_type ];
 	}
 
 	$implementation = _wp_image_editor_choose( $args );
@@ -3842,12 +3842,12 @@ function _wp_image_editor_choose( $args = array() ) {
 		// If both mime type and output type are set, implementation should support both.
 		if (
 			isset( $args['mime_type'] ) &&
-			isset( $args['output_type'] ) &&
+			isset( $args['output_mime_type'] ) &&
 			(
-				! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_type'] ) ||
+				! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_mime_type'] ) ||
 				! call_user_func( array( $implementation, 'supports_mime_type' ), $args['mime_type'] )
 			)
-		){
+		) {
 			continue;
 		}
 
