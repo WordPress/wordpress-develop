@@ -96,10 +96,12 @@ class WP_Plugin_Dependencies {
 		$this->get_plugins();
 		$required_headers = array();
 		foreach ( array_keys( $this->plugins ) as $plugin ) {
-			$requires_plugins = get_file_data( WP_PLUGIN_DIR . '/' . $plugin, array( 'RequiresPlugins' => 'Requires Plugins' ) );
+			$plugin_required_headers = array();
+			$requires_plugins        = get_file_data( WP_PLUGIN_DIR . '/' . $plugin, array( 'RequiresPlugins' => 'Requires Plugins' ) );
 			if ( ! empty( $requires_plugins['RequiresPlugins'] ) ) {
-				$required_headers[ $plugin ] = $requires_plugins;
-				$sanitized_requires_slugs    = implode( ', ', $this->sanitize_required_headers( $required_headers ) );
+				$required_headers[ $plugin ]        = $requires_plugins;
+				$plugin_required_headers[ $plugin ] = $requires_plugins;
+				$sanitized_requires_slugs           = implode( ',', $this->sanitize_required_headers( $plugin_required_headers ) );
 
 				$this->requires_plugins[ $plugin ]['RequiresPlugins'] = $sanitized_requires_slugs;
 			}
