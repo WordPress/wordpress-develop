@@ -3054,6 +3054,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
  * @link  https://github.com/WordPress/gutenberg/issues/40472
  *
  * @since 6.0.0
+ * @access private
  */
 function _wp_theme_json_webfonts_handler() {
 	// Webfonts to be processed.
