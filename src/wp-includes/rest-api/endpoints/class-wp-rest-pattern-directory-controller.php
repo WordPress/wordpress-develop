@@ -365,7 +365,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 				$query_args['slug'] = explode( ',', (string) $query_args['slug'] );
 			}
 
-			// Let's sort the array so the transient key doesn't depend on the order of slugs.
+			// Sort the array so that the transient key doesn't depend on the order of slugs.
 			sort( $query_args['slug'] );
 
 			// Slugs have to be imploded separately as implode doesn't work with recursive arrays.
