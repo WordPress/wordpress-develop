@@ -158,8 +158,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		},
 		plugins: [
 			new DefinePlugin( {
-				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
-				'process.env.GUTENBERG_PHASE': 1,
+				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
+				'process.env.IS_GUTENBERG_PLUGIN': false,
 				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
 					process.env.FORCE_REDUCED_MOTION
 				),
