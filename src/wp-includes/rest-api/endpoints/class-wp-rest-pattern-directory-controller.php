@@ -328,6 +328,11 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			'minimum'     => 1,
 		);
 
+		$query_params['slug'] = array(
+			'description' => __( 'Limit results to those matching a pattern (slug).' ),
+			'type'        => array( 'string', 'array' ),
+		);
+
 		/**
 		 * Filter collection parameters for the block pattern directory controller.
 		 *
