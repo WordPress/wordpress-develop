@@ -73,6 +73,10 @@ class Test_WebfontsApi_WpThemeJsonWebfontsHandler extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * @ticket 55567
+	 * @ticket 46370
+	 */
 	public function test_font_face_generated_from_themejson() {
 		switch_theme( 'webfonts-theme' );
 		do_action( 'after_setup_theme' );
@@ -93,6 +97,10 @@ EOF;
 		);
 	}
 
+	/**
+	 * @ticket 55567
+	 * @ticket 46370
+	 */
 	public function test_mime_types_added() {
 		$actual = wp_get_mime_types();
 
