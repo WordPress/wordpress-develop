@@ -10392,7 +10392,7 @@ mockedApiResponse.Schema = {
                                 "string",
                                 "array"
                             ],
-                            required: false
+                            "required": false
                         }
                     }
                 }
