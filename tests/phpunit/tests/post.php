@@ -1844,4 +1844,53 @@ class Tests_Post extends WP_UnitTestCase {
 		unstick_post( 3 );
 		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
+
+	/**
+	 * Ensure updated post have a different slug then already publish post with same name.
+	 *
+	 * @ticket 50447
+	 * @covers ::wp_update_post
+	 */
+	public function test_updated_draft_post_have_unique_slug_from_publish_post_with_same_title() {
+
+		// Publish post metainfo.
+		$post = array(
+			'post_name'   => 'test',
+			'post_title'  => 'test',
+			'post_status' => 'publish',
+		);
+
+		// Add post.
+		$post_id = wp_insert_post( $post );
+
+		// Testcase for publish post with $post_id
+		$this->assertSame( 102, $post_id );
+		$this->assertSame( 'test', get_post( $post_id )->post_name );
+		$this->assertSame( 'test', get_post( $post_id )->post_title );
+		$this->assertSame( 'publish', get_post( $post_id )->post_status );
+
+		// Draft post metainfo.
+		$draft_post = array(
+			'post_title'  => 'test',
+			'post_status' => 'draft',
+			'post_name'   => 'test'
+		);
+
+		// Add draft post.
+		$draft_post_id = wp_insert_post( $draft_post );
+
+		// Testcase for draft post with $draft_post_id.
+		$this->assertSame( 103, $draft_post_id );
+		$this->assertSame( 'test', get_post( $draft_post_id )->post_title );
+		$this->assertSame( 'draft', get_post( $draft_post_id )->post_status );
+
+		// Update draft post.
+		wp_publish_post( $draft_post_id );
+
+		// Testcase for updated draft post.
+		$this->assertSame( 'test', get_post( $draft_post_id )->post_title );
+		$this->assertSame( 'publish', get_post( $draft_post_id )->post_status );
+		$this->assertSame( 'test-2', get_post( $draft_post_id )->post_name );
+		$this->assertNotSame( 'test', get_post( $draft_post_id )->post_name );
+	}
 }
