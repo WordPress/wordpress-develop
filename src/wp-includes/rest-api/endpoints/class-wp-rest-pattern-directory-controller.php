@@ -119,16 +119,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			$query_args['slug'] = $slug;
 		}
 
-		/*
-		 * Include a hash of the query args, so that different requests are stored in
-		 * separate caches.
-		 *
-		 * MD5 is chosen for its speed, low-collision rate, universal availability, and to stay
-		 * under the character limit for `_site_transient_timeout_{...}` keys.
-		 *
-		 * @link https://stackoverflow.com/questions/3665247/fastest-hash-for-non-cryptographic-uses
-		 */
-		$transient_key = 'wp_remote_block_patterns_' . md5( implode( '-', $query_args ) );
+		$transient_key = $this->get_transient_key( $query_args );
 
 		/*
 		 * Use network-wide transient to improve performance. The locale is the only site
@@ -345,5 +336,41 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 		 * @param array $query_params JSON Schema-formatted collection parameters.
 		 */
 		return apply_filters( 'rest_pattern_directory_collection_params', $query_params );
+	}
+
+	/*
+	 * Include a hash of the query args, so that different requests are stored in
+	 * separate caches.
+	 *
+	 * MD5 is chosen for its speed, low-collision rate, universal availability, and to stay
+	 * under the character limit for `_site_transient_timeout_{...}` keys.
+	 *
+	 * @link https://stackoverflow.com/questions/3665247/fastest-hash-for-non-cryptographic-uses
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array $query_args Query arguments to generate a transient key from.
+	 *
+	 * @return string Transient key.
+	 */
+	private function get_transient_key( $query_args ) {
+
+		if ( array_key_exists( 'slug', $query_args ) ) {
+			if ( ! is_array( $query_args['slug'] ) ) {
+				$query_args['slug'] = explode( ',', (string) $query_args['slug'] );
+			}
+
+			// Let's sort the array so the transient key doesn't depend on the order of slugs.
+			sort( $query_args['slug'] );
+
+			// Slugs have to be imploded separately as implode doesn't work with recursive arrays.
+			$query_args['slug'] = implode( ',', $query_args['slug'] );
+
+			if ( '' === trim( $query_args['slug'] ) ) {
+				unset( $query_args['slug'] );
+			}
+		}
+
+		return 'wp_remote_block_patterns_' . md5( implode( '-', $query_args ) );
 	}
 }

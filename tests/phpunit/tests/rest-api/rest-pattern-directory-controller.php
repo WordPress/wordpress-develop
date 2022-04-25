@@ -22,6 +22,15 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	protected static $contributor_id;
 
 	/**
+	 * An instance of WP_REST_Pattern_Directory_Controller class.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @var WP_REST_Pattern_Directory_Controller
+	 */
+	private static $controller;
+
+	/**
 	 * Set up class test fixtures.
 	 *
 	 * @since 5.8.0
@@ -34,6 +43,8 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				'role' => 'contributor',
 			)
 		);
+
+		static::$controller = new WP_REST_Pattern_Directory_Controller();
 	}
 
 	/**
@@ -400,6 +411,88 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
+	 * Tests if the transient key gets generated correctly.
+	 *
+	 * @dataProvider data_get_query_parameters
+	 *
+	 * @covers WP_REST_Pattern_Directory_Controller::get_transient_key
+	 *
+	 * @ticket xxxxx
+	 *
+	 * @param array     $parameters_1   Expected query arguments.
+	 * @param array     $parameters_2   Actual query arguments.
+	 * @param string    $message        An error message to display.
+	 * @param bool      $assert_same    Assertion type (assertSame vs assertNotSame).
+	 */
+	public function test_transient_keys_get_generated_correctly( $parameters_1, $parameters_2, $message, $assert_same = true ) {
+		$method = $this->get_reflection_method( self::$controller, 'get_transient_key' );
+
+		$result_1 = $method->invoke( self::$controller, $parameters_1 );
+		$result_2 = $method->invoke( self::$controller, $parameters_2 );
+
+		$this->assertIsString( $result_1 );
+		$this->assertNotEmpty( $result_1 );
+
+		$this->assertIsString( $result_2 );
+		$this->assertNotEmpty( $result_2 );
+
+		if ( $assert_same ) {
+			$this->assertSame( $result_1, $result_2, $message );
+		} else {
+			$this->assertNotSame( $result_1, $result_2, $message );
+		}
+
+	}
+
+	public function data_get_query_parameters() {
+		return array(
+			array(
+				array(
+					'parameter_1' => 1,
+					'slug'        => null,
+				),
+				array(
+					'parameter_1' => 1,
+				),
+				'Empty slugs should not affect the transient key.'
+			),
+			array(
+				array(
+					'parameter_1' => 1,
+					'slug'        => false,
+				),
+				array(
+					'parameter_1' => 1,
+				),
+				'Empty slugs should not affect the transient key.'
+			),
+			array(
+				array(
+					'parameter_1' => 1,
+					'slug'        => '1,2',
+				),
+				array(
+					'parameter_1' => 1,
+					'slug'        => '2,1',
+				),
+				'message' => 'The order of slugs should not affect transient key.'
+			),
+			array(
+				array(
+					'parameter_1' => 1,
+					'slug'        => 'some_slug',
+				),
+				array(
+					'parameter_1' => 1,
+					'slug'        => 'some_other_slug',
+				),
+				'message' => 'Transient keys must not match.',
+				false,
+			),
+		);
+	}
+
+	/**
 	 * Simulate a successful outbound HTTP requests, to keep tests pure and performant.
 	 *
 	 * @param string $action          Pass a case from `get_raw_response()` to determine returned data.
@@ -460,5 +553,22 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 			10,
 			3
 		);
+	}
+
+	/**
+	 * Returns a reflection method and changes its scope.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param $object An object that has a private method that has to be called.
+	 * @param $method Name of the method.
+	 *
+	 * @return ReflectionMethod
+	 */
+	private function get_reflection_method($object, $method)
+	{
+		$reflection_method = new ReflectionMethod($object, $method);
+		$reflection_method->setAccessible(true);
+		return $reflection_method;
 	}
 }
