@@ -156,4 +156,38 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
+	/**
+	 * Test the after_tag_search filter
+	 *
+	 * @ticket 55606
+	 * @covers ::wp_ajax_ajax_tag_search
+	 */
+	public function test_after_tag_search_filter() {
+
+		// Become an administrator.
+		$this->_setRole( 'administrator' );
+
+		// Set up a default request.
+		$_GET['tax'] = 'post_tag';
+		$_GET['q']   = 'chat';
+
+		// Add the after_tag_search filter.
+		add_filter(
+			'wp_after_tag_search',
+			static function( $results, $tax, $s ) {
+				return array( 'wp_after_tag_search was applied' );
+			}
+		);
+
+		// Make the request.
+		try {
+			$this->_handleAjax( 'ajax-tag-search' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		// Ensure we found the right match.
+		$this->assertSame( $this->_last_response, 'chattels' );
+	}
+
 }
