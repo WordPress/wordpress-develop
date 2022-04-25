@@ -35,7 +35,7 @@ class Tests_Functions_XMLRPC extends WP_UnitTestCase {
 
 
 	/**
-	 * Tests that the category(ies) are returned.
+	 * Tests that the categories are returned.
 	 *
 	 * @covers ::xmlrpc_getpostcategory
 	 */
