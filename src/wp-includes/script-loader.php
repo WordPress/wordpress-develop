@@ -3076,11 +3076,7 @@ function _wp_theme_json_webfonts_handler() {
 			$variations = WP_Theme_JSON_Resolver::get_style_variations();
 			foreach ( $variations as $variation ) {
 				// Skip if fontFamilies are not defined in the variation.
-				if (
-					empty( $variation['settings'] ) ||
-					empty( $variation['settings']['typography'] ) ||
-					empty( $variation['settings']['typography']['fontFamilies'] )
-				) {
+				if ( empty( $variation['settings']['typography']['fontFamilies'] ) ) {
 					continue;
 				}
 
