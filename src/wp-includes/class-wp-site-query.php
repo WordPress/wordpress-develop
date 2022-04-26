@@ -353,7 +353,7 @@ class WP_Site_Query {
 		// Ignore the $fields, $update_site_cache, $update_site_meta_cache argument as the queried result will be the same regardless.
 		unset( $_args['fields'], $_args['update_site_cache'], $_args['update_site_meta_cache'] );
 
-		$key          = md5( serialize( $_args ) );
+		$key          = md5( serialize( asort( $_args ) ) );
 		$last_changed = wp_cache_get_last_changed( 'sites' );
 
 		$cache_key   = "get_sites:$key:$last_changed";

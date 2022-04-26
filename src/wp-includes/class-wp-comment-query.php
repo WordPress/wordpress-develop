@@ -449,7 +449,7 @@ class WP_Comment_Query {
 		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
 		unset( $_args['fields'], $_args['update_comment_meta_cache'], $_args['update_comment_post_cache'] );
 
-		$key          = md5( serialize( $_args ) );
+		$key          = md5( serialize( asort( $_args ) ) );
 		$last_changed = wp_cache_get_last_changed( 'comment' );
 
 		$cache_key   = "get_comments:$key:$last_changed";

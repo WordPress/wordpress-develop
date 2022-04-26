@@ -3220,6 +3220,18 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'focus'            => 'performance',
 				),
 			),
+			'different order cache key' => array(
+				array(
+					'fields'           => 'ids',
+					'taxonomy'         => self::$taxonomy,
+					'term_taxonomy_id' => 1,
+				),
+				array(
+					'term_taxonomy_id' => 1,
+					'taxonomy'         => self::$taxonomy,
+					'fields'           => 'all',
+				),
+			),
 		);
 	}
 

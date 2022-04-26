@@ -758,7 +758,7 @@ class WP_Term_Query {
 			$cache_args['fields'] = 'all';
 		}
 
-		$key          = md5( serialize( $cache_args ) . serialize( $taxonomies ) . $this->request );
+		$key = md5( serialize( asort( $cache_args ) ) . serialize( asort( $taxonomies ) ) . $this->request );
 		$last_changed = wp_cache_get_last_changed( 'terms' );
 		$cache_key    = "get_terms:$key:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'terms' );

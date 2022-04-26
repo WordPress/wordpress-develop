@@ -245,7 +245,7 @@ class WP_Network_Query {
 		// Ignore the $fields, $update_network_cache arguments as the queried result will be the same regardless.
 		unset( $_args['fields'], $_args['update_network_cache'] );
 
-		$key          = md5( serialize( $_args ) );
+		$key          = md5( serialize( asort( $_args ) ) );
 		$last_changed = wp_cache_get_last_changed( 'networks' );
 
 		$cache_key   = "get_network_ids:$key:$last_changed";
