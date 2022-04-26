@@ -113,13 +113,11 @@ function register_block_script_handle( $metadata, $field_name ) {
 	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 	$is_theme_block   = 0 === strpos( $script_path_norm, $theme_path_norm );
 
-	$script_uri;
+	$script_uri = plugins_url( $script_path, $metadata['file'] );
 	if ( $is_core_block ) {
 		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
 	} elseif ( $is_theme_block ) {
 		$script_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $script_path_norm ) );
-	} else {
-		$script_uri = plugins_url( $script_path, $metadata['file'] );
 	}
 
 	$script_asset        = require $script_asset_path;
@@ -409,7 +407,7 @@ function unregister_block_type( $name ) {
 }
 
 /**
- * Determine whether a post or content string has blocks.
+ * Determines whether a post or content string has blocks.
  *
  * This test optimizes for performance rather than strict accuracy, detecting
  * the pattern of a block but not validating its structure. For strict accuracy,
@@ -435,7 +433,7 @@ function has_blocks( $post = null ) {
 }
 
 /**
- * Determine whether a $post or a string contains a specific block type.
+ * Determines whether a $post or a string contains a specific block type.
  *
  * This test optimizes for performance rather than strict accuracy, detecting
  * whether the block type exists but not validating its structure and not checking
@@ -1231,113 +1229,7 @@ function get_query_pagination_arrow( $block, $is_next ) {
 }
 
 /**
- * Enqueues a stylesheet for a specific block.
- *
- * If the theme has opted-in to separate-styles loading,
- * then the stylesheet will be enqueued on-render,
- * otherwise when the block inits.
- *
- * @since 5.9.0
- *
- * @param string $block_name The block-name, including namespace.
- * @param array  $args       An array of arguments [handle,src,deps,ver,media].
- * @return void
- */
-function wp_enqueue_block_style( $block_name, $args ) {
-	$args = wp_parse_args(
-		$args,
-		array(
-			'handle' => '',
-			'src'    => '',
-			'deps'   => array(),
-			'ver'    => false,
-			'media'  => 'all',
-		)
-	);
-
-	/**
-	 * Callback function to register and enqueue styles.
-	 *
-	 * @param string $content When the callback is used for the render_block filter,
-	 *                        the content needs to be returned so the function parameter
-	 *                        is to ensure the content exists.
-	 * @return string Block content.
-	 */
-	$callback = static function( $content ) use ( $args ) {
-		// Register the stylesheet.
-		if ( ! empty( $args['src'] ) ) {
-			wp_register_style( $args['handle'], $args['src'], $args['deps'], $args['ver'], $args['media'] );
-		}
-
-		// Add `path` data if provided.
-		if ( isset( $args['path'] ) ) {
-			wp_style_add_data( $args['handle'], 'path', $args['path'] );
-
-			// Get the RTL file path.
-			$rtl_file_path = str_replace( '.css', '-rtl.css', $args['path'] );
-
-			// Add RTL stylesheet.
-			if ( file_exists( $rtl_file_path ) ) {
-				wp_style_add_data( $args['handle'], 'rtl', 'replace' );
-
-				if ( is_rtl() ) {
-					wp_style_add_data( $args['handle'], 'path', $rtl_file_path );
-				}
-			}
-		}
-
-		// Enqueue the stylesheet.
-		wp_enqueue_style( $args['handle'] );
-
-		return $content;
-	};
-
-	$hook = did_action( 'wp_enqueue_scripts' ) ? 'wp_footer' : 'wp_enqueue_scripts';
-	if ( wp_should_load_separate_core_block_assets() ) {
-		/**
-		 * Callback function to register and enqueue styles.
-		 *
-		 * @param string $content The block content.
-		 * @param array  $block   The full block, including name and attributes.
-		 * @return string Block content.
-		 */
-		$callback_separate = static function( $content, $block ) use ( $block_name, $callback ) {
-			if ( ! empty( $block['blockName'] ) && $block_name === $block['blockName'] ) {
-				return $callback( $content );
-			}
-			return $content;
-		};
-
-		/*
-		 * The filter's callback here is an anonymous function because
-		 * using a named function in this case is not possible.
-		 *
-		 * The function cannot be unhooked, however, users are still able
-		 * to dequeue the stylesheets registered/enqueued by the callback
-		 * which is why in this case, using an anonymous function
-		 * was deemed acceptable.
-		 */
-		add_filter( 'render_block', $callback_separate, 10, 2 );
-		return;
-	}
-
-	/*
-	 * The filter's callback here is an anonymous function because
-	 * using a named function in this case is not possible.
-	 *
-	 * The function cannot be unhooked, however, users are still able
-	 * to dequeue the stylesheets registered/enqueued by the callback
-	 * which is why in this case, using an anonymous function
-	 * was deemed acceptable.
-	 */
-	add_filter( $hook, $callback );
-
-	// Enqueue assets in the editor.
-	add_action( 'enqueue_block_assets', $callback );
-}
-
-/**
- * Allow multiple block styles.
+ * Allows multiple block styles.
  *
  * @since 5.9.0
  *
@@ -1362,7 +1254,7 @@ function _wp_multiple_block_styles( $metadata ) {
 						$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 					}
 
-					$args       = array(
+					$args = array(
 						'handle' => sanitize_key( "{$metadata['name']}-{$style_path}" ),
 						'src'    => $style_uri,
 					);
@@ -1399,7 +1291,6 @@ function build_comment_query_vars_from_block( $block ) {
 		'order'                     => 'ASC',
 		'status'                    => 'approve',
 		'no_found_rows'             => false,
-		'update_comment_meta_cache' => false, // We lazy-load comment meta for performance.
 	);
 
 	if ( ! empty( $block->context['postId'] ) ) {

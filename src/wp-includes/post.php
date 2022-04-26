@@ -1714,6 +1714,11 @@ function register_post_type( $post_type, $args = array() ) {
 	 *
 	 * The dynamic portion of the filter name, `$post_type`, refers to the post type key.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `registered_post_type_post`
+	 *  - `registered_post_type_page`
+	 *
 	 * @since 6.0.0
 	 *
 	 * @param string       $post_type        Post type.
@@ -2890,7 +2895,7 @@ function stick_post( $post_id ) {
 	$updated  = false;
 
 	if ( ! is_array( $stickies ) ) {
-		$stickies = array( $post_id );
+		$stickies = array();
 	} else {
 		$stickies = array_unique( array_map( 'intval', $stickies ) );
 	}

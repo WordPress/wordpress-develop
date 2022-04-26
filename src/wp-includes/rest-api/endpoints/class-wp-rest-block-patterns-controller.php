@@ -17,6 +17,14 @@
 class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 
 	/**
+	 * Defines whether remote patterns should be loaded.
+	 *
+	 * @since 6.0.0
+	 * @var bool
+	 */
+	private $remote_patterns_loaded;
+
+	/**
 	 * Constructs the controller.
 	 *
 	 * @since 6.0.0
@@ -81,10 +89,14 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		// Load block patterns from w.org.
-		_load_remote_block_patterns(); // Patterns with the `core` keyword.
-		_load_remote_featured_patterns(); // Patterns in the `featured` category.
-		_register_remote_theme_patterns(); // Patterns requested by current theme.
+		if ( ! $this->remote_patterns_loaded ) {
+			// Load block patterns from w.org.
+			_load_remote_block_patterns(); // Patterns with the `core` keyword.
+			_load_remote_featured_patterns(); // Patterns in the `featured` category.
+			_register_remote_theme_patterns(); // Patterns requested by current theme.
+
+			$this->remote_patterns_loaded = true;
+		}
 
 		$response = array();
 		$patterns = WP_Block_Patterns_Registry::get_instance()->get_all_registered();
@@ -107,19 +119,20 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		$fields = $this->get_fields_for_response( $request );
 		$keys   = array(
-			'name',
-			'title',
-			'description',
-			'viewportWidth',
-			'blockTypes',
-			'categories',
-			'keywords',
-			'content',
+			'name'          => 'name',
+			'title'         => 'title',
+			'description'   => 'description',
+			'viewportWidth' => 'viewport_width',
+			'blockTypes'    => 'block_types',
+			'categories'    => 'categories',
+			'keywords'      => 'keywords',
+			'content'       => 'content',
+			'inserter'      => 'inserter',
 		);
 		$data   = array();
-		foreach ( $keys as $key ) {
-			if ( isset( $item[ $key ] ) && rest_is_field_included( $key, $fields ) ) {
-				$data[ $key ] = $item[ $key ];
+		foreach ( $keys as $item_key => $rest_key ) {
+			if ( isset( $item[ $item_key ] ) && rest_is_field_included( $rest_key, $fields ) ) {
+				$data[ $rest_key ] = $item[ $item_key ];
 			}
 		}
 
@@ -142,51 +155,57 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 			'title'      => 'block-pattern',
 			'type'       => 'object',
 			'properties' => array(
-				'name'          => array(
+				'name'           => array(
 					'description' => __( 'The pattern name.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'title'         => array(
+				'title'          => array(
 					'description' => __( 'The pattern title, in human readable format.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'description'   => array(
+				'description'    => array(
 					'description' => __( 'The pattern detailed description.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'viewportWidth' => array(
+				'viewport_width' => array(
 					'description' => __( 'The pattern viewport width for inserter preview.' ),
 					'type'        => 'number',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'blockTypes'    => array(
+				'block_types'    => array(
 					'description' => __( 'Block types that the pattern is intended to be used with.' ),
 					'type'        => 'array',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'categories'    => array(
+				'categories'     => array(
 					'description' => __( 'The pattern category slugs.' ),
 					'type'        => 'array',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'keywords'      => array(
+				'keywords'       => array(
 					'description' => __( 'The pattern keywords.' ),
 					'type'        => 'array',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'content'       => array(
+				'content'        => array(
 					'description' => __( 'The pattern content.' ),
 					'type'        => 'string',
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'inserter'       => array(
+					'description' => __( 'Determines whether the pattern is visible in inserter.' ),
+					'type'        => 'boolean',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),

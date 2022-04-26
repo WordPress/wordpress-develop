@@ -23,11 +23,24 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const dynamicBlockFolders = [
 		'archives',
+		'avatar',
 		'block',
 		'calendar',
 		'categories',
+		'comment-author-name',
+		'comment-content',
+		'comment-date',
+		'comment-edit-link',
+		'comment-reply-link',
+		'comment-template',
+		'comments-pagination',
+		'comments-pagination-next',
+		'comments-pagination-numbers',
+		'comments-pagination-previous',
+		'cover',
 		'file',
 		'gallery',
+		'home-link',
 		'image',
 		'latest-comments',
 		'latest-posts',
@@ -38,6 +51,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'page-list',
 		'pattern',
 		'post-author',
+		'post-author-biography',
 		'post-comments',
 		'post-content',
 		'post-date',
@@ -48,11 +62,13 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'post-terms',
 		'post-title',
 		'query',
+		'query-no-results',
 		'query-pagination',
 		'query-pagination-next',
 		'query-pagination-numbers',
 		'query-pagination-previous',
 		'query-title',
+		'read-more',
 		'rss',
 		'search',
 		'shortcode',
@@ -71,7 +87,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'code',
 		'column',
 		'columns',
-		'cover',
+		'comments-query-loop',
 		'embed',
 		'freeform',
 		'group',
@@ -142,8 +158,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		},
 		plugins: [
 			new DefinePlugin( {
-				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
-				'process.env.GUTENBERG_PHASE': 1,
+				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
+				'process.env.IS_GUTENBERG_PLUGIN': false,
 				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
 					process.env.FORCE_REDUCED_MOTION
 				),
