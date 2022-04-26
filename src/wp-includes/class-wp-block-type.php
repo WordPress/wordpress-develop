@@ -366,14 +366,14 @@ class WP_Block_Type {
 		$args['name'] = $this->name;
 
 		// Setup attributes if needed.
-		if ( ! is_array( $this->attributes ) ) {
-			$this->attributes = array();
+		if ( ! isset( $args['attributes'] ) ) {
+			$args['attributes'] = array();
 		}
 
 		// Register core attributes.
 		foreach ( static::GLOBAL_ATTRIBUTES as $attr_key => $attr_schema ) {
-			if ( ! array_key_exists( $attr_key, $this->attributes ) ) {
-				$this->attributes[ $attr_key ] = $attr_schema;
+			if ( ! array_key_exists( $attr_key, $args['attributes'] ) ) {
+				$args['attributes'][ $attr_key ] = $attr_schema;
 			}
 		}
 
