@@ -691,8 +691,6 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		return false;
 	}
 
-	static $fetched = array();
-
 	if ( ! taxonomy_exists( 'nav_menu' ) ) {
 		return false;
 	}
@@ -723,28 +721,7 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 	// Prime posts and terms caches.
 	if ( empty( $fetched[ $menu->term_id ] ) ) {
 		$fetched[ $menu->term_id ] = true;
-		$post_ids                  = array();
-		$term_ids                  = array();
-		foreach ( $items as $item ) {
-			$object_id = get_post_meta( $item->ID, '_menu_item_object_id', true );
-			$type      = get_post_meta( $item->ID, '_menu_item_type', true );
-
-			if ( 'post_type' === $type ) {
-				$post_ids[] = (int) $object_id;
-			} elseif ( 'taxonomy' === $type ) {
-				$term_ids[] = (int) $object_id;
-			}
-		}
-
-		if ( ! empty( $post_ids ) ) {
-			_prime_post_caches( $post_ids, false );
-		}
-		unset( $post_ids );
-
-		if ( ! empty( $term_ids ) ) {
-			_prime_term_caches( $term_ids );
-		}
-		unset( $term_ids );
+		_prime_menu_item_objects( $items );
 	}
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
@@ -778,6 +755,35 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 	 * @param array  $args  An array of arguments used to retrieve menu item objects.
 	 */
 	return apply_filters( 'wp_get_nav_menu_items', $items, $menu, $args );
+}
+
+/**
+ * @param $items
+ *
+ */
+function _prime_menu_item_objects( $items ){
+	$post_ids                  = array();
+	$term_ids                  = array();
+	foreach ( $items as $item ) {
+		$object_id = get_post_meta( $item->ID, '_menu_item_object_id', true );
+		$type      = get_post_meta( $item->ID, '_menu_item_type', true );
+
+		if ( 'post_type' === $type ) {
+			$post_ids[] = (int) $object_id;
+		} elseif ( 'taxonomy' === $type ) {
+			$term_ids[] = (int) $object_id;
+		}
+	}
+
+	if ( ! empty( $post_ids ) ) {
+		_prime_post_caches( $post_ids, false );
+	}
+	unset( $post_ids );
+
+	if ( ! empty( $term_ids ) ) {
+		_prime_term_caches( $term_ids );
+	}
+	unset( $term_ids );
 }
 
 /**

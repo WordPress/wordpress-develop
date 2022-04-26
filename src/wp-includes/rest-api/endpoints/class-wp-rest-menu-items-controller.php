@@ -102,6 +102,21 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Retrieves a collection of menu items.
+	 *
+	 * @since 6.x.x
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function get_items( $request ) {
+		add_filter( "rest_{$this->post_type}_query_results", '_prime_menu_item_objects' );
+
+		return parent::get_items( $request );
+	}
+
+	/**
 	 * Creates a single post.
 	 *
 	 * @since 5.9.0
