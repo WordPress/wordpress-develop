@@ -4972,7 +4972,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 55218
 	 */
-	public function test_unapproved_comment_does_not_trigger_database_error() {
+	public function test_unapproved_comment_with_meta_query_does_not_trigger_ambiguous_identifier_error() {
 		$p       = self::$post_id;
 		$c       = self::factory()->comment->create(
 			array(
