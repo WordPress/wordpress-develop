@@ -250,6 +250,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_is_block_theme
 	 * @ticket 54460
+	 * @ticket 54910
 	 *
 	 * @covers WP_Theme::is_block_theme
 	 *
@@ -297,17 +298,57 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function data_is_block_theme() {
 		return array(
-			'default - non-block theme' => array(
+			'default - non-block theme'                    => array(
 				'theme_dir' => 'default',
 				'expected'  => false,
 			),
-			'parent block theme'        => array(
+			'parent block theme'                           => array(
 				'theme_dir' => 'block-theme',
 				'expected'  => true,
 			),
-			'child block theme'         => array(
+			'child block theme'                            => array(
 				'theme_dir' => 'block-theme-child',
 				'expected'  => true,
+			),
+			'tag only'                                     => array(
+				'theme_dir' => 'is-block-theme/tag',
+				'expected'  => true,
+			),
+			'tag + blocks + non-block HTML'                => array(
+				'theme_dir' => 'is-block-theme/tag-mixed-html',
+				'expected'  => true,
+			),
+			'tag + non-block HTML'                         => array(
+				'theme_dir' => 'is-block-theme/tag-non-block-html',
+				'expected'  => true,
+			),
+			'no tag + blocks + block-templates/index.html' => array(
+				'theme_dir' => 'is-block-theme/no-tag-block-html-block-templates',
+				'expected'  => true,
+			),
+			'no tag + blocks + templates/index.html'       => array(
+				'theme_dir' => 'is-block-theme/no-tag-block-html-templates',
+				'expected'  => true,
+			),
+			'no tag'                                       => array(
+				'theme_dir' => 'is-block-theme/no-tag',
+				'expected'  => false,
+			),
+			'no tag + empty templates/index.html'          => array(
+				'theme_dir' => 'is-block-theme/no-tag-empty-templates-index',
+				'expected'  => false,
+			),
+			'no tag + empty block-templates/index.html'    => array(
+				'theme_dir' => 'is-block-theme/no-tag-empty-block-templates-index',
+				'expected'  => false,
+			),
+			'no tag + blocks + non-block HTML'             => array(
+				'theme_dir' => 'is-block-theme/no-tag-mixed-html',
+				'expected'  => false,
+			),
+			'no tag + non-block HTML'                      => array(
+				'theme_dir' => 'is-block-theme/no-tag-non-block-html',
+				'expected'  => false,
 			),
 		);
 	}

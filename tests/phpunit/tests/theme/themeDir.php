@@ -165,6 +165,16 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme Child Theme',
 			'Block Theme [0.4.0]',
 			'Block Theme [1.0.0] in subdirectory',
+			'Block Theme - Tag only',
+			'Block Theme - Tag + blocks + non-block HTML',
+			'Block Theme - Tag + non-block HTML',
+			'Block Theme - No tag + blocks + block-templates/index.html',
+			'Block Theme - No tag + blocks + templates/index.html',
+			'Block Theme - No tag',
+			'Block Theme - No tag + empty templates/index.html',
+			'Block Theme - No tag + empty block-templates/index.html',
+			'Block Theme - No tag + blocks + non-block HTML',
+			'Block Theme - No tag + non-block HTML',
 		);
 
 		sort( $theme_names );
