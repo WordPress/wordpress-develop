@@ -187,7 +187,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		}
 
 		// Ensure we found the right match.
-		$this->assertSame( $this->_last_response, 'chattels' );
+		$this->assertSame( 'wp_after_tag_search was applied', $this->_last_response );
 	}
 
 }
