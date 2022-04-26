@@ -358,7 +358,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 *
 	 * @return string Transient key.
 	 */
-	private function get_transient_key( $query_args ) {
+	protected function get_transient_key( $query_args ) {
 
 		if ( array_key_exists( 'slug', $query_args ) ) {
 			if ( ! is_array( $query_args['slug'] ) ) {
