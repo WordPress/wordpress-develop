@@ -76,7 +76,7 @@ function start_wp() {
  * @deprecated 0.71 Use get_the_category()
  * @see get_the_category()
  *
- * @param bool $display Optional. Whether to echo the output. Default true.
+ * @param bool $display Optional. Whether to display the output. Default true.
  * @return int Category ID.
  */
 function the_category_ID($display = true) {
@@ -939,7 +939,7 @@ function wp_get_links($args = '') {
  * @param int    $limit            Optional. Limit to X entries. If not specified, all entries are shown.
  *                                 Default -1.
  * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 1.
- * @param bool   $display          Whether to echo the results, or return them instead.
+ * @param bool   $display          Whether to display the results, or return them instead.
  * @return null|string
  */
 function get_links($category = -1, $before = '', $after = '<br />', $between = ' ', $show_images = true, $orderby = 'name',
@@ -2070,7 +2070,7 @@ function js_escape( $text ) {
  * @deprecated 2.8.0 Use esc_html()
  * @see esc_html()
  *
- * @param string       $text          String to escape.
+ * @param string       $text          Text to escape.
  * @param string       $quote_style   Unused.
  * @param false|string $charset       Unused.
  * @param false        $double_encode Whether to double encode. Unused.
