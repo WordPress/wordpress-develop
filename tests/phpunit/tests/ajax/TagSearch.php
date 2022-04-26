@@ -171,7 +171,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['tax'] = 'post_tag';
 		$_GET['q']   = 'chat';
 
-		// Add the after_tag_search filter.
+		// Add the wp_after_tag_search filter.
 		add_filter(
 			'wp_after_tag_search',
 			static function( $results, $tax, $s ) {
