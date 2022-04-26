@@ -78,11 +78,7 @@ class Test_WebfontsApi_WpThemeJsonWebfontsHandler extends WP_UnitTestCase {
 	 * @ticket 46370
 	 */
 	public function test_font_face_generated_from_themejson() {
-		switch_theme( 'webfonts-theme' );
-		do_action( 'after_setup_theme' );
-		WP_Theme_JSON_Resolver::clean_cached_data();
-		do_action( 'wp_loaded' );
-		do_action( 'wp_enqueue_scripts' );
+		$this->setup_theme_and_test( 'webfonts-theme' );
 
 		$expected = <<<EOF
 <style id='wp-webfonts-inline-css' type='text/css'>
@@ -95,5 +91,45 @@ EOF;
 			$expected,
 			get_echo( 'wp_print_styles' )
 		);
+	}
+
+	/**
+	 * @dataProvider data_font_face_not_generated
+	 *
+	 * @ticket 55567
+	 * @ticket 46370
+	 */
+	public function test_font_face_not_generated( $theme_name ) {
+		$this->setup_theme_and_test( $theme_name );
+
+		$actual = get_echo( 'wp_print_styles' );
+		$this->assertStringNotContainsString( "<style id='wp-webfonts-inline-css", $actual );
+		$this->assertStringNotContainsString( '@font-face', $actual );
+	}
+
+	/**
+	 * Data provider for unhappy paths.
+	 *
+	 * @return string[][]
+	 */
+	public function data_font_face_not_generated() {
+		return array(
+			'classic theme with no theme.json' => array( 'default' ),
+			'no "fontFace" in theme.json'      => array( 'block-theme' ),
+			'empty "fontFace" in theme.json'   => array( 'empty-fontface-theme' ),
+		);
+	}
+
+	/**
+	 * Sets up the theme and test.
+	 *
+	 * @param string $theme_name Name of the theme to switch to for the test.
+	 */
+	private function setup_theme_and_test( $theme_name ) {
+		switch_theme( $theme_name );
+		do_action( 'after_setup_theme' );
+		WP_Theme_JSON_Resolver::clean_cached_data();
+		do_action( 'wp_loaded' );
+		do_action( 'wp_enqueue_scripts' );
 	}
 }
