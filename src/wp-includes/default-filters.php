@@ -7,12 +7,13 @@
  * give you the priority for which to use to remove the
  * hook.
  *
- * Not all of the default hooks are found in default-filters.php
+ * Not all of the default hooks are found in this file.
+ * For instance, administration related hooks are located in
+ * wp-admin/includes/admin-filters.php.
  *
- * Please note that this file registers default hooks only.
- * If your hook should only be called from a specific context
- * (e.g., admin area or multisite environment), please move
- * it to a more appropriate file instead.
+ * If a hook should only be called from a specific context
+ * (admin area, multisite environment…), please move it
+ * to a more appropriate file instead.
  *
  * @package WordPress
  */
