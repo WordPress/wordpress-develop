@@ -176,7 +176,9 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 			'wp_after_tag_search',
 			static function( $results, $tax, $s ) {
 				return array( 'wp_after_tag_search was applied' );
-			}
+			},
+			10,
+			3
 		);
 
 		// Make the request.
