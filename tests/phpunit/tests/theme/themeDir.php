@@ -166,6 +166,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme [0.4.0]',
 			'Block Theme [1.0.0] in subdirectory',
 			'Webfonts theme',
+			'Empty `fontFace` in theme.json - no webfonts defined',
 		);
 
 		sort( $theme_names );
