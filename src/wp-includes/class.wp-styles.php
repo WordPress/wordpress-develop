@@ -325,7 +325,7 @@ class WP_Styles extends WP_Dependencies {
 	 * @since 3.3.0
 	 *
 	 * @param string $handle  The style's registered handle.
-	 * @param bool   $display Optional. Whether to echo the inline style
+	 * @param bool   $display Optional. Whether to print the inline style
 	 *                        instead of just returning it. Default true.
 	 * @return string|bool False if no data exists, inline styles if `$display` is true,
 	 *                     true otherwise.

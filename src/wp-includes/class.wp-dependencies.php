@@ -431,13 +431,13 @@ class WP_Dependencies {
 	}
 
 	/**
-	 * Query list for an item.
+	 * Query the list for an item.
 	 *
 	 * @since 2.1.0
 	 * @since 2.6.0 Moved from `WP_Scripts`.
 	 *
 	 * @param string $handle Name of the item. Should be unique.
-	 * @param string $status Optional. Property name of list array. Default 'registered'.
+	 * @param string $status Optional. Status of the item to query. Default 'registered'.
 	 * @return bool|_WP_Dependency Found, or object Item data.
 	 */
 	public function query( $handle, $status = 'registered' ) {
@@ -450,7 +450,7 @@ class WP_Dependencies {
 				return false;
 
 			case 'enqueued':
-			case 'queue':
+			case 'queue': // Back compat.
 				if ( in_array( $handle, $this->queue, true ) ) {
 					return true;
 				}
@@ -464,6 +464,7 @@ class WP_Dependencies {
 			case 'printed': // Back compat.
 				return in_array( $handle, $this->done, true );
 		}
+
 		return false;
 	}
 

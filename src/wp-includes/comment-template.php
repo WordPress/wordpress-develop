@@ -427,7 +427,7 @@ function comment_author_url_link( $linktext = '', $before = '', $after = '', $co
  *                                   Default empty.
  * @param int|WP_Comment  $comment   Comment ID or WP_Comment object. Default current comment.
  * @param int|WP_Post     $post_id   Post ID or WP_Post object. Default current post.
- * @param bool            $display   Optional. Whether to echo or return the output.
+ * @param bool            $display   Optional. Whether to print or return the output.
  *                                   Default true.
  * @return void|string Void if `$display` argument is true, comment classes if `$display` is false.
  */

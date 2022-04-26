@@ -196,7 +196,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @see print_extra_script()
 	 *
 	 * @param string $handle  The script's registered handle.
-	 * @param bool   $display Optional. Whether to echo the extra script
+	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
 	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
@@ -212,7 +212,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 3.3.0
 	 *
 	 * @param string $handle  The script's registered handle.
-	 * @param bool   $display Optional. Whether to echo the extra script
+	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
 	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
@@ -444,7 +444,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *                         Must be lowercase.
 	 * @param string $position Optional. Whether to add the inline script
 	 *                         before the handle or after. Default 'after'.
-	 * @param bool   $display  Optional. Whether to echo the script
+	 * @param bool   $display  Optional. Whether to print the script
 	 *                         instead of just returning it. Default true.
 	 * @return string|false Script on success, false otherwise.
 	 */
@@ -584,7 +584,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @param string $handle  Name of the script to add the inline script to.
 	 *                        Must be lowercase.
-	 * @param bool   $display Optional. Whether to echo the script
+	 * @param bool   $display Optional. Whether to print the script
 	 *                        instead of just returning it. Default true.
 	 * @return string|false Script on success, false otherwise.
 	 */
