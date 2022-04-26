@@ -456,7 +456,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 			array(
 				array(
 					'parameter_1' => 1,
-					'slug'        => null,
+					'slug'        => array(),
 				),
 				array(
 					'parameter_1' => 1,
@@ -466,32 +466,22 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 			array(
 				array(
 					'parameter_1' => 1,
-					'slug'        => false,
+					'slug'        => array( 0, 2 ),
 				),
 				array(
 					'parameter_1' => 1,
-				),
-				'Empty slugs should not affect the transient key.',
-			),
-			array(
-				array(
-					'parameter_1' => 1,
-					'slug'        => '1,2',
-				),
-				array(
-					'parameter_1' => 1,
-					'slug'        => '2,1',
+					'slug'        => array( 2, 0 ),
 				),
 				'message' => 'The order of slugs should not affect transient key.',
 			),
 			array(
 				array(
 					'parameter_1' => 1,
-					'slug'        => 'some_slug',
+					'slug'        => array( 'some_slug' ),
 				),
 				array(
 					'parameter_1' => 1,
-					'slug'        => 'some_other_slug',
+					'slug'        => array( 'some_other_slug' ),
 				),
 				'message' => 'Transient keys must not match.',
 				false,

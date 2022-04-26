@@ -360,10 +360,9 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 */
 	protected function get_transient_key( $query_args ) {
 
-		if ( array_key_exists( 'slug', $query_args ) ) {
-			if ( ! is_array( $query_args['slug'] ) ) {
-				$query_args['slug'] = explode( ',', (string) $query_args['slug'] );
-			}
+		if ( isset( $query_args['slug'] ) ) {
+			// This is an additional precaution because the "sort" function expects an array.
+			$query_args['slug'] = (array) $query_args['slug'];
 
 			// Sort the array so that the transient key doesn't depend on the order of slugs.
 			sort( $query_args['slug'] );
