@@ -776,7 +776,7 @@ class WP_User_Query {
 				{$this->query_limit}
 			";
 
-			if ( is_array( $qv['fields'] ) || 'all' === $qv['fields'] ) {
+			if ( is_array( $qv['fields'] ) ) {
 				$this->results = $wpdb->get_results( $this->request );
 			} else {
 				$this->results = $wpdb->get_col( $this->request );
