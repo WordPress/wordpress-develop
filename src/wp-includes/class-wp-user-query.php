@@ -824,7 +824,11 @@ class WP_User_Query {
 
 			$r = array();
 			foreach ( $this->results as $userid ) {
-				$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
+				if ( 'all_with_meta' === $qv['fields'] ) {
+					$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
+				} else {
+					$r[] = new WP_User( $userid, '', $qv['blog_id'] );
+				}
 			}
 
 			$this->results = $r;
