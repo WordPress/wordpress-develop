@@ -3134,6 +3134,18 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'object_ids' => array(),
 				),
 			),
+			'array term_taxonomy_id vs string term_taxonomy_id' => array(
+				array(
+					'taxonomy'         => self::$taxonomy,
+					'fields'           => 'ids',
+					'term_taxonomy_id' => '',
+				),
+				array(
+					'taxonomy'         => self::$taxonomy,
+					'fields'           => 'all',
+					'term_taxonomy_id' => array(),
+				),
+			),
 			'array exclude vs string exclude'          => array(
 				array(
 					'taxonomy' => self::$taxonomy,
