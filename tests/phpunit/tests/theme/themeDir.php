@@ -136,6 +136,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated get_themes
+	 * @ticket 54910
 	 */
 	public function test_theme_list() {
 		$themes = get_themes();
@@ -165,6 +166,15 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme Child Theme',
 			'Block Theme [0.4.0]',
 			'Block Theme [1.0.0] in subdirectory',
+			'Block Theme with only `block-templates/index.html`',
+			'Block Theme with only `templates/index.html`',
+			'Block Theme with `block-templates/index.html` and `templates/index.html`',
+			'Block Theme with `block-templates/index.html` and `templates/index.php`',
+			'Block Theme with `block-templates/index.php` and `templates/index.html`',
+			'Block Theme with `block-templates/index.html` and allowed files',
+			'Block Theme with `templates/index.html` and allowed files',
+			'Classic theme with `block-templates/index.html` and disallowed files',
+			'Classic theme with `templates/index.html` and disallowed files',
 		);
 
 		sort( $theme_names );

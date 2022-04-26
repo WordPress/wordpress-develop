@@ -250,6 +250,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_is_block_theme
 	 * @ticket 54460
+	 * @ticket 54910
 	 *
 	 * @covers WP_Theme::is_block_theme
 	 *
@@ -297,17 +298,53 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function data_is_block_theme() {
 		return array(
-			'default - non-block theme' => array(
+			'default - non-block theme'                   => array(
 				'theme_dir' => 'default',
 				'expected'  => false,
 			),
-			'parent block theme'        => array(
+			'parent block theme'                          => array(
 				'theme_dir' => 'block-theme',
 				'expected'  => true,
 			),
-			'child block theme'         => array(
+			'child block theme'                           => array(
 				'theme_dir' => 'block-theme-child',
 				'expected'  => true,
+			),
+			'only `block-templates/index.html`'           => array(
+				'theme_dir' => 'is-block-theme/block-templates-index',
+				'expected'  => true,
+			),
+			'only `templates/index.html`'                 => array(
+				'theme_dir' => 'is-block-theme/templates-index',
+				'expected'  => true,
+			),
+			'`block-templates/index.html` and `templates/index.html`' => array(
+				'theme_dir' => 'is-block-theme/block-templates-templates-index',
+				'expected'  => true,
+			),
+			'`block-templates/index.html` and `templates/index.php`' => array(
+				'theme_dir' => 'is-block-theme/block-templates-html-templates-php',
+				'expected'  => true,
+			),
+			'`block-templates/index.php` and `templates/index.html`' => array(
+				'theme_dir' => 'is-block-theme/block-templates-php-templates-html',
+				'expected'  => true,
+			),
+			'`block-templates/index.html` and allowed files' => array(
+				'theme_dir' => 'is-block-theme/block-templates-index-allowed-files',
+				'expected'  => true,
+			),
+			'`templates/index.html` and allowed files'    => array(
+				'theme_dir' => 'is-block-theme/templates-index-allowed-files',
+				'expected'  => true,
+			),
+			'`block-templates/index.html` and disallowed files' => array(
+				'theme_dir' => 'is-block-theme/block-templates-index-disallowed-files',
+				'expected'  => false,
+			),
+			'`templates/index.html` and disallowed files' => array(
+				'theme_dir' => 'is-block-theme/templates-index-disallowed-files',
+				'expected'  => false,
 			),
 		);
 	}

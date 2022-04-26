@@ -746,7 +746,15 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 3.4.0
 	 */
 	public function cache_delete() {
-		foreach ( array( 'theme', 'screenshot', 'headers', 'post_templates' ) as $key ) {
+		$keys = array(
+			'theme',
+			'screenshot',
+			'headers',
+			'post_templates',
+			'is_block_theme',
+		);
+
+		foreach ( $keys as $key ) {
 			wp_cache_delete( $key . '-' . $this->cache_hash, 'themes' );
 		}
 		$this->template          = null;
@@ -1482,17 +1490,42 @@ final class WP_Theme implements ArrayAccess {
 	 * @return bool
 	 */
 	public function is_block_theme() {
+		$is_block_theme = $this->cache_get( 'is_block_theme' );
+
+		// Use the cache, if set.
+		if ( false !== $is_block_theme ) {
+			return (bool) $is_block_theme;
+		}
+
 		$paths_to_index_block_template = array(
 			$this->get_file_path( '/block-templates/index.html' ),
 			$this->get_file_path( '/templates/index.html' ),
 		);
 
 		foreach ( $paths_to_index_block_template as $path_to_index_block_template ) {
-			if ( is_file( $path_to_index_block_template ) && is_readable( $path_to_index_block_template ) ) {
-				return true;
+			if ( ! is_file( $path_to_index_block_template ) || ! is_readable( $path_to_index_block_template ) ) {
+				continue;
 			}
+
+			/*
+			 * A block theme should only have HTML files and specifically allowed files
+			 * in its templates directory.
+			 */
+			$files         = $this->scandir( dirname( $path_to_index_block_template ) );
+			$allowed_files = array( '.htaccess', 'web.config' );
+
+			foreach ( $files as $file ) {
+				$file = basename( $file );
+				if ( ! str_ends_with( $file, '.html' ) && ! in_array( $file, $allowed_files, true ) ) {
+					continue 2;
+				}
+			}
+
+			$this->cache_add( 'is_block_theme', 1 );
+			return true;
 		}
 
+		$this->cache_add( 'is_block_theme', 0 );
 		return false;
 	}
 
