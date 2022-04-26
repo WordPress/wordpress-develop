@@ -10388,10 +10388,7 @@ mockedApiResponse.Schema = {
                         },
                         "slug": {
                             "description": "Limit results to those matching a pattern (slug).",
-                            "type": [
-                                "string",
-                                "array"
-                            ],
+                            "type": "array",
                             "required": false
                         }
                     }

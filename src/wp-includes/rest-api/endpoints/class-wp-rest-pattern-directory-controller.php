@@ -330,7 +330,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 
 		$query_params['slug'] = array(
 			'description' => __( 'Limit results to those matching a pattern (slug).' ),
-			'type'        => array( 'string', 'array' ),
+			'type'        => 'array',
 		);
 
 		/**
