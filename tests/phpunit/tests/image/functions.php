@@ -143,7 +143,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
-
 	/**
 	 * @ticket 50833
 	 */
@@ -342,7 +341,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		return $classes;
 	}
-
 
 	/*
 	 * @ticket 55403
@@ -680,11 +678,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
-
 	public function filter_image_editor_output_format() {
 		return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 	}
-
 
 	public function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {
 		// Add the 'test-size' to the list of fallback sizes.
