@@ -273,7 +273,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'slug'         => 'nicename__in',
 		);
 
-		$prepared_args = array();
+		$prepared_args = array(
+			'fields' => 'all_with_meta',
+		);
 
 		/*
 		 * For each known parameter which is both registered and present in the request,
