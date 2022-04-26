@@ -5001,10 +5001,10 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		/*
-		 * The result of the query isn't needed so it's not assigned to variable.
+		 * The result of the query is not needed so it's not assigned to variable.
 		 *
 		 * Returning the ID only limits the database query to only the one that was
-		 * causeing the error reported in in ticket 55218.
+		 * causing the error reported in ticket 55218.
 		 */
 		new WP_Comment_Query(
 			array(
