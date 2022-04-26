@@ -366,7 +366,7 @@ class WP_Block_Type {
 		$args['name'] = $this->name;
 
 		// Setup attributes if needed.
-		if ( ! isset( $args['attributes'] ) ) {
+		if ( ! isset( $args['attributes'] ) || ! is_array( $args['attributes'] ) ) {
 			$args['attributes'] = array();
 		}
 
