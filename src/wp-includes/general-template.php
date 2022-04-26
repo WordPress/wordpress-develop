@@ -586,7 +586,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-username">
 				<label for="%1$s">%2$s</label>
-				<input type="text" name="log" id="%1$s" class="input" value="%3$s" size="20" />
+				<input type="text" name="log" id="%1$s" autocomplete="username" class="input" value="%3$s" size="20" />
 			</p>',
 			esc_attr( $args['id_username'] ),
 			esc_html( $args['label_username'] ),
@@ -595,7 +595,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-password">
 				<label for="%1$s">%2$s</label>
-				<input type="password" name="pwd" id="%1$s" class="input" value="" size="20" />
+				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" class="input" value="" size="20" />
 			</p>',
 			esc_attr( $args['id_password'] ),
 			esc_html( $args['label_password'] )
@@ -3153,9 +3153,16 @@ function feed_links_extra( $args = array() ) {
 		$id   = 0;
 		$post = get_post( $id );
 
-		if ( comments_open() || pings_open() || $post->comment_count > 0 ) {
-			$title = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
-			$href  = get_post_comments_feed_link( $post->ID );
+		/** This filter is documented in wp-includes/general-template.php */
+		$show_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
+
+		if ( $show_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
+			$title     = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
+			$feed_link = get_post_comments_feed_link( $post->ID );
+
+			if ( $feed_link ) {
+				$href = $feed_link;
+			}
 		}
 	} elseif ( is_post_type_archive() ) {
 		$post_type = get_query_var( 'post_type' );
@@ -3224,12 +3231,14 @@ function wlwmanifest_link() {
 }
 
 /**
- * Displays a referrer strict-origin-when-cross-origin meta tag.
+ * Displays a referrer `strict-origin-when-cross-origin` meta tag.
  *
- * Outputs a referrer origin-when-cross-origin meta tag that tells the browser not to send the full
- * url as a referrer to other sites when cross-origin assets are loaded.
+ * Outputs a referrer `strict-origin-when-cross-origin` meta tag that tells the browser not to send
+ * the full URL as a referrer to other sites when cross-origin assets are loaded.
  *
- * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_strict_cross_origin_referrer' );
+ * Typical usage is as a {@see 'wp_head'} callback:
+ *
+ *     add_action( 'wp_head', 'wp_strict_cross_origin_referrer' );
  *
  * @since 5.7.0
  */
