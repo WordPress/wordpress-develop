@@ -4973,8 +4973,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 55218
 	 */
 	public function test_unapproved_comment_does_not_trigger_database_error() {
-		$p = self::$post_id;
-		$c = self::factory()->comment->create(
+		$p       = self::$post_id;
+		$c       = self::factory()->comment->create(
 			array(
 				'comment_post_ID'      => $p,
 				'comment_content'      => '1',
