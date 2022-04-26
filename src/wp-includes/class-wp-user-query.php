@@ -124,7 +124,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Prepare the query variables.
+	 * Prepares the query variables.
 	 *
 	 * @since 3.1.0
 	 * @since 4.1.0 Added the ability to order by the `include` value.
@@ -274,6 +274,16 @@ class WP_User_Query {
 		$qv =& $this->query_vars;
 		$qv = $this->fill_query_vars( $qv );
 
+		$allowed_fields = array(
+			'ID',
+			'display_name',
+			'user_login',
+			'user_nicename',
+			'user_email',
+			'user_url',
+			'user_registered',
+		);
+
 		if ( is_array( $qv['fields'] ) ) {
 			$qv['fields'] = array_unique( $qv['fields'] );
 
@@ -283,8 +293,13 @@ class WP_User_Query {
 				$this->query_fields[] = "$wpdb->users.$field";
 			}
 			$this->query_fields = implode( ',', $this->query_fields );
-		} else {
+		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields']  ) {
 			$this->query_fields = "$wpdb->users.ID";
+		} elseif ( ! in_array( $qv['fields'], $allowed_fields, true ) ) {
+			$this->query_fields = "$wpdb->users.*";
+		} else {
+			$field              = 'ID' === $qv['fields'] ? 'ID' : sanitize_key( $qv['fields'] );
+			$this->query_fields = "$wpdb->users.$field";
 		}
 
 		if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
@@ -738,7 +753,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Execute the query, with the current variables.
+	 * Executes the query, with the current variables.
 	 *
 	 * @since 3.1.0
 	 *
@@ -817,7 +832,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Retrieve query variable.
+	 * Retrieves query variable.
 	 *
 	 * @since 3.5.0
 	 *
@@ -833,7 +848,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Set query variable.
+	 * Sets query variable.
 	 *
 	 * @since 3.5.0
 	 *
@@ -845,31 +860,31 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Used internally to generate an SQL string for searching across multiple columns
+	 * Used internally to generate an SQL string for searching across multiple columns.
 	 *
 	 * @since 3.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $string
-	 * @param array  $cols
-	 * @param bool   $wild   Whether to allow wildcard searches. Default is false for Network Admin, true for single site.
-	 *                       Single site allows leading and trailing wildcards, Network Admin only trailing.
+	 * @param string   $search  Search string.
+	 * @param string[] $columns Array of columns to search.
+	 * @param bool     $wild    Whether to allow wildcard searches. Default is false for Network Admin, true for single site.
+	 *                          Single site allows leading and trailing wildcards, Network Admin only trailing.
 	 * @return string
 	 */
-	protected function get_search_sql( $string, $cols, $wild = false ) {
+	protected function get_search_sql( $search, $columns, $wild = false ) {
 		global $wpdb;
 
 		$searches      = array();
 		$leading_wild  = ( 'leading' === $wild || 'both' === $wild ) ? '%' : '';
 		$trailing_wild = ( 'trailing' === $wild || 'both' === $wild ) ? '%' : '';
-		$like          = $leading_wild . $wpdb->esc_like( $string ) . $trailing_wild;
+		$like          = $leading_wild . $wpdb->esc_like( $search ) . $trailing_wild;
 
-		foreach ( $cols as $col ) {
-			if ( 'ID' === $col ) {
-				$searches[] = $wpdb->prepare( "$col = %s", $string );
+		foreach ( $columns as $column ) {
+			if ( 'ID' === $column ) {
+				$searches[] = $wpdb->prepare( "$column = %s", $search );
 			} else {
-				$searches[] = $wpdb->prepare( "$col LIKE %s", $like );
+				$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
 			}
 		}
 
@@ -877,7 +892,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Return the list of users.
+	 * Returns the list of users.
 	 *
 	 * @since 3.1.0
 	 *
@@ -888,7 +903,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Return the total number of users for the current query.
+	 * Returns the total number of users for the current query.
 	 *
 	 * @since 3.1.0
 	 *
@@ -899,7 +914,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Parse and sanitize 'orderby' keys passed to the user query.
+	 * Parses and sanitizes 'orderby' keys passed to the user query.
 	 *
 	 * @since 4.2.0
 	 *
@@ -958,7 +973,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Parse an 'order' query variable and cast it to ASC or DESC as necessary.
+	 * Parses an 'order' query variable and casts it to ASC or DESC as necessary.
 	 *
 	 * @since 4.2.0
 	 *
@@ -978,7 +993,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private properties readable for backward compatibility.
+	 * Makes private properties readable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *
@@ -992,7 +1007,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private properties settable for backward compatibility.
+	 * Makes private properties settable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *
@@ -1007,7 +1022,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private properties checkable for backward compatibility.
+	 * Makes private properties checkable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *
@@ -1021,7 +1036,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private properties un-settable for backward compatibility.
+	 * Makes private properties un-settable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *
@@ -1034,7 +1049,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private/protected methods readable for backward compatibility.
+	 * Makes private/protected methods readable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *

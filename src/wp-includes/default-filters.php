@@ -7,7 +7,13 @@
  * give you the priority for which to use to remove the
  * hook.
  *
- * Not all of the default hooks are found in default-filters.php
+ * Not all of the default hooks are found in this file.
+ * For instance, administration related hooks are located in
+ * wp-admin/includes/admin-filters.php.
+ *
+ * If a hook should only be called from a specific context
+ * (admin area, multisite environment…), please move it
+ * to a more appropriate file instead.
  *
  * @package WordPress
  */
@@ -293,7 +299,6 @@ add_filter( 'comments_open', '_close_comments_for_old_post', 10, 2 );
 add_filter( 'pings_open', '_close_comments_for_old_post', 10, 2 );
 add_filter( 'editable_slug', 'urldecode' );
 add_filter( 'editable_slug', 'esc_textarea' );
-add_filter( 'nav_menu_meta_box_object', '_wp_nav_menu_meta_box_object' );
 add_filter( 'pingback_ping_source_uri', 'pingback_ping_source_uri' );
 add_filter( 'xmlrpc_pingback_error', 'xmlrpc_pingback_error' );
 add_filter( 'title_save_pre', 'trim' );
@@ -346,6 +351,7 @@ add_action( 'start_previewing_theme', array( 'WP_Theme_JSON_Resolver', 'clean_ca
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_print_styles', 'print_emoji_styles' );
+add_action( 'plugins_loaded', '_wp_theme_json_webfonts_handler' );
 
 if ( isset( $_GET['replytocom'] ) ) {
 	add_filter( 'wp_robots', 'wp_robots_no_robots' );
@@ -413,7 +419,6 @@ add_action( 'transition_post_status', '_transition_post_status', 5, 3 );
 add_action( 'transition_post_status', '_update_term_count_on_transition_post_status', 10, 3 );
 add_action( 'comment_form', 'wp_comment_form_unfiltered_html_nonce' );
 add_action( 'admin_init', 'send_frame_options_header', 10, 0 );
-add_action( 'welcome_panel', 'wp_welcome_panel' );
 
 // Privacy.
 add_action( 'user_request_action_confirmed', '_wp_privacy_account_request_confirmed' );
@@ -462,7 +467,6 @@ add_filter( 'pre_option_gmt_offset', 'wp_timezone_override_offset' );
 
 // Admin color schemes.
 add_action( 'admin_init', 'register_admin_color_schemes', 1 );
-add_action( 'admin_color_scheme_picker', 'admin_color_scheme_picker' );
 
 // If the upgrade hasn't run yet, assume link manager is used.
 add_filter( 'default_option_link_manager_enabled', '__return_true' );
@@ -590,10 +594,6 @@ add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );
 
 add_action( 'wp_head', 'wp_maybe_inline_styles', 1 ); // Run for styles enqueued in <head>.
 add_action( 'wp_footer', 'wp_maybe_inline_styles', 1 ); // Run for late-loaded styles in the footer.
-
-add_action( 'use_block_editor_for_post_type', '_disable_block_editor_for_navigation_post_type', 10, 2 );
-add_action( 'edit_form_after_title', '_disable_content_editor_for_navigation_post_type' );
-add_action( 'edit_form_after_editor', '_enable_content_editor_for_navigation_post_type' );
 
 /*
  * Disable "Post Attributes" for wp_navigation post type. The attributes are

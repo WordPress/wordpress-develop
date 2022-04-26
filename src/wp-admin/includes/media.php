@@ -7,7 +7,7 @@
  */
 
 /**
- * Defines the default media upload tabs
+ * Defines the default media upload tabs.
  *
  * @since 2.5.0
  *
@@ -32,7 +32,7 @@ function media_upload_tabs() {
 }
 
 /**
- * Adds the gallery tab back to the tabs array if post has image attachments
+ * Adds the gallery tab back to the tabs array if post has image attachments.
  *
  * @since 2.5.0
  *
@@ -612,7 +612,7 @@ function wp_iframe( $content_func, ...$args ) {
 }
 
 /**
- * Adds the media button to the editor
+ * Adds the media button to the editor.
  *
  * @since 2.5.0
  *
@@ -1116,7 +1116,7 @@ function media_upload_library() {
 }
 
 /**
- * Retrieve HTML for the image alignment radio buttons with the specified one checked.
+ * Retrieves HTML for the image alignment radio buttons with the specified one checked.
  *
  * @since 2.7.0
  *
@@ -1154,7 +1154,7 @@ function image_align_input_fields( $post, $checked = '' ) {
 }
 
 /**
- * Retrieve HTML for the size radio buttons with the specified one checked.
+ * Retrieves HTML for the size radio buttons with the specified one checked.
  *
  * @since 2.7.0
  *
@@ -1232,7 +1232,7 @@ function image_size_input_fields( $post, $check = '' ) {
 }
 
 /**
- * Retrieve HTML for the Link URL buttons with the default link type as specified.
+ * Retrieves HTML for the Link URL buttons with the default link type as specified.
  *
  * @since 2.7.0
  *
@@ -1266,7 +1266,7 @@ function image_link_input_fields( $post, $url_type = '' ) {
 }
 
 /**
- * Output a textarea element for inputting an attachment caption.
+ * Outputs a textarea element for inputting an attachment caption.
  *
  * @since 3.4.0
  *
@@ -1319,31 +1319,6 @@ function media_single_attachment_fields_to_edit( $form_fields, $post ) {
 function media_post_single_attachment_fields_to_edit( $form_fields, $post ) {
 	unset( $form_fields['image_url'] );
 	return $form_fields;
-}
-
-/**
- * Filters input from media_upload_form_handler() and assigns a default
- * post_title from the file name if none supplied.
- *
- * Illustrates the use of the {@see 'attachment_fields_to_save'} filter
- * which can be used to add default values to any field before saving to DB.
- *
- * @since 2.5.0
- *
- * @param array $post       The WP_Post attachment object converted to an array.
- * @param array $attachment An array of attachment metadata.
- * @return array Filtered attachment post object.
- */
-function image_attachment_fields_to_save( $post, $attachment ) {
-	if ( 'image' === substr( $post['post_mime_type'], 0, 5 ) ) {
-		if ( strlen( trim( $post['post_title'] ) ) == 0 ) {
-			$attachment_url                           = ( isset( $post['attachment_url'] ) ) ? $post['attachment_url'] : $post['guid'];
-			$post['post_title']                       = preg_replace( '/\.\w+$/', '', wp_basename( $attachment_url ) );
-			$post['errors']['post_title']['errors'][] = __( 'Empty Title filled from filename.' );
-		}
-	}
-
-	return $post;
 }
 
 /**
@@ -1511,7 +1486,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
 }
 
 /**
- * Retrieve HTML for media items of post gallery.
+ * Retrieves HTML for media items of post gallery.
  *
  * The HTML markup retrieved will be created for the progress of SWF Upload
  * component. Will also create link for showing and hiding the form to modify
@@ -1523,7 +1498,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
  *
  * @param int   $post_id Post ID.
  * @param array $errors  Errors for attachment, if any.
- * @return string
+ * @return string HTML content for media items of post gallery.
  */
 function get_media_items( $post_id, $errors ) {
 	$attachments = array();
@@ -1568,7 +1543,7 @@ function get_media_items( $post_id, $errors ) {
 }
 
 /**
- * Retrieve HTML form for modifying the image attachment.
+ * Retrieves HTML form for modifying the image attachment.
  *
  * @since 2.5.0
  *
@@ -2528,7 +2503,7 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 }
 
 /**
- * Adds gallery form to upload iframe
+ * Adds gallery form to upload iframe.
  *
  * @since 2.5.0
  *
@@ -2902,12 +2877,12 @@ function media_upload_library_form( $errors ) {
 }
 
 /**
- * Creates the form for external url
+ * Creates the form for external url.
  *
  * @since 2.7.0
  *
  * @param string $default_view
- * @return string the form html
+ * @return string HTML content of the form.
  */
 function wp_media_insert_url_form( $default_view = 'image' ) {
 	/** This filter is documented in wp-admin/includes/media.php */
@@ -3491,12 +3466,12 @@ function attachment_submitbox_metadata() {
 }
 
 /**
- * Parse ID3v2, ID3v1, and getID3 comments to extract usable data
+ * Parses ID3v2, ID3v1, and getID3 comments to extract usable data.
  *
  * @since 3.6.0
  *
- * @param array $metadata An existing array with data
- * @param array $data Data supplied by ID3 tags
+ * @param array $metadata An existing array with data.
+ * @param array $data Data supplied by ID3 tags.
  */
 function wp_add_id3_tag_data( &$metadata, $data ) {
 	foreach ( array( 'id3v2', 'id3v1' ) as $version ) {
@@ -3536,7 +3511,7 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 }
 
 /**
- * Retrieve metadata from a video file's ID3 tags
+ * Retrieves metadata from a video file's ID3 tags.
  *
  * @since 3.6.0
  *
@@ -3650,7 +3625,7 @@ function wp_read_video_metadata( $file ) {
 }
 
 /**
- * Retrieve metadata from an audio file's ID3 tags.
+ * Retrieves metadata from an audio file's ID3 tags.
  *
  * @since 3.6.0
  *
@@ -3717,7 +3692,7 @@ function wp_read_audio_metadata( $file ) {
 }
 
 /**
- * Parse creation date from media metadata.
+ * Parses creation date from media metadata.
  *
  * The getID3 library doesn't have a standard method for getting creation dates,
  * so the location of this data can vary based on the MIME type.
