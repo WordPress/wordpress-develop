@@ -53,6 +53,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'pattern',
 		'post-author',
 		'post-author-biography',
+		'post-comments',
 		'post-comments-form',
 		'post-content',
 		'post-date',
