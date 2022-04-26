@@ -691,6 +691,8 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		return false;
 	}
 
+	static $fetched = array();
+
 	if ( ! taxonomy_exists( 'nav_menu' ) ) {
 		return false;
 	}
