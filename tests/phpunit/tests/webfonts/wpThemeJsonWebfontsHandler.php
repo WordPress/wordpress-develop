@@ -96,17 +96,4 @@ EOF;
 			get_echo( 'wp_print_styles' )
 		);
 	}
-
-	/**
-	 * @ticket 55567
-	 * @ticket 46370
-	 */
-	public function test_mime_types_added() {
-		$actual = wp_get_mime_types();
-
-		$this->assertArrayHasKey( 'woff2', $actual, 'woff2 mime type is expected to be added' );
-		$this->assertArrayHasKey( 'woff', $actual, 'woff mime type is expected to be added' );
-		$this->assertArrayHasKey( 'ttf', $actual, 'ttf mime type is expected to be added' );
-		$this->assertArrayHasKey( 'otf', $actual, 'otf mime type is expected to be added' );
-	}
 }

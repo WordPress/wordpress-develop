@@ -3520,7 +3520,6 @@ function wp_filesize( $path ) {
  * Retrieve list of allowed mime types and file extensions.
  *
  * @since 2.8.6
- * @since 6.0.0 Removes web font from allowed mime types for uploads.
  *
  * @param int|WP_User $user Optional. User to check. Defaults to current user.
  * @return string[] Array of mime types keyed by the file extension regex corresponding
@@ -3530,8 +3529,6 @@ function get_allowed_mime_types( $user = null ) {
 	$t = wp_get_mime_types();
 
 	unset( $t['swf'], $t['exe'] );
-	// Remove web font mime types for uploads.
-	unset( $t['woff2'], $t['woff'], $t['ttf'], $t['eot'], $t['otf'] );
 
 	if ( function_exists( 'current_user_can' ) ) {
 		$unfiltered = $user ? user_can( $user, 'unfiltered_html' ) : current_user_can( 'unfiltered_html' );

@@ -3519,27 +3519,7 @@ function _wp_theme_json_webfonts_handler() {
 		wp_add_inline_style( 'wp-block-library', $styles );
 	};
 
-	/**
-	 * Adds webfonts mime types.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @param array $mime_types Array of mime types.
-	 * @return array Mime types with webfonts formats.
-	 */
-	$fn_add_mime_types = static function( $mime_types ) {
-		// Webfonts formats.
-		$mime_types['woff2'] = 'font/woff2';
-		$mime_types['woff']  = 'font/woff';
-		$mime_types['ttf']   = 'font/ttf';
-		$mime_types['eot']   = 'application/vnd.ms-fontobject';
-		$mime_types['otf']   = 'application/x-font-opentype';
-
-		return $mime_types;
-	};
-
 	add_action( 'wp_loaded', $fn_register_webfonts );
 	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
 	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
-	add_filter( 'mime_types', $fn_add_mime_types );
 }
