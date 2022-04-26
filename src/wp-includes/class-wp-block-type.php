@@ -210,7 +210,7 @@ class WP_Block_Type {
 	 * @since 6.0.0
 	 * @var array
 	 */
-	const CORE_ATTRIBUTES = array(
+	const GLOBAL_ATTRIBUTES = array(
 		'lock' => array( 'type' => 'object' ),
 	);
 
@@ -365,6 +365,18 @@ class WP_Block_Type {
 
 		$args['name'] = $this->name;
 
+		// Setup attributes if needed.
+		if ( ! is_array( $this->attributes ) ) {
+			$this->attributes = array();
+		}
+
+		// Register core attributes.
+		foreach ( static::GLOBAL_ATTRIBUTES as $attr_key => $attr_schema ) {
+			if ( ! array_key_exists( $attr_key, $this->attributes ) ) {
+				$this->attributes[ $attr_key ] = $attr_schema;
+			}
+		}
+
 		/**
 		 * Filters the arguments for registering a block type.
 		 *
@@ -377,18 +389,6 @@ class WP_Block_Type {
 
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;
-		}
-
-		// Setup attributes if needed.
-		if ( ! is_array( $this->attributes ) ) {
-			$this->attributes = array();
-		}
-
-		// Register core attributes.
-		foreach ( static::CORE_ATTRIBUTES as $attr_key => $attr_schema ) {
-			if ( ! array_key_exists( $attr_key, $this->attributes ) ) {
-				$this->attributes[ $attr_key ] = $attr_schema;
-			}
 		}
 	}
 
