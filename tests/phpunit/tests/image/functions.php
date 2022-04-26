@@ -344,6 +344,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 
+	/*
+	 * @ticket 55403
+	 */
 	public function test_wp_crop_image_extension() {
 		add_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
 		$file = wp_crop_image(
@@ -359,7 +362,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertFileExists( $file );
 
 		unlink( $file );
-		remove_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
 	}
 
 	/**
