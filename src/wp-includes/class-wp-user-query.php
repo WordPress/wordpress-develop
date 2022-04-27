@@ -293,7 +293,7 @@ class WP_User_Query {
 				$this->query_fields[] = "$wpdb->users.$field";
 			}
 			$this->query_fields = implode( ',', $this->query_fields );
-		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields']  ) {
+		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
 			$this->query_fields = "$wpdb->users.ID";
 		} elseif ( ! in_array( $qv['fields'], $allowed_fields, true ) ) {
 			$this->query_fields = "$wpdb->users.*";
