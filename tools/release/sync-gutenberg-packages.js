@@ -10,7 +10,7 @@ const { zip, uniq, identity, groupBy } = require( 'lodash' );
  * Constants
  */
 const WORDPRESS_PACKAGES_PREFIX = '@wordpress/';
-const { getArgFromCLI } = require( `node_modules/@wordpress/scripts/utils` );
+const { getArgFromCLI } = require( `../../node_modules/@wordpress/scripts/utils` );
 const distTag = getArgFromCLI( '--dist-tag' ) || 'latest';
 
 /**

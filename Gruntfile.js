@@ -1666,7 +1666,10 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'packages:refresh-deps', 'Update version of dependencies in package.json to match the ones listed in the latest WordPress packages', function() {
 		const distTag = grunt.option('dist-tag') || 'latest';
 		grunt.log.writeln( `Updating versions of dependencies listed in package.json (--dist-tag=${distTag})` );
-		spawn( 'npm', [ 'run', 'wp-packages-refresh-deps', '--', `--dist-tag=${distTag}` ] );
+		spawn( 'node', [ 'tools/release/sync-gutenberg-packages.js', `--dist-tag=${distTag}` ], {
+			cwd: __dirname,
+			stdio: 'inherit',
+		} );
 	} );
 
 	// Patch task.
