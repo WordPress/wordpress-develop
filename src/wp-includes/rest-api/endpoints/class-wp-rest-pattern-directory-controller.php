@@ -362,7 +362,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 
 		if ( isset( $query_args['slug'] ) ) {
 			// This is an additional precaution because the "sort" function expects an array.
-			$query_args['slug'] = (array) $query_args['slug'];
+			$query_args['slug'] = wp_parse_list( $query_args['slug'] );
 
 			// Sort the array so that the transient key doesn't depend on the order of slugs.
 			sort( $query_args['slug'] );
