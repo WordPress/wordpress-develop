@@ -51,11 +51,21 @@ function refreshDependencies() {
 
 refreshDependencies();
 
+/**
+ * @param {string} fileName File to read.
+ * @return {Object} Parsed data.
+ */
 function readJSONFile( fileName ) {
 	const data = fs.readFileSync( fileName, 'utf8' );
 	return JSON.parse( data );
 }
 
+/**
+ * Spawns npm install --save.
+ *
+ * @param {Array} packages List of tuples [packageName, version] to install.
+ * @return {string} CLI output.
+ */
 function installPackages( packages ) {
 	const packagesWithVersion = packages.map(
 		( [packageName, version] ) => `${ packageName }@${ version }`,
@@ -65,6 +75,12 @@ function installPackages( packages ) {
 	} );
 }
 
+/**
+ * Computes which @wordpress packages are required by the Gutenberg
+ * dependencies that are missing from WordPress package.json.
+ *
+ * @return {Array} List of tuples [packageName, version].
+ */
 function getMissingWordPressPackages() {
 	const perPackageDeps = getPerPackageDeps();
 	const currentPackages = perPackageDeps.map( ( [name] ) => name );
@@ -79,6 +95,14 @@ function getMissingWordPressPackages() {
 		packageName => !currentPackages.includes( packageName ) );
 }
 
+/**
+ * Computes which third party packages are required by the @wordpress
+ * packages, but not by the WordPress repo itself. This includes
+ * both packages that are missing from package.json and any version
+ * mismatches.
+ *
+ * @return {Array} List of objects {name, required, actual} describing version mismatches.
+ */
 function getMismatchedNonWordPressDependencies() {
 	// Get the installed dependencies from package-lock.json
 	const currentPackageJSON = readJSONFile( "package.json" );
@@ -110,6 +134,11 @@ function getMismatchedNonWordPressDependencies() {
 	return versionConflicts;
 }
 
+/**
+ * Returns a list of dependencies of each @wordpress dependency.
+ *
+ * @return {Object} An object of shape {packageName: [[packageName, version]]}.
+ */
 function getPerPackageDeps() {
 	// Get the dependencies currently listed in the wordpress-develop package.json
 	const currentPackageJSON = readJSONFile( "package.json" );
@@ -122,15 +151,35 @@ function getPerPackageDeps() {
 	return zip( currentPackages, deps );
 }
 
+/**
+ * Takes unserialized package.json data and returns a list of @wordpress dependencies.
+ *
+ * @param {Object} dependencies unserialized package.json data.
+ * @return {string[]} a list of @wordpress dependencies.
+ */
 function getWordPressPackages( { dependencies = {} } ) {
 	return Object.keys( dependencies )
 		.filter( isWordPressPackage );
 }
 
+/**
+ * Returns true if packageName represents a @wordpress package.
+ *
+ * @param {string} packageName Package name to test.
+ * @return {boolean} Is it a @wodpress package?
+ */
 function isWordPressPackage( packageName ) {
 	return packageName.startsWith( WORDPRESS_PACKAGES_PREFIX );
 }
 
+/**
+ * Computes the dependencies difference between two unserialized
+ * package JSON objects. Needed only for the final reporting.
+ *
+ * @param {Object} initialPackageJSON Initial package JSON data.
+ * @param {Object} finalPackageJSON Final package JSON data.
+ * @return {Object} Delta.
+ */
 function getPackageVersionDiff( initialPackageJSON, finalPackageJSON ) {
 	const diff = ['dependencies', 'devDependencies'].reduce(
 		( result, keyPackageJSON ) => {
@@ -151,6 +200,11 @@ function getPackageVersionDiff( initialPackageJSON, finalPackageJSON ) {
 	return diff.sort( ( a, b ) => a.dependency.localeCompare( b.dependency ) );
 }
 
+/**
+ * Prints the delta between two package.json files.
+ *
+ * @param {Object} packageDiff Delta.
+ */
 function outputPackageDiffReport( packageDiff ) {
 	const readableDiff =
 		packageDiff
