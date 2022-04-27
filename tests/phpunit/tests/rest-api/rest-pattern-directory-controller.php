@@ -28,7 +28,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 *
 	 * @var WP_REST_Pattern_Directory_Controller
 	 */
-	private static $controller;
+	private $controller;
 
 	/**
 	 * Set up class test fixtures.
@@ -43,8 +43,17 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				'role' => 'contributor',
 			)
 		);
+	}
 
-		static::$controller = new WP_REST_Pattern_Directory_Controller();
+	/**
+	 * Set up class test fixtures.
+	 *
+	 * @since 6.0.0
+	 */
+	public function setUp() {
+		parent::setUp();
+
+		$this->controller = new WP_REST_Pattern_Directory_Controller();
 	}
 
 	/**
@@ -333,12 +342,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @since 5.8.0
 	 */
 	public function test_prepare_item() {
-		$controller                   = new WP_REST_Pattern_Directory_Controller();
 		$raw_patterns                 = json_decode( self::get_raw_response( 'browse-all' ) );
 		$raw_patterns[0]->extra_field = 'this should be removed';
 
-		$prepared_pattern = $controller->prepare_response_for_collection(
-			$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
+		$prepared_pattern = $this->controller->prepare_response_for_collection(
+			$this->controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
 		);
 
 		$this->assertPatternMatchesSchema( $prepared_pattern );
@@ -351,12 +359,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @since 5.8.0
 	 */
 	public function test_prepare_item_search() {
-		$controller                   = new WP_REST_Pattern_Directory_Controller();
 		$raw_patterns                 = json_decode( self::get_raw_response( 'search' ) );
 		$raw_patterns[0]->extra_field = 'this should be removed';
 
-		$prepared_pattern = $controller->prepare_response_for_collection(
-			$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
+		$prepared_pattern = $this->controller->prepare_response_for_collection(
+			$this->controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
 		);
 
 		$this->assertPatternMatchesSchema( $prepared_pattern );
@@ -427,10 +434,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @param bool      $assert_same    Assertion type (assertSame vs assertNotSame).
 	 */
 	public function test_transient_keys_get_generated_correctly( $parameters_1, $parameters_2, $message, $assert_same = true ) {
-		$method = $this->get_reflection_method( self::$controller, 'get_transient_key' );
+		$reflection_method = new ReflectionMethod( $this->controller, 'get_transient_key' );
+		$reflection_method->setAccessible( true );
 
-		$result_1 = $method->invoke( self::$controller, $parameters_1 );
-		$result_2 = $method->invoke( self::$controller, $parameters_2 );
+		$result_1 = $reflection_method->invoke( self::$controller, $parameters_1 );
+		$result_2 = $reflection_method->invoke( self::$controller, $parameters_2 );
 
 		$this->assertIsString( $result_1 );
 		$this->assertNotEmpty( $result_1 );
@@ -550,22 +558,5 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 			10,
 			3
 		);
-	}
-
-	/**
-	 * Returns a reflection method and changes its scope.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @param $object An object that has a private method that has to be called.
-	 * @param $method Name of the method.
-	 *
-	 * @return ReflectionMethod
-	 */
-	private function get_reflection_method( $object, $method ) {
-		$reflection_method = new ReflectionMethod( $object, $method );
-		$reflection_method->setAccessible( true );
-
-		return $reflection_method;
 	}
 }
