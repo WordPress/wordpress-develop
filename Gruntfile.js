@@ -13,7 +13,7 @@ module.exports = function(grunt) {
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
 		WORKING_DIR = grunt.option( 'dev' ) ? SOURCE_DIR : BUILD_DIR,
- 		BANNER_TEXT = '/*! This file is auto-generated */',
+		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
 		sass = require( 'sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
@@ -80,7 +80,7 @@ module.exports = function(grunt) {
 				]
 			}
 		},
- 		usebanner: {
+		usebanner: {
 			options: {
 				position: 'top',
 				banner: BANNER_TEXT,
@@ -1655,12 +1655,18 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'packages:update', 'Update WordPress packages', function() {
 		const distTag = grunt.option('dist-tag') || 'latest';
 		grunt.log.writeln( `Updating WordPress packages (--dist-tag=${distTag})` );
-		spawn( 'npx', [ 'wp-scripts', 'packages-update', '--', `--dist-tag=${distTag}` ] );
+		spawn( 'npx', [ 'wp-scripts', 'packages-update', '--', `--dist-tag=${distTag}` ], {
+			cwd: __dirname,
+			stdio: 'inherit',
+		} );
 	} );
 
 	grunt.registerTask( 'browserslist:update', 'Update WordPress packages', function() {
 		grunt.log.writeln( `Updating browsers list` );
-		spawn( 'npx', [ 'browserslist@latest', '--update-db' ] );
+		spawn( 'npx', [ 'browserslist@latest', '--update-db' ], {
+			cwd: __dirname,
+			stdio: 'inherit',
+		} );
 	} );
 
 	grunt.registerTask( 'packages:refresh-deps', 'Update version of dependencies in package.json to match the ones listed in the latest WordPress packages', function() {
@@ -1719,7 +1725,7 @@ module.exports = function(grunt) {
 						break;
 					}
 				}
-			// Or if it's another file which has a straight mapping.
+				// Or if it's another file which has a straight mapping.
 			} else {
 				configs = Object.assign( {},
 					grunt.config( [ 'copy', 'admin-js', 'files' ] ),
@@ -1740,7 +1746,7 @@ module.exports = function(grunt) {
 			if ( action !== 'deleted' ) {
 				grunt.config( [ 'copy', 'dynamic-js', 'files' ], files );
 			}
-		// For the webpack builds configure the jsvalidate task to only check those files build by webpack.
+			// For the webpack builds configure the jsvalidate task to only check those files build by webpack.
 		} else if ( target === 'js-webpack' ) {
 			src = [
 				'wp-includes/js/media-audiovideo.js',
@@ -1748,7 +1754,7 @@ module.exports = function(grunt) {
 				'wp-includes/js/media-models.js',
 				'wp-includes/js/media-views.js'
 			];
-		// Else simply use the path relative to the source directory.
+			// Else simply use the path relative to the source directory.
 		} else {
 			src = [ path.relative( SOURCE_DIR, filepath ) ];
 		}
