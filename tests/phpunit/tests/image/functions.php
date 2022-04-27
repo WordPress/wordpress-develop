@@ -342,10 +342,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		return $classes;
 	}
 
-	/*
+	/**
 	 * @ticket 55403
 	 */
-	public function test_wp_crop_image_extension() {
+	public function test_wp_crop_image_with_filtered_extension() {
 		add_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canola.jpg',
@@ -356,6 +356,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
+
+		$this->assertStringEndsWith( '.webp', $file );
 		$this->assertNotWPError( $file );
 		$this->assertFileExists( $file );
 
