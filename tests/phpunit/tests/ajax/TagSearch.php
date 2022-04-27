@@ -162,7 +162,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 	 * @ticket 55606
 	 * @covers ::wp_ajax_ajax_tag_search
 	 */
-	public function test_after_tag_search_filter() {
+	public function test_wp_after_tag_search_filter() {
 
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
