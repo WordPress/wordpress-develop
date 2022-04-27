@@ -1725,7 +1725,7 @@ module.exports = function(grunt) {
 						break;
 					}
 				}
-				// Or if it's another file which has a straight mapping.
+			// Or if it's another file which has a straight mapping.
 			} else {
 				configs = Object.assign( {},
 					grunt.config( [ 'copy', 'admin-js', 'files' ] ),
@@ -1746,7 +1746,7 @@ module.exports = function(grunt) {
 			if ( action !== 'deleted' ) {
 				grunt.config( [ 'copy', 'dynamic-js', 'files' ], files );
 			}
-			// For the webpack builds configure the jsvalidate task to only check those files build by webpack.
+		// For the webpack builds configure the jsvalidate task to only check those files build by webpack.
 		} else if ( target === 'js-webpack' ) {
 			src = [
 				'wp-includes/js/media-audiovideo.js',
@@ -1754,7 +1754,7 @@ module.exports = function(grunt) {
 				'wp-includes/js/media-models.js',
 				'wp-includes/js/media-views.js'
 			];
-			// Else simply use the path relative to the source directory.
+		// Else simply use the path relative to the source directory.
 		} else {
 			src = [ path.relative( SOURCE_DIR, filepath ) ];
 		}
