@@ -372,7 +372,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			update_post_thumbnail_cache( $posts_query );
 		}
 
-
 		$posts = array();
 
 		foreach ( $query_result as $post ) {
