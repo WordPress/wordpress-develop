@@ -367,14 +367,12 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			// Sort the array so that the transient key doesn't depend on the order of slugs.
 			sort( $query_args['slug'] );
 
-			// Slugs have to be imploded separately as implode doesn't work with recursive arrays.
-			$query_args['slug'] = implode( ',', $query_args['slug'] );
-
-			if ( '' === trim( $query_args['slug'] ) ) {
+			// Empty arrays should not affect the transient key.
+			if ( 0 === count( $query_args['slug'] ) ) {
 				unset( $query_args['slug'] );
 			}
 		}
 
-		return 'wp_remote_block_patterns_' . md5( implode( '-', $query_args ) );
+		return 'wp_remote_block_patterns_' . md5( serialize( $query_args ) );
 	}
 }

@@ -476,6 +476,16 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 			array(
 				array(
 					'parameter_1' => 1,
+					'slug'        => array(),
+				),
+				array(
+					'parameter_1' => 1,
+				),
+				'message' => 'Transient keys must match.',
+			),
+			array(
+				array(
+					'parameter_1' => 1,
 					'slug'        => array( 'some_slug' ),
 				),
 				array(
@@ -483,6 +493,16 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 					'slug'        => array( 'some_other_slug' ),
 				),
 				'message' => 'Transient keys must not match.',
+				false,
+			),
+			array(
+				array(
+					'parameter_1' => 1,
+				),
+				array(
+					'parameter_2' => 1,
+				),
+				'message' => 'Transient keys must depend on array keys.',
 				false,
 			),
 		);
