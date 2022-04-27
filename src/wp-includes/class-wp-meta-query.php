@@ -562,13 +562,13 @@ class WP_Meta_Query {
 				if ( 'LIKE' === $meta_compare_key ) {
 					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key LIKE %s )", '%' . $wpdb->esc_like( $clause['key'] ) . '%' );
 				} else {
-					if(is_array($clause['key'])){
-						$meta_key_string = '(' . substr( str_repeat( ',%s', count( $clause['key'] ) ), 1 ) . ')';
-						$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key IN $meta_key_string )", $clause['key'] );
-					}else{
+					if (is_array($clause['key'])) {
+					    $meta_key_string = '(' . substr(str_repeat(',%s', count($clause['key'])), 1) . ')';
+					    $join .= $wpdb->prepare(" ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key IN $meta_key_string )", $clause['key']);
+					} else {
 
-						$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key = %s )", $clause['key'] );
-					}	
+					    $join .= $wpdb->prepare(" ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key = %s )", $clause['key']);
+					}
 				}
 
 				// All other JOIN clauses.
