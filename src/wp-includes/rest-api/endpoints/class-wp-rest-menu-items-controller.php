@@ -111,9 +111,10 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		add_filter( "rest_{$this->post_type}_query_results", '_prime_menu_item_objects' );
-
-		return parent::get_items( $request );
+		add_filter( 'posts_results', array( $this, 'prime_menu_items_objects' ) );
+		$response = parent::get_items( $request );
+		remove_filter( 'posts_results', array( $this, 'prime_menu_items_objects' ) );
+		return $response;
 	}
 
 	/**
@@ -1032,5 +1033,19 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $menu_id;
+	}
+
+	/**
+	 * Prime menu item objects.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param WP_Post[] $posts Array of posts
+	 *
+	 * @return WP_Post[]
+	 */
+	public function prime_menu_items_objects( $posts ) {
+		_prime_menu_items_objects( $posts );
+		return $posts;
 	}
 }

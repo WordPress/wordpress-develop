@@ -723,7 +723,7 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 	// Prime posts and terms caches.
 	if ( empty( $fetched[ $menu->term_id ] ) ) {
 		$fetched[ $menu->term_id ] = true;
-		_prime_menu_item_objects( $items );
+		_prime_menu_items_objects( $items );
 	}
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
@@ -760,15 +760,20 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 }
 
 /**
- * @param $items
+ * Prime all linked objects to menu items.
  *
+ * @param WP_Post[] $menu_items Array post objects of menu items.
  */
-function _prime_menu_item_objects( $items ){
-	$post_ids                  = array();
-	$term_ids                  = array();
-	foreach ( $items as $item ) {
-		$object_id = get_post_meta( $item->ID, '_menu_item_object_id', true );
-		$type      = get_post_meta( $item->ID, '_menu_item_type', true );
+function _prime_menu_items_objects( $menu_items ) {
+	$post_ids = array();
+	$term_ids = array();
+
+	foreach ( $menu_items as $menu_item ) {
+		if ( 'nav_menu_item' !== $menu_item->post_type ) {
+			continue;
+		}
+		$object_id = get_post_meta( $menu_item->ID, '_menu_item_object_id', true );
+		$type      = get_post_meta( $menu_item->ID, '_menu_item_type', true );
 
 		if ( 'post_type' === $type ) {
 			$post_ids[] = (int) $object_id;
@@ -780,6 +785,7 @@ function _prime_menu_item_objects( $items ){
 	if ( ! empty( $post_ids ) ) {
 		_prime_post_caches( $post_ids, false );
 	}
+
 	unset( $post_ids );
 
 	if ( ! empty( $term_ids ) ) {
