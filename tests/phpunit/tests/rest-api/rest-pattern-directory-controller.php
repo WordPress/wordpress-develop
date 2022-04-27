@@ -28,7 +28,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 *
 	 * @var WP_REST_Pattern_Directory_Controller
 	 */
-	private $controller;
+	private static $controller;
 
 	/**
 	 * Set up class test fixtures.
@@ -43,17 +43,8 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				'role' => 'contributor',
 			)
 		);
-	}
 
-	/**
-	 * Set up class test fixtures.
-	 *
-	 * @since 6.0.0
-	 */
-	public function setUp() {
-		parent::setUp();
-
-		$this->controller = new WP_REST_Pattern_Directory_Controller();
+		static::$controller = new WP_REST_Pattern_Directory_Controller();
 	}
 
 	/**
@@ -62,7 +53,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @param WP_REST_Response[] $pattern An individual pattern from the REST API response.
 	 */
 	public function assertPatternMatchesSchema( $pattern ) {
-		$schema     = ( new WP_REST_Pattern_Directory_Controller() )->get_item_schema();
+		$schema     = static::$controller->get_item_schema();
 		$pattern_id = isset( $pattern->id ) ? $pattern->id : '{pattern ID is missing}';
 
 		$this->assertTrue(
@@ -345,8 +336,8 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$raw_patterns                 = json_decode( self::get_raw_response( 'browse-all' ) );
 		$raw_patterns[0]->extra_field = 'this should be removed';
 
-		$prepared_pattern = $this->controller->prepare_response_for_collection(
-			$this->controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
+		$prepared_pattern = static::$controller->prepare_response_for_collection(
+			static::$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
 		);
 
 		$this->assertPatternMatchesSchema( $prepared_pattern );
@@ -362,8 +353,8 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$raw_patterns                 = json_decode( self::get_raw_response( 'search' ) );
 		$raw_patterns[0]->extra_field = 'this should be removed';
 
-		$prepared_pattern = $this->controller->prepare_response_for_collection(
-			$this->controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
+		$prepared_pattern = static::$controller->prepare_response_for_collection(
+			static::$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
 		);
 
 		$this->assertPatternMatchesSchema( $prepared_pattern );
@@ -434,7 +425,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @param bool      $assert_same    Assertion type (assertSame vs assertNotSame).
 	 */
 	public function test_transient_keys_get_generated_correctly( $parameters_1, $parameters_2, $message, $assert_same = true ) {
-		$reflection_method = new ReflectionMethod( $this->controller, 'get_transient_key' );
+		$reflection_method = new ReflectionMethod( static::$controller, 'get_transient_key' );
 		$reflection_method->setAccessible( true );
 
 		$result_1 = $reflection_method->invoke( self::$controller, $parameters_1 );
