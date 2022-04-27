@@ -250,4 +250,47 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			$block->render()
 		);
 	}
+
+	/**
+	 * Test that unapproved comments are included if it is a preview.
+	 *
+	 * @covers ::build_comment_query_vars_from_block
+	 */
+	function test_build_comment_query_vars_from_block_with_comment_preview() {
+		$parsed_blocks = parse_blocks(
+			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
+		);
+
+		$block = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'postId' => self::$custom_post->ID,
+			)
+		);
+
+		$commenter_filter = function () {
+			return array(
+				'comment_author_email' => 'unapproved@example.org',
+			);
+		};
+
+		add_filter( 'wp_get_current_commenter', $commenter_filter );
+
+		$this->assertEquals(
+			build_comment_query_vars_from_block( $block ),
+			array(
+				'orderby'            => 'comment_date_gmt',
+				'order'              => 'ASC',
+				'status'             => 'approve',
+				'no_found_rows'      => false,
+				'include_unapproved' => array( 'unapproved@example.org' ),
+				'post_id'            => self::$custom_post->ID,
+				'hierarchical'       => 'threaded',
+				'number'             => 5,
+				'paged'              => 1,
+			)
+		);
+
+		remove_filter( 'wp_get_current_commenter', $commenter_filter );
+	}
 }
