@@ -595,7 +595,7 @@ class WP_Comment_Query {
 					// Otherwise we match against email addresses.
 					if ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
 						// Only include requested comment.
-						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' AND comment_ID = %d )", $unapproved_identifier, (int) $_GET['unapproved'] );
+						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' AND {$wpdb->comments}.comment_ID = %d )", $unapproved_identifier, (int) $_GET['unapproved'] );
 					} else {
 						// Include all of the author's unapproved comments.
 						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' )", $unapproved_identifier );
@@ -1126,24 +1126,24 @@ class WP_Comment_Query {
 	}
 
 	/**
-	 * Used internally to generate an SQL string for searching across multiple columns
+	 * Used internally to generate an SQL string for searching across multiple columns.
 	 *
 	 * @since 3.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $string
-	 * @param array  $cols
-	 * @return string
+	 * @param string   $search  Search string.
+	 * @param string[] $columns Array of columns to search.
+	 * @return string Search SQL.
 	 */
-	protected function get_search_sql( $string, $cols ) {
+	protected function get_search_sql( $search, $columns ) {
 		global $wpdb;
 
-		$like = '%' . $wpdb->esc_like( $string ) . '%';
+		$like = '%' . $wpdb->esc_like( $search ) . '%';
 
 		$searches = array();
-		foreach ( $cols as $col ) {
-			$searches[] = $wpdb->prepare( "$col LIKE %s", $like );
+		foreach ( $columns as $column ) {
+			$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
 		}
 
 		return ' AND (' . implode( ' OR ', $searches ) . ')';
