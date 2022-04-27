@@ -3778,7 +3778,7 @@ function wp_get_image_editor( $path, $args = array() ) {
 	/** This filter is documented in wp-includes/class-wp-image-editor.php */
 	$output_format = apply_filters( 'image_editor_output_format', array(), $path, $args['mime_type'] );
 	if ( isset( $output_format[ $args['mime_type'] ] ) ) {
-		$args['output_mime_type'] = $output_format[ $mime_type ];
+		$args['output_mime_type'] = $output_format[ $args['mime_type'] ];
 	}
 
 	$implementation = _wp_image_editor_choose( $args );
