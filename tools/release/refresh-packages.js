@@ -10,8 +10,7 @@ const { zip, uniq, identity, groupBy } = require( 'lodash' );
  * Constants
  */
 const WORDPRESS_PACKAGES_PREFIX = '@wordpress/';
-const rootDir = __dirname + '/../..';
-const { getArgFromCLI } = require( `${ rootDir }/node_modules/@wordpress/scripts/utils` );
+const { getArgFromCLI } = require( `node_modules/@wordpress/scripts/utils` );
 const distTag = getArgFromCLI( '--dist-tag' ) || 'latest';
 
 /**
@@ -22,7 +21,7 @@ const distTag = getArgFromCLI( '--dist-tag' ) || 'latest';
  * updated react from 16.0.4 to 17.0.2 and install the latter.
  */
 function refreshDependencies() {
-	const initialPackageJSON = readJSONFile( `${ rootDir }/package.json` );
+	const initialPackageJSON = readJSONFile( `package.json` );
 
 	// Install any missing WordPress packages:
 	const missingWordPressPackages = getMissingWordPressPackages();
@@ -43,7 +42,7 @@ function refreshDependencies() {
 		installPackages( requiredPackages );
 	}
 
-	const finalPackageJSON = readJSONFile( `${ rootDir }/package.json` );
+	const finalPackageJSON = readJSONFile( "package.json" );
 	outputPackageDiffReport(
 		getPackageVersionDiff( initialPackageJSON, finalPackageJSON ),
 	);
@@ -82,10 +81,10 @@ function getMissingWordPressPackages() {
 
 function getMismatchedNonWordPressDependencies() {
 	// Get the installed dependencies from package-lock.json
-	const currentPackageJSON = readJSONFile( `${ rootDir }/package.json` );
+	const currentPackageJSON = readJSONFile( "package.json" );
 	const currentPackages = getWordPressPackages( currentPackageJSON );
 
-	const packageLock = readJSONFile( `${ rootDir }/package-lock.json` );
+	const packageLock = readJSONFile( "package-lock.json" );
 	const versionConflicts = Object.entries( packageLock.dependencies )
 		.filter( ( [packageName] ) => currentPackages.includes( packageName ) )
 		.flatMap( ( [, { dependencies }] ) => Object.entries( dependencies || {} ) )
@@ -113,7 +112,7 @@ function getMismatchedNonWordPressDependencies() {
 
 function getPerPackageDeps() {
 	// Get the dependencies currently listed in the wordpress-develop package.json
-	const currentPackageJSON = readJSONFile( 'package.json' );
+	const currentPackageJSON = readJSONFile( "package.json" );
 	const currentPackages = getWordPressPackages( currentPackageJSON );
 
 	// Get the dependencies that the above dependencies list in their package.json.
@@ -132,8 +131,7 @@ function isWordPressPackage( packageName ) {
 	return packageName.startsWith( WORDPRESS_PACKAGES_PREFIX );
 }
 
-function getPackageVersionDiff( initialPackageJSON, finalPackageJSON
-) {
+function getPackageVersionDiff( initialPackageJSON, finalPackageJSON ) {
 	const diff = ['dependencies', 'devDependencies'].reduce(
 		( result, keyPackageJSON ) => {
 			return Object.keys(
