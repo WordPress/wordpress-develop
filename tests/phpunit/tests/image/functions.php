@@ -344,7 +344,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55403
-	 * @requires extension fileinfo
 	 */
 	public function test_wp_crop_image_with_filtered_extension() {
 		add_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
@@ -357,11 +356,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-
-		// Include WebP check in tests when platform supports it.
-		if ( function_exists( 'imagewebp' ) ) {
-			$this->assertStringEndsWith( '.webp', $file );
-		}
 
 		$this->assertNotWPError( $file );
 		$this->assertFileExists( $file );
