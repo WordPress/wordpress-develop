@@ -49,8 +49,6 @@ function refreshDependencies() {
 	process.exit( 0 );
 }
 
-refreshDependencies();
-
 /**
  * @param {string} fileName File to read.
  * @return {Object} Parsed data.
@@ -223,5 +221,7 @@ function outputPackageDiffReport( packageDiff ) {
 		].join( '\n' ),
 	);
 }
+
+refreshDependencies();
 
 /* eslint-enable no-console */
