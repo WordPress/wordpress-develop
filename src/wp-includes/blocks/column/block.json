@@ -41,16 +41,6 @@
 				"padding": true
 			}
 		},
-		"__experimentalBorder": {
-			"color": true,
-			"style": true,
-			"width": true,
-			"__experimentalDefaultControls": {
-				"color": true,
-				"style": true,
-				"width": true
-			}
-		},
 		"__experimentalLayout": true
 	}
 }
