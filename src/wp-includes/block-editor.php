@@ -383,10 +383,12 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		array(
 			'css'            => 'variables',
 			'__unstableType' => 'presets',
+			'isGlobalStyles' => true,
 		),
 		array(
 			'css'            => 'presets',
 			'__unstableType' => 'presets',
+			'isGlobalStyles' => true,
 		),
 	);
 	foreach ( $presets as $preset_style ) {
@@ -401,6 +403,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$block_classes = array(
 			'css'            => 'styles',
 			'__unstableType' => 'theme',
+			'isGlobalStyles' => true,
 		);
 		$actual_css    = wp_get_global_stylesheet( array( $block_classes['css'] ) );
 		if ( '' !== $actual_css ) {
@@ -468,13 +471,14 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	$editor_settings['__unstableResolvedAssets']         = _wp_get_iframed_editor_assets();
 	$editor_settings['localAutosaveInterval']            = 15;
 	$editor_settings['__experimentalDiscussionSettings'] = array(
-		'commentOrder'        => get_option( 'comment_order' ),
-		'commentsPerPage'     => get_option( 'comments_per_page' ),
-		'defaultCommentsPage' => get_option( 'default_comments_page' ),
-		'pageComments'        => get_option( 'page_comments' ),
-		'threadComments'      => get_option( 'thread_comments' ),
-		'threadCommentsDepth' => get_option( 'thread_comments_depth' ),
-		'avatarURL'           => get_avatar_url(
+		'commentOrder'         => get_option( 'comment_order' ),
+		'commentsPerPage'      => get_option( 'comments_per_page' ),
+		'defaultCommentsPage'  => get_option( 'default_comments_page' ),
+		'pageComments'         => get_option( 'page_comments' ),
+		'threadComments'       => get_option( 'thread_comments' ),
+		'threadCommentsDepth'  => get_option( 'thread_comments_depth' ),
+		'defaultCommentStatus' => get_option( 'default_comment_status' ),
+		'avatarURL'            => get_avatar_url(
 			'',
 			array(
 				'size'          => 96,
@@ -628,6 +632,7 @@ function get_block_editor_theme_styles() {
 					$styles[] = array(
 						'css'            => wp_remote_retrieve_body( $response ),
 						'__unstableType' => 'theme',
+						'isGlobalStyles' => false,
 					);
 				}
 			} else {
@@ -637,6 +642,7 @@ function get_block_editor_theme_styles() {
 						'css'            => file_get_contents( $file ),
 						'baseURL'        => get_theme_file_uri( $style ),
 						'__unstableType' => 'theme',
+						'isGlobalStyles' => false,
 					);
 				}
 			}

@@ -317,6 +317,8 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_comments_pagination_next' );
 	remove_action( 'init', 'register_block_core_comments_pagination_numbers' );
 	remove_action( 'init', 'register_block_core_comments_pagination_previous' );
+	remove_action( 'init', 'register_block_core_comments_title' );
+	remove_action( 'init', 'register_block_core_cover' );
 	remove_action( 'init', 'register_block_core_file' );
 	remove_action( 'init', 'register_block_core_gallery' );
 	remove_action( 'init', 'register_block_core_home_link' );
@@ -333,6 +335,7 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_post_author' );
 	remove_action( 'init', 'register_block_core_post_author_biography' );
 	remove_action( 'init', 'register_block_core_post_comments' );
+	remove_action( 'init', 'register_block_core_post_comments_form' );
 	remove_action( 'init', 'register_block_core_post_content' );
 	remove_action( 'init', 'register_block_core_post_date' );
 	remove_action( 'init', 'register_block_core_post_excerpt' );
