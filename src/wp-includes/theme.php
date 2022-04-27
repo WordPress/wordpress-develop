@@ -830,7 +830,10 @@ function switch_theme( $stylesheet ) {
 }
 
 /**
- * Checks that the active theme has 'index.php' and 'style.css' files.
+ * Checks that the active theme has the required files.
+ *
+ * Standalone themes need to have a `templates/index.html` or `index.php` template file.
+ * Child themes need to have a `Template` header in the `style.css` stylesheet.
  *
  * Does not initially check the default theme, which is the fallback and should always exist.
  * But if it doesn't exist, it'll fall back to the latest core default theme that does exist.
@@ -840,6 +843,7 @@ function switch_theme( $stylesheet ) {
  * this functionality.
  *
  * @since 1.5.0
+ * @since 6.0.0 Removed the requirement for block themes to have an `index.php` template.
  *
  * @see WP_DEFAULT_THEME
  *
@@ -857,7 +861,9 @@ function validate_current_theme() {
 		return true;
 	}
 
-	if ( ! file_exists( get_template_directory() . '/index.php' ) ) {
+	if ( ! file_exists( get_template_directory() . '/templates/index.html' )
+		&& ! file_exists( get_template_directory() . '/index.php' )
+	) {
 		// Invalid.
 	} elseif ( ! file_exists( get_template_directory() . '/style.css' ) ) {
 		// Invalid.
@@ -1942,7 +1948,7 @@ function wp_get_custom_css( $stylesheet = '' ) {
 	}
 
 	/**
-	 * Filters the Custom CSS Output into the <head>.
+	 * Filters the custom CSS output into the head element.
 	 *
 	 * @since 4.7.0
 	 *
@@ -2607,16 +2613,19 @@ function add_theme_support( $feature, ...$args ) {
 
 		case 'html5':
 			// You can't just pass 'html5', you need to pass an array of types.
-			if ( empty( $args[0] ) ) {
-				// Build an array of types for back-compat.
-				$args = array( 0 => array( 'comment-list', 'comment-form', 'search-form' ) );
-			} elseif ( ! isset( $args[0] ) || ! is_array( $args[0] ) ) {
+			if ( empty( $args[0] ) || ! is_array( $args[0] ) ) {
 				_doing_it_wrong(
 					"add_theme_support( 'html5' )",
 					__( 'You need to pass an array of types.' ),
 					'3.6.1'
 				);
-				return false;
+
+				if ( ! empty( $args[0] ) && ! is_array( $args[0] ) ) {
+					return false;
+				}
+
+				// Build an array of types for back-compat.
+				$args = array( 0 => array( 'comment-list', 'comment-form', 'search-form' ) );
 			}
 
 			// Calling 'html5' again merges, rather than overwrites.
@@ -3037,9 +3046,10 @@ function current_theme_supports( $feature, ...$args ) {
 		return false;
 	}
 
-	// If no args passed then no extra checks need be performed.
+	// If no args passed then no extra checks need to be performed.
 	if ( ! $args ) {
-		return true;
+		/** This filter is documented in wp-includes/theme.php */
+		return apply_filters( "current_theme_supports-{$feature}", true, $args, $_wp_theme_features[ $feature ] ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 
 	switch ( $feature ) {
