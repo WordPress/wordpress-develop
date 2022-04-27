@@ -1216,7 +1216,7 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
-	grunt.registerTask( 'backport-js-packages', [
+	grunt.registerTask( 'sync-gutenberg-packages', [
 		// Required for the build:
 		'browserslist:update',
 
