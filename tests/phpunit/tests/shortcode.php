@@ -854,9 +854,9 @@ EOF;
 		return 'p11';
 	}
 
-	public function filter_pre_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
+	public function filter_pre_do_shortcode_tag_attr( $returned_value, $key, $atts, $m ) {
 		$arr = array(
-			'return' => $return,
+			'return' => $returned_value,
 			'key'    => $key,
 			'atts'   => $atts,
 			'm'      => $m,
@@ -916,17 +916,17 @@ EOF;
 		return 'foo';
 	}
 
-	public function filter_do_shortcode_tag_replace( $return ) {
-		return str_replace( 'oo', 'ee', $return );
+	public function filter_do_shortcode_tag_replace( $original_value ) {
+		return str_replace( 'oo', 'ee', $original_value );
 	}
 
-	public function filter_do_shortcode_tag_generate( $return ) {
+	public function filter_do_shortcode_tag_generate( $original_value ) {
 		return 'foobar';
 	}
 
-	public function filter_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
+	public function filter_do_shortcode_tag_attr( $returned_value, $key, $atts, $m ) {
 		$arr = array(
-			'return' => $return,
+			'return' => $returned_value,
 			'key'    => $key,
 			'atts'   => $atts,
 			'm'      => $m,
