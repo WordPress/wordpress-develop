@@ -444,7 +444,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static function prevent_requests_to_host( $blocked_host = 'api.wordpress.org' ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $return, $args, $url ) use ( $blocked_host ) {
+			static function ( $original_value, $args, $url ) use ( $blocked_host ) {
 
 				if ( wp_parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
 					return new WP_Error(
@@ -455,7 +455,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 
 				}
 
-				return $return;
+				return $original_value;
 			},
 			10,
 			3
