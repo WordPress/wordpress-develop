@@ -39,12 +39,12 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	/**
 	 * Saves an attachment.
 	 *
-	 * @param string $file   The file name to create attachment object for.
-	 * @param int    $parent ID of the post to attach the file to.
+	 * @param string $file        The file name to create attachment object for.
+	 * @param int    $post_parent ID of the post to attach the file to.
 	 *
 	 * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
 	 */
-	public function create_upload_object( $file, $parent = 0 ) {
+	public function create_upload_object( $file, $post_parent = 0 ) {
 		$contents = file_get_contents( $file );
 		$upload   = wp_upload_bits( wp_basename( $file ), null, $contents );
 
@@ -62,13 +62,13 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 			'post_title'     => wp_basename( $upload['file'] ),
 			'post_content'   => '',
 			'post_type'      => 'attachment',
-			'post_parent'    => $parent,
+			'post_parent'    => $post_parent,
 			'post_mime_type' => $type,
 			'guid'           => $upload['url'],
 		);
 
 		// Save the data.
-		$id = wp_insert_attachment( $attachment, $upload['file'], $parent );
+		$id = wp_insert_attachment( $attachment, $upload['file'], $post_parent );
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $upload['file'] ) );
 
 		return $id;
