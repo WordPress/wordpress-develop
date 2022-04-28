@@ -172,33 +172,33 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( '1-134-234', $value );
 	}
 
-	public function _filter_remove_and_add1( $string ) {
-		return $string . '1';
+	public function _filter_remove_and_add1( $text ) {
+		return $text . '1';
 	}
 
-	public function _filter_remove_and_add2( $string ) {
+	public function _filter_remove_and_add2( $text ) {
 		$this->hook->remove_filter( 'remove_and_add', array( $this, '_filter_remove_and_add2' ), 11 );
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add2' ), 11, 1 );
 
-		return $string . '2';
+		return $text . '2';
 	}
 
-	public function _filter_remove_and_recurse_and_add2( $string ) {
+	public function _filter_remove_and_recurse_and_add2( $text ) {
 		$this->hook->remove_filter( 'remove_and_add', array( $this, '_filter_remove_and_recurse_and_add2' ), 11 );
 
-		$string .= '-' . $this->hook->apply_filters( '', array() ) . '-';
+		$text .= '-' . $this->hook->apply_filters( '', array() ) . '-';
 
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_recurse_and_add2' ), 11, 1 );
 
-		return $string . '2';
+		return $text . '2';
 	}
 
-	public function _filter_remove_and_add3( $string ) {
-		return $string . '3';
+	public function _filter_remove_and_add3( $text ) {
+		return $text . '3';
 	}
 
-	public function _filter_remove_and_add4( $string ) {
-		return $string . '4';
+	public function _filter_remove_and_add4( $text ) {
+		return $text . '4';
 	}
 
 	public function test_remove_and_add_action() {
