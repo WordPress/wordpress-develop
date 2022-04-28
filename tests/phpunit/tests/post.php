@@ -1316,7 +1316,7 @@ class Tests_Post extends WP_UnitTestCase {
 		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
 	}
 
-	public function filter_pre_wp_unique_post_slug( $default, $slug, $post_ID, $post_status, $post_type, $post_parent ) {
+	public function filter_pre_wp_unique_post_slug( $original_value, $slug, $post_ID, $post_status, $post_type, $post_parent ) {
 		return 'override-slug-' . $post_type;
 	}
 
