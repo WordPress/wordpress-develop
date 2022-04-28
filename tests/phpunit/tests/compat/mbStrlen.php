@@ -19,24 +19,24 @@ class Tests_Compat_mbStrlen extends WP_UnitTestCase {
 	/**
 	 * @dataProvider utf8_string_lengths
 	 */
-	public function test_mb_strlen( $string, $expected_character_length ) {
-		$this->assertSame( $expected_character_length, _mb_strlen( $string, 'UTF-8' ) );
+	public function test_mb_strlen( $text, $expected_character_length ) {
+		$this->assertSame( $expected_character_length, _mb_strlen( $text, 'UTF-8' ) );
 	}
 
 	/**
 	 * @dataProvider utf8_string_lengths
 	 */
-	public function test_mb_strlen_via_regex( $string, $expected_character_length ) {
+	public function test_mb_strlen_via_regex( $text, $expected_character_length ) {
 		_wp_can_use_pcre_u( false );
-		$this->assertSame( $expected_character_length, _mb_strlen( $string, 'UTF-8' ) );
+		$this->assertSame( $expected_character_length, _mb_strlen( $text, 'UTF-8' ) );
 		_wp_can_use_pcre_u( 'reset' );
 	}
 
 	/**
 	 * @dataProvider utf8_string_lengths
 	 */
-	public function test_8bit_mb_strlen( $string, $expected_character_length, $expected_byte_length ) {
-		$this->assertSame( $expected_byte_length, _mb_strlen( $string, '8bit' ) );
+	public function test_8bit_mb_strlen( $text, $expected_character_length, $expected_byte_length ) {
+		$this->assertSame( $expected_byte_length, _mb_strlen( $text, '8bit' ) );
 	}
 
 	/**
