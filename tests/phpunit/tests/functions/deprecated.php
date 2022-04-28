@@ -66,13 +66,13 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	/**
 	 * Catches functions that have passed through _deprecated_function().
 	 *
-	 * @param string $function
+	 * @param string $function_name
 	 * @param string $replacement
 	 * @param float $version
 	 */
-	public function deprecated_function( $function, $replacement, $version ) {
+	public function deprecated_function( $function_name, $replacement, $version ) {
 		$this->_deprecated_functions[] = array(
-			'function'    => $function,
+			'function'    => $function_name,
 			'replacement' => $replacement,
 			'version'     => $version,
 		);
