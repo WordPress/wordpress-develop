@@ -44,12 +44,12 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 	/**
 	 * Mock the HTTP request response
 	 *
-	 * @param bool   $false     False.
-	 * @param array  $arguments Request arguments.
-	 * @param string $url       Request URL.
+	 * @param bool   $original_value False.
+	 * @param array  $arguments      Request arguments.
+	 * @param string $url            Request URL.
 	 * @return array|bool
 	 */
-	public function mock_http_request( $false, $arguments, $url ) {
+	public function mock_http_request( $original_value, $arguments, $url ) {
 		if ( 'http://example.com' === $url ) {
 			return array( 'headers' => true );
 		}

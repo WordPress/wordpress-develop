@@ -254,12 +254,12 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param bool   $false     False.
-	 * @param array  $arguments Request arguments.
-	 * @param string $url       Request URL.
-	 * @return array            Header.
+	 * @param bool   $original_value False.
+	 * @param array  $arguments      Request arguments.
+	 * @param string $url            Request URL.
+	 * @return array Header.
 	 */
-	public function mock_http_request( $false, $arguments, $url ) {
+	public function mock_http_request( $original_value, $arguments, $url ) {
 
 		// Video and audio headers.
 		$fake_headers = array(
