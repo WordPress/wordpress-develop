@@ -365,12 +365,12 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	/**
 	 * Mock the HTTP request response.
 	 *
-	 * @param bool   $false     False.
-	 * @param array  $arguments Request arguments.
-	 * @param string $url       Request URL.
+	 * @param bool   $original_value False.
+	 * @param array  $arguments      Request arguments.
+	 * @param string $url            Request URL.
 	 * @return array|bool
 	 */
-	public function mock_http_request( $false, $arguments, $url ) {
+	public function mock_http_request( $original_value, $arguments, $url ) {
 		if ( 'https://example.com' === $url ) {
 			return array(
 				'response' => array(
@@ -379,6 +379,6 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 			);
 		}
 
-		return $false;
+		return $original_value;
 	}
 }
