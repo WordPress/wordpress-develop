@@ -3068,6 +3068,10 @@ function _wp_theme_json_webfonts_handler() {
 	 * @return array Array of defined webfonts.
 	 */
 	$fn_get_webfonts_from_theme_json = static function() {
+		if ( wp_installing() ) {
+			return array();
+		}
+
 		// Get settings from theme.json.
 		$settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
 
