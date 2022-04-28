@@ -1392,7 +1392,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayNotHasKey( $view_field, $data );
 	}
 
-	public function additional_field_get_callback( $object, $request ) {
+	public function additional_field_get_callback( $item, $request ) {
 		return 123;
 	}
 

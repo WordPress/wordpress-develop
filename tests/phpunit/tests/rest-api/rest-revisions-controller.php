@@ -393,8 +393,8 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
-		return get_post_meta( $object['id'], 'my_custom_int', true );
+	public function additional_field_get_callback( $item ) {
+		return get_post_meta( $item['id'], 'my_custom_int', true );
 	}
 
 	public function additional_field_update_callback( $value, $post ) {

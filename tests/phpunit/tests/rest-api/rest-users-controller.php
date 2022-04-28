@@ -3067,8 +3067,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 	}
 
-	public function additional_field_get_callback( $object ) {
-		return get_user_meta( $object['id'], 'my_custom_int', true );
+	public function additional_field_get_callback( $item ) {
+		return get_user_meta( $item['id'], 'my_custom_int', true );
 	}
 
 	public function additional_field_update_callback( $value, $user ) {
