@@ -1221,11 +1221,11 @@ module.exports = function(grunt) {
 		'browserslist:update',
 
 		// Install the latest version of the packages already listed in package.json.
-		'packages:update',
+		'wp-packages:update',
 
 		// Install any new @wordpress packages that are now required.
 		// Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
-		'packages:refresh-deps',
+		'wp-packages:refresh-deps',
 
 		// Build the files stored in the src/ directory.
 		'build:dev'
@@ -1652,7 +1652,7 @@ module.exports = function(grunt) {
 		} );
 	} );
 
-	grunt.registerTask( 'packages:update', 'Update WordPress packages', function() {
+	grunt.registerTask( 'wp-packages:update', 'Update WordPress packages', function() {
 		const distTag = grunt.option('dist-tag') || 'latest';
 		grunt.log.writeln( `Updating WordPress packages (--dist-tag=${distTag})` );
 		spawn( 'npx', [ 'wp-scripts', 'packages-update', '--', `--dist-tag=${distTag}` ], {
@@ -1669,7 +1669,7 @@ module.exports = function(grunt) {
 		} );
 	} );
 
-	grunt.registerTask( 'packages:refresh-deps', 'Update version of dependencies in package.json to match the ones listed in the latest WordPress packages', function() {
+	grunt.registerTask( 'wp-packages:refresh-deps', 'Update version of dependencies in package.json to match the ones listed in the latest WordPress packages', function() {
 		const distTag = grunt.option('dist-tag') || 'latest';
 		grunt.log.writeln( `Updating versions of dependencies listed in package.json (--dist-tag=${distTag})` );
 		spawn( 'node', [ 'tools/release/sync-gutenberg-packages.js', `--dist-tag=${distTag}` ], {
