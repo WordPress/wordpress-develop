@@ -19,24 +19,24 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	/**
 	 * @dataProvider utf8_substrings
 	 */
-	public function test_mb_substr( $string, $start, $length, $expected_character_substring ) {
-		$this->assertSame( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
+	public function test_mb_substr( $text, $start, $length, $expected_character_substring ) {
+		$this->assertSame( $expected_character_substring, _mb_substr( $text, $start, $length, 'UTF-8' ) );
 	}
 
 	/**
 	 * @dataProvider utf8_substrings
 	 */
-	public function test_mb_substr_via_regex( $string, $start, $length, $expected_character_substring ) {
+	public function test_mb_substr_via_regex( $text, $start, $length, $expected_character_substring ) {
 		_wp_can_use_pcre_u( false );
-		$this->assertSame( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
+		$this->assertSame( $expected_character_substring, _mb_substr( $text, $start, $length, 'UTF-8' ) );
 		_wp_can_use_pcre_u( 'reset' );
 	}
 
 	/**
 	 * @dataProvider utf8_substrings
 	 */
-	public function test_8bit_mb_substr( $string, $start, $length, $expected_character_substring, $expected_byte_substring ) {
-		$this->assertSame( $expected_byte_substring, _mb_substr( $string, $start, $length, '8bit' ) );
+	public function test_8bit_mb_substr( $text, $start, $length, $expected_character_substring, $expected_byte_substring ) {
+		$this->assertSame( $expected_byte_substring, _mb_substr( $text, $start, $length, '8bit' ) );
 	}
 
 	/**
