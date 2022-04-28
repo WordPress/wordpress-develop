@@ -20,7 +20,7 @@ const distTag = getArgFromCLI( '--dist-tag' ) || 'latest';
  * mismatched dependencies versions, e.g. it would detect that Gutenberg
  * updated react from 16.0.4 to 17.0.2 and install the latter.
  */
-function refreshDependencies() {
+function main() {
 	const initialPackageJSON = readJSONFile( `package.json` );
 
 	// Install any missing WordPress packages:
@@ -222,6 +222,6 @@ function outputPackageDiffReport( packageDiff ) {
 	);
 }
 
-refreshDependencies();
+main();
 
 /* eslint-enable no-console */
