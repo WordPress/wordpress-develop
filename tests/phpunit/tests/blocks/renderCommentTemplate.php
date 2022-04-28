@@ -254,6 +254,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	/**
 	 * Test that unapproved comments are included if it is a preview.
 	 *
+	 * @ticket 55634
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	function test_build_comment_query_vars_from_block_with_comment_preview() {
@@ -290,7 +291,5 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 				'paged'              => 1,
 			)
 		);
-
-		remove_filter( 'wp_get_current_commenter', $commenter_filter );
 	}
 }
