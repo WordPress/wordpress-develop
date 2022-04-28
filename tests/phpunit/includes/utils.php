@@ -348,16 +348,16 @@ function dmp_filter( $a ) {
 	return $a;
 }
 
-function get_echo( $callable, $args = array() ) {
+function get_echo( $callback, $args = array() ) {
 	ob_start();
-	call_user_func_array( $callable, $args );
+	call_user_func_array( $callback, $args );
 	return ob_get_clean();
 }
 
 // Recursively generate some quick assertEquals() tests based on an array.
-function gen_tests_array( $name, $array ) {
+function gen_tests_array( $name, $tests_array ) {
 	$out = array();
-	foreach ( $array as $k => $v ) {
+	foreach ( $tests_array as $k => $v ) {
 		if ( is_numeric( $k ) ) {
 			$index = (string) $k;
 		} else {
