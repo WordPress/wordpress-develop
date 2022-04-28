@@ -205,13 +205,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * Recursively applies ksort to an array.
 	 */
-	private static function recursive_ksort( &$array ) {
-		foreach ( $array as &$value ) {
+	private static function recursive_ksort( &$input_array ) {
+		foreach ( $input_array as &$value ) {
 			if ( is_array( $value ) ) {
 				self::recursive_ksort( $value );
 			}
 		}
-		ksort( $array );
+		ksort( $input_array );
 	}
 
 	/**
