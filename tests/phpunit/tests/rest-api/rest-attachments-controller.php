@@ -1641,7 +1641,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'image/png', $data[0]['mime_type'] );
 	}
 
-	public function additional_field_get_callback( $object, $request ) {
+	public function additional_field_get_callback( $item, $request ) {
 		return 123;
 	}
 
