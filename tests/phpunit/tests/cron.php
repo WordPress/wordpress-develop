@@ -410,7 +410,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * Filter the scheduling of events to use the preflight array.
 	 */
-	public function filter_pre_schedule_event_filter( $null, $event ) {
+	public function filter_pre_schedule_event_filter( $original_value, $event ) {
 		$key = md5( serialize( $event->args ) );
 
 		$this->preflight_cron_array[ $event->timestamp ][ $event->hook ][ $key ] = array(
