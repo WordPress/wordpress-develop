@@ -3348,17 +3348,17 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	/**
 	 * Return 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class.
 	 *
-	 * @param string $class Setting class.
-	 * @param array  $args  Setting args.
-	 * @param string $id    Setting ID.
-	 * @return string       Setting class.
+	 * @param string $class_name Setting class.
+	 * @param array  $args       Setting args.
+	 * @param string $id         Setting ID.
+	 * @return string Setting class.
 	 */
-	public function return_dynamic_customize_setting_class( $class, $id, $args ) {
+	public function return_dynamic_customize_setting_class( $class_name, $id, $args ) {
 		unset( $args );
 		if ( 0 === strpos( $id, 'dynamic' ) ) {
-			$class = 'Test_Dynamic_Customize_Setting';
+			$class_name = 'Test_Dynamic_Customize_Setting';
 		}
-		return $class;
+		return $class_name;
 	}
 
 	/**
