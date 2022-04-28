@@ -71,29 +71,29 @@ function tests_add_filter( $tag, $function_to_add, $priority = 10, $accepted_arg
  * @see _wp_filter_build_unique_id()
  *
  * @param string   $tag      Unused. The name of the filter to build ID for.
- * @param callable $function The function to generate ID for.
+ * @param callable $callback The function to generate ID for.
  * @param int      $priority Unused. The order in which the functions
  *                           associated with a particular action are executed.
  * @return string Unique function ID for usage as array key.
  */
-function _test_filter_build_unique_id( $tag, $function, $priority ) {
-	if ( is_string( $function ) ) {
-		return $function;
+function _test_filter_build_unique_id( $tag, $callback, $priority ) {
+	if ( is_string( $callback ) ) {
+		return $callback;
 	}
 
-	if ( is_object( $function ) ) {
+	if ( is_object( $callback ) ) {
 		// Closures are currently implemented as objects.
-		$function = array( $function, '' );
+		$callback = array( $callback, '' );
 	} else {
-		$function = (array) $function;
+		$callback = (array) $callback;
 	}
 
-	if ( is_object( $function[0] ) ) {
+	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
-		return spl_object_hash( $function[0] ) . $function[1];
-	} elseif ( is_string( $function[0] ) ) {
+		return spl_object_hash( $callback[0] ) . $callback[1];
+	} elseif ( is_string( $callback[0] ) ) {
 		// Static calling.
-		return $function[0] . '::' . $function[1];
+		return $callback[0] . '::' . $callback[1];
 	}
 }
 
