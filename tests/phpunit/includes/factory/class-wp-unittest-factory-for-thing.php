@@ -33,12 +33,12 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Updates an existing object.
 	 *
-	 * @param int   $object The object ID.
-	 * @param array $fields The values to update.
+	 * @param int   $object_id The object ID.
+	 * @param array $fields    The values to update.
 	 *
 	 * @return mixed The result. Can be anything.
 	 */
-	abstract public function update_object( $object, $fields );
+	abstract public function update_object( $object_id, $fields );
 
 	/**
 	 * Creates an object.
@@ -173,12 +173,12 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Instantiates a callback objects for the given function name.
 	 *
-	 * @param string $function The callback function.
+	 * @param string $function_name The callback function.
 	 *
 	 * @return WP_UnitTest_Factory_Callback_After_Create
 	 */
-	public function callback( $function ) {
-		return new WP_UnitTest_Factory_Callback_After_Create( $function );
+	public function callback( $function_name ) {
+		return new WP_UnitTest_Factory_Callback_After_Create( $function_name );
 	}
 
 	/**
