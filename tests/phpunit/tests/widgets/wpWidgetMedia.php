@@ -381,12 +381,12 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	/**
 	 * Filters the media widget instance prior to rendering the media.
 	 *
-	 * @param array           $instance Instance data.
-	 * @param array           $args     Widget args.
-	 * @param WP_Widget_Media $object   Widget object.
+	 * @param array           $instance      Instance data.
+	 * @param array           $args          Widget args.
+	 * @param WP_Widget_Media $widget_object Widget object.
 	 * @return array Instance.
 	 */
-	public function filter_widget_mocked_instance( $instance, $args, $object ) {
+	public function filter_widget_mocked_instance( $instance, $args, $widget_object ) {
 		$this->widget_instance_filter_args = func_get_args();
 		return $instance;
 	}
