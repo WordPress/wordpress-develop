@@ -1661,7 +1661,7 @@ module.exports = function(grunt) {
 		} );
 	} );
 
-	grunt.registerTask( 'browserslist:update', 'Update WordPress packages', function() {
+	grunt.registerTask( 'browserslist:update', 'Update the local database of browser supports', function() {
 		grunt.log.writeln( `Updating browsers list` );
 		spawn( 'npx', [ 'browserslist@latest', '--update-db' ], {
 			cwd: __dirname,
