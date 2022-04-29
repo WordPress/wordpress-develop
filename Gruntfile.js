@@ -1216,20 +1216,34 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
-	grunt.registerTask( 'sync-gutenberg-packages', [
-		// Required for the build:
-		'browserslist:update',
+	grunt.registerTask( 'sync-gutenberg-packages', function() {
+		if ( grunt.option( 'update-browserlist' ) ) {
+			// Updating the browserlist database is opt-in and up to the release lead.
+			//
+			// Browserlist database should be updated:
+			// * In each release cycle up until RC1
+			// * If Webpack throws a warning about an outdated database
+			//
+			// It should not be updated:
+			// * After the RC1
+			// * When backporting fixes to older WordPress releases.
+			//
+			// For more context, see:
+			// https://github.com/WordPress/wordpress-develop/pull/2621#discussion_r859840515
+			// https://core.trac.wordpress.org/ticket/55559
+			grunt.task.run( 'browserslist:update' );
+		}
 
 		// Install the latest version of the packages already listed in package.json.
-		'wp-packages:update',
+		grunt.task.run( 'wp-packages:update' );
 
 		// Install any new @wordpress packages that are now required.
 		// Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
-		'wp-packages:refresh-deps',
+		grunt.task.run( 'wp-packages:refresh-deps' );
 
 		// Build the files stored in the src/ directory.
-		'build:dev'
-	] );
+		grunt.task.run( 'build:dev' );
+	} );
 
 	grunt.renameTask( 'watch', '_watch' );
 
