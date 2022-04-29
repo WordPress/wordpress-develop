@@ -457,11 +457,11 @@ class WP_Term_Query {
 				"tt.taxonomy IN ('" . implode( "', '", array_map( 'esc_sql', $taxonomies ) ) . "')";
 		}
 
-		if ( '' === $args['exclude'] ) {
+		if ( empty( $args['exclude'] ) ) {
 			$args['exclude'] = array();
 		}
 
-		if ( '' === $args['include'] ) {
+		if ( empty( $args['include'] ) ) {
 			$args['include'] = array();
 		}
 
