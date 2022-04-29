@@ -63,127 +63,119 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if no timestamp provides
+	 * Tests that the date is formatted with no timestamp provided.
 	 *
 	 * @ticket 53485
 	 */
-	public function test_no_timestamp() {
-
-		$this->assertSame( (string) time(), wp_date( 'U' ) );
+	public function test_should_format_date_with_no_timestamp() {
+		$utc = new DateTimeZone( 'UTC' );
+		$this->assertSame( (string) time(), wp_date( 'U', null, $utc ) );
 	}
 
 	/**
-	 * Test if format is set to D weekday_abbrev
+	 * Tests that the date is formatted with no timezone provided.
 	 *
 	 * @ticket 53485
 	 */
-	public function test_format_D() {
+	public function test_should_format_date_with_no_timezone() {
+		$utc      = new DateTimeZone( 'UTC' );
+		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
+		$this->assertSame( 'October', wp_date( 'F', $datetime->getTimestamp() ) );
+	}
+
+	/**
+	 * Tests that the format is set correctly.
+	 *
+	 * @dataProvider data_should_format_date
+	 *
+	 * @ticket 53485
+	 *
+	 * @param string $expected The expected result.
+	 * @param string $format   The date format.
+	 */
+	public function test_should_format_date( $expected, $format ) {
 		$utc      = new DateTimeZone( 'UTC' );
 		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
 
-		$this->assertSame( 'Thu', wp_date( 'D', $datetime->getTimestamp(), $utc ) );
+		$this->assertSame( $expected, wp_date( $format, $datetime->getTimestamp(), $utc ) );
 	}
 
 	/**
-	 * Test if format is set to F Month
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_should_format_date() {
+		return array(
+			'Swatch Internet Time'                        => array(
+				'expected' => '041',
+				'format'   => 'B',
+			),
+			'Ante meridiem and Post meridiem (uppercase)' => array(
+				'expected' => 'AM',
+				'format'   => 'A',
+			),
+			'Ante meridiem and Post meridiem (uppercase) and escaped "A"' => array(
+				'expected' => 'A AM',
+				'format'   => '\\A A',
+			),
+			'Ante meridiem and Post meridiem (lowercase)' => array(
+				'expected' => 'am',
+				'format'   => 'a',
+			),
+			'Month'                                       => array(
+				'expected' => 'October',
+				'format'   => 'F',
+			),
+			'Month (abbreviated'                          => array(
+				'expected' => 'Oct',
+				'format'   => 'M',
+			),
+			'Weekday'                                     => array(
+				'expected' => 'Thursday',
+				'format'   => 'l',
+			),
+			'Weekday (abbreviated)'                       => array(
+				'expected' => 'Thu',
+				'format'   => 'D',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the date is formatted when
+	 * `$wp_locale->month` and `$wp_locale->weekday` are empty.
 	 *
 	 * @ticket 53485
 	 */
-	public function test_format_F() {
+	public function test_should_format_date_with_empty_wp_locale_month_and_weekday() {
+		global $wp_locale;
+
 		$utc      = new DateTimeZone( 'UTC' );
 		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
 
-		$this->assertSame( 'October', wp_date( 'F', $datetime->getTimestamp(), $utc ) );
+		$original_wp_locale = $wp_locale;
+		$wp_locale->month   = array();
+		$wp_locale->weekday = array();
+		$actual             = wp_date( 'F', $datetime->getTimestamp(), $utc );
+		$wp_locale          = $original_wp_locale;
+
+		$this->assertSame( 'October', $actual );
 	}
 
 	/**
-	 * Test if format is set to L weekday
+	 * Tests the wp_date filter.
 	 *
 	 * @ticket 53485
 	 */
-	public function test_format_l() {
-		$utc      = new DateTimeZone( 'UTC' );
-		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
-
-		$this->assertSame( 'Thursday', wp_date( 'l', $datetime->getTimestamp(), $utc ) );
-	}
-
-	/**
-	 * Test if format is set to M month_abbrev
-	 *
-	 * @ticket 53485
-	 */
-	public function test_format_M() {
-		$utc      = new DateTimeZone( 'UTC' );
-		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
-
-		$this->assertSame( 'Oct', wp_date( 'M', $datetime->getTimestamp(), $utc ) );
-	}
-
-	/**
-	 * Test if format is set to a am/pm lowercase
-	 *
-	 * @ticket 53485
-	 */
-	public function test_format_a() {
-		$utc      = new DateTimeZone( 'UTC' );
-		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
-
-		$this->assertSame( 'am', wp_date( 'a', $datetime->getTimestamp(), $utc ) );
-	}
-
-	/**
-	 * Test if format is set to A  am/pm uppercase
-	 *
-	 * @ticket 53485
-	 */
-	public function test_format_upper_A() {
-		$utc      = new DateTimeZone( 'UTC' );
-		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
-
-		$this->assertSame( 'AM', wp_date( 'A', $datetime->getTimestamp(), $utc ) );
-	}
-
-	/**
-	 * Test if format is set to A with an escaped A
-	 *
-	 * @ticket 53485
-	 */
-	public function test_format_slash() {
-		$utc      = new DateTimeZone( 'UTC' );
-		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
-
-		$this->assertSame( 'A AM', wp_date( '\\A A', $datetime->getTimestamp(), $utc ) );
-	}
-
-
-	/**
-	 * Test if format is set directly
-	 *
-	 * @ticket 53485
-	 */
-	public function test_format() {
-		$utc      = new DateTimeZone( 'UTC' );
-		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
-
-		$this->assertSame( '041', wp_date( 'B', $datetime->getTimestamp(), $utc ) );
-	}
-
-	/**
-	 * Test wp_date Filter runs
-	 *
-	 * @ticket 53485
-	 */
-	public function test_wp_date_filter() {
-		add_filter( 'wp_date', array( $this, '_test_wp_date_filter' ), 99 );
+	public function test_should_apply_filters_for_wp_date() {
+		add_filter(
+			'wp_date',
+			static function() {
+				return 'filtered';
+			}
+		);
 
 		$this->assertSame( 'filtered', wp_date( '' ) );
-
-		remove_filter( 'wp_date', array( $this, '_test_wp_date_filter' ), 99 );
-	}
-
-	public function _test_wp_date_filter() {
-
-		return 'filtered';
 	}
 }
