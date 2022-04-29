@@ -3057,7 +3057,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
  * @access private
  */
 function _wp_theme_json_webfonts_handler() {
-	// Block theme's are unavailable during installation.
+	// Block themes are unavailable during installation.
 	if ( wp_installing() ) {
 		return;
 	}
