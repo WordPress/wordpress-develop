@@ -1193,7 +1193,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 }
 
 /**
- * Helper function that returns the proper pagination arrow html for
+ * Helper function that returns the proper pagination arrow HTML for
  * `QueryPaginationNext` and `QueryPaginationPrevious` blocks based
  * on the provided `paginationArrow` from `QueryPagination` context.
  *
@@ -1204,7 +1204,7 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @param WP_Block $block   Block instance.
  * @param boolean  $is_next Flag for handling `next/previous` blocks.
  *
- * @return string|null Returns the constructed WP_Query arguments.
+ * @return string|null The pagination arrow HTML or null if there is none.
  */
 function get_query_pagination_arrow( $block, $is_next ) {
 	$arrow_map = array(
@@ -1282,16 +1282,26 @@ add_filter( 'block_type_metadata', '_wp_multiple_block_styles' );
  * @param WP_Block $block Block instance.
  *
  * @return array Returns the comment query parameters to use with the
- * WP_Comment_Query constructor.
+ *               WP_Comment_Query constructor.
  */
 function build_comment_query_vars_from_block( $block ) {
 
 	$comment_args = array(
-		'orderby'                   => 'comment_date_gmt',
-		'order'                     => 'ASC',
-		'status'                    => 'approve',
-		'no_found_rows'             => false,
+		'orderby'       => 'comment_date_gmt',
+		'order'         => 'ASC',
+		'status'        => 'approve',
+		'no_found_rows' => false,
 	);
+
+	if ( is_user_logged_in() ) {
+		$comment_args['include_unapproved'] = array( get_current_user_id() );
+	} else {
+		$unapproved_email = wp_get_unapproved_comment_author_email();
+
+		if ( $unapproved_email ) {
+			$comment_args['include_unapproved'] = array( $unapproved_email );
+		}
+	}
 
 	if ( ! empty( $block->context['postId'] ) ) {
 		$comment_args['post_id'] = (int) $block->context['postId'];
@@ -1329,7 +1339,7 @@ function build_comment_query_vars_from_block( $block ) {
 }
 
 /**
- * Helper function that returns the proper pagination arrow html for
+ * Helper function that returns the proper pagination arrow HTML for
  * `CommentsPaginationNext` and `CommentsPaginationPrevious` blocks based on the
  * provided `paginationArrow` from `CommentsPagination` context.
  *
@@ -1341,7 +1351,7 @@ function build_comment_query_vars_from_block( $block ) {
  * @param string   $pagination_type Type of the arrow we will be rendering.
  *                                  Default 'next'. Accepts 'next' or 'previous'.
  *
- * @return string|null Returns the constructed WP_Query arguments.
+ * @return string|null The pagination arrow HTML or null if there is none.
  */
 function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 	$arrow_map = array(
