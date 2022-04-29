@@ -431,11 +431,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$result_1 = $reflection_method->invoke( self::$controller, $parameters_1 );
 		$result_2 = $reflection_method->invoke( self::$controller, $parameters_2 );
 
-		$this->assertIsString( $result_1 );
-		$this->assertNotEmpty( $result_1 );
+		$this->assertIsString( $result_1, 'The transient key must be a string.' );
+		$this->assertNotEmpty( $result_1, 'The transient key must not be empty.' );
 
-		$this->assertIsString( $result_2 );
-		$this->assertNotEmpty( $result_2 );
+		$this->assertIsString( $result_2, 'The transient key must be a string.' );
+		$this->assertNotEmpty( $result_2, 'The transient key must not be empty.' );
 
 		if ( $assert_same ) {
 			$this->assertSame( $result_1, $result_2, $message );
