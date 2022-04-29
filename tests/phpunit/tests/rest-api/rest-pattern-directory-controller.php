@@ -453,46 +453,46 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	public function data_get_query_parameters() {
 		return array(
 			'same key and empty slugs'              => array(
-				array(
+				'parameters_1' => array(
 					'parameter_1' => 1,
 					'slug'        => array(),
 				),
-				array(
+				'parameters_2' => array(
 					'parameter_1' => 1,
 				),
-				'Empty slugs should not affect the transient key.',
+				'message'      => 'Empty slugs should not affect the transient key.',
 			),
 			'same key and slugs in different order' => array(
-				array(
+				'parameters_1' => array(
 					'parameter_1' => 1,
 					'slug'        => array( 0, 2 ),
 				),
-				array(
+				'parameters_2' => array(
 					'parameter_1' => 1,
 					'slug'        => array( 2, 0 ),
 				),
-				'message' => 'The order of slugs should not affect the transient key.',
+				'message'      => 'The order of slugs should not affect the transient key.',
 			),
 			'same key and different slugs'          => array(
-				array(
+				'parameters_1' => array(
 					'parameter_1' => 1,
 					'slug'        => array( 'some_slug' ),
 				),
-				array(
+				'parameters_2' => array(
 					'parameter_1' => 1,
 					'slug'        => array( 'some_other_slug' ),
 				),
-				'message' => 'Transient keys must not match.',
+				'message'      => 'Transient keys must not match.',
 				false,
 			),
 			'different keys'                        => array(
-				array(
+				'parameters_1' => array(
 					'parameter_1' => 1,
 				),
-				array(
+				'parameters_2' => array(
 					'parameter_2' => 1,
 				),
-				'message' => 'Transient keys must depend on array keys.',
+				'message'      => 'Transient keys must depend on array keys.',
 				false,
 			),
 		);
