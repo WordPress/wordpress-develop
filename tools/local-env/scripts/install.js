@@ -4,6 +4,10 @@ const wait_on = require( 'wait-on' );
 const { execSync } = require( 'child_process' );
 const { renameSync, readFileSync, writeFileSync } = require( 'fs' );
 
+if ( process.arch === 'arm64' ) {
+	process.env.LOCAL_DB_ARCHITECTURE = 'amd64/';
+}
+
 dotenvExpand.expand( dotenv.config() );
 
 // Create wp-config.php.

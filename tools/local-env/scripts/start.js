@@ -2,6 +2,10 @@ const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync } = require( 'child_process' );
 
+if ( process.arch === 'arm64' ) {
+	process.env.LOCAL_DB_ARCHITECTURE = 'amd64/';
+}
+
 dotenvExpand.expand( dotenv.config() );
 
 // Start the local-env containers.
