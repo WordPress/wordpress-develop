@@ -516,8 +516,10 @@ module.exports = function(grunt) {
 					'wp-admin/css/*.css',
 					'wp-includes/css/*.css',
 
-					// Exclude minified and already processed files, and files from external packages.
-					// These are present when running `grunt build` after `grunt --dev`.
+					/*
+					 * Exclude minified and already processed files, and files from external packages.
+					 * These are present when running `grunt build` after `grunt --dev`.
+					 */
 					'!wp-admin/css/*-rtl.css',
 					'!wp-includes/css/*-rtl.css',
 					'!wp-admin/css/*.min.css',
@@ -1218,27 +1220,31 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'sync-gutenberg-packages', function() {
 		if ( grunt.option( 'update-browserlist' ) ) {
-			// Updating the browserlist database is opt-in and up to the release lead.
-			//
-			// Browserlist database should be updated:
-			// * In each release cycle up until RC1
-			// * If Webpack throws a warning about an outdated database
-			//
-			// It should not be updated:
-			// * After the RC1
-			// * When backporting fixes to older WordPress releases.
-			//
-			// For more context, see:
-			// https://github.com/WordPress/wordpress-develop/pull/2621#discussion_r859840515
-			// https://core.trac.wordpress.org/ticket/55559
+			/*
+			 * Updating the browserlist database is opt-in and up to the release lead.
+			 *
+			 * Browserlist database should be updated:
+			 * - In each release cycle up until RC1
+			 * - If Webpack throws a warning about an outdated database
+			 *
+			 * It should not be updated:
+			 * - After the RC1
+			 * - When backporting fixes to older WordPress releases.
+			 *
+			 * For more context, see:
+			 * https://github.com/WordPress/wordpress-develop/pull/2621#discussion_r859840515
+			 * https://core.trac.wordpress.org/ticket/55559
+			 */
 			grunt.task.run( 'browserslist:update' );
 		}
 
 		// Install the latest version of the packages already listed in package.json.
 		grunt.task.run( 'wp-packages:update' );
 
-		// Install any new @wordpress packages that are now required.
-		// Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
+		/*
+		 * Install any new @wordpress packages that are now required.
+		 * Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
+		 */
 		grunt.task.run( 'wp-packages:refresh-deps' );
 
 		// Build the files stored in the src/ directory.
@@ -1517,19 +1523,19 @@ module.exports = function(grunt) {
 		);
 
 		const files = match[1].split( '\n\t' ).filter( function( file ) {
-			// Filter out empty lines
+			// Filter out empty lines.
 			if ( '' === file ) {
 				return false;
 			}
 
-			// Filter out commented out lines
+			// Filter out commented out lines.
 			if ( 0 === file.indexOf( '/' ) ) {
 				return false;
 			}
 
 			return true;
 		} ).map( function( file ) {
-			// Strip leading and trailing single quotes and commas
+			// Strip leading and trailing single quotes and commas.
 			return file.replace( /^\'|\',$/g, '' );
 		} );
 
