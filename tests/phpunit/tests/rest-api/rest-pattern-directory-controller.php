@@ -452,7 +452,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 */
 	public function data_get_query_parameters() {
 		return array(
-			array(
+			'same key and empty slugs'              => array(
 				array(
 					'parameter_1' => 1,
 					'slug'        => array(),
@@ -462,7 +462,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				),
 				'Empty slugs should not affect the transient key.',
 			),
-			array(
+			'same key and slugs in different order' => array(
 				array(
 					'parameter_1' => 1,
 					'slug'        => array( 0, 2 ),
@@ -471,19 +471,9 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 					'parameter_1' => 1,
 					'slug'        => array( 2, 0 ),
 				),
-				'message' => 'The order of slugs should not affect transient key.',
+				'message' => 'The order of slugs should not affect the transient key.',
 			),
-			array(
-				array(
-					'parameter_1' => 1,
-					'slug'        => array(),
-				),
-				array(
-					'parameter_1' => 1,
-				),
-				'message' => 'Transient keys must match.',
-			),
-			array(
+			'same key and different slugs'          => array(
 				array(
 					'parameter_1' => 1,
 					'slug'        => array( 'some_slug' ),
@@ -495,7 +485,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				'message' => 'Transient keys must not match.',
 				false,
 			),
-			array(
+			'different keys'                        => array(
 				array(
 					'parameter_1' => 1,
 				),
