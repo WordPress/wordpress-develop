@@ -3146,7 +3146,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'term_taxonomy_id' => array(),
 				),
 			),
-			'array exclude vs no exclude'          => array(
+			'array exclude vs no exclude'              => array(
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'ids',
@@ -3157,7 +3157,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'exclude'  => array(),
 				),
 			),
-			'array exclude vs zero exclude'          => array(
+			'array exclude vs zero exclude'            => array(
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'ids',
@@ -3181,7 +3181,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'exclude'  => array(),
 				),
 			),
-			'array include vs no include'          => array(
+			'array include vs no include'              => array(
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'ids',
@@ -3192,7 +3192,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'include'  => array(),
 				),
 			),
-			'array include vs zero include'          => array(
+			'array include vs zero include'            => array(
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'ids',
