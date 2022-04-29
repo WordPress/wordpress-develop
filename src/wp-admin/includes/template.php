@@ -638,13 +638,15 @@ function _list_meta_row( $entry, &$count ) {
 		}
 	}
 
+	$attr_class = 0 === $count % 2 ? '' : ' class="alternate"';
+
 	$entry['meta_key']   = esc_attr( $entry['meta_key'] );
 	$entry['meta_value'] = esc_textarea( $entry['meta_value'] ); // Using a <textarea />.
 	$entry['meta_id']    = (int) $entry['meta_id'];
 
 	$delete_nonce = wp_create_nonce( 'delete-meta_' . $entry['meta_id'] );
 
-	$r .= "\n\t<tr id='meta-{$entry['meta_id']}'>";
+	$r .= "\n\t<tr id='meta-{$entry['meta_id']}'{$attr_class}>";
 	$r .= "\n\t\t<td class='left'><label class='screen-reader-text' for='meta-{$entry['meta_id']}-key'>" . __( 'Key' ) . "</label><input name='meta[{$entry['meta_id']}][key]' id='meta-{$entry['meta_id']}-key' type='text' size='20' value='{$entry['meta_key']}' />";
 
 	$r .= "\n\t\t<div class='submit'>";
