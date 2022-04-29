@@ -3057,6 +3057,11 @@ function wp_enqueue_block_style( $block_name, $args ) {
  * @access private
  */
 function _wp_theme_json_webfonts_handler() {
+	// Block theme's are unavailable during installation.
+	if ( wp_installing() ) {
+		return;
+	}
+
 	// Webfonts to be processed.
 	$registered_webfonts = array();
 
@@ -3519,7 +3524,7 @@ function _wp_theme_json_webfonts_handler() {
 		wp_add_inline_style( 'wp-block-library', $styles );
 	};
 
-	add_action( 'wp_enqueue_scripts', $fn_register_webfonts, 9 );
+	add_action( 'wp_loaded', $fn_register_webfonts );
 	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
 	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
 }
