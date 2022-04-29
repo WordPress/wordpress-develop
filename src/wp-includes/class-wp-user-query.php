@@ -868,25 +868,25 @@ class WP_User_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $string
-	 * @param array  $cols
-	 * @param bool   $wild   Whether to allow wildcard searches. Default is false for Network Admin, true for single site.
-	 *                       Single site allows leading and trailing wildcards, Network Admin only trailing.
+	 * @param string   $search  Search string.
+	 * @param string[] $columns Array of columns to search.
+	 * @param bool     $wild    Whether to allow wildcard searches. Default is false for Network Admin, true for single site.
+	 *                          Single site allows leading and trailing wildcards, Network Admin only trailing.
 	 * @return string
 	 */
-	protected function get_search_sql( $string, $cols, $wild = false ) {
+	protected function get_search_sql( $search, $columns, $wild = false ) {
 		global $wpdb;
 
 		$searches      = array();
 		$leading_wild  = ( 'leading' === $wild || 'both' === $wild ) ? '%' : '';
 		$trailing_wild = ( 'trailing' === $wild || 'both' === $wild ) ? '%' : '';
-		$like          = $leading_wild . $wpdb->esc_like( $string ) . $trailing_wild;
+		$like          = $leading_wild . $wpdb->esc_like( $search ) . $trailing_wild;
 
-		foreach ( $cols as $col ) {
-			if ( 'ID' === $col ) {
-				$searches[] = $wpdb->prepare( "$col = %s", $string );
+		foreach ( $columns as $column ) {
+			if ( 'ID' === $column ) {
+				$searches[] = $wpdb->prepare( "$column = %s", $search );
 			} else {
-				$searches[] = $wpdb->prepare( "$col LIKE %s", $like );
+				$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
 			}
 		}
 
