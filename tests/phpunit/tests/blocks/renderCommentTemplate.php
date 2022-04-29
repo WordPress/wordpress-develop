@@ -99,7 +99,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals(
-			build_comment_query_vars_from_block( $block ),
 			array(
 				'orderby'       => 'comment_date_gmt',
 				'order'         => 'ASC',
@@ -107,7 +106,8 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 				'no_found_rows' => false,
 				'post_id'       => self::$custom_post->ID,
 				'hierarchical'  => 'threaded',
-			)
+			),
+			build_comment_query_vars_from_block( $block )
 		);
 		update_option( 'page_comments', true );
 	}
@@ -149,7 +149,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 		// This could be any number, we set a fixed one instead of a random for better performance.
 		$comment_query_max_num_pages = 5;
-		// We subtract 1 because we created 1 comment at the beginning.
+		// We substract 1 because we created 1 comment at the beginning.
 		$post_comments_numbers = ( self::$per_page * $comment_query_max_num_pages ) - 1;
 		self::factory()->comment->create_post_comments(
 			self::$custom_post->ID,
@@ -194,25 +194,26 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="has-small-font-size wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content">Hello world</div></li></ol>',
-			$block->render()
+		$this->assertSame(
+			str_replace( array( "\n", "\t" ), '', '<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li></ol>' ),
+			str_replace( array( "\n", "\t" ), '', $block->render() )
 		);
 	}
 
 	/**
-	 * Test rendering 3 nested comments:
+	 * Test rendering nested comments:
 	 *
 	 * └─ comment 1
 	 *    └─ comment 2
-	 *       └─ comment 3
+	 *       └─ comment 4
+	 *    └─ comment 3
 	 *
 	 * @ticket 55567
 	 */
 	function test_rendering_comment_template_nested() {
 		$first_level_ids = self::factory()->comment->create_post_comments(
 			self::$custom_post->ID,
-			1,
+			2,
 			array(
 				'comment_parent'       => self::$comment_ids[0],
 				'comment_author'       => 'Test',
@@ -245,8 +246,93 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment odd alt thread-odd thread-alt depth-1"><div class="has-small-font-size wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content">Hello world</div><ol><li id="comment-' . $first_level_ids[0] . '" class="comment even depth-2"><div class="has-small-font-size wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content">Hello world</div><ol><li id="comment-' . $second_level_ids[0] . '" class="comment odd alt depth-3"><div class="has-small-font-size wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content">Hello world</div></li></ol></li></ol></li></ol>',
+		$top_level_ids = self::$comment_ids;
+		$expected      = str_replace(
+			array( "\n", "\t" ),
+			'',
+			<<<END
+				<ol class="wp-block-comment-template">
+					<li id="comment-{$top_level_ids[0]}" class="comment odd alt thread-odd thread-alt depth-1">
+						<div class="wp-block-comment-author-name">
+							<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
+								Test
+							</a>
+						</div>
+						<div class="wp-block-comment-content">
+							<p>Hello world</p>
+						</div>
+						<ol>
+							<li id="comment-{$first_level_ids[0]}" class="comment even depth-2">
+								<div class="wp-block-comment-author-name">
+									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
+										Test
+									</a>
+								</div>
+								<div class="wp-block-comment-content">
+									<p>Hello world</p>
+								</div>
+								<ol>
+									<li id="comment-{$second_level_ids[0]}" class="comment odd alt depth-3">
+										<div class="wp-block-comment-author-name">
+											<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
+												Test
+											</a>
+										</div>
+										<div class="wp-block-comment-content">
+											<p>Hello world</p>
+										</div>
+									</li>
+								</ol>
+							</li>
+							<li id="comment-{$first_level_ids[1]}" class="comment even depth-2">
+								<div class="wp-block-comment-author-name">
+									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
+										Test
+									</a>
+								</div>
+								<div class="wp-block-comment-content">
+									<p>Hello world</p>
+								</div>
+							</li>
+						</ol>
+					</li>
+				</ol>
+END
+		);
+
+		$this->assertSame(
+			$expected,
+			str_replace( array( "\n", "\t" ), '', $block->render() )
+		);
+	}
+
+	/**
+	 * Test that line and paragraph breaks are converted to HTML tags in a comment.
+	 */
+	function test_render_block_core_comment_content_converts_to_html() {
+		$comment_id  = self::$comment_ids[0];
+		$new_content = "Paragraph One\n\nP2L1\nP2L2\n\nhttps://example.com/";
+		self::factory()->comment->update_object(
+			$comment_id,
+			array( 'comment_content' => $new_content )
+		);
+
+		$parsed_blocks = parse_blocks(
+			'<!-- wp:comment-template --><!-- wp:comment-content /--><!-- /wp:comment-template -->'
+		);
+
+		$block = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'postId'           => self::$custom_post->ID,
+				'comments/inherit' => true,
+			)
+		);
+
+		$expected_content = "<p>Paragraph One</p>\n<p>P2L1<br />\nP2L2</p>\n<p><a href=\"https://example.com/\" rel=\"nofollow ugc\">https://example.com/</a></p>\n";
+
+		$this->assertSame(
+			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment odd alt thread-even depth-1"><div class="wp-block-comment-content">' . $expected_content . '</div></li></ol>',
 			$block->render()
 		);
 	}
@@ -290,6 +376,55 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 				'number'             => 5,
 				'paged'              => 1,
 			)
+		);
+	}
+
+	/**
+	 * Test rendering an unapproved comment preview.
+	 */
+	function test_rendering_comment_template_unmoderated_preview() {
+		$parsed_blocks = parse_blocks(
+			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
+		);
+
+		$unapproved_comment = self::factory()->comment->create_post_comments(
+			self::$custom_post->ID,
+			1,
+			array(
+				'comment_author'       => 'Visitor',
+				'comment_author_email' => 'unapproved@example.org',
+				'comment_author_url'   => 'http://example.com/unapproved/',
+				'comment_content'      => 'Hi there! My comment needs moderation.',
+				'comment_approved'     => 0,
+			)
+		);
+
+		$block = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'postId' => self::$custom_post->ID,
+			)
+		);
+
+		$commenter_filter = function () {
+			return array(
+				'comment_author_email' => 'unapproved@example.org',
+			);
+		};
+
+		add_filter( 'wp_get_current_commenter', $commenter_filter );
+
+		$this->assertEquals(
+			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-odd thread-alt depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li><li id="comment-' . $unapproved_comment[0] . '" class="comment odd alt thread-even depth-1"><div class="wp-block-comment-author-name">Visitor</div><div class="wp-block-comment-content"><p><em class="comment-awaiting-moderation">Your comment is awaiting moderation.</em></p>Hi there! My comment needs moderation.</div></li></ol>',
+			str_replace( array( "\n", "\t" ), '', $block->render() )
+		);
+
+		remove_filter( 'wp_get_current_commenter', $commenter_filter );
+
+		// Test it again and ensure the unmoderated comment doesn't leak out.
+		$this->assertEquals(
+			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-odd thread-alt depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li></ol>',
+			str_replace( array( "\n", "\t" ), '', $block->render() )
 		);
 	}
 }
