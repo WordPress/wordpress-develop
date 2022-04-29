@@ -21,7 +21,7 @@
 .about__container {
 	/* Section backgrounds */
 	--background: transparent;
-	--subtle-background: #def;
+	--subtle-background: #f0f0f0;
 
 	/* Main text color */
 	--text: #000;
@@ -48,14 +48,14 @@
 .credits-php,
 .freedoms-php,
 .privacy-php {
-	background: #f0f7ff;
+	background: #fff;
 }
 
 .about-php #wpcontent,
 .credits-php #wpcontent,
 .freedoms-php #wpcontent,
 .privacy-php #wpcontent {
-	background: linear-gradient(180deg, #fff 50%, #f0f7ff 100%);
+	background: #fff;
 	padding: 0 24px;
 }
 
@@ -589,44 +589,27 @@
 	position: relative;
 	margin-bottom: var(--gap);
 	padding-top: 0;
-	background-image: url('../images/about-texture.png');
-	background-color: var(--accent-2);
-	background-size: 500px 500px;
-	background-blend-mode: overlay;
-	color: var(--text-light);
+	background: var(--subtle-background) url(../images/about-header-about.svg) no-repeat;
+	background-size: 521px 504px;
+	background-position: right -80px center;
 }
 
-.about__header::before {
-	content: "";
-	position: absolute;
-	top: 0;
-	right: 64px;
-	z-index: 0;
-	width: 300px;
-	height: 382px;
-	background: url(../images/about-header-about.svg) no-repeat center;
-	background-size: contain;
-}
-
-.credits-php .about__header::before {
-	top: auto;
-	bottom: 70px;
-	height: 310px;
+.credits-php .about__header {
 	background-image: url('../images/about-header-credits.svg');
+	background-size: 390px 325px;
+	background-position: right var(--gap) top var(--gap);
 }
 
-.freedoms-php .about__header::before {
-	top: calc(50% - 182px);
-	right: 32px;
-	width: 375px;
-	height: 300px;
+.freedoms-php .about__header {
 	background-image: url('../images/about-header-freedoms.svg');
+	background-size: 380px 278px;
+	background-position: right var(--gap) bottom;
 }
 
-.privacy-php .about__header::before {
-	top: auto;
-	bottom: -16px;
+.privacy-php .about__header {
 	background-image: url('../images/about-header-privacy.svg');
+	background-size: 503px 553px;
+	background-position: right -60px center;
 }
 
 .about__header-image {
@@ -635,8 +618,8 @@
 
 .about__header-title {
 	box-sizing: border-box;
-	/* 380px = 300px (balloon width) + 64px (offset from edge) + 16px (spacing). */
-	padding: 6rem 380px 0 0;
+	/* 457px = 521px (balloon width) - 80px (offset from edge) + 16px (spacing). */
+	padding: 6rem 457px 0 0;
 	margin: 0 2rem;
 }
 
@@ -651,8 +634,8 @@
 .about__header-text {
 	box-sizing: border-box;
 	margin: 0 0 7rem;
-	/* 380px = 300px (balloon width) + 64px (offset from edge) + 16px (spacing). */
-	padding: 0 380px 0 2rem;
+	/* 457px = 521px (balloon width) - 80px (offset from edge) + 16px (spacing). */
+	padding: 0 457px 0 2rem;
 	font-size: 1.6rem;
 	line-height: 1.15;
 }
