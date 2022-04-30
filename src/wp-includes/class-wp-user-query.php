@@ -288,7 +288,7 @@ class WP_User_Query {
 			$qv['fields'] = array_intersect( array_unique( $qv['fields'] ), $allowed_fields );
 
 			if ( empty( $qv['fields'] ) ) {
-				$qv['fields'] = [ 'ID' ];
+				$qv['fields'] = array( 'ID' );
 			}
 
 			$this->query_fields = array();

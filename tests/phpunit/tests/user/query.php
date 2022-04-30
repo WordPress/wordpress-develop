@@ -2076,21 +2076,21 @@ class Tests_User_Query extends WP_UnitTestCase {
 				),
 			),
 			'valid_array'     => array(
-				'field'    => [ 'ID', 'display_name' ],
+				'field'    => array( 'ID', 'display_name' ),
 				'expected' => array(
 					'ID'           => '1',
 					'display_name' => 'admin',
 				),
 			),
 			'semivalid_array' => array(
-				'field'    => [ 'ID', 'display_name', 'invalid_field' ],
+				'field'    => array( 'ID', 'display_name', 'invalid_field' ),
 				'expected' => array(
 					'ID'           => '1',
 					'display_name' => 'admin',
 				),
 			),
 			'invalid_array'   => array(
-				'field'    => [ 'invalid_field' ],
+				'field'    => array( 'invalid_field' ),
 				'expected' => array(
 					'ID' => '1',
 				),
