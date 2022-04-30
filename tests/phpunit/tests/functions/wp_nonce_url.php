@@ -5,47 +5,124 @@
  *
  * @covers ::wp_nonce_url
  */
-class Tests_Functions_wp_nonce_url extends WP_UnitTestCase {
-
-
+class Tests_Functions_WpNonceUrl extends WP_UnitTestCase {
 	/**
-	 * @dataProvider data_wp_nonce_url
+	 * Tests that wp_nonce_url() appends the nonce name and value to the URL.
 	 *
-	 * @param $expected
-	 * @param $action
-	 * @param $url
-	 * @param $name
+	 * @dataProvider data_should_append_nonce_name_and_value
 	 *
-	 * @return void
+	 * @ticket 54870
+	 *
+	 * @param string     $actionurl URL to add nonce action.
+	 * @param int|string $action    Optional. Nonce action name. Default -1.
+	 * @param string     $name      Optional. Nonce name. Default '_wpnonce'.
 	 */
-	public function test_wp_nonce_url( $expected, $actionurl, $action = -1, $name = '_wpnonce' ) {
+	public function test_should_append_nonce_name_and_value( $actionurl, $action = -1, $name = '_wpnonce' ) {
+		$actual        = wp_nonce_url( $actionurl, $action, $name );
+		$url_with_name = "$actionurl?$name=";
+		$nonce         = str_replace( $url_with_name, '', $actual );
 
-		$this->assertMatchesRegularExpression( $expected, wp_nonce_url( $actionurl, $action, $name ) );
+		$this->assertStringContainsString(
+			$url_with_name,
+			$actual,
+			'The URL did not contain the action URL and the nonce name'
+		);
+
+		$this->assertNotFalse(
+			wp_verify_nonce( $nonce, $action ),
+			'The nonce is invalid'
+		);
 	}
 
-	public function data_wp_nonce_url() {
+	/**
+	 * Data provider
+	 *
+	 * @return array
+	 */
+	public function data_should_append_nonce_name_and_value() {
 		return array(
-			array(
-				'expected'  => '/^http:\/\/example\.org\/\?_wpnonce=.{10}$/',
+			'http:// and default action/name'             => array(
 				'actionurl' => 'http://example.org/',
-				'action'    => '12345',
-				'name'      => '_wpnonce',
 			),
-			array(
-				'expected'  => '/^https:\/\/example\.org\/\?my_nonce=.{10}$/',
-				'actionurl' => 'https://example.org/',
-				'action'    => '12345',
+			'http:// and a custom nonce action'           => array(
+				'actionurl' => 'http://example.org/',
+				'action'    => 'my_action',
+			),
+			'http:// and a custom nonce name'             => array(
+				'actionurl' => 'http://example.org/',
+				'action'    => -1,
 				'name'      => 'my_nonce',
 			),
-			array(
-				'expected'  => '/\/\?_wpnonce=.{10}$/',
-				'actionurl' => '/',
-				'action'    => '12345',
-				'name'      => '_wpnonce',
+			'http:// and a custom nonce action and name'  => array(
+				'actionurl' => 'http://example.org/',
+				'action'    => 'my_action',
+				'name'      => 'my_nonce',
 			),
-			array(
-				'expected'  => '/\?_wpnonce=.{10}$/',
+			'https:// and default action/name'            => array(
+				'actionurl' => 'https://example.org/',
+			),
+			'https:// and a custom nonce action'          => array(
+				'actionurl' => 'https://example.org/',
+				'action'    => 'my_action',
+			),
+			'https:// and a custom nonce name'            => array(
+				'actionurl' => 'https://example.org/',
+				'action'    => -1,
+				'name'      => 'my_nonce',
+			),
+			'https:// and a custom nonce action and name' => array(
+				'actionurl' => 'https://example.org/',
+				'action'    => 'my_action',
+				'name'      => 'my_nonce',
+			),
+			'/ and default nonce action/name'             => array(
 				'actionurl' => '/',
+			),
+			'/ and a custom nonce action'                 => array(
+				'actionurl' => '/',
+				'action'    => 'my_action',
+			),
+			'/ and a custom nonce name'                   => array(
+				'actionurl' => '/',
+				'action'    => -1,
+				'name'      => 'my_nonce',
+			),
+			'/ and a custom nonce action and name'        => array(
+				'actionurl' => '/',
+				'action'    => 'my_action',
+				'name'      => 'my_nonce',
+			),
+		);
+	}
+
+	/**
+	 * Tests that wp_nonce_url() handles existing query args.
+	 *
+	 * @dataProvider data_should_handle_existing_query_args
+	 * @ticket 54870
+	 *
+	 * @param string $actionurl URL to add nonce action.
+	 */
+	public function test_should_handle_existing_query_args( $actionurl ) {
+		$actionurl = preg_replace( '/&(?!amp;)/', '&amp;', $actionurl );
+		$this->assertStringContainsString( $actionurl, wp_nonce_url( $actionurl ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_should_handle_existing_query_args() {
+		return array(
+			'one query arg'            => array(
+				'actionurl' => 'http://example.org/?hello=world',
+			),
+			'two query args'           => array(
+				'actionurl' => 'http://example.org/?hello=world&howdy=admin',
+			),
+			'two query args and &amp;' => array(
+				'actionurl' => 'http://example.org/?hello=world&amp;howdy=admin',
 			),
 		);
 	}
