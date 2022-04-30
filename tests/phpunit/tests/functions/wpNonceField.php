@@ -30,7 +30,9 @@ class Tests_Functions_wpNonceField extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 55578
+	 * Data provider.
+	 *
+	 * @return array
 	 */
 	public function data_wp_nonce_field() {
 
