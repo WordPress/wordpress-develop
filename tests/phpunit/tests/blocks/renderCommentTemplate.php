@@ -98,8 +98,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			build_comment_query_vars_from_block( $block ),
+		$this->assertSameSetsWithIndex(
 			array(
 				'orderby'       => 'comment_date_gmt',
 				'order'         => 'ASC',
@@ -107,7 +106,8 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 				'no_found_rows' => false,
 				'post_id'       => self::$custom_post->ID,
 				'hierarchical'  => 'threaded',
-			)
+			),
+			build_comment_query_vars_from_block( $block )
 		);
 		update_option( 'page_comments', true );
 	}
@@ -194,25 +194,27 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content">Hello world</div></li></ol>',
-			$block->render()
+		$this->assertSame(
+			str_replace( array( "\n", "\t" ), '', '<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li></ol>' ),
+			str_replace( array( "\n", "\t" ), '', $block->render() )
 		);
 	}
 
 	/**
-	 * Test rendering 3 nested comments:
+	 * Test rendering nested comments:
 	 *
 	 * └─ comment 1
 	 *    └─ comment 2
 	 *       └─ comment 3
+	 *       └─ comment 4
+	 *    └─ comment 5
 	 *
 	 * @ticket 55567
 	 */
 	function test_rendering_comment_template_nested() {
 		$first_level_ids = self::factory()->comment->create_post_comments(
 			self::$custom_post->ID,
-			1,
+			2,
 			array(
 				'comment_parent'       => self::$comment_ids[0],
 				'comment_author'       => 'Test',
@@ -245,9 +247,63 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment odd alt thread-odd thread-alt depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content">Hello world</div><ol><li id="comment-' . $first_level_ids[0] . '" class="comment even depth-2"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content">Hello world</div><ol><li id="comment-' . $second_level_ids[0] . '" class="comment odd alt depth-3"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content">Hello world</div></li></ol></li></ol></li></ol>',
-			$block->render()
+		$top_level_ids = self::$comment_ids;
+		$expected      = str_replace(
+			array( "\n", "\t" ),
+			'',
+			<<<END
+				<ol class="wp-block-comment-template">
+					<li id="comment-{$top_level_ids[0]}" class="comment odd alt thread-odd thread-alt depth-1">
+						<div class="wp-block-comment-author-name">
+							<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
+								Test
+							</a>
+						</div>
+						<div class="wp-block-comment-content">
+							<p>Hello world</p>
+						</div>
+						<ol>
+							<li id="comment-{$first_level_ids[0]}" class="comment even depth-2">
+								<div class="wp-block-comment-author-name">
+									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
+										Test
+									</a>
+								</div>
+								<div class="wp-block-comment-content">
+									<p>Hello world</p>
+								</div>
+								<ol>
+									<li id="comment-{$second_level_ids[0]}" class="comment odd alt depth-3">
+										<div class="wp-block-comment-author-name">
+											<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
+												Test
+											</a>
+										</div>
+										<div class="wp-block-comment-content">
+											<p>Hello world</p>
+										</div>
+									</li>
+								</ol>
+							</li>
+							<li id="comment-{$first_level_ids[1]}" class="comment even depth-2">
+								<div class="wp-block-comment-author-name">
+									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
+										Test
+									</a>
+								</div>
+								<div class="wp-block-comment-content">
+									<p>Hello world</p>
+								</div>
+							</li>
+						</ol>
+					</li>
+				</ol>
+END
+		);
+
+		$this->assertSame(
+			$expected,
+			str_replace( array( "\n", "\t" ), '', $block->render() )
 		);
 	}
 
