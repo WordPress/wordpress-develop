@@ -8,7 +8,7 @@
  * @group functions.php
  * @covers ::is_blog_installed
  */
-class Tests_Functions_is_blog_installed extends WP_UnitTestCase {
+class Tests_Functions_IsBlogInstalled extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54754
