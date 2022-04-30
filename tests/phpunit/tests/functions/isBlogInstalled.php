@@ -9,9 +9,9 @@
 class Tests_Functions_IsBlogInstalled extends WP_UnitTestCase {
 
 	/**
+	 * Tests the default return value of is_blog_installed().
+	 * 
 	 * @ticket 54754
-	 *
-	 * default call
 	 */
 	public function test_is_blog_installed() {
 		$this->assertTrue( is_blog_installed() );
