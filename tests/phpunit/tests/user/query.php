@@ -2007,7 +2007,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	public function data_returning_fields() {
 		return array(
-			'all'           => array(
+			'all'             => array(
 				'field'    => 'all',
 				'expected' => array(
 					'ID'                  => '1',
@@ -2020,7 +2020,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 					'display_name'        => 'admin',
 				),
 			),
-			'all_with_meta' => array(
+			'all_with_meta'   => array(
 				'field'    => 'all_with_meta',
 				'expected' => array(
 					'ID'                  => '1',
@@ -2033,40 +2033,66 @@ class Tests_User_Query extends WP_UnitTestCase {
 					'display_name'        => 'admin',
 				),
 			),
-			'ID'            => array(
+			'ID'              => array(
 				'field'    => 'ID',
 				'expected' => array(
 					'ID' => '1',
 				),
 			),
-			'display_name'  => array(
+			'id'              => array(
+				'field'    => 'id',
+				'expected' => array(
+					'ID' => '1',
+				),
+			),
+			'display_name'    => array(
 				'field'    => 'display_name',
 				'expected' => array(
 					'display_name' => 'admin',
 				),
 			),
-			'user_login'    => array(
+			'user_login'      => array(
 				'field'    => 'user_login',
 				'expected' => array(
 					'user_login' => 'admin',
 				),
 			),
-			'user_nicename' => array(
+			'user_nicename'   => array(
 				'field'    => 'user_nicename',
 				'expected' => array(
 					'user_nicename' => 'admin',
 				),
 			),
-			'user_email'    => array(
+			'user_email'      => array(
 				'field'    => 'user_email',
 				'expected' => array(
 					'user_email' => 'admin@example.org',
 				),
 			),
-			'invalid_field' => array(
+			'invalid_field'   => array(
 				'field'    => 'invalid_field',
 				'expected' => array(
 					'0' => '1',
+				),
+			),
+			'valid_array'     => array(
+				'field'    => [ 'ID', 'display_name' ],
+				'expected' => array(
+					'ID'           => '1',
+					'display_name' => 'admin',
+				),
+			),
+			'semivalid_array' => array(
+				'field'    => [ 'ID', 'display_name', 'invalid_field' ],
+				'expected' => array(
+					'ID'           => '1',
+					'display_name' => 'admin',
+				),
+			),
+			'invalid_array'   => array(
+				'field'    => [ 'invalid_field' ],
+				'expected' => array(
+					'ID' => '1',
 				),
 			),
 		);
