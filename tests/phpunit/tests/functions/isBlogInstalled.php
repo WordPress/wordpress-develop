@@ -1,8 +1,6 @@
 <?php
 
 /**
- * @group functions.php
- *
  * @since 6.0.0
  *
  * @group functions.php
