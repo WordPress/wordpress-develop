@@ -36,10 +36,10 @@ class Tests_Functions_wpNonceField extends WP_UnitTestCase {
 
 		return array(
 			'default'     => array(
-				- 1,
-				'_wpnonce',
-				true,
-				'#^<input type="hidden" id="_wpnonce" name="_wpnonce" value=".{10}" /><input type="hidden" name="_wp_http_referer" value="" />$#',
+				'action'           => - 1,
+				'name'             => '_wpnonce',
+				'referer'          => true,
+				'expected_reg_exp' => '#^<input type="hidden" id="_wpnonce" name="_wpnonce" value=".{10}" /><input type="hidden" name="_wp_http_referer" value="" />$#',
 			),
 			'nonce_name'  => array(
 				- 1,
