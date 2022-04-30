@@ -968,7 +968,10 @@ if ( 'none' === $active_signup ) {
 			break;
 		case 'default':
 		default:
+			$newblogname_validation = wpmu_validate_new_blogname( $newblogname );
+
 			$user_email = isset( $_POST['user_email'] ) ? $_POST['user_email'] : '';
+
 			/**
 			 * Fires when the site sign-up form is sent.
 			 *
@@ -976,7 +979,7 @@ if ( 'none' === $active_signup ) {
 			 */
 			do_action( 'preprocess_signup_form' );
 			if ( is_user_logged_in() && ( 'all' === $active_signup || 'blog' === $active_signup ) ) {
-				signup_another_blog( $newblogname );
+				signup_another_blog( $newblogname, '', $newblogname_validation );
 			} elseif ( ! is_user_logged_in() && ( 'all' === $active_signup || 'user' === $active_signup ) ) {
 				signup_user( $newblogname, $user_email );
 			} elseif ( ! is_user_logged_in() && ( 'blog' === $active_signup ) ) {
@@ -985,7 +988,7 @@ if ( 'none' === $active_signup ) {
 				_e( 'You are logged in already. No need to register again!' );
 			}
 
-			if ( $newblogname ) {
+			if ( $newblogname && ! $newblogname_validation->has_errors() ) {
 				$newblog = get_blogaddress_by_name( $newblogname );
 
 				if ( 'blog' === $active_signup || 'all' === $active_signup ) {
