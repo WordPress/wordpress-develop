@@ -27,35 +27,41 @@ class Tests_Functions_WpCheckAlternateFileNames extends WP_UnitTestCase {
 	 */
 	public function data_wp_check_alternate_file_names() {
 		return array(
-			'no file'          => array(
-				'filename' => array( 'filename.php' ),
-				'dir'      => DIR_TESTDATA . '/images/',
-				'files'    => array( 'canola.jpg' ),
-				'expected' => false,
+			'an existing file'                         => array(
+				'filenames' => array( 'canola.jpg' ),
+				'dir'       => DIR_TESTDATA . '/images/',
+				'files'     => array(),
+				'expected'  => true,
 			),
-			'file'             => array(
-				'filename' => array( 'canola.jpg' ),
-				'dir'      => DIR_TESTDATA . '/images/',
-				'files'    => array( 'filename-1x1.png' ),
-				'expected' => true,
+			'multiple existing files'                  => array(
+				'filenames' => array( 'canola.jpg', 'codeispoetry.png' ),
+				'dir'       => DIR_TESTDATA . '/images/',
+				'files'     => array(),
+				'expected'  => true,
 			),
-			'in files'         => array(
-				'filename' => array( 'canola.jpg' ),
-				'dir'      => DIR_TESTDATA . '/functions/',
-				'files'    => array( 'canola-1x1.jpg' ),
-				'expected' => true,
+			'a non-existent file and an existing file' => array(
+				'filenames' => array( 'an-image.jpg', 'codeispoetry.png' ),
+				'dir'       => DIR_TESTDATA . '/images/',
+				'files'     => array(),
+				'expected'  => true,
 			),
-			'loop file exist'  => array(
-				'filename' => array( 'canola.jpg', 'codeispoetry.png' ),
-				'dir'      => DIR_TESTDATA . '/images/',
-				'files'    => array( 'XXXX.png' ),
-				'expected' => true,
+			'a non-existent file and an existing image sub-size file' => array(
+				'filenames' => array( 'one-blue-pixel.png' ),
+				'dir'       => DIR_TESTDATA . '/images/',
+				'files'     => array( 'one-blue-pixel-100x100.png' ),
+				'expected'  => true,
 			),
-			'loop file mising' => array(
-				'filename' => array( 'canola.jpg', 'codeispoetry.png' ),
-				'dir'      => DIR_TESTDATA . '/functions/',
-				'files'    => array( 'XXXX.png', 'canola-1x1.jpg', 'codeispoetry-1x1.jpg' ),
-				'expected' => true,
+			'a non-existent file and no other existing files' => array(
+				'filenames' => array( 'filename.php' ),
+				'dir'       => DIR_TESTDATA . '/images/',
+				'files'     => array(),
+				'expected'  => false,
+			),
+			'multiple non-existent files and no existing image sub-size files' => array(
+				'filenames' => array( 'canola.jpg', 'codeispoetry.png' ),
+				'dir'       => DIR_TESTDATA . '/functions/',
+				'files'     => array( 'an-image-100x100.jpg', 'another-image-100x100.png' ),
+				'expected'  => false,
 			),
 		);
 	}
