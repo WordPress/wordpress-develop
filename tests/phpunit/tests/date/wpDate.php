@@ -169,13 +169,10 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	 * @ticket 53485
 	 */
 	public function test_should_apply_filters_for_wp_date() {
-		add_filter(
-			'wp_date',
-			static function() {
-				return 'filtered';
-			}
-		);
+		$ma = new MockAction();
+		add_filter( 'wp_date', array( &$ma, 'filter' ) );
+		wp_date( '' );
 
-		$this->assertSame( 'filtered', wp_date( '' ) );
+		$this->assertSame( 1, $ma->get_call_count() );
 	}
 }
