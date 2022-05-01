@@ -1982,8 +1982,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 	public function test_returning_fields( $field, $expected_values ) {
 		$q       = new WP_User_Query(
 			array(
-				'fields'   => $field,
-				'include ' => array( self::$admin_ids[0] ),
+				'fields'  => $field,
+				'include' => array( '1' ),
 			)
 		);
 		$results = $q->get_results();
@@ -2013,8 +2013,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 					'ID'                  => '1',
 					'user_login'          => 'admin',
 					'user_nicename'       => 'admin',
-					'user_email'          => 'admin@example.org',
-					'user_url'            => 'http://example.org',
+					'user_email'          => WP_TESTS_EMAIL,
+					'user_url'            => wp_guess_url(),
 					'user_activation_key' => '',
 					'user_status'         => '0',
 					'display_name'        => 'admin',
@@ -2026,8 +2026,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 					'ID'                  => '1',
 					'user_login'          => 'admin',
 					'user_nicename'       => 'admin',
-					'user_email'          => 'admin@example.org',
-					'user_url'            => 'http://example.org',
+					'user_email'          => WP_TESTS_EMAIL,
+					'user_url'            => wp_guess_url(),
 					'user_activation_key' => '',
 					'user_status'         => '0',
 					'display_name'        => 'admin',
@@ -2066,7 +2066,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			'user_email'      => array(
 				'field'    => 'user_email',
 				'expected' => array(
-					'user_email' => 'admin@example.org',
+					'user_email' => WP_TESTS_EMAIL,
 				),
 			),
 			'invalid_field'   => array(
