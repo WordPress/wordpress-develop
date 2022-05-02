@@ -204,7 +204,10 @@ function php_compat_ini_bytes( $value ) {
 		$scalar = $scalar * $base + $digits[ $c ];
 
 		// Stop processing if we're already at the max value.
-		if ( $scalar > PHP_INT_MAX ) {
+		if (
+			( $sign > 0 && $scalar >  PHP_INT_MAX ) ||
+			( $sign < 0 && $scalar > -PHP_INT_MIN )
+		) {
 			break;
 		}
 	}
