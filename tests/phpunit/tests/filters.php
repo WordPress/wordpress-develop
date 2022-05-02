@@ -7,52 +7,52 @@
  */
 class Tests_Filters extends WP_UnitTestCase {
 
-	function test_simple_filter() {
+	public function test_simple_filter() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
 		$val = __FUNCTION__ . '_val';
 
 		add_filter( $tag, array( $a, 'filter' ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
 		// Only one event occurred for the hook, with empty args.
-		$this->assertEquals( 1, $a->get_call_count() );
+		$this->assertSame( 1, $a->get_call_count() );
 		// Only our hook was called.
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		$this->assertSame( array( $tag ), $a->get_tags() );
 
 		$argsvar = $a->get_args();
 		$args    = array_pop( $argsvar );
-		$this->assertEquals( array( $val ), $args );
+		$this->assertSame( array( $val ), $args );
 	}
 
-	function test_remove_filter() {
+	public function test_remove_filter() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
 		$val = __FUNCTION__ . '_val';
 
 		add_filter( $tag, array( $a, 'filter' ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
 		// Make sure our hook was called correctly.
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( array( $tag ), $a->get_tags() );
 
 		// Now remove the filter, do it again, and make sure it's not called this time.
 		remove_filter( $tag, array( $a, 'filter' ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( array( $tag ), $a->get_tags() );
 
 	}
 
-	function test_has_filter() {
+	public function test_has_filter() {
 			$tag  = __FUNCTION__;
 			$func = __FUNCTION__ . '_func';
 
 			$this->assertFalse( has_filter( $tag, $func ) );
 			$this->assertFalse( has_filter( $tag ) );
 			add_filter( $tag, $func );
-			$this->assertEquals( 10, has_filter( $tag, $func ) );
+			$this->assertSame( 10, has_filter( $tag, $func ) );
 			$this->assertTrue( has_filter( $tag ) );
 			remove_filter( $tag, $func );
 			$this->assertFalse( has_filter( $tag, $func ) );
@@ -60,7 +60,7 @@ class Tests_Filters extends WP_UnitTestCase {
 	}
 
 	// One tag with multiple filters.
-	function test_multiple_filters() {
+	public function test_multiple_filters() {
 		$a1  = new MockAction();
 		$a2  = new MockAction();
 		$tag = __FUNCTION__;
@@ -70,14 +70,14 @@ class Tests_Filters extends WP_UnitTestCase {
 		add_filter( $tag, array( $a1, 'filter' ) );
 		add_filter( $tag, array( $a2, 'filter' ) );
 
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
 		// Both filters called once each.
-		$this->assertEquals( 1, $a1->get_call_count() );
-		$this->assertEquals( 1, $a2->get_call_count() );
+		$this->assertSame( 1, $a1->get_call_count() );
+		$this->assertSame( 1, $a2->get_call_count() );
 	}
 
-	function test_filter_args_1() {
+	public function test_filter_args_1() {
 		$a    = new MockAction();
 		$tag  = __FUNCTION__;
 		$val  = __FUNCTION__ . '_val';
@@ -85,14 +85,14 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		add_filter( $tag, array( $a, 'filter' ), 10, 2 );
 		// Call the filter with a single argument.
-		$this->assertEquals( $val, apply_filters( $tag, $val, $arg1 ) );
+		$this->assertSame( $val, apply_filters( $tag, $val, $arg1 ) );
 
-		$this->assertEquals( 1, $a->get_call_count() );
+		$this->assertSame( 1, $a->get_call_count() );
 		$argsvar = $a->get_args();
-		$this->assertEquals( array( $val, $arg1 ), array_pop( $argsvar ) );
+		$this->assertSame( array( $val, $arg1 ), array_pop( $argsvar ) );
 	}
 
-	function test_filter_args_2() {
+	public function test_filter_args_2() {
 		$a1   = new MockAction();
 		$a2   = new MockAction();
 		$tag  = __FUNCTION__;
@@ -104,20 +104,20 @@ class Tests_Filters extends WP_UnitTestCase {
 		add_filter( $tag, array( $a1, 'filter' ), 10, 3 );
 		add_filter( $tag, array( $a2, 'filter' ) );
 		// Call the filter with two arguments.
-		$this->assertEquals( $val, apply_filters( $tag, $val, $arg1, $arg2 ) );
+		$this->assertSame( $val, apply_filters( $tag, $val, $arg1, $arg2 ) );
 
 		// $a1 should be called with both args.
-		$this->assertEquals( 1, $a1->get_call_count() );
+		$this->assertSame( 1, $a1->get_call_count() );
 		$argsvar1 = $a1->get_args();
-		$this->assertEquals( array( $val, $arg1, $arg2 ), array_pop( $argsvar1 ) );
+		$this->assertSame( array( $val, $arg1, $arg2 ), array_pop( $argsvar1 ) );
 
 		// $a2 should be called with one only.
-		$this->assertEquals( 1, $a2->get_call_count() );
+		$this->assertSame( 1, $a2->get_call_count() );
 		$argsvar2 = $a2->get_args();
-		$this->assertEquals( array( $val ), array_pop( $argsvar2 ) );
+		$this->assertSame( array( $val ), array_pop( $argsvar2 ) );
 	}
 
-	function test_filter_priority() {
+	public function test_filter_priority() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
 		$val = __FUNCTION__ . '_val';
@@ -125,10 +125,10 @@ class Tests_Filters extends WP_UnitTestCase {
 		// Make two filters with different priorities.
 		add_filter( $tag, array( $a, 'filter' ), 10 );
 		add_filter( $tag, array( $a, 'filter2' ), 9 );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
 		// There should be two events, one per filter.
-		$this->assertEquals( 2, $a->get_call_count() );
+		$this->assertSame( 2, $a->get_call_count() );
 
 		$expected = array(
 			// 'filter2' is called first because it has priority 9.
@@ -145,10 +145,10 @@ class Tests_Filters extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $a->get_events() );
+		$this->assertSame( $expected, $a->get_events() );
 	}
 
-	function test_all_filter() {
+	public function test_all_filter() {
 		$a    = new MockAction();
 		$tag1 = __FUNCTION__ . '_1';
 		$tag2 = __FUNCTION__ . '_2';
@@ -157,52 +157,51 @@ class Tests_Filters extends WP_UnitTestCase {
 		// Add an 'all' filter.
 		add_filter( 'all', array( $a, 'filterall' ) );
 		// Apply some filters.
-		$this->assertEquals( $val, apply_filters( $tag1, $val ) );
-		$this->assertEquals( $val, apply_filters( $tag2, $val ) );
-		$this->assertEquals( $val, apply_filters( $tag1, $val ) );
-		$this->assertEquals( $val, apply_filters( $tag1, $val ) );
+		$this->assertSame( $val, apply_filters( $tag1, $val ) );
+		$this->assertSame( $val, apply_filters( $tag2, $val ) );
+		$this->assertSame( $val, apply_filters( $tag1, $val ) );
+		$this->assertSame( $val, apply_filters( $tag1, $val ) );
 
 		// Our filter should have been called once for each apply_filters call.
-		$this->assertEquals( 4, $a->get_call_count() );
+		$this->assertSame( 4, $a->get_call_count() );
 		// The right hooks should have been called in order.
-		$this->assertEquals( array( $tag1, $tag2, $tag1, $tag1 ), $a->get_tags() );
+		$this->assertSame( array( $tag1, $tag2, $tag1, $tag1 ), $a->get_tags() );
 
 		remove_filter( 'all', array( $a, 'filterall' ) );
 		$this->assertFalse( has_filter( 'all', array( $a, 'filterall' ) ) );
 
 	}
 
-	function test_remove_all_filter() {
+	public function test_remove_all_filter() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
 		$val = __FUNCTION__ . '_val';
 
 		add_filter( 'all', array( $a, 'filterall' ) );
 		$this->assertTrue( has_filter( 'all' ) );
-		$this->assertEquals( 10, has_filter( 'all', array( $a, 'filterall' ) ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( 10, has_filter( 'all', array( $a, 'filterall' ) ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
 		// Make sure our hook was called correctly.
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( array( $tag ), $a->get_tags() );
 
 		// Now remove the filter, do it again, and make sure it's not called this time.
 		remove_filter( 'all', array( $a, 'filterall' ) );
 		$this->assertFalse( has_filter( 'all', array( $a, 'filterall' ) ) );
 		$this->assertFalse( has_filter( 'all' ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 		// Call cound should remain at 1.
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( array( $tag ), $a->get_tags() );
 	}
 
 	/**
 	 * @ticket 20920
 	 */
-	function test_remove_all_filters_should_respect_the_priority_argument() {
+	public function test_remove_all_filters_should_respect_the_priority_argument() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
-		$val = __FUNCTION__ . '_val';
 
 		add_filter( $tag, array( $a, 'filter' ), 12 );
 		$this->assertTrue( has_filter( $tag ) );
@@ -216,9 +215,52 @@ class Tests_Filters extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53218
+	 */
+	public function test_filter_with_ref_value() {
+		$obj = new stdClass();
+		$ref = &$obj;
+		$a   = new MockAction();
+		$tag = __FUNCTION__;
+
+		add_action( $tag, array( $a, 'filter' ) );
+
+		$filtered = apply_filters( $tag, $ref );
+
+		$args = $a->get_args();
+		$this->assertSame( $args[0][0], $obj );
+		$this->assertSame( $filtered, $obj );
+		// Just in case we don't trust assertSame().
+		$obj->foo = true;
+		$this->assertNotEmpty( $args[0][0]->foo );
+		$this->assertNotEmpty( $filtered->foo );
+	}
+
+	/**
+	 * @ticket 53218
+	 */
+	public function test_filter_with_ref_argument() {
+		$obj = new stdClass();
+		$ref = &$obj;
+		$a   = new MockAction();
+		$tag = __FUNCTION__;
+		$val = 'Hello';
+
+		add_action( $tag, array( $a, 'filter' ), 10, 2 );
+
+		apply_filters( $tag, $val, $ref );
+
+		$args = $a->get_args();
+		$this->assertSame( $args[0][1], $obj );
+		// Just in case we don't trust assertSame().
+		$obj->foo = true;
+		$this->assertNotEmpty( $args[0][1]->foo );
+	}
+
+	/**
 	 * @ticket 9886
 	 */
-	function test_filter_ref_array() {
+	public function test_filter_ref_array() {
 		$obj = new stdClass();
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
@@ -231,13 +273,13 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( $args[0][0], $obj );
 		// Just in case we don't trust assertSame().
 		$obj->foo = true;
-		$this->assertFalse( empty( $args[0][0]->foo ) );
+		$this->assertNotEmpty( $args[0][0]->foo );
 	}
 
 	/**
 	 * @ticket 12723
 	 */
-	function test_filter_ref_array_result() {
+	public function test_filter_ref_array_result() {
 		$obj = new stdClass();
 		$a   = new MockAction();
 		$b   = new MockAction();
@@ -248,34 +290,28 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		$result = apply_filters_ref_array( $tag, array( 'string', &$obj ) );
 
-		$this->assertEquals( $result, 'string_append_append' );
+		$this->assertSame( $result, 'string_append_append' );
 
 		$args = $a->get_args();
 		$this->assertSame( $args[0][1], $obj );
 		// Just in case we don't trust assertSame().
 		$obj->foo = true;
-		$this->assertFalse( empty( $args[0][1]->foo ) );
+		$this->assertNotEmpty( $args[0][1]->foo );
 
 		$args = $b->get_args();
 		$this->assertSame( $args[0][1], $obj );
 		// Just in case we don't trust assertSame().
 		$obj->foo = true;
-		$this->assertFalse( empty( $args[0][1]->foo ) );
+		$this->assertNotEmpty( $args[0][1]->foo );
 
-	}
-
-	function _self_removal( $tag ) {
-		remove_action( $tag, array( $this, '_self_removal' ), 10, 1 );
-		return $tag;
 	}
 
 	/**
 	 * @ticket 29070
 	 */
-	function test_has_filter_after_remove_all_filters() {
+	public function test_has_filter_after_remove_all_filters() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
-		$val = __FUNCTION__ . '_val';
 
 		// No priority.
 		add_filter( $tag, array( $a, 'filter' ), 11 );
@@ -353,14 +389,14 @@ class Tests_Filters extends WP_UnitTestCase {
 	 * @ticket 39007
 	 */
 	public function test_current_priority() {
-		add_action( 'test_current_priority', array( $this, '_current_priority_action' ), 99 );
+		add_action( 'test_current_priority', array( $this, 'current_priority_action' ), 99 );
 		do_action( 'test_current_priority' );
-		remove_action( 'test_current_priority', array( $this, '_current_priority_action' ), 99 );
+		remove_action( 'test_current_priority', array( $this, 'current_priority_action' ), 99 );
 
 		$this->assertSame( 99, $this->current_priority );
 	}
 
-	public function _current_priority_action() {
+	public function current_priority_action() {
 		global $wp_filter;
 		$this->current_priority = $wp_filter[ current_filter() ]->current_priority();
 	}
@@ -369,14 +405,14 @@ class Tests_Filters extends WP_UnitTestCase {
 	 * @ticket 39007
 	 */
 	public function test_other_priority() {
-		add_action( 'test_current_priority', array( $this, '_other_priority_action' ), 99 );
+		add_action( 'test_current_priority', array( $this, 'other_priority_action' ), 99 );
 		do_action( 'test_current_priority' );
-		remove_action( 'test_current_priority', array( $this, '_other_priority_action' ), 99 );
+		remove_action( 'test_current_priority', array( $this, 'other_priority_action' ), 99 );
 
-		$this->assertSame( false, $this->current_priority );
+		$this->assertFalse( $this->current_priority );
 	}
 
-	public function _other_priority_action() {
+	public function other_priority_action() {
 		global $wp_filter;
 		$this->current_priority = $wp_filter['the_content']->current_priority();
 	}

@@ -6,7 +6,7 @@
 	<arg name="extensions" value="php"/>
 
 	<!-- Whenever possible, cache the scan results and re-use those for unchanged files on the next scan. -->
-	<arg name="cache"/>
+	<arg name="cache" value=".cache/phpcs.json"/>
 
 	<!-- Set the memory limit to 256M.
 		 For most standard PHP configurations, this means the memory limit will temporarily be raised.
@@ -29,9 +29,6 @@
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
 
 	<!-- These rules are being set as warnings instead of errors, so we can error check the entire codebase. -->
-	<rule ref="WordPress.PHP.YodaConditions.NotYoda">
-		<type>warning</type>
-	</rule>
 	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
 		<type>warning</type>
 	</rule>
@@ -99,7 +96,7 @@
 		</properties>
 	</rule>
 
-	<!-- Exclude the build folder in the current directory, as Travis puts the checkout in a build directory. -->
+	<!-- Exclude the build folder in the current directory. -->
 	<exclude-pattern type="relative">^build/*</exclude-pattern>
 
 	<!-- Directories and third party library exclusions. -->
@@ -115,11 +112,9 @@
 	<exclude-pattern>/src/wp-includes/class-IXR\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-json\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-phpass\.php</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/class-phpmailer\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-pop3\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-requests\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/class-smtp\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
@@ -132,19 +127,41 @@
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/PHPMailer/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/random_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/SimplePie/*</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/sodium_compat/*</exclude-pattern>
-
-	<exclude-pattern>/tests/phpunit/includes/speed-trap-listener\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
 
 	<!-- Test data and fixtures. -->
 	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
 	<exclude-pattern>/tests/phpunit/data/*</exclude-pattern>
 
 	<exclude-pattern>/tools/*</exclude-pattern>
+
+	<!-- Drop-in plugins. -->
+	<exclude-pattern>/src/wp-content/advanced-cache\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/blog-deleted\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/blog-inactive\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/blog-suspended\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/db-error\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/db\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/fatal-error-handler\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/install\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/maintenance\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/object-cache\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/php-error\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/sunrise\.php</exclude-pattern>
+
+	<!-- Must-Use plugins. -->
+	<exclude-pattern>/src/wp-content/mu-plugins/*</exclude-pattern>
+
+	<!-- Plugins. -->
+	<exclude-pattern>/src/wp-content/plugins/*</exclude-pattern>
+
+	<!-- Themes except the twenty* themes. -->
+	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
 
 	<!-- Whitelist the WP DB Class and related tests for usage of direct database access functions. -->
 	<rule ref="WordPress.DB.RestrictedFunctions">
@@ -214,26 +231,25 @@
 	<rule ref="WordPress.Files.FileName">
 		<properties>
 			<property name="custom_test_class_whitelist" type="array">
-				<!-- Test case parent classes. -->
-				<element value="WP_UnitTestCase"/>
-				<element value="WP_Ajax_UnitTestCase"/>
-				<element value="WP_Canonical_UnitTestCase"/>
-				<element value="WP_Test_REST_TestCase"/>
-				<element value="WP_Test_REST_Controller_Testcase"/>
-				<element value="WP_Test_REST_Post_Type_Controller_Testcase"/>
-				<element value="WP_XMLRPC_UnitTestCase"/>
-				<element value="WP_Filesystem_UnitTestCase"/>
-				<element value="WP_Image_UnitTestCase"/>
-				<element value="WP_HTTP_UnitTestCase"/>
-				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
-				<element value="WP_Import_UnitTestCase"/>
+				<!-- Test case parent classes in the "includes" folder, not yet accounted for in WPCS. -->
+				<element value="PHPUnit_Adapter_TestCase"/>
+				<element value="WP_Test_XML_TestCase"/>
+
+				<!-- Test case parent classes outside of the "includes" folder. -->
 				<element value="Tests_Query_Conditionals"/>
+				<element value="WP_Filesystem_UnitTestCase"/>
+				<element value="WP_HTTP_UnitTestCase"/>
+				<element value="WP_Image_UnitTestCase"/>
+				<element value="WP_Import_UnitTestCase"/>
+				<element value="WP_Test_Adjacent_Image_Link_TestCase"/>
+				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
 
 				<!-- Mock classes. -->
 				<element value="Spy_REST_Server"/>
 				<element value="WP_REST_Test_Controller"/>
 				<element value="WP_Image_Editor_Mock"/>
 				<element value="WP_Filesystem_MockFS"/>
+				<element value="Mock_Invokable"/>
 				<element value="MockPHPMailer"/>
 				<element value="MockAction"/>
 				<element value="WP_Object_Cache"/>
@@ -243,8 +259,8 @@
 				<element value="WP_PHPUnit_Util_Getopt"/>
 				<element value="PHPUnit_Util_Test"/>
 				<element value="WPProfiler"/>
-				<element value="SpeedTrapListener"/>
 				<element value="PHPUnit_Framework_Exception"/>
+				<element value="Polyfill_TestCase"/>
 			</property>
 		</properties>
 	</rule>
@@ -266,6 +282,7 @@
 				<element value="gzinflate"/>
 				<element value="gzuncompress"/>
 				<element value="gzdecode"/>
+				<element value="imagecreatefromwebp"/>
 			</property>
 		</properties>
 	</rule>
@@ -298,7 +315,7 @@
 		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
 	</rule>
 
-	<!-- Exclude some old classes that can't be renamed, as it would break back compat. -->
+	<!-- Exclude some old classes that cannot be renamed, as it would break back compat. -->
 	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
 		<exclude-pattern>/src/wp-admin/includes/class-wp-filesystem-ftpsockets\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-oembed\.php</exclude-pattern>

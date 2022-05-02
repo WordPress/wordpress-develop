@@ -89,7 +89,7 @@ class WP_Network {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int $network_id The ID of the network to retrieve.
-	 * @return WP_Network|bool The network's object if found. False if not.
+	 * @return WP_Network|false The network's object if found. False if not.
 	 */
 	public static function get_instance( $network_id ) {
 		global $wpdb;
@@ -326,7 +326,7 @@ class WP_Network {
 	 * @param string   $domain   Domain to check.
 	 * @param string   $path     Path to check.
 	 * @param int|null $segments Path segments to use. Defaults to null, or the full path.
-	 * @return WP_Network|bool Network object if successful. False when no network is found.
+	 * @return WP_Network|false Network object if successful. False when no network is found.
 	 */
 	public static function get_by_path( $domain = '', $path = '', $segments = null ) {
 		$domains = array( $domain );
@@ -353,17 +353,13 @@ class WP_Network {
 		 */
 		$using_paths = true;
 		if ( wp_using_ext_object_cache() ) {
-			$using_paths = wp_cache_get( 'networks_have_paths', 'site-options' );
-			if ( false === $using_paths ) {
-				$using_paths = get_networks(
-					array(
-						'number'       => 1,
-						'count'        => true,
-						'path__not_in' => '/',
-					)
-				);
-				wp_cache_add( 'networks_have_paths', $using_paths, 'site-options' );
-			}
+			$using_paths = get_networks(
+				array(
+					'number'       => 1,
+					'count'        => true,
+					'path__not_in' => '/',
+				)
+			);
 		}
 
 		$paths = array();
@@ -407,7 +403,7 @@ class WP_Network {
 		 *
 		 * @since 3.9.0
 		 *
-		 * @param null|bool|WP_Network $network  Network value to return by path. Default null
+		 * @param null|false|WP_Network $network  Network value to return by path. Default null
 		 *                                       to continue retrieving the network.
 		 * @param string               $domain   The requested domain.
 		 * @param string               $path     The requested path, in full.

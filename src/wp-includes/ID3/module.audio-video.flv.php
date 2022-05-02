@@ -53,6 +53,10 @@
 //                                                            ///
 /////////////////////////////////////////////////////////////////
 
+if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+	exit;
+}
+
 define('GETID3_FLV_TAG_AUDIO',          8);
 define('GETID3_FLV_TAG_VIDEO',          9);
 define('GETID3_FLV_TAG_META',          18);
@@ -157,6 +161,7 @@ class getid3_flv extends getid3_handler
 						$info['flv']['video']['videoCodec'] = $LastHeaderByte & 0x07;
 
 						$FLVvideoHeader = $this->fread(11);
+						$PictureSizeEnc = array();
 
 						if ($info['flv']['video']['videoCodec'] == GETID3_FLV_VIDEO_H264) {
 							// this code block contributed by: moysevichØgmail*com
@@ -597,7 +602,6 @@ class AMFReader
 			// null
 			case 6:
 				return null;
-				break;
 
 			// Mixed array
 			case 8:

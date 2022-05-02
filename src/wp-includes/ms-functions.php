@@ -29,7 +29,7 @@ function get_sitestats() {
 }
 
 /**
- * Get one of a user's active blogs
+ * Gets one of a user's active blogs.
  *
  * Returns the user's primary blog, if they have one and
  * it is active. If it's inactive, function returns another
@@ -101,22 +101,7 @@ function get_active_blog_for_user( $user_id ) {
 }
 
 /**
- * The number of active users in your installation.
- *
- * The count is cached and updated twice daily. This is not a live count.
- *
- * @since MU (3.0.0)
- * @since 4.8.0 The `$network_id` parameter has been added.
- *
- * @param int|null $network_id ID of the network. Default is the current network.
- * @return int Number of active users on the network.
- */
-function get_user_count( $network_id = null ) {
-	return get_network_option( $network_id, 'user_count' );
-}
-
-/**
- * The number of active sites on your installation.
+ * Gets the number of active sites on the installation.
  *
  * The count is cached and updated twice daily. This is not a live count.
  *
@@ -132,13 +117,16 @@ function get_blog_count( $network_id = null ) {
 }
 
 /**
- * Get a blog post from any site on the network.
+ * Gets a blog post from any site on the network.
+ *
+ * This function is similar to get_post(), except that it can retrieve a post
+ * from any site on the network, not just the current site.
  *
  * @since MU (3.0.0)
  *
  * @param int $blog_id ID of the blog.
  * @param int $post_id ID of the post being looked for.
- * @return WP_Post|null WP_Post on success or null on failure
+ * @return WP_Post|null WP_Post object on success, null on failure
  */
 function get_blog_post( $blog_id, $post_id ) {
 	switch_to_blog( $blog_id );
@@ -149,7 +137,7 @@ function get_blog_post( $blog_id, $post_id ) {
 }
 
 /**
- * Adds a user to a blog.
+ * Adds a user to a blog, along with specifying the user's role.
  *
  * Use the {@see 'add_user_to_blog'} action to fire an event when users are added to a blog.
  *
@@ -157,7 +145,7 @@ function get_blog_post( $blog_id, $post_id ) {
  *
  * @param int    $blog_id ID of the blog the user is being added to.
  * @param int    $user_id ID of the user being added.
- * @param string $role    The role you want the user to have
+ * @param string $role    The role you want the user to have.
  * @return true|WP_Error True on success or a WP_Error object if the user doesn't exist
  *                       or could not be added.
  */
@@ -176,8 +164,8 @@ function add_user_to_blog( $blog_id, $user_id, $role ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param bool|WP_Error $retval  True if the user should be added to the site, false
-	 *                               or error object otherwise.
+	 * @param true|WP_Error $retval  True if the user should be added to the site, error
+	 *                               object otherwise.
 	 * @param int           $user_id User ID.
 	 * @param string        $role    User role.
 	 * @param int           $blog_id Site ID.
@@ -222,7 +210,7 @@ function add_user_to_blog( $blog_id, $user_id, $role ) {
 }
 
 /**
- * Remove a user from a blog.
+ * Removes a user from a blog.
  *
  * Use the {@see 'remove_user_from_blog'} action to fire an event when
  * users are removed from a blog.
@@ -277,7 +265,6 @@ function remove_user_from_blog( $user_id, $blog_id = 0, $reassign = 0 ) {
 		update_user_meta( $user_id, 'source_domain', $new_domain );
 	}
 
-	// wp_revoke_user( $user_id );
 	$user = get_userdata( $user_id );
 	if ( ! $user ) {
 		restore_current_blog();
@@ -314,7 +301,7 @@ function remove_user_from_blog( $user_id, $blog_id = 0, $reassign = 0 ) {
 }
 
 /**
- * Get the permalink for a post on another blog.
+ * Gets the permalink for a post on another blog.
  *
  * @since MU (3.0.0) 1.0
  *
@@ -331,7 +318,7 @@ function get_blog_permalink( $blog_id, $post_id ) {
 }
 
 /**
- * Get a blog's numeric ID from its URL.
+ * Gets a blog's numeric ID from its URL.
  *
  * On a subdirectory installation like example.com/blog1/,
  * $domain will be the root 'example.com' and $path the
@@ -392,7 +379,7 @@ function get_blog_id_from_url( $domain, $path = '/' ) {
  * @since MU (3.0.0)
  *
  * @param string $user_email The email provided by the user at registration.
- * @return bool Returns true when the email address is banned.
+ * @return bool True when the email address is banned, false otherwise.
  */
 function is_email_address_unsafe( $user_email ) {
 	$banned_names = get_site_option( 'banned_email_domains' );
@@ -438,10 +425,11 @@ function is_email_address_unsafe( $user_email ) {
 }
 
 /**
- * Sanitize and validate data required for a user sign-up.
+ * Sanitizes and validates data required for a user sign-up.
  *
  * Verifies the validity and uniqueness of user names and user email addresses,
- * and checks email addresses against admin-provided domain whitelists and blacklists.
+ * and checks email addresses against allowed and disallowed domains provided by
+ * administrators.
  *
  * The {@see 'wpmu_validate_user_signup'} hook provides an easy way to modify the sign-up
  * process. The value $result, which is passed to the hook, contains both the user-provided
@@ -488,7 +476,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 		$illegal_names = array( 'www', 'web', 'root', 'admin', 'main', 'invite', 'administrator' );
 		add_site_option( 'illegal_names', $illegal_names );
 	}
-	if ( in_array( $user_name, $illegal_names ) ) {
+	if ( in_array( $user_name, $illegal_names, true ) ) {
 		$errors->add( 'user_name', __( 'Sorry, that username is not allowed.' ) );
 	}
 
@@ -502,7 +490,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	if ( ! is_email( $user_email ) ) {
 		$errors->add( 'user_email', __( 'Please enter a valid email address.' ) );
 	} elseif ( is_email_address_unsafe( $user_email ) ) {
-		$errors->add( 'user_email', __( 'You cannot use that email address to signup. We are having problems with them blocking some of our email. Please use another email provider.' ) );
+		$errors->add( 'user_email', __( 'You cannot use that email address to signup. There are problems with them blocking some emails from WordPress. Please use another email provider.' ) );
 	}
 
 	if ( strlen( $user_name ) < 4 ) {
@@ -534,12 +522,19 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 
 	// Check if the email address has been used already.
 	if ( email_exists( $user_email ) ) {
-		$errors->add( 'user_email', __( 'Sorry, that email address is already used!' ) );
+		$errors->add(
+			'user_email',
+			sprintf(
+				/* translators: %s: Link to the login page. */
+				__( '<strong>Error:</strong> This email address is already registered. <a href="%s">Log in</a> with this address or choose another one.' ),
+				wp_login_url()
+			)
+		);
 	}
 
 	// Has someone already signed up for this username?
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_login = %s", $user_name ) );
-	if ( null != $signup ) {
+	if ( $signup instanceof stdClass ) {
 		$registered_at = mysql2date( 'U', $signup->registered );
 		$now           = time();
 		$diff          = $now - $registered_at;
@@ -552,7 +547,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	}
 
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_email = %s", $user_email ) );
-	if ( null != $signup ) {
+	if ( $signup instanceof stdClass ) {
 		$diff = time() - mysql2date( 'U', $signup->registered );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
@@ -653,7 +648,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$errors->add( 'blogname', __( 'Site names can only contain lowercase letters (a-z) and numbers.' ) );
 	}
 
-	if ( in_array( $blogname, $illegal_names ) ) {
+	if ( in_array( $blogname, $illegal_names, true ) ) {
 		$errors->add( 'blogname', __( 'That name is not allowed.' ) );
 	}
 
@@ -671,7 +666,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$errors->add( 'blogname', sprintf( _n( 'Site name must be at least %s character.', 'Site name must be at least %s characters.', $minimum_site_name_length ), number_format_i18n( $minimum_site_name_length ) ) );
 	}
 
-	// Do not allow users to create a blog that conflicts with a page on the main blog.
+	// Do not allow users to create a site that conflicts with a page on the main blog.
 	if ( ! is_subdomain_install() && $wpdb->get_var( $wpdb->prepare( 'SELECT post_name FROM ' . $wpdb->get_blog_prefix( $current_network->site_id ) . "posts WHERE post_type = 'page' AND post_name = %s", $blogname ) ) ) {
 		$errors->add( 'blogname', __( 'Sorry, you may not use that site name.' ) );
 	}
@@ -704,13 +699,17 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$mydomain = $blogname . '.' . preg_replace( '|^www\.|', '', $domain );
 		$path     = $base;
 	} else {
-		$mydomain = "$domain";
+		$mydomain = $domain;
 		$path     = $base . $blogname . '/';
 	}
 	if ( domain_exists( $mydomain, $path, $current_network->id ) ) {
 		$errors->add( 'blogname', __( 'Sorry, that site already exists!' ) );
 	}
 
+	/*
+	 * Do not allow users to create a site that matches an existing user's login name,
+	 * unless it's the user's own username.
+	 */
 	if ( username_exists( $blogname ) ) {
 		if ( ! is_object( $user ) || ( is_object( $user ) && ( $user->user_login != $blogname ) ) ) {
 			$errors->add( 'blogname', __( 'Sorry, that site is reserved!' ) );
@@ -720,7 +719,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	// Has someone already signed up for this domain?
 	// TODO: Check email too?
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE domain = %s AND path = %s", $mydomain, $path ) );
-	if ( ! empty( $signup ) ) {
+	if ( $signup instanceof stdClass ) {
 		$diff = time() - mysql2date( 'U', $signup->registered );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
@@ -765,7 +764,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 }
 
 /**
- * Record site signup information for future activation.
+ * Records site signup information for future activation.
  *
  * @since MU (3.0.0)
  *
@@ -831,7 +830,7 @@ function wpmu_signup_blog( $domain, $path, $title, $user, $user_email, $meta = a
 }
 
 /**
- * Record user signup information for future activation.
+ * Records user signup information for future activation.
  *
  * This function is used when user registration is open but
  * new site registration is not.
@@ -894,7 +893,7 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
 }
 
 /**
- * Send a confirmation request email to a user when they sign up for a new site. The new site will not become active
+ * Sends a confirmation request email to a user when they sign up for a new site. The new site will not become active
  * until the confirmation link is clicked.
  *
  * This is the notification function used when site registration
@@ -924,13 +923,13 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param string|bool $domain     Site domain.
-	 * @param string      $path       Site path.
-	 * @param string      $title      Site title.
-	 * @param string      $user_login User login name.
-	 * @param string      $user_email User email address.
-	 * @param string      $key        Activation key created in wpmu_signup_blog().
-	 * @param array       $meta       Signup meta data. By default, contains the requested privacy setting and lang_id.
+	 * @param string|false $domain     Site domain, or false to prevent the email from sending.
+	 * @param string       $path       Site path.
+	 * @param string       $title      Site title.
+	 * @param string       $user_login User login name.
+	 * @param string       $user_email User email address.
+	 * @param string       $key        Activation key created in wpmu_signup_blog().
+	 * @param array        $meta       Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
 	if ( ! apply_filters( 'wpmu_signup_blog_notification', $domain, $path, $title, $user_login, $user_email, $key, $meta ) ) {
 		return false;
@@ -944,11 +943,14 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 	}
 
 	$activate_url = esc_url( $activate_url );
-	$admin_email  = get_site_option( 'admin_email' );
-	if ( '' == $admin_email ) {
-		$admin_email = 'support@' . $_SERVER['SERVER_NAME'];
+
+	$admin_email = get_site_option( 'admin_email' );
+
+	if ( '' === $admin_email ) {
+		$admin_email = 'support@' . wp_parse_url( network_home_url(), PHP_URL_HOST );
 	}
-	$from_name       = get_site_option( 'site_name' ) == '' ? 'WordPress' : esc_html( get_site_option( 'site_name' ) );
+
+	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
 	$message_headers = "From: \"{$from_name}\" <{$admin_email}>\n" . 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . "\"\n";
 
 	$user            = get_user_by( 'login', $user_login );
@@ -974,7 +976,7 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 		apply_filters(
 			'wpmu_signup_blog_notification_email',
 			/* translators: New site notification email. 1: Activation URL, 2: New site URL. */
-			__( "To activate your blog, please click the following link:\n\n%1\$s\n\nAfter you activate, you will receive *another email* with your login.\n\nAfter you activate, you can visit your site here:\n\n%2\$s" ),
+			__( "To activate your site, please click the following link:\n\n%1\$s\n\nAfter you activate, you will receive *another email* with your login.\n\nAfter you activate, you can visit your site here:\n\n%2\$s" ),
 			$domain,
 			$path,
 			$title,
@@ -1029,7 +1031,7 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 }
 
 /**
- * Send a confirmation request email to a user when they sign up for a new user account (without signing up for a site
+ * Sends a confirmation request email to a user when they sign up for a new user account (without signing up for a site
  * at the same time). The user account will not become active until the confirmation link is clicked.
  *
  * This is the notification function used when no new site has
@@ -1070,10 +1072,12 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
 
 	// Send email with activation link.
 	$admin_email = get_site_option( 'admin_email' );
-	if ( '' == $admin_email ) {
-		$admin_email = 'support@' . $_SERVER['SERVER_NAME'];
+
+	if ( '' === $admin_email ) {
+		$admin_email = 'support@' . wp_parse_url( network_home_url(), PHP_URL_HOST );
 	}
-	$from_name       = get_site_option( 'site_name' ) == '' ? 'WordPress' : esc_html( get_site_option( 'site_name' ) );
+
+	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
 	$message_headers = "From: \"{$from_name}\" <{$admin_email}>\n" . 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . "\"\n";
 	$message         = sprintf(
 		/**
@@ -1136,7 +1140,7 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
 }
 
 /**
- * Activate a signup.
+ * Activates a signup.
  *
  * Hook to {@see 'wpmu_activate_user'} or {@see 'wpmu_activate_blog'} for events
  * that should happen only when users or sites are self-created (since
@@ -1208,6 +1212,7 @@ function wpmu_activate_signup( $key ) {
 		 * @param array  $meta     Signup meta data.
 		 */
 		do_action( 'wpmu_activate_user', $user_id, $password, $meta );
+
 		return array(
 			'user_id'  => $user_id,
 			'password' => $password,
@@ -1224,7 +1229,7 @@ function wpmu_activate_signup( $key ) {
 		 * failed in between creating the blog and setting the activation flag.
 		 * Let's just set the active flag and instruct the user to reset their password.
 		 */
-		if ( 'blog_taken' == $blog_id->get_error_code() ) {
+		if ( 'blog_taken' === $blog_id->get_error_code() ) {
 			$blog_id->add_data( $signup );
 			$wpdb->update(
 				$wpdb->signups,
@@ -1246,6 +1251,7 @@ function wpmu_activate_signup( $key ) {
 		),
 		array( 'activation_key' => $key )
 	);
+
 	/**
 	 * Fires immediately after a site is activated.
 	 *
@@ -1253,7 +1259,7 @@ function wpmu_activate_signup( $key ) {
 	 *
 	 * @param int    $blog_id       Blog ID.
 	 * @param int    $user_id       User ID.
-	 * @param int    $password      User password.
+	 * @param string $password      User password.
 	 * @param string $signup_title  Site title.
 	 * @param array  $meta          Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
@@ -1269,12 +1275,27 @@ function wpmu_activate_signup( $key ) {
 }
 
 /**
- * Create a user.
+ * Deletes an associated signup entry when a user is deleted from the database.
+ *
+ * @since 5.5.0
+ *
+ * @param int      $id       ID of the user to delete.
+ * @param int|null $reassign ID of the user to reassign posts and links to.
+ * @param WP_User  $user     User object.
+ */
+function wp_delete_signup_on_user_delete( $id, $reassign, $user ) {
+	global $wpdb;
+
+	$wpdb->delete( $wpdb->signups, array( 'user_login' => $user->user_login ) );
+}
+
+/**
+ * Creates a user.
  *
  * This function runs when a user self-registers as well as when
  * a Super Admin creates a new user. Hook to {@see 'wpmu_new_user'} for events
  * that should affect all new users, but only on Multisite (otherwise
- * use {@see'user_register'}).
+ * use {@see 'user_register'}).
  *
  * @since MU (3.0.0)
  *
@@ -1308,7 +1329,7 @@ function wpmu_create_user( $user_name, $password, $email ) {
 }
 
 /**
- * Create a site.
+ * Creates a site.
  *
  * This function runs when a user self-registers a new site as well
  * as when a Super Admin creates a new site. Hook to {@see 'wpmu_new_blog'}
@@ -1351,7 +1372,7 @@ function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(),
 		wp_installing( true );
 	}
 
-	$site_data_whitelist = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+	$allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
 
 	$site_data = array_merge(
 		array(
@@ -1359,14 +1380,14 @@ function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(),
 			'path'       => $path,
 			'network_id' => $network_id,
 		),
-		array_intersect_key( $options, array_flip( $site_data_whitelist ) )
+		array_intersect_key( $options, array_flip( $allowed_data_fields ) )
 	);
 
 	// Data to pass to wp_initialize_site().
 	$site_initialization_data = array(
 		'title'   => $title,
 		'user_id' => $user_id,
-		'options' => array_diff_key( $options, array_flip( $site_data_whitelist ) ),
+		'options' => array_diff_key( $options, array_flip( $allowed_data_fields ) ),
 	);
 
 	$blog_id = wp_insert_site( array_merge( $site_data, $site_initialization_data ) );
@@ -1398,11 +1419,12 @@ function newblog_notify_siteadmin( $blog_id, $deprecated = '' ) {
 		$blog_id = $blog_id->blog_id;
 	}
 
-	if ( get_site_option( 'registrationnotification' ) != 'yes' ) {
+	if ( 'yes' !== get_site_option( 'registrationnotification' ) ) {
 		return false;
 	}
 
 	$email = get_site_option( 'admin_email' );
+
 	if ( is_email( $email ) == false ) {
 		return false;
 	}
@@ -1435,8 +1457,8 @@ Disable these notifications: %4$s'
 	 * @since MU (3.0.0)
 	 * @since 5.4.0 The `$blog_id` parameter was added.
 	 *
-	 * @param string $msg     Email body.
-	 * @param int    $blog_id The new site's ID.
+	 * @param string     $msg     Email body.
+	 * @param int|string $blog_id The new site's ID as an integer or numeric string.
 	 */
 	$msg = apply_filters( 'newblog_notify_siteadmin', $msg, $blog_id );
 
@@ -1458,7 +1480,7 @@ Disable these notifications: %4$s'
  * @return bool
  */
 function newuser_notify_siteadmin( $user_id ) {
-	if ( get_site_option( 'registrationnotification' ) != 'yes' ) {
+	if ( 'yes' !== get_site_option( 'registrationnotification' ) ) {
 		return false;
 	}
 
@@ -1548,7 +1570,7 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
 }
 
 /**
- * Notify a user that their blog activation has been successful.
+ * Notifies the site administrator that their site activation was successful.
  *
  * Filter {@see 'wpmu_welcome_notification'} to disable or bypass.
  *
@@ -1557,28 +1579,28 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
  *
  * @since MU (3.0.0)
  *
- * @param int    $blog_id  Blog ID.
+ * @param int    $blog_id  Site ID.
  * @param int    $user_id  User ID.
- * @param string $password User password.
+ * @param string $password User password, or "N/A" if the user account is not new.
  * @param string $title    Site title.
  * @param array  $meta     Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
- * @return bool
+ * @return bool Whether the email notification was sent.
  */
 function wpmu_welcome_notification( $blog_id, $user_id, $password, $title, $meta = array() ) {
 	$current_network = get_network();
 
 	/**
-	 * Filters whether to bypass the welcome email after site activation.
+	 * Filters whether to bypass the welcome email sent to the site administrator after site activation.
 	 *
 	 * Returning false disables the welcome email.
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param int|bool $blog_id  Blog ID.
-	 * @param int      $user_id  User ID.
-	 * @param string   $password User password.
-	 * @param string   $title    Site title.
-	 * @param array    $meta     Signup meta data. By default, contains the requested privacy setting and lang_id.
+	 * @param int|false $blog_id  Site ID, or false to prevent the email from sending.
+	 * @param int       $user_id  User ID of the site administrator.
+	 * @param string    $password User password, or "N/A" if the user account is not new.
+	 * @param string    $title    Site title.
+	 * @param array     $meta     Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
 	if ( ! apply_filters( 'wpmu_welcome_notification', $blog_id, $user_id, $password, $title, $meta ) ) {
 		return false;
@@ -1618,27 +1640,28 @@ We hope you enjoy your new site. Thanks!
 	$welcome_email = str_replace( 'PASSWORD', $password, $welcome_email );
 
 	/**
-	 * Filters the content of the welcome email after site activation.
+	 * Filters the content of the welcome email sent to the site administrator after site activation.
 	 *
 	 * Content should be formatted for transmission via wp_mail().
 	 *
 	 * @since MU (3.0.0)
 	 *
 	 * @param string $welcome_email Message body of the email.
-	 * @param int    $blog_id       Blog ID.
-	 * @param int    $user_id       User ID.
-	 * @param string $password      User password.
+	 * @param int    $blog_id       Site ID.
+	 * @param int    $user_id       User ID of the site administrator.
+	 * @param string $password      User password, or "N/A" if the user account is not new.
 	 * @param string $title         Site title.
 	 * @param array  $meta          Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
 	$welcome_email = apply_filters( 'update_welcome_email', $welcome_email, $blog_id, $user_id, $password, $title, $meta );
-	$admin_email   = get_site_option( 'admin_email' );
 
-	if ( '' == $admin_email ) {
-		$admin_email = 'support@' . $_SERVER['SERVER_NAME'];
+	$admin_email = get_site_option( 'admin_email' );
+
+	if ( '' === $admin_email ) {
+		$admin_email = 'support@' . wp_parse_url( network_home_url(), PHP_URL_HOST );
 	}
 
-	$from_name       = get_site_option( 'site_name' ) == '' ? 'WordPress' : esc_html( get_site_option( 'site_name' ) );
+	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
 	$message_headers = "From: \"{$from_name}\" <{$admin_email}>\n" . 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . "\"\n";
 	$message         = $welcome_email;
 
@@ -1650,7 +1673,7 @@ We hope you enjoy your new site. Thanks!
 	$subject = __( 'New %1$s Site: %2$s' );
 
 	/**
-	 * Filters the subject of the welcome email after site activation.
+	 * Filters the subject of the welcome email sent to the site administrator after site activation.
 	 *
 	 * @since MU (3.0.0)
 	 *
@@ -1668,7 +1691,121 @@ We hope you enjoy your new site. Thanks!
 }
 
 /**
- * Notify a user that their account activation has been successful.
+ * Notifies the Multisite network administrator that a new site was created.
+ *
+ * Filter {@see 'send_new_site_email'} to disable or bypass.
+ *
+ * Filter {@see 'new_site_email'} to filter the contents.
+ *
+ * @since 5.6.0
+ *
+ * @param int $site_id Site ID of the new site.
+ * @param int $user_id User ID of the administrator of the new site.
+ * @return bool Whether the email notification was sent.
+ */
+function wpmu_new_site_admin_notification( $site_id, $user_id ) {
+	$site  = get_site( $site_id );
+	$user  = get_userdata( $user_id );
+	$email = get_site_option( 'admin_email' );
+
+	if ( ! $site || ! $user || ! $email ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether to send an email to the Multisite network administrator when a new site is created.
+	 *
+	 * Return false to disable sending the email.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param bool    $send Whether to send the email.
+	 * @param WP_Site $site Site object of the new site.
+	 * @param WP_User $user User object of the administrator of the new site.
+	 */
+	if ( ! apply_filters( 'send_new_site_email', true, $site, $user ) ) {
+		return false;
+	}
+
+	$switched_locale = false;
+	$network_admin   = get_user_by( 'email', $email );
+
+	if ( $network_admin ) {
+		// If the network admin email address corresponds to a user, switch to their locale.
+		$switched_locale = switch_to_locale( get_user_locale( $network_admin ) );
+	} else {
+		// Otherwise switch to the locale of the current site.
+		$switched_locale = switch_to_locale( get_locale() );
+	}
+
+	$subject = sprintf(
+		/* translators: New site notification email subject. %s: Network title. */
+		__( '[%s] New Site Created' ),
+		get_network()->site_name
+	);
+
+	$message = sprintf(
+		/* translators: New site notification email. 1: User login, 2: Site URL, 3: Site title. */
+		__(
+			'New site created by %1$s
+
+Address: %2$s
+Name: %3$s'
+		),
+		$user->user_login,
+		get_site_url( $site->id ),
+		get_blog_option( $site->id, 'blogname' )
+	);
+
+	$header = sprintf(
+		'From: "%1$s" <%2$s>',
+		_x( 'Site Admin', 'email "From" field' ),
+		$email
+	);
+
+	$new_site_email = array(
+		'to'      => $email,
+		'subject' => $subject,
+		'message' => $message,
+		'headers' => $header,
+	);
+
+	/**
+	 * Filters the content of the email sent to the Multisite network administrator when a new site is created.
+	 *
+	 * Content should be formatted for transmission via wp_mail().
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $new_site_email {
+	 *     Used to build wp_mail().
+	 *
+	 *     @type string $to      The email address of the recipient.
+	 *     @type string $subject The subject of the email.
+	 *     @type string $message The content of the email.
+	 *     @type string $headers Headers.
+	 * }
+	 * @param WP_Site $site         Site object of the new site.
+	 * @param WP_User $user         User object of the administrator of the new site.
+	 */
+	$new_site_email = apply_filters( 'new_site_email', $new_site_email, $site, $user );
+
+	wp_mail(
+		$new_site_email['to'],
+		wp_specialchars_decode( $new_site_email['subject'] ),
+		$new_site_email['message'],
+		$new_site_email['headers']
+	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	return true;
+}
+
+/**
+ * Notifies a user that their account activation has been successful.
  *
  * Filter {@see 'wpmu_welcome_user_notification'} to disable or bypass.
  *
@@ -1726,11 +1863,11 @@ function wpmu_welcome_user_notification( $user_id, $password, $meta = array() ) 
 
 	$admin_email = get_site_option( 'admin_email' );
 
-	if ( '' == $admin_email ) {
-		$admin_email = 'support@' . $_SERVER['SERVER_NAME'];
+	if ( '' === $admin_email ) {
+		$admin_email = 'support@' . wp_parse_url( network_home_url(), PHP_URL_HOST );
 	}
 
-	$from_name       = get_site_option( 'site_name' ) == '' ? 'WordPress' : esc_html( get_site_option( 'site_name' ) );
+	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
 	$message_headers = "From: \"{$from_name}\" <{$admin_email}>\n" . 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . "\"\n";
 	$message         = $welcome_email;
 
@@ -1760,7 +1897,7 @@ function wpmu_welcome_user_notification( $user_id, $password, $meta = array() ) 
 }
 
 /**
- * Get the current network.
+ * Gets the current network.
  *
  * Returns an object containing the 'id', 'domain', 'path', and 'site_name'
  * properties of the network being viewed.
@@ -1779,7 +1916,7 @@ function get_current_site() {
 }
 
 /**
- * Get a user's most recent post.
+ * Gets a user's most recent post.
  *
  * Walks through each of a user's blogs to find the post with
  * the most recent post_date_gmt.
@@ -1831,12 +1968,12 @@ function get_most_recent_post_of_user( $user_id ) {
 //
 
 /**
- * Check an array of MIME types against a whitelist.
+ * Checks an array of MIME types against a list of allowed types.
  *
  * WordPress ships with a set of allowed upload filetypes,
  * which is defined in wp-includes/functions.php in
  * get_allowed_mime_types(). This function is used to filter
- * that list against the filetype whitelist provided by Multisite
+ * that list against the filetypes allowed provided by Multisite
  * Super Admins at wp-admin/network/settings.php.
  *
  * @since MU (3.0.0)
@@ -1849,7 +1986,7 @@ function check_upload_mimes( $mimes ) {
 	$site_mimes = array();
 	foreach ( $site_exts as $ext ) {
 		foreach ( $mimes as $ext_pattern => $mime ) {
-			if ( '' != $ext && false !== strpos( $ext_pattern, $ext ) ) {
+			if ( '' !== $ext && false !== strpos( $ext_pattern, $ext ) ) {
 				$site_mimes[ $ext_pattern ] = $mime;
 			}
 		}
@@ -1858,7 +1995,7 @@ function check_upload_mimes( $mimes ) {
 }
 
 /**
- * Update a blog's post count.
+ * Updates a blog's post count.
  *
  * WordPress MS stores a blog's post count as an option so as
  * to avoid extraneous COUNTs when a blog's details are fetched
@@ -1920,7 +2057,6 @@ function wpmu_log_new_registrations( $blog_id, $user_id ) {
  * @see term_id_filter
  *
  * @global wpdb $wpdb WordPress database abstraction object.
- * @staticvar int $global_terms_recurse
  *
  * @param int    $term_id    An ID for a term on the current blog.
  * @param string $deprecated Not used.
@@ -1943,7 +2079,7 @@ function global_terms( $term_id, $deprecated = '' ) {
 		return $term_id;
 	}
 
-	$term_id = intval( $term_id );
+	$term_id = (int) $term_id;
 	$c       = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms WHERE term_id = %d", $term_id ) );
 
 	$global_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM $wpdb->sitecategories WHERE category_nicename = %s", $c->slug ) );
@@ -2005,7 +2141,7 @@ function global_terms( $term_id, $deprecated = '' ) {
 }
 
 /**
- * Ensure that the current site's domain is listed in the allowed redirect host list.
+ * Ensures that the current site's domain is listed in the allowed redirect host list.
  *
  * @see wp_validate_redirect()
  * @since MU (3.0.0)
@@ -2022,7 +2158,7 @@ function redirect_this_site( $deprecated = '' ) {
 }
 
 /**
- * Check whether an upload is too big.
+ * Checks whether an upload is too big.
  *
  * @since MU (3.0.0)
  *
@@ -2045,7 +2181,7 @@ function upload_is_file_too_big( $upload ) {
 }
 
 /**
- * Add a nonce field to the signup page.
+ * Adds a nonce field to the signup page.
  *
  * @since MU (3.0.0)
  */
@@ -2056,7 +2192,7 @@ function signup_nonce_fields() {
 }
 
 /**
- * Process the signup nonce created in signup_nonce_fields().
+ * Processes the signup nonce created in signup_nonce_fields().
  *
  * @since MU (3.0.0)
  *
@@ -2076,7 +2212,7 @@ function signup_nonce_check( $result ) {
 }
 
 /**
- * Correct 404 redirects when NOBLOGREDIRECT is defined.
+ * Corrects 404 redirects when NOBLOGREDIRECT is defined.
  *
  * @since MU (3.0.0)
  */
@@ -2092,18 +2228,20 @@ function maybe_redirect_404() {
 		 * @param string $no_blog_redirect The redirect URL defined in NOBLOGREDIRECT.
 		 */
 		$destination = apply_filters( 'blog_redirect_404', NOBLOGREDIRECT );
+
 		if ( $destination ) {
 			if ( '%siteurl%' === $destination ) {
 				$destination = network_home_url();
 			}
+
 			wp_redirect( $destination );
-			exit();
+			exit;
 		}
 	}
 }
 
 /**
- * Add a new user to a blog by visiting /newbloguser/{key}/.
+ * Adds a new user to a blog by visiting /newbloguser/{key}/.
  *
  * This will only work when the user's details are saved as an option
  * keyed as 'new_user_{key}', where '{key}' is a hash generated for the user to be
@@ -2119,7 +2257,7 @@ function maybe_add_existing_user_to_blog() {
 	$parts = explode( '/', $_SERVER['REQUEST_URI'] );
 	$key   = array_pop( $parts );
 
-	if ( '' == $key ) {
+	if ( '' === $key ) {
 		$key = array_pop( $parts );
 	}
 
@@ -2132,7 +2270,7 @@ function maybe_add_existing_user_to_blog() {
 		wp_die(
 			sprintf(
 				/* translators: %s: Home URL. */
-				__( 'An error occurred adding you to this site. Back to the <a href="%s">homepage</a>.' ),
+				__( 'An error occurred adding you to this site. Go to the <a href="%s">homepage</a>.' ),
 				home_url()
 			)
 		);
@@ -2151,11 +2289,16 @@ function maybe_add_existing_user_to_blog() {
 }
 
 /**
- * Add a user to a blog based on details from maybe_add_existing_user_to_blog().
+ * Adds a user to a blog based on details from maybe_add_existing_user_to_blog().
  *
  * @since MU (3.0.0)
  *
- * @param array $details User details.
+ * @param array|false $details {
+ *     User details. Must at least contain values for the keys listed below.
+ *
+ *     @type int    $user_id The ID of the user being added to the current blog.
+ *     @type string $role    The role to be assigned to the user.
+ * }
  * @return true|WP_Error|void True on success or a WP_Error object if the user doesn't exist
  *                            or could not be added. Void if $details array was not provided.
  */
@@ -2186,6 +2329,7 @@ function add_existing_user_to_blog( $details = false ) {
  * is specifically hooked into the {@see 'wpmu_activate_user'} action.
  *
  * @since MU (3.0.0)
+ *
  * @see add_user_to_blog()
  *
  * @param int    $user_id  User ID.
@@ -2207,7 +2351,7 @@ function add_new_user_to_blog( $user_id, $password, $meta ) {
 }
 
 /**
- * Correct From host on outgoing mail to match the site domain
+ * Corrects From host on outgoing mail to match the site domain
  *
  * @since MU (3.0.0)
  *
@@ -2218,7 +2362,7 @@ function fix_phpmailer_messageid( $phpmailer ) {
 }
 
 /**
- * Check to see whether a user is marked as a spammer, based on user login.
+ * Determines whether a user is marked as a spammer, based on user login.
  *
  * @since MU (3.0.0)
  *
@@ -2239,7 +2383,7 @@ function is_user_spammy( $user = null ) {
 }
 
 /**
- * Update this blog's 'public' setting in the global blogs table.
+ * Updates this blog's 'public' setting in the global blogs table.
  *
  * Public blogs have a setting of 1, private blogs are 0.
  *
@@ -2253,7 +2397,7 @@ function update_blog_public( $old_value, $value ) {
 }
 
 /**
- * Check whether users can self-register, based on Network settings.
+ * Determines whether users can self-register, based on Network settings.
  *
  * @since MU (3.0.0)
  *
@@ -2265,7 +2409,7 @@ function users_can_register_signup_filter() {
 }
 
 /**
- * Ensure that the welcome message is not empty. Currently unused.
+ * Ensures that the welcome message is not empty. Currently unused.
  *
  * @since MU (3.0.0)
  *
@@ -2297,11 +2441,9 @@ Thanks!
 }
 
 /**
- * Whether to force SSL on content.
+ * Determines whether to force SSL on content.
  *
  * @since 2.8.5
- *
- * @staticvar bool $forced_content
  *
  * @param bool $force
  * @return bool True if forced, false if not forced.
@@ -2309,7 +2451,7 @@ Thanks!
 function force_ssl_content( $force = '' ) {
 	static $forced_content = false;
 
-	if ( '' != $force ) {
+	if ( ! $force ) {
 		$old_forced     = $forced_content;
 		$forced_content = $force;
 		return $old_forced;
@@ -2341,7 +2483,7 @@ function filter_SSL( $url ) {  // phpcs:ignore WordPress.NamingConventions.Valid
 }
 
 /**
- * Schedule update of the network-wide counts for the current network.
+ * Schedules update of the network-wide counts for the current network.
  *
  * @since 3.1.0
  */
@@ -2356,7 +2498,7 @@ function wp_schedule_update_network_counts() {
 }
 
 /**
- * Update the network-wide counts for the current network.
+ * Updates the network-wide counts for the current network.
  *
  * @since 3.1.0
  * @since 4.8.0 The `$network_id` parameter has been added.
@@ -2369,7 +2511,7 @@ function wp_update_network_counts( $network_id = null ) {
 }
 
 /**
- * Update the count of sites for the current network.
+ * Updates the count of sites for the current network.
  *
  * If enabled through the {@see 'enable_live_network_counts'} filter, update the sites count
  * on a network when a site is created or its status is updated.
@@ -2400,7 +2542,7 @@ function wp_maybe_update_network_site_counts( $network_id = null ) {
 }
 
 /**
- * Update the network-wide users count.
+ * Updates the network-wide users count.
  *
  * If enabled through the {@see 'enable_live_network_counts'} filter, update the users count
  * on a network when a user is created or its status is updated.
@@ -2422,7 +2564,7 @@ function wp_maybe_update_network_user_counts( $network_id = null ) {
 }
 
 /**
- * Update the network-wide site count.
+ * Updates the network-wide site count.
  *
  * @since 3.7.0
  * @since 4.8.0 The `$network_id` parameter has been added.
@@ -2450,20 +2592,16 @@ function wp_update_network_site_counts( $network_id = null ) {
 }
 
 /**
- * Update the network-wide user count.
+ * Updates the network-wide user count.
  *
  * @since 3.7.0
  * @since 4.8.0 The `$network_id` parameter has been added.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @since 6.0.0 This function is now a wrapper for wp_update_user_counts().
  *
  * @param int|null $network_id ID of the network. Default is the current network.
  */
 function wp_update_network_user_counts( $network_id = null ) {
-	global $wpdb;
-
-	$count = $wpdb->get_var( "SELECT COUNT(ID) as c FROM $wpdb->users WHERE spam = '0' AND deleted = '0'" );
-	update_network_option( $network_id, 'user_count', $count );
+	wp_update_user_counts( $network_id );
 }
 
 /**
@@ -2482,6 +2620,7 @@ function get_space_used() {
 	 * @param int|false $space_used The amount of used space, in megabytes. Default false.
 	 */
 	$space_used = apply_filters( 'pre_get_space_used', false );
+
 	if ( false === $space_used ) {
 		$upload_dir = wp_upload_dir();
 		$space_used = get_dirsize( $upload_dir['basedir'] ) / MB_IN_BYTES;
@@ -2563,8 +2702,8 @@ function is_upload_space_available() {
  *
  * @since 3.0.0
  *
- * @param  int $size Upload size limit in bytes.
- * @return int       Upload size limit in bytes.
+ * @param int $size Upload size limit in bytes.
+ * @return int Upload size limit in bytes.
  */
 function upload_size_limit_filter( $size ) {
 	$fileupload_maxk = KB_IN_BYTES * get_site_option( 'fileupload_maxk', 1500 );
@@ -2576,7 +2715,7 @@ function upload_size_limit_filter( $size ) {
 }
 
 /**
- * Whether or not we have a large network.
+ * Determines whether or not we have a large network.
  *
  * The default criteria for a large network is either more than 10,000 users or more than 10,000 sites.
  * Plugins can alter this criteria using the {@see 'wp_is_large_network'} filter.
@@ -2594,8 +2733,11 @@ function wp_is_large_network( $using = 'sites', $network_id = null ) {
 		$network_id = get_current_network_id();
 	}
 
-	if ( 'users' == $using ) {
+	if ( 'users' === $using ) {
 		$count = get_user_count( $network_id );
+
+		$is_large_network = wp_is_large_user_count( $network_id );
+
 		/**
 		 * Filters whether the network is considered large.
 		 *
@@ -2607,10 +2749,11 @@ function wp_is_large_network( $using = 'sites', $network_id = null ) {
 		 * @param int    $count            The count of items for the component.
 		 * @param int    $network_id       The ID of the network being checked.
 		 */
-		return apply_filters( 'wp_is_large_network', $count > 10000, 'users', $count, $network_id );
+		return apply_filters( 'wp_is_large_network', $is_large_network, 'users', $count, $network_id );
 	}
 
 	$count = get_blog_count( $network_id );
+
 	/** This filter is documented in wp-includes/ms-functions.php */
 	return apply_filters( 'wp_is_large_network', $count > 10000, 'sites', $count, $network_id );
 }
@@ -2649,7 +2792,7 @@ function get_subdirectory_reserved_names() {
 }
 
 /**
- * Send a confirmation request email when a change of network admin email address is attempted.
+ * Sends a confirmation request email when a change of network admin email address is attempted.
  *
  * The new network admin address will not become active until confirmed.
  *
@@ -2737,7 +2880,7 @@ All at ###SITENAME###
 }
 
 /**
- * Send an email to the old network admin email address when the network admin email address changes.
+ * Sends an email to the old network admin email address when the network admin email address changes.
  *
  * @since 4.9.0
  *
@@ -2801,18 +2944,18 @@ All at ###SITENAME###
 	 * @since 4.9.0
 	 *
 	 * @param array $email_change_email {
-	 *            Used to build wp_mail().
+	 *     Used to build wp_mail().
 	 *
-	 *            @type string $to      The intended recipient.
-	 *            @type string $subject The subject of the email.
-	 *            @type string $message The content of the email.
-	 *                The following strings have a special meaning and will get replaced dynamically:
-	 *                - ###OLD_EMAIL### The old network admin email address.
-	 *                - ###NEW_EMAIL### The new network admin email address.
-	 *                - ###SITENAME###  The name of the network.
-	 *                - ###SITEURL###   The URL to the site.
-	 *            @type string $headers Headers.
-	 *        }
+	 *     @type string $to      The intended recipient.
+	 *     @type string $subject The subject of the email.
+	 *     @type string $message The content of the email.
+	 *         The following strings have a special meaning and will get replaced dynamically:
+	 *         - ###OLD_EMAIL### The old network admin email address.
+	 *         - ###NEW_EMAIL### The new network admin email address.
+	 *         - ###SITENAME###  The name of the network.
+	 *         - ###SITEURL###   The URL to the site.
+	 *     @type string $headers Headers.
+	 * }
 	 * @param string $old_email  The old network admin email address.
 	 * @param string $new_email  The new network admin email address.
 	 * @param int    $network_id ID of the network.

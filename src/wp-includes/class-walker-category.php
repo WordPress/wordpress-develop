@@ -30,7 +30,7 @@ class Walker_Category extends Walker {
 	 * Database fields to use.
 	 *
 	 * @since 2.1.0
-	 * @var array
+	 * @var string[]
 	 *
 	 * @see Walker::$db_fields
 	 * @todo Decouple this
@@ -53,7 +53,7 @@ class Walker_Category extends Walker {
 	 *                       value is 'list'. See wp_list_categories(). Default empty array.
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( 'list' != $args['style'] ) {
+		if ( 'list' !== $args['style'] ) {
 			return;
 		}
 
@@ -74,7 +74,7 @@ class Walker_Category extends Walker {
 	 *                       value is 'list'. See wp_list_categories(). Default empty array.
 	 */
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( 'list' != $args['style'] ) {
+		if ( 'list' !== $args['style'] ) {
 			return;
 		}
 
@@ -86,16 +86,22 @@ class Walker_Category extends Walker {
 	 * Starts the element output.
 	 *
 	 * @since 2.1.0
+	 * @since 5.9.0 Renamed `$category` to `$data_object` and `$id` to `$current_object_id`
+	 *              to match parent class for PHP 8 named parameter support.
 	 *
 	 * @see Walker::start_el()
 	 *
-	 * @param string $output   Used to append additional content (passed by reference).
-	 * @param object $category Category data object.
-	 * @param int    $depth    Optional. Depth of category in reference to parents. Default 0.
-	 * @param array  $args     Optional. An array of arguments. See wp_list_categories(). Default empty array.
-	 * @param int    $id       Optional. ID of the current category. Default 0.
+	 * @param string  $output            Used to append additional content (passed by reference).
+	 * @param WP_Term $data_object       Category data object.
+	 * @param int     $depth             Optional. Depth of category in reference to parents. Default 0.
+	 * @param array   $args              Optional. An array of arguments. See wp_list_categories().
+	 *                                   Default empty array.
+	 * @param int     $current_object_id Optional. ID of the current category. Default 0.
 	 */
-	public function start_el( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$category = $data_object;
+
 		/** This filter is documented in wp-includes/category-template.php */
 		$cat_name = apply_filters( 'list_cats', esc_attr( $category->name ), $category );
 
@@ -113,8 +119,8 @@ class Walker_Category extends Walker {
 			 *
 			 * @since 1.2.0
 			 *
-			 * @param string $description Category description.
-			 * @param object $category    Category object.
+			 * @param string  $description Category description.
+			 * @param WP_Term $category    Category object.
 			 */
 			$atts['title'] = strip_tags( apply_filters( 'category_description', $category->description, $category ) );
 		}
@@ -130,12 +136,12 @@ class Walker_Category extends Walker {
 		 *     @type string $href  The href attribute.
 		 *     @type string $title The title attribute.
 		 * }
-		 * @param WP_Term $category Term data object.
-		 * @param int     $depth    Depth of category, used for padding.
-		 * @param array   $args     An array of arguments.
-		 * @param int     $id       ID of the current category.
+		 * @param WP_Term $category          Term data object.
+		 * @param int     $depth             Depth of category, used for padding.
+		 * @param array   $args              An array of arguments.
+		 * @param int     $current_object_id ID of the current category.
 		 */
-		$atts = apply_filters( 'category_list_link_attributes', $atts, $category, $depth, $args, $id );
+		$atts = apply_filters( 'category_list_link_attributes', $atts, $category, $depth, $args, $current_object_id );
 
 		$attributes = '';
 		foreach ( $atts as $attr => $value ) {
@@ -158,7 +164,7 @@ class Walker_Category extends Walker {
 				$link .= '(';
 			}
 
-			$link .= '<a href="' . esc_url( get_term_feed_link( $category->term_id, $category->taxonomy, $args['feed_type'] ) ) . '"';
+			$link .= '<a href="' . esc_url( get_term_feed_link( $category, $category->taxonomy, $args['feed_type'] ) ) . '"';
 
 			if ( empty( $args['feed'] ) ) {
 				/* translators: %s: Category name. */
@@ -186,7 +192,7 @@ class Walker_Category extends Walker {
 		if ( ! empty( $args['show_count'] ) ) {
 			$link .= ' (' . number_format_i18n( $category->count ) . ')';
 		}
-		if ( 'list' == $args['style'] ) {
+		if ( 'list' === $args['style'] ) {
 			$output     .= "\t<li";
 			$css_classes = array(
 				'cat-item',
@@ -227,10 +233,10 @@ class Walker_Category extends Walker {
 			 *
 			 * @see wp_list_categories()
 			 *
-			 * @param array  $css_classes An array of CSS classes to be applied to each list item.
-			 * @param object $category    Category data object.
-			 * @param int    $depth       Depth of page, used for padding.
-			 * @param array  $args        An array of wp_list_categories() arguments.
+			 * @param string[] $css_classes An array of CSS classes to be applied to each list item.
+			 * @param WP_Term  $category    Category data object.
+			 * @param int      $depth       Depth of page, used for padding.
+			 * @param array    $args        An array of wp_list_categories() arguments.
 			 */
 			$css_classes = implode( ' ', apply_filters( 'category_css_class', $css_classes, $category, $depth, $args ) );
 			$css_classes = $css_classes ? ' class="' . esc_attr( $css_classes ) . '"' : '';
@@ -248,17 +254,18 @@ class Walker_Category extends Walker {
 	 * Ends the element output, if needed.
 	 *
 	 * @since 2.1.0
+	 * @since 5.9.0 Renamed `$page` to `$data_object` to match parent class for PHP 8 named parameter support.
 	 *
 	 * @see Walker::end_el()
 	 *
-	 * @param string $output Used to append additional content (passed by reference).
-	 * @param object $page   Not used.
-	 * @param int    $depth  Optional. Depth of category. Not used.
-	 * @param array  $args   Optional. An array of arguments. Only uses 'list' for whether should append
-	 *                       to output. See wp_list_categories(). Default empty array.
+	 * @param string $output      Used to append additional content (passed by reference).
+	 * @param object $data_object Category data object. Not used.
+	 * @param int    $depth       Optional. Depth of category. Not used.
+	 * @param array  $args        Optional. An array of arguments. Only uses 'list' for whether should
+	 *                            append to output. See wp_list_categories(). Default empty array.
 	 */
-	public function end_el( &$output, $page, $depth = 0, $args = array() ) {
-		if ( 'list' != $args['style'] ) {
+	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
+		if ( 'list' !== $args['style'] ) {
 			return;
 		}
 

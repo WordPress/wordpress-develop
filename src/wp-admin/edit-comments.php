@@ -24,14 +24,14 @@ $doaction = $wp_list_table->current_action();
 if ( $doaction ) {
 	check_admin_referer( 'bulk-comments' );
 
-	if ( 'delete_all' == $doaction && ! empty( $_REQUEST['pagegen_timestamp'] ) ) {
+	if ( 'delete_all' === $doaction && ! empty( $_REQUEST['pagegen_timestamp'] ) ) {
 		$comment_status = wp_unslash( $_REQUEST['comment_status'] );
 		$delete_time    = wp_unslash( $_REQUEST['pagegen_timestamp'] );
 		$comment_ids    = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_approved = %s AND %s > comment_date_gmt", $comment_status, $delete_time ) );
 		$doaction       = 'delete';
 	} elseif ( isset( $_REQUEST['delete_comments'] ) ) {
 		$comment_ids = $_REQUEST['delete_comments'];
-		$doaction    = ( -1 != $_REQUEST['action'] ) ? $_REQUEST['action'] : $_REQUEST['action2'];
+		$doaction    = $_REQUEST['action'];
 	} elseif ( isset( $_REQUEST['ids'] ) ) {
 		$comment_ids = array_map( 'absint', explode( ',', $_REQUEST['ids'] ) );
 	} elseif ( wp_get_referer() ) {
@@ -120,7 +120,7 @@ if ( $doaction ) {
 		$redirect_to = add_query_arg( 'deleted', $deleted, $redirect_to );
 	}
 	if ( $trashed || $spammed ) {
-		$redirect_to = add_query_arg( 'ids', join( ',', $comment_ids ), $redirect_to );
+		$redirect_to = add_query_arg( 'ids', implode( ',', $comment_ids ), $redirect_to );
 	}
 
 	wp_safe_redirect( $redirect_to );
@@ -138,7 +138,9 @@ enqueue_comment_hotkeys_js();
 if ( $post_id ) {
 	$comments_count      = wp_count_comments( $post_id );
 	$draft_or_post_title = wp_html_excerpt( _draft_or_post_title( $post_id ), 50, '&hellip;' );
+
 	if ( $comments_count->moderated > 0 ) {
+		// Used in the HTML title tag.
 		$title = sprintf(
 			/* translators: 1: Comments count, 2: Post title. */
 			__( 'Comments (%1$s) on &#8220;%2$s&#8221;' ),
@@ -146,6 +148,7 @@ if ( $post_id ) {
 			$draft_or_post_title
 		);
 	} else {
+		// Used in the HTML title tag.
 		$title = sprintf(
 			/* translators: %s: Post title. */
 			__( 'Comments on &#8220;%s&#8221;' ),
@@ -154,13 +157,16 @@ if ( $post_id ) {
 	}
 } else {
 	$comments_count = wp_count_comments();
+
 	if ( $comments_count->moderated > 0 ) {
+		// Used in the HTML title tag.
 		$title = sprintf(
 			/* translators: %s: Comments count. */
 			__( 'Comments (%s)' ),
 			number_format_i18n( $comments_count->moderated )
 		);
 	} else {
+		// Used in the HTML title tag.
 		$title = __( 'Comments' );
 	}
 }
@@ -172,7 +178,7 @@ get_current_screen()->add_help_tab(
 		'id'      => 'overview',
 		'title'   => __( 'Overview' ),
 		'content' =>
-				'<p>' . __( 'You can manage comments made on your site similar to the way you manage posts and other content. This screen is customizable in the same ways as other management screens, and you can act on comments using the on-hover action links or the Bulk Actions.' ) . '</p>',
+				'<p>' . __( 'You can manage comments made on your site similar to the way you manage posts and other content. This screen is customizable in the same ways as other management screens, and you can act on comments using the on-hover action links or the bulk actions.' ) . '</p>',
 	)
 );
 get_current_screen()->add_help_tab(
@@ -183,8 +189,8 @@ get_current_screen()->add_help_tab(
 					'<p>' . __( 'A red bar on the left means the comment is waiting for you to moderate it.' ) . '</p>' .
 					'<p>' . __( 'In the <strong>Author</strong> column, in addition to the author&#8217;s name, email address, and blog URL, the commenter&#8217;s IP address is shown. Clicking on this link will show you all the comments made from this IP address.' ) . '</p>' .
 					'<p>' . __( 'In the <strong>Comment</strong> column, hovering over any comment gives you options to approve, reply (and approve), quick edit, edit, spam mark, or trash that comment.' ) . '</p>' .
-					'<p>' . __( 'In the <strong>In Response To</strong> column, there are three elements. The text is the name of the post that inspired the comment, and links to the post editor for that entry. The View Post link leads to that post on your live site. The small bubble with the number in it shows the number of approved comments that post has received. If there are pending comments, a red notification circle with the number of pending comments is displayed. Clicking the notification circle will filter the comments screen to show only pending comments on that post.' ) . '</p>' .
-					'<p>' . __( 'In the <strong>Submitted On</strong> column, the date and time the comment was left on your site appears. Clicking on the date/time link will take you to that comment on your live site.' ) . '</p>' .
+					'<p>' . __( 'In the <strong>In response to</strong> column, there are three elements. The text is the name of the post that inspired the comment, and links to the post editor for that entry. The View Post link leads to that post on your live site. The small bubble with the number in it shows the number of approved comments that post has received. If there are pending comments, a red notification circle with the number of pending comments is displayed. Clicking the notification circle will filter the comments screen to show only pending comments on that post.' ) . '</p>' .
+					'<p>' . __( 'In the <strong>Submitted on</strong> column, the date and time the comment was left on your site appears. Clicking on the date/time link will take you to that comment on your live site.' ) . '</p>' .
 					'<p>' . __( 'Many people take advantage of keyboard shortcuts to moderate their comments more quickly. Use the link to the side to learn more.' ) . '</p>',
 	)
 );
@@ -228,12 +234,24 @@ if ( $post_id ) {
 </h1>
 
 <?php
+if ( $post_id ) {
+	$post_type_object = get_post_type_object( get_post_type( $post_id ) );
+
+	if ( $post_type_object ) {
+		printf(
+			'<a href="%1$s" class="comments-view-item-link">%2$s</a>',
+			get_permalink( $post_id ),
+			$post_type_object->labels->view_item
+		);
+	}
+}
+
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 	echo '<span class="subtitle">';
 	printf(
 		/* translators: %s: Search query. */
-		__( 'Search results for &#8220;%s&#8221;' ),
-		wp_html_excerpt( esc_html( wp_unslash( $_REQUEST['s'] ) ), 50, '&hellip;' )
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( wp_unslash( $_REQUEST['s'] ) ) . '</strong>'
 	);
 	echo '</span>';
 }
@@ -329,7 +347,7 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 <?php $wp_list_table->search_box( __( 'Search Comments' ), 'comment' ); ?>
 
 <?php if ( $post_id ) : ?>
-<input type="hidden" name="p" value="<?php echo esc_attr( intval( $post_id ) ); ?>" />
+<input type="hidden" name="p" value="<?php echo esc_attr( (int) $post_id ); ?>" />
 <?php endif; ?>
 <input type="hidden" name="comment_status" value="<?php echo esc_attr( $comment_status ); ?>" />
 <input type="hidden" name="pagegen_timestamp" value="<?php echo esc_attr( current_time( 'mysql', 1 ) ); ?>" />

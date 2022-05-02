@@ -75,7 +75,7 @@ twentytwenty.touchEnabled = {
 
 	init: function() {
 		var matchMedia = function() {
-			// Include the 'heartz' as a way to have a non matching MQ to help terminate the join. See <https://git.io/vznFH>.
+			// Include the 'heartz' as a way to have a non-matching MQ to help terminate the join. See <https://git.io/vznFH>.
 			var prefixes = [ '-webkit-', '-moz-', '-o-', '-ms-' ];
 			var query = [ '(', prefixes.join( 'touch-enabled),(' ), 'heartz', ')' ].join( '' );
 			return window.matchMedia && window.matchMedia( query ).matches;
@@ -136,6 +136,17 @@ twentytwenty.coverModals = {
 		document.addEventListener( 'click', function( event ) {
 			var target = event.target;
 			var modal = document.querySelector( '.cover-modal.active' );
+
+			// if target onclick is <a> with # within the href attribute
+			if ( event.target.tagName.toLowerCase() === 'a' && event.target.hash.includes( '#' ) && modal !== null ) {
+				// untoggle the modal
+				this.untoggleModal( modal );
+				// wait 550 and scroll to the anchor
+				setTimeout( function() {
+					var anchor = document.getElementById( event.target.hash.slice( 1 ) );
+					anchor.scrollIntoView();
+				}, 550 );
+			}
 
 			if ( target === modal ) {
 				this.untoggleModal( target );
@@ -635,6 +646,8 @@ twentytwenty.toggles = {
  *
  * This implementation is coming from https://gomakethings.com/a-native-javascript-equivalent-of-jquerys-ready-method/
  *
+ * @since Twenty Twenty 1.0
+ *
  * @param {Function} fn Callback function to run.
  */
 function twentytwentyDomReady( fn ) {
@@ -665,21 +678,42 @@ twentytwentyDomReady( function() {
 /* Toggle an attribute ----------------------- */
 
 function twentytwentyToggleAttribute( element, attribute, trueVal, falseVal ) {
+	var toggles;
+
+	if ( ! element.hasAttribute( attribute ) ) {
+		return;
+	}
+
 	if ( trueVal === undefined ) {
 		trueVal = true;
 	}
 	if ( falseVal === undefined ) {
 		falseVal = false;
 	}
-	if ( element.getAttribute( attribute ) !== trueVal ) {
-		element.setAttribute( attribute, trueVal );
-	} else {
-		element.setAttribute( attribute, falseVal );
-	}
+
+	/*
+	 * Take into account multiple toggle elements that need their state to be
+	 * synced. For example: the Search toggle buttons for desktop and mobile.
+	 */
+	toggles = document.querySelectorAll( '[data-toggle-target="' + element.dataset.toggleTarget + '"]' );
+
+	toggles.forEach( function( toggle ) {
+		if ( ! toggle.hasAttribute( attribute ) ) {
+			return;
+		}
+
+		if ( toggle.getAttribute( attribute ) !== trueVal ) {
+			toggle.setAttribute( attribute, trueVal );
+		} else {
+			toggle.setAttribute( attribute, falseVal );
+		}
+	} );
 }
 
 /**
  * Toggle a menu item on or off.
+ *
+ * @since Twenty Twenty 1.0
  *
  * @param {HTMLElement} target
  * @param {number} duration
@@ -781,6 +815,8 @@ function twentytwentyMenuToggle( target, duration ) {
 
 /**
  * Traverses the DOM up to find elements matching the query.
+ *
+ * @since Twenty Twenty 1.0
  *
  * @param {HTMLElement} target
  * @param {string} query

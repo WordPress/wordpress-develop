@@ -8,14 +8,14 @@
  */
 
 /**
- * Tests_Privacy_WpPrivacySendErasureFulfillmentNotification class.
+ * Tests_Privacy_wpPrivacySendErasureFulfillmentNotification class.
  *
  * @group privacy
  * @covers ::_wp_privacy_send_erasure_fulfillment_notification
  *
  * @since 5.1.0
  */
-class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitTestCase {
 	/**
 	 * Request ID.
 	 *
@@ -59,7 +59,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$requester_email = 'erase-my-data@local.test';
 		self::$request_user    = $factory->user->create_and_get(
 			array(
@@ -88,8 +88,8 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 *
 	 * @since 5.1.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
@@ -98,10 +98,10 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 *
 	 * @since 5.1.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		reset_phpmailer_instance();
 		restore_previous_locale();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -114,14 +114,14 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertContains( self::$requester_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'Erasure Request Fulfilled', $mailer->get_sent()->subject );
-		$this->assertContains( 'Your request to erase your personal data', $mailer->get_sent()->body );
-		$this->assertContains( 'has been completed.', $mailer->get_sent()->body );
-		$this->assertContains( wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $mailer->get_sent()->body );
-		$this->assertContains( home_url(), $mailer->get_sent()->body );
+		$this->assertStringContainsString( self::$requester_email, $mailer->get_recipient( 'to' )->address );
+		$this->assertStringContainsString( 'Erasure Request Fulfilled', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Your request to erase your personal data', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'has been completed.', $mailer->get_sent()->body );
+		$this->assertStringContainsString( wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $mailer->get_sent()->body );
+		$this->assertStringContainsString( home_url(), $mailer->get_sent()->body );
 
-		$this->assertNotContains( 'you can also read our privacy policy', $mailer->get_sent()->body );
+		$this->assertStringNotContainsString( 'you can also read our privacy policy', $mailer->get_sent()->body );
 		$this->assertTrue( (bool) get_post_meta( self::$request_id, '_wp_user_notified', true ) );
 	}
 
@@ -144,9 +144,9 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( self::$requester_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'you can also read our privacy policy', $mailer->get_sent()->body );
-		$this->assertContains( get_privacy_policy_url(), $mailer->get_sent()->body );
+		$this->assertStringContainsString( self::$requester_email, $mailer->get_recipient( 'to' )->address );
+		$this->assertStringContainsString( 'you can also read our privacy policy', $mailer->get_sent()->body );
+		$this->assertStringContainsString( get_privacy_policy_url(), $mailer->get_sent()->body );
 		$this->assertTrue( (bool) get_post_meta( self::$request_id, '_wp_user_notified', true ) );
 	}
 
@@ -162,8 +162,8 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		// Should send an email.
-		$this->assertContains( self::$requester_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'Erasure Request Fulfilled', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( self::$requester_email, $mailer->get_recipient( 'to' )->address );
+		$this->assertStringContainsString( 'Erasure Request Fulfilled', $mailer->get_sent()->subject );
 		$this->assertTrue( (bool) get_post_meta( self::$request_id, '_wp_user_notified', true ) );
 
 		reset_phpmailer_instance();
@@ -198,7 +198,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.1.0
 	 *
 	 * @param string $user_email The email address of the notification recipient.
-	 * @return string $user_email The email address of the notification recipient.
+	 * @return string The email address of the notification recipient.
 	 */
 	public function filter_email_address( $user_email ) {
 		return 'modified-' . $user_email;
@@ -210,7 +210,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @ticket 44234
 	 */
 	public function test_email_subject_should_be_filterable() {
-		add_filter( 'user_erasure_complete_email_subject', array( $this, 'filter_email_subject' ) );
+		add_filter( 'user_erasure_fulfillment_email_subject', array( $this, 'filter_email_subject' ) );
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
@@ -224,7 +224,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.1.0
 	 *
 	 * @param string $subject The email subject.
-	 * @return string $subject The email subject.
+	 * @return string The email subject.
 	 */
 	public function filter_email_subject( $subject ) {
 		return 'Modified subject';
@@ -236,7 +236,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @ticket 44234
 	 */
 	public function test_email_body_text_should_be_filterable() {
-		add_filter( 'user_confirmed_action_email_content', array( $this, 'filter_email_body_text' ) );
+		add_filter( 'user_erasure_fulfillment_email_content', array( $this, 'filter_email_body_text' ) );
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
@@ -250,7 +250,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.1.0
 	 *
 	 * @param string $email_text Text in the email.
-	 * @return string $email_text Text in the email.
+	 * @return string Text in the email.
 	 */
 	public function filter_email_body_text( $email_text ) {
 		return 'Modified text';
@@ -264,12 +264,12 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @ticket 44501
 	 */
 	public function test_email_headers_should_be_filterable() {
-		add_filter( 'user_erasure_complete_email_headers', array( $this, 'modify_email_headers' ) );
+		add_filter( 'user_erasure_fulfillment_email_headers', array( $this, 'modify_email_headers' ) );
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
+		$this->assertStringContainsString( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
 	}
 
 	/**
@@ -278,7 +278,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.4.0
 	 *
 	 * @param string|array $headers The email headers.
-	 * @return array       $headers The new email headers.
+	 * @return array The new email headers.
 	 */
 	public function modify_email_headers( $headers ) {
 		$headers = array(
@@ -353,7 +353,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Solicitud de borrado completada', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Solicitud de borrado completada', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -374,7 +374,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Löschauftrag ausgeführt', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Löschauftrag ausgeführt', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -395,7 +395,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Solicitud de borrado completada', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Solicitud de borrado completada', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -418,7 +418,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Löschauftrag ausgeführt', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Löschauftrag ausgeführt', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -444,7 +444,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		_wp_privacy_send_erasure_fulfillment_notification( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Erasure Request Fulfilled', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Erasure Request Fulfilled', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -473,6 +473,6 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		_wp_privacy_send_erasure_fulfillment_notification( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Solicitud de borrado completada', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Solicitud de borrado completada', $mailer->get_sent()->subject );
 	}
 }

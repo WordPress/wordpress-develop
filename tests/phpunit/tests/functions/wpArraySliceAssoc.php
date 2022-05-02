@@ -5,13 +5,13 @@
  *
  * @since 5.3.0
  *
- * @covers wp_array_slice_assoc
  * @group functions.php
+ * @covers ::wp_array_slice_assoc
  */
-class Tests_Functions_WpArraySliceAssoc extends WP_UnitTestCase {
+class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
 
 	/**
-	 * Test wp_array_slice_assoc().
+	 * Tests wp_array_slice_assoc().
 	 *
 	 * @dataProvider data_wp_array_slice_assoc_arrays
 	 *
@@ -22,11 +22,11 @@ class Tests_Functions_WpArraySliceAssoc extends WP_UnitTestCase {
 	 * @param array $expected     The expected result.
 	 */
 	public function test_wp_array_slice_assoc( $target_array, $keys, $expected ) {
-		$this->assertSame( wp_array_slice_assoc( $target_array, $keys ), $expected );
+		$this->assertSame( $expected, wp_array_slice_assoc( $target_array, $keys ) );
 	}
 
 	/**
-	 * Test data for wp_array_slice_assoc().
+	 * Data provider for wp_array_slice_assoc().
 	 *
 	 * @return array
 	 */

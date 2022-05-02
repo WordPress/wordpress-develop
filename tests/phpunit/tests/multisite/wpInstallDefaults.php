@@ -8,7 +8,7 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_Install_Defaults extends WP_UnitTestCase {
+	class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 		/**
 		 * @ticket 40036
 		 */
@@ -76,8 +76,8 @@ if ( is_multisite() ) :
 
 			wp_delete_site( $blog_id );
 
-			$this->assertEquals( 'Some page content', $first_page->post_content );
-			$this->assertEquals( 'Some comment content', $first_comment[0]->comment_content );
+			$this->assertSame( 'Some page content', $first_page->post_content );
+			$this->assertSame( 'Some comment content', $first_comment[0]->comment_content );
 		}
 	}
 

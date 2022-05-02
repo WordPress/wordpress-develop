@@ -10,15 +10,15 @@
  */
 class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		wp_set_current_user( self::$author_id );
 	}
 
 	/**
 	 * @dataProvider data_canonical
 	 */
-	function test_canonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
+	public function test_canonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 
 		if ( false !== strpos( $test_url, '%d' ) ) {
 			if ( false !== strpos( $test_url, '/?author=%d' ) ) {
@@ -32,7 +32,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	function data_canonical() {
+	public function data_canonical() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.
@@ -159,12 +159,13 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/2010/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ), // A year the post is not in.
 			array( '/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ),
 
+			// Pagination.
 			array(
-				'/2008/09/03/images-test/3/',
+				'/2008/09/03/multipage-post-test/3/',
 				array(
-					'url' => '/2008/09/03/images-test/3/',
+					'url' => '/2008/09/03/multipage-post-test/3/',
 					'qv'  => array(
-						'name'     => 'images-test',
+						'name'     => 'multipage-post-test',
 						'year'     => '2008',
 						'monthnum' => '09',
 						'day'      => '03',
@@ -172,8 +173,11 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 					),
 				),
 			),
-			array( '/2008/09/03/images-test/?page=3', '/2008/09/03/images-test/3/' ),
-			array( '/2008/09/03/images-te?page=3', '/2008/09/03/images-test/3/' ),
+			array( '/2008/09/03/multipage-post-test/?page=3', '/2008/09/03/multipage-post-test/3/' ),
+			array( '/2008/09/03/multipage-post-te?page=3', '/2008/09/03/multipage-post-test/3/' ),
+
+			array( '/2008/09/03/non-paged-post-test/3/', '/2008/09/03/non-paged-post-test/' ),
+			array( '/2008/09/03/non-paged-post-test/?page=3', '/2008/09/03/non-paged-post-test/' ),
 
 			// Comments.
 			array( '/2008/03/03/comment-test/?cpage=2', '/2008/03/03/comment-test/comment-page-2/' ),
@@ -224,6 +228,132 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 			// @todo Endpoints (feeds, trackbacks, etc). More fuzzed mixed query variables, comment paging, Home page (static).
 		);
+	}
+
+	/**
+	 * @ticket 16557
+	 */
+	public function test_do_redirect_guess_404_permalink() {
+		// Test disable do_redirect_guess_404_permalink().
+		add_filter( 'do_redirect_guess_404_permalink', '__return_false' );
+		$this->go_to( '/child-page-1' );
+		$this->assertFalse( redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * @ticket 16557
+	 */
+	public function test_pre_redirect_guess_404_permalink() {
+		// Test short-circuit filter.
+		add_filter(
+			'pre_redirect_guess_404_permalink',
+			static function() {
+				return 'wp';
+			}
+		);
+		$this->go_to( '/child-page-1' );
+		$this->assertSame( 'wp', redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * @ticket 16557
+	 */
+	public function test_strict_redirect_guess_404_permalink() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'strict-redirect-guess-404-permalink',
+			)
+		);
+
+		$this->go_to( 'strict-redirect' );
+
+		// Test default 'non-strict' redirect guess.
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink() );
+
+		// Test 'strict' redirect guess.
+		add_filter( 'strict_redirect_guess_404_permalink', '__return_true' );
+		$this->assertFalse( redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * Ensure public posts with custom public statuses are guessed.
+	 *
+	 * @ticket 47911
+	 * @dataProvider data_redirect_guess_404_permalink_with_custom_statuses
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_with_custom_statuses( $status_args, $redirects ) {
+		register_post_status( 'custom', $status_args );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_title'  => 'custom-status-public-guess-404-permalink',
+				'post_status' => 'custom',
+			)
+		);
+
+		$this->go_to( 'custom-status-public-guess-404-permalink' );
+
+		$expected = $redirects ? get_permalink( $post ) : false;
+
+		$this->assertSame( $expected, redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * Data provider for test_redirect_guess_404_permalink_with_custom_statuses().
+	 *
+	 * return array[] {
+	 *    array Arguments used to register custom status
+	 *    bool  Whether the 404 link is expected to redirect
+	 * }
+	 */
+	public function data_redirect_guess_404_permalink_with_custom_statuses() {
+		return array(
+			'public status'                      => array(
+				'status_args' => array( 'public' => true ),
+				'redirects'   => true,
+			),
+			'private status'                     => array(
+				'status_args' => array( 'public' => false ),
+				'redirects'   => false,
+			),
+			'internal status'                    => array(
+				'status_args' => array( 'internal' => true ),
+				'redirects'   => false,
+			),
+			'protected status'                   => array(
+				'status_args' => array( 'protected' => true ),
+				'redirects'   => false,
+			),
+			'protected status flagged as public' => array(
+				'status_args' => array(
+					'protected' => true,
+					'public'    => true,
+				),
+				'redirects'   => false,
+			),
+		);
+	}
+
+	/**
+	 * Ensure multiple post types do not throw a notice.
+	 *
+	 * @ticket 43056
+	 */
+	public function test_redirect_guess_404_permalink_post_types() {
+		/*
+		 * Sample-page is intentionally missspelt as sample-pag to ensure
+		 * the 404 post permalink guessing runs.
+		 *
+		 * Please do not correct the apparent typo.
+		 */
+
+		// String format post type.
+		$this->assertCanonical( '/?name=sample-pag&post_type=page', '/sample-page/' );
+		// Array formatted post type or types.
+		$this->assertCanonical( '/?name=sample-pag&post_type[]=page', '/sample-page/' );
+		$this->assertCanonical( '/?name=sample-pag&post_type[]=page&post_type[]=post', '/sample-page/' );
 	}
 
 	/**

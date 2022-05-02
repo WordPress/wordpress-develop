@@ -13,9 +13,9 @@
  * Handles saving and sanitizing of settings.
  *
  * @since 3.4.0
- * @link https://developer.wordpress.org/themes/customize-api
  *
  * @see WP_Customize_Manager
+ * @link https://developer.wordpress.org/themes/customize-api
  */
 class WP_Customize_Setting {
 	/**
@@ -97,7 +97,7 @@ class WP_Customize_Setting {
 	 * Callback to convert a Customize PHP setting value to a value that is JSON serializable.
 	 *
 	 * @since 3.4.0
-	 * @var string
+	 * @var callable
 	 */
 	public $sanitize_js_callback = '';
 
@@ -268,7 +268,7 @@ class WP_Customize_Setting {
 	 * @since 4.5.0
 	 * @ignore
 	 */
-	static public function reset_aggregated_multidimensionals() {
+	public static function reset_aggregated_multidimensionals() {
 		self::$aggregated_multidimensionals = array();
 	}
 
@@ -394,7 +394,7 @@ class WP_Customize_Setting {
 				 *
 				 * @since 3.4.0
 				 *
-				 * @param WP_Customize_Setting $this WP_Customize_Setting instance.
+				 * @param WP_Customize_Setting $setting WP_Customize_Setting instance.
 				 */
 				do_action( "customize_preview_{$this->id}", $this );
 
@@ -406,7 +406,7 @@ class WP_Customize_Setting {
 				 *
 				 * @since 4.1.0
 				 *
-				 * @param WP_Customize_Setting $this WP_Customize_Setting instance.
+				 * @param WP_Customize_Setting $setting WP_Customize_Setting instance.
 				 */
 				do_action( "customize_preview_{$this->type}", $this );
 		}
@@ -513,7 +513,8 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @return void|false False if cap check fails or value isn't set or is invalid.
+	 * @return void|false Void on success, false if cap check fails
+	 *                    or value isn't set or is invalid.
 	 */
 	final public function save() {
 		$value = $this->post_value();
@@ -532,7 +533,7 @@ class WP_Customize_Setting {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Setting $this WP_Customize_Setting instance.
+		 * @param WP_Customize_Setting $setting WP_Customize_Setting instance.
 		 */
 		do_action( "customize_save_{$id_base}", $this );
 
@@ -546,11 +547,11 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param mixed $default A default value which is used as a fallback. Default is null.
+	 * @param mixed $default_value A default value which is used as a fallback. Default null.
 	 * @return mixed The default value on failure, otherwise the sanitized and validated value.
 	 */
-	final public function post_value( $default = null ) {
-		return $this->manager->post_value( $this, $default );
+	final public function post_value( $default_value = null ) {
+		return $this->manager->post_value( $this, $default_value );
 	}
 
 	/**
@@ -558,7 +559,7 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param string|array $value    The value to sanitize.
+	 * @param string|array $value The value to sanitize.
 	 * @return string|array|null|WP_Error Sanitized value, or `null`/`WP_Error` if invalid.
 	 */
 	public function sanitize( $value ) {
@@ -568,8 +569,8 @@ class WP_Customize_Setting {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param mixed                $value Value of the setting.
-		 * @param WP_Customize_Setting $this  WP_Customize_Setting instance.
+		 * @param mixed                $value   Value of the setting.
+		 * @param WP_Customize_Setting $setting WP_Customize_Setting instance.
 		 */
 		return apply_filters( "customize_sanitize_{$this->id}", $value, $this );
 	}
@@ -605,7 +606,7 @@ class WP_Customize_Setting {
 		 *
 		 * @param WP_Error             $validity Filtered from `true` to `WP_Error` when invalid.
 		 * @param mixed                $value    Value of the setting.
-		 * @param WP_Customize_Setting $this     WP_Customize_Setting instance.
+		 * @param WP_Customize_Setting $setting  WP_Customize_Setting instance.
 		 */
 		$validity = apply_filters( "customize_validate_{$this->id}", $validity, $value, $this );
 
@@ -620,22 +621,22 @@ class WP_Customize_Setting {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param mixed $default Value to return if root does not exist.
+	 * @param mixed $default_value Value to return if root does not exist.
 	 * @return mixed
 	 */
-	protected function get_root_value( $default = null ) {
+	protected function get_root_value( $default_value = null ) {
 		$id_base = $this->id_data['base'];
 		if ( 'option' === $this->type ) {
-			return get_option( $id_base, $default );
+			return get_option( $id_base, $default_value );
 		} elseif ( 'theme_mod' === $this->type ) {
-			return get_theme_mod( $id_base, $default );
+			return get_theme_mod( $id_base, $default_value );
 		} else {
 			/*
 			 * Any WP_Customize_Setting subclass implementing aggregate multidimensional
 			 * will need to override this method to obtain the data from the appropriate
 			 * location.
 			 */
-			return $default;
+			return $default_value;
 		}
 	}
 
@@ -696,8 +697,8 @@ class WP_Customize_Setting {
 			 *
 			 * @since 3.4.0
 			 *
-			 * @param mixed                $value Value of the setting.
-			 * @param WP_Customize_Setting $this  WP_Customize_Setting instance.
+			 * @param mixed                $value   Value of the setting.
+			 * @param WP_Customize_Setting $setting WP_Customize_Setting instance.
 			 */
 			do_action( "customize_update_{$this->type}", $value, $this );
 
@@ -760,8 +761,8 @@ class WP_Customize_Setting {
 			 * @since 3.4.0
 			 * @since 4.6.0 Added the `$this` setting instance as the second parameter.
 			 *
-			 * @param mixed                $default The setting default value. Default empty.
-			 * @param WP_Customize_Setting $this    The setting instance.
+			 * @param mixed                $default_value The setting default value. Default empty.
+			 * @param WP_Customize_Setting $setting       The setting instance.
 			 */
 			$value = apply_filters( "customize_value_{$id_base}", $value, $this );
 		} elseif ( $this->is_multidimensional_aggregated ) {
@@ -794,8 +795,8 @@ class WP_Customize_Setting {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param mixed                $value The setting value.
-		 * @param WP_Customize_Setting $this  WP_Customize_Setting instance.
+		 * @param mixed                $value   The setting value.
+		 * @param WP_Customize_Setting $setting WP_Customize_Setting instance.
 		 */
 		$value = apply_filters( "customize_sanitize_js_{$this->id}", $this->value(), $this );
 
@@ -846,9 +847,9 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param $root
-	 * @param $keys
-	 * @param bool $create Default is false.
+	 * @param array $root
+	 * @param array $keys
+	 * @param bool  $create Default false.
 	 * @return array|void Keys are 'root', 'node', and 'key'.
 	 */
 	final protected function multidimensional( &$root, $keys, $create = false ) {
@@ -901,8 +902,8 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param $root
-	 * @param $keys
+	 * @param array $root
+	 * @param array $keys
 	 * @param mixed $value The value to update.
 	 * @return mixed
 	 */
@@ -927,18 +928,18 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param $root
-	 * @param $keys
-	 * @param mixed $default A default value which is used as a fallback. Default is null.
+	 * @param array $root
+	 * @param array $keys
+	 * @param mixed $default_value A default value which is used as a fallback. Default null.
 	 * @return mixed The requested value or the default value.
 	 */
-	final protected function multidimensional_get( $root, $keys, $default = null ) {
+	final protected function multidimensional_get( $root, $keys, $default_value = null ) {
 		if ( empty( $keys ) ) { // If there are no keys, test the root.
-			return isset( $root ) ? $root : $default;
+			return isset( $root ) ? $root : $default_value;
 		}
 
 		$result = $this->multidimensional( $root, $keys );
-		return isset( $result ) ? $result['node'][ $result['key'] ] : $default;
+		return isset( $result ) ? $result['node'][ $result['key'] ] : $default_value;
 	}
 
 	/**
@@ -946,8 +947,8 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param $root
-	 * @param $keys
+	 * @param array $root
+	 * @param array $keys
 	 * @return bool True if value is set, false if not.
 	 */
 	final protected function multidimensional_isset( $root, $keys ) {

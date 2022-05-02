@@ -16,9 +16,10 @@ if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
 }
 
+// Used in the HTML title tag.
 $title       = __( 'General Settings' );
 $parent_file = 'options-general.php';
-/* translators: Date and time format for exact current time, mainly about timezones, see https://www.php.net/date */
+/* translators: Date and time format for exact current time, mainly about timezones, see https://www.php.net/manual/datetime.format.php */
 $timezone_format = _x( 'Y-m-d H:i:s', 'timezone date format' );
 
 add_action( 'admin_head', 'options_general_add_js' );
@@ -27,7 +28,7 @@ $options_help = '<p>' . __( 'The fields on this screen determine some of the bas
 	'<p>' . __( 'Most themes display the site title at the top of every page, in the title bar of the browser, and as the identifying name for syndicated feeds. The tagline is also displayed by many themes.' ) . '</p>';
 
 if ( ! is_multisite() ) {
-	$options_help .= '<p>' . __( 'The WordPress URL and the Site URL can be the same (example.com) or different; for example, having the WordPress core files (example.com/wordpress) in a subdirectory instead of the root directory.' ) . '</p>' .
+	$options_help .= '<p>' . __( 'The WordPress URL and the site URL can be the same (example.com) or different; for example, having the WordPress core files (example.com/wordpress) in a subdirectory instead of the root directory.' ) . '</p>' .
 		'<p>' . __( 'If you want site visitors to be able to register themselves, as opposed to by the site administrator, check the membership box. A default user role can be set for all new users, whether self-registered or registered by the site admin.' ) . '</p>';
 }
 
@@ -110,7 +111,7 @@ if ( ! is_multisite() ) {
 <tr>
 <th scope="row"><label for="new_admin_email"><?php _e( 'Administration Email Address' ); ?></label></th>
 <td><input name="new_admin_email" type="email" id="new_admin_email" aria-describedby="new-admin-email-description" value="<?php form_option( 'admin_email' ); ?>" class="regular-text ltr" />
-<p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
+<p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
 <?php
 $new_admin_email = get_option( 'new_admin_email' );
 if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
@@ -157,7 +158,7 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
 
 $languages    = get_available_languages();
 $translations = wp_get_available_translations();
-if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG && ! in_array( WPLANG, $languages ) ) {
+if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG && ! in_array( WPLANG, $languages, true ) ) {
 	$languages[] = WPLANG;
 }
 if ( ! empty( $languages ) || ! empty( $translations ) ) {
@@ -167,7 +168,7 @@ if ( ! empty( $languages ) || ! empty( $translations ) ) {
 		<td>
 			<?php
 			$locale = get_locale();
-			if ( ! in_array( $locale, $languages ) ) {
+			if ( ! in_array( $locale, $languages, true ) ) {
 				$locale = '';
 			}
 
@@ -276,7 +277,7 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	?>
 	<br />
 	<?php
-	if ( in_array( $tzstring, timezone_identifiers_list() ) ) {
+	if ( in_array( $tzstring, timezone_identifiers_list(), true ) ) {
 		$transitions = timezone_transitions_get( timezone_open( $tzstring ), time() );
 
 		// 0 index is the state at current time, 1 index is the next transition, if any.

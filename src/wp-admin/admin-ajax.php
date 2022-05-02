@@ -27,8 +27,8 @@ send_origin_headers();
 header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
 header( 'X-Robots-Tag: noindex' );
 
-// Require an action parameter.
-if ( empty( $_REQUEST['action'] ) ) {
+// Require a valid action parameter.
+if ( empty( $_REQUEST['action'] ) || ! is_scalar( $_REQUEST['action'] ) ) {
 	wp_die( '0', 400 );
 }
 
@@ -139,24 +139,36 @@ $core_actions_post = array(
 	'health-check-background-updates',
 	'health-check-loopback-requests',
 	'health-check-get-sizes',
+	'toggle-auto-updates',
+	'send-password-reset',
 );
 
 // Deprecated.
-$core_actions_post_deprecated = array( 'wp-fullscreen-save-post', 'press-this-save-post', 'press-this-add-category' );
+$core_actions_post_deprecated = array(
+	'wp-fullscreen-save-post',
+	'press-this-save-post',
+	'press-this-add-category',
+	'health-check-dotorg-communication',
+	'health-check-is-in-debug-mode',
+	'health-check-background-updates',
+	'health-check-loopback-requests',
+);
 $core_actions_post            = array_merge( $core_actions_post, $core_actions_post_deprecated );
 
 // Register core Ajax calls.
-if ( ! empty( $_GET['action'] ) && in_array( $_GET['action'], $core_actions_get ) ) {
+if ( ! empty( $_GET['action'] ) && in_array( $_GET['action'], $core_actions_get, true ) ) {
 	add_action( 'wp_ajax_' . $_GET['action'], 'wp_ajax_' . str_replace( '-', '_', $_GET['action'] ), 1 );
 }
 
-if ( ! empty( $_POST['action'] ) && in_array( $_POST['action'], $core_actions_post ) ) {
+if ( ! empty( $_POST['action'] ) && in_array( $_POST['action'], $core_actions_post, true ) ) {
 	add_action( 'wp_ajax_' . $_POST['action'], 'wp_ajax_' . str_replace( '-', '_', $_POST['action'] ), 1 );
 }
 
+add_action( 'wp_ajax_nopriv_generate-password', 'wp_ajax_nopriv_generate_password' );
+
 add_action( 'wp_ajax_nopriv_heartbeat', 'wp_ajax_nopriv_heartbeat', 1 );
 
-$action = ( isset( $_REQUEST['action'] ) ) ? $_REQUEST['action'] : '';
+$action = $_REQUEST['action'];
 
 if ( is_user_logged_in() ) {
 	// If no action is registered, return a Bad Request response.
@@ -189,5 +201,6 @@ if ( is_user_logged_in() ) {
 	 */
 	do_action( "wp_ajax_nopriv_{$action}" );
 }
+
 // Default status.
 wp_die( '0' );

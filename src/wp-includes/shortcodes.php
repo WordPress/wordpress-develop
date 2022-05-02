@@ -63,16 +63,26 @@ $shortcode_tags = array();
 function add_shortcode( $tag, $callback ) {
 	global $shortcode_tags;
 
-	if ( '' == trim( $tag ) ) {
-		$message = __( 'Invalid shortcode name: Empty name given.' );
-		_doing_it_wrong( __FUNCTION__, $message, '4.4.0' );
+	if ( '' === trim( $tag ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'Invalid shortcode name: Empty name given.' ),
+			'4.4.0'
+		);
 		return;
 	}
 
 	if ( 0 !== preg_match( '@[<>&/\[\]\x00-\x20=]@', $tag ) ) {
-		/* translators: 1: Shortcode name, 2: Space-separated list of reserved characters. */
-		$message = sprintf( __( 'Invalid shortcode name: %1$s. Do not use spaces or reserved characters: %2$s' ), $tag, '& / < > [ ] =' );
-		_doing_it_wrong( __FUNCTION__, $message, '4.4.0' );
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: Shortcode name, 2: Space-separated list of reserved characters. */
+				__( 'Invalid shortcode name: %1$s. Do not use spaces or reserved characters: %2$s' ),
+				$tag,
+				'& / < > [ ] ='
+			),
+			'4.4.0'
+		);
 		return;
 	}
 
@@ -252,7 +262,7 @@ function get_shortcode_regex( $tagnames = null ) {
 	if ( empty( $tagnames ) ) {
 		$tagnames = array_keys( $shortcode_tags );
 	}
-	$tagregexp = join( '|', array_map( 'preg_quote', $tagnames ) );
+	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
 
 	// WARNING! Do not change this regex without changing do_shortcode_tag() and strip_shortcode_tag().
 	// Also, see shortcode_unautop() and shortcode.js.
@@ -292,15 +302,15 @@ function get_shortcode_regex( $tagnames = null ) {
 /**
  * Regular Expression callable for do_shortcode() for calling shortcode hook.
  *
- * @see get_shortcode_regex for details of the match array contents.
+ * @see get_shortcode_regex() for details of the match array contents.
  *
  * @since 2.5.0
  * @access private
  *
  * @global array $shortcode_tags
  *
- * @param array $m Regular expression match array
- * @return string|false False on failure.
+ * @param array $m Regular expression match array.
+ * @return string|false Shortcode output on success, false on failure.
  */
 function do_shortcode_tag( $m ) {
 	global $shortcode_tags;
@@ -314,9 +324,12 @@ function do_shortcode_tag( $m ) {
 	$attr = shortcode_parse_atts( $m[3] );
 
 	if ( ! is_callable( $shortcode_tags[ $tag ] ) ) {
-		/* translators: %s: Shortcode tag. */
-		$message = sprintf( __( 'Attempting to parse a shortcode without a valid callback: %s' ), $tag );
-		_doing_it_wrong( __FUNCTION__, $message, '4.3.0' );
+		_doing_it_wrong(
+			__FUNCTION__,
+			/* translators: %s: Shortcode tag. */
+			sprintf( __( 'Attempting to parse a shortcode without a valid callback: %s' ), $tag ),
+			'4.3.0'
+		);
 		return $m[0];
 	}
 
@@ -365,9 +378,9 @@ function do_shortcode_tag( $m ) {
  *
  * @since 4.2.3
  *
- * @param string $content Content to search for shortcodes
- * @param bool $ignore_html When true, all square braces inside elements will be encoded.
- * @param array $tagnames List of shortcodes to find.
+ * @param string $content     Content to search for shortcodes.
+ * @param bool   $ignore_html When true, all square braces inside elements will be encoded.
+ * @param array  $tagnames    List of shortcodes to find.
  * @return string Content with shortcodes filtered out.
  */
 function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
@@ -386,7 +399,7 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 	$textarr = wp_html_split( $content );
 
 	foreach ( $textarr as &$element ) {
-		if ( '' == $element || '<' !== $element[0] ) {
+		if ( '' === $element || '<' !== $element[0] ) {
 			continue;
 		}
 
@@ -511,8 +524,8 @@ function get_shortcode_atts_regex() {
  *
  * @param string $text
  * @return array|string List of attribute values.
- *                      Returns empty array if trim( $text ) == '""'.
- *                      Returns empty string if trim( $text ) == ''.
+ *                      Returns empty array if '""' === trim( $text ).
+ *                      Returns empty string if '' === trim( $text ).
  *                      All other matches are checked for not empty().
  */
 function shortcode_parse_atts( $text ) {

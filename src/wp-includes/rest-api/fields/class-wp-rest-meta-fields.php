@@ -48,10 +48,13 @@ abstract class WP_REST_Meta_Fields {
 	 * Registers the meta field.
 	 *
 	 * @since 4.7.0
+	 * @deprecated 5.6.0
 	 *
 	 * @see register_rest_field()
 	 */
 	public function register_field() {
+		_deprecated_function( __METHOD__, '5.6.0' );
+
 		register_rest_field(
 			$this->get_rest_field_type(),
 			'meta',
@@ -70,7 +73,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @param int             $object_id Object ID to fetch meta for.
 	 * @param WP_REST_Request $request   Full details about the request.
-	 * @return object|WP_Error Object containing the meta values by name, otherwise WP_Error object.
+	 * @return array Array containing the meta values keyed by name.
 	 */
 	public function get_value( $object_id, $request ) {
 		$fields   = $this->get_registered_fields();
@@ -91,8 +94,10 @@ abstract class WP_REST_Meta_Fields {
 			} else {
 				$value = array();
 
-				foreach ( $all_values as $row ) {
-					$value[] = $this->prepare_value_for_response( $row, $request, $args );
+				if ( is_array( $all_values ) ) {
+					foreach ( $all_values as $row ) {
+						$value[] = $this->prepare_value_for_response( $row, $request, $args );
+					}
 				}
 			}
 
@@ -142,11 +147,15 @@ abstract class WP_REST_Meta_Fields {
 				continue;
 			}
 
+			$value = $meta[ $name ];
+
 			/*
 			 * A null value means reset the field, which is essentially deleting it
 			 * from the database and then relying on the default value.
+			 *
+			 * Non-single meta can also be removed by passing an empty array.
 			 */
-			if ( is_null( $meta[ $name ] ) ) {
+			if ( is_null( $value ) || ( array() === $value && ! $args['single'] ) ) {
 				$args = $this->get_registered_fields()[ $meta_key ];
 
 				if ( $args['single'] ) {
@@ -168,8 +177,6 @@ abstract class WP_REST_Meta_Fields {
 				}
 				continue;
 			}
-
-			$value = $meta[ $name ];
 
 			if ( ! $args['single'] && is_array( $value ) && count( array_filter( $value, 'is_null' ) ) ) {
 				return new WP_Error(
@@ -210,7 +217,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @param int    $object_id Object ID the field belongs to.
 	 * @param string $meta_key  Key for the field.
 	 * @param string $name      Name for the field that is exposed in the REST API.
-	 * @return bool|WP_Error True if meta field is deleted, WP_Error otherwise.
+	 * @return true|WP_Error True if meta field is deleted, WP_Error otherwise.
 	 */
 	protected function delete_meta_value( $object_id, $meta_key, $name ) {
 		$meta_type = $this->get_meta_type();
@@ -225,6 +232,10 @@ abstract class WP_REST_Meta_Fields {
 					'status' => rest_authorization_required_code(),
 				)
 			);
+		}
+
+		if ( null === get_metadata_raw( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
+			return true;
 		}
 
 		if ( ! delete_metadata( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
@@ -252,7 +263,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @param string $meta_key  Key for the custom field.
 	 * @param string $name      Name for the field that is exposed in the REST API.
 	 * @param array  $values    List of values to update to.
-	 * @return bool|WP_Error True if meta fields are updated, WP_Error otherwise.
+	 * @return true|WP_Error True if meta fields are updated, WP_Error otherwise.
 	 */
 	protected function update_multi_meta_value( $object_id, $meta_key, $name, $values ) {
 		$meta_type = $this->get_meta_type();
@@ -269,13 +280,25 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		$current = get_metadata( $meta_type, $object_id, $meta_key, false );
+		$current_values = get_metadata( $meta_type, $object_id, $meta_key, false );
+		$subtype        = get_object_subtype( $meta_type, $object_id );
 
-		$to_remove = $current;
+		if ( ! is_array( $current_values ) ) {
+			$current_values = array();
+		}
+
+		$to_remove = $current_values;
 		$to_add    = $values;
 
 		foreach ( $to_add as $add_key => $value ) {
-			$remove_keys = array_keys( $to_remove, $value, true );
+			$remove_keys = array_keys(
+				array_filter(
+					$current_values,
+					function ( $stored_value ) use ( $meta_key, $subtype, $value ) {
+						return $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $stored_value, $value );
+					}
+				)
+			);
 
 			if ( empty( $remove_keys ) ) {
 				continue;
@@ -339,7 +362,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @param string $meta_key  Key for the custom field.
 	 * @param string $name      Name for the field that is exposed in the REST API.
 	 * @param mixed  $value     Updated value.
-	 * @return bool|WP_Error True if the meta field was updated, WP_Error otherwise.
+	 * @return true|WP_Error True if the meta field was updated, WP_Error otherwise.
 	 */
 	protected function update_meta_value( $object_id, $meta_key, $name, $value ) {
 		$meta_type = $this->get_meta_type();
@@ -359,22 +382,14 @@ abstract class WP_REST_Meta_Fields {
 		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
 		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
 		$subtype   = get_object_subtype( $meta_type, $object_id );
-		$args      = $this->get_registered_fields()[ $meta_key ];
 
-		if ( 1 === count( $old_value ) ) {
-			$sanitized = sanitize_meta( $meta_key, $value, $meta_type, $subtype );
-
-			if ( in_array( $args['type'], array( 'string', 'number', 'integer', 'boolean' ), true ) ) {
-				// The return value of get_metadata will always be a string for scalar types.
-				$sanitized = (string) $sanitized;
-			}
-
-			if ( $sanitized === $old_value[0] ) {
-				return true;
-			}
+		if ( is_array( $old_value ) && 1 === count( $old_value )
+			&& $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $old_value[0], $value )
+		) {
+			return true;
 		}
 
-		if ( ! update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash_strings_only( $value ) ) ) {
+		if ( ! update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
 			return new WP_Error(
 				'rest_meta_database_error',
 				/* translators: %s: Custom field key. */
@@ -387,6 +402,29 @@ abstract class WP_REST_Meta_Fields {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Checks if the user provided value is equivalent to a stored value for the given meta key.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $meta_key     The meta key being checked.
+	 * @param string $subtype      The object subtype.
+	 * @param mixed  $stored_value The currently stored value retrieved from get_metadata().
+	 * @param mixed  $user_value   The value provided by the user.
+	 * @return bool
+	 */
+	protected function is_meta_value_same_as_stored_value( $meta_key, $subtype, $stored_value, $user_value ) {
+		$args      = $this->get_registered_fields()[ $meta_key ];
+		$sanitized = sanitize_meta( $meta_key, $user_value, $this->get_meta_type(), $subtype );
+
+		if ( in_array( $args['type'], array( 'string', 'number', 'integer', 'boolean' ), true ) ) {
+			// The return value of get_metadata will always be a string for scalar types.
+			$sanitized = (string) $sanitized;
+		}
+
+		return $sanitized === $stored_value;
 	}
 
 	/**
@@ -442,7 +480,7 @@ abstract class WP_REST_Meta_Fields {
 				$rest_args['schema']['default'] = static::get_empty_value_for_type( $type );
 			}
 
-			$rest_args['schema'] = $this->default_additional_properties_to_false( $rest_args['schema'] );
+			$rest_args['schema'] = rest_default_additional_properties_to_false( $rest_args['schema'] );
 
 			if ( ! in_array( $type, array( 'string', 'boolean', 'integer', 'number', 'array', 'object' ), true ) ) {
 				continue;
@@ -547,27 +585,15 @@ abstract class WP_REST_Meta_Fields {
 	 * default.
 	 *
 	 * @since 5.3.0
+	 * @deprecated 5.6.0 Use rest_default_additional_properties_to_false() instead.
 	 *
 	 * @param array $schema The schema array.
 	 * @return array
 	 */
 	protected function default_additional_properties_to_false( $schema ) {
-		switch ( $schema['type'] ) {
-			case 'object':
-				foreach ( $schema['properties'] as $key => $child_schema ) {
-					$schema['properties'][ $key ] = $this->default_additional_properties_to_false( $child_schema );
-				}
+		_deprecated_function( __METHOD__, '5.6.0', 'rest_default_additional_properties_to_false()' );
 
-				if ( ! isset( $schema['additionalProperties'] ) ) {
-					$schema['additionalProperties'] = false;
-				}
-				break;
-			case 'array':
-				$schema['items'] = $this->default_additional_properties_to_false( $schema['items'] );
-				break;
-		}
-
-		return $schema;
+		return rest_default_additional_properties_to_false( $schema );
 	}
 
 	/**

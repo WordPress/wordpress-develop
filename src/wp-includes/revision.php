@@ -14,8 +14,6 @@
  * @since 4.5.0 The optional `$autosave` parameter was deprecated and renamed to `$deprecated`.
  * @access private
  *
- * @staticvar array $fields
- *
  * @param array|WP_Post $post       Optional. A post array or a WP_Post object being processed
  *                                  for insertion as a post revision. Default empty array.
  * @param bool          $deprecated Not used.
@@ -122,7 +120,7 @@ function wp_save_post_revision( $post_id ) {
 		return;
 	}
 
-	if ( 'auto-draft' == $post->post_status ) {
+	if ( 'auto-draft' === $post->post_status ) {
 		return;
 	}
 
@@ -223,30 +221,48 @@ function wp_save_post_revision( $post_id ) {
 /**
  * Retrieve the autosaved data of the specified post.
  *
- * Returns a post object containing the information that was autosaved for the
- * specified post. If the optional $user_id is passed, returns the autosave for that user
- * otherwise returns the latest autosave.
+ * Returns a post object with the information that was autosaved for the specified post.
+ * If the optional $user_id is passed, returns the autosave for that user, otherwise
+ * returns the latest autosave.
  *
  * @since 2.6.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $post_id The post ID.
  * @param int $user_id Optional The post author ID.
  * @return WP_Post|false The autosaved data or false on failure or when no autosave exists.
  */
 function wp_get_post_autosave( $post_id, $user_id = 0 ) {
-	$revisions = wp_get_post_revisions( $post_id, array( 'check_enabled' => false ) );
+	global $wpdb;
 
-	foreach ( $revisions as $revision ) {
-		if ( false !== strpos( $revision->post_name, "{$post_id}-autosave" ) ) {
-			if ( $user_id && $user_id != $revision->post_author ) {
-				continue;
-			}
+	$autosave_name = $post_id . '-autosave-v1';
+	$user_id_query = ( 0 !== $user_id ) ? "AND post_author = $user_id" : null;
 
-			return $revision;
-		}
+	// Construct the autosave query.
+	$autosave_query = "
+		SELECT *
+		FROM $wpdb->posts
+		WHERE post_parent = %d
+		AND post_type = 'revision'
+		AND post_status = 'inherit'
+		AND post_name   = %s " . $user_id_query . '
+		ORDER BY post_date DESC
+		LIMIT 1';
+
+	$autosave = $wpdb->get_results(
+		$wpdb->prepare(
+			$autosave_query,
+			$post_id,
+			$autosave_name
+		)
+	);
+
+	if ( ! $autosave ) {
+		return false;
 	}
 
-	return false;
+	return get_post( $autosave[0] );
 }
 
 /**
@@ -308,14 +324,14 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 		return new WP_Error( 'invalid_post', __( 'Invalid post ID.' ) );
 	}
 
-	if ( isset( $post['post_type'] ) && 'revision' == $post['post_type'] ) {
+	if ( isset( $post['post_type'] ) && 'revision' === $post['post_type'] ) {
 		return new WP_Error( 'post_type', __( 'Cannot create a revision of a revision' ) );
 	}
 
 	$post = _wp_post_revision_data( $post, $autosave );
 	$post = wp_slash( $post ); // Since data is from DB.
 
-	$revision_id = wp_insert_post( $post );
+	$revision_id = wp_insert_post( $post, true );
 	if ( is_wp_error( $revision_id ) ) {
 		return $revision_id;
 	}
@@ -340,8 +356,9 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
  * @since 2.6.0
  *
  * @param int|WP_Post $post   The post ID or object.
- * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                            a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                            correspond to a WP_Post object, an associative array, or a numeric array,
+ *                            respectively. Default OBJECT.
  * @param string      $filter Optional sanitation filter. See sanitize_post().
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
@@ -354,12 +371,12 @@ function wp_get_post_revision( &$post, $output = OBJECT, $filter = 'raw' ) {
 		return null;
 	}
 
-	if ( OBJECT == $output ) {
+	if ( OBJECT === $output ) {
 		return $revision;
-	} elseif ( ARRAY_A == $output ) {
+	} elseif ( ARRAY_A === $output ) {
 		$_revision = get_object_vars( $revision );
 		return $_revision;
-	} elseif ( ARRAY_N == $output ) {
+	} elseif ( ARRAY_N === $output ) {
 		$_revision = array_values( get_object_vars( $revision ) );
 		return $_revision;
 	}
@@ -430,7 +447,7 @@ function wp_restore_post_revision( $revision_id, $fields = null ) {
  * @since 2.6.0
  *
  * @param int|WP_Post $revision_id Revision ID or revision object.
- * @return array|false|WP_Post|WP_Error|null Null or WP_Error if error, deleted post if success.
+ * @return WP_Post|false|null Null or false if error, deleted post object if success.
  */
 function wp_delete_post_revision( $revision_id ) {
 	$revision = wp_get_post_revision( $revision_id );
@@ -500,6 +517,40 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
 }
 
 /**
+ * Returns the url for viewing and potentially restoring revisions of a given post.
+ *
+ * @since 5.9.0
+ *
+ * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is global `$post`.
+ * @return null|string The URL for editing revisions on the given post, otherwise null.
+ */
+function wp_get_post_revisions_url( $post_id = 0 ) {
+	$post = get_post( $post_id );
+
+	if ( ! $post instanceof WP_Post ) {
+		return null;
+	}
+
+	// If the post is a revision, return early.
+	if ( 'revision' === $post->post_type ) {
+		return get_edit_post_link( $post );
+	}
+
+	if ( ! wp_revisions_enabled( $post ) ) {
+		return null;
+	}
+
+	$revisions = wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 1 ) );
+
+	if ( 0 === count( $revisions ) ) {
+		return null;
+	}
+
+	$revision = reset( $revisions );
+	return get_edit_post_link( $revision );
+}
+
+/**
  * Determine if revisions are enabled for a given post.
  *
  * @since 3.6.0
@@ -530,7 +581,7 @@ function wp_revisions_to_keep( $post ) {
 	if ( true === $num ) {
 		$num = -1;
 	} else {
-		$num = intval( $num );
+		$num = (int) $num;
 	}
 
 	if ( ! post_type_supports( $post->post_type, 'revisions' ) ) {
@@ -547,7 +598,29 @@ function wp_revisions_to_keep( $post ) {
 	 * @param int     $num  Number of revisions to store.
 	 * @param WP_Post $post Post object.
 	 */
-	return (int) apply_filters( 'wp_revisions_to_keep', $num, $post );
+	$num = apply_filters( 'wp_revisions_to_keep', $num, $post );
+
+	/**
+	 * Filters the number of revisions to save for the given post by its post type.
+	 *
+	 * Overrides both the value of WP_POST_REVISIONS and the {@see 'wp_revisions_to_keep'} filter.
+	 *
+	 * The dynamic portion of the hook name, `$post->post_type`, refers to
+	 * the post type slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `wp_post_revisions_to_keep`
+	 *  - `wp_page_revisions_to_keep`
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param int     $num  Number of revisions to store.
+	 * @param WP_Post $post Post object.
+	 */
+	$num = apply_filters( "wp_{$post->post_type}_revisions_to_keep", $num, $post );
+
+	return (int) $num;
 }
 
 /**
@@ -565,15 +638,14 @@ function _set_preview( $post ) {
 	}
 
 	$preview = wp_get_post_autosave( $post->ID );
-	if ( ! is_object( $preview ) ) {
-		return $post;
+
+	if ( is_object( $preview ) ) {
+		$preview = sanitize_post( $preview );
+
+		$post->post_content = $preview->post_content;
+		$post->post_title   = $preview->post_title;
+		$post->post_excerpt = $preview->post_excerpt;
 	}
-
-	$preview = sanitize_post( $preview );
-
-	$post->post_content = $preview->post_content;
-	$post->post_title   = $preview->post_title;
-	$post->post_excerpt = $preview->post_excerpt;
 
 	add_filter( 'get_the_terms', '_wp_preview_terms_filter', 10, 3 );
 	add_filter( 'get_post_metadata', '_wp_preview_post_thumbnail_filter', 10, 3 );
@@ -616,11 +688,13 @@ function _wp_preview_terms_filter( $terms, $post_id, $taxonomy ) {
 		return $terms;
 	}
 
-	if ( empty( $_REQUEST['post_format'] ) || $post->ID != $post_id || 'post_format' != $taxonomy || 'revision' == $post->post_type ) {
+	if ( empty( $_REQUEST['post_format'] ) || $post->ID != $post_id
+		|| 'post_format' !== $taxonomy || 'revision' === $post->post_type
+	) {
 		return $terms;
 	}
 
-	if ( 'standard' == $_REQUEST['post_format'] ) {
+	if ( 'standard' === $_REQUEST['post_format'] ) {
 		$terms = array();
 	} else {
 		$term = get_term_by( 'slug', 'post-format-' . sanitize_key( $_REQUEST['post_format'] ), 'post_format' );
@@ -652,19 +726,19 @@ function _wp_preview_post_thumbnail_filter( $value, $post_id, $meta_key ) {
 	if ( empty( $_REQUEST['_thumbnail_id'] ) ||
 		empty( $_REQUEST['preview_id'] ) ||
 		$post->ID != $post_id ||
-		'_thumbnail_id' != $meta_key ||
-		'revision' == $post->post_type ||
+		'_thumbnail_id' !== $meta_key ||
+		'revision' === $post->post_type ||
 		$post_id != $_REQUEST['preview_id'] ) {
 
 		return $value;
 	}
 
-	$thumbnail_id = intval( $_REQUEST['_thumbnail_id'] );
+	$thumbnail_id = (int) $_REQUEST['_thumbnail_id'];
 	if ( $thumbnail_id <= 0 ) {
 		return '';
 	}
 
-	return strval( $thumbnail_id );
+	return (string) $thumbnail_id;
 }
 
 /**

@@ -15,8 +15,6 @@
  * @since 2.7.0
  * @access private
  *
- * @staticvar WP_Http $http
- *
  * @return WP_Http HTTP Transport object.
  */
 function _wp_http_get_object() {
@@ -224,7 +222,8 @@ function wp_remote_retrieve_headers( $response ) {
  *
  * @param array|WP_Error $response HTTP response.
  * @param string         $header   Header name to retrieve value from.
- * @return string The header value. Empty string on if incorrect parameter given, or if the header doesn't exist.
+ * @return array|string The header(s) value(s). Array if multiple headers with the same name are retrieved.
+ *                      Empty string if incorrect parameter given, or if the header doesn't exist.
  */
 function wp_remote_retrieve_header( $response, $header ) {
 	if ( is_wp_error( $response ) || ! isset( $response['headers'] ) ) {
@@ -241,7 +240,7 @@ function wp_remote_retrieve_header( $response, $header ) {
 /**
  * Retrieve only the response code from the raw response.
  *
- * Will return an empty array if incorrect parameter value is given.
+ * Will return an empty string if incorrect parameter value is given.
  *
  * @since 2.7.0
  *
@@ -259,7 +258,7 @@ function wp_remote_retrieve_response_code( $response ) {
 /**
  * Retrieve only the response message from the raw response.
  *
- * Will return an empty array if incorrect parameter value is given.
+ * Will return an empty string if incorrect parameter value is given.
  *
  * @since 2.7.0
  *
@@ -375,7 +374,7 @@ function wp_http_supports( $capabilities = array(), $url = null ) {
 
 	if ( $url && ! isset( $capabilities['ssl'] ) ) {
 		$scheme = parse_url( $url, PHP_URL_SCHEME );
-		if ( 'https' == $scheme || 'ssl' == $scheme ) {
+		if ( 'https' === $scheme || 'ssl' === $scheme ) {
 			$capabilities['ssl'] = true;
 		}
 	}
@@ -459,7 +458,7 @@ function is_allowed_http_origin( $origin = null ) {
 		$origin = get_http_origin();
 	}
 
-	if ( $origin && ! in_array( $origin, get_allowed_http_origins() ) ) {
+	if ( $origin && ! in_array( $origin, get_allowed_http_origins(), true ) ) {
 		$origin = '';
 	}
 
@@ -516,13 +515,17 @@ function send_origin_headers() {
  * @return string|false URL or false on failure.
  */
 function wp_http_validate_url( $url ) {
+	if ( ! is_string( $url ) || '' === $url || is_numeric( $url ) ) {
+		return false;
+	}
+
 	$original_url = $url;
 	$url          = wp_kses_bad_protocol( $url, array( 'http', 'https' ) );
 	if ( ! $url || strtolower( $url ) !== strtolower( $original_url ) ) {
 		return false;
 	}
 
-	$parsed_url = @parse_url( $url );
+	$parsed_url = parse_url( $url );
 	if ( ! $parsed_url || empty( $parsed_url['host'] ) ) {
 		return false;
 	}
@@ -535,16 +538,11 @@ function wp_http_validate_url( $url ) {
 		return false;
 	}
 
-	$parsed_home = @parse_url( get_option( 'home' ) );
-
-	if ( isset( $parsed_home['host'] ) ) {
-		$same_host = strtolower( $parsed_home['host'] ) === strtolower( $parsed_url['host'] );
-	} else {
-		$same_host = false;
-	}
+	$parsed_home = parse_url( get_option( 'home' ) );
+	$same_host   = isset( $parsed_home['host'] ) && strtolower( $parsed_home['host'] ) === strtolower( $parsed_url['host'] );
+	$host        = trim( $parsed_url['host'], '.' );
 
 	if ( ! $same_host ) {
-		$host = trim( $parsed_url['host'], '.' );
 		if ( preg_match( '#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#', $host ) ) {
 			$ip = $host;
 		} else {
@@ -583,7 +581,20 @@ function wp_http_validate_url( $url ) {
 	}
 
 	$port = $parsed_url['port'];
-	if ( 80 === $port || 443 === $port || 8080 === $port ) {
+
+	/**
+	 * Controls the list of ports considered safe in HTTP API.
+	 *
+	 * Allows to change and allow external requests for the HTTP request.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param array  $allowed_ports Array of integers for valid ports.
+	 * @param string $host          Host name of the requested URL.
+	 * @param string $url           Requested URL.
+	 */
+	$allowed_ports = apply_filters( 'http_allowed_safe_ports', array( 80, 443, 8080 ), $host, $url );
+	if ( is_array( $allowed_ports ) && in_array( $port, $allowed_ports, true ) ) {
 		return $url;
 	}
 
@@ -595,7 +606,7 @@ function wp_http_validate_url( $url ) {
 }
 
 /**
- * Whitelists allowed redirect hosts for safe HTTP requests as well.
+ * Mark allowed redirect hosts safe for HTTP requests as well.
  *
  * Attached to the {@see 'http_request_host_is_external'} filter.
  *
@@ -613,14 +624,14 @@ function allowed_http_request_hosts( $is_external, $host ) {
 }
 
 /**
- * Whitelists any domain in a multisite installation for safe HTTP requests.
+ * Adds any domain in a multisite installation for safe HTTP requests to the
+ * allowed list.
  *
  * Attached to the {@see 'http_request_host_is_external'} filter.
  *
  * @since 3.6.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
- * @staticvar array $queried
  *
  * @param bool   $is_external
  * @param string $host
@@ -643,19 +654,15 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
 }
 
 /**
- * A wrapper for PHP's parse_url() function that handles consistency in the return
- * values across PHP versions.
+ * A wrapper for PHP's parse_url() function that handles consistency in the return values
+ * across PHP versions.
  *
- * PHP 5.4.7 expanded parse_url()'s ability to handle non-absolute url's, including
- * schemeless and relative url's with :// in the path. This function works around
+ * PHP 5.4.7 expanded parse_url()'s ability to handle non-absolute URLs, including
+ * schemeless and relative URLs with "://" in the path. This function works around
  * those limitations providing a standard output on PHP 5.2~5.4+.
  *
- * Secondly, across various PHP versions, schemeless URLs starting containing a ":"
- * in the query are being handled inconsistently. This function works around those
- * differences as well.
- *
- * Error suppression is used as prior to PHP 5.3.3, an E_WARNING would be generated
- * when URL parsing failed.
+ * Secondly, across various PHP versions, schemeless URLs containing a ":" in the query
+ * are being handled inconsistently. This function works around those differences as well.
  *
  * @since 4.4.0
  * @since 4.7.0 The `$component` parameter was added for parity with PHP's `parse_url()`.
@@ -673,7 +680,7 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  */
 function wp_parse_url( $url, $component = -1 ) {
 	$to_unset = array();
-	$url      = strval( $url );
+	$url      = (string) $url;
 
 	if ( '//' === substr( $url, 0, 2 ) ) {
 		$to_unset[] = 'scheme';
@@ -684,7 +691,7 @@ function wp_parse_url( $url, $component = -1 ) {
 		$url        = 'placeholder://placeholder' . $url;
 	}
 
-	$parts = @parse_url( $url );
+	$parts = parse_url( $url );
 
 	if ( false === $parts ) {
 		// Parsing failure.

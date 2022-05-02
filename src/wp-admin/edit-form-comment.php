@@ -52,7 +52,7 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 <tr>
 	<td class="first"><label for="email"><?php _e( 'Email' ); ?></label></td>
 	<td>
-		<input type="text" name="newcomment_author_email" size="30" value="<?php echo $comment->comment_author_email; ?>" id="email" />
+		<input type="text" name="newcomment_author_email" size="30" value="<?php echo esc_attr( $comment->comment_author_email ); ?>" id="email" />
 	</td>
 </tr>
 <tr>
@@ -118,15 +118,15 @@ switch ( $comment->comment_approved ) {
 <label><input type="radio"<?php checked( $comment->comment_approved, 'spam' ); ?> name="comment_status" value="spam" /><?php _ex( 'Spam', 'comment status' ); ?></label>
 </fieldset>
 </div><!-- .misc-pub-section -->
-	
+
 <div class="misc-pub-section curtime misc-pub-curtime">
 <?php
 $submitted = sprintf(
 	/* translators: 1: Comment date, 2: Comment time. */
 	__( '%1$s at %2$s' ),
-	/* translators: Publish box date format, see https://www.php.net/date */
+	/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
 	date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $comment->comment_date ) ),
-	/* translators: Publish box time format, see https://www.php.net/date */
+	/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
 	date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $comment->comment_date ) )
 );
 ?>

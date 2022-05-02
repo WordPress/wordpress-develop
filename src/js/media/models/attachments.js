@@ -87,7 +87,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * @access private
 	 *
 	 * @param {Backbone.Model} model
-	 * @param {Boolean} query
+	 * @param {boolean} query
 	 */
 	_changeQuery: function( model, query ) {
 		if ( query ) {
@@ -147,17 +147,9 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * Checks whether an attachment is valid.
 	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @return {Boolean}
+	 * @return {boolean}
 	 */
 	validator: function( attachment ) {
-
-		// Filter out contextually created attachments (e.g. headers, logos, etc.).
-		if (
-			! _.isUndefined( attachment.attributes.context ) &&
-			'' !== attachment.attributes.context
-		) {
-			return false;
-		}
 
 		if ( ! this.validateDestroyed && attachment.destroyed ) {
 			return false;
@@ -190,7 +182,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * Add or remove all attachments from another collection depending on each one's validity.
 	 *
 	 * @param {wp.media.model.Attachments} attachments
-	 * @param {object} [options={}]
+	 * @param {Object} [options={}]
 	 *
 	 * @fires wp.media.model.Attachments#reset
 	 *
@@ -220,6 +212,8 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		this.observers.push( attachments );
 
 		attachments.on( 'add change remove', this._validateHandler, this );
+		attachments.on( 'add', this._addToTotalAttachments, this );
+		attachments.on( 'remove', this._removeFromTotalAttachments, this );
 		attachments.on( 'reset', this._validateAllHandler, this );
 		this.validateAll( attachments );
 		return this;
@@ -243,6 +237,30 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		}
 
 		return this;
+	},
+	/**
+	 * Update total attachment count when items are added to a collection.
+	 *
+	 * @access private
+	 *
+	 * @since 5.8.0
+	 */
+	_removeFromTotalAttachments: function() {
+		if ( this.mirroring ) {
+			this.mirroring.totalAttachments = this.mirroring.totalAttachments - 1;
+		}
+	},
+	/**
+	 * Update total attachment count when items are added to a collection.
+	 *
+	 * @access private
+	 *
+	 * @since 5.8.0
+	 */
+	_addToTotalAttachments: function() {
+		if ( this.mirroring ) {
+			this.mirroring.totalAttachments = this.mirroring.totalAttachments + 1;
+		}
 	},
 	/**
 	 * @access private
@@ -314,7 +332,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * and forwards to its `more` method. This collection class doesn't have
 	 * server persistence by itself.
 	 *
-	 * @param {object} options
+	 * @param {Object} options
 	 * @return {Promise}
 	 */
 	more: function( options ) {
@@ -356,20 +374,42 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		return this.mirroring ? this.mirroring.hasMore() : false;
 	},
 	/**
-	 * A custom AJAX-response parser.
+	 * Holds the total number of attachments.
 	 *
-	 * See trac ticket #24753
+	 * @since 5.8.0
+	 */
+	totalAttachments: 0,
+
+	/**
+	 * Gets the total number of attachments.
 	 *
-	 * @param {Object|Array} resp The raw response Object/Array.
+	 * @since 5.8.0
+	 *
+	 * @return {number} The total number of attachments.
+	 */
+	getTotalAttachments: function() {
+		return this.mirroring ? this.mirroring.totalAttachments : 0;
+	},
+
+	/**
+	 * A custom Ajax-response parser.
+	 *
+	 * See trac ticket #24753.
+	 *
+	 * Called automatically by Backbone whenever a collection's models are returned
+	 * by the server, in fetch. The default implementation is a no-op, simply
+	 * passing through the JSON response. We override this to add attributes to
+	 * the collection items.
+	 *
+	 * @param {Object|Array} response The raw response Object/Array.
 	 * @param {Object} xhr
 	 * @return {Array} The array of model attributes to be added to the collection
 	 */
-	parse: function( resp, xhr ) {
-		if ( ! _.isArray( resp ) ) {
-			resp = [resp];
+	parse: function( response, xhr ) {
+		if ( ! _.isArray( response ) ) {
+			  response = [response];
 		}
-
-		return _.map( resp, function( attrs ) {
+		return _.map( response, function( attrs ) {
 			var id, attachment, newAttributes;
 
 			if ( attrs instanceof Backbone.Model ) {
@@ -389,16 +429,17 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 			return attachment;
 		});
 	},
+
 	/**
 	 * If the collection is a query, create and mirror an Attachments Query collection.
 	 *
 	 * @access private
+	 * @param {Boolean} refresh Deprecated, refresh parameter no longer used.
 	 */
-	_requery: function( refresh ) {
+	_requery: function() {
 		var props;
 		if ( this.props.get('query') ) {
 			props = this.props.toJSON();
-			props.cache = ( true !== refresh );
 			this.mirror( wp.media.model.Query.get( props ) );
 		}
 	},
@@ -447,7 +488,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * @param {Backbone.Model} a
 	 * @param {Backbone.Model} b
 	 * @param {Object} options
-	 * @return {Number} -1 if the first model should come before the second,
+	 * @return {number} -1 if the first model should come before the second,
 	 *                   0 if they are of the same rank and
 	 *                   1 if the first model should come after.
 	 */
@@ -501,7 +542,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 *
 		 * @this wp.media.model.Attachments
 		 *
-		 * @return {Boolean}
+		 * @return {boolean}
 		 */
 		type: function( attachment ) {
 			var type = this.props.get('type'), atts = attachment.toJSON(), mime, found;
@@ -528,7 +569,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 *
 		 * @this wp.media.model.Attachments
 		 *
-		 * @return {Boolean}
+		 * @return {boolean}
 		 */
 		uploadedTo: function( attachment ) {
 			var uploadedTo = this.props.get('uploadedTo');
@@ -544,7 +585,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 *
 		 * @this wp.media.model.Attachments
 		 *
-		 * @return {Boolean}
+		 * @return {boolean}
 		 */
 		status: function( attachment ) {
 			var status = this.props.get('status');

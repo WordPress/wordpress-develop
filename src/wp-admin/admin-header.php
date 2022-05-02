@@ -18,13 +18,14 @@ if ( ! defined( 'WP_ADMIN' ) ) {
  * @global string    $hook_suffix
  * @global WP_Screen $current_screen     WordPress current screen object.
  * @global WP_Locale $wp_locale          WordPress date and time locale object.
- * @global string    $pagenow
+ * @global string    $pagenow            The filename of the current screen.
  * @global string    $update_title
  * @global int       $total_update_count
  * @global string    $parent_file
+ * @global string    $typenow            The post type of the current screen.
  */
 global $title, $hook_suffix, $current_screen, $wp_locale, $pagenow,
-	$update_title, $total_update_count, $parent_file;
+	$update_title, $total_update_count, $parent_file, $typenow;
 
 // Catch plugins that include admin-header.php before admin.php completes.
 if ( empty( $current_screen ) ) {
@@ -44,12 +45,27 @@ if ( is_network_admin() ) {
 	$admin_title = get_bloginfo( 'name' );
 }
 
-if ( $admin_title == $title ) {
+if ( $admin_title === $title ) {
 	/* translators: Admin screen title. %s: Admin screen name. */
 	$admin_title = sprintf( __( '%s &#8212; WordPress' ), $title );
 } else {
+	$screen_title = $title;
+
+	if ( 'post' === $current_screen->base && 'add' !== $current_screen->action ) {
+		$post_title = get_the_title();
+		if ( ! empty( $post_title ) ) {
+			$post_type_obj = get_post_type_object( $typenow );
+			$screen_title  = sprintf(
+				/* translators: Editor admin screen title. 1: "Edit item" text for the post type, 2: Post title. */
+				__( '%1$s &#8220;%2$s&#8221;' ),
+				$post_type_obj->labels->edit_item,
+				$post_title
+			);
+		}
+	}
+
 	/* translators: Admin screen title. 1: Admin screen name, 2: Network or site name. */
-	$admin_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $title, $admin_title );
+	$admin_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $screen_title, $admin_title );
 }
 
 if ( wp_is_recovery_mode() ) {
@@ -75,23 +91,21 @@ _wp_admin_html_begin();
 <?php
 
 wp_enqueue_style( 'colors' );
-wp_enqueue_style( 'ie' );
 wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 ?>
 <script type="text/javascript">
-addLoadEvent = function(func){if(typeof jQuery!="undefined")jQuery(document).ready(func);else if(typeof wpOnload!='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-var ajaxurl = '<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>',
-	pagenow = '<?php echo $current_screen->id; ?>',
-	typenow = '<?php echo $current_screen->post_type; ?>',
-	adminpage = '<?php echo $admin_body_class; ?>',
-	thousandsSeparator = '<?php echo addslashes( $wp_locale->number_format['thousands_sep'] ); ?>',
-	decimalPoint = '<?php echo addslashes( $wp_locale->number_format['decimal_point'] ); ?>',
+addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
+	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
+	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
+	adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
+	thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
+	decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
 	isRtl = <?php echo (int) is_rtl(); ?>;
 </script>
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <?php
 
 /**
@@ -134,7 +148,7 @@ do_action( 'admin_print_scripts' );
 /**
  * Fires in head section for a specific admin page.
  *
- * The dynamic portion of the hook, `$hook_suffix`, refers to the hook suffix
+ * The dynamic portion of the hook name, `$hook_suffix`, refers to the hook suffix
  * for the admin page.
  *
  * @since 2.1.0
@@ -148,7 +162,7 @@ do_action( "admin_head-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConven
  */
 do_action( 'admin_head' );
 
-if ( get_user_setting( 'mfold' ) == 'f' ) {
+if ( 'f' === get_user_setting( 'mfold' ) ) {
 	$admin_body_class .= ' folded';
 }
 
@@ -172,7 +186,7 @@ if ( $current_screen->taxonomy ) {
 	$admin_body_class .= ' taxonomy-' . $current_screen->taxonomy;
 }
 
-$admin_body_class .= ' branch-' . str_replace( array( '.', ',' ), '-', floatval( get_bloginfo( 'version' ) ) );
+$admin_body_class .= ' branch-' . str_replace( array( '.', ',' ), '-', (float) get_bloginfo( 'version' ) );
 $admin_body_class .= ' version-' . str_replace( '.', '-', preg_replace( '/^([.0-9]+).*/', '$1', get_bloginfo( 'version' ) ) );
 $admin_body_class .= ' admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'fresh' );
 $admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
@@ -192,13 +206,21 @@ if ( is_network_admin() ) {
 $admin_body_class .= ' no-customize-support no-svg';
 
 if ( $current_screen->is_block_editor() ) {
-	// Default to is-fullscreen-mode to avoid jumps in the UI.
-	$admin_body_class .= ' block-editor-page is-fullscreen-mode wp-embed-responsive';
-
-	if ( current_theme_supports( 'editor-styles' ) && current_theme_supports( 'dark-editor-style' ) ) {
-		$admin_body_class .= ' is-dark-theme';
-	}
+	$admin_body_class .= ' block-editor-page wp-embed-responsive';
 }
+
+$error_get_last = error_get_last();
+
+// Print a CSS class to make PHP errors visible.
+if ( $error_get_last && WP_DEBUG && WP_DEBUG_DISPLAY && ini_get( 'display_errors' )
+	// Don't print the class for PHP notices in wp-config.php, as they happen before WP_DEBUG takes effect,
+	// and should not be displayed with the `error_reporting` level previously set in wp-load.php.
+	&& ( E_NOTICE !== $error_get_last['type'] || 'wp-config.php' !== wp_basename( $error_get_last['file'] ) )
+) {
+	$admin_body_class .= ' php-error';
+}
+
+unset( $error_get_last );
 
 ?>
 </head>

@@ -19,7 +19,7 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 			$found = get_the_content( 'Ping' );
 		}
 
-		$this->assertContains( '>Ping<', $found );
+		$this->assertStringContainsString( '>Ping<', $found );
 	}
 
 	/**
@@ -38,7 +38,7 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 			$found = get_the_content( null, true );
 		}
 
-		$this->assertNotContains( 'Foo', $found );
+		$this->assertStringNotContainsString( 'Foo', $found );
 	}
 
 	/**
@@ -74,5 +74,14 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( 'Bang', $found );
+	}
+
+	/**
+	 * @ticket 47824
+	 */
+	public function test_should_fall_back_to_post_global_outside_of_the_loop() {
+		$GLOBALS['post'] = self::factory()->post->create( array( 'post_content' => 'Foo' ) );
+
+		$this->assertSame( 'Foo', get_the_content() );
 	}
 }

@@ -14,6 +14,13 @@ if ( ! defined( 'WP_RUN_CORE_TESTS' ) && in_array( 'run_core_tests', $argv, true
 }
 
 define( 'WP_INSTALLING', true );
+
+/*
+ * Cron tries to make an HTTP request to the site, which always fails,
+ * because tests are run in CLI mode only.
+ */
+define( 'DISABLE_WP_CRON', true );
+
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
@@ -92,6 +99,11 @@ if ( $multisite ) {
 	$subdomain_install = false;
 
 	install_network();
-	populate_network( 1, WP_TESTS_DOMAIN, WP_TESTS_EMAIL, $title, '/', $subdomain_install );
+	$error = populate_network( 1, WP_TESTS_DOMAIN, WP_TESTS_EMAIL, $title, '/', $subdomain_install );
+
+	if ( is_wp_error( $error ) ) {
+		wp_die( $error );
+	}
+
 	$wp_rewrite->set_permalink_structure( '' );
 }

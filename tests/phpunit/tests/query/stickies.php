@@ -4,11 +4,12 @@
  * Tests related to sticky functionality in WP_Query.
  *
  * @group query
+ * @covers WP_Query::get_posts
  */
 class Tests_Query_Stickies extends WP_UnitTestCase {
-	static $posts = array();
+	public static $posts = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Set post times to get a reliable order.
 		$now = time();
 		for ( $i = 0; $i <= 22; $i++ ) {
@@ -40,7 +41,7 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 			self::$posts[2],
 		);
 
-		$this->assertEquals( $expected, $q->posts );
+		$this->assertSame( $expected, $q->posts );
 	}
 
 	public function test_stickies_should_be_included_when_is_home_is_true() {
@@ -48,9 +49,9 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 
 		$q = $GLOBALS['wp_query'];
 
-		$this->assertEquals( self::$posts[2], $q->posts[0]->ID );
-		$this->assertEquals( self::$posts[8], $q->posts[1]->ID );
-		$this->assertEquals( self::$posts[14], $q->posts[2]->ID );
+		$this->assertSame( self::$posts[2], $q->posts[0]->ID );
+		$this->assertSame( self::$posts[8], $q->posts[1]->ID );
+		$this->assertSame( self::$posts[14], $q->posts[2]->ID );
 	}
 
 	public function test_stickies_should_not_be_included_on_pages_other_than_1() {
@@ -82,7 +83,7 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 			self::$posts[9],
 		);
 
-		$this->assertEquals( $expected, wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSame( $expected, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_stickies_should_obey_post__not_in() {
@@ -92,8 +93,8 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 
 		$q = $GLOBALS['wp_query'];
 
-		$this->assertEquals( self::$posts[2], $q->posts[0]->ID );
-		$this->assertEquals( self::$posts[14], $q->posts[1]->ID );
+		$this->assertSame( self::$posts[2], $q->posts[0]->ID );
+		$this->assertSame( self::$posts[14], $q->posts[1]->ID );
 		$this->assertNotContains( self::$posts[8], wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
@@ -103,5 +104,49 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 
 	public function set_post__not_in( $q ) {
 		$q->set( 'post__not_in', array( self::$posts[8] ) );
+	}
+
+	/**
+	 * @ticket 36907
+	 */
+	public function test_stickies_should_obey_parameters_from_the_main_query() {
+		$filter = new MockAction();
+		add_filter( 'posts_pre_query', array( $filter, 'filter' ), 10, 2 );
+		$this->go_to( '/' );
+		$filter_args       = $filter->get_args();
+		$query_vars        = $filter_args[0][1]->query_vars;
+		$sticky_query_vars = $filter_args[1][1]->query_vars;
+
+		$this->assertNotEmpty( $sticky_query_vars['posts_per_page'] );
+		$this->assertSame( $query_vars['suppress_filters'], $sticky_query_vars['suppress_filters'] );
+		$this->assertSame( $query_vars['cache_results'], $sticky_query_vars['cache_results'] );
+		$this->assertSame( $query_vars['update_post_meta_cache'], $sticky_query_vars['update_post_meta_cache'] );
+		$this->assertSame( $query_vars['update_post_term_cache'], $sticky_query_vars['update_post_term_cache'] );
+		$this->assertSame( $query_vars['lazy_load_term_meta'], $sticky_query_vars['lazy_load_term_meta'] );
+		$this->assertTrue( $sticky_query_vars['ignore_sticky_posts'] );
+		$this->assertTrue( $sticky_query_vars['no_found_rows'] );
+	}
+
+	/**
+	 * @ticket 36907
+	 */
+	public function test_stickies_should_limit_query() {
+		$sticky_count = 6;
+		$post_date    = gmdate( 'Y-m-d H:i:s', time() - 10000 );
+		$post_ids     = self::factory()->post->create_many( $sticky_count, array( 'post_date' => $post_date ) );
+		add_filter(
+			'pre_option_sticky_posts',
+			function () use ( $post_ids ) {
+				return $post_ids;
+			}
+		);
+
+		$filter = new MockAction();
+		add_filter( 'posts_pre_query', array( $filter, 'filter' ), 10, 2 );
+		$this->go_to( '/' );
+		$filter_args       = $filter->get_args();
+		$sticky_query_vars = $filter_args[1][1]->query_vars;
+
+		$this->assertSame( $sticky_query_vars['posts_per_page'], $sticky_count );
 	}
 }

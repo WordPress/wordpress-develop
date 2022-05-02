@@ -14,6 +14,9 @@
 //                                                            ///
 /////////////////////////////////////////////////////////////////
 
+if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+	exit;
+}
 getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.tag.id3v1.php', __FILE__, true);
 
 class getid3_id3v2 extends getid3_handler
@@ -342,7 +345,7 @@ class getid3_id3v2 extends getid3_handler
 				}
 				if (($frame_size <= strlen($framedata)) && ($this->IsValidID3v2FrameName($frame_name, $id3v2_majorversion))) {
 
-					unset($parsedFrame);
+					$parsedFrame                    = array();
 					$parsedFrame['frame_name']      = $frame_name;
 					$parsedFrame['frame_flags_raw'] = $frame_flags;
 					$parsedFrame['data']            = substr($framedata, 0, $frame_size);
@@ -520,14 +523,21 @@ class getid3_id3v2 extends getid3_handler
 		if (($this->getid3->info['id3v2']['majorversion'] == 3) && !preg_match('#[\x00]#', $genrestring)) {
 			// note: MusicBrainz Picard incorrectly stores plaintext genres separated by "/" when writing in ID3v2.3 mode, hack-fix here:
 			// replace / with NULL, then replace back the two ID3v1 genres that legitimately have "/" as part of the single genre name
-			if (preg_match('#/#', $genrestring)) {
+			if (strpos($genrestring, '/') !== false) {
+				$LegitimateSlashedGenreList = array(  // https://github.com/JamesHeinrich/getID3/issues/223
+					'Pop/Funk',    // ID3v1 genre #62 - https://en.wikipedia.org/wiki/ID3#standard
+					'Cut-up/DJ',   // Discogs - https://www.discogs.com/style/cut-up/dj
+					'RnB/Swing',   // Discogs - https://www.discogs.com/style/rnb/swing
+					'Funk / Soul', // Discogs (note spaces) - https://www.discogs.com/genre/funk+%2F+soul
+				);
 				$genrestring = str_replace('/', "\x00", $genrestring);
-				$genrestring = str_replace('Pop'."\x00".'Funk', 'Pop/Funk', $genrestring);
-				$genrestring = str_replace('Rock'."\x00".'Rock', 'Folk/Rock', $genrestring);
+				foreach ($LegitimateSlashedGenreList as $SlashedGenre) {
+					$genrestring = str_ireplace(str_replace('/', "\x00", $SlashedGenre), $SlashedGenre, $genrestring);
+				}
 			}
 
 			// some other taggers separate multiple genres with semicolon, e.g. "Heavy Metal;Thrash Metal;Metal"
-			if (preg_match('#;#', $genrestring)) {
+			if (strpos($genrestring, ';') !== false) {
 				$genrestring = str_replace(';', "\x00", $genrestring);
 			}
 		}
@@ -968,7 +978,7 @@ class getid3_id3v2 extends getid3_handler
 
 
 		} elseif ((($id3v2_majorversion >= 3) && ($parsedFrame['frame_name'] == 'USLT')) || // 4.8   USLT Unsynchronised lyric/text transcription
-				(($id3v2_majorversion == 2) && ($parsedFrame['frame_name'] == 'ULT'))) {     // 4.9   ULT  Unsynchronised lyric/text transcription
+				(($id3v2_majorversion == 2) && ($parsedFrame['frame_name'] == 'ULT'))) {    // 4.9   ULT  Unsynchronised lyric/text transcription
 			//   There may be more than one 'Unsynchronised lyrics/text transcription' frame
 			//   in each tag, but only one with the same language and content descriptor.
 			// <Header for 'Unsynchronised lyrics/text transcription', ID: 'USLT'>
@@ -984,24 +994,28 @@ class getid3_id3v2 extends getid3_handler
 				$this->warning('Invalid text encoding byte ('.$frame_textencoding.') in frame "'.$parsedFrame['frame_name'].'" - defaulting to ISO-8859-1 encoding');
 				$frame_textencoding_terminator = "\x00";
 			}
-			$frame_language = substr($parsedFrame['data'], $frame_offset, 3);
-			$frame_offset += 3;
-			$frame_terminatorpos = strpos($parsedFrame['data'], $frame_textencoding_terminator, $frame_offset);
-			if (ord(substr($parsedFrame['data'], $frame_terminatorpos + strlen($frame_textencoding_terminator), 1)) === 0) {
-				$frame_terminatorpos++; // strpos() fooled because 2nd byte of Unicode chars are often 0x00
-			}
-			$parsedFrame['description'] = substr($parsedFrame['data'], $frame_offset, $frame_terminatorpos - $frame_offset);
-			$parsedFrame['description'] = $this->MakeUTF16emptyStringEmpty($parsedFrame['description']);
-			$parsedFrame['data'] = substr($parsedFrame['data'], $frame_terminatorpos + strlen($frame_textencoding_terminator));
-			$parsedFrame['data'] = $this->RemoveStringTerminator($parsedFrame['data'], $frame_textencoding_terminator);
+			if (strlen($parsedFrame['data']) >= (4 + strlen($frame_textencoding_terminator))) {  // shouldn't be an issue but badly-written files have been spotted in the wild with not only no contents but also missing the required language field, see https://github.com/JamesHeinrich/getID3/issues/315
+				$frame_language = substr($parsedFrame['data'], $frame_offset, 3);
+				$frame_offset += 3;
+				$frame_terminatorpos = strpos($parsedFrame['data'], $frame_textencoding_terminator, $frame_offset);
+				if (ord(substr($parsedFrame['data'], $frame_terminatorpos + strlen($frame_textencoding_terminator), 1)) === 0) {
+					$frame_terminatorpos++; // strpos() fooled because 2nd byte of Unicode chars are often 0x00
+				}
+				$parsedFrame['description'] = substr($parsedFrame['data'], $frame_offset, $frame_terminatorpos - $frame_offset);
+				$parsedFrame['description'] = $this->MakeUTF16emptyStringEmpty($parsedFrame['description']);
+				$parsedFrame['data'] = substr($parsedFrame['data'], $frame_terminatorpos + strlen($frame_textencoding_terminator));
+				$parsedFrame['data'] = $this->RemoveStringTerminator($parsedFrame['data'], $frame_textencoding_terminator);
 
-			$parsedFrame['encodingid']   = $frame_textencoding;
-			$parsedFrame['encoding']     = $this->TextEncodingNameLookup($frame_textencoding);
+				$parsedFrame['encodingid']   = $frame_textencoding;
+				$parsedFrame['encoding']     = $this->TextEncodingNameLookup($frame_textencoding);
 
-			$parsedFrame['language']     = $frame_language;
-			$parsedFrame['languagename'] = $this->LanguageLookup($frame_language, false);
-			if (!empty($parsedFrame['framenameshort']) && !empty($parsedFrame['data'])) {
-				$info['id3v2']['comments'][$parsedFrame['framenameshort']][] = getid3_lib::iconv_fallback($parsedFrame['encoding'], $info['id3v2']['encoding'], $parsedFrame['data']);
+				$parsedFrame['language']     = $frame_language;
+				$parsedFrame['languagename'] = $this->LanguageLookup($frame_language, false);
+				if (!empty($parsedFrame['framenameshort']) && !empty($parsedFrame['data'])) {
+					$info['id3v2']['comments'][$parsedFrame['framenameshort']][] = getid3_lib::iconv_fallback($parsedFrame['encoding'], $info['id3v2']['encoding'], $parsedFrame['data']);
+				}
+			} else {
+				$this->warning('Invalid data in frame "'.$parsedFrame['frame_name'].'" at offset '.$parsedFrame['dataoffset']);
 			}
 			unset($parsedFrame['data']);
 
@@ -1360,6 +1374,8 @@ class getid3_id3v2 extends getid3_handler
 				$frame_textencoding_terminator = "\x00";
 			}
 
+			$frame_imagetype = null;
+			$frame_mimetype = null;
 			if ($id3v2_majorversion == 2 && strlen($parsedFrame['data']) > $frame_offset) {
 				$frame_imagetype = substr($parsedFrame['data'], $frame_offset, 3);
 				if (strtolower($frame_imagetype) == 'ima') {
@@ -1946,18 +1962,14 @@ class getid3_id3v2 extends getid3_handler
 			$frame_offset = 0;
 			$parsedFrame['peakamplitude'] = getid3_lib::BigEndian2Float(substr($parsedFrame['data'], $frame_offset, 4));
 			$frame_offset += 4;
-			$rg_track_adjustment = getid3_lib::Dec2Bin(substr($parsedFrame['data'], $frame_offset, 2));
-			$frame_offset += 2;
-			$rg_album_adjustment = getid3_lib::Dec2Bin(substr($parsedFrame['data'], $frame_offset, 2));
-			$frame_offset += 2;
-			$parsedFrame['raw']['track']['name']       = getid3_lib::Bin2Dec(substr($rg_track_adjustment, 0, 3));
-			$parsedFrame['raw']['track']['originator'] = getid3_lib::Bin2Dec(substr($rg_track_adjustment, 3, 3));
-			$parsedFrame['raw']['track']['signbit']    = getid3_lib::Bin2Dec(substr($rg_track_adjustment, 6, 1));
-			$parsedFrame['raw']['track']['adjustment'] = getid3_lib::Bin2Dec(substr($rg_track_adjustment, 7, 9));
-			$parsedFrame['raw']['album']['name']       = getid3_lib::Bin2Dec(substr($rg_album_adjustment, 0, 3));
-			$parsedFrame['raw']['album']['originator'] = getid3_lib::Bin2Dec(substr($rg_album_adjustment, 3, 3));
-			$parsedFrame['raw']['album']['signbit']    = getid3_lib::Bin2Dec(substr($rg_album_adjustment, 6, 1));
-			$parsedFrame['raw']['album']['adjustment'] = getid3_lib::Bin2Dec(substr($rg_album_adjustment, 7, 9));
+			foreach (array('track','album') as $rgad_entry_type) {
+				$rg_adjustment_word = getid3_lib::BigEndian2Int(substr($parsedFrame['data'], $frame_offset, 2));
+				$frame_offset += 2;
+				$parsedFrame['raw'][$rgad_entry_type]['name']       = ($rg_adjustment_word & 0xE000) >> 13;
+				$parsedFrame['raw'][$rgad_entry_type]['originator'] = ($rg_adjustment_word & 0x1C00) >> 10;
+				$parsedFrame['raw'][$rgad_entry_type]['signbit']    = ($rg_adjustment_word & 0x0200) >>  9;
+				$parsedFrame['raw'][$rgad_entry_type]['adjustment'] = ($rg_adjustment_word & 0x0100);
+			}
 			$parsedFrame['track']['name']       = getid3_lib::RGADnameLookup($parsedFrame['raw']['track']['name']);
 			$parsedFrame['track']['originator'] = getid3_lib::RGADoriginatorLookup($parsedFrame['raw']['track']['originator']);
 			$parsedFrame['track']['adjustment'] = getid3_lib::RGADadjustmentLookup($parsedFrame['raw']['track']['adjustment'], $parsedFrame['raw']['track']['signbit']);
@@ -2434,7 +2446,8 @@ class getid3_id3v2 extends getid3_handler
 			TMM	Manats
 			TND	Dinars
 			TOP	Pa'anga
-			TRL	Liras
+			TRL	Liras (old)
+			TRY	Liras
 			TTD	Dollars
 			TVD	Tuvalu Dollars
 			TWD	New Dollars
@@ -2635,6 +2648,7 @@ class getid3_id3v2 extends getid3_handler
 			TND	Tunisia
 			TOP	Tonga
 			TRL	Turkey
+			TRY	Turkey
 			TTD	Trinidad and Tobago
 			TVD	Tuvalu
 			TWD	Taiwan
@@ -3723,12 +3737,10 @@ class getid3_id3v2 extends getid3_handler
 		switch ($id3v2majorversion) {
 			case 2:
 				return preg_match('#[A-Z][A-Z0-9]{2}#', $framename);
-				break;
 
 			case 3:
 			case 4:
 				return preg_match('#[A-Z][A-Z0-9]{3}#', $framename);
-				break;
 		}
 		return false;
 	}

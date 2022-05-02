@@ -75,7 +75,7 @@ class Text_Diff {
      *
      * @since Text_Diff 1.1.0
      *
-     * @return integer The number of new lines
+     * @return int The number of new lines
      */
     function countAddedLines()
     {
@@ -94,7 +94,7 @@ class Text_Diff {
      *
      * @since Text_Diff 1.1.0
      *
-     * @return integer The number of deleted lines
+     * @return int The number of deleted lines
      */
     function countDeletedLines()
     {
@@ -139,7 +139,7 @@ class Text_Diff {
     /**
      * Checks for an empty diff.
      *
-     * @return boolean  True if two sequences were identical.
+     * @return bool True if two sequences were identical.
      */
     function isEmpty()
     {
@@ -156,7 +156,7 @@ class Text_Diff {
      *
      * This is mostly for diagnostic purposes.
      *
-     * @return integer  The length of the LCS.
+     * @return int The length of the LCS.
      */
     function lcs()
     {
@@ -210,7 +210,7 @@ class Text_Diff {
      * with array_walk().
      *
      * @param string $line  The line to trim.
-     * @param integer $key  The index of the line in the array. Not used.
+     * @param int    $key   The index of the line in the array. Not used.
      */
     static function trimNewlines(&$line, $key)
     {
@@ -220,14 +220,12 @@ class Text_Diff {
     /**
      * Determines the location of the system temporary directory.
      *
-     * @static
-     *
      * @access protected
      *
      * @return string  A directory name which can be used for temp files.
      *                 Returns false if one could not be found.
      */
-    function _getTempDir()
+    static function _getTempDir()
     {
         $tmp_locations = array('/tmp', '/var/tmp', 'c:\WUTemp', 'c:\temp',
                                'c:\windows\temp', 'c:\winnt\temp');
@@ -262,23 +260,23 @@ class Text_Diff {
     function _check($from_lines, $to_lines)
     {
         if (serialize($from_lines) != serialize($this->getOriginal())) {
-            trigger_error("Reconstructed original doesn't match", E_USER_ERROR);
+            trigger_error("Reconstructed original does not match", E_USER_ERROR);
         }
         if (serialize($to_lines) != serialize($this->getFinal())) {
-            trigger_error("Reconstructed final doesn't match", E_USER_ERROR);
+            trigger_error("Reconstructed final does not match", E_USER_ERROR);
         }
 
         $rev = $this->reverse();
         if (serialize($to_lines) != serialize($rev->getOriginal())) {
-            trigger_error("Reversed original doesn't match", E_USER_ERROR);
+            trigger_error("Reversed original does not match", E_USER_ERROR);
         }
         if (serialize($from_lines) != serialize($rev->getFinal())) {
-            trigger_error("Reversed final doesn't match", E_USER_ERROR);
+            trigger_error("Reversed final does not match", E_USER_ERROR);
         }
 
         $prevtype = null;
         foreach ($this->_edits as $edit) {
-            if ($prevtype == get_class($edit)) {
+            if ($edit instanceof $prevtype) {
                 trigger_error("Edit sequence is non-optimal", E_USER_ERROR);
             }
             $prevtype = get_class($edit);

@@ -339,6 +339,12 @@
 			line-height: 1;
 			font-weight: bold;
 			margin: 0 0.25em 0 0;
+
+			@-moz-document url-prefix()  {
+				& {
+					margin-top: 0.2em;
+				}
+			}
 		}
 	}
 
@@ -540,10 +546,13 @@
 		}
 
 		// If an image does not have a left/center/right alignment, 
-		// it's a direct child of .wp-block-img.  If it has no other 
-		// alignment added, we want to make sure the image does not 
-		// extend beyond the width of the text column.
-		&:not(.alignwide):not(.alignfull) > img {
+		// it's a direct child of .wp-block-image.  If it has no other 
+		// alignment added, we want to make sure the image and its 
+		// caption do not extend beyond the width of the text column.
+		&:not(.alignwide):not(.alignfull) > img,
+		&:not(.alignwide):not(.alignfull) > a > img,
+		&:not(.alignwide):not(.alignfull) > img + figcaption,
+		&:not(.alignwide):not(.alignfull) > a + figcaption {
 			@include postContentMaxWidth();
 		}
 
@@ -678,6 +687,11 @@
 		max-width: 2.25em;
 		text-align: left;
 
+		&:not(.wp-block-separator) {
+			max-width: 100%;
+			@include postContentMaxWidth();
+		}
+
 		&.is-style-wide {
 			max-width: 100%;
 			@include postContentMaxWidth();
@@ -792,6 +806,8 @@
 		}
 
 		// Ensure images do not expand beyond the column.
+		.wp-block-image:not(.alignwide):not(.alignfull) > img,
+		.wp-block-image:not(.alignwide):not(.alignfull) > a > img,
 		.wp-block-image > img:not(.alignwide):not(.alignfull),
 		.wp-block-image > figure {
 

@@ -15,10 +15,10 @@
 class getid3_lib
 {
 	/**
-	 * @param string $string
-	 * @param bool   $hex
-	 * @param bool   $spaces
-	 * @param string $htmlencoding
+	 * @param string      $string
+	 * @param bool        $hex
+	 * @param bool        $spaces
+	 * @param string|bool $htmlencoding
 	 *
 	 * @return string
 	 */
@@ -114,7 +114,7 @@ class getid3_lib
 			}
 		}
 		// if integers are 64-bit - no other check required
-		if ($hasINT64 || (($num <= PHP_INT_MAX) && ($num >= PHP_INT_MIN))) {
+		if ($hasINT64 || (($num <= PHP_INT_MAX) && ($num >= PHP_INT_MIN))) { // phpcs:ignore PHPCompatibility.Constants.NewConstants.php_int_minFound
 			return true;
 		}
 		return false;
@@ -216,7 +216,6 @@ class getid3_lib
 
 			default:
 				return false;
-				break;
 		}
 		if ($floatvalue >= 0) {
 			$signbit = '0';
@@ -243,7 +242,7 @@ class getid3_lib
 	/**
 	 * ANSI/IEEE Standard 754-1985, Standard for Binary Floating Point Arithmetic
 	 *
-	 * @link http://www.psc.edu/general/software/packages/ieee/ieee.html
+	 * @link https://web.archive.org/web/20120325162206/http://www.psc.edu/general/software/packages/ieee/ieee.php
 	 * @link http://www.scri.fsu.edu/~jac/MAD3401/Backgrnd/ieee.html
 	 *
 	 * @param string $byteword
@@ -284,11 +283,9 @@ class getid3_lib
 					$floatvalue *= -1;
 				}
 				return $floatvalue;
-				break;
 
 			default:
 				return false;
-				break;
 		}
 		$exponentstring = substr($bitword, 1, $exponentbits);
 		$fractionstring = substr($bitword, $exponentbits + 1, $fractionbits);
@@ -297,12 +294,12 @@ class getid3_lib
 
 		if (($exponent == (pow(2, $exponentbits) - 1)) && ($fraction != 0)) {
 			// Not a Number
-			$floatvalue = false;
+			$floatvalue = NAN;
 		} elseif (($exponent == (pow(2, $exponentbits) - 1)) && ($fraction == 0)) {
 			if ($signbit == '1') {
-				$floatvalue = '-infinity';
+				$floatvalue = -INF;
 			} else {
-				$floatvalue = '+infinity';
+				$floatvalue = INF;
 			}
 		} elseif (($exponent == 0) && ($fraction == 0)) {
 			if ($signbit == '1') {
@@ -430,14 +427,20 @@ class getid3_lib
 	 * @return string
 	 */
 	public static function Dec2Bin($number) {
+		if (!is_numeric($number)) {
+			// https://github.com/JamesHeinrich/getID3/issues/299
+			trigger_error('TypeError: Dec2Bin(): Argument #1 ($number) must be numeric, '.gettype($number).' given', E_USER_WARNING);
+			return '';
+		}
+		$bytes = array();
 		while ($number >= 256) {
-			$bytes[] = (($number / 256) - (floor($number / 256))) * 256;
+			$bytes[] = (int) (($number / 256) - (floor($number / 256))) * 256;
 			$number = floor($number / 256);
 		}
-		$bytes[] = $number;
+		$bytes[] = (int) $number;
 		$binstring = '';
-		for ($i = 0; $i < count($bytes); $i++) {
-			$binstring = (($i == count($bytes) - 1) ? decbin($bytes[$i]) : str_pad(decbin($bytes[$i]), 8, '0', STR_PAD_LEFT)).$binstring;
+		foreach ($bytes as $i => $byte) {
+			$binstring = (($i == count($bytes) - 1) ? decbin($byte) : str_pad(decbin($byte), 8, '0', STR_PAD_LEFT)).$binstring;
 		}
 		return $binstring;
 	}
@@ -500,8 +503,8 @@ class getid3_lib
 	}
 
 	/**
-	 * @param array $array1
-	 * @param array $array2
+	 * @param mixed $array1
+	 * @param mixed $array2
 	 *
 	 * @return array|false
 	 */
@@ -523,8 +526,8 @@ class getid3_lib
 	}
 
 	/**
-	 * @param array $array1
-	 * @param array $array2
+	 * @param mixed $array1
+	 * @param mixed $array2
 	 *
 	 * @return array|false
 	 */
@@ -544,8 +547,8 @@ class getid3_lib
 	}
 
 	/**
-	 * @param array $array1
-	 * @param array $array2
+	 * @param mixed $array1
+	 * @param mixed $array2
 	 *
 	 * @return array|false|null
 	 */
@@ -668,6 +671,7 @@ class getid3_lib
 		// or
 		//   $foo['path']['to']['my'] = 'file.txt';
 		$ArrayPath = ltrim($ArrayPath, $Separator);
+		$ReturnedArray = array();
 		if (($pos = strpos($ArrayPath, $Separator)) !== false) {
 			$ReturnedArray[substr($ArrayPath, 0, $pos)] = self::CreateDeepArray(substr($ArrayPath, $pos + 1), $Separator, $Value);
 		} else {
@@ -684,10 +688,10 @@ class getid3_lib
 	 */
 	public static function array_max($arraydata, $returnkey=false) {
 		$maxvalue = false;
-		$maxkey = false;
+		$maxkey   = false;
 		foreach ($arraydata as $key => $value) {
 			if (!is_array($value)) {
-				if ($value > $maxvalue) {
+				if (($maxvalue === false) || ($value > $maxvalue)) {
 					$maxvalue = $value;
 					$maxkey = $key;
 				}
@@ -704,10 +708,10 @@ class getid3_lib
 	 */
 	public static function array_min($arraydata, $returnkey=false) {
 		$minvalue = false;
-		$minkey = false;
+		$minkey   = false;
 		foreach ($arraydata as $key => $value) {
 			if (!is_array($value)) {
-				if ($value > $minvalue) {
+				if (($minvalue === false) || ($value < $minvalue)) {
 					$minvalue = $value;
 					$minkey = $key;
 				}
@@ -725,19 +729,21 @@ class getid3_lib
 		if (function_exists('simplexml_load_string') && function_exists('libxml_disable_entity_loader')) {
 			// http://websec.io/2012/08/27/Preventing-XEE-in-PHP.html
 			// https://core.trac.wordpress.org/changeset/29378
-			$loader = libxml_disable_entity_loader(true);
+			// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading is
+			// disabled by default, but is still needed when LIBXML_NOENT is used.
+			$loader = @libxml_disable_entity_loader(true);
 			$XMLobject = simplexml_load_string($XMLstring, 'SimpleXMLElement', LIBXML_NOENT);
 			$return = self::SimpleXMLelement2array($XMLobject);
-			libxml_disable_entity_loader($loader);
+			@libxml_disable_entity_loader($loader);
 			return $return;
 		}
 		return false;
 	}
 
 	/**
-	* @param SimpleXMLElement|array $XMLobject
+	* @param SimpleXMLElement|array|mixed $XMLobject
 	*
-	* @return array
+	* @return mixed
 	*/
 	public static function SimpleXMLelement2array($XMLobject) {
 		if (!is_object($XMLobject) && !is_array($XMLobject)) {
@@ -1479,6 +1485,15 @@ class getid3_lib
 	 * @return array|false
 	 */
 	public static function GetDataImageSize($imgData, &$imageinfo=array()) {
+		if (PHP_VERSION_ID >= 50400) {
+			$GetDataImageSize = @getimagesizefromstring($imgData, $imageinfo);
+			if ($GetDataImageSize === false || !isset($GetDataImageSize[0], $GetDataImageSize[1])) {
+				return false;
+			}
+			$GetDataImageSize['height'] = $GetDataImageSize[0];
+			$GetDataImageSize['width'] = $GetDataImageSize[1];
+			return $GetDataImageSize;
+		}
 		static $tempdir = '';
 		if (empty($tempdir)) {
 			if (function_exists('sys_get_temp_dir')) {
@@ -1487,12 +1502,11 @@ class getid3_lib
 
 			// yes this is ugly, feel free to suggest a better way
 			if (include_once(dirname(__FILE__).'/getid3.php')) {
-				if ($getid3_temp = new getID3()) {
-					if ($getid3_temp_tempdir = $getid3_temp->tempdir) {
-						$tempdir = $getid3_temp_tempdir;
-					}
-					unset($getid3_temp, $getid3_temp_tempdir);
+				$getid3_temp = new getID3();
+				if ($getid3_temp_tempdir = $getid3_temp->tempdir) {
+					$tempdir = $getid3_temp_tempdir;
 				}
+				unset($getid3_temp, $getid3_temp_tempdir);
 			}
 		}
 		$GetDataImageSize = false;
@@ -1524,13 +1538,29 @@ class getid3_lib
 
 	/**
 	 * @param array $ThisFileInfo
+	 * @param bool  $option_tags_html default true (just as in the main getID3 class)
 	 *
 	 * @return bool
 	 */
-	public static function CopyTagsToComments(&$ThisFileInfo) {
-
+	public static function CopyTagsToComments(&$ThisFileInfo, $option_tags_html=true) {
 		// Copy all entries from ['tags'] into common ['comments']
 		if (!empty($ThisFileInfo['tags'])) {
+
+			// Some tag types can only support limited character sets and may contain data in non-standard encoding (usually ID3v1)
+			// and/or poorly-transliterated tag values that are also in tag formats that do support full-range character sets
+			// To make the output more user-friendly, process the potentially-problematic tag formats last to enhance the chance that
+			// the first entries in [comments] are the most correct and the "bad" ones (if any) come later.
+			// https://github.com/JamesHeinrich/getID3/issues/338
+			$processLastTagTypes = array('id3v1','riff');
+			foreach ($processLastTagTypes as $processLastTagType) {
+				if (isset($ThisFileInfo['tags'][$processLastTagType])) {
+					// bubble ID3v1 to the end, if present to aid in detecting bad ID3v1 encodings
+					$temp = $ThisFileInfo['tags'][$processLastTagType];
+					unset($ThisFileInfo['tags'][$processLastTagType]);
+					$ThisFileInfo['tags'][$processLastTagType] = $temp;
+					unset($temp);
+				}
+			}
 			foreach ($ThisFileInfo['tags'] as $tagtype => $tagarray) {
 				foreach ($tagarray as $tagname => $tagdata) {
 					foreach ($tagdata as $key => $value) {
@@ -1548,16 +1578,32 @@ class getid3_lib
 										// new value is identical but shorter-than (or equal-length to) one already in comments - skip
 										break 2;
 									}
+
+									if (function_exists('mb_convert_encoding')) {
+										if (trim($value) == trim(substr(mb_convert_encoding($existingvalue, $ThisFileInfo['id3v1']['encoding'], $ThisFileInfo['encoding']), 0, 30))) {
+											// value stored in ID3v1 appears to be probably the multibyte value transliterated (badly) into ISO-8859-1 in ID3v1.
+											// As an example, Foobar2000 will do this if you tag a file with Chinese or Arabic or Cyrillic or something that doesn't fit into ISO-8859-1 the ID3v1 will consist of mostly "?" characters, one per multibyte unrepresentable character
+											break 2;
+										}
+									}
 								}
 
 							} elseif (!is_array($value)) {
 
-								$newvaluelength = strlen(trim($value));
+								$newvaluelength   =    strlen(trim($value));
+								$newvaluelengthMB = mb_strlen(trim($value));
 								foreach ($ThisFileInfo['comments'][$tagname] as $existingkey => $existingvalue) {
-									$oldvaluelength = strlen(trim($existingvalue));
+									$oldvaluelength   =    strlen(trim($existingvalue));
+									$oldvaluelengthMB = mb_strlen(trim($existingvalue));
+									if (($newvaluelengthMB == $oldvaluelengthMB) && ($existingvalue == getid3_lib::iconv_fallback('UTF-8', 'ASCII', $value))) {
+										// https://github.com/JamesHeinrich/getID3/issues/338
+										// check for tags containing extended characters that may have been forced into limited-character storage (e.g. UTF8 values into ASCII)
+										// which will usually display unrepresentable characters as "?"
+										$ThisFileInfo['comments'][$tagname][$existingkey] = trim($value);
+										break;
+									}
 									if ((strlen($existingvalue) > 10) && ($newvaluelength > $oldvaluelength) && (substr(trim($value), 0, strlen($existingvalue)) == $existingvalue)) {
 										$ThisFileInfo['comments'][$tagname][$existingkey] = trim($value);
-										//break 2;
 										break;
 									}
 								}
@@ -1568,7 +1614,7 @@ class getid3_lib
 								if (!is_int($key) && !ctype_digit($key)) {
 									$ThisFileInfo['comments'][$tagname][$key] = $value;
 								} else {
-									if (isset($ThisFileInfo['comments'][$tagname])) {
+									if (!isset($ThisFileInfo['comments'][$tagname])) {
 										$ThisFileInfo['comments'][$tagname] = array($value);
 									} else {
 										$ThisFileInfo['comments'][$tagname][] = $value;
@@ -1581,30 +1627,34 @@ class getid3_lib
 			}
 
 			// attempt to standardize spelling of returned keys
-			$StandardizeFieldNames = array(
-				'tracknumber' => 'track_number',
-				'track'       => 'track_number',
-			);
-			foreach ($StandardizeFieldNames as $badkey => $goodkey) {
-				if (array_key_exists($badkey, $ThisFileInfo['comments']) && !array_key_exists($goodkey, $ThisFileInfo['comments'])) {
-					$ThisFileInfo['comments'][$goodkey] = $ThisFileInfo['comments'][$badkey];
-					unset($ThisFileInfo['comments'][$badkey]);
+			if (!empty($ThisFileInfo['comments'])) {
+				$StandardizeFieldNames = array(
+					'tracknumber' => 'track_number',
+					'track'       => 'track_number',
+				);
+				foreach ($StandardizeFieldNames as $badkey => $goodkey) {
+					if (array_key_exists($badkey, $ThisFileInfo['comments']) && !array_key_exists($goodkey, $ThisFileInfo['comments'])) {
+						$ThisFileInfo['comments'][$goodkey] = $ThisFileInfo['comments'][$badkey];
+						unset($ThisFileInfo['comments'][$badkey]);
+					}
 				}
 			}
 
-			// Copy to ['comments_html']
-			if (!empty($ThisFileInfo['comments'])) {
-				foreach ($ThisFileInfo['comments'] as $field => $values) {
-					if ($field == 'picture') {
-						// pictures can take up a lot of space, and we don't need multiple copies of them
-						// let there be a single copy in [comments][picture], and not elsewhere
-						continue;
-					}
-					foreach ($values as $index => $value) {
-						if (is_array($value)) {
-							$ThisFileInfo['comments_html'][$field][$index] = $value;
-						} else {
-							$ThisFileInfo['comments_html'][$field][$index] = str_replace('&#0;', '', self::MultiByteCharString2HTML($value, $ThisFileInfo['encoding']));
+			if ($option_tags_html) {
+				// Copy ['comments'] to ['comments_html']
+				if (!empty($ThisFileInfo['comments'])) {
+					foreach ($ThisFileInfo['comments'] as $field => $values) {
+						if ($field == 'picture') {
+							// pictures can take up a lot of space, and we don't need multiple copies of them
+							// let there be a single copy in [comments][picture], and not elsewhere
+							continue;
+						}
+						foreach ($values as $index => $value) {
+							if (is_array($value)) {
+								$ThisFileInfo['comments_html'][$field][$index] = $value;
+							} else {
+								$ThisFileInfo['comments_html'][$field][$index] = str_replace('&#0;', '', self::MultiByteCharString2HTML($value, $ThisFileInfo['encoding']));
+							}
 						}
 					}
 				}
@@ -1712,6 +1762,7 @@ class getid3_lib
 	 * @return float|bool
 	 */
 	public static function getFileSizeSyscall($path) {
+		$commandline = null;
 		$filesize = false;
 
 		if (GETID3_OS_ISWINDOWS) {
@@ -1773,7 +1824,7 @@ class getid3_lib
 	 *
 	 * @return string
 	 */
-	public static function mb_basename($path, $suffix = null) {
+	public static function mb_basename($path, $suffix = '') {
 		$splited = preg_split('#/#', rtrim($path, '/ '));
 		return substr(basename('X'.$splited[count($splited) - 1], $suffix), 1);
 	}

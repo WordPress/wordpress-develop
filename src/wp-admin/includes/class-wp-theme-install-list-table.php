@@ -82,7 +82,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$nonmenu_tabs = apply_filters( 'install_themes_nonmenu_tabs', $nonmenu_tabs );
 
 		// If a non-valid menu tab has been selected, And it's not a non-menu action.
-		if ( empty( $tab ) || ( ! isset( $tabs[ $tab ] ) && ! in_array( $tab, (array) $nonmenu_tabs ) ) ) {
+		if ( empty( $tab ) || ( ! isset( $tabs[ $tab ] ) && ! in_array( $tab, (array) $nonmenu_tabs, true ) ) ) {
 			$tab = key( $tabs );
 		}
 
@@ -132,12 +132,20 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		 * Filters API request arguments for each Install Themes screen tab.
 		 *
 		 * The dynamic portion of the hook name, `$tab`, refers to the theme install
-		 * tabs. Default tabs are 'dashboard', 'search', 'upload', 'featured',
-		 * 'new', and 'updated'.
+		 * tab.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `install_themes_table_api_args_dashboard`
+		 *  - `install_themes_table_api_args_featured`
+		 *  - `install_themes_table_api_args_new`
+		 *  - `install_themes_table_api_args_search`
+		 *  - `install_themes_table_api_args_updated`
+		 *  - `install_themes_table_api_args_upload`
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param array $args An array of themes API arguments.
+		 * @param array|false $args Theme install API arguments.
 		 */
 		$args = apply_filters( "install_themes_table_api_args_{$tab}", $args );
 
@@ -148,7 +156,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$api = themes_api( 'query_themes', $args );
 
 		if ( is_wp_error( $api ) ) {
-			wp_die( $api->get_error_message() . '</p> <p><a href="#" onclick="document.location.reload(); return false;">' . __( 'Try Again' ) . '</a>' );
+			wp_die( '<p>' . $api->get_error_message() . '</p> <p><a href="#" onclick="document.location.reload(); return false;">' . __( 'Try Again' ) . '</a></p>' );
 		}
 
 		$this->items = $api->themes;
@@ -243,18 +251,18 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *
 	 * @global array $themes_allowedtags
 	 *
-	 * @param object $theme {
+	 * @param stdClass $theme {
 	 *     An object that contains theme data returned by the WordPress.org API.
 	 *
-	 *     @type string $name           Theme name, e.g. 'Twenty Twenty'.
-	 *     @type string $slug           Theme slug, e.g. 'twentytwenty'.
+	 *     @type string $name           Theme name, e.g. 'Twenty Twenty-One'.
+	 *     @type string $slug           Theme slug, e.g. 'twentytwentyone'.
 	 *     @type string $version        Theme version, e.g. '1.1'.
 	 *     @type string $author         Theme author username, e.g. 'melchoyce'.
-	 *     @type string $preview_url    Preview URL, e.g. 'http://2020.wordpress.net/'.
-	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://wordpress.org/themes/twentytwenty/'.
+	 *     @type string $preview_url    Preview URL, e.g. 'https://2021.wordpress.net/'.
+	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://wordpress.org/themes/twentytwentyone/'.
 	 *     @type float  $rating         Rating score.
 	 *     @type int    $num_ratings    The number of ratings.
-	 *     @type string $homepage       Theme homepage, e.g. 'https://wordpress.org/themes/twentytwenty/'.
+	 *     @type string $homepage       Theme homepage, e.g. 'https://wordpress.org/themes/twentytwentyone/'.
 	 *     @type string $description    Theme description.
 	 *     @type string $download_link  Theme ZIP download URL.
 	 * }
@@ -323,7 +331,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					'<a class="install-now" href="%s" title="%s">%s</a>',
 					esc_url( wp_nonce_url( $install_url, 'install-theme_' . $theme->slug ) ),
 					/* translators: %s: Theme name. */
-					esc_attr( sprintf( __( 'Install %s' ), $name ) ),
+					esc_attr( sprintf( _x( 'Install %s', 'theme' ), $name ) ),
 					__( 'Install Now' )
 				);
 				break;
@@ -344,13 +352,14 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		 *
 		 * @param string[] $actions An array of theme action links. Defaults are
 		 *                          links to Install Now, Preview, and Details.
-		 * @param WP_Theme $theme   Theme object.
+		 * @param stdClass $theme   An object that contains theme data returned by the
+		 *                          WordPress.org API.
 		 */
 		$actions = apply_filters( 'theme_install_actions', $actions, $theme );
 
 		?>
 		<a class="screenshot install-theme-preview" href="<?php echo esc_url( $preview_url ); ?>" title="<?php echo esc_attr( $preview_title ); ?>">
-			<img src="<?php echo esc_url( $theme->screenshot_url ); ?>" width="150" alt="" />
+			<img src="<?php echo esc_url( $theme->screenshot_url . '?ver=' . $theme->version ); ?>" width="150" alt="" />
 		</a>
 
 		<h3><?php echo $name; ?></h3>
@@ -404,7 +413,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 * Prints the wrapper for the theme installer with a provided theme's data.
 	 * Used to make the theme installer work for no-js.
 	 *
-	 * @param object $theme - A WordPress.org Theme API object.
+	 * @param stdClass $theme A WordPress.org Theme API object.
 	 */
 	public function theme_installer_single( $theme ) {
 		?>
@@ -424,7 +433,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *
 	 * @global array $themes_allowedtags
 	 *
-	 * @param object $theme - A WordPress.org Theme API object.
+	 * @param stdClass $theme A WordPress.org Theme API object.
 	 */
 	public function install_theme_info( $theme ) {
 		global $themes_allowedtags;
@@ -493,7 +502,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 			?>
 			</span>
 			<?php if ( isset( $theme->screenshot_url ) ) : ?>
-				<img class="theme-screenshot" src="<?php echo esc_url( $theme->screenshot_url ); ?>" alt="" />
+				<img class="theme-screenshot" src="<?php echo esc_url( $theme->screenshot_url . '?ver=' . $theme->version ); ?>" alt="" />
 			<?php endif; ?>
 			<div class="theme-details">
 				<?php
@@ -538,7 +547,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param object $theme - A WordPress.org Theme API object.
+	 * @param stdClass $theme A WordPress.org Theme API object.
 	 * @return string Theme status.
 	 */
 	private function _get_theme_status( $theme ) {

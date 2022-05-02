@@ -23,7 +23,7 @@ if ( $doaction && isset( $_REQUEST['linkcheck'] ) ) {
 	$redirect_to = admin_url( 'link-manager.php' );
 	$bulklinks   = (array) $_REQUEST['linkcheck'];
 
-	if ( 'delete' == $doaction ) {
+	if ( 'delete' === $doaction ) {
 		foreach ( $bulklinks as $link_id ) {
 			$link_id = (int) $link_id;
 
@@ -46,6 +46,7 @@ if ( $doaction && isset( $_REQUEST['linkcheck'] ) ) {
 
 $wp_list_table->prepare_items();
 
+// Used in the HTML title tag.
 $title       = __( 'Links' );
 $this_file   = 'link-manager.php';
 $parent_file = $this_file;
@@ -104,8 +105,13 @@ echo esc_html( $title );
 
 <?php
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: Search query. */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( wp_unslash( $_REQUEST['s'] ) ) );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( wp_unslash( $_REQUEST['s'] ) ) . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 

@@ -20,7 +20,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $total_tags = 30;
 	protected static $per_page   = 50;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin    = $factory->user->create(
 			array(
 				'role'       => 'administrator',
@@ -74,8 +74,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		register_meta(
 			'term',
@@ -135,15 +135,17 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$tag1     = $this->factory->tag->create( array( 'name' => 'Season 5' ) );
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags/' . $tag1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_registered_query_params() {
@@ -152,7 +154,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'context',
 				'exclude',
@@ -200,9 +202,9 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'hide_empty', true );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( 'Season 5', $data[0]['name'] );
-		$this->assertEquals( 'The Be Sharps', $data[1]['name'] );
+		$this->assertCount( 2, $data );
+		$this->assertSame( 'Season 5', $data[0]['name'] );
+		$this->assertSame( 'The Be Sharps', $data[1]['name'] );
 
 		// Invalid 'hide_empty' should error.
 		$request->set_param( 'hide_empty', 'nothanks' );
@@ -220,15 +222,15 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'include', array( $id2, $id1 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( $id1, $data[0]['id'] );
+		$this->assertCount( 2, $data );
+		$this->assertSame( $id1, $data[0]['id'] );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( $id2, $data[0]['id'] );
+		$this->assertCount( 2, $data );
+		$this->assertSame( $id2, $data[0]['id'] );
 
 		// Invalid 'include' should error.
 		$request->set_param( 'include', array( 'myterm' ) );
@@ -245,15 +247,15 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertTrue( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertContains( $id2, $ids );
 
 		$request->set_param( 'exclude', array( $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertFalse( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertNotContains( $id2, $ids );
 
 		// Invalid 'exclude' should error.
 		$request->set_param( 'exclude', array( 'invalid' ) );
@@ -300,20 +302,20 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'order', 'desc' );
 		$request->set_param( 'per_page', 1 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( 'Zucchini', $data[0]['name'] );
+		$this->assertCount( 1, $data );
+		$this->assertSame( 'Zucchini', $data[0]['name'] );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'orderby', 'name' );
 		$request->set_param( 'order', 'asc' );
 		$request->set_param( 'per_page', 2 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( 'Apple', $data[0]['name'] );
+		$this->assertCount( 2, $data );
+		$this->assertSame( 'Apple', $data[0]['name'] );
 
 		// Invalid 'orderby' should error.
 		$request->set_param( 'orderby', 'invalid' );
@@ -329,21 +331,21 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		// Defaults to 'orderby' => 'name', 'order' => 'asc'.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'Apple', $data[0]['name'] );
-		$this->assertEquals( 'Banana', $data[1]['name'] );
-		$this->assertEquals( 'Cantaloupe', $data[2]['name'] );
+		$this->assertSame( 'Apple', $data[0]['name'] );
+		$this->assertSame( 'Banana', $data[1]['name'] );
+		$this->assertSame( 'Cantaloupe', $data[2]['name'] );
 
 		// 'orderby' => 'id', with default 'order' => 'asc'.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'orderby', 'id' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'Tag 0', $data[0]['name'] );
-		$this->assertEquals( 'Tag 1', $data[1]['name'] );
-		$this->assertEquals( 'Tag 2', $data[2]['name'] );
+		$this->assertSame( 'Tag 0', $data[0]['name'] );
+		$this->assertSame( 'Tag 1', $data[1]['name'] );
+		$this->assertSame( 'Tag 2', $data[2]['name'] );
 
 		// 'orderby' => 'id', 'order' => 'desc'.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -351,10 +353,10 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'order', 'desc' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 'Banana', $data[0]['name'] );
-		$this->assertEquals( 'Apple', $data[1]['name'] );
-		$this->assertEquals( 'Cantaloupe', $data[2]['name'] );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Banana', $data[0]['name'] );
+		$this->assertSame( 'Apple', $data[1]['name'] );
+		$this->assertSame( 'Cantaloupe', $data[2]['name'] );
 	}
 
 	public function test_get_items_orderby_slugs() {
@@ -367,10 +369,10 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'slug', array( 'taco', 'burrito', 'chalupa' ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 'taco', $data[0]['slug'] );
-		$this->assertEquals( 'burrito', $data[1]['slug'] );
-		$this->assertEquals( 'chalupa', $data[2]['slug'] );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'taco', $data[0]['slug'] );
+		$this->assertSame( 'burrito', $data[1]['slug'] );
+		$this->assertSame( 'chalupa', $data[2]['slug'] );
 	}
 
 	public function test_get_items_post_args() {
@@ -384,11 +386,11 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'post', $post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( 'DC', $data[0]['name'] );
+		$this->assertCount( 2, $data );
+		$this->assertSame( 'DC', $data[0]['name'] );
 
 		// Invalid 'post' should error.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -412,7 +414,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$i = 0;
 		foreach ( $tags as $tag ) {
-			$this->assertEquals( $tag['name'], "Tag {$i}" );
+			$this->assertSame( $tag['name'], "Tag {$i}" );
 			$i++;
 		}
 
@@ -425,7 +427,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$tags     = $response->get_data();
 
 		foreach ( $tags as $tag ) {
-			$this->assertEquals( $tag['name'], "Tag {$i}" );
+			$this->assertSame( $tag['name'], "Tag {$i}" );
 			$i++;
 		}
 	}
@@ -436,7 +438,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'post', $post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertCount( 0, $data );
@@ -471,11 +473,11 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/batman' );
 		$request->set_param( 'post', $post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( 'Cape', $data[0]['name'] );
+		$this->assertCount( 2, $data );
+		$this->assertSame( 'Cape', $data[0]['name'] );
 	}
 
 	public function test_get_items_search_args() {
@@ -489,17 +491,17 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'search', 'App' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( 'Apple', $data[0]['name'] );
+		$this->assertCount( 1, $data );
+		$this->assertSame( 'Apple', $data[0]['name'] );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'search', 'Garbage' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 0, count( $data ) );
+		$this->assertCount( 0, $data );
 	}
 
 	public function test_get_items_slug_arg() {
@@ -509,10 +511,10 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'slug', 'apple' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( 'Apple', $data[0]['name'] );
+		$this->assertCount( 1, $data );
+		$this->assertSame( 'Apple', $data[0]['name'] );
 	}
 
 	public function test_get_items_slug_array_arg() {
@@ -531,11 +533,11 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data  = $response->get_data();
 		$names = wp_list_pluck( $data, 'name' );
 		sort( $names );
-		$this->assertEquals( array( 'Burrito', 'Enchilada', 'Taco' ), $names );
+		$this->assertSame( array( 'Burrito', 'Enchilada', 'Taco' ), $names );
 	}
 
 	public function test_get_items_slug_csv_arg() {
@@ -547,11 +549,11 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'slug', 'taco,burrito, enchilada' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data  = $response->get_data();
 		$names = wp_list_pluck( $data, 'name' );
 		sort( $names );
-		$this->assertEquals( array( 'Burrito', 'Enchilada', 'Taco' ), $names );
+		$this->assertSame( array( 'Burrito', 'Enchilada', 'Taco' ), $names );
 	}
 
 	public function test_get_terms_private_taxonomy() {
@@ -582,16 +584,16 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_tags, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_tags, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
 			),
 			rest_url( 'wp/v2/tags' )
 		);
-		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
-		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// 3rd page.
 		$this->factory->tag->create();
@@ -601,54 +603,54 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_tags, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_tags, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => 2,
 			),
 			rest_url( 'wp/v2/tags' )
 		);
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 4,
 			),
 			rest_url( 'wp/v2/tags' )
 		);
-		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// Last page.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'page', $total_pages );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_tags, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_tags, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages - 1,
 			),
 			rest_url( 'wp/v2/tags' )
 		);
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 
 		// Out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'page', 100 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_tags, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_tags, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages,
 			),
 			rest_url( 'wp/v2/tags' )
 		);
-		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 	}
 
 	public function test_get_items_invalid_context() {
@@ -700,7 +702,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'meta', $data );
 
 		$meta = (array) $data['meta'];
-		$this->assertFalse( isset( $meta['test_cat_meta'] ) );
+		$this->assertArrayNotHasKey( 'test_cat_meta', $meta );
 	}
 
 	public function test_get_term_invalid_term() {
@@ -756,13 +758,13 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'description', 'This term is so awesome.' );
 		$request->set_param( 'slug', 'so-awesome' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$headers = $response->get_headers();
 		$data    = $response->get_data();
-		$this->assertContains( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
-		$this->assertEquals( 'My Awesome Term', $data['name'] );
-		$this->assertEquals( 'This term is so awesome.', $data['description'] );
-		$this->assertEquals( 'so-awesome', $data['slug'] );
+		$this->assertStringContainsString( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
+		$this->assertSame( 'My Awesome Term', $data['name'] );
+		$this->assertSame( 'This term is so awesome.', $data['description'] );
+		$this->assertSame( 'so-awesome', $data['slug'] );
 	}
 
 	public function test_create_item_contributor() {
@@ -773,13 +775,13 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'description', 'This term is so awesome.' );
 		$request->set_param( 'slug', 'so-awesome' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$headers = $response->get_headers();
 		$data    = $response->get_data();
-		$this->assertContains( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
-		$this->assertEquals( 'My Awesome Term', $data['name'] );
-		$this->assertEquals( 'This term is so awesome.', $data['description'] );
-		$this->assertEquals( 'so-awesome', $data['slug'] );
+		$this->assertStringContainsString( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
+		$this->assertSame( 'My Awesome Term', $data['name'] );
+		$this->assertSame( 'This term is so awesome.', $data['description'] );
+		$this->assertSame( 'so-awesome', $data['slug'] );
 	}
 
 	public function test_create_item_incorrect_permissions() {
@@ -816,12 +818,12 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'name', 'My Awesome Term' );
 		$request->set_param( 'meta', array( 'test_tag_single' => 'hello' ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$headers = $response->get_headers();
 		$data    = $response->get_data();
-		$this->assertContains( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
-		$this->assertEquals( 'My Awesome Term', $data['name'] );
-		$this->assertEquals( 'hello', get_term_meta( $data['id'], 'test_tag_single', true ) );
+		$this->assertStringContainsString( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
+		$this->assertSame( 'My Awesome Term', $data['name'] );
+		$this->assertSame( 'hello', get_term_meta( $data['id'], 'test_tag_single', true ) );
 	}
 
 	public function test_create_item_with_meta_wrong_id() {
@@ -834,13 +836,13 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'meta', array( 'test_tag_single' => 'hello' ) );
 		$request->set_param( 'id', $existing_tag_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$headers = $response->get_headers();
 		$data    = $response->get_data();
-		$this->assertContains( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
-		$this->assertEquals( 'My Awesome Term', $data['name'] );
-		$this->assertEquals( '', get_term_meta( $existing_tag_id, 'test_tag_single', true ) );
-		$this->assertEquals( 'hello', get_term_meta( $data['id'], 'test_tag_single', true ) );
+		$this->assertStringContainsString( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
+		$this->assertSame( 'My Awesome Term', $data['name'] );
+		$this->assertSame( '', get_term_meta( $existing_tag_id, 'test_tag_single', true ) );
+		$this->assertSame( 'hello', get_term_meta( $data['id'], 'test_tag_single', true ) );
 	}
 
 	public function test_update_item() {
@@ -867,14 +869,14 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'New Name', $data['name'] );
-		$this->assertEquals( 'New Description', $data['description'] );
-		$this->assertEquals( 'new-slug', $data['slug'] );
-		$this->assertEquals( 'just meta', $data['meta']['test_single'] );
-		$this->assertEquals( 'tag-specific meta', $data['meta']['test_tag_single'] );
-		$this->assertFalse( isset( $data['meta']['test_cat_meta'] ) );
+		$this->assertSame( 'New Name', $data['name'] );
+		$this->assertSame( 'New Description', $data['description'] );
+		$this->assertSame( 'new-slug', $data['slug'] );
+		$this->assertSame( 'just meta', $data['meta']['test_single'] );
+		$this->assertSame( 'tag-specific meta', $data['meta']['test_tag_single'] );
+		$this->assertArrayNotHasKey( 'test_cat_meta', $data['meta'] );
 	}
 
 	public function test_update_item_no_change() {
@@ -884,16 +886,16 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request  = new WP_REST_Request( 'PUT', '/wp/v2/tags/' . $term->term_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$request->set_param( 'slug', $term->slug );
 
 		// Run twice to make sure that the update still succeeds
 		// even if no DB rows are updated.
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_update_item_invalid_term() {
@@ -931,9 +933,9 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		remove_filter( 'user_has_cap', array( $this, 'grant_edit_term' ), 10, 2 );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'New Name', $data['name'] );
+		$this->assertSame( 'New Name', $data['name'] );
 	}
 
 	public function grant_edit_term( $caps, $cap ) {
@@ -986,17 +988,17 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			$request->set_param( $name, $value );
 		}
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
-		$this->assertEquals( $expected_output['name'], $actual_output['name'] );
-		$this->assertEquals( $expected_output['description'], $actual_output['description'] );
+		$this->assertSame( $expected_output['name'], $actual_output['name'] );
+		$this->assertSame( $expected_output['description'], $actual_output['description'] );
 
 		// Compare expected API output to WP internal values.
 		$tag = get_term_by( 'id', $actual_output['id'], 'post_tag' );
-		$this->assertEquals( $expected_output['name'], $tag->name );
-		$this->assertEquals( $expected_output['description'], $tag->description );
+		$this->assertSame( $expected_output['name'], $tag->name );
+		$this->assertSame( $expected_output['description'], $tag->description );
 
 		// Update the tag.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/tags/%d', $actual_output['id'] ) );
@@ -1004,23 +1006,23 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			$request->set_param( $name, $value );
 		}
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
-		$this->assertEquals( $expected_output['name'], $actual_output['name'] );
-		$this->assertEquals( $expected_output['description'], $actual_output['description'] );
+		$this->assertSame( $expected_output['name'], $actual_output['name'] );
+		$this->assertSame( $expected_output['description'], $actual_output['description'] );
 
 		// Compare expected API output to WP internal values.
 		$tag = get_term_by( 'id', $actual_output['id'], 'post_tag' );
-		$this->assertEquals( $expected_output['name'], $tag->name );
-		$this->assertEquals( $expected_output['description'], $tag->description );
+		$this->assertSame( $expected_output['name'], $tag->name );
+		$this->assertSame( $expected_output['description'], $tag->description );
 	}
 
 	public function test_tag_roundtrip_as_editor() {
 		wp_set_current_user( self::$editor );
 
-		$this->assertEquals( ! is_multisite(), current_user_can( 'unfiltered_html' ) );
+		$this->assertSame( ! is_multisite(), current_user_can( 'unfiltered_html' ) );
 		$this->verify_tag_roundtrip(
 			array(
 				'name'        => '\o/ ¯\_(ツ)_/¯',
@@ -1103,10 +1105,10 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/tags/' . $term->term_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertTrue( $data['deleted'] );
-		$this->assertEquals( 'Deleted Tag', $data['previous']['name'] );
+		$this->assertSame( 'Deleted Tag', $data['previous']['name'] );
 	}
 
 	public function test_delete_item_no_trash() {
@@ -1156,10 +1158,10 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		remove_filter( 'map_meta_cap', array( $this, 'grant_delete_term' ), 10, 2 );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertTrue( $data['deleted'] );
-		$this->assertEquals( 'Deleted Tag', $data['previous']['name'] );
+		$this->assertSame( 'Deleted Tag', $data['previous']['name'] );
 	}
 
 	public function grant_delete_term( $caps, $cap ) {
@@ -1210,7 +1212,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( '_fields', 'id,name' );
 		$term     = get_term_by( 'id', $this->factory->tag->create(), 'post_tag' );
 		$response = $endpoint->prepare_item_for_response( $term, $request );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id',
 				'name',
@@ -1224,7 +1226,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 8, count( $properties ) );
+		$this->assertCount( 8, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'count', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -1233,7 +1235,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'taxonomy', $properties );
-		$this->assertEquals( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
+		$this->assertSame( array( 'post_tag' ), $properties['taxonomy']['enum'] );
 	}
 
 	public function test_get_item_schema_non_hierarchical() {
@@ -1242,7 +1244,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 		$this->assertArrayHasKey( 'id', $properties );
-		$this->assertFalse( isset( $properties['parent'] ) );
+		$this->assertArrayNotHasKey( 'parent', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -1268,7 +1270,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
-		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
+		$this->assertSame( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		$tag_id = $this->factory->tag->create();
 
@@ -1342,7 +1344,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$found_2  = wp_list_pluck( $response->data, 'id' );
 
-		$this->assertEqualSets( $found_1, $found_2 );
+		$this->assertSameSets( $found_1, $found_2 );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
@@ -1376,7 +1378,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$create = new WP_REST_Request( 'POST', '/wp/v2/tags' );
 		$create->set_param( 'name', 'My New Term' );
 		$response = rest_get_server()->dispatch( $create );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertArrayHasKey( $edit_field, $data );
 		$this->assertArrayNotHasKey( $view_field, $data );
@@ -1384,7 +1386,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$update = new WP_REST_Request( 'PUT', '/wp/v2/tags/' . $data['id'] );
 		$update->set_param( 'name', 'My Awesome New Term' );
 		$response = rest_get_server()->dispatch( $update );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertArrayHasKey( $edit_field, $data );
 		$this->assertArrayNotHasKey( $view_field, $data );
@@ -1400,40 +1402,34 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
-	public function tearDown() {
-		_unregister_taxonomy( 'batman' );
-		_unregister_taxonomy( 'robin' );
-		parent::tearDown();
-	}
-
 	protected function check_get_taxonomy_terms_response( $response ) {
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$args = array(
 			'hide_empty' => false,
 		);
 		$tags = get_terms( 'post_tag', $args );
-		$this->assertEquals( count( $tags ), count( $data ) );
-		$this->assertEquals( $tags[0]->term_id, $data[0]['id'] );
-		$this->assertEquals( $tags[0]->name, $data[0]['name'] );
-		$this->assertEquals( $tags[0]->slug, $data[0]['slug'] );
-		$this->assertEquals( $tags[0]->taxonomy, $data[0]['taxonomy'] );
-		$this->assertEquals( $tags[0]->description, $data[0]['description'] );
-		$this->assertEquals( $tags[0]->count, $data[0]['count'] );
+		$this->assertSame( count( $tags ), count( $data ) );
+		$this->assertSame( $tags[0]->term_id, $data[0]['id'] );
+		$this->assertSame( $tags[0]->name, $data[0]['name'] );
+		$this->assertSame( $tags[0]->slug, $data[0]['slug'] );
+		$this->assertSame( $tags[0]->taxonomy, $data[0]['taxonomy'] );
+		$this->assertSame( $tags[0]->description, $data[0]['description'] );
+		$this->assertSame( $tags[0]->count, $data[0]['count'] );
 	}
 
 	protected function check_taxonomy_term( $term, $data, $links ) {
-		$this->assertEquals( $term->term_id, $data['id'] );
-		$this->assertEquals( $term->name, $data['name'] );
-		$this->assertEquals( $term->slug, $data['slug'] );
-		$this->assertEquals( $term->description, $data['description'] );
-		$this->assertEquals( get_term_link( $term ), $data['link'] );
-		$this->assertEquals( $term->count, $data['count'] );
+		$this->assertSame( $term->term_id, $data['id'] );
+		$this->assertSame( $term->name, $data['name'] );
+		$this->assertSame( $term->slug, $data['slug'] );
+		$this->assertSame( $term->description, $data['description'] );
+		$this->assertSame( get_term_link( $term ), $data['link'] );
+		$this->assertSame( $term->count, $data['count'] );
 		$taxonomy = get_taxonomy( $term->taxonomy );
 		if ( $taxonomy->hierarchical ) {
-			$this->assertEquals( $term->parent, $data['parent'] );
+			$this->assertSame( $term->parent, $data['parent'] );
 		} else {
-			$this->assertFalse( isset( $data['parent'] ) );
+			$this->assertArrayNotHasKey( 'parent', $data );
 		}
 		$expected_links = array(
 			'self',
@@ -1444,14 +1440,14 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		if ( $taxonomy->hierarchical && $term->parent ) {
 			$expected_links[] = 'up';
 		}
-		$this->assertEqualSets( $expected_links, array_keys( $links ) );
-		$this->assertContains( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
-		$this->assertEquals( add_query_arg( 'tags', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['https://api.w.org/post_type'][0]['href'] );
+		$this->assertSameSets( $expected_links, array_keys( $links ) );
+		$this->assertStringContainsString( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
+		$this->assertSame( add_query_arg( 'tags', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['https://api.w.org/post_type'][0]['href'] );
 	}
 
 	protected function check_get_taxonomy_term_response( $response, $id ) {
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$tag  = get_term( $id, 'post_tag' );

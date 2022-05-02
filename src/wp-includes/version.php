@@ -5,29 +5,32 @@
  * Contains version information for the current WordPress release.
  *
  * @package WordPress
- * @since 1.1.0
+ * @since 1.2.0
  */
 
 /**
  * The WordPress version string.
  *
+ * Holds the current version number for WordPress core. Used to bust caches
+ * and to enable development mode for scripts when running from the /src directory.
+ *
  * @global string $wp_version
  */
-$wp_version = '5.5-alpha-47426-src';
+$wp_version = '6.0-beta3-53290-src';
 
 /**
  * Holds the WordPress DB revision, increments when changes are made to the WordPress DB schema.
  *
  * @global int $wp_db_version
  */
-$wp_db_version = 47018;
+$wp_db_version = 51917;
 
 /**
  * Holds the TinyMCE version.
  *
  * @global string $tinymce_version
  */
-$tinymce_version = '4960-20190918';
+$tinymce_version = '49110-20201110';
 
 /**
  * Holds the required PHP version.

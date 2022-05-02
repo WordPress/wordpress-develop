@@ -137,6 +137,9 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		// Grab Twenty Eleven's Ephemera widget.
 		require get_template_directory() . '/inc/widgets.php';
 
+		// Load block patterns.
+		require get_template_directory() . '/inc/block-patterns.php';
+
 		// Add default posts and comments RSS feed links to <head>.
 		add_theme_support( 'automatic-feed-links' );
 
@@ -147,7 +150,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		add_theme_support( 'post-formats', array( 'aside', 'link', 'gallery', 'status', 'quote', 'image' ) );
 
 		$theme_options = twentyeleven_get_theme_options();
-		if ( 'dark' == $theme_options['color_scheme'] ) {
+		if ( 'dark' === $theme_options['color_scheme'] ) {
 			$default_background_color = '1d1d1d';
 		} else {
 			$default_background_color = 'e2e2e2';
@@ -174,7 +177,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 			'default-text-color'     => '000',
 			// The height and width of our custom header.
 			/**
-			 * Filter the Twenty Eleven default header image width.
+			 * Filters the Twenty Eleven default header image width.
 			 *
 			 * @since Twenty Eleven 1.0
 			 *
@@ -182,7 +185,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 			 */
 			'width'                  => apply_filters( 'twentyeleven_header_image_width', 1000 ),
 			/**
-			 * Filter the Twenty Eleven default header image height.
+			 * Filters the Twenty Eleven default header image height.
 			 *
 			 * @since Twenty Eleven 1.0
 			 *
@@ -305,7 +308,7 @@ add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
  */
 function twentyeleven_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20190102' );
+	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20201208' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyeleven_block_editor_styles' );
 
@@ -328,7 +331,7 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		<style type="text/css" id="twentyeleven-header-css">
 		<?php
 		// Has the text been hidden?
-		if ( 'blank' == $text_color ) :
+		if ( 'blank' === $text_color ) :
 			?>
 		#site-title,
 		#site-description {
@@ -471,7 +474,7 @@ endif; // twentyeleven_continue_reading_link()
  * @since Twenty Eleven 1.0
  *
  * @param string $more The Read More text.
- * @return The filtered Read More text.
+ * @return string The filtered Read More text.
  */
 function twentyeleven_auto_excerpt_more( $more ) {
 	if ( ! is_admin() ) {
@@ -698,9 +701,9 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @param object $comment The comment object.
-	 * @param array  $args    An array of comment arguments. @see get_comment_reply_link()
-	 * @param int    $depth   The depth of the comment.
+	 * @param WP_Comment $comment The comment object.
+	 * @param array      $args    An array of comment arguments. @see get_comment_reply_link()
+	 * @param int        $depth   The depth of the comment.
 	 */
 	function twentyeleven_comment( $comment, $args, $depth ) {
 		$GLOBALS['comment'] = $comment;
@@ -719,28 +722,29 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 			<footer class="comment-meta">
 				<div class="comment-author vcard">
 					<?php
-						$avatar_size = 68;
+					$avatar_size = 68;
+
 					if ( '0' != $comment->comment_parent ) {
 						$avatar_size = 39;
 					}
 
-						echo get_avatar( $comment, $avatar_size );
+					echo get_avatar( $comment, $avatar_size );
 
-						printf(
-							/* translators: 1: Comment author, 2: Date and time. */
-							__( '%1$s on %2$s <span class="says">said:</span>', 'twentyeleven' ),
-							sprintf( '<span class="fn">%s</span>', get_comment_author_link() ),
-							sprintf(
-								'<a href="%1$s"><time datetime="%2$s">%3$s</time></a>',
-								esc_url( get_comment_link( $comment->comment_ID ) ),
-								get_comment_time( 'c' ),
-								/* translators: 1: Date, 2: Time. */
-								sprintf( __( '%1$s at %2$s', 'twentyeleven' ), get_comment_date(), get_comment_time() )
-							)
-						);
+					printf(
+						/* translators: 1: Comment author, 2: Date and time. */
+						__( '%1$s on %2$s <span class="says">said:</span>', 'twentyeleven' ),
+						sprintf( '<span class="fn">%s</span>', get_comment_author_link() ),
+						sprintf(
+							'<a href="%1$s"><time datetime="%2$s">%3$s</time></a>',
+							esc_url( get_comment_link( $comment->comment_ID ) ),
+							get_comment_time( 'c' ),
+							/* translators: 1: Date, 2: Time. */
+							sprintf( __( '%1$s at %2$s', 'twentyeleven' ), get_comment_date(), get_comment_time() )
+						)
+					);
 					?>
 
-						<?php edit_comment_link( __( 'Edit', 'twentyeleven' ), '<span class="edit-link">', '</span>' ); ?>
+					<?php edit_comment_link( __( 'Edit', 'twentyeleven' ), '<span class="edit-link">', '</span>' ); ?>
 					</div><!-- .comment-author .vcard -->
 
 					<?php
@@ -748,7 +752,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					if ( $commenter['comment_author_email'] ) {
 						$moderation_note = __( 'Your comment is awaiting moderation.', 'twentyeleven' );
 					} else {
-						$moderation_note = __( 'Your comment is awaiting moderation. This is a preview, your comment will be visible after it has been approved.', 'twentyeleven' );
+						$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'twentyeleven' );
 					}
 					?>
 
@@ -925,3 +929,17 @@ function twentyeleven_skip_link() {
 	}
 }
 add_action( 'wp_body_open', 'twentyeleven_skip_link', 5 );
+
+if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
+	/**
+	 * Retrieves the list item separator based on the locale.
+	 *
+	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
+	 *
+	 * @since 6.0.0
+	 */
+	function wp_get_list_item_separator() {
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ', 'twentyeleven' );
+	}
+endif;

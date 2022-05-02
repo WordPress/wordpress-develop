@@ -1,6 +1,6 @@
 <?php
 /**
- * Block rendering tests.
+ * Block rendering tests
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,13 +8,13 @@
  */
 
 /**
- * Tests for block rendering functions
+ * Tests for block rendering functions.
  *
  * @since 5.0.0
  *
  * @group blocks
  */
-class WP_Test_Block_Render extends WP_UnitTestCase {
+class Tests_Blocks_Render extends WP_UnitTestCase {
 	/**
 	 * The location of the fixtures to test with.
 	 *
@@ -37,9 +37,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
-
+	public function tear_down() {
 		$this->test_block_instance_number = 0;
 
 		$registry = WP_Block_Type_Registry::get_instance();
@@ -49,6 +47,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		if ( $registry->is_registered( 'core/dynamic' ) ) {
 			$registry->unregister( 'core/dynamic' );
 		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -60,7 +60,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 		$actual_html = do_blocks( $original_html );
 
-		$this->assertEqualsIgnoreEOL( $expected_html, $actual_html );
+		$this->assertSameIgnoreEOL( $expected_html, $actual_html );
 	}
 
 	/**
@@ -80,17 +80,17 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 		remove_shortcode( 'someshortcode' );
 
-		$this->assertEquals( trim( $classic_filtered_content ), trim( $block_filtered_content ) );
+		$this->assertSame( trim( $classic_filtered_content ), trim( $block_filtered_content ) );
 	}
 
-	function handle_shortcode( $atts, $content ) {
+	public function handle_shortcode( $atts, $content ) {
 		return $content;
 	}
 
 	/**
 	 * @ticket 45495
 	 */
-	function test_nested_calls_to_the_content() {
+	public function test_nested_calls_to_the_content() {
 		register_block_type(
 			'core/test',
 			array(
@@ -108,7 +108,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertSame( $content, $the_content );
 	}
 
-	function dynamic_the_content_call( $attrs, $content ) {
+	public function dynamic_the_content_call( $attrs, $content ) {
 		apply_filters( 'the_content', '' );
 		return $content;
 	}
@@ -121,7 +121,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 			$content = '<!-- wp:core/test -->' . $content . '<!-- /wp:core/test -->';
 		}
 
-		$this->assertEquals( 'deep inside', do_blocks( $content ) );
+		$this->assertSame( 'deep inside', do_blocks( $content ) );
 	}
 
 	public function test_can_nest_at_least_so_deep_with_dynamic_blocks() {
@@ -142,7 +142,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $minimum_depth, (int) do_blocks( $content ) );
+		$this->assertSame( $minimum_depth, (int) do_blocks( $content ) );
 	}
 
 	public function render_dynamic_incrementer( $attrs, $content ) {
@@ -160,7 +160,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 		$filtered_content = trim( apply_filters( 'the_content', $test_content ) );
 
-		$this->assertEquals( $expected_content, $filtered_content );
+		$this->assertSame( $expected_content, $filtered_content );
 
 		// Check that wpautop() is still defined in the same place.
 		$this->assertSame( $current_priority, has_action( 'the_content', 'wpautop' ) );
@@ -174,7 +174,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 		$filtered_content = trim( apply_filters( 'the_content', $test_content ) );
 
-		$this->assertEquals( $expected_content, $filtered_content );
+		$this->assertSame( $expected_content, $filtered_content );
 
 		$this->assertSame( $current_priority, has_action( 'the_content', 'wpautop' ) );
 		$this->assertFalse( has_action( 'the_content', '_restore_wpautop_hook' ) );
@@ -219,12 +219,20 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 			}
 		}
 
-		$html          = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
-		$expected_html = self::strip_r( file_get_contents( $server_html_path ) );
+		$html = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
+		// If blocks opt into Gutenberg's layout implementation
+		// the container will receive an added classname of `wp_unique_id( 'wp-container-' )`
+		// so we need to normalize the random id.
+		$normalized_html = preg_replace( '/wp-container-\d+/', 'wp-container-1', $html );
 
-		$this->assertEquals(
+		// The gallery block uses a unique class name of `wp_unique_id( 'wp-block-gallery-' )`
+		// so we need to normalize the random id.
+		$normalized_html = preg_replace( '/wp-block-gallery-\d+/', 'wp-block-gallery-1', $normalized_html );
+		$expected_html   = self::strip_r( file_get_contents( $server_html_path ) );
+
+		$this->assertSame(
 			$expected_html,
-			$html,
+			$normalized_html,
 			"File '$html_path' does not match expected value"
 		);
 	}
@@ -252,7 +260,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 			'after';
 
 		$updated_post_content = do_blocks( $post_content );
-		$this->assertEquals(
+		$this->assertSame(
 			$updated_post_content,
 			'before' .
 			'1:b1' .
@@ -286,7 +294,25 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$global_post = $post;
 		do_blocks( '<!-- wp:core/test /-->' );
 
-		$this->assertEquals( $global_post, $post );
+		$this->assertSame( $global_post, $post );
+	}
+
+	public function test_render_latest_comments_on_password_protected_post() {
+		$post_id      = self::factory()->post->create(
+			array(
+				'post_password' => 'password',
+			)
+		);
+		$comment_text = wp_generate_password( 10, false );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_content' => $comment_text,
+			)
+		);
+		$comments = do_blocks( '<!-- wp:latest-comments {"commentsToShow":1,"displayExcerpt":true} /-->' );
+
+		$this->assertStringNotContainsString( $comment_text, $comments );
 	}
 
 	/**
@@ -306,7 +332,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$rendered = $block_type->render();
 
 		$this->assertSame( '10', $rendered );
-		$this->assertInternalType( 'string', $rendered );
+		$this->assertIsString( $rendered );
 	}
 
 	public function test_dynamic_block_gets_inner_html() {
@@ -324,7 +350,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 		$data = unserialize( base64_decode( $output ) );
 
-		$this->assertEquals( 'inner', $data[1] );
+		$this->assertSame( 'inner', $data[1] );
 	}
 
 	public function test_dynamic_block_gets_rendered_inner_blocks() {
@@ -352,7 +378,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 		$data = unserialize( base64_decode( $output ) );
 
-		$this->assertEquals( 'before10after', $data[1] );
+		$this->assertSame( 'before10after', $data[1] );
 	}
 
 	public function test_dynamic_block_gets_rendered_inner_dynamic_blocks() {
@@ -372,7 +398,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 		$inner = $this->render_serialize_dynamic_block( array(), 'deep inner' );
 
-		$this->assertEquals( $data[1], 'before' . $inner . 'after' );
+		$this->assertSame( $data[1], 'before' . $inner . 'after' );
 	}
 
 	/**

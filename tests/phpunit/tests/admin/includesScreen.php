@@ -4,8 +4,8 @@
  * @group admin
  * @group adminScreen
  */
-class Tests_Admin_includesScreen extends WP_UnitTestCase {
-	var $core_screens = array(
+class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
+	public $core_screens = array(
 		'index.php'                            => array(
 			'base'            => 'dashboard',
 			'id'              => 'dashboard',
@@ -155,19 +155,12 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		),
 	);
 
-	function setUp() {
-		set_current_screen( 'front' );
-		parent::setUp();
-	}
-
-	function tearDown() {
+	public function tear_down() {
 		unset( $GLOBALS['wp_taxonomies']['old-or-new'] );
-		unset( $GLOBALS['screen'] );
-		unset( $GLOBALS['current_screen'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
-	function test_set_current_screen_with_hook_suffix() {
+	public function test_set_current_screen_with_hook_suffix() {
 		global $current_screen;
 
 		foreach ( $this->core_screens as $hook_name => $screen ) {
@@ -203,18 +196,18 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			$GLOBALS['hook_suffix'] = $hook['path'];
 			set_current_screen();
 
-			$this->assertEquals( $screen->id, $current_screen->id, $hook_name );
-			$this->assertEquals( $screen->base, $current_screen->base, $hook_name );
+			$this->assertSame( $screen->id, $current_screen->id, $hook_name );
+			$this->assertSame( $screen->base, $current_screen->base, $hook_name );
 			if ( isset( $screen->action ) ) {
-				$this->assertEquals( $screen->action, $current_screen->action, $hook_name );
+				$this->assertSame( $screen->action, $current_screen->action, $hook_name );
 			}
 			if ( isset( $screen->post_type ) ) {
-				$this->assertEquals( $screen->post_type, $current_screen->post_type, $hook_name );
+				$this->assertSame( $screen->post_type, $current_screen->post_type, $hook_name );
 			} else {
 				$this->assertEmpty( $current_screen->post_type, $hook_name );
 			}
 			if ( isset( $screen->taxonomy ) ) {
-				$this->assertEquals( $screen->taxonomy, $current_screen->taxonomy, $hook_name );
+				$this->assertSame( $screen->taxonomy, $current_screen->taxonomy, $hook_name );
 			}
 
 			$this->assertTrue( $current_screen->in_admin() );
@@ -235,89 +228,90 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		}
 	}
 
-	function test_post_type_as_hookname() {
+	public function test_post_type_as_hookname() {
 		$screen = convert_to_screen( 'page' );
-		$this->assertEquals( $screen->post_type, 'page' );
-		$this->assertEquals( $screen->base, 'post' );
-		$this->assertEquals( $screen->id, 'page' );
+		$this->assertSame( $screen->post_type, 'page' );
+		$this->assertSame( $screen->base, 'post' );
+		$this->assertSame( $screen->id, 'page' );
 		$this->assertTrue( $screen->is_block_editor );
 	}
 
-	function test_post_type_with_special_suffix_as_hookname() {
+	public function test_post_type_with_special_suffix_as_hookname() {
 		register_post_type( 'value-add' );
 		$screen = convert_to_screen( 'value-add' ); // The '-add' part is key.
-		$this->assertEquals( $screen->post_type, 'value-add' );
-		$this->assertEquals( $screen->base, 'post' );
-		$this->assertEquals( $screen->id, 'value-add' );
+		$this->assertSame( $screen->post_type, 'value-add' );
+		$this->assertSame( $screen->base, 'post' );
+		$this->assertSame( $screen->id, 'value-add' );
 		$this->assertFalse( $screen->is_block_editor ); // Post types do not support `show_in_rest` by default.
 
 		$screen = convert_to_screen( 'edit-value-add' ); // The '-add' part is key.
-		$this->assertEquals( $screen->post_type, 'value-add' );
-		$this->assertEquals( $screen->base, 'edit' );
-		$this->assertEquals( $screen->id, 'edit-value-add' );
+		$this->assertSame( $screen->post_type, 'value-add' );
+		$this->assertSame( $screen->base, 'edit' );
+		$this->assertSame( $screen->id, 'edit-value-add' );
 		$this->assertFalse( $screen->is_block_editor ); // Post types do not support `show_in_rest` by default.
 	}
 
-	function test_taxonomy_with_special_suffix_as_hookname() {
+	public function test_taxonomy_with_special_suffix_as_hookname() {
 		register_taxonomy( 'old-or-new', 'post' );
 		$screen = convert_to_screen( 'edit-old-or-new' ); // The '-new' part is key.
-		$this->assertEquals( $screen->taxonomy, 'old-or-new' );
-		$this->assertEquals( $screen->base, 'edit-tags' );
-		$this->assertEquals( $screen->id, 'edit-old-or-new' );
+		$this->assertSame( $screen->taxonomy, 'old-or-new' );
+		$this->assertSame( $screen->base, 'edit-tags' );
+		$this->assertSame( $screen->id, 'edit-old-or-new' );
 		$this->assertFalse( $screen->is_block_editor );
 	}
 
-	function test_post_type_with_edit_prefix() {
+	public function test_post_type_with_edit_prefix() {
 		register_post_type( 'edit-some-thing' );
 		$screen = convert_to_screen( 'edit-some-thing' );
-		$this->assertEquals( $screen->post_type, 'edit-some-thing' );
-		$this->assertEquals( $screen->base, 'post' );
-		$this->assertEquals( $screen->id, 'edit-some-thing' );
+		$this->assertSame( $screen->post_type, 'edit-some-thing' );
+		$this->assertSame( $screen->base, 'post' );
+		$this->assertSame( $screen->id, 'edit-some-thing' );
 		$this->assertFalse( $screen->is_block_editor ); // Post types do not support `show_in_rest` by default.
 
 		$screen = convert_to_screen( 'edit-edit-some-thing' );
-		$this->assertEquals( $screen->post_type, 'edit-some-thing' );
-		$this->assertEquals( $screen->base, 'edit' );
-		$this->assertEquals( $screen->id, 'edit-edit-some-thing' );
+		$this->assertSame( $screen->post_type, 'edit-some-thing' );
+		$this->assertSame( $screen->base, 'edit' );
+		$this->assertSame( $screen->id, 'edit-edit-some-thing' );
 		$this->assertFalse( $screen->is_block_editor ); // Post types do not support `show_in_rest` by default.
 	}
 
-	function test_post_type_edit_collisions() {
+	public function test_post_type_edit_collisions() {
 		register_post_type( 'comments' );
 		register_post_type( 'tags' );
 
 		// Sorry, core wins here.
 		$screen = convert_to_screen( 'edit-comments' );
-		$this->assertEquals( $screen->base, 'edit-comments' );
+		$this->assertSame( $screen->base, 'edit-comments' );
 
 		// The post type wins here. convert_to_screen( $post_type ) is only relevant for meta boxes anyway.
 		$screen = convert_to_screen( 'comments' );
-		$this->assertEquals( $screen->base, 'post' );
+		$this->assertSame( $screen->base, 'post' );
 
 		// Core wins.
 		$screen = convert_to_screen( 'edit-tags' );
-		$this->assertEquals( $screen->base, 'edit-tags' );
+		$this->assertSame( $screen->base, 'edit-tags' );
 
 		$screen = convert_to_screen( 'tags' );
-		$this->assertEquals( $screen->base, 'post' );
+		$this->assertSame( $screen->base, 'post' );
 	}
 
-	function test_help_tabs() {
+	public function test_help_tabs() {
 		$tab      = __FUNCTION__;
 		$tab_args = array(
-			'id'       => $tab,
 			'title'    => 'Help!',
+			'id'       => $tab,
 			'content'  => 'Some content',
 			'callback' => false,
 		);
 
+		set_current_screen( 'edit.php' );
 		$screen = get_current_screen();
 		$screen->add_help_tab( $tab_args );
-		$this->assertEquals(
+		$this->assertSame(
 			$screen->get_help_tab( $tab ),
 			array(
-				'id'       => $tab,
 				'title'    => 'Help!',
+				'id'       => $tab,
 				'content'  => 'Some content',
 				'callback' => false,
 				'priority' => 10,
@@ -331,13 +325,13 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		$this->assertNull( $screen->get_help_tab( $tab ) );
 
 		$screen->remove_help_tabs();
-		$this->assertEquals( $screen->get_help_tabs(), array() );
+		$this->assertSame( $screen->get_help_tabs(), array() );
 	}
 
 	/**
 	 * @ticket 19828
 	 */
-	function test_help_tabs_priority() {
+	public function test_help_tabs_priority() {
 		$tab_1      = 'tab1';
 		$tab_1_args = array(
 			'title'    => 'Help!',
@@ -372,26 +366,27 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			// Don't include a priority.
 		);
 
+		set_current_screen( 'edit.php' );
 		$screen = get_current_screen();
 
 		// Add help tabs.
 
 		$screen->add_help_tab( $tab_1_args );
-		$this->assertequals( $screen->get_help_tab( $tab_1 ), $tab_1_args );
+		$this->assertSame( $screen->get_help_tab( $tab_1 ), $tab_1_args );
 
 		$screen->add_help_tab( $tab_2_args );
-		$this->assertEquals( $screen->get_help_tab( $tab_2 ), $tab_2_args );
+		$this->assertSame( $screen->get_help_tab( $tab_2 ), $tab_2_args );
 
 		$screen->add_help_tab( $tab_3_args );
-		$this->assertEquals( $screen->get_help_tab( $tab_3 ), $tab_3_args );
+		$this->assertSame( $screen->get_help_tab( $tab_3 ), $tab_3_args );
 
 		$screen->add_help_tab( $tab_4_args );
 		// Priority is added with the default for future calls.
 		$tab_4_args['priority'] = 10;
-		$this->assertEquals( $screen->get_help_tab( $tab_4 ), $tab_4_args );
+		$this->assertSame( $screen->get_help_tab( $tab_4 ), $tab_4_args );
 
 		$tabs = $screen->get_help_tabs();
-		$this->assertEquals( 4, count( $tabs ) );
+		$this->assertCount( 4, $tabs );
 		$this->assertArrayHasKey( $tab_1, $tabs );
 		$this->assertArrayHasKey( $tab_2, $tabs );
 		$this->assertArrayHasKey( $tab_3, $tabs );
@@ -411,28 +406,28 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 
 		$screen->remove_help_tab( $tab_1 );
 		$this->assertNull( $screen->get_help_tab( $tab_1 ) );
-		$this->assertSame( 3, count( $screen->get_help_tabs() ) );
+		$this->assertCount( 3, $screen->get_help_tabs() );
 
 		$screen->remove_help_tab( $tab_2 );
 		$this->assertNull( $screen->get_help_tab( $tab_2 ) );
-		$this->assertSame( 2, count( $screen->get_help_tabs() ) );
+		$this->assertCount( 2, $screen->get_help_tabs() );
 
 		$screen->remove_help_tab( $tab_3 );
 		$this->assertNull( $screen->get_help_tab( $tab_3 ) );
-		$this->assertSame( 1, count( $screen->get_help_tabs() ) );
+		$this->assertCount( 1, $screen->get_help_tabs() );
 
 		$screen->remove_help_tab( $tab_4 );
 		$this->assertNull( $screen->get_help_tab( $tab_4 ) );
-		$this->assertSame( 0, count( $screen->get_help_tabs() ) );
+		$this->assertCount( 0, $screen->get_help_tabs() );
 
 		$screen->remove_help_tabs();
-		$this->assertEquals( array(), $screen->get_help_tabs() );
+		$this->assertSame( array(), $screen->get_help_tabs() );
 	}
 
 	/**
 	 * @ticket 25799
 	 */
-	function test_options() {
+	public function test_options() {
 		$option      = __FUNCTION__;
 		$option_args = array(
 			'label'   => 'Option',
@@ -440,10 +435,11 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			'option'  => $option,
 		);
 
+		set_current_screen( 'edit.php' );
 		$screen = get_current_screen();
 
 		$screen->add_option( $option, $option_args );
-		$this->assertEquals( $screen->get_option( $option ), $option_args );
+		$this->assertSame( $screen->get_option( $option ), $option_args );
 
 		$options = $screen->get_options();
 		$this->assertArrayHasKey( $option, $options );
@@ -452,12 +448,10 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		$this->assertNull( $screen->get_option( $option ) );
 
 		$screen->remove_options();
-		$this->assertEquals( $screen->get_options(), array() );
+		$this->assertSame( $screen->get_options(), array() );
 	}
 
-	function test_in_admin() {
-		$screen = get_current_screen();
-
+	public function test_in_admin() {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( get_current_screen()->in_admin() );
 		$this->assertTrue( get_current_screen()->in_admin( 'site' ) );
@@ -481,8 +475,6 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		$this->assertFalse( get_current_screen()->in_admin( 'site' ) );
 		$this->assertFalse( get_current_screen()->in_admin( 'network' ) );
 		$this->assertFalse( get_current_screen()->in_admin( 'user' ) );
-
-		$GLOBALS['current_screen'] = $screen;
 	}
 
 	/**

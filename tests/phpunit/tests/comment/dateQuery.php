@@ -17,8 +17,8 @@ class Tests_Comment_DateQuery extends WP_UnitTestCase {
 
 	public $posts = array();
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Just some dummy posts to use as parents for comments.
 		for ( $i = 1; $i <= 2; $i++ ) {
@@ -77,6 +77,6 @@ class Tests_Comment_DateQuery extends WP_UnitTestCase {
 			'2008-12-10 13:06:27',
 		);
 
-		$this->assertEquals( $expected_dates, wp_list_pluck( $comments, 'comment_date' ) );
+		$this->assertSame( $expected_dates, wp_list_pluck( $comments, 'comment_date' ) );
 	}
 }

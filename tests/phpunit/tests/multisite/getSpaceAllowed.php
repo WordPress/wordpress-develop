@@ -7,38 +7,7 @@ if ( is_multisite() ) :
 	 *
 	 * @group multisite
 	 */
-	class Tests_Multisite_Get_Space_Allowed extends WP_UnitTestCase {
-		protected $suppress = false;
-
-		protected static $original_site_blog_upload_space;
-		protected static $original_blog_upload_space;
-
-		public static function setUpBeforeClass() {
-			parent::setUpBeforeClass();
-
-			self::$original_site_blog_upload_space = get_site_option( 'blog_upload_space' );
-			self::$original_blog_upload_space      = get_option( 'blog_upload_space' );
-		}
-
-		public function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		public function tearDown() {
-			global $wpdb;
-
-			/**
-			 * Reset the two `blog_upload_space` options to their original values so
-			 * they can be relied on in other test classes.
-			 */
-			update_site_option( 'blog_upload_space', self::$original_site_blog_upload_space );
-			update_option( 'blog_upload_space', self::$original_blog_upload_space );
-
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
-		}
+	class Tests_Multisite_GetSpaceAllowed extends WP_UnitTestCase {
 
 		/**
 		 * When no option exists for the site or the network, a fallback of
@@ -48,7 +17,7 @@ if ( is_multisite() ) :
 			delete_option( 'blog_upload_space' );
 			delete_site_option( 'blog_upload_space' );
 
-			$this->assertEquals( 100, get_space_allowed() );
+			$this->assertSame( 100, get_space_allowed() );
 		}
 
 		/**
@@ -59,7 +28,7 @@ if ( is_multisite() ) :
 			delete_site_option( 'blog_upload_space' );
 			update_site_option( 'blog_upload_space', 200 );
 
-			$this->assertEquals( 200, get_space_allowed() );
+			$this->assertSame( 200, get_space_allowed() );
 		}
 
 		/**
@@ -73,7 +42,7 @@ if ( is_multisite() ) :
 			update_option( 'blog_upload_space', $site_option );
 			update_site_option( 'blog_upload_space', $network_option );
 
-			$this->assertEquals( $expected, get_space_allowed() );
+			$this->assertSame( $expected, get_space_allowed() );
 		}
 
 		public function data_blog_upload_space() {
@@ -108,7 +77,7 @@ if ( is_multisite() ) :
 			$space_allowed = get_space_allowed();
 			remove_filter( 'get_space_allowed', array( $this, '_filter_space_allowed' ) );
 
-			$this->assertEquals( 999, $space_allowed );
+			$this->assertSame( 999, $space_allowed );
 		}
 
 		public function _filter_space_allowed() {

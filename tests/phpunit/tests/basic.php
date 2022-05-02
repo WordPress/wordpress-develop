@@ -7,17 +7,17 @@
  */
 class Tests_Basic extends WP_UnitTestCase {
 
-	function test_license() {
+	public function test_license() {
 		// This test is designed to only run on trunk/master.
 		$this->skipOnAutomatedBranches();
 
 		$license = file_get_contents( ABSPATH . 'license.txt' );
 		preg_match( '#Copyright 2011-(\d+) by the contributors#', $license, $matches );
 		$this_year = gmdate( 'Y' );
-		$this->assertEquals( $this_year, trim( $matches[1] ), "license.txt's year needs to be updated to $this_year." );
+		$this->assertSame( $this_year, trim( $matches[1] ), "license.txt's year needs to be updated to $this_year." );
 	}
 
-	function test_security_md() {
+	public function test_security_md() {
 		// This test is designed to only run on trunk/master.
 		$this->skipOnAutomatedBranches();
 
@@ -25,10 +25,10 @@ class Tests_Basic extends WP_UnitTestCase {
 		preg_match( '#\d.\d.x#', $security, $matches );
 		$current_version = substr( $GLOBALS['wp_version'], 0, 3 );
 		$latest_stable   = sprintf( '%s.x', (float) $current_version - 0.1 );
-		$this->assertEquals( $latest_stable, trim( $matches[0] ), "SECURITY.md's version needs to be updated to $latest_stable." );
+		$this->assertSame( $latest_stable, trim( $matches[0] ), "SECURITY.md's version needs to be updated to $latest_stable." );
 	}
 
-	function test_package_json() {
+	public function test_package_json() {
 		$package_json    = file_get_contents( dirname( ABSPATH ) . '/package.json' );
 		$package_json    = json_decode( $package_json, true );
 		list( $version ) = explode( '-', $GLOBALS['wp_version'] );
@@ -36,26 +36,24 @@ class Tests_Basic extends WP_UnitTestCase {
 		if ( 1 === substr_count( $version, '.' ) ) {
 			$version .= '.0';
 		}
-		$this->assertEquals( $version, $package_json['version'], "package.json's version needs to be updated to $version." );
+		$this->assertSame( $version, $package_json['version'], "package.json's version needs to be updated to $version." );
 		return $package_json;
 	}
 
 	/**
 	 * @depends test_package_json
 	 */
-	function test_package_json_node_engine( $package_json ) {
+	public function test_package_json_node_engine( $package_json ) {
 		$this->assertArrayHasKey( 'engines', $package_json );
 		$this->assertArrayHasKey( 'node', $package_json['engines'] );
-		$node = $package_json['engines']['node'];
-		$this->assertRegExp( '~^=?\d+\.\d+\.\d+$~', $node, "package.json's node version cannot be a range." );
 	}
 
 	// Test some helper utility functions.
 
-	function test_strip_ws() {
-		$this->assertEquals( '', strip_ws( '' ) );
-		$this->assertEquals( 'foo', strip_ws( 'foo' ) );
-		$this->assertEquals( '', strip_ws( "\r\n\t  \n\r\t" ) );
+	public function test_strip_ws() {
+		$this->assertSame( '', strip_ws( '' ) );
+		$this->assertSame( 'foo', strip_ws( 'foo' ) );
+		$this->assertSame( '', strip_ws( "\r\n\t  \n\r\t" ) );
 
 		$in  = "asdf\n";
 		$in .= "asdf asdf\n";
@@ -75,11 +73,11 @@ class Tests_Basic extends WP_UnitTestCase {
 		$expected .= "foo bar\n";
 		$expected .= 'foo';
 
-		$this->assertEquals( $expected, strip_ws( $in ) );
+		$this->assertSame( $expected, strip_ws( $in ) );
 
 	}
 
-	function test_mask_input_value() {
+	public function test_mask_input_value() {
 		$in = <<<EOF
 <h2>Assign Authors</h2>
 <p>To make it easier for you to edit and save the imported posts and drafts, you may want to change the name of the author of the posts. For example, you may want to import all the entries as <code>admin</code>s entries.</p>
@@ -93,6 +91,6 @@ EOF;
 <p>If a new user is created by WordPress, the password will be set, by default, to "changeme". Quite suggestive, eh? ;)</p>
         <ol id="authors"><form action="?import=wordpress&amp;step=2&amp;id=" method="post"><input type="hidden" name="_wpnonce" value="***" /><input type="hidden" name="_wp_http_referer" value="wp-test.php" /><li>Current author: <strong>Alex Shiels</strong><br />Create user  <input type="text" value="Alex Shiels" name="user[]" maxlength="30"> <br /> or map to existing<select name="userselect[0]">
 EOF;
-		$this->assertEquals( $expected, mask_input_value( $in ) );
+		$this->assertSame( $expected, mask_input_value( $in ) );
 	}
 }

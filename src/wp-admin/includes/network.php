@@ -52,13 +52,15 @@ function allow_subdomain_install() {
  */
 function allow_subdirectory_install() {
 	global $wpdb;
-		/**
-		 * Filters whether to enable the subdirectory installation feature in Multisite.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param bool $allow Whether to enable the subdirectory installation feature in Multisite. Default is false.
-		 */
+
+	/**
+	 * Filters whether to enable the subdirectory installation feature in Multisite.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param bool $allow Whether to enable the subdirectory installation feature in Multisite.
+	 *                    Default false.
+	 */
 	if ( apply_filters( 'allow_subdirectory_install', false ) ) {
 		return true;
 	}
@@ -97,14 +99,15 @@ function get_clean_basedomain() {
 /**
  * Prints step 1 for Network installation process.
  *
- * @todo Realistically, step 1 should be a welcome screen explaining what a Network is and such. Navigating to Tools > Network
- *  should not be a sudden "Welcome to a new install process! Fill this out and click here." See also contextual help todo.
+ * @todo Realistically, step 1 should be a welcome screen explaining what a Network is and such.
+ *       Navigating to Tools > Network should not be a sudden "Welcome to a new install process!
+ *       Fill this out and click here." See also contextual help todo.
  *
  * @since 3.0.0
  *
  * @global bool $is_apache
  *
- * @param WP_Error $errors
+ * @param false|WP_Error $errors Optional. Error object. Default false.
  */
 function network_step1( $errors = false ) {
 	global $is_apache;
@@ -135,14 +138,14 @@ function network_step1( $errors = false ) {
 
 	$hostname  = get_clean_basedomain();
 	$has_ports = strstr( $hostname, ':' );
-	if ( ( false !== $has_ports && ! in_array( $has_ports, array( ':80', ':443' ) ) ) ) {
+	if ( ( false !== $has_ports && ! in_array( $has_ports, array( ':80', ':443' ), true ) ) ) {
 		echo '<div class="error"><p><strong>' . __( 'Error:' ) . '</strong> ' . __( 'You cannot install a network of sites with your server address.' ) . '</p></div>';
 		echo '<p>' . sprintf(
 			/* translators: %s: Port number. */
 			__( 'You cannot use port numbers such as %s.' ),
 			'<code>' . $has_ports . '</code>'
 		) . '</p>';
-		echo '<a href="' . esc_url( admin_url() ) . '">' . __( 'Return to Dashboard' ) . '</a>';
+		echo '<a href="' . esc_url( admin_url() ) . '">' . __( 'Go to Dashboard' ) . '</a>';
 		echo '</div>';
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 		die();
@@ -162,21 +165,21 @@ function network_step1( $errors = false ) {
 		$error_codes = $errors->get_error_codes();
 	}
 
-	if ( ! empty( $_POST['sitename'] ) && ! in_array( 'empty_sitename', $error_codes ) ) {
+	if ( ! empty( $_POST['sitename'] ) && ! in_array( 'empty_sitename', $error_codes, true ) ) {
 		$site_name = $_POST['sitename'];
 	} else {
 		/* translators: %s: Default network title. */
 		$site_name = sprintf( __( '%s Sites' ), get_option( 'blogname' ) );
 	}
 
-	if ( ! empty( $_POST['email'] ) && ! in_array( 'invalid_email', $error_codes ) ) {
+	if ( ! empty( $_POST['email'] ) && ! in_array( 'invalid_email', $error_codes, true ) ) {
 		$admin_email = $_POST['email'];
 	} else {
 		$admin_email = get_option( 'admin_email' );
 	}
 	?>
 	<p><?php _e( 'Welcome to the Network installation process!' ); ?></p>
-	<p><?php _e( 'Fill in the information below and you&#8217;ll be on your way to creating a network of WordPress sites. We will create configuration files in the next step.' ); ?></p>
+	<p><?php _e( 'Fill in the information below and you&#8217;ll be on your way to creating a network of WordPress sites. Configuration files will be created in the next step.' ); ?></p>
 	<?php
 
 	if ( isset( $_POST['subdomain_install'] ) ) {
@@ -268,7 +271,7 @@ function network_step1( $errors = false ) {
 		<?php
 		printf(
 			/* translators: 1: Site URL, 2: Host name, 3: www. */
-			__( 'We recommend you change your site domain to %1$s before enabling the network feature. It will still be possible to visit your site using the %3$s prefix with an address like %2$s but any links will not have the %3$s prefix.' ),
+			__( 'You should consider changing your site domain to %1$s before enabling the network feature. It will still be possible to visit your site using the %3$s prefix with an address like %2$s but any links will not have the %3$s prefix.' ),
 			'<code>' . substr( $hostname, 4 ) . '</code>',
 			'<code>' . $hostname . '</code>',
 			'<code>www</code>'
@@ -378,12 +381,13 @@ function network_step1( $errors = false ) {
  *
  * @since 3.0.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @global wpdb $wpdb     WordPress database abstraction object.
+ * @global bool $is_nginx Whether the server software is Nginx or something else.
  *
- * @param WP_Error $errors
+ * @param false|WP_Error $errors Optional. Error object. Default false.
  */
 function network_step2( $errors = false ) {
-	global $wpdb;
+	global $wpdb, $is_nginx;
 
 	$hostname          = get_clean_basedomain();
 	$slashed_home      = trailingslashit( get_option( 'home' ) );
@@ -440,7 +444,7 @@ function network_step2( $errors = false ) {
 			echo '<strong>' . __( 'Caution:' ) . '</strong> ';
 			printf(
 				/* translators: 1: wp-config.php, 2: .htaccess */
-				__( 'We recommend you back up your existing %1$s and %2$s files.' ),
+				__( 'You should back up your existing %1$s and %2$s files.' ),
 				'<code>wp-config.php</code>',
 				'<code>.htaccess</code>'
 			);
@@ -448,7 +452,7 @@ function network_step2( $errors = false ) {
 			echo '<strong>' . __( 'Caution:' ) . '</strong> ';
 			printf(
 				/* translators: 1: wp-config.php, 2: web.config */
-				__( 'We recommend you back up your existing %1$s and %2$s files.' ),
+				__( 'You should back up your existing %1$s and %2$s files.' ),
 				'<code>wp-config.php</code>',
 				'<code>web.config</code>'
 			);
@@ -456,7 +460,7 @@ function network_step2( $errors = false ) {
 			echo '<strong>' . __( 'Caution:' ) . '</strong> ';
 			printf(
 				/* translators: %s: wp-config.php */
-				__( 'We recommend you back up your existing %s file.' ),
+				__( 'You should back up your existing %s file.' ),
 				'<code>wp-config.php</code>'
 			);
 		}
@@ -483,12 +487,12 @@ function network_step2( $errors = false ) {
 		?>
 		</p>
 		<textarea class="code" readonly="readonly" cols="100" rows="7">
-define('MULTISITE', true);
-define('SUBDOMAIN_INSTALL', <?php echo $subdomain_install ? 'true' : 'false'; ?>);
-define('DOMAIN_CURRENT_SITE', '<?php echo $hostname; ?>');
-define('PATH_CURRENT_SITE', '<?php echo $base; ?>');
-define('SITE_ID_CURRENT_SITE', 1);
-define('BLOG_ID_CURRENT_SITE', 1);
+define( 'MULTISITE', true );
+define( 'SUBDOMAIN_INSTALL', <?php echo $subdomain_install ? 'true' : 'false'; ?> );
+define( 'DOMAIN_CURRENT_SITE', '<?php echo $hostname; ?>' );
+define( 'PATH_CURRENT_SITE', '<?php echo $base; ?>' );
+define( 'SITE_ID_CURRENT_SITE', 1 );
+define( 'BLOG_ID_CURRENT_SITE', 1 );
 </textarea>
 		<?php
 		$keys_salts = array(
@@ -616,7 +620,17 @@ define('BLOG_ID_CURRENT_SITE', 1);
 	</ol>
 
 		<?php
-	else : // End iis7_supports_permalinks(). Construct an .htaccess file instead:
+	elseif ( $is_nginx ) : // End iis7_supports_permalinks(). Link to Nginx documentation instead:
+
+		echo '<li><p>';
+		printf(
+			/* translators: %s: Documentation URL. */
+			__( 'It seems your network is running with Nginx web server. <a href="%s">Learn more about further configuration</a>.' ),
+			__( 'https://wordpress.org/support/article/nginx/' )
+		);
+		echo '</p></li>';
+
+	else : // End $is_nginx. Construct an .htaccess file instead:
 
 		$ms_files_rewriting = '';
 		if ( is_multisite() && get_site_option( 'ms_files_rewriting' ) ) {
@@ -626,6 +640,7 @@ define('BLOG_ID_CURRENT_SITE', 1);
 
 		$htaccess_file = <<<EOF
 RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteBase {$base}
 RewriteRule ^index\.php$ - [L]
 {$ms_files_rewriting}
@@ -658,7 +673,7 @@ EOF;
 	</ol>
 
 		<?php
-	endif; // End IIS/Apache code branches.
+	endif; // End IIS/Nginx/Apache code branches.
 
 	if ( ! is_multisite() ) {
 		?>

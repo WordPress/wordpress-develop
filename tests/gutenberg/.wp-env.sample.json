@@ -1,0 +1,13 @@
+{
+	"core": "{WP_PATH}",
+	"mappings": {
+		"wp-content/mu-plugins": "{MU_PlUGINS_PATH}",
+		"wp-content/plugins/test-plugins": "{TEST_PlUGINS_PATH}"
+	},
+	"config": {
+		"SCRIPT_DEBUG": false,
+		"WP_PHP_BINARY": "php",
+		"WP_TESTS_EMAIL": "admin@example.org",
+		"WP_TESTS_TITLE": "Test Blog"
+	}
+}

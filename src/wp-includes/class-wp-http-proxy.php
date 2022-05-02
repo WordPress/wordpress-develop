@@ -25,7 +25,7 @@
  * <li>WP_PROXY_PASSWORD - Proxy password, if it requires authentication.</li>
  * <li>WP_PROXY_BYPASS_HOSTS - Will prevent the hosts in this list from going through the proxy.
  * You do not need to have localhost and the site host in this list, because they will not be passed
- * through the proxy. The list should be presented in a comma separated list, wildcards using * are supported, eg. *.wordpress.org</li>
+ * through the proxy. The list should be presented in a comma separated list, wildcards using * are supported. Example: *.wordpress.org</li>
  * </ol>
  *
  * An example can be as seen below.
@@ -44,10 +44,12 @@ class WP_HTTP_Proxy {
 	/**
 	 * Whether proxy connection should be used.
 	 *
-	 * @since 2.8.0
+	 * Constants which control this behaviour:
 	 *
-	 * @use WP_PROXY_HOST
-	 * @use WP_PROXY_PORT
+	 * - `WP_PROXY_HOST`
+	 * - `WP_PROXY_PORT`
+	 *
+	 * @since 2.8.0
 	 *
 	 * @return bool
 	 */
@@ -58,10 +60,12 @@ class WP_HTTP_Proxy {
 	/**
 	 * Whether authentication should be used.
 	 *
-	 * @since 2.8.0
+	 * Constants which control this behaviour:
 	 *
-	 * @use WP_PROXY_USERNAME
-	 * @use WP_PROXY_PASSWORD
+	 * - `WP_PROXY_USERNAME`
+	 * - `WP_PROXY_PASSWORD`
+	 *
+	 * @since 2.8.0
 	 *
 	 * @return bool
 	 */
@@ -160,18 +164,11 @@ class WP_HTTP_Proxy {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @staticvar array|null $bypass_hosts
-	 * @staticvar array      $wildcard_regex
-	 *
-	 * @param string $uri URI to check.
-	 * @return bool True, to send through the proxy and false if, the proxy should not be used.
+	 * @param string $uri URL of the request.
+	 * @return bool Whether to send the request through the proxy.
 	 */
 	public function send_through_proxy( $uri ) {
-		/*
-		 * parse_url() only handles http, https type URLs, and will emit E_WARNING on failure.
-		 * This will be displayed on sites, which is not reasonable.
-		 */
-		$check = @parse_url( $uri );
+		$check = parse_url( $uri );
 
 		// Malformed URL, can not process, but this could mean ssl, so let through anyway.
 		if ( false === $check ) {
@@ -188,10 +185,10 @@ class WP_HTTP_Proxy {
 		 *
 		 * @since 3.5.0
 		 *
-		 * @param bool|null $override Whether to override the request result. Default null.
-		 * @param string    $uri      URL to check.
-		 * @param array     $check    Associative array result of parsing the request URI.
-		 * @param array     $home     Associative array result of parsing the site URL.
+		 * @param bool|null $override Whether to send the request through the proxy. Default null.
+		 * @param string    $uri      URL of the request.
+		 * @param array     $check    Associative array result of parsing the request URL with `parse_url()`.
+		 * @param array     $home     Associative array result of parsing the site URL with `parse_url()`.
 		 */
 		$result = apply_filters( 'pre_http_send_through_proxy', null, $uri, $check, $home );
 		if ( ! is_null( $result ) ) {

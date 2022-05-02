@@ -14,7 +14,7 @@
  *
  * @property string $page_template
  *
- * @property-read array  $ancestors
+ * @property-read int[]  $ancestors
  * @property-read int    $post_category
  * @property-read string $tag_input
  */
@@ -247,7 +247,7 @@ final class WP_Post {
 
 			$_post = sanitize_post( $_post, 'raw' );
 			wp_cache_add( $_post->ID, $_post, 'posts' );
-		} elseif ( empty( $_post->filter ) ) {
+		} elseif ( empty( $_post->filter ) || 'raw' !== $_post->filter ) {
 			$_post = sanitize_post( $_post, 'raw' );
 		}
 
@@ -352,7 +352,7 @@ final class WP_Post {
 	 * @since 3.5.0
 	 *
 	 * @param string $filter Filter.
-	 * @return array|bool|object|WP_Post
+	 * @return WP_Post
 	 */
 	public function filter( $filter ) {
 		if ( $this->filter === $filter ) {

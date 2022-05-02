@@ -49,7 +49,7 @@ function _usort_by_first_member( $a, $b ) {
  * @param string   $name        Importer name and title.
  * @param string   $description Importer description.
  * @param callable $callback    Callback to run.
- * @return WP_Error Returns WP_Error when $callback is WP_Error.
+ * @return void|WP_Error Void on success. WP_Error when $callback is WP_Error.
  */
 function register_importer( $id, $name, $description, $callback ) {
 	global $wp_importers;
@@ -103,8 +103,8 @@ function wp_import_handle_upload() {
 		return $upload;
 	}
 
-	// Construct the object array.
-	$object = array(
+	// Construct the attachment array.
+	$attachment = array(
 		'post_title'     => wp_basename( $upload['file'] ),
 		'post_content'   => $upload['url'],
 		'post_mime_type' => $upload['type'],
@@ -114,7 +114,7 @@ function wp_import_handle_upload() {
 	);
 
 	// Save the data.
-	$id = wp_insert_attachment( $object, $upload['file'] );
+	$id = wp_insert_attachment( $attachment, $upload['file'] );
 
 	/*
 	 * Schedule a cleanup for one day from now in case of failed

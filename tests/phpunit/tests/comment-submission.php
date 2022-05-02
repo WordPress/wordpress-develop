@@ -11,7 +11,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	protected $preprocess_comment_data = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post = $factory->post->create_and_get();
 
 		self::$author_id = $factory->user->create(
@@ -34,8 +34,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		self::delete_user( self::$editor_id );
 	}
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-phpass.php';
 	}
 
@@ -200,6 +200,15 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	}
 
 	public function test_submitting_comment_to_password_protected_post_succeeds() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
 
 		$password = 'password';
 		$hasher   = new PasswordHash( 8, true );
@@ -250,7 +259,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		$this->assertSame( $user->display_name, $comment->comment_author );
 		$this->assertSame( $user->user_email, $comment->comment_author_email );
 		$this->assertSame( $user->user_url, $comment->comment_author_url );
-		$this->assertSame( $user->ID, intval( $comment->user_id ) );
+		$this->assertSame( $user->ID, (int) $comment->user_id );
 
 	}
 
@@ -282,6 +291,15 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @group slashes
 	 */
 	public function test_submitting_comment_handles_slashes_correctly_handles_slashes() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
 
 		$data    = array(
 			'comment_post_ID' => self::$post->ID,
@@ -429,6 +447,15 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	}
 
 	public function test_anonymous_user_cannot_comment_unfiltered_html() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
 
 		$data    = array(
 			'comment_post_ID' => self::$post->ID,
@@ -440,7 +467,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $comment );
 		$this->assertInstanceOf( 'WP_Comment', $comment );
-		$this->assertNotContains( '<script', $comment->comment_content );
+		$this->assertStringNotContainsString( '<script', $comment->comment_content );
 
 	}
 
@@ -458,7 +485,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $comment );
 		$this->assertInstanceOf( 'WP_Comment', $comment );
-		$this->assertNotContains( '<script', $comment->comment_content );
+		$this->assertStringNotContainsString( '<script', $comment->comment_content );
 
 	}
 
@@ -482,7 +509,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $comment );
 		$this->assertInstanceOf( 'WP_Comment', $comment );
-		$this->assertNotContains( '<script', $comment->comment_content );
+		$this->assertStringNotContainsString( '<script', $comment->comment_content );
 
 	}
 
@@ -514,7 +541,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $comment );
 		$this->assertInstanceOf( 'WP_Comment', $comment );
-		$this->assertContains( '<script', $comment->comment_content );
+		$this->assertStringContainsString( '<script', $comment->comment_content );
 
 	}
 
@@ -538,7 +565,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $comment );
 		$this->assertInstanceOf( 'WP_Comment', $comment );
-		$this->assertNotContains( '<script', $comment->comment_content );
+		$this->assertStringNotContainsString( '<script', $comment->comment_content );
 
 	}
 
@@ -716,6 +743,55 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49236
+	 */
+	public function test_submitting_comment_with_empty_type_results_in_correct_type() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
+		$data    = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => 'Comment',
+			'author'          => 'Comment Author',
+			'email'           => 'comment@example.org',
+			'comment_type'    => '',
+		);
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+
+		$this->assertSame( 'comment', $comment->comment_type );
+	}
+
+	/**
+	 * @ticket 49236
+	 */
+	public function test_inserting_comment_with_empty_type_results_in_correct_type() {
+		$data       = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => 'Comment',
+			'author'          => 'Comment Author',
+			'email'           => 'comment@example.org',
+			'comment_type'    => '',
+		);
+		$comment_id = wp_insert_comment( $data );
+		$comment    = get_comment( $comment_id );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+
+		$this->assertSame( 'comment', $comment->comment_type );
+	}
+
+	/**
 	 * @ticket 34997
 	 */
 	public function test_comment_submission_sends_all_expected_parameters_to_preprocess_comment_filter() {
@@ -735,17 +811,19 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		remove_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
 
 		$this->assertNotWPError( $comment );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'comment_post_ID'      => self::$post->ID,
 				'comment_author'       => $user->display_name,
 				'comment_author_email' => $user->user_email,
 				'comment_author_url'   => $user->user_url,
 				'comment_content'      => $data['comment'],
-				'comment_type'         => '',
-				'comment_parent'       => '0',
+				'comment_type'         => 'comment',
+				'comment_parent'       => 0,
 				'user_ID'              => $user->ID,
 				'user_id'              => $user->ID,
+				'comment_author_IP'    => '127.0.0.1',
+				'comment_agent'        => '',
 			),
 			$this->preprocess_comment_data
 		);
@@ -761,6 +839,16 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @ticket 36901
 	 */
 	public function test_submitting_duplicate_comments() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$data           = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Did I say that?',
@@ -777,6 +865,16 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @ticket 36901
 	 */
 	public function test_comments_flood() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$data          = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Did I say that?',

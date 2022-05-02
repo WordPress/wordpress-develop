@@ -5,7 +5,7 @@
  * A PHP-Based RSS and Atom Feed Framework.
  * Takes the hard work out of managing a complete RSS/Atom solution.
  *
- * Copyright (c) 2004-2012, Ryan Parman, Geoffrey Sneddon, Ryan McCue, and contributors
+ * Copyright (c) 2004-2016, Ryan Parman, Sam Sneddon, Ryan McCue, and contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -33,10 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package SimplePie
- * @version 1.3.1
- * @copyright 2004-2012 Ryan Parman, Geoffrey Sneddon, Ryan McCue
+ * @copyright 2004-2016 Ryan Parman, Sam Sneddon, Ryan McCue
  * @author Ryan Parman
- * @author Geoffrey Sneddon
+ * @author Sam Sneddon
  * @author Ryan McCue
  * @link http://simplepie.org/ SimplePie
  * @license http://www.opensource.org/licenses/bsd-license.php BSD License
@@ -61,7 +60,8 @@ class SimplePie_Sanitize
 	var $image_handler = '';
 	var $strip_htmltags = array('base', 'blink', 'body', 'doctype', 'embed', 'font', 'form', 'frame', 'frameset', 'html', 'iframe', 'input', 'marquee', 'meta', 'noscript', 'object', 'param', 'script', 'style');
 	var $encode_instead_of_strip = false;
-	var $strip_attributes = array('bgsound', 'class', 'expr', 'id', 'style', 'onclick', 'onerror', 'onfinish', 'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'lowsrc', 'dynsrc');
+	var $strip_attributes = array('bgsound', 'expr', 'id', 'style', 'onclick', 'onerror', 'onfinish', 'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'lowsrc', 'dynsrc');
+	var $add_attributes = array('audio' => array('preload' => 'none'), 'iframe' => array('sandbox' => 'allow-scripts allow-same-origin'), 'video' => array('preload' => 'none'));
 	var $strip_comments = false;
 	var $output_encoding = 'UTF-8';
 	var $enable_cache = true;
@@ -71,6 +71,15 @@ class SimplePie_Sanitize
 	var $useragent = '';
 	var $force_fsockopen = false;
 	var $replace_url_attributes = null;
+	var $registry;
+
+	/**
+	 * List of domains for which to force HTTPS.
+	 * @see SimplePie_Sanitize::set_https_domains()
+	 * Array is a tree split at DNS levels. Example:
+	 * array('biz' => true, 'com' => array('example' => true), 'net' => array('example' => array('www' => true)))
+	 */
+	var $https_domains = array();
 
 	public function __construct()
 	{
@@ -160,7 +169,7 @@ class SimplePie_Sanitize
 		$this->encode_instead_of_strip = (bool) $encode;
 	}
 
-	public function strip_attributes($attribs = array('bgsound', 'class', 'expr', 'id', 'style', 'onclick', 'onerror', 'onfinish', 'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'lowsrc', 'dynsrc'))
+	public function strip_attributes($attribs = array('bgsound', 'expr', 'id', 'style', 'onclick', 'onerror', 'onfinish', 'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'lowsrc', 'dynsrc'))
 	{
 		if ($attribs)
 		{
@@ -176,6 +185,25 @@ class SimplePie_Sanitize
 		else
 		{
 			$this->strip_attributes = false;
+		}
+	}
+
+	public function add_attributes($attribs = array('audio' => array('preload' => 'none'), 'iframe' => array('sandbox' => 'allow-scripts allow-same-origin'), 'video' => array('preload' => 'none')))
+	{
+		if ($attribs)
+		{
+			if (is_array($attribs))
+			{
+				$this->add_attributes = $attribs;
+			}
+			else
+			{
+				$this->add_attributes = explode(',', $attribs);
+			}
+		}
+		else
+		{
+			$this->add_attributes = false;
 		}
 	}
 
@@ -222,6 +250,68 @@ class SimplePie_Sanitize
 		$this->replace_url_attributes = (array) $element_attribute;
 	}
 
+	/**
+	 * Set the list of domains for which to force HTTPS.
+	 * @see SimplePie_Misc::https_url()
+	 * Example array('biz', 'example.com', 'example.org', 'www.example.net');
+	 */
+	public function set_https_domains($domains)
+	{
+		$this->https_domains = array();
+		foreach ($domains as $domain)
+		{
+			$domain = trim($domain, ". \t\n\r\0\x0B");
+			$segments = array_reverse(explode('.', $domain));
+			$node =& $this->https_domains;
+			foreach ($segments as $segment)
+			{//Build a tree
+				if ($node === true)
+				{
+					break;
+				}
+				if (!isset($node[$segment]))
+				{
+					$node[$segment] = array();
+				}
+				$node =& $node[$segment];
+			}
+			$node = true;
+		}
+	}
+
+	/**
+	 * Check if the domain is in the list of forced HTTPS.
+	 */
+	protected function is_https_domain($domain)
+	{
+		$domain = trim($domain, '. ');
+		$segments = array_reverse(explode('.', $domain));
+		$node =& $this->https_domains;
+		foreach ($segments as $segment)
+		{//Explore the tree
+			if (isset($node[$segment]))
+			{
+				$node =& $node[$segment];
+			}
+			else
+			{
+				break;
+			}
+		}
+		return $node === true;
+	}
+
+	/**
+	 * Force HTTPS for selected Web sites.
+	 */
+	public function https_url($url)
+	{
+		return (strtolower(substr($url, 0, 7)) === 'http://') &&
+			$this->is_https_domain(parse_url($url, PHP_URL_HOST)) ?
+			substr_replace($url, 's', 4, 0) :	//Add the 's' to HTTPS
+			$url;
+	}
+
 	public function sanitize($data, $type, $base = '')
 	{
 		$data = trim($data);
@@ -249,21 +339,22 @@ class SimplePie_Sanitize
 
 				if (!class_exists('DOMDocument'))
 				{
-					$this->registry->call('Misc', 'error', array('DOMDocument not found, unable to use sanitizer', E_USER_WARNING, __FILE__, __LINE__));
-					return '';
+					throw new SimplePie_Exception('DOMDocument not found, unable to use sanitizer');
 				}
 				$document = new DOMDocument();
 				$document->encoding = 'UTF-8';
+
 				$data = $this->preprocess($data, $type);
 
 				set_error_handler(array('SimplePie_Misc', 'silence_errors'));
 				$document->loadHTML($data);
 				restore_error_handler();
 
+				$xpath = new DOMXPath($document);
+
 				// Strip comments
 				if ($this->strip_comments)
 				{
-					$xpath = new DOMXPath($document);
 					$comments = $xpath->query('//comment()');
 
 					foreach ($comments as $comment)
@@ -279,7 +370,7 @@ class SimplePie_Sanitize
 				{
 					foreach ($this->strip_htmltags as $tag)
 					{
-						$this->strip_tag($tag, $document, $type);
+						$this->strip_tag($tag, $document, $xpath, $type);
 					}
 				}
 
@@ -287,7 +378,15 @@ class SimplePie_Sanitize
 				{
 					foreach ($this->strip_attributes as $attrib)
 					{
-						$this->strip_attr($attrib, $document);
+						$this->strip_attr($attrib, $xpath);
+					}
+				}
+
+				if ($this->add_attributes)
+				{
+					foreach ($this->add_attributes as $tag => $valuePairs)
+					{
+						$this->add_attr($tag, $valuePairs, $document);
 					}
 				}
 
@@ -326,7 +425,7 @@ class SimplePie_Sanitize
 									}
 									else
 									{
-										trigger_error("$this->cache_location is not writeable. Make sure you've set the correct relative or absolute path, and that the location is server-writable.", E_USER_WARNING);
+										trigger_error("$this->cache_location is not writable. Make sure you've set the correct relative or absolute path, and that the location is server-writable.", E_USER_WARNING);
 									}
 								}
 							}
@@ -334,19 +433,10 @@ class SimplePie_Sanitize
 					}
 				}
 
-				// Remove the DOCTYPE
-				// Seems to cause segfaulting if we don't do this
-				if ($document->firstChild instanceof DOMDocumentType)
-				{
-					$document->removeChild($document->firstChild);
-				}
-
-				// Move everything from the body to the root
-				$real_body = $document->getElementsByTagName('body')->item(0)->childNodes->item(0);
-				$document->replaceChild($real_body, $document->firstChild);
-
+				// Get content node
+				$div = $document->getElementsByTagName('body')->item(0)->firstChild;
 				// Finally, convert to a HTML string
-				$data = trim($document->saveHTML());
+				$data = trim($document->saveHTML($div));
 
 				if ($this->remove_div)
 				{
@@ -384,6 +474,7 @@ class SimplePie_Sanitize
 	protected function preprocess($html, $type)
 	{
 		$ret = '';
+		$html = preg_replace('%</?(?:html|body)[^>]*?'.'>%is', '', $html);
 		if ($type & ~SIMPLEPIE_CONSTRUCT_XHTML)
 		{
 			// Atom XHTML constructs are wrapped with a div by default
@@ -423,6 +514,7 @@ class SimplePie_Sanitize
 						$value = $this->registry->call('Misc', 'absolutize_url', array($element->getAttribute($attribute), $this->base));
 						if ($value !== false)
 						{
+							$value = $this->https_url($value);
 							$element->setAttribute($attribute, $value);
 						}
 					}
@@ -456,9 +548,8 @@ class SimplePie_Sanitize
 		}
 	}
 
-	protected function strip_tag($tag, $document, $type)
+	protected function strip_tag($tag, $document, $xpath, $type)
 	{
-		$xpath = new DOMXPath($document);
 		$elements = $xpath->query('body//' . $tag);
 		if ($this->encode_instead_of_strip)
 		{
@@ -541,14 +632,25 @@ class SimplePie_Sanitize
 		}
 	}
 
-	protected function strip_attr($attrib, $document)
+	protected function strip_attr($attrib, $xpath)
 	{
-		$xpath = new DOMXPath($document);
 		$elements = $xpath->query('//*[@' . $attrib . ']');
 
 		foreach ($elements as $element)
 		{
 			$element->removeAttribute($attrib);
+		}
+	}
+
+	protected function add_attr($tag, $valuePairs, $document)
+	{
+		$elements = $document->getElementsByTagName($tag);
+		foreach ($elements as $element)
+		{
+			foreach ($valuePairs as $attrib => $value)
+			{
+				$element->setAttribute($attrib, $value);
+			}
 		}
 	}
 }

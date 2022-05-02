@@ -15,7 +15,8 @@
  * Passes it through the `twentytwenty_starter_content` filter before returning.
  *
  * @since Twenty Twenty 1.0
- * @return array a filtered array of args for the starter_content.
+ *
+ * @return array A filtered array of args for the starter_content.
  */
 function twentytwenty_get_starter_content() {
 
@@ -47,7 +48,7 @@ function twentytwenty_get_starter_content() {
 				'post_title'   => __( 'The New UMoMA Opens its Doors', 'twentytwenty' ),
 				// Use the above featured image with the predefined about page.
 				'thumbnail'    => '{{image-opening}}',
-				'post_content' => join(
+				'post_content' => implode(
 					'',
 					array(
 						'<!-- wp:group {"align":"wide"} -->',

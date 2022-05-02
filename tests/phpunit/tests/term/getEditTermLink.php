@@ -4,8 +4,8 @@
  * @group taxonomy
  */
 class Tests_Term_GetEditTermLink extends WP_UnitTestCase {
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
@@ -20,7 +20,7 @@ class Tests_Term_GetEditTermLink extends WP_UnitTestCase {
 
 		$actual   = get_edit_term_link( $term1, 'wptests_tax' );
 		$expected = 'http://' . WP_TESTS_DOMAIN . '/wp-admin/term.php?taxonomy=wptests_tax&tag_ID=' . $term1 . '&post_type=post';
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**

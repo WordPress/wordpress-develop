@@ -146,6 +146,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 				'caption',
 				'script',
 				'style',
+				'navigation-widgets',
 			)
 		);
 
@@ -169,6 +170,17 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		// This theme allows users to set a custom background.
 		add_theme_support(
 			'custom-background',
+			/**
+			 * Filters Twenty Fourteen custom-background support arguments.
+			 *
+			 * @since Twenty Fourteen 1.0
+			 *
+			 * @param array $args {
+			 *     An array of custom-background support arguments.
+			 *
+			 *     @type string $default-color Default color of the background.
+			 * }
+			 */
 			apply_filters(
 				'twentyfourteen_custom_background_args',
 				array(
@@ -216,7 +228,7 @@ add_action( 'template_redirect', 'twentyfourteen_content_width' );
  */
 function twentyfourteen_get_featured_posts() {
 	/**
-	 * Filter the featured posts to return in Twenty Fourteen.
+	 * Filters the featured posts to return in Twenty Fourteen.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -340,7 +352,7 @@ function twentyfourteen_scripts() {
 		wp_enqueue_script( 'jquery-masonry' );
 	}
 
-	if ( is_front_page() && 'slider' == get_theme_mod( 'featured_content_layout' ) ) {
+	if ( is_front_page() && 'slider' === get_theme_mod( 'featured_content_layout' ) ) {
 		wp_enqueue_script( 'twentyfourteen-slider', get_template_directory_uri() . '/js/slider.js', array( 'jquery' ), '20150120', true );
 		wp_localize_script(
 			'twentyfourteen-slider',
@@ -398,7 +410,7 @@ add_filter( 'wp_resource_hints', 'twentyfourteen_resource_hints', 10, 2 );
  */
 function twentyfourteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190102' );
+	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), null );
 }
@@ -413,7 +425,7 @@ if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 	function twentyfourteen_the_attached_image() {
 		$post = get_post();
 		/**
-		 * Filter the default Twenty Fourteen attachment size.
+		 * Filters the default Twenty Fourteen attachment size.
 		 *
 		 * @since Twenty Fourteen 1.0
 		 *
@@ -479,14 +491,29 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 	 * @since Twenty Fourteen 1.0
 	 */
 	function twentyfourteen_list_authors() {
-		$contributor_ids = get_users(
-			array(
-				'fields'  => 'ID',
-				'orderby' => 'post_count',
-				'order'   => 'DESC',
-				'who'     => 'authors',
-			)
+		$args = array(
+			'fields'     => 'ID',
+			'orderby'    => 'post_count',
+			'order'      => 'DESC',
+			'capability' => array( 'edit_posts' ),
 		);
+
+		// Capability queries were only introduced in WP 5.9.
+		if ( version_compare( $GLOBALS['wp_version'], '5.9-alpha', '<' ) ) {
+			$args['who'] = 'authors';
+			unset( $args['capability'] );
+		}
+
+		/**
+		 * Filters query arguments for listing authors.
+		 *
+		 * @since 3.3
+		 *
+		 * @param array $args Query arguments.
+		 */
+		$args = apply_filters( 'twentyfourteen_list_authors_query_args', $args );
+
+		$contributor_ids = get_users( $args );
 
 		foreach ( $contributor_ids as $contributor_id ) :
 			$post_count = count_user_posts( $contributor_id );
@@ -544,7 +571,7 @@ function twentyfourteen_body_classes( $classes ) {
 
 	if ( get_header_image() ) {
 		$classes[] = 'header-image';
-	} elseif ( ! in_array( $GLOBALS['pagenow'], array( 'wp-activate.php', 'wp-signup.php' ) ) ) {
+	} elseif ( ! in_array( $GLOBALS['pagenow'], array( 'wp-activate.php', 'wp-signup.php' ), true ) ) {
 		$classes[] = 'masthead-fixed';
 	}
 
@@ -567,7 +594,7 @@ function twentyfourteen_body_classes( $classes ) {
 		$classes[] = 'singular';
 	}
 
-	if ( is_front_page() && 'slider' == get_theme_mod( 'featured_content_layout' ) ) {
+	if ( is_front_page() && 'slider' === get_theme_mod( 'featured_content_layout' ) ) {
 		$classes[] = 'slider';
 	} elseif ( is_front_page() ) {
 		$classes[] = 'grid';
@@ -665,6 +692,9 @@ require get_template_directory() . '/inc/template-tags.php';
 
 // Add Customizer functionality.
 require get_template_directory() . '/inc/customizer.php';
+
+// Add support for block patterns.
+require get_template_directory() . '/inc/block-patterns.php';
 
 /*
  * Add Featured Content functionality.

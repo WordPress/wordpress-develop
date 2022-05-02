@@ -148,8 +148,8 @@ function prepareMediaItemInit( fileObj ) {
 	// Replace the original filename with the new (unique) one assigned during upload.
 	jQuery( '.filename.original', item ).replaceWith( jQuery( '.filename.new', item ) );
 
-	// Bind AJAX to the new Delete button.
-	jQuery( 'a.delete', item ).click( function(){
+	// Bind Ajax to the new Delete button.
+	jQuery( 'a.delete', item ).on( 'click', function(){
 		// Tell the server to delete it. TODO: Handle exceptions.
 		jQuery.ajax({
 			url: ajaxurl,
@@ -166,8 +166,8 @@ function prepareMediaItemInit( fileObj ) {
 		return false;
 	});
 
-	// Bind AJAX to the new Undo button.
-	jQuery( 'a.undo', item ).click( function(){
+	// Bind Ajax to the new Undo button.
+	jQuery( 'a.undo', item ).on( 'click', function(){
 		// Tell the server to untrash it. TODO: Handle exceptions.
 		jQuery.ajax({
 			url: ajaxurl,
@@ -361,7 +361,41 @@ function wpFileExtensionError( up, file, message ) {
 	up.removeFile( file );
 }
 
+/**
+ * Copies the attachment URL to the clipboard.
+ *
+ * @since 5.8.0
+ *
+ * @param {MouseEvent} event A click event.
+ *
+ * @return {void}
+ */
+function copyAttachmentUploadURLClipboard() {
+	var clipboard = new ClipboardJS( '.copy-attachment-url' ),
+		successTimeout;
+
+	clipboard.on( 'success', function( event ) {
+		var triggerElement = jQuery( event.trigger ),
+			successElement = jQuery( '.success', triggerElement.closest( '.copy-to-clipboard-container' ) );
+
+		// Clear the selection and move focus back to the trigger.
+		event.clearSelection();
+		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
+		triggerElement.trigger( 'focus' );
+		// Show success visual feedback.
+		clearTimeout( successTimeout );
+		successElement.removeClass( 'hidden' );
+		// Hide success visual feedback after 3 seconds since last success.
+		successTimeout = setTimeout( function() {
+			successElement.addClass( 'hidden' );
+		}, 3000 );
+		// Handle success audible feedback.
+		wp.a11y.speak( pluploadL10n.file_url_copied );
+	} );
+}
+
 jQuery( document ).ready( function( $ ) {
+	copyAttachmentUploadURLClipboard();
 	var tryAgainCount = {};
 	var tryAgain;
 
@@ -568,6 +602,16 @@ jQuery( document ).ready( function( $ ) {
 			uploadStart();
 
 			plupload.each( files, function( file ) {
+				if ( file.type === 'image/heic' && up.settings.heic_upload_error ) {
+					// Show error but do not block uploading.
+					wpQueueError( pluploadL10n.unsupported_image );
+				} else if ( file.type === 'image/webp' && up.settings.webp_upload_error ) {
+					// Disallow uploading of WebP images if the server cannot edit them.
+					wpQueueError( pluploadL10n.noneditable_image );
+					up.removeFile( file );
+					return;
+				}
+
 				fileQueued( file );
 			});
 

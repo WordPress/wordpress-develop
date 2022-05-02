@@ -76,17 +76,17 @@ function start_wp() {
  * @deprecated 0.71 Use get_the_category()
  * @see get_the_category()
  *
- * @param bool $echo Optional. Whether to echo the output. Default true.
+ * @param bool $display Optional. Whether to display the output. Default true.
  * @return int Category ID.
  */
-function the_category_ID($echo = true) {
+function the_category_ID($display = true) {
 	_deprecated_function( __FUNCTION__, '0.71', 'get_the_category()' );
 
 	// Grab the first cat in the list.
 	$categories = get_the_category();
 	$cat = $categories[0]->term_id;
 
-	if ( $echo )
+	if ( $display )
 		echo $cat;
 
 	return $cat;
@@ -379,18 +379,23 @@ function user_can_edit_user($user_id, $other_user) {
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param string $cat_name Optional. The category name to use. If no match is found uses all.
- * @param string $before Optional. The html to output before the link.
- * @param string $after Optional. The html to output after the link.
- * @param string $between Optional. The html to output between the link/image and its description. Not used if no image or $show_images is true.
- * @param bool $show_images Optional. Whether to show images (if defined).
- * @param string $orderby Optional. The order to output the links. E.g. 'id', 'name', 'url', 'description' or 'rating'. Or maybe owner.
- *		If you start the name with an underscore the order will be reversed. You can also specify 'rand' as the order which will return links in a
- *		random order.
- * @param bool $show_description Optional. Whether to show the description if show_images=false/not defined.
- * @param bool $show_rating Optional. Show rating stars/chars.
- * @param int $limit		Optional. Limit to X entries. If not specified, all entries are shown.
- * @param int $show_updated Optional. Whether to show last updated timestamp
+ * @param string $cat_name         Optional. The category name to use. If no match is found, uses all.
+ *                                 Default 'noname'.
+ * @param string $before           Optional. The HTML to output before the link. Default empty.
+ * @param string $after            Optional. The HTML to output after the link. Default '<br />'.
+ * @param string $between          Optional. The HTML to output between the link/image and its description.
+ *                                 Not used if no image or $show_images is true. Default ' '.
+ * @param bool   $show_images      Optional. Whether to show images (if defined). Default true.
+ * @param string $orderby          Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                                 'description', 'rating', or 'owner'. Default 'id'.
+ *                                 If you start the name with an underscore, the order will be reversed.
+ *                                 Specifying 'rand' as the order will return links in a random order.
+ * @param bool   $show_description Optional. Whether to show the description if show_images=false/not defined.
+ *                                 Default true.
+ * @param bool   $show_rating      Optional. Show rating stars/chars. Default false.
+ * @param int    $limit            Optional. Limit to X entries. If not specified, all entries are shown.
+ *                                 Default -1.
+ * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 0.
  */
 function get_linksbyname($cat_name = "noname", $before = '', $after = '<br />', $between = " ", $show_images = true, $orderby = 'id',
 						$show_description = true, $show_rating = false,
@@ -447,11 +452,14 @@ function wp_get_linksbyname($category, $args = '') {
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param string $cat_name The category name to use. If no match is found uses all.
- * @param string $orderby The order to output the links. E.g. 'id', 'name', 'url', 'description', or 'rating'.
- *		Or maybe owner. If you start the name with an underscore the order will be reversed. You can also
- *		specify 'rand' as the order which will return links in a random order.
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
+ * @param string $cat_name Optional. The category name to use. If no match is found, uses all.
+ *                         Default 'noname'.
+ * @param string $orderby  Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                         'description', 'rating', or 'owner'. Default 'name'.
+ *                         If you start the name with an underscore, the order will be reversed.
+ *                         Specifying 'rand' as the order will return links in a random order.
+ * @param int    $limit    Optional. Limit to X entries. If not specified, all entries are shown.
+ *                         Default -1.
  * @return array
  */
 function get_linkobjectsbyname($cat_name = "noname" , $orderby = 'name', $limit = -1) {
@@ -497,12 +505,14 @@ function get_linkobjectsbyname($cat_name = "noname" , $orderby = 'name', $limit 
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param int $category The category to use. If no category supplied uses all
- * @param string $orderby the order to output the links. E.g. 'id', 'name', 'url',
- *		'description', or 'rating'. Or maybe owner. If you start the name with an
- *		underscore the order will be reversed. You can also specify 'rand' as the
- *		order which will return links in a random order.
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
+ * @param int    $category Optional. The category to use. If no category supplied, uses all.
+ *                         Default 0.
+ * @param string $orderby  Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                         'description', 'rating', or 'owner'. Default 'name'.
+ *                         If you start the name with an underscore, the order will be reversed.
+ *                         Specifying 'rand' as the order will return links in a random order.
+ * @param int    $limit    Optional. Limit to X entries. If not specified, all entries are shown.
+ *                         Default 0.
  * @return array
  */
 function get_linkobjects($category = 0, $orderby = 'name', $limit = 0) {
@@ -524,18 +534,22 @@ function get_linkobjects($category = 0, $orderby = 'name', $limit = 0) {
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param string $cat_name The category name to use. If no match is found uses all
- * @param string $before The html to output before the link
- * @param string $after The html to output after the link
- * @param string $between The html to output between the link/image and its description. Not used if no image or show_images is true
- * @param bool $show_images Whether to show images (if defined).
- * @param string $orderby the order to output the links. E.g. 'id', 'name', 'url',
- *		'description', or 'rating'. Or maybe owner. If you start the name with an
- *		underscore the order will be reversed. You can also specify 'rand' as the
- *		order which will return links in a random order.
- * @param bool $show_description Whether to show the description if show_images=false/not defined
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
- * @param int $show_updated Whether to show last updated timestamp
+ * @param string $cat_name         Optional. The category name to use. If no match is found, uses all.
+ *                                 Default 'noname'.
+ * @param string $before           Optional. The HTML to output before the link. Default empty.
+ * @param string $after            Optional. The HTML to output after the link. Default '<br />'.
+ * @param string $between          Optional. The HTML to output between the link/image and its description.
+ *                                 Not used if no image or $show_images is true. Default ' '.
+ * @param bool   $show_images      Optional. Whether to show images (if defined). Default true.
+ * @param string $orderby          Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                                 'description', 'rating', or 'owner'. Default 'id'.
+ *                                 If you start the name with an underscore, the order will be reversed.
+ *                                 Specifying 'rand' as the order will return links in a random order.
+ * @param bool   $show_description Optional. Whether to show the description if show_images=false/not defined.
+ *                                 Default true.
+ * @param int    $limit		       Optional. Limit to X entries. If not specified, all entries are shown.
+ *                                 Default -1.
+ * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 0.
  */
 function get_linksbyname_withrating($cat_name = "noname", $before = '', $after = '<br />', $between = " ",
 									$show_images = true, $orderby = 'id', $show_description = true, $limit = -1, $show_updated = 0) {
@@ -551,18 +565,22 @@ function get_linksbyname_withrating($cat_name = "noname", $before = '', $after =
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param int $category The category to use. If no category supplied uses all
- * @param string $before The html to output before the link
- * @param string $after The html to output after the link
- * @param string $between The html to output between the link/image and its description. Not used if no image or show_images == true
- * @param bool $show_images Whether to show images (if defined).
- * @param string $orderby The order to output the links. E.g. 'id', 'name', 'url',
- *		'description', or 'rating'. Or maybe owner. If you start the name with an
- *		underscore the order will be reversed. You can also specify 'rand' as the
- *		order which will return links in a random order.
- * @param bool $show_description Whether to show the description if show_images=false/not defined.
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
- * @param int $show_updated Whether to show last updated timestamp
+ * @param int    $category         Optional. The category to use. If no category supplied, uses all.
+ *                                 Default 0.
+ * @param string $before           Optional. The HTML to output before the link. Default empty.
+ * @param string $after            Optional. The HTML to output after the link. Default '<br />'.
+ * @param string $between          Optional. The HTML to output between the link/image and its description.
+ *                                 Not used if no image or $show_images is true. Default ' '.
+ * @param bool   $show_images      Optional. Whether to show images (if defined). Default true.
+ * @param string $orderby          Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                                 'description', 'rating', or 'owner'. Default 'id'.
+ *                                 If you start the name with an underscore, the order will be reversed.
+ *                                 Specifying 'rand' as the order will return links in a random order.
+ * @param bool   $show_description Optional. Whether to show the description if show_images=false/not defined.
+ *                                 Default true.
+ * @param int    $limit		       Optional. Limit to X entries. If not specified, all entries are shown.
+ *                                 Default -1.
+ * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 0.
  */
 function get_links_withrating($category = -1, $before = '', $after = '<br />', $between = " ", $show_images = true,
 							$orderby = 'id', $show_description = true, $limit = -1, $show_updated = 0) {
@@ -732,7 +750,7 @@ function wp_get_post_cats($blogid = '1', $post_ID = 0) {
 }
 
 /**
- * Sets the categories that the post id belongs to.
+ * Sets the categories that the post ID belongs to.
  *
  * @since 1.0.1
  * @deprecated 2.1.0
@@ -777,17 +795,17 @@ function get_archives($type='', $limit='', $format='html', $before = '', $after 
  * @deprecated 2.1.0 Use get_author_posts_url()
  * @see get_author_posts_url()
  *
- * @param bool $echo
+ * @param bool $display
  * @param int $author_id
  * @param string $author_nicename Optional.
  * @return string|null
  */
-function get_author_link($echo, $author_id, $author_nicename = '') {
+function get_author_link($display, $author_id, $author_nicename = '') {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_author_posts_url()' );
 
 	$link = get_author_posts_url($author_id, $author_nicename);
 
-	if ( $echo )
+	if ( $display )
 		echo $link;
 	return $link;
 }
@@ -898,31 +916,34 @@ function wp_get_links($args = '') {
 }
 
 /**
- * Gets the links associated with category by id.
+ * Gets the links associated with category by ID.
  *
  * @since 0.71
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param int $category The category to use. If no category supplied uses all
- * @param string $before the html to output before the link
- * @param string $after the html to output after the link
- * @param string $between the html to output between the link/image and its description.
- *		Not used if no image or show_images == true
- * @param bool $show_images whether to show images (if defined).
- * @param string $orderby the order to output the links. E.g. 'id', 'name', 'url',
- *		'description', or 'rating'. Or maybe owner. If you start the name with an
- *		underscore the order will be reversed. You can also specify 'rand' as the order
- *		which will return links in a random order.
- * @param bool $show_description whether to show the description if show_images=false/not defined.
- * @param bool $show_rating show rating stars/chars
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
- * @param int $show_updated whether to show last updated timestamp
- * @param bool $echo whether to echo the results, or return them instead
+ * @param int    $category         Optional. The category to use. If no category supplied uses all.
+ *                                 Default 0.
+ * @param string $before           Optional. The HTML to output before the link. Default empty.
+ * @param string $after            Optional. The HTML to output after the link. Default '<br />'.
+ * @param string $between          Optional. The HTML to output between the link/image and its description.
+ *                                 Not used if no image or $show_images is true. Default ' '.
+ * @param bool   $show_images      Optional. Whether to show images (if defined). Default true.
+ * @param string $orderby          Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                                 'description', 'rating', or 'owner'. Default 'name'.
+ *                                 If you start the name with an underscore, the order will be reversed.
+ *                                 Specifying 'rand' as the order will return links in a random order.
+ * @param bool   $show_description Optional. Whether to show the description if show_images=false/not defined.
+ *                                 Default true.
+ * @param bool   $show_rating      Optional. Show rating stars/chars. Default false.
+ * @param int    $limit            Optional. Limit to X entries. If not specified, all entries are shown.
+ *                                 Default -1.
+ * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 1.
+ * @param bool   $display          Whether to display the results, or return them instead.
  * @return null|string
  */
 function get_links($category = -1, $before = '', $after = '<br />', $between = ' ', $show_images = true, $orderby = 'name',
-			$show_description = true, $show_rating = false, $limit = -1, $show_updated = 1, $echo = true) {
+			$show_description = true, $show_rating = false, $limit = -1, $show_updated = 1, $display = true) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
 
 	$order = 'ASC';
@@ -997,7 +1018,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$output .= "$after\n";
 	} // End while.
 
-	if ( !$echo )
+	if ( !$display )
 		return $output;
 	echo $output;
 }
@@ -1079,7 +1100,7 @@ function get_linkrating( $link ) {
 }
 
 /**
- * Gets the name of category by id.
+ * Gets the name of category by ID.
  *
  * @since 0.71
  * @deprecated 2.1.0 Use get_category()
@@ -1128,16 +1149,16 @@ function comments_rss_link($link_text = 'Comments RSS') {
  * @deprecated 2.5.0 Use get_category_feed_link()
  * @see get_category_feed_link()
  *
- * @param bool $echo
+ * @param bool $display
  * @param int $cat_ID
  * @return string
  */
-function get_category_rss_link($echo = false, $cat_ID = 1) {
+function get_category_rss_link($display = false, $cat_ID = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_category_feed_link()' );
 
 	$link = get_category_feed_link($cat_ID, 'rss2');
 
-	if ( $echo )
+	if ( $display )
 		echo $link;
 	return $link;
 }
@@ -1149,15 +1170,15 @@ function get_category_rss_link($echo = false, $cat_ID = 1) {
  * @deprecated 2.5.0 Use get_author_feed_link()
  * @see get_author_feed_link()
  *
- * @param bool $echo
+ * @param bool $display
  * @param int $author_id
  * @return string
  */
-function get_author_rss_link($echo = false, $author_id = 1) {
+function get_author_rss_link($display = false, $author_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_author_feed_link()' );
 
 	$link = get_author_feed_link($author_id);
-	if ( $echo )
+	if ( $display )
 		echo $link;
 	return $link;
 }
@@ -1242,10 +1263,11 @@ function get_catname( $cat_ID ) {
  * @deprecated 2.8.0 Use get_term_children()
  * @see get_term_children()
  *
- * @param int $id Category ID to retrieve children.
- * @param string $before Optional. Prepend before category term ID.
- * @param string $after Optional, default is empty string. Append after category term ID.
- * @param array $visited Optional. Category Term IDs that have already been added.
+ * @param int    $id      Category ID to retrieve children.
+ * @param string $before  Optional. Prepend before category term ID. Default '/'.
+ * @param string $after   Optional. Append after category term ID. Default empty string.
+ * @param array  $visited Optional. Category Term IDs that have already been added.
+ *                        Default empty array.
  * @return string
  */
 function get_category_children( $id, $before = '/', $after = '', $visited = array() ) {
@@ -1281,7 +1303,7 @@ function get_category_children( $id, $before = '/', $after = '', $visited = arra
  *
  * @link https://developer.wordpress.org/reference/functions/get_all_category_ids/
  *
- * @return object List of all of the category IDs.
+ * @return int[] List of all of the category IDs.
  */
 function get_all_category_ids() {
 	_deprecated_function( __FUNCTION__, '4.0.0', 'get_terms()' );
@@ -1627,30 +1649,31 @@ function the_author_ID() {
 /**
  * Display the post content for the feed.
  *
- * For encoding the html or the $encode_html parameter, there are three possible
- * values. '0' will make urls footnotes and use make_url_footnote(). '1' will
- * encode special characters and automatically display all of the content. The
- * value of '2' will strip all HTML tags from the content.
+ * For encoding the HTML or the $encode_html parameter, there are three possible values:
+ * - '0' will make urls footnotes and use make_url_footnote().
+ * - '1' will encode special characters and automatically display all of the content.
+ * - '2' will strip all HTML tags from the content.
  *
- * Also note that you cannot set the amount of words and not set the html
- * encoding. If that is the case, then the html encoding will default to 2,
- * which will strip all HTML tags.
+ * Also note that you cannot set the amount of words and not set the HTML encoding.
+ * If that is the case, then the HTML encoding will default to 2, which will strip
+ * all HTML tags.
  *
- * To restrict the amount of words of the content, you can use the cut
- * parameter. If the content is less than the amount, then there won't be any
- * dots added to the end. If there is content left over, then dots will be added
- * and the rest of the content will be removed.
+ * To restrict the amount of words of the content, you can use the cut parameter.
+ * If the content is less than the amount, then there won't be any dots added to the end.
+ * If there is content left over, then dots will be added and the rest of the content
+ * will be removed.
  *
  * @since 0.71
  *
  * @deprecated 2.9.0 Use the_content_feed()
  * @see the_content_feed()
  *
- * @param string $more_link_text Optional. Text to display when more content is available but not displayed.
- * @param int $stripteaser Optional. Default is 0.
- * @param string $more_file Optional.
- * @param int $cut Optional. Amount of words to keep for the content.
- * @param int $encode_html Optional. How to encode the content.
+ * @param string $more_link_text Optional. Text to display when more content is available
+ *                               but not displayed. Default '(more...)'.
+ * @param int    $stripteaser    Optional. Default 0.
+ * @param string $more_file      Optional.
+ * @param int    $cut            Optional. Amount of words to keep for the content.
+ * @param int    $encode_html    Optional. How to encode the content.
  */
 function the_content_rss($more_link_text='(more...)', $stripteaser=0, $more_file='', $cut = 0, $encode_html = 0) {
 	_deprecated_function( __FUNCTION__, '2.9.0', 'the_content_feed()' );
@@ -1703,7 +1726,7 @@ function the_content_rss($more_link_text='(more...)', $stripteaser=0, $more_file
  * @since 0.71
  * @deprecated 2.9.0
  *
- * @param string $content Content to get links
+ * @param string $content Content to get links.
  * @return string HTML stripped out of content with links at the bottom.
  */
 function make_url_footnote( $content ) {
@@ -1741,9 +1764,9 @@ function make_url_footnote( $content ) {
  * @deprecated 2.9.0 Use _x()
  * @see _x()
  *
- * @param string $text Text to translate
- * @param string $domain Optional. Domain to retrieve the translated text
- * @return string Translated context string without pipe
+ * @param string $text Text to translate.
+ * @param string $domain Optional. Domain to retrieve the translated text.
+ * @return string Translated context string without pipe.
  */
 function _c( $text, $domain = 'default' ) {
 	_deprecated_function( __FUNCTION__, '2.9.0', '_x()' );
@@ -1758,9 +1781,9 @@ function _c( $text, $domain = 'default' ) {
  * @deprecated 3.0.0 Use _x()
  * @see _x()
  *
- * @param string $text Text to translate
- * @param string $domain Domain to retrieve the translated text
- * @return string Translated text
+ * @param string $text Text to translate.
+ * @param string $domain Domain to retrieve the translated text.
+ * @return string Translated text.
  */
 function translate_with_context( $text, $domain = 'default' ) {
 	_deprecated_function( __FUNCTION__, '2.9.0', '_x()' );
@@ -1834,10 +1857,10 @@ function get_alloptions() {
  * @deprecated 2.5.0 Use wp_get_attachment_link()
  * @see wp_get_attachment_link()
  *
- * @param int $id Optional. Post ID.
- * @param bool $fullsize Optional, default is false. Whether to use full size image.
+ * @param int   $id       Optional. Post ID.
+ * @param bool  $fullsize Optional. Whether to use full size image. Default false.
  * @param array $max_dims Optional. Max image dimensions.
- * @param bool $permalink Optional, default is false. Whether to include permalink to image.
+ * @param bool $permalink Optional. Whether to include permalink to image. Default false.
  * @return string
  */
 function get_the_attachment_link($id = 0, $fullsize = false, $max_dims = false, $permalink = false) {
@@ -1864,8 +1887,8 @@ function get_the_attachment_link($id = 0, $fullsize = false, $max_dims = false, 
  * @deprecated 2.5.0 Use wp_get_attachment_image_src()
  * @see wp_get_attachment_image_src()
  *
- * @param int $id Optional. Post ID.
- * @param bool $fullsize Optional, default to false. Whether to have full image.
+ * @param int  $id       Optional. Post ID.
+ * @param bool $fullsize Optional. Whether to have full image. Default false.
  * @return array Icon URL and full path to file, respectively.
  */
 function get_attachment_icon_src( $id = 0, $fullsize = false ) {
@@ -1888,6 +1911,7 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 	} elseif ( $src = wp_mime_type_icon( $post->ID ) ) {
 		// No thumb, no image. We'll look for a mime-related icon instead.
 
+		/** This filter is documented in wp-includes/post.php */
 		$icon_dir = apply_filters( 'icon_dir', get_template_directory() . '/images' );
 		$src_file = $icon_dir . '/' . wp_basename($src);
 	}
@@ -1905,8 +1929,8 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
  * @deprecated 2.5.0 Use wp_get_attachment_image()
  * @see wp_get_attachment_image()
  *
- * @param int $id Optional. Post ID.
- * @param bool $fullsize Optional, default to false. Whether to have full size image.
+ * @param int   $id       Optional. Post ID.
+ * @param bool  $fullsize Optional. Whether to have full size image. Default false.
  * @param array $max_dims Optional. Dimensions of image.
  * @return string|false HTML content.
  */
@@ -1924,7 +1948,7 @@ function get_attachment_icon( $id = 0, $fullsize = false, $max_dims = false ) {
 	// Do we need to constrain the image?
 	if ( ($max_dims = apply_filters('attachment_max_dims', $max_dims)) && file_exists($src_file) ) {
 
-		$imagesize = @getimagesize($src_file);
+		$imagesize = wp_getimagesize($src_file);
 
 		if (($imagesize[0] > $max_dims[0]) || $imagesize[1] > $max_dims[1] ) {
 			$actual_aspect = $imagesize[0] / $imagesize[1];
@@ -1961,8 +1985,8 @@ function get_attachment_icon( $id = 0, $fullsize = false, $max_dims = false ) {
  * @deprecated 2.5.0 Use wp_get_attachment_image()
  * @see wp_get_attachment_image()
  *
- * @param int $id Optional. Post ID.
- * @param bool $fullsize Optional, default to false. Whether to have full size image.
+ * @param int   $id       Optional. Post ID.
+ * @param bool  $fullsize Optional. Whether to have full size image. Default false.
  * @param array $max_dims Optional. Dimensions of image.
  * @return string|false
  */
@@ -1997,22 +2021,6 @@ function get_attachment_innerHTML($id = 0, $fullsize = false, $max_dims = false)
 function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmark()' );
 	return get_bookmark($bookmark_id, $output, $filter);
-}
-
-/**
- * Performs esc_url() for database or redirect usage.
- *
- * @since 2.3.1
- * @deprecated 2.8.0 Use esc_url_raw()
- * @see esc_url_raw()
- *
- * @param string $url The URL to be cleaned.
- * @param array $protocols An array of acceptable protocols.
- * @return string The cleaned URL.
- */
-function sanitize_url( $url, $protocols = null ) {
-	_deprecated_function( __FUNCTION__, '2.8.0', 'esc_url_raw()' );
-	return esc_url_raw( $url, $protocols );
 }
 
 /**
@@ -2062,18 +2070,18 @@ function js_escape( $text ) {
  * @deprecated 2.8.0 Use esc_html()
  * @see esc_html()
  *
- * @param string       $string        String to escape.
+ * @param string       $text          Text to escape.
  * @param string       $quote_style   Unused.
  * @param false|string $charset       Unused.
  * @param false        $double_encode Whether to double encode. Unused.
- * @return string Escaped `$string`.
+ * @return string Escaped `$text`.
  */
-function wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
+function wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'esc_html()' );
 	if ( func_num_args() > 1 ) { // Maintain back-compat for people passing additional arguments.
-		return _wp_specialchars( $string, $quote_style, $charset, $double_encode );
+		return _wp_specialchars( $text, $quote_style, $charset, $double_encode );
 	} else {
-		return esc_html( $string );
+		return esc_html( $text );
 	}
 }
 
@@ -2211,7 +2219,7 @@ function unregister_widget_control($id) {
  *
  * @param int $user_id User ID.
  * @param string $meta_key Metadata key.
- * @param mixed $meta_value Metadata value.
+ * @param mixed $meta_value Optional. Metadata value. Default empty.
  * @return bool True deletion completed and false if user_id is not a number.
  */
 function delete_usermeta( $user_id, $meta_key, $meta_value = '' ) {
@@ -2257,7 +2265,7 @@ function delete_usermeta( $user_id, $meta_key, $meta_value = '' ) {
  * @see get_user_meta()
  *
  * @param int $user_id User ID
- * @param string $meta_key Optional. Metadata key.
+ * @param string $meta_key Optional. Metadata key. Default empty.
  * @return mixed
  */
 function get_usermeta( $user_id, $meta_key = '' ) {
@@ -2386,7 +2394,7 @@ function get_users_of_blog( $id = '' ) {
  * @deprecated 3.0.0 Use add_theme_support()
  * @see add_theme_support()
  *
- * @param bool $add Optional, default is true. Add or remove links. Defaults to true.
+ * @param bool $add Optional. Add or remove links. Default true.
  */
 function automatic_feed_links( $add = true ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', "add_theme_support( 'automatic-feed-links' )" );
@@ -2405,7 +2413,7 @@ function automatic_feed_links( $add = true ) {
  * @see get_the_author_meta()
  *
  * @param string    $field User meta field.
- * @param false|int $user Optional. User ID to retrieve the field for. Default false (current user).
+ * @param false|int $user  Optional. User ID to retrieve the field for. Default false (current user).
  * @return string The author's field from the current author's DB object.
  */
 function get_profile( $field, $user = false ) {
@@ -2498,7 +2506,7 @@ function is_taxonomy( $taxonomy ) {
  * @param int|string $term The term to check
  * @param string $taxonomy The taxonomy name to use
  * @param int $parent ID of parent term under which to confine the exists search.
- * @return mixed Get the term id or Term Object, if exists.
+ * @return mixed Get the term ID or term object, if exists.
  */
 function is_term( $term, $taxonomy = '', $parent = 0 ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'term_exists()' );
@@ -2509,11 +2517,11 @@ function is_term( $term, $taxonomy = '', $parent = 0 ) {
  * Determines whether the current admin page is generated by a plugin.
  *
  * Use global $plugin_page and/or get_plugin_page_hookname() hooks.
- * 
+ *
  * For more information on this and similar theme functions, check out
- * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/ 
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
- * 
+ *
  * @since 1.5.0
  * @deprecated 3.1.0
  *
@@ -2623,9 +2631,9 @@ function get_user_metavalues($ids) {
  * @since 2.3.0
  * @deprecated 3.3.0
  *
- * @param object|array $user The User Object or Array
- * @param string $context Optional, default is 'display'. How to sanitize user fields.
- * @return object|array The now sanitized User Object or Array (will be the same type as $user)
+ * @param object|array $user    The user object or array.
+ * @param string       $context Optional. How to sanitize user fields. Default 'display'.
+ * @return object|array The now sanitized user object or array (will be the same type as $user).
  */
 function sanitize_user_object($user, $context = 'display') {
 	_deprecated_function( __FUNCTION__, '3.3.0' );
@@ -2660,10 +2668,12 @@ function sanitize_user_object($user, $context = 'display') {
  * @since 2.8.0
  * @deprecated 3.3.0
  *
- * @param string $title Optional. Link title format.
- * @param bool $in_same_cat Optional. Whether link should be in a same category.
- * @param string $excluded_categories Optional. Excluded categories IDs.
- * @param bool $start Optional, default is true. Whether to display link to first or last post.
+ * @param string $title               Optional. Link title format. Default '%title'.
+ * @param bool   $in_same_cat         Optional. Whether link should be in a same category.
+ *                                    Default false.
+ * @param string $excluded_categories Optional. Excluded categories IDs. Default empty.
+ * @param bool   $start               Optional. Whether to display link to first or last post.
+ *                                    Default true.
  * @return string
  */
 function get_boundary_post_rel_link($title = '%title', $in_same_cat = false, $excluded_categories = '', $start = true) {
@@ -2848,13 +2858,13 @@ function debug_fopen( $filename, $mode ) {
  *
  * @link https://www.php.net/manual/en/function.error-log.php
  *
- * @param mixed  $fp     Unused.
- * @param string $string Message to log.
+ * @param mixed  $fp      Unused.
+ * @param string $message Message to log.
  */
-function debug_fwrite( $fp, $string ) {
+function debug_fwrite( $fp, $message ) {
 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
 	if ( ! empty( $GLOBALS['debug'] ) )
-		error_log( $string );
+		error_log( $message );
 }
 
 /**
@@ -2947,13 +2957,13 @@ function get_current_theme() {
  * Accepts matches array from preg_replace_callback in wpautop() or a string.
  *
  * Ensures that the contents of a `<pre>...</pre>` HTML block are not
- * converted into paragraphs or line-breaks.
+ * converted into paragraphs or line breaks.
  *
  * @since 1.2.0
  * @deprecated 3.4.0
  *
  * @param array|string $matches The array or string
- * @return string The pre block without paragraph/line-break conversion.
+ * @return string The pre block without paragraph/line break conversion.
  */
 function clean_pre($matches) {
 	_deprecated_function( __FUNCTION__, '3.4.0' );
@@ -3171,7 +3181,8 @@ function _get_post_ancestors( &$post ) {
  * @see wp_get_image_editor()
  *
  * @param string $file Filename of the image to load.
- * @return resource The resulting image resource on success, Error string on failure.
+ * @return resource|GdImage|string The resulting image resource or GdImage instance on success,
+ *                                 error string on failure.
  */
 function wp_load_image( $file ) {
 	_deprecated_function( __FUNCTION__, '3.5.0', 'wp_get_image_editor()' );
@@ -3181,7 +3192,7 @@ function wp_load_image( $file ) {
 
 	if ( ! is_file( $file ) ) {
 		/* translators: %s: File name. */
-		return sprintf( __( 'File &#8220;%s&#8221; doesn&#8217;t exist?' ), $file );
+		return sprintf( __( 'File &#8220;%s&#8221; does not exist?' ), $file );
 	}
 
 	if ( ! function_exists('imagecreatefromstring') )
@@ -3192,7 +3203,7 @@ function wp_load_image( $file ) {
 
 	$image = imagecreatefromstring( file_get_contents( $file ) );
 
-	if ( ! is_resource( $image ) ) {
+	if ( ! is_gd_image( $image ) ) {
 		/* translators: %s: File name. */
 		return sprintf( __( 'File &#8220;%s&#8221; is not an image.' ), $file );
 	}
@@ -3215,13 +3226,13 @@ function wp_load_image( $file ) {
  * @deprecated 3.5.0 Use wp_get_image_editor()
  * @see wp_get_image_editor()
  *
- * @param string $file Image file path.
- * @param int $max_w Maximum width to resize to.
- * @param int $max_h Maximum height to resize to.
- * @param bool $crop Optional. Whether to crop image or resize.
- * @param string $suffix Optional. File suffix.
- * @param string $dest_path Optional. New image file path.
- * @param int $jpeg_quality Optional, default is 90. Image quality percentage.
+ * @param string $file         Image file path.
+ * @param int    $max_w        Maximum width to resize to.
+ * @param int    $max_h        Maximum height to resize to.
+ * @param bool   $crop         Optional. Whether to crop image or resize. Default false.
+ * @param string $suffix       Optional. File suffix. Default null.
+ * @param string $dest_path    Optional. New image file path. Default null.
+ * @param int    $jpeg_quality Optional. Image quality percentage. Default 90.
  * @return mixed WP_Error on failure. String with new destination path.
  */
 function image_resize( $file, $max_w, $max_h, $crop = false, $suffix = null, $dest_path = null, $jpeg_quality = 90 ) {
@@ -3313,6 +3324,8 @@ function gd_edit_image_support($mime_type) {
 				return (imagetypes() & IMG_PNG) != 0;
 			case 'image/gif':
 				return (imagetypes() & IMG_GIF) != 0;
+			case 'image/webp':
+				return (imagetypes() & IMG_WEBP) != 0;
 		}
 	} else {
 		switch( $mime_type ) {
@@ -3322,6 +3335,8 @@ function gd_edit_image_support($mime_type) {
 				return function_exists('imagecreatefrompng');
 			case 'image/gif':
 				return function_exists('imagecreatefromgif');
+			case 'image/webp':
+				return function_exists('imagecreatefromwebp');
 		}
 	}
 	return false;
@@ -3539,7 +3554,7 @@ function preview_theme_ob_filter_callback( $matches ) {
 /**
  * Formats text for the rich text editor.
  *
- * The {@see 'richedit_pre'} filter is applied here. If $text is empty the filter will
+ * The {@see 'richedit_pre'} filter is applied here. If `$text` is empty the filter will
  * be applied to an empty string.
  *
  * @since 2.0.0
@@ -3716,15 +3731,15 @@ function get_comments_popup_template() {
 
 /**
  * Determines whether the current URL is within the comments popup window.
- * 
+ *
  * For more information on this and similar theme functions, check out
- * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/ 
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
- * 
+ *
  * @since 1.5.0
  * @deprecated 4.5.0
  *
- * @return bool
+ * @return false Always returns false.
  */
 function is_comments_popup() {
 	_deprecated_function( __FUNCTION__, '4.5.0' );
@@ -3805,13 +3820,13 @@ function get_paged_template() {
  * @since 1.0.0
  * @deprecated 4.7.0 Officially dropped security support for Netscape 4.
  *
- * @param string $string
+ * @param string $content
  * @return string
  */
-function wp_kses_js_entities( $string ) {
+function wp_kses_js_entities( $content ) {
 	_deprecated_function( __FUNCTION__, '4.7.0' );
 
-	return preg_replace( '%&\s*\{[^}]*(\}\s*;?|$)%', '', $string );
+	return preg_replace( '%&\s*\{[^}]*(\}\s*;?|$)%', '', $content );
 }
 
 /**
@@ -3949,4 +3964,350 @@ function wp_ajax_press_this_add_category() {
 	} else {
 		wp_send_json_error( array( 'errorMessage' => __( 'The Press This plugin is required.' ) ) );
 	}
+}
+
+/**
+ * Return the user request object for the specified request ID.
+ *
+ * @since 4.9.6
+ * @deprecated 5.4.0 Use wp_get_user_request()
+ * @see wp_get_user_request()
+ *
+ * @param int $request_id The ID of the user request.
+ * @return WP_User_Request|false
+ */
+function wp_get_user_request_data( $request_id ) {
+	_deprecated_function( __FUNCTION__, '5.4.0', 'wp_get_user_request()' );
+	return wp_get_user_request( $request_id );
+}
+
+/**
+ * Filters 'img' elements in post content to add 'srcset' and 'sizes' attributes.
+ *
+ * @since 4.4.0
+ * @deprecated 5.5.0
+ *
+ * @see wp_image_add_srcset_and_sizes()
+ *
+ * @param string $content The raw post content to be filtered.
+ * @return string Converted content with 'srcset' and 'sizes' attributes added to images.
+ */
+function wp_make_content_images_responsive( $content ) {
+	_deprecated_function( __FUNCTION__, '5.5.0', 'wp_filter_content_tags()' );
+
+	// This will also add the `loading` attribute to `img` tags, if enabled.
+	return wp_filter_content_tags( $content );
+}
+
+/**
+ * Turn register globals off.
+ *
+ * @since 2.1.0
+ * @access private
+ * @deprecated 5.5.0
+ */
+function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+	// register_globals was deprecated in PHP 5.3 and removed entirely in PHP 5.4.
+	_deprecated_function( __FUNCTION__, '5.5.0' );
+}
+
+/**
+ * Does comment contain disallowed characters or words.
+ *
+ * @since 1.5.0
+ * @deprecated 5.5.0 Use wp_check_comment_disallowed_list() instead.
+ *                   Please consider writing more inclusive code.
+ *
+ * @param string $author The author of the comment
+ * @param string $email The email of the comment
+ * @param string $url The url used in the comment
+ * @param string $comment The comment content
+ * @param string $user_ip The comment author's IP address
+ * @param string $user_agent The author's browser user agent
+ * @return bool True if comment contains disallowed content, false if comment does not
+ */
+function wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_agent ) {
+	_deprecated_function( __FUNCTION__, '5.5.0', 'wp_check_comment_disallowed_list()' );
+
+	return wp_check_comment_disallowed_list( $author, $email, $url, $comment, $user_ip, $user_agent );
+}
+
+/**
+ * Filters out `register_meta()` args based on an allowed list.
+ *
+ * `register_meta()` args may change over time, so requiring the allowed list
+ * to be explicitly turned off is a warranty seal of sorts.
+ *
+ * @access private
+ * @since 4.6.0
+ * @deprecated 5.5.0 Use _wp_register_meta_args_allowed_list() instead.
+ *                   Please consider writing more inclusive code.
+ *
+ * @param array $args         Arguments from `register_meta()`.
+ * @param array $default_args Default arguments for `register_meta()`.
+ * @return array Filtered arguments.
+ */
+function _wp_register_meta_args_whitelist( $args, $default_args ) {
+	_deprecated_function( __FUNCTION__, '5.5.0', '_wp_register_meta_args_allowed_list()' );
+
+	return _wp_register_meta_args_allowed_list( $args, $default_args );
+}
+
+/**
+ * Adds an array of options to the list of allowed options.
+ *
+ * @since 2.7.0
+ * @deprecated 5.5.0 Use add_allowed_options() instead.
+ *                   Please consider writing more inclusive code.
+ *
+ * @global array $allowed_options
+ *
+ * @param array        $new_options
+ * @param string|array $options
+ * @return array
+ */
+function add_option_whitelist( $new_options, $options = '' ) {
+	_deprecated_function( __FUNCTION__, '5.5.0', 'add_allowed_options()' );
+
+	return add_allowed_options( $new_options, $options );
+}
+
+/**
+ * Removes a list of options from the allowed options list.
+ *
+ * @since 2.7.0
+ * @deprecated 5.5.0 Use remove_allowed_options() instead.
+ *                   Please consider writing more inclusive code.
+ *
+ * @global array $allowed_options
+ *
+ * @param array        $del_options
+ * @param string|array $options
+ * @return array
+ */
+function remove_option_whitelist( $del_options, $options = '' ) {
+	_deprecated_function( __FUNCTION__, '5.5.0', 'remove_allowed_options()' );
+
+	return remove_allowed_options( $del_options, $options );
+}
+
+/**
+ * Adds slashes to only string values in an array of values.
+ *
+ * This should be used when preparing data for core APIs that expect slashed data.
+ * This should not be used to escape data going directly into an SQL query.
+ *
+ * @since 5.3.0
+ * @deprecated 5.6.0 Use wp_slash()
+ *
+ * @see wp_slash()
+ *
+ * @param mixed $value Scalar or array of scalars.
+ * @return mixed Slashes $value
+ */
+function wp_slash_strings_only( $value ) {
+	return map_deep( $value, 'addslashes_strings_only' );
+}
+
+/**
+ * Adds slashes only if the provided value is a string.
+ *
+ * @since 5.3.0
+ * @deprecated 5.6.0
+ *
+ * @see wp_slash()
+ *
+ * @param mixed $value
+ * @return mixed
+ */
+function addslashes_strings_only( $value ) {
+	return is_string( $value ) ? addslashes( $value ) : $value;
+}
+
+/**
+ * Displays a `noindex` meta tag if required by the blog configuration.
+ *
+ * If a blog is marked as not being public then the `noindex` meta tag will be
+ * output to tell web robots not to index the page content.
+ *
+ * Typical usage is as a {@see 'wp_head'} callback:
+ *
+ *     add_action( 'wp_head', 'noindex' );
+ *
+ * @see wp_no_robots()
+ *
+ * @since 2.1.0
+ * @deprecated 5.7.0 Use wp_robots_noindex() instead on 'wp_robots' filter.
+ */
+function noindex() {
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_noindex()' );
+
+	// If the blog is not public, tell robots to go away.
+	if ( '0' == get_option( 'blog_public' ) ) {
+		wp_no_robots();
+	}
+}
+
+/**
+ * Display a `noindex` meta tag.
+ *
+ * Outputs a `noindex` meta tag that tells web robots not to index the page content.
+ *
+ * Typical usage is as a {@see 'wp_head'} callback:
+ *
+ *     add_action( 'wp_head', 'wp_no_robots' );
+ *
+ * @since 3.3.0
+ * @since 5.3.0 Echo `noindex,nofollow` if search engine visibility is discouraged.
+ * @deprecated 5.7.0 Use wp_robots_no_robots() instead on 'wp_robots' filter.
+ */
+function wp_no_robots() {
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_no_robots()' );
+
+	if ( get_option( 'blog_public' ) ) {
+		echo "<meta name='robots' content='noindex,follow' />\n";
+		return;
+	}
+
+	echo "<meta name='robots' content='noindex,nofollow' />\n";
+}
+
+/**
+ * Display a `noindex,noarchive` meta tag and referrer `strict-origin-when-cross-origin` meta tag.
+ *
+ * Outputs a `noindex,noarchive` meta tag that tells web robots not to index or cache the page content.
+ * Outputs a referrer `strict-origin-when-cross-origin` meta tag that tells the browser not to send
+ * the full URL as a referrer to other sites when cross-origin assets are loaded.
+ *
+ * Typical usage is as a {@see 'wp_head'} callback:
+ *
+ *     add_action( 'wp_head', 'wp_sensitive_page_meta' );
+ *
+ * @since 5.0.1
+ * @deprecated 5.7.0 Use wp_robots_sensitive_page() instead on 'wp_robots' filter
+ *                   and wp_strict_cross_origin_referrer() on 'wp_head' action.
+ *
+ * @see wp_robots_sensitive_page()
+ */
+function wp_sensitive_page_meta() {
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_sensitive_page()' );
+
+	?>
+	<meta name='robots' content='noindex,noarchive' />
+	<?php
+	wp_strict_cross_origin_referrer();
+}
+
+/**
+ * Render inner blocks from the `core/columns` block for generating an excerpt.
+ *
+ * @since 5.2.0
+ * @access private
+ * @deprecated 5.8.0 Use _excerpt_render_inner_blocks() introduced in 5.8.0.
+ *
+ * @see _excerpt_render_inner_blocks()
+ *
+ * @param array $columns        The parsed columns block.
+ * @param array $allowed_blocks The list of allowed inner blocks.
+ * @return string The rendered inner blocks.
+ */
+function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
+	_deprecated_function( __FUNCTION__, '5.8.0', '_excerpt_render_inner_blocks()' );
+
+	return _excerpt_render_inner_blocks( $columns, $allowed_blocks );
+}
+
+/**
+ * Renders the duotone filter SVG and returns the CSS filter property to
+ * reference the rendered SVG.
+ *
+ * @since 5.9.0
+ * @deprecated 5.9.1 Use wp_get_duotone_filter_property() introduced in 5.9.1.
+ *
+ * @see wp_get_duotone_filter_property()
+ *
+ * @param array $preset Duotone preset value as seen in theme.json.
+ * @return string Duotone CSS filter property.
+ */
+function wp_render_duotone_filter_preset( $preset ) {
+	_deprecated_function( __FUNCTION__, '5.9.1', 'wp_get_duotone_filter_property()' );
+
+	return wp_get_duotone_filter_property( $preset );
+}
+
+/**
+ * Checks whether serialization of the current block's border properties should occur.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.0.0 Use wp_should_skip_block_supports_serialization() introduced in 6.0.0.
+ *
+ * @see wp_should_skip_block_supports_serialization()
+ *
+ * @param WP_Block_Type $block_type Block type.
+ * @return bool Whether serialization of the current block's border properties
+ *              should occur.
+ */
+function wp_skip_border_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+
+	$border_support = _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), false );
+
+	return is_array( $border_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
+		$border_support['__experimentalSkipSerialization'];
+}
+
+/**
+ * Checks whether serialization of the current block's dimensions properties should occur.
+ *
+ * @since 5.9.0
+ * @access private
+ * @deprecated 6.0.0 Use wp_should_skip_block_supports_serialization() introduced in 6.0.0.
+ *
+ * @see wp_should_skip_block_supports_serialization()
+ *
+ * @param WP_Block_type $block_type Block type.
+ * @return bool Whether to serialize spacing support styles & classes.
+ */
+function wp_skip_dimensions_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+
+	$dimensions_support = _wp_array_get( $block_type->supports, array( '__experimentalDimensions' ), false );
+
+	return is_array( $dimensions_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
+		$dimensions_support['__experimentalSkipSerialization'];
+}
+
+/**
+ * Checks whether serialization of the current block's spacing properties should occur.
+ *
+ * @since 5.9.0
+ * @access private
+ * @deprecated 6.0.0 Use wp_should_skip_block_supports_serialization() introduced in 6.0.0.
+ *
+ * @see wp_should_skip_block_supports_serialization()
+ *
+ * @param WP_Block_Type $block_type Block type.
+ * @return bool Whether to serialize spacing support styles & classes.
+ */
+function wp_skip_spacing_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+
+	$spacing_support = _wp_array_get( $block_type->supports, array( 'spacing' ), false );
+
+	return is_array( $spacing_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
+		$spacing_support['__experimentalSkipSerialization'];
+}
+
+/**
+ * Inject the block editor assets that need to be loaded into the editor's iframe as an inline script.
+ *
+ * @since 5.8.0
+ * @deprecated 6.0.0
+ */
+function wp_add_iframed_editor_assets_html() {
+	_deprecated_function( __FUNCTION__, '6.0.0' );
 }

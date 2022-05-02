@@ -46,7 +46,7 @@ $request_array = 'HTTP_POST_VARS';
 
 if ( ! isset( $_GET['tb_id'] ) || ! $_GET['tb_id'] ) {
 	$tb_id = explode( '/', $_SERVER['REQUEST_URI'] );
-	$tb_id = intval( $tb_id[ count( $tb_id ) - 1 ] );
+	$tb_id = (int) $tb_id[ count( $tb_id ) - 1 ];
 }
 
 $tb_url  = isset( $_POST['url'] ) ? $_POST['url'] : '';
@@ -84,7 +84,7 @@ if ( is_single() || is_page() ) {
 	$tb_id = $posts[0]->ID;
 }
 
-if ( ! isset( $tb_id ) || ! intval( $tb_id ) ) {
+if ( ! isset( $tb_id ) || ! (int) $tb_id ) {
 	trackback_response( 1, __( 'I really need an ID for this to work.' ) );
 }
 
@@ -127,7 +127,7 @@ if ( ! empty( $tb_url ) && ! empty( $title ) ) {
 
 	$dupe = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_author_url = %s", $comment_post_ID, $comment_author_url ) );
 	if ( $dupe ) {
-		trackback_response( 1, __( 'We already have a ping from that URL for this post.' ) );
+		trackback_response( 1, __( 'There is already a ping from that URL for this post.' ) );
 	}
 
 	$commentdata = compact( 'comment_post_ID', 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content', 'comment_type' );

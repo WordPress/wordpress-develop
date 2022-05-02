@@ -30,7 +30,7 @@ class Tests_User_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $u1 ), wp_list_pluck( $uq->results, 'ID' ) );
+		$this->assertSameSets( array( $u1 ), wp_list_pluck( $uq->results, 'ID' ) );
 	}
 
 	/**
@@ -67,6 +67,6 @@ class Tests_User_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $u1, $u2 ), wp_list_pluck( $uq->results, 'ID' ) );
+		$this->assertSameSets( array( $u1, $u2 ), wp_list_pluck( $uq->results, 'ID' ) );
 	}
 }

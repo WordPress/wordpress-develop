@@ -15,6 +15,8 @@ if ( ! current_user_can( 'export' ) ) {
 
 /** Load WordPress export API */
 require_once ABSPATH . 'wp-admin/includes/export.php';
+
+// Used in the HTML title tag.
 $title = __( 'Export' );
 
 /**
@@ -25,11 +27,11 @@ $title = __( 'Export' );
 function export_add_js() {
 	?>
 <script type="text/javascript">
-	jQuery(document).ready(function($){
+	jQuery( function($) {
 		var form = $('#export-filters'),
 			filters = form.find('.export-filters');
 		filters.hide();
-		form.find('input:radio').change(function() {
+		form.find('input:radio').on( 'change', function() {
 			filters.slideUp('fast');
 			switch ( $(this).val() ) {
 				case 'attachment': $('#attachment-filters').slideDown(); break;
@@ -37,7 +39,7 @@ function export_add_js() {
 				case 'pages': $('#page-filters').slideDown(); break;
 			}
 		});
-	});
+	} );
 </script>
 	<?php
 }
@@ -62,9 +64,9 @@ get_current_screen()->set_help_sidebar(
 if ( isset( $_GET['download'] ) ) {
 	$args = array();
 
-	if ( ! isset( $_GET['content'] ) || 'all' == $_GET['content'] ) {
+	if ( ! isset( $_GET['content'] ) || 'all' === $_GET['content'] ) {
 		$args['content'] = 'all';
-	} elseif ( 'posts' == $_GET['content'] ) {
+	} elseif ( 'posts' === $_GET['content'] ) {
 		$args['content'] = 'post';
 
 		if ( $_GET['cat'] ) {
@@ -83,7 +85,7 @@ if ( isset( $_GET['download'] ) ) {
 		if ( $_GET['post_status'] ) {
 			$args['status'] = $_GET['post_status'];
 		}
-	} elseif ( 'pages' == $_GET['content'] ) {
+	} elseif ( 'pages' === $_GET['content'] ) {
 		$args['content'] = 'page';
 
 		if ( $_GET['page_author'] ) {
@@ -98,7 +100,7 @@ if ( isset( $_GET['download'] ) ) {
 		if ( $_GET['page_status'] ) {
 			$args['status'] = $_GET['page_status'];
 		}
-	} elseif ( 'attachment' == $_GET['content'] ) {
+	} elseif ( 'attachment' === $_GET['content'] ) {
 		$args['content'] = 'attachment';
 
 		if ( $_GET['attachment_start_date'] || $_GET['attachment_end_date'] ) {
@@ -144,18 +146,18 @@ function export_date_options( $post_type = 'post' ) {
 		FROM $wpdb->posts
 		WHERE post_type = %s AND post_status != 'auto-draft'
 		ORDER BY post_date DESC
-	",
+			",
 			$post_type
 		)
 	);
 
 	$month_count = count( $months );
-	if ( ! $month_count || ( 1 == $month_count && 0 == $months[0]->month ) ) {
+	if ( ! $month_count || ( 1 === $month_count && 0 === (int) $months[0]->month ) ) {
 		return;
 	}
 
 	foreach ( $months as $date ) {
-		if ( 0 == $date->year ) {
+		if ( 0 === (int) $date->year ) {
 			continue;
 		}
 
@@ -169,7 +171,7 @@ function export_date_options( $post_type = 'post' ) {
 <h1><?php echo esc_html( $title ); ?></h1>
 
 <p><?php _e( 'When you click the button below WordPress will create an XML file for you to save to your computer.' ); ?></p>
-<p><?php _e( 'This format, which we call WordPress eXtended RSS or WXR, will contain your posts, pages, comments, custom fields, categories, and tags.' ); ?></p>
+<p><?php _e( 'This format, which is called WordPress eXtended RSS or WXR, will contain your posts, pages, comments, custom fields, categories, and tags.' ); ?></p>
 <p><?php _e( 'Once you&#8217;ve saved the download file, you can use the Import function in another WordPress installation to import the content from this site.' ); ?></p>
 
 <h2><?php _e( 'Choose what to export' ); ?></h2>

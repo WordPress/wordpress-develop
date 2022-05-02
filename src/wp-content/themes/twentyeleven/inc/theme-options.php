@@ -162,7 +162,7 @@ function twentyeleven_color_schemes() {
 	);
 
 	/**
-	 * Filter the Twenty Eleven color scheme options.
+	 * Filters the Twenty Eleven color scheme options.
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
@@ -196,7 +196,7 @@ function twentyeleven_layouts() {
 	);
 
 	/**
-	 * Filter the Twenty Eleven layout options.
+	 * Filters the Twenty Eleven layout options.
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
@@ -224,7 +224,7 @@ function twentyeleven_get_default_theme_options() {
 	}
 
 	/**
-	 * Filter the Twenty Eleven default options.
+	 * Filters the Twenty Eleven default options.
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
@@ -398,7 +398,7 @@ function twentyeleven_theme_options_validate( $input ) {
 	}
 
 	/**
-	 * Filter the Twenty Eleven sanitized form input array.
+	 * Filters the Twenty Eleven sanitized form input array.
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
@@ -418,7 +418,7 @@ function twentyeleven_enqueue_color_scheme() {
 	$options      = twentyeleven_get_theme_options();
 	$color_scheme = $options['color_scheme'];
 
-	if ( 'dark' == $color_scheme ) {
+	if ( 'dark' === $color_scheme ) {
 		wp_enqueue_style( 'dark', get_template_directory_uri() . '/colors/dark.css', array(), '20190404' );
 	}
 
@@ -493,22 +493,22 @@ function twentyeleven_layout_classes( $existing_classes ) {
 	$options        = twentyeleven_get_theme_options();
 	$current_layout = $options['theme_layout'];
 
-	if ( in_array( $current_layout, array( 'content-sidebar', 'sidebar-content' ) ) ) {
+	if ( in_array( $current_layout, array( 'content-sidebar', 'sidebar-content' ), true ) ) {
 		$classes = array( 'two-column' );
 	} else {
 		$classes = array( 'one-column' );
 	}
 
-	if ( 'content-sidebar' == $current_layout ) {
+	if ( 'content-sidebar' === $current_layout ) {
 		$classes[] = 'right-sidebar';
-	} elseif ( 'sidebar-content' == $current_layout ) {
+	} elseif ( 'sidebar-content' === $current_layout ) {
 		$classes[] = 'left-sidebar';
 	} else {
 		$classes[] = $current_layout;
 	}
 
 	/**
-	 * Filter the Twenty Eleven layout body classes.
+	 * Filters the Twenty Eleven layout body classes.
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
@@ -526,7 +526,7 @@ add_filter( 'body_class', 'twentyeleven_layout_classes' );
  *
  * @since Twenty Eleven 1.3
  *
- * @param object $wp_customize Customizer object.
+ * @param WP_Customize_Manager $wp_customize Customizer object.
  */
 function twentyeleven_customize_register( $wp_customize ) {
 	$wp_customize->get_setting( 'blogname' )->transport         = 'postMessage';
@@ -644,6 +644,7 @@ add_action( 'customize_register', 'twentyeleven_customize_register' );
  * Render the site title for the selective refresh partial.
  *
  * @since Twenty Eleven 2.4
+ *
  * @see twentyeleven_customize_register()
  *
  * @return void
@@ -656,6 +657,7 @@ function twentyeleven_customize_partial_blogname() {
  * Render the site tagline for the selective refresh partial.
  *
  * @since Twenty Eleven 2.4
+ *
  * @see twentyeleven_customize_register()
  *
  * @return void

@@ -19,7 +19,7 @@ if ( ! function_exists( 'twentyfifteen_comment_nav' ) ) :
 		// Are there comments to navigate through?
 		if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) :
 			?>
-		<nav class="navigation comment-navigation" role="navigation">
+		<nav class="navigation comment-navigation">
 		<h2 class="screen-reader-text"><?php _e( 'Comment navigation', 'twentyfifteen' ); ?></h2>
 		<div class="nav-links">
 			<?php
@@ -61,7 +61,7 @@ if ( ! function_exists( 'twentyfifteen_entry_meta' ) ) :
 			);
 		}
 
-		if ( in_array( get_post_type(), array( 'post', 'attachment' ) ) ) {
+		if ( in_array( get_post_type(), array( 'post', 'attachment' ), true ) ) {
 			$time_string = '<time class="entry-date published updated" datetime="%1$s">%2$s</time>';
 
 			if ( get_the_time( 'U' ) !== get_the_modified_time( 'U' ) ) {
@@ -84,7 +84,7 @@ if ( ! function_exists( 'twentyfifteen_entry_meta' ) ) :
 			);
 		}
 
-		if ( 'post' == get_post_type() ) {
+		if ( 'post' === get_post_type() ) {
 			if ( is_singular() || is_multi_author() ) {
 				printf(
 					'<span class="byline"><span class="author vcard"><span class="screen-reader-text">%1$s </span><a class="url fn n" href="%2$s">%3$s</a></span></span>',
@@ -128,7 +128,7 @@ if ( ! function_exists( 'twentyfifteen_entry_meta' ) ) :
 
 		if ( ! is_single() && ! post_password_required() && ( comments_open() || get_comments_number() ) ) {
 			echo '<span class="comments-link">';
-			/* translators: %s: Post title. */
+			/* translators: %s: Post title. Only visible to screen readers. */
 			comments_popup_link( sprintf( __( 'Leave a comment<span class="screen-reader-text"> on %s</span>', 'twentyfifteen' ), get_the_title() ) );
 			echo '</span>';
 		}
@@ -248,7 +248,7 @@ if ( ! function_exists( 'twentyfifteen_excerpt_more' ) && ! is_admin() ) :
 		$link = sprintf(
 			'<a href="%1$s" class="more-link">%2$s</a>',
 			esc_url( get_permalink( get_the_ID() ) ),
-			/* translators: %s: Post title. */
+			/* translators: %s: Post title. Only visible to screen readers. */
 			sprintf( __( 'Continue reading %s', 'twentyfifteen' ), '<span class="screen-reader-text">' . get_the_title( get_the_ID() ) . '</span>' )
 		);
 		return ' &hellip; ' . $link;

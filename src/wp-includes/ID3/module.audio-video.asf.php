@@ -13,6 +13,9 @@
 //                                                            ///
 /////////////////////////////////////////////////////////////////
 
+if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+	exit;
+}
 getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.audio-video.riff.php', __FILE__, true);
 
 class getid3_asf extends getid3_handler
@@ -90,6 +93,7 @@ class getid3_asf extends getid3_handler
 		$offset = 0;
 		$thisfile_asf_streambitratepropertiesobject = array();
 		$thisfile_asf_codeclistobject = array();
+		$StreamPropertiesObjectData = array();
 
 		for ($HeaderObjectsCounter = 0; $HeaderObjectsCounter < $thisfile_asf_headerobject['headerobjects']; $HeaderObjectsCounter++) {
 			$NextObjectGUID = substr($ASFHeaderData, $offset, 16);
@@ -280,7 +284,7 @@ class getid3_asf extends getid3_handler
 					$thisfile_asf_headerextensionobject['reserved_2']          = getid3_lib::LittleEndian2Int(substr($ASFHeaderData, $offset, 2));
 					$offset += 2;
 					if ($thisfile_asf_headerextensionobject['reserved_2'] != 6) {
-						$this->warning('header_extension_object.reserved_2 ('.getid3_lib::PrintHexBytes($thisfile_asf_headerextensionobject['reserved_2']).') does not match expected value of "6"');
+						$this->warning('header_extension_object.reserved_2 ('.$thisfile_asf_headerextensionobject['reserved_2'].') does not match expected value of "6"');
 						//return false;
 						break;
 					}
@@ -363,7 +367,7 @@ class getid3_asf extends getid3_handler
 								$thisfile_audio['codec'] = $this->TrimConvert($thisfile_asf_codeclistobject_codecentries_current['name']);
 
 								if (!isset($thisfile_audio['bitrate']) && strstr($AudioCodecBitrate, 'kbps')) {
-									$thisfile_audio['bitrate'] = (int) (trim(str_replace('kbps', '', $AudioCodecBitrate)) * 1000);
+									$thisfile_audio['bitrate'] = (int) trim(str_replace('kbps', '', $AudioCodecBitrate)) * 1000;
 								}
 								//if (!isset($thisfile_video['bitrate']) && isset($thisfile_audio['bitrate']) && isset($thisfile_asf['file_properties_object']['max_bitrate']) && ($thisfile_asf_codeclistobject['codec_entries_count'] > 1)) {
 								if (empty($thisfile_video['bitrate']) && !empty($thisfile_audio['bitrate']) && !empty($info['bitrate'])) {
@@ -532,7 +536,7 @@ class getid3_asf extends getid3_handler
 					$thisfile_asf_markerobject['reserved_2'] = getid3_lib::LittleEndian2Int(substr($ASFHeaderData, $offset, 2));
 					$offset += 2;
 					if ($thisfile_asf_markerobject['reserved_2'] != 0) {
-						$this->warning('marker_object.reserved_2 ('.getid3_lib::PrintHexBytes($thisfile_asf_markerobject['reserved_2']).') does not match expected value of "0"');
+						$this->warning('marker_object.reserved_2 ('.$thisfile_asf_markerobject['reserved_2'].') does not match expected value of "0"');
 						break;
 					}
 					$thisfile_asf_markerobject['name_length'] = getid3_lib::LittleEndian2Int(substr($ASFHeaderData, $offset, 2));
@@ -807,7 +811,7 @@ class getid3_asf extends getid3_handler
 
 							case 'wm/track':
 								if (empty($thisfile_asf_comments['track_number'])) {
-									$thisfile_asf_comments['track_number'] = array(1 + $this->TrimConvert($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['value']));
+									$thisfile_asf_comments['track_number'] = array(1 + (int) $this->TrimConvert($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['value']));
 								}
 								break;
 
@@ -1190,7 +1194,7 @@ class getid3_asf extends getid3_handler
 					$thisfile_asf_dataobject['reserved']           = getid3_lib::LittleEndian2Int(substr($DataObjectData, $offset, 2));
 					$offset += 2;
 					if ($thisfile_asf_dataobject['reserved'] != 0x0101) {
-						$this->warning('data_object.reserved ('.getid3_lib::PrintHexBytes($thisfile_asf_dataobject['reserved']).') does not match expected value of "0x0101"');
+						$this->warning('data_object.reserved (0x'.sprintf('%04X', $thisfile_asf_dataobject['reserved']).') does not match expected value of "0x0101"');
 						//return false;
 						break;
 					}

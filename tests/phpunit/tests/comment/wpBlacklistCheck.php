@@ -3,9 +3,9 @@
 /**
  * @group comment
  */
-class Tests_WP_Blacklist_Check extends WP_UnitTestCase {
+class Tests_WP_Blocklist_Check extends WP_UnitTestCase {
 
-	public function test_should_return_true_when_content_matches_blacklist_keys() {
+	public function test_should_return_true_when_content_matches_disallowed_keys() {
 		$author       = 'Sting';
 		$author_email = 'sting@example.com';
 		$author_url   = 'http://example.com';
@@ -13,9 +13,9 @@ class Tests_WP_Blacklist_Check extends WP_UnitTestCase {
 		$author_ip    = '192.168.0.1';
 		$user_agent   = '';
 
-		update_option( 'blacklist_keys', "well\nfoo" );
+		update_option( 'disallowed_keys', "well\nfoo" );
 
-		$result = wp_blacklist_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
@@ -23,7 +23,7 @@ class Tests_WP_Blacklist_Check extends WP_UnitTestCase {
 	/**
 	 * @ticket 37208
 	 */
-	public function test_should_return_true_when_content_with_html_matches_blacklist_keys() {
+	public function test_should_return_true_when_content_with_html_matches_disallowed_keys() {
 		$author       = 'Sting';
 		$author_email = 'sting@example.com';
 		$author_url   = 'http://example.com';
@@ -31,14 +31,14 @@ class Tests_WP_Blacklist_Check extends WP_UnitTestCase {
 		$author_ip    = '192.168.0.1';
 		$user_agent   = '';
 
-		update_option( 'blacklist_keys', "halfway\nfoo" );
+		update_option( 'disallowed_keys', "halfway\nfoo" );
 
-		$result = wp_blacklist_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
 
-	public function test_should_return_true_when_author_matches_blacklist_keys() {
+	public function test_should_return_true_when_author_matches_disallowed_keys() {
 		$author       = 'Sideshow Mel';
 		$author_email = 'mel@example.com';
 		$author_url   = 'http://example.com';
@@ -46,14 +46,14 @@ class Tests_WP_Blacklist_Check extends WP_UnitTestCase {
 		$author_ip    = '192.168.0.1';
 		$user_agent   = '';
 
-		update_option( 'blacklist_keys', "sideshow\nfoo" );
+		update_option( 'disallowed_keys', "sideshow\nfoo" );
 
-		$result = wp_blacklist_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
 
-	public function test_should_return_true_when_url_matches_blacklist_keys() {
+	public function test_should_return_true_when_url_matches_disallowed_keys() {
 		$author       = 'Rainier Wolfcastle';
 		$author_email = 'rainier@wolfcastle.com';
 		$author_url   = 'http://example.com';
@@ -61,9 +61,9 @@ class Tests_WP_Blacklist_Check extends WP_UnitTestCase {
 		$author_ip    = '192.168.0.1';
 		$user_agent   = '';
 
-		update_option( 'blacklist_keys', "example\nfoo" );
+		update_option( 'disallowed_keys', "example\nfoo" );
 
-		$result = wp_blacklist_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
@@ -71,7 +71,7 @@ class Tests_WP_Blacklist_Check extends WP_UnitTestCase {
 	/**
 	 * @ticket 37208
 	 */
-	public function test_should_return_true_when_link_matches_blacklist_keys() {
+	public function test_should_return_true_when_link_matches_disallowed_keys() {
 		$author       = 'Rainier Wolfcastle';
 		$author_email = 'rainier@wolfcastle.com';
 		$author_url   = 'http://example.com';
@@ -79,9 +79,9 @@ class Tests_WP_Blacklist_Check extends WP_UnitTestCase {
 		$author_ip    = '192.168.0.1';
 		$user_agent   = '';
 
-		update_option( 'blacklist_keys', '/spam/' );
+		update_option( 'disallowed_keys', '/spam/' );
 
-		$result = wp_blacklist_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
@@ -94,9 +94,9 @@ class Tests_WP_Blacklist_Check extends WP_UnitTestCase {
 		$author_ip    = '192.168.0.1';
 		$user_agent   = '';
 
-		update_option( 'blacklist_keys', "sideshow\nfoobar" );
+		update_option( 'disallowed_keys', "sideshow\nfoobar" );
 
-		$result = wp_blacklist_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertFalse( $result );
 	}

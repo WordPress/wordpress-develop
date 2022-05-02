@@ -38,9 +38,15 @@
 				<?php
 					the_content(
 						sprintf(
-							/* translators: %s: Post title. */
+							/* translators: %s: Post title. Only visible to screen readers. */
 							__( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 							get_the_title()
+						)
+					);
+					wp_link_pages(
+						array(
+							'before' => '<div class="page-links">' . __( 'Pages:', 'twentyseventeen' ),
+							'after'  => '</div>',
 						)
 					);
 					?>

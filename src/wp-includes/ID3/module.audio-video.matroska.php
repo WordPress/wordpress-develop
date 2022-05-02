@@ -14,6 +14,9 @@
 //                                                            ///
 /////////////////////////////////////////////////////////////////
 
+if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+	exit;
+}
 
 define('EBML_ID_CHAPTERS',                  0x0043A770); // [10][43][A7][70] -- A system to define basic menus and partition data. For more detailed information, look at the Chapters Explanation.
 define('EBML_ID_SEEKHEAD',                  0x014D9B74); // [11][4D][9B][74] -- Contains the position of other level 1 elements.
@@ -221,14 +224,14 @@ class getid3_matroska extends getid3_handler
 	 *
 	 * @var bool
 	 */
-	public static $hide_clusters    = true;
+	public $hide_clusters    = true;
 
 	/**
 	 * True to parse the whole file, not only header [default: FALSE].
 	 *
 	 * @var bool
 	 */
-	public static $parse_whole_file = false;
+	public $parse_whole_file = false;
 
 	/*
 	 * Private parser settings/placeholders.
@@ -329,7 +332,7 @@ class getid3_matroska extends getid3_handler
 								break;*/
 						}
 
-						$info['video']['streams'][] = $track_info;
+						$info['video']['streams'][$trackarray['TrackUID']] = $track_info;
 						break;
 
 					case 2: // Audio
@@ -362,7 +365,7 @@ class getid3_matroska extends getid3_handler
 								// create temp instance
 								$getid3_temp = new getID3();
 								if ($track_info['dataformat'] != 'flac') {
-									$getid3_temp->openfile($this->getid3->filename);
+									$getid3_temp->openfile($this->getid3->filename, $this->getid3->info['filesize'], $this->getid3->fp);
 								}
 								$getid3_temp->info['avdataoffset'] = $info['matroska']['track_data_offsets'][$trackarray['TrackNumber']]['offset'];
 								if ($track_info['dataformat'][0] == 'm' || $track_info['dataformat'] == 'flac') {
@@ -478,7 +481,7 @@ class getid3_matroska extends getid3_handler
 								break;
 						}
 
-						$info['audio']['streams'][] = $track_info;
+						$info['audio']['streams'][$trackarray['TrackUID']] = $track_info;
 						break;
 				}
 			}
@@ -507,6 +510,30 @@ class getid3_matroska extends getid3_handler
 			$info['mime_type'] = ($info['matroska']['doctype'] == 'webm' ? 'audio/webm' : 'audio/x-matroska');
 		} elseif (isset($info['mime_type'])) {
 			unset($info['mime_type']);
+		}
+
+		// use _STATISTICS_TAGS if available to set audio/video bitrates
+		if (!empty($info['matroska']['tags'])) {
+			$_STATISTICS_byTrackUID = array();
+			foreach ($info['matroska']['tags'] as $key1 => $value1) {
+				if (!empty($value1['Targets']['TagTrackUID'][0]) && !empty($value1['SimpleTag'])) {
+					foreach ($value1['SimpleTag'] as $key2 => $value2) {
+						if (!empty($value2['TagName']) && isset($value2['TagString'])) {
+							$_STATISTICS_byTrackUID[$value1['Targets']['TagTrackUID'][0]][$value2['TagName']] = $value2['TagString'];
+						}
+					}
+				}
+			}
+			foreach (array('audio','video') as $avtype) {
+				if (!empty($info[$avtype]['streams'])) {
+					foreach ($info[$avtype]['streams'] as $trackUID => $trackdata) {
+						if (!isset($trackdata['bitrate']) && !empty($_STATISTICS_byTrackUID[$trackUID]['BPS'])) {
+							$info[$avtype]['streams'][$trackUID]['bitrate'] = (int) $_STATISTICS_byTrackUID[$trackUID]['BPS'];
+							@$info[$avtype]['bitrate'] += $info[$avtype]['streams'][$trackUID]['bitrate'];
+						}
+					}
+				}
+			}
 		}
 
 		return true;
@@ -559,7 +586,7 @@ class getid3_matroska extends getid3_handler
 					$info['matroska']['segment'][0]['length'] = $top_element['length'];
 
 					while ($this->getEBMLelement($element_data, $top_element['end'])) {
-						if ($element_data['id'] != EBML_ID_CLUSTER || !self::$hide_clusters) { // collect clusters only if required
+						if ($element_data['id'] != EBML_ID_CLUSTER || !$this->hide_clusters) { // collect clusters only if required
 							$info['matroska']['segments'][] = $element_data;
 						}
 						switch ($element_data['id']) {
@@ -591,7 +618,7 @@ class getid3_matroska extends getid3_handler
 												$this->warning('seek_entry[target_id] unexpectedly not set at '.$seek_entry['offset']);
 												break;
 											}
-											if (($seek_entry['target_id'] != EBML_ID_CLUSTER) || !self::$hide_clusters) { // collect clusters only if required
+											if (($seek_entry['target_id'] != EBML_ID_CLUSTER) || !$this->hide_clusters) { // collect clusters only if required
 												$info['matroska']['seek'][] = $seek_entry;
 											}
 											break;
@@ -614,8 +641,10 @@ class getid3_matroska extends getid3_handler
 											while ($this->getEBMLelement($subelement, $track_entry['end'], array(EBML_ID_VIDEO, EBML_ID_AUDIO, EBML_ID_CONTENTENCODINGS, EBML_ID_CODECPRIVATE))) {
 												switch ($subelement['id']) {
 
-													case EBML_ID_TRACKNUMBER:
 													case EBML_ID_TRACKUID:
+														$track_entry[$subelement['id_name']] = getid3_lib::PrintHexBytes($subelement['data'], true, false);
+														break;
+													case EBML_ID_TRACKNUMBER:
 													case EBML_ID_TRACKTYPE:
 													case EBML_ID_MINCACHE:
 													case EBML_ID_MAXCACHE:
@@ -876,7 +905,7 @@ class getid3_matroska extends getid3_handler
 								break;
 
 							case EBML_ID_CUES: // A top-level element to speed seeking access. All entries are local to the segment. Should be mandatory for non "live" streams.
-								if (self::$hide_clusters) { // do not parse cues if hide clusters is "ON" till they point to clusters anyway
+								if ($this->hide_clusters) { // do not parse cues if hide clusters is "ON" till they point to clusters anyway
 									$this->current_offset = $element_data['end'];
 									break;
 								}
@@ -963,7 +992,7 @@ class getid3_matroska extends getid3_handler
 																case EBML_ID_TAGEDITIONUID:
 																case EBML_ID_TAGCHAPTERUID:
 																case EBML_ID_TAGATTACHMENTUID:
-																	$targets_entry[$sub_sub_subelement['id_name']][] = getid3_lib::BigEndian2Int($sub_sub_subelement['data']);
+																	$targets_entry[$sub_sub_subelement['id_name']][] = getid3_lib::PrintHexBytes($sub_sub_subelement['data'], true, false);
 																	break;
 
 																default:
@@ -1217,12 +1246,12 @@ class getid3_matroska extends getid3_handler
 									}
 									$this->current_offset = $subelement['end'];
 								}
-								if (!self::$hide_clusters) {
+								if (!$this->hide_clusters) {
 									$info['matroska']['cluster'][] = $cluster_entry;
 								}
 
 								// check to see if all the data we need exists already, if so, break out of the loop
-								if (!self::$parse_whole_file) {
+								if (!$this->parse_whole_file) {
 									if (isset($info['matroska']['info']) && is_array($info['matroska']['info'])) {
 										if (isset($info['matroska']['tracks']['tracks']) && is_array($info['matroska']['tracks']['tracks'])) {
 											if (count($info['matroska']['track_data_offsets']) == count($info['matroska']['tracks']['tracks'])) {

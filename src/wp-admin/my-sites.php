@@ -22,18 +22,19 @@ $action = isset( $_POST['action'] ) ? $_POST['action'] : 'splash';
 $blogs = get_blogs_of_user( $current_user->ID );
 
 $updated = false;
-if ( 'updateblogsettings' == $action && isset( $_POST['primary_blog'] ) ) {
+if ( 'updateblogsettings' === $action && isset( $_POST['primary_blog'] ) ) {
 	check_admin_referer( 'update-my-sites' );
 
 	$blog = get_site( (int) $_POST['primary_blog'] );
 	if ( $blog && isset( $blog->domain ) ) {
-		update_user_option( $current_user->ID, 'primary_blog', (int) $_POST['primary_blog'], true );
+		update_user_meta( $current_user->ID, 'primary_blog', (int) $_POST['primary_blog'] );
 		$updated = true;
 	} else {
 		wp_die( __( 'The primary site you chose does not exist.' ) );
 	}
 }
 
+// Used in the HTML title tag.
 $title       = __( 'My Sites' );
 $parent_file = 'index.php';
 
@@ -66,7 +67,7 @@ echo esc_html( $title );
 </h1>
 
 <?php
-if ( in_array( get_site_option( 'registration' ), array( 'all', 'blog' ) ) ) {
+if ( in_array( get_site_option( 'registration' ), array( 'all', 'blog' ), true ) ) {
 	/** This filter is documented in wp-login.php */
 	$sign_up_url = apply_filters( 'wp_signup_location', network_site_url( 'wp-signup.php' ) );
 	printf( ' <a href="%s" class="page-title-action">%s</a>', esc_url( $sign_up_url ), esc_html_x( 'Add New', 'site' ) );
@@ -107,10 +108,12 @@ else :
 	 * @param string $context       Context of the setting (global or site-specific). Default 'global'.
 	 */
 	$settings_html = apply_filters( 'myblogs_options', '', 'global' );
-	if ( '' != $settings_html ) {
+
+	if ( $settings_html ) {
 		echo '<h3>' . __( 'Global Settings' ) . '</h3>';
 		echo $settings_html;
 	}
+
 	reset( $blogs );
 
 	foreach ( $blogs as $user_blog ) {
@@ -134,10 +137,12 @@ else :
 		 * @param object $user_blog An object containing the site data.
 		 */
 		$actions = apply_filters( 'myblogs_blog_actions', $actions, $user_blog );
+
 		echo "<p class='my-sites-actions'>" . $actions . '</p>';
 
 		/** This filter is documented in wp-admin/my-sites.php */
 		echo apply_filters( 'myblogs_options', '', $user_blog );
+
 		echo '</li>';
 
 		restore_current_blog();

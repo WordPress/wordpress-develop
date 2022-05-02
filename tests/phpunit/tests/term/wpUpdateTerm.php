@@ -86,7 +86,7 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 	/**
 	 * @ticket 29614
 	 */
-	function test_wp_update_term_parent_does_not_exist() {
+	public function test_wp_update_term_parent_does_not_exist() {
 		register_taxonomy(
 			'wptests_tax',
 			array(
@@ -115,7 +115,7 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		$this->assertSame( 'missing_parent', $found->get_error_code() );
 
 		$term = get_term( $t, 'wptests_tax' );
-		$this->assertEquals( 0, $term->parent );
+		$this->assertSame( 0, $term->parent );
 		_unregister_taxonomy( 'wptests_tax' );
 	}
 
@@ -612,7 +612,7 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'wptests_tax' );
 
-		$this->assertInternalType( 'array', $found );
+		$this->assertIsArray( $found );
 		$this->assertNotEmpty( $found['term_id'] );
 		$this->assertNotEmpty( $found['term_taxonomy_id'] );
 		$this->assertNotEmpty( $term_by_id );
@@ -638,8 +638,8 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', $found['term_id'] );
-		$this->assertInternalType( 'int', $found['term_taxonomy_id'] );
+		$this->assertIsInt( $found['term_id'] );
+		$this->assertIsInt( $found['term_taxonomy_id'] );
 	}
 
 	public function test_wp_update_term_should_clean_term_cache() {
@@ -680,12 +680,12 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		);
 		_unregister_taxonomy( 'wptests_tax' );
 
-		$this->assertSame( false, wp_cache_get( 'all_ids', 'wptests_tax' ) );
-		$this->assertSame( false, wp_cache_get( 'get', 'wptests_tax' ) );
+		$this->assertFalse( wp_cache_get( 'all_ids', 'wptests_tax' ) );
+		$this->assertFalse( wp_cache_get( 'get', 'wptests_tax' ) );
 
 		$cached_children = get_option( 'wptests_tax_children' );
 		$this->assertNotEmpty( $cached_children[ $t2 ] );
-		$this->assertTrue( in_array( $found['term_id'], $cached_children[ $t2 ], true ) );
+		$this->assertContains( $found['term_id'], $cached_children[ $t2 ] );
 	}
 
 	/**

@@ -13,6 +13,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Permalink Settings' );
 $parent_file = 'options-general.php';
 
@@ -55,12 +56,18 @@ get_current_screen()->add_help_tab(
 	)
 );
 
-get_current_screen()->set_help_sidebar(
-	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-permalinks-screen/">Documentation on Permalinks Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/using-permalinks/">Documentation on Using Permalinks</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
-);
+$help_sidebar_content = '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
+						'<p>' . __( '<a href="https://wordpress.org/support/article/settings-permalinks-screen/">Documentation on Permalinks Settings</a>' ) . '</p>' .
+						'<p>' . __( '<a href="https://wordpress.org/support/article/using-permalinks/">Documentation on Using Permalinks</a>' ) . '</p>';
+
+if ( $is_nginx ) {
+	$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/article/nginx/">Documentation on Nginx configuration</a>.' ) . '</p>';
+}
+
+$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>';
+
+get_current_screen()->set_help_sidebar( $help_sidebar_content );
+unset( $help_sidebar_content );
 
 $home_path           = get_home_path();
 $iis7_permalinks     = iis7_supports_permalinks();
@@ -72,7 +79,7 @@ if ( ! got_url_rewrite() ) {
 	$prefix = '/index.php';
 }
 
-/**
+/*
  * In a subdirectory configuration of multisite, the `/blog` prefix is used by
  * default on the main site to avoid collisions with other sites created on that
  * network. If the `permalink_structure` option has been changed to remove this
@@ -82,36 +89,17 @@ if ( is_multisite() && ! is_subdomain_install() && is_main_site() && 0 === strpo
 	$blog_prefix = '/blog';
 }
 
-$category_base   = get_option( 'category_base' );
-$tag_base        = get_option( 'tag_base' );
-$update_required = false;
+$category_base = get_option( 'category_base' );
+$tag_base      = get_option( 'tag_base' );
 
-if ( $iis7_permalinks ) {
-	if ( ( ! file_exists( $home_path . 'web.config' ) && win_is_writable( $home_path ) ) || win_is_writable( $home_path . 'web.config' ) ) {
-		$writable = true;
-	} else {
-		$writable = false;
-	}
-} elseif ( $is_nginx ) {
-	$writable = false;
-} else {
-	if ( ( ! file_exists( $home_path . '.htaccess' ) && is_writable( $home_path ) ) || is_writable( $home_path . '.htaccess' ) ) {
-		$writable = true;
-	} else {
-		$writable        = false;
-		$existing_rules  = array_filter( extract_from_markers( $home_path . '.htaccess', 'WordPress' ) );
-		$new_rules       = array_filter( explode( "\n", $wp_rewrite->mod_rewrite_rules() ) );
-		$update_required = ( $new_rules !== $existing_rules );
-	}
-}
-
-$using_index_permalinks = $wp_rewrite->using_index_permalinks();
+$structure_updated        = false;
+$htaccess_update_required = false;
 
 if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) ) {
 	check_admin_referer( 'update-permalink' );
 
 	if ( isset( $_POST['permalink_structure'] ) ) {
-		if ( isset( $_POST['selection'] ) && 'custom' != $_POST['selection'] ) {
+		if ( isset( $_POST['selection'] ) && 'custom' !== $_POST['selection'] ) {
 			$permalink_structure = $_POST['selection'];
 		} else {
 			$permalink_structure = $_POST['permalink_structure'];
@@ -129,46 +117,78 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 		$permalink_structure = sanitize_option( 'permalink_structure', $permalink_structure );
 
 		$wp_rewrite->set_permalink_structure( $permalink_structure );
+
+		$structure_updated = true;
 	}
 
 	if ( isset( $_POST['category_base'] ) ) {
 		$category_base = $_POST['category_base'];
+
 		if ( ! empty( $category_base ) ) {
 			$category_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $category_base ) );
 		}
+
 		$wp_rewrite->set_category_base( $category_base );
 	}
 
 	if ( isset( $_POST['tag_base'] ) ) {
 		$tag_base = $_POST['tag_base'];
+
 		if ( ! empty( $tag_base ) ) {
 			$tag_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $tag_base ) );
 		}
+
 		$wp_rewrite->set_tag_base( $tag_base );
 	}
+}
 
+if ( $iis7_permalinks ) {
+	if ( ( ! file_exists( $home_path . 'web.config' ) && win_is_writable( $home_path ) ) || win_is_writable( $home_path . 'web.config' ) ) {
+		$writable = true;
+	} else {
+		$writable = false;
+	}
+} elseif ( $is_nginx ) {
+	$writable = false;
+} else {
+	if ( ( ! file_exists( $home_path . '.htaccess' ) && is_writable( $home_path ) ) || is_writable( $home_path . '.htaccess' ) ) {
+		$writable = true;
+	} else {
+		$writable       = false;
+		$existing_rules = array_filter( extract_from_markers( $home_path . '.htaccess', 'WordPress' ) );
+		$new_rules      = array_filter( explode( "\n", $wp_rewrite->mod_rewrite_rules() ) );
+
+		$htaccess_update_required = ( $new_rules !== $existing_rules );
+	}
+}
+
+$using_index_permalinks = $wp_rewrite->using_index_permalinks();
+
+if ( $structure_updated ) {
 	$message = __( 'Permalink structure updated.' );
 
-	if ( $iis7_permalinks ) {
-		if ( $permalink_structure && ! $using_index_permalinks && ! $writable ) {
+	if ( ! is_multisite() && $permalink_structure && ! $using_index_permalinks ) {
+		if ( $iis7_permalinks ) {
+			if ( ! $writable ) {
+				$message = sprintf(
+					/* translators: %s: web.config */
+					__( 'You should update your %s file now.' ),
+					'<code>web.config</code>'
+				);
+			} else {
+				$message = sprintf(
+					/* translators: %s: web.config */
+					__( 'Permalink structure updated. Remove write access on %s file now!' ),
+					'<code>web.config</code>'
+				);
+			}
+		} elseif ( ! $is_nginx && $htaccess_update_required && ! $writable ) {
 			$message = sprintf(
-				/* translators: %s: web.config */
+				/* translators: %s: .htaccess */
 				__( 'You should update your %s file now.' ),
-				'<code>web.config</code>'
-			);
-		} elseif ( $permalink_structure && ! $using_index_permalinks && $writable ) {
-			$message = sprintf(
-				/* translators: %s: web.config */
-				__( 'Permalink structure updated. Remove write access on %s file now!' ),
-				'<code>web.config</code>'
+				'<code>.htaccess</code>'
 			);
 		}
-	} elseif ( ! $is_nginx && $permalink_structure && ! $using_index_permalinks && ! $writable && $update_required ) {
-		$message = sprintf(
-			/* translators: %s: .htaccess */
-			__( 'You should update your %s file now.' ),
-			'<code>.htaccess</code>'
-		);
 	}
 
 	if ( ! get_settings_errors() ) {
@@ -240,7 +260,7 @@ $structures = array(
 	</tr>
 	<tr>
 		<th scope="row">
-			<label><input name="selection" id="custom_selection" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures ) ); ?> />
+			<label><input name="selection" id="custom_selection" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures, true ) ); ?> />
 			<?php _e( 'Custom Structure' ); ?>
 			</label>
 		</th>
@@ -276,7 +296,7 @@ $structures = array(
 				/**
 				 * Filters the list of available permalink structure tags on the Permalinks settings page.
 				 *
-				 * @since 4.8.0
+				 * @since 4.9.0
 				 *
 				 * @param string[] $available_tags An array of key => value pairs of available permalink structure tags.
 				 */
@@ -344,78 +364,79 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 		if ( isset( $_POST['submit'] ) && $permalink_structure && ! $using_index_permalinks && ! $writable ) :
 			if ( file_exists( $home_path . 'web.config' ) ) :
 				?>
-<p>
+<p id="iis-description-a">
 				<?php
 				printf(
-					/* translators: 1: web.config, 2: Documentation URL, 3: CTRL + a, 4: Element code. */
-					__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it isn&#8217;t so this is the url rewrite rule you should have in your %1$s file. Click in the field and press %3$s to select all. Then insert this rule inside of the %4$s element in %1$s file.' ),
+					/* translators: 1: web.config, 2: Documentation URL, 3: Ctrl + A, 4: ⌘ + A, 5: Element code. */
+					__( 'Error: Your %1$s file is not <a href="%2$s">writable</a>, so updating it automatically was not possible. This is the URL rewrite rule you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this rule inside of the %5$s element in %1$s file.' ),
 					'<code>web.config</code>',
 					__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
-					'<kbd>CTRL + a</kbd>',
+					'<kbd>Ctrl + A</kbd>',
+					'<kbd>⌘ + A</kbd>',
 					'<code>/&lt;configuration&gt;/&lt;system.webServer&gt;/&lt;rewrite&gt;/&lt;rules&gt;</code>'
 				);
 				?>
 </p>
 <form action="options-permalink.php" method="post">
 				<?php wp_nonce_field( 'update-permalink' ); ?>
-	<p><textarea rows="9" class="large-text readonly" name="rules" id="rules" readonly="readonly"><?php echo esc_textarea( $wp_rewrite->iis7_url_rewrite_rules() ); ?></textarea></p>
+	<p><label for="rules"><?php _e( 'Rewrite rules:' ); ?></label><br /><textarea rows="9" class="large-text readonly" name="rules" id="rules" readonly="readonly" aria-describedby="iis-description-a"><?php echo esc_textarea( $wp_rewrite->iis7_url_rewrite_rules() ); ?></textarea></p>
 </form>
 <p>
 				<?php
 				printf(
 					/* translators: %s: web.config */
-					__( 'If you temporarily make your %s file writable for us to generate rewrite rules automatically, do not forget to revert the permissions after rule has been saved.' ),
+					__( 'If you temporarily make your %s file writable to generate rewrite rules automatically, do not forget to revert the permissions after the rule has been saved.' ),
 					'<code>web.config</code>'
 				);
 				?>
 </p>
 		<?php else : ?>
-<p>
+<p id="iis-description-b">
 			<?php
 			printf(
-				/* translators: 1: Documentation URL, 2: web.config, 3: CTRL + a */
-				__( 'If the root directory of your site was <a href="%1$s">writable</a>, we could do this automatically, but it isn&#8217;t so this is the url rewrite rule you should have in your %2$s file. Create a new file, called %2$s in the root directory of your site. Click in the field and press %3$s to select all. Then insert this code into the %2$s file.' ),
+				/* translators: 1: Documentation URL, 2: web.config, 3: Ctrl + A, 4: ⌘ + A */
+				__( 'Error: The root directory of your site is not <a href="%1$s">writable</a>, so creating a file automatically was not possible. This is the URL rewrite rule you should have in your %2$s file. Create a new file called %2$s in the root directory of your site. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this code into the %2$s file.' ),
 				__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
 				'<code>web.config</code>',
-				'<kbd>CTRL + a</kbd>'
+				'<kbd>Ctrl + A</kbd>',
+				'<kbd>⌘ + A</kbd>'
 			);
 			?>
 </p>
 <form action="options-permalink.php" method="post">
 			<?php wp_nonce_field( 'update-permalink' ); ?>
-	<p><textarea rows="18" class="large-text readonly" name="rules" id="rules" readonly="readonly"><?php echo esc_textarea( $wp_rewrite->iis7_url_rewrite_rules( true ) ); ?></textarea></p>
+	<p><label for="rules"><?php _e( 'Rewrite rules:' ); ?></label><br /><textarea rows="18" class="large-text readonly" name="rules" id="rules" readonly="readonly" aria-describedby="iis-description-b"><?php echo esc_textarea( $wp_rewrite->iis7_url_rewrite_rules( true ) ); ?></textarea></p>
 </form>
 <p>
 			<?php
 			printf(
 				/* translators: %s: web.config */
-				__( 'If you temporarily make your site&#8217;s root directory writable for us to generate the %s file automatically, do not forget to revert the permissions after the file has been created.' ),
+				__( 'If you temporarily make your site&#8217;s root directory writable to generate the %s file automatically, do not forget to revert the permissions after the file has been created.' ),
 				'<code>web.config</code>'
 			);
 			?>
 </p>
 		<?php endif; ?>
 	<?php endif; ?>
-<?php elseif ( $is_nginx ) : ?>
-	<p><?php _e( '<a href="https://wordpress.org/support/article/nginx/">Documentation on Nginx configuration</a>.' ); ?></p>
-	<?php
+		<?php
 else :
-	if ( $permalink_structure && ! $using_index_permalinks && ! $writable && $update_required ) :
+	if ( $permalink_structure && ! $using_index_permalinks && ! $writable && $htaccess_update_required ) :
 		?>
-<p>
+<p id="htaccess-description">
 		<?php
 		printf(
-			/* translators: 1: .htaccess, 2: Documentation URL, 3: CTRL + a */
-			__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it isn&#8217;t so these are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s to select all.' ),
+			/* translators: 1: .htaccess, 2: Documentation URL, 3: Ctrl + A, 4: ⌘ + A */
+			__( 'Error: Your %1$s file is not <a href="%2$s">writable</a>, so updating it automatically was not possible. These are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all.' ),
 			'<code>.htaccess</code>',
 			__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
-			'<kbd>CTRL + a</kbd>'
+			'<kbd>Ctrl + A</kbd>',
+			'<kbd>⌘ + A</kbd>'
 		);
 		?>
 </p>
 <form action="options-permalink.php" method="post">
 		<?php wp_nonce_field( 'update-permalink' ); ?>
-	<p><textarea rows="6" class="large-text readonly" name="rules" id="rules" readonly="readonly"><?php echo esc_textarea( $wp_rewrite->mod_rewrite_rules() ); ?></textarea></p>
+	<p><label for="rules"><?php _e( 'Rewrite rules:' ); ?></label><br /><textarea rows="8" class="large-text readonly" name="rules" id="rules" readonly="readonly" aria-describedby="htaccess-description"><?php echo esc_textarea( $wp_rewrite->mod_rewrite_rules() ); ?></textarea></p>
 </form>
 	<?php endif; ?>
 <?php endif; ?>

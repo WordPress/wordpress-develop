@@ -1,0 +1,88 @@
+name: Test old branches
+
+on:
+  # Verify the workflow is successful when this file is updated.
+  push:
+    branches:
+      - trunk
+    paths:
+      - '.github/workflows/test-old-branches.yml'
+  # Run twice a month on the 1st and 15th at 00:00 UTC.
+  schedule:
+    - cron: '0 0 1 * *'
+    - cron: '0 0 15 * *'
+
+jobs:
+  dispatch-workflows-for-old-branches:
+    name: ${{ matrix.workflow }} for ${{ matrix.branch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        workflow: [
+            'coding-standards.yml',
+            'javascript-tests.yml',
+            'phpunit-tests.yml',
+            'test-npm.yml'
+        ]
+        branch: [
+            '5.9', '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
+            '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
+            '3.9', '3.8', '3.7'
+        ]
+        include:
+          # PHP Compatibility testing was introduced in 5.5.
+          - branch: '5.9'
+            workflow: 'php-compatibility.yml'
+          - branch: '5.8'
+            workflow: 'php-compatibility.yml'
+          - branch: '5.7'
+            workflow: 'php-compatibility.yml'
+          - branch: '5.6'
+            workflow: 'php-compatibility.yml'
+          - branch: '5.5'
+            workflow: 'php-compatibility.yml'
+
+          # End-to-end testing was introduced in 5.3 but was later removed as there were no meaningful assertions.
+          # Starting in 5.8 with #52905, some additional tests with real assertions were introduced.
+          # Branches 5.8 and newer should be tested to confirm no regressions are introduced.
+          - branch: '5.9'
+            workflow: 'end-to-end-tests.yml'
+          - branch: '5.8'
+            workflow: 'end-to-end-tests.yml'
+        exclude:
+          # Coding standards and JavaScript testing did not take place in 3.7.
+          - branch: '3.7'
+            workflow: 'coding-standards.yml'
+          - branch: '3.7'
+            workflow: 'javascript-tests.yml'
+
+    # Run all branches monthly, but only the currently supported one twice per month.
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@9ac08808f993958e9de277fe43a64532a609130e # v6.0.0
+        if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == '5.9' }}
+        with:
+          github-token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: '${{ matrix.workflow }}',
+              ref: '${{ matrix.branch }}'
+            });
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    needs: [ dispatch-workflows-for-old-branches ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.dispatch-workflows-for-old-branches.result == 'success' && 'success' || needs.dispatch-workflows-for-old-branches.result == 'cancelled' && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
