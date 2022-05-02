@@ -27,44 +27,54 @@ class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 	 */
 	public function data_wp_check_existing_file_names() {
 		return array(
-			'no size'        => array(
+			'no size'                      => array(
 				'filename' => 'filename.php',
 				'files'    => array( 'filename.php' ),
 				'expected' => false,
 			),
-			'1x1'            => array(
+			'1x1'                          => array(
 				'filename' => 'filename.png',
 				'files'    => array( 'filename-1x1.png' ),
 				'expected' => true,
 			),
-			'1x999999999999' => array(
+			'1x999999999999'               => array(
 				'filename' => 'filename.png',
 				'files'    => array( 'filename-1x999999999999.png' ),
 				'expected' => true,
 			),
-			'scaled'         => array(
+			'scaled'                       => array(
 				'filename' => 'filename.png',
 				'files'    => array( 'filename-scaled.png' ),
 				'expected' => true,
 			),
-			'three matches'  => array(
+			'three matches'                => array(
 				'filename' => 'filename.ext',
 				'files'    => array( 'filename-1x1.ext', 'filename-scaled.ext', 'filename-rotated.ext' ),
 				'expected' => true,
 			),
-			'rotated'        => array(
+			'rotated'                      => array(
 				'filename' => 'filename.png',
 				'files'    => array( 'filename-rotated.png' ),
 				'expected' => true,
 			),
-			'no extension'   => array(
+			'no extension'                 => array(
 				'filename' => 'filename',
 				'files'    => array( 'filename-1x1.png' ),
 				'expected' => false,
 			),
-			'no filename'    => array(
+			'no filename'                  => array(
 				'filename' => '.htaccess',
 				'files'    => array( 'filename-1x1.png' ),
+				'expected' => false,
+			),
+			'found file with no extension' => array(
+				'filename' => 'filename',
+				'files'    => array( 'filename' ),
+				'expected' => false,
+			),
+			'found file with no filename'  => array(
+				'filename' => '.htaccess',
+				'files'    => array( '.htaccess' ),
 				'expected' => false,
 			),
 		);
