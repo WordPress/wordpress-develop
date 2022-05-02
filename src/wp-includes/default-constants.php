@@ -40,7 +40,7 @@ function wp_initial_constants() {
 	}
 
 	$current_limit     = ini_get( 'memory_limit' );
-	$current_limit_int = wp_convert_hr_to_bytes( $current_limit );
+	$current_limit_int = wp_ini_bytes( $current_limit );
 
 	// Define memory limits.
 	if ( ! defined( 'WP_MEMORY_LIMIT' ) ) {
@@ -64,8 +64,8 @@ function wp_initial_constants() {
 	}
 
 	// Set memory limits.
-	$wp_limit_int = wp_convert_hr_to_bytes( WP_MEMORY_LIMIT );
-	if ( -1 !== $current_limit_int && ( -1 === $wp_limit_int || $wp_limit_int > $current_limit_int ) ) {
+	$wp_limit_int = wp_ini_bytes( WP_MEMORY_LIMIT );
+	if ( -1 !== $current_limit && ( -1 === $wp_limit_int || $wp_limit_int > $current_limit_int ) ) {
 		ini_set( 'memory_limit', WP_MEMORY_LIMIT );
 	}
 

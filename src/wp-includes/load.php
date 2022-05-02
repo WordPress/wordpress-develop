@@ -5,6 +5,8 @@
  * @package WordPress
  */
 
+require_once __DIR__ . '/php-compat.php';
+
 /**
  * Return the HTTP protocol sent by the server.
  *
@@ -1465,6 +1467,7 @@ function is_ssl() {
  *
  * @since 2.3.0
  * @since 4.6.0 Moved from media.php to load.php.
+ * @since 6.1.0 Deprecated: use wp_ini_bytes() or wp_hr_bytes() instead.
  *
  * @link https://www.php.net/manual/en/function.ini-get.php
  * @link https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
@@ -1473,6 +1476,18 @@ function is_ssl() {
  * @return int An integer byte value.
  */
 function wp_convert_hr_to_bytes( $value ) {
+	return wp_hr_bytes( $value );
+}
+
+/**
+ * Converts a shorthand byte value to an integer byte value.
+ *
+ * @since 6.1.0
+ *
+ * @param string $value Human-readable description of a byte size
+ * @return int An integer byte value.
+ */
+function wp_hr_bytes( $value ) {
 	$value = strtolower( trim( $value ) );
 	$bytes = (int) $value;
 
