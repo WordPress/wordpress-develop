@@ -364,12 +364,12 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			// This is an additional precaution because the "sort" function expects an array.
 			$query_args['slug'] = wp_parse_list( $query_args['slug'] );
 
-			// Sort the array so that the transient key doesn't depend on the order of slugs.
-			sort( $query_args['slug'] );
-
 			// Empty arrays should not affect the transient key.
-			if ( 0 === count( $query_args['slug'] ) ) {
+			if ( empty( $query_args['slug'] ) ) {
 				unset( $query_args['slug'] );
+			} else {
+				// Sort the array so that the transient key doesn't depend on the order of slugs.
+				sort( $query_args['slug'] );
 			}
 		}
 
