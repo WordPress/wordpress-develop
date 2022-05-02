@@ -7,7 +7,7 @@
 class Tests_Functions__WpCheckExistingFileNames extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data__wp_check_existing_file_names
+	 * @dataProvider data_wp_check_existing_file_names
 	 *
 	 * @ticket 55192
 	 *
