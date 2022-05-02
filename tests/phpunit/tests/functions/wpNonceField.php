@@ -23,6 +23,11 @@ class Tests_Functions_wpNonceField extends WP_UnitTestCase {
 	 * @ticket 55578
 	 *
 	 * @dataProvider data_wp_nonce_field
+	 *
+	 * @param int|string $action Action name.
+	 * @param string $name Nonce name.
+	 * @param bool $referer Whether to set the referer field fior validation.
+	 * @param string $expected_reg_exp The expected regular expression.
 	 */
 	public function test_wp_nonce_field_return( $action, $name, $referer, $expected_reg_exp ) {
 
@@ -44,22 +49,28 @@ class Tests_Functions_wpNonceField extends WP_UnitTestCase {
 				'expected_reg_exp' => '#^<input type="hidden" id="_wpnonce" name="_wpnonce" value=".{10}" /><input type="hidden" name="_wp_http_referer" value="" />$#',
 			),
 			'nonce_name'  => array(
-				- 1,
-				'nonce_name',
-				true,
-				'#^<input type="hidden" id="nonce_name" name="nonce_name" value=".{10}" /><input type="hidden" name="_wp_http_referer" value="" />$#',
+				'action'           => - 1,
+				'name'             => 'nonce_name',
+				'referer'          => true,
+				'expected_reg_exp' => '#^<input type="hidden" id="nonce_name" name="nonce_name" value=".{10}" /><input type="hidden" name="_wp_http_referer" value="" />$#',
 			),
 			'action_name' => array(
-				'action_name',
-				'_wpnonce',
-				true,
-				'#^<input type="hidden" id="_wpnonce" name="_wpnonce" value="' . wp_create_nonce( 'action_name' ) . '" /><input type="hidden" name="_wp_http_referer" value="" />$#',
+				'action'           => 'action_name',
+				'name'             => '_wpnonce',
+				'referer'          => true,
+				'expected_reg_exp' => '#^<input type="hidden" id="_wpnonce" name="_wpnonce" value="' . wp_create_nonce( 'action_name' ) . '" /><input type="hidden" name="_wp_http_referer" value="" />$#',
 			),
 			'no_referer'  => array(
-				- 1,
-				'_wpnonce',
-				false,
-				'#^<input type="hidden" id="_wpnonce" name="_wpnonce" value=".{10}" />$#',
+				'action'           => - 1,
+				'name'             => '_wpnonce',
+				'referer'          => false,
+				'expected_reg_exp' => '#^<input type="hidden" id="_wpnonce" name="_wpnonce" value=".{10}" />$#',
+			),
+			'& in name'   => array(
+				'action'           => - 1,
+				'name'             => 'a&b',
+				'referer'          => false,
+				'expected_reg_exp' => '#^<input type="hidden" id="a\&amp;b" name="a\&amp;b" value=".{10}" />$#',
 			),
 		);
 	}

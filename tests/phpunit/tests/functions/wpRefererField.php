@@ -17,7 +17,7 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 
 		$_SERVER['REQUEST_URI'] = '/test/';
 		wp_referer_field();
-		$this->expectOutputRegex( '#^<input type="hidden" name="_wp_http_referer" value="/test/" />$#' );
+		$this->expectOutputString( '<input type="hidden" name="_wp_http_referer" value="/test/" />' );
 	}
 
 	/**
@@ -27,6 +27,6 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 
 		$_SERVER['REQUEST_URI'] = '/test/';
 
-		$this->assertMatchesRegularExpression( '#^<input type="hidden" name="_wp_http_referer" value="/test/" />$#', wp_referer_field( false ) );
+		$this->assertSame( '<input type="hidden" name="_wp_http_referer" value="/test/" />', wp_referer_field( false ) );
 	}
 }
