@@ -414,7 +414,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * Checks if a file or directory exists.
 	 *
 	 * @since 2.5.0
-	 * @since 6.0.0 Rewrite using file size.
+	 * @since 6.1.0 Rewrite using file size.
 	 *
 	 * @param string $file Path to file or directory.
 	 * @return bool Whether $file exists or not.
