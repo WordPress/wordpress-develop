@@ -301,7 +301,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: %s: WordPress 6.0 Field Guide link. */
-						__( 'Check out the latest version of the WordPress Field Guide. It highlights developer notes for each change you may want to be aware of. <a href="%s">WordPress 6.0 Field Guide.</a>' ),
+						__( 'Check out the latest version of the <a href="%s">WordPress Field Guide</a>. It is overflowing with detailed developer notes to help you build with WordPress.'),
 						'#'
 					);
 					?>
@@ -312,7 +312,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: %s: WordPress 6.0 Release Notes link. */
-						__( '<a href="#">Read the WordPress 6.0 Release Notes</a> for more information on the included enhancements and issues fixes, installation information, developer notes and resources, release contributors, and the list of file changes in this release.' ),
+						__( '<a href="#">Read the WordPress 6.0 Release Notes</a> for more information on the included enhancements and issues fixed, installation information, developer notes and resources, release contributors, and the list of file changes in this release.' ),
 						'#'
 					);
 					?>
