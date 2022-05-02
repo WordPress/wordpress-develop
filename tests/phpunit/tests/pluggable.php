@@ -28,7 +28,6 @@ class Tests_Pluggable extends WP_UnitTestCase {
 		$i = 0;
 
 		foreach ( $signatures[ $function ] as $name => $value ) {
-
 			$param_ref = $param_refs[ $i ];
 			$msg       = 'Parameter: ' . $param_ref->getName();
 
@@ -224,8 +223,8 @@ class Tests_Pluggable extends WP_UnitTestCase {
 				'extra_special_chars' => false,
 			),
 			'wp_rand'                         => array(
-				'min' => 0,
-				'max' => 0,
+				'min' => null,
+				'max' => null,
 			),
 			'wp_set_password'                 => array( 'password', 'user_id' ),
 			'get_avatar'                      => array(
