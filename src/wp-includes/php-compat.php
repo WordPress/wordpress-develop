@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Returns byte size represented in a numeric php.ini directive.
  *
@@ -135,10 +137,10 @@ function php_compat_ini_bytes( $value ) {
 	$base_a = $i < $strlen ? $value[ $i ] : '';
 	$base_b = $i + 1 < $strlen ? $value[ $i + 1 ] : '';
 
-	if ( $base_a === '0' && ( $base_b === 'x' || $base_b === 'X' ) ) {
+	if ( '0' === $base_a && ( 'x' === $base_b || 'X' === $base_b ) ) {
 		$base = 16;
 		$i += 2;
-	} else if ( $base_a === '0' && ctype_digit( $base_b ) ) {
+	} else if ( '0' === $base_a && ctype_digit( $base_b ) ) {
 		$base = 8;
 		$i += 1;
 	}
@@ -161,17 +163,17 @@ function php_compat_ini_bytes( $value ) {
 	 *
 	 * @var array
 	 */
-	$digits = [
-		'0' =>  0,
-		'1' =>  1,
-		'2' =>  2,
-		'3' =>  3,
-		'4' =>  4,
-		'5' =>  5,
-		'6' =>  6,
-		'7' =>  7,
-		'8' =>  8,
-		'9' =>  9,
+	$digits = array(
+		'0' => 0,
+		'1' => 1,
+		'2' => 2,
+		'3' => 3,
+		'4' => 4,
+		'5' => 5,
+		'6' => 6,
+		'7' => 7,
+		'8' => 8,
+		'9' => 9,
 		'A' => 10,
 		'a' => 10,
 		'B' => 11,
@@ -184,12 +186,12 @@ function php_compat_ini_bytes( $value ) {
 		'e' => 14,
 		'F' => 15,
 		'f' => 15,
-	];
+	);
 
 	/*
 	 * Build the scalar value by eating the next sequence of contiguous digits.
 	 */
-	for ( ; $i < $strlen; $i++) {
+	for ( ; $i < $strlen; $i++ ) {
 		$c = $value[ $i ];
 
 		/*
@@ -205,7 +207,7 @@ function php_compat_ini_bytes( $value ) {
 
 		// Stop processing if we're already at the max value.
 		if (
-			( $sign > 0 && $scalar >  PHP_INT_MAX ) ||
+			( $sign > 0 && $scalar > PHP_INT_MAX ) ||
 			( $sign < 0 && $scalar > -PHP_INT_MIN )
 		) {
 			break;
