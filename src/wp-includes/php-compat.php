@@ -1,8 +1,8 @@
 <?php
 
 define( "IS_32_BIT_SYSTEM", (int) 2147483648 !== 2147483648 );
-defined( PHP_INT_MAX ) || define("PHP_INT_MAX", IS_32_BIT_SYSTEM ? 2147483647 : 9223372036 );
-defined( PHP_INT_MIN ) || define("PHP_INT_MIN", IS_32_BIT_SYSTEM ? -2147483648 : -9223372036 );
+defined( "PHP_INT_MAX" ) || define("PHP_INT_MAX", IS_32_BIT_SYSTEM ? 2147483647 : 9223372036 );
+defined( "PHP_INT_MIN" ) || define("PHP_INT_MIN", IS_32_BIT_SYSTEM ? -2147483648 : -9223372036 );
 
 /**
  * Returns byte size represented in a numeric php.ini directive.
