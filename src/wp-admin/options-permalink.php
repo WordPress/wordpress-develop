@@ -368,7 +368,7 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 				<?php
 				printf(
 					/* translators: 1: web.config, 2: Documentation URL, 3: Ctrl + A, 4: ⌘ + A, 5: Element code. */
-					__( 'Error: Your %1$s file is not <a href="%2$s">writable</a>, so updating it automatically was not possible. This is the URL rewrite rule you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this rule inside of the %5$s element in %1$s file.' ),
+					__( '<strong>Error:</strong> Your %1$s file is not <a href="%2$s">writable</a>, so updating it automatically was not possible. This is the URL rewrite rule you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this rule inside of the %5$s element in %1$s file.' ),
 					'<code>web.config</code>',
 					__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
 					'<kbd>Ctrl + A</kbd>',
