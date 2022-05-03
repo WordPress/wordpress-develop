@@ -1,6 +1,6 @@
 <?php
 
-defined("IS_32_BIT_SYSTEM" ) || define( "IS_32_BIT_SYSTEM", 2147483647 === PHP_INT_MAX );
+defined( 'IS_32_BIT_SYSTEM' ) || define( 'IS_32_BIT_SYSTEM', 2147483647 === PHP_INT_MAX );
 
 /**
  * Tests for PHP compatability functions.
