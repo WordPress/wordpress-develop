@@ -277,6 +277,8 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-plugins-controller.
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-block-directory-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-edit-site-export-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-pattern-directory-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-block-patterns-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-block-pattern-categories-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-application-passwords-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-site-health-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-sidebars-controller.php';
@@ -317,6 +319,7 @@ require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-editor.php';
 require ABSPATH . WPINC . '/block-patterns.php';
 require ABSPATH . WPINC . '/class-wp-block-supports.php';
+require ABSPATH . WPINC . '/block-supports/utils.php';
 require ABSPATH . WPINC . '/block-supports/align.php';
 require ABSPATH . WPINC . '/block-supports/border.php';
 require ABSPATH . WPINC . '/block-supports/colors.php';
