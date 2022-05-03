@@ -85,6 +85,10 @@ class Tests_PHP_Compat_wpIniBytes extends WP_UnitTestCase {
 			array( '07k', 7168 ),
 			array( '-0xF3d7m', -65455259648 ),
 			array( '128m', 134217728 ),
+			array( '128m ', 128 ),
+			array( '128mk', 131072 ),
+			array( '128km', 134217728 ),
+			array( '1.28 kmg', 1073741824 ),
 			array( '256M', 268435456 ),
 
 			// Leading characters.
