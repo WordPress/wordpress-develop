@@ -25,7 +25,7 @@ class Tests_Basic extends WP_UnitTestCase {
 		preg_match( '#\d.\d.x#', $security, $matches );
 		$current_version = substr( $GLOBALS['wp_version'], 0, 3 );
 		$latest_stable   = sprintf( '%s.x', (float) $current_version - 0.1 );
-		// $this->assertSame( $latest_stable, trim( $matches[0] ), "SECURITY.md's version needs to be updated to $latest_stable." );
+		$this->assertSame( $latest_stable, trim( $matches[0] ), "SECURITY.md's version needs to be updated to $latest_stable." );
 	}
 
 	public function test_package_json() {
