@@ -422,7 +422,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
  */
 function _wp_get_sources_from_meta( $meta ) {
 	return array(
-		'file'     => wp_basename( $meta['file'] ),
+		'file'     => isset( $meta['file'] ) ? wp_basename( $meta['file'] ) : '',
 		'filesize' => isset( $meta['filesize'] ) ? $meta['filesize'] : wp_filesize( $meta['path'] ),
 	);
 }
