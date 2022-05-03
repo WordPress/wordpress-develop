@@ -227,7 +227,7 @@ Description: Used to style blocks in the editor.
 	.edit-post-visual-editor .editor-block-list__block h5 {
 		font-size: 16px;
 		line-height: 1.25;
-		padding: 0.8125em 1.625em;
+		padding: 0.8125em 0 1.625em;
 	}
 
 	.edit-post-visual-editor .editor-block-list__block h6 {
