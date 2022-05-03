@@ -80,6 +80,7 @@ class Tests_PHP_Compat_wpIniBytes extends WP_UnitTestCase {
 
 			// Size suffixes.
 			array( '1g', 1073741824 ),
+			array( '1gb', 0 ),
 			array( '32k', 32768 ),
 			array( '64K', 65536 ),
 			array( '07k', 7168 ),
