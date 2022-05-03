@@ -1326,7 +1326,9 @@ function build_comment_query_vars_from_block( $block ) {
 				$comment_args['paged'] = 1;
 			} elseif ( 'newest' === $default_page ) {
 				$max_num_pages         = (int) ( new WP_Comment_Query( $comment_args ) )->max_num_pages;
-				$comment_args['paged'] = 0 === $max_num_pages ? 1 : $max_num_pages;
+				if ( 0 !== $max_num_pages ) {
+					$comment_args['paged'] = $max_num_pages;
+				}
 			}
 			// Set the `cpage` query var to ensure the previous and next pagination links are correct
 			// when inheriting the Discussion Settings.
