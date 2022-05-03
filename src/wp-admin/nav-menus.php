@@ -624,7 +624,7 @@ if ( ! $locations_screen ) : // Main tab.
 	);
 
 	$menu_management  = '<p>' . __( 'The menu management box at the top of the screen is used to control which menu is opened in the editor below.' ) . '</p>';
-	$menu_management .= '<ul><li>' . __( 'To edit an existing menu, <strong>choose a menu from the drop down and click Select</strong>' ) . '</li>';
+	$menu_management .= '<ul><li>' . __( 'To edit an existing menu, <strong>choose a menu from the dropdown and click Select</strong>' ) . '</li>';
 	$menu_management .= '<li>' . __( 'If you have not yet created any menus, <strong>click the &#8217;create a new menu&#8217; link</strong> to get started' ) . '</li></ul>';
 	$menu_management .= '<p>' . __( 'You can assign theme locations to individual menus by <strong>selecting the desired settings</strong> at the bottom of the menu editor. To assign menus to all theme locations at once, <strong>visit the Manage Locations tab</strong> at the top of the screen.' ) . '</p>';
 
@@ -879,7 +879,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 							}
 
 							/**
-							 * Filters the number of locations listed per menu in the drop-down select.
+							 * Filters the number of locations listed per menu in the dropdown select.
 							 *
 							 * @since 3.6.0
 							 *
