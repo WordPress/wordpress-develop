@@ -138,6 +138,62 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that if pagination is set to display the last page by default (i.e. newest comments),
+	 * the query is set to look for page 1 (rather than page 0, which would cause an error).
+	 *
+	 * Regression: https://github.com/WordPress/gutenberg/issues/40758.
+	 *
+	 * @ticket 55658
+	 * @covers ::build_comment_query_vars_from_block
+	 */
+	function test_build_comment_query_vars_from_block_pagination_with_no_comments() {
+		$comments_per_page     = get_option( 'comments_per_page' );
+		$default_comments_page = get_option( 'default_comments_page' );
+
+		update_option( 'comments_per_page', 50 );
+		update_option( 'previous_default_page', 'newest' );
+
+		$post_without_comments = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'post',
+				'post_status'  => 'publish',
+				'post_name'    => 'fluffycat',
+				'post_title'   => 'Fluffy Cat',
+				'post_content' => 'Fluffy Cat content',
+				'post_excerpt' => 'Fluffy Cat',
+			)
+		);
+
+		$parsed_blocks = parse_blocks(
+			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
+		);
+
+		$block = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'postId' => $post_without_comments->ID,
+			)
+		);
+
+		$this->assertSameSetsWithIndex(
+			array(
+				'orderby'       => 'comment_date_gmt',
+				'order'         => 'ASC',
+				'status'        => 'approve',
+				'no_found_rows' => false,
+				'post_id'       => $post_without_comments->ID,
+				'hierarchical'  => 'threaded',
+				'number'        => 50,
+			),
+			build_comment_query_vars_from_block( $block )
+		);
+
+		update_option( 'comments_per_page', $comments_per_page );
+		update_option( 'default_comments_page', $default_comments_page );
+	}
+
+
+	/**
 	 * Test that both "Older Comments" and "Newer Comments" are displayed in the correct order
 	 * inside the Comment Query Loop when we enable pagination on Discussion Settings.
 	 * In order to do that, it should exist a query var 'cpage' set with the $comment_args['paged'] value.
