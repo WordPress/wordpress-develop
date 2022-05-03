@@ -184,7 +184,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 				'post_id'       => $post_without_comments->ID,
 				'hierarchical'  => 'threaded',
 				'number'        => 50,
-				'paged'         => 1,
 			),
 			build_comment_query_vars_from_block( $block )
 		);
