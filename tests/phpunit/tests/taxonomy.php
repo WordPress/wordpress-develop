@@ -266,6 +266,8 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49701
+	 *
+	 * @covers ::get_inline_data
 	 */
 	public function test_get_inline_data_contains_term_if_show_ui_false_but_show_on_quick_edit_true_for_nonhierarchical_taxonomy() {
 		// Create a post with a term from a hierarchical taxonomy.
