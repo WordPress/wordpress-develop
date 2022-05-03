@@ -1321,7 +1321,7 @@ function wp_ajax_replyto_comment( $action ) {
 	}
 
 	if ( '' === $comment_content ) {
-		wp_die( __( '<strong>Error:</strong> Please type your comment text.' ) );
+		wp_die( __( 'Please type your comment text.' ) );
 	}
 
 	$comment_parent = 0;
