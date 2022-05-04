@@ -1561,7 +1561,7 @@ class wpdb {
 					__( 'Arguments (%s) cannot be used for both String and Identifier escaping.' ),
 					implode( ', ', $dual_use )
 				),
-				'6.0.0'
+				'6.1.0'
 			);
 
 			return;
