@@ -1485,4 +1485,31 @@ JS;
 			array( false, '[""]' ),
 		);
 	}
+
+	public function test_wp_external_dependency_print_order() {
+		global $wp_scripts;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( '/default/' );
+
+		// Library script in a non-default directory.
+		wp_register_script( 'lib', '/plugins/lib.js', array(), null );
+		// Script in default dir that's going to be concatenated.
+		wp_enqueue_script( 'pre', '/default/pre.js', array(), null );
+		// Script in default dir that depends on the library.
+		wp_enqueue_script( 'foo', '/default/foo.js', array( 'lib' ), null );
+
+		ob_start();
+		wp_print_scripts();
+		_print_scripts();
+		$print_scripts = ob_get_clean();
+
+		// The non-default script should end concatenation and maintain order.
+		$ver       = get_bloginfo( 'version' );
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=pre&amp;ver={$ver}'></script>\n";
+		$expected .= "<script type='text/javascript' src='/plugins/lib.js' id='lib-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/default/foo.js' id='foo-js'></script>\n";
+
+		$this->assertSame( $expected, $print_scripts );
+	}
 }
