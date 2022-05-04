@@ -112,7 +112,7 @@ class WP_Network_Query {
 	 *     @type string       $search               Search term(s) to retrieve matching networks for. Default empty.
 	 *     @type bool         $update_network_cache Whether to prime the cache for found networks. Default true.
 	 *     @type bool         $update_network_meta_cache  Whether to prime the metadata (option) cache for found networks.
-	 *                                                    Default false.
+	 *                                                    Default true.
 	 * }
 	 */
 	public function __construct( $query = '' ) {
@@ -134,7 +134,7 @@ class WP_Network_Query {
 			'path__not_in'              => '',
 			'search'                    => '',
 			'update_network_cache'      => true,
-			'update_network_meta_cache' => false,
+			'update_network_meta_cache' => true,
 		);
 
 		if ( ! empty( $query ) ) {
