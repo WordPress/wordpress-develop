@@ -1968,22 +1968,19 @@ class Tests_User_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @param $field
-	 * @param $expected
-	 *
-	 * @return void
-	 *
+	 * @ticket 53177
 	 * @dataProvider data_returning_fields
 	 *
-	 * @ticket 53177
+	 * @covers WP_User_Query::prepare_query
 	 *
-	 * @covers  WP_User_Query::prepare_query
+	 * @param $field
+	 * @param $expected
 	 */
 	public function test_returning_fields( $field, $expected_values ) {
 		$q       = new WP_User_Query(
 			array(
-				'fields'   => $field,
-				'include ' => array( self::$admin_ids[0] ),
+				'fields'  => $field,
+				'include' => array( '1' ),
 			)
 		);
 		$results = $q->get_results();
@@ -1996,8 +1993,6 @@ class Tests_User_Query extends WP_UnitTestCase {
 		}
 
 		foreach ( $expected_values as $key => $expected_value ) {
-
-
 			if ( ! is_array( $results ) ) {
 				$this->assertEquals( array_shift( $results ), $expected_value );
 			} else {
@@ -2020,8 +2015,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 						'ID'                  => '1',
 						'user_login'          => 'admin',
 						'user_nicename'       => 'admin',
-						'user_email'          => 'admin@example.org',
-						'user_url'            => 'http://example.org',
+						'user_email'          => WP_TESTS_EMAIL,
+						'user_url'            => wp_guess_url(),
 						'user_activation_key' => '',
 						'user_status'         => '0',
 						'display_name'        => 'admin',
@@ -2034,8 +2029,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 						'ID'                  => '1',
 						'user_login'          => 'admin',
 						'user_nicename'       => 'admin',
-						'user_email'          => 'admin@example.org',
-						'user_url'            => 'http://example.org',
+						'user_email'          => WP_TESTS_EMAIL,
+						'user_url'            => wp_guess_url(),
 						'user_activation_key' => '',
 						'user_status'         => '0',
 						'display_name'        => 'admin',
@@ -2074,7 +2069,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'user_email'          => array(
 					'field'    => 'user_email',
 					'expected' => array(
-						'user_email' => 'admin@example.org',
+						'user_email' => WP_TESTS_EMAIL,
 					),
 				),
 				'user_url'            => array(
@@ -2099,6 +2094,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 					'field'    => 'user_status',
 					'expected' => array(
 						'user_status' => '0',
+					),
+				),
+				'semivalid_array' => array(
+					'field'    => array( 'ID', 'display_name', 'invalid_field' ),
+					'expected' => array(
+						'ID'           => '1',
+						'display_name' => 'admin',
 					),
 				),
 				'invalid_field'       => array(

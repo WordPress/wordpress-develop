@@ -158,7 +158,7 @@ switch ( $step ) {
 		}
 		?>
 <h1 class="screen-reader-text"><?php _e( 'Before getting started' ); ?></h1>
-<p><?php _e( 'Welcome to WordPress. Before getting started, we need some information on the database. You will need to know the following items before proceeding.' ); ?></p>
+<p><?php _e( 'Welcome to WordPress. Before getting started, you will need to know the following items.' ); ?></p>
 <ol>
 	<li><?php _e( 'Database name' ); ?></li>
 	<li><?php _e( 'Database username' ); ?></li>
@@ -170,7 +170,7 @@ switch ( $step ) {
 		<?php
 		printf(
 			/* translators: %s: wp-config.php */
-			__( 'We are going to use this information to create a %s file.' ),
+			__( 'This information is being used to create a %s file.' ),
 			'<code>wp-config.php</code>'
 		);
 		?>
@@ -186,9 +186,10 @@ switch ( $step ) {
 	</strong>
 		<?php
 		printf(
-			/* translators: %s: Documentation URL. */
-			__( 'Need more help? <a href="%s">We got it</a>.' ),
-			__( 'https://wordpress.org/support/article/editing-wp-config-php/' )
+			/* translators: 1: Documentation URL, 2: wp-config.php */
+			__( 'Need more help? <a href="%1$s">Read the support article on %2$s</a>.' ),
+			__( 'https://wordpress.org/support/article/editing-wp-config-php/' ),
+			'<code>wp-config.php</code>'
 		);
 		?>
 </p>

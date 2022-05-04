@@ -2,7 +2,7 @@ const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync } = require( 'child_process' );
 
-dotenvExpand( dotenv.config() );
+dotenvExpand.expand( dotenv.config() );
 
 // Start the local-env containers.
 execSync( 'docker-compose up -d wordpress-develop', { stdio: 'inherit' } );

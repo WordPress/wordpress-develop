@@ -8,7 +8,7 @@
 class Tests_Basic extends WP_UnitTestCase {
 
 	public function test_license() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$license = file_get_contents( ABSPATH . 'license.txt' );
@@ -18,13 +18,13 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	public function test_security_md() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$security = file_get_contents( dirname( ABSPATH ) . '/SECURITY.md' );
 		preg_match( '#\d.\d.x#', $security, $matches );
 		$current_version = substr( $GLOBALS['wp_version'], 0, 3 );
-		$latest_stable   = sprintf( '%s.x', (float) $current_version - 0.1 );
+		$latest_stable   = number_format( (float) $current_version - 0.1, 1 ) . '.x';
 		$this->assertSame( $latest_stable, trim( $matches[0] ), "SECURITY.md's version needs to be updated to $latest_stable." );
 	}
 
