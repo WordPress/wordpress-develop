@@ -1467,7 +1467,7 @@ function is_ssl() {
  *
  * @since 2.3.0
  * @since 4.6.0 Moved from media.php to load.php.
- * @since 6.1.0 Deprecated: use wp_ini_bytes() or wp_hr_bytes() instead.
+ * @deprecated 6.1.0 Use wp_ini_bytes() or wp_hr_bytes() instead.
  *
  * @link https://www.php.net/manual/en/function.ini-get.php
  * @link https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
