@@ -8,7 +8,7 @@
 class Tests_Basic extends WP_UnitTestCase {
 
 	public function test_license() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$license = file_get_contents( ABSPATH . 'license.txt' );
@@ -18,7 +18,7 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	public function test_security_md() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$security = file_get_contents( dirname( ABSPATH ) . '/SECURITY.md' );
