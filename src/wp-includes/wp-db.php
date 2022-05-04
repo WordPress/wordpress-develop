@@ -645,15 +645,32 @@ class wpdb {
 	);
 
 	/**
-	 * Backwards compatibility, where wpdb::prepare() would not quote string placeholders with formatting.
-	 * They were used in the middle of longer strings, or as table name placeholders.
-	 * But they are risky, e.g. forgetting to add the quotes:
-	 *   $sql = $wpdb->prepare('WHERE (id = %s) OR (id = %1s) OR (id = %3$s)', ['id', 'id', 'id']);
+	 * Backwards compatibility, where wpdb::prepare() has not quoted formatted/argnum placeholders.
+	 *
+	 * Historically this could be used for table/field names, or for some string formatting, e.g.
+	 *   $wpdb->prepare( 'WHERE `%1s` = "%1s something %1s" OR %1$s = "%-10s"', 'field_1', 'a', 'b', 'c' );
+	 *
+	 * But it's risky, e.g. forgetting to add quotes, resulting in SQL Injection vulnerabilities:
+	 *   $wpdb->prepare( 'WHERE (id = %1s) OR (id = %2$s)', $_GET['id'], $_GET['id'] ); // ?id=id
+	 *
+	 * This feature is preserved while plugin authors update their code to use safer approaches:
+	 *   $wpdb->prepare( 'WHERE %1s = %s', $_GET['key'], $_GET['value'] );
+	 *   $wpdb->prepare( 'WHERE %i  = %s', $_GET['key'], $_GET['value'] );
+	 *
+	 * While changing to false will be fine for queries not using formatted/argnum placeholders,
+	 * any remaining cases are most likely going to result in SQL errors (good, in a way):
+	 *   $wpdb->prepare( 'WHERE %1s = "%-10s"', 'my_field', 'my_value' );
+	 *     true  = WHERE my_field = "my_value  "
+	 *     false = WHERE 'my_field' = "'my_value  '"
+	 * But there may be some queries that result in an SQL Injection vulnerability:
+	 *   $wpdb->prepare( 'WHERE id = %1s', $_GET['id'] ); // ?id=id
+	 * So there may need to be a `_doing_it_wrong()` phase, after we know everyone can use Identifier
+	 * placeholders (%i), but before this feature is disabled or removed.
 	 *
 	 * @since 6.0.0
 	 * @var bool
 	 */
-	public $allow_unsafe_unquoted_parameters = true;
+	private $allow_unsafe_unquoted_parameters = true;
 
 	/**
 	 * Whether to use mysqli over mysql. Default false.
