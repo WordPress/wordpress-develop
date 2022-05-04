@@ -3816,6 +3816,13 @@ function create_initial_theme_features() {
 		)
 	);
 	register_theme_feature(
+		'block-templates',
+		array(
+			'description'  => __( 'Whether a theme uses block-based templates.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
 		'custom-background',
 		array(
 			'description'  => __( 'Custom background if defined by the theme.' ),
