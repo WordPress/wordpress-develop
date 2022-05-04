@@ -2000,7 +2000,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				if ( 'not_empty' === $expected_value ) {
 					$this->assertNotEmpty( $key, $data );
 				} else {
-					$this->assertEquals( $value, $expected_value );;
+					$this->assertEquals( $value, $expected_value );
 				}
 			}
 		}
