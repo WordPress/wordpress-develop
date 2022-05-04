@@ -677,8 +677,8 @@ class WP_Debug_Data {
 			$server_architecture = 'unknown';
 		}
 
-		if ( function_exists( 'phpversion' ) ) {
-			$php_version_debug = phpversion();
+		if ( defined( 'PHP_VERSION' ) ) {
+			$php_version_debug = PHP_VERSION;
 			// Whether PHP supports 64-bit.
 			$php64bit = ( PHP_INT_SIZE * 8 === 64 );
 
