@@ -1997,7 +1997,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				$this->assertEquals( array_shift( $results ), $expected_value );
 			} else {
 				$value = ( isset( $data->$key ) ) ? $data->$key : $data;
-				if( 'not_empty' === $expected_value ) {
+				if ( 'not_empty' === $expected_value ) {
 					$this->assertNotEmpty( $key, $data );
 				} else {
 					$this->assertEquals( $value, $expected_value );;
