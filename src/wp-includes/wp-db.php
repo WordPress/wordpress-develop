@@ -667,7 +667,7 @@ class wpdb {
 	 * So there may need to be a `_doing_it_wrong()` phase, after we know everyone can use Identifier
 	 * placeholders (%i), but before this feature is disabled or removed.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 * @var bool
 	 */
 	private $allow_unsafe_unquoted_parameters = true;
@@ -1378,7 +1378,7 @@ class wpdb {
 	/**
 	 * Escapes an identifier for a MySQL database (e.g. table/field names).
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 *
 	 * @param string $identifier Identifier to escape.
 	 * @return string Escaped Identifier
@@ -1396,7 +1396,7 @@ class wpdb {
 	 * - To quote the identifier itself, then you need to double the character, e.g. `a``b`
 	 *
 	 * @link https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 * @access private
 	 *
 	 * @param string $identifier Identifier to escape.
@@ -1440,7 +1440,7 @@ class wpdb {
 	 * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
 	 *              by updating the function signature. The second parameter was changed
 	 *              from `$args` to `...$args`.
-	 * @since 6.0.0 Added '%i' for Identifiers, e.g. table or field names.
+	 * @since 6.1.0 Added '%i' for Identifiers, e.g. table or field names.
 	 *              Check support via `wpdb::has_cap( 'identifier_placeholders' )`
 	 *              This preserves compatibility with sprinf, as the C version uses %d and $i
 	 *              as a signed integer, whereas PHP only supports %d.
@@ -3876,7 +3876,7 @@ class wpdb {
 	 * @since 2.7.0
 	 * @since 4.1.0 Added support for the 'utf8mb4' feature.
 	 * @since 4.6.0 Added support for the 'utf8mb4_520' feature.
-	 * @since 6.0.0 Added support for the 'identifier_placeholders' feature.
+	 * @since 6.1.0 Added support for the 'identifier_placeholders' feature.
 	 *
 	 * @see wpdb::db_version()
 	 *
@@ -3917,7 +3917,7 @@ class wpdb {
 				}
 			case 'utf8mb4_520': // @since 4.6.0
 				return version_compare( $version, '5.6', '>=' );
-			case 'identifier_placeholders': // @since 6.0.0, wpdb::prepare() supports identifiers via '%i' - e.g. table/field names.
+			case 'identifier_placeholders': // @since 6.1.0, wpdb::prepare() supports identifiers via '%i' - e.g. table/field names.
 				return true;
 		}
 
