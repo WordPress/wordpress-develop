@@ -1996,80 +1996,140 @@ class Tests_User_Query extends WP_UnitTestCase {
 		}
 
 		foreach ( $expected_values as $key => $expected_value ) {
+
+
 			if ( ! is_array( $results ) ) {
 				$this->assertEquals( array_shift( $results ), $expected_value );
 			} else {
 				$value = ( isset( $data->$key ) ) ? $data->$key : $data;
-				$this->assertEquals( $value, $expected_value );
+				if( 'not_empty' === $expected_value ) {
+					$this->assertNotEmpty( $key, $data );
+				} else {
+					$this->assertEquals( $value, $expected_value );;
+				}
 			}
 		}
 	}
 
 	public function data_returning_fields() {
-		return array(
-			'all'           => array(
-				'field'    => 'all',
-				'expected' => array(
-					'ID'                  => '1',
-					'user_login'          => 'admin',
-					'user_nicename'       => 'admin',
-					'user_email'          => 'admin@example.org',
-					'user_url'            => 'http://example.org',
-					'user_activation_key' => '',
-					'user_status'         => '0',
-					'display_name'        => 'admin',
+
+			$data = array(
+				'all'                 => array(
+					'field'    => 'all',
+					'expected' => array(
+						'ID'                  => '1',
+						'user_login'          => 'admin',
+						'user_nicename'       => 'admin',
+						'user_email'          => 'admin@example.org',
+						'user_url'            => 'http://example.org',
+						'user_activation_key' => '',
+						'user_status'         => '0',
+						'display_name'        => 'admin',
+
+					),
 				),
-			),
-			'all_with_meta' => array(
-				'field'    => 'all_with_meta',
-				'expected' => array(
-					'ID'                  => '1',
-					'user_login'          => 'admin',
-					'user_nicename'       => 'admin',
-					'user_email'          => 'admin@example.org',
-					'user_url'            => 'http://example.org',
-					'user_activation_key' => '',
-					'user_status'         => '0',
-					'display_name'        => 'admin',
+				'all_with_meta'       => array(
+					'field'    => 'all_with_meta',
+					'expected' => array(
+						'ID'                  => '1',
+						'user_login'          => 'admin',
+						'user_nicename'       => 'admin',
+						'user_email'          => 'admin@example.org',
+						'user_url'            => 'http://example.org',
+						'user_activation_key' => '',
+						'user_status'         => '0',
+						'display_name'        => 'admin',
+					),
 				),
-			),
-			'ID'            => array(
-				'field'    => 'ID',
-				'expected' => array(
-					'ID' => '1',
+				'ID'                  => array(
+					'field'    => 'ID',
+					'expected' => array(
+						'ID' => '1',
+					),
 				),
-			),
-			'display_name'  => array(
-				'field'    => 'display_name',
-				'expected' => array(
-					'display_name' => 'admin',
+				'display_name'        => array(
+					'field'    => 'display_name',
+					'expected' => array(
+						'display_name' => 'admin',
+					),
 				),
-			),
-			'user_login'    => array(
-				'field'    => 'user_login',
-				'expected' => array(
-					'user_login' => 'admin',
+				'user_login'          => array(
+					'field'    => 'user_login',
+					'expected' => array(
+						'user_login' => 'admin',
+					),
 				),
-			),
-			'user_nicename' => array(
-				'field'    => 'user_nicename',
-				'expected' => array(
-					'user_nicename' => 'admin',
+				'user_pass'           => array(
+					'field'    => 'user_pass',
+					'expected' => array(
+						'user_pass' => 'not_empty',
+					),
 				),
-			),
-			'user_email'    => array(
-				'field'    => 'user_email',
-				'expected' => array(
-					'user_email' => 'admin@example.org',
+				'user_nicename'       => array(
+					'field'    => 'user_nicename',
+					'expected' => array(
+						'user_nicename' => 'admin',
+					),
 				),
-			),
-			'invalid_field' => array(
-				'field'    => 'invalid_field',
-				'expected' => array(
-					'0' => '1',
+				'user_email'          => array(
+					'field'    => 'user_email',
+					'expected' => array(
+						'user_email' => 'admin@example.org',
+					),
 				),
-			),
-		);
+				'user_url'            => array(
+					'field'    => 'user_url',
+					'expected' => array(
+						'user_url' => 'http://example.org',
+					),
+				),
+				'user_registered'     => array(
+					'field'    => 'user_registered',
+					'expected' => array(
+						'user_registered' => 'not_empty',
+					),
+				),
+				'user_activation_key' => array(
+					'field'    => 'user_activation_key',
+					'expected' => array(
+						'user_activation_key' => null,
+					),
+				),
+				'user_status'         => array(
+					'field'    => 'user_status',
+					'expected' => array(
+						'user_status' => '0',
+					),
+				),
+				'invalid_field'       => array(
+					'field'    => 'invalid_field',
+					'expected' => array(
+						'0' => '1',
+					),
+				),
+			);
+			if ( is_multisite() ) {
+				$data['all']['expected']['spam']    = '0';
+				$data['all']['expected']['deleted'] = '0';
+
+				$data['all_with_meta']['expected']['spam']    = '0';
+				$data['all_with_meta']['expected']['deleted'] = '0';
+
+				$data['spam']    = array(
+					'field'    => 'spam',
+					'expected' => array(
+						'spam' => '0',
+					),
+				);
+				$data['deleted'] = array(
+					'field'    => 'deleted',
+					'expected' => array(
+						'deleted' => '0',
+					),
+				);
+			}
+
+			return $data;
 	}
 
 	/**
