@@ -243,7 +243,12 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['editor_style'] );
 		$this->assertNull( $data['style'] );
 		$this->assertSameSets( array(), $data['provides_context'] );
-		$this->assertSameSets( array(), $data['attributes'] );
+		$this->assertSameSetsWithIndex(
+			array(
+				'lock' => array( 'type' => 'object' ),
+			),
+			$data['attributes']
+		);
 		$this->assertSameSets( array( 'invalid_uses_context' ), $data['uses_context'] );
 		$this->assertSameSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertSameSets( array( 'invalid_parent' ), $data['parent'] );
@@ -299,7 +304,12 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['view_script'] );
 		$this->assertNull( $data['editor_style'] );
 		$this->assertNull( $data['style'] );
-		$this->assertSameSets( array(), $data['attributes'] );
+		$this->assertSameSetsWithIndex(
+			array(
+				'lock' => array( 'type' => 'object' ),
+			),
+			$data['attributes']
+		);
 		$this->assertSameSets( array(), $data['provides_context'] );
 		$this->assertSameSets( array(), $data['uses_context'] );
 		$this->assertSameSets( array(), $data['keywords'] );

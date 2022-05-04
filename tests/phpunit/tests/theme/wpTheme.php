@@ -262,6 +262,35 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test get_files for an existing theme.
+	 *
+	 * @ticket 53599
+	 */
+	public function test_get_files_theme() {
+		$theme = new WP_Theme( 'theme1', $this->theme_root );
+		$files = $theme->get_files();
+
+		$this->assertIsArray( $files );
+		$this->assertCount( 3, $files );
+		$this->assertArrayHasKey( 'functions.php', $files );
+		$this->assertArrayHasKey( 'index.php', $files );
+		$this->assertArrayHasKey( 'style.css', $files );
+	}
+
+	/**
+	 * Test get_files for a non-existing theme.
+	 *
+	 * @ticket 53599
+	 */
+	public function test_get_files_nonexistent_theme() {
+		$theme = new WP_Theme( 'nonexistent', $this->theme_root );
+		$files = $theme->get_files();
+
+		$this->assertIsArray( $files );
+		$this->assertEmpty( $files );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array

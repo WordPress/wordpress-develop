@@ -494,4 +494,125 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		);
 
 	}
+
+	/**
+	 * Test that the Last-Modified is a post's date when a more recent comment exists,
+	 * but the "withcomments=1" query var is not passed.
+	 *
+	 * @ticket 47968
+	 *
+	 * @covers ::send_headers
+	 */
+	public function test_feed_last_modified_should_be_a_post_date_when_withcomments_is_not_passed() {
+		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+
+		// Create a post dated last week.
+		$post_id = $this->factory()->post->create( array( 'post_date' => $last_week ) );
+
+		// Create a comment dated yesterday.
+		$this->factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_date'    => $yesterday,
+			)
+		);
+
+		// The Last-Modified header should have the post's date when "withcomments" is not passed.
+		add_filter(
+			'wp_headers',
+			function( $headers ) use ( $last_week ) {
+				$this->assertSame(
+					strtotime( $headers['Last-Modified'] ),
+					strtotime( $last_week ),
+					'Last-Modified was not the date of the post'
+				);
+				return $headers;
+			}
+		);
+
+		$this->go_to( '/?feed=rss2' );
+	}
+
+	/**
+	 * Test that the Last-Modified is a comment's date when a more recent comment exists,
+	 * and the "withcomments=1" query var is passed.
+	 *
+	 * @ticket 47968
+	 *
+	 * @covers ::send_headers
+	 */
+	public function test_feed_last_modified_should_be_the_date_of_a_comment_that_is_the_latest_update_when_withcomments_is_passed() {
+		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+
+		// Create a post dated last week.
+		$post_id = $this->factory()->post->create( array( 'post_date' => $last_week ) );
+
+		// Create a comment dated yesterday.
+		$this->factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_date'    => $yesterday,
+			)
+		);
+
+		// The Last-Modified header should have the comment's date when "withcomments=1" is passed.
+		add_filter(
+			'wp_headers',
+			function( $headers ) use ( $yesterday ) {
+				$this->assertSame(
+					strtotime( $headers['Last-Modified'] ),
+					strtotime( $yesterday ),
+					'Last-Modified was not the date of the comment'
+				);
+				return $headers;
+			}
+		);
+
+		$this->go_to( '/?feed=rss2&withcomments=1' );
+	}
+
+	/**
+	 * Test that the Last-Modified is the latest post's date when an earlier post and comment exist,
+	 * and the "withcomments=1" query var is passed.
+	 *
+	 * @ticket 47968
+	 *
+	 * @covers ::send_headers
+	 */
+	public function test_feed_last_modified_should_be_the_date_of_a_post_that_is_the_latest_update_when_withcomments_is_passed() {
+		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+		$today     = gmdate( 'Y-m-d H:i:s' );
+
+		// Create a post dated last week.
+		$post_id = $this->factory()->post->create( array( 'post_date' => $last_week ) );
+
+		// Create a comment dated yesterday.
+		$this->factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_date'    => $yesterday,
+			)
+		);
+
+		// Create a post dated today.
+		$this->factory()->post->create( array( 'post_date' => $today ) );
+
+		// The Last-Modified header should have the date from today's post when it is the latest update.
+		add_filter(
+			'wp_headers',
+			function( $headers ) use ( $today ) {
+				$this->assertSame(
+					strtotime( $headers['Last-Modified'] ),
+					strtotime( $today ),
+					'Last-Modified was not the date of the most recent post'
+				);
+				return $headers;
+			}
+		);
+
+		$this->go_to( '/?feed=rss2&withcomments=1' );
+	}
 }
