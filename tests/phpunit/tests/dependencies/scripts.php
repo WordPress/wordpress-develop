@@ -609,11 +609,10 @@ JS;
 		$wp_scripts->do_concat    = true;
 		$wp_scripts->default_dirs = array( '/wp-admin/js/', '/wp-includes/js/' ); // Default dirs as in wp-includes/script-loader.php.
 
-		$expected_localized  = "<!--[if gte IE 9]>\n";
-		$expected_localized .= "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n/* ]]> */\n</script>\n";
-		$expected_localized .= "<![endif]-->\n";
-
 		$expected  = "<!--[if gte IE 9]>\n";
+		$expected .= "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n/* ]]> */\n</script>\n";
+		$expected .= "<![endif]-->\n";
+		$expected .= "<!--[if gte IE 9]>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-after'>\nconsole.log(\"after\");\n</script>\n";
@@ -625,9 +624,12 @@ JS;
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 		wp_script_add_data( 'test-example', 'conditional', 'gte IE 9' );
 
-		$this->assertSame( $expected_localized, get_echo( 'wp_print_scripts' ) );
-		$this->assertSame( $expected, $wp_scripts->print_html );
-		$this->assertTrue( $wp_scripts->do_concat );
+		ob_start();
+		wp_print_scripts();
+		_print_scripts();
+		$print_scripts = ob_get_clean();
+
+		$this->assertSame( $expected, $print_scripts );
 	}
 
 	/**
@@ -649,8 +651,10 @@ JS;
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 
+		ob_start();
 		wp_print_scripts();
-		$print_scripts = get_echo( '_print_scripts' );
+		_print_scripts();
+		$print_scripts = ob_get_clean();
 
 		$this->assertSame( $expected, $print_scripts );
 	}
@@ -677,8 +681,10 @@ JS;
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 		wp_script_add_data( 'test-example', 'conditional', 'gte IE 9' );
 
+		ob_start();
 		wp_print_scripts();
-		$print_scripts = get_echo( '_print_scripts' );
+		_print_scripts();
+		$print_scripts = ob_get_clean();
 
 		$this->assertSame( $expected, $print_scripts );
 	}
@@ -703,8 +709,10 @@ JS;
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 
+		ob_start();
 		wp_print_scripts();
-		$print_scripts = get_echo( '_print_scripts' );
+		_print_scripts();
+		$print_scripts = ob_get_clean();
 
 		$this->assertSame( $expected, $print_scripts );
 	}
@@ -749,12 +757,10 @@ JS;
 		wp_enqueue_script( 'test-example2', 'http://example2.com', array( 'wp-a11y' ), null );
 		wp_add_inline_script( 'test-example2', 'console.log("after");', 'after' );
 
-		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
-		$this->expectOutputRegex( '`.`' );
-
+		ob_start();
 		wp_print_scripts();
 		_print_scripts();
-		$print_scripts = $this->getActualOutput();
+		$print_scripts = ob_get_clean();
 
 		/*
 		 * We've replaced wp-a11y.js with @wordpress/a11y package (see #45066),
@@ -802,12 +808,10 @@ JS;
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
 		wp_add_inline_script( $handle, 'tryCustomizeDependency()' );
 
-		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
-		$this->expectOutputRegex( '`.`' );
-
+		ob_start();
 		wp_print_scripts();
 		_print_scripts();
-		$print_scripts = $this->getActualOutput();
+		$print_scripts = ob_get_clean();
 
 		$tail = substr( $print_scripts, strrpos( $print_scripts, "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'>" ) );
 		$this->assertSame( $expected_tail, $tail );
