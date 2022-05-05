@@ -1969,21 +1969,18 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53177
-	 *
-	 * @param $field
-	 * @param $expected
-	 *
-	 * @return void
-	 *
 	 * @dataProvider data_returning_fields
 	 *
 	 * @covers WP_User_Query::prepare_query
+	 *
+	 * @param $field
+	 * @param $expected
 	 */
 	public function test_returning_fields( $field, $expected_values ) {
 		$q       = new WP_User_Query(
 			array(
-				'fields'   => $field,
-				'include ' => array( self::$admin_ids[0] ),
+				'fields'  => $field,
+				'include' => array( '1' ),
 			)
 		);
 		$results = $q->get_results();
@@ -2007,66 +2004,92 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	public function data_returning_fields() {
 		return array(
-			'all'           => array(
+			'all'             => array(
 				'field'    => 'all',
 				'expected' => array(
 					'ID'                  => '1',
 					'user_login'          => 'admin',
 					'user_nicename'       => 'admin',
-					'user_email'          => 'admin@example.org',
-					'user_url'            => 'http://example.org',
+					'user_email'          => WP_TESTS_EMAIL,
+					'user_url'            => wp_guess_url(),
 					'user_activation_key' => '',
 					'user_status'         => '0',
 					'display_name'        => 'admin',
 				),
 			),
-			'all_with_meta' => array(
+			'all_with_meta'   => array(
 				'field'    => 'all_with_meta',
 				'expected' => array(
 					'ID'                  => '1',
 					'user_login'          => 'admin',
 					'user_nicename'       => 'admin',
-					'user_email'          => 'admin@example.org',
-					'user_url'            => 'http://example.org',
+					'user_email'          => WP_TESTS_EMAIL,
+					'user_url'            => wp_guess_url(),
 					'user_activation_key' => '',
 					'user_status'         => '0',
 					'display_name'        => 'admin',
 				),
 			),
-			'ID'            => array(
+			'ID'              => array(
 				'field'    => 'ID',
 				'expected' => array(
 					'ID' => '1',
 				),
 			),
-			'display_name'  => array(
+			'id'              => array(
+				'field'    => 'id',
+				'expected' => array(
+					'ID' => '1',
+				),
+			),
+			'display_name'    => array(
 				'field'    => 'display_name',
 				'expected' => array(
 					'display_name' => 'admin',
 				),
 			),
-			'user_login'    => array(
+			'user_login'      => array(
 				'field'    => 'user_login',
 				'expected' => array(
 					'user_login' => 'admin',
 				),
 			),
-			'user_nicename' => array(
+			'user_nicename'   => array(
 				'field'    => 'user_nicename',
 				'expected' => array(
 					'user_nicename' => 'admin',
 				),
 			),
-			'user_email'    => array(
+			'user_email'      => array(
 				'field'    => 'user_email',
 				'expected' => array(
-					'user_email' => 'admin@example.org',
+					'user_email' => WP_TESTS_EMAIL,
 				),
 			),
-			'invalid_field' => array(
+			'invalid_field'   => array(
 				'field'    => 'invalid_field',
 				'expected' => array(
 					'0' => '1',
+				),
+			),
+			'valid_array'     => array(
+				'field'    => array( 'ID', 'display_name' ),
+				'expected' => array(
+					'ID'           => '1',
+					'display_name' => 'admin',
+				),
+			),
+			'semivalid_array' => array(
+				'field'    => array( 'ID', 'display_name', 'invalid_field' ),
+				'expected' => array(
+					'ID'           => '1',
+					'display_name' => 'admin',
+				),
+			),
+			'invalid_array'   => array(
+				'field'    => array( 'invalid_field' ),
+				'expected' => array(
+					'ID' => '1',
 				),
 			),
 		);
@@ -2074,8 +2097,6 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53177
-	 *
-	 * @return void
 	 *
 	 * @covers WP_User_Query::prepare_query
 	 */

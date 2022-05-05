@@ -2,7 +2,7 @@
 /**
  * Enqueue only webfonts listed in theme.json
  *
- * @package  WordPress
+ * @package WordPress
  */
 
 /**
@@ -12,7 +12,7 @@
  * @group themes
  * @covers _wp_theme_json_webfonts_handler
  */
-class Test_WebfontsApi_WpThemeJsonWebfontsHandler extends WP_UnitTestCase {
+class Tests_Webfonts_wpThemeJsonWebfontsHandler extends WP_UnitTestCase {
 
 	/**
 	 * WP_Styles instance reference
@@ -86,6 +86,7 @@ class Test_WebfontsApi_WpThemeJsonWebfontsHandler extends WP_UnitTestCase {
 </style>
 EOF;
 		$expected = str_replace( 'THEME_ROOT_URL', get_stylesheet_directory_uri(), $expected );
+		$expected = str_replace( "\r\n", "\n", $expected );
 
 		$this->assertStringContainsString(
 			$expected,

@@ -2933,7 +2933,6 @@ function wp_enqueue_block_support_styles( $style ) {
  *
  * @param string $block_name The block-name, including namespace.
  * @param array  $args       An array of arguments [handle,src,deps,ver,media].
- * @return void
  */
 function wp_enqueue_block_style( $block_name, $args ) {
 	$args = wp_parse_args(
@@ -3057,6 +3056,11 @@ function wp_enqueue_block_style( $block_name, $args ) {
  * @access private
  */
 function _wp_theme_json_webfonts_handler() {
+	// Block themes are unavailable during installation.
+	if ( wp_installing() ) {
+		return;
+	}
+
 	// Webfonts to be processed.
 	$registered_webfonts = array();
 
