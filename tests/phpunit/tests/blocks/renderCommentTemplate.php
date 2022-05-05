@@ -308,6 +308,8 @@ END
 
 	/**
 	 * Test that line and paragraph breaks are converted to HTML tags in a comment.
+	 *
+	 * @ticket 55643
 	 */
 	function test_render_block_core_comment_content_converts_to_html() {
 		$comment_id  = self::$comment_ids[0];
@@ -381,6 +383,8 @@ END
 
 	/**
 	 * Test rendering an unapproved comment preview.
+	 *
+	 * @ticket 55643
 	 */
 	function test_rendering_comment_template_unmoderated_preview() {
 		$parsed_blocks = parse_blocks(
