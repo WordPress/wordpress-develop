@@ -406,7 +406,7 @@ END
 			)
 		);
 
-		$commenter_filter = function () {
+		$commenter_filter = static function () {
 			return array(
 				'comment_author_email' => 'unapproved@example.org',
 			);
