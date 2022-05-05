@@ -304,7 +304,7 @@ class WP_User_Query {
 				$this->query_fields[] = "$wpdb->users.$field";
 			}
 			$this->query_fields = implode( ',', $this->query_fields );
-		} elseif ( ! in_array( $qv['fields'], $allowed_fields, true ) ) {
+		} elseif ( 'all' === $qv['fields'] ) {
 			$this->query_fields = "$wpdb->users.*";
 		} elseif ( ! in_array( $qv['fields'], $allowed_fields, true ) ) {
 			$this->query_fields = "$wpdb->users.ID";
