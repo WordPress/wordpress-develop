@@ -37,8 +37,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</nav>
 		</div>
 
-		<hr />
-
 		<div class="about__section">
 			<div class="column">
 				<h2 class="aligncenter">
@@ -56,10 +54,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 
-		<hr />
-
 		<div class="about__section has-2-columns">
-			<div class="column about__image is-vertically-aligned-center">
+			<div class="column about__image is-vertically-aligned-top">
 				<img src="https://make.wordpress.org/core/files/2022/05/about-60-writing-improvements.png" alt="" />
 			</div>
 			<div class="column">
@@ -88,16 +84,16 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php _e( 'Block themes now include the option to contain multiple style variations. This expands the new Style system even further and enables shortcuts to switch the look and feel of your site all within a single theme. You can change both the available settings, like the font weight, and the style options, like the default color palette. Change the look and feel of your site with just a few clicks.' ); ?>
 				</p>
 			</div>
-			<div class="column about__image is-vertically-aligned-center">
+			<div class="column about__image is-vertically-aligned-top">
 				<img src="https://make.wordpress.org/core/files/2022/05/about-60-style-switcher.gif" alt="" />
 			</div>
 		</div>
 
 		<div class="about__section has-1-column">
-			<div class="column about__image is-vertically-aligned-center">
+			<div class="column about__image is-vertically-aligned-top">
 				<img src="https://make.wordpress.org/core/files/2022/05/about-60-templates.png" alt="" />
 			</div>
-			<div class="column">
+			<div class="column" style="padding-bottom:0">
 				<h3>
 					<?php _e( 'More Template Choices' ); ?>
 				</h3>
@@ -130,7 +126,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image is-vertically-aligned-center">
+			<div class="column about__image is-vertically-aligned-top">
 				<img src="https://make.wordpress.org/core/files/2022/05/about-60-integrated-patterns.png" alt="" />
 			</div>
 			<div class="column">
@@ -158,13 +154,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php _e( 'New keyboard shortcuts enable you to select multiple blocks from the list view, modify them in bulk, and drag-and-drop them within the list. List View can be opened and closed easily; it comes collapsed by default and it automatically expands to the current selection whenever you select a block.' ); ?>
 				</p>
 			</div>
-			<div class="column about__image is-vertically-aligned-center">
+			<div class="column about__image is-vertically-aligned-top">
 				<img src="https://make.wordpress.org/core/files/2022/05/about-60-list-view.png" alt="" />
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image is-vertically-aligned-center">
+			<div class="column about__image is-vertically-aligned-top">
 				<img src="https://make.wordpress.org/core/files/2022/05/about-60-block-locking-controls.png" alt="" />
 			</div>
 			<div class="column">
@@ -176,6 +172,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</p>
 			</div>
 		</div>
+
+		<hr class="is-large" />
 
 		<div class="about__section" style="margin-bottom:0;">
 			<div class="column">
@@ -256,7 +254,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<hr class="is-large" />
 
 		<div class="about__section has-2-columns is-wider-right">
-			<div class="column about__image is-vertically-aligned-center">
+			<div class="column about__image is-vertically-aligned-top">
 				<a href="#">
 					<img src="https://make.wordpress.org/core/files/2022/05/about-60-video.png" alt="<?php echo esc_attr( __( 'Exploring WordPress 6.0 video' ) ); ?>" />
 				</a>
@@ -284,7 +282,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-3-columns">
-			<div class="column">
+			<div class="column" style="padding-top:0">
 				<p>
 					<?php
 					printf(
@@ -296,7 +294,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
-			<div class="column">
+			<div class="column" style="padding-top:0">
 				<p>
 					<?php
 					printf(
@@ -307,7 +305,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
-			<div class="column">
+			<div class="column" style="padding-top:0">
 				<p>
 					<?php
 					printf(
