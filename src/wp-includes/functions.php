@@ -3503,7 +3503,7 @@ function wp_filesize( $path ) {
 		return $size;
 	}
 
-	$size = (int) @filesize( $path );
+	$size = is_readable( $path ) ? (int) filesize( $path ) : 0;
 
 	/**
 	 * Filters the size of the file.
