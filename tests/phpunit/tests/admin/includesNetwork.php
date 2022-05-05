@@ -18,7 +18,8 @@ class Tests_Admin_IncludesNetwork extends WP_UnitTestCase {
 	 * @covers ::allow_subdomain_install
 	 */
 	public function test_allow_subdomain_install( $expected, $home_value ) {
-		add_filter( 'pre_option_home',
+		add_filter(
+			'pre_option_home',
 			function() use ( $home_value ) {
 				return $home_value;
 			}
@@ -32,62 +33,62 @@ class Tests_Admin_IncludesNetwork extends WP_UnitTestCase {
 	 */
 	public function data_allow_subdomain_install() {
 		return array(
-			'empty string'  => array(
+			'empty string'                      => array(
 				'expected'   => false,
 				'home_value' => '',
 			),
-			'single slash'  => array(
+			'single slash'                      => array(
 				'expected'   => false,
 				'home_value' => '/',
 			),
-			'null'  => array(
+			'null'                              => array(
 				'expected'   => false,
 				'home_value' => null,
-			),				 
-			'number'  => array(
+			),
+			'number'                            => array(
 				'expected'   => false,
 				'home_value' => 123,
-			),				 
-			'localhost'     => array(
+			),
+			'localhost'                         => array(
 				'expected'   => false,
 				'home_value' => 'localhost',
 			),
-			'localhost with https protocol' => array(
+			'localhost with https protocol'     => array(
 				'expected'   => false,
 				'home_value' => 'https://localhost',
 			),
-			'localhost with ftp protocol'     => array(
+			'localhost with ftp protocol'       => array(
 				'expected'   => false,
 				'home_value' => 'ftp://localhost',
 			),
-			'localhost with subdirectory'     => array(
+			'localhost with subdirectory'       => array(
 				'expected'   => false,
 				'home_value' => 'https://localhost/wp',
 			),
-			'valid domain'  => array(
+			'valid domain'                      => array(
 				'expected'   => true,
 				'home_value' => 'https://example.com',
-			),				 
-			'valid domain with http'  => array(
+			),
+			'valid domain with http'            => array(
 				'expected'   => true,
 				'home_value' => 'http://example.com',
-			),				 
+			),
 			'valid domain with a slash as path' => array(
 				'expected'   => true,
 				'home_value' => 'https://example.com/',
-			),				 
-			'valid domain with subdirectory'  => array(
+			),
+			'valid domain with subdirectory'    => array(
 				'expected'   => false,
 				'home_value' => 'https://example.com/wp',
-			),				 
-			'ip address'  => array(
+			),
+			'ip address'                        => array(
 				'expected'   => false,
 				'home_value' => 'https://1.1.1.1',
-			),				 
-			'ip address with path'  => array(
+			),
+			'ip address with path'              => array(
 				'expected'   => false,
 				'home_value' => 'https://1.1.1.1/wp',
-			),				 
+			),
 		);
 	}
 
