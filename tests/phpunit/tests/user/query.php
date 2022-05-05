@@ -2096,7 +2096,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 						'user_status' => '0',
 					),
 				),
-				'semivalid_array' => array(
+				'semivalid_array'     => array(
 					'field'    => array( 'ID', 'display_name', 'invalid_field' ),
 					'expected' => array(
 						'ID'           => '1',
