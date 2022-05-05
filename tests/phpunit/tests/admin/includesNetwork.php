@@ -12,7 +12,6 @@ class Tests_Admin_IncludesNetwork extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/network.php';
 	}
 
-
 	/**
 	 * @dataProvider data_allow_subdomain_install
 	 *
