@@ -1969,6 +1969,52 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53177
+	 * @dataProvider data_returning_field_subset_as_string
+	 *
+	 * @param string $field
+	 * @param mixed $expected_results
+	 */
+	public function test_returning_field_subsset_as_string( string $field, $expected_results ) {
+		$q       = new WP_User_Query(
+			array(
+				'fields'  => $field,
+				'include' => array( '1' ),
+			)
+		);
+		$results = $q->get_results();
+
+		$this->assertSameSets( $expected_results, $results );
+	}
+
+	/**
+	 * Data provider
+	 *
+	 * @return array
+	 */
+	function data_returning_field_subset_as_string() {
+		$data = array(
+			'id'            => array( 'id', array( '1' ) ),
+			'ID'            => array( 'ID', array( '1' ) ),
+			'user_login'    => array( 'user_login', array( 'admin' ) ),
+			'user_nicename' => array( 'user_nicename', array( 'admin' ) ),
+			'user_email'    => array( 'user_email', array( WP_TESTS_EMAIL ) ),
+			'user_url'      => array( 'user_url', array( wp_guess_url() ) ),
+			'user_status'   => array( 'user_status', array( '0' ) ),
+			'display_name'  => array( 'display_name', array( 'admin' ) ),
+			'invalid_field' => array( 'invalid_field', array( '1' ) ),
+		);
+
+		if ( is_multisite() ) {
+			$data['spam']    = array( 'spam', array( '0' ) );
+			$data['deleted'] = array( 'deleted', array( '0' ) );
+		}
+
+		return $data;
+	}
+
+
+	/**
+	 * @ticket 53177
 	 * @dataProvider data_returning_fields
 	 *
 	 * @covers WP_User_Query::prepare_query
