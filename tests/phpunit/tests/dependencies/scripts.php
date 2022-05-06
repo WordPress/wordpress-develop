@@ -609,11 +609,10 @@ JS;
 		$wp_scripts->do_concat    = true;
 		$wp_scripts->default_dirs = array( '/wp-admin/js/', '/wp-includes/js/' ); // Default dirs as in wp-includes/script-loader.php.
 
-		$expected_localized  = "<!--[if gte IE 9]>\n";
-		$expected_localized .= "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n/* ]]> */\n</script>\n";
-		$expected_localized .= "<![endif]-->\n";
-
 		$expected  = "<!--[if gte IE 9]>\n";
+		$expected .= "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n/* ]]> */\n</script>\n";
+		$expected .= "<![endif]-->\n";
+		$expected .= "<!--[if gte IE 9]>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-after'>\nconsole.log(\"after\");\n</script>\n";
@@ -625,9 +624,12 @@ JS;
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 		wp_script_add_data( 'test-example', 'conditional', 'gte IE 9' );
 
-		$this->assertSame( $expected_localized, get_echo( 'wp_print_scripts' ) );
-		$this->assertSame( $expected, $wp_scripts->print_html );
-		$this->assertTrue( $wp_scripts->do_concat );
+		ob_start();
+		wp_print_scripts();
+		_print_scripts();
+		$print_scripts = ob_get_clean();
+
+		$this->assertSame( $expected, $print_scripts );
 	}
 
 	/**
@@ -649,8 +651,10 @@ JS;
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 
+		ob_start();
 		wp_print_scripts();
-		$print_scripts = get_echo( '_print_scripts' );
+		_print_scripts();
+		$print_scripts = ob_get_clean();
 
 		$this->assertSame( $expected, $print_scripts );
 	}
@@ -677,8 +681,10 @@ JS;
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 		wp_script_add_data( 'test-example', 'conditional', 'gte IE 9' );
 
+		ob_start();
 		wp_print_scripts();
-		$print_scripts = get_echo( '_print_scripts' );
+		_print_scripts();
+		$print_scripts = ob_get_clean();
 
 		$this->assertSame( $expected, $print_scripts );
 	}
@@ -703,8 +709,10 @@ JS;
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 
+		ob_start();
 		wp_print_scripts();
-		$print_scripts = get_echo( '_print_scripts' );
+		_print_scripts();
+		$print_scripts = ob_get_clean();
 
 		$this->assertSame( $expected, $print_scripts );
 	}
@@ -733,9 +741,13 @@ JS;
 
 		$ver       = get_bloginfo( 'version' );
 		$suffix    = wp_scripts_get_suffix();
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/vendor/regenerator-runtime.js' id='regenerator-runtime-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/vendor/wp-polyfill.js' id='wp-polyfill-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/dom-ready.js' id='wp-dom-ready-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/hooks.js' id='wp-hooks-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n{$suffix}.js' id='wp-i18n-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='wp-i18n-js-after'>\n";
 		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
@@ -749,12 +761,10 @@ JS;
 		wp_enqueue_script( 'test-example2', 'http://example2.com', array( 'wp-a11y' ), null );
 		wp_add_inline_script( 'test-example2', 'console.log("after");', 'after' );
 
-		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
-		$this->expectOutputRegex( '`.`' );
-
+		ob_start();
 		wp_print_scripts();
 		_print_scripts();
-		$print_scripts = $this->getActualOutput();
+		$print_scripts = ob_get_clean();
 
 		/*
 		 * We've replaced wp-a11y.js with @wordpress/a11y package (see #45066),
@@ -802,12 +812,10 @@ JS;
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
 		wp_add_inline_script( $handle, 'tryCustomizeDependency()' );
 
-		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
-		$this->expectOutputRegex( '`.`' );
-
+		ob_start();
 		wp_print_scripts();
 		_print_scripts();
-		$print_scripts = $this->getActualOutput();
+		$print_scripts = ob_get_clean();
 
 		$tail = substr( $print_scripts, strrpos( $print_scripts, "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'>" ) );
 		$this->assertSame( $expected_tail, $tail );
@@ -1480,5 +1488,32 @@ JS;
 			array( 1, '1', true ),
 			array( false, '[""]' ),
 		);
+	}
+
+	public function test_wp_external_dependency_print_order() {
+		global $wp_scripts;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( '/default/' );
+
+		// Library script in a non-default directory.
+		wp_register_script( 'lib', '/plugins/lib.js', array(), null );
+		// Script in default dir that's going to be concatenated.
+		wp_enqueue_script( 'pre', '/default/pre.js', array(), null );
+		// Script in default dir that depends on the library.
+		wp_enqueue_script( 'foo', '/default/foo.js', array( 'lib' ), null );
+
+		ob_start();
+		wp_print_scripts();
+		_print_scripts();
+		$print_scripts = ob_get_clean();
+
+		// The non-default script should end concatenation and maintain order.
+		$ver       = get_bloginfo( 'version' );
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=pre&amp;ver={$ver}'></script>\n";
+		$expected .= "<script type='text/javascript' src='/plugins/lib.js' id='lib-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/default/foo.js' id='foo-js'></script>\n";
+
+		$this->assertSame( $expected, $print_scripts );
 	}
 }
