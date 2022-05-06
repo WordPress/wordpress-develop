@@ -1972,9 +1972,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @dataProvider data_returning_field_subset_as_string
 	 *
 	 * @param string $field
-	 * @param mixed $expected_results
+	 * @param mixed $expected
 	 */
-	public function test_returning_field_subset_as_string( string $field, $expected_results ) {
+	public function test_returning_field_subset_as_string( string $field, $expected ) {
 		$q       = new WP_User_Query(
 			array(
 				'fields'  => $field,
@@ -1983,7 +1983,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 		$results = $q->get_results();
 
-		$this->assertSameSets( $expected_results, $results );
+		$this->assertSameSets( $expected, $results );
 	}
 
 	/**
@@ -1993,20 +1993,53 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	function data_returning_field_subset_as_string() {
 		$data = array(
-			'id'            => array( 'id', array( '1' ) ),
-			'ID'            => array( 'ID', array( '1' ) ),
-			'user_login'    => array( 'user_login', array( 'admin' ) ),
-			'user_nicename' => array( 'user_nicename', array( 'admin' ) ),
-			'user_email'    => array( 'user_email', array( WP_TESTS_EMAIL ) ),
-			'user_url'      => array( 'user_url', array( wp_guess_url() ) ),
-			'user_status'   => array( 'user_status', array( '0' ) ),
-			'display_name'  => array( 'display_name', array( 'admin' ) ),
-			'invalid_field' => array( 'invalid_field', array( '1' ) ),
+			'id'            => array(
+				'fields'   => 'id',
+				'expected' => array( '1' ),
+			),
+			'ID'            => array(
+				'fields'   => 'ID',
+				'expected' => array( '1' ),
+			),
+			'user_login'    => array(
+				'fields'   => 'user_login',
+				'expected' => array( 'admin' ),
+			),
+			'user_nicename' => array(
+				'fields'   => 'user_nicename',
+				'expected' => array( 'admin' ),
+			),
+			'user_email'    => array(
+				'fields'   => 'user_email',
+				'expected' => array( WP_TESTS_EMAIL ),
+			),
+			'user_url'      => array(
+				'fields'   => 'user_url',
+				'expected' => array( wp_guess_url() ),
+			),
+			'user_status'   => array(
+				'fields'   => 'user_status',
+				'expected' => array( '0' ),
+			),
+			'display_name'  => array(
+				'fields'   => 'display_name',
+				'expected' => array( 'admin' ),
+			),
+			'invalid_field' => array(
+				'fields'   => 'invalid_field',
+				'expected' => array( '1' ),
+			),
 		);
 
 		if ( is_multisite() ) {
-			$data['spam']    = array( 'spam', array( '0' ) );
-			$data['deleted'] = array( 'deleted', array( '0' ) );
+			$data['spam']    = array(
+				'fields'   => 'spam',
+				'expected' => array( '0' ),
+			);
+			$data['deleted'] = array(
+				'fields'   => 'deleted',
+				'expected' => array( '0' ),
+			);
 		}
 
 		return $data;
@@ -2047,7 +2080,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'expected' => array(
 					'id' => '1',
 					'ID' => '1',
-				)
+				),
 			),
 			'ID'                 => array(
 				'fields'   => array( 'ID' ),
