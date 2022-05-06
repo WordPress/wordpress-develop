@@ -94,7 +94,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if ( ! isset( $original['query'] ) ) {
 		$original['query'] = '';
 	}
-	
+
 	$redirect     = $original;
 	$redirect_url = false;
 	$redirect_obj = false;
@@ -584,7 +584,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if ( ! isset( $redirect['path'] ) ) {
 		$redirect['path'] = '';
 	}
-	
+
 	// Handle host.
 	if ( ! empty( $user_home['host'] ) ) {
 		$redirect['host'] = $user_home['host'];
