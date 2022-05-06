@@ -120,7 +120,7 @@
 	position: relative;
 	overflow: auto;
 	margin: 16px 0;
-	background: #2271b1 url(../images/about-texture.png) center repeat;
+	background: #2271b1 url(../images/about-texture.png?ver=6.0.0) center repeat;
 	background-size: 500px 500px;
 	background-blend-mode: overlay;
 	font-size: 14px;
@@ -136,7 +136,7 @@
 	z-index: 0;
 	width: 300px;
 	height: 382px;
-	background: url(../images/about-header-about.svg) no-repeat center;
+	background: url(../images/about-header-about.svg?ver=6.0.0) no-repeat center;
 	background-size: contain;
 }
 
