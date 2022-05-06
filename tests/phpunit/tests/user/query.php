@@ -2120,11 +2120,22 @@ class Tests_User_Query extends WP_UnitTestCase {
 					'id' => '1',
 				),
 			),
-			'valid array'        => array(
-				'fields'   => array( 'display_name', 'user_email' ),
+			'valid array inc id' => array(
+				'fields'   => array( 'display_name', 'user_email', 'id' ),
 				'expected' => array(
 					'display_name' => 'admin',
 					'user_email'   => WP_TESTS_EMAIL,
+					'id'           => '1',
+					'ID'           => '1',
+				),
+			),
+			'valid array inc ID' => array(
+				'fields'   => array( 'display_name', 'user_email', 'ID' ),
+				'expected' => array(
+					'display_name' => 'admin',
+					'user_email'   => WP_TESTS_EMAIL,
+					'id'           => '1',
+					'ID'           => '1',
 				),
 			),
 			'partly valid array' => array(
