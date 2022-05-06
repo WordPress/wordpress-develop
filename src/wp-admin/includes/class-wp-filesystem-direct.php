@@ -487,7 +487,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @return int Size of the file in bytes, 0 otherwise.
 	 */
 	public function size( $file ) {
-		return is_readable( $file ) ? (int) filesize( $file ) : 0;
+		return wp_filesize( $file );
 	}
 
 	/**
