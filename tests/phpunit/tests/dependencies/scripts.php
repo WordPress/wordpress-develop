@@ -1482,6 +1482,10 @@ JS;
 		);
 	}
 
+	/*
+	 * @ticket 55628
+	 * @covers ::wp_set_script_translations
+	 */
 	public function test_wp_external_wp_i18n_print_order() {
 		global $wp_scripts;
 
@@ -1496,10 +1500,12 @@ JS;
 		wp_enqueue_script( 'common', '/default/common.js', array(), null );
 		wp_set_script_translations( 'common' );
 
-		ob_start();
-		wp_print_scripts();
-		_print_scripts();
-		$print_scripts = ob_get_clean();
+		$print_scripts = get_echo(
+			function() {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
 
 		// The non-default script should end concatenation and maintain order.
 		$ver       = get_bloginfo( 'version' );
