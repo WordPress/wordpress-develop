@@ -2017,9 +2017,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @dataProvider data_returning_field_subset_as_array
 	 *
 	 * @param array $field
-	 * @param mixed $expected_results
+	 * @param mixed $expected
 	 */
-	public function test_returning_field_subset_as_array( array $field, $expected_results ) {
+	public function test_returning_field_subset_as_array( array $field, $expected ) {
 		$q       = new WP_User_Query(
 			array(
 				'fields'  => $field,
@@ -2032,7 +2032,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			$results = (array) $results[0];
 		}
 
-		$this->assertSameSetsWithIndex( $expected_results, $results );
+		$this->assertSameSetsWithIndex( $expected, $results );
 	}
 
 	/**
@@ -2042,28 +2042,73 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	function data_returning_field_subset_as_array() {
 		$data = array(
-			'id'                 => array( array( 'id' ), array( 'id' => '1' ) ),
-			'ID'                 => array( array( 'ID' ), array( 'ID' => '1' ) ),
-			'user_login'         => array( array( 'user_login' ), array( 'user_login' => 'admin' ) ),
-			'user_nicename'      => array( array( 'user_nicename' ), array( 'user_nicename' => 'admin' ) ),
-			'user_email'         => array( array( 'user_email' ), array( 'user_email' => WP_TESTS_EMAIL ) ),
-			'user_url'           => array( array( 'user_url' ), array( 'user_url' => wp_guess_url() ) ),
-			'user_status'        => array( array( 'user_status' ), array( 'user_status' => '0' ) ),
-			'display_name'       => array( array( 'display_name' ), array( 'display_name' => 'admin' ) ),
-			'invalid_field'      => array( array( 'invalid_field' ), array( 'ID' => '1' ) ),
+			'id'                 => array(
+				'fields'   => array( 'id' ),
+				'expected' => array(
+					'id' => '1',
+					'ID' => '1',
+				)
+			),
+			'ID'                 => array(
+				'fields'   => array( 'ID' ),
+				'expected' => array(
+					'ID' => '1',
+					'id' => '1',
+				),
+			),
+			'user_login'         => array(
+				'fields'   => array( 'user_login' ),
+				'expected' => array( 'user_login' => 'admin' ),
+			),
+			'user_nicename'      => array(
+				'fields'   => array( 'user_nicename' ),
+				'expected' => array( 'user_nicename' => 'admin' ),
+			),
+			'user_email'         => array(
+				'fields'   => array( 'user_email' ),
+				'expected' => array( 'user_email' => WP_TESTS_EMAIL ),
+			),
+			'user_url'           => array(
+				'fields'   => array( 'user_url' ),
+				'expected' => array( 'user_url' => wp_guess_url() ),
+			),
+			'user_status'        => array(
+				'fields'   => array( 'user_status' ),
+				'expected' => array( 'user_status' => '0' ),
+			),
+			'display_name'       => array(
+				'fields'   => array( 'display_name' ),
+				'expected' => array( 'display_name' => 'admin' ),
+			),
+			'invalid_field'      => array(
+				'fields'   => array( 'invalid_field' ),
+				'expected' => array(
+					'ID' => '1',
+					'id' => '1',
+				),
+			),
 			'valid array'        => array(
-				array( 'display_name', 'user_email' ),
-				array(
+				'fields'   => array( 'display_name', 'user_email' ),
+				'expected' => array(
 					'display_name' => 'admin',
 					'user_email'   => WP_TESTS_EMAIL,
 				),
 			),
-			'partly valid array' => array( array( 'display_name', 'invalid_field' ), array( 'display_name' => 'admin' ) ),
+			'partly valid array' => array(
+				'fields'   => array( 'display_name', 'invalid_field' ),
+				'expected' => array( 'display_name' => 'admin' ),
+			),
 		);
 
 		if ( is_multisite() ) {
-			$data['spam']    = array( 'spam', array( 'spam' => '0' ) );
-			$data['deleted'] = array( 'deleted', array( 'deleted' => '0' ) );
+			$data['spam']    = array(
+				'fields'   => array( 'spam' ),
+				'expected' => array( 'spam' => '0' ),
+			);
+			$data['deleted'] = array(
+				'fields'   => array( 'deleted' ),
+				'expected' => array( 'deleted' => '0' ),
+			);
 		}
 
 		return $data;

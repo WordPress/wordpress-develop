@@ -829,8 +829,14 @@ class WP_User_Query {
 		if ( ! $this->results ) {
 			return;
 		}
-
-		if ( 'all_with_meta' === $qv['fields'] ) {
+		if (
+			is_array( $qv['fields'] ) &&
+			isset( $this->results[0]->ID )
+		) {
+			foreach ( $this->results as $result ) {
+				$result->id = $result->ID;
+			}
+		} elseif ( 'all_with_meta' === $qv['fields'] ) {
 			cache_users( $this->results );
 
 			$r = array();
