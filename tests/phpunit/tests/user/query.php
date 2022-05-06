@@ -1974,7 +1974,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @param string $field
 	 * @param mixed $expected
 	 */
-	public function test_returning_field_subset_as_string( string $field, $expected ) {
+	public function test_returning_field_subset_as_string( $field, $expected ) {
 		$q       = new WP_User_Query(
 			array(
 				'fields'  => $field,
@@ -2052,7 +2052,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @param array $field
 	 * @param mixed $expected
 	 */
-	public function test_returning_field_subset_as_array( array $field, $expected ) {
+	public function test_returning_field_subset_as_array( $field, $expected ) {
 		$q       = new WP_User_Query(
 			array(
 				'fields'  => $field,
