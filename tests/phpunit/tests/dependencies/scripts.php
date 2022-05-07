@@ -1482,7 +1482,7 @@ JS;
 		);
 	}
 
-	/*
+	/**
 	 * @ticket 55628
 	 * @covers ::wp_set_script_translations
 	 */
