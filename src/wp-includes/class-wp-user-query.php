@@ -276,13 +276,20 @@ class WP_User_Query {
 
 		$allowed_fields = array(
 			'ID',
-			'display_name',
 			'user_login',
+			'user_pass',
 			'user_nicename',
 			'user_email',
 			'user_url',
 			'user_registered',
+			'user_activation_key',
+			'user_status',
+			'display_name',
 		);
+		if ( is_multisite() ) {
+			$allowed_fields[] = 'spam';
+			$allowed_fields[] = 'deleted';
+		}
 
 		if ( is_array( $qv['fields'] ) ) {
 			$qv['fields'] = array_intersect( array_unique( $qv['fields'] ), $allowed_fields );
