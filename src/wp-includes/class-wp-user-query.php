@@ -230,6 +230,11 @@ class WP_User_Query {
 	 *                                                - 'user_email'
 	 *                                                - 'user_url'
 	 *                                                - 'user_registered'
+	 *                                                - 'user_pass'
+	 *                                                - 'user_activation_key'
+	 *                                                - 'user_status'
+	 *                                                - 'spam' (only available on multisite installs)
+	 *                                                - 'deleted' (only available on multisite installs)
 	 *                                                - 'all' for all fields
 	 *                                                - 'all_with_meta' to include meta fields.
 	 *                                                Default 'all'.
