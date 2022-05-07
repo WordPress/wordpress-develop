@@ -595,7 +595,7 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  *
  * @since 5.3.1
  *
- * @param WP_Block_Parser_Block $block A single parsed block object.
+ * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
  * @return string String of rendered HTML.
  */
 function serialize_block( $block ) {
@@ -623,7 +623,7 @@ function serialize_block( $block ) {
  *
  * @since 5.3.1
  *
- * @param WP_Block_Parser_Block[] $blocks Parsed block objects.
+ * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
  * @return string String of rendered HTML.
  */
 function serialize_blocks( $blocks ) {
@@ -1325,7 +1325,10 @@ function build_comment_query_vars_from_block( $block ) {
 			} elseif ( 'oldest' === $default_page ) {
 				$comment_args['paged'] = 1;
 			} elseif ( 'newest' === $default_page ) {
-				$comment_args['paged'] = (int) ( new WP_Comment_Query( $comment_args ) )->max_num_pages;
+				$max_num_pages = (int) ( new WP_Comment_Query( $comment_args ) )->max_num_pages;
+				if ( 0 !== $max_num_pages ) {
+					$comment_args['paged'] = $max_num_pages;
+				}
 			}
 			// Set the `cpage` query var to ensure the previous and next pagination links are correct
 			// when inheriting the Discussion Settings.

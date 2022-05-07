@@ -10385,6 +10385,11 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "minimum": 1,
                             "required": false
+                        },
+                        "slug": {
+                            "description": "Limit results to those matching a pattern (slug).",
+                            "type": "array",
+                            "required": false
                         }
                     }
                 }

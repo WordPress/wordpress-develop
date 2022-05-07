@@ -1969,15 +1969,12 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53177
-	 *
-	 * @param $field
-	 * @param $expected
-	 *
-	 * @return void
-	 *
 	 * @dataProvider data_returning_fields
 	 *
 	 * @covers WP_User_Query::prepare_query
+	 *
+	 * @param $field
+	 * @param $expected
 	 */
 	public function test_returning_fields( $field, $expected_values ) {
 		$q       = new WP_User_Query(
@@ -2100,8 +2097,6 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53177
-	 *
-	 * @return void
 	 *
 	 * @covers WP_User_Query::prepare_query
 	 */
