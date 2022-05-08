@@ -403,12 +403,14 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * Data provider for test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined
 	 *
 	 * @see test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined()
+	 * @test
+	 * @ticket 54738
 	 *
 	 * @return Generator
 	 */
 	public function data_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined() {
 		yield 'Content-Type header in the response' => array(
-			function(){
+			function () {
 				return array(
 					'response' => array(
 						'code' => 200,
@@ -418,11 +420,11 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 					),
 				);
 			},
-			'.jpg'
+			'.jpg',
 		);
 
 		yield 'Invalid Content-Type header' => array(
-			function(){
+			function () {
 				return array(
 					'response' => array(
 						'code' => 200,
@@ -432,11 +434,11 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 					),
 				);
 			},
-			'.tmp'
+			'.tmp',
 		);
 
 		yield 'Valid content type but not supported mime type' => array(
-			function(){
+			function () {
 				return array(
 					'response' => array(
 						'code' => 200,
@@ -446,7 +448,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 					),
 				);
 			},
-			'.tmp'
+			'.tmp',
 		);
 	}
 }
