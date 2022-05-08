@@ -828,6 +828,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 			'icon'            => 'text',
 			'category'        => 'common',
 			'render_callback' => 'foo',
+			'ancestor'        => array( 'core/test-ancestor' ),
 		);
 
 		register_block_type( $name, $settings );
@@ -843,9 +844,13 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 				'title'       => '',
 				'description' => '',
 				'icon'        => 'text',
+				'attributes'  => array(
+					'lock' => array( 'type' => 'object' ),
+				),
 				'usesContext' => array(),
 				'category'    => 'common',
 				'styles'      => array(),
+				'ancestor'    => array( 'core/test-ancestor' ),
 				'keywords'    => array(),
 				'variations'  => array(),
 			),
