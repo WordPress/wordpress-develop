@@ -968,7 +968,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
 
-	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.2', 1 );
+	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.3', 1 );
 	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.4.1', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
@@ -2933,7 +2933,6 @@ function wp_enqueue_block_support_styles( $style ) {
  *
  * @param string $block_name The block-name, including namespace.
  * @param array  $args       An array of arguments [handle,src,deps,ver,media].
- * @return void
  */
 function wp_enqueue_block_style( $block_name, $args ) {
 	$args = wp_parse_args(
@@ -3057,6 +3056,11 @@ function wp_enqueue_block_style( $block_name, $args ) {
  * @access private
  */
 function _wp_theme_json_webfonts_handler() {
+	// Block themes are unavailable during installation.
+	if ( wp_installing() ) {
+		return;
+	}
+
 	// Webfonts to be processed.
 	$registered_webfonts = array();
 
@@ -3193,14 +3197,14 @@ function _wp_theme_json_webfonts_handler() {
 
 		// Check the font-family.
 		if ( empty( $webfont['font-family'] ) || ! is_string( $webfont['font-family'] ) ) {
-			trigger_error( __( 'Webfont font family must be a non-empty string.', 'gutenberg' ) );
+			trigger_error( __( 'Webfont font family must be a non-empty string.' ) );
 
 			return false;
 		}
 
 		// Check that the `src` property is defined and a valid type.
 		if ( empty( $webfont['src'] ) || ( ! is_string( $webfont['src'] ) && ! is_array( $webfont['src'] ) ) ) {
-			trigger_error( __( 'Webfont src must be a non-empty string or an array of strings.', 'gutenberg' ) );
+			trigger_error( __( 'Webfont src must be a non-empty string or an array of strings.' ) );
 
 			return false;
 		}
@@ -3208,7 +3212,7 @@ function _wp_theme_json_webfonts_handler() {
 		// Validate the `src` property.
 		foreach ( (array) $webfont['src'] as $src ) {
 			if ( ! is_string( $src ) || '' === trim( $src ) ) {
-				trigger_error( __( 'Each webfont src must be a non-empty string.', 'gutenberg' ) );
+				trigger_error( __( 'Each webfont src must be a non-empty string.' ) );
 
 				return false;
 			}
@@ -3216,7 +3220,7 @@ function _wp_theme_json_webfonts_handler() {
 
 		// Check the font-weight.
 		if ( ! is_string( $webfont['font-weight'] ) && ! is_int( $webfont['font-weight'] ) ) {
-			trigger_error( __( 'Webfont font weight must be a properly formatted string or integer.', 'gutenberg' ) );
+			trigger_error( __( 'Webfont font weight must be a properly formatted string or integer.' ) );
 
 			return false;
 		}
