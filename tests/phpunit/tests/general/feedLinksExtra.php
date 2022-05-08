@@ -510,4 +510,73 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 		$expected .= ' href="http://example.org/?feed=foo&#038;p=' . self::$post_with_comment_id . '" />' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
+
+	/**
+	 * @ticket 54703
+	 */
+	public function test_feed_links_extra_should_output_nothing_when_show_comments_feed_filter_returns_false() {
+		add_filter( 'feed_links_show_comments_feed', '__return_false' );
+
+		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
+		$this->assertEmpty( get_echo( 'feed_links_extra' ) );
+	}
+
+	/**
+	 * @dataProvider data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy
+	 *
+	 * @ticket 54703
+	 *
+	 * @param string $callback The callback to use for the 'post_comments_feed_link' filter.
+	 */
+	public function test_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy( $callback ) {
+		add_filter( 'post_comments_feed_link', $callback );
+
+		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
+		$this->assertEmpty( get_echo( 'feed_links_extra' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy() {
+		return array(
+			'empty string' => array( 'callback' => '__return_empty_string' ),
+			'empty array'  => array( 'callback' => '__return_empty_array' ),
+			'zero int'     => array( 'callback' => '__return_zero' ),
+			'zero float'   => array( 'callback' => array( $this, 'cb_return_zero_float' ) ),
+			'zero string'  => array( 'callback' => array( $this, 'cb_return_zero_string' ) ),
+			'null'         => array( 'callback' => '__return_null' ),
+			'false'        => array( 'callback' => '__return_false' ),
+		);
+	}
+
+	/**
+	 * Callback that returns 0.0.
+	 *
+	 * @return float 0.0.
+	 */
+	public function cb_return_zero_float() {
+		return 0.0;
+	}
+
+	/**
+	 * Callback that returns '0'.
+	 *
+	 * @return string '0'.
+	 */
+	public function cb_return_zero_string() {
+		return '0';
+	}
+
+	/**
+	 * @ticket 54703
+	 */
+	public function test_feed_links_extra_should_output_the_comments_feed_link_when_show_comments_feed_filter_returns_true() {
+		add_filter( 'feed_links_show_comments_feed', '__return_true' );
+
+		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
+		$this->assertNotEmpty( get_echo( 'feed_links_extra' ) );
+	}
 }

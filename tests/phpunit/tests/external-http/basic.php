@@ -10,7 +10,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_readme_php_version() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
@@ -31,7 +31,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_readme_mysql_version() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
@@ -63,7 +63,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_readme_mariadb_version() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
