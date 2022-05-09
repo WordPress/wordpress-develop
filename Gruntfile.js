@@ -1247,6 +1247,11 @@ module.exports = function(grunt) {
 		 */
 		grunt.task.run( 'wp-packages:refresh-deps' );
 
+		/*
+		 * Refresh the PHP files referring to stable @wordpress/block-library blocks.
+		 */
+		grunt.task.run( 'wp-packages:sync-stable-blocks' );
+
 		// Build the files stored in the src/ directory.
 		grunt.task.run( 'build:dev' );
 	} );
@@ -1693,6 +1698,14 @@ module.exports = function(grunt) {
 		const distTag = grunt.option('dist-tag') || 'latest';
 		grunt.log.writeln( `Updating versions of dependencies listed in package.json (--dist-tag=${distTag})` );
 		spawn( 'node', [ 'tools/release/sync-gutenberg-packages.js', `--dist-tag=${distTag}` ], {
+			cwd: __dirname,
+			stdio: 'inherit',
+		} );
+	} );
+
+	grunt.registerTask( 'wp-packages:sync-stable-blocks', 'Refresh the PHP files referring to stable @wordpress/block-library blocks.', function() {
+		grunt.log.writeln( `Syncing stable blocks from @wordpress/block-library to src/` );
+		spawn( 'node', [ 'tools/release/sync-stable-blocks.js' ], {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
