@@ -1675,7 +1675,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'wp-packages:update', 'Update WordPress packages', function() {
 		const distTag = grunt.option('dist-tag') || 'latest';
 		grunt.log.writeln( `Updating WordPress packages (--dist-tag=${distTag})` );
-		spawn( 'npx', [ 'wp-scripts', 'packages-update', '--', `--dist-tag=${distTag}` ], {
+		spawn( 'npx', [ 'wp-scripts', 'packages-update', `--dist-tag=${distTag}` ], {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
