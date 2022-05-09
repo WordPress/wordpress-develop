@@ -16,7 +16,7 @@ const BLOCK_LIBRARY_SRC = 'node_modules/@wordpress/block-library/src/';
  * Refreshes the PHP files referring to stable @wordpress/block-library blocks.
  */
 function main() {
-	const blocks = getBlocksJsonPaths().map( readEnrichedMetadata ).filter( isStable );
+	const blocks = getStableBlocksMetadata();
 
 	// wp-includes/blocks/require-blocks.php
 	console.log( 'Refreshing wp-includes/blocks/require-blocks.php...' );
@@ -93,8 +93,9 @@ function isDynamic( metadata ) {
  * @return {string} Parent directory name.
  */
 function toDirectoryName( metadata ) {
+	const pathSegments = metadata.path.split( "/" );
 	return (
-		metadata.name.replace( 'core/', '' )
+		pathSegments[ pathSegments.length - 2 ]
 	);
 }
 
