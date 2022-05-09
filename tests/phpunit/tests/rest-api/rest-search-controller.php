@@ -333,6 +333,21 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 55674
+	 * Make sure post ids are primed.
+	 */
+	public function test_get_items_search_prime_ids() {
+		global $wpdb;
+		$this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'foocontent',
+			)
+		);
+		$this->assertStringContainsString( 'WHERE ID IN', $wpdb->last_query );
+	}
+
+	/**
 	 * Test retrieving a single item isn't possible.
 	 */
 	public function test_get_item() {
