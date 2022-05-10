@@ -1248,7 +1248,7 @@ module.exports = function(grunt) {
 		grunt.task.run( 'wp-packages:refresh-deps' );
 
 		// Build the files stored in the src/ directory.
-		grunt.task.run( 'build:dev' );
+		grunt.task.run( 'build' );
 	} );
 
 	grunt.renameTask( 'watch', '_watch' );
