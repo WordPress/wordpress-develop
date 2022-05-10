@@ -2365,6 +2365,7 @@ EOF;
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		add_filter(
 			'wp_content_img_tag',
@@ -2890,8 +2891,6 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_filter_content_tags_width_height() {
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
-
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
