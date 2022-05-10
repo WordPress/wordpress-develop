@@ -612,9 +612,9 @@
 }
 
 .credits-php .about__header {
-	--about-header-image-width: 334px;
-	--about-header-image-height: 329px;
-	--about-header-bg-offset-inline: var(--gap);
+	--about-header-image-width: 477px;
+	--about-header-image-height: 470px;
+	--about-header-bg-offset-inline: calc(var(--gap) * -4);
 
 	background-image: url('../images/about-header-credits.svg');
 	background-position: right var(--about-header-bg-offset-inline) top var(--gap);
