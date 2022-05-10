@@ -56,7 +56,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-2-columns">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="https://make.wordpress.org/core/files/2022/05/about-60-writing-improvements.png" alt="" />
+				<img src="https://s.w.org/images/core/6.0/about-60-writing-improvements.png" alt="" />
 			</div>
 			<div class="column">
 				<h3>
@@ -85,13 +85,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</p>
 			</div>
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="https://make.wordpress.org/core/files/2022/05/about-60-style-switcher.gif" alt="" />
+				<img src="https://s.w.org/images/core/6.0/about-60-style-switching.gif" alt="" />
 			</div>
 		</div>
 
 		<div class="about__section has-1-column">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="https://make.wordpress.org/core/files/2022/05/about-60-templates.png" alt="" />
+				<img src="https://s.w.org/images/core/6.0/about-60-templates.png" alt="" />
 			</div>
 			<div class="column" style="padding-bottom:0">
 				<h3>
@@ -106,20 +106,20 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="https://make.wordpress.org/core/files/2022/05/about-60-sub-feature-1.png" alt="" />
+					<img src="https://s.w.org/images/core/6.0/about-60-sub-feature-1.png" alt="" />
 				</div>
 				<p><?php _e( 'Featured images can be used in the cover block.' ); ?></p>
 				<p><?php _e( 'New featured image sizing controls make it easier to get the results you want.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="https://make.wordpress.org/core/files/2022/05/about-60-sub-feature-2.png" alt="" />
+					<img src="https://s.w.org/images/core/6.0/about-60-sub-feature-2.png" alt="" />
 				</div>
 				<p><?php _e( 'While editing a template, at the root, or between blocks, the quick inserter shows you patterns and template parts to help you work faster and discover new layout options.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="https://make.wordpress.org/core/files/2022/05/about-60-sub-feature-3.png" alt="" />
+					<img src="https://s.w.org/images/core/6.0/about-60-sub-feature-3.png" alt="" />
 				</div>
 				<p><?php _e( 'The query block supports filtering on multiple authors, support for custom taxonomies, and support for customizing what is shown when there are no results.' ); ?></p>
 			</div>
@@ -127,7 +127,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-2-columns is-wider-left">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="https://make.wordpress.org/core/files/2022/05/about-60-integrated-patterns.png" alt="" />
+				<img src="https://s.w.org/images/core/6.0/about-60-integrated-patterns.png" alt="" />
 			</div>
 			<div class="column">
 				<h3>
@@ -155,13 +155,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</p>
 			</div>
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="https://make.wordpress.org/core/files/2022/05/about-60-list-view.png" alt="" />
+				<img src="https://s.w.org/images/core/6.0/about-60-list-view.png" alt="" />
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns is-wider-left">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="https://make.wordpress.org/core/files/2022/05/about-60-block-locking-controls.png" alt="" />
+				<img src="https://s.w.org/images/core/6.0/about-60-block-locking-controls.png" alt="" />
 			</div>
 			<div class="column">
 				<h3>
@@ -256,7 +256,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns is-wider-right">
 			<div class="column about__image is-vertically-aligned-top">
 				<a href="#">
-					<img src="https://make.wordpress.org/core/files/2022/05/about-60-video.png" alt="<?php echo esc_attr( __( 'Exploring WordPress 6.0 video' ) ); ?>" />
+					<img src="https://s.w.org/images/core/6.0/about-60-video.png" alt="<?php echo esc_attr( __( 'Exploring WordPress 6.0 video' ) ); ?>" />
 				</a>
 			</div>
 			<div class="column">
