@@ -815,8 +815,6 @@ function unregister_taxonomy_for_object_type( $taxonomy, $object_type ) {
  *
  * @since 2.3.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @param int|int[]       $term_ids   Term ID or array of term IDs of terms that will be used.
  * @param string|string[] $taxonomies String of taxonomy name or Array of string values of taxonomy names.
  * @param array|string    $args       Change the order of the object IDs, either ASC or DESC.
@@ -824,46 +822,27 @@ function unregister_taxonomy_for_object_type( $taxonomy, $object_type ) {
  *                           WP_Error if the taxonomy does not exist.
  */
 function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
-	global $wpdb;
-
 	if ( ! is_array( $term_ids ) ) {
 		$term_ids = array( $term_ids );
 	}
 	if ( ! is_array( $taxonomies ) ) {
 		$taxonomies = array( $taxonomies );
 	}
-	foreach ( (array) $taxonomies as $taxonomy ) {
-		if ( ! taxonomy_exists( $taxonomy ) ) {
-			return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
-		}
-	}
 
-	$defaults = array( 'order' => 'ASC' );
-	$args     = wp_parse_args( $args, $defaults );
+	$defaults = array(
+		'taxonomy'               => $taxonomies,
+		'include'                => $term_ids,
+		'update_term_meta_cache' => false,
+		'fields'                 => 'object_id',
+		'orderby'                => 'object_id',
+		'suppress_filter'        => true,
+		'hide_empty'             => false,
+		'order'                  => 'ASC',
+	);
 
-	$order = ( 'desc' === strtolower( $args['order'] ) ) ? 'DESC' : 'ASC';
+	$args = wp_parse_args( $args, $defaults );
 
-	$term_ids = array_map( 'intval', $term_ids );
-
-	$taxonomies = "'" . implode( "', '", array_map( 'esc_sql', $taxonomies ) ) . "'";
-	$term_ids   = "'" . implode( "', '", $term_ids ) . "'";
-
-	$sql = "SELECT tr.object_id FROM $wpdb->term_relationships AS tr INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tt.term_id IN ($term_ids) ORDER BY tr.object_id $order";
-
-	$last_changed = wp_cache_get_last_changed( 'terms' );
-	$cache_key    = 'get_objects_in_term:' . md5( $sql ) . ":$last_changed";
-	$cache        = wp_cache_get( $cache_key, 'terms' );
-	if ( false === $cache ) {
-		$object_ids = $wpdb->get_col( $sql );
-		wp_cache_set( $cache_key, $object_ids, 'terms' );
-	} else {
-		$object_ids = (array) $cache;
-	}
-
-	if ( ! $object_ids ) {
-		return array();
-	}
-	return $object_ids;
+	return get_terms( $args );
 }
 
 /**
