@@ -175,6 +175,6 @@
 		"test:php": "node ./tools/local-env/scripts/docker.js run -T php composer update -W && node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit",
 		"test:e2e": "node ./tests/e2e/run-tests.js",
 		"test:visual": "node ./tests/visual-regression/run-tests.js",
-		"sync-gutenberg-packages": "grunt sync-gutenberg-packages"
+		"sync-gutenberg-packages": "grunt sync-gutenberg-packages --dev"
 	}
 }

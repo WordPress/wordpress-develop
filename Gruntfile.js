@@ -1219,6 +1219,14 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'sync-gutenberg-packages', function() {
+		if ( ! grunt.option( 'dev' ) ) {
+			console.log( 'You must manually pass the --dev flag to the sync-gutenberg-packages task as follows:' );
+			console.log( 'npx grunt sync-gutenberg-packages --dev' );
+			console.log( 'Otherwise the webpack build tasks are executed in the production mode and do not ');
+			console.log( 'regenerate the src/wp-includes/assets/script-loader-packages.php.' );
+			process.exit( 0 );
+		}
+
 		/*
 		 * Browserlist database should be updated when the packages are
 		 * being updated to their latest version in the trunk branch.
@@ -1249,11 +1257,7 @@ module.exports = function(grunt) {
 		 */
 		grunt.task.run( 'wp-packages:refresh-deps' );
 
-		grunt.task.run( 'build' );
-
 		// Build the files stored in the src/ directory.
-		// Set the --dev option to true
-		grunt.option( 'dev', true );
 		grunt.task.run( 'build' );
 	} );
 
