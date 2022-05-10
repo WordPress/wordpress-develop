@@ -339,10 +339,10 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_search_prime_ids() {
 		$action = new MockAction();
 		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
+		// 'foocontent' was searched in test_get_items_search_for_foocontent, ids should be primed already.
 		$response  = $this->do_request_with_params(
 			array(
 				'per_page' => 100,
-				'type'     => 'post',
 				'search'   => 'foocontent',
 			)
 		);
