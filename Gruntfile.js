@@ -1227,24 +1227,22 @@ module.exports = function(grunt) {
 			process.exit( 0 );
 		}
 
-		/*
-		 * Browserlist database should be updated when the packages are
-		 * being updated to their latest version in the trunk branch.
-		 *
-		 * It should not happen during the patch releases. Otherwise,
-		 * we'd be changing the supported browsers of a WP release on patch release.
-		 *
-		 * For more context, see:
-		 *
-		 * https://github.com/WordPress/gutenberg/issues/33344
-		 * https://core.trac.wordpress.org/ticket/55559
-		 */
-		const distTag = grunt.option('dist-tag') || 'latest';
-		const currentBranch = spawn( 'git', [ 'branch', '--show-current' ], {
-			cwd: __dirname,
-		} ).stdout.toString().trim();
-
-		if ( distTag === 'latest' && currentBranch === 'trunk' ) {
+		if ( grunt.option( 'update-browserlist' ) ) {
+			/*
+			 * Updating the browserlist database is opt-in and up to the release lead.
+			 *
+			 * Browserlist database should be updated:
+			 * - In each release cycle up until RC1
+			 * - If Webpack throws a warning about an outdated database
+			 *
+			 * It should not be updated:
+			 * - After the RC1
+			 * - When backporting fixes to older WordPress releases.
+			 *
+			 * For more context, see:
+			 * https://github.com/WordPress/wordpress-develop/pull/2621#discussion_r859840515
+			 * https://core.trac.wordpress.org/ticket/55559
+			 */
 			grunt.task.run( 'browserslist:update' );
 		}
 
