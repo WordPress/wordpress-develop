@@ -1250,7 +1250,9 @@ module.exports = function(grunt) {
 		grunt.task.run( 'build' );
 
 		// Build the files stored in the src/ directory.
-		grunt.task.run( 'build:dev' );
+		// Set the --dev option to true
+		grunt.option( 'dev', true );
+		grunt.task.run( 'build' );
 	} );
 
 	grunt.renameTask( 'watch', '_watch' );
