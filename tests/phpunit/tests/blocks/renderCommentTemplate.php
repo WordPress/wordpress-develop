@@ -66,7 +66,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				'orderby'       => 'comment_date_gmt',
 				'order'         => 'ASC',
@@ -123,7 +123,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 		$block = new WP_Block( $parsed_blocks[0] );
 
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				'orderby'       => 'comment_date_gmt',
 				'order'         => 'ASC',
@@ -389,8 +389,7 @@ END
 
 		add_filter( 'wp_get_current_commenter', $commenter_filter );
 
-		$this->assertEquals(
-			build_comment_query_vars_from_block( $block ),
+		$this->assertSameSetsWithIndex(
 			array(
 				'orderby'            => 'comment_date_gmt',
 				'order'              => 'ASC',
@@ -401,7 +400,8 @@ END
 				'hierarchical'       => 'threaded',
 				'number'             => 5,
 				'paged'              => 1,
-			)
+			),
+			build_comment_query_vars_from_block( $block )
 		);
 	}
 }
