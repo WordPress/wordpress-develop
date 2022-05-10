@@ -612,8 +612,8 @@
 }
 
 .credits-php .about__header {
-	--about-header-image-width: 390px;
-	--about-header-image-height: 325px;
+	--about-header-image-width: 334px;
+	--about-header-image-height: 329px;
 	--about-header-bg-offset-inline: var(--gap);
 
 	background-image: url('../images/about-header-credits.svg');
@@ -621,20 +621,21 @@
 }
 
 .freedoms-php .about__header {
-	--about-header-image-width: 380px;
-	--about-header-image-height: 278px;
+	--about-header-image-width: 411px;
+	--about-header-image-height: 498px;
 	--about-header-bg-offset-inline: var(--gap);
 
 	background-image: url('../images/about-header-freedoms.svg');
-	background-position: right var(--about-header-bg-offset-inline) bottom;
+	background-position: right var(--about-header-bg-offset-inline) top calc(var(--gap) * 4);
 }
 
 .privacy-php .about__header {
-	--about-header-image-width: 503px;
-	--about-header-image-height: 553px;
-	--about-header-bg-offset-inline: calc(var(--gap) * -2);
+	--about-header-image-width: 277px;
+	--about-header-image-height: 361px;
+	--about-header-bg-offset-inline: var(--gap);
 
 	background-image: url('../images/about-header-privacy.svg');
+	background-position: right var(--about-header-bg-offset-inline) top var(--gap);
 }
 
 .about__header-image {
