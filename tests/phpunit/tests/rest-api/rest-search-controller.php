@@ -337,14 +337,18 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Make sure post ids are primed.
 	 */
 	public function test_get_items_search_prime_ids() {
-		global $wpdb;
-		$this->do_request_with_params(
+		$action = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
+		$response  = $this->do_request_with_params(
 			array(
 				'per_page' => 100,
+				'type'     => 'post',
 				'search'   => 'foocontent',
 			)
 		);
-		$this->assertStringContainsString( 'WHERE ID IN', $wpdb->last_query );
+		$args      = $action->get_args();
+		$last_args = end( $args );
+		$this->assertSameSets( wp_list_pluck( $response->get_data(), 'id' ), $last_args[1], 'Ensure that post ids are primed' );
 	}
 
 	/**
