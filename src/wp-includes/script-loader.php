@@ -968,7 +968,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
 
-	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.2', 1 );
+	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.3', 1 );
 	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.4.1', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
@@ -2933,7 +2933,6 @@ function wp_enqueue_block_support_styles( $style ) {
  *
  * @param string $block_name The block-name, including namespace.
  * @param array  $args       An array of arguments [handle,src,deps,ver,media].
- * @return void
  */
 function wp_enqueue_block_style( $block_name, $args ) {
 	$args = wp_parse_args(
@@ -3057,6 +3056,11 @@ function wp_enqueue_block_style( $block_name, $args ) {
  * @access private
  */
 function _wp_theme_json_webfonts_handler() {
+	// Block themes are unavailable during installation.
+	if ( wp_installing() ) {
+		return;
+	}
+
 	// Webfonts to be processed.
 	$registered_webfonts = array();
 

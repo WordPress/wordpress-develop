@@ -93,7 +93,7 @@ class WP_Comment_Query {
 	 * List of comments located by the query.
 	 *
 	 * @since 4.0.0
-	 * @var array
+	 * @var int[]|WP_Comment[]
 	 */
 	public $comments;
 
@@ -374,7 +374,7 @@ class WP_Comment_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return int|array List of comments or number of found comments if `$count` argument is true.
+	 * @return int|int[]|WP_Comment[] List of comments or number of found comments if `$count` argument is true.
 	 */
 	public function get_comments() {
 		global $wpdb;
@@ -595,7 +595,7 @@ class WP_Comment_Query {
 					// Otherwise we match against email addresses.
 					if ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
 						// Only include requested comment.
-						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' AND comment_ID = %d )", $unapproved_identifier, (int) $_GET['unapproved'] );
+						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' AND {$wpdb->comments}.comment_ID = %d )", $unapproved_identifier, (int) $_GET['unapproved'] );
 					} else {
 						// Include all of the author's unapproved comments.
 						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' )", $unapproved_identifier );

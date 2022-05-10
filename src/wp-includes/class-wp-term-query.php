@@ -457,6 +457,14 @@ class WP_Term_Query {
 				"tt.taxonomy IN ('" . implode( "', '", array_map( 'esc_sql', $taxonomies ) ) . "')";
 		}
 
+		if ( empty( $args['exclude'] ) ) {
+			$args['exclude'] = array();
+		}
+
+		if ( empty( $args['include'] ) ) {
+			$args['include'] = array();
+		}
+
 		$exclude      = $args['exclude'];
 		$exclude_tree = $args['exclude_tree'];
 		$include      = $args['include'];
@@ -699,7 +707,17 @@ class WP_Term_Query {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param string[] $clauses    Array of query SQL clauses.
+		 * @param string[] $clauses {
+		 *     Associative array of the clauses for the query.
+		 *
+		 *     @type string $fields   The SELECT clause of the query.
+		 *     @type string $join     The JOIN clause of the query.
+		 *     @type string $where    The WHERE clause of the query.
+		 *     @type string $distinct The DISTINCT clause of the query.
+		 *     @type string $orderby  The ORDER BY clause of the query.
+		 *     @type string $order    The ORDER clause of the query.
+		 *     @type string $limits   The LIMIT clause of the query.
+		 * }
 		 * @param string[] $taxonomies An array of taxonomy names.
 		 * @param array    $args       An array of term query arguments.
 		 */
@@ -941,7 +959,7 @@ class WP_Term_Query {
 	 * @since 6.0.0
 	 *
 	 * @param WP_Term[] $term_objects Array of term objects.
-	 * @param string $_fields Field to format.
+	 * @param string    $_fields      Field to format.
 	 *
 	 * @return WP_Term[]|int[]|string[] Array of terms / strings / ints depending on field requested.
 	 */
