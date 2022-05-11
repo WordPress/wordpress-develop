@@ -3491,10 +3491,10 @@ function wp_preload_links() {
 			continue;
 		}
 
-		foreach ( $unique_urls as $atts ) {
+		foreach ( $unique_urls as $unique_atts ) {
 			$html = '';
 
-			foreach ( $atts as $attr => $value ) {
+			foreach ( $unique_atts as $attr => $value ) {
 				/**
 				 * Ignore not supported attributes.
 				 */
@@ -3509,13 +3509,13 @@ function wp_preload_links() {
 				}
 
 				// imagesrcset only usable when preloading image, ignore otherwise.
-				if ( ( 'imagesrcset' === $attr ) && ( ! isset( $atts['as'] ) || ( 'image' !== $atts['as'] ) ) ) {
+				if ( ( 'imagesrcset' === $attr ) && ( ! isset( $unique_atts['as'] ) || ( 'image' !== $unique_atts['as'] ) ) ) {
 					continue;
 				}
 
 				// imagesizes only usable when preloading image and imagesrcset present, ignore otherwise.
 				if ( ( 'imagesizes' === $attr )
-					&& ( ! isset( $atts['as'] ) || ( 'image' !== $atts['as'] ) || ! isset( $atts['imagesrcset'] ) )
+					&& ( ! isset( $unique_atts['as'] ) || ( 'image' !== $unique_atts['as'] ) || ! isset( $unique_atts['imagesrcset'] ) )
 				) {
 					continue;
 				}
