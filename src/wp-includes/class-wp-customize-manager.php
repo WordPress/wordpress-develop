@@ -500,7 +500,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @global string $pagenow
+	 * @global string $pagenow The filename of the current screen.
 	 */
 	public function setup_theme() {
 		global $pagenow;
@@ -607,7 +607,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @global string $pagenow
+	 * @global string $pagenow The filename of the current screen.
 	 */
 	public function establish_loaded_changeset() {
 		global $pagenow;
@@ -1806,32 +1806,35 @@ final class WP_Customize_Manager {
 	 * from the current changeset post and from the incoming post data.
 	 *
 	 * @since 3.4.0
-	 * @since 4.1.1 Introduced the `$default` parameter.
-	 * @since 4.6.0 `$default` is now returned early when the setting post value is invalid.
+	 * @since 4.1.1 Introduced the `$default_value` parameter.
+	 * @since 4.6.0 `$default_value` is now returned early when the setting post value is invalid.
 	 *
 	 * @see WP_REST_Server::dispatch()
 	 * @see WP_REST_Request::sanitize_params()
 	 * @see WP_REST_Request::has_valid_params()
 	 *
-	 * @param WP_Customize_Setting $setting A WP_Customize_Setting derived object.
-	 * @param mixed                $default Value returned $setting has no post value (added in 4.2.0)
-	 *                                      or the post value is invalid (added in 4.6.0).
-	 * @return string|mixed Sanitized value or the $default provided.
+	 * @param WP_Customize_Setting $setting       A WP_Customize_Setting derived object.
+	 * @param mixed                $default_value Value returned if `$setting` has no post value (added in 4.2.0)
+	 *                                            or the post value is invalid (added in 4.6.0).
+	 * @return string|mixed Sanitized value or the `$default_value` provided.
 	 */
-	public function post_value( $setting, $default = null ) {
+	public function post_value( $setting, $default_value = null ) {
 		$post_values = $this->unsanitized_post_values();
 		if ( ! array_key_exists( $setting->id, $post_values ) ) {
-			return $default;
+			return $default_value;
 		}
+
 		$value = $post_values[ $setting->id ];
 		$valid = $setting->validate( $value );
 		if ( is_wp_error( $valid ) ) {
-			return $default;
+			return $default_value;
 		}
+
 		$value = $setting->sanitize( $value );
 		if ( is_null( $value ) || is_wp_error( $value ) ) {
-			return $default;
+			return $default_value;
 		}
+
 		return $value;
 	}
 
@@ -2232,13 +2235,14 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 * @deprecated 4.7.0
 	 *
-	 * @param mixed $return Value passed through for {@see 'wp_die_handler'} filter.
-	 * @return mixed Value passed through for {@see 'wp_die_handler'} filter.
+	 * @param callable|null $callback Optional. Value passed through for {@see 'wp_die_handler'} filter.
+	 *                                Default null.
+	 * @return callable|null Value passed through for {@see 'wp_die_handler'} filter.
 	 */
-	public function remove_preview_signature( $return = null ) {
+	public function remove_preview_signature( $callback = null ) {
 		_deprecated_function( __METHOD__, '4.7.0' );
 
-		return $return;
+		return $callback;
 	}
 
 	/**
@@ -3266,6 +3270,7 @@ final class WP_Customize_Manager {
 		if ( ! $changeset_post_id ) {
 			return;
 		}
+
 		$lock = get_post_meta( $changeset_post_id, '_edit_lock', true );
 		$lock = explode( ':', $lock );
 
@@ -3283,14 +3288,19 @@ final class WP_Customize_Manager {
 	 * Filters heartbeat settings for the Customizer.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @global string $pagenow The filename of the current screen.
+	 *
 	 * @param array $settings Current settings to filter.
 	 * @return array Heartbeat settings.
 	 */
 	public function add_customize_screen_to_heartbeat_settings( $settings ) {
 		global $pagenow;
+
 		if ( 'customize.php' === $pagenow ) {
 			$settings['screenId'] = 'customize';
 		}
+
 		return $settings;
 	}
 
@@ -3306,10 +3316,13 @@ final class WP_Customize_Manager {
 		if ( ! $user_id ) {
 			return null;
 		}
+
 		$lock_user = get_userdata( $user_id );
+
 		if ( ! $lock_user ) {
 			return null;
 		}
+
 		return array(
 			'id'     => $lock_user->ID,
 			'name'   => $lock_user->display_name,

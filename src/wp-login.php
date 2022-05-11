@@ -422,7 +422,10 @@ function wp_login_viewport_meta() {
 	<?php
 }
 
-// Check request and redirect.
+/*
+ * Main part: check the request and redirect or display a form based on the current action.
+ */
+
 $action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'login';
 $errors = new WP_Error();
 
@@ -904,7 +907,17 @@ switch ( $action ) {
 
 		$errors = new WP_Error();
 
-		if ( isset( $_POST['pass1'] ) && $_POST['pass1'] !== $_POST['pass2'] ) {
+		// Check if password is one or all empty spaces.
+		if ( ! empty( $_POST['pass1'] ) ) {
+			$_POST['pass1'] = trim( $_POST['pass1'] );
+
+			if ( empty( $_POST['pass1'] ) ) {
+				$errors->add( 'password_reset_empty_space', __( 'The password cannot be a space or all spaces.' ) );
+			}
+		}
+
+		// Check if password fields do not match.
+		if ( ! empty( $_POST['pass1'] ) && trim( $_POST['pass2'] ) !== $_POST['pass1'] ) {
 			$errors->add( 'password_reset_mismatch', __( '<strong>Error</strong>: The passwords do not match.' ) );
 		}
 
@@ -941,7 +954,7 @@ switch ( $action ) {
 				</p>
 
 				<div class="wp-pwd">
-					<input type="password" data-reveal="1" data-pw="<?php echo esc_attr( wp_generate_password( 16 ) ); ?>" name="pass1" id="pass1" class="input password-input" size="24" value="" autocomplete="off" aria-describedby="pass-strength-result" />
+					<input type="password" data-reveal="1" data-pw="<?php echo esc_attr( wp_generate_password( 16 ) ); ?>" name="pass1" id="pass1" class="input password-input" size="24" value="" autocomplete="new-password" aria-describedby="pass-strength-result" />
 
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
@@ -956,7 +969,7 @@ switch ( $action ) {
 
 			<p class="user-pass2-wrap">
 				<label for="pass2"><?php _e( 'Confirm new password' ); ?></label>
-				<input type="password" name="pass2" id="pass2" class="input" size="20" value="" autocomplete="off" />
+				<input type="password" name="pass2" id="pass2" class="input" size="20" value="" autocomplete="new-password" />
 			</p>
 
 			<p class="description indicator-hint"><?php echo wp_get_password_hint(); ?></p>

@@ -440,6 +440,26 @@ final class WP_Post_Type {
 		 */
 		$args = apply_filters( 'register_post_type_args', $args, $this->name );
 
+		$post_type = $this->name;
+
+		/**
+		 * Filters the arguments for registering a specific post type.
+		 *
+		 * The dynamic portion of the filter name, `$post_type`, refers to the post type key.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `register_post_post_type_args`
+		 *  - `register_page_post_type_args`
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param array  $args      Array of arguments for registering a post type.
+		 *                          See the register_post_type() function for accepted arguments.
+		 * @param string $post_type Post type key.
+		 */
+		$args = apply_filters( "register_{$post_type}_post_type_args", $args, $this->name );
+
 		$has_edit_link = ! empty( $args['_edit_link'] );
 
 		// Args prefixed with an underscore are reserved for internal use.
