@@ -109,7 +109,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			),
 			build_comment_query_vars_from_block( $block )
 		);
-		update_option( 'page_comments', true );
 	}
 
 	/**
@@ -187,9 +186,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			),
 			build_comment_query_vars_from_block( $block )
 		);
-
-		update_option( 'comments_per_page', $comments_per_page );
-		update_option( 'default_comments_page', $default_comments_page );
 	}
 
 
