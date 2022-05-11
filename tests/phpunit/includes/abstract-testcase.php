@@ -187,6 +187,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		$this->_restore_hooks();
 		wp_set_current_user( 0 );
+
+		// Reset comments globals.
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		foreach ( $comment_globals as $global ) {
+			$GLOBALS[ $global ] = null;
+		}
 	}
 
 	/**
