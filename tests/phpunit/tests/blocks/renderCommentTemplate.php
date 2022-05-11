@@ -308,7 +308,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			'',
 			<<<END
 				<ol class="wp-block-comment-template">
-					<li id="comment-{$top_level_ids[0]}" class="comment odd alt thread-odd thread-alt depth-1">
+					<li id="comment-{$top_level_ids[0]}" class="comment even thread-even depth-1">
 						<div class="wp-block-comment-author-name">
 							<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 								Test
@@ -318,7 +318,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 							<p>Hello world</p>
 						</div>
 						<ol>
-							<li id="comment-{$first_level_ids[0]}" class="comment even depth-2">
+							<li id="comment-{$first_level_ids[0]}" class="comment odd alt depth-2">
 								<div class="wp-block-comment-author-name">
 									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 										Test
@@ -328,7 +328,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 									<p>Hello world</p>
 								</div>
 								<ol>
-									<li id="comment-{$second_level_ids[0]}" class="comment odd alt depth-3">
+									<li id="comment-{$second_level_ids[0]}" class="comment even depth-3">
 										<div class="wp-block-comment-author-name">
 											<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 												Test
@@ -340,7 +340,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 									</li>
 								</ol>
 							</li>
-							<li id="comment-{$first_level_ids[1]}" class="comment even depth-2">
+							<li id="comment-{$first_level_ids[1]}" class="comment odd alt depth-2">
 								<div class="wp-block-comment-author-name">
 									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 										Test
@@ -390,7 +390,7 @@ END
 		$expected_content = "<p>Paragraph One</p>\n<p>P2L1<br />\nP2L2</p>\n<p><a href=\"https://example.com/\" rel=\"nofollow ugc\">https://example.com/</a></p>\n";
 
 		$this->assertSame(
-			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment odd alt thread-even depth-1"><div class="wp-block-comment-content">' . $expected_content . '</div></li></ol>',
+			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-content">' . $expected_content . '</div></li></ol>',
 			$block->render()
 		);
 	}
@@ -475,7 +475,7 @@ END
 		add_filter( 'wp_get_current_commenter', $commenter_filter );
 
 		$this->assertSame(
-			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-odd thread-alt depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li><li id="comment-' . $unapproved_comment[0] . '" class="comment odd alt thread-even depth-1"><div class="wp-block-comment-author-name">Visitor</div><div class="wp-block-comment-content"><p><em class="comment-awaiting-moderation">Your comment is awaiting moderation.</em></p>Hi there! My comment needs moderation.</div></li></ol>',
+			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li><li id="comment-' . $unapproved_comment[0] . '" class="comment odd alt thread-odd thread-alt depth-1"><div class="wp-block-comment-author-name">Visitor</div><div class="wp-block-comment-content"><p><em class="comment-awaiting-moderation">Your comment is awaiting moderation.</em></p>Hi there! My comment needs moderation.</div></li></ol>',
 			str_replace( array( "\n", "\t" ), '', $block->render() ),
 			'Should include unapproved comments when filter applied'
 		);
@@ -484,7 +484,7 @@ END
 
 		// Test it again and ensure the unmoderated comment doesn't leak out.
 		$this->assertSame(
-			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-odd thread-alt depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li></ol>',
+			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li></ol>',
 			str_replace( array( "\n", "\t" ), '', $block->render() ),
 			'Should not include any unapproved comments after removing filter'
 		);
