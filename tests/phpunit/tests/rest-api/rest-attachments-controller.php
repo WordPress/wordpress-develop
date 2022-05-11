@@ -619,6 +619,31 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $id2, $data[0]['id'] );
 	}
 
+	/**
+	 * @ticket 55677
+	 */
+	public function test_get_items_avoid_duplicated_count_query_if_no_items() {
+		// Enable database queries logging.
+		if ( ! defined( 'SAVEQUERIES' ) ) {
+			define( 'SAVEQUERIES', true );
+		}
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_type', 'text' );
+		rest_get_server()->dispatch( $request );
+
+		global $wpdb;
+
+		// Extract all raw queries ran during the API request.
+		$raw_queries = array();
+		foreach ( $wpdb->queries as $query ) {
+			$raw_queries[] = $query[0];
+		}
+
+		// Check raw queries don't have any duplicates.
+		$this->assertTrue( count( $raw_queries ) === count( array_unique( $raw_queries ) ) );
+	}
+
 	public function test_get_item() {
 		$attachment_id = $this->factory->attachment->create_object(
 			$this->test_file,
