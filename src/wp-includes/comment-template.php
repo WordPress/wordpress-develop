@@ -2360,7 +2360,7 @@ function comment_form( $args = array(), $post_id = null ) {
 	$checked_attribute  = ( $html5 ? ' checked' : ' checked="checked"' );
 
 	// Identify required fields visually.
-	$required_indicator = ' <span class="required" aria-hidden="true">*</span>';
+	$required_indicator = ' <span class="required">*</span>';
 
 	$fields = array(
 		'author' => sprintf(
@@ -2427,7 +2427,7 @@ function comment_form( $args = array(), $post_id = null ) {
 
 	$required_text = sprintf(
 		/* translators: %s: Asterisk symbol (*). */
-		' <span class="required-field-message" aria-hidden="true">' . __( 'Required fields are marked %s' ) . '</span>',
+		' <span class="required-field-message">' . __( 'Required fields are marked %s' ) . '</span>',
 		trim( $required_indicator )
 	);
 
