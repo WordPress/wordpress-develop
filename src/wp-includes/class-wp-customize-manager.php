@@ -5676,6 +5676,7 @@ final class WP_Customize_Manager {
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
 			esc_url( __( 'https://wordpress.org/support/article/css/' ) ),
 			__( 'Learn more about CSS' ),
+			/* translators: Accessibility text. */
 			__( '(opens in a new tab)' )
 		);
 		$section_description .= '</p>';
