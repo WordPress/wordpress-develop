@@ -723,7 +723,7 @@ function wp_update_themes( $extra_stats = array() ) {
 		 * The dynamic portion of the hook name, `$hostname`, refers to the hostname
 		 * of the URI specified in the `Update URI` header field.
 		 *
-		 * @since 6.0.0
+		 * @since 6.1.0
 		 *
 		 * @param array|false $update {
 		 *     The theme update data with the latest details. Default false.
