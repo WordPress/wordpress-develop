@@ -19,13 +19,45 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	private static $custom_post;
 	private static $comment_ids;
 	private static $per_page = 5;
+	/**
+	 * Array of the comments options and their original values.
+	 * Used to rest the options after each test.
+	 *
+	 * @var array
+	 */
+	private static $original_options;
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Store the original option values.
+		$options = array(
+			'comment_order',
+			'comments_per_page',
+			'default_comments_page',
+			'page_comments',
+			'previous_default_page',
+			'thread_comments_depth',
+		);
+		foreach ( $options as $option ) {
+			static::$original_options[ $option ] = get_option( $option );
+		}
+	}
+
+	public function tear_down() {
+		// Reset the comment options to their original values.
+		foreach ( static::$original_options as $option => $original_value ) {
+			update_option( $option, $original_value );
+		}
+
+		parent::tear_down();
+	}
 
 	public function set_up() {
 		parent::set_up();
 
 		update_option( 'page_comments', true );
 		update_option( 'comments_per_page', self::$per_page );
-		update_option( 'comment_order', 'ASC' );
 
 		self::$custom_post = self::factory()->post->create_and_get(
 			array(
