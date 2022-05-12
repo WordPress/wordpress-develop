@@ -29,6 +29,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	private $test_file2;
 
+	/**
+	 * @var array The recording of the raw queries being run.
+	 */
+	protected $raw_queries;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin_id  = $factory->user->create(
 			array(
@@ -85,6 +90,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$orig_file2       = DIR_TESTDATA . '/images/codeispoetry.png';
 		$this->test_file2 = get_temp_dir() . 'codeispoetry.png';
 		copy( $orig_file2, $this->test_file2 );
+
+		$this->raw_queries = array();
+		add_filter( 'posts_clauses', array( $this, 'save_raw_queries' ), 10, 2 );
 	}
 
 	public function tear_down() {
@@ -104,6 +112,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		}
 
 		parent::tear_down();
+	}
+
+	public function save_raw_queries( $clauses, WP_Query $query ) {
+		$this->raw_queries[] = $query->request;
+
+		return $clauses;
 	}
 
 	public function test_register_routes() {
@@ -623,25 +637,23 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 55677
 	 */
 	public function test_get_items_avoid_duplicated_count_query_if_no_items() {
-		// Enable database queries logging.
-		if ( ! defined( 'SAVEQUERIES' ) ) {
-			define( 'SAVEQUERIES', true );
-		}
-
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'media_type', 'text' );
 		rest_get_server()->dispatch( $request );
 
-		global $wpdb;
+		$this->assertCount( 1, $this->raw_queries );
+	}
 
-		// Extract all raw queries ran during the API request.
-		$raw_queries = array();
-		foreach ( $wpdb->queries as $query ) {
-			$raw_queries[] = $query[0];
-		}
+	/**
+	 * @ticket 55677
+	 */
+	public function test_get_items_with_empty_page_runs_count_query_after() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_type', 'text' );
+		$request->set_param( 'page', 2 );
+		rest_get_server()->dispatch( $request );
 
-		// Check raw queries don't have any duplicates.
-		$this->assertTrue( count( $raw_queries ) === count( array_unique( $raw_queries ) ) );
+		$this->assertCount( 2, $this->raw_queries );
 	}
 
 	public function test_get_item() {
