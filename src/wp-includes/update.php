@@ -751,7 +751,7 @@ function wp_update_themes( $extra_stats = array() ) {
 		 * }
 		 * @param array       $theme_data       Theme headers.
 		 * @param string      $theme_stylesheet Theme stylesheet.
-		 * @param array       $locales          Installed locales to look translations for.
+		 * @param array       $locales          Installed locales to look up translations for.
 		 */
 		$update = apply_filters( "update_themes_{$hostname}", false, $theme_data, $theme_stylesheet, $locales );
 
