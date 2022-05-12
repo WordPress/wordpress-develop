@@ -9,6 +9,8 @@ class Tests_Admin_IncludesNetwork extends WP_UnitTestCase {
 	 * Set up test assets before the class.
 	 */
 	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
 		require_once ABSPATH . 'wp-admin/includes/network.php';
 	}
 
