@@ -638,7 +638,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_get_items_avoid_duplicated_count_query_if_no_items() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		$request->set_param( 'media_type', 'text' );
+		$request->set_param( 'media_type', 'video' );
 		rest_get_server()->dispatch( $request );
 
 		$this->assertCount( 1, $this->raw_queries );
@@ -649,7 +649,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_get_items_with_empty_page_runs_count_query_after() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		$request->set_param( 'media_type', 'text' );
+		$request->set_param( 'media_type', 'video' );
 		$request->set_param( 'page', 2 );
 		rest_get_server()->dispatch( $request );
 
