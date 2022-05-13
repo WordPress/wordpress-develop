@@ -1452,8 +1452,10 @@ switch ( $action ) {
 					echo esc_html( $login_link_separator );
 				}
 
+				$lost_password_link = sprintf( '<a href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
+
+				echo apply_filters( 'lost_password_link', $lost_password_link );
 				?>
-				<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php _e( 'Lost your password?' ); ?></a>
 			</p>
 			<?php
 		}
