@@ -1428,6 +1428,9 @@ ul.cat-checklist {
 	background-color: #fff;
 	border: 1px solid #dcdcde;
 	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .plugin-card:nth-child(odd) {
@@ -2110,6 +2113,11 @@ div.action-links,
 	.wp-list-table.plugins .theme-title {
 		padding-top: 13px;
 		padding-bottom: 4px;
+	}
+	
+	.plugins #the-list {
+		display: flex;
+		flex-wrap: wrap;
 	}
 
 	.plugins #the-list tr > td:not(:last-child),
