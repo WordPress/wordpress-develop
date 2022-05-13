@@ -4376,7 +4376,6 @@ function wp_enqueue_media( $args = array() ) {
 	 *                           for default behavior.
 	 */
 	$show_months_select = apply_filters( 'show_media_library_months_select', true );
- 	$months = null;
 	$months = apply_filters( 'media_library_months_with_files', null );
 	if ( $show_months_select === true ) {
 		if ( ! is_array( $months ) ) {
