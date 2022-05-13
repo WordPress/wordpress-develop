@@ -125,7 +125,7 @@ if ( ! function_exists( 'ini_parse_quantity' ) ) :
 	 *     ini_parse_quantity( "2K" ) == 2048 // 2 * 1024
 	 *     ini_parse_quantity( "0.5g" ) == 0
 	 *     ini_parse_quantity( "14.6e-13g" ) == 15032385536 // 14 * 1024^3
-	 *     ini_parse_quantity( "-813k" ) == 0;
+	 *     ini_parse_quantity( "-813k" ) == -832512; // -813 * 1024
 	 *     ini_parse_quantity( "boat" ) == 0;
 	 *
 	 *     // This gives an answer, but it's _wrong_ because
