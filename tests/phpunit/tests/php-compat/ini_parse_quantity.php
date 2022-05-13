@@ -1,50 +1,48 @@
 <?php
 
-defined( 'IS_32_BIT_SYSTEM' ) || define( 'IS_32_BIT_SYSTEM', 2147483647 === PHP_INT_MAX );
-
 /**
  * Tests for PHP compatability functions.
  *
  * @group php-compat.php
- * @covers ::wp_ini_bytes
+ * @covers ::wp_ini_parse_quantity
  */
-class Tests_PHP_Compat_wpIniBytes extends WP_UnitTestCase {
+class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {
 	public function test_unset_limit_is_no_limit() {
-		$this->assertEquals( 0, wp_ini_bytes( false ) );
+		$this->assertEquals( 0, wp_ini_parse_quantity( false ) );
 	}
 
 	public function test_absent_limit_is_no_limit() {
-		$this->assertEquals( 0, wp_ini_bytes( -1 ) );
+		$this->assertEquals( 0, wp_ini_parse_quantity( -1 ) );
 	}
 
 	public function test_invalid_data_is_no_limit() {
-		$this->assertEquals( 0, wp_ini_bytes( true ) );
-		$this->assertEquals( 0, wp_ini_bytes( false ) );
-		$this->assertEquals( 0, wp_ini_bytes( array( 1, 2, 3 ) ) );
-		$this->assertEquals( 0, wp_ini_bytes( new stdClass ) );
+		$this->assertEquals( 0, wp_ini_parse_quantity( true ) );
+		$this->assertEquals( 0, wp_ini_parse_quantity( false ) );
+		$this->assertEquals( 0, wp_ini_parse_quantity( array( 1, 2, 3 ) ) );
+		$this->assertEquals( 0, wp_ini_parse_quantity( new stdClass ) );
 	}
 
 	public function test_returns_already_parsed_values() {
-		$this->assertEquals( 15, wp_ini_bytes( 15 ) );
+		$this->assertEquals( 15, wp_ini_parse_quantity( 15 ) );
 	}
 
 	public function test_clamped_to_max_int_before_suffix() {
 		if ( IS_32_BIT_SYSTEM ) {
-			$this->assertEquals( PHP_INT_MAX, wp_ini_bytes( '2147483648' ) );
-			$this->assertEquals( PHP_INT_MIN, wp_ini_bytes( '-2147483649' ) );
+			$this->assertEquals( PHP_INT_MAX, wp_ini_parse_quantity( '2147483648' ) );
+			$this->assertEquals( PHP_INT_MIN, wp_ini_parse_quantity( '-2147483649' ) );
 		} else {
-			$this->assertEquals( PHP_INT_MAX, wp_ini_bytes( '9223372036854775808' ) );
-			$this->assertEquals( PHP_INT_MIN, wp_ini_bytes( '-9223372036854775809' ) );
+			$this->assertEquals( PHP_INT_MAX, wp_ini_parse_quantity( '9223372036854775808' ) );
+			$this->assertEquals( PHP_INT_MIN, wp_ini_parse_quantity( '-9223372036854775809' ) );
 		}
 	}
 
 	public function test_suffix_math_may_overflow() {
 		if ( IS_32_BIT_SYSTEM ) {
-			$this->assertNotEquals( PHP_INT_MAX, wp_ini_bytes( '2147483648g' ) );
-			$this->assertNotEquals( PHP_INT_MIN, wp_ini_bytes( '-2147483648g' ) );
+			$this->assertNotEquals( PHP_INT_MAX, wp_ini_parse_quantity( '2147483648g' ) );
+			$this->assertNotEquals( PHP_INT_MIN, wp_ini_parse_quantity( '-2147483648g' ) );
 		} else {
-			$this->assertNotEquals( PHP_INT_MAX, wp_ini_bytes( '9223372036854775807g' ) );
-			$this->assertNotEquals( PHP_INT_MIN, wp_ini_bytes( '-9223372036854775807g' ) );
+			$this->assertNotEquals( PHP_INT_MAX, wp_ini_parse_quantity( '9223372036854775807g' ) );
+			$this->assertNotEquals( PHP_INT_MIN, wp_ini_parse_quantity( '-9223372036854775807g' ) );
 		}
 	}
 
@@ -59,7 +57,7 @@ class Tests_PHP_Compat_wpIniBytes extends WP_UnitTestCase {
 	 * @param $expected
 	 */
 	public function test_parse_matches_php_internal_value( $value, $expected ) {
-		$this->assertEquals( $expected, wp_ini_bytes( $value ) );
+		$this->assertEquals( $expected, wp_ini_parse_quantity( $value ) );
 	}
 
 	public function data_php_numeric_strings() {

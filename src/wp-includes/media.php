@@ -3787,8 +3787,8 @@ function wp_expand_dimensions( $example_width, $example_height, $max_width, $max
  * @return int Allowed upload size.
  */
 function wp_max_upload_size() {
-	$u_bytes = wp_ini_bytes( ini_get( 'upload_max_filesize' ) );
-	$p_bytes = wp_ini_bytes( ini_get( 'post_max_size' ) );
+	$u_bytes = wp_ini_parse_quantity( ini_get( 'upload_max_filesize' ) );
+	$p_bytes = wp_ini_parse_quantity( ini_get( 'post_max_size' ) );
 
 	/**
 	 * Filters the maximum upload size allowed in php.ini.
@@ -3799,7 +3799,7 @@ function wp_max_upload_size() {
 	 * @param int $u_bytes Maximum upload filesize in bytes.
 	 * @param int $p_bytes Maximum size of POST data in bytes.
 	 */
-	return apply_filters( 'upload_size_limit', min( $u_bytes, $p_bytes ), $u_bytes, $p_bytes );
+	return apply_filters( 'upload_size_limit', wp_ini_quantity_min( $u_bytes, $p_bytes ), $u_bytes, $p_bytes );
 }
 
 /**

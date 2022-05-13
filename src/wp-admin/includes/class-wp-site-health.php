@@ -2163,7 +2163,7 @@ class WP_Site_Health {
 		$post_max_size       = ini_get( 'post_max_size' );
 		$upload_max_filesize = ini_get( 'upload_max_filesize' );
 
-		if ( wp_ini_bytes( $post_max_size ) < wp_ini_bytes( $upload_max_filesize ) ) {
+		if ( wp_ini_quantity_cmp( $post_max_size, $upload_max_filesize ) < 0 ) {
 			$result['label'] = sprintf(
 				/* translators: 1: post_max_size, 2: upload_max_filesize */
 				__( 'The "%1$s" value is smaller than "%2$s"' ),
@@ -2172,7 +2172,7 @@ class WP_Site_Health {
 			);
 			$result['status'] = 'recommended';
 
-			if ( 0 === wp_ini_bytes( $post_max_size ) ) {
+			if ( 0 === wp_ini_parse_quantity( $post_max_size ) ) {
 				$result['description'] = sprintf(
 					'<p>%s</p>',
 					sprintf(

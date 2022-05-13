@@ -50,7 +50,7 @@ class Tests_Load_wpConvertHrToBytes extends WP_UnitTestCase {
 			 * Note that this is not the value that PHP uses internally.
 			 * PHP interprets the value as 128, not 128 MiB.
 			 *
-			 * @see wp_ini_bytes()
+			 * @see wp_ini_parse_quantity()
 			 */
 			array( '128m ', 134217728 ),
 			array( '1024', 1024 ), // No letter will be interpreted as integer value.

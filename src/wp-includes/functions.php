@@ -7454,16 +7454,14 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 		return false;
 	}
 
-	$current_limit     = ini_get( 'memory_limit' );
-	$current_limit_int = wp_ini_bytes( $current_limit );
+	$current_limit = ini_get( 'memory_limit' );
 
-	if ( -1 === $current_limit_int ) {
+	if ( 0 === wp_ini_parse_quantity( $current_limit ) ) {
 		return false;
 	}
 
-	$wp_max_limit     = WP_MAX_MEMORY_LIMIT;
-	$wp_max_limit_int = wp_ini_bytes( $wp_max_limit );
-	$filtered_limit   = $wp_max_limit;
+	$wp_max_limit   = WP_MAX_MEMORY_LIMIT;
+	$filtered_limit = $wp_max_limit;
 
 	switch ( $context ) {
 		case 'admin':
@@ -7523,20 +7521,19 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			break;
 	}
 
-	$filtered_limit_int = wp_ini_bytes( $filtered_limit );
-
-	if ( -1 === $filtered_limit || ( $filtered_limit_int > $wp_max_limit_int && $filtered_limit_int > $current_limit_int ) ) {
-		if ( false !== ini_set( 'memory_limit', $filtered_limit ) ) {
-			return $filtered_limit;
-		} else {
-			return false;
-		}
-	} elseif ( -1 === $wp_max_limit || $wp_max_limit_int > $current_limit_int ) {
-		if ( false !== ini_set( 'memory_limit', $wp_max_limit ) ) {
-			return $wp_max_limit;
-		} else {
-			return false;
-		}
+	if (
+		wp_ini_quantity_cmp( $filtered_limit, WP_MAX_MEMORY_LIMIT ) > 0 &&
+		wp_ini_quantity_cmp( $filtered_limit, $current_limit ) > 0
+	) {
+		return false !== ini_set( 'memory_limit', $filtered_limit )
+			? $filtered_limit
+			: false;
+	} elseif (
+		wp_ini_quantity_cmp( WP_MAX_MEMORY_LIMIT, $current_limit ) > 0
+	) {
+		return false !== ini_set( 'memory_limit', WP_MAX_MEMORY_LIMIT )
+			? WP_MAX_MEMORY_LIMIT
+			: false;
 	}
 
 	return false;

@@ -1,28 +1,37 @@
 <?php
 
-define( 'IS_32_BIT_SYSTEM', (int) 2147483648 !== 2147483648 );
+defined( 'IS_32_BIT_SYSTEM' ) || define( 'IS_32_BIT_SYSTEM', 2147483647 === PHP_INT_MAX );
 defined( 'PHP_INT_MAX' ) || define( 'PHP_INT_MAX', IS_32_BIT_SYSTEM ? 2147483647 : 9223372036854775807 );
 defined( 'PHP_INT_MIN' ) || define( 'PHP_INT_MIN', IS_32_BIT_SYSTEM ? -2147483648 : -9223372036854775808 );
 
-/**
+/*
  * Returns byte size represented in a numeric php.ini directive.
+ *
+ * Generally this can be used in combination with `ini_get( $option )`
+ * for values that accept a numeric "byte" size, such as `post_max_size`.
+ * It will return the value which PHP interprets from the "shorthand"
+ * syntax, such as "128m" being 128 MiB and "128mb" being 128 B.
  *
  * @param false|int|string $value
  * @return int
  */
-function wp_ini_bytes( $value ) {
-	//  A missing value is an implicit lack of limit, thus we return `0`, meaning "no limit."
-	if ( ! wp_ini_bytes_is_present( $value ) ) {
+function wp_ini_parse_quantity( $value ) {
+	// A missing value is an implicit lack of limit, thus we return `0`, meaning "no limit."
+	if ( false === $value ) {
 		return 0;
 	}
 
 	/*
-	 * If passed an already-parsed value return it directly. This makes
-	 * it cheap to pass values that may have already been parsed and
-	 * removes the need to track whether that has already happened.
+	 * Directly return pre-parsed values so we can repeatedly call
+	 * this without worrying if we already have for a given value.
 	 */
 	if ( is_int( $value ) ) {
-		return $value;
+		/*
+		 * All negative values imply no limit, so instead of
+		 * returning the negative, return the real "no limit"
+		 * value instead.
+		 */
+		return max( 0, $value );
 	}
 
 	/*
@@ -33,15 +42,54 @@ function wp_ini_bytes( $value ) {
 		return 0;
 	}
 
-	return php_compat_ini_bytes( $value );
+	return ini_parse_quantity( $value );
 }
 
-function wp_ini_bytes_is_present( $value ) {
-	return -1 !== $value && false !== $value;
+function wp_ini_quantity_max( $a, $b ) {
+	return wp_ini_quantity_cmp( $a, $b ) >= 0 ? $a : $b;
+}
+
+function wp_ini_quantity_min( $a, $b ) {
+	return wp_ini_quantity_cmp( $a, $b ) <= 0 ? $a : $b;
 }
 
 /**
- * Returns byte size represented in a numeric php.ini directive.
+ * Comparator for php.ini quantity values, can be used
+ * as the callback for functions such as `usort()`.
+ *
+ * Example:
+ *     $a  <  $b => -1
+ *     $a === $b =>  0
+ *     $a  >  $b =>  1
+ *
+ * @param int|string|false $a Quantity being compared.
+ * @param int|string|false $b Quantity against which $a is compared.
+ * @return int
+ */
+function wp_ini_quantity_cmp( $a, $b ) {
+	$a_scalar = wp_ini_parse_quantity( $a );
+	$b_scalar = wp_ini_parse_quantity( $b );
+
+	if ( $a_scalar === $b_scalar ) {
+		return 0;
+	}
+
+	// No limit on $a means it's at least as big as $b.
+	if ( 0 === $a_scalar ) {
+		return 1;
+	}
+
+	// Any limit on $a means it's smaller than a no-limit $b.
+	if ( 0 === $b_scalar ) {
+		return -1;
+	}
+
+	return $a_scalar > $b_scalar ? 1 : -1;
+}
+
+if ( ! function_exists( 'ini_parse_quantity' ) ):
+/**
+ * Returns quantity represented by a php.ini directive's "byte size shorthand."
  *
  * php.ini directives may use a string representation of a number of bytes
  * or a "shorthand" byte size to reference larger values. Multiple numeric
@@ -49,52 +97,56 @@ function wp_ini_bytes_is_present( $value ) {
  *
  * Example:
  *
- *     php_compat_ini_bytes( "1m" ) == 1048576
- *     php_compat_ini_bytes( "2K" ) == 2048 // 2 * 1024
- *     php_compat_ini_bytes( "0.5g" ) == 0
- *     php_compat_ini_bytes( "14.6e-13g" ) == 15032385536 // 14 * 1024^3
- *     php_compat_ini_bytes( "-813k" ) == 0;
- *     php_compat_ini_bytes( "boat" ) == 0;
+ *     ini_parse_quantity( "1m" ) == 1048576
+ *     ini_parse_quantity( "2K" ) == 2048 // 2 * 1024
+ *     ini_parse_quantity( "0.5g" ) == 0
+ *     ini_parse_quantity( "14.6e-13g" ) == 15032385536 // 14 * 1024^3
+ *     ini_parse_quantity( "-813k" ) == 0;
+ *     ini_parse_quantity( "boat" ) == 0;
  *
  *     // This gives an answer, but it's _wrong_ because
  *     // the underlying mechanism in PHP overflowed and
  *     // the real return value depends on whether PHP
  *     // was built with 64-bit support.
- *     php_compat_ini_bytes( "9223372036854775807g" ) == ??
+ *     ini_parse_quantity( "9223372036854775807g" ) == ??
  *
  * Notes:
- *  - Suffix units are case-insensitive and are always determined
- *    by looking at the last character in the input string.
- *  - Suffix units k/m/g report powers of 1024. PHP and the IEC disagree
- *    on the meaning of "kilobyte," "megabyte," and "gigabyte."
- *  - This function will not fail; it stops parsing after finding
- *    the last consecutive digit at the front of the trimmed string.
- *  - Invalid string representations return a value of 0.
- *  - As noted in the PHP documentation, any numeric value that overflows
- *    an integer for the platform on which PHP is built will break.
+ *  - Suffixes are specifically _the last character_ and case-insensitive.
+ *  - Suffixes k/m/g intentionally report powers of 1024 to agree with PHP.
+ *  - This function does not fail on invalid input; it returns `0` in such cses.
+ *  - As noted in the PHP documentation, overflow behavior is unspecified and
+ *    platform-dependant. Values that trigger overflow are likely wrong
  *
- * @since 6.1.0
+ * @since 6.1.
  *
  * @link https://www.php.net/manual/en/function.ini-get.php
  * @link https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
- * @link https://en.wikipedia.org/wiki/Byte#Multiple-byte_units
- *
- * @param string $value A numeric php.ini directive's byte value,
- *                      either shorthand or ordinary, as returned
- *                      by a call to `ini_get()`.
+
+ * @param string $value Numeric string value possibly in "shorthand notation."
  * @return int          Parsed numeric value represented by given string.
  */
-function php_compat_ini_bytes( $value ) {
-	/** @var int Number of bytes in input string; we're only assessing 7-bit ASCII/Unicode characters. */
+function ini_parse_quantity( $value ) {
+	/**
+	 * Number of bytes in input string; because we're only assessing 7-bit
+	 * ASCII/Unicode characters we can safely count bytes vs. needing to
+	 * worry about code units, code points, or grapheme clusters.
+	 *
+	 * @var int
+	 */
 	$strlen = strlen( $value );
 
-	/** @var int|float Count (of bytes) represented by value string. */
+	/** @var int|float Numeric quantity represented by value string. */
 	$scalar = 0;
 
-	/** @var int Sign of number represented by input, either positive (1) or negative (-1). */
+	/** @var int Sign of numeric quantity, either positive (1) or negative (-1). */
 	$sign = 1;
 
-	/** @var int Numeric base of digits; determined by string prefix (e.g. "0x" or "0"). */
+	/**
+	 * Numeric base of digits determined by string prefix (e.g. "0x" or "0").
+	 * Must be 8 for octal, 10 for decimal, or 16 for hexadecimal.
+	 *
+	 * @var int
+	 */
 	$base = 10;
 
 	/** @var int Index into input string as we walk through it and analyze each character. */
@@ -110,17 +162,13 @@ function php_compat_ini_bytes( $value ) {
 	 * `+` or `-` characters in a row.
 	 */
 	for ( ; $i < $strlen; $i++ ) {
-		switch ( $value[ $i ] ) {
-			case ' ':
-			case "\t":
-			case "\r":
-			case "\v":
-			case "\f":
-				break;
+		$c = $value[ $i ];
 
-			default:
-				break 2;
+		if ( ' ' === $c || "\t" === $c || "\r" === $c || "\v" === $c || "\f" === $c ) {
+			continue;
 		}
+
+		break;
 	}
 
 	// Handle optional sign indicator.
@@ -157,11 +205,11 @@ function php_compat_ini_bytes( $value ) {
 	/**
 	 * Numeric values for scanned digits.
 	 *
-	 * These are used both to determine the decimal value the digit
-	 * represents as well as whether it's an allowed character in
-	 * the given base system. It's allowed if its value is less
-	 * than the base: e.g. '7' is allowed in octal, "base 8"
-	 * but '8' and '9' aren't because they are above it.
+	 * These are used to determine the decimal value the digit
+	 * represents and whether it's an allowed character in
+	 * the given base. It's allowed if its value is less
+	 * than the base: e.g. '7' is allowed in octal (base 8)
+	 * but '8' and '9' aren't because they are greater than 8.
 	 *
 	 * @var array
 	 */
@@ -190,9 +238,7 @@ function php_compat_ini_bytes( $value ) {
 		'f' => 15,
 	);
 
-	/*
-	 * Build the scalar value by eating the next sequence of contiguous digits.
-	 */
+	// Build the scalar value by consuming the next sequence of contiguous digits.
 	for ( ; $i < $strlen; $i++ ) {
 		$c = $value[ $i ];
 
@@ -205,9 +251,17 @@ function php_compat_ini_bytes( $value ) {
 			break;
 		}
 
+		/*
+		 * This is the step that computes our integer as we see new digits.
+		 *
+		 * Example:
+		 *      4   = (0 * 10) + 4
+		 *      45  = ((0 * 10 + 4) * 10) + 5
+		 *      458 = ((0 * 10 + 4) * 10 + 5) * 10 + 8
+		 */
 		$scalar = $scalar * $base + $digits[ $c ];
 
-		// Stop processing if we're already at the max value.
+		// Stop processing if we're already at the maximum magnitude for the sign.
 		if (
 			( $sign > 0 && $scalar > PHP_INT_MAX ) ||
 			( $sign < 0 && $scalar > -PHP_INT_MIN )
@@ -233,8 +287,8 @@ function php_compat_ini_bytes( $value ) {
 	 * Note that we can overflow here, as happens in PHP itself.
 	 * Overflow results will likely not match PHP's value, but
 	 * will likely break in most cases anyway and so leaving
-	 * this loose is the best we can do until and unless PHP
-	 * makes a more concrete choice on how to handle overflow.
+	 * this loose is the best we can do until we can read these
+	 * values directly from PHP.
 	 */
 	switch ( $value[ $strlen - 1 ] ) {
 		case 'g':
@@ -255,3 +309,4 @@ function php_compat_ini_bytes( $value ) {
 
 	return (int) $scalar;
 }
+endif;
