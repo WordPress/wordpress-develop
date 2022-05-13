@@ -4357,9 +4357,10 @@ function wp_enqueue_media( $args = array() ) {
 	}
 
 	/**
-	 * Allows overriding the list of months displayed in the media library.
+	 * Allows overriding or hiding the list of months select in the media library.
 	 *
-	 * By default (if this filter does not return an array), a query will be
+	 * By default (if the select hasn't been disabled by show_media_library_months_select
+	 * and if this media_library_months_with_files does not return an array), a query will be
 	 * run to determine the months that have media items.  This query can be
 	 * expensive for large media libraries, so it may be desirable for sites to
 	 * override this behavior.
@@ -4367,32 +4368,38 @@ function wp_enqueue_media( $args = array() ) {
 	 * @since 4.7.4
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/31071
+	 * 
+	 * @link https://core.trac.wordpress.org/ticket/41675
 	 *
 	 * @param array|null $months An array of objects with `month` and `year`
 	 *                           properties, or `null` (or any other non-array value)
 	 *                           for default behavior.
 	 */
+	$show_months_select = apply_filters( 'show_media_library_months_select', true );
+ 	$months = null;
 	$months = apply_filters( 'media_library_months_with_files', null );
-	if ( ! is_array( $months ) ) {
-		$months = $wpdb->get_results(
-			$wpdb->prepare(
-				"
-			SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-			FROM $wpdb->posts
-			WHERE post_type = %s
-			ORDER BY post_date DESC
-		",
-				'attachment'
-			)
-		);
-	}
-	foreach ( $months as $month_year ) {
-		$month_year->text = sprintf(
-			/* translators: 1: Month, 2: Year. */
-			__( '%1$s %2$d' ),
-			$wp_locale->get_month( $month_year->month ),
-			$month_year->year
-		);
+	if ( $show_months_select === true ) {
+		if ( ! is_array( $months ) ) {
+			$months = $wpdb->get_results(
+				$wpdb->prepare(
+					"
+				SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+				FROM $wpdb->posts
+				WHERE post_type = %s
+				ORDER BY post_date DESC
+			",
+					'attachment'
+				)
+			);
+		}
+		foreach ( $months as $month_year ) {
+			$month_year->text = sprintf(
+				/* translators: 1: Month, 2: Year. */
+				__( '%1$s %2$d' ),
+				$wp_locale->get_month( $month_year->month ),
+				$month_year->year
+			);
+		}
 	}
 
 	/**
@@ -4426,6 +4433,7 @@ function wp_enqueue_media( $args = array() ) {
 		'embedMimes'        => $ext_mimes,
 		'contentWidth'      => $content_width,
 		'months'            => $months,
+		'showMonths'        => $show_months_select,
 		'mediaTrash'        => MEDIA_TRASH ? 1 : 0,
 		'infiniteScrolling' => ( $infinite_scrolling ) ? 1 : 0,
 	);
