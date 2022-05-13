@@ -1476,11 +1476,12 @@ function is_ssl() {
  * @return int An integer byte value.
  */
 function wp_convert_hr_to_bytes( $value ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'wp_ini_parse_quantity' );
 	return wp_hr_bytes( $value );
 }
 
 /**
- * Converts a shorthand byte value to an integer byte value.
+ * Parses a "human-readable" byte value into an integer.
  *
  * @since 6.1.0
  *
