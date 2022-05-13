@@ -4368,7 +4368,7 @@ function wp_enqueue_media( $args = array() ) {
 	 * @since 4.7.4
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/31071
-	 * 
+	 *
 	 * @link https://core.trac.wordpress.org/ticket/41675
 	 *
 	 * @param array|null $months An array of objects with `month` and `year`
@@ -4377,7 +4377,7 @@ function wp_enqueue_media( $args = array() ) {
 	 */
 	$show_months_select = apply_filters( 'show_media_library_months_select', true );
 	$months = apply_filters( 'media_library_months_with_files', null );
-	if ( $show_months_select === true ) {
+	if ( true === $show_months_select ) {
 		if ( ! is_array( $months ) ) {
 			$months = $wpdb->get_results(
 				$wpdb->prepare(
