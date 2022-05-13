@@ -114,7 +114,7 @@ function get_user_locale( $user_id = 0 ) {
  *
  * @since 5.0.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @return string The determined locale.
  */
@@ -1769,4 +1769,19 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 		return $translated_settings;
 	}
 	return $settings;
+}
+
+/**
+ * Retrieves the list item separator based on the locale.
+ *
+ * @since 6.0.0
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
+ *
+ * @return string Locale-specific list item separator.
+ */
+function wp_get_list_item_separator() {
+	global $wp_locale;
+
+	return $wp_locale->get_list_item_separator();
 }

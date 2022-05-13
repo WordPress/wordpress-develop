@@ -127,7 +127,7 @@ function ms_site_check() {
 }
 
 /**
- * Retrieve the closest matching network for a domain and path.
+ * Retrieves the closest matching network for a domain and path.
  *
  * @since 3.9.0
  *
@@ -190,7 +190,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	$paths[] = '/';
 
 	/**
-	 * Determine a site by its domain and path.
+	 * Determines a site by its domain and path.
 	 *
 	 * This allows one to short-circuit the default logic, perhaps by
 	 * replacing it with a routine that is more optimal for your setup.
@@ -495,7 +495,7 @@ function ms_not_installed( $domain, $path ) {
 		__( 'Read the <a href="%s" target="_blank">Debugging a WordPress Network</a> article. Some of the suggestions there may help you figure out what went wrong.' ),
 		__( 'https://wordpress.org/support/article/debugging-a-wordpress-network/' )
 	);
-	$msg .= ' ' . __( 'If you&#8217;re still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
+	$msg .= ' ' . __( 'If you are still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
 	foreach ( $wpdb->tables( 'global' ) as $t => $table ) {
 		if ( 'sitecategories' === $t ) {
 			continue;
@@ -546,10 +546,10 @@ function wpmu_current_site() {
 }
 
 /**
- * Retrieve an object containing information about the requested network.
+ * Retrieves an object containing information about the requested network.
  *
  * @since 3.9.0
- * @deprecated 4.7.0 Use `get_network()`
+ * @deprecated 4.7.0 Use get_network()
  * @see get_network()
  *
  * @internal In 4.6.0, converted to use get_network()

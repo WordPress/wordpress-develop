@@ -1182,11 +1182,11 @@ class wpdb {
 			if ( ! did_action( 'template_redirect' ) ) {
 				wp_load_translations_early();
 
-				$message = '<h1>' . __( 'Can&#8217;t select database' ) . "</h1>\n";
+				$message = '<h1>' . __( 'Cannot select database' ) . "</h1>\n";
 
 				$message .= '<p>' . sprintf(
 					/* translators: %s: Database name. */
-					__( 'We were able to connect to the database server (which means your username and password is okay) but not able to select the %s database.' ),
+					__( 'The database server could be connected to (which means your username and password is okay) but the %s database could not be selected.' ),
 					'<code>' . htmlspecialchars( $db, ENT_QUOTES ) . '</code>'
 				) . "</p>\n";
 
@@ -1210,7 +1210,7 @@ class wpdb {
 
 				$message .= '<p>' . sprintf(
 					/* translators: %s: Support forums URL. */
-					__( 'If you don&#8217;t know how to set up a database you should <strong>contact your host</strong>. If all else fails you may find help at the <a href="%s">WordPress Support Forums</a>.' ),
+					__( 'If you do not know how to set up a database you should <strong>contact your host</strong>. If all else fails you may find help at the <a href="%s">WordPress Support Forums</a>.' ),
 					__( 'https://wordpress.org/support/forums/' )
 				) . "</p>\n";
 
@@ -1802,7 +1802,7 @@ class wpdb {
 
 			$message .= '<p>' . sprintf(
 				/* translators: 1: wp-config.php, 2: Database host. */
-				__( 'This either means that the username and password information in your %1$s file is incorrect or we can&#8217;t contact the database server at %2$s. This could mean your host&#8217;s database server is down.' ),
+				__( 'This either means that the username and password information in your %1$s file is incorrect or that contact with the database server at %2$s could not be established. This could mean your host&#8217;s database server is down.' ),
 				'<code>wp-config.php</code>',
 				'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
 			) . "</p>\n";
@@ -1815,7 +1815,7 @@ class wpdb {
 
 			$message .= '<p>' . sprintf(
 				/* translators: %s: Support forums URL. */
-				__( 'If you&#8217;re unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
+				__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
 				__( 'https://wordpress.org/support/forums/' )
 			) . "</p>\n";
 
@@ -1851,9 +1851,16 @@ class wpdb {
 	 * @since 4.9.0
 	 *
 	 * @param string $host The DB_HOST setting to parse.
-	 * @return array|false Array containing the host, the port, the socket and
-	 *                     whether it is an IPv6 address, in that order.
-	 *                     False if $host couldn't be parsed.
+	 * @return array|false {
+	 *     Array containing the host, the port, the socket and
+	 *     whether it is an IPv6 address, in that order.
+	 *     False if the host couldn't be parsed.
+	 *
+	 *     @type string      $0 Host name.
+	 *     @type string|null $1 Port.
+	 *     @type string|null $2 Socket.
+	 *     @type bool        $3 Whether it is an IPv6 address.
+	 * }
 	 */
 	public function parse_db_host( $host ) {
 		$port    = null;
@@ -1961,7 +1968,7 @@ class wpdb {
 
 		$message .= '<p>' . sprintf(
 			/* translators: %s: Database host. */
-			__( 'This means that we lost contact with the database server at %s. This could mean your host&#8217;s database server is down.' ),
+			__( 'This means that the contact with the database server at %s was lost. This could mean your host&#8217;s database server is down.' ),
 			'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
 		) . "</p>\n";
 
@@ -1972,7 +1979,7 @@ class wpdb {
 
 		$message .= '<p>' . sprintf(
 			/* translators: %s: Support forums URL. */
-			__( 'If you&#8217;re unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
+			__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
 			__( 'https://wordpress.org/support/forums/' )
 		) . "</p>\n";
 
@@ -3043,9 +3050,12 @@ class wpdb {
 	 *
 	 * @param string $table  Table name.
 	 * @param string $column Column name.
-	 * @return array|false|WP_Error array( 'length' => (int), 'type' => 'byte' | 'char' ).
-	 *                              False if the column has no length (for example, numeric column).
-	 *                              WP_Error object if there was an error.
+	 * @return array|false|WP_Error {
+	 *     Array of column length information, false if the column has no length (for
+	 *     example, numeric column), WP_Error object if there was an error.
+	 *
+	 *     @type int    $length The column length.
+	 *     @type string $type   One of 'byte' or 'char'.
 	 */
 	public function get_col_length( $table, $column ) {
 		$tablekey  = strtolower( $table );

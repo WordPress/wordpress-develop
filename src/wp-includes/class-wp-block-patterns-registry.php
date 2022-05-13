@@ -17,7 +17,7 @@ final class WP_Block_Patterns_Registry {
 	 * Registered block patterns array.
 	 *
 	 * @since 5.5.0
-	 * @var array
+	 * @var array[]
 	 */
 	private $registered_patterns = array();
 
@@ -33,6 +33,7 @@ final class WP_Block_Patterns_Registry {
 	 * Registers a block pattern.
 	 *
 	 * @since 5.5.0
+	 * @since 5.8.0 Added support for the `blockTypes` property.
 	 *
 	 * @param string $pattern_name       Block pattern name including namespace.
 	 * @param array  $pattern_properties {
@@ -51,6 +52,13 @@ final class WP_Block_Patterns_Registry {
 	 *                                 patterns. Block patterns can be shown on multiple categories.
 	 *                                 A category must be registered separately in order to be used
 	 *                                 here.
+	 *     @type array  $blockTypes    Optional. A list of block names including namespace that could use
+	 *                                 the block pattern in certain contexts (placeholder, transforms).
+	 *                                 The block pattern is available in the block editor inserter
+	 *                                 regardless of this list of block names.
+	 *                                 Certain blocks support further specificity besides the block name
+	 *                                 (e.g. for `core/template-part` you can specify areas
+	 *                                 like `core/template-part/header` or `core/template-part/footer`).
 	 *     @type array  $keywords      Optional. A list of aliases or keywords that help users discover the
 	 *                                 pattern while searching.
 	 * }
@@ -137,8 +145,8 @@ final class WP_Block_Patterns_Registry {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return array Array of arrays containing the registered block patterns properties,
-	 *               and per style.
+	 * @return array[] Array of arrays containing the registered block patterns properties,
+	 *                 and per style.
 	 */
 	public function get_all_registered() {
 		return array_values( $this->registered_patterns );

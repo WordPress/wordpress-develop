@@ -88,7 +88,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 			// Edit post link.
 			edit_post_link(
 				sprintf(
-					/* translators: %s: Name of current post. Only visible to screen readers. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					esc_html__( 'Edit %s', 'twentytwentyone' ),
 					'<span class="screen-reader-text">' . get_the_title() . '</span>'
 				),
@@ -100,8 +100,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 
 				echo '<div class="post-taxonomies">';
 
-				/* translators: Used between list items, there is a space after the comma. */
-				$categories_list = get_the_category_list( __( ', ', 'twentytwentyone' ) );
+				$categories_list = get_the_category_list( wp_get_list_item_separator() );
 				if ( $categories_list ) {
 					printf(
 						/* translators: %s: List of categories. */
@@ -110,8 +109,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 					);
 				}
 
-				/* translators: Used between list items, there is a space after the comma. */
-				$tags_list = get_the_tag_list( '', __( ', ', 'twentytwentyone' ) );
+				$tags_list = get_the_tag_list( '', wp_get_list_item_separator() );
 				if ( $tags_list ) {
 					printf(
 						/* translators: %s: List of tags. */
@@ -131,7 +129,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 			// Edit post link.
 			edit_post_link(
 				sprintf(
-					/* translators: %s: Name of current post. Only visible to screen readers. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					esc_html__( 'Edit %s', 'twentytwentyone' ),
 					'<span class="screen-reader-text">' . get_the_title() . '</span>'
 				),
@@ -144,8 +142,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 
 				echo '<div class="post-taxonomies">';
 
-				/* translators: Used between list items, there is a space after the comma. */
-				$categories_list = get_the_category_list( __( ', ', 'twentytwentyone' ) );
+				$categories_list = get_the_category_list( wp_get_list_item_separator() );
 				if ( $categories_list ) {
 					printf(
 						/* translators: %s: List of categories. */
@@ -154,8 +151,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 					);
 				}
 
-				/* translators: Used between list items, there is a space after the comma. */
-				$tags_list = get_the_tag_list( '', __( ', ', 'twentytwentyone' ) );
+				$tags_list = get_the_tag_list( '', wp_get_list_item_separator() );
 				if ( $tags_list ) {
 					printf(
 						/* translators: %s: List of tags. */

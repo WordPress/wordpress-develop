@@ -1686,6 +1686,53 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures sticking a post succeeds after deleting the 'sticky_posts' option.
+	 *
+	 * @ticket 52007
+	 * @ticket 55176
+	 * @covers ::stick_post
+	 */
+	public function test_stick_post_after_delete_sticky_posts_option() {
+		delete_option( 'sticky_posts' );
+
+		stick_post( 1 );
+		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensures sticking works with an unexpected option value.
+	 *
+	 * @ticket 52007
+	 * @ticket 55176
+	 * @covers ::stick_post
+	 * @dataProvider data_stick_post_with_unexpected_sticky_posts_option
+	 *
+	 * @param mixed $starting_option Starting value for sticky_posts option.
+	 */
+	public function test_stick_post_with_unexpected_sticky_posts_option( $starting_option ) {
+		update_option( 'sticky_posts', $starting_option );
+
+		stick_post( 1 );
+		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_stick_post_with_unexpected_sticky_posts_option() {
+		return array(
+			'false'     => array( false ),
+			'a string'  => array( 'string' ),
+			'1 int'     => array( 1 ),
+			'null'      => array( null ),
+			'true'      => array( true ),
+			'an object' => array( new stdClass ),
+		);
+	}
+
+	/**
 	 * Ensure sticking a post removes other duplicate post IDs from the option.
 	 *
 	 * @ticket 52007

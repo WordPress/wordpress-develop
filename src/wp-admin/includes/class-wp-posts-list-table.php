@@ -251,24 +251,24 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string[] $args  Associative array of URL parameters for the link.
-	 * @param string   $label Link text.
-	 * @param string   $class Optional. Class attribute. Default empty string.
+	 * @param string[] $args      Associative array of URL parameters for the link.
+	 * @param string   $link_text Link text.
+	 * @param string   $css_class Optional. Class attribute. Default empty string.
 	 * @return string The formatted link string.
 	 */
-	protected function get_edit_link( $args, $label, $class = '' ) {
+	protected function get_edit_link( $args, $link_text, $css_class = '' ) {
 		$url = add_query_arg( $args, 'edit.php' );
 
 		$class_html   = '';
 		$aria_current = '';
 
-		if ( ! empty( $class ) ) {
+		if ( ! empty( $css_class ) ) {
 			$class_html = sprintf(
 				' class="%s"',
-				esc_attr( $class )
+				esc_attr( $css_class )
 			);
 
-			if ( 'current' === $class ) {
+			if ( 'current' === $css_class ) {
 				$aria_current = ' aria-current="page"';
 			}
 		}
@@ -278,7 +278,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			esc_url( $url ),
 			$class_html,
 			$aria_current,
-			$label
+			$link_text
 		);
 	}
 
@@ -905,21 +905,21 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 *
 	 * @param array $children_pages
 	 * @param int   $count
-	 * @param int   $parent
+	 * @param int   $parent_page
 	 * @param int   $level
 	 * @param int   $pagenum
 	 * @param int   $per_page
 	 * @param array $to_display List of pages to be displayed. Passed by reference.
 	 */
-	private function _page_rows( &$children_pages, &$count, $parent, $level, $pagenum, $per_page, &$to_display ) {
-		if ( ! isset( $children_pages[ $parent ] ) ) {
+	private function _page_rows( &$children_pages, &$count, $parent_page, $level, $pagenum, $per_page, &$to_display ) {
+		if ( ! isset( $children_pages[ $parent_page ] ) ) {
 			return;
 		}
 
 		$start = ( $pagenum - 1 ) * $per_page;
 		$end   = $start + $per_page;
 
-		foreach ( $children_pages[ $parent ] as $page ) {
+		foreach ( $children_pages[ $parent_page ] as $page ) {
 			if ( $count >= $end ) {
 				break;
 			}
@@ -964,7 +964,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$this->_page_rows( $children_pages, $count, $page->ID, $level + 1, $pagenum, $per_page, $to_display );
 		}
 
-		unset( $children_pages[ $parent ] ); // Required in order to keep track of orphans.
+		unset( $children_pages[ $parent_page ] ); // Required in order to keep track of orphans.
 	}
 
 	/**
@@ -1294,8 +1294,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				 */
 				$term_links = apply_filters( 'post_column_taxonomy_links', $term_links, $taxonomy, $terms );
 
-				/* translators: Used between list items, there is a space after the comma. */
-				echo implode( __( ', ' ), $term_links );
+				echo implode( wp_get_list_item_separator(), $term_links );
 			} else {
 				echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . $taxonomy_object->labels->no_terms . '</span>';
 			}
@@ -1612,9 +1611,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 			?>
 			<tr id="<?php echo $bulk ? 'bulk-edit' : 'inline-edit'; ?>" class="<?php echo $classes; ?>" style="display: none">
 			<td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
-
+			<div class="inline-edit-wrapper" role="region" aria-labelledby="<?php echo $bulk ? 'bulk' : 'quick'; ?>-edit-legend">
 			<fieldset class="inline-edit-col-left">
-				<legend class="inline-edit-legend"><?php echo $bulk ? __( 'Bulk Edit' ) : __( 'Quick Edit' ); ?></legend>
+				<legend class="inline-edit-legend" id="<?php echo $bulk ? 'bulk' : 'quick'; ?>-edit-legend"><?php echo $bulk ? __( 'Bulk Edit' ) : __( 'Quick Edit' ); ?></legend>
 				<div class="inline-edit-col">
 
 				<?php if ( post_type_supports( $screen->post_type, 'title' ) ) : ?>
@@ -1658,39 +1657,45 @@ class WP_Posts_List_Table extends WP_List_Table {
 					$authors_dropdown = '';
 
 					if ( current_user_can( $post_type_object->cap->edit_others_posts ) ) {
-						$users_opt = array(
-							'hide_if_only_one_author' => false,
-							'capability'              => array( $post_type_object->cap->edit_posts ),
-							'name'                    => 'post_author',
-							'class'                   => 'authors',
-							'multi'                   => 1,
-							'echo'                    => 0,
-							'show'                    => 'display_name_with_login',
-						);
+						$dropdown_name  = 'post_author';
+						$dropdown_class = 'authors';
+						if ( wp_is_large_user_count() ) {
+							$authors_dropdown = sprintf( '<select name="%s" class="%s hidden"></select>', esc_attr( $dropdown_name ), esc_attr( $dropdown_class ) );
+						} else {
+							$users_opt = array(
+								'hide_if_only_one_author' => false,
+								'capability'              => array( $post_type_object->cap->edit_posts ),
+								'name'                    => $dropdown_name,
+								'class'                   => $dropdown_class,
+								'multi'                   => 1,
+								'echo'                    => 0,
+								'show'                    => 'display_name_with_login',
+							);
 
-						if ( $bulk ) {
-							$users_opt['show_option_none'] = __( '&mdash; No Change &mdash;' );
-						}
+							if ( $bulk ) {
+								$users_opt['show_option_none'] = __( '&mdash; No Change &mdash;' );
+							}
 
-						/**
-						 * Filters the arguments used to generate the Quick Edit authors drop-down.
-						 *
-						 * @since 5.6.0
-						 *
-						 * @see wp_dropdown_users()
-						 *
-						 * @param array $users_opt An array of arguments passed to wp_dropdown_users().
-						 * @param bool  $bulk      A flag to denote if it's a bulk action.
-						 */
-						$users_opt = apply_filters( 'quick_edit_dropdown_authors_args', $users_opt, $bulk );
+							/**
+							 * Filters the arguments used to generate the Quick Edit authors drop-down.
+							 *
+							 * @since 5.6.0
+							 *
+							 * @see wp_dropdown_users()
+							 *
+							 * @param array $users_opt An array of arguments passed to wp_dropdown_users().
+							 * @param bool $bulk A flag to denote if it's a bulk action.
+							 */
+							$users_opt = apply_filters( 'quick_edit_dropdown_authors_args', $users_opt, $bulk );
 
-						$authors = wp_dropdown_users( $users_opt );
+							$authors = wp_dropdown_users( $users_opt );
 
-						if ( $authors ) {
-							$authors_dropdown  = '<label class="inline-edit-author">';
-							$authors_dropdown .= '<span class="title">' . __( 'Author' ) . '</span>';
-							$authors_dropdown .= $authors;
-							$authors_dropdown .= '</label>';
+							if ( $authors ) {
+								$authors_dropdown  = '<label class="inline-edit-author">';
+								$authors_dropdown .= '<span class="title">' . __( 'Author' ) . '</span>';
+								$authors_dropdown .= $authors;
+								$authors_dropdown .= '</label>';
+							}
 						}
 					} // current_user_can( 'edit_others_posts' )
 
@@ -1829,12 +1834,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 						<?php if ( current_user_can( $taxonomy->cap->assign_terms ) ) : ?>
 							<?php $taxonomy_name = esc_attr( $taxonomy->name ); ?>
-
+							<div class="inline-edit-tags-wrap">
 							<label class="inline-edit-tags">
 								<span class="title"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
-								<textarea data-wp-taxonomy="<?php echo $taxonomy_name; ?>" cols="22" rows="1" name="tax_input[<?php echo $taxonomy_name; ?>]" class="tax_input_<?php echo $taxonomy_name; ?>"></textarea>
+								<textarea data-wp-taxonomy="<?php echo $taxonomy_name; ?>" cols="22" rows="1" name="tax_input[<?php echo esc_attr( $taxonomy->name ); ?>]" class="tax_input_<?php echo esc_attr( $taxonomy->name ); ?>" aria-describedby="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"></textarea>
 							</label>
-
+							<p class="howto" id="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"><?php echo esc_html( $taxonomy->labels->separate_items_with_commas ); ?></p>
+							</div>
 						<?php endif; // current_user_can( 'assign_terms' ) ?>
 
 					<?php endforeach; // $flat_taxonomies as $taxonomy ?>
@@ -2008,14 +2014,17 @@ class WP_Posts_List_Table extends WP_List_Table {
 			?>
 
 			<div class="submit inline-edit-save">
-				<button type="button" class="button cancel alignleft"><?php _e( 'Cancel' ); ?></button>
-
 				<?php if ( ! $bulk ) : ?>
 					<?php wp_nonce_field( 'inlineeditnonce', '_inline_edit', false ); ?>
-					<button type="button" class="button button-primary save alignright"><?php _e( 'Update' ); ?></button>
-					<span class="spinner"></span>
+					<button type="button" class="button button-primary save"><?php _e( 'Update' ); ?></button>
 				<?php else : ?>
-					<?php submit_button( __( 'Update' ), 'primary alignright', 'bulk_edit', false ); ?>
+					<?php submit_button( __( 'Update' ), 'primary', 'bulk_edit', false ); ?>
+				<?php endif; ?>
+
+				<button type="button" class="button cancel"><?php _e( 'Cancel' ); ?></button>
+
+				<?php if ( ! $bulk ) : ?>
+					<span class="spinner"></span>
 				<?php endif; ?>
 
 				<input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
@@ -2023,12 +2032,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<?php if ( ! $bulk && ! post_type_supports( $screen->post_type, 'author' ) ) : ?>
 					<input type="hidden" name="post_author" value="<?php echo esc_attr( $post->post_author ); ?>" />
 				<?php endif; ?>
-				<br class="clear" />
 
 				<div class="notice notice-error notice-alt inline hidden">
 					<p class="error"></p>
 				</div>
 			</div>
+		</div> <!-- end of .inline-edit-wrapper -->
 
 			</td></tr>
 

@@ -586,7 +586,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-username">
 				<label for="%1$s">%2$s</label>
-				<input type="text" name="log" id="%1$s" class="input" value="%3$s" size="20" />
+				<input type="text" name="log" id="%1$s" autocomplete="username" class="input" value="%3$s" size="20" />
 			</p>',
 			esc_attr( $args['id_username'] ),
 			esc_html( $args['label_username'] ),
@@ -595,7 +595,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-password">
 				<label for="%1$s">%2$s</label>
-				<input type="password" name="pwd" id="%1$s" class="input" value="" size="20" />
+				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" class="input" value="" size="20" />
 			</p>',
 			esc_attr( $args['id_password'] ),
 			esc_html( $args['label_password'] )
@@ -1315,7 +1315,7 @@ function _wp_render_title_tag() {
  *                            Default '&raquo;'.
  * @param bool   $display     Optional. Whether to display or retrieve title. Default true.
  * @param string $seplocation Optional. Location of the separator ('left' or 'right').
- * @return string|void String when `$display` is true, nothing otherwise.
+ * @return string|void String when `$display` is false, nothing otherwise.
  */
 function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	global $wp_locale;
@@ -1636,7 +1636,7 @@ function single_term_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving.
+ * @return string|false|void False if there's no valid title for the month. Title when retrieving.
  */
 function single_month_title( $prefix = '', $display = true ) {
 	global $wp_locale;
@@ -2555,7 +2555,7 @@ function the_date( $format = '', $before = '', $after = '', $echo = true ) {
  *
  * @param string      $format Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
- * @return string|false Date the current post was written. False on failure.
+ * @return string|int|false Date the current post was written. False on failure.
  */
 function get_the_date( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -2573,9 +2573,9 @@ function get_the_date( $format = '', $post = null ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string      $the_date The formatted date.
+	 * @param string|int  $the_date Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
 	 * @param string      $format   PHP date format.
-	 * @param int|WP_Post $post     The post object or ID.
+	 * @param WP_Post     $post     The post object.
 	 */
 	return apply_filters( 'get_the_date', $the_date, $format, $post );
 }
@@ -2699,10 +2699,10 @@ function get_the_time( $format = '', $post = null ) {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string      $the_time The formatted time.
+	 * @param string|int  $the_time Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
 	 * @param string      $format   Format to use for retrieving the time the post
 	 *                              was written. Accepts 'G', 'U', or PHP date format.
-	 * @param int|WP_Post $post     WP_Post object or ID.
+	 * @param WP_Post     $post     Post object.
 	 */
 	return apply_filters( 'get_the_time', $the_time, $format, $post );
 }
@@ -2756,10 +2756,10 @@ function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = 
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param string $time   The formatted time.
-	 * @param string $format Format to use for retrieving the time the post was written.
-	 *                       Accepts 'G', 'U', or PHP date format. Default 'U'.
-	 * @param bool   $gmt    Whether to retrieve the GMT time. Default false.
+	 * @param string|int $time   Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+	 * @param string     $format Format to use for retrieving the time the post was written.
+	 *                           Accepts 'G', 'U', or PHP date format.
+	 * @param bool       $gmt    Whether to retrieve the GMT time.
 	 */
 	return apply_filters( 'get_post_time', $time, $format, $gmt );
 }
@@ -3153,9 +3153,16 @@ function feed_links_extra( $args = array() ) {
 		$id   = 0;
 		$post = get_post( $id );
 
-		if ( comments_open() || pings_open() || $post->comment_count > 0 ) {
-			$title = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
-			$href  = get_post_comments_feed_link( $post->ID );
+		/** This filter is documented in wp-includes/general-template.php */
+		$show_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
+
+		if ( $show_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
+			$title     = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
+			$feed_link = get_post_comments_feed_link( $post->ID );
+
+			if ( $feed_link ) {
+				$href = $feed_link;
+			}
 		}
 	} elseif ( is_post_type_archive() ) {
 		$post_type = get_query_var( 'post_type' );
@@ -3224,12 +3231,14 @@ function wlwmanifest_link() {
 }
 
 /**
- * Displays a referrer strict-origin-when-cross-origin meta tag.
+ * Displays a referrer `strict-origin-when-cross-origin` meta tag.
  *
- * Outputs a referrer origin-when-cross-origin meta tag that tells the browser not to send the full
- * url as a referrer to other sites when cross-origin assets are loaded.
+ * Outputs a referrer `strict-origin-when-cross-origin` meta tag that tells the browser not to send
+ * the full URL as a referrer to other sites when cross-origin assets are loaded.
  *
- * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_strict_cross_origin_referrer' );
+ * Typical usage is as a {@see 'wp_head'} callback:
+ *
+ *     add_action( 'wp_head', 'wp_strict_cross_origin_referrer' );
  *
  * @since 5.7.0
  */
