@@ -39,8 +39,7 @@ function wp_initial_constants() {
 		define( 'WP_START_TIMESTAMP', microtime( true ) );
 	}
 
-	$current_limit     = ini_get( 'memory_limit' );
-	$current_limit_int = wp_ini_bytes( $current_limit );
+	$current_limit = ini_get( 'memory_limit' );
 
 	// Define memory limits.
 	if ( ! defined( 'WP_MEMORY_LIMIT' ) ) {
@@ -56,18 +55,15 @@ function wp_initial_constants() {
 	if ( ! defined( 'WP_MAX_MEMORY_LIMIT' ) ) {
 		if ( false === wp_is_ini_value_changeable( 'memory_limit' ) ) {
 			define( 'WP_MAX_MEMORY_LIMIT', $current_limit );
-		} elseif ( -1 === $current_limit_int || $current_limit_int > 256 * MB_IN_BYTES ) {
+		} elseif ( wp_ini_quantity_cmp( $current_limit, '256M' ) > 0 ) {
 			define( 'WP_MAX_MEMORY_LIMIT', $current_limit );
-		} elseif ( wp_convert_hr_to_bytes( WP_MEMORY_LIMIT ) > 256 * MB_IN_BYTES ) {
-			define( 'WP_MAX_MEMORY_LIMIT', WP_MEMORY_LIMIT );
 		} else {
 			define( 'WP_MAX_MEMORY_LIMIT', '256M' );
 		}
 	}
 
 	// Set memory limits.
-	$wp_limit_int = wp_ini_bytes( WP_MEMORY_LIMIT );
-	if ( -1 !== $current_limit && ( -1 === $wp_limit_int || $wp_limit_int > $current_limit_int ) ) {
+	if ( wp_ini_quantity_cmp( WP_MEMORY_LIMIT, $current_limit ) > 0 ) {
 		ini_set( 'memory_limit', WP_MEMORY_LIMIT );
 	}
 
