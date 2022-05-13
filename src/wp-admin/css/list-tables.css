@@ -406,6 +406,11 @@ table.media .column-title .filename {
 	transition: none;
 }
 
+.plugins #the-list {
+	display: flex;
+	flex-wrap: wrap;
+}
+
 #the-list tr:last-child td,
 #the-list tr:last-child th {
 	border-bottom: none !important;
@@ -2113,11 +2118,6 @@ div.action-links,
 	.wp-list-table.plugins .theme-title {
 		padding-top: 13px;
 		padding-bottom: 4px;
-	}
-	
-	.plugins #the-list {
-		display: flex;
-		flex-wrap: wrap;
 	}
 
 	.plugins #the-list tr > td:not(:last-child),
