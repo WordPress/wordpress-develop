@@ -21,6 +21,8 @@ require ABSPATH . WPINC . '/blocks/comments-pagination-next.php';
 require ABSPATH . WPINC . '/blocks/comments-pagination-numbers.php';
 require ABSPATH . WPINC . '/blocks/comments-pagination-previous.php';
 require ABSPATH . WPINC . '/blocks/comments-pagination.php';
+require ABSPATH . WPINC . '/blocks/comments-title.php';
+require ABSPATH . WPINC . '/blocks/cover.php';
 require ABSPATH . WPINC . '/blocks/file.php';
 require ABSPATH . WPINC . '/blocks/gallery.php';
 require ABSPATH . WPINC . '/blocks/home-link.php';
@@ -37,6 +39,7 @@ require ABSPATH . WPINC . '/blocks/pattern.php';
 require ABSPATH . WPINC . '/blocks/post-author-biography.php';
 require ABSPATH . WPINC . '/blocks/post-author.php';
 require ABSPATH . WPINC . '/blocks/post-comments.php';
+require ABSPATH . WPINC . '/blocks/post-comments-form.php';
 require ABSPATH . WPINC . '/blocks/post-content.php';
 require ABSPATH . WPINC . '/blocks/post-date.php';
 require ABSPATH . WPINC . '/blocks/post-excerpt.php';
@@ -79,7 +82,6 @@ function register_core_block_types_from_metadata() {
 		'code',
 		'column',
 		'columns',
-		'cover',
 		'embed',
 		'freeform',
 		'group',

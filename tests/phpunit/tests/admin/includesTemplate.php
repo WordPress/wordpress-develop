@@ -43,6 +43,58 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 49701
+	 *
+	 * @covers ::get_inline_data
+	 */
+	public function test_get_inline_data_contains_term_if_show_ui_is_false_but_show_on_quick_edit_is_true_for_hierarchical_taxonomy() {
+		// Create a post with a term from a hierarchical taxonomy.
+		register_taxonomy(
+			'wptests_tax_1',
+			'post',
+			array(
+				'show_ui'            => false,
+				'show_in_quick_edit' => true,
+				'hierarchical'       => true,
+			)
+		);
+		$term = wp_insert_term( 'Test', 'wptests_tax_1' );
+		$post = self::factory()->post->create_and_get();
+		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
+
+		// Test that get_inline_data() has `post_category` div containing the assigned term.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		get_inline_data( $post );
+		$this->expectOutputRegex( '/<div class="post_category" id="wptests_tax_1_' . $post->ID . '">' . $term['term_id'] . '<\/div>/' );
+	}
+
+	/**
+	 * @ticket 49701
+	 *
+	 * @covers ::get_inline_data
+	 */
+	public function test_get_inline_data_contains_term_if_show_ui_is_false_but_show_on_quick_edit_is_true_for_nonhierarchical_taxonomy() {
+		// Create a post with a term from a non-hierarchical taxonomy.
+		register_taxonomy(
+			'wptests_tax_1',
+			'post',
+			array(
+				'show_ui'            => false,
+				'show_in_quick_edit' => true,
+				'hierarchical'       => false,
+			)
+		);
+		$term = wp_insert_term( 'Test', 'wptests_tax_1' );
+		$post = self::factory()->post->create_and_get();
+		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
+
+		// Test that get_inline_data() has `tags_input` div containing the assigned term.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		get_inline_data( $post );
+		$this->expectOutputRegex( '/<div class="tags_input" id="wptests_tax_1_' . $post->ID . '">Test<\/div>/' );
+	}
+
 	public function test_add_meta_box() {
 		global $wp_meta_boxes;
 
