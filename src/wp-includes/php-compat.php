@@ -51,7 +51,7 @@ function wp_ini_parse_quantity( $value ) {
  * Example:
  *     wp_ini_quantity_max( '256m', -1 ) === -1
  *     wp_ini_quantity_max( '64K', '64') === '64K'
- *     wp_ini_qantity_max( 1000, 2000 ) === 2000
+ *     wp_ini_quantity_max( 1000, 2000 ) === 2000
  *
  * @param int|string|false $a Quantity value.
  * @param int|string|false $b Quantity value.
@@ -65,9 +65,9 @@ function wp_ini_quantity_max( $a, $b ) {
  * Returns smaller of two php.ini directive quantity values.
  *
  * Example:
- *     wp_ini_quantity_max( '256m', -1 ) === '256m'
- *     wp_ini_quantity_max( '64K', '64') === '64'
- *     wp_ini_qantity_max( 1000, 2000 ) === 1000
+ *     wp_ini_quantity_min( '256m', -1 ) === '256m'
+ *     wp_ini_quantity_min( '64K', '64') === '64'
+ *     wp_ini_quantity_min( 1000, 2000 ) === 1000
  *
  * @param int|string|false $a Quantity value.
  * @param int|string|false $b Quantity value.
