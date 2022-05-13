@@ -51,7 +51,7 @@ foreach ( get_default_block_template_types() as $slug => $template_type ) {
 
 $block_editor_context = new WP_Block_Editor_Context();
 $custom_settings      = array(
-	'siteUrl'                              => site_url(),
+	'siteUrl'                              => home_url(),
 	'postsPerPage'                         => get_option( 'posts_per_page' ),
 	'styles'                               => get_block_editor_theme_styles(),
 	'defaultTemplateTypes'                 => $indexed_template_types,
