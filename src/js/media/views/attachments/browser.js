@@ -1,5 +1,6 @@
 var View = wp.media.View,
 	mediaTrash = wp.media.view.settings.mediaTrash,
+	showMonths = wp.media.view.settings.showMonths,
 	l10n = wp.media.view.l10n,
 	$ = jQuery,
 	AttachmentsBrowser,
