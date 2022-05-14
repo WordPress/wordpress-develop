@@ -8478,7 +8478,14 @@ function is_virtualbox() {
 		return $is_virtualbox;
 	}
 
-	// Detection via filter.
+	/**
+	 * Filter to detect whether the current environment uses VirtualBox.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param bool Whether the current environment uses VirtualBox.
+	 *             Default: false.
+	 */
 	if ( apply_filters( 'is_virtualbox', false ) ) {
 		$is_virtualbox = true;
 		return $is_virtualbox;
