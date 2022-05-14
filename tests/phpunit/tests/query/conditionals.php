@@ -1616,4 +1616,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_page', 'is_singular', 'is_privacy_policy' );
 	}
 
+	/**
+	 * @ticket 55104
+	 * @expectedIncorrectUsage is_main_query
+	 */
+	public function test_is_main_query_returns_false_if_wp_query_is_not_set() {
+		unset( $GLOBALS['wp_query'] );
+
+		$this->assertFalse( is_main_query() );
+	}
+
 }
