@@ -8479,7 +8479,7 @@ function is_virtualbox() {
 	}
 
 	/**
-	 * Filter to detect whether the current environment uses VirtualBox.
+	 * Filters whether the current environment uses VirtualBox.
 	 *
 	 * @since 6.1.0
 	 *
