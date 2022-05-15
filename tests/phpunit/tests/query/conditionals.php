@@ -1618,12 +1618,28 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55104
-	 * @expectedIncorrectUsage is_main_query
 	 */
-	public function test_is_main_query_returns_false_if_wp_query_is_not_set() {
+	public function test_conditional_tags_trigger_doing_it_wrong_and_return_false_if_wp_query_is_not_set() {
 		unset( $GLOBALS['wp_query'] );
 
-		$this->assertFalse( is_main_query() );
+		$functions = get_class_methods( 'WP_Query' );
+
+		foreach ( $functions as $function_name ) {
+			// Only test `is_*()` conditional tags.
+			if ( ! str_starts_with( $function_name, 'is_' ) ) {
+				continue;
+			}
+
+			if ( 'is_comments_popup' === $function_name ) {
+				// `is_comments_popup()` is deprecated as of WP 4.5.
+				$this->setExpectedDeprecated( $function_name );
+			} else {
+				// All the other functions should throw a `_doing_it_wrong()` notice.
+				$this->setExpectedIncorrectUsage( $function_name );
+			}
+
+			$this->assertFalse( call_user_func( $function_name ) );
+		}
 	}
 
 }
